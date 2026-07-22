@@ -14,6 +14,8 @@ export default function LeagueHub({ user, profile, onOpenLeague }) {
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState("");
   const [season, setSeason] = useState("");
+  const [visibility, setVisibility] = useState("private");
+  const [isPractice, setIsPractice] = useState(false);
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -21,7 +23,7 @@ export default function LeagueHub({ user, profile, onOpenLeague }) {
     setLoading(true);
     const [{ data, error }, { data: publicData, error: publicError }] = await Promise.all([
       supabase.from("league_memberships").select("id, role, league:leagues(id, name, slug, season_label, status, updated_at, draft_starts_at)").eq("user_id", user.id).order("joined_at", { ascending: false }),
-      supabase.from("leagues").select("id, name, slug, description, season_label, status, draft_starts_at").eq("is_public", true).order("updated_at", { ascending: false }).limit(6),
+      supabase.from("leagues").select("id, name, slug, description, season_label, status, draft_starts_at, league_visibility, is_practice").eq("league_visibility", "open").order("updated_at", { ascending: false }).limit(6),
     ]);
     setLoading(false);
     if (error || publicError) return setMessage((error || publicError).message);
@@ -53,7 +55,7 @@ export default function LeagueHub({ user, profile, onOpenLeague }) {
     if (!cleanName) return;
     const slug = `${slugify(cleanName)}-${Math.random().toString(36).slice(2, 7)}`;
     setBusy(true); setMessage("");
-    const { data, error } = await supabase.rpc("create_league", { p_name: cleanName, p_slug: slug, p_description: "", p_season_label: season });
+    const { data, error } = await supabase.rpc("create_league", { p_name: cleanName, p_slug: slug, p_description: "", p_season_label: season, p_visibility: visibility, p_is_practice: isPractice });
     setBusy(false);
     if (error) return setMessage(error.message);
     onOpenLeague({ id: data, name: cleanName, slug, season_label: season, role: "commissioner" });
@@ -61,7 +63,7 @@ export default function LeagueHub({ user, profile, onOpenLeague }) {
 
   async function joinPublicLeague(league) {
     setBusy(true); setMessage("");
-    const { data, error } = await supabase.rpc("join_public_league", { p_slug: league.slug });
+    const { data, error } = await supabase.rpc("join_open_league", { p_slug: league.slug });
     setBusy(false);
     if (error) return setMessage(error.message);
     onOpenLeague({ ...league, id: data, role: "viewer" });
@@ -88,13 +90,15 @@ export default function LeagueHub({ user, profile, onOpenLeague }) {
           <form onSubmit={createLeague} className="form-stack">
             <label>League name<input required minLength={2} value={name} onChange={(e) => setName(e.target.value)} placeholder="Kanto Cup" /></label>
             <label>Season label<input value={season} onChange={(e) => setSeason(e.target.value)} placeholder="Season 1" /></label>
+            <label>Who can access it?<select value={visibility} onChange={(e) => setVisibility(e.target.value)}><option value="private">Private — invite link only</option><option value="watch">Public to watch — people can view results</option><option value="open">Open to join — shown in Discover</option></select></label>
+            <label className="check-label"><input type="checkbox" checked={isPractice} onChange={(e) => setIsPractice(e.target.checked)} /> Practice league — kept out of career stats</label>
             <button className="primary-button" disabled={busy}>{busy ? "Working..." : "Create league"}</button>
           </form>
         </aside>
       </div>
       <section className="hub-card public-card"><div className="section-heading"><div><span className="eyebrow">DISCOVER</span><h2>Public leagues</h2></div><span className="muted">Site-wide leaderboards are coming soon.</span></div>
-        {!loading && publicLeagues.length === 0 && <p className="muted">No public leagues yet. Private leagues can still be joined with an invite link.</p>}
-        <div className="public-grid">{publicLeagues.map((league) => <article key={league.id} className="public-league"><strong>{league.name}</strong><p>{league.description || league.season_label || "Open league"}</p><button className="secondary-button" disabled={busy} onClick={() => joinPublicLeague(league)}>Join league</button></article>)}</div>
+        {!loading && publicLeagues.length === 0 && <p className="muted">No leagues are open for new managers yet. Private leagues can still be joined with an invite link.</p>}
+        <div className="public-grid">{publicLeagues.map((league) => <article key={league.id} className="public-league"><strong>{league.name}</strong><p>{league.description || league.season_label || "Open league"}</p>{league.is_practice && <span className="practice-badge">Practice</span>}<button className="secondary-button" disabled={busy} onClick={() => joinPublicLeague(league)}>Join as a manager</button></article>)}</div>
       </section>
     </main>
   );
