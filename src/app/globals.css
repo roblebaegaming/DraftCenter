@@ -14,3 +14,4 @@ button { cursor: pointer; }
    in-app league navigation at tablet widths. */
 .site-account { position:relative; z-index:20; top:auto; right:auto; left:auto; min-height:60px; padding:10px max(16px, calc((100vw - 1152px) / 2)); justify-content:flex-end; flex-wrap:wrap; background:#141729; border-bottom:1px solid rgba(255,255,255,.08); }
 @media (max-width: 760px) { .site-account { min-height:unset; padding:10px; justify-content:flex-start; } }
+.danger-button { border:0; border-radius:8px; padding:11px 13px; font-weight:800; background:#a93245; color:#fff; }
