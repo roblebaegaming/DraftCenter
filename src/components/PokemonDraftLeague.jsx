@@ -4428,6 +4428,7 @@ function isWithinOvernightPause(date, settings) {
 }
 
 export default function PokemonDraftLeague({ leagueId = null, profile = null }) {
+  const [supabase] = useState(() => createClient());
   const [tab, setTab] = useState("home");
   // Which of Schedule / Standings / Playoffs / History is showing inside the
   // consolidated "League" tab — these four used to be separate top-level
@@ -4455,6 +4456,7 @@ export default function PokemonDraftLeague({ leagueId = null, profile = null }) 
   const [state, setState] = useState(freshState());
   const [synced, setSynced] = useState(false);
   const [saveStatus, setSaveStatus] = useState(leagueId ? "loading" : "local");
+  const [liveDraftError, setLiveDraftError] = useState("");
   const revRef = useRef(0);
   const saveRequestRef = useRef(0);
 
@@ -4570,7 +4572,14 @@ export default function PokemonDraftLeague({ leagueId = null, profile = null }) 
     setMyName(newName);
   }
 
-  function claimTeam(teamIdx) {
+  async function claimTeam(teamIdx) {
+    if (leagueId) {
+      const { data, error } = await supabase.rpc("claim_live_setup_team", { p_league_id: leagueId, p_team_index: teamIdx });
+      if (error) { setLiveDraftError(error.message); return; }
+      setLiveDraftError("");
+      setState(hydrateState(data));
+      return;
+    }
     commit((s) => ({
       ...s,
       teams: s.teams.map((t, i) => (i === teamIdx ? { ...t, claimedBy: myName } : t)),
@@ -4802,6 +4811,54 @@ export default function PokemonDraftLeague({ leagueId = null, profile = null }) 
 
   const availablePool = fullPool(state.settings).filter((p) => isLegal(p, state.settings));
 
+  // The normal prototype uses a shared JSON snapshot. A shared live snake
+  // draft instead reads the official picks from Supabase after every event;
+  // the browser only projects that server state for display.
+  const refreshLiveSnakeDraft = useCallback(async () => {
+    if (!leagueId) return;
+    const [{ data: live, error }, { data: pokemonRows, error: pokemonError }] = await Promise.all([
+      supabase.rpc("get_live_snake_draft", { p_league_id: leagueId }),
+      supabase.from("league_pokemon").select("id, source_key").eq("league_id", leagueId),
+    ]);
+    if (error || pokemonError || !live?.session?.id) return;
+    setState((previous) => {
+      if (!previous.liveDraft?.sessionId) return previous;
+      const basePool = previous.liveDraft.basePool || previous.pool || [];
+      const bySourceKey = new Map(basePool.map((mon) => [String(mon.id), mon]));
+      const rosters = Array.from({ length: previous.teams.length }, () => []);
+      for (const pick of live.picks || []) {
+        const teamIndex = Number(pick.team_source_key);
+        const mon = bySourceKey.get(String(pick.pokemon_source_key));
+        if (Number.isInteger(teamIndex) && mon) rosters[teamIndex].push({ ...mon, draftPick: pick.pick_number, acquiredVia: "draft" });
+      }
+      const drafted = new Set((live.picks || []).map((pick) => String(pick.pokemon_source_key)));
+      const pokemonIds = Object.fromEntries((pokemonRows || []).map((row) => [String(row.source_key), row.id]));
+      return {
+        ...previous,
+        locked: true,
+        rosters,
+        pool: basePool.filter((mon) => !drafted.has(String(mon.id))),
+        pickIndex: live.session.current_pick_number,
+        pickDeadline: null,
+        paused: live.session.status === "paused",
+        liveDraft: { ...previous.liveDraft, sessionId: live.session.id, pokemonIds },
+      };
+    });
+  }, [leagueId, supabase]);
+
+  useEffect(() => {
+    if (!leagueId) return undefined;
+    const channel = supabase.channel(`live-draft-${leagueId}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "league_events", filter: `league_id=eq.${leagueId}` }, refreshLiveSnakeDraft)
+      .subscribe();
+    const refreshTimer = setInterval(refreshLiveSnakeDraft, 3000);
+    return () => { clearInterval(refreshTimer); supabase.removeChannel(channel); };
+  }, [leagueId, supabase, refreshLiveSnakeDraft]);
+
+  useEffect(() => {
+    if (state.liveDraft?.sessionId) refreshLiveSnakeDraft();
+  }, [state.liveDraft?.sessionId, refreshLiveSnakeDraft]);
+
   function updateSettings(patch) {
     commit((s) => ({ ...s, settings: { ...s.settings, ...patch } }));
   }
@@ -4982,7 +5039,7 @@ export default function PokemonDraftLeague({ leagueId = null, profile = null }) 
     return idx;
   }
 
-  function startDraft() {
+  function startLocalDraft(liveDraft = null) {
     const size = state.settings.leagueSize;
     const usesBudget = state.settings.draftType === "auction" || state.settings.snakeBudgetEnabled;
     const snakeRounds = state.settings.snakeBudgetEnabled ? state.settings.rosterMax : state.settings.rosterSize;
@@ -5004,6 +5061,7 @@ export default function PokemonDraftLeague({ leagueId = null, profile = null }) 
         : [];
       const baseState = {
         ...s,
+        liveDraft: liveDraft || s.liveDraft || null,
         locked: true,
         teams: s.teams.map((t) =>
           (!t.claimedBy && (!t.archetypes || !t.archetypes.length)) ? { ...t, archetypes: randomArchetypeKeys() } : t
@@ -5032,6 +5090,34 @@ export default function PokemonDraftLeague({ leagueId = null, profile = null }) 
       const pickIndex = s.settings.draftType === "snake" ? skipForward(baseState, 0) : 0;
       return { ...baseState, pickIndex, pickDeadline: s.settings.draftType === "snake" ? nextDeadline(s.settings) : null };
     });
+    setTab("draft");
+  }
+
+  async function startDraft() {
+    if (!leagueId || state.settings.draftType !== "snake") return startLocalDraft();
+    if (state.settings.snakeBudgetEnabled) {
+      setLiveDraftError("Shared live drafting currently supports standard no-budget snake drafts. Turn off Snake Budget, then start the draft.");
+      return;
+    }
+    if (Object.values(state.keeperRosters || {}).some((roster) => roster?.length)) {
+      setLiveDraftError("Shared live drafting does not support keepers yet. Start this practice draft with no keepers.");
+      return;
+    }
+    setLiveDraftError("");
+    const rounds = Math.max(1, Number(state.settings.rosterSize) || 6);
+    const basePool = fullPool(state.settings).filter((p) => isLegal(p, state.settings)).map((p) => ({ ...p, cost: costFor(p, state.settings) }));
+    const firstRoundOrder = buildSnakeOrder(state.teams.length, 1, state.settings.manualDraftOrder);
+    const { data, error } = await supabase.rpc("provision_live_snake_draft", {
+      p_league_id: leagueId,
+      p_teams: state.teams,
+      p_pokemon: basePool,
+      p_team_order: firstRoundOrder,
+      p_rounds: rounds,
+      p_settings: { ...state.settings, rosterMax: rounds },
+    });
+    if (error) { setLiveDraftError(error.message); return; }
+    startLocalDraft({ sessionId: data.draft_session_id, basePool, pokemonIds: data.pokemon_ids || {} });
+    setTimeout(refreshLiveSnakeDraft, 0);
     setTab("draft");
   }
 
@@ -5076,7 +5162,7 @@ export default function PokemonDraftLeague({ leagueId = null, profile = null }) 
     setTab("league"); setLeagueSubTab("schedule");
   }
 
-  function snakePick(mon) {
+  function localSnakePick(mon) {
     commit((s) => {
       if (s.paused) return s;
       const teamIdx = s.snakeOrder[s.pickIndex];
@@ -5097,6 +5183,22 @@ export default function PokemonDraftLeague({ leagueId = null, profile = null }) 
       const pickIndex = skipForward(nextS, s.pickIndex + 1);
       return { ...nextS, pickIndex, pickDeadline: nextDeadline(s.settings) };
     });
+  }
+
+  async function snakePick(mon) {
+    if (!state.liveDraft?.sessionId) return localSnakePick(mon);
+    const leaguePokemonId = state.liveDraft.pokemonIds?.[String(mon.id)];
+    if (!leaguePokemonId) {
+      setLiveDraftError("This Pokémon is not ready on the live draft board yet. Refresh and try again.");
+      return;
+    }
+    setLiveDraftError("");
+    const { error } = await supabase.rpc("make_snake_pick", {
+      p_draft_session_id: state.liveDraft.sessionId,
+      p_league_pokemon_id: leaguePokemonId,
+    });
+    if (error) { setLiveDraftError(error.message); return; }
+    await refreshLiveSnakeDraft();
   }
 
   // Roughly "budget left ÷ picks left" — the fair-share amount a team could
@@ -6658,6 +6760,7 @@ export default function PokemonDraftLeague({ leagueId = null, profile = null }) 
       </div>
 
       <div className="max-w-6xl mx-auto px-6 py-8">
+        {liveDraftError && <div className="mb-4 rounded p-3 text-sm" style={{ background: "#2A1620", color: "#FFD6D6", border: "1px solid #F0555A66" }}>{liveDraftError}</div>}
         {tab === "home" && (
           <HomeView state={state} isCommissioner={isCommissioner} myTeamIdx={myTeamIdx} standings={standings}
             onGetStarted={() => setTab("setup")}
@@ -9861,6 +9964,7 @@ function DraftView({ state, isCommissioner, canDraftNow, myName, myTeamIdx, curr
 
   return (
     <div>
+      {state.liveDraft?.sessionId && <div className="mb-4 rounded-lg px-4 py-3 text-sm" style={{ background: "#102B2B", color: "#BDF7EE", border: "1px solid #4FD1C577" }}><strong>LIVE SHARED DRAFT</strong> â€” picks and whose turn it is are locked by DraftCenter. This board refreshes automatically for every manager.</div>}
       {!draftDone && (
         <div className="flex items-center justify-between flex-wrap gap-2 mb-4">
           {paused ? (
