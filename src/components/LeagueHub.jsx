@@ -34,19 +34,21 @@ export default function LeagueHub({ user, profile, onOpenLeague }) {
   useEffect(() => { loadLeagues(); }, []);
 
   useEffect(() => {
-    const token = new URLSearchParams(window.location.search).get("invite");
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("invite") || params.get("spectate");
+    const isSpectatorInvite = Boolean(params.get("spectate"));
     if (!token) return;
     (async () => {
       setBusy(true);
-      const { data, error } = await supabase.rpc("accept_league_invite", { p_token: token });
+      const { data, error } = await supabase.rpc(isSpectatorInvite ? "accept_spectator_invite" : "accept_league_invite", { p_token: token });
       setBusy(false);
       if (error) return setMessage(error.message);
-      await supabase.rpc("auto_assign_open_team", { p_league_id: data });
+      if (!isSpectatorInvite) await supabase.rpc("auto_assign_open_team", { p_league_id: data });
       window.history.replaceState({}, "", window.location.pathname);
       await loadLeagues();
-      setMessage("Invite accepted. Welcome to the league!");
+      setMessage(isSpectatorInvite ? "Spectator access granted. Enjoy the league!" : "Invite accepted. Welcome to the league!");
       const { data: league } = await supabase.from("leagues").select("id, name, slug, season_label, status, draft_starts_at").eq("id", data).single();
-      if (league) onOpenLeague({ ...league, role: "coach" });
+      if (league) onOpenLeague({ ...league, role: isSpectatorInvite ? "viewer" : "coach" });
     })();
   }, []);
 

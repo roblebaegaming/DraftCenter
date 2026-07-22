@@ -4428,6 +4428,7 @@ function isWithinOvernightPause(date, settings) {
 }
 
 export default function PokemonDraftLeague({ leagueId = null, leagueRole = null, profile = null, onOpenLeagueTools = null }) {
+  const isSpectator = leagueId && leagueRole === "viewer";
   const [supabase] = useState(() => createClient());
   const [tab, setTab] = useState("home");
   // Which of Schedule / Standings / Playoffs / History is showing inside the
@@ -4484,6 +4485,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   }, [leagueId]);
 
   const commit = useCallback((updater) => {
+    if (isSpectator) return;
     setState((prev) => {
       const next = typeof updater === "function" ? updater(prev) : updater;
       const withRev = { ...next, rev: (prev.rev || 0) + 1 };
@@ -4496,9 +4498,10 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       });
       return withRev;
     });
-  }, [leagueId]);
+  }, [leagueId, isSpectator]);
 
   function saveNow() {
+    if (isSpectator) return;
     const request = ++saveRequestRef.current;
     if (leagueId) setSaveStatus("saving");
     saveRemote(state, leagueId).then((result) => {
@@ -6645,10 +6648,10 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   const allTeamsMetMin = state.rosters.length > 0 && state.rosters.every((r) => r.length >= state.settings.rosterMin);
   const myTeamIndices = state.teams.map((t, i) => i).filter((i) => state.teams[i].claimedBy === myName);
   const myTeamIdx = myTeamIndices.includes(activeTeamIdx) ? activeTeamIdx : (myTeamIndices[0] ?? -1);
-  const canDraftNow =
+  const canDraftNow = !isSpectator && (
     isCommissioner ||
-    (state.settings.draftType === "snake" && myTeamIdx === currentTeamOnClock);
-  const isMyTurn = state.locked && !draftDone && state.settings.draftType === "snake" && myTeamIdx >= 0 && myTeamIdx === currentTeamOnClock;
+    (state.settings.draftType === "snake" && myTeamIdx === currentTeamOnClock));
+  const isMyTurn = !isSpectator && state.locked && !draftDone && state.settings.draftType === "snake" && myTeamIdx >= 0 && myTeamIdx === currentTeamOnClock;
   // Landing on League while a draft is still actively underway should show
   // the draft itself first, not whatever sub-tab happened to be selected
   // last time — but only as a one-time jump on arrival, not something that
@@ -6699,6 +6702,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       `}</style>
 
       <div style={{ borderBottom: "1px solid rgba(255,255,255,0.08)", background: "#141729" }} className="sticky top-0 z-10">
+        {isSpectator && <div className="px-6 py-2 text-center text-xs font-semibold" style={{ background: "#315887", color: "#e9f2ff" }}>SPECTATOR MODE — You can explore this league, but cannot claim a team, make picks, or change league data.</div>}
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between flex-wrap gap-3">
           <div className="flex items-baseline gap-3">
             <span className="display-font text-3xl font-semibold tracking-wide" style={{ color: "#FFD23F" }}>DRAFTCENTER</span>
@@ -6709,7 +6713,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
             )}
             <IdentityBadge synced={synced} myName={myName} isCommissioner={isCommissioner} renameMe={renameMe} />
           </div>
-          {leagueId && <button onClick={saveNow} className="mono-font text-[10px] px-2 py-1 rounded font-semibold" style={{ background: saveStatus === "error" ? "#F0555A22" : "#4FD1C522", color: saveStatus === "error" ? "#F0555A" : "#4FD1C5", border: "1px solid currentColor" }}>
+          {leagueId && !isSpectator && <button onClick={saveNow} className="mono-font text-[10px] px-2 py-1 rounded font-semibold" style={{ background: saveStatus === "error" ? "#F0555A22" : "#4FD1C522", color: saveStatus === "error" ? "#F0555A" : "#4FD1C5", border: "1px solid currentColor" }}>
             {saveStatus === "saving" ? "SAVING..." : saveStatus === "error" ? "SAVE FAILED — RETRY" : "SAVED"}
           </button>}
           <nav className="flex flex-wrap gap-1 justify-end">
