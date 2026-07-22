@@ -7,6 +7,22 @@ function slugify(value) {
   return value.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "").slice(0, 72);
 }
 
+function PollOfTheDay({ supabase }) {
+  const [poll, setPoll] = useState(null);
+  const [message, setMessage] = useState("");
+  const [busy, setBusy] = useState(false);
+  useEffect(() => { supabase.rpc("get_daily_poll").then(({ data, error }) => { if (error) setMessage(error.message); else setPoll(data); }); }, [supabase]);
+  async function vote(key) {
+    if (!poll || busy) return;
+    setBusy(true); setMessage("");
+    const { data, error } = await supabase.rpc("submit_daily_poll_answer", { p_poll_id: poll.id, p_answer_key: key });
+    setBusy(false); if (error) return setMessage(error.message); setPoll(data);
+  }
+  if (!poll && !message) return null;
+  const total = poll?.total_votes || 0;
+  return <section className="hub-card poll-card"><div className="section-heading"><div><span className="eyebrow">POLL OF THE DAY</span><h2>{poll?.question || "Today’s Pokémon question"}</h2></div><span className="muted">{total} vote{total === 1 ? "" : "s"}</span></div>{poll?.selected_key ? <div className="poll-results">{poll.options.map((option) => { const count = poll.counts?.[option.key] || 0; const percentage = total ? Math.round((count / total) * 100) : 0; return <div className="poll-result" key={option.key}><div><strong>{option.label}</strong>{poll.selected_key === option.key && <span className="poll-picked">Your pick</span>}</div><div className="poll-bar"><span style={{ width: `${percentage}%` }} /></div><small>{percentage}% · {count}</small></div>; })}</div> : <div className="poll-options">{poll?.options?.map((option) => <button key={option.key} className="league-row" disabled={busy} onClick={() => vote(option.key)}><strong>{option.label}</strong><span className="open-arrow">Vote →</span></button>)}</div>}{message && <p className="hub-message">{message}</p>}<p className="muted poll-note">Results appear after your vote. One vote per DraftCenter account; you may change today’s choice.</p></section>;
+}
+
 export default function LeagueHub({ user, profile, onOpenLeague }) {
   const [supabase] = useState(() => createClient());
   const [leagues, setLeagues] = useState([]);
@@ -70,7 +86,7 @@ export default function LeagueHub({ user, profile, onOpenLeague }) {
     setBusy(false);
     if (error) return setMessage(error.message);
     await supabase.rpc("auto_assign_open_team", { p_league_id: data });
-    onOpenLeague({ ...league, id: data, role: "viewer" });
+    onOpenLeague({ ...league, id: data, role: "coach" });
   }
 
   return (
@@ -104,6 +120,7 @@ export default function LeagueHub({ user, profile, onOpenLeague }) {
         {!loading && publicLeagues.length === 0 && <p className="muted">No leagues are open for new managers yet. Private leagues can still be joined with an invite link.</p>}
         <div className="public-grid">{publicLeagues.map((league) => <article key={league.id} className="public-league"><strong>{league.name}</strong><p>{league.description || league.season_label || "Open league"}</p>{league.is_practice && <span className="practice-badge">Practice</span>}<button className="secondary-button" disabled={busy} onClick={() => joinPublicLeague(league)}>Join as a manager</button></article>)}</div>
       </section>
+      <PollOfTheDay supabase={supabase} />
     </main>
   );
 }
