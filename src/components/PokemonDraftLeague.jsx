@@ -5170,7 +5170,9 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
 
   function localSnakePick(mon) {
     commit((s) => {
-      if (s.paused) return s;
+      // A commissioner pause blocks drafting. An overnight pause freezes only
+      // the timer: the manager already on the clock may still make a pick.
+      if (s.paused && !s.pauseIsOvernight) return s;
       const teamIdx = s.snakeOrder[s.pickIndex];
       if (teamIdx === undefined) return s;
       const usesBudget = snakeUsesBudget(s);
@@ -5187,7 +5189,15 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       const queues = stripFromAllQueues(s.queues, mon.name);
       const nextS = { ...s, rosters, budgets, pool, queues };
       const pickIndex = skipForward(nextS, s.pickIndex + 1);
-      return { ...nextS, pickIndex, pickDeadline: nextDeadline(s.settings) };
+      // If a manager picks overnight, start the following manager with a full
+      // clock at the moment play resumes. Resetting pausedAt here makes the
+      // resume math shift only that new clock, not the whole overnight window.
+      return {
+        ...nextS,
+        pickIndex,
+        pickDeadline: nextDeadline(s.settings),
+        ...(s.paused && s.pauseIsOvernight ? { pausedAt: Date.now() } : {}),
+      };
     });
   }
 
@@ -10017,7 +10027,7 @@ function DraftView({ state, isCommissioner, canDraftNow, myName, myTeamIdx, curr
               <span className="text-sm font-semibold" style={{ color: "#F0555A" }}>⏸ {pauseIsOvernight ? "Paused overnight" : "Draft paused"}</span>
               <span className="text-xs" style={{ color: "#9A9FBD" }}>
                 {pauseIsOvernight
-                  ? `— the clock is frozen and resumes automatically around ${formatUTCHourAsLocal(settings.overnightPauseEndUTCHour)}.`
+                  ? `— the clock is frozen until around ${formatUTCHourAsLocal(settings.overnightPauseEndUTCHour)}, but the manager on the clock may still make a pick.`
                   : "— the clock is frozen, nobody can pick or bid until the commissioner resumes."}
               </span>
             </div>
