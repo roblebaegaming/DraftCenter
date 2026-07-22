@@ -789,6 +789,7 @@ const REGIONAL_EXTRA_POOL = REGIONAL_EXTRA_RAW.map(([name, t1, t2, bst, gen], i)
 
 const MASTER_POKEDEX = [...BASE_POOL_STANDARD, ...MEGA_POOL, ...NEW_FORMS_POOL, ...GEN1_POOL, ...GEN2_POOL, ...GEN3_POOL, ...GEN4_POOL, ...GEN5_POOL, ...GEN6_POOL, ...GEN7_POOL, ...GEN8_POOL, ...GEN9_POOL, ...REGIONAL_EXTRA_POOL];
 export const POLL_POKEMON_NAMES = [...new Set(MASTER_POKEDEX.map((pokemon) => pokemon.name))].sort((a, b) => a.localeCompare(b));
+export const POKEMON_DIRECTORY = [...new Map(MASTER_POKEDEX.map((pokemon) => [pokemon.name, pokemon])).values()];
 // Built once — badge computation needs a fast name → {t1, t2, gen} lookup
 // across potentially hundreds of roster-history entries, and a linear
 // .find() over 1000+ species per lookup would add up fast.
