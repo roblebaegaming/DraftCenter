@@ -6793,6 +6793,20 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
             })}
           </nav>
         </div>
+        {isMyTurn && !(tab === "draft" || (tab === "league" && leagueSubTab === "draft")) && (
+          <div className="px-6 pb-3">
+            <div className="max-w-6xl mx-auto">
+              <button
+                onClick={() => { setTab("league"); setLeagueSubTab("draft"); }}
+                className="w-full rounded px-4 py-3 text-left flex items-center justify-between gap-3 turn-pulse"
+                style={{ background: "#4FD1C5", color: "#10121C" }}
+              >
+                <span className="font-bold">YOUR PICK IS ON THE CLOCK</span>
+                <span className="text-sm font-semibold">OPEN DRAFT →</span>
+              </button>
+            </div>
+          </div>
+        )}
         {((tab === "draft") || (tab === "league" && leagueSubTab === "draft")) && state.locked && myTeamIdx >= 0 && (
           <DraftStatsStrip state={state} myTeamIdx={myTeamIdx} />
         )}

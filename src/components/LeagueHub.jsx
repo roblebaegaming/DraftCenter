@@ -33,10 +33,58 @@ function PublicLeagueDetails({ league, membership, busy, onClose, onOpen, onJoin
   return <div className="modal-backdrop"><section className="tools-modal"><button className="modal-close" onClick={onClose}>x</button><span className="eyebrow">PUBLIC LEAGUE</span>{league.image_url && <img className="league-cover" src={league.image_url} alt={`${league.name} cover`} />}{league.is_practice && <span className="practice-badge">Practice league</span>}<h2>{league.name}</h2><p className="muted">{league.season_label || "New season"}</p><p>{league.description || "The commissioner has not added a league description yet."}</p><button className="primary-button" disabled={busy} onClick={() => membership ? onOpen({ ...league, role: membership.role }) : onJoin(league)}>{action}</button></section></div>;
 }
 
+function isCoachOnClock(state, profile) {
+  if (!state?.locked || state?.settings?.draftType !== "snake") return false;
+  const order = Array.isArray(state.snakeOrder) ? state.snakeOrder : [];
+  const teams = Array.isArray(state.teams) ? state.teams : [];
+  const pickIndex = Number(state.pickIndex) || 0;
+  if (pickIndex < 0 || pickIndex >= order.length) return false;
+  const coachName = String(profile?.display_name || profile?.username || "").trim().toLowerCase();
+  return Boolean(coachName && String(teams[order[pickIndex]]?.claimedBy || "").trim().toLowerCase() === coachName);
+}
+
 export default function LeagueHub({ user, profile, onOpenLeague }) {
   const [supabase] = useState(() => createClient()); const [leagues, setLeagues] = useState([]); const [publicLeagues, setPublicLeagues] = useState([]); const [loading, setLoading] = useState(true); const [name, setName] = useState(""); const [season, setSeason] = useState(""); const [description, setDescription] = useState(""); const [imageUrl, setImageUrl] = useState(""); const [visibility, setVisibility] = useState("private"); const [isPractice, setIsPractice] = useState(false); const [message, setMessage] = useState(""); const [busy, setBusy] = useState(false); const [pendingInvite, setPendingInvite] = useState(null); const [inviteBusy, setInviteBusy] = useState(false); const [publicDetails, setPublicDetails] = useState(null);
-  async function loadLeagues() { setLoading(true); const [{ data, error }, { data: publicData, error: publicError }] = await Promise.all([supabase.from("league_memberships").select("id, role, league:leagues(id, name, slug, description, image_url, season_label, status, updated_at, draft_starts_at)").eq("user_id", user.id).order("joined_at", { ascending: false }), supabase.from("leagues").select("id, name, slug, description, image_url, season_label, status, draft_starts_at, league_visibility, is_practice").eq("league_visibility", "open").order("updated_at", { ascending: false }).limit(6)]); setLoading(false); if (error || publicError) return setMessage((error || publicError).message); setLeagues((data || []).filter((row) => row.league)); setPublicLeagues(publicData || []); }
-  useEffect(() => { loadLeagues(); }, []);
+  async function loadLeagues() {
+    setLoading(true);
+    const [{ data, error }, { data: publicData, error: publicError }] = await Promise.all([
+      supabase.from("league_memberships").select("id, role, league:leagues(id, name, slug, description, image_url, season_label, status, updated_at, draft_starts_at)").eq("user_id", user.id).order("joined_at", { ascending: false }),
+      supabase.from("leagues").select("id, name, slug, description, image_url, season_label, status, draft_starts_at, league_visibility, is_practice").eq("league_visibility", "open").order("updated_at", { ascending: false }).limit(6),
+    ]);
+    if (error || publicError) {
+      setLoading(false);
+      return setMessage((error || publicError).message);
+    }
+    const memberships = (data || []).filter((row) => row.league);
+    const leagueIds = memberships.map((row) => row.league.id);
+    let snapshots = [];
+    if (leagueIds.length) {
+      const { data: snapshotData, error: snapshotError } = await supabase.from("league_state_snapshots").select("league_id, state").in("league_id", leagueIds);
+      if (snapshotError) {
+        setLoading(false);
+        return setMessage(snapshotError.message);
+      }
+      snapshots = snapshotData || [];
+    }
+    const states = new Map(snapshots.map((snapshot) => [snapshot.league_id, snapshot.state]));
+    const markedMemberships = memberships.map((entry) => {
+      const onClock = isCoachOnClock(states.get(entry.league.id), profile);
+      return {
+        ...entry,
+        league: {
+          ...entry.league,
+          on_clock: onClock,
+          season_label: onClock ? `⚡ ON THE CLOCK — ${entry.league.season_label || "Open Draft"}` : entry.league.season_label,
+        },
+      };
+    });
+    const activeTurn = markedMemberships.find((entry) => entry.league.on_clock);
+    setLeagues(markedMemberships);
+    setPublicLeagues(publicData || []);
+    if (activeTurn) setMessage(`⚡ You are on the clock in ${activeTurn.league.name}. Open that league to make your pick.`);
+    setLoading(false);
+  }
+  useEffect(() => { loadLeagues(); const timer = window.setInterval(loadLeagues, 30000); return () => window.clearInterval(timer); }, []);
   useEffect(() => { const params = new URLSearchParams(window.location.search); const token = params.get("invite") || params.get("spectate"); if (!token) return; supabase.rpc("preview_league_invite", { p_token: token }).then(({ data, error }) => { if (error) setMessage(error.message); else setPendingInvite(data); }); }, [supabase]);
   function dismissInvite() { window.history.replaceState({}, "", window.location.pathname); setPendingInvite(null); }
   function membershipFor(league) { return leagues.find((entry) => entry.league.id === league.id); }
