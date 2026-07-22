@@ -5202,7 +5202,13 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   }
 
   async function snakePick(mon) {
-    if (!state.liveDraft?.sessionId) return localSnakePick(mon);
+    if (!state.liveDraft?.sessionId) {
+      if (leagueId && state.locked && state.settings.draftType === "snake") {
+        setLiveDraftError("This is an older draft session, not a Live Shared Draft. Picks from managers cannot be saved safely here. Ask the commissioner to open Setup, reset this practice draft, then start it again so DraftCenter creates the shared draft room.");
+        return;
+      }
+      return localSnakePick(mon);
+    }
     const leaguePokemonId = state.liveDraft.pokemonIds?.[String(mon.id)];
     if (!leaguePokemonId) {
       setLiveDraftError("This Pokémon is not ready on the live draft board yet. Refresh and try again.");
@@ -6751,7 +6757,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
           </button>}
           <nav className="flex flex-wrap gap-1 justify-end">
             {[
-              ["home", "Home"], ...(!state.locked ? [["setup", "Setup"]] : []),
+              ["home", "Home"], ...(!state.locked || isCommissioner ? [["setup", "Setup"]] : []),
               // Pre-lock, there's no live draft yet — just one coming up —
               // so it's its own clearly-labeled top-level tab. The moment
               // the draft actually starts, it stops being a standalone
