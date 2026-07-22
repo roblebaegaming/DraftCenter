@@ -6712,7 +6712,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
           {leagueId && <button onClick={saveNow} className="mono-font text-[10px] px-2 py-1 rounded font-semibold" style={{ background: saveStatus === "error" ? "#F0555A22" : "#4FD1C522", color: saveStatus === "error" ? "#F0555A" : "#4FD1C5", border: "1px solid currentColor" }}>
             {saveStatus === "saving" ? "SAVING..." : saveStatus === "error" ? "SAVE FAILED — RETRY" : "SAVED"}
           </button>}
-          <nav className="flex gap-1">
+          <nav className="flex flex-wrap gap-1 justify-end">
             {[
               ["home", "Home"], ...(!state.locked ? [["setup", "Setup"]] : []),
               // Pre-lock, there's no live draft yet — just one coming up —
