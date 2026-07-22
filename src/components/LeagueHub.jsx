@@ -41,6 +41,7 @@ export default function LeagueHub({ user, profile, onOpenLeague }) {
       const { data, error } = await supabase.rpc("accept_league_invite", { p_token: token });
       setBusy(false);
       if (error) return setMessage(error.message);
+      await supabase.rpc("auto_assign_setup_team", { p_league_id: data });
       window.history.replaceState({}, "", window.location.pathname);
       await loadLeagues();
       setMessage("Invite accepted. Welcome to the league!");
@@ -66,6 +67,7 @@ export default function LeagueHub({ user, profile, onOpenLeague }) {
     const { data, error } = await supabase.rpc("join_open_league", { p_slug: league.slug });
     setBusy(false);
     if (error) return setMessage(error.message);
+    await supabase.rpc("auto_assign_setup_team", { p_league_id: data });
     onOpenLeague({ ...league, id: data, role: "viewer" });
   }
 

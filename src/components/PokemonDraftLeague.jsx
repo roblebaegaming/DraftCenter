@@ -4427,7 +4427,7 @@ function isWithinOvernightPause(date, settings) {
   return h >= start || h < end; // wraps past midnight
 }
 
-export default function PokemonDraftLeague({ leagueId = null, profile = null }) {
+export default function PokemonDraftLeague({ leagueId = null, leagueRole = null, profile = null }) {
   const [supabase] = useState(() => createClient());
   const [tab, setTab] = useState("home");
   // Which of Schedule / Standings / Playoffs / History is showing inside the
@@ -4507,8 +4507,10 @@ export default function PokemonDraftLeague({ leagueId = null, profile = null }) 
     });
   }
 
-  const isCommissioner = nameConfirmed && (state.commissioner === myName || (state.coCommissioners || []).includes(myName));
-  const canBeCommissioner = nameConfirmed && !state.commissioner;
+  const isCommissioner = leagueId
+    ? ["commissioner", "co_commissioner"].includes(leagueRole)
+    : nameConfirmed && (state.commissioner === myName || (state.coCommissioners || []).includes(myName));
+  const canBeCommissioner = !leagueId && nameConfirmed && !state.commissioner;
 
   function claimCommissioner() {
     commit((s) => ({ ...s, commissioner: myName, auditLog: [...(s.auditLog || []), auditEntry(myName, "Became commissioner")] }));
