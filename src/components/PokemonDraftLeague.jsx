@@ -6674,6 +6674,13 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     if (tab === "league" && state.locked && !draftDone) setLeagueSubTab("draft");
   }, [tab]);
 
+  // Existing browsers may still remember the retired standalone Board tab.
+  // Send them straight to the combined Activity view instead of showing a
+  // blank league area after this navigation update.
+  useEffect(() => {
+    if (leagueSubTab === "board") setLeagueSubTab("activity");
+  }, [leagueSubTab]);
+
   // Nav badges: unread board posts now live on the League tab (since the
   // board moved there), unread DMs stay on Messages, and pending trade
   // offers sitting in my inbox waiting on a response get their own badge on
@@ -6693,6 +6700,18 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   // since that's still a trade "involving you" worth a heads-up about in
   // Messages, per how that tab's own Trade Offers section is scoped.
   const tradesInvolvingMeCount = state.trades.filter((t) => t.status === "pending" && (myTeamIndices.includes(t.toTeam) || myTeamIndices.includes(t.fromTeam))).length;
+  // Keep the in-season navigation focused on what actually exists. A draft
+  // has no standings or public schedule yet, and a playoff tab only becomes
+  // useful once the commissioner has generated a bracket.
+  const hasSchedule = (state.schedule || []).length > 0;
+  const hasAwardWinners = Boolean(
+    Object.keys(state.draftHeroVotes || {}).length ||
+    (state.trades || []).some((t) => t.status === "accepted") ||
+    (state.transactionLog || []).length ||
+    (state.matchResults || []).length ||
+    state.playoffs ||
+    (state.seasonHistory || []).length
+  );
 
   if (!nameConfirmed) {
     return <NameGate myName={myName} setMyName={setMyName} onConfirm={() => { setMyName(myName.trim()); setNameConfirmed(true); }} />;
@@ -6822,9 +6841,11 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
           <div className="flex flex-col gap-6">
             <div className="flex gap-1 flex-wrap">
               {[
-                ["activity", "League Activity"], ["board", "Board"], ["draft", "Draft"],
-                ["schedule", "Schedule"], ["standings", "Standings"], ["playoffs", "Playoffs"],
-                ["awards", "Season Awards"],
+              ["activity", "League Activity"], ["draft", "Draft"],
+                ...((!state.locked || draftDone || isCommissioner) ? [["schedule", "Schedule"]] : []),
+                ...(hasSchedule && draftDone ? [["standings", "Standings"]] : []),
+                ...(state.playoffs ? [["playoffs", "Playoffs"]] : []),
+                ...(hasAwardWinners ? [["awards", "Season Awards"]] : []),
                 ["predictions", "Predictions"], ["trades", "Transactions"],
                 ...(state.seasonHistory.length > 0 ? [["history", "History"], ["adp", "Draft Trends"]] : []),
               ].map(([key, label]) => {
@@ -6853,13 +6874,8 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
               })}
             </div>
             {leagueSubTab === "activity" && (
-              <LeagueActivityView state={state} isCommissioner={isCommissioner} reverseFreeAgentMove={reverseFreeAgentMove} />
-            )}
-            {leagueSubTab === "board" && (
-              <LeagueBoardView
-                state={state} myName={myName} isCommissioner={isCommissioner}
-                postToBoard={postToBoard} deleteBoardPost={deleteBoardPost} markBoardRead={markBoardRead}
-              />
+              <LeagueActivityView state={state} isCommissioner={isCommissioner} reverseFreeAgentMove={reverseFreeAgentMove}
+                myName={myName} postToBoard={postToBoard} deleteBoardPost={deleteBoardPost} markBoardRead={markBoardRead} />
             )}
             {leagueSubTab === "draft" && (
               <DraftView
@@ -9304,7 +9320,7 @@ function NewSeasonCard({ state, startNewSeason }) {
 // this view can never show a different leader than who actually ends up
 // winning.
 function SeasonAwardsView({ state, standings, onViewTeam }) {
-  const AwardRow = ({ icon, label, children }) => (
+  const AwardRow = ({ icon, label, children, earned = true }) => earned ? (
     <div className="flex items-start gap-3 px-4 py-3" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
       <span className="text-xl flex-shrink-0">{icon}</span>
       <div className="flex-1 min-w-0">
@@ -9312,7 +9328,7 @@ function SeasonAwardsView({ state, standings, onViewTeam }) {
         <div className="text-sm">{children}</div>
       </div>
     </div>
-  );
+  ) : null;
   const NamesList = ({ names, teams }) => !names?.length ? (
     <span style={{ color: "#5B5F7E" }}>Not decided yet</span>
   ) : (
@@ -9334,37 +9350,37 @@ function SeasonAwardsView({ state, standings, onViewTeam }) {
   function renderAwards({ draftDayHero, topTraders, topWaiverWirers, ironRosters, perfectSeasons, dynasty, giantSlayers, underdogs, sharpshooters, predictionChampion, regularSeasonChampions, champion, playoffMVP, teams, isLive }) {
     return (
       <div style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }} className="rounded-lg overflow-hidden">
-        <AwardRow icon="🎯" label="Draft Day Hero">
+        <AwardRow icon="🎯" label="Draft Day Hero" earned={draftDayHero?.length > 0}>
           <NamesList names={draftDayHero} teams={teams} />
         </AwardRow>
-        <AwardRow icon="🔄" label="Biggest Trader">
+        <AwardRow icon="🔄" label="Biggest Trader" earned={topTraders?.length > 0}>
           <NamesList names={(topTraders || []).map((t) => `${t.personName} (${t.count})`)} />
         </AwardRow>
-        <AwardRow icon="🧙" label="Waiver Wire Wizard">
+        <AwardRow icon="🧙" label="Waiver Wire Wizard" earned={topWaiverWirers?.length > 0}>
           <NamesList names={(topWaiverWirers || []).map((t) => `${t.personName} (${t.count})`)} />
         </AwardRow>
-        <AwardRow icon="🔩" label="Iron Roster">
+        <AwardRow icon="🔩" label="Iron Roster" earned={ironRosters?.length > 0}>
           <NamesList names={ironRosters} />
         </AwardRow>
-        <AwardRow icon="💯" label="Perfect Season">
+        <AwardRow icon="💯" label="Perfect Season" earned={perfectSeasons?.length > 0}>
           <NamesList names={perfectSeasons} />
         </AwardRow>
-        <AwardRow icon="👑" label="Dynasty">
+        <AwardRow icon="👑" label="Dynasty" earned={Boolean(dynasty)}>
           {dynasty ? <span style={{ color: "#EDEBFA" }}>{dynasty}</span> : <span style={{ color: "#5B5F7E" }}>{isLive ? "Not decided yet" : "—"}</span>}
         </AwardRow>
-        <AwardRow icon="🗡️" label="Giant Slayer">
+        <AwardRow icon="🗡️" label="Giant Slayer" earned={giantSlayers?.length > 0}>
           <NamesList names={giantSlayers} />
         </AwardRow>
-        <AwardRow icon="🐕" label="The Underdog">
+        <AwardRow icon="🐕" label="The Underdog" earned={underdogs?.length > 0}>
           <NamesList names={underdogs} />
         </AwardRow>
-        <AwardRow icon="🏹" label="Sharpshooter">
+        <AwardRow icon="🏹" label="Sharpshooter" earned={sharpshooters?.length > 0}>
           <NamesList names={(sharpshooters || []).map((t) => `${t.personName} (${t.count})`)} />
         </AwardRow>
-        <AwardRow icon="🔮" label="Best Predictor">
+        <AwardRow icon="🔮" label="Best Predictor" earned={Boolean(predictionChampion)}>
           {predictionChampion ? <span style={{ color: "#EDEBFA" }}>{predictionChampion.personName} <span style={{ color: "#5B5F7E" }}>({predictionChampion.points}pt{predictionChampion.points === 1 ? "" : "s"})</span></span> : <span style={{ color: "#5B5F7E" }}>Not decided yet</span>}
         </AwardRow>
-        <AwardRow icon="📈" label="Regular Season Champ">
+        <AwardRow icon="📈" label="Regular Season Champ" earned={regularSeasonChampions?.length > 0}>
           {!regularSeasonChampions?.length ? <span style={{ color: "#5B5F7E" }}>Not decided yet</span> : (
             <div className="flex flex-col gap-1">
               {regularSeasonChampions.map((c, i) => (
@@ -9377,12 +9393,12 @@ function SeasonAwardsView({ state, standings, onViewTeam }) {
             </div>
           )}
         </AwardRow>
-        <AwardRow icon="🏆" label="League Champion">
+        <AwardRow icon="🏆" label="League Champion" earned={Boolean(champion?.teamName)}>
           {champion?.teamName ? (
             <button onClick={() => onViewTeam && onViewTeam(champion.teamId)} className="hover:underline" style={{ color: "#EDEBFA" }}>{champion.teamName}</button>
           ) : <span style={{ color: "#5B5F7E" }}>Not decided yet</span>}
         </AwardRow>
-        <AwardRow icon="⭐" label="Playoff MVP">
+        <AwardRow icon="⭐" label="Playoff MVP" earned={Boolean(playoffMVP)}>
           <MonRow name={playoffMVP} />
         </AwardRow>
       </div>
@@ -13244,7 +13260,7 @@ function LeagueBoardView({ state, myName, isCommissioner, postToBoard, deleteBoa
 // happening in the league right now. Free-agent moves are trimmed to just
 // the most recent active week rather than the whole season's worth — trade
 // outcomes are rarer events, so those stay shown regardless of week.
-function LeagueActivityView({ state, isCommissioner, reverseFreeAgentMove }) {
+function LeagueActivityView({ state, isCommissioner, reverseFreeAgentMove, myName, postToBoard, deleteBoardPost, markBoardRead }) {
   const { teams, transactionLog = [], trades = [] } = state;
   const latestWeek = transactionLog.reduce((max, t) => Math.max(max, t.week ?? 0), 0);
   const faEvents = transactionLog
@@ -13272,7 +13288,12 @@ function LeagueActivityView({ state, isCommissioner, reverseFreeAgentMove }) {
   }
 
   return (
-    <div style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }} className="rounded-lg p-6">
+    <div className="flex flex-col gap-6">
+      <LeagueBoardView
+        state={state} myName={myName} isCommissioner={isCommissioner}
+        postToBoard={postToBoard} deleteBoardPost={deleteBoardPost} markBoardRead={markBoardRead}
+      />
+      <div style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }} className="rounded-lg p-6">
       <h2 className="display-font text-2xl mb-1" style={{ color: "#FFD23F" }}>LEAGUE ACTIVITY</h2>
       <p className="text-sm mb-4" style={{ color: "#9A9FBD" }}>Free-agent moves from the most recent active week, plus every trade outcome — check History for anything further back.</p>
       {feed.length === 0 ? (
@@ -13335,6 +13356,7 @@ function LeagueActivityView({ state, isCommissioner, reverseFreeAgentMove }) {
           })}
         </div>
       )}
+      </div>
     </div>
   );
 }
