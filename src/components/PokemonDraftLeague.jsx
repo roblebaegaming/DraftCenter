@@ -8121,7 +8121,7 @@ function SetupView({ state, isCommissioner, canBeCommissioner, claimCommissioner
       {isCommissioner && !locked && onOpenLeagueTools && (
         <div className="rounded-lg p-4 mb-6 flex items-center justify-between flex-wrap gap-3" style={{ background: "#171A2C", border: "1px solid #4FD1C555" }}>
           <div><h3 className="display-font text-xl" style={{ color: "#4FD1C5" }}>DRAFT PLAN</h3><p className="text-sm" style={{ color: "#9A9FBD" }}>Set the official draft time, reminders, and league visibility before managers arrive.</p></div>
-          <button onClick={onOpenLeagueTools} className="px-4 py-2 rounded font-semibold text-sm" style={{ background: "#4FD1C5", color: "#10121C" }}>SET DRAFT TIME</button>
+          <div className="flex gap-2 flex-wrap"><button onClick={onOpenLeagueTools} className="px-4 py-2 rounded font-semibold text-sm" style={{ background: "#4FD1C5", color: "#10121C" }}>SET DRAFT TIME</button><button onClick={onOpenLeagueTools} className="px-4 py-2 rounded font-semibold text-sm" style={{ background: "#1F2338", color: "#EDEBFA", border: "1px solid #4FD1C555" }}>INVITE MANAGERS</button></div>
         </div>
       )}
 
