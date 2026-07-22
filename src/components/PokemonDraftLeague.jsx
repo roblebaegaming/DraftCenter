@@ -1202,7 +1202,7 @@ const REG_J_COSTS = {
   "Iron Hands": 11,   // 6.65%
 };
 
-const REGULATION_SETS = {
+export const REGULATION_SETS = {
   "reg-mb": {
     id: "reg-mb",
     name: "Regulation M-B",
@@ -1480,6 +1480,16 @@ const REGULATION_SETS = {
 };
 function regulationFor(settings) {
   return REGULATION_SETS[settings?.regulationId] || REGULATION_SETS["reg-mb"];
+}
+
+// Used by the public Pokédex when it is opened from a league.  This is only
+// the regulation's base species list: league-specific bans and commissioner
+// overrides still live with that league's private state.
+export function regulationPokemonStatus(regulationId, pokemonName) {
+  const regulation = REGULATION_SETS[regulationId] || null;
+  if (!regulation) return null;
+  if (!regulation.legalNames) return { regulation, legal: null };
+  return { regulation, legal: regulation.legalNames.includes(pokemonName) };
 }
 
 // Whether this mon has a real, curated point value — either the current
@@ -9948,7 +9958,7 @@ function PreDraftScout({ state, isCommissioner }) {
     <section className="rounded-lg p-5" style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }}>
       <span className="eyebrow">PRE-DRAFT</span><h2 className="display-font text-3xl" style={{ color: "#FFD23F" }}>Scout the draft board</h2>
       <p className="text-sm mt-1" style={{ color: "#9A9FBD" }}>Study the eligible pool and team field before the commissioner starts the live draft.</p>
-      <div className="flex gap-3 flex-wrap mt-4 text-sm"><span className="px-3 py-1 rounded" style={{ background: "#1F2338", color: "#EDEBFA" }}>{pool.length} eligible Pokémon</span><span className="px-3 py-1 rounded" style={{ background: "#1F2338", color: "#EDEBFA" }}>{claimed}/{state.teams.length} managers assigned</span>{scheduledAt ? <span className="px-3 py-1 rounded" style={{ background: "#4FD1C522", color: "#4FD1C5" }}>Draft: {new Date(scheduledAt).toLocaleString()}</span> : <span className="px-3 py-1 rounded" style={{ background: "#FFD23F22", color: "#FFD23F" }}>{isCommissioner ? "Set the draft time in League tools" : "Draft time not set yet"}</span>}</div>
+      <div className="flex gap-3 flex-wrap mt-4 text-sm"><span className="px-3 py-1 rounded" style={{ background: "#1F2338", color: "#EDEBFA" }}>{pool.length} eligible Pokémon</span><span className="px-3 py-1 rounded" style={{ background: "#1F2338", color: "#EDEBFA" }}>{claimed}/{state.teams.length} managers assigned</span>{scheduledAt ? <span className="px-3 py-1 rounded" style={{ background: "#4FD1C522", color: "#4FD1C5" }}>Draft: {new Date(scheduledAt).toLocaleString()}</span> : <span className="px-3 py-1 rounded" style={{ background: "#FFD23F22", color: "#FFD23F" }}>{isCommissioner ? "Set the draft time in League tools" : "Draft time not set yet"}</span>}<a href={`/pokemon?regulation=${encodeURIComponent(settings.regulationId || "")}`} className="px-3 py-1 rounded font-semibold" style={{ background: "#1B3845", color: "#4FD1C5", textDecoration: "none" }}>Open move pools</a></div>
     </section>
     <section className="rounded-lg p-5" style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }}>
       <div className="flex gap-3 flex-wrap mb-4"><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search Pokémon" className="px-3 py-2 rounded flex-1 min-w-[180px]" style={{ background: "#0F1420", border: "1px solid #313a63", color: "#EDEBFA" }} /><select value={type} onChange={(event) => setType(event.target.value)} className="px-3 py-2 rounded" style={{ background: "#0F1420", border: "1px solid #313a63", color: "#EDEBFA" }}><option value="">All types</option>{Object.keys(TYPE_COLORS).map((key) => <option key={key} value={key}>{key}</option>)}</select></div>
