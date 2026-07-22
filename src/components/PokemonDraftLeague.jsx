@@ -5394,6 +5394,9 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   // this effect itself started gets auto-resumed, tracked via
   // pauseIsOvernight so the two never get confused with each other.
   useEffect(() => {
+    // Hosted leagues are reconciled by Supabase Cron even when nobody has a
+    // browser open. Keep this browser fallback only for an unsaved local demo.
+    if (leagueId) return;
     if (!state.locked || !state.settings.overnightPauseEnabled) return;
     if (state.settings.draftType !== "snake" && state.settings.draftType !== "auction") return;
     const draftAlreadyDone = state.settings.draftType === "snake"
@@ -5423,7 +5426,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     check();
     const interval = setInterval(check, 30000);
     return () => clearInterval(interval);
-  }, [state.locked, state.settings.draftType, state.settings.overnightPauseEnabled, state.settings.overnightPauseStartUTCHour, state.settings.overnightPauseEndUTCHour, state.pickIndex, state.snakeOrder.length, state.pool.length, state.auctionEnded]);
+  }, [leagueId, state.locked, state.settings.draftType, state.settings.overnightPauseEnabled, state.settings.overnightPauseStartUTCHour, state.settings.overnightPauseEndUTCHour, state.pickIndex, state.snakeOrder.length, state.pool.length, state.auctionEnded]);
 
   // Starts the nomination clock the moment it becomes a new team's turn —
   // shared by bots and humans alike, though bots will act well before it
