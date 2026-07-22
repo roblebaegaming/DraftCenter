@@ -8039,7 +8039,26 @@ function ManualRosterEntry({ teams, settings, finalizeManualDraft }) {
 }
 
 function SetupView({ state, isCommissioner, canBeCommissioner, claimCommissioner, unclaimCommissioner, claimTeam, renameTeam, myName, updateSettings, resizeTeams, rerollAllTeamIdentities, costFor, toggleBanMon, toggleAllowExtraMon, resetDraft, addCustomMon, removeCustomMon, setSpriteOverride, setTeamLogo, onStart, addDivision, renameDivision, removeDivision, setTeamDivision, finalizeManualDraft, startNewSeason, updateHomepage, addExpansionTeam, removeSpecificTeam, exportLeagueBackup, importLeagueBackup, addCoCommissioner, removeCoCommissioner, onOpenLeagueTools }) {
-  const { settings, teams, commissioner, locked, seasonNumber } = state;
+  // A league may have been created before newer Setup options existed. Keep
+  // this screen usable even if one of those older saved values is missing or
+  // malformed; the next normal save will preserve the corrected shape.
+  const savedSettings = state.settings && typeof state.settings === "object" && !Array.isArray(state.settings) ? state.settings : {};
+  const settings = {
+    ...freshState().settings,
+    ...savedSettings,
+    bannedMons: Array.isArray(savedSettings.bannedMons) ? savedSettings.bannedMons : [],
+    allowedExtraMons: Array.isArray(savedSettings.allowedExtraMons) ? savedSettings.allowedExtraMons : [],
+    customMons: Array.isArray(savedSettings.customMons) ? savedSettings.customMons : [],
+    customSelectedGens: Array.isArray(savedSettings.customSelectedGens) ? savedSettings.customSelectedGens : [],
+    customSelectedTypes: Array.isArray(savedSettings.customSelectedTypes) ? savedSettings.customSelectedTypes : [],
+    divisions: Array.isArray(savedSettings.divisions) ? savedSettings.divisions : [],
+    playoffRoundNames: Array.isArray(savedSettings.playoffRoundNames) ? savedSettings.playoffRoundNames : freshState().settings.playoffRoundNames,
+    costOverrides: savedSettings.costOverrides && typeof savedSettings.costOverrides === "object" ? savedSettings.costOverrides : {},
+    spriteOverrides: savedSettings.spriteOverrides && typeof savedSettings.spriteOverrides === "object" ? savedSettings.spriteOverrides : {},
+    manualDraftOrder: Array.isArray(savedSettings.manualDraftOrder) ? savedSettings.manualDraftOrder : null,
+  };
+  const teams = Array.isArray(state.teams) ? state.teams : [];
+  const { commissioner, locked, seasonNumber } = state;
   const coCommissioners = state.coCommissioners || [];
   const [editingCost, setEditingCost] = useState(null);
   const [editingSprite, setEditingSprite] = useState(null);
