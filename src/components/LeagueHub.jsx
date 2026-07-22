@@ -6,25 +6,49 @@ import { POLL_POKEMON_NAMES } from "./PokemonDraftLeague";
 
 function slugify(value) { return value.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "").slice(0, 72); }
 
+function pokemonSlug(name) {
+  return String(name || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+}
+
+function PollPokemonImage({ name }) {
+  const [sprite, setSprite] = useState("");
+  useEffect(() => {
+    let active = true;
+    fetch(`https://pokeapi.co/api/v2/pokemon/${encodeURIComponent(pokemonSlug(name))}`)
+      .then((response) => response.ok ? response.json() : null)
+      .then((data) => { if (active) setSprite(data?.sprites?.other?.["official-artwork"]?.front_default || data?.sprites?.front_default || ""); })
+      .catch(() => { if (active) setSprite(""); });
+    return () => { active = false; };
+  }, [name]);
+  return sprite ? <img className="poll-pokemon-image" src={sprite} alt="" /> : null;
+}
+
 function PollResults({ poll }) {
   const total = poll.total_votes || 0;
   const rows = poll.answer_type === "pokemon"
     ? Object.entries(poll.counts || {}).sort(([, a], [, b]) => b - a).map(([key, count]) => ({ key, label: key, count }))
     : poll.options.map((option) => ({ key: option.key, label: option.label, count: poll.counts?.[option.key] || 0 }));
-  return <div className="poll-results">{rows.map(({ key, label, count }) => { const percentage = total ? Math.round((count / total) * 100) : 0; return <div className="poll-result" key={key}><div><strong>{label}</strong>{poll.selected_key === key && <span className="poll-picked">Your pick</span>}</div><div className="poll-bar"><span style={{ width: `${percentage}%` }} /></div><small>{percentage}% - {count}</small></div>; })}</div>;
+  return <div className="poll-results">{rows.map(({ key, label, count }) => { const percentage = total ? Math.round((count / total) * 100) : 0; return <div className="poll-result" key={key}><div className="poll-result-label">{poll.answer_type === "pokemon" && <PollPokemonImage name={label} />}<strong>{label}</strong>{poll.selected_key === key && <span className="poll-picked">Your pick</span>}</div><div className="poll-bar"><span style={{ width: `${percentage}%` }} /></div><small>{percentage}% - {count}</small></div>; })}</div>;
 }
 
 function PollOfTheDay({ supabase }) {
   const [poll, setPoll] = useState(null); const [pokemon, setPokemon] = useState(""); const [message, setMessage] = useState(""); const [busy, setBusy] = useState(false); const [comments, setComments] = useState([]); const [commentCount, setCommentCount] = useState(0); const [commentText, setCommentText] = useState(""); const [commentsOpen, setCommentsOpen] = useState(false);
   useEffect(() => { supabase.rpc("get_daily_poll").then(({ data, error }) => { if (error) setMessage(error.message); else setPoll(data); }); }, [supabase]);
   async function loadComments(showAll = commentsOpen) { if (!poll?.id) return; const { data, error } = await supabase.rpc("get_daily_poll_comments", { p_poll_id: poll.id, p_limit: showAll ? 100 : 5 }); if (error) return setMessage(error.message); setComments(data?.comments || []); setCommentCount(data?.total || 0); }
-  useEffect(() => { if (poll?.id) loadComments(false); }, [poll?.id]);
+  useEffect(() => { if (poll?.id && poll.selected_key) loadComments(false); }, [poll?.id, poll?.selected_key]);
   async function vote(key) { if (!poll || busy) return; setBusy(true); setMessage(""); const { data, error } = await supabase.rpc("submit_daily_poll_answer", { p_poll_id: poll.id, p_answer_key: key }); setBusy(false); if (error) return setMessage(error.message); setPoll(data); }
   function submitPokemon(event) { event.preventDefault(); const picked = POLL_POKEMON_NAMES.find((mon) => mon.toLowerCase() === pokemon.trim().toLowerCase()); if (!picked) return setMessage("Select a Pokemon from the search suggestions."); vote(picked); }
   async function submitComment(event) { event.preventDefault(); if (!poll || !commentText.trim() || busy) return; setBusy(true); setMessage(""); const { error } = await supabase.rpc("create_daily_poll_comment", { p_poll_id: poll.id, p_body: commentText.trim() }); setBusy(false); if (error) return setMessage(error.message); setCommentText(""); await loadComments(commentsOpen); }
   function toggleComments() { const next = !commentsOpen; setCommentsOpen(next); loadComments(next); }
   if (!poll && !message) return null;
-  return <section className="hub-card poll-card"><div className="section-heading"><div><span className="eyebrow">POLL OF THE DAY</span><h2>{poll?.question || "Today's Pokemon question"}</h2></div><span className="muted">{poll?.total_votes || 0} vote{poll?.total_votes === 1 ? "" : "s"}</span></div>{poll?.selected_key ? <PollResults poll={poll} /> : poll?.answer_type === "pokemon" ? <form className="poll-search" onSubmit={submitPokemon}><label>Search for a Pokemon<input list="poll-pokemon-options" value={pokemon} onChange={(event) => setPokemon(event.target.value)} placeholder="Start typing a Pokemon name" autoComplete="off" /></label><datalist id="poll-pokemon-options">{POLL_POKEMON_NAMES.map((mon) => <option key={mon} value={mon} />)}</datalist><button className="primary-button" disabled={busy}>Vote for {pokemon || "a Pokemon"}</button></form> : <div className="poll-options">{poll?.options?.map((option) => <button key={option.key} className="league-row" disabled={busy} onClick={() => vote(option.key)}><strong>{option.label}</strong><span className="open-arrow">Vote</span></button>)}</div>}{message && <p className="hub-message">{message}</p>}<p className="muted poll-note">Results appear after your vote. One vote per DraftCenter account; you may change today's choice.</p><div className="poll-discussion"><div className="section-heading"><h3>Poll discussion</h3><button className="text-button" onClick={toggleComments}>{commentsOpen ? "Show recent comments" : `See all ${commentCount} comment${commentCount === 1 ? "" : "s"}`}</button></div><form className="poll-comment-form" onSubmit={submitComment}><input maxLength={500} value={commentText} onChange={(event) => setCommentText(event.target.value)} placeholder="Share your take..." /><button className="secondary-button" disabled={busy || !commentText.trim()}>Post</button></form>{comments.length === 0 ? <p className="muted">No comments yet. Start the conversation.</p> : <div className="poll-comments">{comments.map((comment) => <article key={comment.id} className="poll-comment"><strong>@{comment.username || comment.display_name || "coach"}</strong><span>{new Date(comment.created_at).toLocaleString()}</span><p>{comment.body}</p></article>)}</div>}</div></section>;
+  const hasVoted = Boolean(poll?.selected_key);
+  return <section className="hub-card poll-card">
+    <div className="section-heading"><div><span className="eyebrow">POLL OF THE DAY</span><h2>{poll?.question || "Today's Pokemon question"}</h2></div><span className="muted">{poll?.total_votes || 0} vote{poll?.total_votes === 1 ? "" : "s"}</span></div>
+    {hasVoted ? <PollResults poll={poll} /> : poll?.answer_type === "pokemon" ? <form className="poll-search" onSubmit={submitPokemon}><label>Search for a Pokemon<input list="poll-pokemon-options" value={pokemon} onChange={(event) => setPokemon(event.target.value)} placeholder="Start typing a Pokemon name" autoComplete="off" /></label><datalist id="poll-pokemon-options">{POLL_POKEMON_NAMES.map((mon) => <option key={mon} value={mon} />)}</datalist><button className="primary-button" disabled={busy}>Vote for {pokemon || "a Pokemon"}</button></form> : <div className="poll-options">{poll?.options?.map((option) => <button key={option.key} className="league-row" disabled={busy} onClick={() => vote(option.key)}><strong>{option.label}</strong><span className="open-arrow">Vote</span></button>)}</div>}
+    {message && <p className="hub-message">{message}</p>}
+    <p className="muted poll-note">Results and discussion appear after your vote. One vote per DraftCenter account; you may change today's choice.</p>
+    {hasVoted ? <div className="poll-discussion"><div className="section-heading"><h3>Poll discussion</h3><button className="text-button" onClick={toggleComments}>{commentsOpen ? "Show recent comments" : `See all ${commentCount} comment${commentCount === 1 ? "" : "s"}`}</button></div><form className="poll-comment-form" onSubmit={submitComment}><input maxLength={500} value={commentText} onChange={(event) => setCommentText(event.target.value)} placeholder="Share your take..." /><button className="secondary-button" disabled={busy || !commentText.trim()}>Post</button></form>{comments.length === 0 ? <p className="muted">No comments yet. Start the conversation.</p> : <div className="poll-comments">{comments.map((comment) => <article key={comment.id} className="poll-comment"><strong>@{comment.username || comment.display_name || "coach"}</strong><span>{new Date(comment.created_at).toLocaleString()}</span><p>{comment.body}</p></article>)}</div>}</div> : <div className="poll-discussion poll-discussion-locked"><strong>Vote first to unlock the discussion.</strong><p className="muted">That keeps other coaches' opinions from influencing your answer.</p></div>}
+  </section>;
 }
 
 function PublicLeagueDetails({ league, membership, busy, onClose, onOpen, onJoin }) {
