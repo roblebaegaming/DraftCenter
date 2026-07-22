@@ -6089,9 +6089,20 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   /* ---- Full reset: keep league identity (settings/teams/commissioner/
      homepage) but wipe the draft, season, and playoffs so a solo user or
      group can restart from the very beginning. ---- */
-  function resetDraft() {
+  async function resetDraft() {
+    // A live shared draft also has protected server rows. Clear those first,
+    // otherwise the next draft would still see the old locked picks.
+    if (leagueId && state.liveDraft?.sessionId) {
+      const { error } = await supabase.rpc("reset_live_snake_draft", { p_league_id: leagueId });
+      if (error) {
+        setLiveDraftError(`Draft reset failed: ${error.message}`);
+        return false;
+      }
+      setLiveDraftError("");
+    }
     commit((s) => ({
       ...s,
+      liveDraft: null,
       locked: false,
       teams: s.teams.map((t) => ({ ...t, archetypes: [] })),
       rosters: [], budgets: [], pool: [],
@@ -6107,7 +6118,8 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       playoffs: null,
       auditLog: [...(s.auditLog || []), auditEntry(myName, "Reset the entire draft", "rosters, schedule, and results all wiped")],
     }));
-    setTab("setup");
+    setTab("draft");
+    return true;
   }
 
   // Archives everything about the season that's worth remembering later —
@@ -6859,7 +6871,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
             snakePick={snakePick} nominateForAuction={nominateForAuction} autoPickForClock={autoPickForClock}
             placeBid={placeBid} endAuctionEarly={endAuctionEarly} pauseDraft={pauseDraft} resumeDraft={resumeDraft} skipAuctionNomination={skipAuctionNomination}
             toggleAutoDraft={toggleAutoDraft} addToQueue={addToQueue} removeFromQueue={removeFromQueue} moveQueueItem={moveQueueItem}
-            onGenerateSchedule={generateSchedule} updateSettings={updateSettings} onViewTeam={goToTeam} castDraftHeroVote={castDraftHeroVote}
+            onGenerateSchedule={generateSchedule} updateSettings={updateSettings} onViewTeam={goToTeam} castDraftHeroVote={castDraftHeroVote} resetDraft={resetDraft}
           />
         )}
         {tab === "myteam" && (
@@ -6915,7 +6927,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
                 snakePick={snakePick} nominateForAuction={nominateForAuction} autoPickForClock={autoPickForClock}
                 placeBid={placeBid} endAuctionEarly={endAuctionEarly} pauseDraft={pauseDraft} resumeDraft={resumeDraft} skipAuctionNomination={skipAuctionNomination}
                 toggleAutoDraft={toggleAutoDraft} addToQueue={addToQueue} removeFromQueue={removeFromQueue} moveQueueItem={moveQueueItem}
-                onGenerateSchedule={generateSchedule} updateSettings={updateSettings} onViewTeam={goToTeam} castDraftHeroVote={castDraftHeroVote}
+                onGenerateSchedule={generateSchedule} updateSettings={updateSettings} onViewTeam={goToTeam} castDraftHeroVote={castDraftHeroVote} resetDraft={resetDraft}
               />
             )}
             {leagueSubTab === "schedule" && (
@@ -9968,7 +9980,7 @@ function PreDraftScout({ state, isCommissioner }) {
   </div>;
 }
 
-function DraftView({ state, isCommissioner, canDraftNow, myName, myTeamIdx, currentTeamOnClock, draftDone, allTeamsMetMin, snakePick, nominateForAuction, autoPickForClock, placeBid, endAuctionEarly, pauseDraft, resumeDraft, skipAuctionNomination, toggleAutoDraft, addToQueue, removeFromQueue, moveQueueItem, onGenerateSchedule, updateSettings, onViewTeam, castDraftHeroVote }) {
+function DraftView({ state, isCommissioner, canDraftNow, myName, myTeamIdx, currentTeamOnClock, draftDone, allTeamsMetMin, snakePick, nominateForAuction, autoPickForClock, placeBid, endAuctionEarly, pauseDraft, resumeDraft, skipAuctionNomination, toggleAutoDraft, addToQueue, removeFromQueue, moveQueueItem, onGenerateSchedule, updateSettings, onViewTeam, castDraftHeroVote, resetDraft }) {
   const { locked, settings, teams, rosters, budgets, pool, snakeOrder, pickIndex, nominee, auctionEnded, pickDeadline, queues, auctionNominationOrder, auctionNominationIdx, paused, pausedAt, pauseIsOvernight, nominationDeadline } = state;
   const draftType = settings.draftType;
 
@@ -9982,6 +9994,7 @@ function DraftView({ state, isCommissioner, canDraftNow, myName, myTeamIdx, curr
   const [showDraftBoard, setShowDraftBoard] = useState(false);
   const [pendingNominee, setPendingNominee] = useState(null);
   const [pendingBid, setPendingBid] = useState("1");
+  const [confirmRestart, setConfirmRestart] = useState(false);
   const [poolSort, setPoolSort] = useState("cost"); // "cost" | "az" | "bst" | a stat key
   const [poolSortDir, setPoolSortDir] = useState("desc"); // "desc" | "asc"
   const [poolStatFilter, setPoolStatFilter] = useState(""); // "" | hp | atk | def | spa | spd | spe
@@ -10089,6 +10102,11 @@ function DraftView({ state, isCommissioner, canDraftNow, myName, myTeamIdx, curr
   return (
     <div>
       {state.liveDraft?.sessionId && <div className="mb-4 rounded-lg px-4 py-3 text-sm" style={{ background: "#102B2B", color: "#BDF7EE", border: "1px solid #4FD1C577" }}><strong>LIVE SHARED DRAFT</strong> â€” picks and whose turn it is are locked by DraftCenter. This board refreshes automatically for every manager.</div>}
+      {isCommissioner && (
+        <div className="mb-4 rounded-lg px-4 py-3 text-sm" style={{ background: "#261822", border: "1px solid #F0555A55" }}>
+          {!confirmRestart ? <div className="flex items-center justify-between gap-3 flex-wrap"><span style={{ color: "#C8CDEA" }}>Testing issue or bad start? This clears every pick and returns the league to Pre-Draft, while keeping managers and setup.</span><button onClick={() => setConfirmRestart(true)} className="px-3 py-2 rounded font-semibold text-xs" style={{ background: "#F0555A22", color: "#FF9AA7", border: "1px solid #F0555A66" }}>RESTART THIS DRAFT</button></div> : <div className="flex items-center gap-3 flex-wrap"><strong style={{ color: "#FF9AA7" }}>Clear all picks and restart the draft?</strong><button onClick={async () => { const reset = await resetDraft(); if (reset) setConfirmRestart(false); }} className="px-3 py-2 rounded font-semibold text-xs" style={{ background: "#F0555A", color: "#10121C" }}>Yes, reset draft</button><button onClick={() => setConfirmRestart(false)} className="px-3 py-2 rounded text-xs" style={{ background: "#1F2338", color: "#C8CDEA" }}>Cancel</button></div>}
+        </div>
+      )}
       {!draftDone && (
         <div className="flex items-center justify-between flex-wrap gap-2 mb-4">
           {paused ? (
