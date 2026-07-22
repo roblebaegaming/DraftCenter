@@ -3,13 +3,11 @@
 import { useEffect, useState } from "react";
 import { createClient } from "../lib/supabase/client";
 
-const field = { padding: 11, borderRadius: 8, border: "1px solid #46517c", background: "#080c1c", color: "#fff" };
-
 function slugify(value) {
   return value.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "").slice(0, 72);
 }
 
-export default function LeagueHub({ user, onOpenLeague }) {
+export default function LeagueHub({ user, profile, onOpenLeague }) {
   const [supabase] = useState(() => createClient());
   const [leagues, setLeagues] = useState([]);
   const [publicLeagues, setPublicLeagues] = useState([]);
@@ -22,12 +20,8 @@ export default function LeagueHub({ user, onOpenLeague }) {
   async function loadLeagues() {
     setLoading(true);
     const [{ data, error }, { data: publicData, error: publicError }] = await Promise.all([
-      supabase
-      .from("league_memberships")
-      .select("id, role, league:leagues(id, name, slug, season_label, status, updated_at)")
-      .eq("user_id", user.id)
-      .order("joined_at", { ascending: false }),
-      supabase.from("leagues").select("id, name, slug, description, season_label, status").eq("is_public", true).order("updated_at", { ascending: false }).limit(8),
+      supabase.from("league_memberships").select("id, role, league:leagues(id, name, slug, season_label, status, updated_at, draft_starts_at)").eq("user_id", user.id).order("joined_at", { ascending: false }),
+      supabase.from("leagues").select("id, name, slug, description, season_label, status, draft_starts_at").eq("is_public", true).order("updated_at", { ascending: false }).limit(6),
     ]);
     setLoading(false);
     if (error || publicError) return setMessage((error || publicError).message);
@@ -37,18 +31,29 @@ export default function LeagueHub({ user, onOpenLeague }) {
 
   useEffect(() => { loadLeagues(); }, []);
 
+  useEffect(() => {
+    const token = new URLSearchParams(window.location.search).get("invite");
+    if (!token) return;
+    (async () => {
+      setBusy(true);
+      const { data, error } = await supabase.rpc("accept_league_invite", { p_token: token });
+      setBusy(false);
+      if (error) return setMessage(error.message);
+      window.history.replaceState({}, "", window.location.pathname);
+      await loadLeagues();
+      setMessage("Invite accepted. Welcome to the league!");
+      const { data: league } = await supabase.from("leagues").select("id, name, slug, season_label, status, draft_starts_at").eq("id", data).single();
+      if (league) onOpenLeague({ ...league, role: "coach" });
+    })();
+  }, []);
+
   async function createLeague(event) {
     event.preventDefault();
     const cleanName = name.trim();
+    if (!cleanName) return;
     const slug = `${slugify(cleanName)}-${Math.random().toString(36).slice(2, 7)}`;
-    setBusy(true);
-    setMessage("");
-    const { data, error } = await supabase.rpc("create_league", {
-      p_name: cleanName,
-      p_slug: slug,
-      p_description: "",
-      p_season_label: season,
-    });
+    setBusy(true); setMessage("");
+    const { data, error } = await supabase.rpc("create_league", { p_name: cleanName, p_slug: slug, p_description: "", p_season_label: season });
     setBusy(false);
     if (error) return setMessage(error.message);
     onOpenLeague({ id: data, name: cleanName, slug, season_label: season, role: "commissioner" });
@@ -63,42 +68,34 @@ export default function LeagueHub({ user, onOpenLeague }) {
   }
 
   return (
-    <main style={{ minHeight: "100vh", padding: "42px max(20px, calc((100vw - 1060px) / 2))", background: "radial-gradient(circle at top, #1d2857, #080b18 60%)" }}>
-      <div style={{ color: "#ffd23f", fontSize: 13, fontWeight: 800, letterSpacing: 1.5 }}>DRAFTCENTER</div>
-      <h1 style={{ margin: "10px 0 4px", fontSize: 34 }}>Find your next league.</h1>
-      <p style={{ margin: "0 0 28px", color: "#b8c0e6" }}>Discover public leagues, follow community standings, or create a home for your own competition.</p>
-      <section style={{ padding: 22, marginBottom: 24, border: "1px solid #2a3157", borderRadius: 14, background: "#11162b" }}>
-        <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12 }}><h2 style={{ marginTop: 0 }}>Explore public leagues</h2><span style={{ color: "#82aaff", fontSize: 13 }}>Leaderboards coming soon</span></div>
-        {!loading && publicLeagues.length === 0 && <p style={{ color: "#b8c0e6" }}>There are no public leagues to join yet. Ask a commissioner for a private invite, or start the first one.</p>}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12 }}>
-          {publicLeagues.map((league) => <article key={league.id} style={{ border: "1px solid #34406a", borderRadius: 10, padding: 15, background: "#181f3a" }}><strong>{league.name}</strong><p style={{ minHeight: 36, color: "#aeb7dc", fontSize: 13 }}>{league.description || league.season_label || "Open league"}</p><button disabled={busy} onClick={() => joinPublicLeague(league)} style={{ cursor: "pointer", border: 0, borderRadius: 7, background: "#4fd1c5", color: "#081615", fontWeight: 800, padding: "8px 10px" }}>Join league</button></article>)}
-        </div>
+    <main className="hub-shell">
+      <section className="hub-hero">
+        <div><div className="eyebrow">DRAFTCENTER</div><h1>Build a league you want to come back to.</h1><p>Join your commissioner&apos;s league, follow public competition, or run your own season.</p></div>
+        <div className="profile-chip"><span className="profile-initial">{(profile?.display_name || profile?.username || user.email || "C")[0].toUpperCase()}</span><div><strong>{profile?.display_name || "Coach"}</strong><small>@{profile?.username || "setting-up"}</small></div></div>
       </section>
-      <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(280px, 360px)", gap: 24, alignItems: "start" }}>
-        <section style={{ padding: 22, border: "1px solid #2a3157", borderRadius: 14, background: "#11162b" }}>
-          <h2 style={{ marginTop: 0 }}>Your leagues</h2>
-          {loading && <p style={{ color: "#b8c0e6" }}>Loading leagues…</p>}
-          {!loading && leagues.length === 0 && <p style={{ color: "#b8c0e6" }}>No leagues yet. Create your first one to begin.</p>}
-          <div style={{ display: "grid", gap: 10 }}>
-            {leagues.map(({ league, role }) => (
-              <button key={league.id} onClick={() => onOpenLeague({ ...league, role })} style={{ textAlign: "left", cursor: "pointer", color: "#fff", background: "#181f3a", border: "1px solid #34406a", borderRadius: 10, padding: 15 }}>
-                <strong>{league.name}</strong><br />
-                <span style={{ color: "#aeb7dc", fontSize: 13 }}>{league.season_label || "New season"} · {role.replace("_", " ")}</span>
-              </button>
-            ))}
+      {message && <p className="hub-message">{message}</p>}
+      <div className="hub-layout">
+        <section className="hub-card my-leagues-card">
+          <div className="section-heading"><div><span className="eyebrow">YOUR LEAGUES</span><h2>Pick up where you left off</h2></div><button className="quiet-button" onClick={loadLeagues}>Refresh</button></div>
+          {loading && <p className="muted">Loading your leagues...</p>}
+          {!loading && leagues.length === 0 && <div className="empty-state"><strong>You&apos;re ready to join.</strong><p>Ask a commissioner for an invite link, or create a league if you&apos;re running the season.</p></div>}
+          <div className="league-list">
+            {leagues.map(({ league, role }) => <button className="league-row" key={league.id} onClick={() => onOpenLeague({ ...league, role })}><div><strong>{league.name}</strong><span>{league.season_label || "New season"} · {role.replace("_", " ")}</span></div><span className="open-arrow">Open →</span></button>)}
           </div>
         </section>
-        <section style={{ padding: 22, border: "1px solid #2a3157", borderRadius: 14, background: "#11162b" }}>
-          <h2 style={{ marginTop: 0 }}>Create a league</h2>
-          <p style={{ color: "#aeb7dc", fontSize: 13, lineHeight: 1.4 }}>Starting a league? You will be its commissioner and can configure it your way.</p>
-          <form onSubmit={createLeague} style={{ display: "grid", gap: 12 }}>
-            <label style={{ display: "grid", gap: 6, fontSize: 13 }}>League name<input required minLength={2} value={name} onChange={(e) => setName(e.target.value)} style={field} placeholder="Kanto Cup" /></label>
-            <label style={{ display: "grid", gap: 6, fontSize: 13 }}>Season label <input value={season} onChange={(e) => setSeason(e.target.value)} style={field} placeholder="Season 1" /></label>
-            {message && <p style={{ margin: 0, color: "#ffd66b", fontSize: 13 }}>{message}</p>}
-            <button disabled={busy} style={{ cursor: busy ? "wait" : "pointer", border: 0, borderRadius: 8, background: "#ffd23f", color: "#161207", fontWeight: 800, padding: 12 }}>{busy ? "Creating…" : "Create league"}</button>
+        <aside className="hub-card create-card">
+          <span className="eyebrow">COMMISSIONERS</span><h2>Start a league</h2><p className="muted">You&apos;ll get setup tools, an invite link, and a place to save the draft plan.</p>
+          <form onSubmit={createLeague} className="form-stack">
+            <label>League name<input required minLength={2} value={name} onChange={(e) => setName(e.target.value)} placeholder="Kanto Cup" /></label>
+            <label>Season label<input value={season} onChange={(e) => setSeason(e.target.value)} placeholder="Season 1" /></label>
+            <button className="primary-button" disabled={busy}>{busy ? "Working..." : "Create league"}</button>
           </form>
-        </section>
+        </aside>
       </div>
+      <section className="hub-card public-card"><div className="section-heading"><div><span className="eyebrow">DISCOVER</span><h2>Public leagues</h2></div><span className="muted">Site-wide leaderboards are coming soon.</span></div>
+        {!loading && publicLeagues.length === 0 && <p className="muted">No public leagues yet. Private leagues can still be joined with an invite link.</p>}
+        <div className="public-grid">{publicLeagues.map((league) => <article key={league.id} className="public-league"><strong>{league.name}</strong><p>{league.description || league.season_label || "Open league"}</p><button className="secondary-button" disabled={busy} onClick={() => joinPublicLeague(league)}>Join league</button></article>)}</div>
+      </section>
     </main>
   );
 }

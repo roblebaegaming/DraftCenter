@@ -5,164 +5,31 @@ import { createClient } from "../lib/supabase/client";
 import LeagueHub from "./LeagueHub";
 import PokemonDraftLeague from "./PokemonDraftLeague";
 
-const panelStyle = {
-  width: "min(430px, calc(100vw - 32px))",
-  padding: 28,
-  borderRadius: 16,
-  border: "1px solid #2a3157",
-  background: "#11162b",
-  boxShadow: "0 20px 70px rgba(0, 0, 0, .38)",
-};
+const inputStyle = { padding: 11, borderRadius: 8, border: "1px solid #46517c", background: "#080c1c", color: "#fff", width: "100%" };
+const authPanel = { width: "min(430px, calc(100vw - 32px))", padding: 28, borderRadius: 16, border: "1px solid #2a3157", background: "#11162b", boxShadow: "0 20px 70px rgba(0, 0, 0, .38)" };
 
-const inputStyle = {
-  padding: 11,
-  borderRadius: 8,
-  border: "1px solid #46517c",
-  background: "#080c1c",
-  color: "#fff",
-};
+function ProfileSetup({ supabase, onSaved }) {
+  const [username, setUsername] = useState(""); const [displayName, setDisplayName] = useState(""); const [message, setMessage] = useState(""); const [busy, setBusy] = useState(false);
+  async function save(event) { event.preventDefault(); setBusy(true); const { data, error } = await supabase.rpc("set_my_profile", { p_username: username, p_display_name: displayName }); setBusy(false); if (error) return setMessage(error.message); onSaved(data); }
+  return <main style={{ minHeight: "100vh", display: "grid", placeItems: "center", padding: 16, background: "radial-gradient(circle at top, #1d2857, #080b18 55%)" }}><section style={authPanel}><div style={{ color: "#ffd23f", fontSize: 13, fontWeight: 800, letterSpacing: 1.5 }}>DRAFTCENTER</div><h1 style={{ margin: "10px 0 6px" }}>Choose your coach profile</h1><p style={{ color: "#aeb7dc", lineHeight: 1.45 }}>This is your site-wide identity. Your team name can be different in every league.</p><form onSubmit={save} style={{ display: "grid", gap: 13 }}><label>Display name<input value={displayName} onChange={(e) => setDisplayName(e.target.value)} required minLength={2} style={inputStyle} placeholder="Bobby" /></label><label>Username<input value={username} onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))} required minLength={3} maxLength={24} style={inputStyle} placeholder="bobbydrafts" /><small style={{ color: "#aeb7dc" }}>3–24 lowercase letters, numbers, or underscores.</small></label>{message && <p style={{ margin: 0, color: "#ffd66b" }}>{message}</p>}<button className="primary-button" disabled={busy}>{busy ? "Saving..." : "Continue to DraftCenter"}</button></form></section></main>;
+}
+
+function LeagueTools({ league, onClose, onUpdated }) {
+  const [supabase] = useState(() => createClient()); const [name, setName] = useState(league.name || ""); const [season, setSeason] = useState(league.season_label || ""); const [description, setDescription] = useState(league.description || ""); const [startsAt, setStartsAt] = useState(league.draft_starts_at ? new Date(league.draft_starts_at).toISOString().slice(0, 16) : ""); const [isPublic, setIsPublic] = useState(false); const [invite, setInvite] = useState(""); const [message, setMessage] = useState(""); const [busy, setBusy] = useState(false);
+  if (league.role !== "commissioner" && league.role !== "co_commissioner") return null;
+  async function saveDetails(event) { event.preventDefault(); setBusy(true); const { data, error } = await supabase.rpc("update_league_details", { p_league_id: league.id, p_name: name, p_description: description, p_season_label: season, p_draft_starts_at: startsAt ? new Date(startsAt).toISOString() : null, p_is_public: isPublic }); setBusy(false); if (error) return setMessage(error.message); onUpdated({ ...league, ...data }); setMessage("League details saved."); }
+  async function createInvite() { setBusy(true); const { data, error } = await supabase.rpc("create_league_invite", { p_league_id: league.id, p_email: null }); setBusy(false); if (error) return setMessage(error.message); const link = `${window.location.origin}?invite=${data.token}`; setInvite(link); try { await navigator.clipboard.writeText(link); setMessage("Invite link copied. It expires in 14 days."); } catch { setMessage("Invite link created. Copy it below."); } }
+  return <div className="modal-backdrop"><section className="tools-modal"><button className="modal-close" onClick={onClose}>×</button><span className="eyebrow">COMMISSIONER TOOLS</span><h2>League details & invites</h2><form className="form-stack" onSubmit={saveDetails}><label>League name<input value={name} onChange={(e) => setName(e.target.value)} required /></label><label>Season label<input value={season} onChange={(e) => setSeason(e.target.value)} /></label><label>Draft start date and time<input type="datetime-local" value={startsAt} onChange={(e) => setStartsAt(e.target.value)} /></label><label>Description<textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} /></label><label className="check-row"><input type="checkbox" checked={isPublic} onChange={(e) => setIsPublic(e.target.checked)} /> List this league publicly</label><button className="primary-button" disabled={busy}>{busy ? "Saving..." : "Save league details"}</button></form><hr /><h3>Invite coaches</h3><p className="muted">Share a single-use link. Coaches sign in with their own profile, then join this league.</p><button className="secondary-button" disabled={busy} onClick={createInvite}>Create & copy invite link</button>{invite && <input value={invite} readOnly style={{ marginTop: 10 }} onFocus={(e) => e.target.select()} />}{message && <p className="hub-message">{message}</p>}</section></div>;
+}
 
 export default function AuthGate() {
-  const [supabase] = useState(() => createClient());
-  const [session, setSession] = useState(undefined);
-  const [mode, setMode] = useState("sign_in");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [message, setMessage] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [activeLeague, setActiveLeague] = useState(null);
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => setSession(data.session));
-    const { data: listener } = supabase.auth.onAuthStateChange((event, nextSession) => {
-      setSession(nextSession);
-      if (event === "PASSWORD_RECOVERY") setMode("reset_password");
-    });
-    return () => listener.subscription.unsubscribe();
-  }, [supabase]);
-
-  function changeMode(nextMode) {
-    setMode(nextMode);
-    setMessage("");
-    setPassword("");
-    setConfirmPassword("");
-  }
-
-  async function submit(event) {
-    event.preventDefault();
-    setBusy(true);
-    setMessage("");
-
-    if (mode === "forgot_password") {
-      const result = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: window.location.origin,
-      });
-      setBusy(false);
-      setMessage(result.error ? result.error.message : "If that email has an account, a password-reset link is on its way. Check your inbox and spam folder.");
-      return;
-    }
-
-    if (mode === "reset_password") {
-      if (password !== confirmPassword) {
-        setBusy(false);
-        setMessage("The two passwords do not match.");
-        return;
-      }
-      const result = await supabase.auth.updateUser({ password });
-      setBusy(false);
-      setMessage(result.error ? result.error.message : "Password updated. You are now signed in.");
-      return;
-    }
-
-    const result = mode === "sign_up"
-      ? await supabase.auth.signUp({
-          email,
-          password,
-          options: { emailRedirectTo: window.location.origin },
-        })
-      : await supabase.auth.signInWithPassword({ email, password });
-
-    setBusy(false);
-    if (result.error) {
-      setMessage(result.error.message);
-      return;
-    }
-    if (mode === "sign_up" && !result.data.session) {
-      setMessage("Check your email to confirm your account, then return here and sign in.");
-    }
-  }
-
-  if (session === undefined) {
-    return <main style={{ minHeight: "100vh", display: "grid", placeItems: "center" }}>Loading DraftCenter...</main>;
-  }
-
-  if (session && mode !== "reset_password") {
-    if (!activeLeague) {
-      return (
-        <>
-          <div style={{ position: "fixed", zIndex: 50, right: 14, top: 12, display: "flex", gap: 8, alignItems: "center", fontSize: 12 }}>
-            <span style={{ color: "#b8c0e6" }}>{session.user.email}</span>
-            <button onClick={() => supabase.auth.signOut()} style={{ cursor: "pointer", border: "1px solid #4b557c", borderRadius: 7, background: "#171d36", color: "#fff", padding: "6px 9px" }}>Sign out</button>
-          </div>
-          <LeagueHub user={session.user} onOpenLeague={setActiveLeague} />
-        </>
-      );
-    }
-    return (
-      <>
-        <div style={{ position: "fixed", zIndex: 50, right: 14, top: 12, display: "flex", gap: 8, alignItems: "center", fontSize: 12 }}>
-          <button onClick={() => setActiveLeague(null)} style={{ cursor: "pointer", border: "1px solid #4b557c", borderRadius: 7, background: "#171d36", color: "#fff", padding: "6px 9px" }}>My Leagues</button>
-          <span style={{ color: "#b8c0e6" }}>{session.user.email}</span>
-          <button onClick={() => supabase.auth.signOut()} style={{ cursor: "pointer", border: "1px solid #4b557c", borderRadius: 7, background: "#171d36", color: "#fff", padding: "6px 9px" }}>Sign out</button>
-        </div>
-        <PokemonDraftLeague leagueId={activeLeague.id} />
-      </>
-    );
-  }
-
-  const signingUp = mode === "sign_up";
-  const recovering = mode === "forgot_password";
-  const resetting = mode === "reset_password";
-  const title = resetting ? "Choose a new password" : recovering ? "Reset your password" : signingUp ? "Create your account" : "Welcome back";
-  const description = resetting
-    ? "Enter and confirm a new password for your DraftCenter account."
-    : recovering
-      ? "Enter your email and we will send a password-reset link."
-      : "Sign in to create, join, and manage Pokemon Draft Leagues.";
-
-  return (
-    <main style={{ minHeight: "100vh", display: "grid", placeItems: "center", padding: 16, background: "radial-gradient(circle at top, #1d2857, #080b18 55%)" }}>
-      <section style={panelStyle}>
-        <div style={{ color: "#ffd23f", fontSize: 13, fontWeight: 800, letterSpacing: 1.5 }}>DRAFTCENTER</div>
-        <h1 style={{ margin: "10px 0 6px", fontSize: 27 }}>{title}</h1>
-        <p style={{ margin: "0 0 22px", color: "#aeb7dc", lineHeight: 1.45 }}>{description}</p>
-        <form onSubmit={submit} style={{ display: "grid", gap: 13 }}>
-          {!resetting && <label style={{ display: "grid", gap: 6, color: "#dce3ff", fontSize: 13 }}>Email
-            <input value={email} onChange={(event) => setEmail(event.target.value)} type="email" required autoComplete="email" style={inputStyle} />
-          </label>}
-          {!recovering && <label style={{ display: "grid", gap: 6, color: "#dce3ff", fontSize: 13 }}>{resetting ? "New password" : "Password"}
-            <input value={password} onChange={(event) => setPassword(event.target.value)} type="password" required minLength={6} autoComplete={signingUp || resetting ? "new-password" : "current-password"} style={inputStyle} />
-          </label>}
-          {resetting && <label style={{ display: "grid", gap: 6, color: "#dce3ff", fontSize: 13 }}>Confirm new password
-            <input value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} type="password" required minLength={6} autoComplete="new-password" style={inputStyle} />
-          </label>}
-          {message && <p style={{ margin: 0, color: "#ffd66b", fontSize: 13 }}>{message}</p>}
-          <button disabled={busy} style={{ cursor: busy ? "wait" : "pointer", border: 0, borderRadius: 8, background: "#ffd23f", color: "#161207", fontWeight: 800, padding: 12 }}>
-            {busy ? "Please wait..." : resetting ? "Update password" : recovering ? "Email reset link" : signingUp ? "Create account" : "Sign in"}
-          </button>
-        </form>
-        {recovering ? (
-          <button onClick={() => changeMode("sign_in")} style={{ marginTop: 16, cursor: "pointer", background: "none", border: 0, color: "#82aaff", padding: 0 }}>Back to sign in</button>
-        ) : !resetting && (
-          <div style={{ display: "grid", gap: 10, marginTop: 16 }}>
-            {!signingUp && <button onClick={() => changeMode("forgot_password")} style={{ cursor: "pointer", background: "none", border: 0, color: "#82aaff", padding: 0, textAlign: "left" }}>Forgot password?</button>}
-            <button onClick={() => changeMode(signingUp ? "sign_in" : "sign_up")} style={{ cursor: "pointer", background: "none", border: 0, color: "#82aaff", padding: 0, textAlign: "left" }}>
-              {signingUp ? "Already have an account? Sign in" : "New here? Create an account"}
-            </button>
-          </div>
-        )}
-      </section>
-    </main>
-  );
+  const [supabase] = useState(() => createClient()); const [session, setSession] = useState(undefined); const [profile, setProfile] = useState(undefined); const [mode, setMode] = useState("sign_in"); const [email, setEmail] = useState(""); const [password, setPassword] = useState(""); const [confirmPassword, setConfirmPassword] = useState(""); const [message, setMessage] = useState(""); const [busy, setBusy] = useState(false); const [activeLeague, setActiveLeague] = useState(null); const [showTools, setShowTools] = useState(false);
+  async function loadProfile(nextSession) { if (!nextSession) return setProfile(undefined); const { data } = await supabase.from("profiles").select("id, display_name, username").eq("id", nextSession.user.id).maybeSingle(); setProfile(data || null); }
+  useEffect(() => { supabase.auth.getSession().then(({ data }) => { setSession(data.session); loadProfile(data.session); }); const { data: listener } = supabase.auth.onAuthStateChange((event, nextSession) => { setSession(nextSession); loadProfile(nextSession); if (event === "PASSWORD_RECOVERY") setMode("reset_password"); }); return () => listener.subscription.unsubscribe(); }, [supabase]);
+  function changeMode(nextMode) { setMode(nextMode); setMessage(""); setPassword(""); setConfirmPassword(""); }
+  async function submit(event) { event.preventDefault(); setBusy(true); setMessage(""); if (mode === "forgot_password") { const result = await supabase.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin }); setBusy(false); return setMessage(result.error ? result.error.message : "If that email has an account, a password-reset link is on its way. Check your inbox and spam folder."); } if (mode === "reset_password") { if (password !== confirmPassword) { setBusy(false); return setMessage("The two passwords do not match."); } const result = await supabase.auth.updateUser({ password }); setBusy(false); return setMessage(result.error ? result.error.message : "Password updated. You are now signed in."); } const result = mode === "sign_up" ? await supabase.auth.signUp({ email, password, options: { emailRedirectTo: window.location.origin } }) : await supabase.auth.signInWithPassword({ email, password }); setBusy(false); if (result.error) return setMessage(result.error.message); if (mode === "sign_up" && !result.data.session) setMessage("Check your email to confirm your account, then return here and sign in."); }
+  if (session === undefined || (session && profile === undefined)) return <main style={{ minHeight: "100vh", display: "grid", placeItems: "center" }}>Loading DraftCenter...</main>;
+  if (session && mode !== "reset_password") { if (!profile?.username) return <ProfileSetup supabase={supabase} onSaved={setProfile} />; if (!activeLeague) return <><div className="site-account"><span>@{profile.username}</span><button onClick={() => supabase.auth.signOut()}>Sign out</button></div><LeagueHub user={session.user} profile={profile} onOpenLeague={setActiveLeague} /></>; return <><div className="site-account"><button onClick={() => setActiveLeague(null)}>My leagues</button><span>@{profile.username}</span>{(activeLeague.role === "commissioner" || activeLeague.role === "co_commissioner") && <button onClick={() => setShowTools(true)}>League tools</button>}<button onClick={() => supabase.auth.signOut()}>Sign out</button></div><PokemonDraftLeague leagueId={activeLeague.id} profile={profile} />{showTools && <LeagueTools league={activeLeague} onClose={() => setShowTools(false)} onUpdated={setActiveLeague} />}</>; }
+  const signingUp = mode === "sign_up"; const recovering = mode === "forgot_password"; const resetting = mode === "reset_password"; const title = resetting ? "Choose a new password" : recovering ? "Reset your password" : signingUp ? "Create your account" : "Welcome back";
+  return <main style={{ minHeight: "100vh", display: "grid", placeItems: "center", padding: 16, background: "radial-gradient(circle at top, #1d2857, #080b18 55%)" }}><section style={authPanel}><div className="eyebrow">DRAFTCENTER</div><h1 style={{ margin: "10px 0 6px" }}>{title}</h1><p style={{ margin: "0 0 22px", color: "#aeb7dc", lineHeight: 1.45 }}>{resetting ? "Enter and confirm a new password." : recovering ? "Enter your email and we will send a password-reset link." : "Sign in to create, join, and manage Pokemon Draft Leagues."}</p><form onSubmit={submit} style={{ display: "grid", gap: 13 }}>{!resetting && <label>Email<input value={email} onChange={(e) => setEmail(e.target.value)} type="email" required autoComplete="email" style={inputStyle} /></label>}{!recovering && <label>{resetting ? "New password" : "Password"}<input value={password} onChange={(e) => setPassword(e.target.value)} type="password" required minLength={6} autoComplete={signingUp || resetting ? "new-password" : "current-password"} style={inputStyle} /></label>}{resetting && <label>Confirm new password<input value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} type="password" required minLength={6} autoComplete="new-password" style={inputStyle} /></label>}{message && <p className="hub-message">{message}</p>}<button className="primary-button" disabled={busy}>{busy ? "Please wait..." : resetting ? "Update password" : recovering ? "Email reset link" : signingUp ? "Create account" : "Sign in"}</button></form>{recovering ? <button className="text-button" onClick={() => changeMode("sign_in")}>Back to sign in</button> : !resetting && <div className="auth-links">{!signingUp && <button className="text-button" onClick={() => changeMode("forgot_password")}>Forgot password?</button>}<button className="text-button" onClick={() => changeMode(signingUp ? "sign_in" : "sign_up")}>{signingUp ? "Already have an account? Sign in" : "New here? Create an account"}</button></div>}</section></main>;
 }

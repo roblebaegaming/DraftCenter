@@ -4217,15 +4217,17 @@ async function saveRemote(state, leagueId) {
         p_state: state,
       });
       if (error) throw error;
-      return;
+      return { ok: true };
     }
     if (window.storage?.set) {
       await window.storage.set(STORAGE_KEY, JSON.stringify(state), true);
-      return;
+      return { ok: true };
     }
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    return { ok: true };
   } catch (e) {
     console.error("Storage save failed", e);
+    return { ok: false, message: e.message || "Could not save" };
   }
 }
 
@@ -4425,7 +4427,7 @@ function isWithinOvernightPause(date, settings) {
   return h >= start || h < end; // wraps past midnight
 }
 
-export default function PokemonDraftLeague({ leagueId = null }) {
+export default function PokemonDraftLeague({ leagueId = null, profile = null }) {
   const [tab, setTab] = useState("home");
   // Which of Schedule / Standings / Playoffs / History is showing inside the
   // consolidated "League" tab — these four used to be separate top-level
@@ -4439,8 +4441,8 @@ export default function PokemonDraftLeague({ leagueId = null }) {
     setViewTeamRequest(teamIdx);
     setTab("myteam");
   }
-  const [myName, setMyName] = useState("");
-  const [nameConfirmed, setNameConfirmed] = useState(false);
+  const [myName, setMyName] = useState(profile?.display_name || profile?.username || "");
+  const [nameConfirmed, setNameConfirmed] = useState(!!(profile?.display_name || profile?.username));
   // Which of possibly-several teams claimed by this identity is "active" —
   // a personal display preference, not shared league state, same as myName
   // itself. Nothing stops one person from claiming more than one team in a
@@ -4452,7 +4454,14 @@ export default function PokemonDraftLeague({ leagueId = null }) {
   const [activeTeamIdx, setActiveTeamIdx] = useState(null);
   const [state, setState] = useState(freshState());
   const [synced, setSynced] = useState(false);
+  const [saveStatus, setSaveStatus] = useState(leagueId ? "loading" : "local");
   const revRef = useRef(0);
+  const saveRequestRef = useRef(0);
+
+  useEffect(() => {
+    const identity = profile?.display_name || profile?.username;
+    if (identity) { setMyName(identity); setNameConfirmed(true); }
+  }, [profile]);
 
   // Initial load + polling for multiplayer sync
   useEffect(() => {
@@ -4465,6 +4474,7 @@ export default function PokemonDraftLeague({ leagueId = null }) {
         setState(hydrateState(remote));
       }
       setSynced(true);
+      if (leagueId) setSaveStatus("saved");
     }
     pull();
     const iv = setInterval(pull, 4000);
@@ -4476,10 +4486,24 @@ export default function PokemonDraftLeague({ leagueId = null }) {
       const next = typeof updater === "function" ? updater(prev) : updater;
       const withRev = { ...next, rev: (prev.rev || 0) + 1 };
       revRef.current = withRev.rev;
-      saveRemote(withRev, leagueId);
+      const request = ++saveRequestRef.current;
+      if (leagueId) setSaveStatus("saving");
+      saveRemote(withRev, leagueId).then((result) => {
+        if (request !== saveRequestRef.current) return;
+        if (leagueId) setSaveStatus(result?.ok ? "saved" : "error");
+      });
       return withRev;
     });
   }, [leagueId]);
+
+  function saveNow() {
+    const request = ++saveRequestRef.current;
+    if (leagueId) setSaveStatus("saving");
+    saveRemote(state, leagueId).then((result) => {
+      if (request !== saveRequestRef.current) return;
+      if (leagueId) setSaveStatus(result?.ok ? "saved" : "error");
+    });
+  }
 
   const isCommissioner = nameConfirmed && (state.commissioner === myName || (state.coCommissioners || []).includes(myName));
   const canBeCommissioner = nameConfirmed && !state.commissioner;
@@ -6581,6 +6605,9 @@ export default function PokemonDraftLeague({ leagueId = null }) {
             )}
             <IdentityBadge synced={synced} myName={myName} isCommissioner={isCommissioner} renameMe={renameMe} />
           </div>
+          {leagueId && <button onClick={saveNow} className="mono-font text-[10px] px-2 py-1 rounded font-semibold" style={{ background: saveStatus === "error" ? "#F0555A22" : "#4FD1C522", color: saveStatus === "error" ? "#F0555A" : "#4FD1C5", border: "1px solid currentColor" }}>
+            {saveStatus === "saving" ? "SAVING..." : saveStatus === "error" ? "SAVE FAILED — RETRY" : "SAVED"}
+          </button>}
           <nav className="flex gap-1">
             {[
               ["home", "Home"], ["setup", "Setup"],
