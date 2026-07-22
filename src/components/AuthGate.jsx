@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { createClient } from "../lib/supabase/client";
 import LeagueHub from "./LeagueHub";
 import PokemonDraftLeague from "./PokemonDraftLeague";
-import { POLL_POKEMON_NAMES } from "./PokemonDraftLeague";
+import { POLL_POKEMON_NAMES, POKEMON_DIRECTORY } from "./PokemonDraftLeague";
 
 const inputStyle = { padding: 11, borderRadius: 8, border: "1px solid #46517c", background: "#080c1c", color: "#fff", width: "100%" };
 const authPanel = { width: "min(430px, calc(100vw - 32px))", padding: 28, borderRadius: 16, border: "1px solid #2a3157", background: "#11162b", boxShadow: "0 20px 70px rgba(0,0,0,.38)" };
@@ -32,7 +32,24 @@ function ProfileEditor({ supabase, user, profile, onSaved, onClose }) {
 }
 
 function PublicLanding({ email, password, setEmail, setPassword, busy, message, onSubmit, onMode }) {
-  return <main className="visitor-home"><section className="visitor-hero"><span className="eyebrow">DRAFTCENTER</span><h1>More than a place to run a draft.</h1><p>Explore Pokémon, follow public leagues, and see what the DraftCenter community is enjoying—all before creating an account.</p><div className="visitor-free-grid"><a href="/pokemon"><span>POKÉDEX</span><strong>Explore Pokémon</strong><small>Stats, types, moves, Pokédex history, and filters.</small></a><a href="/explore"><span>COMMUNITY</span><strong>Explore trends</strong><small>Poll results, favorite Pokémon, ADP, and public leagues.</small></a><a href="/explore"><span>PUBLIC LEAGUES</span><strong>Watch a draft</strong><small>Follow public boards and see league results as they grow.</small></a></div></section><aside className="visitor-signin"><span className="eyebrow">MEMBERS</span><h2>Welcome back</h2><p className="muted">Sign in when you are ready to join, manage, or create a league.</p><form onSubmit={onSubmit} className="form-stack"><label>Email<input type="email" required value={email} onChange={(event) => setEmail(event.target.value)} style={inputStyle}/></label><label>Password<input type="password" required minLength={6} value={password} onChange={(event) => setPassword(event.target.value)} style={inputStyle}/></label>{message && <p className="hub-message">{message}</p>}<button className="primary-button" disabled={busy}>{busy ? "Please wait..." : "Sign in"}</button></form><div className="visitor-account-links"><button className="text-button" onClick={() => onMode("forgot_password")}>Forgot password?</button><button className="text-button" onClick={() => onMode("sign_up")}>New here? Create an account</button></div></aside></main>;
+  const [featured, setFeatured] = useState(null);
+  const [poll, setPoll] = useState(null);
+  useEffect(() => {
+    const pokemon = POKEMON_DIRECTORY[Math.floor(Math.random() * POKEMON_DIRECTORY.length)];
+    if (pokemon) {
+      const key = pokemon.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+      Promise.all([fetch(`https://pokeapi.co/api/v2/pokemon/${key}`), fetch(`https://pokeapi.co/api/v2/pokemon-species/${key}`)])
+        .then(async ([pokemonResponse, speciesResponse]) => {
+          if (!pokemonResponse.ok || !speciesResponse.ok) throw new Error("Unavailable");
+          const [pokemonData, speciesData] = await Promise.all([pokemonResponse.json(), speciesResponse.json()]);
+          const entries = (speciesData.flavor_text_entries || []).filter((entry) => entry.language.name === "en");
+          const entry = entries.length ? entries[Math.floor(Math.random() * entries.length)] : null;
+          setFeatured({ name: pokemon.name, image: pokemonData.sprites?.other?.["official-artwork"]?.front_default || pokemonData.sprites?.front_default, entry: entry?.flavor_text?.replace(/[\n\f]/g, " "), game: entry?.version?.name?.replace(/-/g, " ") });
+        }).catch(() => setFeatured({ name: pokemon.name }));
+    }
+    createClient().rpc("get_public_explore").then(({ data }) => setPoll(data?.poll || null)).catch(() => {});
+  }, []);
+  return <main className="visitor-home"><section className="visitor-hero"><span className="eyebrow">DRAFTCENTER</span><h1>More than a place to run a draft.</h1><p>Explore Pokémon, follow public leagues, and see what the DraftCenter community is enjoying—all before creating an account.</p><div className="visitor-free-grid"><a href="/pokemon" className="visitor-feature-card"><span>POKÉDEX</span><strong>Explore Pokémon</strong>{featured?.image && <img src={featured.image} alt={featured.name} />}{featured ? <div className="visitor-feature-copy"><b>Featured: {featured.name}</b>{featured.entry ? <small>“{featured.entry}” <em>{featured.game}</em></small> : <small>Open its full Pokédex entry, stats, and move pools.</small>}</div> : <small>Loading a Pokémon from the Pokédex...</small>}</a><a href="/explore" className="visitor-feature-card"><span>COMMUNITY</span><strong>Explore trends</strong><div className="visitor-poll-preview"><b>Poll of the Day</b><p>{poll?.question || "See today’s Pokémon question and community results."}</p>{poll?.total_votes != null && <small>{poll.total_votes} vote{poll.total_votes === 1 ? "" : "s"} so far</small>}</div></a><a href="/explore"><span>PUBLIC LEAGUES</span><strong>Watch a draft</strong><small>Follow public boards and see league results as they grow.</small></a></div></section><aside className="visitor-signin"><span className="eyebrow">MEMBERS</span><h2>Welcome back</h2><p className="muted">Sign in when you are ready to join, manage, or create a league.</p><form onSubmit={onSubmit} className="form-stack"><label>Email<input type="email" required value={email} onChange={(event) => setEmail(event.target.value)} style={inputStyle}/></label><label>Password<input type="password" required minLength={6} value={password} onChange={(event) => setPassword(event.target.value)} style={inputStyle}/></label>{message && <p className="hub-message">{message}</p>}<button className="primary-button" disabled={busy}>{busy ? "Please wait..." : "Sign in"}</button></form><div className="visitor-account-links"><button className="text-button" onClick={() => onMode("forgot_password")}>Forgot password?</button><button className="text-button" onClick={() => onMode("sign_up")}>New here? Create an account</button></div></aside></main>;
 }
 
 function LeagueAppearanceEditor({ league, onClose, onUpdated }) {
