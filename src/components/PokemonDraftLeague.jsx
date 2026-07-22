@@ -4427,7 +4427,7 @@ function isWithinOvernightPause(date, settings) {
   return h >= start || h < end; // wraps past midnight
 }
 
-export default function PokemonDraftLeague({ leagueId = null, leagueRole = null, profile = null }) {
+export default function PokemonDraftLeague({ leagueId = null, leagueRole = null, profile = null, onOpenLeagueTools = null }) {
   const [supabase] = useState(() => createClient());
   const [tab, setTab] = useState("home");
   // Which of Schedule / Standings / Playoffs / History is showing inside the
@@ -6714,14 +6714,14 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
           </button>}
           <nav className="flex gap-1">
             {[
-              ["home", "Home"], ["setup", "Setup"],
+              ["home", "Home"], ...(!state.locked ? [["setup", "Setup"]] : []),
               // Pre-lock, there's no live draft yet — just one coming up —
               // so it's its own clearly-labeled top-level tab. The moment
               // the draft actually starts, it stops being a standalone
               // thing to check and becomes part of this league's season,
               // so it moves in as a League sub-tab instead (see below) and
               // this entry disappears rather than duplicating it.
-              ...(!state.locked ? [["draft", "Upcoming Drafts"]] : []),
+              ...(!state.locked ? [["draft", "Pre-Draft"]] : []),
               ["myteam", "My Teams"],
               ...(state.locked ? [["league", "League"]] : []),
               ["messages", "Messages"],
@@ -6765,7 +6765,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
         {liveDraftError && <div className="mb-4 rounded p-3 text-sm" style={{ background: "#2A1620", color: "#FFD6D6", border: "1px solid #F0555A66" }}>{liveDraftError}</div>}
         {tab === "home" && (
           <HomeView state={state} isCommissioner={isCommissioner} myTeamIdx={myTeamIdx} standings={standings}
-            onGetStarted={() => setTab("setup")}
+            onGetStarted={() => state.locked ? (setTab("league"), setLeagueSubTab("draft")) : setTab("setup")}
             onGoToLeague={(sub) => { setTab("league"); setLeagueSubTab(sub); }}
           />
         )}
@@ -6781,6 +6781,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
             updateHomepage={updateHomepage} addExpansionTeam={addExpansionTeam} removeSpecificTeam={removeSpecificTeam}
             exportLeagueBackup={exportLeagueBackup} importLeagueBackup={importLeagueBackup}
             addCoCommissioner={addCoCommissioner} removeCoCommissioner={removeCoCommissioner}
+            onOpenLeagueTools={onOpenLeagueTools}
           />
         )}
         {tab === "draft" && (
@@ -7446,7 +7447,8 @@ function HomeView({ state, isCommissioner, myTeamIdx, standings, onGetStarted, o
   const { coCommissioners: coCommissionersRaw, schedule, matchResults, trades = [], transactionLog = [], seasonNumber, commissioner, locked, teams } = state;
   const coCommissioners = coCommissionersRaw || [];
 
-  if (!locked) {
+  if (!locked) return <PreDraftScout state={state} isCommissioner={isCommissioner} />;
+  if (false) {
     return (
       <div className="flex flex-col gap-6">
         <div style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }} className="rounded-lg p-8 text-center">
@@ -8002,7 +8004,7 @@ function ManualRosterEntry({ teams, settings, finalizeManualDraft }) {
   );
 }
 
-function SetupView({ state, isCommissioner, canBeCommissioner, claimCommissioner, unclaimCommissioner, claimTeam, renameTeam, myName, updateSettings, resizeTeams, rerollAllTeamIdentities, costFor, toggleBanMon, toggleAllowExtraMon, resetDraft, addCustomMon, removeCustomMon, setSpriteOverride, setTeamLogo, onStart, addDivision, renameDivision, removeDivision, setTeamDivision, finalizeManualDraft, startNewSeason, updateHomepage, addExpansionTeam, removeSpecificTeam, exportLeagueBackup, importLeagueBackup, addCoCommissioner, removeCoCommissioner }) {
+function SetupView({ state, isCommissioner, canBeCommissioner, claimCommissioner, unclaimCommissioner, claimTeam, renameTeam, myName, updateSettings, resizeTeams, rerollAllTeamIdentities, costFor, toggleBanMon, toggleAllowExtraMon, resetDraft, addCustomMon, removeCustomMon, setSpriteOverride, setTeamLogo, onStart, addDivision, renameDivision, removeDivision, setTeamDivision, finalizeManualDraft, startNewSeason, updateHomepage, addExpansionTeam, removeSpecificTeam, exportLeagueBackup, importLeagueBackup, addCoCommissioner, removeCoCommissioner, onOpenLeagueTools }) {
   const { settings, teams, commissioner, locked, seasonNumber } = state;
   const coCommissioners = state.coCommissioners || [];
   const [editingCost, setEditingCost] = useState(null);
@@ -8081,7 +8083,7 @@ function SetupView({ state, isCommissioner, canBeCommissioner, claimCommissioner
 
   return (
     <div>
-      {!commissioner && (
+      {!leagueId && !commissioner && (
         <div style={{ background: "#1F2338", border: "1px solid #FFD23F55" }} className="rounded-lg p-4 mb-6 flex items-center justify-between flex-wrap gap-3">
           <span className="text-sm">No commissioner yet — claim it to control league settings.</span>
           <button onClick={claimCommissioner} className="px-4 py-2 rounded font-semibold text-sm" style={{ background: "#FFD23F", color: "#10121C" }}>
@@ -8089,7 +8091,7 @@ function SetupView({ state, isCommissioner, canBeCommissioner, claimCommissioner
           </button>
         </div>
       )}
-      {commissioner === myName && (
+      {!leagueId && commissioner === myName && (
         <div style={{ background: "#1F2338", border: "1px solid #4FD1C555" }} className="rounded-lg p-4 mb-6 flex items-center justify-between flex-wrap gap-3">
           <span className="text-sm">You're the commissioner for this league.</span>
           <button onClick={unclaimCommissioner} className="px-4 py-2 rounded font-semibold text-sm" style={{ background: "#1F2338", color: "#F0555A", border: "1px solid #F0555A55" }}>
@@ -8097,18 +8099,30 @@ function SetupView({ state, isCommissioner, canBeCommissioner, claimCommissioner
           </button>
         </div>
       )}
-      {coCommissioners.includes(myName) && (
+      {!leagueId && coCommissioners.includes(myName) && (
         <div style={{ background: "#1F2338", border: "1px solid #4FD1C555" }} className="rounded-lg p-4 mb-6">
           <span className="text-sm">You're a co-commissioner for this league — same powers as {commissioner}, minus claiming/unclaiming the primary role.</span>
         </div>
       )}
-      {commissioner && !isCommissioner && (
+      {!leagueId && commissioner && !isCommissioner && (
         <div style={{ background: "#1F2338", border: "1px solid rgba(255,255,255,0.08)" }} className="rounded-lg p-4 mb-6">
           <span className="text-sm" style={{ color: "#9A9FBD" }}>Commissioner: <span style={{ color: "#EDEBFA" }}>{commissioner}</span>{coCommissioners.length > 0 && <> · Co-commissioners: <span style={{ color: "#EDEBFA" }}>{coCommissioners.join(", ")}</span></>}</span>
         </div>
       )}
-      {isCommissioner && (
+      {isCommissioner && leagueId && (
+        <div className="rounded-lg p-4 mb-6 text-sm" style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)", color: "#9A9FBD" }}>
+          Co-commissioners are managed by username in <strong style={{ color: "#EDEBFA" }}>League tools</strong> after they join the league.
+        </div>
+      )}
+      {isCommissioner && !leagueId && (
         <CoCommissionerCard coCommissioners={coCommissioners} commissioner={commissioner} addCoCommissioner={addCoCommissioner} removeCoCommissioner={removeCoCommissioner} />
+      )}
+
+      {isCommissioner && !locked && onOpenLeagueTools && (
+        <div className="rounded-lg p-4 mb-6 flex items-center justify-between flex-wrap gap-3" style={{ background: "#171A2C", border: "1px solid #4FD1C555" }}>
+          <div><h3 className="display-font text-xl" style={{ color: "#4FD1C5" }}>DRAFT PLAN</h3><p className="text-sm" style={{ color: "#9A9FBD" }}>Set the official draft time, reminders, and league visibility before managers arrive.</p></div>
+          <button onClick={onOpenLeagueTools} className="px-4 py-2 rounded font-semibold text-sm" style={{ background: "#4FD1C5", color: "#10121C" }}>SET DRAFT TIME</button>
+        </div>
       )}
 
       <LeagueInfoCard state={state} isCommissioner={isCommissioner} updateHomepage={updateHomepage} />
@@ -8464,9 +8478,10 @@ function SetupView({ state, isCommissioner, canBeCommissioner, claimCommissioner
             )}
           </fieldset>
 
+          {!locked && <p className="text-sm mt-4" style={{ color: "#9A9FBD" }}>{settings.draftScheduledAt ? "Setup is ready. Keep this league open for managers until draft time, then start the shared draft here." : "Setup is ready. Start the draft whenever your managers are present, or use manual roster entry if you drafted elsewhere."}</p>}
           <button onClick={onStart} disabled={locked} className="w-full mt-4 py-3 rounded font-semibold display-font text-xl glow disabled:opacity-40"
             style={{ background: "#FFD23F", color: "#10121C" }}>
-            {locked ? "DRAFT IN PROGRESS" : "START DRAFT"}
+            {locked ? "DRAFT IN PROGRESS" : settings.draftScheduledAt ? "START SCHEDULED DRAFT" : "START DRAFT NOW"}
           </button>
 
           {!locked && (
@@ -9846,6 +9861,29 @@ function DraftHeroVoteCard({ teams, votes, myName, castDraftHeroVote }) {
     </div>
   );
 }
+function PreDraftScout({ state, isCommissioner }) {
+  const [search, setSearch] = useState("");
+  const [type, setType] = useState("");
+  const settings = state.settings;
+  const scheduledAt = settings.draftScheduledAt;
+  const pool = fullPool(settings).filter((mon) => isLegal(mon, settings))
+    .filter((mon) => mon.name.toLowerCase().includes(search.toLowerCase()))
+    .filter((mon) => !type || mon.t1 === type || mon.t2 === type);
+  const claimed = state.teams.filter((team) => team.claimedBy).length;
+  return <div className="space-y-6">
+    <section className="rounded-lg p-5" style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }}>
+      <span className="eyebrow">PRE-DRAFT</span><h2 className="display-font text-3xl" style={{ color: "#FFD23F" }}>Scout the draft board</h2>
+      <p className="text-sm mt-1" style={{ color: "#9A9FBD" }}>Study the eligible pool and team field before the commissioner starts the live draft.</p>
+      <div className="flex gap-3 flex-wrap mt-4 text-sm"><span className="px-3 py-1 rounded" style={{ background: "#1F2338", color: "#EDEBFA" }}>{pool.length} eligible Pokémon</span><span className="px-3 py-1 rounded" style={{ background: "#1F2338", color: "#EDEBFA" }}>{claimed}/{state.teams.length} managers assigned</span>{scheduledAt ? <span className="px-3 py-1 rounded" style={{ background: "#4FD1C522", color: "#4FD1C5" }}>Draft: {new Date(scheduledAt).toLocaleString()}</span> : <span className="px-3 py-1 rounded" style={{ background: "#FFD23F22", color: "#FFD23F" }}>{isCommissioner ? "Set the draft time in League tools" : "Draft time not set yet"}</span>}</div>
+    </section>
+    <section className="rounded-lg p-5" style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }}>
+      <div className="flex gap-3 flex-wrap mb-4"><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search Pokémon" className="px-3 py-2 rounded flex-1 min-w-[180px]" style={{ background: "#0F1420", border: "1px solid #313a63", color: "#EDEBFA" }} /><select value={type} onChange={(event) => setType(event.target.value)} className="px-3 py-2 rounded" style={{ background: "#0F1420", border: "1px solid #313a63", color: "#EDEBFA" }}><option value="">All types</option>{Object.keys(TYPE_COLORS).map((key) => <option key={key} value={key}>{key}</option>)}</select></div>
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">{pool.slice(0, 200).map((mon) => <article key={mon.id} className="rounded p-3" style={{ background: "#1B1F33", border: "1px solid rgba(255,255,255,0.06)" }}><strong className="block text-sm truncate">{mon.name}</strong><span className="text-xs" style={{ color: TYPE_COLORS[mon.t1] || "#9A9FBD" }}>{mon.t1}{mon.t2 ? ` / ${mon.t2}` : ""}</span></article>)}</div>
+      {pool.length > 200 && <p className="text-xs mt-3" style={{ color: "#9A9FBD" }}>Showing the first 200 results. Use search or a type filter to narrow the board.</p>}
+    </section>
+  </div>;
+}
+
 function DraftView({ state, isCommissioner, canDraftNow, myName, myTeamIdx, currentTeamOnClock, draftDone, allTeamsMetMin, snakePick, nominateForAuction, autoPickForClock, placeBid, endAuctionEarly, pauseDraft, resumeDraft, skipAuctionNomination, toggleAutoDraft, addToQueue, removeFromQueue, moveQueueItem, onGenerateSchedule, updateSettings, onViewTeam, castDraftHeroVote }) {
   const { locked, settings, teams, rosters, budgets, pool, snakeOrder, pickIndex, nominee, auctionEnded, pickDeadline, queues, auctionNominationOrder, auctionNominationIdx, paused, pausedAt, pauseIsOvernight, nominationDeadline } = state;
   const draftType = settings.draftType;
