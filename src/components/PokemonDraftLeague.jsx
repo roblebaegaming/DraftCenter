@@ -4850,13 +4850,18 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       }
       const drafted = new Set((live.picks || []).map((pick) => String(pick.pokemon_source_key)));
       const pokemonIds = Object.fromEntries((pokemonRows || []).map((row) => [String(row.source_key), row.id]));
+      const pickTimeLimitMinutes = Math.max(0, Number(previous.settings.pickTimeLimitMinutes) || 0);
+      const serverTurnStartedAt = Date.parse(live.session.updated_at || "");
+      const livePickDeadline = pickTimeLimitMinutes > 0 && Number.isFinite(serverTurnStartedAt)
+        ? serverTurnStartedAt + pickTimeLimitMinutes * 60 * 1000
+        : null;
       return {
         ...previous,
         locked: true,
         rosters,
         pool: basePool.filter((mon) => !drafted.has(String(mon.id))),
         pickIndex: live.session.current_pick_number,
-        pickDeadline: null,
+        pickDeadline: livePickDeadline,
         paused: live.session.status === "paused",
         liveDraft: { ...previous.liveDraft, sessionId: live.session.id, pokemonIds },
       };
@@ -10117,7 +10122,7 @@ function DraftView({ state, isCommissioner, canDraftNow, myName, myTeamIdx, curr
 
   return (
     <div>
-      {state.liveDraft?.sessionId && <div className="mb-4 rounded-lg px-4 py-3 text-sm" style={{ background: "#102B2B", color: "#BDF7EE", border: "1px solid #4FD1C577" }}><strong>LIVE SHARED DRAFT</strong> â€” picks and whose turn it is are locked by DraftCenter. This board refreshes automatically for every manager.</div>}
+      {state.liveDraft?.sessionId && <div className="mb-4 rounded-lg px-4 py-3 text-sm" style={{ background: "#102B2B", color: "#BDF7EE", border: "1px solid #4FD1C577" }}><strong>LIVE SHARED DRAFT</strong> — picks and whose turn it is are locked by DraftCenter. This board refreshes automatically for every manager.</div>}
       {isCommissioner && (
         <div className="mb-4 rounded-lg px-4 py-3 text-sm" style={{ background: "#261822", border: "1px solid #F0555A55" }}>
           {!confirmRestart ? <div className="flex items-center justify-between gap-3 flex-wrap"><span style={{ color: "#C8CDEA" }}>Testing issue or bad start? This clears every pick and returns the league to Pre-Draft, while keeping managers and setup.</span><button onClick={() => setConfirmRestart(true)} className="px-3 py-2 rounded font-semibold text-xs" style={{ background: "#F0555A22", color: "#FF9AA7", border: "1px solid #F0555A66" }}>RESTART THIS DRAFT</button></div> : <div className="flex items-center gap-3 flex-wrap"><strong style={{ color: "#FF9AA7" }}>Clear all picks and restart the draft?</strong><button onClick={async () => { const reset = await resetDraft(); if (reset) setConfirmRestart(false); }} className="px-3 py-2 rounded font-semibold text-xs" style={{ background: "#F0555A", color: "#10121C" }}>Yes, reset draft</button><button onClick={() => setConfirmRestart(false)} className="px-3 py-2 rounded text-xs" style={{ background: "#1F2338", color: "#C8CDEA" }}>Cancel</button></div>}
@@ -10620,12 +10625,14 @@ function PickTimer({ deadline, isCommissioner, onExpireAction, paused, pausedAt 
   const remainingMs = deadline - clockNow;
   const expired = !paused && remainingMs <= 0;
   const totalSec = Math.max(0, Math.floor(remainingMs / 1000));
-  const mm = String(Math.floor(totalSec / 60)).padStart(2, "0");
+  const hours = Math.floor(totalSec / 3600);
+  const mm = String(Math.floor((totalSec % 3600) / 60)).padStart(2, "0");
   const ss = String(totalSec % 60).padStart(2, "0");
+  const timeLabel = hours > 0 ? `${String(hours).padStart(2, "0")}:${mm}:${ss}` : `${mm}:${ss}`;
   return (
     <div className="mt-2 flex items-center justify-center gap-3">
       <span className="mono-font text-2xl" style={{ color: paused ? "#9A9FBD" : expired ? "#F0555A" : "#4FD1C5" }}>
-        {paused ? `⏸ ${mm}:${ss}` : expired ? "TIME'S UP" : `${mm}:${ss}`}
+        {paused ? `PAUSED ${timeLabel}` : expired ? "TIME'S UP" : timeLabel}
       </span>
       {expired && isCommissioner && (
         <button onClick={onExpireAction} className="text-xs px-3 py-1.5 rounded font-semibold"
