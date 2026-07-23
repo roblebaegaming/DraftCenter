@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Component, useEffect, useState } from "react";
 import { createClient } from "../lib/supabase/client";
 import LeagueHub, { RotatingPokemonArtwork, WORLD_CHAMPION_POKEMON, pokemonArtworkCandidates } from "./LeagueHub";
 import PokemonDraftLeague from "./PokemonDraftLeague";
@@ -8,6 +8,16 @@ import { POLL_POKEMON_NAMES, POKEMON_DIRECTORY } from "./PokemonDraftLeague";
 
 const inputStyle = { padding: 11, borderRadius: 8, border: "1px solid #46517c", background: "#080c1c", color: "#fff", width: "100%" };
 const authPanel = { width: "min(430px, calc(100vw - 32px))", padding: 28, borderRadius: 16, border: "1px solid #2a3157", background: "#11162b", boxShadow: "0 20px 70px rgba(0,0,0,.38)" };
+
+class LeagueErrorBoundary extends Component {
+  constructor(props) { super(props); this.state = { failed: false }; }
+  static getDerivedStateFromError() { return { failed: true }; }
+  componentDidCatch(error) { console.error("League screen failed", error); }
+  render() {
+    if (!this.state.failed) return this.props.children;
+    return <main className="hub-shell"><section className="hub-card"><span className="eyebrow">LEAGUE RECOVERY</span><h1>This league screen hit an unexpected problem.</h1><p className="muted">Your saved league data has not been deleted. Return to the dashboard and try opening it again.</p><button className="primary-button" onClick={this.props.onExit}>Return to dashboard</button></section></main>;
+  }
+}
 
 function ProfileSetup({ supabase, user, onSaved }) {
   const [username, setUsername] = useState(""); const [displayName, setDisplayName] = useState(""); const [message, setMessage] = useState(""); const [busy, setBusy] = useState(false);
@@ -120,12 +130,35 @@ export default function AuthGate(){
   const [supabase]=useState(()=>createClient()); const [session,setSession]=useState(undefined); const [profile,setProfile]=useState(undefined); const [mode,setMode]=useState('sign_in'); const [email,setEmail]=useState(''); const [password,setPassword]=useState(''); const [confirmPassword,setConfirmPassword]=useState(''); const [message,setMessage]=useState(''); const [busy,setBusy]=useState(false); const [activeLeague,setActiveLeague]=useState(null); const [showTools,setShowTools]=useState(false); const [showProfile,setShowProfile]=useState(false); const [showAppearance,setShowAppearance]=useState(false);
   async function loadProfile(next){if(!next)return setProfile(undefined);const {data}=await supabase.from('profiles').select('id,display_name,username,avatar_url').eq('id',next.user.id).maybeSingle();setProfile(data||null);}
   useEffect(()=>{supabase.auth.getSession().then(({data})=>{setSession(data.session);loadProfile(data.session);});const {data:listener}=supabase.auth.onAuthStateChange((event,next)=>{setSession(next);loadProfile(next);if(event==='PASSWORD_RECOVERY')setMode('reset_password');});return()=>listener.subscription.unsubscribe();},[supabase]);
-  useEffect(()=>{if(new URLSearchParams(window.location.search).get('view')==='dashboard')setActiveLeague(null);},[]);
+  function openLeague(league, replace = false) {
+    setActiveLeague(league); setShowTools(false); setShowAppearance(false);
+    const key = league?.slug || league?.id;
+    if (key) window.history[replace ? "replaceState" : "pushState"]({}, "", `/?league=${encodeURIComponent(key)}`);
+  }
+  function closeLeague(replace = false) {
+    setActiveLeague(null); setShowTools(false); setShowAppearance(false);
+    window.history[replace ? "replaceState" : "pushState"]({}, "", "/?view=dashboard");
+  }
+  useEffect(()=>{
+    if(!session?.user?.id || !profile?.username) return undefined;
+    let alive=true;
+    async function restoreFromUrl(){
+      const params=new URLSearchParams(window.location.search); const key=params.get("league");
+      if(!key){if(alive)setActiveLeague(null);return;}
+      const {data,error}=await supabase.from("league_memberships").select("role, league:leagues(id,name,slug,description,image_url,season_label,status,draft_starts_at,league_visibility,is_practice)").eq("user_id",session.user.id);
+      if(!alive)return;
+      const membership=(data||[]).find((entry)=>entry.league&&(entry.league.slug===key||entry.league.id===key));
+      if(error||!membership){setMessage(error?.message||"That league is unavailable or you no longer have access.");closeLeague(true);return;}
+      setActiveLeague({...membership.league,role:membership.role});
+    }
+    restoreFromUrl(); const onPopState=()=>restoreFromUrl(); window.addEventListener("popstate",onPopState);
+    return()=>{alive=false;window.removeEventListener("popstate",onPopState);};
+  },[session?.user?.id,profile?.username,supabase]);
   function changeMode(next){setMode(next);setMessage('');setPassword('');setConfirmPassword('');}
   function errorText(error, fallback){const detail=typeof error?.message==='string'?error.message.trim():'';return detail&&detail!=='{}'?detail:fallback;}
   async function submit(event){event.preventDefault();const cleanEmail=email.trim().toLowerCase();setBusy(true);setMessage('');if(mode==='forgot_password'){const r=await supabase.auth.resetPasswordForEmail(cleanEmail,{redirectTo:window.location.origin});setBusy(false);return setMessage(r.error?errorText(r.error,'We could not send the reset email. Please try again shortly.'):'If that email has an account, a password-reset link is on its way. Check inbox and spam.');}if(mode==='reset_password'){if(password!==confirmPassword){setBusy(false);return setMessage('The two passwords do not match.');}const r=await supabase.auth.updateUser({password});setBusy(false);return setMessage(r.error?errorText(r.error,'We could not update the password. Please try again.'):'Password updated. You are now signed in.');}if(mode==='sign_up'&&password!==confirmPassword){setBusy(false);return setMessage('The two passwords do not match.');}const r=mode==='sign_up'?await supabase.auth.signUp({email:cleanEmail,password,options:{emailRedirectTo:window.location.origin}}):await supabase.auth.signInWithPassword({email:cleanEmail,password});setBusy(false);if(r.error)return setMessage(errorText(r.error,mode==='sign_up'?'We could not create that account. Please try again shortly.':'We could not sign you in. Check your email and password.'));if(mode==='sign_up'&&!r.data.session)setMessage(`If ${cleanEmail} is new, a DraftCenter confirmation email is on its way. If you already have an account, sign in instead or use Forgot password.`);}
   if(session===undefined||(session&&profile===undefined))return <main style={{minHeight:'100vh',display:'grid',placeItems:'center'}}>Loading DraftCenter...</main>;
-if(session&&mode!=='reset_password'){if(!profile?.username)return <ProfileSetup supabase={supabase} user={session.user} onSaved={setProfile}/>;if(!activeLeague)return <><div className="site-account"><a href="/pokemon">Pokémon</a><button onClick={()=>setShowProfile(true)}>Profile</button><span>@{profile.username}</span><button onClick={()=>supabase.auth.signOut()}>Sign out</button></div><LeagueHub user={session.user} profile={profile} onOpenLeague={setActiveLeague}/>{showProfile&&<ProfileEditor supabase={supabase} user={session.user} profile={profile} onSaved={setProfile} onClose={()=>setShowProfile(false)}/>}</>;return <><div className="site-account"><button onClick={()=>setActiveLeague(null)}>{activeLeague.name || "League"} home</button><a href="/pokemon">Pokémon</a><button onClick={()=>setShowProfile(true)}>Profile</button><span>@{profile.username}</span>{['commissioner','co_commissioner'].includes(activeLeague.role)&&<><button onClick={()=>setShowTools(true)}>League tools</button><button onClick={()=>setShowAppearance(true)}>Appearance</button></>}<button onClick={()=>supabase.auth.signOut()}>Sign out</button></div><PokemonDraftLeague leagueId={activeLeague.id} leagueRole={activeLeague.role} league={activeLeague} profile={profile} onOpenLeagueTools={()=>setShowTools(true)}/>{showTools&&<LeagueTools league={activeLeague} onClose={()=>setShowTools(false)} onUpdated={setActiveLeague}/>} {showAppearance&&<LeagueAppearanceEditor league={activeLeague} onClose={()=>setShowAppearance(false)} onUpdated={setActiveLeague}/>} {showProfile&&<ProfileEditor supabase={supabase} user={session.user} profile={profile} onSaved={setProfile} onClose={()=>setShowProfile(false)}/>}</>;}
+if(session&&mode!=='reset_password'){if(!profile?.username)return <ProfileSetup supabase={supabase} user={session.user} onSaved={setProfile}/>;if(!activeLeague)return <><div className="site-account"><a href="/pokemon">Pokémon</a><button onClick={()=>setShowProfile(true)}>Profile</button><span>@{profile.username}</span><button onClick={()=>supabase.auth.signOut()}>Sign out</button></div><LeagueHub user={session.user} profile={profile} onOpenLeague={openLeague}/>{showProfile&&<ProfileEditor supabase={supabase} user={session.user} profile={profile} onSaved={setProfile} onClose={()=>setShowProfile(false)}/>}</>;return <><div className="site-account"><button onClick={()=>closeLeague()}>{activeLeague.name || "League"} home</button><a href="/pokemon">Pokémon</a><button onClick={()=>setShowProfile(true)}>Profile</button><span>@{profile.username}</span>{['commissioner','co_commissioner'].includes(activeLeague.role)&&<><button onClick={()=>setShowTools(true)}>League tools</button><button onClick={()=>setShowAppearance(true)}>Appearance</button></>}<button onClick={()=>supabase.auth.signOut()}>Sign out</button></div><LeagueErrorBoundary key={activeLeague.id} onExit={()=>closeLeague()}><PokemonDraftLeague leagueId={activeLeague.id} leagueRole={activeLeague.role} league={activeLeague} profile={profile} onOpenLeagueTools={()=>setShowTools(true)}/></LeagueErrorBoundary>{showTools&&<LeagueTools league={activeLeague} onClose={()=>setShowTools(false)} onUpdated={(league)=>openLeague(league,true)}/>} {showAppearance&&<LeagueAppearanceEditor league={activeLeague} onClose={()=>setShowAppearance(false)} onUpdated={(league)=>openLeague(league,true)}/>} {showProfile&&<ProfileEditor supabase={supabase} user={session.user} profile={profile} onSaved={setProfile} onClose={()=>setShowProfile(false)}/>}</>;}
   const signUp=mode==='sign_up',forgot=mode==='forgot_password',reset=mode==='reset_password';const title=reset?'Choose a new password':forgot?'Reset your password':signUp?'Create your account':'Welcome back';
   if(mode==='sign_in')return <PublicLanding email={email} password={password} setEmail={setEmail} setPassword={setPassword} busy={busy} message={message} onSubmit={submit} onMode={changeMode}/>;
 return <main style={{minHeight:'100vh',display:'grid',placeItems:'center',padding:16,background:'radial-gradient(circle at top,#1d2857,#080b18 55%)'}}><section style={authPanel}><div className="eyebrow">DRAFTCENTER</div><h1>{title}</h1><p className="muted">{reset?'Enter and confirm a new password.':forgot?'Enter your email and we will send a password-reset link.':signUp?'Use an email you can open now. We will ask you to confirm it before you can sign in.':'Sign in to create, join, and manage Pokémon Draft Leagues.'}</p><form onSubmit={submit} className="form-stack">{!reset&&<label>Email<input type="email" required value={email} onChange={(e)=>setEmail(e.target.value)} style={inputStyle}/></label>}{!forgot&&<label>{reset?'New password':'Password'}<input type="password" required minLength={6} value={password} onChange={(e)=>setPassword(e.target.value)} style={inputStyle}/></label>}{(reset||signUp)&&<label>{reset?'Confirm new password':'Confirm password'}<input type="password" required minLength={6} value={confirmPassword} onChange={(e)=>setConfirmPassword(e.target.value)} style={inputStyle}/></label>}{message&&<p className="hub-message">{message}</p>}<button className="primary-button" disabled={busy}>{busy?'Please wait...':reset?'Update password':forgot?'Email reset link':signUp?'Create account':'Sign in'}</button></form>{forgot?<button className="text-button" onClick={()=>changeMode('sign_in')}>Back to sign in</button>:!reset&&<div className="auth-links">{!signUp&&<button className="text-button" onClick={()=>changeMode('forgot_password')}>Forgot password?</button>}<button className="text-button" onClick={()=>changeMode(signUp?'sign_in':'sign_up')}>{signUp?'Already have an account? Sign in':'New here? Create an account'}</button></div>}</section></main>;
