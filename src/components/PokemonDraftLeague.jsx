@@ -782,6 +782,8 @@ const REGIONAL_EXTRA_RAW = [
   ["Alolan Vulpix","ice",null,299,7],["Alolan Geodude","rock","electric",300,7],
   ["Alolan Graveler","rock","electric",390,7],["Alolan Golem","rock","electric",495,7],
   ["Galarian Weezing","poison","fairy",490,8],
+  ["Calyrex-Shadow Rider","psychic","ghost",680,8],["Calyrex-Ice Rider","psychic","ice",680,8],
+  ["Primal Groudon","ground","fire",770,6],["Primal Kyogre","water",null,770,6],
 ];
 const REGIONAL_EXTRA_POOL = REGIONAL_EXTRA_RAW.map(([name, t1, t2, bst, gen], i) => ({
   id: 4800 + i, name, t1, t2, bst, cost: defaultCost(bst), isMega: false, gen,
@@ -1939,6 +1941,10 @@ function typeChip(type) {
 // (confirmed directly against PokéAPI's database, not guessed).
 const SLUG_OVERRIDES = {
   "Basculegion": "basculegion-male",
+  "Calyrex-Shadow Rider": "calyrex-shadow",
+  "Calyrex-Ice Rider": "calyrex-ice",
+  "Primal Groudon": "groudon-primal",
+  "Primal Kyogre": "kyogre-primal",
   "Mega Absol": "absol-mega-z",
   "Mega Garchomp": "garchomp-mega-z",
   "Mega Lucario": "lucario-mega-z",
@@ -3010,6 +3016,10 @@ export const POKEMON_DATA = {
   "Glastrier": {stats:{hp:100,atk:145,def:130,spa:65,spd:110,spe:30},abilities:[{name:"Chilling Neigh",hidden:false}]},
   "Spectrier": {stats:{hp:100,atk:65,def:60,spa:145,spd:80,spe:130},abilities:[{name:"Grim Neigh",hidden:false}]},
   "Calyrex": {stats:{hp:100,atk:80,def:80,spa:80,spd:80,spe:80},abilities:[{name:"Unnerve",hidden:false}]},
+  "Calyrex-Shadow Rider": {stats:{hp:100,atk:85,def:80,spa:165,spd:100,spe:150},abilities:[{name:"As One (Spectrier)",hidden:false}]},
+  "Calyrex-Ice Rider": {stats:{hp:100,atk:165,def:150,spa:85,spd:130,spe:50},abilities:[{name:"As One (Glastrier)",hidden:false}]},
+  "Primal Groudon": {stats:{hp:100,atk:180,def:160,spa:150,spd:90,spe:90},abilities:[{name:"Desolate Land",hidden:false}]},
+  "Primal Kyogre": {stats:{hp:100,atk:150,def:90,spa:180,spd:160,spe:90},abilities:[{name:"Primordial Sea",hidden:false}]},
   "Ursaluna": {stats:{hp:130,atk:140,def:105,spa:45,spd:80,spe:50},abilities:[{name:"Guts",hidden:false},{name:"Bulletproof",hidden:false},{name:"Unnerve",hidden:true}]},
   "Enamorus": {stats:{hp:74,atk:115,def:70,spa:135,spd:80,spe:106},abilities:[{name:"Cute Charm",hidden:false},{name:"Contrary",hidden:true}]},
   "Sprigatito": {stats:{hp:40,atk:61,def:54,spa:45,spd:45,spe:65},abilities:[{name:"Overgrow",hidden:false},{name:"Protean",hidden:true}]},
