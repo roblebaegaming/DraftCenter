@@ -8975,10 +8975,12 @@ function SetupView({ state, leagueId = null, isCommissioner, canBeCommissioner, 
               <label className="block text-sm mb-2" style={{ color: "#9A9FBD" }}>
                 Teams advancing per division to playoffs — <span style={{ color: "#EDEBFA" }}>{settings.divisionPlayoffTeams}</span>
               </label>
-              <input type="range" min={2} max={8} value={settings.divisionPlayoffTeams}
+              <input type="range" min={1} max={8} value={settings.divisionPlayoffTeams}
                 onChange={(e) => updateSettings({ divisionPlayoffTeams: Number(e.target.value) })} className="w-full" />
               <p className="text-xs mt-2" style={{ color: "#5B5F7E" }}>
-                Each division runs its own bracket among its top teams; the two division champions then meet in a Grand Final — same structure as an NBA or NFL conference playoff.
+                {settings.divisionPlayoffTeams === 1
+                  ? "Only the first-place team from each division advances. Those division winners go directly into the league championship bracket."
+                  : "Each division runs its own bracket among its top teams; the division champions then meet in the league championship bracket."}
               </p>
             </div>
           )}
@@ -12866,6 +12868,7 @@ function DoubleElimView({ playoffs, teams, rosters, settings, isCommissioner, my
 function championOfRounds(rounds) {
   const finalRound = rounds[rounds.length - 1];
   const match = finalRound?.[0];
+  if (match?.bye) return match.a ?? match.b ?? null;
   if (!match?.result) return null;
   const { gamesA, gamesB } = match.result;
   return gamesA > gamesB ? match.a : gamesB > gamesA ? match.b : null;
