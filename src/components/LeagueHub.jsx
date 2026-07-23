@@ -60,7 +60,7 @@ export function pokemonArtworkCandidates(name) {
   return [...new Set(candidates.filter(Boolean))];
 }
 
-async function loadPokemonArtwork(name) {
+export async function loadPokemonArtwork(name) {
   for (const apiName of pokemonArtworkCandidates(name)) {
     try {
       const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${encodeURIComponent(apiName)}`);
