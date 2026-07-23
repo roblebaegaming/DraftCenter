@@ -16,6 +16,38 @@ function pokemonSlug(name) {
   return String(name || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 }
 
+const WORLD_CHAMPION_POKEMON = [
+  "Ludicolo","Toxicroak","Metagross","Snorlax","Salamence","Empoleon","Kyogre","Dialga","Groudon","Cresselia",
+  "Hariyama","Thundurus","Gothitelle","Conkeldurr","Terrakion","Hydreigon","Escavalier","Garchomp","Rotom",
+  "Tyranitar","Tornadus","Mamoswine","Amoonguss","Latios","Heatran","Pachirisu","Talonflame","Gardevoir",
+  "Gyarados","Kangaskhan","Landorus","Rayquaza","Hitmontop","Raichu","Gengar","Bronzong","Tapu Koko","Tapu Fini",
+  "Marowak","Celesteela","Whimsicott","Krookodile","Incineroar","Kartana","Gastrodon","Lunala","Stakataka",
+  "Zacian","Calyrex","Rillaboom","Flutter Mane","Chien-Pao","Iron Hands","Urshifu","Miraidon","Ogerpon",
+  "Farigiraf","Koraidon","Chi-Yu","Brute Bonnet","Ursaluna",
+];
+
+function FeaturePokemon({ names, interval = 5000 }) {
+  const choices = names.length ? names : ["Pikachu"];
+  const [index, setIndex] = useState(() => Math.floor(Math.random() * choices.length));
+  const [image, setImage] = useState("");
+  const name = choices[index % choices.length];
+  useEffect(() => { setIndex((current) => current % choices.length); }, [choices.length]);
+  useEffect(() => {
+    const timer = window.setInterval(() => setIndex((current) => (current + 1) % choices.length), interval);
+    return () => window.clearInterval(timer);
+  }, [choices.length, interval]);
+  useEffect(() => {
+    let active = true;
+    setImage("");
+    fetch(`https://pokeapi.co/api/v2/pokemon/${encodeURIComponent(pokemonSlug(name))}`)
+      .then((response) => response.ok ? response.json() : null)
+      .then((data) => { if (active) setImage(data?.sprites?.other?.["official-artwork"]?.front_default || data?.sprites?.front_default || ""); })
+      .catch(() => { if (active) setImage(""); });
+    return () => { active = false; };
+  }, [name]);
+  return <div className="hub-feature-pokemon">{image ? <img src={image} alt={name} /> : <span className="hub-feature-placeholder">★</span>}<small>{name}</small></div>;
+}
+
 function PollPokemonImage({ name }) {
   const [sprite, setSprite] = useState("");
   useEffect(() => {
@@ -84,7 +116,7 @@ function isCoachOnClock(state, profile) {
 }
 
 export default function LeagueHub({ user, profile, onOpenLeague }) {
-  const [supabase] = useState(() => createClient()); const [leagues, setLeagues] = useState([]); const [publicLeagues, setPublicLeagues] = useState([]); const [loading, setLoading] = useState(true); const [name, setName] = useState(""); const [season, setSeason] = useState(""); const [description, setDescription] = useState(""); const [imageUrl, setImageUrl] = useState(""); const [draftStartsAt, setDraftStartsAt] = useState(""); const [visibility, setVisibility] = useState("private"); const [isPractice, setIsPractice] = useState(false); const [message, setMessage] = useState(""); const [busy, setBusy] = useState(false); const [pendingInvite, setPendingInvite] = useState(null); const [inviteBusy, setInviteBusy] = useState(false); const [publicDetails, setPublicDetails] = useState(null);
+  const [supabase] = useState(() => createClient()); const [leagues, setLeagues] = useState([]); const [publicLeagues, setPublicLeagues] = useState([]); const [communityPokemon, setCommunityPokemon] = useState(["Pikachu","Eevee","Charizard"]); const [loading, setLoading] = useState(true); const [name, setName] = useState(""); const [season, setSeason] = useState(""); const [description, setDescription] = useState(""); const [imageUrl, setImageUrl] = useState(""); const [draftStartsAt, setDraftStartsAt] = useState(""); const [visibility, setVisibility] = useState("private"); const [isPractice, setIsPractice] = useState(false); const [message, setMessage] = useState(""); const [busy, setBusy] = useState(false); const [pendingInvite, setPendingInvite] = useState(null); const [inviteBusy, setInviteBusy] = useState(false); const [publicDetails, setPublicDetails] = useState(null);
   async function loadLeagues() {
     setLoading(true);
     const [{ data, error }, { data: publicData, error: publicError }] = await Promise.all([
@@ -125,6 +157,7 @@ export default function LeagueHub({ user, profile, onOpenLeague }) {
     setLoading(false);
   }
   useEffect(() => { loadLeagues(); const timer = window.setInterval(loadLeagues, 30000); return () => window.clearInterval(timer); }, []);
+  useEffect(() => { supabase.rpc("get_public_explore").then(({ data }) => { const pollLeaders = data?.poll?.answer_type === "pokemon" ? Object.entries(data.poll.counts || {}).sort(([, a], [, b]) => b - a).slice(0, 3).map(([pokemon]) => pokemon) : []; const favorites = (data?.popularity || []).slice(0, 3).map((item) => item.pokemon); const highlights = [...new Set([...pollLeaders, ...favorites])].filter(Boolean); if (highlights.length) setCommunityPokemon(highlights); }); }, [supabase]);
   useEffect(() => { const params = new URLSearchParams(window.location.search); const token = params.get("invite") || params.get("spectate"); if (!token) return; supabase.rpc("preview_league_invite", { p_token: token }).then(({ data, error }) => { if (error) setMessage(error.message); else setPendingInvite(data); }); }, [supabase]);
   function dismissInvite() { window.history.replaceState({}, "", window.location.pathname); setPendingInvite(null); }
   function membershipFor(league) { return leagues.find((entry) => entry.league.id === league.id); }
@@ -140,10 +173,10 @@ return (
     {message && <p className="hub-message">{message}</p>}
     {pendingInvite && <section className="hub-card invite-confirm"><span className="eyebrow">LEAGUE INVITATION</span><h2>{pendingInvite.is_spectator ? "Watch this league?" : "Join this league?"}</h2><p><strong>{pendingInvite.league_name}</strong>{pendingInvite.season_label ? ` - ${pendingInvite.season_label}` : ""}</p><p className="muted">{pendingInvite.is_spectator ? "You will have spectator access only. You can view and scout, but cannot claim a team or change league data." : "You will join as a manager. If an open team is available, one will be assigned after you confirm."}</p><div className="flex gap-2 flex-wrap"><button className="primary-button" disabled={inviteBusy} onClick={acceptPendingInvite}>{inviteBusy ? "Joining..." : "Accept invitation"}</button><button className="quiet-button" disabled={inviteBusy} onClick={dismissInvite}>Not now</button></div></section>}
     <div className="hub-layout">
-      <section className="hub-card my-leagues-card"><div className="section-heading"><div><span className="eyebrow">YOUR LEAGUES</span><h2>Pick up where you left off</h2></div><button className="quiet-button" onClick={loadLeagues}>Refresh</button></div>{loading && <p className="muted">Loading your leagues...</p>}{!loading && leagues.length === 0 && <div className="empty-state"><strong>You are ready to join.</strong><p>Ask a commissioner for an invite link, or create a league if you are running the season.</p></div>}<div className="league-list">{leagues.map(({ league, role }) => <button className="league-row" key={league.id} onClick={() => onOpenLeague({ ...league, role })}><div><strong>{league.name}</strong><span>{league.season_label || "New season"} - {role.replace("_", " ")}</span></div><span className="open-arrow">Open</span></button>)}</div></section>
+      <section className="hub-card my-leagues-card"><div className="section-heading"><div><span className="eyebrow">YOUR LEAGUES</span><h2>Pick up where you left off</h2></div><button className="quiet-button" onClick={loadLeagues}>Refresh</button></div>{loading && <p className="muted">Loading your leagues...</p>}{!loading && leagues.length === 0 && <div className="empty-state"><strong>You are ready to join.</strong><p>Ask a commissioner for an invite link, or create a league if you are running the season.</p></div>}<div className="league-list">{leagues.map(({ league, role }) => <button className="league-row" key={league.id} onClick={() => onOpenLeague({ ...league, role })}><div><strong>{league.name}</strong><span>{league.season_label || "New season"} - {role.replace("_", " ")}</span></div><span className="open-arrow">Open</span></button>)}</div><div className="hub-destination-grid"><a className="hub-destination-card community-destination" href="/explore"><div><span className="eyebrow">COMMUNITY</span><h3>Trends and favorites</h3><p>See what coaches are voting for, favoriting, and drafting.</p><strong>Explore community →</strong></div><FeaturePokemon names={communityPokemon} /></a><a className="hub-destination-card leagues-destination" href="#public-leagues"><div><span className="eyebrow">PUBLIC LEAGUES</span><h3>Watch or join</h3><p>Browse open leagues and public draft boards.</p><strong>See public leagues ↓</strong></div><FeaturePokemon names={WORLD_CHAMPION_POKEMON} interval={6200} /></a></div></section>
       <aside className="hub-card create-card"><span className="eyebrow">COMMISSIONERS</span><h2>Start a league</h2><p className="muted">Set up a league now; you can change every detail later.</p><form onSubmit={createLeague} className="form-stack"><label>League name<input required minLength={2} value={name} onChange={(e) => setName(e.target.value)} placeholder="Kanto Cup" /></label><label>Season label<input value={season} onChange={(e) => setSeason(e.target.value)} placeholder="Season 1" /></label><label>Draft start date and time (optional)<input type="datetime-local" value={draftStartsAt} onChange={(e) => setDraftStartsAt(e.target.value)} /></label><label>Short public description<textarea rows={3} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="What kind of league is this?" /></label><label>League image URL (optional)<input type="url" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="https://..." /></label><label>Who can access it?<select value={visibility} onChange={(e) => setVisibility(e.target.value)}><option value="private">Private - invite link only</option><option value="watch">Public to watch - people can view results</option><option value="open">Open to join - shown in Discover</option></select></label><label className="check-label"><input type="checkbox" checked={isPractice} onChange={(e) => setIsPractice(e.target.checked)} /> <span>Practice league - kept out of career stats</span></label><button className="primary-button" disabled={busy}>{busy ? "Working..." : "Create league"}</button></form></aside>
     </div>
-    <section className="hub-card public-card"><div className="section-heading"><div><span className="eyebrow">DISCOVER</span><h2>Public leagues</h2></div><span className="muted">Site-wide leaderboards are coming soon.</span></div>{!loading && publicLeagues.length === 0 && <p className="muted">No leagues are open for new managers yet. Private leagues can still be joined with an invite link.</p>}<div className="public-grid">{publicLeagues.map((league) => { const membership = membershipFor(league); return <article key={league.id} className="public-league">{league.image_url && <img className="public-league-image" src={league.image_url} alt="" />}<button className="public-league-title" onClick={() => setPublicDetails(league)}><strong>{league.name}</strong><span>View league details</span></button><p>{league.description || league.season_label || "Open league"}</p><small className="muted">{formatDraftStart(league.draft_starts_at)} · {league.filled_spots || 0}{league.total_spots ? ` / ${league.total_spots}` : ""} managers{league.total_spots ? " filled" : " joined"}</small>{league.is_practice && <span className="practice-badge">Practice</span>}<button className="secondary-button" disabled={busy} onClick={() => membership ? onOpenLeague({ ...league, role: membership.role }) : joinPublicLeague(league)}>{membership ? (membership.role === "commissioner" ? "Manage league" : "Open your league") : "Join as a manager"}</button></article>; })}</div></section>
+    <section className="hub-card public-card" id="public-leagues"><div className="section-heading"><div><span className="eyebrow">DISCOVER</span><h2>Public leagues</h2></div><span className="muted">Site-wide leaderboards are coming soon.</span></div>{!loading && publicLeagues.length === 0 && <p className="muted">No leagues are open for new managers yet. Private leagues can still be joined with an invite link.</p>}<div className="public-grid">{publicLeagues.map((league) => { const membership = membershipFor(league); return <article key={league.id} className="public-league">{league.image_url && <img className="public-league-image" src={league.image_url} alt="" />}<button className="public-league-title" onClick={() => setPublicDetails(league)}><strong>{league.name}</strong><span>View league details</span></button><p>{league.description || league.season_label || "Open league"}</p><small className="muted">{formatDraftStart(league.draft_starts_at)} · {league.filled_spots || 0}{league.total_spots ? ` / ${league.total_spots}` : ""} managers{league.total_spots ? " filled" : " joined"}</small>{league.is_practice && <span className="practice-badge">Practice</span>}<button className="secondary-button" disabled={busy} onClick={() => membership ? onOpenLeague({ ...league, role: membership.role }) : joinPublicLeague(league)}>{membership ? (membership.role === "commissioner" ? "Manage league" : "Open your league") : "Join as a manager"}</button></article>; })}</div></section>
     <PollOfTheDay supabase={supabase} />
     {publicDetails && <PublicLeagueDetails league={publicDetails} membership={membershipFor(publicDetails)} busy={busy} onClose={() => setPublicDetails(null)} onOpen={onOpenLeague} onJoin={joinPublicLeague} />}
   </main>
