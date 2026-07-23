@@ -70,7 +70,7 @@ export default function PublicExplore() {
       <Ranking title="Biggest fallers" items={marketTrends?.fallers} empty="Fallers appear after two full weeks of public draft activity." render={(item) => <span><strong>{item.pokemon}</strong><small>{item.change} drafts · {item.current_drafts} this week</small></span>} />
       <Ranking title="Highest public-league win rates" items={trends?.win_rates} empty="Win rates appear after Pokémon teams complete at least two confirmed public matches." render={(item) => <span><strong>{item.pokemon}</strong><small>{item.win_rate}% · {item.wins}-{item.games - item.wins} across {item.games} matches</small></span>} />
       <Ranking title="Community Pokémon popularity" items={data.popularity} empty="Favorite-six rankings will appear as coaches build profile teams." render={(item) => <span><strong>{item.pokemon}</strong><small>{item.favorites} favorite team{item.favorites === 1 ? "" : "s"}</small></span>} />
-      <Ranking title="Live-draft ADP" items={data.adp} empty="ADP begins to form after public live drafts make picks." render={(item) => <span><strong>{item.pokemon}</strong><small>ADP {item.average_pick} · {item.drafts} draft pick{item.drafts === 1 ? "" : "s"}</small></span>} />
+      <Ranking title="Community ADP" items={data.adp} empty="ADP begins to form after public drafts or completed practice drafts." render={(item) => <span><strong>{item.pokemon}</strong><small>ADP {item.average_pick} · {item.drafts} draft pick{item.drafts === 1 ? "" : "s"}</small></span>} />
     </div>}
   </main>;
 }
