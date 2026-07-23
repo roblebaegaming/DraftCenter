@@ -10356,19 +10356,18 @@ function HistoryView({ state, onViewTeam }) {
 // custom format, which is exactly why the sample size is shown right next
 // to the numbers instead of presenting them with false confidence.
 function ADPView({ state }) {
-  const { rows, seasonsPooled, isSnake } = computeADP(state);
+  const { rows, seasonsPooled, isSnake, usingHistoricalRules, hasPositionData } = computeADP(state);
 
   const reg = regulationFor(state.settings);
   const hasCuratedCosts = Object.keys(reg.defaultCosts).length > 0;
-  const derivedActive = !hasCuratedCosts && seasonsPooled >= MIN_SEASONS_FOR_DERIVED_COSTS;
+  const derivedActive = !usingHistoricalRules && hasPositionData && !hasCuratedCosts && seasonsPooled >= MIN_SEASONS_FOR_DERIVED_COSTS;
 
   if (seasonsPooled === 0) {
     return (
       <div className="text-center py-20" style={{ color: "#9A9FBD" }}>
-        <p className="mb-2">No draft history yet under this league's current regulation.</p>
+        <p className="mb-2">No recoverable archived draft selections were found yet.</p>
         <p className="text-sm" style={{ color: "#5B5F7E" }}>
-          This builds up automatically once a season under today's exact rules gets archived — start a new season after this one wraps and it'll begin filling in.
-          {state.settings.regulationId === "custom" && " Custom formats are specific to this league's own banned list, so this only ever pools with past seasons that used the exact same one."}
+          DraftCenter keeps future draft logs with each season archive. If an older archive predates draft logging, its champion and final roster can survive even when exact pick numbers were never stored.
         </p>
       </div>
     );
@@ -10378,9 +10377,11 @@ function ADPView({ state }) {
     <div>
       <h2 className="display-font text-2xl mb-1" style={{ color: "#FFD23F" }}>AVERAGE DRAFT POSITION</h2>
       <p className="text-xs mb-2" style={{ color: "#9A9FBD" }}>
-        {isSnake ? "Average overall pick number" : "Average auction price"} across {seasonsPooled} past season{seasonsPooled === 1 ? "" : "s"} drafted under this exact regulation — this league's own history only, not other leagues.
+        {hasPositionData ? (isSnake ? "Average overall pick number" : "Average auction price") : "Recovered draft frequency"} across {seasonsPooled} archived season{seasonsPooled === 1 ? "" : "s"} — this league's own history only, not other leagues.
       </p>
-      {!hasCuratedCosts && (
+      {usingHistoricalRules && <p className="text-xs mb-4 px-3 py-2 rounded" style={{ color: "#FFD23F", background: "#FFD23F12", border: "1px solid #FFD23F44" }}>Season 1 used different rules or a different league size, so its saved draft remains visible as historical league data instead of disappearing when Setup changes. It is not used to calculate the current regulation's automatic prices.</p>}
+      {!hasPositionData && <p className="text-xs mb-4 px-3 py-2 rounded" style={{ color: "#9A9FBD", background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }}>The archived rosters survived, but this older season did not retain exact pick numbers. DraftCenter recovered which Pokémon were drafted and how often without inventing an inaccurate pick order.</p>}
+      {!hasCuratedCosts && !usingHistoricalRules && hasPositionData && (
         <p className="text-xs mb-4" style={{ color: derivedActive ? "#4FD1C5" : "#5B5F7E" }}>
           {derivedActive
             ? `This regulation has no curated cost sheet, so draft costs are now derived from this data instead of the generic stat-based fallback.`
@@ -10393,7 +10394,7 @@ function ADPView({ state }) {
             <tr style={{ background: "#171A2C" }}>
               <th className="text-left px-4 py-2" style={{ color: "#5B5F7E" }}>#</th>
               <th className="text-left px-4 py-2" style={{ color: "#5B5F7E" }}>Pokémon</th>
-              <th className="text-right px-4 py-2" style={{ color: "#5B5F7E" }}>{isSnake ? "Avg. Pick" : "Avg. Cost"}</th>
+              <th className="text-right px-4 py-2" style={{ color: "#5B5F7E" }}>{hasPositionData ? (isSnake ? "Avg. Pick" : "Avg. Cost") : "Archived Value"}</th>
               <th className="text-right px-4 py-2" style={{ color: "#5B5F7E" }}>Times Drafted</th>
             </tr>
           </thead>
@@ -10403,7 +10404,7 @@ function ADPView({ state }) {
                 <td className="px-4 py-2 mono-font" style={{ color: "#5B5F7E" }}>{i + 1}</td>
                 <td className="px-4 py-2">{r.name}</td>
                 <td className="px-4 py-2 text-right mono-font font-semibold" style={{ color: "#4FD1C5" }}>
-                  {isSnake ? `#${(r.avg + 1).toFixed(1)}` : `${r.avg.toFixed(1)}pt`}
+                  {r.avg == null ? "Pick order unavailable" : isSnake ? `#${(r.avg + 1).toFixed(1)}` : `${r.avg.toFixed(1)}pt`}
                 </td>
                 <td className="px-4 py-2 text-right mono-font" style={{ color: "#9A9FBD" }}>{r.timesDrafted}</td>
               </tr>
@@ -12875,25 +12876,48 @@ function getSeasonPlayoffMVP(state) {
 // (there's no shared backend yet to pool across leagues), so the honest
 // thing to do is report the sample size right alongside the number rather
 // than imply more confidence than a handful of drafts can support.
-function computeADP(state) {
+function archivedDraftEntries(season, isSnake) {
+  if (Array.isArray(season.draftLog) && season.draftLog.length) return season.draftLog;
+  // Older season archives kept final roster snapshots before they kept a
+  // dedicated draft log. Recover the drafted names (and auction costs where
+  // possible) without manufacturing snake pick numbers that were never saved.
+  return (season.rosters || []).flatMap((roster) => (roster || [])
+    .filter((mon) => mon.acquiredVia === "draft")
+    .map((mon) => ({ name: mon.name, draftPick: null, cost: isSnake ? null : mon.cost ?? null })));
+}
+function computeADP(state, { exactOnly = false } = {}) {
   const isSnake = state.settings.draftType === "snake";
   const fp = regulationFingerprint(state.settings);
-  const matchingSeasons = state.seasonHistory.filter((s) => s.regulationFingerprint === fp);
+  const exactSeasons = state.seasonHistory.filter((season) => season.regulationFingerprint === fp);
+  const exactHasData = exactSeasons.some((season) => archivedDraftEntries(season, isSnake).length > 0);
+  const compatibleHistoricalSeasons = state.seasonHistory.filter((season) => (season.draftType || "snake") === state.settings.draftType);
+  const matchingSeasons = exactOnly || exactHasData ? exactSeasons : compatibleHistoricalSeasons;
+  const usingHistoricalRules = !exactOnly && !exactHasData && matchingSeasons.length > 0;
   const agg = {};
   matchingSeasons.forEach((season) => {
-    (season.draftLog || []).forEach((entry) => {
+    archivedDraftEntries(season, isSnake).forEach((entry) => {
       const value = isSnake ? entry.draftPick : entry.cost;
-      if (value == null) return;
-      if (!agg[entry.name]) agg[entry.name] = { sum: 0, count: 0 };
-      agg[entry.name].sum += value;
-      agg[entry.name].count += 1;
+      if (!entry.name) return;
+      if (!agg[entry.name]) agg[entry.name] = { sum: 0, count: 0, draftedCount: 0 };
+      agg[entry.name].draftedCount += 1;
+      if (value != null && Number.isFinite(Number(value))) {
+        agg[entry.name].sum += Number(value);
+        agg[entry.name].count += 1;
+      }
     });
   });
-  const rows = Object.entries(agg).map(([name, { sum, count }]) => ({ name, avg: sum / count, timesDrafted: count }));
+  const rows = Object.entries(agg).map(([name, { sum, count, draftedCount }]) => ({ name, avg: count ? sum / count : null, timesDrafted: draftedCount }));
+  const hasPositionData = rows.some((row) => row.avg != null);
   // Snake: a lower pick number went earlier, which reads as "more valuable" —
   // ascending. Auction: a higher price is more valuable — descending.
-  rows.sort((a, b) => (isSnake ? a.avg - b.avg : b.avg - a.avg));
-  return { rows, seasonsPooled: matchingSeasons.length, isSnake };
+  rows.sort((a, b) => {
+    if (a.avg == null && b.avg == null) return b.timesDrafted - a.timesDrafted || a.name.localeCompare(b.name);
+    if (a.avg == null) return 1;
+    if (b.avg == null) return -1;
+    return isSnake ? a.avg - b.avg : b.avg - a.avg;
+  });
+  const seasonsPooled = matchingSeasons.filter((season) => archivedDraftEntries(season, isSnake).length > 0).length;
+  return { rows, seasonsPooled, isSnake, usingHistoricalRules, hasPositionData };
 }
 // Once a league has drafted at least this many times under a regulation
 // that has no curated cost sheet of our own (an empty defaultCosts), its
@@ -12905,7 +12929,7 @@ function computeADP(state) {
 // — a handful of drafts isn't enough signal to trust over it.
 const MIN_SEASONS_FOR_DERIVED_COSTS = 10;
 function deriveCostsFromADP(state) {
-  const { rows, seasonsPooled, isSnake } = computeADP(state);
+  const { rows, seasonsPooled, isSnake } = computeADP(state, { exactOnly: true });
   if (seasonsPooled < MIN_SEASONS_FOR_DERIVED_COSTS || !rows.length) return null;
   if (!isSnake) {
     // Auction (and budgeted snake, which stamps the same real cost per
