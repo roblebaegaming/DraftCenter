@@ -3853,11 +3853,30 @@ function computeCareerDraftTally(state, personName) {
   return monNames;
 }
 
+function hasDraftStartedEvidence(state) {
+  return Boolean(
+    state?.draftStartedAt
+    || state?.liveDraft?.sessionId
+    || Number(state?.pickIndex || 0) > 0
+    || (state?.snakeOrder || []).length > 0
+    || (state?.auctionNominationOrder || []).length > 0
+    || state?.auctionEnded
+    || state?.nominee
+  );
+}
+
 function looksLikeCarriedOverRosterState(state) {
-  if (!state?.locked || Number(state.pickIndex || 0) !== 0 || state.liveDraft?.sessionId || Number(state.seasonNumber || 1) < 2) return false;
+  if (!state?.locked || hasDraftStartedEvidence(state) || Number(state.seasonNumber || 1) < 2) return false;
   const lastSeason = (state.seasonHistory || [])[state.seasonHistory.length - 1];
   if (!lastSeason?.rosters?.length) return false;
   const currentRosters = state.rosters || [];
+  const hasCurrentRosters = currentRosters.some((roster) => (roster || []).length > 0);
+  const hasCurrentCompetition = (state.schedule || []).length > 0
+    || Object.keys(state.matchResults || {}).length > 0
+    || (state.trades || []).length > 0
+    || (state.transactionLog || []).length > 0
+    || Boolean(state.playoffs);
+  if (!hasCurrentRosters || hasCurrentCompetition) return false;
   const archivedRosters = lastSeason.rosters || [];
   const archivedNames = archivedRosters.map((roster) => (roster || []).map((mon) => mon.name).filter(Boolean).sort());
   const currentNames = currentRosters.map((roster) => (roster || []).map((mon) => mon.name).filter(Boolean).sort());
@@ -3867,7 +3886,10 @@ function looksLikeCarriedOverRosterState(state) {
     names.length === (currentNames[teamIdx] || []).length
       && names.every((name, index) => name === currentNames[teamIdx][index]));
   const expansionTeamsAreEmpty = currentNames.slice(archivedNames.length).every((names) => names.length === 0);
-  return oldTeamsMatch && expansionTeamsAreEmpty;
+  // Exact matches are the clearest signal. Older snapshots sometimes lost
+  // small bits of roster metadata or had teams added before the new season,
+  // so the absence of every real draft-start signal is also sufficient.
+  return (oldTeamsMatch && expansionTeamsAreEmpty) || !hasDraftStartedEvidence(state);
 }
 function tierFor(count, tiers) {
   let t = 0;
@@ -4189,6 +4211,7 @@ function freshState() {
       return initial;
     })(),
     locked: false,
+    draftStartedAt: null,
     rosters: [], budgets: [], pool: [],
     snakeOrder: [], pickIndex: 0, pickDeadline: null, nominationDeadline: null,
     queues: {},
@@ -4304,6 +4327,7 @@ function hydrateState(remote) {
   return {
     ...base,
     ...remote,
+    draftStartedAt: remote.draftStartedAt ?? null,
     settings: {
       ...base.settings,
       ...remoteSettings,
@@ -4611,7 +4635,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   // stale appointment from both the league snapshot and public listing.
   // This also self-heals leagues that finished before this rule existed.
   useEffect(() => {
-    if (!synced || !state.locked || !state.settings?.draftScheduledAt || completedDraftScheduleClearedRef.current) return;
+    if (!synced || !state.locked || !hasDraftStartedEvidence(state) || !state.settings?.draftScheduledAt || completedDraftScheduleClearedRef.current) return;
     completedDraftScheduleClearedRef.current = true;
     commit((current) => ({
       ...current,
@@ -5275,6 +5299,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
         settings: { ...s.settings, draftScheduledAt: null },
         liveDraft: liveDraft || s.liveDraft || null,
         locked: true,
+        draftStartedAt: Date.now(),
         teams: s.teams.map((t) =>
           (!t.claimedBy && (!t.archetypes || !t.archetypes.length)) ? { ...t, archetypes: randomArchetypeKeys() } : t
         ),
@@ -5381,6 +5406,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
         ...s,
         settings: { ...s.settings, draftScheduledAt: null },
         locked: true,
+        draftStartedAt: Date.now(),
         teams: s.teams.map((t) => (!t.claimedBy && (!t.archetypes || !t.archetypes.length)) ? { ...t, archetypes: randomArchetypeKeys() } : t),
         rosters, budgets, pool,
         snakeOrder: [], pickIndex: 0, pickDeadline: null,
@@ -6417,6 +6443,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
         ...s,
         liveDraft: null,
         locked: false,
+        draftStartedAt: null,
         teams: s.teams.map((t) => ({ ...t, archetypes: [] })),
         rosters: [], budgets: [], pool: [],
         snakeOrder: [], pickIndex: 0, pickDeadline: null, nominationDeadline: null,
@@ -6443,6 +6470,9 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
      every archived season, but wipe the active season's draft and competition
      data so commissioners can change the setup and draft fresh. ---- */
   async function rebuildCurrentSeason() {
+    const preservedDraftSchedule = looksLikeCarriedOverRosterState(state)
+      ? state.settings?.draftScheduledAt || null
+      : null;
     if (!(await clearOfficialDraftRows())) return false;
     commit((s) => {
       const carriedOver = looksLikeCarriedOverRosterState(s);
@@ -6473,6 +6503,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
         seasonHistory,
         liveDraft: null,
         locked: false,
+        draftStartedAt: null,
         teams: s.teams.map((t) => ({ ...t, archetypes: [] })),
         rosters: [], budgets: [], pool: [],
         snakeOrder: [], pickIndex: 0, pickDeadline: null, nominationDeadline: null,
@@ -6493,11 +6524,11 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
         lastClaimResults: [],
         lastAutoClaimCycle: null,
         playoffs: null,
-        settings: { ...s.settings, draftScheduledAt: null, manualDraftOrder: null },
+        settings: { ...s.settings, draftScheduledAt: preservedDraftSchedule, manualDraftOrder: null },
         auditLog: [...(s.auditLog || []), auditEntry(myName, `Rebuilt Season ${s.seasonNumber}`, `${recoveryNote}cleared current rosters, draft, schedule, results, transactions, and keeper carryovers; archived seasons preserved`)],
       };
     });
-    if (leagueId) {
+    if (leagueId && !preservedDraftSchedule) {
       supabase.rpc("update_league_draft_time", { p_league_id: leagueId, p_draft_starts_at: null })
         .then(({ error }) => { if (error) setLiveDraftError(`The prior draft date could not be cleared: ${error.message}`); });
     }
@@ -6633,6 +6664,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
         settings: nextSettings,
         homepage: ruleMode === "new" ? { ...s.homepage, rules: "" } : s.homepage,
         locked: false,
+        draftStartedAt: null,
         teams: s.teams.map((t) => ({ ...t, archetypes: [] })),
         rosters: [], budgets: [], pool: [],
         snakeOrder: [], pickIndex: 0, pickDeadline: null, nominationDeadline: null,
@@ -9205,9 +9237,9 @@ function SetupView({ state, leagueId = null, isCommissioner, canBeCommissioner, 
 
           {!locked && <p className="text-sm mt-4" style={{ color: "#9A9FBD" }}>{settings.draftScheduledAt ? "Setup is ready. Keep this league open for managers until draft time, then start the shared draft here." : "Setup is ready. Start the draft whenever your managers are present, or use manual roster entry if you drafted elsewhere."}</p>}
           {!locked && settings.draftType === "snake" && <p className="text-xs mt-2" style={{ color: "#4FD1C5" }}>{settings.manualDraftOrder ? "Using the manual first-round order set above." : "Draft order: random by default. Turn on “Manually set draft order” above only if you want to choose it yourself."}</p>}
-          <button onClick={onStart} disabled={locked} className="w-full mt-4 py-3 rounded font-semibold display-font text-xl glow disabled:opacity-40"
+          <button onClick={hasStaleRosterCarryover ? rebuildCurrentSeason : onStart} disabled={locked && !hasStaleRosterCarryover} className="w-full mt-4 py-3 rounded font-semibold display-font text-xl glow disabled:opacity-40"
             style={{ background: "#FFD23F", color: "#10121C" }}>
-            {locked ? "DRAFT IN PROGRESS" : settings.draftScheduledAt ? "START SCHEDULED DRAFT" : "START DRAFT NOW"}
+            {hasStaleRosterCarryover ? `REOPEN SEASON ${state.seasonNumber} SETUP` : locked ? "DRAFT IN PROGRESS" : settings.draftScheduledAt ? "START SCHEDULED DRAFT" : "START DRAFT NOW"}
           </button>
 
           {!locked && (
@@ -10841,16 +10873,22 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
     || Boolean(state.playoffs);
   const hasStaleRosterCarryover = looksLikeCarriedOverRosterState(state);
 
+  if (hasStaleRosterCarryover) {
+    return (
+      <div className="rounded-lg px-5 py-5 flex items-center justify-between gap-4 flex-wrap" style={{ background: "#102B2B", border: "1px solid #4FD1C577" }}>
+        <div className="flex-1 min-w-[260px]">
+          <h2 className="display-font text-2xl mb-2" style={{ color: "#4FD1C5" }}>THIS SEASON’S DRAFT HAS NOT STARTED</h2>
+          <p className="text-sm" style={{ color: "#BDF7EE" }}>The saved draft date is only an upcoming appointment. DraftCenter found leftover roster state from the previous season, not selections from this season. Reopen Setup to preserve the archive and prepare the new draft.</p>
+        </div>
+        {isCommissioner && <button onClick={rebuildCurrentSeason} className="px-4 py-2 rounded font-semibold text-sm" style={{ background: "#4FD1C5", color: "#10121C" }}>REPAIR & REOPEN SETUP</button>}
+      </div>
+    );
+  }
+
   return (
     <div>
       {state.liveDraft?.sessionId && <div className="mb-4 rounded-lg px-4 py-3 text-sm" style={{ background: "#102B2B", color: "#BDF7EE", border: "1px solid #4FD1C577" }}><strong>LIVE SHARED DRAFT</strong> — picks and whose turn it is are locked by DraftCenter. This board refreshes automatically for every manager.</div>}
       {leagueId && draftType === "auction" && locked && <div className="mb-4 rounded-lg px-4 py-3 text-sm" style={{ background: "#102B2B", color: "#BDF7EE", border: "1px solid #4FD1C577" }}><strong>LIVE SHARED AUCTION</strong> — nominations, bids, budgets, timers, and winning rosters are locked by DraftCenter and synchronized for every manager.</div>}
-      {isCommissioner && hasStaleRosterCarryover && (
-        <div className="mb-4 rounded-lg px-4 py-3 text-sm flex items-center justify-between gap-3 flex-wrap" style={{ background: "#102B2B", border: "1px solid #4FD1C577" }}>
-          <span style={{ color: "#BDF7EE" }}>DraftCenter found prior-season rosters attached to this empty new season. Preserve the archived season, clear only these stale rosters, and reopen Setup before starting Season {state.seasonNumber}.</span>
-          <button onClick={rebuildCurrentSeason} className="px-3 py-2 rounded font-semibold text-xs" style={{ background: "#4FD1C5", color: "#10121C" }}>REPAIR & REOPEN SETUP</button>
-        </div>
-      )}
       {isCommissioner && !hasStaleRosterCarryover && !hasSeasonActivity && (
         <div className="mb-4 rounded-lg px-4 py-3 text-sm" style={{ background: "#261822", border: "1px solid #F0555A55" }}>
           {!confirmRestart ? <div className="flex items-center justify-between gap-3 flex-wrap"><span style={{ color: "#C8CDEA" }}>Testing issue or bad start? This clears only this draft's picks and current rosters, then returns to Pre-Draft Setup. Rules, managers, committed keepers, and every archived season remain intact.</span><button onClick={() => setConfirmRestart(true)} className="px-3 py-2 rounded font-semibold text-xs" style={{ background: "#F0555A22", color: "#FF9AA7", border: "1px solid #F0555A66" }}>RESTART THIS DRAFT</button></div> : <div className="flex items-center gap-3 flex-wrap"><strong style={{ color: "#FF9AA7" }}>Clear only this draft's picks and current rosters?</strong><button onClick={async () => { const reset = await restartDraft(); if (reset) setConfirmRestart(false); }} className="px-3 py-2 rounded font-semibold text-xs" style={{ background: "#F0555A", color: "#10121C" }}>Yes, restart draft only</button><button onClick={() => setConfirmRestart(false)} className="px-3 py-2 rounded text-xs" style={{ background: "#1F2338", color: "#C8CDEA" }}>Cancel</button></div>}
