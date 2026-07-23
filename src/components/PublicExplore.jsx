@@ -132,11 +132,11 @@ export default function PublicExplore() {
   return <main className="explore-shell">
     {selectedPokemon && <CommunityPokemonPreview name={selectedPokemon} onClose={() => setSelectedPokemon("")} />}
     <header className="explore-hero">
-      <div className="public-page-nav"><a className="quiet-button" href="/">DraftCenter home</a><a className="quiet-button" href="/pokemon">Pokémon</a></div>
+      <div className="public-page-nav"><a className="quiet-button community-home-link" href="/"><img src="/draftcenter-logo.png" alt="" />DraftCenter Home</a><a className="quiet-button" href="/pokemon">Pokémon</a></div>
       <span className="eyebrow">EXPLORE DRAFTCENTER</span>
       <h1>Pokémon, leagues, and community trends.</h1>
       <p>{signedIn ? "See what DraftCenter coaches are voting for, favoriting, and drafting." : "Explore public leagues and completed community polls. Create an account to vote, comment, and reveal today's results."}</p>
-      <div className="explore-actions"><a className="primary-button" href="/pokemon">Explore Pokémon</a><a className="secondary-button" href="/">{signedIn ? "Your DraftCenter home" : "Create an account"}</a></div>
+      <div className="explore-actions"><a className="primary-button" href="/pokemon">Explore Pokémon</a><a className="secondary-button" href="/">{signedIn ? "Your DraftCenter Home" : "Create an account"}</a></div>
     </header>
     {message && <p className="hub-message">{message}</p>}
     {!data && !message && <p className="muted">Loading public DraftCenter data...</p>}
