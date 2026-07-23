@@ -7364,6 +7364,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
             exportLeagueBackup={exportLeagueBackup} exportRecoveryBackup={exportRecoveryBackup} importLeagueBackup={importLeagueBackup}
             addCoCommissioner={addCoCommissioner} removeCoCommissioner={removeCoCommissioner}
             onOpenLeagueTools={onOpenLeagueTools} copyLeagueInvite={copyLeagueInvite}
+            saveNow={saveNow} saveStatus={saveStatus}
           />
         )}
         {tab === "draft" && (
@@ -8621,7 +8622,7 @@ function ManualRosterEntry({ teams, settings, finalizeManualDraft }) {
   );
 }
 
-function SetupView({ state, leagueId = null, isCommissioner, canBeCommissioner, claimCommissioner, unclaimCommissioner, claimTeam, renameTeam, myName, updateSettings, resizeTeams, rerollAllTeamIdentities, costFor, toggleBanMon, toggleAllowExtraMon, rebuildCurrentSeason, addCustomMon, removeCustomMon, setSpriteOverride, setTeamLogo, onStart, addDivision, renameDivision, removeDivision, setTeamDivision, finalizeManualDraft, startNewSeason, updateHomepage, addExpansionTeam, removeSpecificTeam, exportLeagueBackup, exportRecoveryBackup, importLeagueBackup, addCoCommissioner, removeCoCommissioner, onOpenLeagueTools, copyLeagueInvite }) {
+function SetupView({ state, leagueId = null, isCommissioner, canBeCommissioner, claimCommissioner, unclaimCommissioner, claimTeam, renameTeam, myName, updateSettings, resizeTeams, rerollAllTeamIdentities, costFor, toggleBanMon, toggleAllowExtraMon, rebuildCurrentSeason, addCustomMon, removeCustomMon, setSpriteOverride, setTeamLogo, onStart, addDivision, renameDivision, removeDivision, setTeamDivision, finalizeManualDraft, startNewSeason, updateHomepage, addExpansionTeam, removeSpecificTeam, exportLeagueBackup, exportRecoveryBackup, importLeagueBackup, addCoCommissioner, removeCoCommissioner, onOpenLeagueTools, copyLeagueInvite, saveNow, saveStatus }) {
   // A league may have been created before newer Setup options existed. Keep
   // this screen usable even if one of those older saved values is missing or
   // malformed; the next normal save will preserve the corrected shape.
@@ -8727,9 +8728,25 @@ function SetupView({ state, leagueId = null, isCommissioner, canBeCommissioner, 
 
   return (
     <div>
+      {isCommissioner && (
+        <section className="rounded-lg p-5 mb-6 flex items-center justify-between gap-4 flex-wrap" style={{ background: "#102B2B", border: "1px solid #4FD1C577" }}>
+          <div className="flex-1 min-w-[260px]">
+            <div className="flex items-center gap-2 flex-wrap mb-1"><h2 className="display-font text-2xl" style={{ color: "#4FD1C5" }}>COMMISSIONER SETUP WORKSPACE</h2><span className="mono-font text-[10px] px-2 py-1 rounded" style={{ background: "#4FD1C522", color: "#4FD1C5" }}>EDIT MODE ACTIVE</span></div>
+            <p className="text-sm" style={{ color: "#BDF7EE" }}>Work at your own pace. Every change saves automatically, so you can leave Setup and return later. Use Save Progress for an immediate checkpoint or to retry a failed save.</p>
+          </div>
+          {leagueId && (
+            <button type="button" onClick={saveNow} disabled={saveStatus === "saving"} className="px-4 py-2 rounded font-semibold text-sm" style={{ background: saveStatus === "error" ? "#F0555A" : "#4FD1C5", color: "#10121C" }}>
+              {saveStatus === "saving" ? "SAVING..." : saveStatus === "error" ? "RETRY SAVE" : "SAVE PROGRESS"}
+            </button>
+          )}
+          <p className="w-full mono-font text-xs" style={{ color: saveStatus === "error" ? "#FF9AA7" : "#9A9FBD" }}>
+            {saveStatus === "saving" ? "Saving your latest Setup changes..." : saveStatus === "error" ? "The last save failed. Your changes remain on this screen; choose Retry Save." : leagueId ? "All current Setup progress is saved." : "This local practice setup saves in this browser."}
+          </p>
+        </section>
+      )}
       {isCommissioner && locked && (
         <section className="rounded-lg p-5 mb-6" style={{ background: hasDraftSelections ? "#261822" : "#102B2B", border: `1px solid ${hasDraftSelections ? "#F0555A55" : "#4FD1C577"}` }}>
-          <h2 className="display-font text-2xl mb-2" style={{ color: hasDraftSelections ? "#FF9AA7" : "#4FD1C5" }}>{hasDraftSelections ? "DRAFT SETTINGS ARE PROTECTED" : "NEED A LAST-MINUTE SETUP CHANGE?"}</h2>
+          <h2 className="display-font text-2xl mb-2" style={{ color: hasDraftSelections ? "#FF9AA7" : "#4FD1C5" }}>{hasDraftSelections ? "EDIT MODE — ACTIVE SEASON SAFETY" : "NEED A LAST-MINUTE SETUP CHANGE?"}</h2>
           {hasDraftSelections ? (
             <p className="text-sm" style={{ color: "#C8CDEA" }}>This draft already contains selections, so regulation, pool, price, team-count, and draft-format changes stay protected. Non-destructive season, schedule, playoff, transaction, rules, payment, team-name, and appearance settings remain editable. To change draft-critical rules, use Rebuild This Season in the Danger Zone below; that intentionally clears this season's picks while preserving archived seasons.</p>
           ) : (
@@ -8740,13 +8757,13 @@ function SetupView({ state, leagueId = null, isCommissioner, canBeCommissioner, 
           )}
         </section>
       )}
-      {!locked && <section style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }} className="rounded-lg p-5 mb-6">
+      <section style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }} className="rounded-lg p-5 mb-6">
         <h2 className="display-font text-2xl mb-2" style={{ color: "#FFD23F" }}>DRAFT DATE & MANAGER INVITES</h2>
-        <p className="text-sm mb-4" style={{ color: "#9A9FBD" }}>{settings.draftScheduledAt ? `Currently scheduled for ${new Date(settings.draftScheduledAt).toLocaleString()}.` : "No draft time has been scheduled yet."}</p>
-        {isCommissioner && <div className="flex items-end gap-3 flex-wrap"><label className="text-xs" style={{ color: "#9A9FBD" }}>Official draft start date and time<input type="datetime-local" value={settings.draftScheduledAt ? new Date(settings.draftScheduledAt).toISOString().slice(0, 16) : ""} onChange={(event) => updateSettings({ draftScheduledAt: event.target.value ? new Date(event.target.value).toISOString() : null })} className="block mt-1 px-3 py-2 rounded mono-font text-sm" style={{ background: "#1F2338", border: "1px solid rgba(255,255,255,0.1)", color: "#EDEBFA" }} /></label>{leagueId && copyLeagueInvite && <><button type="button" onClick={async () => { const result = await copyLeagueInvite("manager"); setInviteMessage(result.error || "Manager invite link copied."); }} className="px-4 py-2 rounded font-semibold text-sm" style={{ background: "#4FD1C5", color: "#10121C" }}>COPY MANAGER INVITE</button><button type="button" onClick={async () => { const result = await copyLeagueInvite("spectator"); setInviteMessage(result.error || "Spectator link copied."); }} className="px-4 py-2 rounded font-semibold text-sm" style={{ background: "#1F2338", color: "#EDEBFA", border: "1px solid #4FD1C555" }}>COPY SPECTATOR LINK</button></>}</div>}
+        <p className="text-sm mb-4" style={{ color: "#9A9FBD" }}>{locked ? "The draft has already taken place, so its one-time appointment is complete. Use League Clock below to edit recurring match and transaction times." : settings.draftScheduledAt ? `Currently scheduled for ${new Date(settings.draftScheduledAt).toLocaleString()}.` : "No draft time has been scheduled yet."}</p>
+        {isCommissioner && <div className="flex items-end gap-3 flex-wrap">{!locked && <label className="text-xs" style={{ color: "#9A9FBD" }}>Official draft start date and time<input type="datetime-local" value={settings.draftScheduledAt ? new Date(settings.draftScheduledAt).toISOString().slice(0, 16) : ""} onChange={(event) => updateSettings({ draftScheduledAt: event.target.value ? new Date(event.target.value).toISOString() : null })} className="block mt-1 px-3 py-2 rounded mono-font text-sm" style={{ background: "#1F2338", border: "1px solid rgba(255,255,255,0.1)", color: "#EDEBFA" }} /></label>}{leagueId && copyLeagueInvite && <><button type="button" onClick={async () => { const result = await copyLeagueInvite("manager"); setInviteMessage(result.error || "Manager invite link copied."); }} className="px-4 py-2 rounded font-semibold text-sm" style={{ background: "#4FD1C5", color: "#10121C" }}>COPY MANAGER INVITE</button><button type="button" onClick={async () => { const result = await copyLeagueInvite("spectator"); setInviteMessage(result.error || "Spectator link copied."); }} className="px-4 py-2 rounded font-semibold text-sm" style={{ background: "#1F2338", color: "#EDEBFA", border: "1px solid #4FD1C555" }}>COPY SPECTATOR LINK</button></>}</div>}
         {inviteMessage && <p className="text-xs mt-3" style={{ color: "#4FD1C5" }}>{inviteMessage}</p>}
         <p className="text-xs mt-3" style={{ color: "#5B5F7E" }}>This is the league's single saved draft date. It appears automatically on Home, Draft, Setup, and public league details.</p>
-      </section>}
+      </section>
       {!leagueId && !commissioner && (
         <div style={{ background: "#1F2338", border: "1px solid #FFD23F55" }} className="rounded-lg p-4 mb-6 flex items-center justify-between flex-wrap gap-3">
           <span className="text-sm">No commissioner yet — claim it to control league settings.</span>
@@ -8782,7 +8799,7 @@ function SetupView({ state, leagueId = null, isCommissioner, canBeCommissioner, 
         <CoCommissionerCard coCommissioners={coCommissioners} commissioner={commissioner} addCoCommissioner={addCoCommissioner} removeCoCommissioner={removeCoCommissioner} />
       )}
 
-      {!locked && <LeagueInfoCard state={state} isCommissioner={isCommissioner} updateHomepage={updateHomepage} />}
+      <LeagueInfoCard state={state} isCommissioner={isCommissioner} updateHomepage={updateHomepage} />
 
       <div className="mt-6">
         <FormatCard state={state} isCommissioner={isCommissioner} updateSettings={updateSettings} locked={locked} />
