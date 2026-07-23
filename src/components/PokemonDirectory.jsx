@@ -23,6 +23,49 @@ const METHOD_LABELS = { "level-up": "Level up", machine: "TM / Machine", egg: "E
 function slug(name) { return String(name || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, ""); }
 function displayName(value) { return String(value || "").replace(/-/g, " "); }
 
+// DraftCenter uses reader-friendly form names, while PokeAPI puts the form
+// after the species name (for example, "articuno-galar").  Keep the form's
+// own stats, but use the base species for its National Dex number and entries.
+const FORM_REFERENCE_OVERRIDES = {
+  "paldean-tauros": { apiName: "tauros-paldea-combat", speciesName: "tauros", dexName: "tauros" },
+  "paldean-tauros-water": { apiName: "tauros-paldea-aqua", speciesName: "tauros", dexName: "tauros" },
+  "paldean-tauros-fire": { apiName: "tauros-paldea-blaze", speciesName: "tauros", dexName: "tauros" },
+  "white-striped-basculin": { apiName: "basculin-white-striped", speciesName: "basculin", dexName: "basculin" },
+  "basculegion-female": { apiName: "basculegion-female", speciesName: "basculegion", dexName: "basculegion" },
+  "meowstic-female": { apiName: "meowstic-female", speciesName: "meowstic", dexName: "meowstic" },
+  "indeedee-female": { apiName: "indeedee-female", speciesName: "indeedee", dexName: "indeedee" },
+  "ursaluna-bloodmoon": { apiName: "ursaluna-bloodmoon", speciesName: "ursaluna", dexName: "ursaluna" },
+  "lycanroc-dusk": { apiName: "lycanroc-dusk", speciesName: "lycanroc", dexName: "lycanroc" },
+  "lycanroc-midday": { apiName: "lycanroc-midday", speciesName: "lycanroc", dexName: "lycanroc" },
+  "lycanroc-midnight": { apiName: "lycanroc-midnight", speciesName: "lycanroc", dexName: "lycanroc" },
+  "rotom-heat": { apiName: "rotom-heat", speciesName: "rotom", dexName: "rotom" },
+  "rotom-wash": { apiName: "rotom-wash", speciesName: "rotom", dexName: "rotom" },
+  "rotom-frost": { apiName: "rotom-frost", speciesName: "rotom", dexName: "rotom" },
+  "rotom-fan": { apiName: "rotom-fan", speciesName: "rotom", dexName: "rotom" },
+  "rotom-mow": { apiName: "rotom-mow", speciesName: "rotom", dexName: "rotom" },
+};
+
+function pokemonReference(name) {
+  const key = slug(name);
+  if (FORM_REFERENCE_OVERRIDES[key]) return { ...FORM_REFERENCE_OVERRIDES[key], fallbackApiName: FORM_REFERENCE_OVERRIDES[key].speciesName };
+  const regional = key.match(/^(alolan|galarian|hisuian|paldean)-(.+)$/);
+  if (regional) {
+    const suffix = { alolan: "alola", galarian: "galar", hisuian: "hisui", paldean: "paldea" }[regional[1]];
+    return { apiName: `${regional[2]}-${suffix}`, speciesName: regional[2], dexName: regional[2], fallbackApiName: regional[2] };
+  }
+  const mega = key.match(/^mega-(.+?)(?:-(x|y))?$/);
+  if (mega) return { apiName: `${mega[1]}-mega${mega[2] ? `-${mega[2]}` : ""}`, speciesName: mega[1], dexName: mega[1], fallbackApiName: mega[1] };
+  return { apiName: key, speciesName: key, dexName: key, fallbackApiName: key };
+}
+
+async function fetchPokemonForm(reference) {
+  let response = await fetch(`https://pokeapi.co/api/v2/pokemon/${encodeURIComponent(reference.apiName)}`);
+  if (!response.ok && reference.fallbackApiName && reference.fallbackApiName !== reference.apiName) {
+    response = await fetch(`https://pokeapi.co/api/v2/pokemon/${encodeURIComponent(reference.fallbackApiName)}`);
+  }
+  return response;
+}
+
 function sourceMoves(details, source, importedMoves) {
   const imported = (importedMoves || []).filter((row) => row.game_key === source.key).map((row) => ({
     name: row.move_name,
@@ -53,14 +96,14 @@ function WidePokemonDirectory(props) {
         <div className="pokemon-browser-summary"><span>{props.results.length}{props.results.length === 100 ? "+" : ""} Pokémon shown</span><button className="text-button" onClick={props.clearFilters}>Clear filters</button></div>
         <div className="pokemon-result-list pokemon-stat-browser">
           <div className="pokemon-stat-head"><span>Dex</span>{sortLabel("name", "Pokemon")}{statColumns.map(([key, label]) => <span key={key}>{sortLabel(key, label)}</span>)}</div>
-          {props.results.map((pokemon) => { const stats = props.statLookup[slug(pokemon.name)]; return <button key={pokemon.name} className={`pokemon-result pokemon-stat-row ${props.selected === pokemon.name ? "selected" : ""}`} onClick={() => props.choose(pokemon.name)}><span>{props.dexNumbers[slug(pokemon.name)] ? `#${String(props.dexNumbers[slug(pokemon.name)]).padStart(4, "0")}` : `G${pokemon.gen || "?"}`}</span><span className="pokemon-row-name"><strong>{pokemon.name}</strong><small>{pokemon.t1}{pokemon.t2 ? ` / ${pokemon.t2}` : ""}</small></span>{statColumns.map(([key]) => <span key={key}>{stats?.[key] ?? (key === "bst" ? pokemon.bst : "…")}</span>)}</button>; })}
+          {props.results.map((pokemon) => { const reference = pokemonReference(pokemon.name); const stats = props.statLookup[reference.apiName]; const dex = props.dexNumbers[reference.dexName] || props.dexNumbers[reference.apiName]; return <button key={pokemon.name} className={`pokemon-result pokemon-stat-row ${props.selected === pokemon.name ? "selected" : ""}`} onClick={() => props.choose(pokemon.name)}><span>{dex ? `#${String(dex).padStart(4, "0")}` : `G${pokemon.gen || "?"}`}</span><span className="pokemon-row-name"><strong>{pokemon.name}</strong><small>{pokemon.t1}{pokemon.t2 ? ` / ${pokemon.t2}` : ""}</small></span>{statColumns.map(([key]) => <span key={key}>{stats?.[key] ?? (key === "bst" ? pokemon.bst : "…")}</span>)}</button>; })}
         </div>
       </aside>
       <section className="pokemon-detail-card pokemon-detail-wide">
         {!props.selected && <div className="pokemon-empty"><span className="eyebrow">DRAFTCENTER POKEDEX</span><h2>Choose a Pokémon to begin</h2><p>The wider browser on the left can be sorted by every base stat. Select any row to see details, history, and game-specific moves.</p></div>}
         {props.loading && <p className="muted">Loading {props.selected}...</p>}{props.message && <p className="hub-message">{props.message}</p>}
         {props.details && props.species && <>
-          <div className="pokemon-title"><img src={props.details.sprites?.other?.["official-artwork"]?.front_default || props.details.sprites?.front_default} alt={props.selected} /><div><span className="eyebrow">#{String(props.details.id).padStart(4, "0")}</span><h2>{props.selected}</h2><p className="muted">{props.species.genera?.find((item) => item.language.name === "en")?.genus || "Pokemon"}</p><div className="pokemon-types">{props.details.types.map(({ type }) => <span key={type.name}>{type.name}</span>)}</div></div></div>
+          <div className="pokemon-title"><img src={props.details.sprites?.other?.["official-artwork"]?.front_default || props.details.sprites?.front_default} alt={props.selected} /><div><span className="eyebrow">#{String(props.species.id || props.details.id).padStart(4, "0")}</span><h2>{props.selected}</h2><p className="muted">{props.species.genera?.find((item) => item.language.name === "en")?.genus || "Pokemon"}</p><div className="pokemon-types">{props.details.types.map(({ type }) => <span key={type.name}>{type.name}</span>)}</div></div></div>
           {props.regulationStatus && <div className={`pokemon-legality ${props.regulationStatus.legal === true ? "is-legal" : props.regulationStatus.legal === false ? "is-not-legal" : ""}`}><strong>{props.regulationStatus.legal === true ? "Legal in this league's regulation" : props.regulationStatus.legal === false ? "Not eligible in this league's regulation" : "Custom regulation"}</strong><span>{props.regulationStatus.regulation.name}</span><small>League-specific bans and move clauses can still change final legality.</small></div>}
           <div className="pokemon-detail-grid"><section><h3>All base stats</h3><div className="pokemon-stats">{props.details.stats.map((stat) => <div key={stat.stat.name}><span>{displayName(stat.stat.name).replace("special", "Sp.")}</span><strong>{stat.base_stat}</strong></div>)}<div className="pokemon-bst-total"><span>BST</span><strong>{props.details.stats.reduce((sum, stat) => sum + stat.base_stat, 0)}</strong></div></div></section><section><h3>Abilities</h3><div className="pokemon-tags">{props.details.abilities.map(({ ability, is_hidden }) => <span key={ability.name}>{displayName(ability.name)}{is_hidden ? " (hidden)" : ""}</span>)}</div><h3>DraftCenter stats</h3><p className="muted">Poll wins, favorite-six popularity, draft rate, and ADP will appear here as DraftCenter data builds.</p></section></div>
           <section className="pokedex-history"><h3>Pokedex entries</h3>{props.uniqueEntries.length ? <div className="pokedex-entry-list">{props.uniqueEntries.map((entry) => <article key={entry.version.name}><strong>{displayName(entry.version.name)}</strong><p>{entry.flavor_text.replace(/[\n\f]/g, " ")}</p></article>)}</div> : <p className="muted">No English entries are available.</p>}</section>
@@ -85,10 +128,10 @@ function PokemonDirectoryContent() {
 
   useEffect(() => { fetch("https://pokeapi.co/api/v2/pokemon?limit=2000").then((response) => response.ok ? response.json() : null).then((data) => { const lookup = {}; (data?.results || []).forEach((item) => { const id = Number(item.url.match(/pokemon\/(\d+)\//)?.[1]); lookup[item.name] = id; }); setDexNumbers(lookup); }).catch(() => {}); }, []);
   const filteredPokemon = useMemo(() => POKEMON_DIRECTORY.filter((pokemon) => { const matchName = pokemon.name.toLowerCase().includes(query.trim().toLowerCase()); const matchType = !type || pokemon.t1 === type || pokemon.t2 === type; const matchGen = !generation || String(pokemon.gen) === generation; const matchAbility = !abilityMatches || abilityMatches.has(slug(pokemon.name)); return matchName && matchType && matchGen && matchAbility; }), [query, type, generation, abilityMatches]);
-  useEffect(() => { let cancelled = false; const targets = filteredPokemon.filter((pokemon) => statLookup[slug(pokemon.name)] === undefined).slice(0, 150); if (!targets.length) return undefined; async function loadStats() { const additions = {}; for (let index = 0; index < targets.length; index += 8) { const batch = targets.slice(index, index + 8); const rows = await Promise.all(batch.map(async (pokemon) => { const key = slug(pokemon.name); try { const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${encodeURIComponent(key)}`); if (!response.ok) return [key, null]; const data = await response.json(); const stats = Object.fromEntries((data.stats || []).map((entry) => [entry.stat.name, entry.base_stat])); return [key, { hp: stats.hp, attack: stats.attack, defense: stats.defense, "special-attack": stats["special-attack"], "special-defense": stats["special-defense"], speed: stats.speed, bst: Object.values(stats).reduce((sum, value) => sum + value, 0) }]; } catch { return [key, null]; } })); rows.forEach(([key, value]) => { additions[key] = value; }); }
+  useEffect(() => { let cancelled = false; const targets = filteredPokemon.filter((pokemon) => statLookup[pokemonReference(pokemon.name).apiName] === undefined).slice(0, 150); if (!targets.length) return undefined; async function loadStats() { const additions = {}; for (let index = 0; index < targets.length; index += 8) { const batch = targets.slice(index, index + 8); const rows = await Promise.all(batch.map(async (pokemon) => { const reference = pokemonReference(pokemon.name); const key = reference.apiName; try { const response = await fetchPokemonForm(reference); if (!response.ok) return [key, null]; const data = await response.json(); const stats = Object.fromEntries((data.stats || []).map((entry) => [entry.stat.name, entry.base_stat])); return [key, { hp: stats.hp, attack: stats.attack, defense: stats.defense, "special-attack": stats["special-attack"], "special-defense": stats["special-defense"], speed: stats.speed, bst: Object.values(stats).reduce((sum, value) => sum + value, 0) }]; } catch { return [key, null]; } })); rows.forEach(([key, value]) => { additions[key] = value; }); }
       if (!cancelled && Object.keys(additions).length) setStatLookup((current) => ({ ...current, ...additions })); }
     loadStats(); return () => { cancelled = true; }; }, [filteredPokemon, statLookup]);
-  const results = useMemo(() => [...filteredPokemon].sort((a, b) => { const aStats = statLookup[slug(a.name)] || {}; const bStats = statLookup[slug(b.name)] || {}; let comparison = 0; if (sortBy === "dex") comparison = (dexNumbers[slug(a.name)] || 99999) - (dexNumbers[slug(b.name)] || 99999); else if (sortBy === "generation") comparison = (a.gen || 99) - (b.gen || 99); else if (sortBy === "name") comparison = a.name.localeCompare(b.name); else comparison = (aStats[sortBy] ?? a.bst ?? -1) - (bStats[sortBy] ?? b.bst ?? -1); return (sortDirection === "asc" ? 1 : -1) * comparison || a.name.localeCompare(b.name); }).slice(0, 100), [filteredPokemon, statLookup, sortBy, sortDirection, dexNumbers]);
+  const results = useMemo(() => [...filteredPokemon].sort((a, b) => { const aReference = pokemonReference(a.name); const bReference = pokemonReference(b.name); const aStats = statLookup[aReference.apiName] || {}; const bStats = statLookup[bReference.apiName] || {}; let comparison = 0; if (sortBy === "dex") comparison = (dexNumbers[aReference.dexName] || dexNumbers[aReference.apiName] || 99999) - (dexNumbers[bReference.dexName] || dexNumbers[bReference.apiName] || 99999); else if (sortBy === "generation") comparison = (a.gen || 99) - (b.gen || 99); else if (sortBy === "name") comparison = a.name.localeCompare(b.name); else comparison = (aStats[sortBy] ?? a.bst ?? -1) - (bStats[sortBy] ?? b.bst ?? -1); return (sortDirection === "asc" ? 1 : -1) * comparison || a.name.localeCompare(b.name); }).slice(0, 100), [filteredPokemon, statLookup, sortBy, sortDirection, dexNumbers]);
   function toggleSort(column) { if (sortBy === column) setSortDirection((direction) => direction === "asc" ? "desc" : "asc"); else { setSortBy(column); setSortDirection(column === "name" || column === "dex" || column === "generation" ? "asc" : "desc"); } }
 
   async function findAbility(event) { event.preventDefault(); const value = ability.trim(); if (!value) return setAbilityMatches(null); setMessage("Finding Pokemon with that ability..."); try { const response = await fetch(`https://pokeapi.co/api/v2/ability/${encodeURIComponent(slug(value))}`); if (!response.ok) throw new Error("That ability was not found. Try its English name, such as Levitate or Intimidate."); const data = await response.json(); setAbilityMatches(new Set((data.pokemon || []).map((item) => item.pokemon.name))); setMessage(""); } catch (error) { setAbilityMatches(new Set()); setMessage(error.message); } }
@@ -97,9 +140,10 @@ function PokemonDirectoryContent() {
   async function choose(name) {
     setSelected(name); setDetails(null); setSpecies(null); setImportedMoves([]); setMessage(""); setMoveSource(""); setMoveMethod("all"); setMoveQuery(""); setSelectedMove(null); setLoading(true);
     try {
+      const reference = pokemonReference(name);
       const [pokemonResponse, speciesResponse, importedResponse] = await Promise.all([
-        fetch(`https://pokeapi.co/api/v2/pokemon/${encodeURIComponent(slug(name))}`),
-        fetch(`https://pokeapi.co/api/v2/pokemon-species/${encodeURIComponent(slug(name))}`),
+        fetchPokemonForm(reference),
+        fetch(`https://pokeapi.co/api/v2/pokemon-species/${encodeURIComponent(reference.speciesName)}`),
         createClient().from("pokemon_move_learnsets").select("game_key, move_name, learn_method, level_learned_at, data_version").eq("pokemon_name", name),
       ]);
       if (!pokemonResponse.ok || !speciesResponse.ok) throw new Error("This Pokemon's details are unavailable right now.");
