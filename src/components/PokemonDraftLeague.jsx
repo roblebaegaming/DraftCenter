@@ -4462,7 +4462,7 @@ function isWithinOvernightPause(date, settings) {
   return h >= start || h < end; // wraps past midnight
 }
 
-export default function PokemonDraftLeague({ leagueId = null, leagueRole = null, league = null, profile = null, onOpenLeagueTools = null }) {
+export default function PokemonDraftLeague({ leagueId = null, leagueRole = null, league = null, profile = null, onOpenLeagueTools = null, homeRequest = 0 }) {
   const isSpectator = leagueId && leagueRole === "viewer";
   const [supabase] = useState(() => createClient());
   const [tab, setTab] = useState("home");
@@ -4473,6 +4473,9 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   // instead, the same pill-toggle pattern already used elsewhere (bracket
   // vs. list view, etc.).
   const [leagueSubTab, setLeagueSubTab] = useState("activity");
+  useEffect(() => {
+    if (homeRequest > 0) setTab("home");
+  }, [homeRequest]);
   const [viewTeamRequest, setViewTeamRequest] = useState(null);
   function goToTeam(teamIdx) {
     setViewTeamRequest(teamIdx);
@@ -4496,6 +4499,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   const revRef = useRef(0);
   const saveRequestRef = useRef(0);
   const leagueScheduleSyncedRef = useRef(false);
+  const completedDraftScheduleClearedRef = useRef(false);
 
   useEffect(() => {
     const identity = profile?.display_name || profile?.username;
@@ -4561,6 +4565,27 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     leagueScheduleSyncedRef.current = true;
     commit((current) => ({ ...current, settings: { ...current.settings, draftScheduledAt: league.draft_starts_at } }));
   }, [synced, league?.draft_starts_at, state.settings?.draftScheduledAt, commit]);
+
+  // A scheduled time describes an upcoming draft only. If the commissioner
+  // starts early (or enters an already-completed manual draft), remove that
+  // stale appointment from both the league snapshot and public listing.
+  // This also self-heals leagues that finished before this rule existed.
+  useEffect(() => {
+    if (!synced || !state.locked || !state.settings?.draftScheduledAt || completedDraftScheduleClearedRef.current) return;
+    completedDraftScheduleClearedRef.current = true;
+    commit((current) => ({
+      ...current,
+      settings: { ...current.settings, draftScheduledAt: null },
+    }));
+    if (leagueId) {
+      supabase.rpc("update_league_draft_time", {
+        p_league_id: leagueId,
+        p_draft_starts_at: null,
+      }).then(({ error }) => {
+        if (error) setLiveDraftError(`The completed draft time could not be cleared from the league listing: ${error.message}`);
+      });
+    }
+  }, [synced, state.locked, state.settings?.draftScheduledAt, leagueId, supabase, commit]);
 
   function saveNow() {
     if (isSpectator) return;
@@ -5207,6 +5232,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
         : [];
       const baseState = {
         ...s,
+        settings: { ...s.settings, draftScheduledAt: null },
         liveDraft: liveDraft || s.liveDraft || null,
         locked: true,
         teams: s.teams.map((t) =>
@@ -5240,6 +5266,14 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       const pickIndex = s.settings.draftType === "snake" ? skipForward(baseState, 0) : 0;
       return { ...baseState, pickIndex, pickDeadline: s.settings.draftType === "snake" ? nextDeadline(s.settings) : null };
     });
+    if (leagueId && state.settings.draftScheduledAt) {
+      supabase.rpc("update_league_draft_time", {
+        p_league_id: leagueId,
+        p_draft_starts_at: null,
+      }).then(({ error }) => {
+        if (error) setLiveDraftError(`The completed draft time could not be cleared from the league listing: ${error.message}`);
+      });
+    }
     setTab("draft");
   }
 
@@ -5305,6 +5339,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       const budgets = usesBudget ? rosters.map((r) => s.settings.budget - r.reduce((sum, m) => sum + m.cost, 0)) : [];
       return {
         ...s,
+        settings: { ...s.settings, draftScheduledAt: null },
         locked: true,
         teams: s.teams.map((t) => (!t.claimedBy && (!t.archetypes || !t.archetypes.length)) ? { ...t, archetypes: randomArchetypeKeys() } : t),
         rosters, budgets, pool,
@@ -5314,6 +5349,14 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
         auctionEnded: true,
       };
     });
+    if (leagueId && state.settings.draftScheduledAt) {
+      supabase.rpc("update_league_draft_time", {
+        p_league_id: leagueId,
+        p_draft_starts_at: null,
+      }).then(({ error }) => {
+        if (error) setLiveDraftError(`The completed draft time could not be cleared from the league listing: ${error.message}`);
+      });
+    }
     setTab("league"); setLeagueSubTab("schedule");
   }
 
@@ -6938,6 +6981,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   // has no standings or public schedule yet, and a playoff tab only becomes
   // useful once the commissioner has generated a bracket.
   const hasSchedule = (state.schedule || []).length > 0;
+  const regularSeasonComplete = hasSchedule && isRegularSeasonComplete(state.schedule, state.matchResults);
   const hasAwardWinners = Boolean(
     Object.keys(state.draftHeroVotes || {}).length ||
     (state.trades || []).some((t) => t.status === "accepted") ||
@@ -7095,8 +7139,8 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
               {[
               ["activity", "League Activity"], ["draft", "Draft"],
                 ...((!state.locked || draftDone || isCommissioner) ? [["schedule", "Schedule"]] : []),
+                ...((state.playoffs || regularSeasonComplete) ? [["playoffs", "Playoffs"]] : []),
                 ...(hasSchedule && draftDone ? [["standings", "Standings"]] : []),
-                ...(state.playoffs ? [["playoffs", "Playoffs"]] : []),
                 ...(hasAwardWinners ? [["awards", "Season Awards"]] : []),
                 ["predictions", "Predictions"], ["trades", "Transactions"],
                 ...(state.seasonHistory.length > 0 ? [["history", "History"], ["adp", "Draft Trends"]] : []),
@@ -8391,11 +8435,11 @@ function SetupView({ state, leagueId = null, isCommissioner, canBeCommissioner, 
 
   return (
     <div>
-      <section style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }} className="rounded-lg p-5 mb-6">
+      {!locked && <section style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }} className="rounded-lg p-5 mb-6">
         <h2 className="display-font text-2xl mb-2" style={{ color: "#FFD23F" }}>DRAFT DATE & MANAGER INVITES</h2>
         <p className="text-sm mb-4" style={{ color: "#9A9FBD" }}>{settings.draftScheduledAt ? `Currently scheduled for ${new Date(settings.draftScheduledAt).toLocaleString()}.` : "No draft time has been scheduled yet."}</p>
         {isCommissioner && <div className="flex items-end gap-3 flex-wrap"><label className="text-xs" style={{ color: "#9A9FBD" }}>Draft start date and time<input type="datetime-local" value={settings.draftScheduledAt ? new Date(settings.draftScheduledAt).toISOString().slice(0, 16) : ""} onChange={(event) => updateSettings({ draftScheduledAt: event.target.value ? new Date(event.target.value).toISOString() : null })} className="block mt-1 px-3 py-2 rounded mono-font text-sm" style={{ background: "#1F2338", border: "1px solid rgba(255,255,255,0.1)", color: "#EDEBFA" }} /></label>{leagueId && onOpenLeagueTools && <button type="button" onClick={onOpenLeagueTools} className="px-4 py-2 rounded font-semibold text-sm" style={{ background: "#4FD1C5", color: "#10121C" }}>INVITE DRAFT MANAGERS</button>}</div>}
-      </section>
+      </section>}
       {!leagueId && !commissioner && (
         <div style={{ background: "#1F2338", border: "1px solid #FFD23F55" }} className="rounded-lg p-4 mb-6 flex items-center justify-between flex-wrap gap-3">
           <span className="text-sm">No commissioner yet — claim it to control league settings.</span>
