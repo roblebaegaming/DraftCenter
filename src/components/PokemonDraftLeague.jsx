@@ -7030,7 +7030,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
           </button>}
           <nav className="flex flex-wrap gap-1 justify-end">
             {[
-              ["home", league?.name || "Home"], ...(!state.locked || isCommissioner ? [["setup", "Setup"]] : []),
+              ["home", `${league?.name || "League"} Home`], ...(!state.locked || isCommissioner ? [["setup", "Setup"]] : []),
               // Pre-lock, there's no live draft yet — just one coming up —
               // so it's its own clearly-labeled top-level tab. The moment
               // the draft actually starts, it stops being a standalone
