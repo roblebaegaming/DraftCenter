@@ -131,9 +131,21 @@ export default function AuthGate(){
   async function loadProfile(next){if(!next)return setProfile(undefined);const {data}=await supabase.from('profiles').select('id,display_name,username,avatar_url').eq('id',next.user.id).maybeSingle();setProfile(data||null);}
   useEffect(()=>{supabase.auth.getSession().then(({data})=>{setSession(data.session);loadProfile(data.session);});const {data:listener}=supabase.auth.onAuthStateChange((event,next)=>{setSession(next);loadProfile(next);if(event==='PASSWORD_RECOVERY')setMode('reset_password');});return()=>listener.subscription.unsubscribe();},[supabase]);
   function openLeague(league, replace = false) {
-    setActiveLeague(league); setShowTools(false); setShowAppearance(false);
     const key = league?.slug || league?.id;
-    if (key) window.history[replace ? "replaceState" : "pushState"]({}, "", `/?league=${encodeURIComponent(key)}`);
+    if (!key) return;
+    const destination = `/?league=${encodeURIComponent(key)}`;
+    // Entering from the dashboard used to mount the full league application
+    // while LeagueHub's snapshot/live-draft polling requests were still
+    // finishing. On slower and mobile browsers that transition could crash
+    // the tab before React's error boundary had a chance to render. A clean
+    // navigation cancels the dashboard work first; the URL restore effect
+    // below then opens the same membership in a fresh page lifecycle.
+    if (!activeLeague && !replace) {
+      window.location.assign(destination);
+      return;
+    }
+    setActiveLeague(league); setShowTools(false); setShowAppearance(false);
+    window.history[replace ? "replaceState" : "pushState"]({}, "", destination);
   }
   function closeLeague(replace = false) {
     setActiveLeague(null); setShowTools(false); setShowAppearance(false);
