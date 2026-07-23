@@ -239,7 +239,7 @@ export default function LeagueHub({ user, profile, onOpenLeague }) {
 return (
   <main className="hub-shell">
     <section className="hub-hero">
-      <div><div style={{ display: "flex", alignItems: "center", gap: 10 }}><img src="/draftcenter-logo.png" alt="DraftCenter" style={{ width: 42, height: 42, objectFit: "cover", borderRadius: 10 }} /><div className="eyebrow">DRAFTCENTER</div></div><h1>Build a league you want to come back to.</h1><p>Join your commissioner's league, follow public competition, or run your own season.</p></div>
+      <div><div style={{ display: "flex", alignItems: "center", gap: 10 }}><img src="/draftcenter-logo.png" alt="DraftCenter" style={{ width: 42, height: 42, objectFit: "cover", borderRadius: 10 }} /><div className="eyebrow">DRAFTCENTER</div></div><h1>Your Draft League Headquarters</h1><p>Join your commissioner's league, follow public competition, or run your own season.</p></div>
       <div className="profile-chip">{profile?.avatar_url ? <img className="profile-chip-photo" src={profile.avatar_url} alt="" /> : <span className="profile-initial">{(profile?.display_name || profile?.username || user.email || "C")[0].toUpperCase()}</span>}<div><strong>{profile?.display_name || "Coach"}</strong><small>@{profile?.username || "setting-up"}</small></div></div>
     </section>
     {turnAlert && <p className="hub-message" style={{ background: "#4FD1C5", color: "#10121C", fontWeight: 800 }}>{turnAlert}</p>}
