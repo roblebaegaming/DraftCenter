@@ -6026,16 +6026,18 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     });
   }
 
-  // Best-of-3 match report: gamesA/gamesB are sets won (first to 2), plus
+  // Match report: gamesA/gamesB are games won, with best-of-3 as the
+  // default and best-of-1/best-of-5 available in the result editor.
   // how many mons each team had left standing at the end — used as a
   // tiebreaker in standings.
-  function reportMatch(week, matchIdx, gamesA, gamesB, monsAliveA, monsAliveB, replayUrlA, replayUrlB, mvpSide, mvpName) {
+  function reportMatch(week, matchIdx, gamesA, gamesB, monsAliveA, monsAliveB, replayUrlA, replayUrlB, mvpSide, mvpName, bestOf = 3) {
     commit((s) => ({
       ...s,
       matchResults: {
         ...s.matchResults,
         [`${week}-${matchIdx}`]: {
           gamesA: Number(gamesA) || 0, gamesB: Number(gamesB) || 0,
+          bestOf: [1, 3, 5].includes(Number(bestOf)) ? Number(bestOf) : 3,
           monsAliveA: Number(monsAliveA) || 0, monsAliveB: Number(monsAliveB) || 0,
           reportedBy: myName,
           replayUrlA: replayUrlA || null,
@@ -6170,7 +6172,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   function resetPlayoffs() {
     commit((s) => ({ ...s, playoffs: null, auditLog: [...(s.auditLog || []), auditEntry(myName, "Reset playoffs")] }));
   }
-  function reportPlayoffMatch(roundIdx, matchIdx, gamesA, gamesB, monsAliveA, monsAliveB, replayUrlA, replayUrlB, mvpSide, mvpName) {
+  function reportPlayoffMatch(roundIdx, matchIdx, gamesA, gamesB, monsAliveA, monsAliveB, replayUrlA, replayUrlB, mvpSide, mvpName, bestOf = 3) {
     commit((s) => {
       if (!s.playoffs) return s;
       return {
@@ -6181,6 +6183,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
             ...s.playoffs.results,
             [`${roundIdx}-${matchIdx}`]: {
               gamesA: Number(gamesA) || 0, gamesB: Number(gamesB) || 0,
+              bestOf: [1, 3, 5].includes(Number(bestOf)) ? Number(bestOf) : 3,
               monsAliveA: Number(monsAliveA) || 0, monsAliveB: Number(monsAliveB) || 0,
               reportedBy: myName,
               replayUrlA: replayUrlA || null,
@@ -6208,7 +6211,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   // Losers-bracket equivalent of reportPlayoffMatch, for double elimination —
   // its own separate results map so it never collides with winners-bracket
   // results even though match keys reuse the same "round-match" format.
-  function reportLosersMatch(roundIdx, matchIdx, gamesA, gamesB, monsAliveA, monsAliveB, replayUrlA, replayUrlB, mvpSide, mvpName) {
+  function reportLosersMatch(roundIdx, matchIdx, gamesA, gamesB, monsAliveA, monsAliveB, replayUrlA, replayUrlB, mvpSide, mvpName, bestOf = 3) {
     commit((s) => {
       if (!s.playoffs || s.playoffs.mode !== "double-elim") return s;
       return {
@@ -6219,6 +6222,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
             ...s.playoffs.losersResults,
             [`${roundIdx}-${matchIdx}`]: {
               gamesA: Number(gamesA) || 0, gamesB: Number(gamesB) || 0,
+              bestOf: [1, 3, 5].includes(Number(bestOf)) ? Number(bestOf) : 3,
               monsAliveA: Number(monsAliveA) || 0, monsAliveB: Number(monsAliveB) || 0,
               reportedBy: myName,
               replayUrlA: replayUrlA || null,
@@ -6248,7 +6252,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   // both sides now have exactly one loss, so game 2 (the "bracket reset")
   // decides the actual champion; if the winners-bracket team wins game 1,
   // there's no game 2 at all since they were never eliminated.
-  function reportGrandFinalGame(gameNum, gamesA, gamesB, monsAliveA, monsAliveB, replayUrlA, replayUrlB, mvpSide, mvpName) {
+  function reportGrandFinalGame(gameNum, gamesA, gamesB, monsAliveA, monsAliveB, replayUrlA, replayUrlB, mvpSide, mvpName, bestOf = 3) {
     commit((s) => {
       if (!s.playoffs || s.playoffs.mode !== "double-elim") return s;
       const key = gameNum === 2 ? "game2" : "game1";
@@ -6260,6 +6264,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
             ...s.playoffs.grandFinal,
             [key]: {
               gamesA: Number(gamesA) || 0, gamesB: Number(gamesB) || 0,
+              bestOf: [1, 3, 5].includes(Number(bestOf)) ? Number(bestOf) : 3,
               monsAliveA: Number(monsAliveA) || 0, monsAliveB: Number(monsAliveB) || 0,
               reportedBy: myName,
               replayUrlA: replayUrlA || null,
@@ -6286,11 +6291,12 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   // Same idea as reportPlayoffMatch, but for one specific division's own
   // bracket within division mode — each division's results live in their
   // own bracket object so they never collide with each other.
-  function reportDivisionPlayoffMatch(divisionIdx, roundIdx, matchIdx, gamesA, gamesB, monsAliveA, monsAliveB, replayUrlA, replayUrlB, mvpSide, mvpName) {
+  function reportDivisionPlayoffMatch(divisionIdx, roundIdx, matchIdx, gamesA, gamesB, monsAliveA, monsAliveB, replayUrlA, replayUrlB, mvpSide, mvpName, bestOf = 3) {
     commit((s) => {
       if (!s.playoffs || s.playoffs.mode !== "divisions") return s;
       const resultObj = {
         gamesA: Number(gamesA) || 0, gamesB: Number(gamesB) || 0,
+        bestOf: [1, 3, 5].includes(Number(bestOf)) ? Number(bestOf) : 3,
         monsAliveA: Number(monsAliveA) || 0, monsAliveB: Number(monsAliveB) || 0,
         reportedBy: myName,
         replayUrlA: replayUrlA || null,
@@ -6320,11 +6326,12 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   // that the division winners feed into — which may itself have more than
   // one round (semifinal, then Grand Final) once there are more than 2
   // divisions.
-  function reportChampionMatch(roundIdx, matchIdx, gamesA, gamesB, monsAliveA, monsAliveB, replayUrlA, replayUrlB, mvpSide, mvpName) {
+  function reportChampionMatch(roundIdx, matchIdx, gamesA, gamesB, monsAliveA, monsAliveB, replayUrlA, replayUrlB, mvpSide, mvpName, bestOf = 3) {
     commit((s) => {
       if (!s.playoffs || s.playoffs.mode !== "divisions") return s;
       const resultObj = {
         gamesA: Number(gamesA) || 0, gamesB: Number(gamesB) || 0,
+        bestOf: [1, 3, 5].includes(Number(bestOf)) ? Number(bestOf) : 3,
         monsAliveA: Number(monsAliveA) || 0, monsAliveB: Number(monsAliveB) || 0,
         reportedBy: myName,
         replayUrlA: replayUrlA || null,
@@ -11764,6 +11771,7 @@ function ScoutRow({ mon, teamColor }) {
 function MatchCard({ teamA, teamB, result, canReport, onReport, pending, rosterA, rosterB, trackDifferential, onViewTeam, onSetMVP, mvpLabel = "Match MVP" }) {
   const [editing, setEditing] = useState(false);
   const [scouting, setScouting] = useState(false);
+  const [bestOf, setBestOf] = useState([1, 3, 5].includes(Number(result?.bestOf)) ? Number(result.bestOf) : 3);
   // Games are entered in the real chronological order they were actually
   // played — each game just needs "who won it" and "how many they had
   // left," and the set score (gamesA/gamesB) plus Differential totals are
@@ -11786,7 +11794,9 @@ function MatchCard({ teamA, teamB, result, canReport, onReport, pending, rosterA
   const [mvpName, setMvpName] = useState(result?.mvp?.name || "");
   const editingGamesA = games.filter((g) => g.winner === "A").length;
   const editingGamesB = games.filter((g) => g.winner === "B").length;
-  const editingWinnerSide = editingGamesA > editingGamesB ? "A" : editingGamesB > editingGamesA ? "B" : null;
+  const winsNeeded = Math.floor(bestOf / 2) + 1;
+  const validSeries = (editingGamesA === winsNeeded && editingGamesB < winsNeeded) || (editingGamesB === winsNeeded && editingGamesA < winsNeeded);
+  const editingWinnerSide = validSeries ? (editingGamesA === winsNeeded ? "A" : "B") : null;
   const editingWinnerRoster = editingWinnerSide === "A" ? (rosterA || []) : editingWinnerSide === "B" ? (rosterB || []) : [];
   const selectedMvpName = editingWinnerRoster.some((mon) => mon.name === mvpName) ? mvpName : "";
   const resultWinnerSide = result?.gamesA > result?.gamesB ? "A" : result?.gamesB > result?.gamesA ? "B" : null;
@@ -11794,6 +11804,12 @@ function MatchCard({ teamA, teamB, result, canReport, onReport, pending, rosterA
 
   function setGameCount(n) {
     setGames((arr) => (n > arr.length ? [...arr, { winner: "A", alive: 1 }] : arr.slice(0, n)));
+  }
+  function changeBestOf(n) {
+    const needed = Math.floor(n / 2) + 1;
+    setBestOf(n);
+    setGames(Array.from({ length: needed }, () => ({ winner: "A", alive: 1 })));
+    setMvpName("");
   }
   function setGameWinner(i, winner) {
     setGames((arr) => arr.map((g, j) => (j === i ? { ...g, winner } : g)));
@@ -11813,7 +11829,8 @@ function MatchCard({ teamA, teamB, result, canReport, onReport, pending, rosterA
   function save() {
     const monsAliveA = trackDifferential ? games.filter((g) => g.winner === "A").reduce((sum, g) => sum + g.alive, 0) : 0;
     const monsAliveB = trackDifferential ? games.filter((g) => g.winner === "B").reduce((sum, g) => sum + g.alive, 0) : 0;
-    onReport(editingGamesA, editingGamesB, monsAliveA, monsAliveB, replayUrlA.trim() || null, replayUrlB.trim() || null, editingWinnerSide, selectedMvpName);
+    if (!validSeries) return;
+    onReport(editingGamesA, editingGamesB, monsAliveA, monsAliveB, replayUrlA.trim() || null, replayUrlB.trim() || null, editingWinnerSide, selectedMvpName, bestOf);
     setEditing(false);
   }
 
@@ -11829,7 +11846,7 @@ function MatchCard({ teamA, teamB, result, canReport, onReport, pending, rosterA
             <TeamLogo team={teamA} size={20} /> <span className="truncate">{teamA?.name}</span>{result && result.gamesA > result.gamesB && <span>✓</span>}
           </span>
         )}
-        <span className="mono-font text-xs flex-shrink-0" style={{ color: "#5B5F7E" }}>BEST OF 3</span>
+        <span className="mono-font text-xs flex-shrink-0" style={{ color: "#5B5F7E" }}>BEST OF {result?.bestOf || bestOf}</span>
         {onViewTeam && teamB ? (
           <button onClick={() => onViewTeam(teamB.id)} className="text-sm font-medium flex items-center gap-1.5 min-w-0 justify-end hover:underline" style={{ color: result && result.gamesB > result.gamesA ? "#4FD1C5" : (teamB?.color || "#EDEBFA") }}>
             {result && result.gamesB > result.gamesA && <span>✓</span>}<span className="truncate">{teamB?.name}</span> <TeamLogo team={teamB} size={20} />
@@ -11844,16 +11861,23 @@ function MatchCard({ teamA, teamB, result, canReport, onReport, pending, rosterA
       {editing ? (
         <div className="flex flex-col gap-3">
           <div className="flex items-center justify-between gap-2">
-            <label className="text-xs flex-1" style={{ color: "#9A9FBD" }}>Set length</label>
+            <label className="text-xs flex-1" style={{ color: "#9A9FBD" }}>Series format</label>
             <div className="flex gap-1">
-              <button onClick={() => setGameCount(2)} className="px-3 py-1 rounded text-xs font-semibold mono-font"
-                style={{ background: games.length === 2 ? "#FFD23F" : "#1F2338", color: games.length === 2 ? "#10121C" : "#9A9FBD" }}>
-                2 games
-              </button>
-              <button onClick={() => setGameCount(3)} className="px-3 py-1 rounded text-xs font-semibold mono-font"
-                style={{ background: games.length === 3 ? "#FFD23F" : "#1F2338", color: games.length === 3 ? "#10121C" : "#9A9FBD" }}>
-                3 games
-              </button>
+              {[1, 3, 5].map((n) => <button key={n} onClick={() => changeBestOf(n)} className="px-3 py-1 rounded text-xs font-semibold mono-font"
+                style={{ background: bestOf === n ? "#FFD23F" : "#1F2338", color: bestOf === n ? "#10121C" : "#9A9FBD" }}>
+                Best of {n}
+              </button>)}
+            </div>
+          </div>
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-xs" style={{ color: "#9A9FBD" }}>Games played</span>
+            <div className="flex gap-1">
+              {Array.from({ length: bestOf - winsNeeded + 1 }, (_, index) => winsNeeded + index).map((count) => (
+                <button key={count} onClick={() => setGameCount(count)} className="px-3 py-1 rounded text-xs font-semibold mono-font"
+                  style={{ background: games.length === count ? "#4FD1C5" : "#1F2338", color: games.length === count ? "#10121C" : "#9A9FBD" }}>
+                  {count}
+                </button>
+              ))}
             </div>
           </div>
 
@@ -11879,6 +11903,7 @@ function MatchCard({ teamA, teamB, result, canReport, onReport, pending, rosterA
               </div>
             ))}
           </div>
+          {!validSeries && <p className="text-xs" style={{ color: "#F0555A" }}>A best-of-{bestOf} result must end when one team reaches {winsNeeded} win{winsNeeded === 1 ? "" : "s"}.</p>}
           {trackDifferential && <p className="text-xs" style={{ color: "#5B5F7E" }}>Number is how many mons the winner of that game had left (1–4) — the loser is always 0.</p>}
 
           {onSetMVP && editingWinnerSide && editingWinnerRoster.length > 0 && (
@@ -11911,7 +11936,7 @@ function MatchCard({ teamA, teamB, result, canReport, onReport, pending, rosterA
           </div>
 
           <div className="flex gap-2 mt-1">
-            <button onClick={save} className="px-3 py-1.5 rounded text-xs font-semibold" style={{ background: "#FFD23F", color: "#10121C" }}>Save</button>
+            <button onClick={save} disabled={!validSeries} className="px-3 py-1.5 rounded text-xs font-semibold disabled:opacity-40" style={{ background: "#FFD23F", color: "#10121C" }}>Save</button>
             <button onClick={() => setEditing(false)} className="px-3 py-1.5 rounded text-xs" style={{ background: "#1F2338", color: "#9A9FBD" }}>Cancel</button>
           </div>
         </div>
@@ -13038,6 +13063,7 @@ function BracketSlot({ team, seed, isWinner, pending, isBye, onViewTeam, showcas
 // bracket layout without breaking the spacing math.
 function BracketScoreEditor({ result, onSave, trackDifferential, teamA, teamB, rosterA, rosterB, onSetMVP }) {
   const [editing, setEditing] = useState(false);
+  const [bestOf, setBestOf] = useState([1, 3, 5].includes(Number(result?.bestOf)) ? Number(result.bestOf) : 3);
   const [games, setGames] = useState(() => {
     if (result) {
       const arr = [];
@@ -13052,7 +13078,9 @@ function BracketScoreEditor({ result, onSave, trackDifferential, teamA, teamB, r
   const [mvpName, setMvpName] = useState(result?.mvp?.name || "");
   const editingGamesA = games.filter((g) => g.winner === "A").length;
   const editingGamesB = games.filter((g) => g.winner === "B").length;
-  const editingWinnerSide = editingGamesA > editingGamesB ? "A" : editingGamesB > editingGamesA ? "B" : null;
+  const winsNeeded = Math.floor(bestOf / 2) + 1;
+  const validSeries = (editingGamesA === winsNeeded && editingGamesB < winsNeeded) || (editingGamesB === winsNeeded && editingGamesA < winsNeeded);
+  const editingWinnerSide = validSeries ? (editingGamesA === winsNeeded ? "A" : "B") : null;
   const editingWinnerRoster = editingWinnerSide === "A" ? (rosterA || []) : editingWinnerSide === "B" ? (rosterB || []) : [];
   const selectedMvpName = editingWinnerRoster.some((mon) => mon.name === mvpName) ? mvpName : "";
   const resultWinnerSide = result?.gamesA > result?.gamesB ? "A" : result?.gamesB > result?.gamesA ? "B" : null;
@@ -13060,6 +13088,12 @@ function BracketScoreEditor({ result, onSave, trackDifferential, teamA, teamB, r
 
   function setGameCount(n) {
     setGames((arr) => (n > arr.length ? [...arr, { winner: "A", alive: 1 }] : arr.slice(0, n)));
+  }
+  function changeBestOf(n) {
+    const needed = Math.floor(n / 2) + 1;
+    setBestOf(n);
+    setGames(Array.from({ length: needed }, () => ({ winner: "A", alive: 1 })));
+    setMvpName("");
   }
   function setGameWinner(i, winner) {
     setGames((arr) => arr.map((g, j) => (j === i ? { ...g, winner } : g)));
@@ -13104,12 +13138,19 @@ function BracketScoreEditor({ result, onSave, trackDifferential, teamA, teamB, r
   return (
     <div className="mt-1 p-3 rounded-lg flex flex-col gap-2" style={{ background: "#1F2338", border: "1px solid rgba(255,255,255,0.15)" }}>
       <div className="flex items-center justify-between gap-2">
-        <span className="text-xs" style={{ color: "#9A9FBD" }}>Set length</span>
+        <span className="text-xs" style={{ color: "#9A9FBD" }}>Series</span>
         <div className="flex gap-1">
-          <button onClick={() => setGameCount(2)} className="px-2 py-0.5 rounded text-[10px] font-semibold"
-            style={{ background: games.length === 2 ? "#FFD23F" : "#171A2C", color: games.length === 2 ? "#10121C" : "#9A9FBD" }}>2</button>
-          <button onClick={() => setGameCount(3)} className="px-2 py-0.5 rounded text-[10px] font-semibold"
-            style={{ background: games.length === 3 ? "#FFD23F" : "#171A2C", color: games.length === 3 ? "#10121C" : "#9A9FBD" }}>3</button>
+          {[1, 3, 5].map((n) => <button key={n} onClick={() => changeBestOf(n)} className="px-2 py-0.5 rounded text-[10px] font-semibold"
+            style={{ background: bestOf === n ? "#FFD23F" : "#171A2C", color: bestOf === n ? "#10121C" : "#9A9FBD" }}>BO{n}</button>)}
+        </div>
+      </div>
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-[10px]" style={{ color: "#9A9FBD" }}>Games played</span>
+        <div className="flex gap-1">
+          {Array.from({ length: bestOf - winsNeeded + 1 }, (_, index) => winsNeeded + index).map((count) => (
+            <button key={count} onClick={() => setGameCount(count)} className="px-2 py-0.5 rounded text-[10px] font-semibold"
+              style={{ background: games.length === count ? "#4FD1C5" : "#171A2C", color: games.length === count ? "#10121C" : "#9A9FBD" }}>{count}</button>
+          ))}
         </div>
       </div>
       <div className="flex flex-col gap-1">
@@ -13127,6 +13168,7 @@ function BracketScoreEditor({ result, onSave, trackDifferential, teamA, teamB, r
           </div>
         ))}
       </div>
+      {!validSeries && <span className="text-[10px]" style={{ color: "#F0555A" }}>First to {winsNeeded} wins; the series stops there.</span>}
       {onSetMVP && editingWinnerSide && editingWinnerRoster.length > 0 && (
         <select value={selectedMvpName} onChange={(e) => setMvpName(e.target.value)}
           aria-label="Match MVP"
@@ -13142,12 +13184,12 @@ function BracketScoreEditor({ result, onSave, trackDifferential, teamA, teamB, r
         placeholder={`${teamB?.name || "Team B"}'s replay (optional)`}
         className="w-full px-1.5 py-1 rounded mono-font text-[10px]" style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.1)", color: "#EDEBFA" }} />
       <div className="flex gap-2">
-        <button onClick={() => {
+        <button disabled={!validSeries} onClick={() => {
           const monsAliveA = trackDifferential ? games.filter((g) => g.winner === "A").reduce((s, g) => s + g.alive, 0) : 0;
           const monsAliveB = trackDifferential ? games.filter((g) => g.winner === "B").reduce((s, g) => s + g.alive, 0) : 0;
-          onSave(editingGamesA, editingGamesB, monsAliveA, monsAliveB, replayUrlA.trim() || null, replayUrlB.trim() || null, editingWinnerSide, selectedMvpName);
+          onSave(editingGamesA, editingGamesB, monsAliveA, monsAliveB, replayUrlA.trim() || null, replayUrlB.trim() || null, editingWinnerSide, selectedMvpName, bestOf);
           setEditing(false);
-        }} className="px-2 py-1 rounded text-xs font-semibold" style={{ background: "#FFD23F", color: "#10121C" }}>Save</button>
+        }} className="px-2 py-1 rounded text-xs font-semibold disabled:opacity-40" style={{ background: "#FFD23F", color: "#10121C" }}>Save</button>
         <button onClick={() => setEditing(false)} className="px-2 py-1 rounded text-xs" style={{ background: "#171A2C", color: "#9A9FBD" }}>Cancel</button>
       </div>
     </div>
