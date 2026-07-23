@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "../lib/supabase/client";
+import { loadPokemonArtwork } from "./LeagueHub";
 
 function pollRows(poll) {
   if (!poll) return [];
@@ -10,10 +11,34 @@ function pollRows(poll) {
     : (poll.options || []).map((option) => ({ label: option.label, count: poll.counts?.[option.key] || 0 })).sort((a, b) => b.count - a.count);
 }
 
-function PollResults({ poll }) {
-  return <div className="public-poll-results">{pollRows(poll).map((row) => {
+function PollPokemonArtwork({ name }) {
+  const [image, setImage] = useState("");
+  useEffect(() => {
+    let alive = true;
+    loadPokemonArtwork(name).then((next) => { if (alive) setImage(next); });
+    return () => { alive = false; };
+  }, [name]);
+  return image ? <img className="past-poll-pokemon" src={image} alt={name} /> : null;
+}
+
+function PollResults({ poll, showPodium = false }) {
+  const rows = pollRows(poll);
+  const placedCounts = [...new Set(rows.map((row) => row.count).filter((count) => count > 0))].slice(0, 3);
+  const medals = ["🥇", "🥈", "🥉"];
+  return <div className={`public-poll-results ${showPodium ? "past-poll-results" : ""}`}>{rows.map((row) => {
     const percent = poll.total_votes ? Math.round(row.count / poll.total_votes * 100) : 0;
-    return <div key={row.label}><div><strong>{row.label}</strong><span>{percent}%</span></div><i><span style={{ width: `${percent}%` }} /></i></div>;
+    const place = showPodium && poll.answer_type === "pokemon" ? placedCounts.indexOf(row.count) : -1;
+    return <div key={row.label} className={place >= 0 ? `poll-podium-row place-${place + 1}` : ""}>
+      <div className="poll-result-heading">
+        <span className="poll-result-contender">
+          {place >= 0 && <PollPokemonArtwork name={row.label} />}
+          {place >= 0 && <span className="poll-medal" title={`${place + 1}${place === 0 ? "st" : place === 1 ? "nd" : "rd"} place`}>{medals[place]}</span>}
+          <strong>{row.label}</strong>
+        </span>
+        <span>{percent}%</span>
+      </div>
+      <i><span style={{ width: `${percent}%` }} /></i>
+    </div>;
   })}</div>;
 }
 
@@ -64,7 +89,7 @@ export default function PublicExplore() {
         <span className="eyebrow">PUBLIC LEAGUES</span><h2>Watch or join a league</h2>
         {data.leagues?.length ? <div className="public-explore-leagues">{data.leagues.slice(0, 6).map((league) => <article key={league.id}>{league.image_url && <img src={league.image_url} alt="" />}<div><strong>{league.name}</strong><p>{league.description || league.season_label || "Public DraftCenter league"}</p><span>{league.league_visibility === "open" ? "Open to managers" : "Public to watch"}</span><a className="public-league-link" href={`/league/${league.slug}`}>View league →</a></div></article>)}</div> : <p className="muted">No public leagues have been listed yet.</p>}
       </section>
-      {pollHistory.length > 0 && <section className="explore-card completed-polls-card"><span className="eyebrow">PAST POLLS</span><h2>Completed community results</h2><div className="completed-poll-list">{pollHistory.map((poll) => <details key={poll.id}><summary><span>{new Date(`${poll.poll_date}T12:00:00`).toLocaleDateString()}</span><strong>{poll.question}</strong></summary><p className="muted">{poll.total_votes} final vote{poll.total_votes === 1 ? "" : "s"}</p><PollResults poll={poll} /></details>)}</div></section>}
+      {pollHistory.length > 0 && <section className="explore-card completed-polls-card"><span className="eyebrow">PAST POLLS</span><h2>Completed community results</h2><div className="completed-poll-list">{pollHistory.map((poll) => <details key={poll.id}><summary><span>{new Date(`${poll.poll_date}T12:00:00`).toLocaleDateString()}</span><strong>{poll.question}</strong></summary><p className="muted">{poll.total_votes} final vote{poll.total_votes === 1 ? "" : "s"}</p><PollResults poll={poll} showPodium /></details>)}</div></section>}
       <Ranking title="Most drafted this week" items={trends?.weekly_drafted} empty="Weekly rankings will appear after public non-practice drafts make picks." render={(item) => <span><strong>{item.pokemon}</strong><small>{item.drafts} draft{item.drafts === 1 ? "" : "s"} in the last 7 days</small></span>} />
       <Ranking title="Biggest risers" items={marketTrends?.risers} empty="Risers appear after two full weeks of public draft activity." render={(item) => <span><strong>{item.pokemon}</strong><small>+{item.change} drafts · {item.current_drafts} this week</small></span>} />
       <Ranking title="Biggest fallers" items={marketTrends?.fallers} empty="Fallers appear after two full weeks of public draft activity." render={(item) => <span><strong>{item.pokemon}</strong><small>{item.change} drafts · {item.current_drafts} this week</small></span>} />
