@@ -47,6 +47,7 @@ export const WORLD_CHAMPION_POKEMON = [
 export function pokemonArtworkCandidates(name) {
   const key = pokemonSlug(name);
   const candidates = [key];
+  if (key === "basculegion") candidates.unshift("basculegion-male");
   const regional = key.match(/^(alolan|galarian|hisuian|paldean)-(.+)$/);
   if (regional) candidates.unshift(`${regional[2]}-${{ alolan:"alola", galarian:"galar", hisuian:"hisui", paldean:"paldea" }[regional[1]]}`);
   const mega = key.match(/^mega-(.+?)(?:-(x|y))?$/);
@@ -69,6 +70,9 @@ export async function loadPokemonArtwork(name) {
       const image = data?.sprites?.other?.["official-artwork"]?.front_default || data?.sprites?.front_default;
       if (image) return image;
     } catch {}
+  }
+  if (pokemonSlug(name) === "floette-eternal") {
+    return "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10061.png";
   }
   return "";
 }

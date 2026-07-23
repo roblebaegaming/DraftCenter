@@ -1938,6 +1938,7 @@ function typeChip(type) {
 // and a separate, newer Legends Z-A mega with a different PokéAPI slug
 // (confirmed directly against PokéAPI's database, not guessed).
 const SLUG_OVERRIDES = {
+  "Basculegion": "basculegion-male",
   "Mega Absol": "absol-mega-z",
   "Mega Garchomp": "garchomp-mega-z",
   "Mega Lucario": "lucario-mega-z",
@@ -3202,7 +3203,9 @@ function fetchMonData(name) {
   return fetch(`https://pokeapi.co/api/v2/pokemon/${pokeApiSlug(name)}`)
     .then((r) => (r.ok ? r.json() : Promise.reject()))
     .then((data) => {
-      const sprite = data?.sprites?.other?.["official-artwork"]?.front_default || data?.sprites?.front_default || null;
+      const sprite = data?.sprites?.other?.["official-artwork"]?.front_default
+        || data?.sprites?.front_default
+        || (name === "Floette-Eternal" ? "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10061.png" : null);
       const fetched = extractAbilitiesAndStats(data);
       const result = {
         sprite,
@@ -4573,6 +4576,12 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     ? ["commissioner", "co_commissioner"].includes(leagueRole)
     : nameConfirmed && (state.commissioner === myName || (state.coCommissioners || []).includes(myName));
   const canBeCommissioner = !leagueId && nameConfirmed && !state.commissioner;
+  // Several live-draft effects need the active team in their dependency
+  // lists. Calculate it before those effects are declared: dependency
+  // arrays are evaluated during render even when an effect's early-return
+  // means it will not run (for example, auction effects in a snake league).
+  const myTeamIndices = state.teams.map((t, i) => i).filter((i) => state.teams[i].claimedBy === myName);
+  const myTeamIdx = myTeamIndices.includes(activeTeamIdx) ? activeTeamIdx : (myTeamIndices[0] ?? -1);
 
   function claimCommissioner() {
     commit((s) => ({ ...s, commissioner: myName, auditLog: [...(s.auditLog || []), auditEntry(myName, "Became commissioner")] }));
@@ -5954,7 +5963,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   // Best-of-3 match report: gamesA/gamesB are sets won (first to 2), plus
   // how many mons each team had left standing at the end — used as a
   // tiebreaker in standings.
-  function reportMatch(week, matchIdx, gamesA, gamesB, monsAliveA, monsAliveB, replayUrlA, replayUrlB) {
+  function reportMatch(week, matchIdx, gamesA, gamesB, monsAliveA, monsAliveB, replayUrlA, replayUrlB, mvpSide, mvpName) {
     commit((s) => ({
       ...s,
       matchResults: {
@@ -5964,7 +5973,8 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
           monsAliveA: Number(monsAliveA) || 0, monsAliveB: Number(monsAliveB) || 0,
           reportedBy: myName,
           replayUrlA: replayUrlA || null,
-              replayUrlB: replayUrlB || null,
+          replayUrlB: replayUrlB || null,
+          mvp: mvpName ? { side: mvpSide, name: mvpName } : null,
         },
       },
     }));
@@ -6094,7 +6104,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   function resetPlayoffs() {
     commit((s) => ({ ...s, playoffs: null, auditLog: [...(s.auditLog || []), auditEntry(myName, "Reset playoffs")] }));
   }
-  function reportPlayoffMatch(roundIdx, matchIdx, gamesA, gamesB, monsAliveA, monsAliveB, replayUrlA, replayUrlB) {
+  function reportPlayoffMatch(roundIdx, matchIdx, gamesA, gamesB, monsAliveA, monsAliveB, replayUrlA, replayUrlB, mvpSide, mvpName) {
     commit((s) => {
       if (!s.playoffs) return s;
       return {
@@ -6109,6 +6119,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
               reportedBy: myName,
               replayUrlA: replayUrlA || null,
               replayUrlB: replayUrlB || null,
+              mvp: mvpName ? { side: mvpSide, name: mvpName } : null,
             },
           },
         },
@@ -6131,7 +6142,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   // Losers-bracket equivalent of reportPlayoffMatch, for double elimination —
   // its own separate results map so it never collides with winners-bracket
   // results even though match keys reuse the same "round-match" format.
-  function reportLosersMatch(roundIdx, matchIdx, gamesA, gamesB, monsAliveA, monsAliveB, replayUrlA, replayUrlB) {
+  function reportLosersMatch(roundIdx, matchIdx, gamesA, gamesB, monsAliveA, monsAliveB, replayUrlA, replayUrlB, mvpSide, mvpName) {
     commit((s) => {
       if (!s.playoffs || s.playoffs.mode !== "double-elim") return s;
       return {
@@ -6146,6 +6157,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
               reportedBy: myName,
               replayUrlA: replayUrlA || null,
               replayUrlB: replayUrlB || null,
+              mvp: mvpName ? { side: mvpSide, name: mvpName } : null,
             },
           },
         },
@@ -6170,7 +6182,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   // both sides now have exactly one loss, so game 2 (the "bracket reset")
   // decides the actual champion; if the winners-bracket team wins game 1,
   // there's no game 2 at all since they were never eliminated.
-  function reportGrandFinalGame(gameNum, gamesA, gamesB, monsAliveA, monsAliveB, replayUrlA, replayUrlB) {
+  function reportGrandFinalGame(gameNum, gamesA, gamesB, monsAliveA, monsAliveB, replayUrlA, replayUrlB, mvpSide, mvpName) {
     commit((s) => {
       if (!s.playoffs || s.playoffs.mode !== "double-elim") return s;
       const key = gameNum === 2 ? "game2" : "game1";
@@ -6186,6 +6198,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
               reportedBy: myName,
               replayUrlA: replayUrlA || null,
               replayUrlB: replayUrlB || null,
+              mvp: mvpName ? { side: mvpSide, name: mvpName } : null,
             },
           },
         },
@@ -6207,7 +6220,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   // Same idea as reportPlayoffMatch, but for one specific division's own
   // bracket within division mode — each division's results live in their
   // own bracket object so they never collide with each other.
-  function reportDivisionPlayoffMatch(divisionIdx, roundIdx, matchIdx, gamesA, gamesB, monsAliveA, monsAliveB, replayUrlA, replayUrlB) {
+  function reportDivisionPlayoffMatch(divisionIdx, roundIdx, matchIdx, gamesA, gamesB, monsAliveA, monsAliveB, replayUrlA, replayUrlB, mvpSide, mvpName) {
     commit((s) => {
       if (!s.playoffs || s.playoffs.mode !== "divisions") return s;
       const resultObj = {
@@ -6215,7 +6228,8 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
         monsAliveA: Number(monsAliveA) || 0, monsAliveB: Number(monsAliveB) || 0,
         reportedBy: myName,
         replayUrlA: replayUrlA || null,
-              replayUrlB: replayUrlB || null,
+        replayUrlB: replayUrlB || null,
+        mvp: mvpName ? { side: mvpSide, name: mvpName } : null,
       };
       const divisionBrackets = s.playoffs.divisionBrackets.map((b, i) =>
         i === divisionIdx ? { ...b, results: { ...b.results, [`${roundIdx}-${matchIdx}`]: resultObj } } : b
@@ -6240,7 +6254,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   // that the division winners feed into — which may itself have more than
   // one round (semifinal, then Grand Final) once there are more than 2
   // divisions.
-  function reportChampionMatch(roundIdx, matchIdx, gamesA, gamesB, monsAliveA, monsAliveB, replayUrlA, replayUrlB) {
+  function reportChampionMatch(roundIdx, matchIdx, gamesA, gamesB, monsAliveA, monsAliveB, replayUrlA, replayUrlB, mvpSide, mvpName) {
     commit((s) => {
       if (!s.playoffs || s.playoffs.mode !== "divisions") return s;
       const resultObj = {
@@ -6248,7 +6262,8 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
         monsAliveA: Number(monsAliveA) || 0, monsAliveB: Number(monsAliveB) || 0,
         reportedBy: myName,
         replayUrlA: replayUrlA || null,
-              replayUrlB: replayUrlB || null,
+        replayUrlB: replayUrlB || null,
+        mvp: mvpName ? { side: mvpSide, name: mvpName } : null,
       };
       return {
         ...s,
@@ -6878,8 +6893,6 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       ? state.pickIndex >= state.snakeOrder.length
       : state.pool.length === 0 || state.auctionEnded;
   const allTeamsMetMin = state.rosters.length > 0 && state.rosters.every((r) => r.length >= state.settings.rosterMin);
-  const myTeamIndices = state.teams.map((t, i) => i).filter((i) => state.teams[i].claimedBy === myName);
-  const myTeamIdx = myTeamIndices.includes(activeTeamIdx) ? activeTeamIdx : (myTeamIndices[0] ?? -1);
   const canDraftNow = !isSpectator && (
     isCommissioner ||
     (state.settings.draftType === "snake" && myTeamIdx === currentTeamOnClock));
@@ -11355,7 +11368,7 @@ function ScheduleView({ state, isCommissioner, myName, myTeamIdx, setWeek, simul
             const canReport = isCommissioner || teams[a]?.claimedBy === myName || teams[b]?.claimedBy === myName;
             return (
               <MatchCard key={idx} teamA={teams[a]} teamB={teams[b]} result={matchResults[key]} canReport={canReport}
-                onReport={(gA, gB, mA, mB, rA, rB) => reportMatch(week, idx, gA, gB, mA, mB, rA, rB)}
+                onReport={(...args) => reportMatch(week, idx, ...args)}
                 onSetMVP={(side, name) => setMatchMVP(week, idx, side, name)}
                 rosterA={rosters[a]} rosterB={rosters[b]} trackDifferential={!!settings.standingsCriteria?.differential} onViewTeam={onViewTeam} />
             );
@@ -11411,6 +11424,14 @@ function MatchCard({ teamA, teamB, result, canReport, onReport, pending, rosterA
   });
   const [replayUrlA, setReplayUrlA] = useState(result?.replayUrlA || "");
   const [replayUrlB, setReplayUrlB] = useState(result?.replayUrlB || "");
+  const [mvpName, setMvpName] = useState(result?.mvp?.name || "");
+  const editingGamesA = games.filter((g) => g.winner === "A").length;
+  const editingGamesB = games.filter((g) => g.winner === "B").length;
+  const editingWinnerSide = editingGamesA > editingGamesB ? "A" : editingGamesB > editingGamesA ? "B" : null;
+  const editingWinnerRoster = editingWinnerSide === "A" ? (rosterA || []) : editingWinnerSide === "B" ? (rosterB || []) : [];
+  const selectedMvpName = editingWinnerRoster.some((mon) => mon.name === mvpName) ? mvpName : "";
+  const resultWinnerSide = result?.gamesA > result?.gamesB ? "A" : result?.gamesB > result?.gamesA ? "B" : null;
+  const resultWinnerRoster = resultWinnerSide === "A" ? (rosterA || []) : resultWinnerSide === "B" ? (rosterB || []) : [];
 
   function setGameCount(n) {
     setGames((arr) => (n > arr.length ? [...arr, { winner: "A", alive: 1 }] : arr.slice(0, n)));
@@ -11431,11 +11452,9 @@ function MatchCard({ teamA, teamB, result, canReport, onReport, pending, rosterA
   }
 
   function save() {
-    const gamesA = games.filter((g) => g.winner === "A").length;
-    const gamesB = games.filter((g) => g.winner === "B").length;
     const monsAliveA = trackDifferential ? games.filter((g) => g.winner === "A").reduce((sum, g) => sum + g.alive, 0) : 0;
     const monsAliveB = trackDifferential ? games.filter((g) => g.winner === "B").reduce((sum, g) => sum + g.alive, 0) : 0;
-    onReport(gamesA, gamesB, monsAliveA, monsAliveB, replayUrlA.trim() || null, replayUrlB.trim() || null);
+    onReport(editingGamesA, editingGamesB, monsAliveA, monsAliveB, replayUrlA.trim() || null, replayUrlB.trim() || null, editingWinnerSide, selectedMvpName);
     setEditing(false);
   }
 
@@ -11503,6 +11522,20 @@ function MatchCard({ teamA, teamB, result, canReport, onReport, pending, rosterA
           </div>
           {trackDifferential && <p className="text-xs" style={{ color: "#5B5F7E" }}>Number is how many mons the winner of that game had left (1–4) — the loser is always 0.</p>}
 
+          {onSetMVP && editingWinnerSide && editingWinnerRoster.length > 0 && (
+            <div>
+              <label className="text-xs block mb-1" style={{ color: "#FFD23F" }}>Match MVP (optional)</label>
+              <select value={selectedMvpName} onChange={(e) => setMvpName(e.target.value)}
+                className="w-full px-2 py-1.5 rounded mono-font text-xs" style={{ background: "#141729", border: "1px solid rgba(255,255,255,0.1)", color: "#EDEBFA" }}>
+                <option value="">No MVP selected</option>
+                {editingWinnerRoster.map((mon) => <option key={mon.id} value={mon.name}>{mon.name}</option>)}
+              </select>
+              <p className="text-xs mt-1" style={{ color: "#5B5F7E" }}>
+                Choose from {editingWinnerSide === "A" ? teamA?.name : teamB?.name}'s winning roster.
+              </p>
+            </div>
+          )}
+
           <div className="flex flex-col gap-2">
             <div>
               <label className="text-xs block mb-1" style={{ color: teamA?.color || "#9A9FBD" }}>{teamA?.name}'s replay link (optional)</label>
@@ -11545,7 +11578,7 @@ function MatchCard({ teamA, teamB, result, canReport, onReport, pending, rosterA
         <p className="text-xs text-center" style={{ color: "#5B5F7E" }}>Not yet reported</p>
       )}
 
-      {result && onSetMVP && (rosterA?.length || rosterB?.length) ? (
+      {result && onSetMVP && resultWinnerRoster.length ? (
         <div className="mt-3 pt-3 flex items-center justify-center flex-wrap gap-2" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
           {result.mvp ? (
             <>
@@ -11565,8 +11598,7 @@ function MatchCard({ teamA, teamB, result, canReport, onReport, pending, rosterA
                 onSetMVP(side, rest.join("||"));
               }} className="px-2 py-1 rounded mono-font text-xs" style={{ background: "#1F2338", border: "1px solid rgba(255,255,255,0.1)", color: "#EDEBFA" }}>
                 <option value="">— select —</option>
-                {(rosterA || []).map((m) => <option key={`A-${m.id}`} value={`A||${m.name}`}>{m.name} ({teamA?.name})</option>)}
-                {(rosterB || []).map((m) => <option key={`B-${m.id}`} value={`B||${m.name}`}>{m.name} ({teamB?.name})</option>)}
+                {resultWinnerRoster.map((m) => <option key={`${resultWinnerSide}-${m.id}`} value={`${resultWinnerSide}||${m.name}`}>{m.name} ({resultWinnerSide === "A" ? teamA?.name : teamB?.name})</option>)}
               </select>
             </>
           ) : null}
@@ -12045,7 +12077,7 @@ function PlayoffsView({ state, isCommissioner, myName, standings, generatePlayof
                     result={match.result} canReport={canReport} pending={match.a === null || match.b === null}
                     rosterA={match.a !== null ? rosters[match.a] : null} rosterB={match.b !== null ? rosters[match.b] : null}
                     trackDifferential={!!settings.playoffSeedCriteria?.differential} onViewTeam={onViewTeam}
-                    onReport={(gA, gB, mA, mB, rA, rB) => reportPlayoffMatch(rIdx, mIdx, gA, gB, mA, mB, rA, rB)}
+                    onReport={(...args) => reportPlayoffMatch(rIdx, mIdx, ...args)}
                     onSetMVP={(side, name) => setPlayoffMVP(rIdx, mIdx, side, name)} mvpLabel="Playoff MVP" />
                 );
               })}
@@ -12126,7 +12158,7 @@ function DoubleElimView({ playoffs, teams, rosters, settings, isCommissioner, my
           result={match.result} canReport={canReportMatch(match)} pending={match.a === null || match.b === null}
           rosterA={match.a !== null ? rosters[match.a] : null} rosterB={match.b !== null ? rosters[match.b] : null}
           trackDifferential={trackDifferential} onViewTeam={onViewTeam}
-          onReport={(gA, gB, mA, mB, rA, rB) => onReport(rIdx, mIdx, gA, gB, mA, mB, rA, rB)}
+          onReport={(...args) => onReport(rIdx, mIdx, ...args)}
           onSetMVP={onSetMVP ? (side, name) => onSetMVP(rIdx, mIdx, side, name) : null} mvpLabel="Playoff MVP" />
       ))}
     </div>
@@ -12208,7 +12240,7 @@ function DoubleElimView({ playoffs, teams, rosters, settings, isCommissioner, my
                 canReport={isCommissioner || teams[grandFinal.wbChampion]?.claimedBy === myName || teams[grandFinal.lbChampion]?.claimedBy === myName}
                 rosterA={rosters[grandFinal.wbChampion]} rosterB={rosters[grandFinal.lbChampion]}
                 trackDifferential={trackDifferential} onViewTeam={onViewTeam}
-                onReport={(gA, gB, mA, mB, rA, rB) => reportGrandFinalGame(1, gA, gB, mA, mB, rA, rB)}
+                onReport={(...args) => reportGrandFinalGame(1, ...args)}
                 onSetMVP={setGrandFinalMVP ? (side, name) => setGrandFinalMVP(1, side, name) : null} mvpLabel="Playoff MVP" />
             </div>
             {grandFinal.needsGame2 && (
@@ -12219,7 +12251,7 @@ function DoubleElimView({ playoffs, teams, rosters, settings, isCommissioner, my
                   canReport={isCommissioner || teams[grandFinal.wbChampion]?.claimedBy === myName || teams[grandFinal.lbChampion]?.claimedBy === myName}
                   rosterA={rosters[grandFinal.wbChampion]} rosterB={rosters[grandFinal.lbChampion]}
                   trackDifferential={trackDifferential} onViewTeam={onViewTeam}
-                  onReport={(gA, gB, mA, mB, rA, rB) => reportGrandFinalGame(2, gA, gB, mA, mB, rA, rB)}
+                  onReport={(...args) => reportGrandFinalGame(2, ...args)}
                   onSetMVP={setGrandFinalMVP ? (side, name) => setGrandFinalMVP(2, side, name) : null} mvpLabel="Playoff MVP" />
               </div>
             )}
@@ -12460,7 +12492,7 @@ function DivisionPlayoffsView({ playoffs, teams, rosters, settings, isCommission
                           result={match.result} canReport={canReport} pending={match.a === null || match.b === null}
                           rosterA={match.a !== null ? rosters[match.a] : null} rosterB={match.b !== null ? rosters[match.b] : null}
                           trackDifferential={!!settings.playoffSeedCriteria?.differential} onViewTeam={onViewTeam}
-                          onReport={(gA, gB, mA, mB, rA, rB) => reportDivisionPlayoffMatch(di, rIdx, mIdx, gA, gB, mA, mB, rA, rB)}
+                          onReport={(...args) => reportDivisionPlayoffMatch(di, rIdx, mIdx, ...args)}
                           onSetMVP={setDivisionMVP ? (side, name) => setDivisionMVP(di, rIdx, mIdx, side, name) : null} mvpLabel="Playoff MVP" />
                       );
                     })}
@@ -12483,7 +12515,7 @@ function DivisionPlayoffsView({ playoffs, teams, rosters, settings, isCommission
                       result={match.result} canReport={canReport} pending={match.a === null || match.b === null}
                       rosterA={match.a !== null ? rosters[match.a] : null} rosterB={match.b !== null ? rosters[match.b] : null}
                       trackDifferential={!!settings.playoffSeedCriteria?.differential} onViewTeam={onViewTeam}
-                      onReport={(gA, gB, mA, mB, rA, rB) => reportChampionMatch(rIdx, mIdx, gA, gB, mA, mB, rA, rB)}
+                      onReport={(...args) => reportChampionMatch(rIdx, mIdx, ...args)}
                       onSetMVP={setChampionMVP ? (side, name) => setChampionMVP(rIdx, mIdx, side, name) : null} mvpLabel="Playoff MVP" />
                   );
                 })}
@@ -12543,7 +12575,7 @@ function BracketTree({ rounds, roundNames, teams, rosters, isCommissioner, myNam
                           teamA={match.a !== null ? teams[match.a] : null} teamB={match.b !== null ? teams[match.b] : null}
                           rosterA={match.a !== null ? rosters?.[match.a] : null} rosterB={match.b !== null ? rosters?.[match.b] : null}
                           onSetMVP={onSetMVP ? (side, name) => onSetMVP(rIdx, mIdx, side, name) : null}
-                          onSave={(gA, gB, mA, mB, rA, rB) => reportPlayoffMatch(rIdx, mIdx, gA, gB, mA, mB, rA, rB)} />
+                          onSave={(...args) => reportPlayoffMatch(rIdx, mIdx, ...args)} />
                       )}
                     </div>
                   );
@@ -12593,6 +12625,14 @@ function BracketScoreEditor({ result, onSave, trackDifferential, teamA, teamB, r
   });
   const [replayUrlA, setReplayUrlA] = useState(result?.replayUrlA || "");
   const [replayUrlB, setReplayUrlB] = useState(result?.replayUrlB || "");
+  const [mvpName, setMvpName] = useState(result?.mvp?.name || "");
+  const editingGamesA = games.filter((g) => g.winner === "A").length;
+  const editingGamesB = games.filter((g) => g.winner === "B").length;
+  const editingWinnerSide = editingGamesA > editingGamesB ? "A" : editingGamesB > editingGamesA ? "B" : null;
+  const editingWinnerRoster = editingWinnerSide === "A" ? (rosterA || []) : editingWinnerSide === "B" ? (rosterB || []) : [];
+  const selectedMvpName = editingWinnerRoster.some((mon) => mon.name === mvpName) ? mvpName : "";
+  const resultWinnerSide = result?.gamesA > result?.gamesB ? "A" : result?.gamesB > result?.gamesA ? "B" : null;
+  const resultWinnerRoster = resultWinnerSide === "A" ? (rosterA || []) : resultWinnerSide === "B" ? (rosterB || []) : [];
 
   function setGameCount(n) {
     setGames((arr) => (n > arr.length ? [...arr, { winner: "A", alive: 1 }] : arr.slice(0, n)));
@@ -12611,7 +12651,7 @@ function BracketScoreEditor({ result, onSave, trackDifferential, teamA, teamB, r
           className="text-[10px] mono-font text-left" style={{ color: "#5B5F7E" }}>
           {result ? `${result.gamesA}-${result.gamesB} · edit` : "report score"}
         </button>
-        {result && onSetMVP && (rosterA?.length || rosterB?.length) ? (
+        {result && onSetMVP && resultWinnerRoster.length ? (
           result.mvp ? (
             <div className="flex items-center gap-1 flex-wrap">
               <span className="text-[10px] mono-font" style={{ color: "#FFD23F" }}>⭐ {result.mvp.name}</span>
@@ -12624,8 +12664,7 @@ function BracketScoreEditor({ result, onSave, trackDifferential, teamA, teamB, r
               onSetMVP(side, rest.join("||"));
             }} className="px-1.5 py-0.5 rounded mono-font text-[9px]" style={{ background: "#1F2338", border: "1px solid rgba(255,255,255,0.1)", color: "#9A9FBD" }}>
               <option value="">⭐ MVP…</option>
-              {(rosterA || []).map((m) => <option key={`A-${m.id}`} value={`A||${m.name}`}>{m.name} ({teamA?.name})</option>)}
-              {(rosterB || []).map((m) => <option key={`B-${m.id}`} value={`B||${m.name}`}>{m.name} ({teamB?.name})</option>)}
+              {resultWinnerRoster.map((m) => <option key={`${resultWinnerSide}-${m.id}`} value={`${resultWinnerSide}||${m.name}`}>{m.name} ({resultWinnerSide === "A" ? teamA?.name : teamB?.name})</option>)}
             </select>
           )
         ) : null}
@@ -12664,6 +12703,14 @@ function BracketScoreEditor({ result, onSave, trackDifferential, teamA, teamB, r
           </div>
         ))}
       </div>
+      {onSetMVP && editingWinnerSide && editingWinnerRoster.length > 0 && (
+        <select value={selectedMvpName} onChange={(e) => setMvpName(e.target.value)}
+          aria-label="Match MVP"
+          className="w-full px-1.5 py-1 rounded mono-font text-[10px]" style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.1)", color: "#EDEBFA" }}>
+          <option value="">Match MVP (optional)</option>
+          {editingWinnerRoster.map((mon) => <option key={mon.id} value={mon.name}>{mon.name}</option>)}
+        </select>
+      )}
       <input type="text" value={replayUrlA} onChange={(e) => setReplayUrlA(e.target.value)}
         placeholder={`${teamA?.name || "Team A"}'s replay (optional)`}
         className="w-full px-1.5 py-1 rounded mono-font text-[10px]" style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.1)", color: "#EDEBFA" }} />
@@ -12672,11 +12719,9 @@ function BracketScoreEditor({ result, onSave, trackDifferential, teamA, teamB, r
         className="w-full px-1.5 py-1 rounded mono-font text-[10px]" style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.1)", color: "#EDEBFA" }} />
       <div className="flex gap-2">
         <button onClick={() => {
-          const gamesA = games.filter((g) => g.winner === "A").length;
-          const gamesB = games.filter((g) => g.winner === "B").length;
           const monsAliveA = trackDifferential ? games.filter((g) => g.winner === "A").reduce((s, g) => s + g.alive, 0) : 0;
           const monsAliveB = trackDifferential ? games.filter((g) => g.winner === "B").reduce((s, g) => s + g.alive, 0) : 0;
-          onSave(gamesA, gamesB, monsAliveA, monsAliveB, replayUrlA.trim() || null, replayUrlB.trim() || null);
+          onSave(editingGamesA, editingGamesB, monsAliveA, monsAliveB, replayUrlA.trim() || null, replayUrlB.trim() || null, editingWinnerSide, selectedMvpName);
           setEditing(false);
         }} className="px-2 py-1 rounded text-xs font-semibold" style={{ background: "#FFD23F", color: "#10121C" }}>Save</button>
         <button onClick={() => setEditing(false)} className="px-2 py-1 rounded text-xs" style={{ background: "#171A2C", color: "#9A9FBD" }}>Cancel</button>
