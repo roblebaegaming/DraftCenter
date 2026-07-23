@@ -6851,7 +6851,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
         )}
         {tab === "setup" && (
           <SetupView
-            state={state} isCommissioner={isCommissioner} canBeCommissioner={canBeCommissioner}
+            state={state} leagueId={leagueId} isCommissioner={isCommissioner} canBeCommissioner={canBeCommissioner}
             claimCommissioner={claimCommissioner} unclaimCommissioner={unclaimCommissioner} claimTeam={claimTeam} renameTeam={renameTeam} myName={myName}
             updateSettings={updateSettings} resizeTeams={resizeTeams} rerollAllTeamIdentities={rerollAllTeamIdentities} costFor={costFor}
             addDivision={addDivision} renameDivision={renameDivision} removeDivision={removeDivision} setTeamDivision={setTeamDivision}
@@ -8081,7 +8081,7 @@ function ManualRosterEntry({ teams, settings, finalizeManualDraft }) {
   );
 }
 
-function SetupView({ state, isCommissioner, canBeCommissioner, claimCommissioner, unclaimCommissioner, claimTeam, renameTeam, myName, updateSettings, resizeTeams, rerollAllTeamIdentities, costFor, toggleBanMon, toggleAllowExtraMon, resetDraft, addCustomMon, removeCustomMon, setSpriteOverride, setTeamLogo, onStart, addDivision, renameDivision, removeDivision, setTeamDivision, finalizeManualDraft, startNewSeason, updateHomepage, addExpansionTeam, removeSpecificTeam, exportLeagueBackup, importLeagueBackup, addCoCommissioner, removeCoCommissioner, onOpenLeagueTools }) {
+function SetupView({ state, leagueId = null, isCommissioner, canBeCommissioner, claimCommissioner, unclaimCommissioner, claimTeam, renameTeam, myName, updateSettings, resizeTeams, rerollAllTeamIdentities, costFor, toggleBanMon, toggleAllowExtraMon, resetDraft, addCustomMon, removeCustomMon, setSpriteOverride, setTeamLogo, onStart, addDivision, renameDivision, removeDivision, setTeamDivision, finalizeManualDraft, startNewSeason, updateHomepage, addExpansionTeam, removeSpecificTeam, exportLeagueBackup, importLeagueBackup, addCoCommissioner, removeCoCommissioner, onOpenLeagueTools }) {
   // A league may have been created before newer Setup options existed. Keep
   // this screen usable even if one of those older saved values is missing or
   // malformed; the next normal save will preserve the corrected shape.
