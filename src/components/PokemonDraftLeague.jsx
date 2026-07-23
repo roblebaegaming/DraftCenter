@@ -8578,6 +8578,7 @@ function SetupView({ state, leagueId = null, isCommissioner, canBeCommissioner, 
           </fieldset>
 
           {!locked && <p className="text-sm mt-4" style={{ color: "#9A9FBD" }}>{settings.draftScheduledAt ? "Setup is ready. Keep this league open for managers until draft time, then start the shared draft here." : "Setup is ready. Start the draft whenever your managers are present, or use manual roster entry if you drafted elsewhere."}</p>}
+          {!locked && settings.draftType === "snake" && <p className="text-xs mt-2" style={{ color: "#4FD1C5" }}>{settings.manualDraftOrder ? "Using the manual first-round order set above." : "Draft order: random by default. Turn on “Manually set draft order” above only if you want to choose it yourself."}</p>}
           <button onClick={onStart} disabled={locked} className="w-full mt-4 py-3 rounded font-semibold display-font text-xl glow disabled:opacity-40"
             style={{ background: "#FFD23F", color: "#10121C" }}>
             {locked ? "DRAFT IN PROGRESS" : settings.draftScheduledAt ? "START SCHEDULED DRAFT" : "START DRAFT NOW"}
