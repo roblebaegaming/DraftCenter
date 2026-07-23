@@ -1983,7 +1983,7 @@ const monDataCache = {};
 // needed for this part anymore. Keyed by the exact display name used in the
 // pokedex pools above. Sprite images still come from a live PokeAPI fetch
 // (or a commissioner sprite override), since image URLs aren't baked in here.
-const POKEMON_DATA = {
+export const POKEMON_DATA = {
   "Venusaur": {stats:{hp:80,atk:82,def:83,spa:100,spd:100,spe:80},abilities:[{name:"Overgrow",hidden:false},{name:"Chlorophyll",hidden:true}]},
   "Charizard": {stats:{hp:78,atk:84,def:78,spa:109,spd:85,spe:100},abilities:[{name:"Blaze",hidden:false},{name:"Solar Power",hidden:true}]},
   "Blastoise": {stats:{hp:79,atk:83,def:100,spa:85,spd:105,spe:78},abilities:[{name:"Torrent",hidden:false},{name:"Rain Dish",hidden:true}]},

@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { POKEMON_DIRECTORY, regulationPokemonStatus } from "./PokemonDraftLeague";
+import { POKEMON_DATA, POKEMON_DIRECTORY, regulationPokemonStatus } from "./PokemonDraftLeague";
 import { createClient } from "../lib/supabase/client";
 
 const TYPES = ["bug","dark","dragon","electric","fairy","fighting","fire","flying","ghost","grass","ground","ice","normal","poison","psychic","rock","steel","water"];
@@ -56,6 +56,23 @@ function pokemonReference(name) {
   const mega = key.match(/^mega-(.+?)(?:-(x|y))?$/);
   if (mega) return { apiName: `${mega[1]}-mega${mega[2] ? `-${mega[2]}` : ""}`, speciesName: mega[1], dexName: mega[1], fallbackApiName: mega[1] };
   return { apiName: key, speciesName: key, dexName: key, fallbackApiName: key };
+}
+
+function builtInStatLookup() {
+  return Object.fromEntries(POKEMON_DIRECTORY.flatMap((pokemon) => {
+    const stats = POKEMON_DATA[pokemon.name]?.stats;
+    if (!stats) return [];
+    const reference = pokemonReference(pokemon.name);
+    return [[reference.apiName, {
+      hp: stats.hp,
+      attack: stats.atk,
+      defense: stats.def,
+      "special-attack": stats.spa,
+      "special-defense": stats.spd,
+      speed: stats.spe,
+      bst: stats.hp + stats.atk + stats.def + stats.spa + stats.spd + stats.spe,
+    }]];
+  }));
 }
 
 async function fetchPokemonForm(reference) {
@@ -131,11 +148,12 @@ export default function PokemonDirectory() {
 function PokemonDirectoryContent() {
   const searchParams = useSearchParams();
   const regulationId = searchParams.get("regulation") || "";
-  const [query, setQuery] = useState(""); const [type, setType] = useState(""); const [generation, setGeneration] = useState(""); const [resultLimit, setResultLimit] = useState(100); const [sortBy, setSortBy] = useState("name"); const [sortDirection, setSortDirection] = useState("asc"); const [ability, setAbility] = useState(""); const [abilityMatches, setAbilityMatches] = useState(null); const [dexNumbers, setDexNumbers] = useState({}); const [statLookup, setStatLookup] = useState({}); const [selected, setSelected] = useState(null); const [details, setDetails] = useState(null); const [species, setSpecies] = useState(null); const [loading, setLoading] = useState(false); const [message, setMessage] = useState("");
+  const [query, setQuery] = useState(""); const [type, setType] = useState(""); const [generation, setGeneration] = useState(""); const [resultLimit, setResultLimit] = useState(100); const [sortBy, setSortBy] = useState("name"); const [sortDirection, setSortDirection] = useState("asc"); const [ability, setAbility] = useState(""); const [abilityMatches, setAbilityMatches] = useState(null); const [dexNumbers, setDexNumbers] = useState({}); const [dexSearchName, setDexSearchName] = useState(""); const [statLookup, setStatLookup] = useState(builtInStatLookup); const [selected, setSelected] = useState(null); const [details, setDetails] = useState(null); const [species, setSpecies] = useState(null); const [loading, setLoading] = useState(false); const [message, setMessage] = useState("");
   const [importedMoves, setImportedMoves] = useState([]); const [moveSource, setMoveSource] = useState(""); const [moveMethod, setMoveMethod] = useState("all"); const [moveQuery, setMoveQuery] = useState(""); const [selectedMove, setSelectedMove] = useState(null); const [moveDetails, setMoveDetails] = useState({}); const [loadingMove, setLoadingMove] = useState(false);
 
   useEffect(() => { fetch("https://pokeapi.co/api/v2/pokemon-species?limit=2000").then((response) => response.ok ? response.json() : null).then((data) => { const lookup = {}; (data?.results || []).forEach((item) => { const id = Number(item.url.match(/pokemon-species\/(\d+)\//)?.[1]); if (id) lookup[item.name] = id; }); setDexNumbers(lookup); }).catch(() => {}); }, []);
-  const filteredPokemon = useMemo(() => POKEMON_DIRECTORY.filter((pokemon) => { const term = query.trim().toLowerCase().replace(/^#/, ""); const reference = pokemonReference(pokemon.name); const dex = dexNumbers[reference.dexName] || dexNumbers[reference.apiName]; const matchName = !term || pokemon.name.toLowerCase().includes(term) || (/^\d+$/.test(term) && String(dex || "").includes(term)); const matchType = !type || pokemon.t1 === type || pokemon.t2 === type; const matchGen = !generation || String(pokemon.gen) === generation; const matchAbility = !abilityMatches || abilityMatches.has(slug(pokemon.name)); return matchName && matchType && matchGen && matchAbility; }), [query, type, generation, abilityMatches, dexNumbers]);
+  useEffect(() => { const term = query.trim().replace(/^#/, ""); if (!/^\d+$/.test(term)) { setDexSearchName(""); return undefined; } let cancelled = false; const timer = window.setTimeout(() => { fetch(`https://pokeapi.co/api/v2/pokemon-species/${Number(term)}`).then((response) => response.ok ? response.json() : null).then((data) => { if (!cancelled) setDexSearchName(data?.name || ""); }).catch(() => { if (!cancelled) setDexSearchName(""); }); }, 150); return () => { cancelled = true; window.clearTimeout(timer); }; }, [query]);
+  const filteredPokemon = useMemo(() => POKEMON_DIRECTORY.filter((pokemon) => { const term = query.trim().toLowerCase().replace(/^#/, ""); const reference = pokemonReference(pokemon.name); const dex = dexNumbers[reference.dexName] || dexNumbers[reference.apiName]; const numericMatch = /^\d+$/.test(term) && (String(dex || "").includes(term) || reference.dexName === dexSearchName); const matchName = !term || pokemon.name.toLowerCase().includes(term) || numericMatch; const matchType = !type || pokemon.t1 === type || pokemon.t2 === type; const matchGen = !generation || String(pokemon.gen) === generation; const matchAbility = !abilityMatches || abilityMatches.has(slug(pokemon.name)); return matchName && matchType && matchGen && matchAbility; }), [query, type, generation, abilityMatches, dexNumbers, dexSearchName]);
   useEffect(() => { let cancelled = false; const targets = filteredPokemon.filter((pokemon) => statLookup[pokemonReference(pokemon.name).apiName] === undefined).slice(0, 200); if (!targets.length) return undefined; async function loadOne(pokemon) { const reference = pokemonReference(pokemon.name); const key = reference.apiName; for (let attempt = 0; attempt < 3; attempt += 1) { try { const response = await fetchPokemonForm(reference); if (response.ok) { const data = await response.json(); const stats = Object.fromEntries((data.stats || []).map((entry) => [entry.stat.name, entry.base_stat])); return [key, { hp: stats.hp, attack: stats.attack, defense: stats.defense, "special-attack": stats["special-attack"], "special-defense": stats["special-defense"], speed: stats.speed, bst: Object.values(stats).reduce((sum, value) => sum + value, 0) }]; } } catch {} if (attempt < 2) await new Promise((resolve) => setTimeout(resolve, 450 * (attempt + 1))); } return [key, null]; }
     async function loadStats() { const additions = {}; for (let index = 0; index < targets.length; index += 4) { const rows = await Promise.all(targets.slice(index, index + 4).map(loadOne)); rows.forEach(([key, value]) => { if (value) additions[key] = value; }); if (index + 4 < targets.length) await new Promise((resolve) => setTimeout(resolve, 120)); }
       if (!cancelled && Object.keys(additions).length) setStatLookup((current) => ({ ...current, ...additions })); }
