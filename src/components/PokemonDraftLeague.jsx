@@ -6935,7 +6935,87 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   // no other copy anywhere. Also doubles as a way to hand another
   // commissioner your exact settings today, without needing the shared
   // backend a live "copy settings between leagues" feature would need.
-  function exportLeagueBackup() {
+  async function exportLeagueBackup() {
+    const XLSX = await import("xlsx");
+    const workbook = XLSX.utils.book_new();
+    const addSheet = (name, rows, widths = []) => {
+      const sheet = XLSX.utils.aoa_to_sheet(rows.length ? rows : [["No information saved yet"]]);
+      if (widths.length) sheet["!cols"] = widths.map((wch) => ({ wch }));
+      if (rows.length > 1) sheet["!autofilter"] = { ref: sheet["!ref"] };
+      XLSX.utils.book_append_sheet(workbook, sheet, name.slice(0, 31));
+    };
+    const yesNo = (value) => value ? "Yes" : "No";
+    const settings = state.settings || {};
+    const standingsRows = computeStandings(state);
+    const regulation = regulationFor(settings);
+    const overview = [
+      ["DraftCenter League Backup", league?.name || "League"],
+      ["Exported", new Date()],
+      ["Season", state.seasonNumber],
+      ["Season label", league?.season_label || ""],
+      ["Commissioner", state.commissioner || ""],
+      ["Co-commissioners", (state.coCommissioners || []).join(", ")],
+      ["Draft status", state.locked ? "Started / completed" : "Pre-draft"],
+      ["Draft date", settings.draftScheduledAt ? new Date(settings.draftScheduledAt) : ""],
+      ["Regulation", regulation?.name || settings.regulationId || ""],
+      ["Draft type", settings.draftType || ""],
+      ["League size", state.teams.length],
+      ["Roster size", `${settings.rosterMin || ""}-${settings.rosterMax || settings.rosterSize || ""}`],
+      ["Draft budget", settings.budget ?? ""],
+      ["Megas allowed", yesNo(settings.allowMegas)],
+      ["Keepers enabled", yesNo(settings.keepersEnabled)],
+      ["Public league", yesNo(settings.publicLeague)],
+    ];
+    addSheet("League Overview", overview, [24, 52]);
+    addSheet("Rules and Payments", [
+      ["Section", "Commissioner-saved information"],
+      ["League Rules", state.homepage?.rules || "No league rules posted"],
+      ["Payments & Payouts", state.homepage?.payments || "No payment or payout details posted"],
+    ], [24, 100]);
+    addSheet("Teams", [
+      ["Team #", "Team", "Manager", "Color", "Logo", "Description"],
+      ...state.teams.map((team, index) => [index + 1, team.name, team.claimedBy || "Unclaimed", team.color || "", team.logoUrl || "", team.description || ""]),
+    ], [10, 28, 24, 14, 48, 60]);
+    addSheet("Rosters", [
+      ["Team", "Manager", "Pokemon", "Cost", "Draft pick", "Acquired via", "Primary type", "Secondary type", "BST"],
+      ...state.rosters.flatMap((roster, teamIndex) => (roster || []).map((mon) => [
+        state.teams[teamIndex]?.name || `Team ${teamIndex + 1}`, state.teams[teamIndex]?.claimedBy || "", mon.name,
+        mon.cost ?? "", mon.draftPick ?? "", mon.acquiredVia || "Draft", mon.t1 || "", mon.t2 || "", mon.bst ?? "",
+      ])),
+    ], [28, 24, 28, 10, 12, 16, 14, 14, 10]);
+    addSheet("Standings", [
+      ["Rank", "Team", "Manager", "Wins", "Losses", "Game wins", "Game losses", "Differential"],
+      ...standingsRows.map((row, index) => [index + 1, row.name, state.teams[row.id]?.claimedBy || "", row.w, row.l, row.gameW, row.gameL, row.differential]),
+    ], [10, 28, 24, 10, 10, 12, 12, 14]);
+    addSheet("Schedule and Results", [
+      ["Week", "Match", "Team A", "Team B", "Score", "Differential A", "Differential B", "MVP", "Replay A", "Replay B"],
+      ...state.schedule.flatMap((week, weekIndex) => week.map(([a, b], matchIndex) => {
+        const result = state.matchResults?.[`${weekIndex}-${matchIndex}`];
+        return [weekIndex + 1, matchIndex + 1, state.teams[a]?.name || "", state.teams[b]?.name || "",
+          result ? `${result.gamesA}-${result.gamesB}` : "Not reported", result?.monsAliveA ?? "", result?.monsAliveB ?? "",
+          result?.mvpName || "", result?.replayUrlA || "", result?.replayUrlB || ""];
+      })),
+    ], [10, 10, 28, 28, 14, 16, 16, 24, 48, 48]);
+    addSheet("Transactions", [
+      ["Type", "Date", "Status", "Team / From", "To", "Added", "Dropped", "Details"],
+      ...(state.transactionLog || []).map((entry) => ["Free agent", entry.timestamp ? new Date(entry.timestamp) : "", entry.reversed ? "Reversed" : "Completed", state.teams[entry.teamIdx]?.name || "", "", entry.addName || "", entry.dropName || "", entry.note || ""]),
+      ...(state.trades || []).map((trade) => ["Trade", trade.createdAt ? new Date(trade.createdAt) : "", trade.status || "", state.teams[trade.fromTeam]?.name || "", state.teams[trade.toTeam]?.name || "", "", "", `${(trade.fromMons || []).join(", ")} for ${(trade.toMons || []).join(", ")}`]),
+    ], [14, 20, 14, 28, 28, 28, 28, 60]);
+    const playoffRows = [["Path", "Score", "MVP", "Replay A", "Replay B"]];
+    const walkPlayoffs = (value, path = "Playoffs") => {
+      if (!value || typeof value !== "object") return;
+      if (Number.isFinite(value.gamesA) && Number.isFinite(value.gamesB)) playoffRows.push([path, `${value.gamesA}-${value.gamesB}`, value.mvpName || "", value.replayUrlA || "", value.replayUrlB || ""]);
+      Object.entries(value).forEach(([key, child]) => { if (child && typeof child === "object") walkPlayoffs(child, `${path} / ${key}`); });
+    };
+    walkPlayoffs(state.playoffs);
+    addSheet("Playoffs", playoffRows, [56, 12, 24, 48, 48]);
+    addSheet("Season History", [
+      ["Season", "Ended", "Champion", "Draft type", "Playoff MVP", "Draft Day Hero"],
+      ...(state.seasonHistory || []).map((season) => [season.seasonNumber, season.endedAt ? new Date(season.endedAt) : "", season.champion?.teamName || "", season.draftType || "", season.playoffMVP || "", (season.draftDayHero || []).join(", ")]),
+    ], [10, 20, 30, 16, 24, 36]);
+    XLSX.writeFile(workbook, `${String(league?.name || "league").replace(/[^a-z0-9]+/gi, "-").replace(/(^-|-$)/g, "").toLowerCase()}-backup-${new Date().toISOString().slice(0, 10)}.xlsx`);
+  }
+  function exportRecoveryBackup() {
     const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -7140,6 +7220,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
             onGetStarted={() => state.locked ? (setTab("league"), setLeagueSubTab("draft")) : setTab("setup")}
             onGoToLeague={(sub) => { setTab("league"); setLeagueSubTab(sub); }}
             costFor={costFor}
+            updateHomepage={updateHomepage}
           />
         )}
         {tab === "setup" && (
@@ -7152,7 +7233,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
             setSpriteOverride={setSpriteOverride} setTeamLogo={setTeamLogo}
             onStart={startDraft} finalizeManualDraft={finalizeManualDraft} startNewSeason={startNewSeason}
             updateHomepage={updateHomepage} addExpansionTeam={addExpansionTeam} removeSpecificTeam={removeSpecificTeam}
-            exportLeagueBackup={exportLeagueBackup} importLeagueBackup={importLeagueBackup}
+            exportLeagueBackup={exportLeagueBackup} exportRecoveryBackup={exportRecoveryBackup} importLeagueBackup={importLeagueBackup}
             addCoCommissioner={addCoCommissioner} removeCoCommissioner={removeCoCommissioner}
             onOpenLeagueTools={onOpenLeagueTools} copyLeagueInvite={copyLeagueInvite}
           />
@@ -7813,11 +7894,11 @@ function MyTeamView({ state, myTeamIdx, isCommissioner, myName, myTeamIndices, a
   );
 }
 
-function HomeView({ state, isCommissioner, myTeamIdx, standings, onGetStarted, onGoToLeague, costFor }) {
+function HomeView({ state, isCommissioner, myTeamIdx, standings, onGetStarted, onGoToLeague, costFor, updateHomepage }) {
   const { coCommissioners: coCommissionersRaw, schedule, matchResults, trades = [], transactionLog = [], seasonNumber, commissioner, locked, teams } = state;
   const coCommissioners = coCommissionersRaw || [];
 
-  if (!locked) return <PreDraftScout state={state} isCommissioner={isCommissioner} costFor={costFor} />;
+  if (!locked) return <PreDraftScout state={state} isCommissioner={isCommissioner} costFor={costFor} updateHomepage={updateHomepage} />;
   if (false) {
     return (
       <div className="flex flex-col gap-6">
@@ -7857,6 +7938,7 @@ function HomeView({ state, isCommissioner, myTeamIdx, standings, onGetStarted, o
   const faEvents = transactionLog.map((t) => ({ kind: "fa", ts: t.timestamp, teamName: teams[t.teamIdx]?.name, addName: t.addName, addCost: t.addCost }));
   const tradeEvents = trades.filter((t) => t.status !== "pending").map((t) => ({ kind: "trade", ts: t.createdAt, status: t.status, fromName: teams[t.fromTeam]?.name, toName: teams[t.toTeam]?.name }));
   const feed = [...faEvents, ...tradeEvents].sort((a, b) => (b.ts || 0) - (a.ts || 0)).slice(0, 4);
+  const recentBoardPosts = [...(state.messages?.board || [])].sort((a, b) => (b.ts || 0) - (a.ts || 0)).slice(0, 3);
 
   return (
     <div className="flex flex-col gap-6">
@@ -7867,10 +7949,12 @@ function HomeView({ state, isCommissioner, myTeamIdx, standings, onGetStarted, o
             {commissioner ? <>Commissioner: <span style={{ color: "#EDEBFA" }}>{commissioner}</span></> : "No commissioner claimed"}
           </p>
         </div>
-        <button onClick={() => onGoToLeague("board")} className="px-4 py-2 rounded font-semibold text-sm" style={{ background: "#FFD23F", color: "#10121C" }}>
+        <button onClick={() => onGoToLeague("activity")} className="px-4 py-2 rounded font-semibold text-sm" style={{ background: "#FFD23F", color: "#10121C" }}>
           LEAGUE BOARD →
         </button>
       </div>
+
+      <LeagueInfoCard state={state} isCommissioner={isCommissioner} updateHomepage={updateHomepage} />
 
       <div className="grid md:grid-cols-2 gap-4">
         <div style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }} className="rounded-lg p-6">
@@ -7895,7 +7979,7 @@ function HomeView({ state, isCommissioner, myTeamIdx, standings, onGetStarted, o
         </div>
 
         <div style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }} className="rounded-lg p-6">
-          <h2 className="display-font text-xl mb-3" style={{ color: "#4FD1C5" }}>RECENT ACTIVITY</h2>
+          <h2 className="display-font text-xl mb-3" style={{ color: "#4FD1C5" }}>TRANSACTIONS</h2>
           {feed.length === 0 ? (
             <p className="text-sm" style={{ color: "#5B5F7E" }}>Nothing yet — free agent moves and completed trades will show up here.</p>
           ) : (
@@ -7909,8 +7993,13 @@ function HomeView({ state, isCommissioner, myTeamIdx, standings, onGetStarted, o
               ))}
             </div>
           )}
+          <button onClick={() => onGoToLeague("trades")} className="text-xs px-3 py-1.5 rounded mt-4" style={{ background: "#1F2338", color: "#4FD1C5" }}>View all transactions →</button>
         </div>
       </div>
+      <section style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }} className="rounded-lg p-6">
+        <div className="flex items-center justify-between gap-3 mb-3"><h2 className="display-font text-xl" style={{ color: "#4FD1C5" }}>MESSAGE BOARD</h2><button onClick={() => onGoToLeague("activity")} className="text-xs px-3 py-1.5 rounded" style={{ background: "#FFD23F", color: "#10121C" }}>Open league activity →</button></div>
+        {recentBoardPosts.length ? <div className="flex flex-col gap-2">{recentBoardPosts.map((post) => <article key={post.id} className="rounded p-3" style={{ background: "#1B1F33" }}><strong className="text-sm" style={{ color: "#EDEBFA" }}>{post.author}</strong><p className="text-sm mt-1 whitespace-pre-wrap" style={{ color: "#9A9FBD" }}>{post.text}</p></article>)}</div> : <p className="text-sm" style={{ color: "#5B5F7E" }}>No league-board posts yet. Open League Activity to start the conversation.</p>}
+      </section>
       {(state.seasonHistory || []).length > 0 && (
         <section style={{ background: "#171A2C", border: "1px solid #FFD23F44" }} className="rounded-lg p-6">
           <h2 className="display-font text-2xl mb-4" style={{ color: "#FFD23F" }}>LEAGUE CHAMPIONS</h2>
@@ -8390,7 +8479,7 @@ function ManualRosterEntry({ teams, settings, finalizeManualDraft }) {
   );
 }
 
-function SetupView({ state, leagueId = null, isCommissioner, canBeCommissioner, claimCommissioner, unclaimCommissioner, claimTeam, renameTeam, myName, updateSettings, resizeTeams, rerollAllTeamIdentities, costFor, toggleBanMon, toggleAllowExtraMon, resetDraft, addCustomMon, removeCustomMon, setSpriteOverride, setTeamLogo, onStart, addDivision, renameDivision, removeDivision, setTeamDivision, finalizeManualDraft, startNewSeason, updateHomepage, addExpansionTeam, removeSpecificTeam, exportLeagueBackup, importLeagueBackup, addCoCommissioner, removeCoCommissioner, onOpenLeagueTools, copyLeagueInvite }) {
+function SetupView({ state, leagueId = null, isCommissioner, canBeCommissioner, claimCommissioner, unclaimCommissioner, claimTeam, renameTeam, myName, updateSettings, resizeTeams, rerollAllTeamIdentities, costFor, toggleBanMon, toggleAllowExtraMon, resetDraft, addCustomMon, removeCustomMon, setSpriteOverride, setTeamLogo, onStart, addDivision, renameDivision, removeDivision, setTeamDivision, finalizeManualDraft, startNewSeason, updateHomepage, addExpansionTeam, removeSpecificTeam, exportLeagueBackup, exportRecoveryBackup, importLeagueBackup, addCoCommissioner, removeCoCommissioner, onOpenLeagueTools, copyLeagueInvite }) {
   // A league may have been created before newer Setup options existed. Keep
   // this screen usable even if one of those older saved values is missing or
   // malformed; the next normal save will preserve the corrected shape.
@@ -8534,7 +8623,7 @@ function SetupView({ state, leagueId = null, isCommissioner, canBeCommissioner, 
         <CoCommissionerCard coCommissioners={coCommissioners} commissioner={commissioner} addCoCommissioner={addCoCommissioner} removeCoCommissioner={removeCoCommissioner} />
       )}
 
-      <LeagueInfoCard state={state} isCommissioner={isCommissioner} updateHomepage={updateHomepage} />
+      {!locked && <LeagueInfoCard state={state} isCommissioner={isCommissioner} updateHomepage={updateHomepage} />}
 
       <div className="mt-6">
         <FormatCard state={state} isCommissioner={isCommissioner} updateSettings={updateSettings} locked={locked} />
@@ -9120,7 +9209,7 @@ function SetupView({ state, leagueId = null, isCommissioner, canBeCommissioner, 
       )}
 
       {isCommissioner && (
-        <BackupRestoreCard exportLeagueBackup={exportLeagueBackup} importLeagueBackup={importLeagueBackup} />
+        <BackupRestoreCard exportLeagueBackup={exportLeagueBackup} exportRecoveryBackup={exportRecoveryBackup} importLeagueBackup={importLeagueBackup} />
       )}
 
       <DangerZoneCard resetDraft={resetDraft} locked={locked} />
@@ -10095,7 +10184,7 @@ function ADPView({ state }) {
 // the league. Also doubles today as a way to hand another commissioner
 // your exact settings, without needing the shared backend a live
 // "copy settings between leagues" feature would require.
-function BackupRestoreCard({ exportLeagueBackup, importLeagueBackup }) {
+function BackupRestoreCard({ exportLeagueBackup, exportRecoveryBackup, importLeagueBackup }) {
   const [confirming, setConfirming] = useState(false);
   const [pendingFile, setPendingFile] = useState(null);
   const [error, setError] = useState("");
@@ -10125,12 +10214,16 @@ function BackupRestoreCard({ exportLeagueBackup, importLeagueBackup }) {
   return (
     <div style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }} className="rounded-lg p-6 mt-6">
       <h2 className="display-font text-2xl mb-2" style={{ color: "#FFD23F" }}>BACKUP &amp; RESTORE</h2>
-      <p className="text-sm mb-4" style={{ color: "#9A9FBD" }}>
+      <p className="text-sm mb-4" style={{ color: "#9A9FBD" }}>Download a readable Excel workbook containing the league overview, rules, teams, rosters, standings, schedule, results, transactions, playoffs, and season history. The separate recovery file is only for restoring the website's exact saved state.</p>
+      <p className="hidden">
         Download a full backup of this league — every team, roster, result, and setting — as a plain .json file you can keep somewhere safe. Restoring replaces everything currently in the league with whatever's in the file.
       </p>
       <div className="flex items-center gap-3 flex-wrap">
         <button onClick={exportLeagueBackup} className="px-4 py-2 rounded font-semibold text-sm" style={{ background: "#FFD23F", color: "#10121C" }}>
-          Download League Backup
+          Download League Spreadsheet
+        </button>
+        <button onClick={exportRecoveryBackup} className="px-4 py-2 rounded font-semibold text-sm" style={{ background: "#1F2338", color: "#9A9FBD", border: "1px solid rgba(255,255,255,0.1)" }}>
+          Download Recovery File
         </button>
         <label className="px-4 py-2 rounded font-semibold text-sm cursor-pointer" style={{ background: "#1F2338", color: "#9A9FBD", border: "1px solid rgba(255,255,255,0.1)" }}>
           Restore from Backup…
@@ -10325,7 +10418,7 @@ function DraftHeroVoteCard({ teams, votes, myName, castDraftHeroVote }) {
     </div>
   );
 }
-function PreDraftScout({ state, isCommissioner, costFor }) {
+function PreDraftScout({ state, isCommissioner, costFor, updateHomepage }) {
   const [search, setSearch] = useState("");
   const [type, setType] = useState("");
   const settings = state.settings;
@@ -10335,6 +10428,7 @@ function PreDraftScout({ state, isCommissioner, costFor }) {
     .filter((mon) => !type || mon.t1 === type || mon.t2 === type);
   const claimed = state.teams.filter((team) => team.claimedBy).length;
   return <div className="space-y-6">
+    {!isCommissioner && <LeagueInfoCard state={state} isCommissioner={false} updateHomepage={updateHomepage} />}
     <section className="rounded-lg p-5" style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }}>
       <span className="eyebrow">PRE-DRAFT</span><h2 className="display-font text-3xl" style={{ color: "#FFD23F" }}>Scout the draft board</h2>
       <p className="text-sm mt-1" style={{ color: "#9A9FBD" }}>These are the league's saved draft settings. Every manager sees the same regulation, eligible pool, prices, and official date.</p>
