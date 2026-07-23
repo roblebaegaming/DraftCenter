@@ -6766,7 +6766,8 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       <div style={{ borderBottom: "1px solid rgba(255,255,255,0.08)", background: "#141729" }} className="sticky top-0 z-10">
         {isSpectator && <div className="px-6 py-2 text-center text-xs font-semibold" style={{ background: "#315887", color: "#e9f2ff" }}>SPECTATOR MODE — You can explore this league, but cannot claim a team, make picks, or change league data.</div>}
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between flex-wrap gap-3">
-          <div className="flex items-baseline gap-3">
+          <div className="flex items-center gap-3">
+            <img src="/draftcenter-logo.png" alt="DraftCenter" style={{ width: 44, height: 44, objectFit: "cover", borderRadius: 10 }} />
             <span className="display-font text-3xl font-semibold tracking-wide" style={{ color: "#FFD23F" }}>DRAFTCENTER</span>
             {state.settings.publicLeague && (
               <span className="mono-font text-[10px] px-2 py-0.5 rounded font-semibold" style={{ background: "#4FD1C522", color: "#4FD1C5", border: "1px solid #4FD1C555" }}>
