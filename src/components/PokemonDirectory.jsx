@@ -138,10 +138,12 @@ function PokemonDraftProfile({ profile }) {
   return <div className="pokemon-draft-profile">
     <div className="pokemon-draft-metrics">
       <article><strong>{hasDrafts ? `${profile.draft_rate || 0}%` : "—"}</strong><span>Draft rate</span><small>{profile.drafted_in || 0} of {profile.eligible_drafts || 0} public drafts</small></article>
-      <article><strong>{profile.average_pick ?? "—"}</strong><span>Average pick</span><small>{profile.drafted_in || 0} draft sample</small></article>
+      <article><strong>{profile.average_pick != null ? `#${profile.average_pick}` : "—"}</strong><span>Eligibility-aware ADP</span><small>Picked in {profile.drafted_in || 0} of {profile.eligible_drafts || 0} legal snake drafts</small></article>
       <article><strong>{profile.average_auction_price ?? "—"}</strong><span>Average auction price</span><small>{profile.auction_samples || 0} auction sample</small></article>
       <article><strong>{profile.games ? `${profile.win_rate || 0}%` : "—"}</strong><span>Team win rate</span><small>{profile.games ? `${profile.wins}-${profile.games - profile.wins} across ${profile.games} matches` : "No confirmed matches yet"}</small></article>
     </div>
+    <h4>ADP by legal format</h4>
+    {profile.adp_by_format?.length ? <ol className="pokemon-partner-list">{profile.adp_by_format.map((item) => <li key={item.regulation_id}><strong>{displayName(item.regulation_id || "custom")}</strong><span>{item.average_pick != null ? `ADP #${item.average_pick}` : "Not drafted"} · {item.drafted_in || 0} of {item.eligible_drafts || 0} eligible drafts</span></li>)}</ol> : <p className="muted">Format-specific ADP will appear after this Pokémon is included in a completed public snake draft pool.</p>}
     <h4>Most common teammates</h4>
     {profile.partners?.length ? <ol className="pokemon-partner-list">{profile.partners.slice(0, 5).map((item) => <li key={item.pokemon}><strong>{item.pokemon}</strong><span>{item.teams} team{item.teams === 1 ? "" : "s"}</span></li>)}</ol> : <p className="muted">Partner data will appear as public rosters fill.</p>}
     <h4>Draft usage · last 12 weeks</h4>
