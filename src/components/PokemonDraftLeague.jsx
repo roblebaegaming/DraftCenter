@@ -6787,7 +6787,10 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
               // thing to check and becomes part of this league's season,
               // so it moves in as a League sub-tab instead (see below) and
               // this entry disappears rather than duplicating it.
-              ...(!state.locked ? [["draft", "Pre-Draft"]] : []),
+              // Before a league goes live this area is for setting and sharing
+              // the future draft time. Once live, the actual Draft appears in
+              // the League area below instead of two competing Draft buttons.
+              ...(!state.locked ? [["draft", "Schedule"]] : []),
               ["myteam", "My Teams"],
               ...(state.locked ? [["league", "League"]] : []),
               ["messages", "Messages"],
