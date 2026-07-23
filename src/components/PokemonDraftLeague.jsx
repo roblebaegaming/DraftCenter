@@ -10379,7 +10379,7 @@ function ADPView({ state }) {
       <p className="text-xs mb-2" style={{ color: "#9A9FBD" }}>
         {hasPositionData ? (isSnake ? "Average overall pick number" : "Average auction price") : "Recovered draft frequency"} across {seasonsPooled} archived season{seasonsPooled === 1 ? "" : "s"} — this league's own history only, not other leagues.
       </p>
-      {usingHistoricalRules && <p className="text-xs mb-4 px-3 py-2 rounded" style={{ color: "#FFD23F", background: "#FFD23F12", border: "1px solid #FFD23F44" }}>Season 1 used different rules or a different league size, so its saved draft remains visible as historical league data instead of disappearing when Setup changes. It is not used to calculate the current regulation's automatic prices.</p>}
+      {usingHistoricalRules && <p className="text-xs mb-4 px-3 py-2 rounded" style={{ color: "#FFD23F", background: "#FFD23F12", border: "1px solid #FFD23F44" }}>This early league ADP includes older seasons that used different rules or a different league size, because every draft is valuable while the sample grows. Those older seasons remain excluded from the current regulation's automatic prices.</p>}
       {!hasPositionData && <p className="text-xs mb-4 px-3 py-2 rounded" style={{ color: "#9A9FBD", background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }}>The archived rosters survived, but this older season did not retain exact pick numbers. DraftCenter recovered which Pokémon were drafted and how often without inventing an inaccurate pick order.</p>}
       {!hasCuratedCosts && !usingHistoricalRules && hasPositionData && (
         <p className="text-xs mb-4" style={{ color: derivedActive ? "#4FD1C5" : "#5B5F7E" }}>
@@ -12889,10 +12889,13 @@ function computeADP(state, { exactOnly = false } = {}) {
   const isSnake = state.settings.draftType === "snake";
   const fp = regulationFingerprint(state.settings);
   const exactSeasons = state.seasonHistory.filter((season) => season.regulationFingerprint === fp);
-  const exactHasData = exactSeasons.some((season) => archivedDraftEntries(season, isSnake).length > 0);
   const compatibleHistoricalSeasons = state.seasonHistory.filter((season) => (season.draftType || "snake") === state.settings.draftType);
-  const matchingSeasons = exactOnly || exactHasData ? exactSeasons : compatibleHistoricalSeasons;
-  const usingHistoricalRules = !exactOnly && !exactHasData && matchingSeasons.length > 0;
+  // The visible league ADP intentionally uses every archived draft of the
+  // same kind while the sample is young. Exact-rule filtering remains in
+  // deriveCostsFromADP below so older regulations never silently re-price a
+  // current pool.
+  const matchingSeasons = exactOnly ? exactSeasons : compatibleHistoricalSeasons;
+  const usingHistoricalRules = !exactOnly && matchingSeasons.some((season) => season.regulationFingerprint !== fp);
   const agg = {};
   matchingSeasons.forEach((season) => {
     archivedDraftEntries(season, isSnake).forEach((entry) => {
