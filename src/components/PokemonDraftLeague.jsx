@@ -3852,6 +3852,23 @@ function computeCareerDraftTally(state, personName) {
   });
   return monNames;
 }
+
+function looksLikeCarriedOverRosterState(state) {
+  if (!state?.locked || Number(state.pickIndex || 0) !== 0 || state.liveDraft?.sessionId || Number(state.seasonNumber || 1) < 2) return false;
+  const lastSeason = (state.seasonHistory || [])[state.seasonHistory.length - 1];
+  if (!lastSeason?.rosters?.length) return false;
+  const currentRosters = state.rosters || [];
+  const archivedRosters = lastSeason.rosters || [];
+  const archivedNames = archivedRosters.map((roster) => (roster || []).map((mon) => mon.name).filter(Boolean).sort());
+  const currentNames = currentRosters.map((roster) => (roster || []).map((mon) => mon.name).filter(Boolean).sort());
+  const archivedPickCount = archivedNames.reduce((sum, names) => sum + names.length, 0);
+  if (!archivedPickCount) return false;
+  const oldTeamsMatch = archivedNames.every((names, teamIdx) =>
+    names.length === (currentNames[teamIdx] || []).length
+      && names.every((name, index) => name === currentNames[teamIdx][index]));
+  const expansionTeamsAreEmpty = currentNames.slice(archivedNames.length).every((names) => names.length === 0);
+  return oldTeamsMatch && expansionTeamsAreEmpty;
+}
 function tierFor(count, tiers) {
   let t = 0;
   for (const x of tiers) if (count >= x) t = x;
@@ -6427,33 +6444,59 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
      data so commissioners can change the setup and draft fresh. ---- */
   async function rebuildCurrentSeason() {
     if (!(await clearOfficialDraftRows())) return false;
-    commit((s) => ({
-      ...s,
-      liveDraft: null,
-      locked: false,
-      teams: s.teams.map((t) => ({ ...t, archetypes: [] })),
-      rosters: [], budgets: [], pool: [],
-      snakeOrder: [], pickIndex: 0, pickDeadline: null, nominationDeadline: null,
-      queues: {},
-      nominee: null,
-      auctionNominationOrder: [], auctionNominationIdx: 0,
-      paused: false, pausedAt: null, pauseIsOvernight: false,
-      auctionEnded: false,
-      schedule: [], week: 0, matchResults: {}, predictions: {},
-      trades: [],
-      transactionLog: [],
-      keeperRosters: {},
-      keeperSelections: {},
-      draftHeroVotes: {},
-      waiverPriority: [],
-      faabBudgets: {},
-      pendingClaims: [],
-      lastClaimResults: [],
-      lastAutoClaimCycle: null,
-      playoffs: null,
-      settings: { ...s.settings, draftScheduledAt: null, manualDraftOrder: null },
-      auditLog: [...(s.auditLog || []), auditEntry(myName, `Rebuilt Season ${s.seasonNumber}`, "cleared current rosters, draft, schedule, results, transactions, and keeper carryovers; archived seasons preserved")],
-    }));
+    commit((s) => {
+      const carriedOver = looksLikeCarriedOverRosterState(s);
+      let seasonHistory = s.seasonHistory || [];
+      let recoveredPickCount = 0;
+      if (carriedOver && seasonHistory.length) {
+        const recoveredEntries = (s.rosters || []).flatMap((roster) => (roster || [])
+          .filter((mon) => mon?.name && mon.draftPick != null)
+          .map((mon) => ({ name: mon.name, draftPick: mon.draftPick, cost: mon.cost ?? null })));
+        if (recoveredEntries.length) {
+          const seasonIndex = seasonHistory.length - 1;
+          const archivedSeason = seasonHistory[seasonIndex];
+          const existingLog = Array.isArray(archivedSeason.draftLog) ? archivedSeason.draftLog : [];
+          const existingKeys = new Set(existingLog.map((entry) => `${entry.name}|${entry.draftPick ?? ""}|${entry.cost ?? ""}`));
+          const additions = recoveredEntries.filter((entry) => !existingKeys.has(`${entry.name}|${entry.draftPick ?? ""}|${entry.cost ?? ""}`));
+          recoveredPickCount = additions.length;
+          if (additions.length) {
+            seasonHistory = seasonHistory.slice();
+            seasonHistory[seasonIndex] = { ...archivedSeason, draftLog: [...existingLog, ...additions] };
+          }
+        }
+      }
+      const recoveryNote = carriedOver
+        ? `recognized stale Season ${Math.max(1, Number(s.seasonNumber || 1) - 1)} roster carryover${recoveredPickCount ? ` and recovered ${recoveredPickCount} archived draft picks` : ""}; `
+        : "";
+      return {
+        ...s,
+        seasonHistory,
+        liveDraft: null,
+        locked: false,
+        teams: s.teams.map((t) => ({ ...t, archetypes: [] })),
+        rosters: [], budgets: [], pool: [],
+        snakeOrder: [], pickIndex: 0, pickDeadline: null, nominationDeadline: null,
+        queues: {},
+        nominee: null,
+        auctionNominationOrder: [], auctionNominationIdx: 0,
+        paused: false, pausedAt: null, pauseIsOvernight: false,
+        auctionEnded: false,
+        schedule: [], week: 0, matchResults: {}, predictions: {},
+        trades: [],
+        transactionLog: [],
+        keeperRosters: {},
+        keeperSelections: {},
+        draftHeroVotes: {},
+        waiverPriority: [],
+        faabBudgets: {},
+        pendingClaims: [],
+        lastClaimResults: [],
+        lastAutoClaimCycle: null,
+        playoffs: null,
+        settings: { ...s.settings, draftScheduledAt: null, manualDraftOrder: null },
+        auditLog: [...(s.auditLog || []), auditEntry(myName, `Rebuilt Season ${s.seasonNumber}`, `${recoveryNote}cleared current rosters, draft, schedule, results, transactions, and keeper carryovers; archived seasons preserved`)],
+      };
+    });
     if (leagueId) {
       supabase.rpc("update_league_draft_time", { p_league_id: leagueId, p_draft_starts_at: null })
         .then(({ error }) => { if (error) setLiveDraftError(`The prior draft date could not be cleared: ${error.message}`); });
@@ -7374,7 +7417,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
             snakePick={snakePick} nominateForAuction={nominateForAuction} autoPickForClock={autoPickForClock}
             placeBid={placeBid} endAuctionEarly={endAuctionEarly} pauseDraft={pauseDraft} resumeDraft={resumeDraft} skipAuctionNomination={skipAuctionNomination}
             toggleAutoDraft={toggleAutoDraft} addToQueue={addToQueue} removeFromQueue={removeFromQueue} moveQueueItem={moveQueueItem}
-            onGenerateSchedule={generateSchedule} updateSettings={updateSettings} onViewTeam={goToTeam} castDraftHeroVote={castDraftHeroVote} restartDraft={restartDraft}
+            onGenerateSchedule={generateSchedule} updateSettings={updateSettings} onViewTeam={goToTeam} castDraftHeroVote={castDraftHeroVote} restartDraft={restartDraft} rebuildCurrentSeason={rebuildCurrentSeason}
           />
         )}
         {tab === "myteam" && (
@@ -7430,7 +7473,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
                 snakePick={snakePick} nominateForAuction={nominateForAuction} autoPickForClock={autoPickForClock}
                 placeBid={placeBid} endAuctionEarly={endAuctionEarly} pauseDraft={pauseDraft} resumeDraft={resumeDraft} skipAuctionNomination={skipAuctionNomination}
                 toggleAutoDraft={toggleAutoDraft} addToQueue={addToQueue} removeFromQueue={removeFromQueue} moveQueueItem={moveQueueItem}
-                onGenerateSchedule={generateSchedule} updateSettings={updateSettings} onViewTeam={goToTeam} castDraftHeroVote={castDraftHeroVote} restartDraft={restartDraft}
+                onGenerateSchedule={generateSchedule} updateSettings={updateSettings} onViewTeam={goToTeam} castDraftHeroVote={castDraftHeroVote} restartDraft={restartDraft} rebuildCurrentSeason={rebuildCurrentSeason}
               />
             )}
             {leagueSubTab === "schedule" && (
@@ -8722,9 +8765,10 @@ function SetupView({ state, leagueId = null, isCommissioner, canBeCommissioner, 
     .slice()
     .sort((a, b) => (isPriced(a, settings) ? 1 : 0) - (isPriced(b, settings) ? 1 : 0) || costFor(b, settings) - costFor(a, settings) || a.name.localeCompare(b.name));
   const hiddenBannedCount = allMons.filter((p) => !isLegal(p, settings)).length;
-  const hasDraftSelections = (state.pickIndex || 0) > 0
+  const hasStaleRosterCarryover = looksLikeCarriedOverRosterState(state);
+  const hasDraftSelections = !hasStaleRosterCarryover && ((state.pickIndex || 0) > 0
     || state.rosters.some((roster) => (roster || []).some((mon) => mon.acquiredVia !== "keeper"))
-    || Boolean(state.nominee?.highestBidder != null);
+    || Boolean(state.nominee?.highestBidder != null));
 
   return (
     <div>
@@ -8746,8 +8790,13 @@ function SetupView({ state, leagueId = null, isCommissioner, canBeCommissioner, 
       )}
       {isCommissioner && locked && (
         <section className="rounded-lg p-5 mb-6" style={{ background: hasDraftSelections ? "#261822" : "#102B2B", border: `1px solid ${hasDraftSelections ? "#F0555A55" : "#4FD1C577"}` }}>
-          <h2 className="display-font text-2xl mb-2" style={{ color: hasDraftSelections ? "#FF9AA7" : "#4FD1C5" }}>{hasDraftSelections ? "EDIT MODE — ACTIVE SEASON SAFETY" : "NEED A LAST-MINUTE SETUP CHANGE?"}</h2>
-          {hasDraftSelections ? (
+          <h2 className="display-font text-2xl mb-2" style={{ color: hasDraftSelections ? "#FF9AA7" : "#4FD1C5" }}>{hasStaleRosterCarryover ? "CARRIED-OVER ROSTERS DETECTED" : hasDraftSelections ? "EDIT MODE — ACTIVE SEASON SAFETY" : "NEED A LAST-MINUTE SETUP CHANGE?"}</h2>
+          {hasStaleRosterCarryover ? (
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <p className="text-sm flex-1" style={{ color: "#BDF7EE" }}>These rosters match the archived prior season while the added teams are still empty, so DraftCenter will not treat them as a new draft. Preserve the archived season and reopen Season {state.seasonNumber} to edit its setup, clear only the carried-over rosters, and start a fresh draft.</p>
+              <button type="button" disabled={reopeningSetup} onClick={async () => { setReopeningSetup(true); await rebuildCurrentSeason(); setReopeningSetup(false); }} className="px-4 py-2 rounded font-semibold text-sm" style={{ background: "#4FD1C5", color: "#10121C" }}>{reopeningSetup ? "Repairing..." : `PRESERVE HISTORY & REOPEN SEASON ${state.seasonNumber}`}</button>
+            </div>
+          ) : hasDraftSelections ? (
             <p className="text-sm" style={{ color: "#C8CDEA" }}>This draft already contains selections, so regulation, pool, price, team-count, and draft-format changes stay protected. Non-destructive season, schedule, playoff, transaction, rules, payment, team-name, and appearance settings remain editable. To change draft-critical rules, use Rebuild This Season in the Danger Zone below; that intentionally clears this season's picks while preserving archived seasons.</p>
           ) : (
             <div className="flex items-center justify-between gap-3 flex-wrap">
@@ -10681,7 +10730,7 @@ function PreDraftScout({ state, isCommissioner, costFor, updateHomepage }) {
   </div>;
 }
 
-function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTeamIdx, currentTeamOnClock, draftDone, allTeamsMetMin, snakePick, nominateForAuction, autoPickForClock, placeBid, endAuctionEarly, pauseDraft, resumeDraft, skipAuctionNomination, toggleAutoDraft, addToQueue, removeFromQueue, moveQueueItem, onGenerateSchedule, updateSettings, onViewTeam, castDraftHeroVote, restartDraft }) {
+function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTeamIdx, currentTeamOnClock, draftDone, allTeamsMetMin, snakePick, nominateForAuction, autoPickForClock, placeBid, endAuctionEarly, pauseDraft, resumeDraft, skipAuctionNomination, toggleAutoDraft, addToQueue, removeFromQueue, moveQueueItem, onGenerateSchedule, updateSettings, onViewTeam, castDraftHeroVote, restartDraft, rebuildCurrentSeason }) {
   const { locked, settings, teams, rosters, budgets, pool, snakeOrder, pickIndex, nominee, auctionEnded, pickDeadline, queues, auctionNominationOrder, auctionNominationIdx, paused, pausedAt, pauseIsOvernight, nominationDeadline } = state;
   const draftType = settings.draftType;
 
@@ -10788,17 +10837,24 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
     || (state.trades || []).length > 0
     || (state.transactionLog || []).length > 0
     || Boolean(state.playoffs);
+  const hasStaleRosterCarryover = looksLikeCarriedOverRosterState(state);
 
   return (
     <div>
       {state.liveDraft?.sessionId && <div className="mb-4 rounded-lg px-4 py-3 text-sm" style={{ background: "#102B2B", color: "#BDF7EE", border: "1px solid #4FD1C577" }}><strong>LIVE SHARED DRAFT</strong> — picks and whose turn it is are locked by DraftCenter. This board refreshes automatically for every manager.</div>}
       {leagueId && draftType === "auction" && locked && <div className="mb-4 rounded-lg px-4 py-3 text-sm" style={{ background: "#102B2B", color: "#BDF7EE", border: "1px solid #4FD1C577" }}><strong>LIVE SHARED AUCTION</strong> — nominations, bids, budgets, timers, and winning rosters are locked by DraftCenter and synchronized for every manager.</div>}
-      {isCommissioner && !hasSeasonActivity && (
+      {isCommissioner && hasStaleRosterCarryover && (
+        <div className="mb-4 rounded-lg px-4 py-3 text-sm flex items-center justify-between gap-3 flex-wrap" style={{ background: "#102B2B", border: "1px solid #4FD1C577" }}>
+          <span style={{ color: "#BDF7EE" }}>DraftCenter found prior-season rosters attached to this empty new season. Preserve the archived season, clear only these stale rosters, and reopen Setup before starting Season {state.seasonNumber}.</span>
+          <button onClick={rebuildCurrentSeason} className="px-3 py-2 rounded font-semibold text-xs" style={{ background: "#4FD1C5", color: "#10121C" }}>REPAIR & REOPEN SETUP</button>
+        </div>
+      )}
+      {isCommissioner && !hasStaleRosterCarryover && !hasSeasonActivity && (
         <div className="mb-4 rounded-lg px-4 py-3 text-sm" style={{ background: "#261822", border: "1px solid #F0555A55" }}>
           {!confirmRestart ? <div className="flex items-center justify-between gap-3 flex-wrap"><span style={{ color: "#C8CDEA" }}>Testing issue or bad start? This clears only this draft's picks and current rosters, then returns to Pre-Draft Setup. Rules, managers, committed keepers, and every archived season remain intact.</span><button onClick={() => setConfirmRestart(true)} className="px-3 py-2 rounded font-semibold text-xs" style={{ background: "#F0555A22", color: "#FF9AA7", border: "1px solid #F0555A66" }}>RESTART THIS DRAFT</button></div> : <div className="flex items-center gap-3 flex-wrap"><strong style={{ color: "#FF9AA7" }}>Clear only this draft's picks and current rosters?</strong><button onClick={async () => { const reset = await restartDraft(); if (reset) setConfirmRestart(false); }} className="px-3 py-2 rounded font-semibold text-xs" style={{ background: "#F0555A", color: "#10121C" }}>Yes, restart draft only</button><button onClick={() => setConfirmRestart(false)} className="px-3 py-2 rounded text-xs" style={{ background: "#1F2338", color: "#C8CDEA" }}>Cancel</button></div>}
         </div>
       )}
-      {isCommissioner && hasSeasonActivity && (
+      {isCommissioner && !hasStaleRosterCarryover && hasSeasonActivity && (
         <div className="mb-4 rounded-lg px-4 py-3 text-sm" style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)", color: "#9A9FBD" }}>
           Draft restart is unavailable after season activity begins. If the active season truly needs to be rebuilt, use <strong style={{ color: "#EDEBFA" }}>Setup → Danger Zone → Rebuild Season {state.seasonNumber}</strong>; archived seasons remain intact.
         </div>
