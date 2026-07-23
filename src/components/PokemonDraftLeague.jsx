@@ -4012,6 +4012,18 @@ function defaultPlayoffRoundNames(bracketSize) {
   return names;
 }
 
+function normalizedPlayoffRoundNames(names, bracketSize) {
+  const defaults = defaultPlayoffRoundNames(bracketSize);
+  if (!Array.isArray(names) || names.length === 0) return defaults;
+  // When a bracket shrinks, keep its final custom labels. For example, an
+  // old ["Semifinals", "Final"] setting becomes ["Final"] for Top 2.
+  const relevant = names.slice(-defaults.length);
+  return defaults.map((fallback, i) => {
+    const saved = relevant[i];
+    return typeof saved === "string" && saved.trim() ? saved : fallback;
+  });
+}
+
 // Standard seeding order for a single-elimination bracket (1v8, 4v5, 3v6, 2v7
 // for 8 teams, etc.) so the top seed doesn't meet the 2-seed until the final.
 function nextPowerOfTwo(n) {
@@ -4281,7 +4293,10 @@ function hydrateState(remote) {
       divisionPlayoffTeams: remote.settings?.divisionPlayoffTeams ?? 4,
       playoffTeams: remote.settings?.playoffTeams ?? 4,
       doubleElimination: remote.settings?.doubleElimination ?? false,
-      playoffRoundNames: remote.settings?.playoffRoundNames || defaultPlayoffRoundNames(nextPowerOfTwo(remote.settings?.playoffTeams ?? 4)),
+      playoffRoundNames: normalizedPlayoffRoundNames(
+        remote.settings?.playoffRoundNames,
+        nextPowerOfTwo(remote.settings?.playoffTeams ?? 4),
+      ),
       maxTransactionsTotal: remote.settings?.maxTransactionsTotal ?? null,
       maxTransactionsPerWeek: remote.settings?.maxTransactionsPerWeek ?? null,
       transactionsLastWeek: remote.settings?.transactionsLastWeek ?? null,
@@ -4499,6 +4514,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
             locked: current.locked,
             rosters: current.rosters,
             pool: current.pool,
+            snakeOrder: current.snakeOrder,
             pickIndex: current.pickIndex,
             pickDeadline: current.pickDeadline,
             paused: current.paused,
@@ -4867,6 +4883,11 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
         const mon = bySourceKey.get(String(pick.pokemon_source_key));
         if (Number.isInteger(teamIndex) && mon) rosters[teamIndex].push({ ...mon, draftPick: pick.pick_number, acquiredVia: "draft" });
       }
+      const teamIndexById = new Map((live.teams || []).map((team) => [String(team.id), Number(team.source_key)]));
+      const serverTeamOrder = live.session.configuration?.team_order;
+      const snakeOrder = Array.isArray(serverTeamOrder)
+        ? serverTeamOrder.map((teamId) => teamIndexById.get(String(teamId))).filter(Number.isInteger)
+        : previous.snakeOrder;
       const drafted = new Set((live.picks || []).map((pick) => String(pick.pokemon_source_key)));
       const pokemonIds = Object.fromEntries((pokemonRows || []).map((row) => [String(row.source_key), row.id]));
       const pickTimeLimitMinutes = Math.max(0, Number(previous.settings.pickTimeLimitMinutes) || 0);
@@ -4879,6 +4900,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
         locked: true,
         rosters,
         pool: basePool.filter((mon) => !drafted.has(String(mon.id))),
+        snakeOrder,
         pickIndex: live.session.current_pick_number,
         pickDeadline: livePickDeadline,
         paused: live.session.status === "paused",
@@ -5120,7 +5142,9 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
         // actually "priority."
         waiverPriority: Array.from({ length: size }, (_, i) => i),
         pendingClaims: [],
-        snakeOrder: s.settings.draftType === "snake" ? buildSnakeOrder(size, snakeRounds, s.settings.manualDraftOrder) : [],
+        snakeOrder: s.settings.draftType === "snake"
+          ? buildSnakeOrder(size, snakeRounds, liveDraft?.firstRoundOrder || s.settings.manualDraftOrder)
+          : [],
         auctionNominationOrder: s.settings.draftType === "auction" ? [...Array(size).keys()] : [],
         auctionNominationIdx: 0,
         nominationDeadline: s.settings.draftType === "auction" ? Date.now() + s.settings.auctionNominationSeconds * 1000 : null,
@@ -5157,7 +5181,12 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       p_settings: { ...state.settings, rosterMax: rounds },
     });
     if (error) { setLiveDraftError(error.message); return; }
-    startLocalDraft({ sessionId: data.draft_session_id, basePool, pokemonIds: data.pokemon_ids || {} });
+    startLocalDraft({
+      sessionId: data.draft_session_id,
+      basePool,
+      pokemonIds: data.pokemon_ids || {},
+      firstRoundOrder,
+    });
     setTimeout(refreshLiveSnakeDraft, 0);
     setTab("draft");
   }
@@ -8128,7 +8157,10 @@ function SetupView({ state, leagueId = null, isCommissioner, canBeCommissioner, 
     customSelectedGens: Array.isArray(savedSettings.customSelectedGens) ? savedSettings.customSelectedGens : [],
     customSelectedTypes: Array.isArray(savedSettings.customSelectedTypes) ? savedSettings.customSelectedTypes : [],
     divisions: Array.isArray(savedSettings.divisions) ? savedSettings.divisions : [],
-    playoffRoundNames: Array.isArray(savedSettings.playoffRoundNames) ? savedSettings.playoffRoundNames : freshState().settings.playoffRoundNames,
+    playoffRoundNames: normalizedPlayoffRoundNames(
+      savedSettings.playoffRoundNames,
+      nextPowerOfTwo(savedSettings.playoffTeams ?? freshState().settings.playoffTeams),
+    ),
     costOverrides: savedSettings.costOverrides && typeof savedSettings.costOverrides === "object" ? savedSettings.costOverrides : {},
     spriteOverrides: savedSettings.spriteOverrides && typeof savedSettings.spriteOverrides === "object" ? savedSettings.spriteOverrides : {},
     manualDraftOrder: Array.isArray(savedSettings.manualDraftOrder) ? savedSettings.manualDraftOrder : null,
@@ -9172,7 +9204,14 @@ function ScheduleAndPlayoffsCard({ state, isCommissioner, updateSettings }) {
   const playoffTeams = Math.max(2, Math.min(Number(rawSettings.playoffTeams) || 2, playoffMax));
   // Use the safe value throughout this card, including older leagues saved
   // with Top 4 before they were reduced to two teams.
-  const settings = { ...rawSettings, playoffTeams };
+  const settings = {
+    ...rawSettings,
+    playoffTeams,
+    playoffRoundNames: normalizedPlayoffRoundNames(
+      rawSettings.playoffRoundNames,
+      nextPowerOfTwo(playoffTeams),
+    ),
+  };
   const baseWeeks = (() => {
     const n = settings.leagueSize % 2 === 0 ? settings.leagueSize - 1 : settings.leagueSize;
     return n;
