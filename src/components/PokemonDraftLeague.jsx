@@ -4259,29 +4259,32 @@ async function saveRemote(state, leagueId) {
 // a feature existed) so loading old data never crashes the app.
 function hydrateState(remote) {
   const base = freshState();
-  if (!remote) return base;
+  if (!remote || typeof remote !== "object" || Array.isArray(remote)) return base;
+  const arrayOr = (value, fallback = []) => Array.isArray(value) ? value : fallback;
+  const objectOr = (value, fallback = {}) => value && typeof value === "object" && !Array.isArray(value) ? value : fallback;
+  const remoteSettings = objectOr(remote.settings);
   return {
     ...base,
     ...remote,
     settings: {
       ...base.settings,
-      ...(remote.settings || {}),
+      ...remoteSettings,
       // Self-heals a league whose saved rosterMin/rosterMax got corrupted
       // to 0 by an input bug that's since been fixed — without this, a
       // league saved mid-bug would keep loading the bad value forever.
-      rosterMin: Math.max(1, Number(remote.settings?.rosterMin) || base.settings.rosterMin),
-      rosterMax: Math.max(1, Number(remote.settings?.rosterMax) || base.settings.rosterMax, Number(remote.settings?.rosterMin) || 1),
-      bannedMons: remote.settings?.bannedMons || [],
-      allowedExtraMons: remote.settings?.allowedExtraMons || [],
+      rosterMin: Math.max(1, Number(remoteSettings.rosterMin) || base.settings.rosterMin),
+      rosterMax: Math.max(1, Number(remoteSettings.rosterMax) || base.settings.rosterMax, Number(remoteSettings.rosterMin) || 1),
+      bannedMons: arrayOr(remoteSettings.bannedMons),
+      allowedExtraMons: arrayOr(remoteSettings.allowedExtraMons),
       manualDraftOrder: remote.settings?.manualDraftOrder ?? null,
       regulationId: remote.settings?.regulationId || "reg-mb",
       restrictedCap: remote.settings?.restrictedCap ?? null,
       megaCap: remote.settings?.megaCap ?? null,
-      customMons: remote.settings?.customMons || [],
-      customSelectedGens: remote.settings?.customSelectedGens || [],
-      customSelectedTypes: remote.settings?.customSelectedTypes || [],
-      spriteOverrides: remote.settings?.spriteOverrides || {},
-      costOverrides: remote.settings?.costOverrides || {},
+      customMons: arrayOr(remoteSettings.customMons),
+      customSelectedGens: arrayOr(remoteSettings.customSelectedGens),
+      customSelectedTypes: arrayOr(remoteSettings.customSelectedTypes),
+      spriteOverrides: objectOr(remoteSettings.spriteOverrides),
+      costOverrides: objectOr(remoteSettings.costOverrides),
       priceTierMax: remote.settings?.priceTierMax ?? 20,
       allowMegas: remote.settings?.allowMegas ?? false,
       snakeBudgetEnabled: remote.settings?.snakeBudgetEnabled ?? false,
@@ -4323,7 +4326,7 @@ function hydrateState(remote) {
       auctionBidResetSeconds: remote.settings?.auctionBidResetSeconds ?? remote.settings?.auctionAntiSnipeSeconds ?? 10,
     },
     teams: (() => {
-      const rawTeams = remote.teams || base.teams;
+      const rawTeams = arrayOr(remote.teams, base.teams).filter((team) => team && typeof team === "object" && !Array.isArray(team));
       const usedColors = rawTeams.map((t) => t.color).filter(Boolean);
       return rawTeams.map((t) => {
         const merged = { autoDraft: false, archetypes: [], logoUrl: null, otherStandingsValue: 0, description: "", ...t };
@@ -4343,39 +4346,39 @@ function hydrateState(remote) {
         return merged;
       });
     })(),
-    queues: remote.queues || {},
-    trades: remote.trades || [],
-    transactionLog: remote.transactionLog || [],
-    rosters: remote.rosters || [],
-    budgets: remote.budgets || [],
-    pool: remote.pool || [],
-    snakeOrder: remote.snakeOrder || [],
-    auctionNominationOrder: remote.auctionNominationOrder || [],
+    queues: objectOr(remote.queues),
+    trades: arrayOr(remote.trades),
+    transactionLog: arrayOr(remote.transactionLog),
+    rosters: arrayOr(remote.rosters).map((roster) => arrayOr(roster)),
+    budgets: arrayOr(remote.budgets),
+    pool: arrayOr(remote.pool),
+    snakeOrder: arrayOr(remote.snakeOrder),
+    auctionNominationOrder: arrayOr(remote.auctionNominationOrder),
     paused: remote.paused ?? false,
     pausedAt: remote.pausedAt ?? null,
     pauseIsOvernight: remote.pauseIsOvernight ?? false,
     auctionNominationIdx: remote.auctionNominationIdx ?? 0,
-    schedule: remote.schedule || [],
-    matchResults: remote.matchResults || {},
-    predictions: remote.predictions || {},
-    homepage: { rules: "", payments: "", ...(remote.homepage || {}) },
+    schedule: arrayOr(remote.schedule).map((week) => arrayOr(week)),
+    matchResults: objectOr(remote.matchResults),
+    predictions: objectOr(remote.predictions),
+    homepage: { rules: "", payments: "", ...objectOr(remote.homepage) },
     messages: {
-      board: remote.messages?.board || [],
-      direct: remote.messages?.direct || {},
+      board: arrayOr(objectOr(remote.messages).board),
+      direct: objectOr(objectOr(remote.messages).direct),
     },
-    readReceipts: remote.readReceipts || {},
+    readReceipts: objectOr(remote.readReceipts),
     playoffs: migratePlayoffs(remote.playoffs),
     seasonNumber: remote.seasonNumber ?? 1,
-    seasonHistory: remote.seasonHistory || [],
-    keeperSelections: remote.keeperSelections || {},
-    keeperRosters: remote.keeperRosters || {},
-    waiverPriority: remote.waiverPriority || [],
-    coCommissioners: remote.coCommissioners || [],
-    badges: remote.badges || {},
-    draftHeroVotes: remote.draftHeroVotes || {},
-    faabBudgets: remote.faabBudgets || {},
-    pendingClaims: remote.pendingClaims || [],
-    lastClaimResults: remote.lastClaimResults || [],
+    seasonHistory: arrayOr(remote.seasonHistory),
+    keeperSelections: objectOr(remote.keeperSelections),
+    keeperRosters: objectOr(remote.keeperRosters),
+    waiverPriority: arrayOr(remote.waiverPriority),
+    coCommissioners: arrayOr(remote.coCommissioners),
+    badges: objectOr(remote.badges),
+    draftHeroVotes: objectOr(remote.draftHeroVotes),
+    faabBudgets: objectOr(remote.faabBudgets),
+    pendingClaims: arrayOr(remote.pendingClaims),
+    lastClaimResults: arrayOr(remote.lastClaimResults),
   };
 }
 
@@ -4385,12 +4388,14 @@ function hydrateState(remote) {
 // in-progress league doesn't just break — a 2-division league maps
 // perfectly onto a 1-round champion bracket.
 function migratePlayoffs(playoffs) {
-  if (!playoffs) return null;
+  if (!playoffs || typeof playoffs !== "object" || Array.isArray(playoffs)) return null;
   if (playoffs.mode === "divisions" && !playoffs.championBracket) {
-    const divisionOrder = playoffs.divisionBrackets.map((_, i) => i);
+    const divisionBrackets = Array.isArray(playoffs.divisionBrackets) ? playoffs.divisionBrackets : [];
+    const divisionOrder = divisionBrackets.map((_, i) => i);
     const results = playoffs.finalResult ? { "0-0": playoffs.finalResult } : {};
     return {
       ...playoffs,
+      divisionBrackets,
       championBracket: { bracketSize: nextPowerOfTwo(divisionOrder.length), divisionOrder, results },
     };
   }

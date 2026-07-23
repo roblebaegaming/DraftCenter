@@ -10,12 +10,12 @@ const inputStyle = { padding: 11, borderRadius: 8, border: "1px solid #46517c", 
 const authPanel = { width: "min(430px, calc(100vw - 32px))", padding: 28, borderRadius: 16, border: "1px solid #2a3157", background: "#11162b", boxShadow: "0 20px 70px rgba(0,0,0,.38)" };
 
 class LeagueErrorBoundary extends Component {
-  constructor(props) { super(props); this.state = { failed: false }; }
-  static getDerivedStateFromError() { return { failed: true }; }
+  constructor(props) { super(props); this.state = { failed: false, message: "" }; }
+  static getDerivedStateFromError(error) { return { failed: true, message: error?.message || "Unknown league-screen error" }; }
   componentDidCatch(error) { console.error("League screen failed", error); }
   render() {
     if (!this.state.failed) return this.props.children;
-    return <main className="hub-shell"><section className="hub-card"><span className="eyebrow">LEAGUE RECOVERY</span><h1>This league screen hit an unexpected problem.</h1><p className="muted">Your saved league data has not been deleted. Return to the dashboard and try opening it again.</p><button className="primary-button" onClick={this.props.onExit}>Return to dashboard</button></section></main>;
+    return <main className="hub-shell"><section className="hub-card"><span className="eyebrow">LEAGUE RECOVERY</span><h1>This league screen hit an unexpected problem.</h1><p className="muted">Your saved league data has not been deleted. Return to the dashboard and try opening it again.</p><details style={{ marginBottom: 16 }}><summary>Technical details</summary><code style={{ display:"block", marginTop:8, whiteSpace:"pre-wrap", color:"#ffb7b7" }}>{this.state.message}</code></details><button className="primary-button" onClick={this.props.onExit}>Return to dashboard</button></section></main>;
   }
 }
 
