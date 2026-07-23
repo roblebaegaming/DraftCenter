@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "../lib/supabase/client";
-import LeagueHub, { WORLD_CHAMPION_POKEMON } from "./LeagueHub";
+import LeagueHub, { RotatingPokemonArtwork, WORLD_CHAMPION_POKEMON, pokemonArtworkCandidates } from "./LeagueHub";
 import PokemonDraftLeague from "./PokemonDraftLeague";
 import { POLL_POKEMON_NAMES, POKEMON_DIRECTORY } from "./PokemonDraftLeague";
 
@@ -31,43 +31,31 @@ function ProfileEditor({ supabase, user, profile, onSaved, onClose }) {
   return <div className="modal-backdrop"><section className="tools-modal"><button className="modal-close" onClick={onClose}>x</button><span className="eyebrow">YOUR PROFILE</span><h2>Profile photo</h2>{profile?.avatar_url ? <img className="profile-photo-large" src={profile.avatar_url} alt="Your profile" /> : <div className="profile-photo-placeholder">{(profile?.display_name || profile?.username || "C")[0].toUpperCase()}</div>}<p className="muted">Your photo is visible beside your name in DraftCenter discussions.</p><form className="form-stack" onSubmit={uploadPhoto}><label>Choose photo<input type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => setFile(event.target.files?.[0] || null)} /></label><button className="primary-button" disabled={busy}>{busy ? "Uploading..." : "Save profile photo"}</button></form><FavoritePokemonEditor supabase={supabase} user={user}/><hr/><h3>Daily Poll of the Day</h3><label className="check-row"><input type="checkbox" checked={dailyPollEmail} disabled={busy} onChange={(event) => saveDailyPollEmail(event.target.checked)} /> Email me yesterday's results each day</label>{message && <p className="hub-message">{message}</p>}</section></div>;
 }
 
-function LandingCardPokemon({ names, interval = 5200 }) {
-  const choices = names.length ? names : ["Pikachu"];
-  const [index, setIndex] = useState(() => Math.floor(Math.random() * choices.length));
-  const [image, setImage] = useState("");
-  const name = choices[index % choices.length];
-  useEffect(() => { setIndex((current) => current % choices.length); }, [choices.length]);
-  useEffect(() => { const timer = window.setInterval(() => setIndex((current) => (current + 1) % choices.length), interval); return () => window.clearInterval(timer); }, [choices.length, interval]);
-  useEffect(() => {
-    let active = true;
-    const apiName = String(name || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
-    setImage("");
-    fetch(`https://pokeapi.co/api/v2/pokemon/${encodeURIComponent(apiName)}`)
-      .then((response) => response.ok ? response.json() : null)
-      .then((data) => { if (active) setImage(data?.sprites?.other?.["official-artwork"]?.front_default || data?.sprites?.front_default || ""); })
-      .catch(() => { if (active) setImage(""); });
-    return () => { active = false; };
-  }, [name]);
-  return <div className="visitor-card-pokemon">{image && <img src={image} alt={name} />}<small>{name}</small></div>;
-}
-
 function PublicLanding({ email, password, setEmail, setPassword, busy, message, onSubmit, onMode }) {
   const [featured, setFeatured] = useState(null);
   const [poll, setPoll] = useState(null);
   const [communityPokemon, setCommunityPokemon] = useState(["Pikachu","Eevee","Charizard"]);
   useEffect(() => {
-    const pokemon = POKEMON_DIRECTORY[Math.floor(Math.random() * POKEMON_DIRECTORY.length)];
-    if (pokemon) {
-      const key = pokemon.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
-      Promise.all([fetch(`https://pokeapi.co/api/v2/pokemon/${key}`), fetch(`https://pokeapi.co/api/v2/pokemon-species/${key}`)])
-        .then(async ([pokemonResponse, speciesResponse]) => {
-          if (!pokemonResponse.ok || !speciesResponse.ok) throw new Error("Unavailable");
-          const [pokemonData, speciesData] = await Promise.all([pokemonResponse.json(), speciesResponse.json()]);
-          const entries = (speciesData.flavor_text_entries || []).filter((entry) => entry.language.name === "en");
-          const entry = entries.length ? entries[Math.floor(Math.random() * entries.length)] : null;
-          setFeatured({ name: pokemon.name, image: pokemonData.sprites?.other?.["official-artwork"]?.front_default || pokemonData.sprites?.front_default, entry: entry?.flavor_text?.replace(/[\n\f]/g, " "), game: entry?.version?.name?.replace(/-/g, " ") });
-        }).catch(() => setFeatured({ name: pokemon.name }));
+    let active = true;
+    async function chooseFeatured() {
+      const shuffled = [...POKEMON_DIRECTORY].sort(() => Math.random() - .5);
+      for (const pokemon of shuffled.slice(0, 30)) {
+        for (const apiName of pokemonArtworkCandidates(pokemon.name)) {
+          try {
+            const [pokemonResponse, speciesResponse] = await Promise.all([fetch(`https://pokeapi.co/api/v2/pokemon/${apiName}`), fetch(`https://pokeapi.co/api/v2/pokemon-species/${apiName}`)]);
+            if (!pokemonResponse.ok || !speciesResponse.ok) continue;
+            const [pokemonData, speciesData] = await Promise.all([pokemonResponse.json(), speciesResponse.json()]);
+            const image = pokemonData.sprites?.other?.["official-artwork"]?.front_default || pokemonData.sprites?.front_default;
+            if (!image) continue;
+            const entries = (speciesData.flavor_text_entries || []).filter((entry) => entry.language.name === "en");
+            const entry = entries.length ? entries[Math.floor(Math.random() * entries.length)] : null;
+            if (active) setFeatured({ name: pokemon.name, image, entry: entry?.flavor_text?.replace(/[\n\f]/g, " "), game: entry?.version?.name?.replace(/-/g, " ") });
+            return;
+          } catch {}
+        }
+      }
     }
+    chooseFeatured();
     createClient().rpc("get_public_explore").then(({ data }) => {
       setPoll(data?.poll || null);
       const pollLeaders = data?.poll?.answer_type === "pokemon" ? Object.entries(data.poll.counts || {}).sort(([, a], [, b]) => b - a).slice(0, 3).map(([name]) => name) : [];
@@ -75,8 +63,9 @@ function PublicLanding({ email, password, setEmail, setPassword, busy, message, 
       const highlights = [...new Set([...pollLeaders, ...favorites])].filter(Boolean);
       if (highlights.length) setCommunityPokemon(highlights);
     }).catch(() => {});
+    return () => { active = false; };
   }, []);
-  return <main className="visitor-home"><section className="visitor-hero"><div className="visitor-brand"><img src="/draftcenter-logo.png" alt="DraftCenter" /><span className="eyebrow">DRAFTCENTER</span></div><h1>More than a place to run a draft.</h1><p>Explore Pokémon, follow public leagues, and see what the DraftCenter community is enjoying—all before creating an account.</p><div className="visitor-free-grid"><a href="/pokemon" className="visitor-feature-card"><span>POKÉDEX</span><strong>Explore Pokémon</strong>{featured?.image && <img src={featured.image} alt={featured.name} />}{featured ? <div className="visitor-feature-copy"><b>Featured: {featured.name}</b>{featured.entry ? <small>“{featured.entry}” <em>{featured.game}</em></small> : <small>Open its full Pokédex entry, stats, and move pools.</small>}</div> : <small>Loading a Pokémon from the Pokédex...</small>}</a><a href="/explore" className="visitor-feature-card"><span>COMMUNITY</span><strong>Explore trends</strong><LandingCardPokemon names={communityPokemon} /><div className="visitor-poll-preview"><b>Poll of the Day</b><p>{poll?.question || "See today’s Pokémon question and community results."}</p>{poll?.total_votes != null && <small>{poll.total_votes} vote{poll.total_votes === 1 ? "" : "s"} so far</small>}</div></a><a href="/explore" className="visitor-feature-card"><span>PUBLIC LEAGUES</span><strong>Watch a draft</strong><LandingCardPokemon names={WORLD_CHAMPION_POKEMON} interval={6300} /><div className="visitor-feature-copy"><b>World champion spotlight</b><small>Follow public boards and see league results as they grow.</small></div></a></div></section><aside className="visitor-signin"><span className="eyebrow">MEMBERS</span><h2>Welcome back</h2><p className="muted">Sign in when you are ready to join, manage, or create a league.</p><form onSubmit={onSubmit} className="form-stack"><label>Email<input type="email" required value={email} onChange={(event) => setEmail(event.target.value)} style={inputStyle}/></label><label>Password<input type="password" required minLength={6} value={password} onChange={(event) => setPassword(event.target.value)} style={inputStyle}/></label>{message && <p className="hub-message">{message}</p>}<button className="primary-button" disabled={busy}>{busy ? "Please wait..." : "Sign in"}</button></form><div className="visitor-account-links"><button className="text-button" onClick={() => onMode("forgot_password")}>Forgot password?</button><button className="text-button" onClick={() => onMode("sign_up")}>New here? Create an account</button></div></aside></main>;
+  return <main className="visitor-home"><section className="visitor-hero"><div className="visitor-brand"><img src="/draftcenter-logo.png" alt="DraftCenter" /><span className="eyebrow">DRAFTCENTER</span></div><h1>More than a place to run a draft.</h1><p>Explore Pokémon, follow public leagues, and see what the DraftCenter community is enjoying—all before creating an account.</p><div className="visitor-free-grid"><a href="/pokemon" className="visitor-feature-card"><span>POKÉDEX</span><strong>Explore Pokémon</strong>{featured?.image && <img src={featured.image} alt={featured.name} />}{featured ? <div className="visitor-feature-copy"><b>Featured: {featured.name}</b>{featured.entry ? <small>“{featured.entry}” <em>{featured.game}</em></small> : <small>Open its full Pokédex entry, stats, and move pools.</small>}</div> : <small>Loading a Pokémon from the Pokédex...</small>}</a><a href="/explore" className="visitor-feature-card"><span>COMMUNITY</span><strong>Explore trends</strong><RotatingPokemonArtwork names={communityPokemon} className="visitor-card-pokemon" /><div className="visitor-poll-preview"><b>Poll of the Day</b><p>{poll?.question || "See today’s Pokémon question and community results."}</p>{poll?.total_votes != null && <small>{poll.total_votes} vote{poll.total_votes === 1 ? "" : "s"} so far</small>}</div></a><a href="/explore" className="visitor-feature-card"><span>PUBLIC LEAGUES</span><strong>Watch a draft</strong><RotatingPokemonArtwork names={WORLD_CHAMPION_POKEMON} interval={6300} className="visitor-card-pokemon" /><div className="visitor-feature-copy"><b>World champion spotlight</b><small>Follow public boards and see league results as they grow.</small></div></a></div></section><aside className="visitor-signin"><span className="eyebrow">MEMBERS</span><h2>Welcome back</h2><p className="muted">Sign in when you are ready to join, manage, or create a league.</p><form onSubmit={onSubmit} className="form-stack"><label>Email<input type="email" required value={email} onChange={(event) => setEmail(event.target.value)} style={inputStyle}/></label><label>Password<input type="password" required minLength={6} value={password} onChange={(event) => setPassword(event.target.value)} style={inputStyle}/></label>{message && <p className="hub-message">{message}</p>}<button className="primary-button" disabled={busy}>{busy ? "Please wait..." : "Sign in"}</button></form><div className="visitor-account-links"><button className="text-button" onClick={() => onMode("forgot_password")}>Forgot password?</button><button className="text-button" onClick={() => onMode("sign_up")}>New here? Create an account</button></div></aside></main>;
 }
 
 function LeagueAppearanceEditor({ league, onClose, onUpdated }) {

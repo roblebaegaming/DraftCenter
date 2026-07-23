@@ -26,26 +26,56 @@ export const WORLD_CHAMPION_POKEMON = [
   "Farigiraf","Koraidon","Chi-Yu","Brute Bonnet","Ursaluna",
 ];
 
-function FeaturePokemon({ names, interval = 5000 }) {
-  const choices = names.length ? names : ["Pikachu"];
+export function pokemonArtworkCandidates(name) {
+  const key = pokemonSlug(name);
+  const candidates = [key];
+  const regional = key.match(/^(alolan|galarian|hisuian|paldean)-(.+)$/);
+  if (regional) candidates.unshift(`${regional[2]}-${{ alolan:"alola", galarian:"galar", hisuian:"hisui", paldean:"paldea" }[regional[1]]}`);
+  const mega = key.match(/^mega-(.+?)(?:-(x|y))?$/);
+  if (mega) candidates.unshift(`${mega[1]}-mega${mega[2] ? `-${mega[2]}` : ""}`);
+  if (key === "paldean-tauros-fire") candidates.unshift("tauros-paldea-blaze");
+  if (key === "paldean-tauros-water") candidates.unshift("tauros-paldea-aqua");
+  if (key === "paldean-tauros") candidates.unshift("tauros-paldea-combat");
+  if (key === "white-striped-basculin") candidates.unshift("basculin-white-striped");
+  if (key === "farfetch-d") candidates.unshift("farfetchd");
+  if (key === "sirfetch-d") candidates.unshift("sirfetchd");
+  return [...new Set(candidates.filter(Boolean))];
+}
+
+async function loadPokemonArtwork(name) {
+  for (const apiName of pokemonArtworkCandidates(name)) {
+    try {
+      const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${encodeURIComponent(apiName)}`);
+      if (!response.ok) continue;
+      const data = await response.json();
+      const image = data?.sprites?.other?.["official-artwork"]?.front_default || data?.sprites?.front_default;
+      if (image) return image;
+    } catch {}
+  }
+  return "";
+}
+
+export function RotatingPokemonArtwork({ names, interval = 5000, className = "hub-feature-pokemon" }) {
+  const choices = [...new Set([...(names || []).filter(Boolean), "Pikachu"])];
   const [index, setIndex] = useState(() => Math.floor(Math.random() * choices.length));
-  const [image, setImage] = useState("");
+  const [shown, setShown] = useState(null);
   const name = choices[index % choices.length];
   useEffect(() => { setIndex((current) => current % choices.length); }, [choices.length]);
   useEffect(() => {
-    const timer = window.setInterval(() => setIndex((current) => (current + 1) % choices.length), interval);
-    return () => window.clearInterval(timer);
-  }, [choices.length, interval]);
-  useEffect(() => {
     let active = true;
-    setImage("");
-    fetch(`https://pokeapi.co/api/v2/pokemon/${encodeURIComponent(pokemonSlug(name))}`)
-      .then((response) => response.ok ? response.json() : null)
-      .then((data) => { if (active) setImage(data?.sprites?.other?.["official-artwork"]?.front_default || data?.sprites?.front_default || ""); })
-      .catch(() => { if (active) setImage(""); });
+    loadPokemonArtwork(name).then((image) => {
+      if (!active) return;
+      if (image) setShown({ name, image });
+      else window.setTimeout(() => { if (active) setIndex((current) => (current + 1) % choices.length); }, 150);
+    });
     return () => { active = false; };
-  }, [name]);
-  return <div className="hub-feature-pokemon">{image ? <img src={image} alt={name} /> : <span className="hub-feature-placeholder">★</span>}<small>{name}</small></div>;
+  }, [name, choices.length]);
+  useEffect(() => { if (!shown) return undefined; const timer = window.setTimeout(() => setIndex((current) => (current + 1) % choices.length), interval); return () => window.clearTimeout(timer); }, [shown, index, choices.length, interval]);
+  return <div className={className}>{shown && <><img src={shown.image} alt={shown.name} /><small>{shown.name}</small></>}</div>;
+}
+
+function FeaturePokemon({ names, interval = 5000 }) {
+  return <RotatingPokemonArtwork names={names} interval={interval} />;
 }
 
 function PollPokemonImage({ name }) {
