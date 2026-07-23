@@ -12160,7 +12160,7 @@ function PlayoffsView({ state, isCommissioner, myName, standings, generatePlayof
       })()}
 
       {viewMode === "bracket" ? (
-        <BracketTree rounds={rounds} roundNames={settings.playoffRoundNames} teams={teams} rosters={rosters}
+        <BracketTree rounds={rounds} roundNames={normalizedPlayoffRoundNames(settings.playoffRoundNames, playoffs.bracketSize)} teams={teams} rosters={rosters}
           isCommissioner={isCommissioner} myName={myName} reportPlayoffMatch={reportPlayoffMatch} onSetMVP={setPlayoffMVP}
           trackDifferential={!!settings.playoffSeedCriteria?.differential} onViewTeam={onViewTeam} />
       ) : (
@@ -12636,6 +12636,7 @@ function DivisionPlayoffsView({ playoffs, teams, rosters, settings, isCommission
 // it feeds into next round. Designed to look clean enough to screenshot.
 function BracketTree({ rounds, roundNames, teams, rosters, isCommissioner, myName, reportPlayoffMatch, onSetMVP, trackDifferential, onViewTeam }) {
   const totalRounds = rounds.length;
+  const isShowcaseFinal = totalRounds === 1 && rounds[0]?.length === 1;
   // Every round's column gets the SAME total height, divided into equal
   // slots sized off the first round's match count. A match centered
   // within its slot always lands exactly at the midpoint of the two
@@ -12643,15 +12644,21 @@ function BracketTree({ rounds, roundNames, teams, rosters, isCommissioner, myNam
   // this is what actually produces the converging pyramid shape, at any
   // number of rounds, without needing to hand-tune spacing per depth.
   const firstRoundCount = Math.max(1, rounds[0]?.length || 1);
-  const slotHeight = 132;
+  const slotHeight = isShowcaseFinal ? 430 : 300;
   const totalHeight = slotHeight * firstRoundCount;
   return (
-    <div style={{ width: "100%", maxWidth: "100%", overflow: "hidden" }}>
+    <div style={{ width: "100%", maxWidth: "100%" }}>
       <div className="w-full overflow-x-auto pb-2" style={{ maxWidth: "100%" }}>
-        <div className="flex gap-14 p-3" style={{ minWidth: "max-content" }}>
+        <div className={`flex gap-14 ${isShowcaseFinal ? "justify-center p-6 md:p-10" : "p-3"}`} style={{ minWidth: isShowcaseFinal ? 0 : "max-content" }}>
           {rounds.map((round, rIdx) => (
-            <div key={rIdx} className="flex flex-col" style={{ width: 280 }}>
-              <h3 className="display-font text-xl text-center mb-5" style={{ color: "#9A9FBD" }}>
+            <div key={rIdx} className="flex flex-col flex-shrink-0" style={{
+              width: isShowcaseFinal ? "min(100%, 560px)" : 320,
+              padding: isShowcaseFinal ? 24 : 0,
+              borderRadius: isShowcaseFinal ? 18 : 0,
+              border: isShowcaseFinal ? "1px solid rgba(255,210,63,0.28)" : "none",
+              background: isShowcaseFinal ? "radial-gradient(circle at top, rgba(255,210,63,0.10), rgba(23,26,44,0.72) 55%, rgba(16,18,28,0.45))" : "transparent",
+            }}>
+              <h3 className={`display-font text-center mb-5 ${isShowcaseFinal ? "text-4xl" : "text-xl"}`} style={{ color: isShowcaseFinal ? "#FFD23F" : "#9A9FBD" }}>
                 {roundNames[rIdx] || `Round ${rIdx + 1}`}
               </h3>
               <div className="flex flex-col" style={{ height: totalHeight }}>
@@ -12664,9 +12671,9 @@ function BracketTree({ rounds, roundNames, teams, rosters, isCommissioner, myNam
                     <div key={mIdx} className="flex flex-col justify-center" style={{ flex: 1, overflow: "visible" }}>
                       <div className="flex items-center">
                         <div className="flex-1 rounded-lg overflow-hidden" style={{ border: "1px solid rgba(255,255,255,0.1)" }}>
-                          <BracketSlot team={match.a !== null ? teams[match.a] : null} seed={match.seedA} isWinner={winnerIdx === match.a} pending={match.a === null} isBye={match.bye && match.a === null} onViewTeam={onViewTeam} />
+                          <BracketSlot team={match.a !== null ? teams[match.a] : null} seed={match.seedA} isWinner={winnerIdx === match.a} pending={match.a === null} isBye={match.bye && match.a === null} onViewTeam={onViewTeam} showcase={isShowcaseFinal} />
                           <div style={{ height: 1, background: "rgba(255,255,255,0.1)" }} />
-                          <BracketSlot team={match.b !== null ? teams[match.b] : null} seed={match.seedB} isWinner={winnerIdx === match.b} pending={match.b === null} isBye={match.bye && match.b === null} onViewTeam={onViewTeam} />
+                          <BracketSlot team={match.b !== null ? teams[match.b] : null} seed={match.seedB} isWinner={winnerIdx === match.b} pending={match.b === null} isBye={match.bye && match.b === null} onViewTeam={onViewTeam} showcase={isShowcaseFinal} />
                         </div>
                         {rIdx < totalRounds - 1 && (
                           <div style={{ width: 28, height: 1, background: "rgba(255,255,255,0.15)", flexShrink: 0 }} />
@@ -12691,18 +12698,18 @@ function BracketTree({ rounds, roundNames, teams, rosters, isCommissioner, myNam
   );
 }
 
-function BracketSlot({ team, seed, isWinner, pending, isBye, onViewTeam }) {
+function BracketSlot({ team, seed, isWinner, pending, isBye, onViewTeam, showcase = false }) {
   return (
-    <div className="flex items-center gap-3 px-3.5 py-3"
+    <div className={`flex items-center ${showcase ? "gap-4 px-5 py-5" : "gap-3 px-3.5 py-3"}`}
       style={{ background: isWinner ? (team?.color || "#FFD23F") + "14" : "#171A2C", opacity: pending ? 0.4 : 1 }}>
       <span className="mono-font text-xs flex-shrink-0" style={{ color: "#5B5F7E", width: 20 }}>{seed ?? ""}</span>
-      {team && <TeamLogo team={team} size={30} />}
+      {team && <TeamLogo team={team} size={showcase ? 46 : 30} />}
       {onViewTeam && team ? (
-        <button onClick={() => onViewTeam(team.id)} className="text-base font-medium truncate hover:underline" style={{ color: isWinner ? (team?.color || "#FFD23F") : "#EDEBFA" }}>
+        <button onClick={() => onViewTeam(team.id)} className={`${showcase ? "text-xl" : "text-base"} font-medium truncate hover:underline`} style={{ color: isWinner ? (team?.color || "#FFD23F") : "#EDEBFA" }}>
           {team.name}
         </button>
       ) : (
-        <span className="text-base font-medium truncate" style={{ color: isWinner ? (team?.color || "#FFD23F") : "#EDEBFA" }}>
+        <span className={`${showcase ? "text-xl" : "text-base"} font-medium truncate`} style={{ color: isWinner ? (team?.color || "#FFD23F") : "#EDEBFA" }}>
           {team?.name || (isBye ? "BYE" : "TBD")}
         </span>
       )}
