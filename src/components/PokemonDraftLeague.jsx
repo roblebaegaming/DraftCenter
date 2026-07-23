@@ -11154,7 +11154,7 @@ function PredictionsView({ state, myName, submitPrediction, onViewTeam }) {
                       const pct = side === "A" ? aPct : bPct;
                       return (
                         <button key={side} disabled={!!result || !myName}
-                          onClick={() => submitPrediction(week, mIdx, { side })}
+                          onClick={() => submitPrediction(week, mIdx, { side, ...(myPick?.side && myPick.side !== side ? { setScore: null, gameMargins: null, monsAlive: null } : {}) })}
                           className="flex-1 flex flex-col items-center gap-1 px-2 py-3 rounded disabled:cursor-default"
                           style={{
                             background: picked ? "#FFD23F1A" : "#1B1F33",
@@ -11180,24 +11180,38 @@ function PredictionsView({ state, myName, submitPrediction, onViewTeam }) {
                   {!result && myPick?.side && (
                     <div className="flex flex-col gap-2 mb-3 pt-3" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-[10px] mono-font" style={{ color: "#5B5F7E" }}>Exact score? (+2pts)</span>
+                        <span className="text-[10px] mono-font" style={{ color: "#5B5F7E" }}>Exact score? (+1 bonus point)</span>
                         {setScoreOptions.map((sc) => (
-                          <button key={sc} onClick={() => submitPrediction(week, mIdx, { setScore: sc })}
+                          <button key={sc} onClick={() => submitPrediction(week, mIdx, { setScore: sc, gameMargins: defaultPredictionGames(sc), monsAlive: null })}
                             className="px-2 py-0.5 rounded text-xs font-semibold mono-font"
                             style={{ background: myPick.setScore === sc ? "#FFD23F" : "#1F2338", color: myPick.setScore === sc ? "#10121C" : "#9A9FBD" }}>
                             {sc}
                           </button>
                         ))}
                       </div>
-                      {trackDifferential && (
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-[10px] mono-font" style={{ color: "#5B5F7E" }}>Winner keeps how many mons? (tiebreaker)</span>
-                          <input type="number" min={1} value={myPick.monsAlive ?? ""}
-                            onChange={(e) => submitPrediction(week, mIdx, { monsAlive: e.target.value === "" ? null : Number(e.target.value) })}
-                            placeholder="#"
-                            className="w-14 px-1.5 py-0.5 rounded mono-font text-xs" style={{ background: "#1F2338", border: "1px solid rgba(255,255,255,0.1)", color: "#EDEBFA" }} />
-                        </div>
-                      )}
+                      {trackDifferential && myPick.setScore && (() => {
+                        const games = Array.isArray(myPick.gameMargins) && myPick.gameMargins.length ? myPick.gameMargins : defaultPredictionGames(myPick.setScore);
+                        const differentialA = predictionDifferentialA({ ...myPick, gameMargins: games });
+                        const [expectedA, expectedB] = myPick.setScore.split("-").map(Number);
+                        const actualA = games.filter((game) => game.winner === "A").length;
+                        const actualB = games.filter((game) => game.winner === "B").length;
+                        const validWinners = actualA === expectedA && actualB === expectedB;
+                        function updateGame(index, patch) {
+                          submitPrediction(week, mIdx, { gameMargins: games.map((game, gameIndex) => gameIndex === index ? { ...game, ...patch } : game) });
+                        }
+                        return <div className="prediction-game-margins">
+                          <span className="text-[10px] mono-font" style={{ color: "#5B5F7E" }}>Per-game differential prediction (tiebreaker)</span>
+                          {games.map((game, gameIndex) => <div className="prediction-game-row" key={gameIndex}>
+                            <strong>Game {gameIndex + 1}</strong>
+                            <select value={game.winner} onChange={(event) => updateGame(gameIndex, { winner: event.target.value })}>
+                              <option value="A">{teams[a]?.name || "Team A"} won</option>
+                              <option value="B">{teams[b]?.name || "Team B"} won</option>
+                            </select>
+                            <label><input type="number" min={1} max={6} value={game.remaining ?? 1} onChange={(event) => updateGame(gameIndex, { remaining: Math.max(1, Math.min(6, Number(event.target.value) || 1)) })} /> remaining</label>
+                          </div>)}
+                          {!validWinners ? <small style={{ color: "#F0555A" }}>Game winners must add up to the predicted {myPick.setScore} set score.</small> : <small style={{ color: "#4FD1C5" }}>Predicted differential: {teams[a]?.name} {differentialA > 0 ? "+" : ""}{differentialA} · {teams[b]?.name} {-differentialA > 0 ? "+" : ""}{-differentialA}</small>}
+                        </div>;
+                      })()}
                     </div>
                   )}
 
