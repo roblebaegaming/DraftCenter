@@ -16,7 +16,7 @@ function pokemonSlug(name) {
   return String(name || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 }
 
-const WORLD_CHAMPION_POKEMON = [
+export const WORLD_CHAMPION_POKEMON = [
   "Ludicolo","Toxicroak","Metagross","Snorlax","Salamence","Empoleon","Kyogre","Dialga","Groudon","Cresselia",
   "Hariyama","Thundurus","Gothitelle","Conkeldurr","Terrakion","Hydreigon","Escavalier","Garchomp","Rotom",
   "Tyranitar","Tornadus","Mamoswine","Amoonguss","Latios","Heatran","Pachirisu","Talonflame","Gardevoir",
