@@ -4486,7 +4486,26 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       if (!alive) return;
       if (remote && remote.rev >= revRef.current) {
         revRef.current = remote.rev;
-        setState(hydrateState(remote));
+        setState((current) => {
+          const hydrated = hydrateState(remote);
+          if (!current.liveDraft?.sessionId) return hydrated;
+
+          // Once a Live Shared Draft exists, picks and turn order belong to
+          // the server-authoritative draft tables. The older whole-league
+          // snapshot can still update settings/messages, but must never roll
+          // the board back between live refreshes.
+          return {
+            ...hydrated,
+            locked: current.locked,
+            rosters: current.rosters,
+            pool: current.pool,
+            pickIndex: current.pickIndex,
+            pickDeadline: current.pickDeadline,
+            paused: current.paused,
+            pausedAt: current.pausedAt,
+            liveDraft: current.liveDraft,
+          };
+        });
       }
       setSynced(true);
       if (leagueId) setSaveStatus("saved");
