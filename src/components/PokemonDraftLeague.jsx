@@ -5893,7 +5893,12 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       // rather than it being derived from standings — this is what actually
       // makes an "unusual rules" bracket possible: any matchup, any team
       // getting a bye regardless of standing, any size.
-      const seeds = customSeeds || computeStandings(s, s.settings.playoffSeedCriteria).slice(0, s.settings.playoffTeams).map((row) => row.id);
+      // Never create empty playoff seeds just because an older league was
+      // saved with the default Top 4 setting. A two-team league is a direct
+      // championship series, and every other bracket is capped to its real
+      // number of teams.
+      const playoffTeamCount = Math.max(2, Math.min(Number(s.settings.playoffTeams) || 2, s.teams.length));
+      const seeds = customSeeds || computeStandings(s, s.settings.playoffSeedCriteria).slice(0, playoffTeamCount).map((row) => row.id);
       const bracketSize = nextPowerOfTwo(Math.max(2, seeds.length));
       if (s.settings.doubleElimination) {
         return { ...s, playoffs: { mode: "double-elim", bracketSize, seeds, results: {}, losersResults: {}, grandFinal: {} } };
@@ -9138,7 +9143,12 @@ function CriteriaToggleRow({ label, criteria, onChange }) {
 }
 
 function ScheduleAndPlayoffsCard({ state, isCommissioner, updateSettings }) {
-  const { settings } = state;
+  const rawSettings = state.settings;
+  const playoffMax = Math.max(2, Math.min(Number(rawSettings.leagueSize) || 2, state.teams?.length || Number(rawSettings.leagueSize) || 2));
+  const playoffTeams = Math.max(2, Math.min(Number(rawSettings.playoffTeams) || 2, playoffMax));
+  // Use the safe value throughout this card, including older leagues saved
+  // with Top 4 before they were reduced to two teams.
+  const settings = { ...rawSettings, playoffTeams };
   const baseWeeks = (() => {
     const n = settings.leagueSize % 2 === 0 ? settings.leagueSize - 1 : settings.leagueSize;
     return n;
@@ -9146,7 +9156,8 @@ function ScheduleAndPlayoffsCard({ state, isCommissioner, updateSettings }) {
   const effectiveWeeks = settings.scheduleWeeks || baseWeeks;
 
   function setPlayoffTeams(n) {
-    updateSettings({ playoffTeams: n, playoffRoundNames: defaultPlayoffRoundNames(nextPowerOfTwo(n)) });
+    const next = Math.max(2, Math.min(n, playoffMax));
+    updateSettings({ playoffTeams: next, playoffRoundNames: defaultPlayoffRoundNames(nextPowerOfTwo(next)) });
   }
   function setRoundName(idx, val) {
     const names = [...settings.playoffRoundNames];
@@ -9229,12 +9240,12 @@ function ScheduleAndPlayoffsCard({ state, isCommissioner, updateSettings }) {
         <label className="block text-sm mb-2" style={{ color: "#9A9FBD" }}>
           Playoff bracket size — <span style={{ color: "#EDEBFA" }}>Top {settings.playoffTeams}</span>
         </label>
-        <input type="range" min={2} max={Math.max(2, settings.leagueSize)} value={settings.playoffTeams}
+        <input type="range" min={2} max={playoffMax} value={playoffTeams}
           onChange={(e) => setPlayoffTeams(Number(e.target.value))} className="w-full mb-2" />
         <p className="text-xs mb-3" style={{ color: "#5B5F7E" }}>
           {(() => {
-            const bs = nextPowerOfTwo(settings.playoffTeams);
-            const byes = bs - settings.playoffTeams;
+            const bs = nextPowerOfTwo(playoffTeams);
+            const byes = bs - playoffTeams;
             return byes > 0
               ? `Rounds up to a ${bs}-team bracket — the top ${byes} seed${byes === 1 ? "" : "s"} get a bye straight through round 1.`
               : `An even ${bs}-team bracket — no byes needed.`;
