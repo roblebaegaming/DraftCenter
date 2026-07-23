@@ -132,7 +132,7 @@ export default function PublicExplore() {
   return <main className="explore-shell">
     {selectedPokemon && <CommunityPokemonPreview name={selectedPokemon} onClose={() => setSelectedPokemon("")} />}
     <header className="explore-hero">
-      <div className="public-page-nav"><a className="quiet-button community-home-link" href="/"><img src="/draftcenter-logo.png" alt="" />DraftCenter Home</a><a className="quiet-button" href="/pokemon">Pokémon</a></div>
+      <div className="public-page-nav"><a className="quiet-button community-home-link" href="/"><img src="/draftcenter-logo.png" alt="" />DraftCenter Home</a><a className="quiet-button" href="/leagues">Public Leagues</a><a className="quiet-button" href="/pokemon">Pokémon</a></div>
       <span className="eyebrow">EXPLORE DRAFTCENTER</span>
       <h1>Pokémon, leagues, and community trends.</h1>
       <p>{signedIn ? "See what DraftCenter coaches are voting for, favoriting, and drafting." : "Explore public leagues and completed community polls. Create an account to vote, comment, and reveal today's results."}</p>
@@ -149,7 +149,7 @@ export default function PublicExplore() {
       </section>
       <section className="explore-card">
         <span className="eyebrow">PUBLIC LEAGUES</span><h2>Watch or join a league</h2>
-        {data.leagues?.length ? <div className="public-explore-leagues">{data.leagues.slice(0, 6).map((league) => <article key={league.id}>{league.image_url && <img src={league.image_url} alt="" />}<div><strong>{league.name}</strong><p>{league.description || league.season_label || "Public DraftCenter league"}</p><span>{league.league_visibility === "open" ? "Open to managers" : "Public to watch"}</span><a className="public-league-link" href={`/league/${league.slug}`}>View league →</a></div></article>)}</div> : <p className="muted">No public leagues have been listed yet.</p>}
+        {data.leagues?.length ? <><div className="public-explore-leagues">{data.leagues.slice(0, 4).map((league) => <article key={league.id}>{league.image_url && <img src={league.image_url} alt="" />}<div><strong>{league.name}</strong><p>{league.description || league.season_label || "Public DraftCenter league"}</p><span>{league.league_visibility === "open" ? "Open to managers" : "Public to watch"}</span><a className="public-league-link" href={`/league/${league.slug}`}>View league →</a></div></article>)}</div><a className="secondary-button public-league-directory-link" href="/leagues">Browse all Public Leagues →</a></> : <p className="muted">No public leagues have been listed yet.</p>}
       </section>
       {pollHistory.length > 0 && <section className="explore-card completed-polls-card"><span className="eyebrow">PAST POLLS</span><h2>Completed community results</h2><div className="completed-poll-list">{pollHistory.map((poll) => <details key={poll.id}><summary><span>{new Date(`${poll.poll_date}T12:00:00`).toLocaleDateString()}</span><strong>{poll.question}</strong></summary><p className="muted">{poll.total_votes} final vote{poll.total_votes === 1 ? "" : "s"}</p><PollResults poll={poll} showPodium onSelectPokemon={setSelectedPokemon} /></details>)}</div></section>}
       <Ranking onSelectPokemon={setSelectedPokemon} title="Most drafted this week" items={trends?.weekly_drafted} empty="Weekly rankings will appear after public non-practice drafts make picks." render={(item) => <span><strong>{item.pokemon}</strong><small>{item.drafts} draft{item.drafts === 1 ? "" : "s"} in the last 7 days</small></span>} />
