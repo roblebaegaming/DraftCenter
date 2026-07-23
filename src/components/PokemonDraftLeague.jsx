@@ -11016,11 +11016,35 @@ function scorePrediction(pred, result) {
     if (parts[0] === result.gamesA && parts[1] === result.gamesB) points += 1;
   }
   let closeness = null;
-  if (correct && pred.monsAlive != null) {
+  const predictedDifferentialA = predictionDifferentialA(pred);
+  if (correct && predictedDifferentialA != null) {
+    const actualDifferentialA = (Number(result.monsAliveA) || 0) - (Number(result.monsAliveB) || 0);
+    closeness = Math.abs(predictedDifferentialA - actualDifferentialA);
+  } else if (correct && pred.monsAlive != null) {
     const actualMonsAlive = actualWinner === "A" ? result.monsAliveA : result.monsAliveB;
     closeness = Math.abs(pred.monsAlive - actualMonsAlive);
   }
   return { points, closeness, correct };
+}
+
+function defaultPredictionGames(setScore) {
+  const [gamesA, gamesB] = String(setScore || "").split("-").map(Number);
+  if (!Number.isInteger(gamesA) || !Number.isInteger(gamesB)) return [];
+  return [
+    ...Array.from({ length: gamesA }, () => ({ winner: "A", remaining: 1 })),
+    ...Array.from({ length: gamesB }, () => ({ winner: "B", remaining: 1 })),
+  ];
+}
+
+function predictionDifferentialA(pred) {
+  if (!pred?.setScore || !Array.isArray(pred.gameMargins)) return null;
+  const [gamesA, gamesB] = pred.setScore.split("-").map(Number);
+  if (pred.gameMargins.length !== gamesA + gamesB) return null;
+  const winsA = pred.gameMargins.filter((game) => game.winner === "A").length;
+  const winsB = pred.gameMargins.filter((game) => game.winner === "B").length;
+  if (winsA !== gamesA || winsB !== gamesB) return null;
+  if (pred.gameMargins.some((game) => !Number.isInteger(Number(game.remaining)) || Number(game.remaining) < 1 || Number(game.remaining) > 6)) return null;
+  return pred.gameMargins.reduce((total, game) => total + (game.winner === "A" ? Number(game.remaining) : -Number(game.remaining)), 0);
 }
 
 // Anyone can play along here — league members and outside spectators alike
