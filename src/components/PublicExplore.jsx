@@ -21,6 +21,16 @@ function PollPokemonArtwork({ name }) {
   return image ? <img className="past-poll-pokemon" src={image} alt={name} /> : null;
 }
 
+function PokemonRankingArtwork({ name }) {
+  const [image, setImage] = useState("");
+  useEffect(() => {
+    let alive = true;
+    loadPokemonArtwork(name).then((next) => { if (alive) setImage(next); });
+    return () => { alive = false; };
+  }, [name]);
+  return image ? <img className="community-ranking-pokemon" src={image} alt="" /> : <span className="community-ranking-image-placeholder" aria-hidden="true" />;
+}
+
 function PollResults({ poll, showPodium = false }) {
   const rows = pollRows(poll);
   const placedCounts = [...new Set(rows.map((row) => row.count).filter((count) => count > 0))].slice(0, 3);
@@ -30,11 +40,11 @@ function PollResults({ poll, showPodium = false }) {
     const place = showPodium && poll.answer_type === "pokemon" ? placedCounts.indexOf(row.count) : -1;
     return <div key={row.label} className={place >= 0 ? `poll-podium-row place-${place + 1}` : ""}>
       <div className="poll-result-heading">
-        <span className="poll-result-contender">
+        <a className="poll-result-contender" href={poll.answer_type === "pokemon" ? `/pokemon?pokemon=${encodeURIComponent(row.label)}` : undefined}>
           {place >= 0 && <PollPokemonArtwork name={row.label} />}
           {place >= 0 && <span className="poll-medal" title={`${place + 1}${place === 0 ? "st" : place === 1 ? "nd" : "rd"} place`}>{medals[place]}</span>}
           <strong>{row.label}</strong>
-        </span>
+        </a>
         <span>{percent}%</span>
       </div>
       <i><span style={{ width: `${percent}%` }} /></i>
@@ -43,7 +53,7 @@ function PollResults({ poll, showPodium = false }) {
 }
 
 function Ranking({ title, items, render, empty }) {
-  return <section className="explore-card"><h2>{title}</h2>{items?.length ? <ol className="explore-ranking">{items.slice(0, 10).map((item, index) => <li key={`${item.pokemon}-${index}`}><b>{index + 1}</b>{render(item)}</li>)}</ol> : <p className="muted">{empty}</p>}</section>;
+  return <section className="explore-card"><h2>{title}</h2>{items?.length ? <ol className="explore-ranking">{items.slice(0, 10).map((item, index) => <li key={`${item.pokemon}-${index}`}><b>{index + 1}</b><a className="community-pokemon-link" href={`/pokemon?pokemon=${encodeURIComponent(item.pokemon)}`}><PokemonRankingArtwork name={item.pokemon} />{render(item)}</a></li>)}</ol> : <p className="muted">{empty}</p>}</section>;
 }
 
 export default function PublicExplore() {
@@ -95,7 +105,7 @@ export default function PublicExplore() {
       <Ranking title="Biggest fallers" items={marketTrends?.fallers} empty="Fallers appear after two full weeks of public draft activity." render={(item) => <span><strong>{item.pokemon}</strong><small>{item.change} drafts · {item.current_drafts} this week</small></span>} />
       <Ranking title="Highest public-league win rates" items={trends?.win_rates} empty="Win rates appear after Pokémon teams complete at least two confirmed public matches." render={(item) => <span><strong>{item.pokemon}</strong><small>{item.win_rate}% · {item.wins}-{item.games - item.wins} across {item.games} matches</small></span>} />
       <Ranking title="Community Pokémon popularity" items={data.popularity} empty="Favorite-six rankings will appear as coaches build profile teams." render={(item) => <span><strong>{item.pokemon}</strong><small>{item.favorites} favorite team{item.favorites === 1 ? "" : "s"}</small></span>} />
-      <Ranking title="Community ADP" items={data.adp} empty="ADP begins to form after a snake draft is completed." render={(item) => <span><strong>{item.pokemon}</strong><small>ADP {item.average_pick} · {item.drafts} completed draft{item.drafts === 1 ? "" : "s"}</small></span>} />
+      <Ranking title="Community ADP" items={data.adp} empty="ADP begins to form after a snake draft is completed." render={(item) => <span><strong>{item.pokemon}</strong><small>ADP {item.average_pick} · selected in {item.drafts} of {item.eligible_drafts || item.drafts} eligible draft{(item.eligible_drafts || item.drafts) === 1 ? "" : "s"}</small></span>} />
     </div>}
   </main>;
 }
