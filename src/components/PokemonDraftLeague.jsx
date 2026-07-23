@@ -8509,6 +8509,7 @@ function SetupView({ state, leagueId = null, isCommissioner, canBeCommissioner, 
   const [editingTeamName, setEditingTeamName] = useState(null);
   const [editingLogo, setEditingLogo] = useState(null);
   const [inviteMessage, setInviteMessage] = useState("");
+  const [reopeningSetup, setReopeningSetup] = useState(false);
   // (Division assignment now lives in DivisionDragBoard, its own component
   // with real pointer-based drag-and-drop — see below.)
   const [search, setSearch] = useState("");
@@ -8578,9 +8579,25 @@ function SetupView({ state, leagueId = null, isCommissioner, canBeCommissioner, 
     .slice()
     .sort((a, b) => (isPriced(a, settings) ? 1 : 0) - (isPriced(b, settings) ? 1 : 0) || costFor(b, settings) - costFor(a, settings) || a.name.localeCompare(b.name));
   const hiddenBannedCount = allMons.filter((p) => !isLegal(p, settings)).length;
+  const hasDraftSelections = (state.pickIndex || 0) > 0
+    || state.rosters.some((roster) => (roster || []).some((mon) => mon.acquiredVia !== "keeper"))
+    || Boolean(state.nominee?.highestBidder != null);
 
   return (
     <div>
+      {isCommissioner && locked && (
+        <section className="rounded-lg p-5 mb-6" style={{ background: hasDraftSelections ? "#261822" : "#102B2B", border: `1px solid ${hasDraftSelections ? "#F0555A55" : "#4FD1C577"}` }}>
+          <h2 className="display-font text-2xl mb-2" style={{ color: hasDraftSelections ? "#FF9AA7" : "#4FD1C5" }}>{hasDraftSelections ? "DRAFT SETTINGS ARE PROTECTED" : "NEED A LAST-MINUTE SETUP CHANGE?"}</h2>
+          {hasDraftSelections ? (
+            <p className="text-sm" style={{ color: "#C8CDEA" }}>This draft already contains selections, so regulation, pool, price, team-count, and draft-format changes stay protected. Non-destructive season, schedule, playoff, transaction, rules, payment, team-name, and appearance settings remain editable. To change draft-critical rules, use Restart This Draft from the Draft page first; that intentionally clears every pick.</p>
+          ) : (
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <p className="text-sm flex-1" style={{ color: "#BDF7EE" }}>No Pokémon have been selected yet. Reopen pre-draft Setup to adjust the regulation, allowed Pokémon, prices, teams, draft type, date, or any other saved setting. Managers and existing setup choices are preserved.</p>
+              <button type="button" disabled={reopeningSetup} onClick={async () => { setReopeningSetup(true); await resetDraft(); setReopeningSetup(false); }} className="px-4 py-2 rounded font-semibold text-sm" style={{ background: "#4FD1C5", color: "#10121C" }}>{reopeningSetup ? "Reopening..." : "REOPEN PRE-DRAFT SETUP"}</button>
+            </div>
+          )}
+        </section>
+      )}
       {!locked && <section style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }} className="rounded-lg p-5 mb-6">
         <h2 className="display-font text-2xl mb-2" style={{ color: "#FFD23F" }}>DRAFT DATE & MANAGER INVITES</h2>
         <p className="text-sm mb-4" style={{ color: "#9A9FBD" }}>{settings.draftScheduledAt ? `Currently scheduled for ${new Date(settings.draftScheduledAt).toLocaleString()}.` : "No draft time has been scheduled yet."}</p>
