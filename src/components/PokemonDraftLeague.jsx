@@ -11686,9 +11686,10 @@ function MatchCard({ teamA, teamB, result, canReport, onReport, pending, rosterA
 // since a cross-origin image would taint the canvas and silently break
 // the export; a colored-initial circle (same fallback style TeamLogo
 // itself uses when there's no logo) draws instantly and never fails.
-function downloadStandingsImage(standings, seasonNumber) {
+async function downloadStandingsImage(standings, seasonNumber, mvpEntries = []) {
   const rowH = 56, headerH = 100, padX = 32, width = 720;
-  const height = headerH + standings.length * rowH + 24;
+  const mvpSectionHeight = mvpEntries.length ? 52 + mvpEntries.length * 62 : 0;
+  const height = headerH + standings.length * rowH + 24 + mvpSectionHeight;
   const canvas = document.createElement("canvas");
   canvas.width = width; canvas.height = height;
   const ctx = canvas.getContext("2d");
@@ -11735,6 +11736,46 @@ function downloadStandingsImage(standings, seasonNumber) {
     ctx.fillStyle = s.differential > 0 ? "#4FD1C5" : s.differential < 0 ? "#F0555A" : "#9A9FBD";
     ctx.fillText((s.differential > 0 ? "+" : "") + s.differential, width - padX - 40, y + rowH / 2 + 6);
   });
+
+  if (mvpEntries.length) {
+    const sectionY = headerH + standings.length * rowH + 22;
+    ctx.strokeStyle = "rgba(255,255,255,0.12)";
+    ctx.beginPath(); ctx.moveTo(padX, sectionY); ctx.lineTo(width - padX, sectionY); ctx.stroke();
+    ctx.fillStyle = "#FFD23F";
+    ctx.font = "bold 17px Arial, sans-serif";
+    ctx.fillText(mvpEntries.length === 1 ? "REGULAR SEASON MVP" : "REGULAR SEASON MVPS", padX, sectionY + 30);
+
+    const artwork = await Promise.all(mvpEntries.map(async (entry) => {
+      try {
+        const data = await loadMonData(entry.name);
+        if (!data?.sprite) return null;
+        const spriteUrl = new URL(data.sprite, window.location.origin);
+        if (spriteUrl.protocol !== "data:" && spriteUrl.hostname !== "raw.githubusercontent.com") return null;
+        return await new Promise((resolve) => {
+          const image = new Image();
+          image.crossOrigin = "anonymous";
+          image.onload = () => resolve(image);
+          image.onerror = () => resolve(null);
+          image.src = data.sprite;
+        });
+      } catch {
+        return null;
+      }
+    }));
+
+    mvpEntries.forEach((entry, index) => {
+      const y = sectionY + 44 + index * 62;
+      ctx.fillStyle = "#171A2C";
+      ctx.fillRect(padX, y, width - padX * 2, 52);
+      if (artwork[index]) ctx.drawImage(artwork[index], padX + 8, y + 2, 48, 48);
+      ctx.fillStyle = "#EDEBFA";
+      ctx.font = "bold 17px Arial, sans-serif";
+      ctx.fillText(entry.name, padX + 68, y + 22);
+      ctx.fillStyle = "#9A9FBD";
+      ctx.font = "13px Arial, sans-serif";
+      ctx.fillText(entry.teamName, padX + 68, y + 42);
+    });
+  }
 
   const url = canvas.toDataURL("image/png");
   const a = document.createElement("a");
@@ -11859,6 +11900,15 @@ function StandingsView({ standings, settings, isCommissioner, setTeamOtherValue,
 
   const divisions = settings?.divisions || [];
   const hasDivisions = divisions.length > 0;
+  const mvpLeaders = hasDivisions
+    ? divisions.map((division) => standings.find((row) => division.teamIds.includes(row.id))).filter(Boolean)
+    : standings.slice(0, 1);
+  const standingsMVPs = seasonMVPActive
+    ? mvpLeaders.map((leader) => {
+        const name = computeSeasonMVPForTeam(schedule, matchResults, leader.id);
+        return name ? { name, teamName: leader.name } : null;
+      }).filter(Boolean)
+    : [];
   const footer = (
     <p className="text-xs px-4 py-3" style={{ color: "#5B5F7E", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
       Ranked by: {chainText}. Columns in yellow are the ones actually deciding rank right now — change which count in Schedule &amp; Playoffs settings.
@@ -11867,7 +11917,7 @@ function StandingsView({ standings, settings, isCommissioner, setTeamOtherValue,
   );
   const downloadButton = (
     <div className="flex justify-end mb-3">
-      <button onClick={() => downloadStandingsImage(standings, seasonNumber)}
+      <button onClick={() => downloadStandingsImage(standings, seasonNumber, standingsMVPs)}
         className="text-xs px-3 py-1.5 rounded font-semibold" style={{ background: "#1F2338", color: "#9A9FBD", border: "1px solid rgba(255,255,255,0.1)" }}>
         ⬇ Download standings image
       </button>
@@ -11995,6 +12045,14 @@ function PlayoffsView({ state, isCommissioner, myName, standings, generatePlayof
   }
 
   const usesDivisions = (settings.divisions || []).length >= 2;
+  // Older two-team leagues may still have the original default of four
+  // playoff teams saved. A bracket cannot require more teams than the
+  // league actually has, so a two-team postseason becomes one Final.
+  const effectivePlayoffTeams = Math.max(2, Math.min(Number(settings.playoffTeams) || 2, teams.length));
+  const effectiveRoundNames = normalizedPlayoffRoundNames(
+    settings.playoffRoundNames,
+    nextPowerOfTwo(effectivePlayoffTeams),
+  );
 
   if (!playoffs) {
     if (showCustomSeeder && !usesDivisions) {
@@ -12013,12 +12071,12 @@ function PlayoffsView({ state, isCommissioner, myName, standings, generatePlayof
           {usesDivisions
             ? `No bracket yet. Generating one seeds the top ${settings.divisionPlayoffTeams} teams from each division into that division's own bracket, then the division champions meet in a Grand Final.`
             : settings.doubleElimination
-              ? `No bracket yet. Generating one seeds the top ${settings.playoffTeams} teams into a double-elimination bracket — a first loss drops you to the losers bracket, a second loss is out.`
-              : `No bracket yet. Generating one seeds the top ${settings.playoffTeams} teams from current standings into a single-elimination bracket (${settings.playoffRoundNames.join(" → ")}).`}
+              ? `No bracket yet. Generating one seeds the top ${effectivePlayoffTeams} teams into a double-elimination bracket — a first loss drops you to the losers bracket, a second loss is out.`
+              : `No bracket yet. Generating one seeds the top ${effectivePlayoffTeams} teams from current standings into a single-elimination bracket (${effectiveRoundNames.join(" → ")}).`}
         </p>
         {isCommissioner ? (
           <>
-            <button onClick={() => generatePlayoffs()} disabled={standings.length < (usesDivisions ? settings.divisions.reduce((n, d) => n + Math.min(d.teamIds.length, settings.divisionPlayoffTeams), 0) : settings.playoffTeams)}
+            <button onClick={() => generatePlayoffs()} disabled={standings.length < (usesDivisions ? settings.divisions.reduce((n, d) => n + Math.min(d.teamIds.length, settings.divisionPlayoffTeams), 0) : effectivePlayoffTeams)}
               className="px-6 py-3 rounded font-semibold display-font text-xl glow disabled:opacity-40"
               style={{ background: "#FFD23F", color: "#10121C" }}>
               GENERATE PLAYOFF BRACKET
