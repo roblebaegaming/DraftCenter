@@ -6387,7 +6387,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   // resetDraft does, except team identities survive and the season counter
   // advances. This is what makes "Season 2" mean something instead of
   // starting the whole league over from scratch.
-  function startNewSeason() {
+  function startNewSeason(ruleMode = "same") {
     commit((s) => {
       const standings = computeStandings(s);
       const champion = getLeagueChampion(s);
@@ -6466,6 +6466,12 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
         trades: s.trades.filter((t) => t.status === "accepted"),
         draftType: s.settings.draftType,
         regulationFingerprint: regulationFingerprint(s.settings),
+        settings: { ...s.settings },
+        homepage: { ...s.homepage },
+        teams: s.teams.map((team) => ({ ...team })),
+        schedule: s.schedule,
+        matchResults: s.matchResults,
+        playoffs: s.playoffs,
         // One entry per drafted mon — draftPick (snake) or cost (auction) is
         // whichever number an average-draft-position stat actually needs;
         // manually-entered rosters (skip-the-draft leagues) never get a
@@ -6491,10 +6497,15 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
           if (kept.length) keeperRosters[teamIdx] = kept;
         });
       }
+      const nextSettings = ruleMode === "new"
+        ? { ...freshState().settings, leagueSize: s.teams.length, draftScheduledAt: null }
+        : { ...s.settings, draftScheduledAt: null };
       return {
         ...s,
         seasonNumber: s.seasonNumber + 1,
         seasonHistory: [...s.seasonHistory, summary],
+        settings: nextSettings,
+        homepage: ruleMode === "new" ? { ...s.homepage, rules: "" } : s.homepage,
         locked: false,
         teams: s.teams.map((t) => ({ ...t, archetypes: [] })),
         rosters: [], budgets: [], pool: [],
@@ -6508,14 +6519,32 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
         trades: [],
         transactionLog: [],
         playoffs: null,
-        keeperRosters,
+        keeperRosters: ruleMode === "new" ? {} : keeperRosters,
         keeperSelections: {},
         badges,
         draftHeroVotes: {},
-        auditLog: [...(s.auditLog || []), auditEntry(myName, `Started Season ${s.seasonNumber + 1}`)],
+        auditLog: [...(s.auditLog || []), auditEntry(myName, `Started Season ${s.seasonNumber + 1}`, ruleMode === "new" ? "started with new rules" : "carried forward the prior rules")],
       };
     });
+    if (leagueId) {
+      supabase.rpc("update_league_draft_time", { p_league_id: leagueId, p_draft_starts_at: null })
+        .then(({ error }) => { if (error) setLiveDraftError(`The prior draft date could not be cleared: ${error.message}`); });
+    }
     setTab("setup");
+  }
+
+  async function copyLeagueInvite(kind) {
+    if (!leagueId || !isCommissioner) return { error: "Only league commissioners can create invite links." };
+    const rpc = kind === "spectator" ? "create_spectator_invite" : "create_league_invite";
+    const { data, error } = await supabase.rpc(rpc, { p_league_id: leagueId, p_email: null });
+    if (error) return { error: error.message };
+    const link = `${window.location.origin}?${kind === "spectator" ? "spectate" : "invite"}=${data.token}`;
+    try {
+      await navigator.clipboard.writeText(link);
+    } catch {
+      return { link, error: "The link was created, but your browser could not copy it automatically." };
+    }
+    return { link };
   }
 
   /* ---- Transactions: trades + free agency ---- */
@@ -7110,6 +7139,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
           <HomeView state={state} isCommissioner={isCommissioner} myTeamIdx={myTeamIdx} standings={standings}
             onGetStarted={() => state.locked ? (setTab("league"), setLeagueSubTab("draft")) : setTab("setup")}
             onGoToLeague={(sub) => { setTab("league"); setLeagueSubTab(sub); }}
+            costFor={costFor}
           />
         )}
         {tab === "setup" && (
@@ -7124,7 +7154,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
             updateHomepage={updateHomepage} addExpansionTeam={addExpansionTeam} removeSpecificTeam={removeSpecificTeam}
             exportLeagueBackup={exportLeagueBackup} importLeagueBackup={importLeagueBackup}
             addCoCommissioner={addCoCommissioner} removeCoCommissioner={removeCoCommissioner}
-            onOpenLeagueTools={onOpenLeagueTools}
+            onOpenLeagueTools={onOpenLeagueTools} copyLeagueInvite={copyLeagueInvite}
           />
         )}
         {tab === "draft" && (
@@ -7783,11 +7813,11 @@ function MyTeamView({ state, myTeamIdx, isCommissioner, myName, myTeamIndices, a
   );
 }
 
-function HomeView({ state, isCommissioner, myTeamIdx, standings, onGetStarted, onGoToLeague }) {
+function HomeView({ state, isCommissioner, myTeamIdx, standings, onGetStarted, onGoToLeague, costFor }) {
   const { coCommissioners: coCommissionersRaw, schedule, matchResults, trades = [], transactionLog = [], seasonNumber, commissioner, locked, teams } = state;
   const coCommissioners = coCommissionersRaw || [];
 
-  if (!locked) return <PreDraftScout state={state} isCommissioner={isCommissioner} />;
+  if (!locked) return <PreDraftScout state={state} isCommissioner={isCommissioner} costFor={costFor} />;
   if (false) {
     return (
       <div className="flex flex-col gap-6">
@@ -7881,6 +7911,22 @@ function HomeView({ state, isCommissioner, myTeamIdx, standings, onGetStarted, o
           )}
         </div>
       </div>
+      {(state.seasonHistory || []).length > 0 && (
+        <section style={{ background: "#171A2C", border: "1px solid #FFD23F44" }} className="rounded-lg p-6">
+          <h2 className="display-font text-2xl mb-4" style={{ color: "#FFD23F" }}>LEAGUE CHAMPIONS</h2>
+          <div className="flex flex-col gap-3">
+            {[...state.seasonHistory].reverse().map((season) => {
+              const championId = season.champion?.teamId;
+              const championRoster = championId == null ? [] : (season.rosters?.[championId] || []);
+              return <article key={season.seasonNumber} className="rounded p-3 flex items-center gap-3 flex-wrap" style={{ background: "#1B1F33", border: "1px solid rgba(255,255,255,0.07)" }}>
+                <div className="min-w-[150px]"><small className="mono-font" style={{ color: "#5B5F7E" }}>SEASON {season.seasonNumber}</small><strong className="block" style={{ color: "#FFD23F" }}>{season.champion?.teamName || "No champion recorded"}</strong></div>
+                <div className="flex flex-1 gap-1 flex-wrap">{championRoster.map((mon) => <span key={mon.name} title={mon.name}><MonSprite mon={mon} size={34} /></span>)}</div>
+                <button type="button" onClick={() => onGoToLeague("history")} className="px-3 py-2 rounded text-xs font-semibold" style={{ background: "#FFD23F", color: "#10121C" }}>VIEW SEASON</button>
+              </article>;
+            })}
+          </div>
+        </section>
+      )}
     </div>
   );
 }
@@ -8344,7 +8390,7 @@ function ManualRosterEntry({ teams, settings, finalizeManualDraft }) {
   );
 }
 
-function SetupView({ state, leagueId = null, isCommissioner, canBeCommissioner, claimCommissioner, unclaimCommissioner, claimTeam, renameTeam, myName, updateSettings, resizeTeams, rerollAllTeamIdentities, costFor, toggleBanMon, toggleAllowExtraMon, resetDraft, addCustomMon, removeCustomMon, setSpriteOverride, setTeamLogo, onStart, addDivision, renameDivision, removeDivision, setTeamDivision, finalizeManualDraft, startNewSeason, updateHomepage, addExpansionTeam, removeSpecificTeam, exportLeagueBackup, importLeagueBackup, addCoCommissioner, removeCoCommissioner, onOpenLeagueTools }) {
+function SetupView({ state, leagueId = null, isCommissioner, canBeCommissioner, claimCommissioner, unclaimCommissioner, claimTeam, renameTeam, myName, updateSettings, resizeTeams, rerollAllTeamIdentities, costFor, toggleBanMon, toggleAllowExtraMon, resetDraft, addCustomMon, removeCustomMon, setSpriteOverride, setTeamLogo, onStart, addDivision, renameDivision, removeDivision, setTeamDivision, finalizeManualDraft, startNewSeason, updateHomepage, addExpansionTeam, removeSpecificTeam, exportLeagueBackup, importLeagueBackup, addCoCommissioner, removeCoCommissioner, onOpenLeagueTools, copyLeagueInvite }) {
   // A league may have been created before newer Setup options existed. Keep
   // this screen usable even if one of those older saved values is missing or
   // malformed; the next normal save will preserve the corrected shape.
@@ -8373,6 +8419,7 @@ function SetupView({ state, leagueId = null, isCommissioner, canBeCommissioner, 
   const [editingSprite, setEditingSprite] = useState(null);
   const [editingTeamName, setEditingTeamName] = useState(null);
   const [editingLogo, setEditingLogo] = useState(null);
+  const [inviteMessage, setInviteMessage] = useState("");
   // (Division assignment now lives in DivisionDragBoard, its own component
   // with real pointer-based drag-and-drop — see below.)
   const [search, setSearch] = useState("");
@@ -8448,7 +8495,9 @@ function SetupView({ state, leagueId = null, isCommissioner, canBeCommissioner, 
       {!locked && <section style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }} className="rounded-lg p-5 mb-6">
         <h2 className="display-font text-2xl mb-2" style={{ color: "#FFD23F" }}>DRAFT DATE & MANAGER INVITES</h2>
         <p className="text-sm mb-4" style={{ color: "#9A9FBD" }}>{settings.draftScheduledAt ? `Currently scheduled for ${new Date(settings.draftScheduledAt).toLocaleString()}.` : "No draft time has been scheduled yet."}</p>
-        {isCommissioner && <div className="flex items-end gap-3 flex-wrap"><label className="text-xs" style={{ color: "#9A9FBD" }}>Draft start date and time<input type="datetime-local" value={settings.draftScheduledAt ? new Date(settings.draftScheduledAt).toISOString().slice(0, 16) : ""} onChange={(event) => updateSettings({ draftScheduledAt: event.target.value ? new Date(event.target.value).toISOString() : null })} className="block mt-1 px-3 py-2 rounded mono-font text-sm" style={{ background: "#1F2338", border: "1px solid rgba(255,255,255,0.1)", color: "#EDEBFA" }} /></label>{leagueId && onOpenLeagueTools && <button type="button" onClick={onOpenLeagueTools} className="px-4 py-2 rounded font-semibold text-sm" style={{ background: "#4FD1C5", color: "#10121C" }}>INVITE DRAFT MANAGERS</button>}</div>}
+        {isCommissioner && <div className="flex items-end gap-3 flex-wrap"><label className="text-xs" style={{ color: "#9A9FBD" }}>Official draft start date and time<input type="datetime-local" value={settings.draftScheduledAt ? new Date(settings.draftScheduledAt).toISOString().slice(0, 16) : ""} onChange={(event) => updateSettings({ draftScheduledAt: event.target.value ? new Date(event.target.value).toISOString() : null })} className="block mt-1 px-3 py-2 rounded mono-font text-sm" style={{ background: "#1F2338", border: "1px solid rgba(255,255,255,0.1)", color: "#EDEBFA" }} /></label>{leagueId && copyLeagueInvite && <><button type="button" onClick={async () => { const result = await copyLeagueInvite("manager"); setInviteMessage(result.error || "Manager invite link copied."); }} className="px-4 py-2 rounded font-semibold text-sm" style={{ background: "#4FD1C5", color: "#10121C" }}>COPY MANAGER INVITE</button><button type="button" onClick={async () => { const result = await copyLeagueInvite("spectator"); setInviteMessage(result.error || "Spectator link copied."); }} className="px-4 py-2 rounded font-semibold text-sm" style={{ background: "#1F2338", color: "#EDEBFA", border: "1px solid #4FD1C555" }}>COPY SPECTATOR LINK</button></>}</div>}
+        {inviteMessage && <p className="text-xs mt-3" style={{ color: "#4FD1C5" }}>{inviteMessage}</p>}
+        <p className="text-xs mt-3" style={{ color: "#5B5F7E" }}>This is the league's single saved draft date. It appears automatically on Home, Draft, Setup, and public league details.</p>
       </section>}
       {!leagueId && !commissioner && (
         <div style={{ background: "#1F2338", border: "1px solid #FFD23F55" }} className="rounded-lg p-4 mb-6 flex items-center justify-between flex-wrap gap-3">
@@ -8483,13 +8532,6 @@ function SetupView({ state, leagueId = null, isCommissioner, canBeCommissioner, 
       )}
       {isCommissioner && !leagueId && (
         <CoCommissionerCard coCommissioners={coCommissioners} commissioner={commissioner} addCoCommissioner={addCoCommissioner} removeCoCommissioner={removeCoCommissioner} />
-      )}
-
-      {isCommissioner && !locked && onOpenLeagueTools && (
-        <div className="rounded-lg p-4 mb-6 flex items-center justify-between flex-wrap gap-3" style={{ background: "#171A2C", border: "1px solid #4FD1C555" }}>
-          <div><h3 className="display-font text-xl" style={{ color: "#4FD1C5" }}>DRAFT PLAN</h3><p className="text-sm" style={{ color: "#9A9FBD" }}>Set the official draft time, reminders, and league visibility before managers arrive.</p></div>
-          <div className="flex gap-2 flex-wrap"><button onClick={onOpenLeagueTools} className="px-4 py-2 rounded font-semibold text-sm" style={{ background: "#4FD1C5", color: "#10121C" }}>SET DRAFT TIME</button><button onClick={onOpenLeagueTools} className="px-4 py-2 rounded font-semibold text-sm" style={{ background: "#1F2338", color: "#EDEBFA", border: "1px solid #4FD1C555" }}>INVITE MANAGERS</button></div>
-        </div>
       )}
 
       <LeagueInfoCard state={state} isCommissioner={isCommissioner} updateHomepage={updateHomepage} />
@@ -9619,6 +9661,7 @@ function LeagueInfoCard({ state, isCommissioner, updateHomepage }) {
 }
 function NewSeasonCard({ state, startNewSeason }) {
   const [confirming, setConfirming] = useState(false);
+  const [ruleMode, setRuleMode] = useState("same");
   const champion = getLeagueChampion(state);
   return (
     <div style={{ background: "#171A2C", border: "1px solid #4FD1C555" }} className="rounded-lg p-6 mt-6">
@@ -9639,8 +9682,12 @@ function NewSeasonCard({ state, startNewSeason }) {
             <p className="text-sm mb-2" style={{ color: "#F0555A" }}>No champion decided yet this season — starting a new one now archives it as-is, with no champion on record.</p>
           )}
           <p className="text-sm mb-3" style={{ color: "#9A9FBD" }}>This can't be undone. Continue?</p>
+          <div className="grid sm:grid-cols-2 gap-2 mb-3">
+            <button type="button" onClick={() => setRuleMode("same")} className="p-3 rounded text-left text-sm" style={{ background: ruleMode === "same" ? "#4FD1C522" : "#1F2338", border: `1px solid ${ruleMode === "same" ? "#4FD1C5" : "rgba(255,255,255,0.08)"}`, color: "#EDEBFA" }}><strong>Use the same rules</strong><small className="block mt-1" style={{ color: "#9A9FBD" }}>Carry forward the regulation, allowed Pokémon, prices, draft format, schedule, playoffs, and transaction rules.</small></button>
+            <button type="button" onClick={() => setRuleMode("new")} className="p-3 rounded text-left text-sm" style={{ background: ruleMode === "new" ? "#FFD23F22" : "#1F2338", border: `1px solid ${ruleMode === "new" ? "#FFD23F" : "rgba(255,255,255,0.08)"}`, color: "#EDEBFA" }}><strong>Start with new rules</strong><small className="block mt-1" style={{ color: "#9A9FBD" }}>Reset league rules to defaults so the commissioner can select a new regulation, pool, prices, and house rules before drafting.</small></button>
+          </div>
           <div className="flex gap-2">
-            <button onClick={() => { startNewSeason(); setConfirming(false); }} className="px-3 py-1.5 rounded text-xs font-semibold" style={{ background: "#4FD1C5", color: "#10121C" }}>
+            <button onClick={() => { startNewSeason(ruleMode); setConfirming(false); }} className="px-3 py-1.5 rounded text-xs font-semibold" style={{ background: "#4FD1C5", color: "#10121C" }}>
               Yes, start Season {state.seasonNumber + 1}
             </button>
             <button onClick={() => setConfirming(false)} className="px-3 py-1.5 rounded text-xs" style={{ background: "#1F2338", color: "#9A9FBD" }}>
@@ -9811,8 +9858,40 @@ function SeasonAwardsView({ state, standings, onViewTeam }) {
     </div>
   );
 }
+function ArchivedSeasonView({ season }) {
+  if (!season) return null;
+  const replayLinks = [];
+  const playoffResults = [];
+  function walk(value, path = "Playoffs") {
+    if (!value || typeof value !== "object") return;
+    if (Number.isFinite(value.gamesA) && Number.isFinite(value.gamesB)) {
+      playoffResults.push({ path, ...value });
+      if (value.replayUrlA) replayLinks.push(value.replayUrlA);
+      if (value.replayUrlB) replayLinks.push(value.replayUrlB);
+    }
+    Object.entries(value).forEach(([key, child]) => {
+      if (child && typeof child === "object") walk(child, `${path} / ${key}`);
+    });
+  }
+  walk(season.playoffs);
+  Object.values(season.matchResults || {}).forEach((result) => {
+    if (result?.replayUrlA) replayLinks.push(result.replayUrlA);
+    if (result?.replayUrlB) replayLinks.push(result.replayUrlB);
+  });
+  return <section className="rounded-lg p-5" style={{ background: "#121626", border: "1px solid #4FD1C555" }}>
+    <span className="eyebrow">ARCHIVED SEASON</span>
+    <h2 className="display-font text-2xl mb-2" style={{ color: "#4FD1C5" }}>SEASON {season.seasonNumber}</h2>
+    <p className="text-sm mb-4" style={{ color: "#9A9FBD" }}>{season.settings?.regulationId ? `Regulation: ${regulationFor(season.settings).name}` : "Rules were archived before detailed rule snapshots were available."}</p>
+    <div className="grid md:grid-cols-2 gap-4">
+      <div><h3 className="display-font text-lg mb-2" style={{ color: "#FFD23F" }}>SAVED BRACKET RESULTS</h3>{playoffResults.length ? playoffResults.map((result, index) => <div key={`${result.path}-${index}`} className="rounded px-3 py-2 mb-2 text-sm" style={{ background: "#1B1F33" }}><span style={{ color: "#9A9FBD" }}>{result.path.replace(/results|rounds/gi, "").replace(/\s+\/\s+/g, " / ")}</span><strong className="float-right" style={{ color: "#EDEBFA" }}>{result.gamesA}-{result.gamesB}</strong></div>) : <p className="text-sm" style={{ color: "#5B5F7E" }}>No saved playoff results for this season.</p>}</div>
+      <div><h3 className="display-font text-lg mb-2" style={{ color: "#FFD23F" }}>SAVED REPLAYS</h3>{[...new Set(replayLinks)].length ? [...new Set(replayLinks)].map((url, index) => <a key={url} href={url} target="_blank" rel="noopener noreferrer" className="block rounded px-3 py-2 mb-2 text-sm hover:underline" style={{ background: "#1B1F33", color: "#4FD1C5" }}>Replay {index + 1} ↗</a>) : <p className="text-sm" style={{ color: "#5B5F7E" }}>No replay links were saved for this season.</p>}</div>
+    </div>
+  </section>;
+}
+
 function HistoryView({ state, onViewTeam }) {
   const { seasonHistory, seasonNumber, teams } = state;
+  const [selectedSeasonNumber, setSelectedSeasonNumber] = useState(null);
 
   if (!seasonHistory || seasonHistory.length === 0) {
     return (
@@ -9877,10 +9956,14 @@ function HistoryView({ state, onViewTeam }) {
               ) : (
                 <span className="text-sm" style={{ color: "#5B5F7E" }}>No champion decided</span>
               )}
+              {season.champion?.teamId != null && <div className="flex gap-1 flex-wrap mt-3">{(season.rosters?.[season.champion.teamId] || []).map((mon) => <span key={mon.name} title={mon.name}><MonSprite mon={mon} size={32} /></span>)}</div>}
+              <button type="button" onClick={() => setSelectedSeasonNumber(selectedSeasonNumber === season.seasonNumber ? null : season.seasonNumber)} className="mt-3 px-3 py-1.5 rounded text-xs font-semibold" style={{ background: "#1F2338", color: "#4FD1C5", border: "1px solid #4FD1C544" }}>{selectedSeasonNumber === season.seasonNumber ? "Close season" : "View season"}</button>
             </div>
           ))}
         </div>
       </div>
+
+      {selectedSeasonNumber != null && <ArchivedSeasonView season={seasonHistory.find((season) => season.seasonNumber === selectedSeasonNumber)} />}
 
       <div>
         <h2 className="display-font text-2xl mb-1" style={{ color: "#4FD1C5" }}>ALL-TIME RECORDS</h2>
@@ -10242,7 +10325,7 @@ function DraftHeroVoteCard({ teams, votes, myName, castDraftHeroVote }) {
     </div>
   );
 }
-function PreDraftScout({ state, isCommissioner }) {
+function PreDraftScout({ state, isCommissioner, costFor }) {
   const [search, setSearch] = useState("");
   const [type, setType] = useState("");
   const settings = state.settings;
@@ -10254,12 +10337,12 @@ function PreDraftScout({ state, isCommissioner }) {
   return <div className="space-y-6">
     <section className="rounded-lg p-5" style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }}>
       <span className="eyebrow">PRE-DRAFT</span><h2 className="display-font text-3xl" style={{ color: "#FFD23F" }}>Scout the draft board</h2>
-      <p className="text-sm mt-1" style={{ color: "#9A9FBD" }}>Study the eligible pool and team field before the commissioner starts the live draft.</p>
+      <p className="text-sm mt-1" style={{ color: "#9A9FBD" }}>These are the league's saved draft settings. Every manager sees the same regulation, eligible pool, prices, and official date.</p>
       <div className="flex gap-3 flex-wrap mt-4 text-sm"><span className="px-3 py-1 rounded" style={{ background: "#1F2338", color: "#EDEBFA" }}>{pool.length} eligible Pokémon</span><span className="px-3 py-1 rounded" style={{ background: "#1F2338", color: "#EDEBFA" }}>{claimed}/{state.teams.length} managers assigned</span>{scheduledAt ? <span className="px-3 py-1 rounded" style={{ background: "#4FD1C522", color: "#4FD1C5" }}>Draft: {new Date(scheduledAt).toLocaleString()}</span> : <span className="px-3 py-1 rounded" style={{ background: "#FFD23F22", color: "#FFD23F" }}>{isCommissioner ? "Set the draft time in League tools" : "Draft time not set yet"}</span>}<a href={`/pokemon?regulation=${encodeURIComponent(settings.regulationId || "")}`} className="px-3 py-1 rounded font-semibold" style={{ background: "#1B3845", color: "#4FD1C5", textDecoration: "none" }}>Open move pools</a></div>
     </section>
     <section className="rounded-lg p-5" style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }}>
       <div className="flex gap-3 flex-wrap mb-4"><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search Pokémon" className="px-3 py-2 rounded flex-1 min-w-[180px]" style={{ background: "#0F1420", border: "1px solid #313a63", color: "#EDEBFA" }} /><select value={type} onChange={(event) => setType(event.target.value)} className="px-3 py-2 rounded" style={{ background: "#0F1420", border: "1px solid #313a63", color: "#EDEBFA" }}><option value="">All types</option>{Object.keys(TYPE_COLORS).map((key) => <option key={key} value={key}>{key}</option>)}</select></div>
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">{pool.slice(0, 200).map((mon) => <article key={mon.id} className="rounded p-3" style={{ background: "#1B1F33", border: "1px solid rgba(255,255,255,0.06)" }}><strong className="block text-sm truncate">{mon.name}</strong><span className="text-xs" style={{ color: TYPE_COLORS[mon.t1] || "#9A9FBD" }}>{mon.t1}{mon.t2 ? ` / ${mon.t2}` : ""}</span></article>)}</div>
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">{pool.slice(0, 200).map((mon) => <article key={mon.id} className="rounded p-3" style={{ background: "#1B1F33", border: "1px solid rgba(255,255,255,0.06)" }}><strong className="block text-sm truncate">{mon.name}</strong><span className="text-xs" style={{ color: TYPE_COLORS[mon.t1] || "#9A9FBD" }}>{mon.t1}{mon.t2 ? ` / ${mon.t2}` : ""}</span><b className="block mono-font text-xs mt-1" style={{ color: "#FFD23F" }}>{costFor(mon, settings)} pt</b></article>)}</div>
       {pool.length > 200 && <p className="text-xs mt-3" style={{ color: "#9A9FBD" }}>Showing the first 200 results. Use search or a type filter to narrow the board.</p>}
     </section>
   </div>;
@@ -10356,23 +10439,7 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
               {isCommissioner ? "No draft time set yet — pick one below." : "The commissioner hasn't scheduled a draft time yet."}
             </p>
           )}
-          {isCommissioner && (
-            <div className="pt-4" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-              <label className="block text-xs mb-2" style={{ color: "#5B5F7E" }}>{scheduledAt ? "Change date & time" : "Set date & time"}</label>
-              <div className="flex items-center justify-center gap-2 flex-wrap">
-                <input type="datetime-local"
-                  defaultValue={scheduledAt ? new Date(scheduledAt).toISOString().slice(0, 16) : ""}
-                  onChange={(e) => updateSettings({ draftScheduledAt: e.target.value ? new Date(e.target.value).toISOString() : null })}
-                  className="px-3 py-2 rounded mono-font text-sm" style={{ background: "#1F2338", border: "1px solid rgba(255,255,255,0.1)", color: "#EDEBFA" }} />
-                {scheduledAt && (
-                  <button onClick={() => updateSettings({ draftScheduledAt: null })} className="text-xs px-3 py-2 rounded" style={{ background: "#1F2338", color: "#5B5F7E" }}>
-                    Clear
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
-          <p className="text-xs mt-5" style={{ color: "#5B5F7E" }}>Configure your league in Setup, then start the draft when you're ready.</p>
+          <p className="text-xs mt-5" style={{ color: "#5B5F7E" }}>{isCommissioner ? "The official date is managed once in Setup and shared everywhere in the league." : "The commissioner manages the official date in Setup."}</p>
         </div>
       </div>
     );
