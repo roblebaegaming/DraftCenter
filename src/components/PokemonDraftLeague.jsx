@@ -4095,6 +4095,14 @@ function freshState() {
       manualDraftOrder: null, // null = randomize snake draft order fresh each time it starts; array = commissioner-fixed round-1 order
       customSelectedGens: [], customSelectedTypes: [], // tracks Custom format's gen/type quick-toggle button state, separate from bannedMons itself
       scheduleWeeks: null, // null = auto (one full round robin)
+      calendarMode: "untimed", // "untimed" preserves leagues that advance manually; "weekly" puts the season on a shared clock
+      seasonStartsAt: null, // ISO date/time for the beginning of operational week 1
+      leagueTimeZone: Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
+      matchDayOfWeek: 6, // Saturday
+      matchTime: "19:00",
+      claimDayOfWeek: 3, // Wednesday
+      claimTime: "20:00",
+      autoProcessClaims: true,
       manualScheduling: false, // commissioner sets each week's matchups by hand instead of auto round-robin
       divisions: [], // [{ name, teamIds: [] }] - empty = no divisions, whole league is one group
       divisionRoundRobin: false, // regular season only schedules games within each division
@@ -4303,6 +4311,14 @@ function hydrateState(remote) {
       snakeBudgetEnabled: remote.settings?.snakeBudgetEnabled ?? false,
       budget: remote.settings?.budget ?? 100,
       scheduleWeeks: remote.settings?.scheduleWeeks ?? null,
+      calendarMode: remote.settings?.calendarMode || "untimed",
+      seasonStartsAt: remote.settings?.seasonStartsAt || null,
+      leagueTimeZone: remote.settings?.leagueTimeZone || "UTC",
+      matchDayOfWeek: remote.settings?.matchDayOfWeek ?? 6,
+      matchTime: remote.settings?.matchTime || "19:00",
+      claimDayOfWeek: remote.settings?.claimDayOfWeek ?? 3,
+      claimTime: remote.settings?.claimTime || "20:00",
+      autoProcessClaims: remote.settings?.autoProcessClaims ?? true,
       manualScheduling: remote.settings?.manualScheduling ?? false,
       divisions: remote.settings?.divisions || [],
       divisionRoundRobin: remote.settings?.divisionRoundRobin ?? false,
@@ -4472,7 +4488,7 @@ function isWithinOvernightPause(date, settings) {
   return h >= start || h < end; // wraps past midnight
 }
 
-export default function PokemonDraftLeague({ leagueId = null, leagueRole = null, league = null, profile = null, onOpenLeagueTools = null, homeRequest = 0 }) {
+export default function PokemonDraftLeague({ leagueId = null, leagueRole = null, league = null, profile = null, onOpenLeagueTools = null, onOpenLeagueAppearance = null }) {
   const isSpectator = leagueId && leagueRole === "viewer";
   const [supabase] = useState(() => createClient());
   const [tab, setTab] = useState("home");
@@ -4483,9 +4499,6 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   // instead, the same pill-toggle pattern already used elsewhere (bracket
   // vs. list view, etc.).
   const [leagueSubTab, setLeagueSubTab] = useState("activity");
-  useEffect(() => {
-    if (homeRequest > 0) setTab("home");
-  }, [homeRequest]);
   const [viewTeamRequest, setViewTeamRequest] = useState(null);
   function goToTeam(teamIdx) {
     setViewTeamRequest(teamIdx);
@@ -6561,6 +6574,12 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   // representable (previously, post-draft budget usage always just copied
   // the draft's own cost settings with no way to decouple the two).
   const usesBudgetPostDraft = state.settings.postDraftBudgetEnabled ?? (state.settings.draftType === "auction" || state.settings.snakeBudgetEnabled);
+  const operationalWeek = (() => {
+    if (state.settings.calendarMode !== "weekly" || !state.settings.seasonStartsAt) return state.week;
+    const start = new Date(state.settings.seasonStartsAt).getTime();
+    if (!Number.isFinite(start)) return state.week;
+    return Math.max(0, Math.floor((Date.now() - start) / (7 * 24 * 60 * 60 * 1000)));
+  })();
 
   // Proactively surfaces whether a team can transact right now and why not,
   // so the UI can explain a blocked move instead of it silently failing.
@@ -6568,13 +6587,13 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     const log = state.transactionLog || [];
     const teamLog = log.filter((t) => t.teamIdx === teamIdx);
     const totalUsed = teamLog.length;
-    const weekUsed = teamLog.filter((t) => t.week === state.week).length;
+    const weekUsed = teamLog.filter((t) => t.week === operationalWeek).length;
     const totalLimit = state.settings.maxTransactionsTotal;
     const weekLimit = state.settings.maxTransactionsPerWeek;
     const totalBlocked = !!totalLimit && totalUsed >= totalLimit;
     const weekBlocked = !!weekLimit && weekUsed >= weekLimit;
     const deadlineWeek = state.settings.transactionsLastWeek;
-    const pastDeadline = !!deadlineWeek && state.week > deadlineWeek - 1; // week is 0-indexed; deadlineWeek is 1-indexed "through week N"
+    const pastDeadline = !!deadlineWeek && operationalWeek > deadlineWeek - 1; // operational week is 0-indexed; deadlineWeek is 1-indexed "through week N"
     const playoffsLocked = state.settings.lockTransactionsAtPlayoffs && !!state.playoffs;
     return {
       totalUsed, weekUsed, totalLimit, weekLimit,
@@ -6625,7 +6644,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       const rosters = s.rosters.map((r, i) => (i === teamIdx ? newRoster : r));
       const transactionLog = [...(s.transactionLog || []), {
         id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-        teamIdx, week: s.week, timestamp: Date.now(),
+        teamIdx, week: operationalWeek, timestamp: Date.now(),
         addName: mon.name, addCost, dropName: dropMon?.name || null, dropCost: dropMon ? costFor(dropMon, s.settings) : null,
       }];
       outcome.ok = true;
@@ -6663,7 +6682,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
         id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
         teamIdx, addName, dropName: dropName || null,
         bidAmount: s.settings.faClaimMode === "faab" ? Math.floor(Number(bidAmount)) || 0 : null,
-        submittedAt: Date.now(), week: s.week,
+        submittedAt: Date.now(), week: operationalWeek,
       };
       outcome.ok = true;
       return { ...s, pendingClaims: [...(s.pendingClaims || []), claim] };
@@ -6682,7 +6701,8 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   // timer. Contested mons (two+ claims on the same pokémon) get resolved
   // per faClaimMode; every claim gets removed from the queue afterward,
   // win or lose.
-  function processClaims() {
+  function processClaims(autoCycle = null) {
+    const resolvedAutoCycle = typeof autoCycle === "string" ? autoCycle : null;
     commit((s) => {
       const claims = s.pendingClaims || [];
       if (!claims.length) return s;
@@ -6752,7 +6772,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
           rosters[claim.teamIdx] = newRoster;
           transactionLog.push({
             id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-            teamIdx: claim.teamIdx, week: s.week, timestamp: Date.now(),
+            teamIdx: claim.teamIdx, week: operationalWeek, timestamp: Date.now(),
             addName: mon.name, addCost: finalCost, dropName: dropMon?.name || null, dropCost: dropMon ? costFor(dropMon, s.settings) : null,
           });
           if (s.settings.faClaimMode === "priority") {
@@ -6763,9 +6783,33 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
         }
       });
 
-      return { ...s, rosters, budgets, faabBudgets, waiverPriority, transactionLog, pendingClaims: [], lastClaimResults: results };
+      return { ...s, rosters, budgets, faabBudgets, waiverPriority, transactionLog, pendingClaims: [], lastClaimResults: results, lastAutoClaimCycle: resolvedAutoCycle || s.lastAutoClaimCycle || null };
     });
   }
+
+  useEffect(() => {
+    if (state.settings.calendarMode !== "weekly" || !state.settings.autoProcessClaims || state.settings.faClaimMode === "instant") return undefined;
+    const checkDueClaims = () => {
+      if (!(state.pendingClaims || []).length) return;
+      let parts;
+      try {
+        parts = Object.fromEntries(new Intl.DateTimeFormat("en-US", {
+          timeZone: state.settings.leagueTimeZone || "UTC", weekday: "short", year: "numeric", month: "2-digit", day: "2-digit",
+          hour: "2-digit", minute: "2-digit", hourCycle: "h23",
+        }).formatToParts(new Date()).filter((part) => part.type !== "literal").map((part) => [part.type, part.value]));
+      } catch {
+        return;
+      }
+      const weekday = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].indexOf(parts.weekday);
+      const currentMinutes = Number(parts.hour) * 60 + Number(parts.minute);
+      const [claimHour, claimMinute] = String(state.settings.claimTime || "20:00").split(":").map(Number);
+      const cycle = `${parts.year}-${parts.month}-${parts.day}`;
+      if (weekday === Number(state.settings.claimDayOfWeek) && currentMinutes >= claimHour * 60 + claimMinute && state.lastAutoClaimCycle !== cycle) processClaims(cycle);
+    };
+    checkDueClaims();
+    const timer = window.setInterval(checkDueClaims, 60_000);
+    return () => window.clearInterval(timer);
+  }, [state.settings.calendarMode, state.settings.autoProcessClaims, state.settings.faClaimMode, state.settings.leagueTimeZone, state.settings.claimDayOfWeek, state.settings.claimTime, state.pendingClaims, state.lastAutoClaimCycle]);
 
   function proposeTrade(fromTeam, toTeam, offerNames, requestNames) {
     if (!offerNames.length && !requestNames.length) return;
@@ -7192,6 +7236,20 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
                 </button>
               );
             })}
+            {isCommissioner && leagueId && (
+              <>
+                <button onClick={onOpenLeagueTools}
+                  className="px-4 py-2 rounded text-sm font-semibold"
+                  style={{ fontFamily: "'Teko', sans-serif", fontSize: "16px", letterSpacing: "0.03em", background: "#253354", color: "#D9E5FF", border: "1px solid #4B669B" }}>
+                  LEAGUE TOOLS
+                </button>
+                <button onClick={onOpenLeagueAppearance}
+                  className="px-4 py-2 rounded text-sm font-semibold"
+                  style={{ fontFamily: "'Teko', sans-serif", fontSize: "16px", letterSpacing: "0.03em", background: "#33284F", color: "#E9DCFF", border: "1px solid #66518E" }}>
+                  APPEARANCE
+                </button>
+              </>
+            )}
           </nav>
         </div>
         {isMyTurn && !(tab === "draft" || (tab === "league" && leagueSubTab === "draft")) && (
@@ -7955,6 +8013,20 @@ function HomeView({ state, isCommissioner, myTeamIdx, standings, onGetStarted, o
       </div>
 
       <LeagueInfoCard state={state} isCommissioner={isCommissioner} updateHomepage={updateHomepage} />
+
+      <div style={{ background: "#171A2C", border: "1px solid rgba(79,209,197,0.25)" }} className="rounded-lg p-5">
+        <h2 className="display-font text-xl mb-2" style={{ color: "#4FD1C5" }}>LEAGUE CLOCK</h2>
+        {state.settings.calendarMode === "weekly" ? (
+          <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm" style={{ color: "#9A9FBD" }}>
+            <span>Season begins: <b style={{ color: "#EDEBFA" }}>{state.settings.seasonStartsAt ? new Date(state.settings.seasonStartsAt).toLocaleString() : "Not set"}</b></span>
+            <span>Matches: <b style={{ color: "#EDEBFA" }}>{["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][state.settings.matchDayOfWeek]} at {state.settings.matchTime}</b></span>
+            <span>Claims: <b style={{ color: "#EDEBFA" }}>{["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][state.settings.claimDayOfWeek]} at {state.settings.claimTime}</b></span>
+            <span className="mono-font text-xs">{state.settings.leagueTimeZone || "UTC"}</span>
+          </div>
+        ) : (
+          <p className="text-sm" style={{ color: "#9A9FBD" }}>Untimed league — the commissioner advances match weeks and processes queued claims manually.</p>
+        )}
+      </div>
 
       <div className="grid md:grid-cols-2 gap-4">
         <div style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }} className="rounded-lg p-6">
@@ -9397,6 +9469,7 @@ function PriceBoard({ pool, settings, costFor, isCommissioner, setMonCost, isLeg
 
 function TransactionRulesCard({ state, isCommissioner, updateSettings }) {
   const { settings } = state;
+  const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
   return (
     <div style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }} className="rounded-lg p-6 mt-6">
       <h2 className="display-font text-2xl mb-1" style={{ color: "#FFD23F" }}>FREE AGENCY RULES</h2>
@@ -9404,6 +9477,60 @@ function TransactionRulesCard({ state, isCommissioner, updateSettings }) {
         Free-agent adds/drops still respect each team's point budget (if enabled) — a team can't pick up more value than it can afford without dropping enough in return. These limits control how often teams can transact at all.
       </p>
       <fieldset disabled={!isCommissioner} className="disabled:opacity-50">
+        <div className="mb-6 pb-6" style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+          <h3 className="display-font text-xl mb-2" style={{ color: "#4FD1C5" }}>LEAGUE CLOCK</h3>
+          <p className="text-xs mb-4" style={{ color: "#9A9FBD" }}>Choose untimed play for a commissioner-led league, or anchor match weeks and waiver claims to one schedule everyone can see.</p>
+          <div className="flex flex-wrap gap-2 mb-4">
+            {[["untimed", "Untimed"], ["weekly", "Weekly schedule"]].map(([value, label]) => (
+              <button key={value} type="button" onClick={() => updateSettings({ calendarMode: value })}
+                className="px-3 py-1.5 rounded text-xs mono-font"
+                style={{ background: settings.calendarMode === value ? "#FFD23F" : "#1F2338", color: settings.calendarMode === value ? "#10121C" : "#9A9FBD", border: "1px solid rgba(255,255,255,0.08)" }}>
+                {label}
+              </button>
+            ))}
+          </div>
+          {settings.calendarMode === "weekly" && (
+            <div className="grid md:grid-cols-2 gap-4">
+              <label className="text-xs" style={{ color: "#9A9FBD" }}>Season week 1 begins
+                <input type="datetime-local" value={settings.seasonStartsAt ? new Date(settings.seasonStartsAt).toISOString().slice(0, 16) : ""}
+                  onChange={(e) => updateSettings({ seasonStartsAt: e.target.value ? new Date(e.target.value).toISOString() : null })}
+                  className="block w-full mt-1 px-3 py-2 rounded" style={{ background: "#1F2338", color: "#EDEBFA", border: "1px solid rgba(255,255,255,0.1)" }} />
+              </label>
+              <label className="text-xs" style={{ color: "#9A9FBD" }}>League time zone
+                <input value={settings.leagueTimeZone || "UTC"} onChange={(e) => updateSettings({ leagueTimeZone: e.target.value })}
+                  placeholder="America/New_York" className="block w-full mt-1 px-3 py-2 rounded"
+                  style={{ background: "#1F2338", color: "#EDEBFA", border: "1px solid rgba(255,255,255,0.1)" }} />
+              </label>
+              <label className="text-xs" style={{ color: "#9A9FBD" }}>Weekly match day
+                <select value={settings.matchDayOfWeek} onChange={(e) => updateSettings({ matchDayOfWeek: Number(e.target.value) })}
+                  className="block w-full mt-1 px-3 py-2 rounded" style={{ background: "#1F2338", color: "#EDEBFA" }}>
+                  {dayNames.map((day, index) => <option key={day} value={index}>{day}</option>)}
+                </select>
+              </label>
+              <label className="text-xs" style={{ color: "#9A9FBD" }}>Match time
+                <input type="time" value={settings.matchTime || "19:00"} onChange={(e) => updateSettings({ matchTime: e.target.value })}
+                  className="block w-full mt-1 px-3 py-2 rounded" style={{ background: "#1F2338", color: "#EDEBFA" }} />
+              </label>
+              <label className="text-xs" style={{ color: "#9A9FBD" }}>Claims process each
+                <select value={settings.claimDayOfWeek} onChange={(e) => updateSettings({ claimDayOfWeek: Number(e.target.value) })}
+                  className="block w-full mt-1 px-3 py-2 rounded" style={{ background: "#1F2338", color: "#EDEBFA" }}>
+                  {dayNames.map((day, index) => <option key={day} value={index}>{day}</option>)}
+                </select>
+              </label>
+              <label className="text-xs" style={{ color: "#9A9FBD" }}>Claim processing time
+                <input type="time" value={settings.claimTime || "20:00"} onChange={(e) => updateSettings({ claimTime: e.target.value })}
+                  className="block w-full mt-1 px-3 py-2 rounded" style={{ background: "#1F2338", color: "#EDEBFA" }} />
+              </label>
+              <label className="md:col-span-2 flex items-center gap-2 text-xs" style={{ color: "#9A9FBD" }}>
+                <input type="checkbox" checked={settings.autoProcessClaims} onChange={(e) => updateSettings({ autoProcessClaims: e.target.checked })} />
+                Automatically process queued claims on this clock while a league member has DraftCenter open
+              </label>
+              <p className="md:col-span-2 text-xs" style={{ color: "#5B5F7E" }}>
+                Weekly transaction limits now reset from this season clock, not when a commissioner clicks to the next schedule page.
+              </p>
+            </div>
+          )}
+        </div>
         <label className="block text-sm mb-2" style={{ color: "#9A9FBD" }}>Season transaction limit per team</label>
         <div className="flex items-center gap-2 mb-1">
           <input type="number" min={0} value={settings.maxTransactionsTotal ?? ""} placeholder="Unlimited"
@@ -9466,10 +9593,10 @@ function TransactionRulesCard({ state, isCommissioner, updateSettings }) {
           </div>
           <p className="text-xs mb-4" style={{ color: "#5B5F7E" }}>
             {settings.faClaimMode === "instant" && "Today's default — whoever clicks first gets it, no waiting."}
-            {settings.faClaimMode === "priority" && "Claims queue up until a commissioner processes them. Among contested claims, whoever's earliest in the rolling priority order wins, then moves to the back of the line — everyone else stays put."}
-            {settings.faClaimMode === "worst-record" && "Claims queue up until a commissioner processes them. Among contested claims, whoever has the worse record right now wins."}
-            {settings.faClaimMode === "faab" && "Claims queue up until a commissioner processes them. Every claim needs a bid — highest bid on a contested mon wins, and that bid comes out of a separate season-long budget that never refills."}
-            {settings.faClaimMode === "random" && "Claims queue up until a commissioner processes them. Among contested claims, the winner is picked at random."}
+            {settings.faClaimMode === "priority" && "Claims queue until the scheduled processing time (or a commissioner processes early). Among contested claims, whoever's earliest in the rolling priority order wins, then moves to the back of the line."}
+            {settings.faClaimMode === "worst-record" && "Claims queue until the scheduled processing time (or a commissioner processes early). Among contested claims, whoever has the worse record then wins."}
+            {settings.faClaimMode === "faab" && "Claims queue until the scheduled processing time (or a commissioner processes early). Every claim needs a bid — highest bid wins and the bid comes from the season-long FAAB budget."}
+            {settings.faClaimMode === "random" && "Claims queue until the scheduled processing time (or a commissioner processes early). Among contested claims, the winner is picked at random."}
           </p>
           {settings.faClaimMode === "faab" && (
             <div className="flex flex-col gap-3 mb-2">
