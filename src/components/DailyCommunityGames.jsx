@@ -423,12 +423,14 @@ function DailyGameDiscussion({ type, gameId, signedIn }) {
     load();
   }
   const roots = comments.filter((comment) => !comment.parent_comment_id).sort((a, b) => b.upvotes - a.upvotes || new Date(a.created_at) - new Date(b.created_at));
-  return <div className="daily-game-discussion">
-    <h3>Community discussion</h3>
-    <form onSubmit={post}><textarea value={body} onChange={(event) => setBody(event.target.value)} placeholder={replyTo ? "Write a reply…" : "Add a comment…"} maxLength={1000} /><div>{replyTo && <button type="button" className="text-button" onClick={() => setReplyTo(null)}>Cancel reply</button>}<button className="quiet-button" disabled={!body.trim()}>Post</button></div></form>
-    {roots.map((comment) => <article key={comment.id}><strong>{comment.display_name || comment.username || "Coach"}</strong><p>{comment.body}</p><div><button type="button" className={comment.upvoted_by_me ? "comment-upvote active" : "comment-upvote"} onClick={() => upvote(comment.id, comment.upvoted_by_me)}>▲ Upvote {comment.upvotes}</button><button type="button" className="text-button" onClick={() => setReplyTo(comment.id)}>Reply</button></div>{comments.filter((reply) => reply.parent_comment_id === comment.id).sort((a, b) => b.upvotes - a.upvotes).map((reply) => <aside key={reply.id}><strong>{reply.display_name || reply.username || "Coach"}</strong><p>{reply.body}</p><button type="button" className={reply.upvoted_by_me ? "comment-upvote active" : "comment-upvote"} onClick={() => upvote(reply.id, reply.upvoted_by_me)}>▲ Upvote {reply.upvotes}</button></aside>)}</article>)}
-    {message && <p className="hub-message">{message}</p>}
-  </div>;
+  return <details className="daily-game-discussion">
+    <summary><span>Community discussion</span><small>{comments.length} comment{comments.length === 1 ? "" : "s"}</small></summary>
+    <div className="daily-game-discussion-body">
+      <form onSubmit={post}><textarea value={body} onChange={(event) => setBody(event.target.value)} placeholder={replyTo ? "Write a reply…" : "Add a comment…"} maxLength={1000} /><div>{replyTo && <button type="button" className="text-button" onClick={() => setReplyTo(null)}>Cancel reply</button>}<button className="quiet-button" disabled={!body.trim()}>Post</button></div></form>
+      {roots.map((comment) => <article key={comment.id}><strong>{comment.display_name || comment.username || "Coach"}</strong><p>{comment.body}</p><div><button type="button" className={comment.upvoted_by_me ? "comment-upvote active" : "comment-upvote"} onClick={() => upvote(comment.id, comment.upvoted_by_me)}>▲ Upvote {comment.upvotes}</button><button type="button" className="text-button" onClick={() => setReplyTo(comment.id)}>Reply</button></div>{comments.filter((reply) => reply.parent_comment_id === comment.id).sort((a, b) => b.upvotes - a.upvotes).map((reply) => <aside key={reply.id}><strong>{reply.display_name || reply.username || "Coach"}</strong><p>{reply.body}</p><button type="button" className={reply.upvoted_by_me ? "comment-upvote active" : "comment-upvote"} onClick={() => upvote(reply.id, reply.upvoted_by_me)}>▲ Upvote {reply.upvotes}</button></aside>)}</article>)}
+      {message && <p className="hub-message">{message}</p>}
+    </div>
+  </details>;
 }
 
 export default function DailyCommunityGames({ signedIn }) {
