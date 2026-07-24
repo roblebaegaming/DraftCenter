@@ -7263,6 +7263,9 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   useEffect(() => {
     if (tab === "league" && state.locked && !draftDone) setLeagueSubTab("draft");
   }, [tab]);
+  useEffect(() => {
+    if (isSpectator && tab === "setup") setTab("home");
+  }, [isSpectator, tab]);
 
   // Existing browsers may still remember the retired standalone Board tab.
   // Send them straight to the combined Activity view instead of showing a
@@ -7346,7 +7349,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
           </button>}
           <nav className="flex flex-wrap gap-1 justify-end">
             {[
-              ["home", `${league?.name || "League"} Home`], ...(!state.locked || isCommissioner ? [["setup", "Setup"]] : []),
+              ["home", `${league?.name || "League"} Home`], ...(!isSpectator && (!state.locked || isCommissioner) ? [["setup", isCommissioner ? "Setup" : "League Details"]] : []),
               // Pre-lock, there's no live draft yet — just one coming up —
               // so it's its own clearly-labeled top-level tab. The moment
               // the draft actually starts, it stops being a standalone
@@ -7357,7 +7360,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
               // the future draft time. Once live, the actual Draft appears in
               // the League area below instead of two competing Draft buttons.
               ...(!state.locked ? [["draft", "Schedule"]] : []),
-              ["myteam", "My Teams"],
+              ["myteam", isSpectator ? "Teams" : "My Teams"],
               ...(state.locked ? [["league", "League"]] : []),
               ...(!isSpectator ? [["messages", "Messages"]] : []),
             ].map(([key, label]) => {
@@ -7428,13 +7431,13 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
         {liveDraftError && <div className="mb-4 rounded p-3 text-sm" style={{ background: "#2A1620", color: "#FFD6D6", border: "1px solid #F0555A66" }}>{liveDraftError}</div>}
         {tab === "home" && (
           <HomeView state={state} isCommissioner={isCommissioner} myTeamIdx={myTeamIdx} standings={standings}
-            onGetStarted={() => state.locked ? (setTab("league"), setLeagueSubTab("draft")) : setTab("setup")}
+            onGetStarted={() => state.locked ? (setTab("league"), setLeagueSubTab("draft")) : isSpectator ? setTab("draft") : setTab("setup")}
             onGoToLeague={(sub) => { setTab("league"); setLeagueSubTab(sub); }}
             costFor={costFor}
             updateHomepage={updateHomepage}
           />
         )}
-        {tab === "setup" && (
+        {tab === "setup" && isCommissioner && (
           <SetupView
             state={state} leagueId={leagueId} isCommissioner={isCommissioner} canBeCommissioner={canBeCommissioner}
             claimCommissioner={claimCommissioner} unclaimCommissioner={unclaimCommissioner} claimTeam={claimTeam} renameTeam={renameTeam} myName={myName}
@@ -7449,6 +7452,9 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
             onOpenLeagueTools={onOpenLeagueTools} copyLeagueInvite={copyLeagueInvite}
             saveNow={saveNow} saveStatus={saveStatus}
           />
+        )}
+        {tab === "setup" && !isCommissioner && !isSpectator && (
+          <ManagerLeagueDetails state={state} myName={myName} claimTeam={claimTeam} costFor={costFor} updateHomepage={updateHomepage} />
         )}
         {tab === "draft" && (
           <DraftView
@@ -8701,6 +8707,39 @@ function ManualRosterEntry({ teams, settings, finalizeManualDraft }) {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function ManagerLeagueDetails({ state, myName, claimTeam, costFor, updateHomepage }) {
+  const settings = state.settings;
+  const myTeam = state.teams.find((team) => team.claimedBy === myName);
+  const openTeams = state.teams.map((team, index) => ({ ...team, index })).filter((team) => !team.claimedBy);
+  const regulation = regulationFor(settings);
+  return (
+    <div className="space-y-6">
+      <section className="rounded-lg p-5" style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }}>
+        <span className="eyebrow">LEAGUE DETAILS</span>
+        <h2 className="display-font text-3xl" style={{ color: "#FFD23F" }}>Everything you need before draft day</h2>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-4">
+          <div className="rounded p-3" style={{ background: "#1F2338" }}><span className="text-xs block" style={{ color: "#9A9FBD" }}>DRAFT DATE</span><strong>{settings.draftScheduledAt ? new Date(settings.draftScheduledAt).toLocaleString() : "Not scheduled yet"}</strong></div>
+          <div className="rounded p-3" style={{ background: "#1F2338" }}><span className="text-xs block" style={{ color: "#9A9FBD" }}>FORMAT</span><strong>{settings.draftType === "auction" ? "Auction" : settings.snakeBudgetEnabled ? "Budgeted snake" : "Snake draft"}</strong></div>
+          <div className="rounded p-3" style={{ background: "#1F2338" }}><span className="text-xs block" style={{ color: "#9A9FBD" }}>REGULATION</span><strong>{regulation.name}</strong></div>
+          <div className="rounded p-3" style={{ background: "#1F2338" }}><span className="text-xs block" style={{ color: "#9A9FBD" }}>ROSTER</span><strong>{settings.rosterMin === settings.rosterMax ? `${settings.rosterMin} Pokémon` : `${settings.rosterMin}–${settings.rosterMax} Pokémon`}</strong></div>
+        </div>
+      </section>
+      <section className="rounded-lg p-5" style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }}>
+        <h2 className="display-font text-2xl mb-1" style={{ color: "#FFD23F" }}>{myTeam ? "YOUR TEAM" : "CLAIM AN OPEN TEAM"}</h2>
+        <p className="text-sm mb-4" style={{ color: "#9A9FBD" }}>{myTeam ? `You are managing ${myTeam.name}.` : "Choose one open team. Your selection is saved immediately and removes one available manager spot."}</p>
+        <div className="grid sm:grid-cols-2 gap-3">
+          {state.teams.map((team, index) => {
+            const mine = team.claimedBy === myName;
+            return <article key={team.id ?? index} className="rounded p-3 flex items-center justify-between gap-3" style={{ background: mine ? "#2A2618" : "#1F2338", border: `1px solid ${mine ? "#FFD23F66" : "rgba(255,255,255,0.06)"}` }}><div className="flex items-center gap-3"><TeamLogo team={team} size={34} /><div><strong className="block">{team.name}</strong><span className="text-xs" style={{ color: team.claimedBy ? "#4FD1C5" : "#9A9FBD" }}>{mine ? "Your team" : team.claimedBy ? `Manager: ${team.claimedBy}` : "Open"}</span></div></div>{!myTeam && !team.claimedBy && <button onClick={() => claimTeam(index)} className="px-3 py-1.5 rounded text-xs font-semibold" style={{ background: "#FFD23F", color: "#10121C" }}>CLAIM</button>}</article>;
+          })}
+        </div>
+        {!myTeam && openTeams.length === 0 && <p className="text-sm mt-4" style={{ color: "#F4B860" }}>No teams are currently open. Ask the commissioner to add or release a team.</p>}
+      </section>
+      <PreDraftScout state={state} isCommissioner={false} costFor={costFor} updateHomepage={updateHomepage} />
     </div>
   );
 }
