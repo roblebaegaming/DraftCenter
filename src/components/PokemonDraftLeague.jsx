@@ -7360,7 +7360,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
               // the future draft time. Once live, the actual Draft appears in
               // the League area below instead of two competing Draft buttons.
               ...(!state.locked ? [["draft", "Schedule"]] : []),
-              ["myteam", isSpectator ? "Teams" : "My Teams"],
+              ["myteam", isSpectator ? "Teams" : "My Team"],
               ...(state.locked ? [["league", "League"]] : []),
               ...(!isSpectator ? [["messages", "Messages"]] : []),
             ].map(([key, label]) => {
