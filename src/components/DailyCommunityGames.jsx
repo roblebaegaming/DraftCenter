@@ -13,6 +13,15 @@ function localDateKey(date = new Date()) {
   return `${year}-${month}-${day}`;
 }
 
+async function addChampionRankings(supabase, data) {
+  if (!data?.bracket?.id) return data;
+  const { data: champions, error } = await supabase.rpc("get_daily_bracket_champion_rankings", {
+    p_bracket_id: data.bracket.id,
+  });
+  if (error) return data;
+  return { ...data, bracket: { ...data.bracket, champions: champions || [] } };
+}
+
 function BracketPokemon({ name, onChoose, disabled }) {
   const [image, setImage] = useState("");
   useEffect(() => {
@@ -28,6 +37,15 @@ function BracketPokemon({ name, onChoose, disabled }) {
 
 function cleanCommunityText(value) {
   return String(value || "")
+    // Repair common UTF-8-as-Windows-1252 sequences anywhere in a sentence,
+    // rather than only repairing the exact word "Pokémon".
+    .replaceAll("\u00c3\u00a9", "\u00e9")
+    .replaceAll("\u00c3\u0089", "\u00c9")
+    .replaceAll("\u00c3\u00a1", "\u00e1")
+    .replaceAll("\u00c3\u00ad", "\u00ed")
+    .replaceAll("\u00c3\u00b3", "\u00f3")
+    .replaceAll("\u00c3\u00ba", "\u00fa")
+    .replaceAll("\u00c3\u00b1", "\u00f1")
     .replaceAll("PokÃ©mon", "Pokémon")
     .replaceAll("PokÃ‰mon", "POKÉMON")
     .replaceAll("â€™", "’")
@@ -426,11 +444,11 @@ export default function DailyCommunityGames({ signedIn }) {
     Promise.all([
       supabase.rpc("get_daily_community_games", { p_local_date: date }),
       supabase.rpc("get_daily_community_games", { p_local_date: localDateKey(yesterday) }),
-    ]).then(([todayResult, previousResult]) => {
+    ]).then(async ([todayResult, previousResult]) => {
       const { data, error } = todayResult;
       if (error) setMessage(error.message);
-      else setGames(data);
-      if (!previousResult.error) setPrevious(previousResult.data);
+      else setGames(await addChampionRankings(supabase, data));
+      if (!previousResult.error) setPrevious(await addChampionRankings(supabase, previousResult.data));
     });
   }, [date]);
   useEffect(() => {
@@ -440,7 +458,7 @@ export default function DailyCommunityGames({ signedIn }) {
   }, [signedIn]);
   if (message) return <section className="explore-card"><p className="hub-message">{message}</p></section>;
   if (!games) return <section className="explore-card"><p className="muted">Loading today’s community games…</p></section>;
-  async function saved(next){setGames(next);if(!signedIn)return;const supabase=createClient();const {data,error}=await supabase.rpc("refresh_my_daily_three_badges");if(error)setMessage(error.message);else if(window.location.pathname==="/explore")setBadgeEvents(data?.events||[]);else window.dispatchEvent(new CustomEvent("draftcenter:badge-events",{detail:data?.events||[]}));}
+  async function saved(next){const supabase=createClient();setGames(await addChampionRankings(supabase,next));if(!signedIn)return;const {data,error}=await supabase.rpc("refresh_my_daily_three_badges");if(error)setMessage(error.message);else if(window.location.pathname==="/explore")setBadgeEvents(data?.events||[]);else window.dispatchEvent(new CustomEvent("draftcenter:badge-events",{detail:data?.events||[]}));}
   async function dismissBadge(){const event=badgeEvents[0];const supabase=createClient();await supabase.rpc("mark_badge_events_seen",{p_event_ids:[event.id]});setBadgeEvents((current)=>current.slice(1));}
   return <>
     {badgeEvents.length>0&&<div className="badge-award-backdrop"><section className="badge-award-popup"><div className="badge-confetti">✦ ★ ✧ ★ ✦</div><span className="eyebrow">BADGE EARNED</span><div className="badge-award-icon">{badgeEvents[0].icon}</div><h2>{badgeEvents[0].subject?`${badgeEvents[0].subject} ${badgeEvents[0].name}`:badgeEvents[0].name}</h2><p>{badgeEvents[0].description}</p><button className="primary-button" onClick={dismissBadge}>{badgeEvents.length>1?`Next badge (${badgeEvents.length-1} more)`:"Awesome!"}</button><small>Your badge now appears in Profile.</small></section></div>}
