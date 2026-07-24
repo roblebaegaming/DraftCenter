@@ -49,6 +49,8 @@ export const WORLD_CHAMPION_POKEMON = [
 export function pokemonArtworkCandidates(name) {
   const key = pokemonSlug(name);
   const candidates = [key];
+  if (key === "aegislash") candidates.unshift("aegislash-shield");
+  if (key === "mimikyu") candidates.unshift("mimikyu-disguised");
   if (key === "basculegion") candidates.unshift("basculegion-male");
   const regional = key.match(/^(alolan|galarian|hisuian|paldean)-(.+)$/);
   if (regional) candidates.unshift(`${regional[2]}-${{ alolan:"alola", galarian:"galar", hisuian:"hisui", paldean:"paldea" }[regional[1]]}`);
@@ -73,6 +75,24 @@ export async function loadPokemonArtwork(name) {
       if (image) return image;
     } catch {}
   }
+  try {
+    const speciesName = pokemonSlug(name)
+      .replace(/^(alolan|galarian|hisuian|paldean)-/, "")
+      .replace(/^mega-/, "");
+    const speciesResponse = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${encodeURIComponent(speciesName)}`);
+    if (speciesResponse.ok) {
+      const species = await speciesResponse.json();
+      const defaultVariety = species?.varieties?.find((variety) => variety.is_default) || species?.varieties?.[0];
+      if (defaultVariety?.pokemon?.url) {
+        const varietyResponse = await fetch(defaultVariety.pokemon.url);
+        if (varietyResponse.ok) {
+          const variety = await varietyResponse.json();
+          const image = variety?.sprites?.other?.["official-artwork"]?.front_default || variety?.sprites?.front_default;
+          if (image) return image;
+        }
+      }
+    }
+  } catch {}
   if (pokemonSlug(name) === "floette-eternal") {
     return "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10061.png";
   }
