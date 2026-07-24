@@ -4504,6 +4504,14 @@ function formatLocalHourLabel(localHour) {
   return d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
 }
 
+function dateTimeLocalValue(value) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60 * 1000);
+  return localDate.toISOString().slice(0, 16);
+}
+
 function stripFromAllQueues(queues, name) {
   const next = {};
   for (const key of Object.keys(queues)) next[key] = queues[key].filter((n) => n !== name);
@@ -8798,6 +8806,7 @@ function SetupView({ state, leagueId = null, isCommissioner, canBeCommissioner, 
     .sort((a, b) => (isPriced(a, settings) ? 1 : 0) - (isPriced(b, settings) ? 1 : 0) || costFor(b, settings) - costFor(a, settings) || a.name.localeCompare(b.name));
   const hiddenBannedCount = allMons.filter((p) => !isLegal(p, settings)).length;
   const hasStaleRosterCarryover = looksLikeCarriedOverRosterState(state);
+  const draftHasStarted = hasDraftStartedEvidence(state);
   const hasDraftSelections = !hasStaleRosterCarryover && ((state.pickIndex || 0) > 0
     || state.rosters.some((roster) => (roster || []).some((mon) => mon.acquiredVia !== "keeper"))
     || Boolean(state.nominee?.highestBidder != null));
@@ -8840,8 +8849,8 @@ function SetupView({ state, leagueId = null, isCommissioner, canBeCommissioner, 
       )}
       <section style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }} className="rounded-lg p-5 mb-6">
         <h2 className="display-font text-2xl mb-2" style={{ color: "#FFD23F" }}>DRAFT DATE & MANAGER INVITES</h2>
-        <p className="text-sm mb-4" style={{ color: "#9A9FBD" }}>{locked ? "The draft has already taken place, so its one-time appointment is complete. Use League Clock below to edit recurring match and transaction times." : settings.draftScheduledAt ? `Currently scheduled for ${new Date(settings.draftScheduledAt).toLocaleString()}.` : "No draft time has been scheduled yet."}</p>
-        {isCommissioner && <div className="flex items-end gap-3 flex-wrap">{!locked && <label className="text-xs" style={{ color: "#9A9FBD" }}>Official draft start date and time<input type="datetime-local" value={settings.draftScheduledAt ? new Date(settings.draftScheduledAt).toISOString().slice(0, 16) : ""} onChange={(event) => updateSettings({ draftScheduledAt: event.target.value ? new Date(event.target.value).toISOString() : null })} className="block mt-1 px-3 py-2 rounded mono-font text-sm" style={{ background: "#1F2338", border: "1px solid rgba(255,255,255,0.1)", color: "#EDEBFA" }} /></label>}{leagueId && copyLeagueInvite && <><button type="button" onClick={async () => { const result = await copyLeagueInvite("manager"); setInviteMessage(result.error || "Manager invite link copied."); }} className="px-4 py-2 rounded font-semibold text-sm" style={{ background: "#4FD1C5", color: "#10121C" }}>COPY MANAGER INVITE</button><button type="button" onClick={async () => { const result = await copyLeagueInvite("spectator"); setInviteMessage(result.error || "Spectator link copied."); }} className="px-4 py-2 rounded font-semibold text-sm" style={{ background: "#1F2338", color: "#EDEBFA", border: "1px solid #4FD1C555" }}>COPY SPECTATOR LINK</button></>}</div>}
+        <p className="text-sm mb-4" style={{ color: "#9A9FBD" }}>{draftHasStarted ? "The draft has already started, so its one-time appointment is complete. Use League Clock below to edit recurring match and transaction times." : settings.draftScheduledAt ? `Currently scheduled for ${new Date(settings.draftScheduledAt).toLocaleString()}. You can change it below until the draft actually starts.` : "No draft time has been scheduled yet."}</p>
+        {isCommissioner && <div className="flex items-end gap-3 flex-wrap">{!draftHasStarted && <label className="text-xs" style={{ color: "#9A9FBD" }}>Official draft start date and time<input type="datetime-local" value={dateTimeLocalValue(settings.draftScheduledAt)} onChange={(event) => updateSettings({ draftScheduledAt: event.target.value ? new Date(event.target.value).toISOString() : null })} className="block mt-1 px-3 py-2 rounded mono-font text-sm" style={{ background: "#1F2338", border: "1px solid rgba(255,255,255,0.1)", color: "#EDEBFA" }} /></label>}{leagueId && copyLeagueInvite && <><button type="button" onClick={async () => { const result = await copyLeagueInvite("manager"); setInviteMessage(result.error || "Manager invite link copied."); }} className="px-4 py-2 rounded font-semibold text-sm" style={{ background: "#4FD1C5", color: "#10121C" }}>COPY MANAGER INVITE</button><button type="button" onClick={async () => { const result = await copyLeagueInvite("spectator"); setInviteMessage(result.error || "Spectator link copied."); }} className="px-4 py-2 rounded font-semibold text-sm" style={{ background: "#1F2338", color: "#EDEBFA", border: "1px solid #4FD1C555" }}>COPY SPECTATOR LINK</button></>}</div>}
         {inviteMessage && <p className="text-xs mt-3" style={{ color: "#4FD1C5" }}>{inviteMessage}</p>}
         <p className="text-xs mt-3" style={{ color: "#5B5F7E" }}>This is the league's single saved draft date. It appears automatically on Home, Draft, Setup, and public league details.</p>
       </section>
@@ -9669,7 +9678,7 @@ function TransactionRulesCard({ state, isCommissioner, updateSettings }) {
           {settings.calendarMode === "weekly" && (
             <div className="grid md:grid-cols-2 gap-4">
               <label className="text-xs" style={{ color: "#9A9FBD" }}>Season week 1 begins
-                <input type="datetime-local" value={settings.seasonStartsAt ? new Date(settings.seasonStartsAt).toISOString().slice(0, 16) : ""}
+                <input type="datetime-local" value={dateTimeLocalValue(settings.seasonStartsAt)}
                   onChange={(e) => updateSettings({ seasonStartsAt: e.target.value ? new Date(e.target.value).toISOString() : null })}
                   className="block w-full mt-1 px-3 py-2 rounded" style={{ background: "#1F2338", color: "#EDEBFA", border: "1px solid rgba(255,255,255,0.1)" }} />
               </label>
@@ -10743,11 +10752,20 @@ function DraftHeroVoteCard({ teams, votes, myName, castDraftHeroVote }) {
 function PreDraftScout({ state, isCommissioner, costFor, updateHomepage }) {
   const [search, setSearch] = useState("");
   const [type, setType] = useState("");
+  const [sortMode, setSortMode] = useState("price-desc");
+  const [viewMode, setViewMode] = useState("grid");
   const settings = state.settings;
   const scheduledAt = settings.draftScheduledAt;
   const pool = fullPool(settings).filter((mon) => isLegal(mon, settings))
     .filter((mon) => mon.name.toLowerCase().includes(search.toLowerCase()))
-    .filter((mon) => !type || mon.t1 === type || mon.t2 === type);
+    .filter((mon) => !type || mon.t1 === type || mon.t2 === type)
+    .slice()
+    .sort((a, b) => {
+      if (sortMode === "name") return a.name.localeCompare(b.name);
+      const priceDifference = costFor(a, settings) - costFor(b, settings);
+      return (sortMode === "price-asc" ? priceDifference : -priceDifference) || a.name.localeCompare(b.name);
+    });
+  const priceTiers = [...new Set(pool.map((mon) => costFor(mon, settings)))].sort((a, b) => b - a);
   const claimed = state.teams.filter((team) => team.claimedBy).length;
   return <div className="space-y-6">
     {!isCommissioner && <LeagueInfoCard state={state} isCommissioner={false} updateHomepage={updateHomepage} />}
@@ -10757,9 +10775,18 @@ function PreDraftScout({ state, isCommissioner, costFor, updateHomepage }) {
       <div className="flex gap-3 flex-wrap mt-4 text-sm"><span className="px-3 py-1 rounded" style={{ background: "#1F2338", color: "#EDEBFA" }}>{pool.length} eligible Pokémon</span><span className="px-3 py-1 rounded" style={{ background: "#1F2338", color: "#EDEBFA" }}>{claimed}/{state.teams.length} managers assigned</span>{scheduledAt ? <span className="px-3 py-1 rounded" style={{ background: "#4FD1C522", color: "#4FD1C5" }}>Draft: {new Date(scheduledAt).toLocaleString()}</span> : <span className="px-3 py-1 rounded" style={{ background: "#FFD23F22", color: "#FFD23F" }}>{isCommissioner ? "Set the draft time in League tools" : "Draft time not set yet"}</span>}<a href={`/pokemon?regulation=${encodeURIComponent(settings.regulationId || "")}`} className="px-3 py-1 rounded font-semibold" style={{ background: "#1B3845", color: "#4FD1C5", textDecoration: "none" }}>Open move pools</a></div>
     </section>
     <section className="rounded-lg p-5" style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }}>
-      <div className="flex gap-3 flex-wrap mb-4"><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search Pokémon" className="px-3 py-2 rounded flex-1 min-w-[180px]" style={{ background: "#0F1420", border: "1px solid #313a63", color: "#EDEBFA" }} /><select value={type} onChange={(event) => setType(event.target.value)} className="px-3 py-2 rounded" style={{ background: "#0F1420", border: "1px solid #313a63", color: "#EDEBFA" }}><option value="">All types</option>{Object.keys(TYPE_COLORS).map((key) => <option key={key} value={key}>{key}</option>)}</select></div>
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">{pool.slice(0, 200).map((mon) => <article key={mon.id} className="rounded p-3" style={{ background: "#1B1F33", border: "1px solid rgba(255,255,255,0.06)" }}><strong className="block text-sm truncate">{mon.name}</strong><span className="text-xs" style={{ color: TYPE_COLORS[mon.t1] || "#9A9FBD" }}>{mon.t1}{mon.t2 ? ` / ${mon.t2}` : ""}</span><b className="block mono-font text-xs mt-1" style={{ color: "#FFD23F" }}>{costFor(mon, settings)} pt</b></article>)}</div>
-      {pool.length > 200 && <p className="text-xs mt-3" style={{ color: "#9A9FBD" }}>Showing the first 200 results. Use search or a type filter to narrow the board.</p>}
+      <div className="flex gap-3 flex-wrap mb-4">
+        <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search Pokémon" className="px-3 py-2 rounded flex-1 min-w-[180px]" style={{ background: "#0F1420", border: "1px solid #313a63", color: "#EDEBFA" }} />
+        <select value={type} onChange={(event) => setType(event.target.value)} className="px-3 py-2 rounded" style={{ background: "#0F1420", border: "1px solid #313a63", color: "#EDEBFA" }}><option value="">All types</option>{Object.keys(TYPE_COLORS).map((key) => <option key={key} value={key}>{key}</option>)}</select>
+        <select value={sortMode} onChange={(event) => setSortMode(event.target.value)} className="px-3 py-2 rounded" style={{ background: "#0F1420", border: "1px solid #313a63", color: "#EDEBFA" }}><option value="price-desc">Price: high to low</option><option value="price-asc">Price: low to high</option><option value="name">Name: A–Z</option></select>
+        <div className="flex gap-1"><button type="button" onClick={() => setViewMode("grid")} className="px-3 py-2 rounded text-xs font-semibold" style={{ background: viewMode === "grid" ? "#FFD23F" : "#1F2338", color: viewMode === "grid" ? "#10121C" : "#9A9FBD" }}>GRID</button><button type="button" onClick={() => setViewMode("tiers")} className="px-3 py-2 rounded text-xs font-semibold" style={{ background: viewMode === "tiers" ? "#FFD23F" : "#1F2338", color: viewMode === "tiers" ? "#10121C" : "#9A9FBD" }}>PRICE TIERS</button></div>
+      </div>
+      {viewMode === "grid" ? (
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">{pool.slice(0, 200).map((mon) => <article key={mon.id} className="rounded p-3" style={{ background: "#1B1F33", border: "1px solid rgba(255,255,255,0.06)" }}><strong className="block text-sm truncate">{mon.name}</strong><span className="text-xs" style={{ color: TYPE_COLORS[mon.t1] || "#9A9FBD" }}>{mon.t1}{mon.t2 ? ` / ${mon.t2}` : ""}</span><b className="block mono-font text-xs mt-1" style={{ color: "#FFD23F" }}>{costFor(mon, settings)} pt</b></article>)}</div>
+      ) : (
+        <div className="flex gap-3 overflow-x-auto pb-3">{priceTiers.map((price) => <section key={price} className="rounded-lg p-3 min-w-[210px]" style={{ background: "#111625", border: "1px solid rgba(255,255,255,0.08)" }}><h3 className="display-font text-xl mb-3" style={{ color: "#FFD23F" }}>{price} POINT TIER</h3><div className="space-y-2">{pool.filter((mon) => costFor(mon, settings) === price).map((mon) => <article key={mon.id} className="rounded px-3 py-2" style={{ background: "#1B1F33" }}><strong className="block text-sm">{mon.name}</strong><span className="text-xs" style={{ color: TYPE_COLORS[mon.t1] || "#9A9FBD" }}>{mon.t1}{mon.t2 ? ` / ${mon.t2}` : ""}</span></article>)}</div></section>)}</div>
+      )}
+      {viewMode === "grid" && pool.length > 200 && <p className="text-xs mt-3" style={{ color: "#9A9FBD" }}>Showing the first 200 results. Use search or a type filter to narrow the board.</p>}
     </section>
   </div>;
 }
