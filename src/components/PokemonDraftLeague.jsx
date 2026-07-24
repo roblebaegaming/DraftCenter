@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { createClient } from "../lib/supabase/client";
+import { LeagueBroadcastCenter } from "./SocialSharing";
 
 /* ---------------------------------------------------------
    DESIGN TOKENS — stadium-jumbotron-at-night aesthetic.
@@ -7469,7 +7470,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       <div className="max-w-6xl mx-auto px-6 py-8">
         {liveDraftError && <div className="mb-4 rounded p-3 text-sm" style={{ background: "#2A1620", color: "#FFD6D6", border: "1px solid #F0555A66" }}>{liveDraftError}</div>}
         {tab === "home" && (
-          <HomeView state={state} isCommissioner={displayIsCommissioner} isSpectator={displayIsSpectator} myTeamIdx={myTeamIdx} standings={standings}
+          <HomeView state={state} leagueId={leagueId} leagueName={league?.name} isCommissioner={displayIsCommissioner} isSpectator={displayIsSpectator} myTeamIdx={myTeamIdx} standings={standings}
             isMyTurn={isMyTurn} pendingTrades={pendingTradesForMe} unreadMessages={unreadDirectCount + unreadBoardCount}
             onGetStarted={() => state.locked ? (setTab("league"), setLeagueSubTab("draft")) : displayIsSpectator ? setTab("myteam") : setTab("setup")}
             onGoToLeague={(sub) => { setTab("league"); setLeagueSubTab(sub); }}
@@ -8156,7 +8157,7 @@ function MyTeamView({ state, myTeamIdx, isCommissioner, myName, myTeamIndices, a
   );
 }
 
-function HomeView({ state, isCommissioner, isSpectator = false, myTeamIdx, standings, onGetStarted, onGoToLeague, costFor, updateHomepage, isMyTurn = false, pendingTrades = 0, unreadMessages = 0 }) {
+function HomeView({ state, leagueId, leagueName, isCommissioner, isSpectator = false, myTeamIdx, standings, onGetStarted, onGoToLeague, costFor, updateHomepage, isMyTurn = false, pendingTrades = 0, unreadMessages = 0 }) {
   const { coCommissioners: coCommissionersRaw, schedule, matchResults, trades = [], transactionLog = [], seasonNumber, commissioner, locked, teams } = state;
   const coCommissioners = coCommissionersRaw || [];
 
@@ -8235,6 +8236,7 @@ function HomeView({ state, isCommissioner, isSpectator = false, myTeamIdx, stand
       </div>
 
       <LeagueInfoCard state={state} isCommissioner={isCommissioner} updateHomepage={updateHomepage} />
+      {leagueId && <LeagueBroadcastCenter leagueId={leagueId} leagueName={leagueName} isCommissioner={isCommissioner} canPublish={!isSpectator} />}
 
       <div style={{ background: "#171A2C", border: "1px solid rgba(79,209,197,0.25)" }} className="rounded-lg p-5">
         <h2 className="display-font text-xl mb-2" style={{ color: "#4FD1C5" }}>LEAGUE CLOCK</h2>

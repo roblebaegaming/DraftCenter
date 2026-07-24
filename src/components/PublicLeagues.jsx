@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "../lib/supabase/client";
+import { ShareButton } from "./SocialSharing";
 
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 const REGULATION_LABELS = {
@@ -124,7 +125,7 @@ export default function PublicLeagues() {
   return <main className="league-directory-shell">
     <header className="league-directory-hero">
       <div className="public-page-nav"><a className="quiet-button community-home-link" href="/"><img src="/draftcenter-logo.png" alt="" />DraftCenter Home</a><a className="quiet-button" href="/explore">Community</a><a className="quiet-button" href="/pokemon">Pokémon</a></div>
-      <span className="eyebrow">PUBLIC LEAGUES</span><h1>Find a league to join—or a season worth following.</h1><p>Compare formats, open teams, calendars, standings, results, replays, and predictions without taking a competitive spot just for looking.</p>
+      <span className="eyebrow">PUBLIC LEAGUES</span><h1>Find a league to join—or a season worth following.</h1><p>Compare formats, open teams, calendars, standings, results, replays, and predictions without taking a competitive spot just for looking.</p><ShareButton title="DraftCenter Public Leagues" text="Find Pokémon draft leagues to join or watch on DraftCenter." />
     </header>
     <section className="league-directory-controls">
       <div className="league-directory-tabs"><button className={tab === "open" ? "active" : ""} onClick={() => setTab("open")}>Open to Join</button><button className={tab === "watch" ? "active" : ""} onClick={() => setTab("watch")}>Open to Watch</button></div>

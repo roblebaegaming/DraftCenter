@@ -91,9 +91,18 @@ async function deliverDiscord(event, supabase) {
   const token = process.env.DISCORD_BOT_TOKEN;
   if (!token) throw new Error("Discord bot is not configured yet.");
   const hours = event.payload?.hours_before;
-  const content = hours === 1
-    ? `⏰ **${event.payload?.league_name || "DraftCenter"}** starts in about one hour!`
-    : `📣 **${event.payload?.league_name || "DraftCenter"}** starts in ${hours} hours.`;
+  let content;
+  if (event.kind === "stream_live") {
+    content = `🔴 **LIVE NOW — ${event.payload?.league_name || "DraftCenter"}**\n${event.payload?.title || "A league battle is live."}\n${event.payload?.stream_url}`;
+  } else if (event.kind === "match_reminder") {
+    content = hours === 1
+      ? `⏰ **${event.payload?.title || `${event.payload?.league_name || "DraftCenter"} match`}** starts in about one hour.\n${event.payload?.stream_url}`
+      : `📣 **${event.payload?.title || `${event.payload?.league_name || "DraftCenter"} match`}** starts in ${hours} hours.\n${event.payload?.stream_url}`;
+  } else {
+    content = hours === 1
+      ? `⏰ **${event.payload?.league_name || "DraftCenter"}** starts in about one hour!`
+      : `📣 **${event.payload?.league_name || "DraftCenter"}** starts in ${hours} hours.`;
+  }
   const response = await fetch(`https://discord.com/api/v10/channels/${settings.channel_id}/messages`, {
     method: "POST", headers: { Authorization: `Bot ${token}`, "Content-Type": "application/json" }, body: JSON.stringify({ content }),
   });

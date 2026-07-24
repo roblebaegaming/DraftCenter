@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import { createClient } from "../lib/supabase/client";
+import { LiveNowList, ShareButton } from "./SocialSharing";
 
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
@@ -29,12 +30,16 @@ export default function PublicLeaguePage() {
   const [data, setData] = useState(null);
   const [message, setMessage] = useState("");
   const [predictionMessage, setPredictionMessage] = useState("");
+  const [liveStreams, setLiveStreams] = useState([]);
   useEffect(() => {
     if (!slug) return;
     supabase.rpc("get_public_league", { p_slug: slug }).then(({ data: result, error }) => {
       if (error) setMessage(error.message);
       else if (!result?.league) setMessage("This league is private or no longer available.");
-      else setData(result);
+      else {
+        setData(result);
+        supabase.rpc("get_league_live_streams", { p_league_id: result.league.id }).then(({ data: streams }) => setLiveStreams(streams || []));
+      }
     });
   }, [slug, supabase]);
   const standings = useMemo(() => computePublicStandings(data?.state), [data]);
@@ -48,9 +53,10 @@ export default function PublicLeaguePage() {
   return <main className="explore-shell">
     <header className="explore-hero"><div className="public-page-nav"><a className="quiet-button" href="/leagues">Public Leagues</a><a className="quiet-button" href="/explore">Community</a><a className="quiet-button" href="/">DraftCenter Home</a></div>
       {!data && !message && <p className="muted">Loading public league...</p>}{message && <p className="hub-message">{message}</p>}
-      {data?.league && <><span className="eyebrow">{data.league.league_visibility === "open" ? "OPEN TO JOIN" : "PUBLIC TO WATCH"}</span>{data.league.image_url && <img className="public-league-hero-image" src={data.league.image_url} alt="" />}<h1>{data.league.name}</h1><p>{data.league.description || data.league.season_label || "Public DraftCenter league"}</p></>}
+      {data?.league && <><span className="eyebrow">{data.league.league_visibility === "open" ? "OPEN TO JOIN" : "PUBLIC TO WATCH"}</span>{data.league.image_url && <img className="public-league-hero-image" src={data.league.image_url} alt="" />}<h1>{data.league.name}</h1><p>{data.league.description || data.league.season_label || "Public DraftCenter league"}</p><ShareButton title={data.league.name} text={`Follow ${data.league.name} standings, streams, replays, and predictions on DraftCenter.`} /></>}
     </header>
     {data?.league && <>
+      <section className="explore-card public-league-live"><span className="eyebrow">LIVE BATTLES</span><h2>Watch this league</h2><LiveNowList streams={liveStreams} showLeague={false} empty="No public battles are live or scheduled for this league." /></section>
       <section className="explore-card"><h2>League clock</h2>{settings.calendarMode === "weekly" ? <div className="public-pick-list"><div><strong>Season start</strong><span>{settings.seasonStartsAt ? new Date(settings.seasonStartsAt).toLocaleString() : "Not set"}</span></div><div><strong>Weekly matches</strong><span>{DAYS[settings.matchDayOfWeek]} at {settings.matchTime} · {settings.leagueTimeZone}</span></div><div><strong>Claims process</strong><span>{DAYS[settings.claimDayOfWeek]} at {settings.claimTime} · {settings.leagueTimeZone}</span></div></div> : <p className="muted">This league uses an untimed commissioner-led schedule.</p>}</section>
       <section className="explore-card"><h2>Standings</h2><div className="public-pick-list">{standings.map((team, index) => <div key={team.id}><b>#{index + 1}</b><strong>{team.name}</strong><span>{team.w}-{team.l} · Diff {team.differential >= 0 ? "+" : ""}{team.differential}</span></div>)}</div></section>
       <section className="explore-card"><h2>Schedule, results, and predictions</h2>{predictionMessage && <p className="hub-message">{predictionMessage}</p>}{data.state?.schedule?.length ? data.state.schedule.map((week, weekIndex) => <div key={weekIndex} className="mb-5"><h3>Week {weekIndex + 1}</h3><div className="public-pick-list">{week.map(([a, b], matchIndex) => { const key = `${weekIndex}-${matchIndex}`; const result = data.state.matchResults?.[key]; return <div key={key}><strong>{data.state.teams?.[a]?.name} vs. {data.state.teams?.[b]?.name}</strong>{result ? <span>Final {result.gamesA}-{result.gamesB}</span> : <span><button className="text-button" onClick={() => predict(key, a)}>Pick {data.state.teams?.[a]?.name}</button> · <button className="text-button" onClick={() => predict(key, b)}>Pick {data.state.teams?.[b]?.name}</button></span>}</div>; })}</div></div>) : <p className="muted">The schedule has not been published yet.</p>}</section>

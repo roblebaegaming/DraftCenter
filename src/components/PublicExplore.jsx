@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { createClient } from "../lib/supabase/client";
 import { loadPokemonArtwork, pokemonArtworkCandidates } from "./LeagueHub";
 import DailyCommunityGames from "./DailyCommunityGames";
+import { LiveNowList, ShareButton } from "./SocialSharing";
 
 function localDateKey(date = new Date()) { const year=date.getFullYear(); const month=String(date.getMonth()+1).padStart(2,"0"); const day=String(date.getDate()).padStart(2,"0"); return `${year}-${month}-${day}`; }
 
@@ -156,6 +157,7 @@ export default function PublicExplore() {
   const [pollHistory, setPollHistory] = useState([]);
   const [trends, setTrends] = useState(null);
   const [marketTrends, setMarketTrends] = useState(null);
+  const [liveStreams, setLiveStreams] = useState([]);
   const [message, setMessage] = useState("");
   const [selectedPokemon, setSelectedPokemon] = useState("");
   useEffect(() => {
@@ -167,12 +169,14 @@ export default function PublicExplore() {
       supabase.rpc("get_local_poll_history", { p_local_date: localDate, p_limit: 12 }),
       supabase.rpc("get_public_draft_trends"),
       supabase.rpc("get_public_market_trends"),
-    ]).then(([exploreResult, pollResult, historyResult, trendResult, marketResult]) => {
+      supabase.rpc("get_public_live_streams", { p_limit: 8 }),
+    ]).then(([exploreResult, pollResult, historyResult, trendResult, marketResult, liveResult]) => {
       if (exploreResult.error) setMessage(exploreResult.error.message);
       else setData({ ...(exploreResult.data || {}), poll: pollResult.error ? exploreResult.data?.poll : pollResult.data });
       if (!historyResult.error) setPollHistory(historyResult.data || []);
       if (!trendResult.error) setTrends(trendResult.data);
       if (!marketResult.error) setMarketTrends(marketResult.data);
+      if (!liveResult.error) setLiveStreams(liveResult.data || []);
     });
   }, []);
   const signedIn = Boolean(data?.signed_in);
@@ -183,11 +187,12 @@ export default function PublicExplore() {
       <span className="eyebrow">EXPLORE DRAFTCENTER</span>
       <h1>Pokémon, leagues, and community trends.</h1>
       <p>{signedIn ? "See what DraftCenter coaches are voting for, favoriting, and drafting." : "Explore public leagues and completed community polls. Create an account to vote, comment, and reveal today's results."}</p>
-      <div className="explore-actions"><a className="primary-button" href="/pokemon">Explore Pokémon</a><a className="secondary-button" href="/">{signedIn ? "Your DraftCenter Home" : "Create an account"}</a></div>
+      <div className="explore-actions"><a className="primary-button" href="/pokemon">Explore Pokémon</a><a className="secondary-button" href="/">{signedIn ? "Your DraftCenter Home" : "Create an account"}</a><ShareButton title="DraftCenter Community" text="Explore the Daily Three, live battles, leagues, and Pokémon trends on DraftCenter." /></div>
     </header>
     {message && <p className="hub-message">{message}</p>}
     {!data && !message && <p className="muted">Loading public DraftCenter data...</p>}
     {data && <>
+      <section className="explore-card community-live-now"><div className="section-heading"><div><span className="eyebrow">LIVE NOW</span><h2>Watch DraftCenter battles</h2></div><a className="quiet-button" href="/leagues">Browse public leagues</a></div><LiveNowList streams={liveStreams} /></section>
       <div className="daily-trio-grid">
         <section className="explore-card explore-poll">
         <span className="eyebrow">POLL OF THE DAY</span>

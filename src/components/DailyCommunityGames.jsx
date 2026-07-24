@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { createClient } from "../lib/supabase/client";
 import { loadPokemonArtwork } from "./LeagueHub";
 import { POLL_POKEMON_NAMES } from "./PokemonDraftLeague";
+import { ShareButton } from "./SocialSharing";
 
 function localDateKey(date = new Date()) {
   const year = date.getFullYear();
@@ -68,6 +69,46 @@ function PreviousQuiz({ previous }) {
   return <details className="daily-previous"><summary>View yesterday’s quiz results</summary>
     <div className="daily-previous-content"><strong>{previous.correct_percent ?? 0}% correct</strong><p>Accepted answer{previous.correct_answers?.length === 1 ? "" : "s"}: {(previous.correct_answers || []).join(", ")}</p><h4>Top answers</h4><ol>{(previous.top_answers || []).slice(0, 5).map((row) => <li key={row.answer}><span>{row.answer}</span><b>{row.count}</b></li>)}</ol></div>
   </details>;
+}
+
+function CommunityBracketResults({ bracket, winners }) {
+  const [view, setView] = useState("matchups");
+  const completed = Number(bracket.completed_brackets) || 0;
+  const champions = bracket.champions || [];
+  const results = bracket.matchup_results || [];
+  const matchupRows = winners.map((choice, index) => {
+    const [left, right] = matchupFor(bracket.pokemon, winners, index);
+    const votesFor = (name, opponent) => results
+      .filter((row) => row.winner?.toLowerCase() === name?.toLowerCase() && row.loser?.toLowerCase() === opponent?.toLowerCase())
+      .reduce((total, row) => total + (Number(row.votes) || 0), 0);
+    const leftVotes = votesFor(left, right);
+    const rightVotes = votesFor(right, left);
+    const total = leftVotes + rightVotes;
+    const choiceVotes = choice === left ? leftVotes : rightVotes;
+    const crowdChoice = leftVotes === rightVotes ? "Tie" : leftVotes > rightVotes ? left : right;
+    return {
+      round: index < 4 ? "Quarterfinal" : index < 6 ? "Semifinal" : "Final",
+      choice, opponent: choice === left ? right : left,
+      percent: total ? Math.round(100 * choiceVotes / total) : 0,
+      agreed: crowdChoice === choice,
+      crowdChoice,
+      total,
+    };
+  });
+  const agreements = matchupRows.filter((row) => row.agreed).length;
+  return <section className="community-bracket-results">
+    <div className="community-results-heading"><div><span className="eyebrow">COMMUNITY RESULTS</span><h3>How your bracket compares</h3></div><strong>{agreements} of 7 with the crowd</strong></div>
+    <div className="community-result-tabs"><button type="button" className={view === "matchups" ? "active" : ""} onClick={() => setView("matchups")}>My matchups</button><button type="button" className={view === "champions" ? "active" : ""} onClick={() => setView("champions")}>Champion leaderboard</button></div>
+    {view === "matchups" && <div className="community-matchup-results">{matchupRows.map((row, index) => <article key={`${row.round}-${row.choice}-${index}`}>
+      <div><small>{row.round}</small><strong>{row.choice} over {row.opponent}</strong></div>
+      <div className="community-choice-result"><span>{row.total ? `${row.percent}% chose ${row.choice}` : "First community result"}</span><b className={row.agreed ? "agreed" : ""}>{row.crowdChoice === "Tie" ? "Community tie" : row.agreed ? "Crowd agreed" : `Crowd chose ${row.crowdChoice}`}</b></div>
+      <i><span style={{ width: `${row.total ? row.percent : 100}%` }} /></i>
+    </article>)}</div>}
+    {view === "champions" && <div className="community-champion-results">{champions.length ? champions.slice(0, 8).map((row, index) => {
+      const percent = completed ? Math.round(100 * row.wins / completed) : 0;
+      return <article key={row.pokemon} className={row.pokemon === winners[6] ? "my-champion" : ""}><b>#{index + 1}</b><strong>{row.pokemon}{row.pokemon === winners[6] ? " · Your champion" : ""}</strong><span>{percent}% · {row.wins} bracket{row.wins === 1 ? "" : "s"}</span><i><span style={{ width: `${percent}%` }} /></i></article>;
+    }) : <p className="muted">Your bracket is the first completed community result today.</p>}</div>}
+  </section>;
 }
 
 async function canvasPokemonArtwork(name) {
@@ -251,9 +292,11 @@ function DailyBracket({ bracket, previous, signedIn, onSaved }) {
       <p>{bracket.completed_brackets || 0} completed community bracket{bracket.completed_brackets === 1 ? "" : "s"}</p>
       <div className="daily-game-actions">
         <button type="button" className="primary-button" onClick={() => downloadBracket(bracket, winners)}>Download my bracket</button>
+        <ShareButton title="My DraftCenter Daily Draft Bracket" text={`My ${bracket.game_date} Daily Draft Bracket champion is ${winners[6]}.`} url="https://www.draftcentral.gg/explore" />
         <button type="button" className="quiet-button" onClick={() => setWinners([])}>Redo my bracket</button>
       </div>
       <small className="muted">Redoing lets you revise today’s choices. Your saved bracket remains recorded until you complete the replacement, and only your latest completed bracket counts toward community preference data.</small>
+      <CommunityBracketResults bracket={bracket} winners={winners} />
     </div>}
     {message && <p className="hub-message">{message}</p>}
     <DailyGameDiscussion type="bracket" gameId={bracket.id} signedIn={signedIn} />
