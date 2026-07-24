@@ -6293,7 +6293,32 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   function resetPlayoffs() {
     commit((s) => ({ ...s, playoffs: null, auditLog: [...(s.auditLog || []), auditEntry(myName, "Reset playoffs")] }));
   }
-  function reportPlayoffMatch(roundIdx, matchIdx, gamesA, gamesB, monsAliveA, monsAliveB, replayUrlA, replayUrlB, mvpSide, mvpName, bestOf = 3) {
+  async function reportPlayoffMatch(roundIdx, matchIdx, gamesA, gamesB, monsAliveA, monsAliveB, replayUrlA, replayUrlB, mvpSide, mvpName, bestOf = 3) {
+    const result = {
+      gamesA: Number(gamesA) || 0, gamesB: Number(gamesB) || 0,
+      bestOf: [1, 3, 5].includes(Number(bestOf)) ? Number(bestOf) : 3,
+      monsAliveA: Number(monsAliveA) || 0, monsAliveB: Number(monsAliveB) || 0,
+      reportedBy: myName,
+      replayUrlA: replayUrlA || null,
+      replayUrlB: replayUrlB || null,
+      mvp: mvpName ? { side: mvpSide, name: mvpName } : null,
+    };
+    if (leagueId) {
+      const { data, error } = await supabase.rpc("save_playoff_result", {
+        p_league_id: leagueId,
+        p_result_key: `${roundIdx}-${matchIdx}`,
+        p_result: result,
+      });
+      if (error) {
+        setLiveDraftError(`The playoff result could not be saved: ${error.message}`);
+        return false;
+      }
+      const hydrated = hydrateState(data);
+      revRef.current = Math.max(revRef.current, hydrated.rev || 0);
+      setState(hydrated);
+      setLiveDraftError("");
+      return true;
+    }
     commit((s) => {
       if (!s.playoffs) return s;
       return {
@@ -6302,19 +6327,12 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
           ...s.playoffs,
           results: {
             ...s.playoffs.results,
-            [`${roundIdx}-${matchIdx}`]: {
-              gamesA: Number(gamesA) || 0, gamesB: Number(gamesB) || 0,
-              bestOf: [1, 3, 5].includes(Number(bestOf)) ? Number(bestOf) : 3,
-              monsAliveA: Number(monsAliveA) || 0, monsAliveB: Number(monsAliveB) || 0,
-              reportedBy: myName,
-              replayUrlA: replayUrlA || null,
-              replayUrlB: replayUrlB || null,
-              mvp: mvpName ? { side: mvpSide, name: mvpName } : null,
-            },
+            [`${roundIdx}-${matchIdx}`]: result,
           },
         },
       };
     });
+    return true;
   }
   // Same crowd-pick "Match MVP" idea as setMatchMVP, for the main
   // single-elimination bracket's own results map.
@@ -13783,7 +13801,12 @@ function BracketScoreEditor({ result, onSave, trackDifferential, teamA, teamB, r
     );
   }
   return (
-    <div className="mt-1 p-3 rounded-lg flex flex-col gap-2" style={{ background: "#1F2338", border: "1px solid rgba(255,255,255,0.15)" }}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(8,10,18,0.82)" }} onMouseDown={() => setEditing(false)}>
+    <div className="w-full max-w-lg p-5 rounded-xl flex flex-col gap-3 overflow-y-auto" style={{ background: "#1F2338", border: "1px solid rgba(255,210,63,0.38)", boxShadow: "0 24px 80px rgba(0,0,0,0.55)", maxHeight: "min(760px, calc(100vh - 32px))" }} onMouseDown={(event) => event.stopPropagation()}>
+      <div className="flex items-center justify-between gap-3">
+        <div><span className="eyebrow">PLAYOFF RESULT</span><strong className="block">{teamA?.name} vs. {teamB?.name}</strong></div>
+        <button type="button" onClick={() => setEditing(false)} className="w-8 h-8 rounded" style={{ background: "#171A2C", color: "#9A9FBD" }}>×</button>
+      </div>
       <div className="flex items-center justify-between gap-2">
         <span className="text-xs" style={{ color: "#9A9FBD" }}>Series</span>
         <div className="flex gap-1">
@@ -13831,14 +13854,15 @@ function BracketScoreEditor({ result, onSave, trackDifferential, teamA, teamB, r
         placeholder={`${teamB?.name || "Team B"}'s replay (optional)`}
         className="w-full px-1.5 py-1 rounded mono-font text-[10px]" style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.1)", color: "#EDEBFA" }} />
       <div className="flex gap-2">
-        <button disabled={!validSeries} onClick={() => {
+        <button disabled={!validSeries} onClick={async () => {
           const monsAliveA = trackDifferential ? games.filter((g) => g.winner === "A").reduce((s, g) => s + g.alive, 0) : 0;
           const monsAliveB = trackDifferential ? games.filter((g) => g.winner === "B").reduce((s, g) => s + g.alive, 0) : 0;
-          onSave(editingGamesA, editingGamesB, monsAliveA, monsAliveB, replayUrlA.trim() || null, replayUrlB.trim() || null, editingWinnerSide, selectedMvpName, bestOf);
-          setEditing(false);
+          const saved = await onSave(editingGamesA, editingGamesB, monsAliveA, monsAliveB, replayUrlA.trim() || null, replayUrlB.trim() || null, editingWinnerSide, selectedMvpName, bestOf);
+          if (saved !== false) setEditing(false);
         }} className="px-2 py-1 rounded text-xs font-semibold disabled:opacity-40" style={{ background: "#FFD23F", color: "#10121C" }}>Save</button>
         <button onClick={() => setEditing(false)} className="px-2 py-1 rounded text-xs" style={{ background: "#171A2C", color: "#9A9FBD" }}>Cancel</button>
       </div>
+    </div>
     </div>
   );
 }
