@@ -59,7 +59,7 @@ function nextAllowedTime(settings) {
 }
 
 function eventIsEnabled(event, settings) {
-  if (event.kind === "draft_reminder") return settings.notify_draft_reminders;
+  if (event.kind === "draft_reminder" || event.kind === "draft_schedule_update") return settings.notify_draft_reminders;
   if (event.kind === "match_reminder") return settings.notify_match_reminders;
   if (event.kind === "stream_live") return settings.notify_live_streams;
   if (event.kind.startsWith("transaction")) return settings.notify_transactions;
@@ -138,7 +138,16 @@ async function deliverDiscord(event, supabase) {
   if (!token) throw new Error("Discord bot is not configured yet.");
   const hours = event.payload?.hours_before;
   let content;
-  if (event.kind === "stream_live") {
+  if (event.kind === "draft_schedule_update") {
+    const scheduled = event.payload?.draft_starts_at
+      ? new Date(event.payload.draft_starts_at).toLocaleString("en-US", {
+          timeZone: settings.quiet_hours_timezone || "UTC",
+          dateStyle: "full",
+          timeStyle: "short",
+        })
+      : "a new time";
+    content = `📅 **${event.payload?.league_name || "DraftCenter"} draft time updated**\nThe draft is now scheduled for ${scheduled} (${settings.quiet_hours_timezone || "UTC"}).`;
+  } else if (event.kind === "stream_live") {
     content = `🔴 **LIVE NOW — ${event.payload?.league_name || "DraftCenter"}**\n${event.payload?.title || "A league battle is live."}\n${event.payload?.stream_url}`;
   } else if (event.kind === "match_reminder") {
     content = hours === 1

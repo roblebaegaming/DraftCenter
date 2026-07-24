@@ -5112,7 +5112,16 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       supabase.rpc("update_league_draft_time", {
         p_league_id: leagueId,
         p_draft_starts_at: patch.draftScheduledAt || null,
-      }).then(({ error }) => { if (error) setLiveDraftError(`The draft time could not be added to the public listing: ${error.message}`); });
+      }).then(async ({ error }) => {
+        if (error) {
+          setLiveDraftError(`The draft time could not be added to the public listing: ${error.message}`);
+          return;
+        }
+        if (patch.draftScheduledAt) {
+          const { error: reminderError } = await supabase.rpc("schedule_draft_reminders", { p_league_id: leagueId });
+          if (reminderError) setLiveDraftError(`The draft time was saved, but its notifications could not be scheduled: ${reminderError.message}`);
+        }
+      });
     }
   }
 
@@ -8783,6 +8792,12 @@ function ManagerLeagueDetails({ state, myName, myTeamIdx, claimTeam, costFor, up
   const myTeam = state.teams.find((team) => team.claimedBy === myName);
   const openTeams = state.teams.map((team, index) => ({ ...team, index })).filter((team) => !team.claimedBy);
   const regulation = regulationFor(settings);
+  const usesRosterRange = settings.draftType === "auction" || settings.snakeBudgetEnabled;
+  const rosterLabel = usesRosterRange
+    ? settings.rosterMin === settings.rosterMax
+      ? `${settings.rosterMin} Pokémon`
+      : `${settings.rosterMin}–${settings.rosterMax} Pokémon`
+    : `${settings.rosterSize} Pokémon`;
   return (
     <div className="space-y-6">
       <section className="rounded-lg p-5" style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }}>
@@ -8792,7 +8807,7 @@ function ManagerLeagueDetails({ state, myName, myTeamIdx, claimTeam, costFor, up
           <div className="rounded p-3" style={{ background: "#1F2338" }}><span className="text-xs block" style={{ color: "#9A9FBD" }}>DRAFT DATE</span><strong>{settings.draftScheduledAt ? new Date(settings.draftScheduledAt).toLocaleString() : "Not scheduled yet"}</strong></div>
           <div className="rounded p-3" style={{ background: "#1F2338" }}><span className="text-xs block" style={{ color: "#9A9FBD" }}>FORMAT</span><strong>{settings.draftType === "auction" ? "Auction" : settings.snakeBudgetEnabled ? "Budgeted snake" : "Snake draft"}</strong></div>
           <div className="rounded p-3" style={{ background: "#1F2338" }}><span className="text-xs block" style={{ color: "#9A9FBD" }}>REGULATION</span><strong>{regulation.name}</strong></div>
-          <div className="rounded p-3" style={{ background: "#1F2338" }}><span className="text-xs block" style={{ color: "#9A9FBD" }}>ROSTER</span><strong>{settings.rosterMin === settings.rosterMax ? `${settings.rosterMin} Pokémon` : `${settings.rosterMin}–${settings.rosterMax} Pokémon`}</strong></div>
+          <div className="rounded p-3" style={{ background: "#1F2338" }}><span className="text-xs block" style={{ color: "#9A9FBD" }}>ROSTER</span><strong>{rosterLabel}</strong></div>
         </div>
       </section>
       <section className="rounded-lg p-5" style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }}>
