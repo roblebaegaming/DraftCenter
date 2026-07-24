@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "../lib/supabase/client";
 import { loadPokemonArtwork } from "./LeagueHub";
+import { POLL_POKEMON_NAMES } from "./PokemonDraftLeague";
 
 function localDateKey(date = new Date()) {
   const year = date.getFullYear();
@@ -19,6 +20,31 @@ function BracketPokemon({ name, onChoose, disabled }) {
     return () => { alive = false; };
   }, [name]);
   return <button type="button" className="daily-bracket-pokemon" disabled={disabled} onClick={() => onChoose(name)}>
+    {image ? <img src={image} alt="" /> : <span className="daily-game-art-placeholder" />}
+    <strong>{name}</strong>
+  </button>;
+}
+
+function cleanCommunityText(value) {
+  return String(value || "")
+    .replaceAll("PokÃ©mon", "Pokémon")
+    .replaceAll("PokÃ‰mon", "POKÉMON")
+    .replaceAll("â€™", "’")
+    .replaceAll("â€œ", "“")
+    .replaceAll("â€", "”")
+    .replaceAll("â€“", "–")
+    .replaceAll("â€”", "—")
+    .replaceAll("â€¦", "…");
+}
+
+function QuizPokemonChoice({ name, onChoose }) {
+  const [image, setImage] = useState("");
+  useEffect(() => {
+    let alive = true;
+    loadPokemonArtwork(name).then((next) => { if (alive) setImage(next); });
+    return () => { alive = false; };
+  }, [name]);
+  return <button type="button" className="daily-quiz-pokemon-choice" onClick={() => onChoose(name)}>
     {image ? <img src={image} alt="" /> : <span className="daily-game-art-placeholder" />}
     <strong>{name}</strong>
   </button>;
@@ -221,19 +247,25 @@ function DailyBracket({ bracket, signedIn, onSaved }) {
 
 function DailyQuiz({ quiz, signedIn, onSaved }) {
   const [answer, setAnswer] = useState("");
+  const [pickerOpen, setPickerOpen] = useState(false);
   const [showHint, setShowHint] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   if (!quiz) return null;
-  if (!signedIn) return <section className="explore-card daily-game-card"><span className="eyebrow">DAILY POKÉMON QUIZ</span><h2>{quiz.prompt}</h2><div className="daily-game-locked"><div className="locked-poll-preview" aria-hidden="true"><span /><span /><span /></div><strong>Sign in to answer today’s quiz and reveal community results.</strong><a className="secondary-button" href="/">Sign in</a></div></section>;
+  if (!signedIn) return <section className="explore-card daily-game-card"><span className="eyebrow">DAILY POKÉMON QUIZ</span><h2>{cleanCommunityText(quiz.prompt)}</h2><div className="daily-game-locked"><div className="locked-poll-preview" aria-hidden="true"><span /><span /><span /></div><strong>Sign in to answer today’s quiz and reveal community results.</strong><a className="secondary-button" href="/">Sign in</a></div></section>;
+  const pokemonMatches = answer.trim()
+    ? POLL_POKEMON_NAMES.filter((name) => name.toLowerCase().includes(answer.trim().toLowerCase())).slice(0, 8)
+    : POLL_POKEMON_NAMES.slice(0, 8);
   async function submit(event) {
     event.preventDefault();
     if (!signedIn) return setMessage("Sign in to submit today’s quiz.");
+    const selectedPokemon = POLL_POKEMON_NAMES.find((name) => name.toLowerCase() === answer.trim().toLowerCase());
+    if (!selectedPokemon) return setMessage("Choose a Pokémon from the matching choices before submitting.");
     setBusy(true);
     const supabase = createClient();
     const { data, error } = await supabase.rpc("submit_daily_quiz_answer", {
       p_quiz_id: quiz.id,
-      p_answer: answer,
+      p_answer: selectedPokemon,
       p_local_date: localDateKey(),
       p_time_zone: Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
     });
@@ -243,11 +275,14 @@ function DailyQuiz({ quiz, signedIn, onSaved }) {
   }
   return <section className="explore-card daily-game-card daily-quiz-card">
     <div className="daily-quiz-heading"><span className="eyebrow">DAILY POKÉMON QUIZ</span><span className={`quiz-difficulty ${quiz.difficulty}`}>{quiz.difficulty}</span></div>
-    <h2>{quiz.prompt}</h2>
+    <h2>{cleanCommunityText(quiz.prompt)}</h2>
     {!quiz.answered ? <form onSubmit={submit}>
-      <div className="daily-quiz-input"><input value={answer} onChange={(event) => setAnswer(event.target.value)} placeholder="Type your answer" maxLength={60} /><button className="primary-button" disabled={busy || !answer.trim()}>{busy ? "Checking…" : "Submit"}</button></div>
+      <div className="daily-quiz-input"><input value={answer} onFocus={() => setPickerOpen(true)} onChange={(event) => { setAnswer(event.target.value); setPickerOpen(true); }} placeholder="Search for a Pokémon" maxLength={60} autoComplete="off" /><button className="primary-button" disabled={busy || !POLL_POKEMON_NAMES.some((name) => name.toLowerCase() === answer.trim().toLowerCase())}>{busy ? "Checking…" : "Submit"}</button></div>
+      {pickerOpen && <div className="daily-quiz-pokemon-picker">
+        {pokemonMatches.length ? pokemonMatches.map((name) => <QuizPokemonChoice key={name} name={name} onChoose={(selected) => { setAnswer(selected); setPickerOpen(false); }} />) : <p className="muted">No matching Pokémon found. Try another spelling.</p>}
+      </div>}
       <button type="button" className="quiet-button" onClick={() => setShowHint((current) => !current)}>{showHint ? "Hide hint" : "Show hint"}</button>
-      {showHint && <p className="muted">{quiz.hint}</p>}
+      {showHint && <p className="muted">{cleanCommunityText(quiz.hint)}</p>}
     </form> : <div className="daily-quiz-results">
       <strong style={{ color: quiz.selected_correct ? "#4FD1C5" : "#F0555A" }}>{quiz.selected_correct ? "Correct!" : "Not quite."}</strong>
       <p>Your answer: {quiz.selected_answer}</p>
