@@ -64,7 +64,7 @@ function DiscordProfileConnection({ supabase, user }) {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   useEffect(() => {
-    supabase.from("discord_user_connections").select("discord_username, manageable_guilds, updated_at").eq("user_id", user.id).maybeSingle()
+    supabase.from("discord_user_connections").select("discord_username, updated_at").eq("user_id", user.id).maybeSingle()
       .then(({ data }) => setConnection(data || null));
   }, [supabase, user.id]);
   async function connect() {
@@ -87,9 +87,9 @@ function DiscordProfileConnection({ supabase, user }) {
     setConnection(null);
     setMessage("Discord disconnected from your DraftCenter profile.");
   }
-  return <><hr/><h3>Discord connection</h3>
-    <p className="muted">Connect Discord once to verify the servers you manage. DraftCenter stores your Discord identity and server names, not your reusable Discord access token.</p>
-    {connection ? <div className="discord-profile-connected"><div><strong>Connected as {connection.discord_username}</strong><small>{(connection.manageable_guilds || []).length} manageable server{(connection.manageable_guilds || []).length === 1 ? "" : "s"} verified</small></div><button type="button" className="quiet-button" disabled={busy} onClick={disconnect}>Disconnect</button></div>
+  return <><hr/><h3>Personal Discord connection</h3>
+    <p className="muted">Connect only your Discord identity for optional private DraftCenter updates. This does not give DraftCenter your server list, read messages, or connect a league server.</p>
+    {connection ? <div className="discord-profile-connected"><div><strong>Connected as {connection.discord_username}</strong><small>Personal identity connected</small></div><button type="button" className="quiet-button" disabled={busy} onClick={disconnect}>Disconnect</button></div>
       : <button type="button" className="discord-install-button" disabled={busy} onClick={connect}>{busy ? "Connecting…" : "Connect Discord Profile"}</button>}
     {message && <p className="hub-message">{message}</p>}
   </>;

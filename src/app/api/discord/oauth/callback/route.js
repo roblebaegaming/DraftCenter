@@ -4,11 +4,6 @@ import { createAdminClient } from "../../../../../lib/supabase/admin";
 
 export const runtime = "nodejs";
 
-function canManageGuild(guild) {
-  const permissions = BigInt(guild.permissions || "0");
-  return guild.owner || (permissions & 8n) === 8n || (permissions & 32n) === 32n;
-}
-
 export async function GET(request) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
@@ -50,26 +45,17 @@ export async function GET(request) {
     if (!tokenResponse.ok) throw new Error("Discord could not complete account authorization.");
     const tokens = await tokenResponse.json();
     const headers = { Authorization: `Bearer ${tokens.access_token}` };
-    const [userResponse, guildsResponse] = await Promise.all([
-      fetch("https://discord.com/api/v10/users/@me", { headers }),
-      fetch("https://discord.com/api/v10/users/@me/guilds", { headers }),
-    ]);
-    if (!userResponse.ok || !guildsResponse.ok) throw new Error("Discord account details could not be loaded.");
+    const userResponse = await fetch("https://discord.com/api/v10/users/@me", { headers });
+    if (!userResponse.ok) throw new Error("Discord account details could not be loaded.");
 
     const discordUser = await userResponse.json();
-    const guilds = (await guildsResponse.json()).filter(canManageGuild).map((guild) => ({
-      id: guild.id,
-      name: guild.name,
-      icon: guild.icon,
-      owner: Boolean(guild.owner),
-    }));
 
     const { error: connectionError } = await supabase.from("discord_user_connections").upsert({
       user_id: stateRow.user_id,
       discord_user_id: discordUser.id,
       discord_username: discordUser.global_name || discordUser.username,
       discord_avatar: discordUser.avatar,
-      manageable_guilds: guilds,
+      manageable_guilds: [],
       connected_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     }, { onConflict: "user_id" });

@@ -37,7 +37,7 @@ export async function POST(request) {
     authorizationUrl.searchParams.set("client_id", clientId);
     authorizationUrl.searchParams.set("response_type", "code");
     authorizationUrl.searchParams.set("redirect_uri", redirectUri);
-    authorizationUrl.searchParams.set("scope", "identify guilds");
+    authorizationUrl.searchParams.set("scope", "identify");
     authorizationUrl.searchParams.set("state", state);
     authorizationUrl.searchParams.set("prompt", "consent");
 

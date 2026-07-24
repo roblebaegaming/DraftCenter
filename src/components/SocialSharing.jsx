@@ -60,8 +60,6 @@ export function DiscordConnectionPanel({ supabase: suppliedSupabase, leagueId, d
     quietEnabled: true, quietStart: "22:00", quietEnd: "08:00", timezone: "UTC",
   });
   const [lastTest, setLastTest] = useState(null);
-  const [discordProfile, setDiscordProfile] = useState(null);
-  const [verifiedChannels, setVerifiedChannels] = useState([]);
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const installUrl = process.env.NEXT_PUBLIC_DISCORD_INSTALL_URL || "";
@@ -90,53 +88,6 @@ export function DiscordConnectionPanel({ supabase: suppliedSupabase, leagueId, d
         setLastTest(data.last_test_at ? { at: data.last_test_at, status: data.last_test_status, error: data.last_test_error } : null);
       });
   }, [supabase, leagueId]);
-  useEffect(() => {
-    supabase.from("discord_user_connections").select("discord_username, manageable_guilds").maybeSingle()
-      .then(({ data }) => setDiscordProfile(data || null));
-  }, [supabase]);
-  useEffect(() => {
-    let cancelled = false;
-    async function loadVerifiedChannels() {
-      if (!discordProfile || !guildId) {
-        setVerifiedChannels([]);
-        return;
-      }
-      setBusy(true);
-      const { data } = await supabase.auth.getSession();
-      const response = await fetch(`/api/discord/channels?guildId=${encodeURIComponent(guildId)}`, {
-        headers: { Authorization: `Bearer ${data.session?.access_token || ""}` },
-      });
-      const result = await response.json();
-      if (!cancelled) {
-        setBusy(false);
-        if (!response.ok) {
-          setVerifiedChannels([]);
-          setMessage(result.error || "Discord channels could not be loaded.");
-        } else {
-          setVerifiedChannels(result.channels || []);
-        }
-      }
-    }
-    loadVerifiedChannels();
-    return () => {
-      cancelled = true;
-    };
-  }, [discordProfile, guildId, supabase]);
-  async function connectDiscordProfile() {
-    setBusy(true); setMessage("");
-    const { data } = await supabase.auth.getSession();
-    const response = await fetch("/api/discord/oauth/start", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${data.session?.access_token || ""}` },
-    });
-    const result = await response.json();
-    setBusy(false);
-    if (!response.ok) return setMessage(result.error || "Discord connection could not start.");
-    window.location.assign(result.url);
-  }
-  function chooseGuild(nextGuildId) {
-    setGuildId(nextGuildId); setChannelId(""); setVerifiedChannels([]); setMessage("");
-  }
   function updatePreference(key, value) {
     setPreferences((current) => ({ ...current, [key]: value }));
   }
@@ -204,30 +155,17 @@ export function DiscordConnectionPanel({ supabase: suppliedSupabase, leagueId, d
             <div><h4>Save and test</h4><p>Enter the server and channel IDs below, choose the updates you want, save, and send a harmless test message.</p></div>
           </article>
         </div>
-        <p className="discord-setup-note"><strong>Privacy:</strong> Connecting Discord verifies only your identity and the servers you can manage. Availability negotiations and personal matchup reminders are never posted to a league channel.</p>
+        <p className="discord-setup-note"><strong>Privacy:</strong> This league connection is separate from every manager&apos;s optional personal Discord connection. Availability negotiations and personal matchup reminders are never posted to this channel.</p>
       </section>
       <form onSubmit={save}>
-        {discordProfile ? <fieldset>
-          <legend>Verified Discord connection</legend>
-          <p className="discord-verified-user">Connected as <strong>{discordProfile.discord_username}</strong></p>
-          <label>League Discord server<select value={guildId} onChange={(event) => chooseGuild(event.target.value)}><option value="">Choose a server you manage</option>{(discordProfile.manageable_guilds || []).map((guild) => <option key={guild.id} value={guild.id}>{guild.name}</option>)}</select></label>
-          <label>Announcement channel<select value={channelId} disabled={!guildId || busy} onChange={(event) => setChannelId(event.target.value)}><option value="">{busy ? "Loading channels…" : "Choose a channel"}</option>{verifiedChannels.map((channel) => <option key={channel.id} value={channel.id}>#{channel.name}</option>)}</select></label>
-          <label className="check-row"><input type="checkbox" checked={enabled} onChange={(event) => setEnabled(event.target.checked)} /> Enable league announcements</label>
-          <p className="discord-id-help">Don&apos;t see the server or channel? Reconnect Discord from Profile, and make sure the DraftCenter bot is installed in that server.</p>
-        </fieldset> : <fieldset>
-          <legend>Verify your Discord server</legend>
-          <div><p className="muted">Connect your Discord profile so DraftCenter can show only servers you are authorized to manage.</p><button type="button" className="discord-install-button" disabled={busy} onClick={connectDiscordProfile}>{busy ? "Connecting…" : "Connect Discord Profile"}</button></div>
-        </fieldset>}
-        <details className="discord-manual-fallback">
-          <summary>Advanced: enter Discord IDs manually</summary>
-          <fieldset>
-            <legend>Manual connection details</legend>
-            <label>Discord server ID<input value={guildId} onChange={(event) => setGuildId(event.target.value.replace(/\D/g, ""))} placeholder="Right-click the server → Copy Server ID" /></label>
-            <label>Announcement channel ID<input value={channelId} onChange={(event) => setChannelId(event.target.value.replace(/\D/g, ""))} placeholder="Right-click the channel → Copy Channel ID" /></label>
-            <label className="check-row"><input type="checkbox" checked={enabled} onChange={(event) => setEnabled(event.target.checked)} /> Enable league announcements</label>
-            <p className="discord-id-help">Don&apos;t see Copy ID? In Discord, open User Settings → Advanced and turn on Developer Mode.</p>
-          </fieldset>
-        </details>
+        <fieldset>
+          <legend>League server connection</legend>
+          <p className="muted">These details identify only the server and channel where this league wants shared announcements. They are not taken from a manager&apos;s personal Discord profile.</p>
+          <label>Discord server ID<input value={guildId} onChange={(event) => setGuildId(event.target.value.replace(/\D/g, ""))} placeholder="Right-click the server → Copy Server ID" /></label>
+          <label>Announcement channel ID<input value={channelId} onChange={(event) => setChannelId(event.target.value.replace(/\D/g, ""))} placeholder="Right-click the channel → Copy Channel ID" /></label>
+          <label className="check-row"><input type="checkbox" checked={enabled} onChange={(event) => setEnabled(event.target.checked)} /> Enable league-wide announcements in this channel</label>
+          <p className="discord-id-help">Don&apos;t see Copy ID? In Discord, open User Settings → Advanced and turn on Developer Mode. A future update will replace these IDs with a one-server authorization screen.</p>
+        </fieldset>
         <fieldset>
           <legend>Choose announcements for this league</legend>
           <label className="check-row"><input type="checkbox" checked={preferences.draft} onChange={(event) => updatePreference("draft", event.target.checked)} /> Draft reminders</label>
