@@ -4574,10 +4574,17 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   const [synced, setSynced] = useState(false);
   const [saveStatus, setSaveStatus] = useState(leagueId ? "loading" : "local");
   const [liveDraftError, setLiveDraftError] = useState("");
+  const [scheduleClock, setScheduleClock] = useState(() => Date.now());
   const revRef = useRef(0);
   const saveRequestRef = useRef(0);
   const leagueScheduleSyncedRef = useRef(false);
   const completedDraftScheduleClearedRef = useRef(false);
+  const automaticStartAttemptedRef = useRef(null);
+
+  useEffect(() => {
+    const timer = setInterval(() => setScheduleClock(Date.now()), 15000);
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     const identity = profile?.display_name || profile?.username;
@@ -7292,7 +7299,16 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   const canDraftNow = !isSpectator && (
     isCommissioner ||
     (state.settings.draftType === "snake" && myTeamIdx === currentTeamOnClock));
+  const scheduledDraftTime = Date.parse(state.settings.draftScheduledAt || "");
+  const hasScheduledDraftTime = Number.isFinite(scheduledDraftTime);
+  const draftRoomOpen = !state.locked && hasScheduledDraftTime && scheduleClock >= scheduledDraftTime - 60 * 60 * 1000;
+  const scheduledDraftIsDue = draftRoomOpen && scheduleClock >= scheduledDraftTime;
   const isMyTurn = !isSpectator && state.locked && !draftDone && state.settings.draftType === "snake" && myTeamIdx >= 0 && myTeamIdx === currentTeamOnClock;
+  useEffect(() => {
+    if (!synced || !isCommissioner || state.locked || !scheduledDraftIsDue || automaticStartAttemptedRef.current === scheduledDraftTime) return;
+    automaticStartAttemptedRef.current = scheduledDraftTime;
+    startDraft();
+  }, [synced, isCommissioner, state.locked, scheduledDraftIsDue]);
   // Landing on League while a draft is still actively underway should show
   // the draft itself first, not whatever sub-tab happened to be selected
   // last time — but only as a one-time jump on arrival, not something that
@@ -7398,7 +7414,9 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
               // Before a league goes live this area is for setting and sharing
               // the future draft time. Once live, the actual Draft appears in
               // the League area below instead of two competing Draft buttons.
-              ...(!state.locked && displayIsCommissioner ? [["draft", "Schedule"]] : []),
+              ...(!state.locked && (displayIsCommissioner || (!displayIsSpectator && draftRoomOpen))
+                ? [["draft", draftRoomOpen ? "Draft Room" : "Schedule"]]
+                : []),
               ["myteam", displayIsSpectator ? "Teams" : "My Team"],
               ...(state.locked ? [["league", "League"]] : []),
               ...(displayIsSpectator && state.locked ? [["predictions", "Predictions"]] : []),
