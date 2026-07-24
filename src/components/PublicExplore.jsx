@@ -5,6 +5,7 @@ import { createClient } from "../lib/supabase/client";
 import { loadPokemonArtwork, pokemonArtworkCandidates } from "./LeagueHub";
 import DailyCommunityGames from "./DailyCommunityGames";
 import { LiveNowList, ShareButton } from "./SocialSharing";
+import PublicCoachProfile, { CoachProfileButton } from "./PublicCoachProfile";
 
 function localDateKey(date = new Date()) { const year=date.getFullYear(); const month=String(date.getMonth()+1).padStart(2,"0"); const day=String(date.getDate()).padStart(2,"0"); return `${year}-${month}-${day}`; }
 
@@ -56,7 +57,7 @@ function PollResults({ poll, showPodium = false, onSelectPokemon }) {
   })}</div>;
 }
 
-function PollDiscussion({ pollId, signedIn }) {
+function LegacyPollDiscussion({ pollId, signedIn }) {
   const [comments, setComments] = useState([]);
   const [body, setBody] = useState("");
   const [replyTo, setReplyTo] = useState(null);
@@ -96,6 +97,18 @@ function PollDiscussion({ pollId, signedIn }) {
     {!comments.length && <p className="muted">No comments yet. Start today’s conversation.</p>}
     {message && <p className="hub-message">{message}</p>}
   </div>;
+}
+
+function PollDiscussion({ pollId, signedIn }) {
+  const [comments,setComments]=useState([]); const [body,setBody]=useState(""); const [replyTo,setReplyTo]=useState(null); const [message,setMessage]=useState(""); const [profileIdentity,setProfileIdentity]=useState("");
+  async function load(){if(!signedIn||!pollId)return;const supabase=createClient();const {data,error}=await supabase.rpc("get_daily_poll_comments",{p_poll_id:pollId,p_limit:100});if(error)setMessage(error.message);else setComments(data?.comments||[]);}
+  useEffect(()=>{load();},[pollId,signedIn]);
+  async function post(event){event.preventDefault();const supabase=createClient();const {error}=await supabase.rpc("create_daily_poll_comment",{p_poll_id:pollId,p_body:body,p_parent_comment_id:replyTo});if(error)return setMessage(error.message);setBody("");setReplyTo(null);load();}
+  async function upvote(comment){if(comment.upvoted_by_me)return;const supabase=createClient();const {error}=await supabase.rpc("toggle_daily_poll_comment_upvote",{p_comment_id:comment.id});if(error)return setMessage(error.message);load();}
+  if(!signedIn)return null;
+  const roots=comments.filter((comment)=>!comment.parent_comment_id).sort((a,b)=>b.upvotes-a.upvotes||new Date(a.created_at)-new Date(b.created_at));
+  const author=(row)=><CoachProfileButton compact username={row.username} displayName={row.display_name} avatarUrl={row.avatar_url} onOpen={setProfileIdentity}/>;
+  return <div className="daily-game-discussion poll-community-discussion"><h3>Community discussion</h3><form onSubmit={post}><textarea value={body} onChange={(event)=>setBody(event.target.value)} placeholder={replyTo?"Write a reply…":"Add a comment…"} maxLength={1000}/><div>{replyTo&&<button type="button" className="text-button" onClick={()=>setReplyTo(null)}>Cancel reply</button>}<button className="quiet-button" disabled={!body.trim()}>Post</button></div></form>{roots.map((comment)=><article key={comment.id}>{author(comment)}<p>{comment.body}</p><div><button type="button" className={comment.upvoted_by_me?"comment-upvote active":"comment-upvote"} onClick={()=>upvote(comment)}>▲ Upvote {comment.upvotes}</button><button type="button" className="text-button" onClick={()=>setReplyTo(comment.id)}>Reply</button></div>{comments.filter((reply)=>reply.parent_comment_id===comment.id).sort((a,b)=>b.upvotes-a.upvotes).map((reply)=><aside key={reply.id}>{author(reply)}<p>{reply.body}</p><button type="button" className={reply.upvoted_by_me?"comment-upvote active":"comment-upvote"} onClick={()=>upvote(reply)}>▲ Upvote {reply.upvotes}</button></aside>)}</article>)}{!comments.length&&<p className="muted">No comments yet. Start today’s conversation.</p>}{message&&<p className="hub-message">{message}</p>}{profileIdentity&&<PublicCoachProfile identity={profileIdentity} onClose={()=>setProfileIdentity("")}/>}</div>;
 }
 
 function Ranking({ title, items, render, empty, onSelectPokemon }) {

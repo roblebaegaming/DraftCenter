@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { createClient } from "../lib/supabase/client";
 import { DiscordConnectionPanel, LeagueBroadcastCenter } from "./SocialSharing";
+import PublicCoachProfile, { CoachProfileButton } from "./PublicCoachProfile";
 
 /* ---------------------------------------------------------
    DESIGN TOKENS — stadium-jumbotron-at-night aesthetic.
@@ -8113,6 +8114,7 @@ function MyTeamView({ state, leagueId, myTeamIdx, isCommissioner, myName, myTeam
   const [editingDescription, setEditingDescription] = useState(false);
   const [logoCheckFailed, setLogoCheckFailed] = useState(false);
   const [showDefenseSummary, setShowDefenseSummary] = useState(false);
+  const [profileIdentity, setProfileIdentity] = useState("");
 
   // Preloads a candidate logo URL to see if it actually resolves to a real
   // image before we commit to it — lets us warn immediately with concrete
@@ -8211,7 +8213,7 @@ function MyTeamView({ state, leagueId, myTeamIdx, isCommissioner, myName, myTeam
       </div>
 
       {team?.claimedBy && (
-        <ProfileCard state={state} personName={team.claimedBy} />
+        <><div className="mb-3"><CoachProfileButton displayName={team.claimedBy} onOpen={setProfileIdentity}/></div><ProfileCard state={state} personName={team.claimedBy} /></>
       )}
 
       {leagueId && myTeamIndices.includes(viewedTeam) && (
@@ -8367,6 +8369,7 @@ function MyTeamView({ state, leagueId, myTeamIdx, isCommissioner, myName, myTeam
           {showDefenseSummary && <TeamDefenseSummary roster={roster} />}
         </div>
       )}
+      {profileIdentity && <PublicCoachProfile identity={profileIdentity} onClose={() => setProfileIdentity("")}/>}
     </div>
   );
 }

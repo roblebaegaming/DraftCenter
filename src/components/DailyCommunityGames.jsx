@@ -5,6 +5,7 @@ import { createClient } from "../lib/supabase/client";
 import { loadPokemonArtwork } from "./LeagueHub";
 import { POLL_POKEMON_NAMES } from "./PokemonDraftLeague";
 import { ShareButton } from "./SocialSharing";
+import PublicCoachProfile, { CoachProfileButton } from "./PublicCoachProfile";
 
 function localDateKey(date = new Date()) {
   const year = date.getFullYear();
@@ -433,6 +434,7 @@ function DailyGameDiscussion({ type, gameId, signedIn }) {
   const [body, setBody] = useState("");
   const [replyTo, setReplyTo] = useState(null);
   const [message, setMessage] = useState("");
+  const [profileIdentity, setProfileIdentity] = useState("");
   async function load() {
     if (!signedIn || !gameId) return;
     const supabase = createClient();
@@ -455,15 +457,16 @@ function DailyGameDiscussion({ type, gameId, signedIn }) {
     load();
   }
   const roots = comments.filter((comment) => !comment.parent_comment_id).sort((a, b) => b.upvotes - a.upvotes || new Date(a.created_at) - new Date(b.created_at));
+  const renderProfileComment = (comment) => <article key={comment.id}><CoachProfileButton compact username={comment.username} displayName={comment.display_name} avatarUrl={comment.avatar_url} onOpen={setProfileIdentity}/><p>{comment.body}</p><div><button type="button" className={comment.upvoted_by_me ? "comment-upvote active" : "comment-upvote"} onClick={() => upvote(comment.id, comment.upvoted_by_me)}>▲ Upvote {comment.upvotes}</button><button type="button" className="text-button" onClick={() => setReplyTo(comment.id)}>Reply</button></div>{comments.filter((reply) => reply.parent_comment_id === comment.id).sort((a, b) => b.upvotes - a.upvotes).map((reply) => <aside key={reply.id}><CoachProfileButton compact username={reply.username} displayName={reply.display_name} avatarUrl={reply.avatar_url} onOpen={setProfileIdentity}/><p>{reply.body}</p><button type="button" className={reply.upvoted_by_me ? "comment-upvote active" : "comment-upvote"} onClick={() => upvote(reply.id, reply.upvoted_by_me)}>▲ Upvote {reply.upvotes}</button></aside>)}</article>;
   const renderComment = (comment) => <article key={comment.id}><strong>{comment.display_name || comment.username || "Coach"}</strong><p>{comment.body}</p><div><button type="button" className={comment.upvoted_by_me ? "comment-upvote active" : "comment-upvote"} onClick={() => upvote(comment.id, comment.upvoted_by_me)}>▲ Upvote {comment.upvotes}</button><button type="button" className="text-button" onClick={() => setReplyTo(comment.id)}>Reply</button></div>{comments.filter((reply) => reply.parent_comment_id === comment.id).sort((a, b) => b.upvotes - a.upvotes).map((reply) => <aside key={reply.id}><strong>{reply.display_name || reply.username || "Coach"}</strong><p>{reply.body}</p><button type="button" className={reply.upvoted_by_me ? "comment-upvote active" : "comment-upvote"} onClick={() => upvote(reply.id, reply.upvoted_by_me)}>▲ Upvote {reply.upvotes}</button></aside>)}</article>;
   return <details ref={detailsRef} className="daily-game-discussion">
     <summary><span>Community discussion</span><small>{comments.length} comment{comments.length === 1 ? "" : "s"}</small></summary>
     <div className="daily-game-discussion-body">
       <form onSubmit={post}><textarea value={body} onChange={(event) => setBody(event.target.value)} placeholder={replyTo ? "Write a reply…" : "Add a comment…"} maxLength={1000} /><div>{replyTo && <button type="button" className="text-button" onClick={() => setReplyTo(null)}>Cancel reply</button>}<button className="quiet-button" disabled={!body.trim()}>Post</button></div></form>
-      {roots.slice(0, 3).map(renderComment)}
-      {roots.length > 3 && <details className="daily-discussion-more"><summary>Read {roots.length - 3} more comment{roots.length - 3 === 1 ? "" : "s"}</summary><div>{roots.slice(3).map(renderComment)}</div></details>}
+      {roots.slice(0, 3).map(renderProfileComment)}
+      {roots.length > 3 && <details className="daily-discussion-more"><summary>Read {roots.length - 3} more comment{roots.length - 3 === 1 ? "" : "s"}</summary><div>{roots.slice(3).map(renderProfileComment)}</div></details>}
       {message && <p className="hub-message">{message}</p>}
-    </div>
+    </div>{profileIdentity && <PublicCoachProfile identity={profileIdentity} onClose={() => setProfileIdentity("")}/>}
   </details>;
 }
 
