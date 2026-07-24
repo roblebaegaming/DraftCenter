@@ -135,12 +135,11 @@ function PokemonDailyThreeProfile({ profile }) {
   if (!profile) return <p className="muted">Loading Daily Three highlights…</p>;
   return <div className="pokemon-daily-three-profile">
     <div className="pokemon-daily-three-metrics">
-      <article><strong>{profile.bracket_wins || 0}</strong><span>Bracket matchup wins</span><small>{profile.bracket_losses || 0} matchup losses</small></article>
-      <article><strong>{profile.bracket_championships || 0}</strong><span>Bracket championships</span><small>Chosen as the final winner</small></article>
-      <article><strong>{profile.quiz_popular_finishes || 0}</strong><span>Most-popular quiz answers</span><small>Closed quiz days finishing first</small></article>
+      <article><strong>{profile.bracket_championships || 0}</strong><span>Bracket Championships</span><small>Chosen as the Final Winner</small></article>
+      <article><strong>{profile.quiz_popular_finishes || 0}</strong><span>Most-Popular Quiz Answers</span><small>Closed Quiz Days Finishing First</small></article>
     </div>
-    {profile.most_defeated?.length > 0 && <details><summary>Most defeated bracket opponents</summary><ol>{profile.most_defeated.map((item)=><li key={item.pokemon}><span>{item.pokemon}</span><b>{item.wins} win{item.wins===1?"":"s"}</b></li>)}</ol></details>}
-    {profile.quiz_popular_days?.length > 0 && <details><summary>Most-popular quiz finishes</summary><ul>{profile.quiz_popular_days.map((quiz)=><li key={quiz.id}><strong>{quiz.prompt}</strong><small>{new Date(`${quiz.date}T12:00:00`).toLocaleDateString()} · {quiz.votes} answer{quiz.votes===1?"":"s"}</small></li>)}</ul></details>}
+    {profile.most_defeated?.length > 0 && <details><summary>Most Defeated Bracket Opponents</summary><ol>{profile.most_defeated.map((item)=><li key={item.pokemon}><span>{String(item.pokemon || "").replace(/^./, (letter) => letter.toUpperCase())}</span><b>{item.wins} Win{item.wins===1?"":"s"}</b></li>)}</ol></details>}
+    {profile.quiz_popular_days?.length > 0 && <details><summary>Most-Popular Quiz Finishes</summary><ul>{profile.quiz_popular_days.map((quiz)=><li key={quiz.id}><strong>{String(quiz.prompt || "").replace(/^./, (letter) => letter.toUpperCase())}</strong><small>{new Date(`${quiz.date}T12:00:00`).toLocaleDateString()} · {quiz.votes} Answer{quiz.votes===1?"":"s"}</small></li>)}</ul></details>}
   </div>;
 }
 
