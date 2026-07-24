@@ -64,7 +64,12 @@ export async function POST(request) {
     });
 
     if (!response.ok) {
-      const discordError = `Discord rejected the test (${response.status}): ${await response.text()}`;
+      const detail = await response.json().catch(() => ({}));
+      let discordError = "Discord could not deliver the test message.";
+      if (detail.code === 50001) discordError = "DraftCenter is installed, but it cannot open that channel. In Discord, allow the DraftCenter bot to View Channel and Send Messages, then try again.";
+      else if (detail.code === 50013) discordError = "DraftCenter can open that channel but cannot post there. In the channel permissions, allow the DraftCenter bot to Send Messages.";
+      else if (detail.code === 10003) discordError = "Discord could not find that channel. Copy the Channel ID again and make sure it belongs to the selected server.";
+      else if (response.status === 401) discordError = "Discord rejected the bot credentials. The site owner needs to refresh the private Discord bot token in Vercel.";
       await recordTest(supabase, leagueId, "failed", discordError);
       return NextResponse.json({ error: discordError }, { status: 502 });
     }

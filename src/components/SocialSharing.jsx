@@ -137,11 +137,34 @@ export function DiscordConnectionPanel({ supabase: suppliedSupabase, leagueId, d
     <summary>Connect this league&apos;s Discord server</summary>
     <div className="discord-connection-body">
       <p className="muted">Install the DraftCenter bot in the Discord server this league already uses, then choose that server&apos;s announcement channel. It will post only this league&apos;s selected updates there. This does not connect the league to DraftCenter&apos;s public community server.</p>
-      {installUrl ? <a className="discord-install-button" href={installUrl} target="_blank" rel="noopener noreferrer">Install DraftCenter Bot in Your League&apos;s Discord ↗</a> : <p className="hub-message">The Discord install link will appear after its application URL is added in Vercel.</p>}
+      <section className="discord-setup-guide">
+        <header><div><span className="eyebrow">GUIDED SETUP</span><h3>Connect Discord in three steps</h3></div><span className="discord-setup-time">About 1 minute</span></header>
+        <div className="discord-setup-steps">
+          <article>
+            <strong>1</strong>
+            <div><h4>Install the bot</h4><p>Choose the Discord server your league already uses. You must be allowed to manage that server.</p>
+              {installUrl ? <a className="discord-install-button" href={installUrl} target="_blank" rel="noopener noreferrer">Install DraftCenter Bot ↗</a> : <p className="hub-message">The install link is not configured yet.</p>}
+            </div>
+          </article>
+          <article>
+            <strong>2</strong>
+            <div><h4>Choose one channel</h4><p>Create or select a channel such as <code>#league-announcements</code>. Allow DraftCenter to View Channel and Send Messages there.</p></div>
+          </article>
+          <article>
+            <strong>3</strong>
+            <div><h4>Save and test</h4><p>Enter the server and channel IDs below, choose the updates you want, save, and send a harmless test message.</p></div>
+          </article>
+        </div>
+        <p className="discord-setup-note"><strong>Early-access note:</strong> Server and channel IDs are manual during testing. A future update will replace them with simple Discord dropdowns.</p>
+      </section>
       <form onSubmit={save}>
-        <label>Discord server ID<input value={guildId} onChange={(event) => setGuildId(event.target.value.replace(/\D/g, ""))} placeholder="Server ID" /></label>
-        <label>Announcement channel ID<input value={channelId} onChange={(event) => setChannelId(event.target.value.replace(/\D/g, ""))} placeholder="Channel ID" /></label>
-        <label className="check-row"><input type="checkbox" checked={enabled} onChange={(event) => setEnabled(event.target.checked)} /> Enable league announcements</label>
+        <fieldset>
+          <legend>Manual connection details</legend>
+          <label>Discord server ID<input value={guildId} onChange={(event) => setGuildId(event.target.value.replace(/\D/g, ""))} placeholder="Right-click the server → Copy Server ID" /></label>
+          <label>Announcement channel ID<input value={channelId} onChange={(event) => setChannelId(event.target.value.replace(/\D/g, ""))} placeholder="Right-click the channel → Copy Channel ID" /></label>
+          <label className="check-row"><input type="checkbox" checked={enabled} onChange={(event) => setEnabled(event.target.checked)} /> Enable league announcements</label>
+          <p className="discord-id-help">Don&apos;t see Copy ID? In Discord, open User Settings → Advanced and turn on Developer Mode.</p>
+        </fieldset>
         <fieldset>
           <legend>Choose announcements for this league</legend>
           <label className="check-row"><input type="checkbox" checked={preferences.draft} onChange={(event) => updatePreference("draft", event.target.checked)} /> Draft reminders</label>
