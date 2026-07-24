@@ -63,10 +63,32 @@ function DiscordProfileConnection({ supabase, user }) {
   const [connection, setConnection] = useState(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
+  const [preferences, setPreferences] = useState({
+    enabled: false, drafts: true, scheduling: true, matches: true, transactions: false, results: false,
+    quietEnabled: true, quietStart: "22:00", quietEnd: "08:00", timezone: "UTC",
+  });
   useEffect(() => {
-    supabase.from("discord_user_connections").select("discord_username, updated_at").eq("user_id", user.id).maybeSingle()
-      .then(({ data }) => setConnection(data || null));
+    supabase.from("discord_user_connections").select("*").eq("user_id", user.id).maybeSingle()
+      .then(({ data }) => {
+        setConnection(data || null);
+        if (!data) return;
+        setPreferences({
+          enabled: Boolean(data.dm_enabled),
+          drafts: data.notify_draft_reminders ?? true,
+          scheduling: data.notify_match_scheduling ?? true,
+          matches: data.notify_match_reminders ?? true,
+          transactions: data.notify_transactions ?? false,
+          results: data.notify_results ?? false,
+          quietEnabled: data.quiet_hours_enabled ?? true,
+          quietStart: String(data.quiet_hours_start || "22:00").slice(0, 5),
+          quietEnd: String(data.quiet_hours_end || "08:00").slice(0, 5),
+          timezone: data.quiet_hours_timezone || Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
+        });
+      });
   }, [supabase, user.id]);
+  function updatePreference(key, value) {
+    setPreferences((current) => ({ ...current, [key]: value }));
+  }
   async function connect() {
     setBusy(true); setMessage("");
     const { data } = await supabase.auth.getSession();
@@ -87,9 +109,63 @@ function DiscordProfileConnection({ supabase, user }) {
     setConnection(null);
     setMessage("Discord disconnected from your DraftCenter profile.");
   }
+  async function savePreferences(event) {
+    event.preventDefault();
+    setBusy(true); setMessage("");
+    const { data, error } = await supabase.rpc("save_my_discord_notification_preferences", {
+      p_dm_enabled: preferences.enabled,
+      p_notify_draft_reminders: preferences.drafts,
+      p_notify_match_scheduling: preferences.scheduling,
+      p_notify_match_reminders: preferences.matches,
+      p_notify_transactions: preferences.transactions,
+      p_notify_results: preferences.results,
+      p_quiet_hours_enabled: preferences.quietEnabled,
+      p_quiet_hours_start: preferences.quietStart,
+      p_quiet_hours_end: preferences.quietEnd,
+      p_quiet_hours_timezone: preferences.timezone,
+    });
+    setBusy(false);
+    if (error) return setMessage(error.message);
+    setConnection(data);
+    setMessage(preferences.enabled ? "Personal Discord notifications saved." : "Personal Discord notifications are paused.");
+  }
+  async function sendTest() {
+    setBusy(true); setMessage("");
+    const { data } = await supabase.auth.getSession();
+    const response = await fetch("/api/discord/personal-test", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${data.session?.access_token || ""}` },
+    });
+    const result = await response.json();
+    setBusy(false);
+    setMessage(result.message || result.error || "Personal Discord test finished.");
+    if (response.ok) setConnection((current) => ({ ...current, last_dm_test_at: new Date().toISOString(), last_dm_test_status: "delivered", last_dm_test_error: null }));
+  }
   return <><hr/><h3>Personal Discord connection</h3>
     <p className="muted">Connect only your Discord identity for optional private DraftCenter updates. This does not give DraftCenter your server list, read messages, or connect a league server.</p>
-    {connection ? <div className="discord-profile-connected"><div><strong>Connected as {connection.discord_username}</strong><small>Personal identity connected</small></div><button type="button" className="quiet-button" disabled={busy} onClick={disconnect}>Disconnect</button></div>
+    {connection ? <><div className="discord-profile-connected"><div><strong>Connected as {connection.discord_username}</strong><small>Connected</small></div><button type="button" className="quiet-button" disabled={busy} onClick={disconnect}>Disconnect</button></div>
+      <form className="personal-discord-preferences" onSubmit={savePreferences}>
+        <label className="check-row personal-discord-master"><input type="checkbox" checked={preferences.enabled} onChange={(event)=>updatePreference("enabled",event.target.checked)}/> Enable personal Discord notifications</label>
+        <fieldset disabled={!preferences.enabled || busy}>
+          <legend>Notify me about</legend>
+          <label className="check-row"><input type="checkbox" checked={preferences.drafts} onChange={(event)=>updatePreference("drafts",event.target.checked)}/> Draft reminders</label>
+          <label className="check-row"><input type="checkbox" checked={preferences.scheduling} onChange={(event)=>updatePreference("scheduling",event.target.checked)}/> Match proposals, replies, and reschedules</label>
+          <label className="check-row"><input type="checkbox" checked={preferences.matches} onChange={(event)=>updatePreference("matches",event.target.checked)}/> Confirmed match reminders</label>
+          <label className="check-row"><input type="checkbox" checked={preferences.transactions} onChange={(event)=>updatePreference("transactions",event.target.checked)}/> Transaction updates</label>
+          <label className="check-row"><input type="checkbox" checked={preferences.results} onChange={(event)=>updatePreference("results",event.target.checked)}/> Results, playoffs, and championships</label>
+        </fieldset>
+        <fieldset disabled={!preferences.enabled || busy}>
+          <legend>Personal quiet hours</legend>
+          <label className="check-row"><input type="checkbox" checked={preferences.quietEnabled} onChange={(event)=>updatePreference("quietEnabled",event.target.checked)}/> Hold non-urgent messages during quiet hours</label>
+          <div className="personal-discord-time-grid">
+            <label>Begin<input type="time" value={preferences.quietStart} onChange={(event)=>updatePreference("quietStart",event.target.value)}/></label>
+            <label>End<input type="time" value={preferences.quietEnd} onChange={(event)=>updatePreference("quietEnd",event.target.value)}/></label>
+            <label>Time zone<input value={preferences.timezone} onChange={(event)=>updatePreference("timezone",event.target.value)} placeholder="America/Los_Angeles"/></label>
+          </div>
+        </fieldset>
+        <div className="live-stream-actions"><button className="secondary-button" disabled={busy}>{busy?"Saving…":"Save notification settings"}</button><button type="button" className="quiet-button" disabled={busy||!preferences.enabled} onClick={sendTest}>Send private test message</button></div>
+        {connection.last_dm_test_at&&<p className="muted">Last test: {connection.last_dm_test_status==="delivered"?"Delivered":"Failed"} · {new Date(connection.last_dm_test_at).toLocaleString()}{connection.last_dm_test_error?` · ${connection.last_dm_test_error}`:""}</p>}
+      </form></>
       : <button type="button" className="discord-install-button" disabled={busy} onClick={connect}>{busy ? "Connecting…" : "Connect Discord Profile"}</button>}
     {message && <p className="hub-message">{message}</p>}
   </>;
