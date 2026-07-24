@@ -7965,7 +7965,7 @@ function KeeperSelectionCard({ team, roster, viewedTeam, maxKeepers, keeperCostI
     </div>
   );
 }
-function PrivateTeamNotebook({ leagueId, teamIndex, currentWeek }) {
+function PrivateTeamNotebook({ leagueId, teamIndex, currentWeek, totalWeeks }) {
   const [supabase] = useState(() => createClient());
   const [week, setWeek] = useState(Math.max(1, Number(currentWeek) || 1));
   const [generalNotes, setGeneralNotes] = useState("");
@@ -8044,7 +8044,7 @@ function PrivateTeamNotebook({ leagueId, teamIndex, currentWeek }) {
           <select value={week} onChange={(event) => setWeek(Number(event.target.value))}
             className="block mt-1 px-3 py-2 rounded"
             style={{ background: "#0E1324", border: "1px solid rgba(255,255,255,0.12)", color: "#EDEBFA" }}>
-            {Array.from({ length: 30 }, (_, index) => index + 1).map((number) => <option key={number} value={number}>Week {number}</option>)}
+            {Array.from({ length: Math.max(1, Number(totalWeeks) || 1) }, (_, index) => index + 1).map((number) => <option key={number} value={number}>Week {number}</option>)}
           </select>
         </label>
         <span className="text-xs" style={{ color: "#5B5F7E" }}>Each week is saved separately.</span>
@@ -8121,6 +8121,13 @@ function MyTeamView({ state, leagueId, myTeamIdx, isCommissioner, myName, myTeam
   const usesRange = settings.draftType === "auction" || settings.snakeBudgetEnabled;
   const usesBudget = usesRange;
   const canEdit = !!team && (isCommissioner || team.claimedBy === myName);
+  const notebookWeeks = Math.max(
+    1,
+    state.schedule?.length
+      || Number(settings.scheduleWeeks)
+      || (Number(settings.leagueSize) % 2 === 0 ? Number(settings.leagueSize) - 1 : Number(settings.leagueSize))
+      || 1,
+  );
 
   return (
     <div>
@@ -8187,7 +8194,12 @@ function MyTeamView({ state, leagueId, myTeamIdx, isCommissioner, myName, myTeam
       )}
 
       {leagueId && myTeamIndices.includes(viewedTeam) && (
-        <PrivateTeamNotebook leagueId={leagueId} teamIndex={viewedTeam} currentWeek={(state.week || 0) + 1} />
+        <PrivateTeamNotebook
+          leagueId={leagueId}
+          teamIndex={viewedTeam}
+          currentWeek={Math.min((state.week || 0) + 1, notebookWeeks)}
+          totalWeeks={notebookWeeks}
+        />
       )}
 
       {settings.keepersEnabled && locked && canEdit && (
@@ -8341,6 +8353,11 @@ function MyTeamView({ state, leagueId, myTeamIdx, isCommissioner, myName, myTeam
 function HomeView({ state, leagueId, leagueName, isCommissioner, isSpectator = false, myTeamIdx, standings, onGetStarted, onGoToLeague, costFor, updateHomepage, isMyTurn = false, pendingTrades = 0, unreadMessages = 0 }) {
   const { coCommissioners: coCommissionersRaw, schedule, matchResults, trades = [], transactionLog = [], seasonNumber, commissioner, locked, teams } = state;
   const coCommissioners = coCommissionersRaw || [];
+  const draftStillActive = locked && (
+    state.settings.draftType === "snake"
+      ? state.pickIndex < state.snakeOrder.length
+      : !state.auctionEnded && state.pool.length > 0
+  );
 
   if (!locked) return <PreDraftScout state={state} isCommissioner={isCommissioner} costFor={costFor} updateHomepage={updateHomepage} />;
   if (false) {
@@ -8395,9 +8412,9 @@ function HomeView({ state, leagueId, leagueName, isCommissioner, isSpectator = f
               <button onClick={() => onGoToLeague("predictions")} className="px-3 py-1.5 rounded font-semibold" style={{ background: "#FFD23F", color: "#10121C" }}>Make a prediction →</button>
             </div>
           ) : (
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-2 mt-3 text-sm">
+            <div className={`grid sm:grid-cols-2 ${draftStillActive ? "lg:grid-cols-4" : "lg:grid-cols-3"} gap-2 mt-3 text-sm`}>
               <span className="rounded p-3" style={{ background: "#10121C" }}>{myTeamIdx >= 0 ? `Team: ${teams[myTeamIdx]?.name}` : "No team claimed"}</span>
-              <span className="rounded p-3" style={{ background: isMyTurn ? "#4FD1C5" : "#10121C", color: isMyTurn ? "#10121C" : "#C9CBE0" }}>{isMyTurn ? "You are on the clock" : "Not currently on the clock"}</span>
+              {draftStillActive && <span className="rounded p-3" style={{ background: isMyTurn ? "#4FD1C5" : "#10121C", color: isMyTurn ? "#10121C" : "#C9CBE0" }}>{isMyTurn ? "You are on the clock" : "Not currently on the clock"}</span>}
               <span className="rounded p-3" style={{ background: "#10121C" }}>{pendingTrades} pending trade{pendingTrades === 1 ? "" : "s"}</span>
               <span className="rounded p-3" style={{ background: "#10121C" }}>{unreadMessages} unread message{unreadMessages === 1 ? "" : "s"}</span>
             </div>
@@ -8962,6 +8979,11 @@ function ManagerLeagueDetails({ state, myName, myTeamIdx, claimTeam, costFor, up
   const openTeams = state.teams.map((team, index) => ({ ...team, index })).filter((team) => !team.claimedBy);
   const regulation = regulationFor(settings);
   const usesRosterRange = settings.draftType === "auction" || settings.snakeBudgetEnabled;
+  const draftComplete = state.locked && (
+    settings.draftType === "snake"
+      ? state.pickIndex >= state.snakeOrder.length
+      : state.auctionEnded || state.pool.length === 0
+  );
   const rosterLabel = usesRosterRange
     ? settings.rosterMin === settings.rosterMax
       ? `${settings.rosterMin} Pokémon`
@@ -8971,9 +8993,9 @@ function ManagerLeagueDetails({ state, myName, myTeamIdx, claimTeam, costFor, up
     <div className="space-y-6">
       <section className="rounded-lg p-5" style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }}>
         <span className="eyebrow">LEAGUE DETAILS</span>
-        <h2 className="display-font text-3xl" style={{ color: "#FFD23F" }}>Everything you need before draft day</h2>
+        <h2 className="display-font text-3xl" style={{ color: "#FFD23F" }}>{draftComplete ? "Everything you need for this season" : state.locked ? "Live draft details" : "Everything you need before draft day"}</h2>
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-4">
-          <div className="rounded p-3" style={{ background: "#1F2338" }}><span className="text-xs block" style={{ color: "#9A9FBD" }}>DRAFT DATE</span><strong>{settings.draftScheduledAt ? new Date(settings.draftScheduledAt).toLocaleString() : "Not scheduled yet"}</strong></div>
+          <div className="rounded p-3" style={{ background: "#1F2338" }}><span className="text-xs block" style={{ color: "#9A9FBD" }}>{state.locked ? "DRAFT STATUS" : "DRAFT DATE"}</span><strong>{draftComplete ? "Draft completed" : state.locked ? "Draft in progress" : settings.draftScheduledAt ? new Date(settings.draftScheduledAt).toLocaleString() : "Not scheduled yet"}</strong></div>
           <div className="rounded p-3" style={{ background: "#1F2338" }}><span className="text-xs block" style={{ color: "#9A9FBD" }}>FORMAT</span><strong>{settings.draftType === "auction" ? "Auction" : settings.snakeBudgetEnabled ? "Budgeted snake" : "Snake draft"}</strong></div>
           <div className="rounded p-3" style={{ background: "#1F2338" }}><span className="text-xs block" style={{ color: "#9A9FBD" }}>REGULATION</span><strong>{regulation.name}</strong></div>
           <div className="rounded p-3" style={{ background: "#1F2338" }}><span className="text-xs block" style={{ color: "#9A9FBD" }}>ROSTER</span><strong>{rosterLabel}</strong></div>
