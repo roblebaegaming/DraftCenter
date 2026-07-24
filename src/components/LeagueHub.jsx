@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "../lib/supabase/client";
-import { POLL_POKEMON_NAMES } from "./PokemonDraftLeague";
+import { POLL_POKEMON_DEX_NAMES, POLL_POKEMON_NAMES } from "./PokemonDraftLeague";
 import DailyCommunityGames from "./DailyCommunityGames";
 
 function slugify(value) { return value.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "").slice(0, 72); }
@@ -126,13 +126,16 @@ function PollPokemonImage({ name }) {
   const [sprite, setSprite] = useState("");
   useEffect(() => {
     let active = true;
-    fetch(`https://pokeapi.co/api/v2/pokemon/${encodeURIComponent(pokemonSlug(name))}`)
-      .then((response) => response.ok ? response.json() : null)
-      .then((data) => { if (active) setSprite(data?.sprites?.other?.["official-artwork"]?.front_default || data?.sprites?.front_default || ""); })
+    loadPokemonArtwork(name)
+      .then((image) => { if (active) setSprite(image || ""); })
       .catch(() => { if (active) setSprite(""); });
     return () => { active = false; };
   }, [name]);
   return sprite ? <img className="poll-pokemon-image" src={sprite} alt="" /> : null;
+}
+
+function PollPokemonChoice({ name, onChoose }) {
+  return <button type="button" className="daily-quiz-pokemon-choice" onClick={() => onChoose(name)}><PollPokemonImage name={name} /><strong>{name}</strong></button>;
 }
 
 function PollResults({ poll }) {
@@ -148,7 +151,7 @@ function PollCommentThread({ comment, replies, onReply, onUpvote }) {
 }
 
 function PollOfTheDay({ supabase }) {
-  const [poll, setPoll] = useState(null); const [history, setHistory] = useState([]); const [pokemon, setPokemon] = useState(""); const [message, setMessage] = useState(""); const [busy, setBusy] = useState(false); const [comments, setComments] = useState([]); const [commentCount, setCommentCount] = useState(0); const [commentText, setCommentText] = useState(""); const [commentsOpen, setCommentsOpen] = useState(false); const [replyTo, setReplyTo] = useState(null);
+  const [poll, setPoll] = useState(null); const [history, setHistory] = useState([]); const [pokemon, setPokemon] = useState(""); const [pickerOpen, setPickerOpen] = useState(false); const [message, setMessage] = useState(""); const [busy, setBusy] = useState(false); const [comments, setComments] = useState([]); const [commentCount, setCommentCount] = useState(0); const [commentText, setCommentText] = useState(""); const [commentsOpen, setCommentsOpen] = useState(false); const [replyTo, setReplyTo] = useState(null);
   useEffect(() => {
     const localDate=localDateKey();
     Promise.all([
@@ -171,6 +174,9 @@ function PollOfTheDay({ supabase }) {
   const isOpen = poll?.poll_date === localDateKey();
   const canDiscuss = hasVoted || !isOpen;
   const previousPoll = history.find((item) => item.poll_date < localDateKey()) || null;
+  const pollPokemonMatches = pokemon.trim()
+    ? POLL_POKEMON_DEX_NAMES.filter((name) => name.toLowerCase().includes(pokemon.trim().toLowerCase())).slice(0, 8)
+    : POLL_POKEMON_DEX_NAMES.slice(0, 8);
   const topLevelComments = comments.filter((comment) => !comment.parent_comment_id);
   const repliesByParent = comments.reduce((result, comment) => {
     if (comment.parent_comment_id) result[comment.parent_comment_id] = [...(result[comment.parent_comment_id] || []), comment];
@@ -178,7 +184,7 @@ function PollOfTheDay({ supabase }) {
   }, {});
   return <section className="hub-card poll-card">
     <div className="section-heading"><div><span className="eyebrow">{isOpen ? "POLL OF THE DAY" : `PAST POLL · ${new Date(`${poll.poll_date}T12:00:00`).toLocaleDateString()}`}</span><h2>{poll?.question || "Today's Pokemon question"}</h2></div><span className="muted">{poll?.total_votes || 0} vote{poll?.total_votes === 1 ? "" : "s"}</span></div>
-    {hasVoted || !isOpen ? <PollResults poll={poll} /> : poll?.answer_type === "pokemon" ? <form className="poll-search" onSubmit={submitPokemon}><label>Search for a Pokemon<input list="poll-pokemon-options" value={pokemon} onChange={(event) => setPokemon(event.target.value)} placeholder="Start typing a Pokemon name" autoComplete="off" /></label><datalist id="poll-pokemon-options">{POLL_POKEMON_NAMES.map((mon) => <option key={mon} value={mon} />)}</datalist><button className="primary-button" disabled={busy}>Vote for {pokemon || "a Pokemon"}</button></form> : <div className="poll-options">{poll?.options?.map((option) => <button key={option.key} className="league-row" disabled={busy} onClick={() => vote(option.key)}><strong>{option.label}</strong><span className="open-arrow">Vote</span></button>)}</div>}
+    {hasVoted || !isOpen ? <PollResults poll={poll} /> : poll?.answer_type === "pokemon" ? <form className="poll-search poll-pokemon-search" onSubmit={submitPokemon}><label>Search for a Pokémon<input value={pokemon} onFocus={() => setPickerOpen(true)} onChange={(event) => { setPokemon(event.target.value); setPickerOpen(true); }} placeholder="Start typing a Pokémon name" autoComplete="off" /></label><button className="primary-button" disabled={busy || !POLL_POKEMON_NAMES.some((name) => name.toLowerCase() === pokemon.trim().toLowerCase())}>Vote for {pokemon || "a Pokémon"}</button>{pickerOpen && <div className="daily-quiz-pokemon-picker poll-pokemon-picker">{pollPokemonMatches.length ? pollPokemonMatches.map((name) => <PollPokemonChoice key={name} name={name} onChoose={(selected) => { setPokemon(selected); setPickerOpen(false); }} />) : <p className="muted">No matching Pokémon found. Try another spelling.</p>}</div>}</form> : <div className="poll-options">{poll?.options?.map((option) => <button key={option.key} className="league-row" disabled={busy} onClick={() => vote(option.key)}><strong>{option.label}</strong><span className="open-arrow">Vote</span></button>)}</div>}
     {message && <p className="hub-message">{message}</p>}
     <p className="muted poll-note">{isOpen ? "Results and discussion appear after your vote. You may change today's choice until the day ends." : "Voting is closed, so the final result will not change. You can still read and join the discussion."}</p>
     {canDiscuss ? <div className="poll-discussion"><div className="section-heading"><h3>Poll discussion</h3>{commentCount > 3 && <button className="text-button" onClick={toggleComments}>{commentsOpen ? "Show top 3" : `Read ${commentCount - 3} more`}</button>}</div><form className="poll-comment-form" onSubmit={submitComment}>{replyTo && <div className="replying-to">Replying to @{replyTo.username || replyTo.display_name || "coach"}<button type="button" className="text-button" onClick={() => setReplyTo(null)}>Cancel</button></div>}<input maxLength={500} value={commentText} onChange={(event) => setCommentText(event.target.value)} placeholder={replyTo ? "Write a reply..." : "Share your take..."} /><button className="secondary-button" disabled={busy || !commentText.trim()}>{replyTo ? "Reply" : "Post"}</button></form>{topLevelComments.length === 0 ? <p className="muted">No comments yet. Start the conversation.</p> : <div className={`poll-comments ${commentsOpen ? "is-scrollable" : ""}`}>{topLevelComments.map((comment) => <PollCommentThread key={comment.id} comment={comment} replies={repliesByParent[comment.id] || []} onReply={(target) => { setReplyTo(target); setCommentText(""); }} onUpvote={toggleUpvote} />)}</div>}</div> : <div className="poll-discussion poll-discussion-locked"><strong>Vote first to unlock the discussion.</strong><p className="muted">That keeps other coaches' opinions from influencing your answer.</p></div>}
@@ -301,7 +307,7 @@ return (
     {message && <p className="hub-message">{message}</p>}
     {pendingInvite && <section className="hub-card invite-confirm"><span className="eyebrow">LEAGUE INVITATION</span><h2>{pendingInvite.is_spectator ? "Watch this league?" : pendingInvite.role === "co_commissioner" ? "Help run this league?" : "Join this league?"}</h2><p><strong>{pendingInvite.league_name}</strong>{pendingInvite.season_label ? ` - ${pendingInvite.season_label}` : ""}</p><p className="muted">{pendingInvite.is_spectator ? "You will have spectator access only. You can view and scout, but cannot claim a team or change league data." : pendingInvite.role === "co_commissioner" ? "Accepting gives you co-commissioner access to league settings, scheduling, results, and commissioner tools." : "Accept the invitation, then choose one of the league’s currently open teams. A competitive spot is only taken after you claim it."}</p><div className="flex gap-2 flex-wrap"><button className="primary-button" disabled={inviteBusy} onClick={acceptPendingInvite}>{inviteBusy ? "Accepting..." : pendingInvite.role === "co_commissioner" ? "Accept co-commissioner role" : pendingInvite.is_spectator ? "Watch league" : "Accept & choose a team"}</button><button className="quiet-button" disabled={inviteBusy} onClick={dismissInvite}>Not now</button></div></section>}
     {pendingTeamClaim && <section className="hub-card invite-confirm"><span className="eyebrow">CHOOSE YOUR TEAM</span><h2>You’re in {pendingTeamClaim.league.name}</h2><p className="muted">Choose an open team now. The league’s available-manager count goes down only after your selection succeeds.</p><div className="league-list">{pendingTeamClaim.teams.map((team) => <button key={team.index} className="league-row" disabled={inviteBusy} onClick={() => claimInvitedTeam(team.index)}><div><strong>{team.name || `Team ${team.index + 1}`}</strong><span>Open team · claim immediately</span></div><span className="open-arrow">{inviteBusy ? "Please wait" : "Claim team"}</span></button>)}</div><button className="quiet-button" disabled={inviteBusy} onClick={() => { const league=pendingTeamClaim.league; setPendingTeamClaim(null); onOpenLeague({ ...league, role:"coach" }); }}>Choose later</button></section>}
-    <section className="hub-card my-leagues-card"><div className="section-heading"><div><span className="eyebrow">YOUR LEAGUES</span><h2>Pick up where you left off</h2></div><button className="quiet-button" onClick={() => loadLeagues()}>Refresh</button></div>{loading && <p className="muted">Loading your leagues...</p>}{!loading && leagues.length === 0 && <div className="empty-state"><strong>You are ready to join.</strong><p>Ask a commissioner for an invite link, or create a league if you are running the season.</p></div>}<div className="league-list">{leagues.map(({ league, role }) => <button className="league-row" key={league.id} onClick={() => onOpenLeague({ ...league, role })}><div><strong>{league.name}</strong><span>{league.on_clock ? "⚡ YOUR PICK IS ON THE CLOCK" : `${league.season_label || "New season"} - ${role.replace("_", " ")}`}</span></div><span className="open-arrow">{league.on_clock ? "Draft now" : "Open"}</span></button>)}</div></section>
+    <section className="hub-card my-leagues-card"><div className="section-heading"><div><span className="eyebrow">YOUR LEAGUES</span><h2>Pick up where you left off</h2></div><button className="quiet-button" onClick={() => loadLeagues()}>Refresh</button></div>{loading && <p className="muted">Loading your leagues...</p>}{!loading && leagues.length === 0 && <div className="empty-state"><strong>You are ready to join.</strong><p>Ask a commissioner for an invite link, or create a league if you are running the season.</p></div>}<div className="league-list">{leagues.map(({ league, role }) => <button className="league-row dashboard-league-row" key={league.id} onClick={() => onOpenLeague({ ...league, role })}>{league.image_url && <img className="dashboard-league-image" src={league.image_url} alt="" />}<div><strong>{league.name}</strong><span>{league.on_clock ? "⚡ YOUR PICK IS ON THE CLOCK" : `${league.season_label || "New season"} - ${role.replace("_", " ")}`}</span></div><span className="open-arrow">{league.on_clock ? "Draft now" : "Open"}</span></button>)}</div></section>
     <section className="dashboard-daily-three">
       <PollOfTheDay supabase={supabase} />
       <DailyCommunityGames signedIn />
