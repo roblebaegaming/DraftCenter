@@ -59,12 +59,48 @@ function BadgeAwardPopup({ supabase, userId }) {
   return <div className="badge-award-backdrop"><section className="badge-award-popup"><div className="badge-confetti" aria-hidden="true">✦ ★ ✧ ★ ✦</div><span className="eyebrow">BADGE EARNED</span><div className="badge-award-icon">{badgeIcon(event)}</div><h2>{event.subject?`${event.subject} ${cleanBadgeText(event.name)}`:cleanBadgeText(event.name)}</h2><p>{cleanBadgeText(event.description)}</p><p className="badge-tier-earned">Milestone: {event.tier}</p><button className="primary-button" onClick={close}>{events.length>1?`Next badge (${events.length-1} more)`:"Awesome!"}</button><small>Badges celebrate activity and accomplishments across DraftCenter. View all earned badges and locked progress from Profile.</small></section></div>;
 }
 
+function DiscordProfileConnection({ supabase, user }) {
+  const [connection, setConnection] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState("");
+  useEffect(() => {
+    supabase.from("discord_user_connections").select("discord_username, manageable_guilds, updated_at").eq("user_id", user.id).maybeSingle()
+      .then(({ data }) => setConnection(data || null));
+  }, [supabase, user.id]);
+  async function connect() {
+    setBusy(true); setMessage("");
+    const { data } = await supabase.auth.getSession();
+    const response = await fetch("/api/discord/oauth/start", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${data.session?.access_token || ""}` },
+    });
+    const result = await response.json();
+    setBusy(false);
+    if (!response.ok) return setMessage(result.error || "Discord connection could not start.");
+    window.location.assign(result.url);
+  }
+  async function disconnect() {
+    setBusy(true); setMessage("");
+    const { error } = await supabase.from("discord_user_connections").delete().eq("user_id", user.id);
+    setBusy(false);
+    if (error) return setMessage(error.message);
+    setConnection(null);
+    setMessage("Discord disconnected from your DraftCenter profile.");
+  }
+  return <><hr/><h3>Discord connection</h3>
+    <p className="muted">Connect Discord once to verify the servers you manage. DraftCenter stores your Discord identity and server names, not your reusable Discord access token.</p>
+    {connection ? <div className="discord-profile-connected"><div><strong>Connected as {connection.discord_username}</strong><small>{(connection.manageable_guilds || []).length} manageable server{(connection.manageable_guilds || []).length === 1 ? "" : "s"} verified</small></div><button type="button" className="quiet-button" disabled={busy} onClick={disconnect}>Disconnect</button></div>
+      : <button type="button" className="discord-install-button" disabled={busy} onClick={connect}>{busy ? "Connecting…" : "Connect Discord Profile"}</button>}
+    {message && <p className="hub-message">{message}</p>}
+  </>;
+}
+
 function ProfileEditor({ supabase, user, profile, onSaved, onClose }) {
   const [file, setFile] = useState(null); const [message, setMessage] = useState(""); const [busy, setBusy] = useState(false); const [dailyThreeEmail, setDailyThreeEmail] = useState(false);
   useEffect(() => { supabase.from("notification_preferences").select("email_daily_poll_results").eq("user_id", user.id).maybeSingle().then(({ data }) => setDailyThreeEmail(Boolean(data?.email_daily_poll_results))); }, [supabase, user.id]);
   async function uploadPhoto(event) { event.preventDefault(); if (!file) return setMessage("Choose a photo first."); if (!file.type.startsWith("image/") || file.size > 5 * 1024 * 1024) return setMessage("Choose a JPG, PNG, or WebP image under 5 MB."); setBusy(true); setMessage(""); const extension = file.name.split(".").pop()?.toLowerCase() || "jpg"; const path = `${user.id}/avatar-${Date.now()}.${extension}`; const { error: uploadError } = await supabase.storage.from("avatars").upload(path, file, { contentType: file.type, upsert: false }); if (uploadError) { setBusy(false); return setMessage(uploadError.message); } const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(path); const { data, error } = await supabase.from("profiles").update({ avatar_url: urlData.publicUrl }).eq("id", user.id).select("id, display_name, username, avatar_url").single(); setBusy(false); if (error) return setMessage(error.message); onSaved(data); setMessage("Profile photo saved."); }
   async function saveDailyThreeEmail(checked) { setBusy(true); const { error } = await supabase.from("notification_preferences").upsert({ user_id: user.id, email_daily_poll_results: checked }, { onConflict: "user_id" }); setBusy(false); if (error) return setMessage(error.message); setDailyThreeEmail(checked); setMessage(checked ? "Daily Three result emails are enabled." : "Daily Three result emails are disabled."); }
-  return <div className="modal-backdrop"><section className="tools-modal profile-tools-modal"><button className="modal-close" onClick={onClose}>x</button><span className="eyebrow">YOUR PROFILE</span><h2>Profile photo</h2>{profile?.avatar_url ? <img className="profile-photo-large" src={profile.avatar_url} alt="Your profile" /> : <div className="profile-photo-placeholder">{(profile?.display_name || profile?.username || "C")[0].toUpperCase()}</div>}<p className="muted">Your photo is visible beside your name in DraftCenter discussions.</p><form className="form-stack" onSubmit={uploadPhoto}><label>Choose photo<input type="file" accept="image/jpeg,image/png,image/webp" onChange={(event)=>setFile(event.target.files?.[0]||null)} /></label><button className="primary-button" disabled={busy}>{busy?"Uploading...":"Save profile photo"}</button></form><FavoritePokemonEditor supabase={supabase} user={user}/><ProfileBadges supabase={supabase}/><hr/><h3>Daily Three emails</h3><label className="check-row"><input type="checkbox" checked={dailyThreeEmail} disabled={busy} onChange={(event)=>saveDailyThreeEmail(event.target.checked)} /> Email me yesterday’s Poll, Draft Bracket, and Pokémon Quiz results</label>{message&&<p className="hub-message">{message}</p>}</section></div>;
+  return <div className="modal-backdrop"><section className="tools-modal profile-tools-modal"><button className="modal-close" onClick={onClose}>x</button><span className="eyebrow">YOUR PROFILE</span><h2>Profile photo</h2>{profile?.avatar_url ? <img className="profile-photo-large" src={profile.avatar_url} alt="Your profile" /> : <div className="profile-photo-placeholder">{(profile?.display_name || profile?.username || "C")[0].toUpperCase()}</div>}<p className="muted">Your photo is visible beside your name in DraftCenter discussions.</p><form className="form-stack" onSubmit={uploadPhoto}><label>Choose photo<input type="file" accept="image/jpeg,image/png,image/webp" onChange={(event)=>setFile(event.target.files?.[0]||null)} /></label><button className="primary-button" disabled={busy}>{busy?"Uploading...":"Save profile photo"}</button></form><DiscordProfileConnection supabase={supabase} user={user}/><FavoritePokemonEditor supabase={supabase} user={user}/><ProfileBadges supabase={supabase}/><hr/><h3>Daily Three emails</h3><label className="check-row"><input type="checkbox" checked={dailyThreeEmail} disabled={busy} onChange={(event)=>saveDailyThreeEmail(event.target.checked)} /> Email me yesterday’s Poll, Draft Bracket, and Pokémon Quiz results</label>{message&&<p className="hub-message">{message}</p>}</section></div>;
 }
 
 function PublicLanding({ email, password, setEmail, setPassword, busy, message, onSubmit, onMode }) {

@@ -8951,14 +8951,6 @@ function SetupView({ state, leagueId = null, isCommissioner, canBeCommissioner, 
           )}
         </section>
       )}
-      {isCommissioner && leagueId && (
-        <section className="rounded-lg p-5 mb-6" style={{ background: "#171A2C", border: "1px solid rgba(88,101,242,0.45)" }}>
-          <span className="eyebrow">COMMISSIONER CONNECTION</span>
-          <h2 className="display-font text-2xl mb-2" style={{ color: "#AEB7FF" }}>DISCORD ANNOUNCEMENTS</h2>
-          <p className="text-sm mb-4" style={{ color: "#C9CBE0" }}>Connect this league before the draft begins so scheduled reminders and live-stream announcements can use your chosen Discord channel.</p>
-          <DiscordConnectionPanel leagueId={leagueId} defaultOpen />
-        </section>
-      )}
       <section style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }} className="rounded-lg p-5 mb-6">
         <h2 className="display-font text-2xl mb-2" style={{ color: "#FFD23F" }}>DRAFT DATE & MANAGER INVITES</h2>
         <p className="text-sm mb-4" style={{ color: "#9A9FBD" }}>{draftHasStarted ? "The draft has already started, so its one-time appointment is complete. Use League Clock below to edit recurring match and transaction times." : settings.draftScheduledAt ? `Currently scheduled for ${new Date(settings.draftScheduledAt).toLocaleString()}. You can change it below until the draft actually starts.` : "No draft time has been scheduled yet."}</p>
@@ -8966,6 +8958,21 @@ function SetupView({ state, leagueId = null, isCommissioner, canBeCommissioner, 
         {inviteMessage && <p className="text-xs mt-3" style={{ color: "#4FD1C5" }}>{inviteMessage}</p>}
         <p className="text-xs mt-3" style={{ color: "#5B5F7E" }}>This is the league's single saved draft date. It appears automatically on Home, Draft, Setup, and public league details.</p>
       </section>
+      {isCommissioner && leagueId && (
+        <section className="rounded-lg p-5 mb-6" style={{ background: "#171A2C", border: "1px solid rgba(88,101,242,0.35)" }}>
+          <span className="eyebrow">OPTIONAL LEAGUE CONNECTIONS</span>
+          <h2 className="display-font text-2xl mb-2" style={{ color: "#AEB7FF" }}>BROADCASTS & NOTIFICATIONS</h2>
+          <p className="text-sm mb-4" style={{ color: "#C9CBE0" }}>Connect the services your league uses after its draft details are ready. These tools are optional and can be changed later.</p>
+          <DiscordConnectionPanel leagueId={leagueId} />
+          <details className="discord-connection-panel">
+            <summary>Twitch & YouTube broadcasts</summary>
+            <div className="discord-connection-body">
+              <p className="muted">Managers can publish a Twitch or YouTube battle from League Home. DraftCenter can show scheduled streams and Live Now cards without requesting a creator password or stream key.</p>
+              <p className="discord-setup-note"><strong>Coming next:</strong> Secure channel linking, automatic Live Now detection, and matchup-based stream scheduling. Until then, managers paste only the public Twitch or YouTube stream URL they want viewers to open.</p>
+            </div>
+          </details>
+        </section>
+      )}
       {!leagueId && !commissioner && (
         <div style={{ background: "#1F2338", border: "1px solid #FFD23F55" }} className="rounded-lg p-4 mb-6 flex items-center justify-between flex-wrap gap-3">
           <span className="text-sm">No commissioner yet — claim it to control league settings.</span>
