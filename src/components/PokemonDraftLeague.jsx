@@ -7539,7 +7539,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
           />
         )}
         {tab === "myteam" && (
-          <MyTeamView state={state} myTeamIdx={myTeamIdx} isCommissioner={displayIsCommissioner} myName={myName}
+          <MyTeamView state={state} leagueId={leagueId} myTeamIdx={myTeamIdx} isCommissioner={displayIsCommissioner} myName={myName}
             myTeamIndices={myTeamIndices} activeTeamIdx={activeTeamIdx} setActiveTeamIdx={setActiveTeamIdx}
             renameTeam={renameTeam} setTeamLogo={setTeamLogo} setTeamColor={setTeamColor} setTeamDescription={setTeamDescription}
             viewTeamRequest={viewTeamRequest} clearViewTeamRequest={() => setViewTeamRequest(null)} setKeeperSelection={setKeeperSelection} />
@@ -7937,7 +7937,126 @@ function KeeperSelectionCard({ team, roster, viewedTeam, maxKeepers, keeperCostI
     </div>
   );
 }
-function MyTeamView({ state, myTeamIdx, isCommissioner, myName, myTeamIndices, activeTeamIdx, setActiveTeamIdx, renameTeam, setTeamLogo, setTeamColor, setTeamDescription, viewTeamRequest, clearViewTeamRequest, setKeeperSelection }) {
+function PrivateTeamNotebook({ leagueId, teamIndex, currentWeek }) {
+  const [supabase] = useState(() => createClient());
+  const [week, setWeek] = useState(Math.max(1, Number(currentWeek) || 1));
+  const [generalNotes, setGeneralNotes] = useState("");
+  const [weekNotes, setWeekNotes] = useState("");
+  const [pokepasteUrl, setPokepasteUrl] = useState("");
+  const [replicaCode, setReplicaCode] = useState("");
+  const [status, setStatus] = useState("loading");
+  const teamKey = String(teamIndex);
+
+  useEffect(() => {
+    setWeek(Math.max(1, Number(currentWeek) || 1));
+  }, [currentWeek, teamIndex]);
+
+  useEffect(() => {
+    let active = true;
+    async function loadNotebook() {
+      setStatus("loading");
+      const { data, error } = await supabase
+        .from("private_league_team_notebooks")
+        .select("week_number, notes, pokepaste_url, replica_code")
+        .eq("league_id", leagueId)
+        .eq("team_source_key", teamKey)
+        .in("week_number", [0, week]);
+      if (!active) return;
+      if (error) { setStatus(error.message); return; }
+      const general = (data || []).find((row) => row.week_number === 0);
+      const weekly = (data || []).find((row) => row.week_number === week);
+      setGeneralNotes(general?.notes || "");
+      setWeekNotes(weekly?.notes || "");
+      setPokepasteUrl(weekly?.pokepaste_url || "");
+      setReplicaCode(weekly?.replica_code || "");
+      setStatus("ready");
+    }
+    if (leagueId) loadNotebook();
+    return () => { active = false; };
+  }, [leagueId, teamKey, week, supabase]);
+
+  async function saveNotebook() {
+    const cleanPaste = pokepasteUrl.trim();
+    if (cleanPaste && !/^https:\/\/pokepast\.es\/[A-Za-z0-9]+\/?$/.test(cleanPaste)) {
+      setStatus("Use a complete Poképaste link such as https://pokepast.es/abc123.");
+      return;
+    }
+    setStatus("saving");
+    const { data: authData } = await supabase.auth.getUser();
+    const userId = authData?.user?.id;
+    if (!userId) { setStatus("Sign in again to save your private notebook."); return; }
+    const rows = [
+      {
+        user_id: userId, league_id: leagueId, team_source_key: teamKey, week_number: 0,
+        notes: generalNotes, pokepaste_url: null, replica_code: "", updated_at: new Date().toISOString(),
+      },
+      {
+        user_id: userId, league_id: leagueId, team_source_key: teamKey, week_number: week,
+        notes: weekNotes, pokepaste_url: cleanPaste || null, replica_code: replicaCode, updated_at: new Date().toISOString(),
+      },
+    ];
+    const { error } = await supabase.from("private_league_team_notebooks")
+      .upsert(rows, { onConflict: "user_id,league_id,team_source_key,week_number" });
+    setStatus(error ? error.message : "saved");
+  }
+
+  return (
+    <details className="rounded-lg p-5 mb-6" style={{ background: "#12182B", border: "1px solid #4FD1C555" }}>
+      <summary className="font-semibold cursor-pointer" style={{ color: "#4FD1C5" }}>PRIVATE TEAM NOTEBOOK</summary>
+      <p className="text-xs mt-3 mb-4" style={{ color: "#9A9FBD" }}>Only you can see these notes. Commissioners, opponents, and spectators cannot access them.</p>
+      <label className="block text-sm mb-4" style={{ color: "#C9CBE0" }}>
+        General team notes
+        <textarea value={generalNotes} onChange={(event) => setGeneralNotes(event.target.value)} maxLength={20000}
+          placeholder="Ideas, matchup plans, speed tiers, reminders…"
+          className="w-full mt-1 p-3 rounded text-sm" rows={5}
+          style={{ background: "#0E1324", border: "1px solid rgba(255,255,255,0.12)", color: "#EDEBFA" }} />
+      </label>
+      <div className="flex items-end gap-3 flex-wrap mb-4">
+        <label className="text-sm" style={{ color: "#C9CBE0" }}>Matchup week
+          <select value={week} onChange={(event) => setWeek(Number(event.target.value))}
+            className="block mt-1 px-3 py-2 rounded"
+            style={{ background: "#0E1324", border: "1px solid rgba(255,255,255,0.12)", color: "#EDEBFA" }}>
+            {Array.from({ length: 30 }, (_, index) => index + 1).map((number) => <option key={number} value={number}>Week {number}</option>)}
+          </select>
+        </label>
+        <span className="text-xs" style={{ color: "#5B5F7E" }}>Each week is saved separately.</span>
+      </div>
+      <label className="block text-sm mb-4" style={{ color: "#C9CBE0" }}>
+        Week {week} notes
+        <textarea value={weekNotes} onChange={(event) => setWeekNotes(event.target.value)} maxLength={20000}
+          placeholder="Opponent-specific plan and preparation notes…"
+          className="w-full mt-1 p-3 rounded text-sm" rows={4}
+          style={{ background: "#0E1324", border: "1px solid rgba(255,255,255,0.12)", color: "#EDEBFA" }} />
+      </label>
+      <div className="grid md:grid-cols-2 gap-4">
+        <label className="text-sm" style={{ color: "#C9CBE0" }}>Poképaste link
+          <input type="url" value={pokepasteUrl} onChange={(event) => setPokepasteUrl(event.target.value)}
+            placeholder="https://pokepast.es/..."
+            className="w-full mt-1 px-3 py-2 rounded"
+            style={{ background: "#0E1324", border: "1px solid rgba(255,255,255,0.12)", color: "#EDEBFA" }} />
+        </label>
+        <label className="text-sm" style={{ color: "#C9CBE0" }}>Champions replica code
+          <textarea value={replicaCode} onChange={(event) => setReplicaCode(event.target.value)} maxLength={5000}
+            placeholder="Paste the team code here…"
+            className="w-full mt-1 px-3 py-2 rounded mono-font text-xs" rows={3}
+            style={{ background: "#0E1324", border: "1px solid rgba(255,255,255,0.12)", color: "#EDEBFA" }} />
+        </label>
+      </div>
+      <div className="flex items-center gap-3 mt-4 flex-wrap">
+        <button type="button" onClick={saveNotebook} disabled={status === "saving" || status === "loading"}
+          className="px-4 py-2 rounded font-semibold text-sm disabled:opacity-50"
+          style={{ background: "#4FD1C5", color: "#10121C" }}>
+          {status === "saving" ? "SAVING…" : "SAVE PRIVATE NOTEBOOK"}
+        </button>
+        <span className="text-xs" style={{ color: status === "saved" ? "#4FD1C5" : status === "ready" ? "#5B5F7E" : "#F4B860" }}>
+          {status === "saved" ? "Saved privately." : status === "ready" ? "Changes are private and save when you choose the button." : status === "loading" ? "Loading…" : status}
+        </span>
+      </div>
+    </details>
+  );
+}
+
+function MyTeamView({ state, leagueId, myTeamIdx, isCommissioner, myName, myTeamIndices, activeTeamIdx, setActiveTeamIdx, renameTeam, setTeamLogo, setTeamColor, setTeamDescription, viewTeamRequest, clearViewTeamRequest, setKeeperSelection }) {
   const { teams, rosters, budgets, settings, locked } = state;
   const [viewedTeam, setViewedTeam] = useState(myTeamIdx >= 0 ? myTeamIdx : 0);
   const [editingName, setEditingName] = useState(false);
@@ -8037,6 +8156,10 @@ function MyTeamView({ state, myTeamIdx, isCommissioner, myName, myTeamIndices, a
 
       {team?.claimedBy && (
         <ProfileCard state={state} personName={team.claimedBy} />
+      )}
+
+      {leagueId && myTeamIndices.includes(viewedTeam) && (
+        <PrivateTeamNotebook leagueId={leagueId} teamIndex={viewedTeam} currentWeek={(state.week || 0) + 1} />
       )}
 
       {settings.keepersEnabled && locked && canEdit && (
