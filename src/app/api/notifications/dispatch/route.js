@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "../../../../lib/supabase/admin";
 
 export const runtime = "nodejs";
+export const maxDuration = 60;
 
 function authorized(request) {
   const secret = process.env.CRON_SECRET;
@@ -115,17 +116,31 @@ export async function GET(request) {
   try {
     const supabase = createAdminClient();
     const dailyThree = await deliverDailyThreeResults(supabase);
-    const { data: events, error } = await supabase.from("notification_events").select("*").is("sent_at", null).is("failed_at", null).lte("scheduled_for", new Date().toISOString()).order("scheduled_for").limit(100);
+    const claimToken = crypto.randomUUID();
+    const { data: events, error } = await supabase.rpc("claim_notification_events", {
+      p_claim_token: claimToken,
+      p_limit: 50,
+    });
     if (error) throw error;
     let delivered = 0; let skipped = 0; let failed = 0;
     for (const event of events || []) {
       try {
         const result = event.channel === "discord" ? await deliverDiscord(event, supabase) : await deliverEmail(event, supabase);
-        await supabase.from("notification_events").update({ sent_at: new Date().toISOString() }).eq("id", event.id);
+        const { data: completed, error: completeError } = await supabase.rpc("complete_notification_event", {
+          p_event_id: event.id,
+          p_claim_token: claimToken,
+        });
+        if (completeError || !completed) throw completeError || new Error("The notification claim expired before completion.");
         if (result.skipped) skipped += 1; else delivered += 1;
       } catch (eventError) {
         failed += 1;
-        await supabase.from("notification_events").update({ failed_at: new Date().toISOString(), payload: { ...event.payload, delivery_error: eventError.message } }).eq("id", event.id);
+        const { error: failError } = await supabase.rpc("fail_notification_event", {
+          p_event_id: event.id,
+          p_claim_token: claimToken,
+          p_error: eventError.message || "Notification delivery failed.",
+          p_max_attempts: 5,
+        });
+        if (failError) throw failError;
       }
     }
     return NextResponse.json({ delivered: delivered + dailyThree.delivered, skipped: skipped + dailyThree.skipped, failed: failed + dailyThree.failed });
