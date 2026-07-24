@@ -237,8 +237,9 @@ function DailyBracket({ bracket, signedIn, onSaved }) {
       <p>{bracket.completed_brackets || 0} completed community bracket{bracket.completed_brackets === 1 ? "" : "s"}</p>
       <div className="daily-game-actions">
         <button type="button" className="primary-button" onClick={() => downloadBracket(bracket, winners)}>Download my bracket</button>
-        <button type="button" className="quiet-button" onClick={() => setWinners([])}>Play again</button>
+        <button type="button" className="quiet-button" onClick={() => setWinners([])}>Redo my bracket</button>
       </div>
+      <small className="muted">Redoing lets you revise today’s choices. Your saved bracket remains recorded until you complete the replacement, and only your latest completed bracket counts toward community preference data.</small>
     </div>}
     {message && <p className="hub-message">{message}</p>}
     <DailyGameDiscussion type="bracket" gameId={bracket.id} signedIn={signedIn} />
@@ -248,7 +249,6 @@ function DailyBracket({ bracket, signedIn, onSaved }) {
 function DailyQuiz({ quiz, signedIn, onSaved }) {
   const [answer, setAnswer] = useState("");
   const [pickerOpen, setPickerOpen] = useState(false);
-  const [showHint, setShowHint] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   if (!quiz) return null;
@@ -281,8 +281,6 @@ function DailyQuiz({ quiz, signedIn, onSaved }) {
       {pickerOpen && <div className="daily-quiz-pokemon-picker">
         {pokemonMatches.length ? pokemonMatches.map((name) => <QuizPokemonChoice key={name} name={name} onChoose={(selected) => { setAnswer(selected); setPickerOpen(false); }} />) : <p className="muted">No matching Pokémon found. Try another spelling.</p>}
       </div>}
-      <button type="button" className="quiet-button" onClick={() => setShowHint((current) => !current)}>{showHint ? "Hide hint" : "Show hint"}</button>
-      {showHint && <p className="muted">{cleanCommunityText(quiz.hint)}</p>}
     </form> : <div className="daily-quiz-results">
       <strong style={{ color: quiz.selected_correct ? "#4FD1C5" : "#F0555A" }}>{quiz.selected_correct ? "Correct!" : "Not quite."}</strong>
       <p>Your answer: {quiz.selected_answer}</p>
