@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { createClient } from "../lib/supabase/client";
-import { LeagueBroadcastCenter } from "./SocialSharing";
+import { DiscordConnectionPanel, LeagueBroadcastCenter } from "./SocialSharing";
 
 /* ---------------------------------------------------------
    DESIGN TOKENS — stadium-jumbotron-at-night aesthetic.
@@ -8949,6 +8949,14 @@ function SetupView({ state, leagueId = null, isCommissioner, canBeCommissioner, 
               <button type="button" disabled={reopeningSetup} onClick={async () => { setReopeningSetup(true); await rebuildCurrentSeason(); setReopeningSetup(false); }} className="px-4 py-2 rounded font-semibold text-sm" style={{ background: "#4FD1C5", color: "#10121C" }}>{reopeningSetup ? "Reopening..." : "REOPEN PRE-DRAFT SETUP"}</button>
             </div>
           )}
+        </section>
+      )}
+      {isCommissioner && leagueId && (
+        <section className="rounded-lg p-5 mb-6" style={{ background: "#171A2C", border: "1px solid rgba(88,101,242,0.45)" }}>
+          <span className="eyebrow">COMMISSIONER CONNECTION</span>
+          <h2 className="display-font text-2xl mb-2" style={{ color: "#AEB7FF" }}>DISCORD ANNOUNCEMENTS</h2>
+          <p className="text-sm mb-4" style={{ color: "#C9CBE0" }}>Connect this league before the draft begins so scheduled reminders and live-stream announcements can use your chosen Discord channel.</p>
+          <DiscordConnectionPanel leagueId={leagueId} defaultOpen />
         </section>
       )}
       <section style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }} className="rounded-lg p-5 mb-6">

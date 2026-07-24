@@ -50,7 +50,8 @@ export function LiveNowList({ streams = [], empty = "No league battles are live 
   </article>)}</div>;
 }
 
-function DiscordConnectionGroundwork({ supabase, leagueId }) {
+export function DiscordConnectionPanel({ supabase: suppliedSupabase, leagueId, defaultOpen = false }) {
+  const [supabase] = useState(() => suppliedSupabase || createClient());
   const [guildId, setGuildId] = useState("");
   const [channelId, setChannelId] = useState("");
   const [enabled, setEnabled] = useState(false);
@@ -70,7 +71,7 @@ function DiscordConnectionGroundwork({ supabase, leagueId }) {
     setBusy(false);
     setMessage(error ? error.message : enabled ? "Discord announcements are enabled for this league." : "Discord settings saved.");
   }
-  return <details className="discord-connection-panel">
+  return <details className="discord-connection-panel" open={defaultOpen}>
     <summary>Connect Discord announcements</summary>
     <div className="discord-connection-body">
       <p className="muted">Install the DraftCenter bot, then save the server and announcement-channel IDs. Live battles, scheduled matches, and future league events will use this connection.</p>
@@ -144,7 +145,7 @@ export function LeagueBroadcastCenter({ leagueId, leagueName, isCommissioner = f
       </form>
     </details>}
     {streams.some((stream) => stream.can_manage && stream.status !== "ended") && <div className="broadcast-manage-list">{streams.filter((stream) => stream.can_manage && stream.status !== "ended").map((stream) => <button key={stream.id} className="text-button" disabled={busy} onClick={() => endStream(stream.id)}>End “{stream.title}”</button>)}</div>}
-    {isCommissioner && <DiscordConnectionGroundwork supabase={supabase} leagueId={leagueId} />}
+    {isCommissioner && <DiscordConnectionPanel supabase={supabase} leagueId={leagueId} />}
     {message && <p className="hub-message">{message}</p>}
   </section>;
 }
