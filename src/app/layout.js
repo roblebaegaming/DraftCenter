@@ -1,5 +1,6 @@
 import "./globals.css";
 import SiteLegalFooter from "../components/SiteLegalFooter";
+import SiteQuickLinks from "../components/SiteQuickLinks";
 
 export const metadata = {
   title: "DraftCenter",
@@ -9,7 +10,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body suppressHydrationWarning>{children}<SiteLegalFooter /></body>
+      <body suppressHydrationWarning><SiteQuickLinks />{children}<SiteLegalFooter /></body>
     </html>
   );
 }
