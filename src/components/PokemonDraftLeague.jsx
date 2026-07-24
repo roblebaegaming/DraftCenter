@@ -8967,8 +8967,8 @@ function SetupView({ state, leagueId = null, isCommissioner, canBeCommissioner, 
           <details className="discord-connection-panel">
             <summary>Twitch & YouTube broadcasts</summary>
             <div className="discord-connection-body">
-              <p className="muted">Managers can publish a Twitch or YouTube battle from League Home. DraftCenter can show scheduled streams and Live Now cards without requesting a creator password or stream key.</p>
-              <p className="discord-setup-note"><strong>Coming next:</strong> Secure channel linking, automatic Live Now detection, and matchup-based stream scheduling. Until then, managers paste only the public Twitch or YouTube stream URL they want viewers to open.</p>
+              <p className="muted">Managers can share a Twitch or YouTube battle from League Home by adding its public stream link, scheduled time, and audience.</p>
+              <p className="discord-setup-note"><strong>Coming next:</strong> Channel linking, automatic Live Now detection, and matchup-based stream scheduling.</p>
             </div>
           </details>
         </section>
