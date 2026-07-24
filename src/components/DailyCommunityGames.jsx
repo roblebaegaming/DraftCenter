@@ -111,17 +111,21 @@ function CommunityBracketResults({ bracket, winners }) {
   </section>;
 }
 
+async function canvasImage(source) {
+  if (!source) return null;
+  return await new Promise((resolve) => {
+    const image = new Image();
+    image.crossOrigin = "anonymous";
+    image.onload = () => resolve(image);
+    image.onerror = () => resolve(null);
+    image.src = source;
+  });
+}
+
 async function canvasPokemonArtwork(name) {
   try {
     const source = await loadPokemonArtwork(name);
-    if (!source) return null;
-    return await new Promise((resolve) => {
-      const image = new Image();
-      image.crossOrigin = "anonymous";
-      image.onload = () => resolve(image);
-      image.onerror = () => resolve(null);
-      image.src = source;
-    });
+    return await canvasImage(source);
   } catch {
     return null;
   }
@@ -138,7 +142,10 @@ async function downloadBracket(bracket, winners) {
   canvas.height = 675;
   const context = canvas.getContext("2d");
   const uniquePokemon = [...new Set(bracket.pokemon)];
-  const artworkEntries = await Promise.all(uniquePokemon.map(async (name) => [name, await canvasPokemonArtwork(name)]));
+  const [artworkEntries, draftCenterLogo] = await Promise.all([
+    Promise.all(uniquePokemon.map(async (name) => [name, await canvasPokemonArtwork(name)])),
+    canvasImage("/draftcenter-logo.png"),
+  ]);
   const artwork = Object.fromEntries(artworkEntries);
 
   const background = context.createLinearGradient(0, 0, 1200, 675);
@@ -159,12 +166,13 @@ async function downloadBracket(bracket, winners) {
 
   context.fillStyle = "#FFD23F";
   context.fillRect(48, 34, 7, 58);
+  if (draftCenterLogo) context.drawImage(draftCenterLogo, 70, 33, 60, 60);
   context.fillStyle = "#FFD23F";
   context.font = "900 34px Arial, sans-serif";
-  context.fillText("DRAFTCENTER", 72, 61);
+  context.fillText("DRAFTCENTER", draftCenterLogo ? 145 : 72, 61);
   context.fillStyle = "#F6F7FF";
   context.font = "700 25px Arial, sans-serif";
-  context.fillText("DAILY DRAFT BRACKET", 72, 91);
+  context.fillText("DAILY DRAFT BRACKET", draftCenterLogo ? 145 : 72, 91);
   context.fillStyle = "#9FA8CD";
   context.font = "18px Arial, sans-serif";
   context.textAlign = "right";
