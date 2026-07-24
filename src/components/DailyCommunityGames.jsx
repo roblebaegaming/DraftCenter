@@ -72,7 +72,7 @@ function PreviousQuiz({ previous }) {
 }
 
 function CommunityBracketResults({ bracket, winners }) {
-  const [view, setView] = useState("matchups");
+  const [view, setView] = useState("rounds");
   const completed = Number(bracket.completed_brackets) || 0;
   const champions = bracket.champions || [];
   const results = bracket.matchup_results || [];
@@ -96,14 +96,31 @@ function CommunityBracketResults({ bracket, winners }) {
     };
   });
   const agreements = matchupRows.filter((row) => row.agreed).length;
+  const championRow = champions.find((row) => row.pokemon === winners[6]);
+  const championPercent = completed && championRow ? Math.round(100 * championRow.wins / completed) : 0;
+  const championRank = champions.findIndex((row) => row.pokemon === winners[6]) + 1;
+  const boldestPick = matchupRows.filter((row) => row.total).slice().sort((a, b) => a.percent - b.percent)[0];
+  const rounds = [
+    ["Quarterfinals", matchupRows.slice(0, 4)],
+    ["Semifinals", matchupRows.slice(4, 6)],
+    ["Final", matchupRows.slice(6, 7)],
+  ];
   return <section className="community-bracket-results">
-    <div className="community-results-heading"><div><span className="eyebrow">COMMUNITY RESULTS</span><h3>How your bracket compares</h3></div><strong>{agreements} of 7 with the crowd</strong></div>
-    <div className="community-result-tabs"><button type="button" className={view === "matchups" ? "active" : ""} onClick={() => setView("matchups")}>My matchups</button><button type="button" className={view === "champions" ? "active" : ""} onClick={() => setView("champions")}>Champion leaderboard</button></div>
-    {view === "matchups" && <div className="community-matchup-results">{matchupRows.map((row, index) => <article key={`${row.round}-${row.choice}-${index}`}>
-      <div><small>{row.round}</small><strong>{row.choice} over {row.opponent}</strong></div>
-      <div className="community-choice-result"><span>{row.total ? `${row.percent}% chose ${row.choice}` : "First community result"}</span><b className={row.agreed ? "agreed" : ""}>{row.crowdChoice === "Tie" ? "Community tie" : row.agreed ? "Crowd agreed" : `Crowd chose ${row.crowdChoice}`}</b></div>
-      <i><span style={{ width: `${row.total ? row.percent : 100}%` }} /></i>
-    </article>)}</div>}
+    <div className="community-results-heading"><div><span className="eyebrow">COMMUNITY RESULTS</span><h3>Your bracket vs. the community</h3></div><strong>{completed} completed today</strong></div>
+    <div className="community-result-summary">
+      <article><small>CROWD MATCH</small><strong>{agreements}<span>/7</span></strong><p>of your picks matched the majority</p></article>
+      <article><small>YOUR CHAMPION</small><strong>{winners[6]}</strong><p>{championRow ? `${championPercent}% chose it${championRank ? ` · #${championRank} overall` : ""}` : "You chose today’s first champion"}</p></article>
+      <article><small>BOLDEST PICK</small><strong>{boldestPick?.choice || winners[6]}</strong><p>{boldestPick ? `Only ${boldestPick.percent}% made this pick` : "More comparisons appear as brackets finish"}</p></article>
+    </div>
+    <div className="community-result-tabs"><button type="button" className={view === "rounds" ? "active" : ""} onClick={() => setView("rounds")}>Round by round</button><button type="button" className={view === "champions" ? "active" : ""} onClick={() => setView("champions")}>Champion leaderboard</button></div>
+    {view === "rounds" && <div className="community-round-results">{rounds.map(([label, rows]) => <section key={label}>
+      <h4>{label}</h4>
+      {rows.map((row, index) => <article key={`${label}-${row.choice}-${index}`} className={row.agreed ? "agreed" : ""}>
+        <div><strong>{row.choice}</strong><small>over {row.opponent}</small></div>
+        <b>{row.total ? `${row.percent}%` : "FIRST"}</b>
+        <span>{row.crowdChoice === "Tie" ? "Community tie" : row.agreed ? "With the crowd" : `Crowd: ${row.crowdChoice}`}</span>
+      </article>)}
+    </section>)}</div>}
     {view === "champions" && <div className="community-champion-results">{champions.length ? champions.slice(0, 8).map((row, index) => {
       const percent = completed ? Math.round(100 * row.wins / completed) : 0;
       return <article key={row.pokemon} className={row.pokemon === winners[6] ? "my-champion" : ""}><b>#{index + 1}</b><strong>{row.pokemon}{row.pokemon === winners[6] ? " · Your champion" : ""}</strong><span>{percent}% · {row.wins} bracket{row.wins === 1 ? "" : "s"}</span><i><span style={{ width: `${percent}%` }} /></i></article>;
