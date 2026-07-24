@@ -21,7 +21,7 @@ function BracketPokemon({ name, onChoose, disabled }) {
     return () => { alive = false; };
   }, [name]);
   return <button type="button" className="daily-bracket-pokemon" disabled={disabled} onClick={() => onChoose(name)}>
-    {image ? <img src={image} alt="" /> : <span className="daily-game-art-placeholder" />}
+    {image ? <img src={image} alt="" onError={() => setImage("")} /> : <span className="daily-game-art-placeholder" />}
     <strong>{name}</strong>
   </button>;
 }
@@ -46,7 +46,7 @@ function QuizPokemonChoice({ name, onChoose }) {
     return () => { alive = false; };
   }, [name]);
   return <button type="button" className="daily-quiz-pokemon-choice" onClick={() => onChoose(name)}>
-    {image ? <img src={image} alt="" /> : <span className="daily-game-art-placeholder" />}
+    {image ? <img src={image} alt="" onError={() => setImage("")} /> : <span className="daily-game-art-placeholder" />}
     <strong>{name}</strong>
   </button>;
 }
@@ -60,7 +60,7 @@ function matchupFor(pokemon, winners, index) {
 function PreviousBracket({ previous }) {
   if (!previous) return null;
   return <details className="daily-previous"><summary>View yesterday’s bracket results</summary>
-    {previous.champions?.length ? <div className="daily-previous-content"><strong>{previous.champions[0].pokemon}</strong><p>Won {previous.champions[0].wins} completed bracket{previous.champions[0].wins === 1 ? "" : "s"}.</p><h4>Top champions</h4><ol>{previous.champions.slice(0, 5).map((row) => <li key={row.pokemon}><span>{row.pokemon}</span><b>{row.wins}</b></li>)}</ol><h4>Head-to-head results</h4><ol>{(previous.matchup_results || []).slice().sort((a, b) => b.round - a.round || b.votes - a.votes).slice(0, 8).map((row, index) => <li key={`${row.round}-${row.winner}-${row.loser}-${index}`}><span>{row.winner} over {row.loser} <small>R{row.round}</small></span><b>{row.votes}</b></li>)}</ol></div> : <p className="muted">No completed brackets yesterday.</p>}
+    {previous.champions?.length ? <div className="daily-previous-content"><strong>{previous.champions[0].pokemon}</strong><p>Won {previous.champions[0].wins} completed bracket{previous.champions[0].wins === 1 ? "" : "s"}. Ties are broken by semifinal win percentage, then quarterfinal win percentage.</p><h4>Top champions</h4><ol>{previous.champions.slice(0, 5).map((row) => <li key={row.pokemon}><span>{row.pokemon}<small>SF {row.semifinal_percent ?? 0}% · QF {row.quarterfinal_percent ?? 0}%</small></span><b>{row.wins}</b></li>)}</ol><h4>Head-to-head results</h4><ol>{(previous.matchup_results || []).slice().sort((a, b) => b.round - a.round || b.votes - a.votes).slice(0, 8).map((row, index) => <li key={`${row.round}-${row.winner}-${row.loser}-${index}`}><span>{row.winner} over {row.loser} <small>R{row.round}</small></span><b>{row.votes}</b></li>)}</ol></div> : <p className="muted">No completed brackets yesterday.</p>}
   </details>;
 }
 
@@ -123,7 +123,7 @@ function CommunityBracketResults({ bracket, winners }) {
     </section>)}</div>}
     {view === "champions" && <div className="community-champion-results">{champions.length ? champions.slice(0, 8).map((row, index) => {
       const percent = completed ? Math.round(100 * row.wins / completed) : 0;
-      return <article key={row.pokemon} className={row.pokemon === winners[6] ? "my-champion" : ""}><b>#{index + 1}</b><strong>{row.pokemon}{row.pokemon === winners[6] ? " · Your champion" : ""}</strong><span>{percent}% · {row.wins} bracket{row.wins === 1 ? "" : "s"}</span><i><span style={{ width: `${percent}%` }} /></i></article>;
+      return <article key={row.pokemon} className={row.pokemon === winners[6] ? "my-champion" : ""}><b>#{index + 1}</b><strong>{row.pokemon}{row.pokemon === winners[6] ? " · Your champion" : ""}</strong><span>{percent}% · {row.wins} final win{row.wins === 1 ? "" : "s"} · SF {row.semifinal_percent ?? 0}% · QF {row.quarterfinal_percent ?? 0}%</span><i><span style={{ width: `${percent}%` }} /></i></article>;
     }) : <p className="muted">Your bracket is the first completed community result today.</p>}</div>}
   </section>;
 }
