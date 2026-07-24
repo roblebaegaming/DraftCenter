@@ -56,6 +56,20 @@ function matchupFor(pokemon, winners, index) {
   return [winners[4], winners[5]];
 }
 
+function PreviousBracket({ previous }) {
+  if (!previous) return null;
+  return <details className="daily-previous"><summary>View yesterday’s bracket results</summary>
+    {previous.champions?.length ? <div className="daily-previous-content"><strong>{previous.champions[0].pokemon}</strong><p>Won {previous.champions[0].wins} completed bracket{previous.champions[0].wins === 1 ? "" : "s"}.</p><h4>Top champions</h4><ol>{previous.champions.slice(0, 5).map((row) => <li key={row.pokemon}><span>{row.pokemon}</span><b>{row.wins}</b></li>)}</ol><h4>Head-to-head results</h4><ol>{(previous.matchup_results || []).slice().sort((a, b) => b.round - a.round || b.votes - a.votes).slice(0, 8).map((row, index) => <li key={`${row.round}-${row.winner}-${row.loser}-${index}`}><span>{row.winner} over {row.loser} <small>R{row.round}</small></span><b>{row.votes}</b></li>)}</ol></div> : <p className="muted">No completed brackets yesterday.</p>}
+  </details>;
+}
+
+function PreviousQuiz({ previous }) {
+  if (!previous) return null;
+  return <details className="daily-previous"><summary>View yesterday’s quiz results</summary>
+    <div className="daily-previous-content"><strong>{previous.correct_percent ?? 0}% correct</strong><p>Accepted answer{previous.correct_answers?.length === 1 ? "" : "s"}: {(previous.correct_answers || []).join(", ")}</p><h4>Top answers</h4><ol>{(previous.top_answers || []).slice(0, 5).map((row) => <li key={row.answer}><span>{row.answer}</span><b>{row.count}</b></li>)}</ol></div>
+  </details>;
+}
+
 async function canvasPokemonArtwork(name) {
   try {
     const source = await loadPokemonArtwork(name);
@@ -191,14 +205,14 @@ async function downloadBracket(bracket, winners) {
   link.click();
 }
 
-function DailyBracket({ bracket, signedIn, onSaved }) {
+function DailyBracket({ bracket, previous, signedIn, onSaved }) {
   const saved = bracket?.selected_winners?.length === 7 ? bracket.selected_winners : [];
   const [winners, setWinners] = useState(saved);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   useEffect(() => setWinners(saved), [bracket?.id, bracket?.selected_winners?.join("|")]);
   if (!bracket) return null;
-  if (!signedIn) return <section className="explore-card daily-game-card"><span className="eyebrow">DAILY DRAFT BRACKET</span><h2>Eight Pokémon. One community favorite.</h2><div className="daily-game-locked"><div className="locked-poll-preview" aria-hidden="true"><span /><span /><span /></div><strong>Sign in to complete today’s bracket and reveal community results.</strong><a className="secondary-button" href="/">Sign in</a></div></section>;
+  if (!signedIn) return <section className="explore-card daily-game-card"><span className="eyebrow">DAILY DRAFT BRACKET</span><h2>Eight Pokémon. One community favorite.</h2><div className="daily-game-locked"><div className="locked-poll-preview" aria-hidden="true"><span /><span /><span /></div><strong>Sign in to complete today’s bracket and reveal community results.</strong><a className="secondary-button" href="/">Sign in</a></div><PreviousBracket previous={previous} /></section>;
   const complete = winners.length === 7;
   const matchup = !complete ? matchupFor(bracket.pokemon, winners, winners.length) : null;
   const roundLabel = winners.length < 4 ? `Quarterfinal ${winners.length + 1} of 4` : winners.length < 6 ? `Semifinal ${winners.length - 3} of 2` : "Championship";
@@ -243,16 +257,17 @@ function DailyBracket({ bracket, signedIn, onSaved }) {
     </div>}
     {message && <p className="hub-message">{message}</p>}
     <DailyGameDiscussion type="bracket" gameId={bracket.id} signedIn={signedIn} />
+    <PreviousBracket previous={previous} />
   </section>;
 }
 
-function DailyQuiz({ quiz, signedIn, onSaved }) {
+function DailyQuiz({ quiz, previous, signedIn, onSaved }) {
   const [answer, setAnswer] = useState("");
   const [pickerOpen, setPickerOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   if (!quiz) return null;
-  if (!signedIn) return <section className="explore-card daily-game-card"><span className="eyebrow">DAILY POKÉMON QUIZ</span><h2>{cleanCommunityText(quiz.prompt)}</h2><div className="daily-game-locked"><div className="locked-poll-preview" aria-hidden="true"><span /><span /><span /></div><strong>Sign in to answer today’s quiz and reveal community results.</strong><a className="secondary-button" href="/">Sign in</a></div></section>;
+  if (!signedIn) return <section className="explore-card daily-game-card"><span className="eyebrow">DAILY POKÉMON QUIZ</span><h2>{cleanCommunityText(quiz.prompt)}</h2><div className="daily-game-locked"><div className="locked-poll-preview" aria-hidden="true"><span /><span /><span /></div><strong>Sign in to answer today’s quiz and reveal community results.</strong><a className="secondary-button" href="/">Sign in</a></div><PreviousQuiz previous={previous} /></section>;
   const pokemonMatches = answer.trim()
     ? POLL_POKEMON_NAMES.filter((name) => name.toLowerCase().includes(answer.trim().toLowerCase())).slice(0, 8)
     : POLL_POKEMON_NAMES.slice(0, 8);
@@ -291,6 +306,7 @@ function DailyQuiz({ quiz, signedIn, onSaved }) {
     </div>}
     {message && <p className="hub-message">{message}</p>}
     <DailyGameDiscussion type="quiz" gameId={quiz.id} signedIn={signedIn} />
+    <PreviousQuiz previous={previous} />
   </section>;
 }
 
@@ -355,14 +371,7 @@ export default function DailyCommunityGames({ signedIn }) {
   async function dismissBadge(){const event=badgeEvents[0];const supabase=createClient();await supabase.rpc("mark_badge_events_seen",{p_event_ids:[event.id]});setBadgeEvents((current)=>current.slice(1));}
   return <>
     {badgeEvents.length>0&&<div className="badge-award-backdrop"><section className="badge-award-popup"><div className="badge-confetti">✦ ★ ✧ ★ ✦</div><span className="eyebrow">BADGE EARNED</span><div className="badge-award-icon">{badgeEvents[0].icon}</div><h2>{badgeEvents[0].subject?`${badgeEvents[0].subject} ${badgeEvents[0].name}`:badgeEvents[0].name}</h2><p>{badgeEvents[0].description}</p><button className="primary-button" onClick={dismissBadge}>{badgeEvents.length>1?`Next badge (${badgeEvents.length-1} more)`:"Awesome!"}</button><small>Your badge now appears in Profile.</small></section></div>}
-    <DailyBracket bracket={games.bracket} signedIn={signedIn} onSaved={saved} />
-    <DailyQuiz quiz={games.quiz} signedIn={signedIn} onSaved={saved} />
-    {previous?.bracket && previous?.quiz && <section className="explore-card daily-history-card">
-      <span className="eyebrow">YESTERDAY’S DAILY THREE</span><h2>Yesterday’s community results</h2>
-      <div className="daily-history-grid">
-        <article><h3>Draft Bracket</h3>{previous.bracket.champions?.length ? <><strong>{previous.bracket.champions[0].pokemon}</strong><p>Won {previous.bracket.champions[0].wins} completed bracket{previous.bracket.champions[0].wins === 1 ? "" : "s"}.</p><h4>Championship finishes</h4><ol>{previous.bracket.champions.slice(0, 5).map((row) => <li key={row.pokemon}><span>{row.pokemon}</span><b>{row.wins}</b></li>)}</ol><h4>Head-to-head wins by round</h4><ol>{(previous.bracket.matchup_results || []).slice().sort((a, b) => b.round - a.round || b.votes - a.votes).slice(0, 8).map((row, index) => <li key={`${row.round}-${row.winner}-${row.loser}-${index}`}><span>{row.winner} over {row.loser} <small>R{row.round}</small></span><b>{row.votes}</b></li>)}</ol></> : <p className="muted">No completed brackets yesterday.</p>}</article>
-        <article><h3>Pokémon Quiz</h3><strong>{previous.quiz.correct_percent ?? 0}% correct</strong><p>Accepted answer{previous.quiz.correct_answers?.length === 1 ? "" : "s"}: {(previous.quiz.correct_answers || []).join(", ")}</p><ol>{(previous.quiz.top_answers || []).slice(0, 5).map((row) => <li key={row.answer}><span>{row.answer}</span><b>{row.count}</b></li>)}</ol></article>
-      </div>
-    </section>}
+    <DailyBracket bracket={games.bracket} previous={previous?.bracket} signedIn={signedIn} onSaved={saved} />
+    <DailyQuiz quiz={games.quiz} previous={previous?.quiz} signedIn={signedIn} onSaved={saved} />
   </>;
 }
