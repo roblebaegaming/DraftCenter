@@ -416,9 +416,14 @@ export default function DailyCommunityGames({ signedIn }) {
       if (!previousResult.error) setPrevious(previousResult.data);
     });
   }, [date]);
+  useEffect(() => {
+    if (!signedIn || window.location.pathname !== "/explore") return;
+    const supabase = createClient();
+    supabase.rpc("refresh_my_daily_three_badges").then(({ data }) => setBadgeEvents(data?.events || []));
+  }, [signedIn]);
   if (message) return <section className="explore-card"><p className="hub-message">{message}</p></section>;
   if (!games) return <section className="explore-card"><p className="muted">Loading today’s community games…</p></section>;
-  async function saved(next){setGames(next);if(!signedIn)return;const supabase=createClient();const {data}=await supabase.rpc("refresh_my_account_badges");setBadgeEvents(data?.events||[]);}
+  async function saved(next){setGames(next);if(!signedIn)return;const supabase=createClient();const {data,error}=await supabase.rpc("refresh_my_daily_three_badges");if(error)setMessage(error.message);else if(window.location.pathname==="/explore")setBadgeEvents(data?.events||[]);else window.dispatchEvent(new CustomEvent("draftcenter:badge-events",{detail:data?.events||[]}));}
   async function dismissBadge(){const event=badgeEvents[0];const supabase=createClient();await supabase.rpc("mark_badge_events_seen",{p_event_ids:[event.id]});setBadgeEvents((current)=>current.slice(1));}
   return <>
     {badgeEvents.length>0&&<div className="badge-award-backdrop"><section className="badge-award-popup"><div className="badge-confetti">✦ ★ ✧ ★ ✦</div><span className="eyebrow">BADGE EARNED</span><div className="badge-award-icon">{badgeEvents[0].icon}</div><h2>{badgeEvents[0].subject?`${badgeEvents[0].subject} ${badgeEvents[0].name}`:badgeEvents[0].name}</h2><p>{badgeEvents[0].description}</p><button className="primary-button" onClick={dismissBadge}>{badgeEvents.length>1?`Next badge (${badgeEvents.length-1} more)`:"Awesome!"}</button><small>Your badge now appears in Profile.</small></section></div>}
