@@ -39,9 +39,9 @@ function ProfileBadges({ supabase }) {
   useEffect(()=>{supabase.rpc("refresh_my_account_badges").then(({data,error})=>error?setMessage(error.message):setData(data));},[supabase]);
   if(message)return <p className="hub-message">{message}</p>;
   if(!data)return <p className="muted">Loading account badges…</p>;
-  if(data.events?.length){const event=data.events[0];const dismiss=async()=>{await supabase.rpc("mark_badge_events_seen",{p_event_ids:[event.id]});setData((current)=>({...current,events:current.events.slice(1)}));};return <div className="badge-award-inline"><div className="badge-confetti">✦ ★ ✧ ★ ✦</div><span className="eyebrow">BADGE EARNED</span><div className="badge-award-icon">{event.icon}</div><h2>{event.subject?`${event.subject} ${event.name}`:event.name}</h2><p>{event.description}</p><button className="primary-button" onClick={dismiss}>{data.events.length>1?`Next badge (${data.events.length-1} more)`:"View my badge collection"}</button><small>Badges celebrate activity and accomplishments across every DraftCenter league.</small></div>;}
+  if(data.events?.length){const event=data.events[0];const dismiss=async()=>{await supabase.rpc("mark_badge_events_seen",{p_event_ids:[event.id]});setData((current)=>({...current,events:current.events.slice(1)}));};return <div className="badge-award-inline"><div className="badge-confetti">✦ ★ ✧ ★ ✦</div><span className="eyebrow">BADGE EARNED</span><div className="badge-award-icon">{badgeIcon(event)}</div><h2>{event.subject?`${event.subject} ${cleanBadgeText(event.name)}`:cleanBadgeText(event.name)}</h2><p>{cleanBadgeText(event.description)}</p><button className="primary-button" onClick={dismiss}>{data.events.length>1?`Next badge (${data.events.length-1} more)`:"View my badge collection"}</button><small>Badges celebrate activity and accomplishments across every DraftCenter league.</small></div>;}
   const badges=(data.badges||[]).filter((badge)=>badge.subject||badge.code!=="pokemon_loyalist"&&badge.code!=="generation_veteran");
-  return <><hr/><h3>Account badges</h3><p className="muted">Badges combine achievements from every DraftCenter league and your Daily Three activity.</p><div className="profile-badge-grid">{badges.map((badge)=>{const next=(badge.thresholds||[]).find((threshold)=>threshold>badge.progress);const earned=badge.tier>0;return <article key={`${badge.code}-${badge.subject}`} className={earned?"profile-badge earned":"profile-badge locked"}><span>{badge.icon}</span><div><strong>{badge.subject?`${badge.subject} ${badge.name}`:badge.name}</strong><small>{badge.description}</small><div className="badge-progress"><i style={{width:`${Math.min(100,100*badge.progress/(next||badge.tier||1))}%`}}/><span>{badge.progress}{next?` / ${next}`:" · Max tier"}</span></div></div></article>;})}</div><p className="muted">Daily Three completions: {data.daily_three?.total||0}</p></>;
+  return <><hr/><h3>Account badges</h3><p className="muted">Badges combine achievements from every DraftCenter league and your Daily Three activity.</p><div className="profile-badge-grid">{badges.map((badge)=>{const next=(badge.thresholds||[]).find((threshold)=>threshold>badge.progress);const earned=badge.tier>0;return <article key={`${badge.code}-${badge.subject}`} className={earned?"profile-badge earned":"profile-badge locked"}><span>{badgeIcon(badge)}</span><div><strong>{badge.subject?`${badge.subject} ${cleanBadgeText(badge.name)}`:cleanBadgeText(badge.name)}</strong><small>{cleanBadgeText(badge.description)}</small><div className="badge-progress"><i style={{width:`${Math.min(100,100*badge.progress/(next||badge.tier||1))}%`}}/><span>{badge.progress}{next?` / ${next}`:" · Max tier"}</span></div></div></article>;})}</div><p className="muted">Daily Three completions: {data.daily_three?.total||0}</p></>;
 }
 
 function BadgeAwardPopup({ supabase, userId }) {
@@ -56,7 +56,7 @@ function BadgeAwardPopup({ supabase, userId }) {
   if(!events.length)return null;
   const event=events[0];
   async function close(){await supabase.rpc("mark_badge_events_seen",{p_event_ids:[event.id]});setEvents((current)=>current.slice(1));}
-  return <div className="badge-award-backdrop"><section className="badge-award-popup"><div className="badge-confetti" aria-hidden="true">✦ ★ ✧ ★ ✦</div><span className="eyebrow">BADGE EARNED</span><div className="badge-award-icon">{event.icon}</div><h2>{event.subject?`${event.subject} ${event.name}`:event.name}</h2><p>{event.description}</p><p className="badge-tier-earned">Milestone: {event.tier}</p><button className="primary-button" onClick={close}>{events.length>1?`Next badge (${events.length-1} more)`:"Awesome!"}</button><small>Badges celebrate activity and accomplishments across DraftCenter. View all earned badges and locked progress from Profile.</small></section></div>;
+  return <div className="badge-award-backdrop"><section className="badge-award-popup"><div className="badge-confetti" aria-hidden="true">✦ ★ ✧ ★ ✦</div><span className="eyebrow">BADGE EARNED</span><div className="badge-award-icon">{badgeIcon(event)}</div><h2>{event.subject?`${event.subject} ${cleanBadgeText(event.name)}`:cleanBadgeText(event.name)}</h2><p>{cleanBadgeText(event.description)}</p><p className="badge-tier-earned">Milestone: {event.tier}</p><button className="primary-button" onClick={close}>{events.length>1?`Next badge (${events.length-1} more)`:"Awesome!"}</button><small>Badges celebrate activity and accomplishments across DraftCenter. View all earned badges and locked progress from Profile.</small></section></div>;
 }
 
 function ProfileEditor({ supabase, user, profile, onSaved, onClose }) {
@@ -237,4 +237,30 @@ if(session&&mode!=='reset_password'){if(!profile?.username)return <ProfileSetup 
   const signUp=mode==='sign_up',forgot=mode==='forgot_password',reset=mode==='reset_password';const title=reset?'Choose a new password':forgot?'Reset your password':signUp?'Create your account':'Welcome back';
   if(mode==='sign_in')return <PublicLanding email={email} password={password} setEmail={setEmail} setPassword={setPassword} busy={busy} message={message} onSubmit={submit} onMode={changeMode}/>;
 return <main style={{minHeight:'100vh',display:'grid',placeItems:'center',padding:16,background:'radial-gradient(circle at top,#1d2857,#080b18 55%)'}}><section style={authPanel}><div className="eyebrow">DRAFTCENTER</div><h1>{title}</h1><p className="muted">{reset?'Enter and confirm a new password.':forgot?'Enter your email and we will send a password-reset link.':signUp?'Use an email you can open now. We will ask you to confirm it before you can sign in.':'Sign in to create, join, and manage Pokémon Draft Leagues.'}</p><form onSubmit={submit} className="form-stack">{!reset&&<label>Email<input type="email" required value={email} onChange={(e)=>setEmail(e.target.value)} style={inputStyle}/></label>}{!forgot&&<label>{reset?'New password':'Password'}<input type="password" required minLength={6} value={password} onChange={(e)=>setPassword(e.target.value)} style={inputStyle}/></label>}{(reset||signUp)&&<label>{reset?'Confirm new password':'Confirm password'}<input type="password" required minLength={6} value={confirmPassword} onChange={(e)=>setConfirmPassword(e.target.value)} style={inputStyle}/></label>}{message&&<p className="hub-message">{message}</p>}<button className="primary-button" disabled={busy}>{busy?'Please wait...':reset?'Update password':forgot?'Email reset link':signUp?'Create account':'Sign in'}</button></form>{forgot?<button className="text-button" onClick={()=>changeMode('sign_in')}>Back to sign in</button>:!reset&&<div className="auth-links">{!signUp&&<button className="text-button" onClick={()=>changeMode('forgot_password')}>Forgot password?</button>}<button className="text-button" onClick={()=>changeMode(signUp?'sign_in':'sign_up')}>{signUp?'Already have an account? Sign in':'New here? Create an account'}</button></div>}</section></main>;
+}
+const BADGE_ICONS = {
+  daily_trio: "🎉",
+  daily_streak: "🔥",
+  community_regular: "📅",
+  career_wins: "🏅",
+  pokemon_loyalist: "💛",
+  generation_veteran: "🧭",
+  league_champion: "🏆",
+  playoff_qualifier: "⭐",
+  prediction_champion: "🔮",
+  draft_day_hero: "🎯",
+  trade_master: "🔄",
+  waiver_wizard: "🧙",
+  perfect_season: "💯",
+  giant_slayer: "⚔️",
+};
+
+function badgeIcon(badge) {
+  return BADGE_ICONS[badge?.code] || badge?.icon || "★";
+}
+
+function cleanBadgeText(value) {
+  return String(value || "")
+    .replaceAll("PokÃ©mon", "Pokémon")
+    .replaceAll("PokÃƒÂ©mon", "Pokémon");
 }
