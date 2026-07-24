@@ -204,6 +204,7 @@ function DailyGameDiscussion({ type, gameId, signedIn }) {
 export default function DailyCommunityGames({ signedIn }) {
   const [games, setGames] = useState(null);
   const [previous, setPrevious] = useState(null);
+  const [badgeEvents, setBadgeEvents] = useState([]);
   const [message, setMessage] = useState("");
   const date = useMemo(() => localDateKey(), []);
   useEffect(() => {
@@ -222,9 +223,12 @@ export default function DailyCommunityGames({ signedIn }) {
   }, [date]);
   if (message) return <section className="explore-card"><p className="hub-message">{message}</p></section>;
   if (!games) return <section className="explore-card"><p className="muted">Loading today’s community games…</p></section>;
+  async function saved(next){setGames(next);if(!signedIn)return;const supabase=createClient();const {data}=await supabase.rpc("refresh_my_account_badges");setBadgeEvents(data?.events||[]);}
+  async function dismissBadge(){const event=badgeEvents[0];const supabase=createClient();await supabase.rpc("mark_badge_events_seen",{p_event_ids:[event.id]});setBadgeEvents((current)=>current.slice(1));}
   return <>
-    <DailyBracket bracket={games.bracket} signedIn={signedIn} onSaved={setGames} />
-    <DailyQuiz quiz={games.quiz} signedIn={signedIn} onSaved={setGames} />
+    {badgeEvents.length>0&&<div className="badge-award-backdrop"><section className="badge-award-popup"><div className="badge-confetti">✦ ★ ✧ ★ ✦</div><span className="eyebrow">BADGE EARNED</span><div className="badge-award-icon">{badgeEvents[0].icon}</div><h2>{badgeEvents[0].subject?`${badgeEvents[0].subject} ${badgeEvents[0].name}`:badgeEvents[0].name}</h2><p>{badgeEvents[0].description}</p><button className="primary-button" onClick={dismissBadge}>{badgeEvents.length>1?`Next badge (${badgeEvents.length-1} more)`:"Awesome!"}</button><small>Your badge now appears in Profile.</small></section></div>}
+    <DailyBracket bracket={games.bracket} signedIn={signedIn} onSaved={saved} />
+    <DailyQuiz quiz={games.quiz} signedIn={signedIn} onSaved={saved} />
     {previous?.bracket && previous?.quiz && <section className="explore-card daily-history-card">
       <span className="eyebrow">YESTERDAY’S DAILY THREE</span><h2>Yesterday’s community results</h2>
       <div className="daily-history-grid">
