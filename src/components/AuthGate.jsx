@@ -8,6 +8,7 @@ import { POLL_POKEMON_NAMES, POKEMON_DIRECTORY } from "./PokemonDraftLeague";
 
 const inputStyle = { padding: 11, borderRadius: 8, border: "1px solid #46517c", background: "#080c1c", color: "#fff", width: "100%" };
 const authPanel = { width: "min(430px, calc(100vw - 32px))", padding: 28, borderRadius: 16, border: "1px solid #2a3157", background: "#11162b", boxShadow: "0 20px 70px rgba(0,0,0,.38)" };
+function localDateKey(date = new Date()) { const year=date.getFullYear(); const month=String(date.getMonth()+1).padStart(2,"0"); const day=String(date.getDate()).padStart(2,"0"); return `${year}-${month}-${day}`; }
 
 class LeagueErrorBoundary extends Component {
   constructor(props) { super(props); this.state = { failed: false, message: "" }; }
@@ -66,9 +67,10 @@ function PublicLanding({ email, password, setEmail, setPassword, busy, message, 
       }
     }
     chooseFeatured();
-    createClient().rpc("get_public_explore").then(({ data }) => {
-      setPoll(data?.poll || null);
-      const pollLeaders = data?.poll?.answer_type === "pokemon" ? Object.entries(data.poll.counts || {}).sort(([, a], [, b]) => b - a).slice(0, 3).map(([name]) => name) : [];
+    Promise.all([createClient().rpc("get_public_explore"),createClient().rpc("get_local_daily_poll",{p_local_date:localDateKey()})]).then(([exploreResult,pollResult]) => {
+      const data=exploreResult.data; const localPoll=pollResult.data;
+      setPoll(localPoll || null);
+      const pollLeaders = localPoll?.answer_type === "pokemon" ? Object.entries(localPoll.counts || {}).sort(([, a], [, b]) => b - a).slice(0, 3).map(([name]) => name) : [];
       const favorites = (data?.popularity || []).slice(0, 3).map((item) => item.pokemon);
       const highlights = [...new Set([...pollLeaders, ...favorites])].filter(Boolean);
       if (highlights.length) setCommunityPokemon(highlights);

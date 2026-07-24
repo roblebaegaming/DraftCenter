@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { createClient } from "../lib/supabase/client";
 import { loadPokemonArtwork, pokemonArtworkCandidates } from "./LeagueHub";
 
+function localDateKey(date = new Date()) { const year=date.getFullYear(); const month=String(date.getMonth()+1).padStart(2,"0"); const day=String(date.getDate()).padStart(2,"0"); return `${year}-${month}-${day}`; }
+
 function pollRows(poll) {
   if (!poll) return [];
   return poll.answer_type === "pokemon"
@@ -115,14 +117,16 @@ export default function PublicExplore() {
   const [selectedPokemon, setSelectedPokemon] = useState("");
   useEffect(() => {
     const supabase = createClient();
+    const localDate = localDateKey();
     Promise.all([
       supabase.rpc("get_public_explore"),
-      supabase.rpc("get_public_poll_history", { p_limit: 12 }),
+      supabase.rpc("get_local_daily_poll", { p_local_date: localDate }),
+      supabase.rpc("get_local_poll_history", { p_local_date: localDate, p_limit: 12 }),
       supabase.rpc("get_public_draft_trends"),
       supabase.rpc("get_public_market_trends"),
-    ]).then(([exploreResult, historyResult, trendResult, marketResult]) => {
+    ]).then(([exploreResult, pollResult, historyResult, trendResult, marketResult]) => {
       if (exploreResult.error) setMessage(exploreResult.error.message);
-      else setData(exploreResult.data);
+      else setData({ ...(exploreResult.data || {}), poll: pollResult.error ? exploreResult.data?.poll : pollResult.data });
       if (!historyResult.error) setPollHistory(historyResult.data || []);
       if (!trendResult.error) setTrends(trendResult.data);
       if (!marketResult.error) setMarketTrends(marketResult.data);

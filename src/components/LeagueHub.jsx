@@ -5,6 +5,7 @@ import { createClient } from "../lib/supabase/client";
 import { POLL_POKEMON_NAMES } from "./PokemonDraftLeague";
 
 function slugify(value) { return value.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "").slice(0, 72); }
+function localDateKey(date = new Date()) { const year=date.getFullYear(); const month=String(date.getMonth()+1).padStart(2,"0"); const day=String(date.getDate()).padStart(2,"0"); return `${year}-${month}-${day}`; }
 
 function formatDraftStart(value) {
   if (!value) return "Draft time to be announced";
@@ -128,21 +129,25 @@ function PollCommentThread({ comment, replies, onReply, onUpvote }) {
 function PollOfTheDay({ supabase }) {
   const [poll, setPoll] = useState(null); const [history, setHistory] = useState([]); const [pokemon, setPokemon] = useState(""); const [message, setMessage] = useState(""); const [busy, setBusy] = useState(false); const [comments, setComments] = useState([]); const [commentCount, setCommentCount] = useState(0); const [commentText, setCommentText] = useState(""); const [commentsOpen, setCommentsOpen] = useState(false); const [replyTo, setReplyTo] = useState(null);
   useEffect(() => {
-    supabase.rpc("get_daily_poll_history", { p_limit: 30 }).then(({ data, error }) => {
-      if (error) setMessage(error.message);
-      else { setHistory(data || []); setPoll((data || [])[0] || null); }
+    const localDate=localDateKey();
+    Promise.all([
+      supabase.rpc("get_local_daily_poll",{p_local_date:localDate}),
+      supabase.rpc("get_local_poll_history",{p_local_date:localDate,p_limit:30}),
+    ]).then(([pollResult,historyResult])=>{
+      if(pollResult.error||historyResult.error)setMessage(pollResult.error?.message||historyResult.error?.message);
+      else{setPoll(pollResult.data||null);setHistory([...(pollResult.data?[pollResult.data]:[]),...(historyResult.data||[])]);}
     });
   }, [supabase]);
   async function loadComments(showAll = commentsOpen) { if (!poll?.id) return; const { data, error } = await supabase.rpc("get_daily_poll_comments", { p_poll_id: poll.id, p_limit: showAll ? 100 : 5 }); if (error) return setMessage(error.message); setComments(data?.comments || []); setCommentCount(data?.total || 0); }
-  useEffect(() => { setComments([]); setCommentCount(0); setCommentsOpen(false); setReplyTo(null); if (poll?.id && (poll.selected_key || poll.poll_date < new Date().toISOString().slice(0, 10))) loadComments(false); }, [poll?.id, poll?.selected_key]);
-  async function vote(key) { if (!poll || busy) return; setBusy(true); setMessage(""); const { data, error } = await supabase.rpc("submit_daily_poll_answer", { p_poll_id: poll.id, p_answer_key: key }); setBusy(false); if (error) return setMessage(error.message); setPoll(data); }
+  useEffect(() => { setComments([]); setCommentCount(0); setCommentsOpen(false); setReplyTo(null); if (poll?.id && (poll.selected_key || poll.poll_date < localDateKey())) loadComments(false); }, [poll?.id, poll?.selected_key]);
+  async function vote(key) { if (!poll || busy) return; setBusy(true); setMessage(""); const { data, error } = await supabase.rpc("submit_local_daily_poll_answer", { p_poll_id: poll.id, p_answer_key: key, p_local_date: localDateKey(), p_time_zone: Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC" }); setBusy(false); if (error) return setMessage(error.message); setPoll(data); }
   function submitPokemon(event) { event.preventDefault(); const picked = POLL_POKEMON_NAMES.find((mon) => mon.toLowerCase() === pokemon.trim().toLowerCase()); if (!picked) return setMessage("Select a Pokemon from the search suggestions."); vote(picked); }
   async function submitComment(event) { event.preventDefault(); if (!poll || !commentText.trim() || busy) return; setBusy(true); setMessage(""); const { error } = await supabase.rpc("create_daily_poll_comment", { p_poll_id: poll.id, p_body: commentText.trim(), p_parent_comment_id: replyTo?.id || null }); setBusy(false); if (error) return setMessage(error.message); setCommentText(""); setReplyTo(null); await loadComments(true); }
   async function toggleUpvote(commentId) { if (busy) return; setBusy(true); const { error } = await supabase.rpc("toggle_daily_poll_comment_upvote", { p_comment_id: commentId }); setBusy(false); if (error) return setMessage(error.message); await loadComments(commentsOpen); }
   function toggleComments() { const next = !commentsOpen; setCommentsOpen(next); loadComments(next); }
   if (!poll && !message) return null;
   const hasVoted = Boolean(poll?.selected_key);
-  const isOpen = poll?.poll_date === new Date().toISOString().slice(0, 10);
+  const isOpen = poll?.poll_date === localDateKey();
   const canDiscuss = hasVoted || !isOpen;
   const topLevelComments = comments.filter((comment) => !comment.parent_comment_id);
   const repliesByParent = comments.reduce((result, comment) => {
@@ -230,7 +235,7 @@ export default function LeagueHub({ user, profile, onOpenLeague }) {
     setLoading(false);
   }
   useEffect(() => { loadLeagues(); const timer = window.setInterval(() => loadLeagues(true), 5000); return () => window.clearInterval(timer); }, []);
-  useEffect(() => { supabase.rpc("get_public_explore").then(({ data }) => { const pollLeaders = data?.poll?.answer_type === "pokemon" ? Object.entries(data.poll.counts || {}).sort(([, a], [, b]) => b - a).slice(0, 3).map(([pokemon]) => pokemon) : []; const favorites = (data?.popularity || []).slice(0, 3).map((item) => item.pokemon); const highlights = [...new Set([...pollLeaders, ...favorites])].filter(Boolean); if (highlights.length) setCommunityPokemon(highlights); }); }, [supabase]);
+  useEffect(() => { Promise.all([supabase.rpc("get_public_explore"),supabase.rpc("get_local_daily_poll",{p_local_date:localDateKey()})]).then(([exploreResult,pollResult]) => { const data=exploreResult.data; const localPoll=pollResult.data; const pollLeaders = localPoll?.answer_type === "pokemon" ? Object.entries(localPoll.counts || {}).sort(([, a], [, b]) => b - a).slice(0, 3).map(([pokemon]) => pokemon) : []; const favorites = (data?.popularity || []).slice(0, 3).map((item) => item.pokemon); const highlights = [...new Set([...pollLeaders, ...favorites])].filter(Boolean); if (highlights.length) setCommunityPokemon(highlights); }); }, [supabase]);
   useEffect(() => { const params = new URLSearchParams(window.location.search); const token = params.get("invite") || params.get("spectate"); if (!token) return; supabase.rpc("preview_league_invite", { p_token: token }).then(({ data, error }) => { if (error) setMessage(error.message); else setPendingInvite(data); }); }, [supabase]);
   function dismissInvite() { window.history.replaceState({}, "", window.location.pathname); setPendingInvite(null); }
   function membershipFor(league) { return leagues.find((entry) => entry.league.id === league.id); }
