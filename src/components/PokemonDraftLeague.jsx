@@ -3993,24 +3993,45 @@ function computeHeadToHead(schedule, matchResults, teamA, teamB) {
 // external source needed, unlike ADP which takes seasons of history to
 // build up. "Value" is BST-per-point-spent, so it means something even in
 // a league that's never run a season before this one.
-function computeDraftAwards(teams, rosters, trades) {
-  const priced = teams
+function computeDraftAwards(state) {
+  const { teams, rosters, trades, settings } = state;
+  const drafted = teams
     .map((t, teamIdx) => (rosters[teamIdx] || []).map((m) => ({ ...m, teamIdx, teamName: t.name })))
-    .flat()
-    .filter((m) => (m.cost || 0) > 0);
-  if (!priced.length) return null;
-  const byValue = [...priced].sort((a, b) => (b.bst / b.cost) - (a.bst / a.cost));
-  const byCost = [...priced].sort((a, b) => b.cost - a.cost);
+    .flat();
+  const pointFreeSnake = settings.draftType === "snake" && !settings.snakeBudgetEnabled;
   const tradeCounts = teams.map((_, i) =>
     (trades || []).filter((t) => t.status === "accepted" && (t.fromTeam === i || t.toTeam === i)).length
   );
   const topTraderIdx = tradeCounts.reduce((best, c, i) => (c > tradeCounts[best] ? i : best), 0);
+  const topTrader = tradeCounts[topTraderIdx] > 0 ? { teamName: teams[topTraderIdx]?.name, count: tradeCounts[topTraderIdx] } : null;
+  if (pointFreeSnake) {
+    const adpByName = new Map(computeADP(state).rows.filter((row) => row.avg != null).map((row) => [row.name, Number(row.avg) + 1]));
+    const withAdp = drafted
+      .filter((mon) => mon.draftPick != null && adpByName.has(mon.name))
+      .map((mon) => ({ ...mon, adp: adpByName.get(mon.name), adpDifference: (Number(mon.draftPick) + 1) - adpByName.get(mon.name) }));
+    if (!withAdp.length) return { usesAdp: true, topTrader };
+    const byDifference = [...withAdp].sort((a, b) => b.adpDifference - a.adpDifference);
+    const byAdp = [...withAdp].sort((a, b) => a.adp - b.adp);
+    return {
+      usesAdp: true,
+      bestValue: byDifference[0],
+      biggestReach: byDifference[byDifference.length - 1],
+      priciest: byAdp[0],
+      cheapest: byAdp[byAdp.length - 1],
+      topTrader,
+    };
+  }
+  const priced = drafted.filter((m) => (m.cost || 0) > 0);
+  if (!priced.length) return null;
+  const byValue = [...priced].sort((a, b) => (b.bst / b.cost) - (a.bst / a.cost));
+  const byCost = [...priced].sort((a, b) => b.cost - a.cost);
   return {
+    usesAdp: false,
     bestValue: byValue[0],
     biggestReach: byValue[byValue.length - 1],
     priciest: byCost[0],
     cheapest: byCost[byCost.length - 1],
-    topTrader: tradeCounts[topTraderIdx] > 0 ? { teamName: teams[topTraderIdx]?.name, count: tradeCounts[topTraderIdx] } : null,
+    topTrader,
   };
 }
 
@@ -5338,6 +5359,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
           (!t.claimedBy && (!t.archetypes || !t.archetypes.length)) ? { ...t, archetypes: randomArchetypeKeys() } : t
         ),
         rosters, budgets, pool,
+        queues: liveDraft?.preservedQueues || s.queues,
         keeperRosters: {},
         // A fresh, separate FAAB pool per team — only actually spent from
         // if faClaimMode is "faab" and it isn't sharing the regular
@@ -5388,6 +5410,9 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     }
     setLiveDraftError("");
     const rounds = Math.max(1, Number(state.settings.rosterSize) || 6);
+    const latestSavedState = await loadRemote(leagueId);
+    const latestQueues = objectOr(latestSavedState?.queues);
+    const preservedQueues = Object.keys(latestQueues).length ? latestQueues : state.queues;
     const basePool = fullPool(state.settings).filter((p) => isLegal(p, state.settings)).map((p) => ({ ...p, cost: costFor(p, state.settings) }));
     const firstRoundOrder = buildSnakeOrder(state.teams.length, 1, state.settings.manualDraftOrder);
     const { data, error } = await supabase.rpc("provision_live_snake_draft", {
@@ -5404,6 +5429,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       basePool,
       pokemonIds: data.pokemon_ids || {},
       firstRoundOrder,
+      preservedQueues,
     });
     setTimeout(refreshLiveSnakeDraft, 0);
     setTab("draft");
@@ -10958,15 +10984,15 @@ function DraftBoard({ teams, rosters, draftType, rosterMax }) {
 // the rest of the season (Most Active Trader keeps updating as trades
 // happen). Nothing here needs outside data the way ADP does — it's all
 // derived from what got drafted and what's been traded since.
-function DraftRecapCard({ teams, rosters, trades, onViewTeam }) {
-  const awards = computeDraftAwards(teams, rosters, trades);
+function DraftRecapCard({ state, onViewTeam }) {
+  const awards = computeDraftAwards(state);
   if (!awards) return null;
   const AwardRow = ({ label, mon, color }) => mon ? (
     <div className="flex items-center gap-3 px-4 py-3 rounded-lg" style={{ background: "#1B1F33", border: "1px solid rgba(255,255,255,0.06)" }}>
       <MonSprite mon={mon} size={36} />
       <div className="flex-1 min-w-0 text-left">
         <div className="text-xs mono-font uppercase" style={{ color }}>{label}</div>
-        <div className="text-sm font-medium truncate">{mon.name} <span style={{ color: "#5B5F7E" }}>· {mon.cost}pt · BST {mon.bst}</span></div>
+        <div className="text-sm font-medium truncate">{mon.name} <span style={{ color: "#5B5F7E" }}>{awards.usesAdp ? `· Pick ${Number(mon.draftPick) + 1} · ADP ${Number(mon.adp).toFixed(1)}` : `· ${mon.cost}pt · BST ${mon.bst}`}</span></div>
         <button onClick={() => onViewTeam && onViewTeam(mon.teamIdx)} className="text-xs hover:underline" style={{ color: "#9A9FBD" }}>{mon.teamName}</button>
       </div>
     </div>
@@ -10975,11 +11001,12 @@ function DraftRecapCard({ teams, rosters, trades, onViewTeam }) {
   return (
     <div className="mt-8 max-w-2xl mx-auto text-left">
       <h3 className="display-font text-xl mb-3 text-center" style={{ color: "#FFD23F" }}>DRAFT RECAP</h3>
+      {awards.usesAdp && !awards.bestValue && <p className="text-sm text-center mb-3" style={{ color: "#9A9FBD" }}>ADP awards will appear as this league builds completed snake-draft history. No BST or point estimates are substituted.</p>}
       <div className="grid sm:grid-cols-2 gap-3">
         <AwardRow label="Best Value" mon={awards.bestValue} color="#4FD1C5" />
         <AwardRow label="Biggest Reach" mon={awards.biggestReach} color="#F0555A" />
-        <AwardRow label="Priciest Pick" mon={awards.priciest} color="#FFD23F" />
-        <AwardRow label="Cheapest Pick" mon={awards.cheapest} color="#9A9FBD" />
+        <AwardRow label={awards.usesAdp ? "Earliest ADP" : "Priciest Pick"} mon={awards.priciest} color="#FFD23F" />
+        <AwardRow label={awards.usesAdp ? "Latest ADP" : "Cheapest Pick"} mon={awards.cheapest} color="#9A9FBD" />
       </div>
       {awards.topTrader && (
         <div className="mt-3 px-4 py-3 rounded-lg text-center" style={{ background: "#1B1F33", border: "1px solid rgba(255,255,255,0.06)" }}>
@@ -11223,9 +11250,10 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
           </section>
           <section className="rounded-lg p-5" style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }}>
             <h3 className="display-font text-2xl mb-3" style={{ color: "#FFD23F" }}>DRAFT CHECK</h3>
-            <div className="grid grid-cols-2 gap-3 mb-4">
+            <div className="grid sm:grid-cols-3 gap-3 mb-4">
               <div className="rounded p-3" style={{ background: "#1F2338" }}><span className="text-xs block" style={{ color: "#9A9FBD" }}>ROUNDS</span><strong>{settings.snakeBudgetEnabled ? settings.rosterMax : settings.rosterSize}</strong></div>
               <div className="rounded p-3" style={{ background: "#1F2338" }}><span className="text-xs block" style={{ color: "#9A9FBD" }}>ELIGIBLE</span><strong>{eligibleCount} Pokémon</strong></div>
+              <div className="rounded p-3" style={{ background: "#1F2338" }}><span className="text-xs block" style={{ color: "#9A9FBD" }}>PICK CLOCK</span><strong>{Number(settings.pickTimeLimitMinutes) > 0 ? formatMinutes(Number(settings.pickTimeLimitMinutes)) : "No limit"}</strong></div>
             </div>
             <p className="text-xs mb-2" style={{ color: "#9A9FBD" }}>{settings.manualDraftOrder ? "Saved first-round order" : "Current teams—the first-round order will be randomized when the draft starts"}</p>
             <ol className="flex flex-col gap-1">
@@ -11427,7 +11455,7 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
           <button onClick={onGenerateSchedule} className="px-6 py-3 rounded font-semibold display-font text-xl glow" style={{ background: "#4FD1C5", color: "#10121C" }}>
             GENERATE SCHEDULE →
           </button>
-          <DraftRecapCard teams={teams} rosters={state.rosters} trades={state.trades} onViewTeam={onViewTeam} />
+          <DraftRecapCard state={state} onViewTeam={onViewTeam} />
           <DraftHeroVoteCard teams={teams} votes={state.draftHeroVotes} myName={myName} castDraftHeroVote={castDraftHeroVote} />
         </div>
       ) : (
@@ -11619,7 +11647,7 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
                   ) : (
                     <div className="flex gap-1">
                       {[["az", "A–Z"], ["bst", "By BST"], ...STAT_FILTER_OPTIONS].map(([mode, label]) => (
-                        <button key={mode} onClick={() => setPoolSort(mode)}
+                        <button key={mode} onClick={() => setPoolSort(poolSort === mode && mode !== "az" ? "az" : mode)}
                           className="px-3 py-1 rounded text-xs font-semibold mono-font"
                           style={{ background: poolSort === mode ? "#FFD23F" : "#1F2338", color: poolSort === mode ? "#10121C" : "#9A9FBD", border: "1px solid rgba(255,255,255,0.08)" }}>
                           {label}
