@@ -56,6 +56,11 @@ function cleanCommunityText(value) {
     .replaceAll("â€¦", "…");
 }
 
+function displayQuizAnswer(value) {
+  const answer = String(value || "");
+  return answer ? answer[0].toUpperCase() + answer.slice(1) : "";
+}
+
 function QuizPokemonChoice({ name, onChoose }) {
   const [image, setImage] = useState("");
   useEffect(() => {
@@ -101,7 +106,7 @@ function PreviousBracket({ previous }) {
 function PreviousQuiz({ previous }) {
   if (!previous) return null;
   return <details className="daily-previous"><summary>View yesterday’s quiz results</summary>
-    <div className="daily-previous-content"><strong>{previous.correct_percent ?? 0}% correct</strong><p>Accepted answer{previous.correct_answers?.length === 1 ? "" : "s"}: {(previous.correct_answers || []).join(", ")}</p><h4>Top answers</h4><ol>{(previous.top_answers || []).slice(0, 5).map((row) => <li key={row.answer}><span>{row.answer}</span><b>{row.count}</b></li>)}</ol></div>
+    <div className="daily-previous-content"><strong>{previous.correct_percent ?? 0}% correct</strong><p>Accepted answer{previous.correct_answers?.length === 1 ? "" : "s"}: {(previous.correct_answers || []).map(displayQuizAnswer).join(", ")}</p><h4>Top answers</h4><ol>{(previous.top_answers || []).slice(0, 5).map((row) => <li key={row.answer}><span>{displayQuizAnswer(row.answer)}</span><b>{row.count}</b></li>)}</ol></div>
   </details>;
 }
 
@@ -401,7 +406,7 @@ function DailyQuiz({ quiz, previous, signedIn, onSaved }) {
     </form> : <div className="daily-quiz-results">
       <strong style={{ color: quiz.selected_correct ? "#4FD1C5" : "#F0555A" }}>{quiz.selected_correct ? "Correct!" : "Not quite."}</strong>
       <p>Your answer: {quiz.selected_answer}</p>
-      {!quiz.selected_correct && <p>Accepted answer{quiz.correct_answers?.length === 1 ? "" : "s"}: <b>{(quiz.correct_answers || []).join(", ")}</b></p>}
+      {!quiz.selected_correct && <p>Accepted answer{quiz.correct_answers?.length === 1 ? "" : "s"}: <b>{(quiz.correct_answers || []).map(displayQuizAnswer).join(", ")}</b></p>}
       <p><b>{quiz.correct_percent}%</b> of {quiz.total_answers} player{quiz.total_answers === 1 ? "" : "s"} answered correctly.</p>
       <h3>Top five answers</h3>
       <ol>{(quiz.top_answers || []).map((row) => <li key={row.answer}><span>{row.answer}</span><b>{row.count}</b></li>)}</ol>
