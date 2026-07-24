@@ -6212,10 +6212,13 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   function simulateWeek() {
     commit((s) => {
       if (!s.schedule[s.week]) return s;
+      const hasBotTeams = s.teams.some((team) => !team?.claimedBy);
+      if (!hasBotTeams) return s;
       const matchResults = { ...s.matchResults };
       s.schedule[s.week].forEach(([a, b], idx) => {
         const key = `${s.week}-${idx}`;
         if (matchResults[key]) return; // don't overwrite already-reported matches
+        if (s.teams[a]?.claimedBy && s.teams[b]?.claimedBy) return; // human-vs-human matches must be reported
         const bstA = (s.rosters[a] || []).reduce((sum, m) => sum + m.bst, 0) || 300;
         const bstB = (s.rosters[b] || []).reduce((sum, m) => sum + m.bst, 0) || 300;
         const aFavored = bstA + Math.random() * 200 > bstB + Math.random() * 200;
@@ -12306,6 +12309,7 @@ function ScheduleView({ state, isCommissioner, myName, myTeamIdx, setWeek, simul
     return <div className="text-center py-20" style={{ color: "#9A9FBD" }}>Finish the draft to generate your weekly schedule.</div>;
   }
   const canEditSchedule = isCommissioner && settings.manualScheduling;
+  const hasBotTeams = teams.some((team) => !team?.claimedBy);
 
   function startEditing() {
     setDraftPairs(schedule[week].map((pair) => [...pair]));
@@ -12324,7 +12328,7 @@ function ScheduleView({ state, isCommissioner, myName, myTeamIdx, setWeek, simul
         <div className="flex gap-2">
           <button disabled={week === 0} onClick={() => setWeek(week - 1)} className="px-3 py-2 rounded text-sm mono-font disabled:opacity-30" style={{ background: "#1F2338", border: "1px solid rgba(255,255,255,0.08)" }}>← PREV</button>
           <button disabled={week >= schedule.length - 1} onClick={() => setWeek(week + 1)} className="px-3 py-2 rounded text-sm mono-font disabled:opacity-30" style={{ background: "#1F2338", border: "1px solid rgba(255,255,255,0.08)" }}>NEXT →</button>
-          <button onClick={simulateWeek} disabled={!isCommissioner} className="px-4 py-2 rounded text-sm font-semibold disabled:opacity-40" style={{ background: "#4FD1C5", color: "#10121C" }}>SIMULATE WEEK</button>
+          {isCommissioner && hasBotTeams && <button onClick={simulateWeek} className="px-4 py-2 rounded text-sm font-semibold" style={{ background: "#4FD1C5", color: "#10121C" }}>SIMULATE BOT MATCHES</button>}
           {canEditSchedule && !editingWeek && (
             <button onClick={startEditing} className="px-4 py-2 rounded text-sm font-semibold" style={{ background: "#1F2338", color: "#FFD23F", border: "1px solid #FFD23F55" }}>
               EDIT MATCHUPS
@@ -12332,7 +12336,7 @@ function ScheduleView({ state, isCommissioner, myName, myTeamIdx, setWeek, simul
           )}
         </div>
       </div>
-      {!isCommissioner && <p className="text-xs mb-4" style={{ color: "#5B5F7E" }}>Only the commissioner can run the auto-simulate; you can still report your own match below.</p>}
+      {!isCommissioner && hasBotTeams && <p className="text-xs mb-4" style={{ color: "#5B5F7E" }}>The commissioner can simulate matches involving bot teams; you can report your own match below.</p>}
 
       {editingWeek ? (
         <div style={{ background: "#171A2C", border: "1px solid #FFD23F55" }} className="rounded-lg p-4 mb-6">
