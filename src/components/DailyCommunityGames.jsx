@@ -30,40 +30,135 @@ function matchupFor(pokemon, winners, index) {
   return [winners[4], winners[5]];
 }
 
-function downloadBracket(bracket, winners) {
+async function canvasPokemonArtwork(name) {
+  try {
+    const source = await loadPokemonArtwork(name);
+    if (!source) return null;
+    return await new Promise((resolve) => {
+      const image = new Image();
+      image.crossOrigin = "anonymous";
+      image.onload = () => resolve(image);
+      image.onerror = () => resolve(null);
+      image.src = source;
+    });
+  } catch {
+    return null;
+  }
+}
+
+function roundedRect(context, x, y, width, height, radius) {
+  context.beginPath();
+  context.roundRect(x, y, width, height, radius);
+}
+
+async function downloadBracket(bracket, winners) {
   const canvas = document.createElement("canvas");
   canvas.width = 1200;
   canvas.height = 675;
   const context = canvas.getContext("2d");
-  context.fillStyle = "#10121C";
+  const uniquePokemon = [...new Set(bracket.pokemon)];
+  const artworkEntries = await Promise.all(uniquePokemon.map(async (name) => [name, await canvasPokemonArtwork(name)]));
+  const artwork = Object.fromEntries(artworkEntries);
+
+  const background = context.createLinearGradient(0, 0, 1200, 675);
+  background.addColorStop(0, "#0b1024");
+  background.addColorStop(0.55, "#121936");
+  background.addColorStop(1, "#09101f");
+  context.fillStyle = background;
   context.fillRect(0, 0, canvas.width, canvas.height);
+
+  context.fillStyle = "rgba(79, 209, 197, 0.08)";
+  context.beginPath();
+  context.arc(1080, 80, 270, 0, Math.PI * 2);
+  context.fill();
+  context.fillStyle = "rgba(255, 210, 63, 0.06)";
+  context.beginPath();
+  context.arc(115, 650, 260, 0, Math.PI * 2);
+  context.fill();
+
   context.fillStyle = "#FFD23F";
-  context.font = "bold 44px sans-serif";
-  context.fillText("DRAFTCENTER DAILY DRAFT BRACKET", 54, 66);
-  context.fillStyle = "#9A9FBD";
-  context.font = "22px sans-serif";
-  context.fillText(new Date(`${bracket.game_date}T12:00:00`).toLocaleDateString(), 56, 104);
+  context.fillRect(48, 34, 7, 58);
+  context.fillStyle = "#FFD23F";
+  context.font = "900 34px Arial, sans-serif";
+  context.fillText("DRAFTCENTER", 72, 61);
+  context.fillStyle = "#F6F7FF";
+  context.font = "700 25px Arial, sans-serif";
+  context.fillText("DAILY DRAFT BRACKET", 72, 91);
+  context.fillStyle = "#9FA8CD";
+  context.font = "18px Arial, sans-serif";
+  context.textAlign = "right";
+  context.fillText(new Date(`${bracket.game_date}T12:00:00`).toLocaleDateString(undefined, { month: "long", day: "numeric", year: "numeric" }), 1150, 61);
+  context.fillText("MY PICKS", 1150, 88);
+  context.textAlign = "left";
+
   const labels = ["QUARTERFINALS", "SEMIFINALS", "CHAMPION"];
-  [70, 475, 890].forEach((x, index) => {
+  [58, 438, 818].forEach((x, index) => {
     context.fillStyle = index === 2 ? "#FFD23F" : "#4FD1C5";
-    context.font = "bold 22px sans-serif";
-    context.fillText(labels[index], x, 155);
+    context.font = "800 17px Arial, sans-serif";
+    context.fillText(labels[index], x, 132);
   });
-  context.font = "20px sans-serif";
-  bracket.pokemon.forEach((name, index) => {
-    context.fillStyle = winners[index >> 1] === name ? "#FFD23F" : "#EDEBFA";
-    context.fillText(name, 70, 205 + index * 52);
-  });
-  winners.slice(0, 4).forEach((name, index) => {
-    context.fillStyle = winners[4 + (index >> 1)] === name ? "#FFD23F" : "#EDEBFA";
-    context.fillText(name, 475, 235 + index * 104);
-  });
-  context.fillStyle = "#FFD23F";
-  context.font = "bold 34px sans-serif";
-  context.fillText(winners[6], 890, 315);
-  context.fillStyle = "#9A9FBD";
-  context.font = "18px sans-serif";
-  context.fillText("My community favorite today", 890, 350);
+
+  const drawPokemon = (name, x, y, winner = false, champion = false) => {
+    const width = champion ? 326 : 286;
+    const height = champion ? 116 : 54;
+    roundedRect(context, x, y, width, height, champion ? 20 : 12);
+    context.fillStyle = champion ? "rgba(255, 210, 63, 0.13)" : winner ? "rgba(79, 209, 197, 0.12)" : "rgba(25, 32, 62, 0.96)";
+    context.fill();
+    context.strokeStyle = champion ? "#FFD23F" : winner ? "#4FD1C5" : "#303B68";
+    context.lineWidth = champion ? 3 : 1.5;
+    context.stroke();
+    const image = artwork[name];
+    const imageSize = champion ? 92 : 46;
+    if (image) context.drawImage(image, x + (champion ? 13 : 7), y + (height - imageSize) / 2, imageSize, imageSize);
+    context.fillStyle = champion ? "#FFD23F" : winner ? "#FFFFFF" : "#D7DCF3";
+    context.font = `${champion ? "800 27px" : "700 17px"} Arial, sans-serif`;
+    context.fillText(name, x + (champion ? 119 : 61), y + (champion ? 52 : 33));
+    if (champion) {
+      context.fillStyle = "#AEB6D8";
+      context.font = "15px Arial, sans-serif";
+      context.fillText("TODAY'S COMMUNITY FAVORITE", x + 119, y + 79);
+    }
+  };
+
+  const qfY = [143, 199, 273, 329, 403, 459, 533, 589];
+  const sfY = [171, 301, 431, 561];
+  const finalY = [246, 534];
+  const qfX = 58, sfX = 438, finalX = 818;
+
+  context.strokeStyle = "#394772";
+  context.lineWidth = 2;
+  const connectPair = (fromX, width, y1, y2, toX, toY) => {
+    const startX = fromX + width;
+    const middleX = startX + (toX - startX) / 2;
+    context.beginPath();
+    context.moveTo(startX, y1 + 27);
+    context.lineTo(middleX, y1 + 27);
+    context.lineTo(middleX, y2 + 27);
+    context.lineTo(startX, y2 + 27);
+    context.moveTo(middleX, toY + 27);
+    context.lineTo(toX, toY + 27);
+    context.stroke();
+  };
+  connectPair(qfX, 286, qfY[0], qfY[1], sfX, sfY[0]);
+  connectPair(qfX, 286, qfY[2], qfY[3], sfX, sfY[1]);
+  connectPair(qfX, 286, qfY[4], qfY[5], sfX, sfY[2]);
+  connectPair(qfX, 286, qfY[6], qfY[7], sfX, sfY[3]);
+  connectPair(sfX, 286, sfY[0], sfY[1], finalX, finalY[0]);
+  connectPair(sfX, 286, sfY[2], sfY[3], finalX, finalY[1]);
+
+  bracket.pokemon.forEach((name, index) => drawPokemon(name, qfX, qfY[index], winners[index >> 1] === name));
+  winners.slice(0, 4).forEach((name, index) => drawPokemon(name, sfX, sfY[index], winners[4 + (index >> 1)] === name));
+  winners.slice(4, 6).forEach((name, index) => drawPokemon(name, finalX, finalY[index], winners[6] === name));
+
+  context.fillStyle = "#52618D";
+  context.fillRect(987, 355, 2, 72);
+  drawPokemon(winners[6], 818, 390, true, true);
+  context.fillStyle = "#7F89AC";
+  context.font = "14px Arial, sans-serif";
+  context.textAlign = "center";
+  context.fillText("draftcentral.gg • Share your bracket", 982, 650);
+  context.textAlign = "left";
+
   const link = document.createElement("a");
   link.download = `draftcenter-daily-bracket-${bracket.game_date}.png`;
   link.href = canvas.toDataURL("image/png");
