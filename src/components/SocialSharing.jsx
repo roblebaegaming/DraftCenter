@@ -55,33 +55,114 @@ export function DiscordConnectionPanel({ supabase: suppliedSupabase, leagueId, d
   const [guildId, setGuildId] = useState("");
   const [channelId, setChannelId] = useState("");
   const [enabled, setEnabled] = useState(false);
+  const [preferences, setPreferences] = useState({
+    draft: true, matches: true, streams: true, transactions: false, results: false,
+    quietEnabled: true, quietStart: "22:00", quietEnd: "08:00", timezone: "UTC",
+  });
+  const [lastTest, setLastTest] = useState(null);
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const installUrl = process.env.NEXT_PUBLIC_DISCORD_INSTALL_URL || "";
   useEffect(() => {
-    supabase.from("league_discord_settings").select("guild_id, channel_id, enabled").eq("league_id", leagueId).maybeSingle()
-      .then(({ data }) => { if (data) { setGuildId(data.guild_id || ""); setChannelId(data.channel_id || ""); setEnabled(Boolean(data.enabled)); } });
+    supabase.from("league_discord_settings").select("*").eq("league_id", leagueId).maybeSingle()
+      .then(({ data }) => {
+        const browserTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+        if (!data) {
+          setPreferences((current) => ({ ...current, timezone: browserTimezone }));
+          return;
+        }
+        setGuildId(data.guild_id || "");
+        setChannelId(data.channel_id || "");
+        setEnabled(Boolean(data.enabled));
+        setPreferences({
+          draft: data.notify_draft_reminders ?? true,
+          matches: data.notify_match_reminders ?? true,
+          streams: data.notify_live_streams ?? true,
+          transactions: data.notify_transactions ?? false,
+          results: data.notify_results ?? false,
+          quietEnabled: data.quiet_hours_enabled ?? true,
+          quietStart: String(data.quiet_hours_start || "22:00").slice(0, 5),
+          quietEnd: String(data.quiet_hours_end || "08:00").slice(0, 5),
+          timezone: data.quiet_hours_timezone || browserTimezone,
+        });
+        setLastTest(data.last_test_at ? { at: data.last_test_at, status: data.last_test_status, error: data.last_test_error } : null);
+      });
   }, [supabase, leagueId]);
+  function updatePreference(key, value) {
+    setPreferences((current) => ({ ...current, [key]: value }));
+  }
   async function save(event) {
     event.preventDefault();
     setBusy(true); setMessage("");
-    const { error } = await supabase.rpc("save_league_discord_settings", {
+    const { error: connectionError } = await supabase.rpc("save_league_discord_settings", {
       p_league_id: leagueId, p_guild_id: guildId, p_channel_id: channelId, p_enabled: enabled,
     });
+    if (connectionError) {
+      setBusy(false);
+      setMessage(connectionError.message);
+      return;
+    }
+    const { error: preferenceError } = await supabase.rpc("save_league_discord_preferences", {
+      p_league_id: leagueId,
+      p_notify_draft_reminders: preferences.draft,
+      p_notify_match_reminders: preferences.matches,
+      p_notify_live_streams: preferences.streams,
+      p_notify_transactions: preferences.transactions,
+      p_notify_results: preferences.results,
+      p_quiet_hours_enabled: preferences.quietEnabled,
+      p_quiet_hours_start: preferences.quietStart,
+      p_quiet_hours_end: preferences.quietEnd,
+      p_quiet_hours_timezone: preferences.timezone,
+    });
     setBusy(false);
-    setMessage(error ? error.message : enabled ? "Discord announcements are enabled for this league." : "Discord settings saved.");
+    setMessage(preferenceError ? preferenceError.message : enabled ? "This league's Discord announcements and timing preferences are saved." : "Discord settings saved.");
+  }
+  async function sendTest() {
+    setBusy(true); setMessage("");
+    const { data } = await supabase.auth.getSession();
+    const response = await fetch("/api/discord/test", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${data.session?.access_token || ""}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ leagueId }),
+    });
+    const result = await response.json();
+    setBusy(false);
+    setMessage(result.message || result.error || "Discord test finished.");
+    if (response.ok) setLastTest({ at: new Date().toISOString(), status: "delivered", error: null });
   }
   return <details className="discord-connection-panel" open={defaultOpen}>
-    <summary>Connect Discord announcements</summary>
+    <summary>Connect this league&apos;s Discord server</summary>
     <div className="discord-connection-body">
-      <p className="muted">Install the DraftCenter bot, then save the server and announcement-channel IDs. Live battles, scheduled matches, and future league events will use this connection.</p>
-      {installUrl ? <a className="discord-install-button" href={installUrl} target="_blank" rel="noopener noreferrer">Add DraftCenter to Discord ↗</a> : <p className="hub-message">The Discord install link will appear after its application URL is added in Vercel.</p>}
+      <p className="muted">Install the DraftCenter bot in the Discord server this league already uses, then choose that server&apos;s announcement channel. It will post only this league&apos;s selected updates there. This does not connect the league to DraftCenter&apos;s public community server.</p>
+      {installUrl ? <a className="discord-install-button" href={installUrl} target="_blank" rel="noopener noreferrer">Install DraftCenter Bot in Your League&apos;s Discord ↗</a> : <p className="hub-message">The Discord install link will appear after its application URL is added in Vercel.</p>}
       <form onSubmit={save}>
         <label>Discord server ID<input value={guildId} onChange={(event) => setGuildId(event.target.value.replace(/\D/g, ""))} placeholder="Server ID" /></label>
         <label>Announcement channel ID<input value={channelId} onChange={(event) => setChannelId(event.target.value.replace(/\D/g, ""))} placeholder="Channel ID" /></label>
         <label className="check-row"><input type="checkbox" checked={enabled} onChange={(event) => setEnabled(event.target.checked)} /> Enable league announcements</label>
-        <button className="secondary-button" disabled={busy}>{busy ? "Saving…" : "Save Discord connection"}</button>
+        <fieldset>
+          <legend>Choose announcements for this league</legend>
+          <label className="check-row"><input type="checkbox" checked={preferences.draft} onChange={(event) => updatePreference("draft", event.target.checked)} /> Draft reminders</label>
+          <label className="check-row"><input type="checkbox" checked={preferences.matches} onChange={(event) => updatePreference("matches", event.target.checked)} /> Match reminders</label>
+          <label className="check-row"><input type="checkbox" checked={preferences.streams} onChange={(event) => updatePreference("streams", event.target.checked)} /> Scheduled streams and Live Now</label>
+          <label className="check-row"><input type="checkbox" checked={preferences.transactions} onChange={(event) => updatePreference("transactions", event.target.checked)} /> Transaction-processing updates</label>
+          <label className="check-row"><input type="checkbox" checked={preferences.results} onChange={(event) => updatePreference("results", event.target.checked)} /> Results, playoffs, and championships</label>
+        </fieldset>
+        <fieldset>
+          <legend>League quiet hours</legend>
+          <label className="check-row"><input type="checkbox" checked={preferences.quietEnabled} onChange={(event) => updatePreference("quietEnabled", event.target.checked)} /> Hold non-urgent announcements during quiet hours</label>
+          <label>Quiet hours begin<input type="time" value={preferences.quietStart} onChange={(event) => updatePreference("quietStart", event.target.value)} /></label>
+          <label>Quiet hours end<input type="time" value={preferences.quietEnd} onChange={(event) => updatePreference("quietEnd", event.target.value)} /></label>
+          <label>Time zone<input value={preferences.timezone} onChange={(event) => updatePreference("timezone", event.target.value)} placeholder="America/Los_Angeles" /></label>
+        </fieldset>
+        <div className="live-stream-actions">
+          <button className="secondary-button" disabled={busy}>{busy ? "Saving…" : "Save Discord settings"}</button>
+          <button type="button" className="quiet-button" disabled={busy || !enabled} onClick={sendTest}>Send test message</button>
+        </div>
       </form>
+      {lastTest && <p className="muted">Last test: {lastTest.status === "delivered" ? "Delivered" : "Failed"} · {new Date(lastTest.at).toLocaleString()}{lastTest.error ? ` · ${lastTest.error}` : ""}</p>}
       {message && <p className="hub-message">{message}</p>}
     </div>
   </details>;

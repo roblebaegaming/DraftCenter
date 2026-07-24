@@ -24,6 +24,49 @@ function escapeHtml(value) {
   return String(value ?? "").replace(/[&<>"']/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[character]));
 }
 
+function localMinutes(date, timeZone) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(date);
+  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  return Number(values.hour) * 60 + Number(values.minute);
+}
+
+function clockMinutes(value) {
+  const [hour = 0, minute = 0] = String(value || "00:00").split(":").map(Number);
+  return hour * 60 + minute;
+}
+
+function isQuietAt(date, settings) {
+  if (!settings.quiet_hours_enabled) return false;
+  const current = localMinutes(date, settings.quiet_hours_timezone || "UTC");
+  const start = clockMinutes(settings.quiet_hours_start);
+  const end = clockMinutes(settings.quiet_hours_end);
+  if (start === end) return true;
+  return start < end ? current >= start && current < end : current >= start || current < end;
+}
+
+function nextAllowedTime(settings) {
+  const candidate = new Date();
+  for (let step = 1; step <= 96; step += 1) {
+    candidate.setTime(candidate.getTime() + 15 * 60 * 1000);
+    if (!isQuietAt(candidate, settings)) return candidate.toISOString();
+  }
+  return new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+}
+
+function eventIsEnabled(event, settings) {
+  if (event.kind === "draft_reminder") return settings.notify_draft_reminders;
+  if (event.kind === "match_reminder") return settings.notify_match_reminders;
+  if (event.kind === "stream_live") return settings.notify_live_streams;
+  if (event.kind.startsWith("transaction")) return settings.notify_transactions;
+  if (["result", "standings", "playoff", "championship"].some((kind) => event.kind.startsWith(kind))) return settings.notify_results;
+  return true;
+}
+
 async function deliverEmail(event, supabase) {
   const prefs = await supabase.from("notification_preferences").select("email_draft_reminders").eq("user_id", event.user_id).maybeSingle();
   if (prefs.data && !prefs.data.email_draft_reminders && event.kind === "draft_reminder") return { skipped: true };
@@ -87,8 +130,10 @@ async function deliverDailyThreeResults(supabase) {
 }
 
 async function deliverDiscord(event, supabase) {
-  const { data: settings } = await supabase.from("league_discord_settings").select("channel_id, enabled").eq("league_id", event.league_id).maybeSingle();
+  const { data: settings } = await supabase.from("league_discord_settings").select("*").eq("league_id", event.league_id).maybeSingle();
   if (!settings?.enabled || !settings.channel_id) return { skipped: true };
+  if (!eventIsEnabled(event, settings)) return { skipped: true };
+  if (isQuietAt(new Date(), settings)) return { deferredUntil: nextAllowedTime(settings) };
   const token = process.env.DISCORD_BOT_TOKEN;
   if (!token) throw new Error("Discord bot is not configured yet.");
   const hours = event.payload?.hours_before;
@@ -126,6 +171,16 @@ export async function GET(request) {
     for (const event of events || []) {
       try {
         const result = event.channel === "discord" ? await deliverDiscord(event, supabase) : await deliverEmail(event, supabase);
+        if (result.deferredUntil) {
+          const { data: deferred, error: deferError } = await supabase.rpc("defer_notification_event", {
+            p_event_id: event.id,
+            p_claim_token: claimToken,
+            p_next_attempt_at: result.deferredUntil,
+          });
+          if (deferError || !deferred) throw deferError || new Error("The notification could not be deferred.");
+          skipped += 1;
+          continue;
+        }
         const { data: completed, error: completeError } = await supabase.rpc("complete_notification_event", {
           p_event_id: event.id,
           p_claim_token: claimToken,
