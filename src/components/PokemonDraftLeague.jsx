@@ -7535,7 +7535,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
             snakePick={snakePick} nominateForAuction={nominateForAuction} autoPickForClock={autoPickForClock}
             placeBid={placeBid} endAuctionEarly={endAuctionEarly} pauseDraft={pauseDraft} resumeDraft={resumeDraft} skipAuctionNomination={skipAuctionNomination}
             toggleAutoDraft={toggleAutoDraft} addToQueue={addToQueue} removeFromQueue={removeFromQueue} moveQueueItem={moveQueueItem}
-            onGenerateSchedule={generateSchedule} updateSettings={updateSettings} onViewTeam={goToTeam} castDraftHeroVote={castDraftHeroVote} restartDraft={restartDraft} rebuildCurrentSeason={rebuildCurrentSeason}
+            onGenerateSchedule={generateSchedule} updateSettings={updateSettings} onViewTeam={goToTeam} castDraftHeroVote={castDraftHeroVote} restartDraft={restartDraft} rebuildCurrentSeason={rebuildCurrentSeason} onStart={startDraft}
           />
         )}
         {tab === "myteam" && (
@@ -7594,7 +7594,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
                 snakePick={snakePick} nominateForAuction={nominateForAuction} autoPickForClock={autoPickForClock}
                 placeBid={placeBid} endAuctionEarly={endAuctionEarly} pauseDraft={pauseDraft} resumeDraft={resumeDraft} skipAuctionNomination={skipAuctionNomination}
                 toggleAutoDraft={toggleAutoDraft} addToQueue={addToQueue} removeFromQueue={removeFromQueue} moveQueueItem={moveQueueItem}
-                onGenerateSchedule={generateSchedule} updateSettings={updateSettings} onViewTeam={goToTeam} castDraftHeroVote={castDraftHeroVote} restartDraft={restartDraft} rebuildCurrentSeason={rebuildCurrentSeason}
+                onGenerateSchedule={generateSchedule} updateSettings={updateSettings} onViewTeam={goToTeam} castDraftHeroVote={castDraftHeroVote} restartDraft={restartDraft} rebuildCurrentSeason={rebuildCurrentSeason} onStart={startDraft}
               />
             )}
             {leagueSubTab === "schedule" && (
@@ -11097,7 +11097,7 @@ function PreDraftScout({ state, isCommissioner, costFor, updateHomepage, myTeamI
   </div>;
 }
 
-function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTeamIdx, currentTeamOnClock, draftDone, allTeamsMetMin, snakePick, nominateForAuction, autoPickForClock, placeBid, endAuctionEarly, pauseDraft, resumeDraft, skipAuctionNomination, toggleAutoDraft, addToQueue, removeFromQueue, moveQueueItem, onGenerateSchedule, updateSettings, onViewTeam, castDraftHeroVote, restartDraft, rebuildCurrentSeason }) {
+function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTeamIdx, currentTeamOnClock, draftDone, allTeamsMetMin, snakePick, nominateForAuction, autoPickForClock, placeBid, endAuctionEarly, pauseDraft, resumeDraft, skipAuctionNomination, toggleAutoDraft, addToQueue, removeFromQueue, moveQueueItem, onGenerateSchedule, updateSettings, onViewTeam, castDraftHeroVote, restartDraft, rebuildCurrentSeason, onStart }) {
   const { locked, settings, teams, rosters, budgets, pool, snakeOrder, pickIndex, nominee, auctionEnded, pickDeadline, queues, auctionNominationOrder, auctionNominationIdx, paused, pausedAt, pauseIsOvernight, nominationDeadline } = state;
   const draftType = settings.draftType;
 
@@ -11155,19 +11155,35 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
 
   if (!locked) {
     const scheduledAt = settings.draftScheduledAt;
+    const scheduledTime = Date.parse(scheduledAt || "");
+    const minutesUntilStart = Number.isFinite(scheduledTime) ? Math.max(0, Math.ceil((scheduledTime - Date.now()) / 60000)) : null;
+    const waitingOrder = Array.isArray(settings.manualDraftOrder) ? settings.manualDraftOrder : teams.map((_, index) => index);
+    const eligibleCount = fullPool(settings).filter((pokemon) => isLegal(pokemon, settings)).length;
     return (
-      <div className="max-w-lg mx-auto">
-        <div style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }} className="rounded-lg p-6 text-center">
-          <h2 className="display-font text-2xl mb-2" style={{ color: "#FFD23F" }}>UPCOMING DRAFT</h2>
+      <div className="max-w-5xl mx-auto">
+        <div style={{ background: "#171A2C", border: "1px solid #FFD23F55" }} className="rounded-lg p-6 mb-5">
+          <div className="flex items-start justify-between gap-4 flex-wrap">
+            <div>
+              <span className="eyebrow">DRAFT ROOM</span>
+              <h2 className="display-font text-3xl mb-1" style={{ color: "#FFD23F" }}>THE ROOM IS OPEN</h2>
+              <p className="text-sm" style={{ color: "#C9CBE0" }}>Stay here—the live draft board will replace this waiting room when the draft begins.</p>
+            </div>
+            {minutesUntilStart !== null && (
+              <div className="rounded px-4 py-3 text-center" style={{ background: "#10121C", border: "1px solid #4FD1C555" }}>
+                <strong className="display-font text-2xl block" style={{ color: "#4FD1C5" }}>{minutesUntilStart > 0 ? `${minutesUntilStart} MIN` : "STARTING"}</strong>
+                <span className="text-xs" style={{ color: "#9A9FBD" }}>{minutesUntilStart > 0 ? "until scheduled start" : "waiting for the live board"}</span>
+              </div>
+            )}
+          </div>
           {scheduledAt ? (
             <>
-              <p className="text-lg mb-1" style={{ color: "#EDEBFA" }}>
+              <p className="text-lg mt-5 mb-1" style={{ color: "#EDEBFA" }}>
                 {new Date(scheduledAt).toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" })}
               </p>
-              <p className="text-sm mb-5" style={{ color: "#9A9FBD" }}>
+              <p className="text-sm mb-4" style={{ color: "#9A9FBD" }}>
                 {new Date(scheduledAt).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })} your local time
               </p>
-              <div className="flex items-center justify-center gap-2 flex-wrap mb-5">
+              <div className="flex items-center gap-2 flex-wrap">
                 <a href={googleCalendarLink(scheduledAt)} target="_blank" rel="noopener noreferrer"
                   className="px-4 py-2 rounded font-semibold text-sm" style={{ background: "#FFD23F", color: "#10121C" }}>
                   Add to Google Calendar
@@ -11188,7 +11204,32 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
               {isCommissioner ? "No draft time set yet — pick one below." : "The commissioner hasn't scheduled a draft time yet."}
             </p>
           )}
-          <p className="text-xs mt-5" style={{ color: "#5B5F7E" }}>{isCommissioner ? "The official date is managed once in Setup and shared everywhere in the league." : "The commissioner manages the official date in Setup."}</p>
+          {isCommissioner && <button type="button" onClick={onStart} className="mt-4 px-4 py-2 rounded font-semibold text-sm" style={{ background: "#4FD1C5", color: "#10121C" }}>START DRAFT NOW</button>}
+        </div>
+        <div className="grid lg:grid-cols-2 gap-5">
+          <section className="rounded-lg p-5" style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }}>
+            <h3 className="display-font text-2xl mb-3" style={{ color: "#FFD23F" }}>TEAMS ENTERED</h3>
+            <div className="flex flex-col gap-2">
+              {teams.map((team, index) => (
+                <div key={team.id ?? index} className="flex items-center gap-3 rounded p-3" style={{ background: "#1F2338" }}>
+                  <TeamLogo team={team} size={30} />
+                  <div className="flex-1"><strong>{team.name}</strong><span className="text-xs block" style={{ color: team.claimedBy ? "#4FD1C5" : "#9A9FBD" }}>{team.claimedBy || "Unclaimed team"}</span></div>
+                  {index === myTeamIdx && <span className="mono-font text-[10px]" style={{ color: "#FFD23F" }}>YOU</span>}
+                </div>
+              ))}
+            </div>
+          </section>
+          <section className="rounded-lg p-5" style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }}>
+            <h3 className="display-font text-2xl mb-3" style={{ color: "#FFD23F" }}>DRAFT CHECK</h3>
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              <div className="rounded p-3" style={{ background: "#1F2338" }}><span className="text-xs block" style={{ color: "#9A9FBD" }}>ROUNDS</span><strong>{settings.snakeBudgetEnabled ? settings.rosterMax : settings.rosterSize}</strong></div>
+              <div className="rounded p-3" style={{ background: "#1F2338" }}><span className="text-xs block" style={{ color: "#9A9FBD" }}>ELIGIBLE</span><strong>{eligibleCount} Pokémon</strong></div>
+            </div>
+            <p className="text-xs mb-2" style={{ color: "#9A9FBD" }}>{settings.manualDraftOrder ? "Saved first-round order" : "Current teams—the first-round order will be randomized when the draft starts"}</p>
+            <ol className="flex flex-col gap-1">
+              {waitingOrder.map((teamIndex, position) => <li key={`${teamIndex}-${position}`} className="flex gap-2 text-sm"><span className="mono-font" style={{ color: "#5B5F7E" }}>{position + 1}.</span><span>{teams[teamIndex]?.name}</span></li>)}
+            </ol>
+          </section>
         </div>
       </div>
     );
