@@ -3253,7 +3253,7 @@ function useMonData(mon) {
   return data;
 }
 
-function MonSprite({ mon, size = 48 }) {
+export function MonSprite({ mon, size = 48 }) {
   const data = useMonData(mon);
   if (!data || data.failed || !data.sprite) {
     const c = TYPE_COLORS[mon.t1] || "#5B5F7E";
@@ -3291,7 +3291,7 @@ function TeamLogo({ team, size = 32 }) {
 // Real ability names pulled live from PokéAPI (hidden ability marked "H").
 // Renders nothing if the mon hasn't resolved yet or has no PokéAPI entry
 // (e.g. commissioner-added custom pokémon).
-function MonAbilities({ mon, className, style }) {
+export function MonAbilities({ mon, className, style }) {
   const data = useMonData(mon);
   if (!data || !data.abilities.length) return null;
   return (
@@ -3321,7 +3321,7 @@ function formatMult(m) {
 // anywhere in this app (only the species' possible abilities are known),
 // this lets you interactively pick one to see its effect layered on top —
 // there's no single "correct" default to assume otherwise.
-function MonDefenseChart({ mon, compact }) {
+export function MonDefenseChart({ mon, compact }) {
   const data = useMonData(mon);
   const [ability, setAbility] = useState("");
   const abilityOptions = (data?.abilities || []).filter((a) => ABILITY_TYPE_MODIFIERS[a.name]);
@@ -3356,7 +3356,7 @@ function MonDefenseChart({ mon, compact }) {
 // defensive coverage actually jump out instead of needing to be pieced
 // together mon by mon. Sorted worst-covered type first (most net weakness),
 // same idea as Marriland's team builder.
-function TeamDefenseSummary({ roster }) {
+export function TeamDefenseSummary({ roster }) {
   if (!roster || roster.length === 0) return null;
   const rows = ALL_TYPES.map((atk) => {
     let weak4 = 0, weak2 = 0, resist2 = 0, resist4 = 0, immune = 0;
@@ -3417,7 +3417,7 @@ function TeamDefenseSummary({ roster }) {
 // same PokeAPI fetch that already supplies sprites and abilities, so no
 // extra network cost — just reads more of what's already coming back.
 const STAT_ORDER = [["hp", "HP"], ["atk", "ATK"], ["spa", "SPA"], ["def", "DEF"], ["spd", "SPD"], ["spe", "SPE"]];
-function MonStats({ mon, compact }) {
+export function MonStats({ mon, compact }) {
   const data = useMonData(mon);
   if (!data || !data.stats) return null;
   return (

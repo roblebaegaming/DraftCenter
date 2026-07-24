@@ -57,6 +57,9 @@ Use this before each beta release. Record the date, commit, tester accounts, dev
 - [ ] Badges, Favorite Six, and regular-season career record update correctly.
 - [ ] Resources links open their intended external destinations.
 - [ ] Create, edit, archive, reopen, and delete a private My Teams workspace.
+- [ ] Full personal roster, Pokémon stats, types, and defensive coverage display correctly.
+- [ ] Current and archived DraftCenter league teams appear read-only in My Teams.
+- [ ] External team creation stops at 10 while league teams do not count toward the limit.
 - [ ] PokéPaste, PASRS helper, and saved spreadsheet links work.
 
 ## Layout, resilience, and release
