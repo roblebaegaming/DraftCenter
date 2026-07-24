@@ -55,6 +55,48 @@ function PollResults({ poll, showPodium = false, onSelectPokemon }) {
   })}</div>;
 }
 
+function PollDiscussion({ pollId, signedIn }) {
+  const [comments, setComments] = useState([]);
+  const [body, setBody] = useState("");
+  const [replyTo, setReplyTo] = useState(null);
+  const [message, setMessage] = useState("");
+  async function load() {
+    if (!signedIn || !pollId) return;
+    const supabase = createClient();
+    const { data, error } = await supabase.rpc("get_daily_poll_comments", { p_poll_id: pollId, p_limit: 100 });
+    if (error) setMessage(error.message);
+    else setComments(data?.comments || []);
+  }
+  useEffect(() => { load(); }, [pollId, signedIn]);
+  async function post(event) {
+    event.preventDefault();
+    const supabase = createClient();
+    const { error } = await supabase.rpc("create_daily_poll_comment", {
+      p_poll_id: pollId,
+      p_body: body,
+      p_parent_comment_id: replyTo,
+    });
+    if (error) return setMessage(error.message);
+    setBody(""); setReplyTo(null); load();
+  }
+  async function upvote(comment) {
+    if (comment.upvoted_by_me) return;
+    const supabase = createClient();
+    const { error } = await supabase.rpc("toggle_daily_poll_comment_upvote", { p_comment_id: comment.id });
+    if (error) return setMessage(error.message);
+    load();
+  }
+  if (!signedIn) return null;
+  const roots = comments.filter((comment) => !comment.parent_comment_id).sort((a, b) => b.upvotes - a.upvotes || new Date(a.created_at) - new Date(b.created_at));
+  return <div className="daily-game-discussion poll-community-discussion">
+    <h3>Community discussion</h3>
+    <form onSubmit={post}><textarea value={body} onChange={(event) => setBody(event.target.value)} placeholder={replyTo ? "Write a reply…" : "Add a comment…"} maxLength={1000}/><div>{replyTo && <button type="button" className="text-button" onClick={() => setReplyTo(null)}>Cancel reply</button>}<button className="quiet-button" disabled={!body.trim()}>Post</button></div></form>
+    {roots.map((comment) => <article key={comment.id}><strong>{comment.display_name || comment.username || "Coach"}</strong><p>{comment.body}</p><div><button type="button" className={comment.upvoted_by_me ? "comment-upvote active" : "comment-upvote"} onClick={() => upvote(comment)}>▲ Upvote {comment.upvotes}</button><button type="button" className="text-button" onClick={() => setReplyTo(comment.id)}>Reply</button></div>{comments.filter((reply) => reply.parent_comment_id === comment.id).sort((a, b) => b.upvotes - a.upvotes).map((reply) => <aside key={reply.id}><strong>{reply.display_name || reply.username || "Coach"}</strong><p>{reply.body}</p><button type="button" className={reply.upvoted_by_me ? "comment-upvote active" : "comment-upvote"} onClick={() => upvote(reply)}>▲ Upvote {reply.upvotes}</button></aside>)}</article>)}
+    {!comments.length && <p className="muted">No comments yet. Start today’s conversation.</p>}
+    {message && <p className="hub-message">{message}</p>}
+  </div>;
+}
+
 function Ranking({ title, items, render, empty, onSelectPokemon }) {
   return <section className="explore-card"><h2>{title}</h2>{items?.length ? <ol className="explore-ranking">{items.slice(0, 10).map((item, index) => <li key={`${item.pokemon}-${index}`}><b>{index + 1}</b><button type="button" className="community-pokemon-link" onClick={() => onSelectPokemon(item.pokemon)}><PokemonRankingArtwork name={item.pokemon} />{render(item)}</button></li>)}</ol> : <p className="muted">{empty}</p>}</section>;
 }
@@ -149,7 +191,7 @@ export default function PublicExplore() {
       <section className="explore-card explore-poll">
         <span className="eyebrow">POLL OF THE DAY</span>
         <h2>{data.poll?.question || "Today's poll is on its way."}</h2>
-        {data.poll && signedIn && <><p className="muted">{data.poll.total_votes || 0} community vote{data.poll.total_votes === 1 ? "" : "s"}.{data.poll.selected_key ? " Your vote is included." : " Vote from your DraftCenter home."}</p><PollResults poll={data.poll} onSelectPokemon={setSelectedPokemon} /></>}
+        {data.poll && signedIn && <><p className="muted">{data.poll.total_votes || 0} community vote{data.poll.total_votes === 1 ? "" : "s"}.{data.poll.selected_key ? " Your vote is included." : " Vote from your DraftCenter home."}</p><PollResults poll={data.poll} onSelectPokemon={setSelectedPokemon} /><PollDiscussion pollId={data.poll.id} signedIn={signedIn}/></>}
         {data.poll && !signedIn && <div className="locked-current-poll"><div className="locked-poll-preview" aria-hidden="true"><span /><span /><span /></div><strong>Create an account to reveal today’s answers and percentages.</strong><a className="secondary-button" href="/">Create an account</a></div>}
       </section>
       <DailyCommunityGames signedIn={signedIn} />
