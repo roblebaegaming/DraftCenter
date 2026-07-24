@@ -187,25 +187,29 @@ export default function PublicExplore() {
     </header>
     {message && <p className="hub-message">{message}</p>}
     {!data && !message && <p className="muted">Loading public DraftCenter data...</p>}
-    {data && <div className="explore-grid">
-      <section className="explore-card explore-poll">
+    {data && <>
+      <div className="daily-trio-grid">
+        <section className="explore-card explore-poll">
         <span className="eyebrow">POLL OF THE DAY</span>
         <h2>{data.poll?.question || "Today's poll is on its way."}</h2>
         {data.poll && signedIn && <><p className="muted">{data.poll.total_votes || 0} community vote{data.poll.total_votes === 1 ? "" : "s"}.{data.poll.selected_key ? " Your vote is included." : " Vote from your DraftCenter home."}</p><PollResults poll={data.poll} onSelectPokemon={setSelectedPokemon} /><PollDiscussion pollId={data.poll.id} signedIn={signedIn}/></>}
         {data.poll && !signedIn && <div className="locked-current-poll"><div className="locked-poll-preview" aria-hidden="true"><span /><span /><span /></div><strong>Create an account to reveal today’s answers and percentages.</strong><a className="secondary-button" href="/">Create an account</a></div>}
-      </section>
-      <DailyCommunityGames signedIn={signedIn} />
-      <section className="explore-card">
+        {pollHistory.length > 0 && <details className="daily-previous"><summary>View previous polls</summary><div className="completed-poll-list">{pollHistory.map((poll) => <details key={poll.id}><summary><span>{new Date(`${poll.poll_date}T12:00:00`).toLocaleDateString()}</span><strong>{poll.question}</strong></summary><p className="muted">{poll.total_votes} final vote{poll.total_votes === 1 ? "" : "s"}</p><PollResults poll={poll} showPodium onSelectPokemon={setSelectedPokemon} /></details>)}</div></details>}
+        </section>
+        <DailyCommunityGames signedIn={signedIn} />
+      </div>
+      <section className="explore-card public-leagues-community-row">
         <span className="eyebrow">PUBLIC LEAGUES</span><h2>Watch or join a league</h2>
         {data.leagues?.length ? <><div className="public-explore-leagues">{data.leagues.slice(0, 4).map((league) => <article key={league.id}>{league.image_url && <img src={league.image_url} alt="" />}<div><strong>{league.name}</strong><p>{league.description || league.season_label || "Public DraftCenter league"}</p><span>{league.league_visibility === "open" ? "Open to managers" : "Public to watch"}</span><a className="public-league-link" href={`/league/${league.slug}`}>View league →</a></div></article>)}</div><a className="secondary-button public-league-directory-link" href="/leagues">Browse all Public Leagues →</a></> : <p className="muted">No public leagues have been listed yet.</p>}
       </section>
-      {pollHistory.length > 0 && <section className="explore-card completed-polls-card"><span className="eyebrow">PAST POLLS</span><h2>Completed community results</h2><div className="completed-poll-list">{pollHistory.map((poll) => <details key={poll.id}><summary><span>{new Date(`${poll.poll_date}T12:00:00`).toLocaleDateString()}</span><strong>{poll.question}</strong></summary><p className="muted">{poll.total_votes} final vote{poll.total_votes === 1 ? "" : "s"}</p><PollResults poll={poll} showPodium onSelectPokemon={setSelectedPokemon} /></details>)}</div></section>}
-      <Ranking onSelectPokemon={setSelectedPokemon} title="Most drafted this week" items={trends?.weekly_drafted} empty="Weekly rankings will appear after public non-practice drafts make picks." render={(item) => <span><strong>{item.pokemon}</strong><small>{item.drafts} draft{item.drafts === 1 ? "" : "s"} in the last 7 days</small></span>} />
-      <Ranking onSelectPokemon={setSelectedPokemon} title="Biggest risers" items={marketTrends?.risers} empty="Risers appear after two full weeks of public draft activity." render={(item) => <span><strong>{item.pokemon}</strong><small>+{item.change} drafts · {item.current_drafts} this week</small></span>} />
-      <Ranking onSelectPokemon={setSelectedPokemon} title="Biggest fallers" items={marketTrends?.fallers} empty="Fallers appear after two full weeks of public draft activity." render={(item) => <span><strong>{item.pokemon}</strong><small>{item.change} drafts · {item.current_drafts} this week</small></span>} />
-      <Ranking onSelectPokemon={setSelectedPokemon} title="Highest league win rates" items={trends?.win_rates} empty="Win rates appear after Pokémon teams complete at least two confirmed matches in non-practice leagues." render={(item) => <span><strong>{item.pokemon}</strong><small>{item.win_rate}% · {item.wins}-{item.games - item.wins} across {item.games} matches · anonymous league aggregate</small></span>} />
-      <Ranking onSelectPokemon={setSelectedPokemon} title="Community Pokémon popularity" items={data.popularity} empty="Favorite-six rankings will appear as coaches build profile teams." render={(item) => <span><strong>{item.pokemon}</strong><small>{item.favorites} favorite team{item.favorites === 1 ? "" : "s"}</small></span>} />
-      <Ranking onSelectPokemon={setSelectedPokemon} title="Community ADP" items={data.adp} empty="ADP begins to form after a snake draft is completed and saved. Archived seasons continue contributing after a draft restart." render={(item) => <span><strong>{item.pokemon}</strong><small>ADP {item.average_pick} · selected in {item.drafts} of at least {item.eligible_drafts || item.drafts} eligible draft{(item.eligible_drafts || item.drafts) === 1 ? "" : "s"}</small></span>} />
-    </div>}
+      <div className="explore-grid">
+        <Ranking onSelectPokemon={setSelectedPokemon} title="Most drafted this week" items={trends?.weekly_drafted} empty="Weekly rankings will appear after public non-practice drafts make picks." render={(item) => <span><strong>{item.pokemon}</strong><small>{item.drafts} draft{item.drafts === 1 ? "" : "s"} in the last 7 days</small></span>} />
+        <Ranking onSelectPokemon={setSelectedPokemon} title="Biggest risers" items={marketTrends?.risers} empty="Risers appear after two full weeks of public draft activity." render={(item) => <span><strong>{item.pokemon}</strong><small>+{item.change} drafts · {item.current_drafts} this week</small></span>} />
+        <Ranking onSelectPokemon={setSelectedPokemon} title="Biggest fallers" items={marketTrends?.fallers} empty="Fallers appear after two full weeks of public draft activity." render={(item) => <span><strong>{item.pokemon}</strong><small>{item.change} drafts · {item.current_drafts} this week</small></span>} />
+        <Ranking onSelectPokemon={setSelectedPokemon} title="Highest league win rates" items={trends?.win_rates} empty="Win rates appear after Pokémon teams complete at least two confirmed matches in non-practice leagues." render={(item) => <span><strong>{item.pokemon}</strong><small>{item.win_rate}% · {item.wins}-{item.games - item.wins} across {item.games} matches · anonymous league aggregate</small></span>} />
+        <Ranking onSelectPokemon={setSelectedPokemon} title="Community Pokémon popularity" items={data.popularity} empty="Favorite-six rankings will appear as coaches build profile teams." render={(item) => <span><strong>{item.pokemon}</strong><small>{item.favorites} favorite team{item.favorites === 1 ? "" : "s"}</small></span>} />
+        <Ranking onSelectPokemon={setSelectedPokemon} title="Community ADP" items={data.adp} empty="ADP begins to form after a snake draft is completed and saved. Archived seasons continue contributing after a draft restart." render={(item) => <span><strong>{item.pokemon}</strong><small>ADP {item.average_pick} · selected in {item.drafts} of at least {item.eligible_drafts || item.drafts} eligible draft{(item.eligible_drafts || item.drafts) === 1 ? "" : "s"}</small></span>} />
+      </div>
+    </>}
   </main>;
 }
