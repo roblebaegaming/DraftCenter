@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "../lib/supabase/client";
 import { loadPokemonArtwork, pokemonArtworkCandidates } from "./LeagueHub";
+import DailyCommunityGames from "./DailyCommunityGames";
 
 function localDateKey(date = new Date()) { const year=date.getFullYear(); const month=String(date.getMonth()+1).padStart(2,"0"); const day=String(date.getDate()).padStart(2,"0"); return `${year}-${month}-${day}`; }
 
@@ -151,6 +152,7 @@ export default function PublicExplore() {
         {data.poll && signedIn && <><p className="muted">{data.poll.total_votes || 0} community vote{data.poll.total_votes === 1 ? "" : "s"}.{data.poll.selected_key ? " Your vote is included." : " Vote from your DraftCenter home."}</p><PollResults poll={data.poll} onSelectPokemon={setSelectedPokemon} /></>}
         {data.poll && !signedIn && <div className="locked-current-poll"><div className="locked-poll-preview" aria-hidden="true"><span /><span /><span /></div><strong>Create an account to reveal today’s answers and percentages.</strong><a className="secondary-button" href="/">Create an account</a></div>}
       </section>
+      <DailyCommunityGames signedIn={signedIn} />
       <section className="explore-card">
         <span className="eyebrow">PUBLIC LEAGUES</span><h2>Watch or join a league</h2>
         {data.leagues?.length ? <><div className="public-explore-leagues">{data.leagues.slice(0, 4).map((league) => <article key={league.id}>{league.image_url && <img src={league.image_url} alt="" />}<div><strong>{league.name}</strong><p>{league.description || league.season_label || "Public DraftCenter league"}</p><span>{league.league_visibility === "open" ? "Open to managers" : "Public to watch"}</span><a className="public-league-link" href={`/league/${league.slug}`}>View league →</a></div></article>)}</div><a className="secondary-button public-league-directory-link" href="/leagues">Browse all Public Leagues →</a></> : <p className="muted">No public leagues have been listed yet.</p>}
