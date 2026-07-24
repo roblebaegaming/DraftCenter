@@ -7305,10 +7305,12 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   const scheduledDraftIsDue = draftRoomOpen && scheduleClock >= scheduledDraftTime;
   const isMyTurn = !isSpectator && state.locked && !draftDone && state.settings.draftType === "snake" && myTeamIdx >= 0 && myTeamIdx === currentTeamOnClock;
   useEffect(() => {
-    if (!synced || !isCommissioner || state.locked || !scheduledDraftIsDue || automaticStartAttemptedRef.current === scheduledDraftTime) return;
-    automaticStartAttemptedRef.current = scheduledDraftTime;
+    if (!synced || !isCommissioner || state.locked || !scheduledDraftIsDue) return;
+    const priorAttempt = automaticStartAttemptedRef.current;
+    if (priorAttempt?.scheduledTime === scheduledDraftTime && scheduleClock - priorAttempt.at < 30000) return;
+    automaticStartAttemptedRef.current = { scheduledTime: scheduledDraftTime, at: scheduleClock };
     startDraft();
-  }, [synced, isCommissioner, state.locked, scheduledDraftIsDue]);
+  }, [synced, isCommissioner, state.locked, scheduledDraftIsDue, scheduledDraftTime, scheduleClock]);
   // Landing on League while a draft is still actively underway should show
   // the draft itself first, not whatever sub-tab happened to be selected
   // last time — but only as a one-time jump on arrival, not something that
