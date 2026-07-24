@@ -13,6 +13,26 @@ function localDateKey(date = new Date()) {
   return `${year}-${month}-${day}`;
 }
 
+function useAutoClosingDetails(resetKey) {
+  const detailsRef = useRef(null);
+  useEffect(() => {
+    if (detailsRef.current) detailsRef.current.open = false;
+  }, [resetKey]);
+  useEffect(() => {
+    function closeWhenLeaving(event) {
+      if (!detailsRef.current?.open) return;
+      if (!(event.target instanceof Node) || !detailsRef.current.contains(event.target)) detailsRef.current.open = false;
+    }
+    document.addEventListener("pointerdown", closeWhenLeaving);
+    window.addEventListener("popstate", closeWhenLeaving);
+    return () => {
+      document.removeEventListener("pointerdown", closeWhenLeaving);
+      window.removeEventListener("popstate", closeWhenLeaving);
+    };
+  }, []);
+  return detailsRef;
+}
+
 async function addChampionRankings(supabase, data) {
   if (!data?.bracket?.id) return data;
   const { data: champions, error } = await supabase.rpc("get_daily_bracket_champion_rankings", {
@@ -81,22 +101,7 @@ function matchupFor(pokemon, winners, index) {
 }
 
 function PreviousBracket({ previous }) {
-  const detailsRef = useRef(null);
-  useEffect(() => {
-    if (detailsRef.current) detailsRef.current.open = false;
-  }, [previous?.id]);
-  useEffect(() => {
-    function closeWhenLeaving(event) {
-      if (!detailsRef.current?.open) return;
-      if (!(event.target instanceof Node) || !detailsRef.current.contains(event.target)) detailsRef.current.open = false;
-    }
-    document.addEventListener("pointerdown", closeWhenLeaving);
-    window.addEventListener("popstate", closeWhenLeaving);
-    return () => {
-      document.removeEventListener("pointerdown", closeWhenLeaving);
-      window.removeEventListener("popstate", closeWhenLeaving);
-    };
-  }, []);
+  const detailsRef = useAutoClosingDetails(previous?.id);
   if (!previous) return null;
   return <details ref={detailsRef} className="daily-previous"><summary>View yesterday’s bracket results</summary>
     {previous.champions?.length ? <div className="daily-previous-content daily-bracket-previous-content"><div className="daily-previous-winner"><span>Community champion</span><strong>{previous.champions[0].pokemon}</strong><small>{previous.champions[0].wins} bracket win{previous.champions[0].wins === 1 ? "" : "s"} · SF {previous.champions[0].semifinal_percent ?? 0}% · QF {previous.champions[0].quarterfinal_percent ?? 0}%</small></div><div className="daily-previous-columns"><section><h4>Top champions</h4><ol>{previous.champions.slice(0, 5).map((row) => <li key={row.pokemon}><span>{row.pokemon}<small>SF {row.semifinal_percent ?? 0}% · QF {row.quarterfinal_percent ?? 0}%</small></span><b>{row.wins}</b></li>)}</ol></section><section><h4>Head-to-head</h4><ol>{(previous.matchup_results || []).slice().sort((a, b) => b.round - a.round || b.votes - a.votes).slice(0, 8).map((row, index) => <li key={`${row.round}-${row.winner}-${row.loser}-${index}`}><span>{row.winner} over {row.loser} <small>R{row.round}</small></span><b>{row.votes}</b></li>)}</ol></section></div><p className="daily-tiebreak-note">Ties use semifinal percentage, then quarterfinal percentage.</p></div> : <p className="muted">No completed brackets yesterday.</p>}
@@ -104,8 +109,9 @@ function PreviousBracket({ previous }) {
 }
 
 function PreviousQuiz({ previous }) {
+  const detailsRef = useAutoClosingDetails(previous?.id);
   if (!previous) return null;
-  return <details className="daily-previous"><summary>View yesterday’s quiz results</summary>
+  return <details ref={detailsRef} className="daily-previous"><summary>View yesterday’s quiz results</summary>
     <div className="daily-previous-content"><strong>{previous.correct_percent ?? 0}% correct</strong><p>Accepted answer{previous.correct_answers?.length === 1 ? "" : "s"}: {(previous.correct_answers || []).map(displayQuizAnswer).join(", ")}</p><h4>Top answers</h4><ol>{(previous.top_answers || []).slice(0, 5).map((row) => <li key={row.answer}><span>{displayQuizAnswer(row.answer)}</span><b>{row.count}</b></li>)}</ol></div>
   </details>;
 }
@@ -418,6 +424,7 @@ function DailyQuiz({ quiz, previous, signedIn, onSaved }) {
 }
 
 function DailyGameDiscussion({ type, gameId, signedIn }) {
+  const detailsRef = useAutoClosingDetails(`${type}-${gameId}`);
   const [comments, setComments] = useState([]);
   const [body, setBody] = useState("");
   const [replyTo, setReplyTo] = useState(null);
@@ -445,7 +452,7 @@ function DailyGameDiscussion({ type, gameId, signedIn }) {
   }
   const roots = comments.filter((comment) => !comment.parent_comment_id).sort((a, b) => b.upvotes - a.upvotes || new Date(a.created_at) - new Date(b.created_at));
   const renderComment = (comment) => <article key={comment.id}><strong>{comment.display_name || comment.username || "Coach"}</strong><p>{comment.body}</p><div><button type="button" className={comment.upvoted_by_me ? "comment-upvote active" : "comment-upvote"} onClick={() => upvote(comment.id, comment.upvoted_by_me)}>▲ Upvote {comment.upvotes}</button><button type="button" className="text-button" onClick={() => setReplyTo(comment.id)}>Reply</button></div>{comments.filter((reply) => reply.parent_comment_id === comment.id).sort((a, b) => b.upvotes - a.upvotes).map((reply) => <aside key={reply.id}><strong>{reply.display_name || reply.username || "Coach"}</strong><p>{reply.body}</p><button type="button" className={reply.upvoted_by_me ? "comment-upvote active" : "comment-upvote"} onClick={() => upvote(reply.id, reply.upvoted_by_me)}>▲ Upvote {reply.upvotes}</button></aside>)}</article>;
-  return <details className="daily-game-discussion">
+  return <details ref={detailsRef} className="daily-game-discussion">
     <summary><span>Community discussion</span><small>{comments.length} comment{comments.length === 1 ? "" : "s"}</small></summary>
     <div className="daily-game-discussion-body">
       <form onSubmit={post}><textarea value={body} onChange={(event) => setBody(event.target.value)} placeholder={replyTo ? "Write a reply…" : "Add a comment…"} maxLength={1000} /><div>{replyTo && <button type="button" className="text-button" onClick={() => setReplyTo(null)}>Cancel reply</button>}<button className="quiet-button" disabled={!body.trim()}>Post</button></div></form>
