@@ -6178,29 +6178,54 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   // default and best-of-1/best-of-5 available in the result editor.
   // how many mons each team had left standing at the end — used as a
   // tiebreaker in standings.
-  function reportMatch(week, matchIdx, gamesA, gamesB, monsAliveA, monsAliveB, replayUrlA, replayUrlB, mvpSide, mvpName, bestOf = 3) {
+  async function saveHostedRegularSeasonResult(week, matchIdx, result) {
+    const { data, error } = await supabase.rpc("save_regular_season_result", {
+      p_league_id: leagueId,
+      p_week: week,
+      p_match: matchIdx,
+      p_result: result,
+    });
+    if (error) {
+      setLiveDraftError(`The match result could not be saved: ${error.message}`);
+      return false;
+    }
+    const hydrated = hydrateState(data);
+    revRef.current = Math.max(revRef.current, hydrated.rev || 0);
+    setState(hydrated);
+    setLiveDraftError("");
+    return true;
+  }
+  async function reportMatch(week, matchIdx, gamesA, gamesB, monsAliveA, monsAliveB, replayUrlA, replayUrlB, mvpSide, mvpName, bestOf = 3) {
+    const result = {
+      gamesA: Number(gamesA) || 0, gamesB: Number(gamesB) || 0,
+      bestOf: [1, 3, 5].includes(Number(bestOf)) ? Number(bestOf) : 3,
+      monsAliveA: Number(monsAliveA) || 0, monsAliveB: Number(monsAliveB) || 0,
+      reportedBy: myName,
+      replayUrlA: replayUrlA || null,
+      replayUrlB: replayUrlB || null,
+      mvp: mvpName ? { side: mvpSide, name: mvpName } : null,
+    };
+    if (leagueId) return saveHostedRegularSeasonResult(week, matchIdx, result);
     commit((s) => ({
       ...s,
-      matchResults: {
-        ...s.matchResults,
-        [`${week}-${matchIdx}`]: {
-          gamesA: Number(gamesA) || 0, gamesB: Number(gamesB) || 0,
-          bestOf: [1, 3, 5].includes(Number(bestOf)) ? Number(bestOf) : 3,
-          monsAliveA: Number(monsAliveA) || 0, monsAliveB: Number(monsAliveB) || 0,
-          reportedBy: myName,
-          replayUrlA: replayUrlA || null,
-          replayUrlB: replayUrlB || null,
-          mvp: mvpName ? { side: mvpSide, name: mvpName } : null,
-        },
-      },
+      matchResults: { ...s.matchResults, [`${week}-${matchIdx}`]: result },
     }));
+    return true;
   }
   // Sets or clears the crowd-pick "Match MVP" for an already-reported
   // regular-season game — a fun callout, not something that affects
   // standings, so it just tags onto the existing result rather than needing
   // its own tracked state. side is "A" or "B" (which roster the mon came
   // from); passing a null name clears it.
-  function setMatchMVP(week, matchIdx, side, name) {
+  async function setMatchMVP(week, matchIdx, side, name) {
+    if (leagueId) {
+      const existing = state.matchResults[`${week}-${matchIdx}`];
+      if (!existing) return false;
+      return saveHostedRegularSeasonResult(week, matchIdx, {
+        ...existing,
+        mvp: name ? { side, name } : null,
+      });
+    }
     commit((s) => {
       const key = `${week}-${matchIdx}`;
       const existing = s.matchResults[key];
@@ -6213,6 +6238,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
         },
       };
     });
+    return true;
   }
   // Anyone with a name entered can predict a match — doesn't have to be
   // someone who claimed a team, since spectators and people outside the
