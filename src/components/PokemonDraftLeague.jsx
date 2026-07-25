@@ -4864,6 +4864,30 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     const identity = profile?.display_name || profile?.username;
     if (identity) { setMyName(identity); setNameConfirmed(true); }
   }, [profile]);
+  const myTeamIndices = state.teams.map((team, index) => index).filter((index) => state.teams[index].claimedBy === myName);
+  const myTeamIdx = myTeamIndices.includes(activeTeamIdx) ? activeTeamIdx : (myTeamIndices[0] ?? -1);
+  useEffect(() => {
+    if (!leagueId || myTeamIdx < 0) return undefined;
+    let alive = true;
+    const loadPrivateQueue = async () => {
+      const { data, error } = await supabase.rpc("list_my_draft_queue", {
+        p_league_id: leagueId,
+        p_team_index: myTeamIdx,
+      });
+      if (!alive || error || !Array.isArray(data)) return;
+      setState((current) => {
+        const existing = current.queues?.[myTeamIdx] || [];
+        if (JSON.stringify(existing) === JSON.stringify(data)) return current;
+        return { ...current, queues: { ...current.queues, [myTeamIdx]: data } };
+      });
+    };
+    loadPrivateQueue();
+    const interval = setInterval(loadPrivateQueue, 5000);
+    return () => {
+      alive = false;
+      clearInterval(interval);
+    };
+  }, [leagueId, myTeamIdx, supabase]);
   useEffect(() => {
     const message = liveDraftError.trim();
     if (!leagueId || !message || message === lastReportedOperationalErrorRef.current) return;
@@ -4886,7 +4910,12 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
         revRef.current = remote.rev;
         setState((current) => {
           const hydrated = hydrateState(remote);
-          if (!current.liveDraft?.sessionId) return hydrated;
+          const privateQueue = myTeamIdx >= 0 ? current.queues?.[myTeamIdx] : null;
+          if (!current.liveDraft?.sessionId) {
+            return privateQueue
+              ? { ...hydrated, queues: { ...hydrated.queues, [myTeamIdx]: privateQueue } }
+              : hydrated;
+          }
 
           // Once a Live Shared Draft exists, picks and turn order belong to
           // the server-authoritative draft tables. The older whole-league
@@ -4903,6 +4932,9 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
             paused: current.paused,
             pausedAt: current.pausedAt,
             liveDraft: current.liveDraft,
+            queues: privateQueue
+              ? { ...hydrated.queues, [myTeamIdx]: privateQueue }
+              : hydrated.queues,
           };
         });
       }
@@ -4912,7 +4944,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     pull();
     const iv = setInterval(pull, 4000);
     return () => { alive = false; clearInterval(iv); };
-  }, [leagueId]);
+  }, [leagueId, myTeamIdx]);
 
   const commit = useCallback((updater) => {
     if (isSpectator || commissionerPreviewActive) return;
@@ -4976,13 +5008,6 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   const displayIsSpectator = displayRole === "spectator";
   const previewReadOnly = isCommissioner && rolePreview !== "commissioner";
   const canBeCommissioner = !leagueId && nameConfirmed && !state.commissioner;
-  // Several live-draft effects need the active team in their dependency
-  // lists. Calculate it before those effects are declared: dependency
-  // arrays are evaluated during render even when an effect's early-return
-  // means it will not run (for example, auction effects in a snake league).
-  const myTeamIndices = state.teams.map((t, i) => i).filter((i) => state.teams[i].claimedBy === myName);
-  const myTeamIdx = myTeamIndices.includes(activeTeamIdx) ? activeTeamIdx : (myTeamIndices[0] ?? -1);
-
   function claimCommissioner() {
     commit((s) => ({ ...s, commissioner: myName, auditLog: [...(s.auditLog || []), auditEntry(myName, "Became commissioner")] }));
   }
@@ -6182,9 +6207,11 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       setLiveDraftError(`Your queue could not be saved: ${error.message}`);
       return false;
     }
-    const next = hydrateState(data.state);
-    revRef.current = Math.max(revRef.current, Number(next.rev) || 0);
-    setState(next);
+    const queue = Array.isArray(data) ? data : [];
+    setState((current) => ({
+      ...current,
+      queues: { ...current.queues, [teamIdx]: queue },
+    }));
     setSaveStatus("saved");
     return true;
   }
