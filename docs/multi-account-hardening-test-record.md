@@ -55,6 +55,10 @@ Use this record against a safe test league before each major release. Do not use
 - [ ] Archiving preserves season settings, rosters, results, standings, and draft history.
 - [ ] Starting a new season clears only active-season state and preserves archived history.
 - [ ] Returning members retain the correct role; removed members do not regain access.
+- [ ] Restart Draft rejects a season with competition activity and atomically clears snapshot and official draft rows for a draft-only reset.
+- [ ] Rebuild This Season atomically clears draft, schedule, results, transactions, playoffs, private claims, and official draft rows while preserving team ownership and every archive.
+- [ ] A stale commissioner tab cannot restart or rebuild after a newer result, transaction, claim, or settings change.
+- [ ] A forced reset failure leaves both the snapshot and all official draft rows unchanged.
 
 ## Mobile and performance
 

@@ -6866,17 +6866,28 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     });
   }
 
-  async function clearOfficialDraftRows() {
-    // A live shared draft also has protected server rows. Clear those first,
-    // otherwise the next draft would still see the old locked picks.
-    if (leagueId) {
-      const { error } = await supabase.rpc("reset_live_snake_draft", { p_league_id: leagueId });
-      if (error) {
-        setLiveDraftError(`Draft reset failed: ${error.message}`);
-        return false;
-      }
-      setLiveDraftError("");
+  async function persistCurrentCycleReset(nextState, mode) {
+    if (!leagueId) {
+      commit(() => nextState);
+      return true;
     }
+    setSaveStatus("saving");
+    const outgoing = { ...nextState, rev: (state.rev || 0) + 1 };
+    const { data, error } = await supabase.rpc("reset_current_league_cycle", {
+      p_league_id: leagueId,
+      p_state: outgoing,
+      p_mode: mode,
+    });
+    if (error) {
+      setSaveStatus("error");
+      setLiveDraftError(`The reset could not be saved: ${error.message}`);
+      return false;
+    }
+    const hydrated = hydrateState(data);
+    revRef.current = Math.max(revRef.current, hydrated.rev || 0);
+    setState(hydrated);
+    setSaveStatus("saved");
+    setLiveDraftError("");
     return true;
   }
 
@@ -6892,8 +6903,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       setLiveDraftError("This season already has competition activity. Use Rebuild This Season from Setup if you intentionally want to clear the active season; archived seasons will still be preserved.");
       return false;
     }
-    if (!(await clearOfficialDraftRows())) return false;
-    commit((s) => {
+    const buildRestartState = (s) => {
       const keeperRosters = {};
       s.rosters.forEach((roster, teamIdx) => {
         const keepers = (roster || []).filter((mon) => mon.acquiredVia === "keeper");
@@ -6921,7 +6931,8 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
         lastAutoClaimCycle: null,
         auditLog: [...(s.auditLog || []), auditEntry(myName, `Restarted Season ${s.seasonNumber} draft`, "cleared draft picks and current rosters; setup, committed keepers, and league history preserved")],
       };
-    });
+    };
+    if (!(await persistCurrentCycleReset(buildRestartState(state), "restart_draft"))) return false;
     setTab("setup");
     return true;
   }
@@ -6933,8 +6944,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     const preservedDraftSchedule = looksLikeCarriedOverRosterState(state)
       ? state.settings?.draftScheduledAt || null
       : null;
-    if (!(await clearOfficialDraftRows())) return false;
-    commit((s) => {
+    const buildRebuiltState = (s) => {
       const carriedOver = looksLikeCarriedOverRosterState(s);
       let seasonHistory = s.seasonHistory || [];
       let recoveredPickCount = 0;
@@ -6987,11 +6997,8 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
         settings: { ...s.settings, draftScheduledAt: preservedDraftSchedule, manualDraftOrder: null },
         auditLog: [...(s.auditLog || []), auditEntry(myName, `Rebuilt Season ${s.seasonNumber}`, `${recoveryNote}cleared current rosters, draft, schedule, results, transactions, and keeper carryovers; archived seasons preserved`)],
       };
-    });
-    if (leagueId && !preservedDraftSchedule) {
-      supabase.rpc("update_league_draft_time", { p_league_id: leagueId, p_draft_starts_at: null })
-        .then(({ error }) => { if (error) setLiveDraftError(`The prior draft date could not be cleared: ${error.message}`); });
-    }
+    };
+    if (!(await persistCurrentCycleReset(buildRebuiltState(state), "rebuild_season"))) return false;
     setTab("setup");
     return true;
   }
