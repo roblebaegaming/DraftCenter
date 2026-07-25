@@ -5775,9 +5775,32 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       return false;
     }
     if (!leagueId) return startLocalDraft();
-    if (state.settings.draftType !== "snake") {
+    if (state.settings.draftType === "auction") {
+      setLiveDraftError("");
       await saveChainRef.current;
-      return startLocalDraft();
+      const latestSavedState = await loadRemote(leagueId);
+      const sourceState = latestSavedState ? hydrateState(latestSavedState) : state;
+      const startedState = buildStartedDraftState(sourceState);
+      const nextState = { ...startedState, rev: (sourceState.rev || 0) + 1 };
+      setSaveStatus("saving");
+      const saved = await saveRemote(nextState, leagueId);
+      if (!saved?.ok) {
+        setSaveStatus("error");
+        setLiveDraftError(saved?.message || "The live auction could not be started.");
+        return false;
+      }
+      revRef.current = nextState.rev;
+      setState(nextState);
+      setSaveStatus("saved");
+      setTab("draft");
+      if (state.settings.draftScheduledAt) {
+        const { error } = await supabase.rpc("update_league_draft_time", {
+          p_league_id: leagueId,
+          p_draft_starts_at: null,
+        });
+        if (error) setLiveDraftError(`The completed draft time could not be cleared from the league listing: ${error.message}`);
+      }
+      return true;
     }
     setLiveDraftError("");
     await saveChainRef.current;
@@ -6071,6 +6094,13 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     return topPool[Math.floor(Math.random() * topPool.length)];
   }
 
+  function auctionMaxBid(s, teamIdx) {
+    const rosterCount = (s.rosters[teamIdx] || []).length;
+    const budgetLeft = s.budgets[teamIdx] ?? 0;
+    const minimumSlotsAfterWin = Math.max(0, s.settings.rosterMin - rosterCount - 1);
+    return Math.max(0, budgetLeft - minimumSlotsAfterWin);
+  }
+
   async function autoPickForClock() {
     if (leagueId && state.liveDraft?.sessionId) {
       const teamIdx = state.snakeOrder[state.pickIndex];
@@ -6327,7 +6357,11 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       if (!state.nominationDeadline) return;
       const msLeft = state.nominationDeadline - Date.now();
       if (msLeft > 0) {
-        const t = setTimeout(() => {}, msLeft + 50); // forces a re-check via the deadline dependency below when it fires
+        const t = setTimeout(() => {
+          if (lastAuctionNomFired.current === nomKey) return;
+          lastAuctionNomFired.current = nomKey;
+          skipAuctionNomination();
+        }, msLeft + 50);
         return () => clearTimeout(t);
       }
       if (lastAuctionNomFired.current === nomKey) return;
@@ -6359,12 +6393,16 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     consecutiveAutoSkips.current = 0;
     const mon = selectAutoNomination(state, teamIdx);
     lastAuctionNomFired.current = nomKey;
-    if (!mon) return;
+    if (!mon) {
+      skipAuctionNomination();
+      return;
+    }
     if (isBotTeam) {
-      setTimeout(async () => {
+      const timer = setTimeout(async () => {
         const saved = await nominateForAuction(mon, 1);
         if (!saved) lastAuctionNomFired.current = -1;
       }, 1000);
+      return () => clearTimeout(timer);
     } else {
       nominateForAuction(mon, 1);
     }
@@ -6451,7 +6489,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       // the room decide value, not a pre-set tier price. Floor of 1pt so a
       // nomination always has to mean something, no free auto-wins at 0.
       const startBid = Math.max(1, Math.floor(Number(startBidRaw)) || 1);
-      if ((s.budgets[teamIdx] ?? 0) < startBid) return s;
+      if (auctionMaxBid(s, teamIdx) < startBid) return s;
       return {
         ...s,
         nominationDeadline: null,
@@ -6484,7 +6522,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       if (Date.now() >= s.nominee.deadline) return s;
       if (teamIdx === s.nominee.currentBidder) return s;
       if ((s.rosters[teamIdx] || []).length >= s.settings.rosterMax) return s;
-      if ((s.budgets[teamIdx] ?? 0) < amt) return s;
+      if (auctionMaxBid(s, teamIdx) < amt) return s;
       if (capViolationReason(s.rosters[teamIdx] || [], s.nominee.mon, s.settings)) return s;
       // Every valid bid resets the clock to a fresh full window — this
       // guarantees each bidder gets a genuinely fair shot to respond,
@@ -10180,7 +10218,7 @@ function SetupView({ state, leagueId = null, isCommissioner, canBeCommissioner, 
           <fieldset disabled={!isCommissioner || locked} className="disabled:opacity-50 mt-3">
             <div className="flex gap-2 mb-6">
               {["snake", "auction"].map((dt) => (
-                <button key={dt} onClick={() => updateSettings({ draftType: dt })}
+                <button key={dt} type="button" onClick={() => updateSettings({ draftType: dt })}
                   className="flex-1 py-3 rounded text-sm font-semibold uppercase mono-font"
                   style={{ background: settings.draftType === dt ? "#FFD23F" : "#1F2338", color: settings.draftType === dt ? "#10121C" : "#C9CBE0", border: "1px solid rgba(255,255,255,0.08)" }}>
                   {dt}
@@ -12393,9 +12431,15 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
       {draftDone ? (
         <div className="text-center py-10">
           <p className="display-font text-3xl mb-4" style={{ color: "#FFD23F" }}>DRAFT COMPLETE</p>
-          <button onClick={onGenerateSchedule} className="px-6 py-3 rounded font-semibold display-font text-xl glow" style={{ background: "#4FD1C5", color: "#10121C" }}>
+          <button onClick={onGenerateSchedule} disabled={draftType === "auction" && !allTeamsMetMin}
+            className="px-6 py-3 rounded font-semibold display-font text-xl glow disabled:opacity-40 disabled:cursor-not-allowed" style={{ background: "#4FD1C5", color: "#10121C" }}>
             GENERATE SCHEDULE →
           </button>
+          {draftType === "auction" && !allTeamsMetMin && (
+            <p className="text-sm mt-3" style={{ color: "#F0555A" }}>
+              The auction cannot advance until every team reaches the {settings.rosterMin}-Pokémon minimum.
+            </p>
+          )}
           <DraftRecapCard state={state} onViewTeam={onViewTeam} />
           <DraftHeroVoteCard teams={teams} votes={state.draftHeroVotes} myName={myName} castDraftHeroVote={castDraftHeroVote} />
         </div>
@@ -12453,7 +12497,7 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
               )}
             </div>
           ) : (
-            <AuctionPanel teams={teams} budgets={budgets} rosters={rosters} rosterMax={settings.rosterMax} nominee={nominee}
+            <AuctionPanel teams={teams} budgets={budgets} rosters={rosters} rosterMin={settings.rosterMin} rosterMax={settings.rosterMax} nominee={nominee}
               placeBid={placeBid} myTeamIdx={myTeamIdx} isCommissioner={isCommissioner}
               auctionNominationOrder={auctionNominationOrder} auctionNominationIdx={auctionNominationIdx}
               paused={paused} pausedAt={pausedAt} nominationDeadline={nominationDeadline}
@@ -12818,7 +12862,7 @@ function PickTimer({ deadline, isCommissioner, onExpireAction, paused, pausedAt 
   );
 }
 
-function AuctionPanel({ teams, budgets, rosters, rosterMax, nominee, placeBid, myTeamIdx, isCommissioner, auctionNominationOrder, auctionNominationIdx, paused, pausedAt, nominationDeadline, pendingNominee, pendingBid, setPendingBid, confirmNomination, cancelPendingNomination, skipAuctionNomination, poolEmpty, onDone }) {
+function AuctionPanel({ teams, budgets, rosters, rosterMin, rosterMax, nominee, placeBid, myTeamIdx, isCommissioner, auctionNominationOrder, auctionNominationIdx, paused, pausedAt, nominationDeadline, pendingNominee, pendingBid, setPendingBid, confirmNomination, cancelPendingNomination, skipAuctionNomination, poolEmpty, onDone }) {
   const [now, setNow] = useState(Date.now());
   const [customAmount, setCustomAmount] = useState("");
   useEffect(() => {
@@ -12840,18 +12884,21 @@ function AuctionPanel({ teams, budgets, rosters, rosterMax, nominee, placeBid, m
     const onDeckTeam = onDeckIdx !== null ? teams[onDeckIdx] : null;
     const myTurn = onDeckIdx === myTeamIdx;
     if (pendingNominee) {
-      const myBudget = myTeamIdx >= 0 ? (budgets[myTeamIdx] ?? 0) : 0;
+      const nominatorBudget = onDeckIdx !== null ? (budgets[onDeckIdx] ?? 0) : 0;
+      const nominatorRosterCount = onDeckIdx !== null ? (rosters[onDeckIdx] || []).length : 0;
+      const reserveForMinimum = Math.max(0, rosterMin - nominatorRosterCount - 1);
+      const maxOpeningBid = Math.max(0, nominatorBudget - reserveForMinimum);
       const bidNum = Math.max(1, Math.floor(Number(pendingBid)) || 1);
-      const validBid = bidNum >= 1 && bidNum <= myBudget;
+      const validBid = (myTurn || isCommissioner) && bidNum >= 1 && bidNum <= maxOpeningBid;
       return (
         <div style={{ background: "#171A2C", border: "1px solid #FFD23F55" }} className="rounded-lg p-5 mb-6">
           <span className="mono-font text-xs" style={{ color: "#9A9FBD" }}>NOMINATING</span>
           <div className="display-font text-3xl mb-3" style={{ color: "#FFD23F" }}>{pendingNominee.name}</div>
           <div className="flex items-center gap-2 flex-wrap">
             <label className="text-sm" style={{ color: "#9A9FBD" }}>Opening bid:</label>
-            <input type="number" min={1} max={myBudget} value={pendingBid} onChange={(e) => setPendingBid(e.target.value)}
+            <input type="number" min={1} max={maxOpeningBid} value={pendingBid} onChange={(e) => setPendingBid(e.target.value)}
               autoFocus className="w-20 px-2 py-1.5 rounded mono-font text-sm" style={{ background: "#1F2338", border: "1px solid rgba(255,255,255,0.1)", color: "#EDEBFA" }} />
-            <span className="mono-font text-xs" style={{ color: "#5B5F7E" }}>pt — you have {myBudget}pt</span>
+            <span className="mono-font text-xs" style={{ color: "#5B5F7E" }}>pt — {onDeckTeam?.name} can open up to {maxOpeningBid}pt</span>
           </div>
           <div className="flex gap-2 mt-3">
             <button onClick={confirmNomination} disabled={!validBid}
@@ -12862,7 +12909,7 @@ function AuctionPanel({ teams, budgets, rosters, rosterMax, nominee, placeBid, m
               Cancel
             </button>
           </div>
-          {!validBid && bidNum > myBudget && <p className="text-xs mt-2" style={{ color: "#F0555A" }}>You don't have {bidNum}pt to open with.</p>}
+          {!validBid && bidNum > maxOpeningBid && <p className="text-xs mt-2" style={{ color: "#F0555A" }}>That bid would leave too little budget to reach the roster minimum.</p>}
         </div>
       );
     }
@@ -12908,10 +12955,13 @@ function AuctionPanel({ teams, budgets, rosters, rosterMax, nominee, placeBid, m
   const secLeft = Math.max(0, Math.ceil(remainingMs / 1000));
   const closing = !paused && !expired && secLeft <= 3;
   const myBudget = myTeamIdx >= 0 ? (budgets[myTeamIdx] ?? 0) : 0;
-  const myRosterFull = myTeamIdx >= 0 && (rosters[myTeamIdx] || []).length >= rosterMax;
+  const myRosterCount = myTeamIdx >= 0 ? (rosters[myTeamIdx] || []).length : 0;
+  const myRosterFull = myTeamIdx >= 0 && myRosterCount >= rosterMax;
+  const myMinimumReserveAfterWin = Math.max(0, rosterMin - myRosterCount - 1);
+  const myMaxBid = Math.max(0, myBudget - myMinimumReserveAfterWin);
   const iAmWinning = myTeamIdx === currentBidder;
   const minNextBid = currentBid + 1;
-  const canIBid = myTeamIdx >= 0 && !iAmWinning && !myRosterFull && myBudget >= minNextBid && !expired && !paused;
+  const canIBid = myTeamIdx >= 0 && !iAmWinning && !myRosterFull && myMaxBid >= minNextBid && !expired && !paused;
 
   function submitCustomBid() {
     const amt = Number(customAmount);
@@ -12943,9 +12993,9 @@ function AuctionPanel({ teams, budgets, rosters, rosterMax, nominee, placeBid, m
             className="px-4 py-2 rounded font-semibold disabled:opacity-40" style={{ background: "#FFD23F", color: "#10121C" }}>
             Bid {minNextBid}pt
           </button>
-          <input type="number" min={minNextBid} placeholder={`${minNextBid}+`} value={customAmount} onChange={(e) => setCustomAmount(e.target.value)}
+          <input type="number" min={minNextBid} max={myMaxBid} placeholder={`${minNextBid}+`} value={customAmount} onChange={(e) => setCustomAmount(e.target.value)}
             className="w-24 px-2 py-2 rounded mono-font text-sm" style={{ background: "#1F2338", border: "1px solid rgba(255,255,255,0.1)", color: "#EDEBFA" }} />
-          <button onClick={submitCustomBid} disabled={!canIBid || !customAmount || Number(customAmount) < minNextBid}
+          <button onClick={submitCustomBid} disabled={!canIBid || !customAmount || Number(customAmount) < minNextBid || Number(customAmount) > myMaxBid}
             className="px-3 py-2 rounded text-sm font-semibold disabled:opacity-40" style={{ background: "#1F2338", color: "#4FD1C5", border: "1px solid rgba(255,255,255,0.08)" }}>
             Bid custom
           </button>
