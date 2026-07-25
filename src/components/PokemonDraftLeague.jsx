@@ -4576,7 +4576,7 @@ function isWithinOvernightPause(date, settings) {
   return h >= start || h < end; // wraps past midnight
 }
 
-export default function PokemonDraftLeague({ leagueId = null, leagueRole = null, league = null, profile = null, onOpenLeagueTools = null, onOpenLeagueAppearance = null }) {
+export default function PokemonDraftLeague({ leagueId = null, leagueRole = null, league = null, profile = null, onOpenLeagueTools = null }) {
   const isSpectator = leagueId && leagueRole === "viewer";
   const [supabase] = useState(() => createClient());
   const [tab, setTab] = useState("home");
@@ -7577,15 +7577,16 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
             })}
             {displayIsCommissioner && leagueId && (
               <>
-                <button onClick={onOpenLeagueTools}
+              <button onClick={() => onOpenLeagueTools?.({
+                teams: state.teams,
+                trades: state.trades,
+                transactionLog: state.transactionLog,
+                reverseTrade,
+                reverseFreeAgentMove,
+              })}
                   className="px-4 py-2 rounded text-sm font-semibold"
                   style={{ fontFamily: "'Teko', sans-serif", fontSize: "16px", letterSpacing: "0.03em", background: "#253354", color: "#D9E5FF", border: "1px solid #4B669B" }}>
                   LEAGUE TOOLS
-                </button>
-                <button onClick={onOpenLeagueAppearance}
-                  className="px-4 py-2 rounded text-sm font-semibold"
-                  style={{ fontFamily: "'Teko', sans-serif", fontSize: "16px", letterSpacing: "0.03em", background: "#33284F", color: "#E9DCFF", border: "1px solid #66518E" }}>
-                  APPEARANCE
                 </button>
               </>
             )}
