@@ -4157,7 +4157,7 @@ function draftReadinessIssues(state, resolveCost) {
   }
 
   const legalPool = fullPool(settings).filter((pokemon) => isLegal(pokemon, settings));
-  const sourceKeys = legalPool.map((pokemon) => String(pokemon?.id || ""));
+  const sourceKeys = legalPool.map((pokemon) => String(pokemon?.id ?? ""));
   const normalizedPokemonNames = legalPool.map((pokemon) => String(pokemon?.name || "").trim().toLowerCase());
   if (!legalPool.length) issues.push("At least one Pokémon must be legal.");
   if (sourceKeys.some((key) => !key) || new Set(sourceKeys).size !== sourceKeys.length) {

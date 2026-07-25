@@ -19,6 +19,7 @@ Use this record against a safe test league before each major release. Do not use
 ## Permissions and privacy
 
 - [ ] A brand-new standard or practice league persists its displayed setup before the first team claim; the first claim succeeds without a manual settings save or refresh.
+- [ ] The default legal pool passes stable-ID validation, including the built-in Pokémon whose stable ID is numeric zero.
 - [ ] Signed-out users cannot read private league, roster, notebook, queue, or planning data.
 - [ ] Spectators cannot change league settings, rosters, results, queues, trades, or draft state.
 - [ ] Managers can change only their permitted team data.
