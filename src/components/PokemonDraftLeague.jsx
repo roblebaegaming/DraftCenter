@@ -6110,9 +6110,13 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       || (!isBotTeam && teamIdx !== myTeamIdx && !isCommissioner)
     )) return;
     const mon = selectAutoMon(state, teamIdx);
-    lastAutoFired.current = state.pickIndex;
     const attemptedPickIndex = state.pickIndex;
     const runAutoPick = async () => {
+      // Mark the turn only when its request actually begins. Live-board
+      // reconciliation can re-render during the bot's short presentation
+      // delay; if that cancels the timer, the replacement render must remain
+      // free to schedule it again.
+      lastAutoFired.current = attemptedPickIndex;
       const succeeded = mon
         ? await snakePick(mon)
         : await autoPickForClock();
