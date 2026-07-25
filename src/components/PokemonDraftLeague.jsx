@@ -6406,29 +6406,33 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     )) return;
 
     if (!fastTrack) {
-      // Genuine human — only step in once their real deadline has passed,
-      // scheduled to fire exactly then rather than polling.
+      // Give a human their full window, then nominate from their queue or
+      // the same premium strategy-aware pool used by bots.
       if (!state.nominationDeadline) return;
+      const nominateFallback = async () => {
+        if (lastAuctionNomFired.current === nomKey) return;
+        lastAuctionNomFired.current = nomKey;
+        const rosterFull = (state.rosters[teamIdx] || []).length >= state.settings.rosterMax;
+        const outOfMoney = (state.budgets[teamIdx] ?? 0) < 1;
+        const mon = rosterFull || outOfMoney ? null : selectAutoNomination(state, teamIdx);
+        if (!mon) {
+          await skipAuctionNomination();
+          return;
+        }
+        const saved = await nominateForAuction(mon, 1);
+        if (!saved) {
+          lastAuctionNomFired.current = -1;
+          await refreshLiveAuction();
+        }
+      };
       const msLeft = state.nominationDeadline - Date.now();
       if (msLeft > 0) {
-        const t = setTimeout(() => {
-          if (lastAuctionNomFired.current === nomKey) return;
-          lastAuctionNomFired.current = nomKey;
-          skipAuctionNomination();
-        }, msLeft + 50);
+        const t = setTimeout(nominateFallback, msLeft + 50);
         return () => clearTimeout(t);
       }
-      if (lastAuctionNomFired.current === nomKey) return;
-      lastAuctionNomFired.current = nomKey;
-      // Missing the window forfeits the turn — nothing gets put up for
-      // auction on their behalf, it just passes to the next team in the
-      // nomination order. As a courtesy, whatever mon would have been the
-      // default pick (next highest value, or one from that tier) gets
-      // queued for them instead of nominated, so it's ready to go next
-      // time their turn comes around rather than lost track of.
-      const mon = selectAutoNomination(state, teamIdx);
-      if (mon) addToQueue(teamIdx, mon.name);
-      skipAuctionNomination();
+      // A browser that reaches this effect after the deadline performs the
+      // same fallback immediately instead of waiting for another render.
+      nominateFallback();
       return;
     }
 
