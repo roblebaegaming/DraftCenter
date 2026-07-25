@@ -1524,12 +1524,25 @@ function fullPool(settings) {
   return [...base, ...(settings?.customMons || [])];
 }
 
+// Keep Custom generation/type shortcuts authoritative as the master Pokédex
+// grows, rather than treating them as a one-time edit of the old ban list.
+function excludedByCustomQuickSelection(mon, settings) {
+  if (settings?.regulationId !== "custom" || mon.custom) return false;
+  const selectedGens = (settings.customSelectedGens || []).map(Number);
+  const selectedTypes = (settings.customSelectedTypes || []).map((type) => String(type).toLowerCase());
+  if (!selectedGens.length && !selectedTypes.length) return false;
+  const matchesGen = selectedGens.includes(customFilterGen(mon));
+  const matchesType = selectedTypes.includes(mon.t1) || (mon.t2 && selectedTypes.includes(mon.t2));
+  return !matchesGen && !matchesType;
+}
+
 // A pokémon is draftable if its regulation includes it, it hasn't been
 // individually banned on top of that, and — if it's a Mega — the league
 // has opted in to Megas as separate picks.
 function isLegal(mon, settings) {
   const reg = regulationFor(settings);
   if (reg.legalNames && !mon.custom && !reg.legalNames.includes(mon.name) && !(settings.allowedExtraMons || []).includes(mon.name)) return false;
+  if (excludedByCustomQuickSelection(mon, settings) && !(settings.allowedExtraMons || []).includes(mon.name)) return false;
   if (settings.bannedMons.includes(mon.name)) return false;
   if (mon.isMega && !settings.allowMegas) return false;
   return true;
@@ -8496,7 +8509,7 @@ function HomeView({ state, leagueId, leagueName, isCommissioner, isSpectator = f
         {state.settings.calendarMode === "weekly" ? (
           <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm" style={{ color: "#9A9FBD" }}>
             <span>Season begins: <b style={{ color: "#EDEBFA" }}>{state.settings.seasonStartsAt ? new Date(state.settings.seasonStartsAt).toLocaleString() : "Not set"}</b></span>
-            <span>Matches: <b style={{ color: "#EDEBFA" }}>{["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][state.settings.matchDayOfWeek]} at {state.settings.matchTime}</b></span>
+            <span>Week closes: <b style={{ color: "#EDEBFA" }}>{["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][state.settings.matchDayOfWeek]} at {state.settings.matchTime}</b></span>
             <span>Claims: <b style={{ color: "#EDEBFA" }}>{["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][state.settings.claimDayOfWeek]} at {state.settings.claimTime}</b></span>
             <span className="mono-font text-xs">{state.settings.leagueTimeZone || "UTC"}</span>
           </div>
@@ -9755,7 +9768,10 @@ function SetupView({ state, leagueId = null, isCommissioner, canBeCommissioner, 
               const legal = isLegal(p, settings);
               const banned = settings.bannedMons.includes(p.name);
               const reg = regulationFor(settings);
-              const excludedByRegulation = !!(reg.legalNames && !p.custom && !reg.legalNames.includes(p.name));
+              const excludedByRegulation = !!(
+                (reg.legalNames && !p.custom && !reg.legalNames.includes(p.name))
+                || excludedByCustomQuickSelection(p, settings)
+              );
               const allowedExtra = (settings.allowedExtraMons || []).includes(p.name);
               const cost = costFor(p, settings);
               const overridden = settings.costOverrides[p.name] !== undefined;
@@ -10070,13 +10086,13 @@ function TransactionRulesCard({ state, isCommissioner, updateSettings }) {
                   placeholder="America/New_York" className="block w-full mt-1 px-3 py-2 rounded"
                   style={{ background: "#1F2338", color: "#EDEBFA", border: "1px solid rgba(255,255,255,0.1)" }} />
               </label>
-              <label className="text-xs" style={{ color: "#9A9FBD" }}>Weekly match day
+              <label className="text-xs" style={{ color: "#9A9FBD" }}>Last day of the matchup week
                 <select value={settings.matchDayOfWeek} onChange={(e) => updateSettings({ matchDayOfWeek: Number(e.target.value) })}
                   className="block w-full mt-1 px-3 py-2 rounded" style={{ background: "#1F2338", color: "#EDEBFA" }}>
                   {dayNames.map((day, index) => <option key={day} value={index}>{day}</option>)}
                 </select>
               </label>
-              <label className="text-xs" style={{ color: "#9A9FBD" }}>Match time
+              <label className="text-xs" style={{ color: "#9A9FBD" }}>Week closes at
                 <input type="time" value={settings.matchTime || "19:00"} onChange={(e) => updateSettings({ matchTime: e.target.value })}
                   className="block w-full mt-1 px-3 py-2 rounded" style={{ background: "#1F2338", color: "#EDEBFA" }} />
               </label>

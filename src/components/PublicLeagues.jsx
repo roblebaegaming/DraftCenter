@@ -57,7 +57,7 @@ function nextMatch(league) {
 function clockSummary(league) {
   const settings = league.public_state?.settings || {};
   if (settings.calendarMode !== "weekly") return "Untimed league";
-  return `Matches ${DAYS[settings.matchDayOfWeek] || "weekly"} at ${settings.matchTime || "19:00"} · Claims ${DAYS[settings.claimDayOfWeek] || "weekly"} at ${settings.claimTime || "20:00"} · ${settings.leagueTimeZone || "UTC"}`;
+  return `Week closes ${DAYS[settings.matchDayOfWeek] || "weekly"} at ${settings.matchTime || "19:00"} · Claims ${DAYS[settings.claimDayOfWeek] || "weekly"} at ${settings.claimTime || "20:00"} · ${settings.leagueTimeZone || "UTC"}`;
 }
 
 function PublicLeagueCard({ league, signedIn, busy, onJoin }) {
