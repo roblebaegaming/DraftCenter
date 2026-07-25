@@ -66,6 +66,7 @@ Use this record against a safe test league before each major release. Do not use
 - [ ] A stale commissioner tab cannot restart or rebuild after a newer result, transaction, claim, or settings change.
 - [ ] A forced reset failure leaves both the snapshot and all official draft rows unchanged.
 - [ ] Restart/rebuild succeeds on a snake league with no auction activity, and the required auction-owner relation exists for every deployment.
+- [ ] Restart/rebuild and new-season rollover return the relational league status to the canonical `setup` enum value.
 
 ## Mobile and performance
 
