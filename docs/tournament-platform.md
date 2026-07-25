@@ -11,6 +11,9 @@ has been reviewed and applied before the UI is deployed.
 - Registration, check-in, team-sheet submission and lock.
 - Server-generated rounds with repeat-opponent avoidance and automatic byes.
 - Per-round match desk, two-party result confirmation, standings and OMW%.
+- Private per-match Tournament Companion for matchup plans and post-match notes.
+- Player judge requests with an auditable organizer-resolution foundation.
+- Live event-story projections for undefeated players, the cut, and the bubble.
 - Organizer-controlled round transitions with incomplete-round protection.
 - Immutable pairings and audit events.
 
@@ -21,7 +24,7 @@ has been reviewed and applied before the UI is deployed.
 - Link a private My Teams workspace into team-sheet submission without exposing
   its notes, replica code, or other private fields.
 - Add realtime subscriptions, event invitations, scheduled check-in windows,
-  explicit disputes, judge penalties, deck/team-list field schemas, and exports.
+  judge penalties, deck/team-list field schemas, and exports.
 - Extend the regional preset with configurable Day 1 record cuts, Day 2 Swiss,
   asymmetrical pods, and official tie-break variations required by each game.
 - Add a full top-cut bracket display and server-derived elimination pairings.
