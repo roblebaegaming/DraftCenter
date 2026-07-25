@@ -7357,18 +7357,18 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
         const result = state.matchResults?.[`${weekIndex}-${matchIndex}`];
         return [weekIndex + 1, matchIndex + 1, state.teams[a]?.name || "", state.teams[b]?.name || "",
           result ? `${result.gamesA}-${result.gamesB}` : "Not reported", result?.monsAliveA ?? "", result?.monsAliveB ?? "",
-          result?.mvpName || "", result?.replayUrlA || "", result?.replayUrlB || ""];
+          result?.mvp?.name || "", result?.replayUrlA || "", result?.replayUrlB || ""];
       })),
     ], [10, 10, 28, 28, 14, 16, 16, 24, 48, 48]);
     addSheet("Transactions", [
       ["Type", "Date", "Status", "Team / From", "To", "Added", "Dropped", "Details"],
       ...(state.transactionLog || []).map((entry) => ["Free agent", entry.timestamp ? new Date(entry.timestamp) : "", entry.reversed ? "Reversed" : "Completed", state.teams[entry.teamIdx]?.name || "", "", entry.addName || "", entry.dropName || "", entry.note || ""]),
-      ...(state.trades || []).map((trade) => ["Trade", trade.createdAt ? new Date(trade.createdAt) : "", trade.status || "", state.teams[trade.fromTeam]?.name || "", state.teams[trade.toTeam]?.name || "", "", "", `${(trade.fromMons || []).join(", ")} for ${(trade.toMons || []).join(", ")}`]),
+      ...(state.trades || []).map((trade) => ["Trade", trade.createdAt ? new Date(trade.createdAt) : "", trade.status || "", state.teams[trade.fromTeam]?.name || "", state.teams[trade.toTeam]?.name || "", "", "", `${(trade.offerNames || []).join(", ")} for ${(trade.requestNames || []).join(", ")}`]),
     ], [14, 20, 14, 28, 28, 28, 28, 60]);
     const playoffRows = [["Path", "Score", "MVP", "Replay A", "Replay B"]];
     const walkPlayoffs = (value, path = "Playoffs") => {
       if (!value || typeof value !== "object") return;
-      if (Number.isFinite(value.gamesA) && Number.isFinite(value.gamesB)) playoffRows.push([path, `${value.gamesA}-${value.gamesB}`, value.mvpName || "", value.replayUrlA || "", value.replayUrlB || ""]);
+      if (Number.isFinite(value.gamesA) && Number.isFinite(value.gamesB)) playoffRows.push([path, `${value.gamesA}-${value.gamesB}`, value.mvp?.name || "", value.replayUrlA || "", value.replayUrlB || ""]);
       Object.entries(value).forEach(([key, child]) => { if (child && typeof child === "object") walkPlayoffs(child, `${path} / ${key}`); });
     };
     walkPlayoffs(state.playoffs);
@@ -7377,6 +7377,28 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       ["Season", "Ended", "Champion", "Draft type", "Playoff MVP", "Draft Day Hero"],
       ...(state.seasonHistory || []).map((season) => [season.seasonNumber, season.endedAt ? new Date(season.endedAt) : "", season.champion?.teamName || "", season.draftType || "", season.playoffMVP || "", (season.draftDayHero || []).join(", ")]),
     ], [10, 20, 30, 16, 24, 36]);
+    addSheet("Archived Rosters", [
+      ["Season", "Team", "Manager", "Pokemon", "Cost", "Draft pick", "Acquired via"],
+      ...(state.seasonHistory || []).flatMap((season) => (season.rosters || []).flatMap((roster, teamIndex) => (roster || []).map((mon) => [
+        season.seasonNumber, season.teams?.[teamIndex]?.name || `Team ${teamIndex + 1}`, season.teams?.[teamIndex]?.claimedBy || "",
+        mon.name || "", mon.cost ?? "", mon.draftPick ?? "", mon.acquiredVia || "",
+      ]))),
+    ], [10, 28, 24, 28, 10, 12, 16]);
+    addSheet("Archived Results", [
+      ["Season", "Week", "Match", "Team A", "Team B", "Score", "Differential A", "Differential B", "MVP", "Replay A", "Replay B"],
+      ...(state.seasonHistory || []).flatMap((season) => (season.schedule || []).flatMap((week, weekIndex) => (week || []).map(([a, b], matchIndex) => {
+        const result = season.matchResults?.[`${weekIndex}-${matchIndex}`];
+        return [season.seasonNumber, weekIndex + 1, matchIndex + 1, season.teams?.[a]?.name || "", season.teams?.[b]?.name || "",
+          result ? `${result.gamesA}-${result.gamesB}` : "Not reported", result?.monsAliveA ?? "", result?.monsAliveB ?? "",
+          result?.mvp?.name || "", result?.replayUrlA || "", result?.replayUrlB || ""];
+      }))),
+    ], [10, 10, 10, 28, 28, 14, 16, 16, 24, 48, 48]);
+    addSheet("Archived Draft Logs", [
+      ["Season", "Pokemon", "Draft pick", "Auction cost"],
+      ...(state.seasonHistory || []).flatMap((season) => (season.draftLog || []).map((entry) => [
+        season.seasonNumber, entry.name || "", entry.draftPick ?? "", entry.cost ?? "",
+      ])),
+    ], [10, 28, 14, 14]);
     XLSX.writeFile(workbook, `${String(league?.name || "league").replace(/[^a-z0-9]+/gi, "-").replace(/(^-|-$)/g, "").toLowerCase()}-backup-${new Date().toISOString().slice(0, 10)}.xlsx`);
   }
   function exportRecoveryBackup() {

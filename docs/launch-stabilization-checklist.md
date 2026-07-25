@@ -54,7 +54,12 @@ Use this before each beta release. Record the date, commit, tester accounts, dev
 - [ ] Eligible archived snake drafts contribute to community ADP; auctions do not.
 - [ ] Reset/restart remains scoped and preserves archived seasons.
 - [ ] Complete a second season, then recheck the first archive.
-- [ ] Backup and recovery procedure is tested and documented.
+- [ ] League spreadsheet export includes current and archived teams, rosters, standings, results, transactions, playoffs, and draft history.
+- [ ] League recovery JSON restores into a test league without altering archived history or protected live-draft authority.
+- [ ] Automated database backup ownership, frequency, retention, and restore access are documented.
+- [ ] A database restore drill is completed in a safe non-production environment and recorded.
+- [ ] Backup files are stored somewhere other than the production database and primary deployment account.
+- [ ] Account and My Teams data portability is tested without exposing another user's private data.
 
 ## Community and account features
 
