@@ -18,6 +18,7 @@ Use this record against a safe test league before each major release. Do not use
 
 ## Permissions and privacy
 
+- [ ] A brand-new standard or practice league persists its displayed setup before the first team claim; the first claim succeeds without a manual settings save or refresh.
 - [ ] Signed-out users cannot read private league, roster, notebook, queue, or planning data.
 - [ ] Spectators cannot change league settings, rosters, results, queues, trades, or draft state.
 - [ ] Managers can change only their permitted team data.

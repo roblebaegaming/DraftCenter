@@ -4937,10 +4937,29 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
 
   async function claimTeam(teamIdx) {
     if (leagueId) {
-      const { data, error } = await supabase.rpc("claim_live_setup_team", { p_league_id: leagueId, p_team_index: teamIdx });
+      let { data, error } = await supabase.rpc("claim_live_setup_team", { p_league_id: leagueId, p_team_index: teamIdx });
+      if (error && isCommissioner && /team not found/i.test(error.message || "")) {
+        const { data: initialized, error: initializeError } = await supabase.rpc(
+          "initialize_league_setup_if_empty",
+          { p_league_id: leagueId, p_state: state },
+        );
+        if (initializeError) {
+          setLiveDraftError(`The new league setup could not be initialized: ${initializeError.message}`);
+          return;
+        }
+        const initializedState = hydrateState(initialized);
+        revRef.current = Math.max(revRef.current, initializedState.rev || 0);
+        setState(initializedState);
+        ({ data, error } = await supabase.rpc("claim_live_setup_team", {
+          p_league_id: leagueId,
+          p_team_index: teamIdx,
+        }));
+      }
       if (error) { setLiveDraftError(error.message); return; }
       setLiveDraftError("");
-      setState(hydrateState(data));
+      const hydrated = hydrateState(data);
+      revRef.current = Math.max(revRef.current, hydrated.rev || 0);
+      setState(hydrated);
       return;
     }
     commit((s) => ({
