@@ -38,13 +38,15 @@ export default function TournamentCenter() {
 
   async function loadDetail(id = selectedId) {
     if (!id) return;
-    const [eventResult, entrantsResult, roundsResult, pairingsResult, standingsResult, sheetsResult] = await Promise.all([
+    const [eventResult, entrantsResult, roundsResult, pairingsResult, standingsResult, sheetsResult, companionsResult, disputesResult] = await Promise.all([
       supabase.from("tournaments").select("*").eq("id", id).single(),
       supabase.from("tournament_entrants").select("*, profile:profiles(display_name,username)").eq("tournament_id", id).order("created_at"),
       supabase.from("tournament_rounds").select("*").eq("tournament_id", id).order("round_number"),
       supabase.from("tournament_pairings").select("*").eq("tournament_id", id).order("table_number"),
       supabase.rpc("get_tournament_standings", { p_tournament_id: id }),
       supabase.from("tournament_team_sheets").select("entrant_id,team_name,pokemon,locked_at").eq("tournament_id", id),
+      supabase.from("tournament_match_companions").select("*").eq("tournament_id", id),
+      supabase.from("tournament_disputes").select("*").eq("tournament_id", id).order("opened_at", { ascending: false }),
     ]);
     if (eventResult.error) return setMessage(eventResult.error.message);
     setDetail({
@@ -54,6 +56,8 @@ export default function TournamentCenter() {
       pairings: pairingsResult.data || [],
       standings: standingsResult.data || [],
       sheets: sheetsResult.data || [],
+      companions: companionsResult.data || [],
+      disputes: disputesResult.data || [],
     });
   }
 
@@ -132,7 +136,7 @@ export default function TournamentCenter() {
 }
 
 function TournamentDetail({ detail, user, busy, setSelectedId, act, sheet, setSheet, saveSheet }) {
-  const { event, entrants, rounds, pairings, standings, sheets } = detail;
+  const { event, entrants, rounds, pairings, standings, sheets, companions, disputes } = detail;
   const me = entrants.find((entrant) => entrant.user_id === user?.id);
   const organizer = event.organizer_id === user?.id;
   const activeRound = [...rounds].reverse().find((round) => round.status === "active") || rounds.at(-1);
@@ -152,7 +156,7 @@ function TournamentDetail({ detail, user, busy, setSelectedId, act, sheet, setSh
       </div>
     </section>
     <nav className="tournament-summary"><span><b>{entrants.filter((e) => !e.dropped_at).length}</b> players</span><span><b>{activeRound?.round_number || 0}</b> current round</span><span><b>{event.swiss_rounds}</b> Swiss rounds</span><span><b>{event.top_cut_size || "—"}</b> top cut</span></nav>
-    {myPairing && <MatchDesk pairing={myPairing} me={me} names={names} event={event} sheets={sheets} busy={busy} act={act}/>}
+    {myPairing && <MatchDesk pairing={myPairing} me={me} names={names} event={event} sheets={sheets} companion={companions.find((item) => item.pairing_id === myPairing.id)} dispute={disputes.find((item) => item.pairing_id === myPairing.id && item.status === "open")} busy={busy} act={act}/>}
     <div className="tournament-detail-grid">
       <section className="tournament-panel">
         <div className="section-heading"><div><span className="eyebrow">PAIRINGS</span><h2>{activeRound ? `Round ${activeRound.round_number}` : "Waiting for round one"}</h2></div><span className="tournament-status">{nice(activeRound?.stage || "registration")}</span></div>
@@ -163,14 +167,18 @@ function TournamentDetail({ detail, user, busy, setSelectedId, act, sheet, setSh
         <div className="standings-table"><div className="standings-head"><span>#</span><span>Player</span><span>Pts</span><span>OMW%</span></div>{standings.map((row, index) => <div key={row.entrant_id}><span>{index + 1}</span><span>{row.display_name}</span><b>{row.match_points}</b><span>{Number(row.opponent_match_win_pct || 0).toFixed(1)}%</span></div>)}</div>
       </section>
     </div>
+    <EventStory standings={standings} topCutSize={event.top_cut_size}/>
     {me && event.status === "registration" && <section className="tournament-panel tournament-sheet-editor"><span className="eyebrow">TEAM SHEET</span><h2>Submit and lock your roster</h2><form className="tournament-form" onSubmit={saveSheet}><label>Team name<input required value={sheet.team_name} onChange={(e) => setSheet({ ...sheet, team_name: e.target.value })}/></label><label>Pokémon — one per line<textarea required rows="7" value={sheet.pokemon} onChange={(e) => setSheet({ ...sheet, pokemon: e.target.value })}/></label><button className="secondary-button" disabled={busy}>Save team sheet</button></form></section>}
   </div>;
 }
 
-function MatchDesk({ pairing, me, names, event, sheets, busy, act }) {
+function MatchDesk({ pairing, me, names, event, sheets, companion, dispute, busy, act }) {
   const [gamesA, setGamesA] = useState(pairing.games_a || 0);
   const [gamesB, setGamesB] = useState(pairing.games_b || 0);
   const [replayUrl, setReplayUrl] = useState("");
+  const [matchupPlan, setMatchupPlan] = useState(companion?.matchup_plan || "");
+  const [postMatchNotes, setPostMatchNotes] = useState(companion?.post_match_notes || "");
+  const [judgeReason, setJudgeReason] = useState("");
   const mine = pairing.entrant_a_id === me.id ? "a" : "b";
   const canConfirm = pairing.status === "reported" && pairing.reported_by_entrant_id !== me.id;
   const visibleSheets = [pairing.entrant_a_id, pairing.entrant_b_id].map((entrantId) => sheets.find((item) => item.entrant_id === entrantId)).filter(Boolean);
@@ -183,6 +191,8 @@ function MatchDesk({ pairing, me, names, event, sheets, busy, act }) {
     </div>
     <input className="match-replay" placeholder="Optional HTTPS replay or evidence link" value={replayUrl} onChange={(e) => setReplayUrl(e.target.value)}/>
     {visibleSheets.length > 0 && <div className="match-team-sheets">{visibleSheets.map((item) => <article key={item.entrant_id}><small>{names[item.entrant_id]}</small><strong>{item.team_name}</strong><div>{(item.pokemon || []).map((pokemon) => <span key={pokemon}>{pokemon}</span>)}</div></article>)}</div>}
+    <details className="match-companion"><summary>Private Tournament Companion</summary><div><label>Matchup plan<textarea rows="4" value={matchupPlan} onChange={(e) => setMatchupPlan(e.target.value)} placeholder="Leads, threats, speed notes, and your plan…"/></label><label>Post-match notes<textarea rows="4" value={postMatchNotes} onChange={(e) => setPostMatchNotes(e.target.value)} placeholder="What happened and what you want to remember…"/></label><button className="secondary-button" disabled={busy} onClick={() => act("save_tournament_match_companion", { p_pairing_id: pairing.id, p_matchup_plan: matchupPlan, p_post_match_notes: postMatchNotes, p_game_selections: [] }, "Private match companion saved.")}>Save private notes</button></div></details>
+    <details className="judge-request"><summary>{dispute ? "Judge requested" : "Request a judge"}</summary>{dispute ? <p>{dispute.reason}</p> : <div><textarea rows="3" value={judgeReason} onChange={(e) => setJudgeReason(e.target.value)} placeholder="Describe the score conflict, rules question, or issue…"/><button className="danger-button" disabled={busy || judgeReason.trim().length < 3} onClick={() => act("open_tournament_dispute", { p_pairing_id: pairing.id, p_reason: judgeReason }, "Judge request recorded.")}>Send judge request</button></div>}</details>
     <div className="tournament-actions">
       {pairing.status !== "confirmed" && <button className="primary-button" disabled={busy} onClick={() => act("report_tournament_match", { p_pairing_id: pairing.id, p_games_a: gamesA, p_games_b: gamesB, p_replay_url: replayUrl || null }, "Result submitted for confirmation.")}>Report result</button>}
       {canConfirm && <button className="secondary-button" disabled={busy} onClick={() => act("confirm_tournament_match", { p_pairing_id: pairing.id }, "Result confirmed.")}>Confirm opponent’s report</button>}
@@ -190,4 +200,12 @@ function MatchDesk({ pairing, me, names, event, sheets, busy, act }) {
       {pairing.status === "confirmed" && <strong>Final: {pairing.games_a}–{pairing.games_b}</strong>}
     </div>
   </section>;
+}
+
+function EventStory({ standings, topCutSize }) {
+  if (!standings.length) return null;
+  const leaders = standings.filter((row) => row.matches_played > 0 && row.match_points === row.matches_played * 3);
+  const cut = topCutSize > 0 ? standings.slice(0, topCutSize) : [];
+  const bubble = topCutSize > 0 ? standings.slice(Math.max(0, topCutSize - 1), topCutSize + 1) : [];
+  return <section className="tournament-panel tournament-story"><span className="eyebrow">EVENT STORY</span><h2>What is happening now</h2><div><article><b>{leaders.length}</b><span>undefeated {leaders.length === 1 ? "player" : "players"}</span><small>{leaders.map((row) => row.display_name).join(", ") || "The field is still even."}</small></article><article><b>{cut.length || "—"}</b><span>projected cut</span><small>{cut.map((row) => row.display_name).join(", ") || "No top cut is configured."}</small></article><article><b>{bubble.length ? bubble[0].match_points : "—"}</b><span>bubble points</span><small>{bubble.map((row) => row.display_name).join(" · ") || "Appears after results are reported."}</small></article></div><p>Projection only. Official qualification is determined after the round closes and tie-breakers are final.</p></section>;
 }
