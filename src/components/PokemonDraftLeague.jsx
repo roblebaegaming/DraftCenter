@@ -6446,18 +6446,23 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     }
     consecutiveAutoSkips.current = 0;
     const mon = selectAutoNomination(state, teamIdx);
-    lastAuctionNomFired.current = nomKey;
     if (!mon) {
+      lastAuctionNomFired.current = nomKey;
       skipAuctionNomination();
       return;
     }
     if (isBotTeam) {
       const timer = setTimeout(async () => {
+        // Mark this nomination only when the request actually begins. The
+        // shared start-clock refresh can cancel the presentation timer; a
+        // replacement render must remain free to schedule the bot again.
+        lastAuctionNomFired.current = nomKey;
         const saved = await nominateForAuction(mon, 1);
         if (!saved) lastAuctionNomFired.current = -1;
       }, 1000);
       return () => clearTimeout(timer);
     } else {
+      lastAuctionNomFired.current = nomKey;
       nominateForAuction(mon, 1);
     }
   }, [leagueId, isCommissioner, myTeamIdx, state.settings.draftType, state.locked, state.paused, state.nominee, state.auctionEnded, state.auctionNominationIdx, state.auctionNominationOrder, state.teams, state.pool, state.rosters, state.nominationDeadline]);
