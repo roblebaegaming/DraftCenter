@@ -11708,11 +11708,20 @@ function DangerZoneCard({ rebuildCurrentSeason, locked, seasonNumber, archivedSe
 // A round-by-round (or, for auction, pick-order-by-pick-order) grid of
 // every team's picks so far — designed to look clean enough to screenshot
 // once the draft wraps up, not just function as a live status view.
-function DraftBoard({ teams, rosters, draftType, rosterMax }) {
+function DraftBoard({ teams, rosters, draftType, rosterMax, snakeOrder = [] }) {
   const longestRoster = rosters.reduce((max, r) => Math.max(max, r.length), 0);
   const rowCount = Math.min(rosterMax, Math.max(1, longestRoster));
   const rows = Array.from({ length: rowCount }, (_, i) => i);
   const roundLabel = draftType === "snake" ? "RD" : "PICK";
+  const firstRoundOrder = draftType === "snake"
+    ? snakeOrder.slice(0, teams.length)
+    : [];
+  const validFirstRoundOrder = firstRoundOrder.length === teams.length
+    && new Set(firstRoundOrder).size === teams.length
+    && firstRoundOrder.every((teamIndex) => Number.isInteger(teamIndex) && teams[teamIndex]);
+  const boardTeamIndices = validFirstRoundOrder
+    ? firstRoundOrder
+    : teams.map((_, teamIndex) => teamIndex);
 
   return (
     <div style={{ width: "100%", maxWidth: "100%", overflow: "hidden" }} className="mb-6">
@@ -11722,22 +11731,28 @@ function DraftBoard({ teams, rosters, draftType, rosterMax }) {
             <thead>
               <tr>
                 <th className="px-2 py-2 text-left mono-font text-[10px] uppercase" style={{ color: "#5B5F7E", position: "sticky", left: 0, background: "#171A2C" }}>{roundLabel}</th>
-                {teams.map((t) => (
+                {boardTeamIndices.map((teamIndex) => {
+                  const t = teams[teamIndex];
+                  return (
                   <th key={t.id} className="px-3 py-2 text-left whitespace-nowrap" style={{ minWidth: 160 }}>
                     <div className="flex items-center gap-1.5">
                       <TeamLogo team={t} size={20} />
                       <span className="text-sm font-semibold truncate" style={{ color: t.color || "#FFD23F", maxWidth: 130 }}>{t.name}</span>
                     </div>
                   </th>
-                ))}
+                  );
+                })}
               </tr>
             </thead>
             <tbody>
               {rows.map((r) => (
                 <tr key={r} style={{ background: r % 2 === 0 ? "transparent" : "#1B1F3388" }}>
-                  <td className="px-2 py-2 mono-font text-xs font-semibold text-center" style={{ color: "#5B5F7E", position: "sticky", left: 0, background: r % 2 === 0 ? "#171A2C" : "#1B1F33" }}>{r + 1}</td>
-                  {teams.map((t, ti) => {
-                    const mon = rosters[ti]?.[r];
+                  <td className="px-2 py-2 mono-font text-xs font-semibold text-center" style={{ color: "#5B5F7E", position: "sticky", left: 0, background: r % 2 === 0 ? "#171A2C" : "#1B1F33" }}>
+                    {r + 1}{draftType === "snake" ? (r % 2 === 0 ? " →" : " ←") : ""}
+                  </td>
+                  {boardTeamIndices.map((teamIndex) => {
+                    const t = teams[teamIndex];
+                    const mon = rosters[teamIndex]?.[r];
                     return (
                       <td key={t.id} className="px-3 py-2" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
                         {mon ? (
@@ -12516,7 +12531,7 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
           {showDraftBoard ? "Hide" : "Show"} Draft Board
         </button>
       </div>
-      {showDraftBoard && <DraftBoard teams={teams} rosters={rosters} draftType={draftType} rosterMax={settings.rosterMax} />}
+      {showDraftBoard && <DraftBoard teams={teams} rosters={rosters} draftType={draftType} rosterMax={settings.rosterMax} snakeOrder={snakeOrder} />}
 
       <div style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }} className="rounded-lg p-4 mb-4">
         <div className="flex items-center justify-between flex-wrap gap-2 mb-3">

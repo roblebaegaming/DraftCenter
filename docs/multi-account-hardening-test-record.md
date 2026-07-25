@@ -42,6 +42,7 @@ Use this record against a safe test league before each major release. Do not use
 - [ ] A transient hosted bot-pick rejection refreshes the authoritative board and retries once; a repeated rejection shows the server error instead of silently freezing.
 - [ ] After a human pick, the 300 ms and 900 ms authoritative refreshes do not cancel and permanently suppress the next bot's delayed pick.
 - [ ] If a hosted draft snapshot loses its cached `liveDraft.basePool`, refresh reconstructs the available board from authoritative undrafted `league_pokemon` rows without restarting the draft.
+- [ ] A randomized snake draft board displays columns in actual first-round order and marks alternating round direction (`→`, `←`).
 
 ## Season and transactions
 
