@@ -6,7 +6,7 @@ import { createClient } from "../lib/supabase/client";
 const EMPTY_EVENT = {
   name: "", slug: "", description: "", format_name: "Singles",
   structure: "swiss_top_cut", swiss_rounds: 5, top_cut_size: 8,
-  best_of: 3, max_players: 64, team_sheet_policy: "open_on_pairing",
+  best_of: 3, max_players: 64, team_sheet_policy: "open_on_pairing", visibility: "private",
 };
 
 function nice(value) {
@@ -38,7 +38,7 @@ export default function TournamentCenter() {
 
   async function loadDetail(id = selectedId) {
     if (!id) return;
-    const [eventResult, entrantsResult, roundsResult, pairingsResult, standingsResult, sheetsResult, companionsResult, disputesResult] = await Promise.all([
+    const [eventResult, entrantsResult, roundsResult, pairingsResult, standingsResult, sheetsResult, companionsResult, disputesResult, staffResult, penaltiesResult] = await Promise.all([
       supabase.from("tournaments").select("*").eq("id", id).single(),
       supabase.from("tournament_entrants").select("*, profile:profiles(display_name,username)").eq("tournament_id", id).order("created_at"),
       supabase.from("tournament_rounds").select("*").eq("tournament_id", id).order("round_number"),
@@ -47,6 +47,8 @@ export default function TournamentCenter() {
       supabase.from("tournament_team_sheets").select("entrant_id,team_name,pokemon,locked_at").eq("tournament_id", id),
       supabase.from("tournament_match_companions").select("*").eq("tournament_id", id),
       supabase.from("tournament_disputes").select("*").eq("tournament_id", id).order("opened_at", { ascending: false }),
+      supabase.from("tournament_staff").select("*,profile:profiles(display_name,username)").eq("tournament_id", id).order("created_at"),
+      supabase.from("tournament_penalties").select("*").eq("tournament_id", id).order("issued_at", { ascending: false }),
     ]);
     if (eventResult.error) return setMessage(eventResult.error.message);
     setDetail({
@@ -58,12 +60,23 @@ export default function TournamentCenter() {
       sheets: sheetsResult.data || [],
       companions: companionsResult.data || [],
       disputes: disputesResult.data || [],
+      staff: staffResult.data || [],
+      penalties: penaltiesResult.data || [],
     });
   }
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setUser(data.user || null));
-    loadEvents();
+    supabase.auth.getUser().then(async ({ data }) => {
+      const nextUser=data.user||null;
+      setUser(nextUser);
+      const invite=typeof window!=="undefined"?new URLSearchParams(window.location.search).get("invite"):null;
+      if(nextUser&&invite){
+        const result=await supabase.rpc("accept_tournament_invite",{p_token:invite});
+        if(result.error)setMessage(result.error.message);
+        else{setMessage("Tournament invitation accepted.");setSelectedId(result.data.tournament_id);window.history.replaceState({},"","/tournaments");}
+      }
+      await loadEvents();
+    });
   }, []);
 
   useEffect(() => { if (selectedId) loadDetail(selectedId); }, [selectedId]);
@@ -82,7 +95,10 @@ export default function TournamentCenter() {
   async function createEvent(event) {
     event.preventDefault();
     const result = await act("create_tournament", { p_settings: draft }, "Tournament created.");
-    if (result?.id) { setSelectedId(result.id); setDraft(EMPTY_EVENT); }
+    if (result?.id) {
+      if (draft.visibility === "public") await act("set_tournament_visibility", { p_tournament_id: result.id, p_visibility: "public" }, "Public tournament created.");
+      setSelectedId(result.id); setDraft(EMPTY_EVENT);
+    }
   }
 
   async function saveSheet(event) {
@@ -126,6 +142,7 @@ export default function TournamentCenter() {
               <label>Structure<select value={draft.structure} onChange={(e) => setDraft({ ...draft, structure: e.target.value })}><option value="swiss">Swiss only</option><option value="swiss_top_cut">Swiss into top cut</option><option value="regional">Regional-style staged event</option><option value="single_elimination">Single elimination</option></select></label>
               <div className="tournament-form-row"><label>Swiss rounds<input type="number" min="1" max="15" value={draft.swiss_rounds} onChange={(e) => setDraft({ ...draft, swiss_rounds: Number(e.target.value) })}/></label><label>Top cut<select value={draft.top_cut_size} onChange={(e) => setDraft({ ...draft, top_cut_size: Number(e.target.value) })}><option value="0">None</option><option value="4">Top 4</option><option value="8">Top 8</option><option value="16">Top 16</option><option value="32">Top 32</option></select></label></div>
               <label>Team-sheet visibility<select value={draft.team_sheet_policy} onChange={(e) => setDraft({ ...draft, team_sheet_policy: e.target.value })}><option value="closed">Organizer only</option><option value="open_on_pairing">Reveal to paired opponents</option><option value="open">Public after lock</option></select></label>
+              <label>Event visibility<select value={draft.visibility} onChange={(e) => setDraft({ ...draft, visibility: e.target.value })}><option value="private">Private · entrants and staff only</option><option value="public">Public listing and spectator access</option></select></label>
               <button className="primary-button" disabled={busy}>Create tournament</button>
             </form>}
           </section>
@@ -136,9 +153,11 @@ export default function TournamentCenter() {
 }
 
 function TournamentDetail({ detail, user, busy, setSelectedId, act, sheet, setSheet, saveSheet }) {
-  const { event, entrants, rounds, pairings, standings, sheets, companions, disputes } = detail;
+  const { event, entrants, rounds, pairings, standings, sheets, companions, disputes, staff, penalties } = detail;
   const me = entrants.find((entrant) => entrant.user_id === user?.id);
   const organizer = event.organizer_id === user?.id;
+  const staffMember = staff.find((member) => member.user_id === user?.id);
+  const canJudge = organizer || staffMember?.role === "judge" || staffMember?.role === "scorekeeper";
   const activeRound = [...rounds].reverse().find((round) => round.status === "active") || rounds.at(-1);
   const activePairings = pairings.filter((pairing) => pairing.round_id === activeRound?.id);
   const names = useMemo(() => Object.fromEntries(entrants.map((entrant) => [entrant.id, entrant.display_name || entrant.profile?.display_name || entrant.profile?.username || "Player"])), [entrants]);
@@ -168,8 +187,61 @@ function TournamentDetail({ detail, user, busy, setSelectedId, act, sheet, setSh
       </section>
     </div>
     <EventStory standings={standings} topCutSize={event.top_cut_size}/>
+    {canJudge && <OrganizerJudgeDesk event={event} organizer={organizer} entrants={entrants} pairings={activePairings} disputes={disputes} penalties={penalties} names={names} busy={busy} act={act}/>}
     {me && event.status === "registration" && <section className="tournament-panel tournament-sheet-editor"><span className="eyebrow">TEAM SHEET</span><h2>Submit and lock your roster</h2><form className="tournament-form" onSubmit={saveSheet}><label>Team name<input required value={sheet.team_name} onChange={(e) => setSheet({ ...sheet, team_name: e.target.value })}/></label><label>Pokémon — one per line<textarea required rows="7" value={sheet.pokemon} onChange={(e) => setSheet({ ...sheet, pokemon: e.target.value })}/></label><button className="secondary-button" disabled={busy}>Save team sheet</button></form></section>}
   </div>;
+}
+
+function OrganizerJudgeDesk({ event, organizer, entrants, pairings, disputes, penalties, names, busy, act }) {
+  const [supabase] = useState(() => createClient());
+  const [staffUsername, setStaffUsername] = useState("");
+  const [staffRole, setStaffRole] = useState("judge");
+  const [penaltyEntrant, setPenaltyEntrant] = useState("");
+  const [penaltyKind, setPenaltyKind] = useState("warning");
+  const [penaltyPoints, setPenaltyPoints] = useState(0);
+  const [penaltyReason, setPenaltyReason] = useState("");
+  const [inviteLink, setInviteLink] = useState("");
+  const openDisputes = disputes.filter((dispute) => dispute.status === "open");
+
+  async function downloadRecovery() {
+    const { data, error } = await supabase.rpc("export_tournament_recovery", { p_tournament_id: event.id });
+    if (error) return;
+    const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `draftcenter-tournament-${event.slug}-recovery.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+  async function createPrivateInvite() {
+    const {data,error}=await supabase.rpc("create_tournament_invite",{p_tournament_id:event.id,p_expires_at:null,p_max_uses:null});
+    if(error)return;
+    const link=`${window.location.origin}/tournaments?invite=${data.token}`;
+    setInviteLink(link);
+    try{await navigator.clipboard.writeText(link);}catch{}
+  }
+
+  return <section className="tournament-panel organizer-judge-desk">
+    <div className="section-heading"><div><span className="eyebrow">EVENT STAFF</span><h2>Judge and operations desk</h2></div>{organizer&&<button className="quiet-button" onClick={downloadRecovery}>Download recovery export</button>}</div>
+    {organizer&&<><div className="tournament-staff-controls"><label>Event visibility<select value={event.visibility||"private"} onChange={(e)=>act("set_tournament_visibility",{p_tournament_id:event.id,p_visibility:e.target.value},"Event visibility updated.")}><option value="private">Private</option><option value="public">Public</option></select></label><label>Staff username<input value={staffUsername} onChange={(e)=>setStaffUsername(e.target.value)} placeholder="username"/></label><label>Role<select value={staffRole} onChange={(e)=>setStaffRole(e.target.value)}><option value="judge">Judge</option><option value="scorekeeper">Scorekeeper</option></select></label><button className="secondary-button" disabled={busy||!staffUsername.trim()} onClick={()=>act("appoint_tournament_staff",{p_tournament_id:event.id,p_username:staffUsername,p_role:staffRole},"Event staff updated.")}>Appoint staff</button></div><div className="league-tool-compact-actions"><button className="quiet-button" onClick={createPrivateInvite}>Copy private registration invite</button>{inviteLink&&<input readOnly value={inviteLink}/>}</div></>}
+    <div className="judge-case-list">{openDisputes.map((dispute)=><JudgeCase key={dispute.id} dispute={dispute} pairing={pairings.find((pairing)=>pairing.id===dispute.pairing_id)} event={event} names={names} busy={busy} act={act}/>)}{!openDisputes.length&&<p className="muted">No open judge calls.</p>}</div>
+    <h3>Current-round operations</h3>
+    <div className="pairing-list">{pairings.filter((pairing)=>pairing.entrant_b_id).map((pairing)=><article key={pairing.id} className="pairing-row operational-pairing"><b>Table {pairing.table_number}</b><span>{names[pairing.entrant_a_id]} vs {names[pairing.entrant_b_id]}</span><div><button className="quiet-button" disabled={busy||pairing.status==="confirmed"} onClick={()=>act("record_tournament_match_outcome",{p_pairing_id:pairing.id,p_outcome:"intentional_draw",p_notes:"Players agreed to an intentional draw."},"Intentional draw recorded.")}>Intentional draw</button><button className="quiet-button" disabled={busy||pairing.status==="confirmed"} onClick={()=>act("record_tournament_match_outcome",{p_pairing_id:pairing.id,p_outcome:"no_show_a",p_notes:`${names[pairing.entrant_a_id]} did not appear.`},"No-show recorded.")}>{names[pairing.entrant_a_id]} no-show</button><button className="quiet-button" disabled={busy||pairing.status==="confirmed"} onClick={()=>act("record_tournament_match_outcome",{p_pairing_id:pairing.id,p_outcome:"no_show_b",p_notes:`${names[pairing.entrant_b_id]} did not appear.`},"No-show recorded.")}>{names[pairing.entrant_b_id]} no-show</button></div></article>)}</div>
+    <h3>Entrants and drops</h3>
+    <div className="tournament-entrant-ops">{entrants.map((entrant)=><div key={entrant.id}><span>{names[entrant.id]}</span><button className={entrant.dropped_at?"secondary-button":"danger-button"} disabled={busy} onClick={()=>act("set_tournament_entrant_drop",{p_entrant_id:entrant.id,p_dropped:!entrant.dropped_at,p_reason:entrant.dropped_at?"Reinstated by event staff.":"Dropped by event staff."},entrant.dropped_at?"Entrant reinstated.":"Entrant dropped.")}>{entrant.dropped_at?"Reinstate":"Drop"}</button></div>)}</div>
+    <h3>Issue a penalty</h3>
+    <div className="tournament-penalty-form"><select value={penaltyEntrant} onChange={(e)=>setPenaltyEntrant(e.target.value)}><option value="">Choose entrant</option>{entrants.map((entrant)=><option key={entrant.id} value={entrant.id}>{names[entrant.id]}</option>)}</select><select value={penaltyKind} onChange={(e)=>setPenaltyKind(e.target.value)}><option value="warning">Warning</option><option value="game_loss">Game loss</option><option value="match_loss">Match loss</option><option value="points_adjustment">Points adjustment</option><option value="disqualification">Disqualification</option></select>{penaltyKind==="points_adjustment"&&<input type="number" min="-99" max="99" value={penaltyPoints} onChange={(e)=>setPenaltyPoints(Number(e.target.value))}/>}<input value={penaltyReason} onChange={(e)=>setPenaltyReason(e.target.value)} placeholder="Reason"/><button className="danger-button" disabled={busy||!penaltyEntrant||penaltyReason.trim().length<3} onClick={()=>act("issue_tournament_penalty",{p_entrant_id:penaltyEntrant,p_pairing_id:null,p_kind:penaltyKind,p_points_adjustment:penaltyKind==="points_adjustment"?penaltyPoints:0,p_reason:penaltyReason},"Penalty recorded.")}>Record penalty</button></div>
+    {penalties.length>0&&<p className="muted">{penalties.filter((penalty)=>!penalty.reversed_at).length} active penalty record{penalties.filter((penalty)=>!penalty.reversed_at).length===1?"":"s"}.</p>}
+  </section>;
+}
+
+function JudgeCase({ dispute, pairing, event, names, busy, act }) {
+  const [resolution, setResolution] = useState("");
+  const [gamesA, setGamesA] = useState(pairing?.games_a ?? 0);
+  const [gamesB, setGamesB] = useState(pairing?.games_b ?? 0);
+  const [invalidateLater, setInvalidateLater] = useState(false);
+  if (!pairing) return null;
+  return <article className="judge-case"><span className="eyebrow">TABLE {pairing.table_number}</span><h3>{names[pairing.entrant_a_id]} vs {names[pairing.entrant_b_id]}</h3><p>{dispute.reason}</p><div className="match-score"><label>{names[pairing.entrant_a_id]}<input type="number" min="0" max={Math.ceil(event.best_of/2)} value={gamesA} onChange={(e)=>setGamesA(Number(e.target.value))}/></label><b>—</b><label>{names[pairing.entrant_b_id]}<input type="number" min="0" max={Math.ceil(event.best_of/2)} value={gamesB} onChange={(e)=>setGamesB(Number(e.target.value))}/></label></div><textarea rows="3" value={resolution} onChange={(e)=>setResolution(e.target.value)} placeholder="Judge decision and correction reason"/><label className="check-row"><input type="checkbox" checked={invalidateLater} onChange={(e)=>setInvalidateLater(e.target.checked)}/> If the winner changes, invalidate and regenerate every later round</label><button className="primary-button" disabled={busy||resolution.trim().length<3} onClick={()=>act("resolve_tournament_dispute",{p_dispute_id:dispute.id,p_resolution:resolution,p_games_a:gamesA,p_games_b:gamesB,p_invalidate_later_rounds:invalidateLater},"Judge decision saved.")}>Resolve and correct result</button></article>;
 }
 
 function MatchDesk({ pairing, me, names, event, sheets, companion, dispute, busy, act }) {
