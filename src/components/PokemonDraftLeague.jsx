@@ -6461,6 +6461,10 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     )) return;
 
     if (!fastTrack) {
+      // Reaching an active human team breaks any run of completed-bot skips.
+      // Without this reset, a later lap through the same finished bots could
+      // hit the loop guard and stall before returning to the human nominator.
+      consecutiveAutoSkips.current = 0;
       // Give a human their full window, then nominate from their queue or
       // the same premium strategy-aware pool used by bots.
       if (!state.nominationDeadline) return;
