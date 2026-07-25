@@ -43,6 +43,11 @@ Use this record against a safe test league before each major release. Do not use
 - [ ] After a human pick, the 300 ms and 900 ms authoritative refreshes do not cancel and permanently suppress the next bot's delayed pick.
 - [ ] If a hosted draft snapshot loses its cached `liveDraft.basePool`, refresh reconstructs the available board from authoritative undrafted `league_pokemon` rows without restarting the draft.
 - [ ] A randomized snake draft board displays columns in actual first-round order and marks alternating round direction (`→`, `←`).
+- [ ] Budgeted snake rejects any pick that would leave less than 1 point for each missing minimum roster slot in both the UI and database.
+- [ ] A budgeted snake session cannot enter `complete` while any team is below the configured roster minimum, including after budget exhaustion or turn advancement.
+- [ ] At or above the minimum, a budgeted-snake team can finish below the maximum; all of its future turns are removed and other teams continue normally.
+- [ ] Unclaimed budget-snake bots finish at stable targets across the configured roster range instead of every bot being forced to the maximum.
+- [ ] Draft rules clearly show Restricted and Mega limits, and candidates beyond the current team’s cap are blacked out, labeled, and unselectable.
 
 ## Season and transactions
 

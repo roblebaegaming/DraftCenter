@@ -5642,8 +5642,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     const budgetLeft = s.budgets[teamIdx] ?? 0;
     const picksSoFar = (s.rosters[teamIdx] || []).length;
     const neededAfterThis = Math.max(0, s.settings.rosterMin - picksSoFar - 1);
-    const cheapest = s.pool.length ? Math.min(...s.pool.map((m) => m.cost)) : 0;
-    return budgetLeft - neededAfterThis * cheapest;
+    return budgetLeft - neededAfterThis;
   }
 
   // Hard truth: can this team afford literally anything left in the pool?
@@ -5657,7 +5656,10 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     if (!uncappedPool.length) return false;
     if (!snakeUsesBudget(s)) return true;
     const budgetLeft = s.budgets[teamIdx] ?? 0;
-    return uncappedPool.some((m) => m.cost <= budgetLeft);
+    const spendLimit = (s.rosters[teamIdx] || []).length < s.settings.rosterMin
+      ? bestAffordableLimit(s, teamIdx)
+      : budgetLeft;
+    return uncappedPool.some((m) => m.cost <= spendLimit);
   }
 
   // Advances the pick pointer past any team that's already capped out or
@@ -5708,9 +5710,17 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       liveDraft: liveDraft || sourceState.liveDraft || null,
       locked: true,
       draftStartedAt: Date.now(),
-      teams: sourceState.teams.map((t) =>
-        (!t.claimedBy && (!t.archetypes || !t.archetypes.length)) ? { ...t, archetypes: randomArchetypeKeys() } : t
-      ),
+      teams: sourceState.teams.map((t) => {
+        const archetypes = !t.claimedBy && (!t.archetypes || !t.archetypes.length)
+          ? randomArchetypeKeys()
+          : t.archetypes || [];
+        const targetRange = Math.max(0, sourceState.settings.rosterMax - sourceState.settings.rosterMin);
+        const budgetRosterTarget = sourceState.settings.snakeBudgetEnabled && !t.claimedBy
+          ? sourceState.settings.rosterMin
+            + (hashStringToInt(`${t.id}-${sourceState.seasonNumber || 1}`) % (targetRange + 1))
+          : null;
+        return { ...t, archetypes, budgetRosterTarget };
+      }),
       rosters, budgets, pool,
       queues: liveDraft?.preservedQueues || sourceState.queues,
       keeperRosters: {},
@@ -5871,7 +5881,13 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       const teamIdx = s.snakeOrder[s.pickIndex];
       if (teamIdx === undefined) return s;
       const usesBudget = snakeUsesBudget(s);
-      if (usesBudget && mon.cost > (s.budgets[teamIdx] ?? 0)) return s; // truly can't afford it, ignore
+      if (usesBudget) {
+        const budgetLeft = s.budgets[teamIdx] ?? 0;
+        const spendLimit = (s.rosters[teamIdx] || []).length < s.settings.rosterMin
+          ? bestAffordableLimit(s, teamIdx)
+          : budgetLeft;
+        if (mon.cost > spendLimit) return s;
+      }
       if (capViolationReason(s.rosters[teamIdx] || [], mon, s.settings)) return s; // over a restricted/Mega cap, ignore
       const rosters = s.rosters.map((r) => [...r]);
       // pickIndex at the moment of this pick IS the overall pick number
@@ -5930,6 +5946,39 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     return true;
   }
 
+  async function finishBudgetSnakeRoster() {
+    const teamIdx = state.snakeOrder[state.pickIndex];
+    const rosterCount = (state.rosters[teamIdx] || []).length;
+    if (!state.settings.snakeBudgetEnabled || teamIdx == null) return false;
+    if (rosterCount < state.settings.rosterMin) {
+      setLiveDraftError(`This roster needs at least ${state.settings.rosterMin} Pokémon before it can finish drafting.`);
+      return false;
+    }
+    if (leagueId && state.liveDraft?.sessionId) {
+      setLiveDraftError("");
+      const { error } = await supabase.rpc("complete_live_snake_roster", {
+        p_league_id: leagueId,
+      });
+      if (error) {
+        setLiveDraftError(error.message);
+        return false;
+      }
+      await refreshLiveSnakeDraft();
+      return true;
+    }
+    commit((s) => {
+      const currentTeamIdx = s.snakeOrder[s.pickIndex];
+      if (currentTeamIdx == null || (s.rosters[currentTeamIdx] || []).length < s.settings.rosterMin) return s;
+      const snakeOrder = s.snakeOrder.filter((orderTeamIdx, orderIndex) =>
+        orderIndex < s.pickIndex || orderTeamIdx !== currentTeamIdx
+      );
+      const nextState = { ...s, snakeOrder };
+      const pickIndex = skipForward(nextState, s.pickIndex);
+      return { ...nextState, pickIndex, pickDeadline: nextDeadline(s.settings) };
+    });
+    return true;
+  }
+
   // Roughly "budget left ÷ picks left" — the fair-share amount a team could
   // spend on every remaining pick (including this one) and land at exactly
   // 0 by their final pick if they hit it every time.
@@ -5966,6 +6015,8 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
         const paceCeiling = Math.max(1, Math.ceil(paceTarget(s, teamIdx) * 1.4));
         const paced = safe.filter((m) => m.cost <= Math.min(safetyLimit, paceCeiling));
         candidates = paced.length ? paced : safe;
+      } else if (roster.length < s.settings.rosterMin) {
+        return null;
       }
       // else: reaching the minimum is no longer guaranteed either way — fall
       // back to whatever's genuinely affordable rather than declaring them
@@ -6127,6 +6178,9 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       (isBotTeam && !isCommissioner)
       || (!isBotTeam && teamIdx !== myTeamIdx && !isCommissioner)
     )) return;
+    const botReachedBudgetTarget = isBotTeam
+      && state.settings.snakeBudgetEnabled
+      && (state.rosters[teamIdx] || []).length >= (team?.budgetRosterTarget ?? state.settings.rosterMax);
     const mon = selectAutoMon(state, teamIdx);
     const attemptedPickIndex = state.pickIndex;
     const runAutoPick = async () => {
@@ -6135,9 +6189,13 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       // delay; if that cancels the timer, the replacement render must remain
       // free to schedule it again.
       lastAutoFired.current = attemptedPickIndex;
-      const succeeded = mon
-        ? await snakePick(mon)
-        : await autoPickForClock();
+      const succeeded = botReachedBudgetTarget
+        ? await finishBudgetSnakeRoster()
+        : mon
+          ? await snakePick(mon)
+          : (state.settings.snakeBudgetEnabled && (state.rosters[teamIdx] || []).length >= state.settings.rosterMin)
+            ? await finishBudgetSnakeRoster()
+            : await autoPickForClock();
       if (succeeded !== false) {
         autoPickFailure.current = { pickIndex: -1, count: 0 };
         return;
@@ -8292,6 +8350,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
             state={state} leagueId={leagueId} isCommissioner={isCommissioner} canDraftNow={canDraftNow} myName={myName} myTeamIdx={myTeamIdx}
             currentTeamOnClock={currentTeamOnClock} draftDone={draftDone} allTeamsMetMin={allTeamsMetMin}
             snakePick={snakePick} nominateForAuction={nominateForAuction} autoPickForClock={autoPickForClock}
+            finishBudgetSnakeRoster={finishBudgetSnakeRoster}
             placeBid={placeBid} endAuctionEarly={endAuctionEarly} pauseDraft={pauseDraft} resumeDraft={resumeDraft} skipAuctionNomination={skipAuctionNomination}
             toggleAutoDraft={toggleAutoDraft} addToQueue={addToQueue} removeFromQueue={removeFromQueue} moveQueueItem={moveQueueItem}
             onGenerateSchedule={generateSchedule} updateSettings={updateSettings} onViewTeam={goToTeam} castDraftHeroVote={castDraftHeroVote} restartDraft={restartDraft} rebuildCurrentSeason={rebuildCurrentSeason} onStart={startDraft}
@@ -8351,6 +8410,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
                 state={state} leagueId={leagueId} isCommissioner={displayIsCommissioner} canDraftNow={canDraftNow && !previewReadOnly} myName={myName} myTeamIdx={myTeamIdx}
                 currentTeamOnClock={currentTeamOnClock} draftDone={draftDone} allTeamsMetMin={allTeamsMetMin}
                 snakePick={snakePick} nominateForAuction={nominateForAuction} autoPickForClock={autoPickForClock}
+                finishBudgetSnakeRoster={finishBudgetSnakeRoster}
                 placeBid={placeBid} endAuctionEarly={endAuctionEarly} pauseDraft={pauseDraft} resumeDraft={resumeDraft} skipAuctionNomination={skipAuctionNomination}
                 toggleAutoDraft={toggleAutoDraft} addToQueue={addToQueue} removeFromQueue={removeFromQueue} moveQueueItem={moveQueueItem}
                 onGenerateSchedule={generateSchedule} updateSettings={updateSettings} onViewTeam={goToTeam} castDraftHeroVote={castDraftHeroVote} restartDraft={restartDraft} rebuildCurrentSeason={rebuildCurrentSeason} onStart={startDraft}
@@ -10186,7 +10246,7 @@ function SetupView({ state, leagueId = null, isCommissioner, canBeCommissioner, 
                       </div>
                     </div>
                     <p className="text-xs mb-4" style={{ color: "#5B5F7E" }}>
-                      Each team ends up with at least {settings.rosterMin} mons and no more than {settings.rosterMax}, as long as their budget allows.
+                      Each team must reach {settings.rosterMin}, then may finish at any size up to {settings.rosterMax}. DraftCenter reserves 1 point for every minimum roster slot still missing.
                     </p>
                     <label className="block text-sm mb-2" style={{ color: "#9A9FBD" }}>Budget per team</label>
                     <input type="number" value={settings.budget} onChange={(e) => updateSettings({ budget: e.target.value === "" ? "" : Number(e.target.value) })}
@@ -11708,7 +11768,7 @@ function DangerZoneCard({ rebuildCurrentSeason, locked, seasonNumber, archivedSe
 // A round-by-round (or, for auction, pick-order-by-pick-order) grid of
 // every team's picks so far — designed to look clean enough to screenshot
 // once the draft wraps up, not just function as a live status view.
-function DraftBoard({ teams, rosters, draftType, rosterMax, snakeOrder = [] }) {
+function DraftBoard({ teams, rosters, draftType, rosterMax, snakeOrder = [], settings }) {
   const longestRoster = rosters.reduce((max, r) => Math.max(max, r.length), 0);
   const rowCount = Math.min(rosterMax, Math.max(1, longestRoster));
   const rows = Array.from({ length: rowCount }, (_, i) => i);
@@ -11726,6 +11786,20 @@ function DraftBoard({ teams, rosters, draftType, rosterMax, snakeOrder = [] }) {
   return (
     <div style={{ width: "100%", maxWidth: "100%", overflow: "hidden" }} className="mb-6">
       <div style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }} className="rounded-lg p-4">
+        <div className="mb-3 flex gap-2 flex-wrap text-[10px] mono-font" style={{ color: "#9A9FBD" }}>
+          <span className="px-2 py-1 rounded" style={{ background: "#1F2338" }}>
+            ROSTER {settings?.snakeBudgetEnabled || draftType === "auction" ? `${settings?.rosterMin}–${settings?.rosterMax}` : settings?.rosterSize}
+          </span>
+          <span className="px-2 py-1 rounded" style={{ background: "#1F2338" }}>
+            RESTRICTED LIMIT {settings?.restrictedCap ?? "NONE"}
+          </span>
+          <span className="px-2 py-1 rounded" style={{ background: "#1F2338" }}>
+            MEGA LIMIT {settings?.megaCap ?? "NONE"}
+          </span>
+          {(settings?.snakeBudgetEnabled || draftType === "auction") && (
+            <span className="px-2 py-1 rounded" style={{ background: "#1F2338" }}>STARTING BUDGET {settings?.budget}pt</span>
+          )}
+        </div>
         <div className="w-full overflow-x-auto" style={{ maxWidth: "100%" }}>
           <table style={{ borderCollapse: "separate", borderSpacing: 0, minWidth: "100%" }}>
             <thead>
@@ -11926,7 +12000,7 @@ function PreDraftScout({ state, isCommissioner, costFor, updateHomepage, myTeamI
   </div>;
 }
 
-function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTeamIdx, currentTeamOnClock, draftDone, allTeamsMetMin, snakePick, nominateForAuction, autoPickForClock, placeBid, endAuctionEarly, pauseDraft, resumeDraft, skipAuctionNomination, toggleAutoDraft, addToQueue, removeFromQueue, moveQueueItem, onGenerateSchedule, updateSettings, onViewTeam, castDraftHeroVote, restartDraft, rebuildCurrentSeason, onStart }) {
+function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTeamIdx, currentTeamOnClock, draftDone, allTeamsMetMin, snakePick, nominateForAuction, autoPickForClock, finishBudgetSnakeRoster, placeBid, endAuctionEarly, pauseDraft, resumeDraft, skipAuctionNomination, toggleAutoDraft, addToQueue, removeFromQueue, moveQueueItem, onGenerateSchedule, updateSettings, onViewTeam, castDraftHeroVote, restartDraft, rebuildCurrentSeason, onStart }) {
   const { locked, settings, teams, rosters, budgets, pool, snakeOrder, pickIndex, nominee, auctionEnded, pickDeadline, queues, auctionNominationOrder, auctionNominationIdx, paused, pausedAt, pauseIsOvernight, nominationDeadline } = state;
   const draftType = settings.draftType;
 
@@ -11947,6 +12021,14 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
   const [poolStatFilter, setPoolStatFilter] = useState(""); // "" | hp | atk | def | spa | spd | spe
   const [poolStatMin, setPoolStatMin] = useState("");
   const [showMyRoster, setShowMyRoster] = useState(true);
+  const currentRoster = rosters[currentTeamOnClock] || [];
+  const currentRestrictedCount = currentRoster.filter((mon) => isRestrictedMon(mon, settings)).length;
+  const currentMegaCount = currentRoster.filter((mon) => mon.isMega).length;
+  const canFinishCurrentBudgetRoster = draftType === "snake"
+    && settings.snakeBudgetEnabled
+    && canDraftNow
+    && currentRoster.length >= settings.rosterMin
+    && currentRoster.length < settings.rosterMax;
   useEffect(() => {
     if (nominee) { setPendingNominee(null); setPendingBid("1"); }
   }, [nominee]);
@@ -12312,6 +12394,29 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
               {settings.pickTimeLimitMinutes > 0 && (
                 <PickTimer deadline={pickDeadline} isCommissioner={isCommissioner} onExpireAction={autoPickForClock} paused={paused} pausedAt={pausedAt} />
               )}
+              {settings.snakeBudgetEnabled && (
+                <div className="mt-3 flex items-center justify-center gap-2 flex-wrap text-xs mono-font">
+                  <span className="px-2 py-1 rounded" style={{ background: "#1F2338", color: "#C8CDEA" }}>
+                    ROSTER {currentRoster.length}/{settings.rosterMin} min · {settings.rosterMax} max
+                  </span>
+                  <span className="px-2 py-1 rounded" style={{ background: "#1F2338", color: "#C8CDEA" }}>
+                    BUDGET {budgets[currentTeamOnClock] ?? 0}pt
+                  </span>
+                  <span className="px-2 py-1 rounded" style={{ background: "#1F2338", color: settings.restrictedCap != null && currentRestrictedCount >= settings.restrictedCap ? "#F0555A" : "#C8CDEA" }}>
+                    RESTRICTED {currentRestrictedCount}/{settings.restrictedCap ?? "∞"}
+                  </span>
+                  <span className="px-2 py-1 rounded" style={{ background: "#1F2338", color: settings.megaCap != null && currentMegaCount >= settings.megaCap ? "#F0555A" : "#C8CDEA" }}>
+                    MEGA {currentMegaCount}/{settings.megaCap ?? "∞"}
+                  </span>
+                </div>
+              )}
+              {canFinishCurrentBudgetRoster && (
+                <button type="button" onClick={finishBudgetSnakeRoster}
+                  className="mt-3 px-4 py-2 rounded text-xs font-semibold mono-font"
+                  style={{ background: "#4FD1C522", color: "#4FD1C5", border: "1px solid #4FD1C566" }}>
+                  FINISH THIS ROSTER AT {currentRoster.length} PICKS
+                </button>
+              )}
             </div>
           ) : (
             <AuctionPanel teams={teams} budgets={budgets} rosters={rosters} rosterMax={settings.rosterMax} nominee={nominee}
@@ -12364,6 +12469,12 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
             // makes sense for auction and budgeted-snake formats.
             const sortsByNameOrBst = draftType === "auction" || !usesSnakeBudget;
             const affordLimit = usesSnakeBudget ? (budgets[currentTeamOnClock] ?? 0) : Infinity;
+            const minimumReserve = usesSnakeBudget
+              ? Math.max(0, settings.rosterMin - currentRoster.length - 1)
+              : 0;
+            const currentSpendLimit = usesSnakeBudget && currentRoster.length < settings.rosterMin
+              ? affordLimit - minimumReserve
+              : affordLimit;
             const auctionN = auctionNominationOrder.length;
             const onDeckTeamIdx = auctionN ? auctionNominationOrder[auctionNominationIdx % auctionN] : null;
             const canNominate = draftType === "auction" && (isCommissioner || myTeamIdx === onDeckTeamIdx);
@@ -12401,11 +12512,19 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
               });
 
             const renderCard = (p) => {
-              const cantAfford = usesSnakeBudget && p.cost > affordLimit;
-              const disabled = (draftType === "snake" && !canDraftNow) || (draftType === "auction" && (!canNominate || !!nominee)) || cantAfford;
+              const cantAfford = usesSnakeBudget && p.cost > currentSpendLimit;
+              const capReason = draftType === "snake"
+                ? capViolationReason(currentRoster, p, settings)
+                : null;
+              const unavailableReason = capReason || (cantAfford
+                ? minimumReserve > 0
+                  ? `Reserve ${minimumReserve}pt for the remaining minimum roster slots.`
+                  : "This Pokémon costs more than the remaining budget."
+                : "");
+              const disabled = (draftType === "snake" && (!canDraftNow || !!capReason)) || (draftType === "auction" && (!canNominate || !!nominee)) || cantAfford;
               const queued = myTeamIdx >= 0 && myQueue.includes(p.name);
               return (
-                <div key={p.id} className="text-left px-3 py-3 rounded flex-shrink-0" style={{ background: "#1B1F33", border: "1px solid rgba(255,255,255,0.08)", opacity: cantAfford ? 0.5 : 1, width: usesSnakeBudget && poolViewMode === "price" ? 190 : "auto" }}>
+                <div key={p.id} title={unavailableReason || undefined} className="text-left px-3 py-3 rounded flex-shrink-0" style={{ background: capReason ? "#08090D" : "#1B1F33", border: capReason ? "1px solid #30323D" : "1px solid rgba(255,255,255,0.08)", opacity: capReason ? 0.38 : cantAfford ? 0.5 : 1, filter: capReason ? "grayscale(1)" : "none", width: usesSnakeBudget && poolViewMode === "price" ? 190 : "auto" }}>
                   <button onClick={() => { if (draftType === "snake") snakePick(p); else { setPendingNominee(p); setPendingBid("1"); } }} disabled={disabled}
                     className="w-full text-left transition-transform hover:scale-[1.02] disabled:opacity-40 disabled:hover:scale-100">
                     <div className="font-semibold text-sm">{p.name}{p.isMega && <span className="mono-font text-[9px] ml-1 px-1 rounded" style={{ background: "#FFD23F22", color: "#FFD23F" }}>MEGA</span>}</div>
@@ -12415,10 +12534,11 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
                     </div>
                     <MonStats mon={p} compact />
                     <MonAbilities mon={p} className="text-[9px] mono-font mt-1" style={{ color: "#5B5F7E" }} />
+                    {unavailableReason && <div className="text-[9px] mono-font mt-2" style={{ color: capReason ? "#9A9FBD" : "#F0555A" }}>{capReason ? "LIMIT REACHED" : unavailableReason}</div>}
                   </button>
                   {draftType === "snake" && myTeamIdx >= 0 && (
                     myOwnTurn ? (
-                      <button onClick={() => snakePick(p)} disabled={cantAfford}
+                      <button onClick={() => snakePick(p)} disabled={cantAfford || !!capReason}
                         className="mt-2 w-full text-xs py-1 rounded mono-font font-semibold disabled:opacity-40"
                         style={{ background: "#FFD23F", color: "#10121C" }}>
                         DRAFT
@@ -12531,7 +12651,7 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
           {showDraftBoard ? "Hide" : "Show"} Draft Board
         </button>
       </div>
-      {showDraftBoard && <DraftBoard teams={teams} rosters={rosters} draftType={draftType} rosterMax={settings.rosterMax} snakeOrder={snakeOrder} />}
+      {showDraftBoard && <DraftBoard teams={teams} rosters={rosters} draftType={draftType} rosterMax={settings.rosterMax} snakeOrder={snakeOrder} settings={settings} />}
 
       <div style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }} className="rounded-lg p-4 mb-4">
         <div className="flex items-center justify-between flex-wrap gap-2 mb-3">
