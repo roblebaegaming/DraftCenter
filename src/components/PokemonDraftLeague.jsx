@@ -2018,6 +2018,18 @@ function scoreMonForArchetype(mon, archetypeKeys, roster) {
     if (special >= physical + 2 && stats.atk >= stats.spa + 15) score += 3;
   }
 
+  // Establish one legal special centerpiece early, then return to normal
+  // fit, value, and diversity scoring for the rest of the roster.
+  const centerpieceWindow = Math.max(0, 10 - roster.length * 2);
+  if (centerpieceWindow > 0) {
+    if (mon.isRestricted && !roster.some((m) => m.isRestricted)) {
+      score += centerpieceWindow;
+    }
+    if (mon.isMega && !roster.some((m) => m.isMega)) {
+      score += centerpieceWindow;
+    }
+  }
+
   score += provenPartnerBonus(mon, roster);
   score += Math.random() * 2;
   return score;
@@ -12532,6 +12544,12 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
                 if (!usesSnakeBudget) return a.name.localeCompare(b.name);
                 return dirMul * (b.cost - a.cost) || a.name.localeCompare(b.name);
               });
+            const selectablePool = usesSnakeBudget
+              ? filteredPool.filter((p) =>
+                  p.cost <= currentSpendLimit
+                  && !capViolationReason(currentRoster, p, settings)
+                )
+              : filteredPool;
 
             const renderCard = (p) => {
               const cantAfford = usesSnakeBudget && p.cost > currentSpendLimit;
@@ -12635,12 +12653,12 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
                     </div>
                   )}
                 </div>
-                {filteredPool.length === 0 ? (
+                {selectablePool.length === 0 ? (
                   <p className="text-sm text-center py-6" style={{ color: "#5B5F7E" }}>No pokémon match that search.</p>
                 ) : draftType === "auction" || !usesSnakeBudget || poolViewMode === "grid" ? (
                   <div style={{ maxHeight: 650, overflowY: "auto" }} className="pr-1">
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                      {filteredPool.map(renderCard)}
+                      {selectablePool.map(renderCard)}
                     </div>
                   </div>
                 ) : (
@@ -12648,13 +12666,8 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
                     <div className="w-full overflow-x-auto pb-2" style={{ maxWidth: "100%" }}>
                       <div className="flex gap-2 min-w-max">
                         {Array.from({ length: 20 }, (_, i) => 20 - i).map((cost) => {
-                          const inCol = filteredPool
+                          const inCol = selectablePool
                             .filter((p) => p.cost === cost)
-                            .filter((p) => {
-                              const cantAfford = p.cost > currentSpendLimit;
-                              const capReason = capViolationReason(currentRoster, p, settings);
-                              return !cantAfford && !capReason;
-                            })
                             .sort((a, b) => a.name.localeCompare(b.name));
                           if (!inCol.length) return null;
                           return (
