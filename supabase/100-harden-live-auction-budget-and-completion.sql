@@ -92,4 +92,3 @@ create trigger validate_live_auction_snapshot
 before update of state on public.league_state_snapshots
 for each row
 execute function public.validate_live_auction_snapshot();
-
