@@ -4599,6 +4599,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   const [scheduleClock, setScheduleClock] = useState(() => Date.now());
   const revRef = useRef(0);
   const saveRequestRef = useRef(0);
+  const saveChainRef = useRef(Promise.resolve());
   const leagueScheduleSyncedRef = useRef(false);
   const completedDraftScheduleClearedRef = useRef(false);
   const automaticStartAttemptedRef = useRef(null);
@@ -4659,7 +4660,8 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       revRef.current = withRev.rev;
       const request = ++saveRequestRef.current;
       if (leagueId) setSaveStatus("saving");
-      saveRemote(withRev, leagueId).then((result) => {
+      saveChainRef.current = saveChainRef.current.then(() => saveRemote(withRev, leagueId));
+      saveChainRef.current.then((result) => {
         if (request !== saveRequestRef.current) return;
         if (leagueId) setSaveStatus(result?.ok ? "saved" : "error");
       });
@@ -5062,6 +5064,9 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
         ? serverTeamOrder.map((teamId) => teamIndexById.get(String(teamId))).filter(Number.isInteger)
         : previous.snakeOrder;
       const drafted = new Set((live.picks || []).map((pick) => String(pick.pokemon_source_key)));
+      const budgets = previous.settings.snakeBudgetEnabled
+        ? rosters.map((roster) => Number(previous.settings.budget) - roster.reduce((sum, mon) => sum + Number(mon.cost || 0), 0))
+        : previous.budgets;
       const pokemonIds = Object.fromEntries((pokemonRows || []).map((row) => [String(row.source_key), row.id]));
       const pickTimeLimitMinutes = Math.max(0, Number(previous.settings.pickTimeLimitMinutes) || 0);
       const serverTurnStartedAt = Date.parse(live.session.updated_at || "");
@@ -5072,6 +5077,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
         ...previous,
         locked: true,
         rosters,
+        budgets,
         pool: basePool.filter((mon) => !drafted.has(String(mon.id))),
         snakeOrder,
         pickIndex: live.session.current_pick_number,
@@ -5400,17 +5406,20 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   }
 
   async function startDraft() {
-    if (!leagueId || state.settings.draftType !== "snake") return startLocalDraft();
-    if (state.settings.snakeBudgetEnabled) {
-      setLiveDraftError("Shared live drafting currently supports standard no-budget snake drafts. Turn off Snake Budget, then start the draft.");
-      return;
+    if (!leagueId) return startLocalDraft();
+    if (state.settings.draftType !== "snake") {
+      await saveChainRef.current;
+      return startLocalDraft();
     }
     if (Object.values(state.keeperRosters || {}).some((roster) => roster?.length)) {
       setLiveDraftError("Shared live drafting does not support keepers yet. Start this practice draft with no keepers.");
       return;
     }
     setLiveDraftError("");
-    const rounds = Math.max(1, Number(state.settings.rosterSize) || 6);
+    await saveChainRef.current;
+    const rounds = state.settings.snakeBudgetEnabled
+      ? Math.max(1, Number(state.settings.rosterMax) || 1)
+      : Math.max(1, Number(state.settings.rosterSize) || 6);
     const latestSavedState = await loadRemote(leagueId);
     const latestQueues = objectOr(latestSavedState?.queues);
     const preservedQueues = Object.keys(latestQueues).length ? latestQueues : state.queues;
@@ -5666,7 +5675,27 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       }),
     }));
   }
+  async function mutateHostedQueue(teamIdx, action, name) {
+    setSaveStatus("saving");
+    const { data, error } = await supabase.rpc("mutate_my_draft_queue", {
+      p_league_id: leagueId,
+      p_team_index: teamIdx,
+      p_action: action,
+      p_pokemon_name: name,
+    });
+    if (error) {
+      setSaveStatus("error");
+      setLiveDraftError(`Your queue could not be saved: ${error.message}`);
+      return false;
+    }
+    const next = hydrateState(data.state);
+    revRef.current = Math.max(revRef.current, Number(next.rev) || 0);
+    setState(next);
+    setSaveStatus("saved");
+    return true;
+  }
   function addToQueue(teamIdx, name) {
+    if (leagueId) return mutateHostedQueue(teamIdx, "add", name);
     commit((s) => {
       const q = s.queues[teamIdx] || [];
       if (q.includes(name)) return s;
@@ -5674,9 +5703,11 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     });
   }
   function removeFromQueue(teamIdx, name) {
+    if (leagueId) return mutateHostedQueue(teamIdx, "remove", name);
     commit((s) => ({ ...s, queues: { ...s.queues, [teamIdx]: (s.queues[teamIdx] || []).filter((n) => n !== name) } }));
   }
   function moveQueueItem(teamIdx, name, dir) {
+    if (leagueId) return mutateHostedQueue(teamIdx, dir < 0 ? "up" : "down", name);
     commit((s) => {
       const q = [...(s.queues[teamIdx] || [])];
       const idx = q.indexOf(name);

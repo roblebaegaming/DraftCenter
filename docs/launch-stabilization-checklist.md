@@ -27,7 +27,12 @@ Use this before each beta release. Record the date, commit, tester accounts, dev
 - [ ] Invite, promote, remove, and replace managers safely.
 - [ ] Draft-time edits do not start or complete the draft.
 - [ ] Complete multi-account snake and auction drafts.
+- [ ] Complete a hosted budgeted snake draft; server rejects unaffordable picks and preserves remaining budgets.
 - [ ] Waiting room, scheduled start, timer, turn ownership, queues, sorting, and recap work.
+- [ ] A manager queue survives reload and cannot modify another manager's queue.
+- [ ] Rapid roster-range slider changes persist the final selected values.
+- [ ] One general manager invite link admits multiple managers until expiry.
+- [ ] A targeted email invite remains restricted to its recipient and safely reopens for them.
 - [ ] Refresh, leave/rejoin, and use multiple tabs during a draft.
 - [ ] Draft state remains consistent across browsers and accounts.
 
