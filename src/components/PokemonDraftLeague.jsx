@@ -4351,6 +4351,14 @@ async function saveRemote(state, leagueId) {
     return { ok: true };
   } catch (e) {
     console.error("Storage save failed", e);
+    if (leagueId) {
+      createClient().rpc("report_operational_issue", {
+        p_kind: "league_save_failed",
+        p_message: e.message || "League snapshot save failed",
+        p_league_id: leagueId,
+        p_context: { revision: state?.rev ?? null },
+      }).then(() => {});
+    }
     return { ok: false, message: e.message || "Could not save" };
   }
 }
@@ -4616,6 +4624,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   const leagueScheduleSyncedRef = useRef(false);
   const completedDraftScheduleClearedRef = useRef(false);
   const automaticStartAttemptedRef = useRef(null);
+  const lastReportedOperationalErrorRef = useRef("");
 
   useEffect(() => {
     const timer = setInterval(() => setScheduleClock(Date.now()), 15000);
@@ -4626,6 +4635,17 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     const identity = profile?.display_name || profile?.username;
     if (identity) { setMyName(identity); setNameConfirmed(true); }
   }, [profile]);
+  useEffect(() => {
+    const message = liveDraftError.trim();
+    if (!leagueId || !message || message === lastReportedOperationalErrorRef.current) return;
+    lastReportedOperationalErrorRef.current = message;
+    supabase.rpc("report_operational_issue", {
+      p_kind: "draft_operation_failed",
+      p_message: message,
+      p_league_id: leagueId,
+      p_context: { tab, draft_type: state.settings?.draftType || null },
+    }).then(() => {});
+  }, [liveDraftError, leagueId, supabase, tab, state.settings?.draftType]);
 
   // Initial load + polling for multiplayer sync
   useEffect(() => {

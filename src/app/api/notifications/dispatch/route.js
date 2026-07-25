@@ -198,6 +198,14 @@ export async function GET(request) {
         if (result.skipped) skipped += 1; else delivered += 1;
       } catch (eventError) {
         failed += 1;
+        try {
+          await supabase.from("operational_health_events").insert({
+            league_id: event.league_id || null,
+            kind: "notification_dispatch_failed",
+            message: String(eventError.message || "Notification delivery failed.").slice(0, 1000),
+            context: { event_id: event.id, channel: event.channel, event_kind: event.kind },
+          });
+        } catch {}
         const { error: failError } = await supabase.rpc("fail_notification_event", {
           p_event_id: event.id,
           p_claim_token: claimToken,

@@ -1,0 +1,77 @@
+# Multi-account hardening test record
+
+Use this record against a safe test league before each major release. Do not use a production league for destructive lifecycle tests.
+
+## Test setup
+
+- Date:
+- Tester:
+- Build or commit:
+- Environment:
+- Desktop browser:
+- Mobile browser/device:
+- Commissioner account:
+- Manager account A:
+- Manager account B:
+- Spectator account:
+- Signed-out session:
+
+## Permissions and privacy
+
+- [ ] Signed-out users cannot read private league, roster, notebook, queue, or planning data.
+- [ ] Spectators cannot change league settings, rosters, results, queues, trades, or draft state.
+- [ ] Managers can change only their permitted team data.
+- [ ] Commissioners can use commissioner tools without exposing those controls to other roles.
+- [ ] Private notebooks and account exports contain only the signed-in user's data.
+- [ ] A manager removed from a league immediately loses private league access.
+
+## Concurrent draft and reconnect
+
+- [ ] Two managers submit different picks at nearly the same time; only valid server-authoritative picks are accepted.
+- [ ] Two sessions attempt the same Pokémon; only one succeeds.
+- [ ] Queue changes remain private and correctly ordered.
+- [ ] Refresh, background/foreground, network loss, and reconnect recover the authoritative draft state.
+- [ ] Commissioner pause, resume, undo, and correction operations remain consistent across connected clients.
+- [ ] Draft completion creates the expected rosters and does not leave stale active-draft state.
+
+## Season and transactions
+
+- [ ] Free-agent add/drop obeys roster ranges, deadlines, weekly limits, and season limits.
+- [ ] Trades require the correct participants and cannot move Pokémon a team does not own.
+- [ ] Commissioner transaction reversal restores all affected rosters and records an audit entry.
+- [ ] Simultaneous roster changes cannot exceed roster limits or duplicate ownership.
+- [ ] League spreadsheet export contains current rosters, results, draft log, and archived history.
+
+## Results, playoffs, archive, and new season
+
+- [ ] Only permitted participants or commissioners can submit or correct results.
+- [ ] Standings recalculate correctly after result entry and correction.
+- [ ] Playoff qualification, bracket progression, ties, and champion selection are correct.
+- [ ] Archiving preserves season settings, rosters, results, standings, and draft history.
+- [ ] Starting a new season clears only active-season state and preserves archived history.
+- [ ] Returning members retain the correct role; removed members do not regain access.
+
+## Mobile and performance
+
+- [ ] Setup, League Tools, My Team, Messages, draft, transactions, and exports work at narrow phone widths.
+- [ ] Primary controls are reachable without horizontal scrolling or being covered by fixed navigation.
+- [ ] Long team names, league names, Pokémon lists, and messages wrap without hiding actions.
+- [ ] Initial league load, draft updates, and roster saves remain responsive on a throttled mobile connection.
+- [ ] Failed saves show a useful error and do not display a false success state.
+
+## Recovery and monitoring
+
+- [ ] Account-wide private export downloads and opens as valid JSON.
+- [ ] My Teams spreadsheet is readable.
+- [ ] My Teams recovery export restores into a separate test account or clean test state.
+- [ ] A simulated failed league save creates an operational health event without exposing private payloads.
+- [ ] A simulated notification failure creates an operational health event and preserves retry behavior.
+
+## Findings
+
+Record each failure with the account, role, device, exact action, expected result, actual result, screenshot or log reference, and severity.
+
+| ID | Area | Severity | Reproduction | Expected | Actual | Status |
+| --- | --- | --- | --- | --- | --- | --- |
+| | | | | | | |
+

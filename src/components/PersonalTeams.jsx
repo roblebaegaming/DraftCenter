@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createClient } from "../lib/supabase/client";
 import { MonAbilities, MonDefenseChart, MonSprite, MonStats, POLL_POKEMON_NAMES, POKEMON_DIRECTORY, TeamDefenseSummary } from "./PokemonDraftLeague";
 
@@ -20,6 +20,7 @@ export default function PersonalTeams() {
   const [showArchived, setShowArchived] = useState(false);
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
+  const importInputRef = useRef(null);
 
   async function load(owner) {
     const [personalResult, leagueResult] = await Promise.all([
@@ -91,12 +92,55 @@ export default function PersonalTeams() {
     setBusy(true); const {error}=await supabase.from("personal_teams").delete().eq("id",team.id).eq("owner_id",user.id); setBusy(false);
     if(error)return setMessage(error.message); await load(user);
   }
+  function downloadPrivateBackup() {
+    const payload={format:"draftcenter-my-teams",version:1,exported_at:new Date().toISOString(),personal_teams:teams};
+    const url=URL.createObjectURL(new Blob([JSON.stringify(payload,null,2)],{type:"application/json"}));
+    const link=document.createElement("a"); link.href=url; link.download=`draftcenter-my-teams-${new Date().toISOString().slice(0,10)}.json`; link.click(); URL.revokeObjectURL(url);
+  }
+  async function downloadReadableExport() {
+    const XLSX=await import("xlsx");
+    const workbook=XLSX.utils.book_new();
+    const overview=XLSX.utils.aoa_to_sheet([
+      ["Team","League","Format","Use","Archived","Pokemon","General notes","Pokepaste","Spreadsheet","Replica code"],
+      ...teams.map((team)=>[team.team_name,team.league_name||"",team.format_name||"",team.workspace_type||"weekly",team.archived?"Yes":"No",(team.pokemon||[]).join(", "),team.notes||"",team.pokepaste_url||"",team.spreadsheet_url||"",team.replica_code||""]),
+    ]);
+    overview["!cols"]=[24,24,20,12,10,60,80,40,50,24].map((wch)=>({wch}));
+    XLSX.utils.book_append_sheet(workbook,overview,"My Teams");
+    const plans=XLSX.utils.aoa_to_sheet([
+      ["Team","Use","Section","Notes"],
+      ...teams.flatMap((team)=>(team.planning_entries||[]).map((entry,index)=>[team.team_name,team.workspace_type||"weekly",entry.title||entryLabel(team.workspace_type,index),entry.notes||""])),
+    ]);
+    plans["!cols"]=[24,12,28,100].map((wch)=>({wch}));
+    XLSX.utils.book_append_sheet(workbook,plans,"Planning");
+    XLSX.writeFile(workbook,`draftcenter-my-teams-${new Date().toISOString().slice(0,10)}.xlsx`);
+  }
+  async function restorePrivateBackup(event) {
+    const file=event.target.files?.[0]; if(!file)return;
+    setBusy(true); setMessage("");
+    try {
+      const parsed=JSON.parse(await file.text());
+      if(parsed?.format!=="draftcenter-my-teams"||parsed?.version!==1||!Array.isArray(parsed.personal_teams))throw new Error("Choose a DraftCenter My Teams recovery file.");
+      if(parsed.personal_teams.length>10)throw new Error("A My Teams recovery file cannot contain more than 10 external teams.");
+      if(!window.confirm(`Restore ${parsed.personal_teams.length} private team workspace${parsed.personal_teams.length===1?"":"s"}? Matching teams will be updated and new teams will be added.`))return;
+      const rows=parsed.personal_teams.map((team)=>({
+        id:team.id,owner_id:user.id,team_name:String(team.team_name||"").trim(),league_name:nullable(team.league_name),format_name:nullable(team.format_name),
+        workspace_type:team.workspace_type==="tournament"?"tournament":"weekly",planning_entries:Array.isArray(team.planning_entries)?team.planning_entries:[],
+        notes:String(team.notes||""),weekly_notes:String(team.weekly_notes||""),pokepaste_url:nullable(team.pokepaste_url),replica_code:String(team.replica_code||""),
+        spreadsheet_url:nullable(team.spreadsheet_url),pokemon:Array.isArray(team.pokemon)?team.pokemon:[],archived:Boolean(team.archived),
+      }));
+      if(rows.some((team)=>!team.id||!team.team_name))throw new Error("The recovery file contains an invalid team.");
+      const {error}=await supabase.rpc("restore_my_personal_teams",{p_teams:rows});
+      if(error)throw error;
+      await load(user); setMessage("My Teams recovery file restored.");
+    } catch(error) { setMessage(error.message||"The My Teams recovery file could not be restored."); }
+    finally { setBusy(false); if(importInputRef.current)importInputRef.current.value=""; }
+  }
   if(user===undefined)return <main className="personal-teams-shell"><p>Loading My Teams...</p></main>;
   if(!user)return <main className="personal-teams-shell"><section className="hub-card"><h1>My Teams is private.</h1><p className="muted">Sign in to create and manage your personal team workspaces.</p><a className="primary-button inline-link-button" href="/">Sign in</a></section></main>;
   const visible=teams.filter((team)=>Boolean(team.archived)===showArchived);
   return <main className="personal-teams-shell">
     <nav className="public-page-nav"><a className="quiet-button" href="/">Dashboard</a><a className="quiet-button" href="/resources">Resources</a><a className="quiet-button" href="/explore">Community</a></nav>
-    <header className="personal-teams-hero"><div><span className="eyebrow">YOUR TEAM BINDER</span><h1>My Teams</h1><p>Your DraftCenter league teams and private external team workspaces, all in one place. League history remains read-only and external teams never alter a hosted league.</p></div><button className="primary-button" disabled={teams.length>=10} onClick={()=>start()}>{teams.length>=10?"10-team limit reached":"Add external team"}</button></header>
+    <header className="personal-teams-hero"><div><span className="eyebrow">YOUR TEAM BINDER</span><h1>My Teams</h1><p>Your DraftCenter league teams and private external team workspaces, all in one place. League history remains read-only and external teams never alter a hosted league.</p></div><div className="personal-team-actions"><button className="primary-button" disabled={teams.length>=10} onClick={()=>start()}>{teams.length>=10?"10-team limit reached":"Add external team"}</button><button className="secondary-button" disabled={busy} onClick={downloadReadableExport}>Download spreadsheet</button><button className="quiet-button" disabled={busy} onClick={downloadPrivateBackup}>Download recovery file</button><button className="quiet-button" disabled={busy} onClick={()=>importInputRef.current?.click()}>Restore recovery file</button><input ref={importInputRef} type="file" accept="application/json" onChange={restorePrivateBackup} hidden/></div></header>
     <section className="my-league-teams-section"><div className="section-heading"><div><span className="eyebrow">DRAFTCENTER LEAGUES</span><h2>Your league teams</h2></div><span className="muted">Current and completed seasons · Read-only</span></div>
       {!leagueTeams.length&&<p className="muted">Teams you manage in DraftCenter leagues will appear here.</p>}
       <div className="personal-team-grid">{leagueTeams.map((team)=><article className="personal-team-card league-team-card" key={`${team.league_id}-${team.season_number}-${team.team_index}-${team.archived}`} onClick={()=>setViewing({...team,format_name:`Season ${team.season_number}`,league_source:true})}><span className="eyebrow">{team.league_name}</span><h2>{team.team_name}</h2><p className="personal-team-format">Season {team.season_number} · {team.archived?"Completed":"Current"}</p><div className="personal-team-pokemon">{(team.pokemon||[]).map((name)=><span key={name}>{name}</span>)}{!team.pokemon?.length&&<span className="muted">No Pokémon saved for this roster</span>}</div><div className="personal-team-actions"><button className="secondary-button">View roster</button>{!team.archived&&<a className="text-button" href={`/?league=${encodeURIComponent(team.slug||team.league_id)}`} onClick={(event)=>event.stopPropagation()}>Open league →</a>}</div></article>)}</div>
