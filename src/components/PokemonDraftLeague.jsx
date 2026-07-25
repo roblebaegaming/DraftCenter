@@ -5350,12 +5350,31 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     if (!leagueId) return;
     const [{ data: live, error }, { data: pokemonRows, error: pokemonError }] = await Promise.all([
       supabase.rpc("get_live_snake_draft", { p_league_id: leagueId }),
-      supabase.from("league_pokemon").select("id, source_key").eq("league_id", leagueId),
+      supabase.from("league_pokemon").select("id, source_key, cost, is_drafted, is_restricted, is_mega").eq("league_id", leagueId),
     ]);
     if (error || pokemonError || !live?.session?.id) return;
     setState((previous) => {
       if (!previous.liveDraft?.sessionId) return previous;
-      const basePool = previous.liveDraft.basePool || previous.pool || [];
+      const rowBySourceKey = new Map((pokemonRows || []).map((row) => [String(row.source_key), row]));
+      const savedBasePool = Array.isArray(previous.liveDraft.basePool)
+        ? previous.liveDraft.basePool
+        : [];
+      const reconstructedBasePool = fullPool(previous.settings)
+        .filter((mon) => rowBySourceKey.has(String(mon.id)))
+        .map((mon) => {
+          const row = rowBySourceKey.get(String(mon.id));
+          return {
+            ...mon,
+            cost: Number(row.cost ?? mon.cost ?? 0),
+            isRestricted: Boolean(row.is_restricted),
+            isMega: Boolean(row.is_mega),
+          };
+        });
+      const basePool = reconstructedBasePool.length >= savedBasePool.length && reconstructedBasePool.length
+        ? reconstructedBasePool
+        : savedBasePool.length
+          ? savedBasePool
+          : previous.pool || [];
       const bySourceKey = new Map(basePool.map((mon) => [String(mon.id), mon]));
       const keeperRosters = previous.liveDraft?.keeperRosters || {};
       const rosters = Array.from({ length: previous.teams.length }, (_, teamIndex) =>
@@ -5371,10 +5390,9 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       const snakeOrder = Array.isArray(serverTeamOrder)
         ? serverTeamOrder.map((teamId) => teamIndexById.get(String(teamId))).filter(Number.isInteger)
         : previous.snakeOrder;
-      const drafted = new Set([
-        ...(live.picks || []).map((pick) => String(pick.pokemon_source_key)),
-        ...Object.values(keeperRosters).flatMap((roster) => (roster || []).map((pokemon) => String(pokemon.id))),
-      ]);
+      const drafted = new Set((pokemonRows || [])
+        .filter((row) => row.is_drafted)
+        .map((row) => String(row.source_key)));
       const budgets = previous.settings.snakeBudgetEnabled
         ? rosters.map((roster) => Number(previous.settings.budget) - roster.reduce((sum, mon) => sum + Number(mon.cost || 0), 0))
         : previous.budgets;
@@ -5398,7 +5416,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
           ? Number(live.session.configuration?.pause_started_at) || previous.pausedAt || Date.now()
           : null,
         pauseIsOvernight: live.session.status === "paused" && Boolean(live.session.configuration?.pause_is_overnight),
-        liveDraft: { ...previous.liveDraft, sessionId: live.session.id, pokemonIds },
+        liveDraft: { ...previous.liveDraft, sessionId: live.session.id, pokemonIds, basePool },
       };
     });
   }, [leagueId, supabase]);
