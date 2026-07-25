@@ -5644,7 +5644,11 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     setLiveDraftError("");
     await saveChainRef.current;
     const latestSavedState = await loadRemote(leagueId);
-    const latestQueues = objectOr(latestSavedState?.queues);
+    const latestQueues = latestSavedState?.queues
+      && typeof latestSavedState.queues === "object"
+      && !Array.isArray(latestSavedState.queues)
+      ? latestSavedState.queues
+      : {};
     const preservedQueues = Object.keys(latestQueues).length ? latestQueues : state.queues;
     const basePool = fullPool(state.settings)
       .filter((p) => isLegal(p, state.settings))
@@ -9634,6 +9638,7 @@ function SetupView({ state, leagueId = null, isCommissioner, canBeCommissioner, 
   const [inviteMessage, setInviteMessage] = useState("");
   const [reopeningSetup, setReopeningSetup] = useState(false);
   const [startingDraft, setStartingDraft] = useState(false);
+  const [startException, setStartException] = useState("");
   // (Division assignment now lives in DivisionDragBoard, its own component
   // with real pointer-based drag-and-drop — see below.)
   const [search, setSearch] = useState("");
@@ -10171,8 +10176,11 @@ function SetupView({ state, leagueId = null, isCommissioner, canBeCommissioner, 
           <button type="button" onClick={async () => {
             if (startingDraft) return;
             setStartingDraft(true);
+            setStartException("");
             try {
               await (hasStaleRosterCarryover ? rebuildCurrentSeason() : onStart());
+            } catch (error) {
+              setStartException(error?.message || "An unexpected browser error stopped the draft from starting.");
             } finally {
               setStartingDraft(false);
             }
@@ -10180,9 +10188,9 @@ function SetupView({ state, leagueId = null, isCommissioner, canBeCommissioner, 
             style={{ background: "#FFD23F", color: "#10121C" }}>
             {startingDraft ? "STARTING DRAFT..." : hasStaleRosterCarryover ? `REOPEN SEASON ${state.seasonNumber} SETUP` : locked ? "DRAFT IN PROGRESS" : settings.draftScheduledAt ? "START SCHEDULED DRAFT" : "START DRAFT NOW"}
           </button>
-          {!startingDraft && draftError && (
+          {!startingDraft && (draftError || startException) && (
             <div className="mt-3 rounded p-3 text-sm" style={{ background: "#2A1620", color: "#FFD6D6", border: "1px solid #F0555A66" }}>
-              <strong>Draft did not start.</strong> {draftError}
+              <strong>Draft did not start.</strong> {draftError || startException}
             </div>
           )}
 
