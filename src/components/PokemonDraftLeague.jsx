@@ -6182,6 +6182,10 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       && state.settings.snakeBudgetEnabled
       && (state.rosters[teamIdx] || []).length >= (team?.budgetRosterTarget ?? state.settings.rosterMax);
     const mon = selectAutoMon(state, teamIdx);
+    const botShouldFinishBudgetRoster = isBotTeam
+      && state.settings.snakeBudgetEnabled
+      && (state.rosters[teamIdx] || []).length >= state.settings.rosterMin
+      && (botReachedBudgetTarget || !mon);
     const attemptedPickIndex = state.pickIndex;
     const runAutoPick = async () => {
       // Mark the turn only when its request actually begins. Live-board
@@ -6189,7 +6193,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       // delay; if that cancels the timer, the replacement render must remain
       // free to schedule it again.
       lastAutoFired.current = attemptedPickIndex;
-      const succeeded = botReachedBudgetTarget
+      const succeeded = botShouldFinishBudgetRoster
         ? await finishBudgetSnakeRoster()
         : mon
           ? await snakePick(mon)
@@ -12025,12 +12029,14 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
   const [poolStatFilter, setPoolStatFilter] = useState(""); // "" | hp | atk | def | spa | spd | spe
   const [poolStatMin, setPoolStatMin] = useState("");
   const [showMyRoster, setShowMyRoster] = useState(true);
+  const [finishingRoster, setFinishingRoster] = useState(false);
   const currentRoster = rosters[currentTeamOnClock] || [];
   const currentRestrictedCount = currentRoster.filter((mon) => isRestrictedMon(mon, settings)).length;
   const currentMegaCount = currentRoster.filter((mon) => mon.isMega).length;
+  const canFinishForCurrentTeam = isCommissioner || myTeamIdx === currentTeamOnClock;
   const canFinishCurrentBudgetRoster = draftType === "snake"
     && settings.snakeBudgetEnabled
-    && canDraftNow
+    && canFinishForCurrentTeam
     && currentRoster.length >= settings.rosterMin
     && currentRoster.length < settings.rosterMax;
   useEffect(() => {
@@ -12419,10 +12425,18 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
                 </div>
               )}
               {canFinishCurrentBudgetRoster && (
-                <button type="button" onClick={finishBudgetSnakeRoster}
-                  className="mt-3 px-4 py-2 rounded text-xs font-semibold mono-font"
-                  style={{ background: "#4FD1C522", color: "#4FD1C5", border: "1px solid #4FD1C566" }}>
-                  FINISH THIS ROSTER AT {currentRoster.length} PICKS
+                <button type="button" onClick={async () => {
+                  if (finishingRoster) return;
+                  setFinishingRoster(true);
+                  try {
+                    await finishBudgetSnakeRoster();
+                  } finally {
+                    setFinishingRoster(false);
+                  }
+                }} disabled={finishingRoster}
+                  className="mt-3 px-5 py-2.5 rounded font-bold mono-font transition-transform hover:scale-[1.03] active:scale-[0.98] disabled:opacity-50 disabled:cursor-wait"
+                  style={{ background: "#4FD1C5", color: "#10121C", border: "2px solid #8AF5EA", boxShadow: "0 0 18px #4FD1C555", cursor: finishingRoster ? "wait" : "pointer" }}>
+                  {finishingRoster ? "FINISHING ROSTER…" : `FINISH THIS ROSTER AT ${currentRoster.length} PICKS`}
                 </button>
               )}
             </div>
