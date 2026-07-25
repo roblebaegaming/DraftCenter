@@ -37,6 +37,11 @@ Use this record against a safe test league before each major release. Do not use
 ## Season and transactions
 
 - [ ] Free-agent add/drop obeys roster ranges, deadlines, weekly limits, and season limits.
+- [ ] Manager A can see their own pending FAAB bid after refresh and reconnect.
+- [ ] Manager B and spectators receive a sanitized pending-claim summary but cannot read Manager A's bid in page data or network responses.
+- [ ] Commissioners can see all bids required to process claims; nonstaff cannot call claim processing.
+- [ ] Simultaneous claim submission, withdrawal, and processing leaves each claim in exactly one state and never republishes bid amounts in the league snapshot.
+- [ ] Claim processing rejects a stale claim set, applies each winning add/drop once, and preserves claims submitted after processing.
 - [ ] Trades require the correct participants and cannot move Pokémon a team does not own.
 - [ ] Commissioner transaction reversal restores all affected rosters and records an audit entry.
 - [ ] Simultaneous roster changes cannot exceed roster limits or duplicate ownership.
@@ -74,4 +79,3 @@ Record each failure with the account, role, device, exact action, expected resul
 | ID | Area | Severity | Reproduction | Expected | Actual | Status |
 | --- | --- | --- | --- | --- | --- | --- |
 | | | | | | | |
-

@@ -4411,13 +4411,33 @@ async function loadRemote(leagueId) {
   try {
     if (leagueId) {
       const supabase = createClient();
-      const { data, error } = await supabase
-        .from("league_state_snapshots")
-        .select("state")
-        .eq("league_id", leagueId)
-        .maybeSingle();
+      const [{ data, error }, { data: claims, error: claimsError }] = await Promise.all([
+        supabase
+          .from("league_state_snapshots")
+          .select("state")
+          .eq("league_id", leagueId)
+          .maybeSingle(),
+        supabase.rpc("list_private_free_agent_claims", { p_league_id: leagueId }),
+      ]);
       if (error) throw error;
-      return data?.state || null;
+      // Migration 094 may not be installed during a staged deployment. Keep
+      // loading the league, but once installed use only its actor-tailored
+      // claim view; bid_amount is null for competing managers.
+      const remote = data?.state || null;
+      if (!remote || claimsError) return remote;
+      return {
+        ...remote,
+        pendingClaims: (claims || []).map((claim) => ({
+          id: claim.id,
+          teamIdx: claim.team_index,
+          addName: claim.add_name,
+          dropName: claim.drop_name,
+          bidAmount: claim.bid_amount,
+          submittedAt: new Date(claim.submitted_at).getTime(),
+          week: claim.week,
+          canWithdraw: claim.can_withdraw,
+        })),
+      };
     }
     // Claude provides window.storage, but a normal browser does not. Keep the
     // prototype usable locally until its league state is moved to Supabase.
@@ -7300,13 +7320,39 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     if (state.settings.faClaimMode === "instant") return addDropFreeAgent(teamIdx, addName, dropName);
     if (leagueId) {
       const addMon = fullPool(state.settings).find((pokemon) => pokemon.name === addName);
-      return mutateHostedTransaction("claim_submit", {
-        team_index: teamIdx,
-        add_name: addName,
-        add_mon: addMon ? { ...addMon, cost: costFor(addMon, state.settings) } : null,
-        drop_name: dropName || null,
-        bid_amount: state.settings.faClaimMode === "faab" ? Math.floor(Number(bidAmount)) || 0 : null,
+      setSaveStatus("saving");
+      const { data, error } = await supabase.rpc("submit_private_free_agent_claim", {
+        p_league_id: leagueId,
+        p_team_index: teamIdx,
+        p_add_name: addName,
+        p_add_mon: addMon ? { ...addMon, cost: costFor(addMon, state.settings) } : null,
+        p_drop_name: dropName || null,
+        p_bid_amount: state.settings.faClaimMode === "faab" ? Math.floor(Number(bidAmount)) || 0 : null,
       });
+      if (error) {
+        setSaveStatus("error");
+        setLiveDraftError(`The claim could not be saved: ${error.message}`);
+        return { ok: false, reason: error.message };
+      }
+      const hydrated = hydrateState(data?.state);
+      hydrated.pendingClaims = [
+        ...(state.pendingClaims || []),
+        {
+          id: data.claim_id,
+          teamIdx,
+          addName,
+          dropName: dropName || null,
+          bidAmount: state.settings.faClaimMode === "faab" ? Math.floor(Number(bidAmount)) || 0 : null,
+          submittedAt: Date.now(),
+          week: operationalWeek,
+          canWithdraw: true,
+        },
+      ];
+      revRef.current = Math.max(revRef.current, hydrated.rev || 0);
+      setState(hydrated);
+      setSaveStatus("saved");
+      setLiveDraftError("");
+      return { ok: true };
     }
     let outcome = { ok: false, reason: "" };
     commit((s) => {
@@ -7341,7 +7387,25 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   // Withdrawing your own not-yet-processed claim — no penalty, since
   // nothing's actually happened yet.
   async function cancelClaim(claimId) {
-    if (leagueId) return mutateHostedTransaction("claim_cancel", { claim_id: claimId });
+    if (leagueId) {
+      setSaveStatus("saving");
+      const { data, error } = await supabase.rpc("cancel_private_free_agent_claim", {
+        p_league_id: leagueId,
+        p_claim_id: claimId,
+      });
+      if (error) {
+        setSaveStatus("error");
+        setLiveDraftError(`The claim could not be withdrawn: ${error.message}`);
+        return { ok: false, reason: error.message };
+      }
+      const hydrated = hydrateState(data);
+      hydrated.pendingClaims = (state.pendingClaims || []).filter((claim) => claim.id !== claimId);
+      revRef.current = Math.max(revRef.current, hydrated.rev || 0);
+      setState(hydrated);
+      setSaveStatus("saved");
+      setLiveDraftError("");
+      return { ok: true };
+    }
     commit((s) => ({ ...s, pendingClaims: (s.pendingClaims || []).filter((c) => c.id !== claimId) }));
     return { ok: true };
   }
@@ -7352,9 +7416,9 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   // timer. Contested mons (two+ claims on the same pokémon) get resolved
   // per faClaimMode; every claim gets removed from the queue afterward,
   // win or lose.
-  function processClaims(autoCycle = null) {
+  async function processClaims(autoCycle = null) {
     const resolvedAutoCycle = typeof autoCycle === "string" ? autoCycle : null;
-    commit((s) => {
+    const resolveClaims = (s) => {
       const claims = s.pendingClaims || [];
       if (!claims.length) return s;
       const byMon = {};
@@ -7435,13 +7499,41 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       });
 
       return { ...s, rosters, budgets, faabBudgets, waiverPriority, transactionLog, pendingClaims: [], lastClaimResults: results, lastAutoClaimCycle: resolvedAutoCycle || s.lastAutoClaimCycle || null };
+    };
+    if (!leagueId) {
+      commit(resolveClaims);
+      return { ok: true };
+    }
+    if (!isCommissioner) return { ok: false, reason: "Only a commissioner can process claims." };
+    const claimIds = (state.pendingClaims || []).map((claim) => claim.id).sort();
+    if (!claimIds.length) return { ok: true };
+    const nextState = {
+      ...resolveClaims(state),
+      rev: (state.rev || 0) + 1,
+    };
+    setSaveStatus("saving");
+    const { data, error } = await supabase.rpc("finalize_private_free_agent_claims", {
+      p_league_id: leagueId,
+      p_state: nextState,
+      p_claim_ids: claimIds,
     });
+    if (error) {
+      setSaveStatus("error");
+      setLiveDraftError(`Claims could not be processed: ${error.message}`);
+      return { ok: false, reason: error.message };
+    }
+    const hydrated = hydrateState(data);
+    revRef.current = Math.max(revRef.current, hydrated.rev || 0);
+    setState(hydrated);
+    setSaveStatus("saved");
+    setLiveDraftError("");
+    return { ok: true };
   }
 
   useEffect(() => {
     if (state.settings.calendarMode !== "weekly" || !state.settings.autoProcessClaims || state.settings.faClaimMode === "instant") return undefined;
     const checkDueClaims = () => {
-      if (!(state.pendingClaims || []).length) return;
+      if (!(state.pendingClaims || []).length || (leagueId && !isCommissioner)) return;
       let parts;
       try {
         parts = Object.fromEntries(new Intl.DateTimeFormat("en-US", {
@@ -7460,7 +7552,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     checkDueClaims();
     const timer = window.setInterval(checkDueClaims, 60_000);
     return () => window.clearInterval(timer);
-  }, [state.settings.calendarMode, state.settings.autoProcessClaims, state.settings.faClaimMode, state.settings.leagueTimeZone, state.settings.claimDayOfWeek, state.settings.claimTime, state.pendingClaims, state.lastAutoClaimCycle]);
+  }, [state.settings.calendarMode, state.settings.autoProcessClaims, state.settings.faClaimMode, state.settings.leagueTimeZone, state.settings.claimDayOfWeek, state.settings.claimTime, state.pendingClaims, state.lastAutoClaimCycle, leagueId, isCommissioner]);
 
   async function proposeTrade(fromTeam, toTeam, offerNames, requestNames) {
     if (!offerNames.length && !requestNames.length) return { ok: false, reason: "Choose at least one Pokémon." };
@@ -14908,7 +15000,11 @@ function TransactionsView({ state, myName, myTeamIdx, isCommissioner, freeAgents
                     <span style={{ color: "#9A9FBD" }}> wants </span>
                     <span style={{ color: "#4FD1C5" }}>{c.addName}</span>
                     {c.dropName && <><span style={{ color: "#9A9FBD" }}> (dropping </span><span style={{ color: "#F0555A" }}>{c.dropName}</span><span style={{ color: "#9A9FBD" }}>)</span></>}
-                    {settings.faClaimMode === "faab" && <span className="mono-font text-xs ml-2" style={{ color: "#FFD23F" }}>bid {c.bidAmount}pt</span>}
+                    {settings.faClaimMode === "faab" && (
+                      <span className="mono-font text-xs ml-2" style={{ color: "#FFD23F" }}>
+                        {c.bidAmount === null || c.bidAmount === undefined ? "bid hidden" : `bid ${c.bidAmount}pt`}
+                      </span>
+                    )}
                   </div>
                   {(canActFor(c.teamIdx)) && (
                     <button onClick={() => cancelClaim(c.id)} className="text-xs px-2 py-1 rounded" style={{ background: "#1F2338", color: "#5B5F7E" }}>Withdraw</button>
