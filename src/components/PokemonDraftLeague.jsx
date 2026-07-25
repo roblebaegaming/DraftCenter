@@ -6071,11 +6071,10 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
 
   // For a bot (or auto-draft) team whose turn it is to NOMINATE in an
   // auction — if they've queued anyone (the same queue snake draft uses),
-  // nominate their next valid queued pick first. Otherwise picks randomly
-  // among the top couple of price tiers still left in the pool, rather than
-  // always nominating the single most expensive mon or something totally
-  // random. Keeps nominations feeling notable without being fully
-  // predictable.
+  // nominate their next valid queued pick first. Otherwise choose from a
+  // rotating window of the 3–5 most expensive distinct tiers still left.
+  // This keeps nominations valuable without making every bot mechanically
+  // reveal the single highest-priced mon.
   function selectAutoNomination(s, teamIdx) {
     const roster = s.rosters[teamIdx] || [];
     const candidates = s.pool.filter((m) => !capViolationReason(roster, m, s.settings));
@@ -6085,13 +6084,24 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       const queued = candidates.find((m) => m.name === name);
       if (queued) return queued;
     }
-    // No queue to fall back on — when a nomination is missed or auto-filled,
-    // it should be the next highest-valued mon left, not something several
-    // tiers down. Ties at that exact top cost (there's often more than one)
-    // are broken randomly among just that tier.
-    const topCost = Math.max(...candidates.map((m) => m.cost));
-    const topPool = candidates.filter((m) => m.cost === topCost);
-    return topPool[Math.floor(Math.random() * topPool.length)];
+    // Within the premium band, prefer roster strategy and centerpiece fit,
+    // with enough variation that different bots do not nominate identically.
+    const priceTiers = [...new Set(candidates.map((mon) => Number(mon.cost) || 0))]
+      .sort((a, b) => b - a);
+    const tierWindowSize = Math.min(priceTiers.length, 3 + Math.floor(Math.random() * 3));
+    const premiumTiers = new Set(priceTiers.slice(0, tierWindowSize));
+    const premiumPool = candidates.filter((mon) => premiumTiers.has(Number(mon.cost) || 0));
+    const archetypeKeys = s.teams[teamIdx]?.archetypes || [];
+    let best = null;
+    let bestScore = -Infinity;
+    for (const mon of premiumPool) {
+      const score = scoreMonForArchetype(mon, archetypeKeys, roster) + Math.random() * 4;
+      if (score > bestScore) {
+        best = mon;
+        bestScore = score;
+      }
+    }
+    return best;
   }
 
   function auctionMaxBid(s, teamIdx) {
