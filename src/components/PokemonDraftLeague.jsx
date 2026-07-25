@@ -6553,7 +6553,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   async function clearOfficialDraftRows() {
     // A live shared draft also has protected server rows. Clear those first,
     // otherwise the next draft would still see the old locked picks.
-    if (leagueId && state.liveDraft?.sessionId) {
+    if (leagueId) {
       const { error } = await supabase.rpc("reset_live_snake_draft", { p_league_id: leagueId });
       if (error) {
         setLiveDraftError(`Draft reset failed: ${error.message}`);
@@ -6688,7 +6688,11 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   // resetDraft does, except team identities survive and the season counter
   // advances. This is what makes "Season 2" mean something instead of
   // starting the whole league over from scratch.
-  function startNewSeason(ruleMode = "same") {
+  async function startNewSeason(ruleMode = "same") {
+    // Archive the completed season only after its protected live-draft rows
+    // have been cleared. Otherwise the next season can reconnect to the
+    // previous season's authoritative draft session.
+    if (!(await clearOfficialDraftRows())) return false;
     commit((s) => {
       const standings = computeStandings(s);
       const champion = getLeagueChampion(s);
@@ -6833,6 +6837,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
         .then(({ error }) => { if (error) setLiveDraftError(`The prior draft date could not be cleared: ${error.message}`); });
     }
     setTab("setup");
+    return true;
   }
 
   async function copyLeagueInvite(kind) {
