@@ -37,6 +37,8 @@ Use this record against a safe test league before each major release. Do not use
 - [ ] Refresh, background/foreground, network loss, and reconnect recover the authoritative draft state.
 - [ ] Commissioner pause, resume, undo, and correction operations remain consistent across connected clients.
 - [ ] Draft completion creates the expected rosters and does not leave stale active-draft state.
+- [ ] Bot teams value weather enablers and beneficiaries, low-speed Trick Room fits, and proven cross-type partners without repeatedly stacking one type.
+- [ ] Bot teams that become heavily physical or special prefer a credible attacker from the opposite side when one is affordable.
 
 ## Season and transactions
 
@@ -63,6 +65,7 @@ Use this record against a safe test league before each major release. Do not use
 - [ ] Rebuild This Season atomically clears draft, schedule, results, transactions, playoffs, private claims, and official draft rows while preserving team ownership and every archive.
 - [ ] A stale commissioner tab cannot restart or rebuild after a newer result, transaction, claim, or settings change.
 - [ ] A forced reset failure leaves both the snapshot and all official draft rows unchanged.
+- [ ] Restart/rebuild succeeds on a snake league with no auction activity, and the required auction-owner relation exists for every deployment.
 
 ## Mobile and performance
 
