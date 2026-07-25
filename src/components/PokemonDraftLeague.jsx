@@ -6264,6 +6264,12 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   const lastAutoFired = useRef("");
   const autoPickFailure = useRef({ pickIndex: -1, count: 0 });
   useEffect(() => {
+    lastAutoFinish.current = "";
+    lastAutoFired.current = "";
+    autoPickFailure.current = { pickIndex: -1, count: 0 };
+  }, [state.draftStartedAt]);
+
+  useEffect(() => {
     if (state.settings.draftType !== "snake" || !state.settings.snakeBudgetEnabled || !state.locked || state.paused) return;
     if (state.pickIndex >= state.snakeOrder.length) return;
     const teamIdx = state.snakeOrder[state.pickIndex];
@@ -6445,6 +6451,11 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   const lastAuctionNomFired = useRef(-1);
   const consecutiveAutoSkips = useRef(0);
   useEffect(() => {
+    lastAuctionNomFired.current = -1;
+    consecutiveAutoSkips.current = 0;
+  }, [state.draftStartedAt]);
+
+  useEffect(() => {
     if (state.settings.draftType !== "auction" || !state.locked || state.paused) return;
     if (state.nominee || state.auctionEnded || !state.pool.length) return;
     const n = state.auctionNominationOrder.length;
@@ -6540,15 +6551,17 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     if (state.nominee) return; // let an active nomination resolve first
     if (!state.teams.length) return;
     if (leagueId && !isCommissioner) return;
-    const allDone = state.teams.every((_, i) =>
-      (state.rosters[i] || []).length >= state.settings.rosterMax
-      || botReachedAuctionRosterTarget(state, i)
-      || (state.budgets[i] ?? 0) < 1
-    );
+    const allDone = state.teams.every((_, i) => {
+      const rosterCount = (state.rosters[i] || []).length;
+      if (rosterCount < state.settings.rosterMin) return false;
+      return rosterCount >= state.settings.rosterMax
+        || botReachedAuctionRosterTarget(state, i)
+        || (state.budgets[i] ?? 0) < 1;
+    });
     if (allDone) {
       endAuctionEarly();
     }
-  }, [leagueId, isCommissioner, state.settings.draftType, state.locked, state.auctionEnded, state.nominee, state.teams, state.rosters, state.budgets, state.settings.rosterMax]);
+  }, [leagueId, isCommissioner, state.settings.draftType, state.locked, state.auctionEnded, state.nominee, state.teams, state.rosters, state.budgets, state.settings.rosterMin, state.settings.rosterMax]);
 
   // Bot/auto-draft bidding — fires whenever the live nomination's current
   // bid changes (a new mon went up, or someone outbid). Each eligible team
