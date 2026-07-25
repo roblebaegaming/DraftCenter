@@ -4115,6 +4115,105 @@ function normalizedPlayoffRoundNames(names, bracketSize) {
   });
 }
 
+function draftReadinessIssues(state, resolveCost) {
+  const settings = state?.settings || {};
+  const teams = Array.isArray(state?.teams) ? state.teams : [];
+  const issues = [];
+  const teamCount = teams.length;
+  const usesBudget = settings.draftType === "auction" || settings.snakeBudgetEnabled;
+  const rawRosterMin = Number(settings.rosterMin);
+  const rawRosterMax = Number(settings.rosterMax);
+  const rosterMin = Math.max(1, rawRosterMin || 1);
+  const rosterMax = Math.max(rosterMin, rawRosterMax || rosterMin);
+  const rosterSize = Math.max(1, Number(settings.rosterSize) || 1);
+  const targetPerTeam = usesBudget ? rosterMin : rosterSize;
+  const budget = Number(settings.budget);
+
+  if (teamCount < 2 || teamCount > 16) issues.push("Choose between 2 and 16 teams.");
+  if (Number(settings.leagueSize) !== teamCount) issues.push("The saved league size does not match the number of teams.");
+
+  const normalizedTeamNames = teams.map((team) => String(team?.name || "").trim().toLowerCase());
+  if (normalizedTeamNames.some((name) => !name)) issues.push("Every team needs a name.");
+  if (new Set(normalizedTeamNames).size !== normalizedTeamNames.length) issues.push("Every team needs a unique name.");
+  const claimedManagers = teams.map((team) => String(team?.claimedBy || "").trim().toLowerCase()).filter(Boolean);
+  if (new Set(claimedManagers).size !== claimedManagers.length) issues.push("One manager is assigned to more than one team.");
+
+  if (usesBudget && Number.isFinite(rawRosterMin) && Number.isFinite(rawRosterMax) && rawRosterMin > rawRosterMax) {
+    issues.push("The roster minimum cannot exceed the roster maximum.");
+  }
+  if (usesBudget && (!Number.isFinite(budget) || budget < 0)) issues.push("Choose a valid non-negative team budget.");
+
+  const manualOrder = settings.manualDraftOrder;
+  if (settings.draftType === "snake" && manualOrder != null) {
+    const expected = new Set(teams.map((_, index) => index));
+    const supplied = Array.isArray(manualOrder) ? manualOrder : [];
+    if (
+      supplied.length !== teamCount
+      || new Set(supplied).size !== teamCount
+      || supplied.some((index) => !expected.has(Number(index)))
+    ) {
+      issues.push("The manual draft order must contain every team exactly once.");
+    }
+  }
+
+  const legalPool = fullPool(settings).filter((pokemon) => isLegal(pokemon, settings));
+  const sourceKeys = legalPool.map((pokemon) => String(pokemon?.id || ""));
+  const normalizedPokemonNames = legalPool.map((pokemon) => String(pokemon?.name || "").trim().toLowerCase());
+  if (!legalPool.length) issues.push("At least one Pokémon must be legal.");
+  if (sourceKeys.some((key) => !key) || new Set(sourceKeys).size !== sourceKeys.length) {
+    issues.push("Every legal Pokémon needs a unique stable ID.");
+  }
+  if (normalizedPokemonNames.some((name) => !name) || new Set(normalizedPokemonNames).size !== normalizedPokemonNames.length) {
+    issues.push("Every legal Pokémon needs a unique name.");
+  }
+
+  const keepers = state?.keeperRosters && typeof state.keeperRosters === "object" ? state.keeperRosters : {};
+  const keeperNames = new Set();
+  const keeperLists = teams.map((_, teamIndex) => Array.isArray(keepers[teamIndex]) ? keepers[teamIndex] : []);
+  keeperLists.flat().forEach((pokemon) => {
+    const name = String(pokemon?.name || "").trim().toLowerCase();
+    if (!name || keeperNames.has(name)) issues.push("A kept Pokémon is missing a name or appears on more than one team.");
+    if (name) keeperNames.add(name);
+    if (!legalPool.some((candidate) => String(candidate.id) === String(pokemon?.id) || candidate.name === pokemon?.name)) {
+      issues.push(`${pokemon?.name || "A kept Pokémon"} is not legal under the current draft rules.`);
+    }
+  });
+
+  const availableCosts = legalPool
+    .filter((pokemon) => !keeperNames.has(String(pokemon.name || "").trim().toLowerCase()))
+    .map((pokemon) => Number(resolveCost(pokemon, settings)) || 0)
+    .sort((a, b) => a - b);
+  let remainingRequired = 0;
+  teams.forEach((team, teamIndex) => {
+    const teamKeepers = keeperLists[teamIndex];
+    if (teamKeepers.length > targetPerTeam) {
+      issues.push(`${team?.name || `Team ${teamIndex + 1}`} has more keepers than its draft roster target.`);
+    }
+    const needed = Math.max(0, targetPerTeam - teamKeepers.length);
+    remainingRequired += needed;
+    if (usesBudget) {
+      const keeperSpend = teamKeepers.reduce((sum, pokemon) => sum + (Number(pokemon?.cost) || 0), 0);
+      if (keeperSpend > budget) {
+        issues.push(`${team?.name || `Team ${teamIndex + 1}`}'s keepers cost more than its budget.`);
+      } else if (
+        keeperSpend + (
+          settings.draftType === "auction"
+            ? needed
+            : availableCosts.slice(0, needed).reduce((sum, cost) => sum + cost, 0)
+        ) > budget
+      ) {
+        issues.push(`${team?.name || `Team ${teamIndex + 1}`} cannot reach the roster minimum with its current budget and keepers.`);
+      }
+    }
+  });
+
+  if (availableCosts.length < remainingRequired) {
+    issues.push(`The legal pool needs at least ${remainingRequired} available Pokémon for this draft; it currently has ${availableCosts.length}.`);
+  }
+
+  return [...new Set(issues)];
+}
+
 // Standard seeding order for a single-elimination bracket (1v8, 4v5, 3v6, 2v7
 // for 8 teams, etc.) so the top seed doesn't meet the 2-seed until the final.
 function nextPowerOfTwo(n) {
@@ -4829,33 +4928,63 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       teams: s.teams.map((t, i) => (i === teamIdx ? { ...t, claimedBy: myName } : t)),
     }));
   }
+
+  async function mutateHostedTeamPreference(action, teamIdx, payload = {}) {
+    setSaveStatus("saving");
+    const { data, error } = await supabase.rpc("mutate_league_team_preference", {
+      p_league_id: leagueId,
+      p_action: action,
+      p_team_index: teamIdx,
+      p_payload: payload,
+    });
+    if (error) {
+      setSaveStatus("error");
+      setLiveDraftError(`That team change could not be saved: ${error.message}`);
+      return false;
+    }
+    const hydrated = hydrateState(data);
+    revRef.current = Math.max(revRef.current, hydrated.rev || 0);
+    setState(hydrated);
+    setSaveStatus("saved");
+    setLiveDraftError("");
+    return true;
+  }
+
   // An owner picking who they're keeping for next season — provisional
   // until startNewSeason() actually commits it. Only names genuinely on
   // that team's current roster survive the filter, and the list is capped
   // at maxKeepers regardless of how many get passed in, so there's no way
   // to end up over the limit even from a stale or manipulated call.
-  function setKeeperSelection(teamIdx, monNames) {
+  async function setKeeperSelection(teamIdx, monNames) {
+    if (leagueId) {
+      return mutateHostedTeamPreference("keeper_selection", teamIdx, { names: monNames });
+    }
     commit((s) => {
       const roster = s.rosters[teamIdx] || [];
       const validNames = monNames.filter((n) => roster.some((m) => m.name === n)).slice(0, s.settings.maxKeepers);
       return { ...s, keeperSelections: { ...s.keeperSelections, [teamIdx]: validNames } };
     });
+    return true;
   }
   // "Team I'm most scared of" — one vote per person, changeable any time
   // before the season rolls over (that's the moment the tally becomes
   // final and a Draft Day Hero badge gets awarded). No self-vote block on
   // purpose — if someone's genuinely intimidated by their own draft,
   // that's a valid vote too.
-  function castDraftHeroVote(teamIdx) {
+  async function castDraftHeroVote(teamIdx) {
+    if (leagueId) return mutateHostedTeamPreference("draft_hero_vote", teamIdx);
     commit((s) => ({ ...s, draftHeroVotes: { ...s.draftHeroVotes, [myName]: teamIdx } }));
+    return true;
   }
-  function renameTeam(teamIdx, newName) {
+  async function renameTeam(teamIdx, newName) {
     const trimmed = newName.trim();
-    if (!trimmed) return;
+    if (!trimmed) return false;
+    if (leagueId) return mutateHostedTeamPreference("rename", teamIdx, { value: trimmed });
     commit((s) => ({
       ...s,
       teams: s.teams.map((t, i) => (i === teamIdx ? { ...t, name: trimmed } : t)),
     }));
+    return true;
   }
   // Commissioner-only manual entry for the "Other" standings category —
   // there's no way to compute this automatically, it's whatever the
@@ -4869,26 +4998,32 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   }
   // Team owner (or the commissioner) can set a logo image — same permission
   // model as renaming a team.
-  function setTeamLogo(teamIdx, url) {
+  async function setTeamLogo(teamIdx, url) {
     const trimmed = url.trim();
+    if (leagueId) return mutateHostedTeamPreference("logo", teamIdx, { value: trimmed });
     commit((s) => ({
       ...s,
       teams: s.teams.map((t, i) => (i === teamIdx ? { ...t, logoUrl: trimmed || null } : t)),
     }));
+    return true;
   }
   // Same permission model again — lets an owner override the default color
   // their gym/trial team got assigned.
-  function setTeamColor(teamIdx, color) {
+  async function setTeamColor(teamIdx, color) {
+    if (leagueId) return mutateHostedTeamPreference("color", teamIdx, { value: color });
     commit((s) => ({
       ...s,
       teams: s.teams.map((t, i) => (i === teamIdx ? { ...t, color } : t)),
     }));
+    return true;
   }
-  function setTeamDescription(teamIdx, description) {
+  async function setTeamDescription(teamIdx, description) {
+    if (leagueId) return mutateHostedTeamPreference("description", teamIdx, { value: description });
     commit((s) => ({
       ...s,
       teams: s.teams.map((t, i) => (i === teamIdx ? { ...t, description } : t)),
     }));
+    return true;
   }
   function updateHomepage(field, value) {
     commit((s) => ({ ...s, homepage: { ...s.homepage, [field]: value } }));
@@ -5085,7 +5220,10 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       if (!previous.liveDraft?.sessionId) return previous;
       const basePool = previous.liveDraft.basePool || previous.pool || [];
       const bySourceKey = new Map(basePool.map((mon) => [String(mon.id), mon]));
-      const rosters = Array.from({ length: previous.teams.length }, () => []);
+      const keeperRosters = previous.liveDraft?.keeperRosters || {};
+      const rosters = Array.from({ length: previous.teams.length }, (_, teamIndex) =>
+        Array.isArray(keeperRosters[teamIndex]) ? keeperRosters[teamIndex].map((pokemon) => ({ ...pokemon })) : []
+      );
       for (const pick of live.picks || []) {
         const teamIndex = Number(pick.team_source_key);
         const mon = bySourceKey.get(String(pick.pokemon_source_key));
@@ -5096,7 +5234,10 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       const snakeOrder = Array.isArray(serverTeamOrder)
         ? serverTeamOrder.map((teamId) => teamIndexById.get(String(teamId))).filter(Number.isInteger)
         : previous.snakeOrder;
-      const drafted = new Set((live.picks || []).map((pick) => String(pick.pokemon_source_key)));
+      const drafted = new Set([
+        ...(live.picks || []).map((pick) => String(pick.pokemon_source_key)),
+        ...Object.values(keeperRosters).flatMap((roster) => (roster || []).map((pokemon) => String(pokemon.id))),
+      ]);
       const budgets = previous.settings.snakeBudgetEnabled
         ? rosters.map((roster) => Number(previous.settings.budget) - roster.reduce((sum, mon) => sum + Number(mon.cost || 0), 0))
         : previous.budgets;
@@ -5116,6 +5257,10 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
         pickIndex: live.session.current_pick_number,
         pickDeadline: livePickDeadline,
         paused: live.session.status === "paused",
+        pausedAt: live.session.status === "paused"
+          ? Number(live.session.configuration?.pause_started_at) || previous.pausedAt || Date.now()
+          : null,
+        pauseIsOvernight: live.session.status === "paused" && Boolean(live.session.configuration?.pause_is_overnight),
         liveDraft: { ...previous.liveDraft, sessionId: live.session.id, pokemonIds },
       };
     });
@@ -5369,64 +5514,70 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     return idx;
   }
 
-  function startLocalDraft(liveDraft = null) {
-    const size = state.settings.leagueSize;
-    const usesBudget = state.settings.draftType === "auction" || state.settings.snakeBudgetEnabled;
-    const snakeRounds = state.settings.snakeBudgetEnabled ? state.settings.rosterMax : state.settings.rosterSize;
+  function buildStartedDraftState(sourceState, liveDraft = null) {
+    const size = sourceState.teams.length;
+    const usesBudget = sourceState.settings.draftType === "auction" || sourceState.settings.snakeBudgetEnabled;
+    const snakeTarget = sourceState.settings.snakeBudgetEnabled ? sourceState.settings.rosterMax : sourceState.settings.rosterSize;
     // Kept mons are already spoken for — pulled out of the fresh pool
     // entirely, seeded straight onto their team's roster, and their cost
     // comes out of that team's budget before the draft even starts.
-    const keptNames = new Set(Object.values(state.keeperRosters || {}).flatMap((r) => r.map((m) => m.name)));
-    const pool = fullPool(state.settings)
-      .filter((p) => isLegal(p, state.settings))
+    const keptNames = new Set(Object.values(sourceState.keeperRosters || {}).flatMap((r) => r.map((m) => m.name)));
+    const pool = fullPool(sourceState.settings)
+      .filter((p) => isLegal(p, sourceState.settings))
       .filter((p) => !keptNames.has(p.name))
-      .map((p) => ({ ...p, cost: costFor(p, state.settings) }));
-    commit((s) => {
-      const rosters = Array.from({ length: size }, (_, i) => (s.keeperRosters?.[i] ? [...s.keeperRosters[i]] : []));
-      const budgets = usesBudget
-        ? Array.from({ length: size }, (_, i) => {
-            const keptCost = (s.keeperRosters?.[i] || []).reduce((sum, m) => sum + (m.cost || 0), 0);
-            return s.settings.budget - keptCost;
-          })
-        : [];
-      const baseState = {
-        ...s,
-        settings: { ...s.settings, draftScheduledAt: null },
-        liveDraft: liveDraft || s.liveDraft || null,
-        locked: true,
-        draftStartedAt: Date.now(),
-        teams: s.teams.map((t) =>
-          (!t.claimedBy && (!t.archetypes || !t.archetypes.length)) ? { ...t, archetypes: randomArchetypeKeys() } : t
-        ),
-        rosters, budgets, pool,
-        queues: liveDraft?.preservedQueues || s.queues,
-        keeperRosters: {},
-        // A fresh, separate FAAB pool per team — only actually spent from
-        // if faClaimMode is "faab" and it isn't sharing the regular
-        // roster-cost budget instead (see faabUsesLeftoverDraftBudget).
-        // Harmless to always initialize; it just sits unused otherwise.
-        faabBudgets: Array.from({ length: size }, () => s.settings.faabBudget),
-        // Starting waiver priority — team array order, since there's no
-        // record yet to base it on and no prior draft-position convention
-        // this app enforces either. Only matters once faClaimMode is
-        // actually "priority."
-        waiverPriority: Array.from({ length: size }, (_, i) => i),
-        pendingClaims: [],
-        snakeOrder: s.settings.draftType === "snake"
-          ? buildSnakeOrder(size, snakeRounds, liveDraft?.firstRoundOrder || s.settings.manualDraftOrder)
-          : [],
-        auctionNominationOrder: s.settings.draftType === "auction" ? [...Array(size).keys()] : [],
-        auctionNominationIdx: 0,
-        nominationDeadline: s.settings.draftType === "auction" && !leagueId
-          ? Date.now() + s.settings.auctionNominationSeconds * 1000
-          : null,
-        nominee: null,
-        paused: false, pausedAt: null, pauseIsOvernight: false,
-        auctionEnded: false,
-      };
-      const pickIndex = s.settings.draftType === "snake" ? skipForward(baseState, 0) : 0;
-      return { ...baseState, pickIndex, pickDeadline: s.settings.draftType === "snake" ? nextDeadline(s.settings) : null };
+      .map((p) => ({
+        ...p,
+        cost: costFor(p, sourceState.settings),
+        isRestricted: isRestrictedMon(p, sourceState.settings),
+      }));
+    const rosters = Array.from({ length: size }, (_, i) => (sourceState.keeperRosters?.[i] ? [...sourceState.keeperRosters[i]] : []));
+    const budgets = usesBudget
+      ? Array.from({ length: size }, (_, i) => {
+          const keptCost = (sourceState.keeperRosters?.[i] || []).reduce((sum, m) => sum + (m.cost || 0), 0);
+          return sourceState.settings.budget - keptCost;
+        })
+      : [];
+    const rawSnakeOrder = sourceState.settings.draftType === "snake"
+      ? buildSnakeOrder(size, snakeTarget, liveDraft?.firstRoundOrder || sourceState.settings.manualDraftOrder)
+      : [];
+    const remainingPicks = rosters.map((roster) => Math.max(0, snakeTarget - roster.length));
+    const assignedPicks = Array.from({ length: size }, () => 0);
+    const snakeOrder = liveDraft?.fullPickOrder || rawSnakeOrder.filter((teamIndex) => {
+      if (assignedPicks[teamIndex] >= remainingPicks[teamIndex]) return false;
+      assignedPicks[teamIndex] += 1;
+      return true;
     });
+    const baseState = {
+      ...sourceState,
+      settings: { ...sourceState.settings, draftScheduledAt: null },
+      liveDraft: liveDraft || sourceState.liveDraft || null,
+      locked: true,
+      draftStartedAt: Date.now(),
+      teams: sourceState.teams.map((t) =>
+        (!t.claimedBy && (!t.archetypes || !t.archetypes.length)) ? { ...t, archetypes: randomArchetypeKeys() } : t
+      ),
+      rosters, budgets, pool,
+      queues: liveDraft?.preservedQueues || sourceState.queues,
+      keeperRosters: {},
+      faabBudgets: Array.from({ length: size }, () => sourceState.settings.faabBudget),
+      waiverPriority: Array.from({ length: size }, (_, i) => i),
+      pendingClaims: [],
+      snakeOrder,
+      auctionNominationOrder: sourceState.settings.draftType === "auction" ? [...Array(size).keys()] : [],
+      auctionNominationIdx: 0,
+      nominationDeadline: sourceState.settings.draftType === "auction" && !leagueId
+        ? Date.now() + sourceState.settings.auctionNominationSeconds * 1000
+        : null,
+      nominee: null,
+      paused: false, pausedAt: null, pauseIsOvernight: false,
+      auctionEnded: false,
+    };
+    const pickIndex = sourceState.settings.draftType === "snake" ? skipForward(baseState, 0) : 0;
+    return { ...baseState, pickIndex, pickDeadline: sourceState.settings.draftType === "snake" ? nextDeadline(sourceState.settings) : null };
+  }
+
+  function startLocalDraft(liveDraft = null) {
+    commit((current) => buildStartedDraftState(current, liveDraft));
     if (leagueId && state.settings.draftScheduledAt) {
       supabase.rpc("update_league_draft_time", {
         p_league_id: leagueId,
@@ -5439,43 +5590,66 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   }
 
   async function startDraft() {
+    const readinessIssues = draftReadinessIssues(state, costFor);
+    if (readinessIssues.length) {
+      setLiveDraftError(`Draft cannot start: ${readinessIssues[0]}`);
+      setTab("setup");
+      return false;
+    }
     if (!leagueId) return startLocalDraft();
     if (state.settings.draftType !== "snake") {
       await saveChainRef.current;
       return startLocalDraft();
     }
-    if (Object.values(state.keeperRosters || {}).some((roster) => roster?.length)) {
-      setLiveDraftError("Shared live drafting does not support keepers yet. Start this practice draft with no keepers.");
-      return;
-    }
     setLiveDraftError("");
     await saveChainRef.current;
-    const rounds = state.settings.snakeBudgetEnabled
-      ? Math.max(1, Number(state.settings.rosterMax) || 1)
-      : Math.max(1, Number(state.settings.rosterSize) || 6);
     const latestSavedState = await loadRemote(leagueId);
     const latestQueues = objectOr(latestSavedState?.queues);
     const preservedQueues = Object.keys(latestQueues).length ? latestQueues : state.queues;
-    const basePool = fullPool(state.settings).filter((p) => isLegal(p, state.settings)).map((p) => ({ ...p, cost: costFor(p, state.settings) }));
+    const basePool = fullPool(state.settings)
+      .filter((p) => isLegal(p, state.settings))
+      .map((p) => ({
+        ...p,
+        cost: costFor(p, state.settings),
+        isRestricted: isRestrictedMon(p, state.settings),
+      }));
     const firstRoundOrder = buildSnakeOrder(state.teams.length, 1, state.settings.manualDraftOrder);
-    const { data, error } = await supabase.rpc("provision_live_snake_draft", {
+    const draftSeed = {
+      sessionId: null,
+      basePool,
+      pokemonIds: {},
+      firstRoundOrder,
+      preservedQueues,
+      keeperRosters: state.keeperRosters || {},
+    };
+    const startedState = buildStartedDraftState(state, draftSeed);
+    draftSeed.fullPickOrder = startedState.snakeOrder;
+    startedState.liveDraft = draftSeed;
+    const { data, error } = await supabase.rpc("provision_live_snake_draft_v2", {
       p_league_id: leagueId,
       p_teams: state.teams,
       p_pokemon: basePool,
-      p_team_order: firstRoundOrder,
-      p_rounds: rounds,
-      p_settings: { ...state.settings, rosterMax: rounds },
+      p_pick_order: startedState.snakeOrder,
+      p_settings: state.settings,
+      p_keepers: state.keeperRosters || {},
+      p_started_state: startedState,
     });
-    if (error) { setLiveDraftError(error.message); return; }
-    startLocalDraft({
-      sessionId: data.draft_session_id,
-      basePool,
-      pokemonIds: data.pokemon_ids || {},
-      firstRoundOrder,
-      preservedQueues,
-    });
+    if (error) { setLiveDraftError(error.message); return false; }
+    const hydrated = hydrateState(data.state);
+    revRef.current = Math.max(revRef.current, hydrated.rev || 0);
+    setState(hydrated);
+    setSaveStatus("saved");
     setTimeout(refreshLiveSnakeDraft, 0);
     setTab("draft");
+    if (state.settings.draftScheduledAt) {
+      supabase.rpc("update_league_draft_time", {
+        p_league_id: leagueId,
+        p_draft_starts_at: null,
+      }).then(({ error: scheduleError }) => {
+        if (scheduleError) setLiveDraftError(`The completed draft time could not be cleared from the league listing: ${scheduleError.message}`);
+      });
+    }
+    return true;
   }
 
   // For a league that drafted somewhere else entirely (a call, a shared
@@ -5667,7 +5841,19 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     return topPool[Math.floor(Math.random() * topPool.length)];
   }
 
-  function autoPickForClock() {
+  async function autoPickForClock() {
+    if (leagueId && state.liveDraft?.sessionId) {
+      const teamIdx = state.snakeOrder[state.pickIndex];
+      const mon = teamIdx == null ? null : selectAutoMon(state, teamIdx);
+      if (mon) return snakePick(mon);
+      const { error } = await supabase.rpc("advance_live_snake_turn", { p_league_id: leagueId });
+      if (error) {
+        setLiveDraftError(`The expired turn could not advance: ${error.message}`);
+        return false;
+      }
+      await refreshLiveSnakeDraft();
+      return true;
+    }
     commit((s) => {
       if (!s.pool.length || s.settings.draftType !== "snake") return s;
       const teamIdx = s.snakeOrder[s.pickIndex];
@@ -5688,15 +5874,19 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       const pickIndex = skipForward(nextS, s.pickIndex + 1);
       return { ...nextS, pickIndex, pickDeadline: nextDeadline(s.settings) };
     });
+    return true;
   }
 
-  function toggleAutoDraft(teamIdx) {
+  async function toggleAutoDraft(teamIdx) {
+    if (leagueId) return mutateHostedTeamPreference("toggle_auto_draft", teamIdx);
     commit((s) => ({
       ...s,
       teams: s.teams.map((t, i) => (i === teamIdx ? { ...t, autoDraft: !t.autoDraft } : t)),
     }));
+    return true;
   }
-  function toggleTeamArchetype(teamIdx, key) {
+  async function toggleTeamArchetype(teamIdx, key) {
+    if (leagueId) return mutateHostedTeamPreference("toggle_archetype", teamIdx, { key });
     commit((s) => ({
       ...s,
       teams: s.teams.map((t, i) => {
@@ -5707,6 +5897,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
         return { ...t, archetypes: [...current, key] };
       }),
     }));
+    return true;
   }
   async function mutateHostedQueue(teamIdx, action, name) {
     setSaveStatus("saving");
@@ -5764,6 +5955,10 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     const team = state.teams[teamIdx];
     const isBotTeam = !team?.claimedBy;
     if (!team?.autoDraft && !isBotTeam) return;
+    if (leagueId && (
+      (isBotTeam && !isCommissioner)
+      || (!isBotTeam && teamIdx !== myTeamIdx && !isCommissioner)
+    )) return;
     const mon = selectAutoMon(state, teamIdx);
     lastAutoFired.current = state.pickIndex;
     if (!mon) {
@@ -5778,7 +5973,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     } else {
       snakePick(mon);
     }
-  }, [state.pickIndex, state.locked, state.paused, state.settings.draftType, state.teams, state.queues, state.pool, state.budgets, state.snakeOrder]);
+  }, [leagueId, isCommissioner, myTeamIdx, state.pickIndex, state.locked, state.paused, state.settings.draftType, state.teams, state.queues, state.pool, state.budgets, state.snakeOrder]);
 
   // Automatic overnight pause — checks periodically whether the current
   // moment falls inside the commissioner's configured window and pauses or
@@ -6134,16 +6329,37 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   // forward by exactly how long the pause lasted, so nobody loses (or
   // gains) real time waiting on a bathroom break or a dropped connection.
   async function pauseDraft() {
-    if (leagueId && state.settings.draftType === "auction") {
-      await applyHostedAuctionAction("pause");
-      return;
+    if (leagueId) {
+      if (state.settings.draftType === "auction") return applyHostedAuctionAction("pause");
+      if (state.liveDraft?.sessionId) {
+        const { data, error } = await supabase.rpc("set_live_snake_draft_paused", {
+          p_league_id: leagueId,
+          p_paused: true,
+          p_overnight: false,
+        });
+        if (error) { setLiveDraftError(error.message); return false; }
+        setState(hydrateState(data));
+        setLiveDraftError("");
+        return true;
+      }
     }
     commit((s) => (s.paused ? s : { ...s, paused: true, pausedAt: Date.now(), pauseIsOvernight: false }));
+    return true;
   }
   async function resumeDraft() {
-    if (leagueId && state.settings.draftType === "auction") {
-      await applyHostedAuctionAction("resume");
-      return;
+    if (leagueId) {
+      if (state.settings.draftType === "auction") return applyHostedAuctionAction("resume");
+      if (state.liveDraft?.sessionId) {
+        const { data, error } = await supabase.rpc("set_live_snake_draft_paused", {
+          p_league_id: leagueId,
+          p_paused: false,
+          p_overnight: false,
+        });
+        if (error) { setLiveDraftError(error.message); return false; }
+        setState(hydrateState(data));
+        setLiveDraftError("");
+        return true;
+      }
     }
     commit((s) => {
       if (!s.paused) return s;
@@ -6158,6 +6374,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
         nominee: s.nominee ? { ...s.nominee, deadline: s.nominee.deadline + pausedMs } : s.nominee,
       };
     });
+    return true;
   }
 
   function generateSchedule() {
@@ -6387,7 +6604,25 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   function resetPlayoffs() {
     commit((s) => ({ ...s, playoffs: null, auditLog: [...(s.auditLog || []), auditEntry(myName, "Reset playoffs")] }));
   }
-  async function reportPlayoffMatch(roundIdx, matchIdx, gamesA, gamesB, monsAliveA, monsAliveB, replayUrlA, replayUrlB, mvpSide, mvpName, bestOf = 3) {
+  async function saveHostedPlayoffResult(path, teamA, teamB, result) {
+    const { data, error } = await supabase.rpc("save_playoff_result_v2", {
+      p_league_id: leagueId,
+      p_path: path,
+      p_team_a: teamA,
+      p_team_b: teamB,
+      p_result: result,
+    });
+    if (error) {
+      setLiveDraftError(`The playoff result could not be saved: ${error.message}`);
+      return false;
+    }
+    const hydrated = hydrateState(data);
+    revRef.current = Math.max(revRef.current, hydrated.rev || 0);
+    setState(hydrated);
+    setLiveDraftError("");
+    return true;
+  }
+  async function reportPlayoffMatch(roundIdx, matchIdx, gamesA, gamesB, monsAliveA, monsAliveB, replayUrlA, replayUrlB, mvpSide, mvpName, bestOf = 3, teamA = null, teamB = null) {
     const result = {
       gamesA: Number(gamesA) || 0, gamesB: Number(gamesB) || 0,
       bestOf: [1, 3, 5].includes(Number(bestOf)) ? Number(bestOf) : 3,
@@ -6398,20 +6633,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       mvp: mvpName ? { side: mvpSide, name: mvpName } : null,
     };
     if (leagueId) {
-      const { data, error } = await supabase.rpc("save_playoff_result", {
-        p_league_id: leagueId,
-        p_result_key: `${roundIdx}-${matchIdx}`,
-        p_result: result,
-      });
-      if (error) {
-        setLiveDraftError(`The playoff result could not be saved: ${error.message}`);
-        return false;
-      }
-      const hydrated = hydrateState(data);
-      revRef.current = Math.max(revRef.current, hydrated.rev || 0);
-      setState(hydrated);
-      setLiveDraftError("");
-      return true;
+      return saveHostedPlayoffResult(["results", `${roundIdx}-${matchIdx}`], teamA, teamB, result);
     }
     commit((s) => {
       if (!s.playoffs) return s;
@@ -6444,7 +6666,19 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   // Losers-bracket equivalent of reportPlayoffMatch, for double elimination —
   // its own separate results map so it never collides with winners-bracket
   // results even though match keys reuse the same "round-match" format.
-  function reportLosersMatch(roundIdx, matchIdx, gamesA, gamesB, monsAliveA, monsAliveB, replayUrlA, replayUrlB, mvpSide, mvpName, bestOf = 3) {
+  async function reportLosersMatch(roundIdx, matchIdx, gamesA, gamesB, monsAliveA, monsAliveB, replayUrlA, replayUrlB, mvpSide, mvpName, bestOf = 3, teamA = null, teamB = null) {
+    const result = {
+      gamesA: Number(gamesA) || 0, gamesB: Number(gamesB) || 0,
+      bestOf: [1, 3, 5].includes(Number(bestOf)) ? Number(bestOf) : 3,
+      monsAliveA: Number(monsAliveA) || 0, monsAliveB: Number(monsAliveB) || 0,
+      reportedBy: myName,
+      replayUrlA: replayUrlA || null,
+      replayUrlB: replayUrlB || null,
+      mvp: mvpName ? { side: mvpSide, name: mvpName } : null,
+    };
+    if (leagueId) {
+      return saveHostedPlayoffResult(["losersResults", `${roundIdx}-${matchIdx}`], teamA, teamB, result);
+    }
     commit((s) => {
       if (!s.playoffs || s.playoffs.mode !== "double-elim") return s;
       return {
@@ -6453,19 +6687,12 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
           ...s.playoffs,
           losersResults: {
             ...s.playoffs.losersResults,
-            [`${roundIdx}-${matchIdx}`]: {
-              gamesA: Number(gamesA) || 0, gamesB: Number(gamesB) || 0,
-              bestOf: [1, 3, 5].includes(Number(bestOf)) ? Number(bestOf) : 3,
-              monsAliveA: Number(monsAliveA) || 0, monsAliveB: Number(monsAliveB) || 0,
-              reportedBy: myName,
-              replayUrlA: replayUrlA || null,
-              replayUrlB: replayUrlB || null,
-              mvp: mvpName ? { side: mvpSide, name: mvpName } : null,
-            },
+            [`${roundIdx}-${matchIdx}`]: result,
           },
         },
       };
     });
+    return true;
   }
   // Same crowd-pick "Match MVP" idea as setPlayoffMVP, for the losers
   // bracket in double elimination.
@@ -6485,29 +6712,34 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   // both sides now have exactly one loss, so game 2 (the "bracket reset")
   // decides the actual champion; if the winners-bracket team wins game 1,
   // there's no game 2 at all since they were never eliminated.
-  function reportGrandFinalGame(gameNum, gamesA, gamesB, monsAliveA, monsAliveB, replayUrlA, replayUrlB, mvpSide, mvpName, bestOf = 3) {
+  async function reportGrandFinalGame(gameNum, gamesA, gamesB, monsAliveA, monsAliveB, replayUrlA, replayUrlB, mvpSide, mvpName, bestOf = 3, teamA = null, teamB = null) {
+    const result = {
+      gamesA: Number(gamesA) || 0, gamesB: Number(gamesB) || 0,
+      bestOf: [1, 3, 5].includes(Number(bestOf)) ? Number(bestOf) : 3,
+      monsAliveA: Number(monsAliveA) || 0, monsAliveB: Number(monsAliveB) || 0,
+      reportedBy: myName,
+      replayUrlA: replayUrlA || null,
+      replayUrlB: replayUrlB || null,
+      mvp: mvpName ? { side: mvpSide, name: mvpName } : null,
+    };
+    const key = gameNum === 2 ? "game2" : "game1";
+    if (leagueId) {
+      return saveHostedPlayoffResult(["grandFinal", key], teamA, teamB, result);
+    }
     commit((s) => {
       if (!s.playoffs || s.playoffs.mode !== "double-elim") return s;
-      const key = gameNum === 2 ? "game2" : "game1";
       return {
         ...s,
         playoffs: {
           ...s.playoffs,
           grandFinal: {
             ...s.playoffs.grandFinal,
-            [key]: {
-              gamesA: Number(gamesA) || 0, gamesB: Number(gamesB) || 0,
-              bestOf: [1, 3, 5].includes(Number(bestOf)) ? Number(bestOf) : 3,
-              monsAliveA: Number(monsAliveA) || 0, monsAliveB: Number(monsAliveB) || 0,
-              reportedBy: myName,
-              replayUrlA: replayUrlA || null,
-              replayUrlB: replayUrlB || null,
-              mvp: mvpName ? { side: mvpSide, name: mvpName } : null,
-            },
+            [key]: result,
           },
         },
       };
     });
+    return true;
   }
   // Same idea, for the Grand Final games themselves.
   function setGrandFinalMVP(gameNum, side, name) {
@@ -6524,23 +6756,32 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   // Same idea as reportPlayoffMatch, but for one specific division's own
   // bracket within division mode — each division's results live in their
   // own bracket object so they never collide with each other.
-  function reportDivisionPlayoffMatch(divisionIdx, roundIdx, matchIdx, gamesA, gamesB, monsAliveA, monsAliveB, replayUrlA, replayUrlB, mvpSide, mvpName, bestOf = 3) {
+  async function reportDivisionPlayoffMatch(divisionIdx, roundIdx, matchIdx, gamesA, gamesB, monsAliveA, monsAliveB, replayUrlA, replayUrlB, mvpSide, mvpName, bestOf = 3, teamA = null, teamB = null) {
+    const resultObj = {
+      gamesA: Number(gamesA) || 0, gamesB: Number(gamesB) || 0,
+      bestOf: [1, 3, 5].includes(Number(bestOf)) ? Number(bestOf) : 3,
+      monsAliveA: Number(monsAliveA) || 0, monsAliveB: Number(monsAliveB) || 0,
+      reportedBy: myName,
+      replayUrlA: replayUrlA || null,
+      replayUrlB: replayUrlB || null,
+      mvp: mvpName ? { side: mvpSide, name: mvpName } : null,
+    };
+    if (leagueId) {
+      return saveHostedPlayoffResult(
+        ["divisionBrackets", String(divisionIdx), "results", `${roundIdx}-${matchIdx}`],
+        teamA,
+        teamB,
+        resultObj,
+      );
+    }
     commit((s) => {
       if (!s.playoffs || s.playoffs.mode !== "divisions") return s;
-      const resultObj = {
-        gamesA: Number(gamesA) || 0, gamesB: Number(gamesB) || 0,
-        bestOf: [1, 3, 5].includes(Number(bestOf)) ? Number(bestOf) : 3,
-        monsAliveA: Number(monsAliveA) || 0, monsAliveB: Number(monsAliveB) || 0,
-        reportedBy: myName,
-        replayUrlA: replayUrlA || null,
-        replayUrlB: replayUrlB || null,
-        mvp: mvpName ? { side: mvpSide, name: mvpName } : null,
-      };
       const divisionBrackets = s.playoffs.divisionBrackets.map((b, i) =>
         i === divisionIdx ? { ...b, results: { ...b.results, [`${roundIdx}-${matchIdx}`]: resultObj } } : b
       );
       return { ...s, playoffs: { ...s.playoffs, divisionBrackets } };
     });
+    return true;
   }
   // Same crowd-pick "Match MVP" idea, for one specific division's own bracket.
   function setDivisionMVP(divisionIdx, roundIdx, matchIdx, side, name) {
@@ -6559,18 +6800,26 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   // that the division winners feed into — which may itself have more than
   // one round (semifinal, then Grand Final) once there are more than 2
   // divisions.
-  function reportChampionMatch(roundIdx, matchIdx, gamesA, gamesB, monsAliveA, monsAliveB, replayUrlA, replayUrlB, mvpSide, mvpName, bestOf = 3) {
+  async function reportChampionMatch(roundIdx, matchIdx, gamesA, gamesB, monsAliveA, monsAliveB, replayUrlA, replayUrlB, mvpSide, mvpName, bestOf = 3, teamA = null, teamB = null) {
+    const resultObj = {
+      gamesA: Number(gamesA) || 0, gamesB: Number(gamesB) || 0,
+      bestOf: [1, 3, 5].includes(Number(bestOf)) ? Number(bestOf) : 3,
+      monsAliveA: Number(monsAliveA) || 0, monsAliveB: Number(monsAliveB) || 0,
+      reportedBy: myName,
+      replayUrlA: replayUrlA || null,
+      replayUrlB: replayUrlB || null,
+      mvp: mvpName ? { side: mvpSide, name: mvpName } : null,
+    };
+    if (leagueId) {
+      return saveHostedPlayoffResult(
+        ["championBracket", "results", `${roundIdx}-${matchIdx}`],
+        teamA,
+        teamB,
+        resultObj,
+      );
+    }
     commit((s) => {
       if (!s.playoffs || s.playoffs.mode !== "divisions") return s;
-      const resultObj = {
-        gamesA: Number(gamesA) || 0, gamesB: Number(gamesB) || 0,
-        bestOf: [1, 3, 5].includes(Number(bestOf)) ? Number(bestOf) : 3,
-        monsAliveA: Number(monsAliveA) || 0, monsAliveB: Number(monsAliveB) || 0,
-        reportedBy: myName,
-        replayUrlA: replayUrlA || null,
-        replayUrlB: replayUrlB || null,
-        mvp: mvpName ? { side: mvpSide, name: mvpName } : null,
-      };
       return {
         ...s,
         playoffs: {
@@ -6582,6 +6831,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
         },
       };
     });
+    return true;
   }
   // Same crowd-pick "Match MVP" idea, for the champion bracket.
   function setChampionMVP(roundIdx, matchIdx, side, name) {
@@ -6734,12 +6984,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   // resetDraft does, except team identities survive and the season counter
   // advances. This is what makes "Season 2" mean something instead of
   // starting the whole league over from scratch.
-  async function startNewSeason(ruleMode = "same") {
-    // Archive the completed season only after its protected live-draft rows
-    // have been cleared. Otherwise the next season can reconnect to the
-    // previous season's authoritative draft session.
-    if (!(await clearOfficialDraftRows())) return false;
-    commit((s) => {
+  function buildNextSeasonState(s, ruleMode = "same") {
       const standings = computeStandings(s);
       const champion = getLeagueChampion(s);
       // Badges are lifetime-within-this-league counters, awarded the
@@ -6877,7 +7122,32 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
         draftHeroVotes: {},
         auditLog: [...(s.auditLog || []), auditEntry(myName, `Started Season ${s.seasonNumber + 1}`, ruleMode === "new" ? "started with new rules" : "carried forward the prior rules")],
       };
-    });
+  }
+
+  async function startNewSeason(ruleMode = "same") {
+    const nextState = {
+      ...buildNextSeasonState(state, ruleMode),
+      rev: (state.rev || 0) + 1,
+    };
+    if (leagueId) {
+      setSaveStatus("saving");
+      const { data, error } = await supabase.rpc("transition_league_to_new_season", {
+        p_league_id: leagueId,
+        p_state: nextState,
+      });
+      if (error) {
+        setSaveStatus("error");
+        setLiveDraftError(`The new season was not started: ${error.message}`);
+        return false;
+      }
+      const hydrated = hydrateState(data);
+      revRef.current = Math.max(revRef.current, hydrated.rev || 0);
+      setState(hydrated);
+      setSaveStatus("saved");
+      setLiveDraftError("");
+    } else {
+      commit(() => nextState);
+    }
     if (leagueId) {
       supabase.rpc("update_league_draft_time", { p_league_id: leagueId, p_draft_starts_at: null })
         .then(({ error }) => { if (error) setLiveDraftError(`The prior draft date could not be cleared: ${error.message}`); });
@@ -6942,7 +7212,36 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     };
   }
 
-  function addDropFreeAgent(teamIdx, addName, dropName) {
+  async function mutateHostedTransaction(action, payload) {
+    setSaveStatus("saving");
+    const { data, error } = await supabase.rpc("mutate_league_transaction", {
+      p_league_id: leagueId,
+      p_action: action,
+      p_payload: payload,
+    });
+    if (error) {
+      setSaveStatus("error");
+      setLiveDraftError(`The transaction could not be saved: ${error.message}`);
+      return { ok: false, reason: error.message };
+    }
+    const hydrated = hydrateState(data);
+    revRef.current = Math.max(revRef.current, hydrated.rev || 0);
+    setState(hydrated);
+    setSaveStatus("saved");
+    setLiveDraftError("");
+    return { ok: true };
+  }
+
+  async function addDropFreeAgent(teamIdx, addName, dropName) {
+    if (leagueId) {
+      const addMon = fullPool(state.settings).find((pokemon) => pokemon.name === addName);
+      return mutateHostedTransaction("instant_free_agent", {
+        team_index: teamIdx,
+        add_name: addName,
+        add_mon: addMon ? { ...addMon, cost: costFor(addMon, state.settings) } : null,
+        drop_name: dropName || null,
+      });
+    }
     let outcome = { ok: false, reason: "" };
     commit((s) => {
       const info = teamTransactionInfo(teamIdx);
@@ -6997,8 +7296,18 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   // just is addDropFreeAgent, unchanged. Under any of the other three
   // modes, it queues a claim instead of acting immediately, since those
   // all need to see every competing claim before picking a winner.
-  function submitFreeAgentClaim(teamIdx, addName, dropName, bidAmount) {
+  async function submitFreeAgentClaim(teamIdx, addName, dropName, bidAmount) {
     if (state.settings.faClaimMode === "instant") return addDropFreeAgent(teamIdx, addName, dropName);
+    if (leagueId) {
+      const addMon = fullPool(state.settings).find((pokemon) => pokemon.name === addName);
+      return mutateHostedTransaction("claim_submit", {
+        team_index: teamIdx,
+        add_name: addName,
+        add_mon: addMon ? { ...addMon, cost: costFor(addMon, state.settings) } : null,
+        drop_name: dropName || null,
+        bid_amount: state.settings.faClaimMode === "faab" ? Math.floor(Number(bidAmount)) || 0 : null,
+      });
+    }
     let outcome = { ok: false, reason: "" };
     commit((s) => {
       const info = teamTransactionInfo(teamIdx);
@@ -7031,8 +7340,10 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   }
   // Withdrawing your own not-yet-processed claim — no penalty, since
   // nothing's actually happened yet.
-  function cancelClaim(claimId) {
+  async function cancelClaim(claimId) {
+    if (leagueId) return mutateHostedTransaction("claim_cancel", { claim_id: claimId });
     commit((s) => ({ ...s, pendingClaims: (s.pendingClaims || []).filter((c) => c.id !== claimId) }));
+    return { ok: true };
   }
   // Resolves every pending claim at once — commissioner-triggered rather
   // than automatic, so a league can wait until everyone's actually had a
@@ -7151,8 +7462,16 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     return () => window.clearInterval(timer);
   }, [state.settings.calendarMode, state.settings.autoProcessClaims, state.settings.faClaimMode, state.settings.leagueTimeZone, state.settings.claimDayOfWeek, state.settings.claimTime, state.pendingClaims, state.lastAutoClaimCycle]);
 
-  function proposeTrade(fromTeam, toTeam, offerNames, requestNames) {
-    if (!offerNames.length && !requestNames.length) return;
+  async function proposeTrade(fromTeam, toTeam, offerNames, requestNames) {
+    if (!offerNames.length && !requestNames.length) return { ok: false, reason: "Choose at least one Pokémon." };
+    if (leagueId) {
+      return mutateHostedTransaction("trade_propose", {
+        from_team: fromTeam,
+        to_team: toTeam,
+        offer_names: offerNames,
+        request_names: requestNames,
+      });
+    }
     commit((s) => ({
       ...s,
       trades: [
@@ -7164,11 +7483,15 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
         },
       ],
     }));
+    return { ok: true };
   }
-  function cancelTrade(tradeId) {
+  async function cancelTrade(tradeId) {
+    if (leagueId) return mutateHostedTransaction("trade_cancel", { trade_id: tradeId });
     commit((s) => ({ ...s, trades: s.trades.map((t) => (t.id === tradeId ? { ...t, status: "cancelled" } : t)) }));
+    return { ok: true };
   }
-  function respondTrade(tradeId, accept) {
+  async function respondTrade(tradeId, accept) {
+    if (leagueId) return mutateHostedTransaction("trade_respond", { trade_id: tradeId, accept: Boolean(accept) });
     let outcome = { ok: false, reason: "" };
     commit((s) => {
       const trade = s.trades.find((t) => t.id === tradeId);
@@ -9265,6 +9588,7 @@ function SetupView({ state, leagueId = null, isCommissioner, canBeCommissioner, 
   const hasDraftSelections = !hasStaleRosterCarryover && ((state.pickIndex || 0) > 0
     || state.rosters.some((roster) => (roster || []).some((mon) => mon.acquiredVia !== "keeper"))
     || Boolean(state.nominee?.highestBidder != null));
+  const readinessIssues = draftReadinessIssues({ ...state, settings, teams }, costFor);
 
   return (
     <div>
@@ -9714,9 +10038,17 @@ function SetupView({ state, leagueId = null, isCommissioner, canBeCommissioner, 
             )}
           </fieldset>
 
-          {!locked && <p className="text-sm mt-4" style={{ color: "#9A9FBD" }}>{settings.draftScheduledAt ? "Setup is ready. Keep this league open for managers until draft time, then start the shared draft here." : "Setup is ready. Start the draft whenever your managers are present, or use manual roster entry if you drafted elsewhere."}</p>}
+          {!locked && readinessIssues.length === 0 && <p className="text-sm mt-4" style={{ color: "#9A9FBD" }}>{settings.draftScheduledAt ? "Setup is ready. Keep this league open for managers until draft time, then start the shared draft here." : "Setup is ready. Start the draft whenever your managers are present, or use manual roster entry if you drafted elsewhere."}</p>}
+          {!locked && readinessIssues.length > 0 && (
+            <div className="mt-4 rounded p-3" style={{ background: "#2A1620", border: "1px solid #F0555A66" }}>
+              <strong className="text-sm" style={{ color: "#FF9AA7" }}>Fix these items before starting:</strong>
+              <ul className="mt-2 pl-5 text-xs list-disc" style={{ color: "#FFB3BD" }}>
+                {readinessIssues.map((issue) => <li key={issue}>{issue}</li>)}
+              </ul>
+            </div>
+          )}
           {!locked && settings.draftType === "snake" && <p className="text-xs mt-2" style={{ color: "#4FD1C5" }}>{settings.manualDraftOrder ? "Using the manual first-round order set above." : "Draft order: random by default. Turn on “Manually set draft order” above only if you want to choose it yourself."}</p>}
-          <button onClick={hasStaleRosterCarryover ? rebuildCurrentSeason : onStart} disabled={locked && !hasStaleRosterCarryover} className="w-full mt-4 py-3 rounded font-semibold display-font text-xl glow disabled:opacity-40"
+          <button onClick={hasStaleRosterCarryover ? rebuildCurrentSeason : onStart} disabled={(locked && !hasStaleRosterCarryover) || (!locked && readinessIssues.length > 0)} className="w-full mt-4 py-3 rounded font-semibold display-font text-xl glow disabled:opacity-40"
             style={{ background: "#FFD23F", color: "#10121C" }}>
             {hasStaleRosterCarryover ? `REOPEN SEASON ${state.seasonNumber} SETUP` : locked ? "DRAFT IN PROGRESS" : settings.draftScheduledAt ? "START SCHEDULED DRAFT" : "START DRAFT NOW"}
           </button>
@@ -10579,7 +10911,7 @@ function NewSeasonCard({ state, startNewSeason }) {
             <button type="button" onClick={() => setRuleMode("new")} className="p-3 rounded text-left text-sm" style={{ background: ruleMode === "new" ? "#FFD23F22" : "#1F2338", border: `1px solid ${ruleMode === "new" ? "#FFD23F" : "rgba(255,255,255,0.08)"}`, color: "#EDEBFA" }}><strong>Start with new rules</strong><small className="block mt-1" style={{ color: "#9A9FBD" }}>Reset league rules to defaults so the commissioner can select a new regulation, pool, prices, and house rules before drafting.</small></button>
           </div>
           <div className="flex gap-2">
-            <button onClick={() => { startNewSeason(ruleMode); setConfirming(false); }} className="px-3 py-1.5 rounded text-xs font-semibold" style={{ background: "#4FD1C5", color: "#10121C" }}>
+            <button onClick={async () => { if (await startNewSeason(ruleMode)) setConfirming(false); }} className="px-3 py-1.5 rounded text-xs font-semibold" style={{ background: "#4FD1C5", color: "#10121C" }}>
               Yes, start Season {state.seasonNumber + 1}
             </button>
             <button onClick={() => setConfirming(false)} className="px-3 py-1.5 rounded text-xs" style={{ background: "#1F2338", color: "#9A9FBD" }}>
@@ -12592,12 +12924,12 @@ function MatchCard({ teamA, teamB, result, canReport, onReport, pending, rosterA
     );
   }
 
-  function save() {
+  async function save() {
     const monsAliveA = trackDifferential ? games.filter((g) => g.winner === "A").reduce((sum, g) => sum + g.alive, 0) : 0;
     const monsAliveB = trackDifferential ? games.filter((g) => g.winner === "B").reduce((sum, g) => sum + g.alive, 0) : 0;
     if (!validSeries) return;
-    onReport(editingGamesA, editingGamesB, monsAliveA, monsAliveB, replayUrlA.trim() || null, replayUrlB.trim() || null, editingWinnerSide, selectedMvpName, bestOf);
-    setEditing(false);
+    const saved = await onReport(editingGamesA, editingGamesB, monsAliveA, monsAliveB, replayUrlA.trim() || null, replayUrlB.trim() || null, editingWinnerSide, selectedMvpName, bestOf);
+    if (saved !== false) setEditing(false);
   }
 
   return (
@@ -13285,7 +13617,7 @@ function PlayoffsView({ state, isCommissioner, myName, standings, generatePlayof
                     result={match.result} canReport={canReport} pending={match.a === null || match.b === null}
                     rosterA={match.a !== null ? rosters[match.a] : null} rosterB={match.b !== null ? rosters[match.b] : null}
                     trackDifferential={!!settings.playoffSeedCriteria?.differential} onViewTeam={onViewTeam}
-                    onReport={(...args) => reportPlayoffMatch(rIdx, mIdx, ...args)}
+                    onReport={(...args) => reportPlayoffMatch(rIdx, mIdx, ...args, match.a, match.b)}
                     onSetMVP={(side, name) => setPlayoffMVP(rIdx, mIdx, side, name)} mvpLabel="Playoff MVP" />
                 );
               })}
@@ -13366,7 +13698,7 @@ function DoubleElimView({ playoffs, teams, rosters, settings, isCommissioner, my
           result={match.result} canReport={canReportMatch(match)} pending={match.a === null || match.b === null}
           rosterA={match.a !== null ? rosters[match.a] : null} rosterB={match.b !== null ? rosters[match.b] : null}
           trackDifferential={trackDifferential} onViewTeam={onViewTeam}
-          onReport={(...args) => onReport(rIdx, mIdx, ...args)}
+          onReport={(...args) => onReport(rIdx, mIdx, ...args, match.a, match.b)}
           onSetMVP={onSetMVP ? (side, name) => onSetMVP(rIdx, mIdx, side, name) : null} mvpLabel="Playoff MVP" />
       ))}
     </div>
@@ -13448,7 +13780,7 @@ function DoubleElimView({ playoffs, teams, rosters, settings, isCommissioner, my
                 canReport={isCommissioner || teams[grandFinal.wbChampion]?.claimedBy === myName || teams[grandFinal.lbChampion]?.claimedBy === myName}
                 rosterA={rosters[grandFinal.wbChampion]} rosterB={rosters[grandFinal.lbChampion]}
                 trackDifferential={trackDifferential} onViewTeam={onViewTeam}
-                onReport={(...args) => reportGrandFinalGame(1, ...args)}
+                onReport={(...args) => reportGrandFinalGame(1, ...args, grandFinal.wbChampion, grandFinal.lbChampion)}
                 onSetMVP={setGrandFinalMVP ? (side, name) => setGrandFinalMVP(1, side, name) : null} mvpLabel="Playoff MVP" />
             </div>
             {grandFinal.needsGame2 && (
@@ -13459,7 +13791,7 @@ function DoubleElimView({ playoffs, teams, rosters, settings, isCommissioner, my
                   canReport={isCommissioner || teams[grandFinal.wbChampion]?.claimedBy === myName || teams[grandFinal.lbChampion]?.claimedBy === myName}
                   rosterA={rosters[grandFinal.wbChampion]} rosterB={rosters[grandFinal.lbChampion]}
                   trackDifferential={trackDifferential} onViewTeam={onViewTeam}
-                  onReport={(...args) => reportGrandFinalGame(2, ...args)}
+                  onReport={(...args) => reportGrandFinalGame(2, ...args, grandFinal.wbChampion, grandFinal.lbChampion)}
                   onSetMVP={setGrandFinalMVP ? (side, name) => setGrandFinalMVP(2, side, name) : null} mvpLabel="Playoff MVP" />
               </div>
             )}
@@ -13727,7 +14059,7 @@ function DivisionPlayoffsView({ playoffs, teams, rosters, settings, isCommission
                           result={match.result} canReport={canReport} pending={match.a === null || match.b === null}
                           rosterA={match.a !== null ? rosters[match.a] : null} rosterB={match.b !== null ? rosters[match.b] : null}
                           trackDifferential={!!settings.playoffSeedCriteria?.differential} onViewTeam={onViewTeam}
-                          onReport={(...args) => reportDivisionPlayoffMatch(di, rIdx, mIdx, ...args)}
+                          onReport={(...args) => reportDivisionPlayoffMatch(di, rIdx, mIdx, ...args, match.a, match.b)}
                           onSetMVP={setDivisionMVP ? (side, name) => setDivisionMVP(di, rIdx, mIdx, side, name) : null} mvpLabel="Playoff MVP" />
                       );
                     })}
@@ -13750,7 +14082,7 @@ function DivisionPlayoffsView({ playoffs, teams, rosters, settings, isCommission
                       result={match.result} canReport={canReport} pending={match.a === null || match.b === null}
                       rosterA={match.a !== null ? rosters[match.a] : null} rosterB={match.b !== null ? rosters[match.b] : null}
                       trackDifferential={!!settings.playoffSeedCriteria?.differential} onViewTeam={onViewTeam}
-                      onReport={(...args) => reportChampionMatch(rIdx, mIdx, ...args)}
+                      onReport={(...args) => reportChampionMatch(rIdx, mIdx, ...args, match.a, match.b)}
                       onSetMVP={setChampionMVP ? (side, name) => setChampionMVP(rIdx, mIdx, side, name) : null} mvpLabel="Playoff MVP" />
                   );
                 })}
@@ -13817,7 +14149,7 @@ function BracketTree({ rounds, roundNames, teams, rosters, isCommissioner, myNam
                           teamA={match.a !== null ? teams[match.a] : null} teamB={match.b !== null ? teams[match.b] : null}
                           rosterA={match.a !== null ? rosters?.[match.a] : null} rosterB={match.b !== null ? rosters?.[match.b] : null}
                           onSetMVP={onSetMVP ? (side, name) => onSetMVP(rIdx, mIdx, side, name) : null}
-                          onSave={(...args) => reportPlayoffMatch(rIdx, mIdx, ...args)} />
+                          onSave={(...args) => reportPlayoffMatch(rIdx, mIdx, ...args, match.a, match.b)} />
                       )}
                     </div>
                   );
@@ -14061,7 +14393,7 @@ function DivisionBracketPyramid({ divisionResults, teams, rosters, isCommissione
                       )}
                       <div className="flex flex-col" style={{ height: slotHeight * firstRoundCount }}>
                         {round.map((match, mIdx) => renderMatch(match, mIdx,
-                          (gA, gB, mA, mB, rA, rB) => reportDivisionPlayoffMatch(di, col, mIdx, gA, gB, mA, mB, rA, rB),
+                          (...args) => reportDivisionPlayoffMatch(di, col, mIdx, ...args, match.a, match.b),
                           setDivisionMVP ? (side, name) => setDivisionMVP(di, col, mIdx, side, name) : null))}
                       </div>
                     </div>
@@ -14077,7 +14409,7 @@ function DivisionBracketPyramid({ divisionResults, teams, rosters, isCommissione
               </h3>
               <div className="flex flex-col" style={{ height: stackTotalHeight }}>
                 {round.map((match, mIdx) => renderMatch(match, mIdx,
-                  (gA, gB, mA, mB, rA, rB) => reportChampionMatch(rIdx, mIdx, gA, gB, mA, mB, rA, rB),
+                  (...args) => reportChampionMatch(rIdx, mIdx, ...args, match.a, match.b),
                   setChampionMVP ? (side, name) => setChampionMVP(rIdx, mIdx, side, name) : null))}
               </div>
             </div>
@@ -14395,6 +14727,11 @@ function FreeAgentsBrowser({
 
 function TransactionsView({ state, myName, myTeamIdx, isCommissioner, freeAgents, addDropFreeAgent, submitFreeAgentClaim, cancelClaim, processClaims, teamTransactionInfo, proposeTrade, respondTrade, cancelTrade, reverseTrade }) {
   const { teams, rosters, budgets, settings, locked, trades } = state;
+  const draftComplete = locked && (
+    settings.draftType === "snake"
+      ? state.pickIndex >= state.snakeOrder.length
+      : state.auctionEnded || state.pool.length === 0
+  );
   const [faTeam, setFaTeam] = useState(myTeamIdx >= 0 ? myTeamIdx : 0);
   const [faAdd, setFaAdd] = useState("");
   const [faDrop, setFaDrop] = useState("");
@@ -14447,14 +14784,17 @@ function TransactionsView({ state, myName, myTeamIdx, isCommissioner, freeAgents
   }, [freeAgents]);
 
   if (!locked) {
-    return <div className="text-center py-20" style={{ color: "#9A9FBD" }}>Trades and free agency open up once the draft is underway.</div>;
+    return <div className="text-center py-20" style={{ color: "#9A9FBD" }}>Trades and free agency open after the draft is complete.</div>;
+  }
+  if (!draftComplete) {
+    return <div className="text-center py-20" style={{ color: "#9A9FBD" }}>The draft is still in progress. Transactions will open automatically after the final pick or auction closes.</div>;
   }
 
   const canActFor = (teamIdx) => isCommissioner || teams[teamIdx]?.claimedBy === myName;
 
-  function submitFreeAgent() {
+  async function submitFreeAgent() {
     if (!faAdd) return;
-    const outcome = submitFreeAgentClaim(faTeam, faAdd, faDrop || null, faBid);
+    const outcome = await submitFreeAgentClaim(faTeam, faAdd, faDrop || null, faBid);
     if (outcome.ok) { setFaAdd(""); setFaDrop(""); setFaBid(""); setFaError(""); }
     else setFaError(outcome.reason || "That move isn't allowed.");
   }
@@ -14463,10 +14803,14 @@ function TransactionsView({ state, myName, myTeamIdx, isCommissioner, freeAgents
     setList(list.includes(name) ? list.filter((n) => n !== name) : [...list, name]);
   }
 
-  function submitTrade() {
+  async function submitTrade() {
     if (tradeToTeam === null || myTeamIdx < 0) return;
-    proposeTrade(myTeamIdx, tradeToTeam, offerSel, requestSel);
-    setOfferSel([]); setRequestSel([]); setTradeToTeam(null);
+    const outcome = await proposeTrade(myTeamIdx, tradeToTeam, offerSel, requestSel);
+    if (outcome?.ok) {
+      setOfferSel([]);
+      setRequestSel([]);
+      setTradeToTeam(null);
+    }
   }
 
   const pendingTrades = trades.filter((t) => t.status === "pending");
@@ -14714,8 +15058,8 @@ function TransactionsView({ state, myName, myTeamIdx, isCommissioner, freeAgents
 function PendingTradeCard({ t, teams, rosters, canRespond, canCancel, respondTrade, cancelTrade }) {
   const [error, setError] = useState("");
 
-  function handleRespond(accept) {
-    const outcome = respondTrade(t.id, accept);
+  async function handleRespond(accept) {
+    const outcome = await respondTrade(t.id, accept);
     if (!outcome.ok) setError(outcome.reason || "Couldn't complete this trade.");
     else setError("");
   }
