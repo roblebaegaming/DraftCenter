@@ -6206,14 +6206,15 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   // "auto-draft from queue" for when they're away, and (b) any team nobody
   // has claimed at all — so a solo user can practice against bot teams that
   // draft for themselves. Guarded so each client only fires once per pick.
-  const lastAutoFired = useRef(-1);
+  const lastAutoFired = useRef("");
   const autoPickFailure = useRef({ pickIndex: -1, count: 0 });
   useEffect(() => {
     if (state.settings.draftType !== "snake" || !state.locked || state.paused) return;
     if (state.pickIndex >= state.snakeOrder.length) return;
-    if (lastAutoFired.current === state.pickIndex) return;
     const teamIdx = state.snakeOrder[state.pickIndex];
     const team = state.teams[teamIdx];
+    const turnKey = `${state.pickIndex}:${teamIdx}:${team?.id || ""}`;
+    if (lastAutoFired.current === turnKey) return;
     const isBotTeam = !team?.claimedBy;
     if (!team?.autoDraft && !isBotTeam) return;
     if (leagueId && (
@@ -6229,12 +6230,13 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       && (state.rosters[teamIdx] || []).length >= state.settings.rosterMin
       && (botReachedBudgetTarget || !mon);
     const attemptedPickIndex = state.pickIndex;
+    const attemptedTurnKey = turnKey;
     const runAutoPick = async () => {
       // Mark the turn only when its request actually begins. Live-board
       // reconciliation can re-render during the bot's short presentation
       // delay; if that cancels the timer, the replacement render must remain
       // free to schedule it again.
-      lastAutoFired.current = attemptedPickIndex;
+      lastAutoFired.current = attemptedTurnKey;
       const succeeded = botShouldFinishBudgetRoster
         ? await finishBudgetSnakeRoster()
         : mon
@@ -6258,7 +6260,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       // with the server. A repeated rejection remains stopped with the server's
       // visible error instead of silently retrying forever.
       if (failureCount < 2) {
-        lastAutoFired.current = -1;
+        lastAutoFired.current = "";
         await refreshLiveSnakeDraft();
       }
     };
