@@ -4,8 +4,9 @@ import { useEffect, useState } from "react";
 import { createClient } from "../lib/supabase/client";
 import { MonAbilities, MonDefenseChart, MonSprite, MonStats, POLL_POKEMON_NAMES, POKEMON_DIRECTORY, TeamDefenseSummary } from "./PokemonDraftLeague";
 
-const EMPTY = { team_name:"", league_name:"", format_name:"", notes:"", weekly_notes:"", pokepaste_url:"", replica_code:"", spreadsheet_url:"", pokemon:[], archived:false };
+const EMPTY = { team_name:"", league_name:"", format_name:"", workspace_type:"weekly", planning_entries:[], notes:"", weekly_notes:"", pokepaste_url:"", replica_code:"", spreadsheet_url:"", pokemon:[], archived:false };
 const nullable = (value) => value?.trim() || null;
+const entryLabel = (type, index) => `${type === "tournament" ? "Tournament" : "Week"} ${index + 1}`;
 
 export default function PersonalTeams() {
   const [supabase] = useState(() => createClient());
@@ -32,7 +33,18 @@ export default function PersonalTeams() {
   function start(team = null) {
     setViewing(null);
     setEditing(team?.id || "new");
-    setForm(team ? { ...EMPTY, ...team, pokemon:Array.isArray(team.pokemon) ? team.pokemon : [] } : EMPTY);
+    if (team) {
+      const workspaceType = team.workspace_type === "tournament" ? "tournament" : "weekly";
+      const savedEntries = Array.isArray(team.planning_entries) ? team.planning_entries : [];
+      const planningEntries = savedEntries.length
+        ? savedEntries
+        : team.weekly_notes?.trim()
+          ? [{ id:`legacy-${team.id}`, title:entryLabel(workspaceType, 0), notes:team.weekly_notes }]
+          : [];
+      setForm({ ...EMPTY, ...team, workspace_type:workspaceType, planning_entries:planningEntries, pokemon:Array.isArray(team.pokemon) ? team.pokemon : [] });
+    } else {
+      setForm({ ...EMPTY, planning_entries:[] });
+    }
     setPokemonChoice(""); setMessage("");
   }
   const pokemonByName = new Map(POKEMON_DIRECTORY.map((pokemon) => [pokemon.name, pokemon]));
@@ -45,9 +57,32 @@ export default function PersonalTeams() {
     if(form.pokemon.length>=20)return setMessage("Personal teams can hold up to 20 Pokémon.");
     setForm((current)=>({...current,pokemon:[...current.pokemon,picked]})); setPokemonChoice(""); setMessage("");
   }
+  function addPlanningEntry() {
+    setForm((current)=>{
+      const nextIndex=current.planning_entries.length;
+      return {...current,planning_entries:[...current.planning_entries,{id:`entry-${Date.now()}`,title:entryLabel(current.workspace_type,nextIndex),notes:""}]};
+    });
+  }
+  function updatePlanningEntry(index, changes) {
+    setForm((current)=>({...current,planning_entries:current.planning_entries.map((entry,entryIndex)=>entryIndex===index?{...entry,...changes}:entry)}));
+  }
+  function removePlanningEntry(index) {
+    setForm((current)=>({...current,planning_entries:current.planning_entries.filter((_,entryIndex)=>entryIndex!==index)}));
+  }
+  function setWorkspaceType(workspaceType) {
+    setForm((current)=>({
+      ...current,
+      workspace_type:workspaceType,
+      planning_entries:current.planning_entries.map((entry,index)=>{
+        const previousDefault=entryLabel(current.workspace_type,index);
+        return {...entry,title:!entry.title||entry.title===previousDefault?entryLabel(workspaceType,index):entry.title};
+      }),
+    }));
+  }
   async function save(event) {
     event.preventDefault(); setBusy(true); setMessage("");
-    const payload={owner_id:user.id,team_name:form.team_name.trim(),league_name:nullable(form.league_name),format_name:nullable(form.format_name),notes:form.notes.trim(),weekly_notes:form.weekly_notes.trim(),pokepaste_url:nullable(form.pokepaste_url),replica_code:form.replica_code.trim(),spreadsheet_url:nullable(form.spreadsheet_url),pokemon:form.pokemon,archived:Boolean(form.archived)};
+    const planningEntries=form.planning_entries.map((entry,index)=>({id:entry.id||`entry-${Date.now()}-${index}`,title:entry.title?.trim()||entryLabel(form.workspace_type,index),notes:entry.notes?.trim()||""}));
+    const payload={owner_id:user.id,team_name:form.team_name.trim(),league_name:nullable(form.league_name),format_name:nullable(form.format_name),workspace_type:form.workspace_type,planning_entries:planningEntries,notes:form.notes.trim(),weekly_notes:"",pokepaste_url:nullable(form.pokepaste_url),replica_code:form.replica_code.trim(),spreadsheet_url:nullable(form.spreadsheet_url),pokemon:form.pokemon,archived:Boolean(form.archived)};
     const result=editing==="new"?await supabase.from("personal_teams").insert(payload):await supabase.from("personal_teams").update(payload).eq("id",editing).eq("owner_id",user.id);
     setBusy(false); if(result.error)return setMessage(result.error.message); await load(user); cancel();
   }
@@ -70,18 +105,20 @@ export default function PersonalTeams() {
     <div className="personal-team-tabs"><button className={!showArchived?"secondary-button":"quiet-button"} onClick={()=>setShowArchived(false)}>Active ({teams.filter((team)=>!team.archived).length})</button><button className={showArchived?"secondary-button":"quiet-button"} onClick={()=>setShowArchived(true)}>Archived ({teams.filter((team)=>team.archived).length})</button></div>
     {message&&!editing&&<p className="hub-message">{message}</p>}
     {!visible.length&&<section className="personal-team-empty"><h2>{showArchived?"No archived teams":"Your team binder is ready."}</h2><p>{showArchived?"Teams you archive will remain available here.":"Add a private workspace for any team, whether or not its league is hosted on DraftCenter."}</p></section>}
-    <div className="personal-team-grid">{visible.map((team)=><article className="personal-team-card" key={team.id} onClick={()=>setViewing(team)}><span className="eyebrow">{team.league_name||"PERSONAL TEAM"}</span><h2>{team.team_name}</h2>{team.format_name&&<p className="personal-team-format">{team.format_name}</p>}<div className="personal-team-pokemon">{(team.pokemon||[]).map((name)=><span key={name}>{name}</span>)}{!team.pokemon?.length&&<span className="muted">No Pokémon added</span>}</div><div className="personal-team-links">{team.pokepaste_url&&<a href={team.pokepaste_url} target="_blank" rel="noreferrer" onClick={(event)=>event.stopPropagation()}>PokéPaste ↗</a>}{team.spreadsheet_url&&<a href={team.spreadsheet_url} target="_blank" rel="noreferrer" onClick={(event)=>event.stopPropagation()}>Spreadsheet ↗</a>}</div><div className="personal-team-actions"><button className="secondary-button" onClick={(event)=>{event.stopPropagation();setViewing(team);}}>View roster</button><button className="text-button danger-text" disabled={busy} onClick={(event)=>{event.stopPropagation();remove(team);}}>Delete</button></div></article>)}</div>
+    <div className="personal-team-grid">{visible.map((team)=><article className="personal-team-card" key={team.id} onClick={()=>setViewing(team)}><span className="eyebrow">{team.league_name||"PERSONAL TEAM"}</span><h2>{team.team_name}</h2>{team.format_name&&<p className="personal-team-format">{team.format_name}</p>}<span className="personal-team-use-badge">{team.workspace_type==="tournament"?"Tournament team":"Weekly team"}</span><div className="personal-team-pokemon">{(team.pokemon||[]).map((name)=><span key={name}>{name}</span>)}{!team.pokemon?.length&&<span className="muted">No Pokémon added</span>}</div><div className="personal-team-links">{team.pokepaste_url&&<a href={team.pokepaste_url} target="_blank" rel="noreferrer" onClick={(event)=>event.stopPropagation()}>PokéPaste ↗</a>}{team.spreadsheet_url&&<a href={team.spreadsheet_url} target="_blank" rel="noreferrer" onClick={(event)=>event.stopPropagation()}>Spreadsheet ↗</a>}</div><div className="personal-team-actions"><button className="secondary-button" onClick={(event)=>{event.stopPropagation();setViewing(team);}}>View roster</button><button className="text-button danger-text" disabled={busy} onClick={(event)=>{event.stopPropagation();remove(team);}}>Delete</button></div></article>)}</div>
     </section>
     {viewing&&<div className="modal-backdrop" onMouseDown={(event)=>{if(event.target===event.currentTarget)setViewing(null);}}><section className="tools-modal personal-team-viewer"><button className="modal-close" onClick={()=>setViewing(null)}>x</button><span className="eyebrow">{viewing.league_name||"PRIVATE TEAM WORKSPACE"}</span><div className="personal-team-viewer-heading"><div><h2>{viewing.team_name}</h2>{viewing.format_name&&<p className="personal-team-format">{viewing.format_name}</p>}</div>{viewing.league_source?<a className="secondary-button inline-link-button" href={`/?league=${encodeURIComponent(viewing.slug||viewing.league_id)}`}>{viewing.archived?"Open league history":"Open league"}</a>:<button className="secondary-button" onClick={()=>start(viewing)}>Edit workspace</button>}</div>
       <div className="personal-roster-grid">{rosterFor(viewing).map((mon)=><article key={mon.name} className="personal-roster-mon"><MonSprite mon={mon} size={78}/><div><h3>{mon.name}</h3><div className="personal-roster-types"><span className={`type-${mon.t1}`}>{mon.t1}</span>{mon.t2&&<span className={`type-${mon.t2}`}>{mon.t2}</span>}</div><MonStats mon={mon}/><MonAbilities mon={mon} className="personal-roster-abilities"/><div className="personal-roster-defense"><strong>Defensive matchups</strong><MonDefenseChart mon={mon}/></div></div></article>)}</div>
       {!rosterFor(viewing).length&&<p className="muted">No Pokémon are on this roster yet. Edit the workspace to add them.</p>}
       {rosterFor(viewing).length>0&&<details className="personal-team-defense-summary"><summary>Team defensive coverage</summary><TeamDefenseSummary roster={rosterFor(viewing)}/></details>}
       {(viewing.notes||viewing.weekly_notes||viewing.replica_code)&&<div className="personal-team-saved-details">{viewing.notes&&<section><h3>General notes</h3><p>{viewing.notes}</p></section>}{viewing.weekly_notes&&<section><h3>Weekly notes</h3><p>{viewing.weekly_notes}</p></section>}{viewing.replica_code&&<section><h3>Pokémon Champions replica code</h3><p>{viewing.replica_code}</p></section>}</div>}
+      {Array.isArray(viewing.planning_entries)&&viewing.planning_entries.length>0&&<div className="personal-team-planning-view"><h3>{viewing.workspace_type==="tournament"?"Tournament plans":"Weekly plans"}</h3>{viewing.planning_entries.map((entry,index)=><section key={entry.id||index}><strong>{entry.title||entryLabel(viewing.workspace_type,index)}</strong>{entry.notes&&<p>{entry.notes}</p>}</section>)}</div>}
     </section></div>}
     {editing&&<div className="modal-backdrop" onMouseDown={(event)=>{if(event.target===event.currentTarget)cancel();}}><section className="tools-modal personal-team-editor"><button className="modal-close" onClick={cancel}>x</button><span className="eyebrow">{editing==="new"?"NEW PERSONAL TEAM":"PRIVATE TEAM WORKSPACE"}</span><h2>{editing==="new"?"Add a team":form.team_name}</h2><form className="form-stack" onSubmit={save}>
       <div className="personal-team-form-grid"><label>Team name<input required maxLength={120} value={form.team_name} onChange={(e)=>setForm({...form,team_name:e.target.value})}/></label><label>League name<input maxLength={120} value={form.league_name||""} onChange={(e)=>setForm({...form,league_name:e.target.value})}/></label><label>Format<input maxLength={100} placeholder="Draft, VGC Regulation I..." value={form.format_name||""} onChange={(e)=>setForm({...form,format_name:e.target.value})}/></label><label>PokéPaste URL<input type="url" placeholder="https://pokepast.es/..." value={form.pokepaste_url||""} onChange={(e)=>setForm({...form,pokepaste_url:e.target.value})}/></label></div>
       <label><a href="https://devoncorp.press/resources/the-release-of-pasrs-7-0" target="_blank" rel="noreferrer">PASRS Spreadsheet ↗</a><small className="muted">Learn about PASRS 7.0, then save your Google spreadsheet below.</small><input type="url" placeholder="https://docs.google.com/spreadsheets/..." value={form.spreadsheet_url||""} onChange={(e)=>setForm({...form,spreadsheet_url:e.target.value})}/></label>
-      <label>Pokémon Champions replica code<textarea maxLength={5000} rows={3} value={form.replica_code} onChange={(e)=>setForm({...form,replica_code:e.target.value})}/></label><label>General notes<textarea maxLength={20000} rows={5} value={form.notes} onChange={(e)=>setForm({...form,notes:e.target.value})}/></label><label>Weekly notes<textarea maxLength={30000} rows={7} placeholder={"Week 1:\nWeek 2:"} value={form.weekly_notes} onChange={(e)=>setForm({...form,weekly_notes:e.target.value})}/></label>
+      <label className="replica-code-field">Pokémon Champions replica code<input maxLength={100} placeholder="Short letter and number code" value={form.replica_code} onChange={(e)=>setForm({...form,replica_code:e.target.value})}/></label><label>General notes<textarea maxLength={20000} rows={5} value={form.notes} onChange={(e)=>setForm({...form,notes:e.target.value})}/></label>
+      <fieldset className="personal-team-planning"><legend>How will you use this team?</legend><div className="personal-team-use-options"><button type="button" className={form.workspace_type==="weekly"?"secondary-button active":"quiet-button"} onClick={()=>setWorkspaceType("weekly")}>Weekly</button><button type="button" className={form.workspace_type==="tournament"?"secondary-button active":"quiet-button"} onClick={()=>setWorkspaceType("tournament")}>Tournament</button></div><p className="muted">{form.workspace_type==="tournament"?"Keep separate preparation notes for each tournament.":"Keep separate preparation notes for each matchup week."}</p><div className="personal-team-planning-list">{form.planning_entries.map((entry,index)=><section key={entry.id||index}><div><input aria-label={`${entryLabel(form.workspace_type,index)} title`} maxLength={100} value={entry.title||""} onChange={(event)=>updatePlanningEntry(index,{title:event.target.value})}/><button type="button" className="text-button danger-text" onClick={()=>removePlanningEntry(index)}>Remove</button></div><textarea maxLength={10000} rows={4} placeholder={`${entryLabel(form.workspace_type,index)} notes`} value={entry.notes||""} onChange={(event)=>updatePlanningEntry(index,{notes:event.target.value})}/></section>)}</div><button type="button" className="secondary-button" onClick={addPlanningEntry}>Add {form.workspace_type==="tournament"?"tournament":"week"}</button></fieldset>
       <div><strong>Team roster</strong><p className="muted">Add every Pokémon on this team, in roster order. Draft teams are not limited to six.</p><div className="personal-roster-builder"><input list="personal-team-pokemon-options" value={pokemonChoice} onChange={(e)=>setPokemonChoice(e.target.value)} placeholder="Search for a Pokémon" autoComplete="off"/><datalist id="personal-team-pokemon-options">{POLL_POKEMON_NAMES.map((name)=><option key={name} value={name}/>)}</datalist><button type="button" className="secondary-button" onClick={addPokemon}>Add to roster</button></div><div className="personal-roster-selections">{form.pokemon.map((name,index)=><span key={name}><b>{index+1}</b>{name}<button type="button" aria-label={`Remove ${name}`} onClick={()=>setForm({...form,pokemon:form.pokemon.filter((item)=>item!==name)})}>x</button></span>)}</div></div>
       <label className="check-row"><input type="checkbox" checked={form.archived} onChange={(e)=>setForm({...form,archived:e.target.checked})}/> Archive this team</label>{message&&<p className="hub-message">{message}</p>}<button className="primary-button" disabled={busy}>{busy?"Saving...":"Save private team"}</button>
     </form></section></div>}
