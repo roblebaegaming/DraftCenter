@@ -5712,6 +5712,12 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     const size = sourceState.teams.length;
     const usesBudget = sourceState.settings.draftType === "auction" || sourceState.settings.snakeBudgetEnabled;
     const snakeTarget = sourceState.settings.snakeBudgetEnabled ? sourceState.settings.rosterMax : sourceState.settings.rosterSize;
+    const botTeamIndexes = sourceState.teams
+      .map((team, teamIdx) => (!team.claimedBy ? teamIdx : -1))
+      .filter((teamIdx) => teamIdx >= 0);
+    const auctionTargetOffset = hashStringToInt(
+      `${sourceState.seasonNumber || 1}-auction-roster-targets`
+    );
     // Kept mons are already spoken for — pulled out of the fresh pool
     // entirely, seeded straight onto their team's roster, and their cost
     // comes out of that team's budget before the draft even starts.
@@ -5747,15 +5753,26 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       liveDraft: liveDraft || sourceState.liveDraft || null,
       locked: true,
       draftStartedAt: Date.now(),
-      teams: sourceState.teams.map((t) => {
+      teams: sourceState.teams.map((t, teamIdx) => {
         const archetypes = !t.claimedBy && (!t.archetypes || !t.archetypes.length)
           ? randomArchetypeKeys()
           : t.archetypes || [];
         const targetRange = Math.max(0, sourceState.settings.rosterMax - sourceState.settings.rosterMin);
-        const budgetRosterTarget = sourceState.settings.snakeBudgetEnabled && !t.claimedBy
-          ? sourceState.settings.rosterMin
-            + (hashStringToInt(`${t.id}-${sourceState.seasonNumber || 1}`) % (targetRange + 1))
-          : null;
+        let budgetRosterTarget = null;
+        if (usesBudget && !t.claimedBy) {
+          if (sourceState.settings.draftType === "auction") {
+            const botOrdinal = Math.max(0, botTeamIndexes.indexOf(teamIdx));
+            budgetRosterTarget = sourceState.settings.rosterMin
+              + ((auctionTargetOffset + botOrdinal) % (targetRange + 1));
+          } else {
+            budgetRosterTarget = sourceState.settings.rosterMin
+              + (hashStringToInt(`${t.id}-${sourceState.seasonNumber || 1}`) % (targetRange + 1));
+          }
+          budgetRosterTarget = Math.min(
+            sourceState.settings.rosterMax,
+            Math.max(budgetRosterTarget, rosters[teamIdx]?.length || 0)
+          );
+        }
         return { ...t, archetypes, budgetRosterTarget };
       }),
       rosters, budgets, pool,
@@ -6391,6 +6408,17 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     return () => clearInterval(interval);
   }, [leagueId, state.locked, state.settings.draftType, state.settings.overnightPauseEnabled, state.settings.overnightPauseStartUTCHour, state.settings.overnightPauseEndUTCHour, state.pickIndex, state.snakeOrder.length, state.pool.length, state.auctionEnded]);
 
+  function botReachedAuctionRosterTarget(s, teamIdx) {
+    const team = s.teams[teamIdx];
+    if (!team || team.claimedBy) return false;
+    const target = Math.max(
+      s.settings.rosterMin,
+      Math.min(s.settings.rosterMax, Number(team.budgetRosterTarget) || s.settings.rosterMax)
+    );
+    const rosterCount = (s.rosters[teamIdx] || []).length;
+    return rosterCount >= s.settings.rosterMin && rosterCount >= target;
+  }
+
   // Starts the nomination clock the moment it becomes a new team's turn —
   // shared by bots and humans alike, though bots will act well before it
   // ever matters. Cleared again once that team actually nominates (or gets
@@ -6467,8 +6495,9 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     // by the human nomination clock.
     if (lastAuctionNomFired.current === nomKey) return;
     const rosterFull = (state.rosters[teamIdx] || []).length >= state.settings.rosterMax;
+    const botReachedTarget = isBotTeam && botReachedAuctionRosterTarget(state, teamIdx);
     const outOfMoney = (state.budgets[teamIdx] ?? 0) < 1;
-    if (rosterFull || outOfMoney) {
+    if (rosterFull || botReachedTarget || outOfMoney) {
       lastAuctionNomFired.current = nomKey;
       if (consecutiveAutoSkips.current >= n) return;
       consecutiveAutoSkips.current += 1;
@@ -6498,18 +6527,19 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     }
   }, [leagueId, isCommissioner, myTeamIdx, state.settings.draftType, state.locked, state.paused, state.nominee, state.auctionEnded, state.auctionNominationIdx, state.auctionNominationOrder, state.teams, state.pool, state.rosters, state.nominationDeadline]);
 
-  // If every team is either full or completely out of money, nobody can
-  // take on another mon no matter whose turn it is — the auction is
-  // effectively over. Declare it automatically rather than leaving a stalled
-  // draft sitting there until the commissioner notices and clicks "End
-  // Auction Early" themselves.
+  // If every team is full, at its bot-specific target, or completely out of
+  // money, the auction is effectively over. Bot targets are never below the
+  // configured roster minimum. Declare it automatically rather than leaving
+  // a stalled draft sitting there until the commissioner notices.
   useEffect(() => {
     if (state.settings.draftType !== "auction" || !state.locked || state.auctionEnded) return;
     if (state.nominee) return; // let an active nomination resolve first
     if (!state.teams.length) return;
     if (leagueId && !isCommissioner) return;
     const allDone = state.teams.every((_, i) =>
-      (state.rosters[i] || []).length >= state.settings.rosterMax || (state.budgets[i] ?? 0) < 1
+      (state.rosters[i] || []).length >= state.settings.rosterMax
+      || botReachedAuctionRosterTarget(state, i)
+      || (state.budgets[i] ?? 0) < 1
     );
     if (allDone) {
       endAuctionEarly();
@@ -6533,6 +6563,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       if (leagueId && ((isBotTeam && !isCommissioner) || (!isBotTeam && teamIdx !== myTeamIdx))) return;
       if (!team?.autoDraft && !isBotTeam) return;
       if ((state.rosters[teamIdx] || []).length >= state.settings.rosterMax) return;
+      if (isBotTeam && botReachedAuctionRosterTarget(state, teamIdx)) return;
       if (capViolationReason(state.rosters[teamIdx] || [], mon, state.settings)) return;
       const ceiling = computeAuctionBidCeiling(state, teamIdx, mon);
       if (ceiling <= currentBid) return; // not willing to go higher
@@ -6663,10 +6694,9 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   }
   // How much a bot is willing to bid on a given nomination. Three separate
   // guardrails, all taking the tightest one:
-  //  1. Reserve at least 1pt for every OTHER remaining roster slot (not
-  //     just down to the minimum like snake's reserve check) — a bot
-  //     should always be able to finish its full roster, not just scrape
-  //     to the floor.
+  //  1. Reserve at least 1pt for every OTHER slot in this team's target
+  //     roster. Bot targets vary inside the configured min/max range; an
+  //     opted-in human auto-drafter still uses the league maximum.
   //  2. A max share of remaining budget for any single mon, which loosens
   //     as fewer slots remain (their last pick or two can reasonably go
   //     big — everything after this IS the last of their budget anyway).
@@ -6677,7 +6707,14 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   function computeAuctionBidCeiling(s, teamIdx, mon) {
     const roster = s.rosters[teamIdx] || [];
     const budgetLeft = s.budgets[teamIdx] ?? 0;
-    const slotsRemaining = Math.max(1, s.settings.rosterMax - roster.length);
+    const team = s.teams[teamIdx];
+    const targetRosterSize = !team?.claimedBy
+      ? Math.max(
+          s.settings.rosterMin,
+          Math.min(s.settings.rosterMax, Number(team?.budgetRosterTarget) || s.settings.rosterMax)
+        )
+      : s.settings.rosterMax;
+    const slotsRemaining = Math.max(1, targetRosterSize - roster.length);
 
     const reserveForRest = Math.max(0, slotsRemaining - 1); // 1pt floor per other remaining slot
     const reserveSafeLimit = Math.max(1, budgetLeft - reserveForRest);
