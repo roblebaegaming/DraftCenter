@@ -6206,8 +6206,49 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   // "auto-draft from queue" for when they're away, and (b) any team nobody
   // has claimed at all — so a solo user can practice against bot teams that
   // draft for themselves. Guarded so each client only fires once per pick.
+  const lastAutoFinish = useRef("");
   const lastAutoFired = useRef("");
   const autoPickFailure = useRef({ pickIndex: -1, count: 0 });
+  useEffect(() => {
+    if (state.settings.draftType !== "snake" || !state.settings.snakeBudgetEnabled || !state.locked || state.paused) return;
+    if (state.pickIndex >= state.snakeOrder.length) return;
+    const teamIdx = state.snakeOrder[state.pickIndex];
+    const team = state.teams[teamIdx];
+    if (team?.claimedBy) return;
+    if (leagueId && !isCommissioner) return;
+    const rosterCount = (state.rosters[teamIdx] || []).length;
+    if (rosterCount < state.settings.rosterMin) return;
+    const reachedTarget = rosterCount >= (team?.budgetRosterTarget ?? state.settings.rosterMax);
+    const hasLegalAffordablePick = !!selectAutoMon(state, teamIdx);
+    if (!reachedTarget && hasLegalAffordablePick) return;
+    const finishKey = `${state.pickIndex}:${teamIdx}:${team?.id || ""}:${rosterCount}`;
+    if (lastAutoFinish.current === finishKey) return;
+    lastAutoFinish.current = finishKey;
+    const finish = async () => {
+      const finished = await finishBudgetSnakeRoster();
+      if (!finished) {
+        lastAutoFinish.current = "";
+        await refreshLiveSnakeDraft();
+      }
+    };
+    finish();
+  }, [
+    leagueId,
+    isCommissioner,
+    state.pickIndex,
+    state.locked,
+    state.paused,
+    state.settings.draftType,
+    state.settings.snakeBudgetEnabled,
+    state.settings.rosterMin,
+    state.settings.rosterMax,
+    state.teams,
+    state.rosters,
+    state.pool,
+    state.budgets,
+    state.snakeOrder,
+  ]);
+
   useEffect(() => {
     if (state.settings.draftType !== "snake" || !state.locked || state.paused) return;
     if (state.pickIndex >= state.snakeOrder.length) return;
@@ -6229,6 +6270,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       && state.settings.snakeBudgetEnabled
       && (state.rosters[teamIdx] || []).length >= state.settings.rosterMin
       && (botReachedBudgetTarget || !mon);
+    if (botShouldFinishBudgetRoster) return;
     const attemptedPickIndex = state.pickIndex;
     const attemptedTurnKey = turnKey;
     const runAutoPick = async () => {
