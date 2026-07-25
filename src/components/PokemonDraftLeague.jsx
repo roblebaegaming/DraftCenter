@@ -6682,18 +6682,60 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     const reserveForRest = Math.max(0, slotsRemaining - 1); // 1pt floor per other remaining slot
     const reserveSafeLimit = Math.max(1, budgetLeft - reserveForRest);
 
-    const maxShareOfBudget = slotsRemaining <= 2 ? 1 : slotsRemaining <= 4 ? 0.55 : 0.35;
+    const listedCost = Math.max(1, Number(mon.cost) || 1);
+    const tierMax = Math.max(listedCost, Number(s.settings.priceTierMax) || 20);
+    const tierRatio = listedCost / tierMax;
+    const isPremium = tierRatio >= 0.75;
+    const maxShareOfBudget =
+      slotsRemaining <= 2
+        ? 1
+        : slotsRemaining <= 4
+          ? isPremium
+            ? 0.7
+            : 0.55
+          : isPremium
+            ? 0.45
+            : 0.35;
     const shareCap = Math.max(1, Math.round(budgetLeft * maxShareOfBudget));
 
     const archetypeKeys = s.teams[teamIdx]?.archetypes || [];
     const fitScore = scoreMonForArchetype(mon, archetypeKeys, roster);
-    const rawFitMultiplier = fitScore / Math.max(1, mon.cost);
+    const rawFitMultiplier = fitScore / listedCost;
     const fitMultiplier = Math.max(0.6, Math.min(1.6, rawFitMultiplier)); // even a great fit can't run away with it
     const fairShare = budgetLeft / slotsRemaining;
-    const jitter = 0.85 + Math.random() * 0.3;
-    const paceCeiling = Math.round(fairShare * fitMultiplier * jitter);
+    const paceJitter = 0.85 + Math.random() * 0.3;
+    const paceCeiling = Math.round(fairShare * fitMultiplier * paceJitter);
 
-    return Math.max(0, Math.min(paceCeiling, reserveSafeLimit, shareCap, budgetLeft));
+    // Auction markets are top-heavy: stars can clear above their listed tier,
+    // while middle and lower tiers usually need a discount to attract a bot.
+    // Each bot has a stable aggression profile plus small per-bid variance.
+    const botSeed = hashStringToInt(
+      `${s.teams[teamIdx]?.id || teamIdx}-${s.seasonNumber || 1}-auction`
+    );
+    const aggression = 0.9 + (botSeed % 31) / 100;
+    const marketJitter = 0.88 + Math.random() * 0.28;
+    let marketMultiplier;
+    if (tierRatio >= 0.75) {
+      marketMultiplier = 1.25 + (aggression - 0.9) * 1.4;
+    } else if (tierRatio >= 0.5) {
+      marketMultiplier = 0.8 + (aggression - 0.9) * 0.7;
+    } else {
+      marketMultiplier = 0.5 + (aggression - 0.9) * 0.7;
+    }
+
+    const fitMarketBoost = Math.max(0.9, Math.min(1.2, fitMultiplier));
+    const marketCeiling = Math.max(
+      1,
+      Math.round(listedCost * marketMultiplier * fitMarketBoost * marketJitter)
+    );
+    const desiredCeiling =
+      tierRatio >= 0.75
+        ? Math.max(marketCeiling, paceCeiling)
+        : tierRatio >= 0.5
+          ? Math.min(marketCeiling, Math.max(1, Math.round(paceCeiling * 1.05)))
+          : Math.min(marketCeiling, paceCeiling);
+
+    return Math.max(0, Math.min(desiredCeiling, reserveSafeLimit, shareCap, budgetLeft));
   }
 
   async function endAuctionEarly() {
