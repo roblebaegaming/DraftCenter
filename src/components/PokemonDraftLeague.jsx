@@ -5626,6 +5626,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       });
     }
     setTab("draft");
+    return true;
   }
 
   async function startDraft() {
@@ -8130,7 +8131,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
             exportLeagueBackup={exportLeagueBackup} exportRecoveryBackup={exportRecoveryBackup} importLeagueBackup={importLeagueBackup}
             addCoCommissioner={addCoCommissioner} removeCoCommissioner={removeCoCommissioner}
             onOpenLeagueTools={onOpenLeagueTools} copyLeagueInvite={copyLeagueInvite}
-            saveNow={saveNow} saveStatus={saveStatus}
+            saveNow={saveNow} saveStatus={saveStatus} draftError={liveDraftError}
           />
         )}
         {tab === "setup" && displayRole === "manager" && (
@@ -9601,7 +9602,7 @@ function ManagerLeagueDetails({ state, myName, myTeamIdx, claimTeam, costFor, up
   );
 }
 
-function SetupView({ state, leagueId = null, isCommissioner, canBeCommissioner, claimCommissioner, unclaimCommissioner, claimTeam, renameTeam, myName, updateSettings, resizeTeams, rerollAllTeamIdentities, costFor, toggleBanMon, toggleAllowExtraMon, rebuildCurrentSeason, addCustomMon, removeCustomMon, setSpriteOverride, setTeamLogo, onStart, addDivision, renameDivision, removeDivision, setTeamDivision, finalizeManualDraft, startNewSeason, updateHomepage, addExpansionTeam, removeSpecificTeam, exportLeagueBackup, exportRecoveryBackup, importLeagueBackup, addCoCommissioner, removeCoCommissioner, onOpenLeagueTools, copyLeagueInvite, saveNow, saveStatus }) {
+function SetupView({ state, leagueId = null, isCommissioner, canBeCommissioner, claimCommissioner, unclaimCommissioner, claimTeam, renameTeam, myName, updateSettings, resizeTeams, rerollAllTeamIdentities, costFor, toggleBanMon, toggleAllowExtraMon, rebuildCurrentSeason, addCustomMon, removeCustomMon, setSpriteOverride, setTeamLogo, onStart, addDivision, renameDivision, removeDivision, setTeamDivision, finalizeManualDraft, startNewSeason, updateHomepage, addExpansionTeam, removeSpecificTeam, exportLeagueBackup, exportRecoveryBackup, importLeagueBackup, addCoCommissioner, removeCoCommissioner, onOpenLeagueTools, copyLeagueInvite, saveNow, saveStatus, draftError = "" }) {
   // A league may have been created before newer Setup options existed. Keep
   // this screen usable even if one of those older saved values is missing or
   // malformed; the next normal save will preserve the corrected shape.
@@ -9632,6 +9633,7 @@ function SetupView({ state, leagueId = null, isCommissioner, canBeCommissioner, 
   const [editingLogo, setEditingLogo] = useState(null);
   const [inviteMessage, setInviteMessage] = useState("");
   const [reopeningSetup, setReopeningSetup] = useState(false);
+  const [startingDraft, setStartingDraft] = useState(false);
   // (Division assignment now lives in DivisionDragBoard, its own component
   // with real pointer-based drag-and-drop — see below.)
   const [search, setSearch] = useState("");
@@ -10166,10 +10168,23 @@ function SetupView({ state, leagueId = null, isCommissioner, canBeCommissioner, 
             </div>
           )}
           {!locked && settings.draftType === "snake" && <p className="text-xs mt-2" style={{ color: "#4FD1C5" }}>{settings.manualDraftOrder ? "Using the manual first-round order set above." : "Draft order: random by default. Turn on “Manually set draft order” above only if you want to choose it yourself."}</p>}
-          <button onClick={hasStaleRosterCarryover ? rebuildCurrentSeason : onStart} disabled={(locked && !hasStaleRosterCarryover) || (!locked && readinessIssues.length > 0)} className="w-full mt-4 py-3 rounded font-semibold display-font text-xl glow disabled:opacity-40"
+          <button type="button" onClick={async () => {
+            if (startingDraft) return;
+            setStartingDraft(true);
+            try {
+              await (hasStaleRosterCarryover ? rebuildCurrentSeason() : onStart());
+            } finally {
+              setStartingDraft(false);
+            }
+          }} disabled={startingDraft || (locked && !hasStaleRosterCarryover) || (!locked && readinessIssues.length > 0)} className="w-full mt-4 py-3 rounded font-semibold display-font text-xl glow disabled:opacity-40"
             style={{ background: "#FFD23F", color: "#10121C" }}>
-            {hasStaleRosterCarryover ? `REOPEN SEASON ${state.seasonNumber} SETUP` : locked ? "DRAFT IN PROGRESS" : settings.draftScheduledAt ? "START SCHEDULED DRAFT" : "START DRAFT NOW"}
+            {startingDraft ? "STARTING DRAFT..." : hasStaleRosterCarryover ? `REOPEN SEASON ${state.seasonNumber} SETUP` : locked ? "DRAFT IN PROGRESS" : settings.draftScheduledAt ? "START SCHEDULED DRAFT" : "START DRAFT NOW"}
           </button>
+          {!startingDraft && draftError && (
+            <div className="mt-3 rounded p-3 text-sm" style={{ background: "#2A1620", color: "#FFD6D6", border: "1px solid #F0555A66" }}>
+              <strong>Draft did not start.</strong> {draftError}
+            </div>
+          )}
 
           {!locked && (
             <div className="mt-4 pt-4" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
