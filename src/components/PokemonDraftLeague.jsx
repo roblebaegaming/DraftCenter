@@ -11790,12 +11790,16 @@ function DraftBoard({ teams, rosters, draftType, rosterMax, snakeOrder = [], set
           <span className="px-2 py-1 rounded" style={{ background: "#1F2338" }}>
             ROSTER {settings?.snakeBudgetEnabled || draftType === "auction" ? `${settings?.rosterMin}–${settings?.rosterMax}` : settings?.rosterSize}
           </span>
-          <span className="px-2 py-1 rounded" style={{ background: "#1F2338" }}>
-            RESTRICTED LIMIT {settings?.restrictedCap ?? "NONE"}
-          </span>
-          <span className="px-2 py-1 rounded" style={{ background: "#1F2338" }}>
-            MEGA LIMIT {settings?.megaCap ?? "NONE"}
-          </span>
+          {settings?.restrictedCap != null && (
+            <span className="px-2 py-1 rounded" style={{ background: "#1F2338" }}>
+              RESTRICTED LIMIT {settings.restrictedCap}
+            </span>
+          )}
+          {settings?.megaCap != null && (
+            <span className="px-2 py-1 rounded" style={{ background: "#1F2338" }}>
+              MEGA LIMIT {settings.megaCap}
+            </span>
+          )}
           {(settings?.snakeBudgetEnabled || draftType === "auction") && (
             <span className="px-2 py-1 rounded" style={{ background: "#1F2338" }}>STARTING BUDGET {settings?.budget}pt</span>
           )}
@@ -12402,12 +12406,16 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
                   <span className="px-2 py-1 rounded" style={{ background: "#1F2338", color: "#C8CDEA" }}>
                     BUDGET {budgets[currentTeamOnClock] ?? 0}pt
                   </span>
-                  <span className="px-2 py-1 rounded" style={{ background: "#1F2338", color: settings.restrictedCap != null && currentRestrictedCount >= settings.restrictedCap ? "#F0555A" : "#C8CDEA" }}>
-                    RESTRICTED {currentRestrictedCount}/{settings.restrictedCap ?? "∞"}
-                  </span>
-                  <span className="px-2 py-1 rounded" style={{ background: "#1F2338", color: settings.megaCap != null && currentMegaCount >= settings.megaCap ? "#F0555A" : "#C8CDEA" }}>
-                    MEGA {currentMegaCount}/{settings.megaCap ?? "∞"}
-                  </span>
+                  {settings.restrictedCap != null && (
+                    <span className="px-2 py-1 rounded" style={{ background: "#1F2338", color: currentRestrictedCount >= settings.restrictedCap ? "#F0555A" : "#C8CDEA" }}>
+                      RESTRICTED {currentRestrictedCount}/{settings.restrictedCap}
+                    </span>
+                  )}
+                  {settings.megaCap != null && (
+                    <span className="px-2 py-1 rounded" style={{ background: "#1F2338", color: currentMegaCount >= settings.megaCap ? "#F0555A" : "#C8CDEA" }}>
+                      MEGA {currentMegaCount}/{settings.megaCap}
+                    </span>
+                  )}
                 </div>
               )}
               {canFinishCurrentBudgetRoster && (
@@ -12626,7 +12634,14 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
                     <div className="w-full overflow-x-auto pb-2" style={{ maxWidth: "100%" }}>
                       <div className="flex gap-2 min-w-max">
                         {Array.from({ length: 20 }, (_, i) => 20 - i).map((cost) => {
-                          const inCol = filteredPool.filter((p) => p.cost === cost).sort((a, b) => a.name.localeCompare(b.name));
+                          const inCol = filteredPool
+                            .filter((p) => p.cost === cost)
+                            .filter((p) => {
+                              const cantAfford = p.cost > currentSpendLimit;
+                              const capReason = capViolationReason(currentRoster, p, settings);
+                              return !cantAfford && !capReason;
+                            })
+                            .sort((a, b) => a.name.localeCompare(b.name));
                           if (!inCol.length) return null;
                           return (
                             <div key={cost} className="w-52 flex-shrink-0 rounded-lg p-2 flex flex-col" style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)", height: 480 }}>
