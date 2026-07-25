@@ -5882,27 +5882,34 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     if (!state.liveDraft?.sessionId) {
       if (leagueId && state.locked && state.settings.draftType === "snake") {
         setLiveDraftError("This is an older draft session, not a Live Shared Draft. Picks from managers cannot be saved safely here. Ask the commissioner to open Setup, reset this practice draft, then start it again so DraftCenter creates the shared draft room.");
-        return;
+        return false;
       }
-      return localSnakePick(mon);
+      localSnakePick(mon);
+      return true;
     }
     const leaguePokemonId = state.liveDraft.pokemonIds?.[String(mon.id)];
     if (!leaguePokemonId) {
       setLiveDraftError("This Pokémon is not ready on the live draft board yet. Refresh and try again.");
-      return;
+      await refreshLiveSnakeDraft();
+      return false;
     }
     setLiveDraftError("");
     const { error } = await supabase.rpc("make_snake_pick", {
       p_draft_session_id: state.liveDraft.sessionId,
       p_league_pokemon_id: leaguePokemonId,
     });
-    if (error) { setLiveDraftError(error.message); return; }
+    if (error) {
+      setLiveDraftError(error.message);
+      await refreshLiveSnakeDraft();
+      return false;
+    }
     await refreshLiveSnakeDraft();
     // At the turn of a snake round, the same coach has two consecutive
     // picks. A fast mobile read can briefly return the just-finished turn,
     // so reconcile again without making the coach reload the whole page.
     window.setTimeout(refreshLiveSnakeDraft, 300);
     window.setTimeout(refreshLiveSnakeDraft, 900);
+    return true;
   }
 
   // Roughly "budget left ÷ picks left" — the fair-share amount a team could
@@ -6089,6 +6096,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   // has claimed at all — so a solo user can practice against bot teams that
   // draft for themselves. Guarded so each client only fires once per pick.
   const lastAutoFired = useRef(-1);
+  const autoPickFailure = useRef({ pickIndex: -1, count: 0 });
   useEffect(() => {
     if (state.settings.draftType !== "snake" || !state.locked || state.paused) return;
     if (state.pickIndex >= state.snakeOrder.length) return;
@@ -6103,18 +6111,35 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     )) return;
     const mon = selectAutoMon(state, teamIdx);
     lastAutoFired.current = state.pickIndex;
-    if (!mon) {
-      // Shouldn't normally happen since skipForward keeps pickIndex valid,
-      // but as a safety net, don't let a stuck team stall the draft.
-      autoPickForClock();
-      return;
-    }
+    const attemptedPickIndex = state.pickIndex;
+    const runAutoPick = async () => {
+      const succeeded = mon
+        ? await snakePick(mon)
+        : await autoPickForClock();
+      if (succeeded !== false) {
+        autoPickFailure.current = { pickIndex: -1, count: 0 };
+        return;
+      }
+
+      const previous = autoPickFailure.current;
+      const failureCount = previous.pickIndex === attemptedPickIndex
+        ? previous.count + 1
+        : 1;
+      autoPickFailure.current = { pickIndex: attemptedPickIndex, count: failureCount };
+
+      // A stale board or simultaneous refresh can reject a perfectly valid
+      // bot selection. Give that same turn one fresh attempt after reconciling
+      // with the server. A repeated rejection remains stopped with the server's
+      // visible error instead of silently retrying forever.
+      if (failureCount < 2) {
+        lastAutoFired.current = -1;
+        await refreshLiveSnakeDraft();
+      }
+    };
+
     // Small delay on bot picks so a solo practice draft feels less instant.
-    if (isBotTeam) {
-      setTimeout(() => snakePick(mon), 600);
-    } else {
-      snakePick(mon);
-    }
+    const timer = window.setTimeout(runAutoPick, isBotTeam ? 600 : 0);
+    return () => window.clearTimeout(timer);
   }, [leagueId, isCommissioner, myTeamIdx, state.pickIndex, state.locked, state.paused, state.settings.draftType, state.teams, state.queues, state.pool, state.budgets, state.snakeOrder]);
 
   // Automatic overnight pause — checks periodically whether the current

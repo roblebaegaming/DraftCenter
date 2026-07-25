@@ -39,6 +39,7 @@ Use this record against a safe test league before each major release. Do not use
 - [ ] Draft completion creates the expected rosters and does not leave stale active-draft state.
 - [ ] Bot teams value weather enablers and beneficiaries, low-speed Trick Room fits, and proven cross-type partners without repeatedly stacking one type.
 - [ ] Bot teams that become heavily physical or special prefer a credible attacker from the opposite side when one is affordable.
+- [ ] A transient hosted bot-pick rejection refreshes the authoritative board and retries once; a repeated rejection shows the server error instead of silently freezing.
 
 ## Season and transactions
 
