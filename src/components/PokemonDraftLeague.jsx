@@ -1864,9 +1864,9 @@ function pickRandomTrainerTeam(usedNames, usedColors) {
 /* ---------------------------------------------------------
    DRAFT ARCHETYPES — light strategy heuristics so auto-drafted
    (bot) teams lean toward a cohesive gameplan rather than just
-   grabbing the highest-value mon every pick. Based on type alone
-   since that's all the roster data tracks (no per-mon speed/ability
-   data), so this is a flavorful approximation, not a true simulator.
+   grabbing the highest-value mon every pick. Type, stats, abilities,
+   role balance, and soft partner bonuses all contribute without
+   requiring the bot to reproduce one exact competitive team.
 
    A team can run zero, one, or two of these at once (most real
    drafters pair two — e.g. Sand + Trick Room), which is why teams
@@ -1874,14 +1874,81 @@ function pickRandomTrainerTeam(usedNames, usedColors) {
    selected falls back to "type coverage" behavior automatically.
 --------------------------------------------------------- */
 const ARCHETYPES = [
-  { key: "rain", label: "Rain Team", types: { water: 3, electric: 1.3, grass: 1, ice: 0.6, bug: 0.4 } },
-  { key: "sun", label: "Sun Team", types: { fire: 3, grass: 1.5, dragon: 1, ground: 0.5 } },
-  { key: "sand", label: "Sand Team", types: { rock: 2.5, ground: 2, steel: 2 } },
-  { key: "trickroom", label: "Trick Room", types: { steel: 1.8, psychic: 1.5, dragon: 1.5, rock: 1.3, ground: 1.3, ghost: 1 }, bulkFocus: true },
-  { key: "hyperoffense", label: "Hyper Offense", types: { dragon: 2, fighting: 2, fire: 1.5, flying: 1, dark: 1 }, powerFocus: true },
+  { key: "rain", label: "Rain Team", types: { water: 1.4, electric: 0.8, grass: 0.6, steel: 0.6, flying: 0.4 } },
+  { key: "sun", label: "Sun Team", types: { fire: 1.4, grass: 1, dragon: 0.6, ground: 0.4 } },
+  { key: "sand", label: "Sand Team", types: { rock: 1.2, ground: 1, steel: 1 } },
+  { key: "snow", label: "Snow Team", types: { ice: 1.3, water: 0.5, steel: 0.5, fairy: 0.4 } },
+  { key: "trickroom", label: "Trick Room", types: { steel: 0.8, psychic: 0.8, dragon: 0.5, rock: 0.5, ground: 0.5, ghost: 0.4 }, bulkFocus: true },
+  { key: "hyperoffense", label: "Hyper Offense", types: { dragon: 0.8, fighting: 0.8, fire: 0.6, flying: 0.4, dark: 0.4 }, powerFocus: true },
   { key: "coverage", label: "Type Coverage", types: {}, diversity: true },
 ];
 const MAX_ARCHETYPES_PER_TEAM = 2;
+
+const ARCHETYPE_ABILITY_FIT = {
+  rain: {
+    enablers: ["drizzle"],
+    beneficiaries: ["swift swim", "rain dish", "hydration", "dry skin"],
+  },
+  sun: {
+    enablers: ["drought", "orichalcum pulse"],
+    beneficiaries: ["chlorophyll", "solar power", "protosynthesis", "harvest", "leaf guard"],
+  },
+  sand: {
+    enablers: ["sand stream"],
+    beneficiaries: ["sand rush", "sand force", "sand veil"],
+  },
+  snow: {
+    enablers: ["snow warning"],
+    beneficiaries: ["slush rush", "ice body", "snow cloak"],
+  },
+};
+
+// A deliberately small, soft set of partner cores. Weather/ability interaction
+// does most of the work; these recognize useful cross-type pairings that have
+// repeatedly appeared in high-level doubles play without scripting one team.
+const PROVEN_PARTNER_GROUPS = [
+  ["Tyranitar", "Excadrill"],
+  ["Charizard", "Venusaur"],
+  ["Garchomp", "Charizard"],
+  ["Garchomp", "Kingambit"],
+  ["Pelipper", "Archaludon"],
+  ["Incineroar", "Sinistcha"],
+  ["Basculegion", "Sneasler"],
+  ["Basculegion", "Froslass"],
+  ["Basculegion", "Whimsicott"],
+  ["Farigiraf", "Kingambit"],
+  ["Rotom-Wash", "Corviknight"],
+];
+
+function strategySpeciesName(name) {
+  return String(name || "")
+    .replace(/^Mega /, "")
+    .replace(/^Primal /, "")
+    .replace(/ (?:X|Y)$/, "")
+    .replace(/-Female$/, "")
+    .trim();
+}
+
+function monStrategyData(mon) {
+  const data = POKEMON_DATA[mon?.name];
+  const abilities = new Set((data?.abilities || []).map((a) => String(a.name || "").toLowerCase()));
+  return { abilities, stats: data?.stats || null };
+}
+
+function hasAnyAbility(abilities, names) {
+  return (names || []).some((name) => abilities.has(name));
+}
+
+function provenPartnerBonus(mon, roster) {
+  const candidate = strategySpeciesName(mon.name);
+  for (const rosterMon of roster) {
+    const existing = strategySpeciesName(rosterMon.name);
+    if (PROVEN_PARTNER_GROUPS.some((group) => group.includes(candidate) && group.includes(existing))) {
+      return 4;
+    }
+  }
+  return 0;
+}
 
 function archetypeFor(key) {
   return ARCHETYPES.find((a) => a.key === key) || ARCHETYPES.find((a) => a.key === "coverage");
@@ -1906,21 +1973,52 @@ function randomArchetypeKeys() {
 function scoreMonForArchetype(mon, archetypeKeys, roster) {
   const keys = archetypeKeys && archetypeKeys.length ? archetypeKeys : ["coverage"];
   const archs = keys.map(archetypeFor);
+  const counts = Object.fromEntries(typeCounts(roster));
+  const { abilities, stats } = monStrategyData(mon);
+  const rosterData = roster.map(monStrategyData);
   let score = mon.cost;
   for (const arch of archs) {
-    const typeWeight = (arch.types[mon.t1] || 0) + (mon.t2 ? (arch.types[mon.t2] || 0) : 0);
+    const weightedType = (type) => (arch.types[type] || 0) / (1 + (counts[type] || 0) * 1.5);
+    const typeWeight = weightedType(mon.t1) + (mon.t2 ? weightedType(mon.t2) : 0);
     score += typeWeight * 4;
-    if (arch.bulkFocus) score += mon.bst / 60;
-    if (arch.powerFocus) score += mon.bst / 80;
+    const abilityFit = ARCHETYPE_ABILITY_FIT[arch.key];
+    if (abilityFit) {
+      const candidateEnables = hasAnyAbility(abilities, abilityFit.enablers);
+      const candidateBenefits = hasAnyAbility(abilities, abilityFit.beneficiaries);
+      const rosterEnables = rosterData.some((data) => hasAnyAbility(data.abilities, abilityFit.enablers));
+      const rosterBenefits = rosterData.some((data) => hasAnyAbility(data.abilities, abilityFit.beneficiaries));
+      if (candidateEnables) score += rosterBenefits ? 8 : 5;
+      if (candidateBenefits) score += rosterEnables ? 8 : 4;
+    }
+    if (arch.bulkFocus && stats) {
+      const bulk = stats.hp + stats.def + stats.spd;
+      score += Math.max(0, (95 - stats.spe) / 12) + bulk / 115;
+    }
+    if (arch.powerFocus && stats) {
+      score += Math.max(stats.atk, stats.spa) / 45 + stats.spe / 55;
+    }
   }
-  // Type-coverage pressure applies whenever "coverage" is one of the chosen
-  // strategies (including the implicit default), pairing fine alongside a
-  // flavor strategy too — e.g. "lean Rain, but don't stack 4 Water types."
-  if (archs.some((a) => a.diversity)) {
-    const typesOnRoster = new Set(roster.flatMap((m) => [m.t1, m.t2].filter(Boolean)));
-    const overlap = (typesOnRoster.has(mon.t1) ? 1 : 0) + (mon.t2 && typesOnRoster.has(mon.t2) ? 1 : 0);
-    score -= overlap * 3;
+  // Repeated types become progressively less attractive for every archetype.
+  // A true strategy interaction can still outweigh that diversity pressure.
+  for (const type of [mon.t1, mon.t2].filter(Boolean)) {
+    const alreadyRostered = counts[type] || 0;
+    score -= alreadyRostered * (archs.some((a) => a.diversity) ? 3 : 2);
   }
+
+  if (stats && roster.length) {
+    const physical = roster.filter((m) => {
+      const s = monStrategyData(m).stats;
+      return s && s.atk >= s.spa + 15;
+    }).length;
+    const special = roster.filter((m) => {
+      const s = monStrategyData(m).stats;
+      return s && s.spa >= s.atk + 15;
+    }).length;
+    if (physical >= special + 2 && stats.spa >= stats.atk + 15) score += 3;
+    if (special >= physical + 2 && stats.atk >= stats.spa + 15) score += 3;
+  }
+
+  score += provenPartnerBonus(mon, roster);
   score += Math.random() * 2;
   return score;
 }
