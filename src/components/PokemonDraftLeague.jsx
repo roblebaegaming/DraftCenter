@@ -11904,6 +11904,7 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
   const [pendingNominee, setPendingNominee] = useState(null);
   const [pendingBid, setPendingBid] = useState("1");
   const [confirmRestart, setConfirmRestart] = useState(false);
+  const [restartingDraft, setRestartingDraft] = useState(false);
   const [poolSort, setPoolSort] = useState("cost"); // "cost" | "az" | "bst" | a stat key
   const [poolSortDir, setPoolSortDir] = useState("desc"); // "desc" | "asc"
   const [poolStatFilter, setPoolStatFilter] = useState(""); // "" | hp | atk | def | spa | spd | spe
@@ -12058,7 +12059,43 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
       {leagueId && draftType === "auction" && locked && <div className="mb-4 rounded-lg px-4 py-3 text-sm" style={{ background: "#102B2B", color: "#BDF7EE", border: "1px solid #4FD1C577" }}><strong>LIVE SHARED AUCTION</strong> — nominations, bids, budgets, timers, and winning rosters are locked by DraftCenter and synchronized for every manager.</div>}
       {isCommissioner && !hasStaleRosterCarryover && !hasSeasonActivity && (
         <div className="mb-4 rounded-lg px-4 py-3 text-sm" style={{ background: "#261822", border: "1px solid #F0555A55" }}>
-          {!confirmRestart ? <div className="flex items-center justify-between gap-3 flex-wrap"><span style={{ color: "#C8CDEA" }}>Testing issue or bad start? This clears only this draft's picks and current rosters, then returns to Pre-Draft Setup. Rules, managers, committed keepers, and every archived season remain intact.</span><button onClick={() => setConfirmRestart(true)} className="px-3 py-2 rounded font-semibold text-xs" style={{ background: "#F0555A22", color: "#FF9AA7", border: "1px solid #F0555A66" }}>RESTART THIS DRAFT</button></div> : <div className="flex items-center gap-3 flex-wrap"><strong style={{ color: "#FF9AA7" }}>Clear only this draft's picks and current rosters?</strong><button onClick={async () => { const reset = await restartDraft(); if (reset) setConfirmRestart(false); }} className="px-3 py-2 rounded font-semibold text-xs" style={{ background: "#F0555A", color: "#10121C" }}>Yes, restart draft only</button><button onClick={() => setConfirmRestart(false)} className="px-3 py-2 rounded text-xs" style={{ background: "#1F2338", color: "#C8CDEA" }}>Cancel</button></div>}
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <span style={{ color: "#C8CDEA" }}>Testing issue or bad start? This clears only this draft's picks and current rosters, then returns to Pre-Draft Setup. Rules, managers, committed keepers, and every archived season remain intact.</span>
+            <button onClick={() => setConfirmRestart(true)} className="px-3 py-2 rounded font-semibold text-xs" style={{ background: "#F0555A22", color: "#FF9AA7", border: "1px solid #F0555A66" }}>RESTART THIS DRAFT</button>
+          </div>
+        </div>
+      )}
+      {confirmRestart && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" style={{ background: "rgba(8, 10, 20, 0.82)" }}>
+          <section role="dialog" aria-modal="true" aria-labelledby="confirm-draft-restart-title" className="w-full max-w-lg rounded-xl p-5 shadow-2xl" style={{ background: "#171A2C", border: "1px solid #F0555A88" }}>
+            <h2 id="confirm-draft-restart-title" className="display-font text-2xl mb-3" style={{ color: "#FF9AA7" }}>CONFIRM DRAFT RESTART</h2>
+            <p className="text-sm mb-4" style={{ color: "#EDEBFA" }}>This action clears the current draft and cannot be undone.</p>
+            <div className="rounded-lg p-3 mb-3 text-sm" style={{ background: "#261822", color: "#FFCCD3" }}>
+              <strong className="block mb-1">Will be cleared</strong>
+              Current draft picks, current rosters, budgets, queues, and the active draft room.
+            </div>
+            <div className="rounded-lg p-3 mb-5 text-sm" style={{ background: "#102B2B", color: "#BDF7EE" }}>
+              <strong className="block mb-1">Will be preserved</strong>
+              League rules, managers, team ownership, committed keepers, and every archived season.
+            </div>
+            <div className="flex justify-end gap-3 flex-wrap">
+              <button type="button" disabled={restartingDraft} onClick={() => setConfirmRestart(false)} className="px-4 py-2 rounded font-semibold text-sm disabled:opacity-50" style={{ background: "#1F2338", color: "#C8CDEA" }}>CANCEL</button>
+              <button
+                type="button"
+                disabled={restartingDraft}
+                onClick={async () => {
+                  setRestartingDraft(true);
+                  const reset = await restartDraft();
+                  setRestartingDraft(false);
+                  if (reset) setConfirmRestart(false);
+                }}
+                className="px-4 py-2 rounded font-semibold text-sm disabled:opacity-60"
+                style={{ background: "#F0555A", color: "#10121C" }}
+              >
+                {restartingDraft ? "RESTARTING…" : "CONFIRM RESTART"}
+              </button>
+            </div>
+          </section>
         </div>
       )}
       {isCommissioner && !hasStaleRosterCarryover && hasSeasonActivity && (

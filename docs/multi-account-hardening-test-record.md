@@ -68,6 +68,7 @@ Use this record against a safe test league before each major release. Do not use
 - [ ] A forced reset failure leaves both the snapshot and all official draft rows unchanged.
 - [ ] Restart/rebuild succeeds on a snake league with no auction activity, and the required auction-owner relation exists for every deployment.
 - [ ] Restart/rebuild and new-season rollover return the relational league status to the canonical `setup` enum value.
+- [ ] Restart Draft always opens a confirmation dialog describing cleared and preserved data; Cancel makes no change and Confirm cannot submit twice.
 
 ## Mobile and performance
 
