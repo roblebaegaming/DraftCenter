@@ -12080,6 +12080,7 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
   const [poolStatMin, setPoolStatMin] = useState("");
   const [showMyRoster, setShowMyRoster] = useState(true);
   const [finishingRoster, setFinishingRoster] = useState(false);
+  const [confirmFinishRoster, setConfirmFinishRoster] = useState(false);
   const currentRoster = rosters[currentTeamOnClock] || [];
   const currentRestrictedCount = currentRoster.filter((mon) => isRestrictedMon(mon, settings)).length;
   const currentMegaCount = currentRoster.filter((mon) => mon.isMega).length;
@@ -12089,6 +12090,10 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
     && canFinishForCurrentTeam
     && currentRoster.length >= settings.rosterMin
     && currentRoster.length < settings.rosterMax;
+  useEffect(() => {
+    setConfirmFinishRoster(false);
+    setFinishingRoster(false);
+  }, [currentTeamOnClock]);
   useEffect(() => {
     if (nominee) { setPendingNominee(null); setPendingBid("1"); }
   }, [nominee]);
@@ -12481,19 +12486,46 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
                 </div>
               )}
               {canFinishCurrentBudgetRoster && (
-                <button type="button" onClick={async () => {
-                  if (finishingRoster) return;
-                  setFinishingRoster(true);
-                  try {
-                    await finishBudgetSnakeRoster();
-                  } finally {
-                    setFinishingRoster(false);
-                  }
-                }} disabled={finishingRoster}
+                <button type="button" onClick={() => setConfirmFinishRoster(true)} disabled={finishingRoster}
                   className="mt-3 px-5 py-2.5 rounded font-bold mono-font transition-transform hover:scale-[1.03] active:scale-[0.98] disabled:opacity-50 disabled:cursor-wait"
                   style={{ background: "#4FD1C5", color: "#10121C", border: "2px solid #8AF5EA", boxShadow: "0 0 18px #4FD1C555", cursor: finishingRoster ? "wait" : "pointer" }}>
-                  {finishingRoster ? "FINISHING ROSTER…" : `FINISH THIS ROSTER AT ${currentRoster.length} PICKS`}
+                  FINISH THIS ROSTER AT {currentRoster.length} PICKS
                 </button>
+              )}
+              {confirmFinishRoster && canFinishCurrentBudgetRoster && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(7, 9, 18, 0.82)" }}>
+                  <div className="w-full max-w-md rounded-lg p-6 text-left" role="dialog" aria-modal="true" aria-labelledby="finish-roster-title"
+                    style={{ background: "#171A2C", border: "1px solid #4FD1C577", boxShadow: "0 18px 60px rgba(0,0,0,0.55)" }}>
+                    <h3 id="finish-roster-title" className="display-font text-2xl mb-3" style={{ color: "#FFD23F" }}>FINISH THIS ROSTER?</h3>
+                    <p className="text-sm mb-3" style={{ color: "#EDEBFA" }}>
+                      {teams[currentTeamOnClock]?.name} will permanently finish with {currentRoster.length} picks.
+                    </p>
+                    <p className="text-xs mb-5" style={{ color: "#F4A6AD" }}>
+                      All remaining turns for this team will be removed from the live draft. This cannot be undone without restarting the draft.
+                    </p>
+                    <div className="flex gap-3 justify-end">
+                      <button type="button" onClick={() => setConfirmFinishRoster(false)} disabled={finishingRoster}
+                        className="px-4 py-2 rounded text-sm font-semibold disabled:opacity-40"
+                        style={{ background: "#1F2338", color: "#C8CDEA", border: "1px solid rgba(255,255,255,0.1)" }}>
+                        CANCEL
+                      </button>
+                      <button type="button" onClick={async () => {
+                        if (finishingRoster) return;
+                        setFinishingRoster(true);
+                        try {
+                          const finished = await finishBudgetSnakeRoster();
+                          if (finished) setConfirmFinishRoster(false);
+                        } finally {
+                          setFinishingRoster(false);
+                        }
+                      }} disabled={finishingRoster}
+                        className="px-4 py-2 rounded text-sm font-bold mono-font disabled:opacity-50 disabled:cursor-wait"
+                        style={{ background: "#4FD1C5", color: "#10121C", border: "2px solid #8AF5EA" }}>
+                        {finishingRoster ? "FINISHING…" : `CONFIRM ${currentRoster.length} PICKS`}
+                      </button>
+                    </div>
+                  </div>
+                </div>
               )}
             </div>
           ) : (
