@@ -5549,7 +5549,8 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       p_league_id: leagueId,
     });
     if (error) {
-      setLiveDraftError(`The server could not check the expired turn: ${error.message}`);
+      console.error("Expired-turn reconciliation failed", error);
+      setLiveDraftError("The server could not advance the expired turn. Please refresh once; if it remains stuck, ask the commissioner to retry.");
       return false;
     }
     await refreshLiveSnakeDraft();
