@@ -7637,6 +7637,13 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
         // draftPick stamped, so they're honestly excluded rather than
         // reported as if pick order were real.
         draftLog: s.rosters.flatMap((r) => r.map((m) => ({ name: m.name, draftPick: m.draftPick ?? null, cost: m.cost ?? null }))),
+        // Preserve the entire legal pool, not just successful selections. ADP
+        // treats an eligible-but-undrafted Pokemon as one pick after this
+        // draft's final selection, so rollover must retain who was eligible.
+        eligibleDraftPool: (Array.isArray(s.liveDraft?.basePool) && s.liveDraft.basePool.length
+          ? s.liveDraft.basePool
+          : fullPool(s.settings).filter((pokemon) => isLegal(pokemon, s.settings))
+        ).map((pokemon) => pokemon.name),
       };
       // Commit each team's keeper picks into real mon objects now, while
       // this season's rosters still exist to pull them from — cost goes up
