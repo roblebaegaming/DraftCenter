@@ -4948,7 +4948,9 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
         setState((current) => {
           const hydrated = hydrateState(remote);
           const privateQueue = myTeamIdx >= 0 ? current.queues?.[myTeamIdx] : null;
-          if (!current.liveDraft?.sessionId) {
+          const liveDraftInProgress = current.liveDraft?.sessionId
+            && current.liveDraft?.status !== "complete";
+          if (!liveDraftInProgress) {
             return privateQueue
               ? { ...hydrated, queues: { ...hydrated.queues, [myTeamIdx]: privateQueue } }
               : hydrated;
@@ -5450,6 +5452,25 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       supabase.from("league_pokemon").select("id, source_key, cost, is_drafted, is_restricted, is_mega").eq("league_id", leagueId),
     ]);
     if (error || pokemonError || !live?.session?.id) return;
+    // Draft tables own roster construction only while picks are still being
+    // made. Once the session completes, the league snapshot becomes the
+    // source of truth because free agency and trades change those rosters.
+    if (live.session.status === "complete") {
+      const remote = await loadRemote(leagueId);
+      if (!remote) return;
+      const hydrated = hydrateState(remote);
+      hydrated.liveDraft = {
+        ...(hydrated.liveDraft || {}),
+        sessionId: live.session.id,
+        status: "complete",
+      };
+      hydrated.pickDeadline = null;
+      hydrated.paused = false;
+      hydrated.pausedAt = null;
+      revRef.current = Math.max(revRef.current, hydrated.rev || 0);
+      setState(hydrated);
+      return;
+    }
     setState((previous) => {
       if (!previous.liveDraft?.sessionId) return previous;
       const rowBySourceKey = new Map((pokemonRows || []).map((row) => [String(row.source_key), row]));
@@ -5513,7 +5534,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
           ? Number(live.session.configuration?.pause_started_at) || previous.pausedAt || Date.now()
           : null,
         pauseIsOvernight: live.session.status === "paused" && Boolean(live.session.configuration?.pause_is_overnight),
-        liveDraft: { ...previous.liveDraft, sessionId: live.session.id, pokemonIds, basePool },
+        liveDraft: { ...previous.liveDraft, sessionId: live.session.id, status: live.session.status, pokemonIds, basePool },
       };
     });
   }, [leagueId, supabase]);
@@ -8131,13 +8152,9 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     commit((s) => ({ ...s, pendingClaims: (s.pendingClaims || []).filter((c) => c.id !== claimId) }));
     return { ok: true };
   }
-  // Resolves every pending claim at once — commissioner-triggered rather
-  // than automatic, so a league can wait until everyone's actually had a
-  // chance to submit before anything gets decided, same spirit as
-  // simulateWeek() needing a deliberate click rather than firing on a
-  // timer. Contested mons (two+ claims on the same pokémon) get resolved
-  // per faClaimMode; every claim gets removed from the queue afterward,
-  // win or lose.
+  // Resolves every pending claim at once. Hosted leagues ask the database to
+  // compute every winner atomically; this local resolver remains only for the
+  // no-account demo path.
   async function processClaims(autoCycle = null) {
     const resolvedAutoCycle = typeof autoCycle === "string" ? autoCycle : null;
     const resolveClaims = (s) => {
@@ -8227,17 +8244,10 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       return { ok: true };
     }
     if (!isCommissioner) return { ok: false, reason: "Only a commissioner can process claims." };
-    const claimIds = (state.pendingClaims || []).map((claim) => claim.id).sort();
-    if (!claimIds.length) return { ok: true };
-    const nextState = {
-      ...resolveClaims(state),
-      rev: (state.rev || 0) + 1,
-    };
+    if (!(state.pendingClaims || []).length) return { ok: true };
     setSaveStatus("saving");
-    const { data, error } = await supabase.rpc("finalize_private_free_agent_claims", {
+    const { data, error } = await supabase.rpc("process_private_free_agent_claims", {
       p_league_id: leagueId,
-      p_state: nextState,
-      p_claim_ids: claimIds,
     });
     if (error) {
       setSaveStatus("error");
@@ -8251,30 +8261,6 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     setLiveDraftError("");
     return { ok: true };
   }
-
-  useEffect(() => {
-    if (state.settings.calendarMode !== "weekly" || !state.settings.autoProcessClaims || state.settings.faClaimMode === "instant") return undefined;
-    const checkDueClaims = () => {
-      if (!(state.pendingClaims || []).length || (leagueId && !isCommissioner)) return;
-      let parts;
-      try {
-        parts = Object.fromEntries(new Intl.DateTimeFormat("en-US", {
-          timeZone: state.settings.leagueTimeZone || "UTC", weekday: "short", year: "numeric", month: "2-digit", day: "2-digit",
-          hour: "2-digit", minute: "2-digit", hourCycle: "h23",
-        }).formatToParts(new Date()).filter((part) => part.type !== "literal").map((part) => [part.type, part.value]));
-      } catch {
-        return;
-      }
-      const weekday = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].indexOf(parts.weekday);
-      const currentMinutes = Number(parts.hour) * 60 + Number(parts.minute);
-      const [claimHour, claimMinute] = String(state.settings.claimTime || "20:00").split(":").map(Number);
-      const cycle = `${parts.year}-${parts.month}-${parts.day}`;
-      if (weekday === Number(state.settings.claimDayOfWeek) && currentMinutes >= claimHour * 60 + claimMinute && state.lastAutoClaimCycle !== cycle) processClaims(cycle);
-    };
-    checkDueClaims();
-    const timer = window.setInterval(checkDueClaims, 60_000);
-    return () => window.clearInterval(timer);
-  }, [state.settings.calendarMode, state.settings.autoProcessClaims, state.settings.faClaimMode, state.settings.leagueTimeZone, state.settings.claimDayOfWeek, state.settings.claimTime, state.pendingClaims, state.lastAutoClaimCycle, leagueId, isCommissioner]);
 
   async function proposeTrade(fromTeam, toTeam, offerNames, requestNames) {
     if (!offerNames.length && !requestNames.length) return { ok: false, reason: "Choose at least one Pokémon." };
@@ -11412,7 +11398,7 @@ function TransactionRulesCard({ state, isCommissioner, updateSettings }) {
               </label>
               <label className="md:col-span-2 flex items-center gap-2 text-xs" style={{ color: "#9A9FBD" }}>
                 <input type="checkbox" checked={settings.autoProcessClaims} onChange={(e) => updateSettings({ autoProcessClaims: e.target.checked })} />
-                Automatically process queued claims on this clock while a league member has DraftCenter open
+                Automatically process queued claims from the server clock, even when nobody has DraftCenter open
               </label>
               <p className="md:col-span-2 text-xs" style={{ color: "#5B5F7E" }}>
                 Weekly transaction limits now reset from this season clock, not when a commissioner clicks to the next schedule page.
@@ -16108,7 +16094,7 @@ function TransactionsView({ state, myName, myTeamIdx, isCommissioner, freeAgents
         )}
         {settings.faClaimMode !== "instant" && (
           <p className="text-xs mb-3" style={{ color: "#9A9FBD" }}>
-            This queues a claim rather than acting right away — see Pending Claims below. A commissioner resolves everyone's claims together once the window's closed.
+            This queues a claim rather than acting right away — see Pending Claims below. The server resolves everyone's claims together at the scheduled time, or a commissioner can process them early.
           </p>
         )}
         <button onClick={submitFreeAgent} disabled={!canActFor(faTeam) || !faAdd || info.blocked}
