@@ -12632,6 +12632,18 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
     const scheduledAt = settings.draftScheduledAt;
     const scheduledTime = Date.parse(scheduledAt || "");
     const minutesUntilStart = Number.isFinite(scheduledTime) ? Math.max(0, Math.ceil((scheduledTime - Date.now()) / 60000)) : null;
+    const automaticStartReady = settings.draftType === "snake"
+      && ["ready", "starting", "started"].includes(scheduledStartStatus?.phase);
+    const dueStatusLabel = settings.draftType !== "snake"
+      ? "WAITING"
+      : automaticStartReady
+        ? "STARTING"
+        : "NOT ARMED";
+    const dueStatusDetail = settings.draftType !== "snake"
+      ? "waiting for the commissioner"
+      : automaticStartReady
+        ? "server is opening the live board"
+        : "automatic start is not ready";
     const waitingOrder = Array.isArray(settings.manualDraftOrder) ? settings.manualDraftOrder : teams.map((_, index) => index);
     const eligibleCount = fullPool(settings).filter((pokemon) => isLegal(pokemon, settings)).length;
     return (
@@ -12645,8 +12657,8 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
             </div>
             {minutesUntilStart !== null && (
               <div className="rounded px-4 py-3 text-center" style={{ background: "#10121C", border: "1px solid #4FD1C555" }}>
-                <strong className="display-font text-2xl block" style={{ color: "#4FD1C5" }}>{minutesUntilStart > 0 ? `${minutesUntilStart} MIN` : "STARTING"}</strong>
-                <span className="text-xs" style={{ color: "#9A9FBD" }}>{minutesUntilStart > 0 ? "until scheduled start" : "waiting for the live board"}</span>
+                <strong className="display-font text-2xl block" style={{ color: minutesUntilStart > 0 || automaticStartReady ? "#4FD1C5" : "#FF9AA7" }}>{minutesUntilStart > 0 ? `${minutesUntilStart} MIN` : dueStatusLabel}</strong>
+                <span className="text-xs" style={{ color: "#9A9FBD" }}>{minutesUntilStart > 0 ? "until scheduled start" : dueStatusDetail}</span>
               </div>
             )}
           </div>
