@@ -9641,7 +9641,8 @@ function HomeView({ state, leagueId, leagueName, isCommissioner, isSpectator = f
   );
 
   if (!locked) return <PreDraftScout state={state} isCommissioner={isCommissioner} costFor={costFor} updateHomepage={updateHomepage}
-    myTeamIdx={myTeamIdx} addToQueue={addToQueue} removeFromQueue={removeFromQueue} moveQueueItem={moveQueueItem} readOnly={readOnly} />;
+    myTeamIdx={myTeamIdx} addToQueue={addToQueue} removeFromQueue={removeFromQueue} moveQueueItem={moveQueueItem} readOnly={readOnly}
+    onOpenSetup={onGetStarted} />;
   if (false) {
     return (
       <div className="flex flex-col gap-6">
@@ -10447,7 +10448,10 @@ function SetupView({ state, leagueId = null, isCommissioner, canBeCommissioner, 
     .sort((a, b) => (isPriced(a, settings) ? 1 : 0) - (isPriced(b, settings) ? 1 : 0) || costFor(b, settings) - costFor(a, settings) || a.name.localeCompare(b.name));
   const hiddenBannedCount = allMons.filter((p) => !isLegal(p, settings)).length;
   const hasStaleRosterCarryover = looksLikeCarriedOverRosterState(state);
-  const draftHasStarted = hasDraftStartedEvidence(state);
+  // `locked` is the canonical boundary between setup and a live season.
+  // Older/restarted leagues can retain a generated snake order while they
+  // are unlocked; that stale order must not hide the pre-draft scheduler.
+  const draftHasStarted = locked && hasDraftStartedEvidence(state);
   const hasDraftSelections = !hasStaleRosterCarryover && ((state.pickIndex || 0) > 0
     || state.rosters.some((roster) => (roster || []).some((mon) => mon.acquiredVia !== "keeper"))
     || Boolean(state.nominee?.highestBidder != null));
@@ -12481,7 +12485,7 @@ function DraftHeroVoteCard({ teams, votes, myName, castDraftHeroVote }) {
     </div>
   );
 }
-function PreDraftScout({ state, isCommissioner, costFor, updateHomepage, myTeamIdx = -1, addToQueue = null, removeFromQueue = null, moveQueueItem = null, readOnly = false, showLeagueInfo = true }) {
+function PreDraftScout({ state, isCommissioner, costFor, updateHomepage, myTeamIdx = -1, addToQueue = null, removeFromQueue = null, moveQueueItem = null, readOnly = false, showLeagueInfo = true, onOpenSetup = null }) {
   const [search, setSearch] = useState("");
   const [type, setType] = useState("");
   const [sortMode, setSortMode] = useState("price-desc");
@@ -12507,7 +12511,20 @@ function PreDraftScout({ state, isCommissioner, costFor, updateHomepage, myTeamI
     <section className="rounded-lg p-5" style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }}>
       <span className="eyebrow">PRE-DRAFT</span><h2 className="display-font text-3xl" style={{ color: "#FFD23F" }}>Scout the draft board</h2>
       <p className="text-sm mt-1" style={{ color: "#9A9FBD" }}>These are the league's saved draft settings. Every manager sees the same regulation, eligible pool, prices, and official date.</p>
-      <div className="flex gap-3 flex-wrap mt-4 text-sm"><span className="px-3 py-1 rounded" style={{ background: "#1F2338", color: "#EDEBFA" }}>{pool.length} eligible Pokémon</span><span className="px-3 py-1 rounded" style={{ background: "#1F2338", color: "#EDEBFA" }}>{claimed}/{state.teams.length} managers assigned</span>{scheduledAt ? <span className="px-3 py-1 rounded" style={{ background: "#4FD1C522", color: "#4FD1C5" }}>Draft: {new Date(scheduledAt).toLocaleString()}</span> : <span className="px-3 py-1 rounded" style={{ background: "#FFD23F22", color: "#FFD23F" }}>{isCommissioner ? "Set the draft time in League tools" : "Draft time not set yet"}</span>}<a href={`/pokemon?regulation=${encodeURIComponent(settings.regulationId || "")}`} className="px-3 py-1 rounded font-semibold" style={{ background: "#1B3845", color: "#4FD1C5", textDecoration: "none" }}>Open move pools</a></div>
+      <div className="flex gap-3 flex-wrap mt-4 text-sm">
+        <span className="px-3 py-1 rounded" style={{ background: "#1F2338", color: "#EDEBFA" }}>{pool.length} eligible Pokémon</span>
+        <span className="px-3 py-1 rounded" style={{ background: "#1F2338", color: "#EDEBFA" }}>{claimed}/{state.teams.length} managers assigned</span>
+        {scheduledAt ? (
+          <span className="px-3 py-1 rounded" style={{ background: "#4FD1C522", color: "#4FD1C5" }}>Draft: {new Date(scheduledAt).toLocaleString()}</span>
+        ) : isCommissioner && onOpenSetup ? (
+          <button type="button" onClick={onOpenSetup} className="px-3 py-1 rounded font-semibold" style={{ background: "#FFD23F", color: "#10121C" }}>
+            SET DRAFT TIME IN SETUP
+          </button>
+        ) : (
+          <span className="px-3 py-1 rounded" style={{ background: "#FFD23F22", color: "#FFD23F" }}>{isCommissioner ? "Set the draft time in Setup or Schedule" : "Draft time not set yet"}</span>
+        )}
+        <a href={`/pokemon?regulation=${encodeURIComponent(settings.regulationId || "")}`} className="px-3 py-1 rounded font-semibold" style={{ background: "#1B3845", color: "#4FD1C5", textDecoration: "none" }}>Open move pools</a>
+      </div>
     </section>
     {canQueue && (
       <section className="rounded-lg p-5" style={{ background: "#171A2C", border: "1px solid #FFD23F55" }}>
@@ -12690,8 +12707,29 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
             </>
           ) : (
             <p className="text-sm mb-5" style={{ color: "#5B5F7E" }}>
-              {isCommissioner ? "No draft time set yet — pick one below." : "The commissioner hasn't scheduled a draft time yet."}
+              {isCommissioner ? "No draft time set yet. Choose one below, or start manually when everyone is ready." : "The commissioner hasn't scheduled a draft time yet."}
             </p>
+          )}
+          {isCommissioner && (
+            <div className="mt-4 rounded-lg p-4" style={{ background: "#10121C", border: "1px solid #FFD23F55" }}>
+              <label className="text-xs font-semibold" style={{ color: "#FFD23F" }}>
+                OFFICIAL DRAFT START DATE AND TIME
+                <input
+                  type="datetime-local"
+                  value={dateTimeLocalValue(settings.draftScheduledAt)}
+                  onChange={(event) => updateSettings({
+                    draftScheduledAt: event.target.value ? new Date(event.target.value).toISOString() : null,
+                  })}
+                  className="block mt-2 w-full sm:w-auto px-3 py-2 rounded mono-font text-sm"
+                  style={{ background: "#1F2338", border: "1px solid rgba(255,255,255,0.14)", color: "#EDEBFA" }}
+                />
+              </label>
+              <p className="text-xs mt-2" style={{ color: "#9A9FBD" }}>
+                {settings.draftType === "snake"
+                  ? "After saving, wait for Automatic Start Ready. DraftCenter can then start this draft with every browser closed."
+                  : "Auction drafts save this appointment, but the commissioner must still press Start Draft at that time."}
+              </p>
+            </div>
           )}
           <div className="mt-4 flex gap-3 flex-wrap">
             <a href="#pre-draft-board" className="px-4 py-2 rounded font-semibold text-sm"
