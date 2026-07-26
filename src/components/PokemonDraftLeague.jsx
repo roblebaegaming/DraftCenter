@@ -5543,6 +5543,20 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     });
   }, [leagueId, supabase]);
 
+  const requestDueSnakeTurnResolution = useCallback(async () => {
+    if (!leagueId) return false;
+    const { error } = await supabase.rpc("request_due_snake_turn_resolution", {
+      p_league_id: leagueId,
+    });
+    if (error) {
+      setLiveDraftError(`The server could not check the expired turn: ${error.message}`);
+      return false;
+    }
+    await refreshLiveSnakeDraft();
+    setLiveDraftError("");
+    return true;
+  }, [leagueId, supabase, refreshLiveSnakeDraft]);
+
   const refreshLiveAuction = useCallback(async () => {
     if (!leagueId) return;
     const remote = await loadRemote(leagueId);
@@ -8834,6 +8848,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
             state={state} leagueId={leagueId} isCommissioner={isCommissioner} canDraftNow={canDraftNow} myName={myName} myTeamIdx={myTeamIdx}
             currentTeamOnClock={currentTeamOnClock} draftDone={draftDone} allTeamsMetMin={allTeamsMetMin}
             snakePick={snakePick} nominateForAuction={nominateForAuction} autoPickForClock={autoPickForClock}
+            requestDueSnakeTurnResolution={requestDueSnakeTurnResolution}
             finishBudgetSnakeRoster={finishBudgetSnakeRoster}
             placeBid={placeBid} endAuctionEarly={endAuctionEarly} pauseDraft={pauseDraft} resumeDraft={resumeDraft} skipAuctionNomination={skipAuctionNomination}
             toggleAutoDraft={toggleAutoDraft} addToQueue={addToQueue} removeFromQueue={removeFromQueue} moveQueueItem={moveQueueItem}
@@ -8896,6 +8911,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
                 state={state} leagueId={leagueId} isCommissioner={displayIsCommissioner} canDraftNow={canDraftNow && !previewReadOnly} myName={myName} myTeamIdx={myTeamIdx}
                 currentTeamOnClock={currentTeamOnClock} draftDone={draftDone} allTeamsMetMin={allTeamsMetMin}
                 snakePick={snakePick} nominateForAuction={nominateForAuction} autoPickForClock={autoPickForClock}
+                requestDueSnakeTurnResolution={requestDueSnakeTurnResolution}
                 finishBudgetSnakeRoster={finishBudgetSnakeRoster}
                 placeBid={placeBid} endAuctionEarly={endAuctionEarly} pauseDraft={pauseDraft} resumeDraft={resumeDraft} skipAuctionNomination={skipAuctionNomination}
                 toggleAutoDraft={toggleAutoDraft} addToQueue={addToQueue} removeFromQueue={removeFromQueue} moveQueueItem={moveQueueItem}
@@ -12568,7 +12584,7 @@ function PreDraftScout({ state, isCommissioner, costFor, updateHomepage, myTeamI
   </div>;
 }
 
-function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTeamIdx, currentTeamOnClock, draftDone, allTeamsMetMin, snakePick, nominateForAuction, autoPickForClock, finishBudgetSnakeRoster, placeBid, endAuctionEarly, pauseDraft, resumeDraft, skipAuctionNomination, toggleAutoDraft, addToQueue, removeFromQueue, moveQueueItem, onGenerateSchedule, updateSettings, onViewTeam, castDraftHeroVote, restartDraft, rebuildCurrentSeason, onStart, scheduledStartStatus = null, retryScheduledStart = null }) {
+function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTeamIdx, currentTeamOnClock, draftDone, allTeamsMetMin, snakePick, nominateForAuction, autoPickForClock, requestDueSnakeTurnResolution = null, finishBudgetSnakeRoster, placeBid, endAuctionEarly, pauseDraft, resumeDraft, skipAuctionNomination, toggleAutoDraft, addToQueue, removeFromQueue, moveQueueItem, onGenerateSchedule, updateSettings, onViewTeam, castDraftHeroVote, restartDraft, rebuildCurrentSeason, onStart, scheduledStartStatus = null, retryScheduledStart = null }) {
   const { locked, settings, teams, rosters, budgets, pool, snakeOrder, pickIndex, nominee, auctionEnded, pickDeadline, queues, auctionNominationOrder, auctionNominationIdx, paused, pausedAt, pauseIsOvernight, nominationDeadline } = state;
   const draftType = settings.draftType;
 
@@ -13032,7 +13048,14 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
                 </div>
               )}
               {settings.pickTimeLimitMinutes > 0 && (
-                <PickTimer deadline={pickDeadline} isCommissioner={isCommissioner} onExpireAction={autoPickForClock} paused={paused} pausedAt={pausedAt} />
+                <PickTimer
+                  deadline={pickDeadline}
+                  isCommissioner={isCommissioner}
+                  onExpireAction={leagueId ? requestDueSnakeTurnResolution : autoPickForClock}
+                  onServerExpireAction={leagueId ? requestDueSnakeTurnResolution : null}
+                  paused={paused}
+                  pausedAt={pausedAt}
+                />
               )}
               {settings.snakeBudgetEnabled && (
                 <div className="mt-3 flex items-center justify-center gap-2 flex-wrap text-xs mono-font">
@@ -13433,16 +13456,38 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
   );
 }
 
-function PickTimer({ deadline, isCommissioner, onExpireAction, paused, pausedAt }) {
+function PickTimer({ deadline, isCommissioner, onExpireAction, onServerExpireAction = null, paused, pausedAt }) {
   const [now, setNow] = useState(Date.now());
+  const [processing, setProcessing] = useState(false);
+  const mountedRef = useRef(true);
+  const serverRequestRef = useRef({ deadline: null, retryAt: 0, inFlight: false });
   useEffect(() => {
+    mountedRef.current = true;
     const iv = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(iv);
+    return () => {
+      mountedRef.current = false;
+      clearInterval(iv);
+    };
   }, []);
-  if (!deadline) return null;
   const clockNow = paused ? (pausedAt || now) : now;
-  const remainingMs = deadline - clockNow;
-  const expired = !paused && remainingMs <= 0;
+  const remainingMs = deadline ? deadline - clockNow : 0;
+  const expired = Boolean(deadline) && !paused && remainingMs <= 0;
+  useEffect(() => {
+    if (!expired || !onServerExpireAction) return undefined;
+    if (serverRequestRef.current.deadline !== deadline) {
+      serverRequestRef.current = { deadline, retryAt: 0, inFlight: false };
+    }
+    if (serverRequestRef.current.inFlight || now < serverRequestRef.current.retryAt) return undefined;
+    serverRequestRef.current.retryAt = now + 5000;
+    serverRequestRef.current.inFlight = true;
+    setProcessing(true);
+    Promise.resolve().then(onServerExpireAction).finally(() => {
+      serverRequestRef.current.inFlight = false;
+      if (mountedRef.current) setProcessing(false);
+    });
+    return undefined;
+  }, [deadline, expired, now, onServerExpireAction]);
+  if (!deadline) return null;
   const totalSec = Math.max(0, Math.floor(remainingMs / 1000));
   const hours = Math.floor(totalSec / 3600);
   const mm = String(Math.floor((totalSec % 3600) / 60)).padStart(2, "0");
@@ -13451,12 +13496,12 @@ function PickTimer({ deadline, isCommissioner, onExpireAction, paused, pausedAt 
   return (
     <div className="mt-2 flex items-center justify-center gap-3">
       <span className="mono-font text-2xl" style={{ color: paused ? "#9A9FBD" : expired ? "#F0555A" : "#4FD1C5" }}>
-        {paused ? `PAUSED ${timeLabel}` : expired ? "TIME'S UP" : timeLabel}
+        {paused ? `PAUSED ${timeLabel}` : expired ? (processing ? "TIME'S UP · PROCESSING" : "TIME'S UP · SERVER CHECK") : timeLabel}
       </span>
       {expired && isCommissioner && (
-        <button onClick={onExpireAction} className="text-xs px-3 py-1.5 rounded font-semibold"
+        <button onClick={onExpireAction} disabled={processing} className="text-xs px-3 py-1.5 rounded font-semibold disabled:opacity-50"
           style={{ background: "#F0555A22", color: "#F0555A", border: "1px solid #F0555A55" }}>
-          AUTO-PICK FOR THEM
+          RETRY SERVER NOW
         </button>
       )}
     </div>
