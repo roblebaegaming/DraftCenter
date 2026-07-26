@@ -225,11 +225,11 @@ function isCoachOnClock(state, profile, liveDraft = null) {
 }
 
 export default function LeagueHub({ user, profile, onOpenLeague }) {
-  const [supabase] = useState(() => createClient()); const [leagues, setLeagues] = useState([]); const [publicLeagues, setPublicLeagues] = useState([]); const [publicTab, setPublicTab] = useState("join"); const [communityPokemon, setCommunityPokemon] = useState(["Pikachu","Eevee","Charizard"]); const [loading, setLoading] = useState(true); const [turnAlert, setTurnAlert] = useState(""); const [name, setName] = useState(""); const [season, setSeason] = useState(""); const [description, setDescription] = useState(""); const [imageUrl, setImageUrl] = useState(""); const [draftStartsAt, setDraftStartsAt] = useState(""); const [visibility, setVisibility] = useState("private"); const [isPractice, setIsPractice] = useState(false); const [message, setMessage] = useState(""); const [busy, setBusy] = useState(false); const [pendingInvite, setPendingInvite] = useState(null); const [pendingTeamClaim, setPendingTeamClaim] = useState(null); const [inviteBusy, setInviteBusy] = useState(false); const [publicDetails, setPublicDetails] = useState(null);
+  const [supabase] = useState(() => createClient()); const [leagues, setLeagues] = useState([]); const [publicLeagues, setPublicLeagues] = useState([]); const [publicTab, setPublicTab] = useState("join"); const [communityPokemon, setCommunityPokemon] = useState(["Pikachu","Eevee","Charizard"]); const [loading, setLoading] = useState(true); const [turnAlert, setTurnAlert] = useState(""); const [name, setName] = useState(""); const [season, setSeason] = useState(""); const [description, setDescription] = useState(""); const [imageUrl, setImageUrl] = useState(""); const [draftStartsAt, setDraftStartsAt] = useState(""); const [visibility, setVisibility] = useState("private"); const [isPractice, setIsPractice] = useState(false); const [message, setMessage] = useState(""); const [busy, setBusy] = useState(false); const [pendingInvite, setPendingInvite] = useState(null); const [pendingTeamClaim, setPendingTeamClaim] = useState(null); const [inviteBusy, setInviteBusy] = useState(false); const [publicDetails, setPublicDetails] = useState(null); const [showArchived, setShowArchived] = useState(false); const [leagueActionId, setLeagueActionId] = useState("");
   async function loadLeagues(silent = false) {
     if (!silent) setLoading(true);
     const [{ data, error }, { data: publicData, error: publicError }] = await Promise.all([
-      supabase.from("league_memberships").select("id, role, league:leagues(id, name, slug, description, image_url, season_label, status, updated_at, draft_starts_at, league_visibility, is_practice, practice_expires_at)").eq("user_id", user.id).order("joined_at", { ascending: false }),
+      supabase.from("league_memberships").select("id, role, archived_at, league:leagues(id, name, slug, description, image_url, season_label, status, updated_at, draft_starts_at, league_visibility, is_practice, practice_expires_at)").eq("user_id", user.id).order("joined_at", { ascending: false }),
       supabase.rpc("get_public_league_cards"),
     ]);
     if (error || publicError) {
@@ -263,7 +263,7 @@ export default function LeagueHub({ user, profile, onOpenLeague }) {
         },
       };
     });
-    const activeTurn = markedMemberships.find((entry) => entry.league.on_clock);
+    const activeTurn = markedMemberships.find((entry) => !entry.archived_at && entry.league.on_clock);
     setLeagues(markedMemberships);
     setPublicLeagues(publicData || []);
     setTurnAlert(activeTurn ? `⚡ You are on the clock in ${activeTurn.league.name}. Open that league to make your pick.` : "");
@@ -304,6 +304,20 @@ export default function LeagueHub({ user, profile, onOpenLeague }) {
   }
   async function createLeague(event) { event.preventDefault(); const cleanName = name.trim(); if (!cleanName) return; const slug = `${slugify(cleanName)}-${Math.random().toString(36).slice(2, 7)}`; setBusy(true); setMessage(""); const { data, error } = await supabase.rpc("create_league", { p_name: cleanName, p_slug: slug, p_description: description, p_season_label: season, p_visibility: visibility, p_is_practice: isPractice, p_draft_starts_at: draftStartsAt ? new Date(draftStartsAt).toISOString() : null }); if (error) { setBusy(false); return setMessage(error.message); } if (imageUrl.trim()) { const { error: imageError } = await supabase.rpc("update_league_image", { p_league_id: data, p_image_url: imageUrl.trim() }); if (imageError) setMessage(`League created, but its image could not be saved: ${imageError.message}`); } setBusy(false); onOpenLeague({ id: data, name: cleanName, slug, description, image_url: imageUrl.trim() || null, season_label: season, draft_starts_at: draftStartsAt ? new Date(draftStartsAt).toISOString() : null, league_visibility: visibility, is_practice: isPractice, role: "commissioner" }); }
   async function joinPublicLeague(league) { const membership = membershipFor(league); if (membership) return onOpenLeague({ ...league, role: membership.role }); setBusy(true); setMessage(""); const { data, error } = await supabase.rpc("join_open_league", { p_slug: league.slug }); setBusy(false); if (error) return setMessage(error.message); setPublicDetails(null); onOpenLeague({ ...league, id: data, role: "coach" }); }
+  async function setLeagueArchived(leagueId, archived) {
+    if (leagueActionId) return;
+    setLeagueActionId(leagueId); setMessage("");
+    const { error } = await supabase.rpc("set_my_league_archived", { p_league_id: leagueId, p_archived: archived });
+    setLeagueActionId("");
+    if (error) return setMessage(error.message);
+    setLeagues((current) => current.map((entry) => entry.league.id === leagueId
+      ? { ...entry, archived_at: archived ? new Date().toISOString() : null }
+      : entry));
+    setMessage(archived ? "League archived for your dashboard. You can restore it at any time." : "League restored to your active list.");
+  }
+  const activeLeagues = leagues.filter((entry) => !entry.archived_at);
+  const archivedLeagues = leagues.filter((entry) => Boolean(entry.archived_at));
+  const visibleLeagues = showArchived ? archivedLeagues : activeLeagues;
 return (
   <main className="hub-shell">
     <section className="hub-hero">
@@ -314,7 +328,27 @@ return (
     {message && <p className="hub-message">{message}</p>}
     {pendingInvite && <section className="hub-card invite-confirm"><span className="eyebrow">LEAGUE INVITATION</span><h2>{pendingInvite.is_spectator ? "Watch this league?" : pendingInvite.role === "co_commissioner" ? "Help run this league?" : "Join this league?"}</h2><p><strong>{pendingInvite.league_name}</strong>{pendingInvite.season_label ? ` - ${pendingInvite.season_label}` : ""}</p><p className="muted">{pendingInvite.is_spectator ? "You will have spectator access only. You can view and scout, but cannot claim a team or change league data." : pendingInvite.role === "co_commissioner" ? "Accepting gives you co-commissioner access to league settings, scheduling, results, and commissioner tools." : "Accept the invitation, then choose one of the league’s currently open teams. A competitive spot is only taken after you claim it."}</p><div className="flex gap-2 flex-wrap"><button className="primary-button" disabled={inviteBusy} onClick={acceptPendingInvite}>{inviteBusy ? "Accepting..." : pendingInvite.role === "co_commissioner" ? "Accept co-commissioner role" : pendingInvite.is_spectator ? "Watch league" : "Accept & choose a team"}</button><button className="quiet-button" disabled={inviteBusy} onClick={dismissInvite}>Not now</button></div></section>}
     {pendingTeamClaim && <section className="hub-card invite-confirm"><span className="eyebrow">CHOOSE YOUR TEAM</span><h2>You’re in {pendingTeamClaim.league.name}</h2><p className="muted">Choose an open team now. The league’s available-manager count goes down only after your selection succeeds.</p><div className="league-list">{pendingTeamClaim.teams.map((team) => <button key={team.index} className="league-row" disabled={inviteBusy} onClick={() => claimInvitedTeam(team.index)}><div><strong>{team.name || `Team ${team.index + 1}`}</strong><span>Open team · claim immediately</span></div><span className="open-arrow">{inviteBusy ? "Please wait" : "Claim team"}</span></button>)}</div><button className="quiet-button" disabled={inviteBusy} onClick={() => { const league=pendingTeamClaim.league; setPendingTeamClaim(null); onOpenLeague({ ...league, role:"coach" }); }}>Choose later</button></section>}
-    <section className="hub-card my-leagues-card"><div className="section-heading"><div><span className="eyebrow">YOUR LEAGUES</span></div><button className="quiet-button" onClick={() => loadLeagues()}>Refresh</button></div>{loading && <p className="muted">Loading your leagues...</p>}{!loading && leagues.length === 0 && <div className="empty-state"><strong>You are ready to join.</strong><p>Ask a commissioner for an invite link, or create a league if you are running the season.</p></div>}<div className="league-list">{leagues.map(({ league, role }) => <button className="league-row dashboard-league-row" key={league.id} onClick={() => onOpenLeague({ ...league, role })}>{league.image_url && <img className="dashboard-league-image" src={league.image_url} alt="" />}<div><strong>{league.name}</strong><span>{league.on_clock ? "⚡ YOUR PICK IS ON THE CLOCK" : `${league.season_label || "New season"} - ${role.replace("_", " ")}`}</span></div><span className="open-arrow">{league.on_clock ? "Draft now" : "Open"}</span></button>)}</div></section>
+    <section className="hub-card my-leagues-card">
+      <div className="section-heading">
+        <div><span className="eyebrow">YOUR LEAGUES</span><p className="muted league-archive-note">Archiving only hides a league from your active list. It does not affect other members or league history.</p></div>
+        <button className="quiet-button" onClick={() => loadLeagues()}>Refresh</button>
+      </div>
+      <div className="league-list-tabs">
+        <button className={!showArchived ? "secondary-button" : "quiet-button"} onClick={() => setShowArchived(false)}>Active ({activeLeagues.length})</button>
+        <button className={showArchived ? "secondary-button" : "quiet-button"} onClick={() => setShowArchived(true)}>Archived ({archivedLeagues.length})</button>
+      </div>
+      {loading && <p className="muted">Loading your leagues...</p>}
+      {!loading && leagues.length === 0 && <div className="empty-state"><strong>You are ready to join.</strong><p>Ask a commissioner for an invite link, or create a league if you are running the season.</p></div>}
+      {!loading && leagues.length > 0 && visibleLeagues.length === 0 && <div className="empty-state"><strong>{showArchived ? "No archived leagues." : "No active leagues."}</strong><p>{showArchived ? "Leagues you archive will remain available here." : "Restore a league from Archived, join one, or create a new league."}</p></div>}
+      <div className="league-list">{visibleLeagues.map(({ league, role, archived_at: archivedAt }) => <article className="league-row dashboard-league-row dashboard-league-card" key={league.id}>
+        <button type="button" className="dashboard-league-open" onClick={() => onOpenLeague({ ...league, role })}>
+          {league.image_url && <img className="dashboard-league-image" src={league.image_url} alt="" />}
+          <div><strong>{league.name}</strong><span>{league.on_clock ? "⚡ YOUR PICK IS ON THE CLOCK" : `${league.season_label || "New season"} - ${role.replace("_", " ")}`}</span></div>
+          <span className="open-arrow">{league.on_clock ? "Draft now" : "Open"}</span>
+        </button>
+        <button type="button" className="quiet-button dashboard-league-archive" disabled={leagueActionId === league.id} onClick={() => setLeagueArchived(league.id, !archivedAt)}>{leagueActionId === league.id ? "Saving..." : archivedAt ? "Restore" : "Archive"}</button>
+      </article>)}</div>
+    </section>
     <section className="dashboard-daily-three">
       <PollOfTheDay supabase={supabase} />
       <DailyCommunityGames signedIn />
