@@ -5525,6 +5525,9 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
         if (patch.draftScheduledAt) {
           const { error: reminderError } = await supabase.rpc("schedule_draft_reminders", { p_league_id: leagueId });
           if (reminderError) setLiveDraftError(`The draft time was saved, but its notifications could not be scheduled: ${reminderError.message}`);
+        } else {
+          const { error: cancelError } = await supabase.rpc("cancel_scheduled_snake_draft", { p_league_id: leagueId });
+          if (cancelError) setLiveDraftError(`The draft time was cleared, but its automatic start could not be cancelled: ${cancelError.message}`);
         }
       });
     }
@@ -5895,9 +5898,75 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       }).then(({ error: scheduleError }) => {
         if (scheduleError) setLiveDraftError(`The completed draft time could not be cleared from the league listing: ${scheduleError.message}`);
       });
+      supabase.rpc("cancel_scheduled_snake_draft", {
+        p_league_id: leagueId,
+      }).then(({ error: cancelError }) => {
+        if (cancelError) setLiveDraftError(`The draft started, but its scheduled-start job could not be cleared: ${cancelError.message}`);
+      });
     }
     return true;
   }
+
+  // A scheduled hosted snake draft is fully prepared ahead of time so the
+  // database clock can start it even when every browser is closed. Re-prepare
+  // after setup edits so the eventual draft uses the commissioner's latest
+  // legal pool, teams, keepers, order, timer, and timeout policy.
+  useEffect(() => {
+    if (!leagueId || !isCommissioner || state.locked) return undefined;
+    if (state.settings.draftType !== "snake" || !state.settings.draftScheduledAt) return undefined;
+    if (draftReadinessIssues(state, costFor).length) return undefined;
+
+    const timer = window.setTimeout(async () => {
+      const basePool = fullPool(state.settings)
+        .filter((pokemon) => isLegal(pokemon, state.settings))
+        .map((pokemon) => ({
+          ...pokemon,
+          cost: costFor(pokemon, state.settings),
+          isRestricted: isRestrictedMon(pokemon, state.settings),
+        }));
+      const firstRoundOrder = buildSnakeOrder(
+        state.teams.length,
+        1,
+        state.settings.manualDraftOrder
+      );
+      const draftSeed = {
+        sessionId: null,
+        basePool,
+        pokemonIds: {},
+        firstRoundOrder,
+        preservedQueues: {},
+        keeperRosters: state.keeperRosters || {},
+      };
+      const startedState = buildStartedDraftState(state, draftSeed);
+      draftSeed.fullPickOrder = startedState.snakeOrder;
+      startedState.liveDraft = draftSeed;
+
+      await saveChainRef.current;
+      const { error } = await supabase.rpc("schedule_live_snake_draft_v2", {
+        p_league_id: leagueId,
+        p_starts_at: state.settings.draftScheduledAt,
+        p_teams: state.teams,
+        p_pokemon: basePool,
+        p_pick_order: startedState.snakeOrder,
+        p_settings: state.settings,
+        p_keepers: state.keeperRosters || {},
+        p_started_state: startedState,
+      });
+      if (error) {
+        setLiveDraftError(`Automatic scheduled start could not be prepared: ${error.message}`);
+      }
+    }, 1000);
+
+    return () => window.clearTimeout(timer);
+  }, [
+    leagueId,
+    isCommissioner,
+    state.locked,
+    state.settings,
+    state.teams,
+    state.keeperRosters,
+    supabase,
+  ]);
 
   // For a league that drafted somewhere else entirely (a call, a shared
   // doc, in person) and just wants the rest of the season run here —
@@ -10579,6 +10648,11 @@ function SetupView({ state, leagueId = null, isCommissioner, canBeCommissioner, 
                     </button>
                   ))}
                 </div>
+                {settings.pickTimeLimitMinutes > 0 && (
+                  <p className="text-xs mb-4" style={{ color: "#4FD1C5" }}>
+                    When time expires, DraftCenter automatically takes the first legal Pokémon in that manager’s private queue, then the best legal option remaining. The server does this even when nobody has the league open.
+                  </p>
+                )}
               </>
             )}
 
