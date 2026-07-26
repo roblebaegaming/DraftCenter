@@ -524,7 +524,7 @@ begin
     raise exception 'You do not have access to that league.';
   end if;
 
-  select session
+  select session.*
   into v_session
   from public.draft_sessions session
   where session.league_id = p_league_id
