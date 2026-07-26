@@ -8801,6 +8801,10 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
             onGoToLeague={(sub) => { setTab("league"); setLeagueSubTab(sub); }}
             costFor={costFor}
             updateHomepage={updateHomepage}
+            addToQueue={addToQueue}
+            removeFromQueue={removeFromQueue}
+            moveQueueItem={moveQueueItem}
+            readOnly={previewReadOnly}
           />
         )}
         {tab === "setup" && displayIsCommissioner && (
@@ -9627,7 +9631,7 @@ function MyTeamView({ state, leagueId, myTeamIdx, isCommissioner, myName, myTeam
   );
 }
 
-function HomeView({ state, leagueId, leagueName, isCommissioner, isSpectator = false, myTeamIdx, standings, onGetStarted, onGoToLeague, costFor, updateHomepage, isMyTurn = false, pendingTrades = 0, unreadMessages = 0 }) {
+function HomeView({ state, leagueId, leagueName, isCommissioner, isSpectator = false, myTeamIdx, standings, onGetStarted, onGoToLeague, costFor, updateHomepage, addToQueue = null, removeFromQueue = null, moveQueueItem = null, readOnly = false, isMyTurn = false, pendingTrades = 0, unreadMessages = 0 }) {
   const { coCommissioners: coCommissionersRaw, schedule, matchResults, trades = [], transactionLog = [], seasonNumber, commissioner, locked, teams } = state;
   const coCommissioners = coCommissionersRaw || [];
   const draftStillActive = locked && (
@@ -9636,7 +9640,8 @@ function HomeView({ state, leagueId, leagueName, isCommissioner, isSpectator = f
       : !state.auctionEnded && state.pool.length > 0
   );
 
-  if (!locked) return <PreDraftScout state={state} isCommissioner={isCommissioner} costFor={costFor} updateHomepage={updateHomepage} />;
+  if (!locked) return <PreDraftScout state={state} isCommissioner={isCommissioner} costFor={costFor} updateHomepage={updateHomepage}
+    myTeamIdx={myTeamIdx} addToQueue={addToQueue} removeFromQueue={removeFromQueue} moveQueueItem={moveQueueItem} readOnly={readOnly} />;
   if (false) {
     return (
       <div className="flex flex-col gap-6">
@@ -12476,7 +12481,7 @@ function DraftHeroVoteCard({ teams, votes, myName, castDraftHeroVote }) {
     </div>
   );
 }
-function PreDraftScout({ state, isCommissioner, costFor, updateHomepage, myTeamIdx = -1, addToQueue = null, removeFromQueue = null, moveQueueItem = null, readOnly = false }) {
+function PreDraftScout({ state, isCommissioner, costFor, updateHomepage, myTeamIdx = -1, addToQueue = null, removeFromQueue = null, moveQueueItem = null, readOnly = false, showLeagueInfo = true }) {
   const [search, setSearch] = useState("");
   const [type, setType] = useState("");
   const [sortMode, setSortMode] = useState("price-desc");
@@ -12498,7 +12503,7 @@ function PreDraftScout({ state, isCommissioner, costFor, updateHomepage, myTeamI
   const myQueue = canQueue ? (state.queues?.[myTeamIdx] || []) : [];
   const myQueueMons = myQueue.map((name) => fullPool(settings).find((mon) => mon.name === name)).filter(Boolean);
   return <div className="space-y-6">
-    {!isCommissioner && <LeagueInfoCard state={state} isCommissioner={false} updateHomepage={updateHomepage} />}
+    {showLeagueInfo && !isCommissioner && <LeagueInfoCard state={state} isCommissioner={false} updateHomepage={updateHomepage} />}
     <section className="rounded-lg p-5" style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }}>
       <span className="eyebrow">PRE-DRAFT</span><h2 className="display-font text-3xl" style={{ color: "#FFD23F" }}>Scout the draft board</h2>
       <p className="text-sm mt-1" style={{ color: "#9A9FBD" }}>These are the league's saved draft settings. Every manager sees the same regulation, eligible pool, prices, and official date.</p>
@@ -12520,9 +12525,9 @@ function PreDraftScout({ state, isCommissioner, costFor, updateHomepage, myTeamI
               <article key={mon.name} className="rounded px-3 py-2 flex items-center gap-3" style={{ background: "#1B1F33" }}>
                 <strong className="mono-font text-xs w-6" style={{ color: "#FFD23F" }}>{index + 1}</strong>
                 <div className="flex-1 min-w-0"><strong className="block text-sm truncate">{mon.name}</strong><span className="text-xs" style={{ color: "#9A9FBD" }}>{costFor(mon, settings)} pt · {mon.t1}{mon.t2 ? ` / ${mon.t2}` : ""}</span></div>
-                <button type="button" disabled={readOnly || index === 0} onClick={() => moveQueueItem(myTeamIdx, mon.name, -1)} className="w-7 h-7 rounded disabled:opacity-30" style={{ background: "#1F2338" }}>↑</button>
-                <button type="button" disabled={readOnly || index === myQueueMons.length - 1} onClick={() => moveQueueItem(myTeamIdx, mon.name, 1)} className="w-7 h-7 rounded disabled:opacity-30" style={{ background: "#1F2338" }}>↓</button>
-                <button type="button" disabled={readOnly} onClick={() => removeFromQueue(myTeamIdx, mon.name)} className="w-7 h-7 rounded disabled:opacity-30" style={{ background: "#2A1620", color: "#F0555A" }}>×</button>
+                <button type="button" aria-label={`Move ${mon.name} up`} disabled={readOnly || index === 0} onClick={() => moveQueueItem(myTeamIdx, mon.name, -1)} className="w-9 h-9 rounded flex-shrink-0 disabled:opacity-30" style={{ background: "#1F2338" }}>↑</button>
+                <button type="button" aria-label={`Move ${mon.name} down`} disabled={readOnly || index === myQueueMons.length - 1} onClick={() => moveQueueItem(myTeamIdx, mon.name, 1)} className="w-9 h-9 rounded flex-shrink-0 disabled:opacity-30" style={{ background: "#1F2338" }}>↓</button>
+                <button type="button" aria-label={`Remove ${mon.name} from queue`} disabled={readOnly} onClick={() => removeFromQueue(myTeamIdx, mon.name)} className="w-9 h-9 rounded flex-shrink-0 disabled:opacity-30" style={{ background: "#2A1620", color: "#F0555A" }}>×</button>
               </article>
             ))}
           </div>
@@ -12643,7 +12648,7 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
             <div>
               <span className="eyebrow">DRAFT ROOM</span>
               <h2 className="display-font text-3xl mb-1" style={{ color: "#FFD23F" }}>THE ROOM IS OPEN</h2>
-              <p className="text-sm" style={{ color: "#C9CBE0" }}>Stay here—the live draft board will replace this waiting room when the draft begins.</p>
+              <p className="text-sm" style={{ color: "#C9CBE0" }}>The full draft board and your private queue are available below. Stay here—the live controls will replace this waiting room when the draft begins.</p>
             </div>
             {minutesUntilStart !== null && (
               <div className="rounded px-4 py-3 text-center" style={{ background: "#10121C", border: "1px solid #4FD1C555" }}>
@@ -12688,7 +12693,13 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
               {isCommissioner ? "No draft time set yet — pick one below." : "The commissioner hasn't scheduled a draft time yet."}
             </p>
           )}
-          {isCommissioner && <button type="button" onClick={onStart} className="mt-4 px-4 py-2 rounded font-semibold text-sm" style={{ background: "#4FD1C5", color: "#10121C" }}>START DRAFT NOW</button>}
+          <div className="mt-4 flex gap-3 flex-wrap">
+            <a href="#pre-draft-board" className="px-4 py-2 rounded font-semibold text-sm"
+              style={{ background: "#FFD23F", color: "#10121C", textDecoration: "none" }}>
+              {myTeamIdx >= 0 ? "OPEN BOARD & SET MY QUEUE" : "OPEN DRAFT BOARD"}
+            </a>
+            {isCommissioner && <button type="button" onClick={onStart} className="px-4 py-2 rounded font-semibold text-sm" style={{ background: "#4FD1C5", color: "#10121C" }}>START DRAFT NOW</button>}
+          </div>
         </div>
         <div className="grid lg:grid-cols-2 gap-5">
           <section className="rounded-lg p-5" style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }}>
@@ -12715,6 +12726,19 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
               {waitingOrder.map((teamIndex, position) => <li key={`${teamIndex}-${position}`} className="flex gap-2 text-sm"><span className="mono-font" style={{ color: "#5B5F7E" }}>{position + 1}.</span><span>{teams[teamIndex]?.name}</span></li>)}
             </ol>
           </section>
+        </div>
+        <div id="pre-draft-board" className="mt-6 scroll-mt-28">
+          <PreDraftScout
+            state={state}
+            isCommissioner={isCommissioner}
+            costFor={costFor}
+            updateHomepage={null}
+            myTeamIdx={myTeamIdx}
+            addToQueue={addToQueue}
+            removeFromQueue={removeFromQueue}
+            moveQueueItem={moveQueueItem}
+            showLeagueInfo={false}
+          />
         </div>
       </div>
     );
