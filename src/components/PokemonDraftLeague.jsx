@@ -4891,6 +4891,18 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   const completedDraftScheduleClearedRef = useRef(false);
   const automaticStartAttemptedRef = useRef(null);
   const lastReportedOperationalErrorRef = useRef("");
+  // Role-derived values must be initialized before any hook dependency array
+  // reads them. Keeping this below the scheduling effects caused the
+  // production bundle to throw a temporal-dead-zone error while opening a
+  // league.
+  const isCommissioner = leagueId
+    ? ["commissioner", "co_commissioner"].includes(leagueRole)
+    : nameConfirmed && (state.commissioner === myName || (state.coCommissioners || []).includes(myName));
+  const displayRole = isCommissioner ? rolePreview : (isSpectator ? "spectator" : "manager");
+  const displayIsCommissioner = displayRole === "commissioner";
+  const displayIsSpectator = displayRole === "spectator";
+  const previewReadOnly = isCommissioner && rolePreview !== "commissioner";
+  const canBeCommissioner = !leagueId && nameConfirmed && !state.commissioner;
 
   useEffect(() => {
     const timer = setInterval(() => setScheduleClock(Date.now()), 15000);
@@ -5062,14 +5074,6 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     });
   }
 
-  const isCommissioner = leagueId
-    ? ["commissioner", "co_commissioner"].includes(leagueRole)
-    : nameConfirmed && (state.commissioner === myName || (state.coCommissioners || []).includes(myName));
-  const displayRole = isCommissioner ? rolePreview : (isSpectator ? "spectator" : "manager");
-  const displayIsCommissioner = displayRole === "commissioner";
-  const displayIsSpectator = displayRole === "spectator";
-  const previewReadOnly = isCommissioner && rolePreview !== "commissioner";
-  const canBeCommissioner = !leagueId && nameConfirmed && !state.commissioner;
   function claimCommissioner() {
     commit((s) => ({ ...s, commissioner: myName, auditLog: [...(s.auditLog || []), auditEntry(myName, "Became commissioner")] }));
   }
