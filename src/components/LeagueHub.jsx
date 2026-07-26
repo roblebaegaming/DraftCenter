@@ -415,6 +415,16 @@ return (
         </div>
       </article>; })}</div>
     </section>
+    <section className="hub-card tournament-preview-card">
+      <div className="section-heading">
+        <div>
+          <span className="eyebrow">TOURNAMENTS · PREVIEW</span>
+          <h2>Tournament Center</h2>
+        </div>
+        <a className="primary-button" href="/tournaments">Open Tournament Center</a>
+      </div>
+      <p className="muted">Create or join an event, manage pairings and results, and test the player companion.</p>
+    </section>
     <section className="dashboard-daily-three">
       <PollOfTheDay supabase={supabase} />
       <DailyCommunityGames signedIn />
