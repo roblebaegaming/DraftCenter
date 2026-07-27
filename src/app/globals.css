@@ -81,6 +81,11 @@ button { cursor: pointer; }
 @media (max-width:520px) { .community-pokemon-preview { padding:18px; }.community-pokemon-preview header { gap:10px; }.community-pokemon-preview header img { width:90px; height:90px; }.community-pokemon-preview h2 { font-size:1.55rem; }.community-preview-stats { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 .site-account .site-league-home { display:inline-flex; align-items:center; gap:7px; white-space:nowrap; }
 .site-account .site-league-home img { width:22px; height:22px; object-fit:cover; border-radius:5px; }
+.site-quick-links button { border:0; background:transparent; color:inherit; font:inherit; font-weight:800; cursor:pointer; padding:0; }
+.ranking-heading { display:flex; align-items:flex-start; justify-content:space-between; gap:14px; flex-wrap:wrap; }
+.ranking-limit { display:flex; gap:6px; flex-wrap:wrap; }
+.ranking-limit button { padding:7px 10px; border:1px solid #4b557c; border-radius:8px; background:#171d36; color:#b8c0e6; font-weight:800; cursor:pointer; }
+.ranking-limit button.active { background:#ffd23f; border-color:#ffd23f; color:#10121c; }
 .public-league-link { display:inline-block; margin-top:6px; color:#82aaff; font-size:12px; font-weight:800; text-decoration:none; }.public-league-hero-image { width:min(100%, 520px); max-height:260px; border-radius:14px; object-fit:cover; }.league-status { color:#4fd1c5; font-size:14px; }.public-pick-list { display:grid; gap:7px; }.public-pick-list div { display:grid; grid-template-columns:48px minmax(0,1fr) minmax(0,1fr); gap:10px; align-items:center; padding:10px; border-radius:8px; background:#181f3a; }.public-pick-list b { color:#ffd23f; }.public-pick-list span { color:#aeb7dc; font-size:13px; }
 @media (max-width:760px) { .explore-shell { padding:18px 14px; }.explore-grid { grid-template-columns:1fr; }.public-pick-list div { grid-template-columns:42px 1fr; }.public-pick-list span { grid-column:2; } }
 @media (max-width:760px) { .pokemon-directory { padding:18px 14px; }.pokemon-directory-layout,.pokemon-detail-grid { grid-template-columns:1fr; }.pokemon-result-list { max-height:240px; }.pokemon-title img { width:92px; height:92px; }.pokemon-title h2 { font-size:1.7rem; } }

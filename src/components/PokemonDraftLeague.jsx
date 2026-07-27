@@ -5620,9 +5620,11 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
         scheduledPreparationKeyRef.current = "";
         scheduledPreparationRequestRef.current += 1;
         setScheduledStartStatus({ phase: "idle", startsAt: null, error: "" });
-        supabase.rpc("cancel_scheduled_snake_draft", {
-          p_league_id: leagueId,
-        }).then(({ error }) => {
+        Promise.all([
+          supabase.rpc("cancel_scheduled_snake_draft", { p_league_id: leagueId }),
+          supabase.rpc("cancel_scheduled_auction_draft", { p_league_id: leagueId }),
+        ]).then((results) => {
+          const error = results.find((result) => result.error)?.error;
           if (error) setLiveDraftError(`The draft time was cleared, but its automatic start could not be cancelled: ${error.message}`);
         });
         return;
@@ -5641,11 +5643,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
         if (nextState.settings.draftType === "snake") {
           await prepareScheduledSnakeDraft(nextState);
         } else {
-          setScheduledStartStatus({
-            phase: "manual",
-            startsAt: nextStart,
-            error: "Automatic scheduled starts currently apply to snake drafts.",
-          });
+          await prepareScheduledAuctionDraft(nextState);
         }
         const { error: reminderError } = await supabase.rpc("schedule_draft_reminders", { p_league_id: leagueId });
         if (reminderError) setLiveDraftError(`The draft time was saved, but its notifications could not be scheduled: ${reminderError.message}`);
@@ -5964,6 +5962,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
           p_draft_starts_at: null,
         });
         if (error) setLiveDraftError(`The completed draft time could not be cleared from the league listing: ${error.message}`);
+        await supabase.rpc("cancel_scheduled_auction_draft", { p_league_id: leagueId });
       }
       return true;
     }
@@ -6120,6 +6119,38 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     return { ok: true };
   }
 
+  async function prepareScheduledAuctionDraft(sourceState, { force = false } = {}) {
+    const startsAt = sourceState?.settings?.draftScheduledAt || null;
+    if (!leagueId || !isCommissioner || sourceState?.locked || !startsAt) return { ok: false };
+    const preparationKey = scheduledDraftPreparationKey(sourceState);
+    if (!force && scheduledPreparationKeyRef.current === preparationKey) return { ok: true, pending: true };
+    scheduledPreparationKeyRef.current = preparationKey;
+    const request = ++scheduledPreparationRequestRef.current;
+    const readinessIssues = draftReadinessIssues(sourceState, costFor);
+    if (readinessIssues.length) {
+      setScheduledStartStatus({ phase: "blocked", startsAt, error: readinessIssues[0] });
+      return { ok: false, blocked: true };
+    }
+    const latestSavedState = await loadRemote(leagueId);
+    const preparedSource = latestSavedState ? hydrateState(latestSavedState) : sourceState;
+    const startedState = buildStartedDraftState(preparedSource);
+    setScheduledStartStatus({ phase: "preparing", startsAt, error: "" });
+    const { data, error } = await supabase.rpc("schedule_live_auction_draft", {
+      p_league_id: leagueId,
+      p_starts_at: startsAt,
+      p_started_state: startedState,
+      p_preparation_key: preparationKey,
+    });
+    if (request !== scheduledPreparationRequestRef.current) return { ok: false, stale: true };
+    if (error) {
+      setScheduledStartStatus({ phase: "error", startsAt, error: error.message });
+      setLiveDraftError(`Automatic auction start could not be prepared: ${error.message}`);
+      return { ok: false, error };
+    }
+    setScheduledStartStatus({ phase: data?.status || "ready", startsAt, error: "" });
+    return { ok: true };
+  }
+
   // A scheduled hosted snake draft is fully prepared ahead of time so the
   // database clock can start it even when every browser is closed. Re-prepare
   // after setup edits so it uses the latest legal pool, teams, timer, and
@@ -6132,21 +6163,20 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       return undefined;
     }
 
-    if (state.settings.draftType !== "snake") {
-      const manualKey = `manual:${state.settings.draftScheduledAt}`;
-      setScheduledStartStatus({
-        phase: "manual",
-        startsAt: state.settings.draftScheduledAt,
-        error: "Automatic scheduled starts currently apply to snake drafts.",
-      });
-      if (!isCommissioner || scheduledPreparationKeyRef.current === manualKey) return undefined;
-      scheduledPreparationKeyRef.current = manualKey;
-      supabase.rpc("cancel_scheduled_snake_draft", { p_league_id: leagueId })
-        .then(() => supabase.rpc("update_league_draft_time", {
-          p_league_id: leagueId,
-          p_draft_starts_at: state.settings.draftScheduledAt,
-        }));
-      return undefined;
+    if (state.settings.draftType === "auction") {
+      if (!isCommissioner) {
+        let alive = true;
+        supabase.rpc("get_scheduled_auction_draft_status", { p_league_id: leagueId })
+          .then(({ data }) => {
+            if (!alive) return;
+            setScheduledStartStatus({ phase: data?.status === "scheduled" ? "ready" : (data?.status || "missing"), startsAt: state.settings.draftScheduledAt, error: data?.last_error || "" });
+          });
+        return () => { alive = false; };
+      }
+      const preparationKey = scheduledDraftPreparationKey(state);
+      if (scheduledPreparationKeyRef.current === preparationKey) return undefined;
+      const timer = window.setTimeout(() => prepareScheduledAuctionDraft(state), 750);
+      return () => window.clearTimeout(timer);
     }
 
     if (!isCommissioner) {
@@ -10936,7 +10966,7 @@ function SetupView({ state, leagueId = null, isCommissioner, canBeCommissioner, 
             )}
           </fieldset>
 
-          {!locked && readinessIssues.length === 0 && <p className="text-sm mt-4" style={{ color: "#9A9FBD" }}>{settings.draftScheduledAt && settings.draftType === "snake" ? "Setup is ready. Once Automatic Start Ready is confirmed above, everyone can close the site and DraftCenter will start the draft from the server clock." : settings.draftScheduledAt ? "Setup is ready. Auction drafts still need the commissioner to start the draft at the saved time." : "Setup is ready. Start the draft whenever your managers are present, or use manual roster entry if you drafted elsewhere."}</p>}
+          {!locked && readinessIssues.length === 0 && <p className="text-sm mt-4" style={{ color: "#9A9FBD" }}>{settings.draftScheduledAt ? "Setup is ready. Once Automatic Start Ready is confirmed above, everyone can close the site and DraftCenter will start the draft from the server clock." : "Setup is ready. Start the draft whenever your managers are present, or use manual roster entry if you drafted elsewhere."}</p>}
           {!locked && readinessIssues.length > 0 && (
             <div className="mt-4 rounded p-3" style={{ background: "#2A1620", border: "1px solid #F0555A66" }}>
               <strong className="text-sm" style={{ color: "#FF9AA7" }}>Fix these items before starting:</strong>

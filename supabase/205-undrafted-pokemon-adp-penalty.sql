@@ -124,7 +124,7 @@ as $$
     group by pokemon
     having sum(eligible_drafts) > 0
     order by average_pick asc, drafts desc, pokemon asc
-    limit 50
+    limit 100
   )
   select jsonb_build_object(
     'signed_in', auth.uid() is not null,
