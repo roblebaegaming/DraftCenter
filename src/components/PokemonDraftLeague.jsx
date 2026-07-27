@@ -9198,7 +9198,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
                 state={state} myName={myName} myTeamIdx={myTeamIdx} isCommissioner={isCommissioner}
                 freeAgents={freeAgents} addDropFreeAgent={addDropFreeAgent}
                 submitFreeAgentClaim={submitFreeAgentClaim} cancelClaim={cancelClaim} processClaims={processClaims}
-                teamTransactionInfo={teamTransactionInfo}
+                teamTransactionInfo={teamTransactionInfo} operationalWeek={operationalWeek}
                 proposeTrade={proposeTrade} respondTrade={respondTrade} cancelTrade={cancelTrade} reverseTrade={reverseTrade}
               />
             )}
@@ -16446,7 +16446,7 @@ function FreeAgentsBrowser({
   );
 }
 
-function TransactionsView({ state, myName, myTeamIdx, isCommissioner, freeAgents, addDropFreeAgent, submitFreeAgentClaim, cancelClaim, processClaims, teamTransactionInfo, proposeTrade, respondTrade, cancelTrade, reverseTrade }) {
+function TransactionsView({ state, myName, myTeamIdx, isCommissioner, freeAgents, addDropFreeAgent, submitFreeAgentClaim, cancelClaim, processClaims, teamTransactionInfo, operationalWeek, proposeTrade, respondTrade, cancelTrade, reverseTrade }) {
   const { teams, rosters, budgets, settings, locked, trades } = state;
   const draftComplete = locked && (
     settings.draftType === "snake"
