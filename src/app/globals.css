@@ -90,6 +90,10 @@ button { cursor: pointer; }
 .personal-team-sharing legend { padding:0 7px; color:#ffd23f; font-weight:900; }
 .personal-team-sharing select, .community-team-repository select { width:100%; margin-top:6px; padding:10px; border:1px solid #4b557c; border-radius:8px; background:#11162b; color:#fff; }
 .community-team-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:14px; margin-top:18px; }
+.community-team-grid.is-scrollable { max-height:760px; overflow-y:auto; padding-right:8px; scrollbar-gutter:stable; }
+.community-team-more { display:block; margin:16px auto 0; }
+.explore-ranking.is-scrollable { max-height:620px; overflow-y:auto; padding-right:8px; scrollbar-gutter:stable; }
+.explore-actions-bottom { justify-content:center; margin:28px 0 54px; padding-top:24px; border-top:1px solid #293256; }
 .community-team-grid article { padding:18px; border:1px solid #354067; border-radius:14px; background:#171d36; }
 .community-team-author { display:flex; align-items:center; gap:9px; margin-bottom:14px; }
 .community-team-author img { width:38px; height:38px; border-radius:50%; object-fit:cover; }
