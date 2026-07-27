@@ -5,6 +5,7 @@ import { createClient } from "../lib/supabase/client";
 import { POLL_POKEMON_DEX_NAMES, POLL_POKEMON_NAMES } from "./PokemonDraftLeague";
 import DailyCommunityGames from "./DailyCommunityGames";
 import PublicCoachProfile, { CoachProfileButton } from "./PublicCoachProfile";
+import { reportOperationalIssue } from "../lib/operational-reporting";
 
 function slugify(value) { return value.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "").slice(0, 72); }
 function localDateKey(date = new Date()) { const year=date.getFullYear(); const month=String(date.getMonth()+1).padStart(2,"0"); const day=String(date.getDate()).padStart(2,"0"); return `${year}-${month}-${day}`; }
@@ -319,7 +320,16 @@ export default function LeagueHub({ user, profile, onOpenLeague }) {
     if (!pendingTeamClaim || inviteBusy) return;
     setInviteBusy(true); setMessage("");
     const { error } = await supabase.rpc("claim_live_setup_team", { p_league_id: pendingTeamClaim.league.id, p_team_index: teamIndex });
-    if (error) { setInviteBusy(false); return setMessage(error.message); }
+    if (error) {
+      reportOperationalIssue(supabase, {
+        kind: "team_claim_failed",
+        message: error.message,
+        leagueId: pendingTeamClaim.league.id,
+        context: { action: "claim_invited_team", route: "dashboard" },
+      });
+      setInviteBusy(false);
+      return setMessage(error.message);
+    }
     const league = pendingTeamClaim.league;
     setInviteBusy(false); setPendingTeamClaim(null); await loadLeagues();
     onOpenLeague({ ...league, role: "coach" });

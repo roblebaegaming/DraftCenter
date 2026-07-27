@@ -2,8 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { createClient } from "../lib/supabase/client";
 import { DiscordConnectionPanel, LeagueBroadcastCenter } from "./SocialSharing";
 import PublicCoachProfile, { CoachProfileButton } from "./PublicCoachProfile";
-
-const DRAFTCENTER_RELEASE = process.env.NEXT_PUBLIC_DRAFTCENTER_RELEASE || "local";
+import { DRAFTCENTER_RELEASE, reportOperationalIssue } from "../lib/operational-reporting";
 
 /* ---------------------------------------------------------
    DESIGN TOKENS — stadium-jumbotron-at-night aesthetic.
@@ -4682,16 +4681,16 @@ async function saveRemote(state, leagueId) {
   } catch (e) {
     console.error("Storage save failed", e);
     if (leagueId) {
-      createClient().rpc("report_operational_issue", {
-        p_kind: "league_save_failed",
-        p_message: e.message || "League snapshot save failed",
-        p_league_id: leagueId,
-        p_context: {
+      reportOperationalIssue(createClient(), {
+        kind: "league_save_failed",
+        message: e.message || "League snapshot save failed",
+        leagueId,
+        context: {
           action: "save_snapshot",
           release: DRAFTCENTER_RELEASE,
           revision: state?.rev ?? null,
         },
-      }).then(() => {});
+      });
     }
     return { ok: false, message: e.message || "Could not save" };
   }
@@ -4973,6 +4972,25 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   const completedDraftScheduleClearedRef = useRef(false);
   const automaticStartAttemptedRef = useRef(null);
   const lastReportedOperationalErrorRef = useRef("");
+  function reportLeagueFailure(kind, action, error, displayMessage, extraContext = {}) {
+    const safeMessage = String(displayMessage || error?.message || error || "Unknown league operation error");
+    lastReportedOperationalErrorRef.current = safeMessage.trim();
+    reportOperationalIssue(supabase, {
+      kind,
+      message: error?.message || safeMessage,
+      leagueId,
+      context: {
+        action,
+        draft_type: state.settings?.draftType || null,
+        draft_state: state.locked ? "locked" : "setup",
+        role: leagueRole || null,
+        route: "league",
+        tab,
+        ...extraContext,
+      },
+    });
+    return safeMessage;
+  }
   // Role-derived values must be initialized before any hook dependency array
   // reads them. Keeping this below the scheduling effects caused the
   // production bundle to throw a temporal-dead-zone error while opening a
@@ -5030,18 +5048,18 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     const message = liveDraftError.trim();
     if (!leagueId || !message || message === lastReportedOperationalErrorRef.current) return;
     lastReportedOperationalErrorRef.current = message;
-    supabase.rpc("report_operational_issue", {
-      p_kind: "draft_operation_failed",
-      p_message: message,
-      p_league_id: leagueId,
-      p_context: {
+    reportOperationalIssue(supabase, {
+      kind: "draft_operation_failed",
+      message,
+      leagueId,
+      context: {
         action: "draft_operation",
         draft_type: state.settings?.draftType || null,
         release: DRAFTCENTER_RELEASE,
         role: leagueRole || null,
         tab,
       },
-    }).then(() => {});
+    });
   }, [liveDraftError, leagueId, supabase, tab, state.settings?.draftType]);
 
   // Initial load + polling for multiplayer sync
@@ -5240,7 +5258,13 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
           { p_league_id: leagueId, p_state: state },
         );
         if (initializeError) {
-          setLiveDraftError(`The new league setup could not be initialized: ${initializeError.message}`);
+          const displayMessage = `The new league setup could not be initialized: ${initializeError.message}`;
+          setLiveDraftError(reportLeagueFailure(
+            "commissioner_action_failed",
+            "initialize_league_setup",
+            initializeError,
+            displayMessage,
+          ));
           return;
         }
         const initializedState = hydrateState(initialized);
@@ -5251,7 +5275,15 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
           p_team_index: teamIdx,
         }));
       }
-      if (error) { setLiveDraftError(error.message); return; }
+      if (error) {
+        setLiveDraftError(reportLeagueFailure(
+          "team_claim_failed",
+          "claim_setup_team",
+          error,
+          error.message,
+        ));
+        return;
+      }
       setLiveDraftError("");
       const hydrated = hydrateState(data);
       revRef.current = Math.max(revRef.current, hydrated.rev || 0);
@@ -7337,7 +7369,14 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       p_result: result,
     });
     if (error) {
-      setLiveDraftError(`The match result could not be saved: ${error.message}`);
+      const displayMessage = `The match result could not be saved: ${error.message}`;
+      setLiveDraftError(reportLeagueFailure(
+        "result_operation_failed",
+        "save_regular_season_result",
+        error,
+        displayMessage,
+        { week, match: matchIdx },
+      ));
       return false;
     }
     const hydrated = hydrateState(data);
@@ -8150,7 +8189,13 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     });
     if (error) {
       setSaveStatus("error");
-      setLiveDraftError(`The transaction could not be saved: ${error.message}`);
+      const displayMessage = `The transaction could not be saved: ${error.message}`;
+      setLiveDraftError(reportLeagueFailure(
+        "transaction_operation_failed",
+        action,
+        error,
+        displayMessage,
+      ));
       return { ok: false, reason: error.message };
     }
     const hydrated = hydrateState(data);
@@ -8243,7 +8288,14 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       });
       if (error) {
         setSaveStatus("error");
-        setLiveDraftError(`The claim could not be saved: ${error.message}`);
+        const displayMessage = `The claim could not be saved: ${error.message}`;
+        setLiveDraftError(reportLeagueFailure(
+          "claim_operation_failed",
+          "submit_free_agent_claim",
+          error,
+          displayMessage,
+          { week: operationalWeek },
+        ));
         return { ok: false, reason: error.message };
       }
       const hydrated = hydrateState(data?.state);
@@ -8319,7 +8371,14 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       });
       if (error) {
         setSaveStatus("error");
-        setLiveDraftError(`The claim could not be withdrawn: ${error.message}`);
+        const displayMessage = `The claim could not be withdrawn: ${error.message}`;
+        setLiveDraftError(reportLeagueFailure(
+          "claim_operation_failed",
+          "cancel_free_agent_claim",
+          error,
+          displayMessage,
+          { week: operationalWeek },
+        ));
         return { ok: false, reason: error.message };
       }
       const hydrated = hydrateState(data);
@@ -8355,7 +8414,14 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       });
       if (error) {
         setSaveStatus("error");
-        setLiveDraftError(`The claim order could not be saved: ${error.message}`);
+        const displayMessage = `The claim order could not be saved: ${error.message}`;
+        setLiveDraftError(reportLeagueFailure(
+          "claim_operation_failed",
+          "reorder_free_agent_claim",
+          error,
+          displayMessage,
+          { week: operationalWeek },
+        ));
         return false;
       }
     }
@@ -8485,7 +8551,14 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     });
     if (error) {
       setSaveStatus("error");
-      setLiveDraftError(`Claims could not be processed: ${error.message}`);
+      const displayMessage = `Claims could not be processed: ${error.message}`;
+      setLiveDraftError(reportLeagueFailure(
+        "claim_operation_failed",
+        "process_free_agent_claims",
+        error,
+        displayMessage,
+        { week: operationalWeek },
+      ));
       return { ok: false, reason: error.message };
     }
     const hydrated = hydrateState(data);
@@ -14406,7 +14479,20 @@ function MatchAvailability({ leagueId, seasonNumber, weekIndex, matchIndex, sett
       p_league_id:leagueId, p_season_number:seasonNumber, p_week:weekIndex, p_match:matchIndex,
     });
     setBusy(false);
-    if (error) return setMessage(error.message);
+    if (error) {
+      reportOperationalIssue(supabase, {
+        kind: "availability_operation_failed",
+        message: error.message,
+        leagueId,
+        context: {
+          action: "load_match_availability",
+          route: "schedule",
+          week: weekIndex,
+          match: matchIndex,
+        },
+      });
+      return setMessage(error.message);
+    }
     setSlots((data?.own_slots || []).map((slot)=>({ starts_at:availabilityInput(slot.starts_at), ends_at:availabilityInput(slot.ends_at) })));
     setMutual(data?.mutual_slots || []);
     setOpponentSubmitted(Boolean(data?.opponent_has_submitted));
@@ -14466,7 +14552,20 @@ function MatchAvailability({ leagueId, seasonNumber, weekIndex, matchIndex, sett
       p_league_id:leagueId, p_season_number:seasonNumber, p_week:weekIndex, p_match:matchIndex, p_slots:payload,
     });
     setBusy(false);
-    if (error) return setMessage(error.message);
+    if (error) {
+      reportOperationalIssue(supabase, {
+        kind: "availability_operation_failed",
+        message: error.message,
+        leagueId,
+        context: {
+          action: "save_match_availability",
+          route: "schedule",
+          week: weekIndex,
+          match: matchIndex,
+        },
+      });
+      return setMessage(error.message);
+    }
     setMutual(data?.mutual_slots || []);
     setOpponentSubmitted(Boolean(data?.opponent_has_submitted));
     setMessage("Availability saved. Only matching windows are shared with your opponent.");
