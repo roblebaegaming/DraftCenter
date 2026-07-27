@@ -3,6 +3,8 @@ import { createClient } from "../lib/supabase/client";
 import { DiscordConnectionPanel, LeagueBroadcastCenter } from "./SocialSharing";
 import PublicCoachProfile, { CoachProfileButton } from "./PublicCoachProfile";
 
+const DRAFTCENTER_RELEASE = process.env.NEXT_PUBLIC_DRAFTCENTER_RELEASE || "local";
+
 /* ---------------------------------------------------------
    DESIGN TOKENS — stadium-jumbotron-at-night aesthetic.
 --------------------------------------------------------- */
@@ -4684,7 +4686,11 @@ async function saveRemote(state, leagueId) {
         p_kind: "league_save_failed",
         p_message: e.message || "League snapshot save failed",
         p_league_id: leagueId,
-        p_context: { revision: state?.rev ?? null },
+        p_context: {
+          action: "save_snapshot",
+          release: DRAFTCENTER_RELEASE,
+          revision: state?.rev ?? null,
+        },
       }).then(() => {});
     }
     return { ok: false, message: e.message || "Could not save" };
@@ -5028,7 +5034,13 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       p_kind: "draft_operation_failed",
       p_message: message,
       p_league_id: leagueId,
-      p_context: { tab, draft_type: state.settings?.draftType || null },
+      p_context: {
+        action: "draft_operation",
+        draft_type: state.settings?.draftType || null,
+        release: DRAFTCENTER_RELEASE,
+        role: leagueRole || null,
+        tab,
+      },
     }).then(() => {});
   }, [liveDraftError, leagueId, supabase, tab, state.settings?.draftType]);
 

@@ -234,7 +234,13 @@ async function dispatchDueEvents(includeDailyThree = false) {
             league_id: event.league_id || null,
             kind: "notification_dispatch_failed",
             message: String(eventError.message || "Notification delivery failed.").slice(0, 1000),
-            context: { event_id: event.id, channel: event.channel, event_kind: event.kind },
+            context: {
+              action: "notification_dispatch",
+              channel: event.channel,
+              event_id: event.id,
+              event_kind: event.kind,
+              release: process.env.VERCEL_GIT_COMMIT_SHA || process.env.NEXT_PUBLIC_DRAFTCENTER_RELEASE || "local",
+            },
           });
         } catch {}
         const { error: failError } = await supabase.rpc("fail_notification_event", {
