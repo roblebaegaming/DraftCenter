@@ -1,5 +1,13 @@
 begin;
 
+-- Older installations restricted notification delivery to league Discord
+-- channels and email. Personal messages use their own explicit channel.
+alter table public.notification_events
+  drop constraint if exists notification_events_channel_check;
+alter table public.notification_events
+  add constraint notification_events_channel_check
+  check (channel in ('email', 'discord', 'discord_dm'));
+
 -- Every personal email draft reminder also receives an independently
 -- deliverable Discord DM event when that member opted in.
 create or replace function public.queue_personal_discord_draft_reminder()
