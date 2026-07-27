@@ -22,7 +22,7 @@ const sections = [
 
 export default function ResourcesPage() {
   return <main className="resources-shell">
-    <nav className="public-page-nav"><a className="quiet-button" href="/">DraftCenter</a><a className="quiet-button" href="/explore">Community</a><a className="quiet-button" href="/pokemon">Pokémon</a><a className="quiet-button" href="/leagues">Public Leagues</a></nav>
+    <nav className="public-page-nav"><a className="quiet-button" href="/">DraftCenter</a><a className="quiet-button" href="/explore">Community</a><a className="quiet-button" href="/pokemon">Pokémon</a></nav>
     <header className="resources-hero"><span className="eyebrow">DRAFTCENTER RESOURCES</span><h1>Learn, build, and prepare.</h1><p>A practical starting point for Pokémon draft leagues, battle preparation, team building, and competitive research.</p></header>
     <a className="draft-guide-feature" href="https://www.smogon.com/articles/beginners-guide-draft" target="_blank" rel="noreferrer"><div><span className="eyebrow">NEW TO DRAFT?</span><h2>What is Pokémon Draft League?</h2><p>Coaches draft unique rosters, prepare for a different opponent each week, and compete across a season. Smogon’s beginner guide is an excellent introduction while DraftCenter develops its own guide.</p><strong>Read the external beginner’s guide →</strong></div></a>
     <div className="resource-sections">{sections.map(([title, resources]) => <section className="resource-section" key={title}><h2>{title}</h2><div className="resource-grid">{resources.map(([name, description, url]) => <a key={name} href={url} target="_blank" rel="noreferrer"><strong>{name}</strong><p>{description}</p><span>Open resource →</span></a>)}</div></section>)}</div>
