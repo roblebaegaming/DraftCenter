@@ -14638,7 +14638,7 @@ function MatchCard({ teamA, teamB, result, canReport, onReport, pending, rosterA
 
   if (pending) {
     return (
-      <div style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }} className="rounded-lg p-4 flex items-center justify-center">
+      <div style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }} className="rounded-lg p-4 min-w-0 flex items-center justify-center">
         <span className="text-sm" style={{ color: "#5B5F7E" }}>TBD — waiting on previous round</span>
       </div>
     );
@@ -14653,7 +14653,7 @@ function MatchCard({ teamA, teamB, result, canReport, onReport, pending, rosterA
   }
 
   return (
-    <div style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }} className="rounded-lg p-4">
+    <div style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }} className="rounded-lg p-4 min-w-0">
       <div className="flex items-center justify-between mb-2 gap-2">
         {onViewTeam && teamA ? (
           <button onClick={() => onViewTeam(teamA.id)} className="text-sm font-medium flex items-center gap-1.5 min-w-0 hover:underline" style={{ color: result && result.gamesA > result.gamesB ? "#4FD1C5" : (teamA?.color || "#EDEBFA") }}>
