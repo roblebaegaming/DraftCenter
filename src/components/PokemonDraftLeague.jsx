@@ -5659,6 +5659,16 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       p_payload: payload,
     });
     if (error) {
+      // Automated bidders intentionally race one another. A bid can be valid
+      // when its timer is scheduled and stale by the time it reaches the
+      // server because another bot has already raised. That is normal auction
+      // contention, not an operational failure the lone human manager needs
+      // to see (or that should be logged as a broken draft).
+      if (action === "bid" && error.message === "That bid is no longer high enough.") {
+        await refreshLiveAuction();
+        setLiveDraftError("");
+        return null;
+      }
       setLiveDraftError(error.message);
       return null;
     }
@@ -5670,7 +5680,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       return hydrated;
     }
     return null;
-  }, [leagueId, supabase]);
+  }, [leagueId, supabase, refreshLiveAuction]);
 
   useEffect(() => {
     if (!leagueId) return undefined;
