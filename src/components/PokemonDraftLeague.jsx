@@ -14409,8 +14409,46 @@ function MatchAvailability({ leagueId, seasonNumber, weekIndex, matchIndex, sett
     const end = new Date(Math.min(window.end.getTime(), start.getTime()+2*60*60*1000));
     setSlots((current)=>[...current,{ starts_at:availabilityInput(start), ends_at:availabilityInput(end) }]);
   }
+  function changeStart(index, value) {
+    setSlots((current)=>current.map((slot,itemIndex)=>{
+      if(itemIndex!==index) return slot;
+      const nextStart = new Date(value);
+      const previousStart = new Date(slot.starts_at);
+      const previousEnd = new Date(slot.ends_at);
+      const previousDuration = previousEnd.getTime()-previousStart.getTime();
+      const duration = previousDuration>0&&previousDuration<=12*60*60*1000
+        ? previousDuration
+        : 2*60*60*1000;
+      const window = leagueWeekWindow(settings,weekIndex);
+      const nextEnd = Number.isNaN(nextStart.getTime())
+        ? slot.ends_at
+        : availabilityInput(new Date(Math.min(
+            window?.end?.getTime()||nextStart.getTime()+duration,
+            nextStart.getTime()+duration,
+          )));
+      return {...slot,starts_at:value,ends_at:nextEnd};
+    }));
+    setMessage("");
+  }
   async function save() {
     setBusy(true); setMessage("");
+    const window = leagueWeekWindow(settings,weekIndex);
+    const invalidIndex = slots.findIndex((slot)=>{
+      const start = new Date(slot.starts_at);
+      const end = new Date(slot.ends_at);
+      return Number.isNaN(start.getTime())
+        || Number.isNaN(end.getTime())
+        || end<=start
+        || end.getTime()-start.getTime()>12*60*60*1000
+        || !window
+        || start<window.start
+        || end>window.end;
+    });
+    if(invalidIndex>=0){
+      setBusy(false);
+      setMessage(`Option ${invalidIndex+1} needs an end time after its start, must stay inside this match week, and can last up to 12 hours.`);
+      return;
+    }
     const payload = slots.map((slot)=>({ starts_at:new Date(slot.starts_at).toISOString(), ends_at:new Date(slot.ends_at).toISOString() }));
     const { data, error } = await supabase.rpc("save_my_match_availability", {
       p_league_id:leagueId, p_season_number:seasonNumber, p_week:weekIndex, p_match:matchIndex, p_slots:payload,
@@ -14421,12 +14459,15 @@ function MatchAvailability({ leagueId, seasonNumber, weekIndex, matchIndex, sett
     setOpponentSubmitted(Boolean(data?.opponent_has_submitted));
     setMessage("Availability saved. Only matching windows are shared with your opponent.");
   }
+  const inputWindow = leagueWeekWindow(settings,weekIndex);
+  const inputMin = inputWindow ? availabilityInput(inputWindow.start) : undefined;
+  const inputMax = inputWindow ? availabilityInput(inputWindow.end) : undefined;
   return <details className="match-availability" open={open} onToggle={(event)=>setOpen(event.currentTarget.open)}>
     <summary>Coordinate match time privately</summary>
     <div>
       <p className="text-xs" style={{color:"#9A9FBD"}}>Add times you could play during this week. Your opponent cannot see unmatched times; both of you see only overlaps.</p>
       {busy&&!slots.length&&<p className="text-xs" style={{color:"#9A9FBD"}}>Loading availability…</p>}
-      {slots.map((slot,index)=><section key={index}><input type="datetime-local" value={slot.starts_at} onChange={(event)=>setSlots((current)=>current.map((item,itemIndex)=>itemIndex===index?{...item,starts_at:event.target.value}:item))}/><span>to</span><input type="datetime-local" value={slot.ends_at} onChange={(event)=>setSlots((current)=>current.map((item,itemIndex)=>itemIndex===index?{...item,ends_at:event.target.value}:item))}/><button type="button" className="text-button danger-text" onClick={()=>setSlots((current)=>current.filter((_,itemIndex)=>itemIndex!==index))}>Remove</button></section>)}
+      {slots.map((slot,index)=><section key={index}><input type="datetime-local" min={inputMin} max={inputMax} value={slot.starts_at} onChange={(event)=>changeStart(index,event.target.value)}/><span>to</span><input type="datetime-local" min={slot.starts_at||inputMin} max={inputMax} value={slot.ends_at} onChange={(event)=>{setMessage("");setSlots((current)=>current.map((item,itemIndex)=>itemIndex===index?{...item,ends_at:event.target.value}:item));}}/><button type="button" className="text-button danger-text" onClick={()=>setSlots((current)=>current.filter((_,itemIndex)=>itemIndex!==index))}>Remove</button></section>)}
       <div className="flex gap-2 flex-wrap"><button type="button" className="quiet-button" disabled={slots.length>=12} onClick={addSlot}>Add available time</button><button type="button" className="secondary-button" disabled={busy} onClick={save}>{busy?"Saving…":"Save availability"}</button></div>
       <aside><strong>Mutual times</strong>{mutual.length?mutual.map((slot,index)=><p key={index}>{new Date(slot.starts_at).toLocaleString()} – {new Date(slot.ends_at).toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"})}</p>):<p>{opponentSubmitted?"No matching times yet. Try adding another option.":"Waiting for your opponent to submit availability."}</p>}</aside>
       {message&&<p className="text-xs" style={{color:message.startsWith("Availability saved")?"#4FD1C5":"#F0555A"}}>{message}</p>}
