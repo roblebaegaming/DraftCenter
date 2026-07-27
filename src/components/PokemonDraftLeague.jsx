@@ -9968,6 +9968,17 @@ function HomeView({ state, leagueId, leagueName, isCommissioner, isSpectator = f
 
   return (
     <div className="flex flex-col gap-6">
+      {draftStillActive && !isMyTurn && (
+        <section className="rounded-lg px-5 py-4 flex items-center justify-between flex-wrap gap-3" style={{ background: "#122D31", border: "1px solid #4FD1C577" }}>
+          <div>
+            <span className="eyebrow" style={{ color: "#4FD1C5" }}>● DRAFT LIVE</span>
+            <p className="text-sm mt-1" style={{ color: "#BDF7EE" }}>The draft is happening now. Follow every pick and see who is on the clock.</p>
+          </div>
+          <button onClick={() => onGoToLeague("draft")} className="px-4 py-2 rounded font-semibold text-sm" style={{ background: "#4FD1C5", color: "#10121C" }}>
+            OPEN LIVE DRAFT →
+          </button>
+        </section>
+      )}
       {!isCommissioner && (
         <section className="rounded-lg p-5" style={{ background: isSpectator ? "#18243A" : "#14332F", border: `1px solid ${isSpectator ? "#5B8BC4" : "#4FD1C5"}66` }}>
           <h2 className="display-font text-2xl" style={{ color: isSpectator ? "#9CCBFF" : "#4FD1C5" }}>{isSpectator ? "WATCHING AS SPECTATOR" : "MANAGER ACTION CENTER"}</h2>
