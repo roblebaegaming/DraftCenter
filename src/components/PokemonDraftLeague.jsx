@@ -9166,7 +9166,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
             )}
             {leagueSubTab === "schedule" && (
               <ScheduleView
-                state={state} isCommissioner={isCommissioner} myName={myName} myTeamIdx={myTeamIdx}
+                state={state} leagueId={leagueId} isCommissioner={isCommissioner} myName={myName} myTeamIdx={myTeamIdx}
                 setWeek={setWeek} simulateWeek={simulateWeek} onGenerate={generateSchedule} reportMatch={reportMatch}
                 setMatchMVP={setMatchMVP}
                 onViewTeam={goToTeam} setWeekMatchups={setWeekMatchups}
@@ -9683,7 +9683,7 @@ function MyTeamView({ state, leagueId, myTeamIdx, isCommissioner, myName, myTeam
     ? new Date(seasonStartMs + currentWeekIndex * 7 * 24 * 60 * 60 * 1000)
     : null;
   const currentWeekEnd = currentWeekStart
-    ? new Date(currentWeekStart.getTime() + 7 * 24 * 60 * 60 * 1000)
+    ? new Date(currentWeekStart.getTime() + 7 * 24 * 60 * 60 * 1000 - 1)
     : null;
 
   return (
@@ -14343,7 +14343,83 @@ function PredictionsView({ state, myName, submitPrediction, onViewTeam, readOnly
   );
 }
 
-function ScheduleView({ state, isCommissioner, myName, myTeamIdx, setWeek, simulateWeek, onGenerate, reportMatch, setMatchMVP, onViewTeam, setWeekMatchups }) {
+function leagueWeekWindow(settings, weekIndex) {
+  const start = new Date(settings?.seasonStartsAt || "");
+  if (Number.isNaN(start.getTime())) return null;
+  const weekStart = new Date(start.getTime() + weekIndex * 7 * 24 * 60 * 60 * 1000);
+  return { start: weekStart, end: new Date(weekStart.getTime() + 7 * 24 * 60 * 60 * 1000) };
+}
+
+function formatLeagueWeek(settings, weekIndex) {
+  const window = leagueWeekWindow(settings, weekIndex);
+  if (!window) return "";
+  const inclusiveEnd = new Date(window.end.getTime() - 1);
+  return `${window.start.toLocaleDateString(undefined, { month:"short", day:"numeric", year:"numeric" })} – ${inclusiveEnd.toLocaleDateString(undefined, { month:"short", day:"numeric", year:"numeric" })}`;
+}
+
+function availabilityInput(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  const pad = (number) => String(number).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+function MatchAvailability({ leagueId, seasonNumber, weekIndex, matchIndex, settings }) {
+  const [supabase] = useState(() => createClient());
+  const [open, setOpen] = useState(false);
+  const [slots, setSlots] = useState([]);
+  const [mutual, setMutual] = useState([]);
+  const [opponentSubmitted, setOpponentSubmitted] = useState(false);
+  const [message, setMessage] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  async function load() {
+    setBusy(true);
+    const { data, error } = await supabase.rpc("get_my_match_availability", {
+      p_league_id:leagueId, p_season_number:seasonNumber, p_week:weekIndex, p_match:matchIndex,
+    });
+    setBusy(false);
+    if (error) return setMessage(error.message);
+    setSlots((data?.own_slots || []).map((slot)=>({ starts_at:availabilityInput(slot.starts_at), ends_at:availabilityInput(slot.ends_at) })));
+    setMutual(data?.mutual_slots || []);
+    setOpponentSubmitted(Boolean(data?.opponent_has_submitted));
+    setMessage("");
+  }
+  useEffect(()=>{ if(open) load(); },[open,leagueId,seasonNumber,weekIndex,matchIndex]);
+  function addSlot() {
+    const window = leagueWeekWindow(settings, weekIndex);
+    if (!window || slots.length >= 12) return;
+    const start = new Date(Math.max(Date.now(), window.start.getTime()));
+    start.setMinutes(Math.ceil(start.getMinutes()/30)*30,0,0);
+    const end = new Date(Math.min(window.end.getTime(), start.getTime()+2*60*60*1000));
+    setSlots((current)=>[...current,{ starts_at:availabilityInput(start), ends_at:availabilityInput(end) }]);
+  }
+  async function save() {
+    setBusy(true); setMessage("");
+    const payload = slots.map((slot)=>({ starts_at:new Date(slot.starts_at).toISOString(), ends_at:new Date(slot.ends_at).toISOString() }));
+    const { data, error } = await supabase.rpc("save_my_match_availability", {
+      p_league_id:leagueId, p_season_number:seasonNumber, p_week:weekIndex, p_match:matchIndex, p_slots:payload,
+    });
+    setBusy(false);
+    if (error) return setMessage(error.message);
+    setMutual(data?.mutual_slots || []);
+    setOpponentSubmitted(Boolean(data?.opponent_has_submitted));
+    setMessage("Availability saved. Only matching windows are shared with your opponent.");
+  }
+  return <details className="match-availability" open={open} onToggle={(event)=>setOpen(event.currentTarget.open)}>
+    <summary>Coordinate match time privately</summary>
+    <div>
+      <p className="text-xs" style={{color:"#9A9FBD"}}>Add times you could play during this week. Your opponent cannot see unmatched times; both of you see only overlaps.</p>
+      {busy&&!slots.length&&<p className="text-xs" style={{color:"#9A9FBD"}}>Loading availability…</p>}
+      {slots.map((slot,index)=><section key={index}><input type="datetime-local" value={slot.starts_at} onChange={(event)=>setSlots((current)=>current.map((item,itemIndex)=>itemIndex===index?{...item,starts_at:event.target.value}:item))}/><span>to</span><input type="datetime-local" value={slot.ends_at} onChange={(event)=>setSlots((current)=>current.map((item,itemIndex)=>itemIndex===index?{...item,ends_at:event.target.value}:item))}/><button type="button" className="text-button danger-text" onClick={()=>setSlots((current)=>current.filter((_,itemIndex)=>itemIndex!==index))}>Remove</button></section>)}
+      <div className="flex gap-2 flex-wrap"><button type="button" className="quiet-button" disabled={slots.length>=12} onClick={addSlot}>Add available time</button><button type="button" className="secondary-button" disabled={busy} onClick={save}>{busy?"Saving…":"Save availability"}</button></div>
+      <aside><strong>Mutual times</strong>{mutual.length?mutual.map((slot,index)=><p key={index}>{new Date(slot.starts_at).toLocaleString()} – {new Date(slot.ends_at).toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"})}</p>):<p>{opponentSubmitted?"No matching times yet. Try adding another option.":"Waiting for your opponent to submit availability."}</p>}</aside>
+      {message&&<p className="text-xs" style={{color:message.startsWith("Availability saved")?"#4FD1C5":"#F0555A"}}>{message}</p>}
+    </div>
+  </details>;
+}
+
+function ScheduleView({ state, leagueId, isCommissioner, myName, myTeamIdx, setWeek, simulateWeek, onGenerate, reportMatch, setMatchMVP, onViewTeam, setWeekMatchups }) {
   const { teams, schedule, week, matchResults, rosters, settings } = state;
   const [editingWeek, setEditingWeek] = useState(false);
   const [draftPairs, setDraftPairs] = useState([]);
@@ -14366,7 +14442,7 @@ function ScheduleView({ state, isCommissioner, myName, myTeamIdx, setWeek, simul
   return (
     <div>
       <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
-        <h2 className="display-font text-2xl" style={{ color: "#FFD23F" }}>WEEK {week + 1} OF {schedule.length}</h2>
+        <div><h2 className="display-font text-2xl" style={{ color: "#FFD23F" }}>WEEK {week + 1} OF {schedule.length}</h2>{formatLeagueWeek(settings,week)&&<p className="text-sm" style={{color:"#9A9FBD"}}>{formatLeagueWeek(settings,week)} · {settings.leagueTimeZone||"UTC"}</p>}</div>
         <div className="flex gap-2">
           <button disabled={week === 0} onClick={() => setWeek(week - 1)} className="px-3 py-2 rounded text-sm mono-font disabled:opacity-30" style={{ background: "#1F2338", border: "1px solid rgba(255,255,255,0.08)" }}>← PREV</button>
           <button disabled={week >= schedule.length - 1} onClick={() => setWeek(week + 1)} className="px-3 py-2 rounded text-sm mono-font disabled:opacity-30" style={{ background: "#1F2338", border: "1px solid rgba(255,255,255,0.08)" }}>NEXT →</button>
@@ -14416,11 +14492,13 @@ function ScheduleView({ state, isCommissioner, myName, myTeamIdx, setWeek, simul
           {schedule[week].map(([a, b], idx) => {
             const key = `${week}-${idx}`;
             const canReport = isCommissioner || teams[a]?.claimedBy === myName || teams[b]?.claimedBy === myName;
+            const canCoordinate = Boolean(leagueId) && (myTeamIdx===a||myTeamIdx===b) && Boolean(teams[a]?.claimedBy) && Boolean(teams[b]?.claimedBy);
             return (
               <MatchCard key={idx} teamA={teams[a]} teamB={teams[b]} result={matchResults[key]} canReport={canReport}
                 onReport={(...args) => reportMatch(week, idx, ...args)}
                 onSetMVP={(side, name) => setMatchMVP(week, idx, side, name)}
-                rosterA={rosters[a]} rosterB={rosters[b]} trackDifferential={!!settings.standingsCriteria?.differential} onViewTeam={onViewTeam} />
+                rosterA={rosters[a]} rosterB={rosters[b]} trackDifferential={!!settings.standingsCriteria?.differential} onViewTeam={onViewTeam}
+                availabilityPanel={canCoordinate?<MatchAvailability leagueId={leagueId} seasonNumber={state.seasonNumber||1} weekIndex={week} matchIndex={idx} settings={settings}/>:null} />
             );
           })}
         </div>
@@ -14452,7 +14530,7 @@ function ScoutRow({ mon, teamColor }) {
   );
 }
 
-function MatchCard({ teamA, teamB, result, canReport, onReport, pending, rosterA, rosterB, trackDifferential, onViewTeam, onSetMVP, mvpLabel = "Match MVP" }) {
+function MatchCard({ teamA, teamB, result, canReport, onReport, pending, rosterA, rosterB, trackDifferential, onViewTeam, onSetMVP, availabilityPanel = null, mvpLabel = "Match MVP" }) {
   const [editing, setEditing] = useState(false);
   const [scouting, setScouting] = useState(false);
   const [bestOf, setBestOf] = useState([1, 3, 5].includes(Number(result?.bestOf)) ? Number(result.bestOf) : 3);
@@ -14698,6 +14776,7 @@ function MatchCard({ teamA, teamB, result, canReport, onReport, pending, rosterA
           )}
         </div>
       )}
+      {availabilityPanel}
     </div>
   );
 }
@@ -16414,6 +16493,7 @@ function TransactionsView({ state, myName, myTeamIdx, isCommissioner, freeAgents
 
   return (
     <div className="flex flex-col gap-6">
+      {settings.calendarMode==="weekly"&&settings.seasonStartsAt&&<div style={{background:"#171A2C",border:"1px solid rgba(79,209,197,.35)"}} className="rounded-lg p-4"><span className="mono-font text-xs uppercase" style={{color:"#4FD1C5"}}>TRANSACTION CLOCK</span><p className="mt-1" style={{color:"#EDEBFA"}}>Week {operationalWeek+1}: {formatLeagueWeek(settings,operationalWeek)}</p><p className="text-sm" style={{color:"#9A9FBD"}}>{settings.faClaimMode==="instant"?"Transactions process immediately.":`Pending claims process every ${["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][settings.claimDayOfWeek]} at ${settings.claimTime} (${settings.leagueTimeZone||"UTC"}), or earlier when league staff process them.`}</p></div>}
       {/* TRADES */}
       <div style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }} className="rounded-lg p-6">
         <h2 className="display-font text-2xl mb-1" style={{ color: "#FFD23F" }}>PROPOSE A TRADE</h2>
