@@ -4989,7 +4989,14 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     const identity = profile?.display_name || profile?.username;
     if (identity) { setMyName(identity); setNameConfirmed(true); }
   }, [profile]);
-  const myTeamIndices = state.teams.map((team, index) => index).filter((index) => state.teams[index].claimedBy === myName);
+  const myTeamIndices = state.teams
+    .map((team, index) => index)
+    .filter((index) => {
+      const team = state.teams[index];
+      return team.claimedByUserId
+        ? team.claimedByUserId === profile?.id
+        : team.claimedBy === myName;
+    });
   const myTeamIdx = myTeamIndices.includes(activeTeamIdx) ? activeTeamIdx : (myTeamIndices[0] ?? -1);
   useEffect(() => {
     if (!leagueId || myTeamIdx < 0) return undefined;
@@ -10760,7 +10767,8 @@ function SetupView({ state, leagueId = null, isCommissioner, canBeCommissioner, 
         <p className="text-sm mb-4" style={{ color: "#9A9FBD" }}>{draftHasStarted ? "The draft has already started, so its one-time appointment is complete. Use League Clock below to edit recurring match and transaction times." : settings.draftScheduledAt ? `Currently scheduled for ${new Date(settings.draftScheduledAt).toLocaleString()}. You can change it below until the draft actually starts.` : "No draft time has been scheduled yet."}</p>
         {isCommissioner && <div className="flex items-end gap-3 flex-wrap">{!draftHasStarted && <label className="text-xs" style={{ color: "#9A9FBD" }}>Official draft start date and time<input type="datetime-local" value={dateTimeLocalValue(settings.draftScheduledAt)} onChange={(event) => updateSettings({ draftScheduledAt: event.target.value ? new Date(event.target.value).toISOString() : null })} className="block mt-1 px-3 py-2 rounded mono-font text-sm" style={{ background: "#1F2338", border: "1px solid rgba(255,255,255,0.1)", color: "#EDEBFA" }} /></label>}{leagueId && copyLeagueInvite && <><button type="button" onClick={async () => { const result = await copyLeagueInvite("manager"); setInviteMessage(result.error || "Manager invite link copied."); }} className="px-4 py-2 rounded font-semibold text-sm" style={{ background: "#4FD1C5", color: "#10121C" }}>COPY MANAGER INVITE</button><button type="button" onClick={async () => { const result = await copyLeagueInvite("spectator"); setInviteMessage(result.error || "Spectator link copied."); }} className="px-4 py-2 rounded font-semibold text-sm" style={{ background: "#1F2338", color: "#EDEBFA", border: "1px solid #4FD1C555" }}>COPY SPECTATOR LINK</button></>}</div>}
         {inviteMessage && <p className="text-xs mt-3" style={{ color: "#4FD1C5" }}>{inviteMessage}</p>}
-        <p className="text-xs mt-3" style={{ color: "#5B5F7E" }}>This is the league's single saved draft date. It appears automatically on Home, Draft, Setup, and public league details.</p>
+        <p className="text-xs mt-3" style={{ color: "#4FD1C5" }}>One manager link is for the entire league: send the same link to every manager. Each person signs in with their own account, joins once, and claims one available team.</p>
+        <p className="text-xs mt-2" style={{ color: "#5B5F7E" }}>This is the league's single saved draft date. It appears automatically on Home, Draft, Setup, and public league details.</p>
         {!draftHasStarted && settings.draftScheduledAt && (
           <ScheduledStartNotice
             status={scheduledStartStatus}
