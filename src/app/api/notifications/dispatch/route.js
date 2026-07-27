@@ -59,7 +59,7 @@ function nextAllowedTime(settings) {
 }
 
 function eventIsEnabled(event, settings) {
-  if (event.kind === "draft_reminder" || event.kind === "draft_schedule_update") return settings.notify_draft_reminders;
+  if (event.kind === "draft_reminder" || event.kind === "draft_schedule_update" || event.kind === "draft_turn") return settings.notify_draft_reminders;
   if (event.kind === "match_reminder") return settings.notify_match_reminders;
   if (event.kind === "stream_live") return settings.notify_live_streams;
   if (event.kind.startsWith("transaction")) return settings.notify_transactions;
@@ -130,6 +130,7 @@ async function deliverDailyThreeResults(supabase) {
 }
 
 async function deliverDiscord(event, supabase) {
+  if (event.channel === "discord_dm") return deliverPersonalDiscord(event, supabase);
   const { data: settings } = await supabase.from("league_discord_settings").select("*").eq("league_id", event.league_id).maybeSingle();
   if (!settings?.enabled || !settings.channel_id) return { skipped: true };
   if (!eventIsEnabled(event, settings)) return { skipped: true };
@@ -165,11 +166,41 @@ async function deliverDiscord(event, supabase) {
   return { delivered: true };
 }
 
-export async function GET(request) {
-  if (!authorized(request)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+async function deliverPersonalDiscord(event, supabase) {
+  if (!event.user_id) return { skipped: true };
+  const { data: connection, error } = await supabase.from("discord_user_connections").select("*").eq("user_id", event.user_id).maybeSingle();
+  if (error) throw error;
+  if (!connection?.dm_enabled || !connection.discord_user_id) return { skipped: true };
+  if (!eventIsEnabled(event, connection)) return { skipped: true };
+  if (isQuietAt(new Date(), connection)) return { deferredUntil: nextAllowedTime(connection) };
+
+  const token = process.env.DISCORD_BOT_TOKEN;
+  if (!token) throw new Error("Discord bot is not configured yet.");
+  const dmResponse = await fetch("https://discord.com/api/v10/users/@me/channels", {
+    method: "POST",
+    headers: { Authorization: `Bot ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ recipient_id: connection.discord_user_id }),
+  });
+  if (!dmResponse.ok) throw new Error(`Discord could not open the personal conversation: ${await dmResponse.text()}`);
+  const dm = await dmResponse.json();
+  const content = event.kind === "draft_turn"
+    ? `⚡ **You are on the clock in ${event.payload?.league_name || "DraftCenter"}**\nOpen DraftCenter now to make your pick.`
+    : event.payload?.hours_before === 1
+      ? `⏰ **${event.payload?.league_name || "Your DraftCenter draft"}** starts in about one hour.`
+      : `📣 **${event.payload?.league_name || "Your DraftCenter draft"}** starts in ${event.payload?.hours_before} hours.`;
+  const response = await fetch(`https://discord.com/api/v10/channels/${dm.id}/messages`, {
+    method: "POST",
+    headers: { Authorization: `Bot ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ content }),
+  });
+  if (!response.ok) throw new Error(`Discord rejected the personal message: ${await response.text()}`);
+  return { delivered: true };
+}
+
+async function dispatchDueEvents(includeDailyThree = false) {
   try {
     const supabase = createAdminClient();
-    const dailyThree = await deliverDailyThreeResults(supabase);
+    const dailyThree = includeDailyThree ? await deliverDailyThreeResults(supabase) : { delivered: 0, skipped: 0, failed: 0 };
     const claimToken = crypto.randomUUID();
     const { data: events, error } = await supabase.rpc("claim_notification_events", {
       p_claim_token: claimToken,
@@ -179,7 +210,7 @@ export async function GET(request) {
     let delivered = 0; let skipped = 0; let failed = 0;
     for (const event of events || []) {
       try {
-        const result = event.channel === "discord" ? await deliverDiscord(event, supabase) : await deliverEmail(event, supabase);
+        const result = event.channel === "discord" || event.channel === "discord_dm" ? await deliverDiscord(event, supabase) : await deliverEmail(event, supabase);
         if (result.deferredUntil) {
           const { data: deferred, error: deferError } = await supabase.rpc("defer_notification_event", {
             p_event_id: event.id,
@@ -218,5 +249,24 @@ export async function GET(request) {
     return NextResponse.json({ delivered: delivered + dailyThree.delivered, skipped: skipped + dailyThree.skipped, failed: failed + dailyThree.failed });
   } catch (error) {
     return NextResponse.json({ error: error.message || "Notification dispatch failed." }, { status: 500 });
+  }
+}
+
+export async function GET(request) {
+  if (!authorized(request)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  return dispatchDueEvents(true);
+}
+
+export async function POST(request) {
+  const authorization = request.headers.get("authorization") || "";
+  const token = authorization.startsWith("Bearer ") ? authorization.slice(7) : "";
+  if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  try {
+    const supabase = createAdminClient();
+    const { data, error } = await supabase.auth.getUser(token);
+    if (error || !data?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return dispatchDueEvents(false);
+  } catch {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 }
