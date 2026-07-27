@@ -9751,17 +9751,32 @@ function MyTeamView({ state, leagueId, myTeamIdx, isCommissioner, myName, myTeam
           // come to My Teams wanting to check before a game.
           if (myTeamIdx < 0 || !state.schedule?.[currentWeekIndex]) return null;
           const thisWeek = state.schedule[currentWeekIndex];
-          const match = thisWeek.find(([a, b]) => a === myTeamIdx || b === myTeamIdx);
+          const matchIndex = thisWeek.findIndex(([a, b]) => a === myTeamIdx || b === myTeamIdx);
+          const match = thisWeek[matchIndex];
           if (!match) return null;
           const oppIdx = match[0] === myTeamIdx ? match[1] : match[0];
           if (oppIdx == null || oppIdx < 0 || !teams[oppIdx]) return null;
+          const canCoordinate = Boolean(leagueId)
+            && Boolean(teams[myTeamIdx]?.claimedBy)
+            && Boolean(teams[oppIdx]?.claimedBy);
           return (
-            <button onClick={() => setViewedTeam(oppIdx)}
-              className="flex items-center gap-2 mt-3 px-3 py-2 rounded text-sm font-medium w-full justify-center"
-              style={{ background: "#FFD23F14", border: "1px solid #FFD23F55", color: "#FFD23F" }}>
-              <TeamLogo team={teams[oppIdx]} size={20} />
-              Week {currentWeekIndex + 1} opponent: {teams[oppIdx].name} →
-            </button>
+            <div className="mt-3">
+              <button onClick={() => setViewedTeam(oppIdx)}
+                className="flex items-center gap-2 px-3 py-2 rounded text-sm font-medium w-full justify-center"
+                style={{ background: "#FFD23F14", border: "1px solid #FFD23F55", color: "#FFD23F" }}>
+                <TeamLogo team={teams[oppIdx]} size={20} />
+                Week {currentWeekIndex + 1} opponent: {teams[oppIdx].name} →
+              </button>
+              {canCoordinate && (
+                <MatchAvailability
+                  leagueId={leagueId}
+                  seasonNumber={state.seasonNumber || 1}
+                  weekIndex={currentWeekIndex}
+                  matchIndex={matchIndex}
+                  settings={settings}
+                />
+              )}
+            </div>
           );
         })()}
       </div>
