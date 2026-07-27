@@ -4575,6 +4575,7 @@ async function loadRemote(leagueId) {
           bidAmount: claim.bid_amount,
           submittedAt: new Date(claim.submitted_at).getTime(),
           week: claim.week,
+          priority: claim.claim_priority,
           canWithdraw: claim.can_withdraw,
         })),
       };
@@ -8143,6 +8144,12 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
           bidAmount: state.settings.faClaimMode === "faab" ? Math.floor(Number(bidAmount)) || 0 : null,
           submittedAt: Date.now(),
           week: operationalWeek,
+          priority: Math.max(
+            0,
+            ...(state.pendingClaims || [])
+              .filter((claim) => claim.teamIdx === teamIdx)
+              .map((claim) => Number(claim.priority) || 0)
+          ) + 1,
           canWithdraw: true,
         },
       ];
@@ -8176,6 +8183,12 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
         teamIdx, addName, dropName: dropName || null,
         bidAmount: s.settings.faClaimMode === "faab" ? Math.floor(Number(bidAmount)) || 0 : null,
         submittedAt: Date.now(), week: operationalWeek,
+        priority: Math.max(
+          0,
+          ...(s.pendingClaims || [])
+            .filter((pending) => pending.teamIdx === teamIdx)
+            .map((pending) => Number(pending.priority) || 0)
+        ) + 1,
       };
       outcome.ok = true;
       return { ...s, pendingClaims: [...(s.pendingClaims || []), claim] };
@@ -8207,6 +8220,49 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     commit((s) => ({ ...s, pendingClaims: (s.pendingClaims || []).filter((c) => c.id !== claimId) }));
     return { ok: true };
   }
+  async function moveClaim(claimId, direction) {
+    const claim = (state.pendingClaims || []).find((pending) => pending.id === claimId);
+    if (!claim || !canActFor(claim.teamIdx)) return false;
+    const teamClaims = (state.pendingClaims || [])
+      .filter((pending) => pending.teamIdx === claim.teamIdx)
+      .sort((a, b) =>
+        (Number(a.priority) || Number.MAX_SAFE_INTEGER) - (Number(b.priority) || Number.MAX_SAFE_INTEGER)
+        || a.submittedAt - b.submittedAt
+      );
+    const currentIndex = teamClaims.findIndex((pending) => pending.id === claimId);
+    const other = teamClaims[currentIndex + direction];
+    if (!other) return false;
+
+    if (leagueId) {
+      setSaveStatus("saving");
+      const { error } = await supabase.rpc("move_private_free_agent_claim", {
+        p_league_id: leagueId,
+        p_claim_id: claimId,
+        p_direction: direction,
+      });
+      if (error) {
+        setSaveStatus("error");
+        setLiveDraftError(`The claim order could not be saved: ${error.message}`);
+        return false;
+      }
+    }
+
+    setState((current) => {
+      const claims = (current.pendingClaims || []).map((pending) => {
+        if (pending.id === claim.id) return { ...pending, priority: other.priority };
+        if (pending.id === other.id) return { ...pending, priority: claim.priority };
+        return pending;
+      }).sort((a, b) =>
+        a.teamIdx - b.teamIdx
+        || (Number(a.priority) || Number.MAX_SAFE_INTEGER) - (Number(b.priority) || Number.MAX_SAFE_INTEGER)
+        || a.submittedAt - b.submittedAt
+      );
+      return { ...current, pendingClaims: claims };
+    });
+    setSaveStatus("saved");
+    setLiveDraftError("");
+    return true;
+  }
   // Resolves every pending claim at once. Hosted leagues ask the database to
   // compute every winner atomically; this local resolver remains only for the
   // no-account demo path.
@@ -8216,7 +8272,12 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       const claims = s.pendingClaims || [];
       if (!claims.length) return s;
       const byMon = {};
-      claims.forEach((c) => { (byMon[c.addName] = byMon[c.addName] || []).push(c); });
+      [...claims]
+        .sort((a, b) =>
+          (Number(a.priority) || Number.MAX_SAFE_INTEGER) - (Number(b.priority) || Number.MAX_SAFE_INTEGER)
+          || a.submittedAt - b.submittedAt
+        )
+        .forEach((c) => { (byMon[c.addName] = byMon[c.addName] || []).push(c); });
 
       let rosters = s.rosters.map((r) => [...r]);
       let budgets = [...s.budgets];
@@ -16134,9 +16195,18 @@ function TransactionsView({ state, myName, myTeamIdx, isCommissioner, freeAgents
           </div>
           {(state.pendingClaims || []).length > 0 ? (
             <div className="flex flex-col gap-2 mb-2">
-              {state.pendingClaims.map((c) => (
+              {state.pendingClaims.map((c) => {
+                const teamClaims = state.pendingClaims
+                  .filter((claim) => claim.teamIdx === c.teamIdx)
+                  .sort((a, b) =>
+                    (Number(a.priority) || Number.MAX_SAFE_INTEGER) - (Number(b.priority) || Number.MAX_SAFE_INTEGER)
+                    || a.submittedAt - b.submittedAt
+                  );
+                const claimIndex = teamClaims.findIndex((claim) => claim.id === c.id);
+                return (
                 <div key={c.id} style={{ background: "#1B1F33", border: "1px solid rgba(255,255,255,0.06)" }} className="rounded-lg p-3 flex items-center justify-between flex-wrap gap-2">
                   <div className="text-sm">
+                    <span className="mono-font text-xs mr-2" style={{ color: "#FFD23F" }}>#{claimIndex + 1}</span>
                     <span className="font-medium">{teams[c.teamIdx]?.name}</span>
                     <span style={{ color: "#9A9FBD" }}> wants </span>
                     <span style={{ color: "#4FD1C5" }}>{c.addName}</span>
@@ -16148,10 +16218,30 @@ function TransactionsView({ state, myName, myTeamIdx, isCommissioner, freeAgents
                     )}
                   </div>
                   {(canActFor(c.teamIdx)) && (
-                    <button onClick={() => cancelClaim(c.id)} className="text-xs px-2 py-1 rounded" style={{ background: "#1F2338", color: "#5B5F7E" }}>Withdraw</button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => moveClaim(c.id, -1)}
+                        disabled={claimIndex <= 0}
+                        aria-label={`Move ${c.addName} claim up`}
+                        title="Move claim up"
+                        className="text-xs px-2 py-1 rounded disabled:opacity-30"
+                        style={{ background: "#252A43", color: "#C9CBE0" }}
+                      >↑</button>
+                      <button
+                        type="button"
+                        onClick={() => moveClaim(c.id, 1)}
+                        disabled={claimIndex >= teamClaims.length - 1}
+                        aria-label={`Move ${c.addName} claim down`}
+                        title="Move claim down"
+                        className="text-xs px-2 py-1 rounded disabled:opacity-30"
+                        style={{ background: "#252A43", color: "#C9CBE0" }}
+                      >↓</button>
+                      <button onClick={() => cancelClaim(c.id)} className="text-xs px-2 py-1 rounded" style={{ background: "#1F2338", color: "#9A9FBD" }}>Withdraw</button>
+                    </div>
                   )}
                 </div>
-              ))}
+              )})}
             </div>
           ) : (
             <p className="text-sm mb-2" style={{ color: "#5B5F7E" }}>Nothing pending right now.</p>
