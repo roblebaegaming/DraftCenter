@@ -6,6 +6,7 @@ import { loadPokemonArtwork, pokemonArtworkCandidates } from "./LeagueHub";
 import DailyCommunityGames from "./DailyCommunityGames";
 import { LiveNowList, ShareButton } from "./SocialSharing";
 import PublicCoachProfile, { CoachProfileButton } from "./PublicCoachProfile";
+import { REGULATION_SETS } from "./PokemonDraftLeague";
 
 function localDateKey(date = new Date()) { const year=date.getFullYear(); const month=String(date.getMonth()+1).padStart(2,"0"); const day=String(date.getDate()).padStart(2,"0"); return `${year}-${month}-${day}`; }
 
@@ -173,6 +174,9 @@ export default function PublicExplore() {
   const [trends, setTrends] = useState(null);
   const [marketTrends, setMarketTrends] = useState(null);
   const [liveStreams, setLiveStreams] = useState([]);
+  const [publicTeams, setPublicTeams] = useState([]);
+  const [teamRegulations, setTeamRegulations] = useState([]);
+  const [teamRegulation, setTeamRegulation] = useState("");
   const [message, setMessage] = useState("");
   const [selectedPokemon, setSelectedPokemon] = useState("");
   useEffect(() => {
@@ -185,13 +189,18 @@ export default function PublicExplore() {
       supabase.rpc("get_public_draft_trends"),
       supabase.rpc("get_public_market_trends"),
       supabase.rpc("get_public_live_streams", { p_limit: 8 }),
-    ]).then(([exploreResult, pollResult, historyResult, trendResult, marketResult, liveResult]) => {
+      supabase.rpc("get_public_team_repository", { p_regulation_id: null, p_limit: 100 }),
+    ]).then(([exploreResult, pollResult, historyResult, trendResult, marketResult, liveResult, teamResult]) => {
       if (exploreResult.error) setMessage(exploreResult.error.message);
       else setData({ ...(exploreResult.data || {}), poll: pollResult.error ? exploreResult.data?.poll : pollResult.data });
       if (!historyResult.error) setPollHistory(historyResult.data || []);
       if (!trendResult.error) setTrends(trendResult.data);
       if (!marketResult.error) setMarketTrends(marketResult.data);
       if (!liveResult.error) setLiveStreams(liveResult.data || []);
+      if (!teamResult.error) {
+        setPublicTeams(teamResult.data?.teams || []);
+        setTeamRegulations(teamResult.data?.regulations || []);
+      }
     });
   }, []);
   const signedIn = Boolean(data?.signed_in);
@@ -221,6 +230,12 @@ export default function PublicExplore() {
       <section className="explore-card public-leagues-community-row">
         <span className="eyebrow">PUBLIC LEAGUES</span><h2>Watch or join a league</h2>
         {data.leagues?.length ? <><div className="public-explore-leagues">{data.leagues.slice(0, 4).map((league) => <article key={league.id}>{league.image_url && <img src={league.image_url} alt="" />}<div><strong>{league.name}</strong><p>{league.description || league.season_label || "Public DraftCenter league"}</p><span>{league.league_visibility === "open" ? "Open to managers" : "Public to watch"}</span><a className="public-league-link" href={`/league/${league.slug}`}>View league →</a></div></article>)}</div><a className="secondary-button public-league-directory-link" href="/leagues">Browse all Public Leagues →</a></> : <p className="muted">No public leagues have been listed yet.</p>}
+      </section>
+      <section className="explore-card community-team-repository">
+        <div className="section-heading"><div><span className="eyebrow">COMMUNITY TEAMS</span><h2>Public team repository</h2></div><label>Regulation<select value={teamRegulation} onChange={(event)=>setTeamRegulation(event.target.value)}><option value="">All regulations</option>{teamRegulations.map((item)=><option key={item.regulation_id} value={item.regulation_id}>{REGULATION_SETS[item.regulation_id]?.name || item.regulation_id} ({item.team_count})</option>)}</select></label></div>
+        <p className="muted">Coaches choose which personal teams to share. Private notes, preparation plans, replica codes, and spreadsheets are never included.</p>
+        <div className="community-team-grid">{publicTeams.filter((team)=>!teamRegulation||team.regulation_id===teamRegulation).map((team)=><article key={team.id}><div className="community-team-author">{team.avatar_url&&<img src={team.avatar_url} alt="" />}<span><strong>{team.display_name||team.username}</strong><small>@{team.username}</small></span></div><span className="eyebrow">{REGULATION_SETS[team.regulation_id]?.name||team.format_name||team.regulation_id||"Custom regulation"}</span><h3>{team.team_name}</h3>{team.public_summary&&<p>{team.public_summary}</p>}<div className="community-team-roster">{(team.pokemon||[]).map((name)=><span key={name}>{name}</span>)}</div>{team.pokepaste_url&&<a className="secondary-button inline-link-button" href={team.pokepaste_url} target="_blank" rel="noreferrer">Open PokÃ©Paste â†—</a>}</article>)}</div>
+        {!publicTeams.filter((team)=>!teamRegulation||team.regulation_id===teamRegulation).length&&<p className="muted">No teams have been shared for this regulation yet. Signed-in coaches can publish a personal team from My Teams.</p>}
       </section>
       <div className="explore-grid">
         <Ranking onSelectPokemon={setSelectedPokemon} title="Most drafted this week" items={trends?.weekly_drafted} empty="Weekly rankings will appear after public non-practice drafts make picks." render={(item) => <span><strong>{item.pokemon}</strong><small>{item.drafts} draft{item.drafts === 1 ? "" : "s"} in the last 7 days</small></span>} />
