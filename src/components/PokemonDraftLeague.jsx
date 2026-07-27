@@ -8914,8 +8914,8 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
               // Before a league goes live this area is for setting and sharing
               // the future draft time. Once live, the actual Draft appears in
               // the League area below instead of two competing Draft buttons.
-              ...(!state.locked && (displayIsCommissioner || (!displayIsSpectator && draftRoomOpen))
-                ? [["draft", draftRoomOpen ? "Draft Room" : "Schedule"]]
+              ...(!state.locked && (displayIsCommissioner || (!displayIsSpectator && hasScheduledDraftTime))
+                ? [["draft", hasScheduledDraftTime ? "Draft Room" : "Schedule"]]
                 : []),
               ["myteam", displayIsSpectator ? "Teams" : "My Team"],
               ...(state.locked ? [["league", "League"]] : []),
@@ -9004,6 +9004,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
           <HomeView state={state} leagueId={leagueId} leagueName={league?.name} isCommissioner={displayIsCommissioner} isSpectator={displayIsSpectator} myTeamIdx={myTeamIdx} standings={standings}
             isMyTurn={isMyTurn} pendingTrades={pendingTradesForMe} unreadMessages={unreadDirectCount + unreadBoardCount}
             onGetStarted={() => state.locked ? (setTab("league"), setLeagueSubTab("draft")) : displayIsSpectator ? setTab("myteam") : setTab("setup")}
+            onOpenDraftRoom={() => setTab("draft")}
             onGoToLeague={(sub) => { setTab("league"); setLeagueSubTab(sub); }}
             costFor={costFor}
             updateHomepage={updateHomepage}
@@ -9897,7 +9898,7 @@ function MyTeamView({ state, leagueId, myTeamIdx, isCommissioner, myName, myTeam
   );
 }
 
-function HomeView({ state, leagueId, leagueName, isCommissioner, isSpectator = false, myTeamIdx, standings, onGetStarted, onGoToLeague, costFor, updateHomepage, addToQueue = null, removeFromQueue = null, moveQueueItem = null, readOnly = false, isMyTurn = false, pendingTrades = 0, unreadMessages = 0 }) {
+function HomeView({ state, leagueId, leagueName, isCommissioner, isSpectator = false, myTeamIdx, standings, onGetStarted, onOpenDraftRoom, onGoToLeague, costFor, updateHomepage, addToQueue = null, removeFromQueue = null, moveQueueItem = null, readOnly = false, isMyTurn = false, pendingTrades = 0, unreadMessages = 0 }) {
   const { coCommissioners: coCommissionersRaw, schedule, matchResults, trades = [], transactionLog = [], seasonNumber, commissioner, locked, teams } = state;
   const coCommissioners = coCommissionersRaw || [];
   const draftStillActive = locked && (
@@ -9910,6 +9911,17 @@ function HomeView({ state, leagueId, leagueName, isCommissioner, isSpectator = f
     ? Math.max(0, Math.floor((Date.now() - homeSeasonStart) / (7 * 24 * 60 * 60 * 1000)))
     : state.week || 0;
 
+  if (!locked && state.settings.draftScheduledAt) return (
+    <section className="rounded-lg p-8 text-center" style={{ background: "#171A2C", border: "1px solid #4FD1C555" }}>
+      <span className="eyebrow">UPCOMING DRAFT</span>
+      <h1 className="display-font text-4xl mb-2" style={{ color: "#FFD23F" }}>YOUR DRAFT ROOM IS READY</h1>
+      <p className="text-sm mb-1" style={{ color: "#C9CBE0" }}>{new Date(state.settings.draftScheduledAt).toLocaleString()}</p>
+      <p className="text-sm mb-6" style={{ color: "#9A9FBD" }}>Open it now to review the board and build your private queue. Live draft status begins during the final hour.</p>
+      <button onClick={onOpenDraftRoom} className="px-6 py-3 rounded font-semibold display-font text-xl glow" style={{ background: "#4FD1C5", color: "#10121C" }}>
+        OPEN DRAFT ROOM →
+      </button>
+    </section>
+  );
   if (!locked) return <PreDraftScout state={state} isCommissioner={isCommissioner} costFor={costFor} updateHomepage={updateHomepage}
     myTeamIdx={myTeamIdx} addToQueue={addToQueue} removeFromQueue={removeFromQueue} moveQueueItem={moveQueueItem} readOnly={readOnly}
     onOpenSetup={onGetStarted} />;
