@@ -8378,7 +8378,11 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
           (Number(a.priority) || Number.MAX_SAFE_INTEGER) - (Number(b.priority) || Number.MAX_SAFE_INTEGER)
           || a.submittedAt - b.submittedAt
         )
-        .forEach((c) => { (byMon[c.addName] = byMon[c.addName] || []).push(c); });
+        .forEach((c) => {
+          const priority = Number(c.priority) || Number.MAX_SAFE_INTEGER;
+          const key = `${priority}\u0000${c.addName}`;
+          (byMon[key] = byMon[key] || []).push(c);
+        });
 
       let rosters = s.rosters.map((r) => [...r]);
       let budgets = [...s.budgets];
@@ -8391,7 +8395,8 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       const priorityRank = (teamIdx) => { const i = waiverPriority.indexOf(teamIdx); return i === -1 ? Infinity : i; };
       const recordRank = (teamIdx) => { const row = liveStandings.find((r) => r.id === teamIdx); return row ? row.w - row.l : 0; }; // lower = worse record = picks first
 
-      Object.entries(byMon).forEach(([addName, group]) => {
+      Object.values(byMon).forEach((group) => {
+        const addName = group[0]?.addName;
         // Only still-available claims count — a mon already grabbed by an
         // earlier group in this same processing pass (via a shared drop
         // target collision) shouldn't be double-awarded.
