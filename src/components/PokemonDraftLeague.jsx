@@ -4713,7 +4713,14 @@ function hydrateState(remote) {
       rosterMax: Math.max(1, Number(remoteSettings.rosterMax) || base.settings.rosterMax, Number(remoteSettings.rosterMin) || 1),
       bannedMons: arrayOr(remoteSettings.bannedMons),
       allowedExtraMons: arrayOr(remoteSettings.allowedExtraMons),
-      manualDraftOrder: remote.settings?.manualDraftOrder ?? null,
+      // A partially reset draft must never leave a non-array order behind.
+      // Draft Room maps this value immediately, so normalize older/corrupt
+      // snapshots here instead of allowing one league screen to crash.
+      manualDraftOrder: Array.isArray(remoteSettings.manualDraftOrder)
+        ? remoteSettings.manualDraftOrder
+            .map(Number)
+            .filter((teamIndex) => Number.isInteger(teamIndex) && teamIndex >= 0)
+        : null,
       regulationId: remote.settings?.regulationId || "reg-mb",
       restrictedCap: remote.settings?.restrictedCap ?? null,
       megaCap: remote.settings?.megaCap ?? null,
@@ -12880,7 +12887,26 @@ function PreDraftScout({ state, isCommissioner, costFor, updateHomepage, myTeamI
 }
 
 function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTeamIdx, currentTeamOnClock, draftDone, allTeamsMetMin, snakePick, nominateForAuction, autoPickForClock, requestDueSnakeTurnResolution = null, finishBudgetSnakeRoster, placeBid, endAuctionEarly, pauseDraft, resumeDraft, skipAuctionNomination, toggleAutoDraft, addToQueue, removeFromQueue, moveQueueItem, onGenerateSchedule, updateSettings, onViewTeam, castDraftHeroVote, restartDraft, rebuildCurrentSeason, onStart, scheduledStartStatus = null, retryScheduledStart = null }) {
-  const { locked, settings, teams, rosters, budgets, pool, snakeOrder, pickIndex, nominee, auctionEnded, pickDeadline, queues, auctionNominationOrder, auctionNominationIdx, paused, pausedAt, pauseIsOvernight, nominationDeadline } = state;
+  const {
+    locked,
+    settings,
+    teams = [],
+    rosters = [],
+    budgets = [],
+    pool = [],
+    snakeOrder = [],
+    pickIndex = 0,
+    nominee,
+    auctionEnded,
+    pickDeadline,
+    queues = {},
+    auctionNominationOrder = [],
+    auctionNominationIdx = 0,
+    paused,
+    pausedAt,
+    pauseIsOvernight,
+    nominationDeadline,
+  } = state;
   const draftType = settings.draftType;
 
   const [viewedTeam, setViewedTeam] = useState(myTeamIdx >= 0 ? myTeamIdx : 0);
@@ -12967,7 +12993,13 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
       : automaticStartReady
         ? "server is opening the live board"
         : "automatic start is not ready";
-    const waitingOrder = Array.isArray(settings.manualDraftOrder) ? settings.manualDraftOrder : teams.map((_, index) => index);
+    const savedWaitingOrder = Array.isArray(settings.manualDraftOrder)
+      ? settings.manualDraftOrder.filter((teamIndex) => Number.isInteger(teamIndex) && teams[teamIndex])
+      : [];
+    const waitingOrder = savedWaitingOrder.length === teams.length
+      && new Set(savedWaitingOrder).size === teams.length
+      ? savedWaitingOrder
+      : teams.map((_, index) => index);
     const eligibleCount = fullPool(settings).filter((pokemon) => isLegal(pokemon, settings)).length;
     return (
       <div className="max-w-5xl mx-auto">
