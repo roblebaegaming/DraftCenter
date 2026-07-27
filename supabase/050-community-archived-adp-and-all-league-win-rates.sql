@@ -129,7 +129,7 @@ as $$
     where dp.created_at >= now() - interval '7 days'
     group by pc.display_name
     order by drafts desc, pokemon asc
-    limit 20
+    limit 100
   ), season_states as (
     select l.id as league_id, s.state as season_state
     from public.leagues l
@@ -175,7 +175,7 @@ as $$
     group by pokemon
     having count(*) >= 2
     order by win_rate desc, games desc, pokemon asc
-    limit 20
+    limit 100
   )
   select jsonb_build_object(
     'weekly_drafted', coalesce((select jsonb_agg(jsonb_build_object(
