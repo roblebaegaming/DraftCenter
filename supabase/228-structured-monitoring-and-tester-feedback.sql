@@ -2,6 +2,30 @@
 
 begin;
 
+create table if not exists public.operational_health_events (
+  id bigint generated always as identity primary key,
+  occurred_at timestamptz not null default now(),
+  actor_id uuid references auth.users(id) on delete set null,
+  league_id uuid references public.leagues(id) on delete cascade,
+  kind text not null,
+  message text not null check (char_length(message) between 1 and 1000),
+  context jsonb not null default '{}'::jsonb
+    check (jsonb_typeof(context) = 'object' and pg_column_size(context) <= 4096)
+);
+
+create index if not exists operational_health_events_occurred_idx
+  on public.operational_health_events (occurred_at desc);
+create index if not exists operational_health_events_kind_idx
+  on public.operational_health_events (kind, occurred_at desc);
+create index if not exists operational_health_events_league_idx
+  on public.operational_health_events (league_id, occurred_at desc)
+  where league_id is not null;
+
+alter table public.operational_health_events enable row level security;
+revoke all on table public.operational_health_events from public, anon, authenticated;
+grant select, insert, delete on table public.operational_health_events to service_role;
+grant usage, select on sequence public.operational_health_events_id_seq to service_role;
+
 alter table public.operational_health_events
   drop constraint if exists operational_health_events_kind_check;
 
