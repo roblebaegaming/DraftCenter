@@ -19,6 +19,7 @@ export default function PersonalTeams() {
   const [form, setForm] = useState(EMPTY);
   const [pokemonChoice, setPokemonChoice] = useState("");
   const [showArchived, setShowArchived] = useState(false);
+  const [showArchivedLeagueTeams, setShowArchivedLeagueTeams] = useState(false);
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const importInputRef = useRef(null);
@@ -93,6 +94,19 @@ export default function PersonalTeams() {
     setBusy(true); const {error}=await supabase.from("personal_teams").delete().eq("id",team.id).eq("owner_id",user.id); setBusy(false);
     if(error)return setMessage(error.message); await load(user);
   }
+  async function setLeagueTeamArchived(team, archived) {
+    setBusy(true); setMessage("");
+    const { error } = await supabase.rpc("set_my_league_team_archived", {
+      p_league_id: team.league_id,
+      p_season_number: team.season_number,
+      p_team_index: team.team_index,
+      p_archived: archived,
+    });
+    setBusy(false);
+    if (error) return setMessage(error.message);
+    setViewing(null);
+    await load(user);
+  }
   function downloadPrivateBackup() {
     const payload={format:"draftcenter-my-teams",version:1,exported_at:new Date().toISOString(),personal_teams:teams};
     const url=URL.createObjectURL(new Blob([JSON.stringify(payload,null,2)],{type:"application/json"}));
@@ -140,12 +154,15 @@ export default function PersonalTeams() {
   if(user===undefined)return <main className="personal-teams-shell"><p>Loading My Teams...</p></main>;
   if(!user)return <main className="personal-teams-shell"><section className="hub-card"><h1>My Teams is private.</h1><p className="muted">Sign in to create and manage your personal team workspaces.</p><a className="primary-button inline-link-button" href="/">Sign in</a></section></main>;
   const visible=teams.filter((team)=>Boolean(team.archived)===showArchived);
+  const visibleLeagueTeams=leagueTeams.filter((team)=>Boolean(team.user_archived)===showArchivedLeagueTeams);
   return <main className="personal-teams-shell">
     <nav className="public-page-nav"><a className="quiet-button" href="/">Dashboard</a><a className="quiet-button" href="/resources">Resources</a><a className="quiet-button" href="/explore">Community</a></nav>
     <header className="personal-teams-hero"><div><span className="eyebrow">YOUR TEAM BINDER</span><h1>My Teams</h1><p>Your DraftCenter league teams and private external team workspaces, all in one place. League history remains read-only and external teams never alter a hosted league.</p></div><div className="personal-team-actions"><button className="primary-button" disabled={teams.length>=10} onClick={()=>start()}>{teams.length>=10?"10-team limit reached":"Add external team"}</button><button className="secondary-button" disabled={busy} onClick={downloadReadableExport}>Download spreadsheet</button><button className="quiet-button" disabled={busy} onClick={downloadPrivateBackup}>Download recovery file</button><button className="quiet-button" disabled={busy} onClick={()=>importInputRef.current?.click()}>Restore recovery file</button><input ref={importInputRef} type="file" accept="application/json" onChange={restorePrivateBackup} hidden/></div></header>
-    <section className="my-league-teams-section"><div className="section-heading"><div><span className="eyebrow">DRAFTCENTER LEAGUES</span><h2>Your league teams</h2></div><span className="muted">Current and completed seasons · Read-only</span></div>
+    <section className="my-league-teams-section"><div className="section-heading"><div><span className="eyebrow">DRAFTCENTER LEAGUES</span><h2>Your league teams</h2></div><span className="muted">Archiving only cleans up your personal view</span></div>
+      <div className="personal-team-tabs"><button className={!showArchivedLeagueTeams?"secondary-button":"quiet-button"} onClick={()=>setShowArchivedLeagueTeams(false)}>Active ({leagueTeams.filter((team)=>!team.user_archived).length})</button><button className={showArchivedLeagueTeams?"secondary-button":"quiet-button"} onClick={()=>setShowArchivedLeagueTeams(true)}>Archived ({leagueTeams.filter((team)=>team.user_archived).length})</button></div>
       {!leagueTeams.length&&<p className="muted">Teams you manage in DraftCenter leagues will appear here.</p>}
-      <div className="personal-team-grid">{leagueTeams.map((team)=><article className="personal-team-card league-team-card" key={`${team.league_id}-${team.season_number}-${team.team_index}-${team.archived}`} onClick={()=>setViewing({...team,format_name:`Season ${team.season_number}`,league_source:true})}><span className="eyebrow">{team.league_name}</span><h2>{team.team_name}</h2><p className="personal-team-format">Season {team.season_number} · {team.archived?"Completed":"Current"}</p><div className="personal-team-pokemon">{(team.pokemon||[]).map((name)=><span key={name}>{name}</span>)}{!team.pokemon?.length&&<span className="muted">No Pokémon saved for this roster</span>}</div><div className="personal-team-actions"><button className="secondary-button">View roster</button>{!team.archived&&<a className="text-button" href={`/?league=${encodeURIComponent(team.slug||team.league_id)}`} onClick={(event)=>event.stopPropagation()}>Open league →</a>}</div></article>)}</div>
+      {!visibleLeagueTeams.length&&leagueTeams.length>0&&<p className="muted">{showArchivedLeagueTeams?"No archived league teams.":"All of your league teams are archived."}</p>}
+      <div className="personal-team-grid">{visibleLeagueTeams.map((team)=><article className="personal-team-card league-team-card" key={`${team.league_id}-${team.season_number}-${team.team_index}-${team.archived}`} onClick={()=>setViewing({...team,format_name:`Season ${team.season_number}`,league_source:true})}><span className="eyebrow">{team.league_name}</span><h2>{team.team_name}</h2><p className="personal-team-format">Season {team.season_number} · {team.archived?"Completed":"Current"}</p><div className="personal-team-pokemon">{(team.pokemon||[]).map((name)=><span key={name}>{name}</span>)}{!team.pokemon?.length&&<span className="muted">No Pokémon saved for this roster</span>}</div><div className="personal-team-actions"><button className="secondary-button">View roster</button>{!team.archived&&<a className="text-button" href={`/?league=${encodeURIComponent(team.slug||team.league_id)}`} onClick={(event)=>event.stopPropagation()}>Open league →</a>}<button className="text-button" disabled={busy} onClick={(event)=>{event.stopPropagation();setLeagueTeamArchived(team,!team.user_archived);}}>{team.user_archived?"Restore":"Archive"}</button></div></article>)}</div>
     </section>
     <section className="external-teams-section"><div className="section-heading"><div><span className="eyebrow">PRIVATE EXTERNAL TEAMS</span><h2>Your workspaces</h2></div><span className="muted">{teams.length} / 10 used</span></div>
     <div className="personal-team-tabs"><button className={!showArchived?"secondary-button":"quiet-button"} onClick={()=>setShowArchived(false)}>Active ({teams.filter((team)=>!team.archived).length})</button><button className={showArchived?"secondary-button":"quiet-button"} onClick={()=>setShowArchived(true)}>Archived ({teams.filter((team)=>team.archived).length})</button></div>
