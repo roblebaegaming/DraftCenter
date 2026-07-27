@@ -137,7 +137,7 @@ begin
       and mine.week_index = p_week
       and mine.match_index = p_match
       and mine.user_id = auth.uid()
-  ) overlaps;
+  ) overlap_rows;
 
   return jsonb_build_object(
     'own_slots', v_own,
