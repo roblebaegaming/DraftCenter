@@ -5833,12 +5833,6 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     const size = sourceState.teams.length;
     const usesBudget = sourceState.settings.draftType === "auction" || sourceState.settings.snakeBudgetEnabled;
     const snakeTarget = sourceState.settings.snakeBudgetEnabled ? sourceState.settings.rosterMax : sourceState.settings.rosterSize;
-    const botTeamIndexes = sourceState.teams
-      .map((team, teamIdx) => (!team.claimedBy ? teamIdx : -1))
-      .filter((teamIdx) => teamIdx >= 0);
-    const auctionTargetOffset = hashStringToInt(
-      `${sourceState.seasonNumber || 1}-auction-roster-targets`
-    );
     // Kept mons are already spoken for — pulled out of the fresh pool
     // entirely, seeded straight onto their team's roster, and their cost
     // comes out of that team's budget before the draft even starts.
@@ -5882,9 +5876,10 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
         let budgetRosterTarget = null;
         if (usesBudget && !t.claimedBy) {
           if (sourceState.settings.draftType === "auction") {
-            const botOrdinal = Math.max(0, botTeamIndexes.indexOf(teamIdx));
-            budgetRosterTarget = sourceState.settings.rosterMin
-              + ((auctionTargetOffset + botOrdinal) % (targetRange + 1));
+            // Auction bots always try to fill every available roster slot.
+            // Variable targets are useful for budget-snake variety, but in an
+            // auction they made solvent bots stop early with money unspent.
+            budgetRosterTarget = sourceState.settings.rosterMax;
           } else {
             budgetRosterTarget = sourceState.settings.rosterMin
               + (hashStringToInt(`${t.id}-${sourceState.seasonNumber || 1}`) % (targetRange + 1));
@@ -6749,12 +6744,8 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   function botReachedAuctionRosterTarget(s, teamIdx) {
     const team = s.teams[teamIdx];
     if (!team || team.claimedBy) return false;
-    const target = Math.max(
-      s.settings.rosterMin,
-      Math.min(s.settings.rosterMax, Number(team.budgetRosterTarget) || s.settings.rosterMax)
-    );
     const rosterCount = (s.rosters[teamIdx] || []).length;
-    return rosterCount >= s.settings.rosterMin && rosterCount >= target;
+    return rosterCount >= s.settings.rosterMax;
   }
 
   // Starts the nomination clock the moment it becomes a new team's turn —
@@ -7043,9 +7034,9 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   }
   // How much a bot is willing to bid on a given nomination. Three separate
   // guardrails, all taking the tightest one:
-  //  1. Reserve at least 1pt for every OTHER slot in this team's target
-  //     roster. Bot targets vary inside the configured min/max range; an
-  //     opted-in human auto-drafter still uses the league maximum.
+  //  1. Reserve at least 1pt for every OTHER slot through the league's roster
+  //     maximum. Auction bots keep drafting while a legal slot and budget
+  //     remain; they never use the smaller variable budget-snake target.
   //  2. A max share of remaining budget for any single mon, which loosens
   //     as fewer slots remain (their last pick or two can reasonably go
   //     big — everything after this IS the last of their budget anyway).
@@ -7056,13 +7047,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   function computeAuctionBidCeiling(s, teamIdx, mon) {
     const roster = s.rosters[teamIdx] || [];
     const budgetLeft = s.budgets[teamIdx] ?? 0;
-    const team = s.teams[teamIdx];
-    const targetRosterSize = !team?.claimedBy
-      ? Math.max(
-          s.settings.rosterMin,
-          Math.min(s.settings.rosterMax, Number(team?.budgetRosterTarget) || s.settings.rosterMax)
-        )
-      : s.settings.rosterMax;
+    const targetRosterSize = s.settings.rosterMax;
     const slotsRemaining = Math.max(1, targetRosterSize - roster.length);
 
     const reserveForRest = Math.max(0, slotsRemaining - 1); // 1pt floor per other remaining slot
