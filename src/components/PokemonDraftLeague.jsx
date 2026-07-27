@@ -9559,6 +9559,11 @@ function MyTeamView({ state, leagueId, myTeamIdx, isCommissioner, myName, myTeam
   const [logoCheckFailed, setLogoCheckFailed] = useState(false);
   const [showDefenseSummary, setShowDefenseSummary] = useState(false);
   const [profileIdentity, setProfileIdentity] = useState("");
+  const [weekClock, setWeekClock] = useState(Date.now());
+  useEffect(() => {
+    const timer = window.setInterval(() => setWeekClock(Date.now()), 60000);
+    return () => window.clearInterval(timer);
+  }, []);
 
   // Preloads a candidate logo URL to see if it actually resolves to a real
   // image before we commit to it — lets us warn immediately with concrete
@@ -9595,9 +9600,41 @@ function MyTeamView({ state, leagueId, myTeamIdx, isCommissioner, myName, myTeam
       || (Number(settings.leagueSize) % 2 === 0 ? Number(settings.leagueSize) - 1 : Number(settings.leagueSize))
       || 1,
   );
+  const weeklyCalendarActive = settings.calendarMode === "weekly" && !!settings.seasonStartsAt;
+  const seasonStartMs = weeklyCalendarActive ? Date.parse(settings.seasonStartsAt) : NaN;
+  const clockWeek = Number.isFinite(seasonStartMs)
+    ? Math.max(0, Math.floor((weekClock - seasonStartMs) / (7 * 24 * 60 * 60 * 1000)))
+    : state.week || 0;
+  const currentWeekIndex = Math.min(Math.max(0, clockWeek), notebookWeeks - 1);
+  const currentWeekStart = Number.isFinite(seasonStartMs)
+    ? new Date(seasonStartMs + currentWeekIndex * 7 * 24 * 60 * 60 * 1000)
+    : null;
+  const currentWeekEnd = currentWeekStart
+    ? new Date(currentWeekStart.getTime() + 7 * 24 * 60 * 60 * 1000)
+    : null;
 
   return (
     <div>
+      {weeklyCalendarActive && (
+        <div style={{ background: "#171A2C", border: "1px solid rgba(79,209,197,0.35)" }} className="rounded-lg p-5 mb-6">
+          <div className="flex items-start justify-between flex-wrap gap-3">
+            <div>
+              <p className="mono-font text-xs uppercase mb-1" style={{ color: "#4FD1C5" }}>Current league week</p>
+              <h2 className="display-font text-2xl" style={{ color: "#FFD23F" }}>WEEK {currentWeekIndex + 1} OF {notebookWeeks}</h2>
+              {currentWeekStart && currentWeekEnd && (
+                <p className="text-sm mt-1" style={{ color: "#9A9FBD" }}>
+                  {currentWeekStart.toLocaleDateString()} – {currentWeekEnd.toLocaleDateString()}
+                </p>
+              )}
+            </div>
+            <div className="text-xs text-right" style={{ color: "#9A9FBD" }}>
+              <p>Match week closes {["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][settings.matchDayOfWeek]} at {settings.matchTime}</p>
+              <p>Claims process {["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][settings.claimDayOfWeek]} at {settings.claimTime}</p>
+              <p className="mono-font mt-1" style={{ color: "#5B5F7E" }}>{settings.leagueTimeZone || "UTC"}</p>
+            </div>
+          </div>
+        </div>
+      )}
       {myTeamIndices.length > 1 && (
         <div style={{ background: "#171A2C", border: "1px solid #4FD1C555" }} className="rounded-lg p-4 mb-6">
           <p className="text-xs mb-2" style={{ color: "#4FD1C5" }}>You've claimed more than one team in this league — pick which is active:</p>
@@ -9639,8 +9676,8 @@ function MyTeamView({ state, leagueId, myTeamIdx, isCommissioner, myName, myTeam
           // a team anywhere else in the app does, just surfaced right here
           // since "who am I playing this week" is the thing you'd actually
           // come to My Teams wanting to check before a game.
-          if (myTeamIdx < 0 || !state.schedule?.[state.week]) return null;
-          const thisWeek = state.schedule[state.week];
+          if (myTeamIdx < 0 || !state.schedule?.[currentWeekIndex]) return null;
+          const thisWeek = state.schedule[currentWeekIndex];
           const match = thisWeek.find(([a, b]) => a === myTeamIdx || b === myTeamIdx);
           if (!match) return null;
           const oppIdx = match[0] === myTeamIdx ? match[1] : match[0];
@@ -9650,7 +9687,7 @@ function MyTeamView({ state, leagueId, myTeamIdx, isCommissioner, myName, myTeam
               className="flex items-center gap-2 mt-3 px-3 py-2 rounded text-sm font-medium w-full justify-center"
               style={{ background: "#FFD23F14", border: "1px solid #FFD23F55", color: "#FFD23F" }}>
               <TeamLogo team={teams[oppIdx]} size={20} />
-              Week {state.week + 1} opponent: {teams[oppIdx].name} →
+              Week {currentWeekIndex + 1} opponent: {teams[oppIdx].name} →
             </button>
           );
         })()}
@@ -9664,7 +9701,7 @@ function MyTeamView({ state, leagueId, myTeamIdx, isCommissioner, myName, myTeam
         <PrivateTeamNotebook
           leagueId={leagueId}
           teamIndex={viewedTeam}
-          currentWeek={Math.min((state.week || 0) + 1, notebookWeeks)}
+          currentWeek={currentWeekIndex + 1}
           totalWeeks={notebookWeeks}
         />
       )}
@@ -9826,6 +9863,10 @@ function HomeView({ state, leagueId, leagueName, isCommissioner, isSpectator = f
       ? state.pickIndex < state.snakeOrder.length
       : !state.auctionEnded && state.pool.length > 0
   );
+  const homeSeasonStart = Date.parse(state.settings.seasonStartsAt || "");
+  const homeCurrentWeek = state.settings.calendarMode === "weekly" && Number.isFinite(homeSeasonStart)
+    ? Math.max(0, Math.floor((Date.now() - homeSeasonStart) / (7 * 24 * 60 * 60 * 1000)))
+    : state.week || 0;
 
   if (!locked) return <PreDraftScout state={state} isCommissioner={isCommissioner} costFor={costFor} updateHomepage={updateHomepage}
     myTeamIdx={myTeamIdx} addToQueue={addToQueue} removeFromQueue={removeFromQueue} moveQueueItem={moveQueueItem} readOnly={readOnly}
@@ -9910,6 +9951,7 @@ function HomeView({ state, leagueId, leagueName, isCommissioner, isSpectator = f
         <h2 className="display-font text-xl mb-2" style={{ color: "#4FD1C5" }}>LEAGUE CLOCK</h2>
         {state.settings.calendarMode === "weekly" ? (
           <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm" style={{ color: "#9A9FBD" }}>
+            <span>Current week: <b style={{ color: "#FFD23F" }}>Week {Math.min(homeCurrentWeek + 1, Math.max(1, state.schedule?.length || homeCurrentWeek + 1))}</b></span>
             <span>Season begins: <b style={{ color: "#EDEBFA" }}>{state.settings.seasonStartsAt ? new Date(state.settings.seasonStartsAt).toLocaleString() : "Not set"}</b></span>
             <span>Week closes: <b style={{ color: "#EDEBFA" }}>{["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][state.settings.matchDayOfWeek]} at {state.settings.matchTime}</b></span>
             <span>Claims: <b style={{ color: "#EDEBFA" }}>{["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][state.settings.claimDayOfWeek]} at {state.settings.claimTime}</b></span>
@@ -11359,7 +11401,7 @@ function SetupView({ state, leagueId = null, isCommissioner, canBeCommissioner, 
 
       <ScheduleAndPlayoffsCard state={state} isCommissioner={isCommissioner} updateSettings={updateSettings} />
 
-      <TransactionRulesCard state={state} isCommissioner={isCommissioner} updateSettings={updateSettings} />
+      <TransactionRulesCard state={state} leagueId={leagueId} isCommissioner={isCommissioner} updateSettings={updateSettings} />
 
       {locked && isCommissioner && (
         <NewSeasonCard state={state} startNewSeason={startNewSeason} />
@@ -11542,9 +11584,21 @@ function PriceBoard({ pool, settings, costFor, isCommissioner, setMonCost, isLeg
   );
 }
 
-function TransactionRulesCard({ state, isCommissioner, updateSettings }) {
+function TransactionRulesCard({ state, leagueId, isCommissioner, updateSettings }) {
   const { settings } = state;
   const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  const [claimResetStatus, setClaimResetStatus] = useState("");
+  async function resetClaimCycle() {
+    if (!leagueId || !isCommissioner) return;
+    setClaimResetStatus("Resetting…");
+    const supabase = createClient();
+    const { error } = await supabase.rpc("reset_current_weekly_claim_cycle", {
+      p_league_id: leagueId,
+    });
+    setClaimResetStatus(error
+      ? error.message
+      : "Re-armed. Pending claims will process on the next server check.");
+  }
   return (
     <div style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }} className="rounded-lg p-6 mt-6">
       <h2 className="display-font text-2xl mb-1" style={{ color: "#FFD23F" }}>FREE AGENCY RULES</h2>
@@ -11603,6 +11657,20 @@ function TransactionRulesCard({ state, isCommissioner, updateSettings }) {
               <p className="md:col-span-2 text-xs" style={{ color: "#5B5F7E" }}>
                 Weekly transaction limits now reset from this season clock, not when a commissioner clicks to the next schedule page.
               </p>
+              {isCommissioner && leagueId && (
+                <div className="md:col-span-2 rounded p-3" style={{ background: "#10121C", border: "1px solid rgba(255,255,255,0.08)" }}>
+                  <div className="flex items-center justify-between flex-wrap gap-3">
+                    <div>
+                      <p className="text-xs font-semibold" style={{ color: "#EDEBFA" }}>Test or retry this week’s automatic claim run</p>
+                      <p className="text-xs mt-1" style={{ color: "#5B5F7E" }}>Queue the test claims first. Resetting re-arms the current cycle, and the server will process them within about one minute.</p>
+                    </div>
+                    <button type="button" onClick={resetClaimCycle} className="px-3 py-1.5 rounded text-xs font-semibold" style={{ background: "#F0555A22", color: "#F0555A", border: "1px solid #F0555A55" }}>
+                      RESET THIS WEEK’S CLAIM RUN
+                    </button>
+                  </div>
+                  {claimResetStatus && <p className="text-xs mt-2" style={{ color: claimResetStatus.startsWith("Re-armed") ? "#4FD1C5" : "#F0555A" }}>{claimResetStatus}</p>}
+                </div>
+              )}
             </div>
           )}
         </div>
