@@ -7420,6 +7420,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   }
 
   function simulateWeek() {
+    if (!isCommissioner) return;
     commit((s) => {
       if (!s.schedule[s.week]) return s;
       const hasBotTeams = s.teams.some((team) => !team?.claimedBy);
@@ -8213,6 +8214,9 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   // modes, it queues a claim instead of acting immediately, since those
   // all need to see every competing claim before picking a winner.
   async function submitFreeAgentClaim(teamIdx, addName, dropName, bidAmount) {
+    if (!isCommissioner && teamIdx !== myTeamIdx) {
+      return { ok: false, reason: "Managers can make transactions only for their own team." };
+    }
     if (state.settings.faClaimMode === "instant") return addDropFreeAgent(teamIdx, addName, dropName);
     if (leagueId) {
       const addMon = fullPool(state.settings).find((pokemon) => pokemon.name === addName);
@@ -14361,7 +14365,7 @@ function ScheduleView({ state, isCommissioner, myName, myTeamIdx, setWeek, simul
         <div className="flex gap-2">
           <button disabled={week === 0} onClick={() => setWeek(week - 1)} className="px-3 py-2 rounded text-sm mono-font disabled:opacity-30" style={{ background: "#1F2338", border: "1px solid rgba(255,255,255,0.08)" }}>← PREV</button>
           <button disabled={week >= schedule.length - 1} onClick={() => setWeek(week + 1)} className="px-3 py-2 rounded text-sm mono-font disabled:opacity-30" style={{ background: "#1F2338", border: "1px solid rgba(255,255,255,0.08)" }}>NEXT →</button>
-          {isCommissioner && hasBotTeams && <button onClick={simulateWeek} className="px-4 py-2 rounded text-sm font-semibold" style={{ background: "#4FD1C5", color: "#10121C" }}>SIMULATE BOT MATCHES</button>}
+          {isCommissioner && hasBotTeams && <button onClick={simulateWeek} className="px-4 py-2 rounded text-sm font-semibold" style={{ background: "#4FD1C5", color: "#10121C" }}>GENERATE BOT SCORES</button>}
           {canEditSchedule && !editingWeek && (
             <button onClick={startEditing} className="px-4 py-2 rounded text-sm font-semibold" style={{ background: "#1F2338", color: "#FFD23F", border: "1px solid #FFD23F55" }}>
               EDIT MATCHUPS
@@ -16331,6 +16335,10 @@ function TransactionsView({ state, myName, myTeamIdx, isCommissioner, freeAgents
   const [faBrowseSort, setFaBrowseSort] = useState("cost"); // "cost" | "az" | "bst" | a stat key
   const [faBrowseSortDir, setFaBrowseSortDir] = useState("desc"); // "desc" | "asc"
 
+  useEffect(() => {
+    if (!isCommissioner && myTeamIdx >= 0) setFaTeam(myTeamIdx);
+  }, [isCommissioner, myTeamIdx]);
+
   // Same idea as the draft pool's background prefetch — stats and abilities
   // are permanent data worth loading in full rather than only on scroll,
   // so filtering/sorting by them works across the whole free agent list
@@ -16367,11 +16375,13 @@ function TransactionsView({ state, myName, myTeamIdx, isCommissioner, freeAgents
     return <div className="text-center py-20" style={{ color: "#9A9FBD" }}>The draft is still in progress. Transactions will open automatically after the final pick or auction closes.</div>;
   }
 
-  const canActFor = (teamIdx) => isCommissioner || teams[teamIdx]?.claimedBy === myName;
+  const canActFor = (teamIdx) => isCommissioner || teamIdx === myTeamIdx;
 
   async function submitFreeAgent() {
     if (!faAdd) return;
-    const outcome = await submitFreeAgentClaim(faTeam, faAdd, faDrop || null, faBid);
+    const actingTeam = isCommissioner ? faTeam : myTeamIdx;
+    if (actingTeam < 0) return setFaError("Claim a team before making a transaction.");
+    const outcome = await submitFreeAgentClaim(actingTeam, faAdd, faDrop || null, faBid);
     if (outcome.ok) { setFaAdd(""); setFaDrop(""); setFaBid(""); setFaError(""); }
     else setFaError(outcome.reason || "That move isn't allowed.");
   }
@@ -16571,10 +16581,11 @@ function TransactionsView({ state, myName, myTeamIdx, isCommissioner, freeAgents
         <div className="grid md:grid-cols-3 gap-3 mb-4">
           <div>
             <label className="block text-xs mb-1" style={{ color: "#9A9FBD" }}>Team</label>
-            <select value={faTeam} onChange={(e) => { setFaTeam(Number(e.target.value)); setFaError(""); }}
+            <select value={faTeam} disabled={!isCommissioner} onChange={(e) => { setFaTeam(Number(e.target.value)); setFaError(""); }}
               className="w-full px-2 py-2 rounded mono-font text-sm" style={{ background: "#1F2338", border: "1px solid rgba(255,255,255,0.1)", color: "#EDEBFA" }}>
-              {teams.map((t, i) => <option key={t.id} value={i}>{t.name}</option>)}
+              {(isCommissioner ? teams.map((t, i) => ({ team: t, index: i })) : myTeamIdx >= 0 ? [{ team: teams[myTeamIdx], index: myTeamIdx }] : []).map(({ team, index }) => <option key={team.id} value={index}>{team.name}</option>)}
             </select>
+            {!isCommissioner && <p className="text-[10px] mt-1" style={{ color: "#5B5F7E" }}>Managers can transact only for their own team.</p>}
           </div>
           <div>
             <label className="block text-xs mb-1" style={{ color: "#9A9FBD" }}>Add free agent</label>
