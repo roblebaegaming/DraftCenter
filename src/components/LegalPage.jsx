@@ -1,7 +1,7 @@
 export default function LegalPage() {
   return <main className="legal-shell">
     <header className="legal-hero">
-      <div className="public-page-nav"><a className="quiet-button" href="/">DraftCenter Home</a><a className="quiet-button" href="/explore">Community</a><a className="quiet-button" href="/leagues">Public Leagues</a></div>
+      <div className="public-page-nav"><a className="quiet-button" href="/">DraftCenter Home</a><a className="quiet-button" href="/explore">Community</a></div>
       <span className="eyebrow">DRAFTCENTER POLICIES</span>
       <h1>Legal, privacy, and community information</h1>
       <p>Last updated July 23, 2026. Here’s what you should know about using DraftCenter, sharing content, and keeping your league information safe.</p>

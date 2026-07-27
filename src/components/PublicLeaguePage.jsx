@@ -51,7 +51,7 @@ export default function PublicLeaguePage() {
   const settings = data?.state?.settings || {};
   const replayLinks = [...new Set(Object.values(data?.state?.matchResults || {}).flatMap((result) => [result?.replayUrlA, result?.replayUrlB]).filter(Boolean))];
   return <main className="explore-shell">
-    <header className="explore-hero"><div className="public-page-nav"><a className="quiet-button" href="/leagues">Public Leagues</a><a className="quiet-button" href="/explore">Community</a><a className="quiet-button" href="/">DraftCenter Home</a></div>
+    <header className="explore-hero"><div className="public-page-nav"><a className="quiet-button" href="/explore">Community</a><a className="quiet-button" href="/">DraftCenter Home</a></div>
       {!data && !message && <p className="muted">Loading public league...</p>}{message && <p className="hub-message">{message}</p>}
       {data?.league && <><span className="eyebrow">{data.league.league_visibility === "open" ? "OPEN TO JOIN" : "PUBLIC TO WATCH"}</span>{data.league.image_url && <img className="public-league-hero-image" src={data.league.image_url} alt="" />}<h1>{data.league.name}</h1><p>{data.league.description || data.league.season_label || "Public DraftCenter league"}</p><ShareButton title={data.league.name} text={`Follow ${data.league.name} standings, streams, replays, and predictions on DraftCenter.`} /></>}
     </header>
