@@ -115,7 +115,7 @@ function PollDiscussion({ pollId, signedIn }) {
 function Ranking({ title, items, render, empty, onSelectPokemon, expandable = false }) {
   const [limit, setLimit] = useState(10);
   const availableLimits = [10, 50, 100];
-  return <section className="explore-card"><div className="ranking-heading"><h2>{title}</h2>{expandable && items?.length > 10 && <div className="ranking-limit" role="group" aria-label={`${title} number of Pokémon shown`}>{availableLimits.map((value) => <button key={value} type="button" aria-pressed={limit === value} className={limit === value ? "active" : ""} onClick={() => setLimit(value)}>Top {value}</button>)}</div>}</div>{items?.length ? <ol className="explore-ranking">{items.slice(0, expandable ? limit : 10).map((item, index) => <li key={`${item.pokemon}-${index}`}><b>{index + 1}</b><button type="button" className="community-pokemon-link" onClick={() => onSelectPokemon(item.pokemon)}><PokemonRankingArtwork name={item.pokemon} />{render(item)}</button></li>)}</ol> : <p className="muted">{empty}</p>}</section>;
+  return <section className="explore-card"><div className="ranking-heading"><h2>{title}</h2>{expandable && items?.length > 10 && <div className="ranking-limit" role="group" aria-label={`${title} number of Pokémon shown`}>{availableLimits.map((value) => <button key={value} type="button" aria-pressed={limit === value} className={limit === value ? "active" : ""} onClick={() => setLimit(value)}>Top {value}</button>)}</div>}</div>{items?.length ? <ol className={`explore-ranking ${expandable && limit > 10 ? "is-scrollable" : ""}`}>{items.slice(0, expandable ? limit : 10).map((item, index) => <li key={`${item.pokemon}-${index}`}><b>{index + 1}</b><button type="button" className="community-pokemon-link" onClick={() => onSelectPokemon(item.pokemon)}><PokemonRankingArtwork name={item.pokemon} />{render(item)}</button></li>)}</ol> : <p className="muted">{empty}</p>}</section>;
 }
 
 function CommunityPokemonPreview({ name, onClose }) {
@@ -177,6 +177,7 @@ export default function PublicExplore() {
   const [publicTeams, setPublicTeams] = useState([]);
   const [teamRegulations, setTeamRegulations] = useState([]);
   const [teamRegulation, setTeamRegulation] = useState("");
+  const [teamLimit, setTeamLimit] = useState(5);
   const [message, setMessage] = useState("");
   const [selectedPokemon, setSelectedPokemon] = useState("");
   useEffect(() => {
@@ -204,6 +205,7 @@ export default function PublicExplore() {
     });
   }, []);
   const signedIn = Boolean(data?.signed_in);
+  const filteredPublicTeams = publicTeams.filter((team)=>!teamRegulation||team.regulation_id===teamRegulation);
   return <main className="explore-shell">
     {selectedPokemon && <CommunityPokemonPreview name={selectedPokemon} onClose={() => setSelectedPokemon("")} />}
     <header className="explore-hero">
@@ -211,7 +213,6 @@ export default function PublicExplore() {
       <span className="eyebrow">EXPLORE DRAFTCENTER</span>
       <h1>Pokémon, leagues, and community trends.</h1>
       <p>{signedIn ? "See what DraftCenter coaches are voting for, favoriting, and drafting." : "Explore public leagues and completed community polls. Create an account to vote, comment, and reveal today's results."}</p>
-      <div className="explore-actions"><a className="primary-button" href="/pokemon">Explore Pokémon</a><a className="secondary-button" href="/">{signedIn ? "Your DraftCenter Home" : "Create an account"}</a><ShareButton title="DraftCenter Community" text="Explore the Daily Three, live battles, leagues, and Pokémon trends on DraftCenter." /></div>
     </header>
     {message && <p className="hub-message">{message}</p>}
     {!data && !message && <p className="muted">Loading public DraftCenter data...</p>}
@@ -232,10 +233,11 @@ export default function PublicExplore() {
         {data.leagues?.length ? <><div className="public-explore-leagues">{data.leagues.slice(0, 4).map((league) => <article key={league.id}>{league.image_url && <img src={league.image_url} alt="" />}<div><strong>{league.name}</strong><p>{league.description || league.season_label || "Public DraftCenter league"}</p><span>{league.league_visibility === "open" ? "Open to managers" : "Public to watch"}</span><a className="public-league-link" href={`/league/${league.slug}`}>View league →</a></div></article>)}</div><a className="secondary-button public-league-directory-link" href="/leagues">Browse all Public Leagues →</a></> : <p className="muted">No public leagues have been listed yet.</p>}
       </section>
       <section className="explore-card community-team-repository">
-        <div className="section-heading"><div><span className="eyebrow">COMMUNITY TEAMS</span><h2>Public team repository</h2></div><label>Regulation<select value={teamRegulation} onChange={(event)=>setTeamRegulation(event.target.value)}><option value="">All regulations</option>{teamRegulations.map((item)=><option key={item.regulation_id} value={item.regulation_id}>{REGULATION_SETS[item.regulation_id]?.name || item.regulation_id} ({item.team_count})</option>)}</select></label></div>
+        <div className="section-heading"><div><span className="eyebrow">COMMUNITY TEAMS</span><h2>Public team repository</h2></div><label>Regulation<select value={teamRegulation} onChange={(event)=>{setTeamRegulation(event.target.value);setTeamLimit(5);}}><option value="">All regulations</option>{teamRegulations.map((item)=><option key={item.regulation_id} value={item.regulation_id}>{REGULATION_SETS[item.regulation_id]?.name || item.regulation_id} ({item.team_count})</option>)}</select></label></div>
         <p className="muted">Coaches choose which personal teams and attachments to share. Private notes, preparation plans, and spreadsheets are never included.</p>
-        <div className="community-team-grid">{publicTeams.filter((team)=>!teamRegulation||team.regulation_id===teamRegulation).map((team)=><article key={team.id}><div className="community-team-author">{team.avatar_url&&<img src={team.avatar_url} alt="" />}<span><strong>{team.display_name||team.username}</strong><small>@{team.username}</small></span></div><span className="eyebrow">{REGULATION_SETS[team.regulation_id]?.name||team.format_name||team.regulation_id||"Custom regulation"}</span><h3>{team.team_name}</h3>{team.public_summary&&<p>{team.public_summary}</p>}<div className="community-team-roster">{(team.pokemon||[]).map((name)=><span key={name}>{name}</span>)}</div><div className="community-team-shared-links">{team.pokepaste_url&&<a className="secondary-button inline-link-button" href={team.pokepaste_url} target="_blank" rel="noreferrer">Open PokéPaste ↗</a>}{team.team_report_url&&<a className="secondary-button inline-link-button" href={team.team_report_url} target="_blank" rel="noreferrer">Open team report ↗</a>}{team.replica_code&&<div className="community-team-replica-code"><small>Pokémon Champions replica code</small><strong>{team.replica_code}</strong></div>}</div></article>)}</div>
-        {!publicTeams.filter((team)=>!teamRegulation||team.regulation_id===teamRegulation).length&&<p className="muted">No teams have been shared for this regulation yet. Signed-in coaches can publish a personal team from My Teams.</p>}
+        <div className={`community-team-grid ${teamLimit > 5 ? "is-scrollable" : ""}`}>{filteredPublicTeams.slice(0,teamLimit).map((team)=><article key={team.id}><div className="community-team-author">{team.avatar_url&&<img src={team.avatar_url} alt="" />}<span><strong>{team.display_name||team.username}</strong><small>@{team.username}</small></span></div><span className="eyebrow">{REGULATION_SETS[team.regulation_id]?.name||team.format_name||team.regulation_id||"Custom regulation"}</span><h3>{team.team_name}</h3>{team.public_summary&&<p>{team.public_summary}</p>}<div className="community-team-roster">{(team.pokemon||[]).map((name)=><span key={name}>{name}</span>)}</div><div className="community-team-shared-links">{team.pokepaste_url&&<a className="secondary-button inline-link-button" href={team.pokepaste_url} target="_blank" rel="noreferrer">Open PokéPaste ↗</a>}{team.team_report_url&&<a className="secondary-button inline-link-button" href={team.team_report_url} target="_blank" rel="noreferrer">Open team report ↗</a>}{team.replica_code&&<div className="community-team-replica-code"><small>Pokémon Champions replica code</small><strong>{team.replica_code}</strong></div>}</div></article>)}</div>
+        {!filteredPublicTeams.length&&<p className="muted">No teams have been shared for this regulation yet. Signed-in coaches can publish a personal team from My Teams.</p>}
+        {filteredPublicTeams.length>5&&<button type="button" className="secondary-button community-team-more" onClick={()=>setTeamLimit((current)=>current>5?5:10)}>{teamLimit>5?"Show 5 teams":`Show up to 10 teams`}</button>}
       </section>
       <div className="explore-grid">
         <Ranking onSelectPokemon={setSelectedPokemon} title="Most drafted this week" items={trends?.weekly_drafted} empty="Weekly rankings will appear after public non-practice drafts make picks." render={(item) => <span><strong>{item.pokemon}</strong><small>{item.drafts} draft{item.drafts === 1 ? "" : "s"} in the last 7 days</small></span>} />
@@ -245,6 +247,7 @@ export default function PublicExplore() {
         <Ranking onSelectPokemon={setSelectedPokemon} title="Community Pokémon popularity" items={data.popularity} empty="Favorite-six rankings will appear as coaches build profile teams." render={(item) => <span><strong>{item.pokemon}</strong><small>{item.favorites} favorite team{item.favorites === 1 ? "" : "s"}</small></span>} />
         <Ranking expandable onSelectPokemon={setSelectedPokemon} title="Community ADP" items={data.adp} empty="ADP begins to form after a snake draft is completed and saved. Archived seasons continue contributing after a draft restart." render={(item) => <span><strong>{item.pokemon}</strong><small>ADP {item.average_pick} · selected in {item.drafts} of at least {item.eligible_drafts || item.drafts} eligible draft{(item.eligible_drafts || item.drafts) === 1 ? "" : "s"}</small></span>} />
       </div>
+      <div className="explore-actions explore-actions-bottom"><a className="primary-button" href="/pokemon">Explore Pokémon</a><a className="secondary-button" href="/">{signedIn ? "Your DraftCenter Home" : "Create an account"}</a><ShareButton title="DraftCenter Community" text="Explore the Daily Three, live battles, leagues, and Pokémon trends on DraftCenter." /></div>
     </>}
   </main>;
 }
