@@ -6400,9 +6400,10 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       const safetyLimit = bestAffordableLimit(s, teamIdx);
       const safe = rawAffordable.filter((m) => m.cost <= safetyLimit);
       if (safe.length) {
-        const paceCeiling = Math.max(1, Math.ceil(paceTarget(s, teamIdx) * 1.4));
-        const paced = safe.filter((m) => m.cost <= Math.min(safetyLimit, paceCeiling));
-        candidates = paced.length ? paced : safe;
+        // Reserve enough to finish the roster, but otherwise let bots spend
+        // like human drafters: premium legal picks should be considered early
+        // instead of being hidden by an average-cost pacing ceiling.
+        candidates = safe;
       } else if (roster.length < s.settings.rosterMin) {
         return null;
       }
@@ -6413,10 +6414,30 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     if (!candidates.length) return null;
     const queuedName = (s.queues[teamIdx] || []).find((name) => candidates.some((m) => m.name === name));
     if (queuedName) return candidates.find((m) => m.name === queuedName);
+
+    // Value is the first decision, including in an unpriced snake draft.
+    // Every pool mon still carries its regulation tier/fallback value, so use
+    // that hidden draft-board signal to mirror human ADP. The first pick must
+    // come from the best legal tier; subsequent picks gradually widen the
+    // premium band as roster construction becomes more important.
+    const valueTiers = [...new Set(candidates.map((mon) => Number(mon.cost) || 0))]
+      .sort((a, b) => b - a);
+    const premiumTierCount = Math.min(
+      valueTiers.length,
+      roster.length === 0 ? 1 : roster.length === 1 ? 2 : Math.min(5, 2 + Math.floor(roster.length / 2))
+    );
+    const premiumTiers = new Set(valueTiers.slice(0, premiumTierCount));
+    const premiumCandidates = candidates.filter((mon) => premiumTiers.has(Number(mon.cost) || 0));
     const archetypeKeys = s.teams[teamIdx]?.archetypes || [];
     let best = null, bestScore = -Infinity;
-    for (const mon of candidates) {
-      const score = scoreMonForArchetype(mon, archetypeKeys, roster);
+    for (const mon of premiumCandidates) {
+      // Tier gaps remain meaningful inside the premium band; archetype fit,
+      // team balance, partner cores, and a small random term break close calls.
+      // This also prevents tied strategy scores from defaulting to Pokédex
+      // order just because that happened to be the pool's source ordering.
+      const score = scoreMonForArchetype(mon, archetypeKeys, roster)
+        + (Number(mon.cost) || 0) * 4
+        + Math.random() * 0.25;
       if (score > bestScore) { best = mon; bestScore = score; }
     }
     return best;
