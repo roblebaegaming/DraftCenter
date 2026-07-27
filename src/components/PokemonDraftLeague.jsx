@@ -3453,7 +3453,7 @@ export function MonDefenseChart({ mon, compact }) {
     <div>
       {abilityOptions.length > 0 && (
         <select value={ability} onChange={(e) => setAbility(e.target.value)}
-          className="mono-font text-[9px] px-1 py-0.5 rounded mb-1" style={{ background: "#141729", border: "1px solid rgba(255,255,255,0.1)", color: "#9A9FBD" }}>
+          className="mono-font text-[9px] px-1 py-0.5 rounded mb-1 max-w-full" style={{ background: "#141729", border: "1px solid rgba(255,255,255,0.1)", color: "#9A9FBD" }}>
           <option value="">Base typing</option>
           {abilityOptions.map((a) => <option key={a.name} value={a.name}>with {a.name}</option>)}
         </select>
