@@ -4113,44 +4113,112 @@ function computeHeadToHead(schedule, matchResults, teamA, teamB) {
   return { aWins, bWins };
 }
 
-// Draft-day awards, computed straight from what was actually drafted — no
-// external source needed, unlike ADP which takes seasons of history to
-// build up. "Value" is BST-per-point-spent, so it means something even in
-// a league that's never run a season before this one.
+// Draft-day awards compare selections with their actual draft market: ADP
+// when history exists, regulation tiers for a first snake draft, and listed
+// versus paid price in auctions. Raw BST is not a draft-value metric.
+function expectedDraftPrice(state, mon) {
+  const settings = state.settings || {};
+  if (Number.isFinite(Number(mon.listedCost))) return Number(mon.listedCost);
+  if (settings.costOverrides?.[mon.name] !== undefined) return Number(settings.costOverrides[mon.name]);
+  const regulation = regulationFor(settings);
+  if (regulation.defaultCosts[mon.name] !== undefined) return Number(regulation.defaultCosts[mon.name]);
+  const derived = Object.keys(regulation.defaultCosts).length === 0 ? deriveCostsFromADP(state) : null;
+  if (derived?.[mon.name] !== undefined) return Number(derived[mon.name]);
+  return regulation.compressedFallback ? compressedFallbackCost(mon.bst) : defaultCost(mon.bst);
+}
+
 function computeDraftAwards(state) {
   const { teams, rosters, trades, settings } = state;
   const drafted = teams
-    .map((t, teamIdx) => (rosters[teamIdx] || []).map((m) => ({ ...m, teamIdx, teamName: t.name })))
+    .map((team, teamIdx) => (rosters[teamIdx] || [])
+      .filter((mon) => mon.acquiredVia === "draft" || mon.draftPick != null)
+      .map((mon) => ({ ...mon, teamIdx, teamName: team.name })))
     .flat();
-  const pointFreeSnake = settings.draftType === "snake" && !settings.snakeBudgetEnabled;
-  const tradeCounts = teams.map((_, i) =>
-    (trades || []).filter((t) => t.status === "accepted" && (t.fromTeam === i || t.toTeam === i)).length
+  const tradeCounts = teams.map((_, teamIdx) =>
+    (trades || []).filter((trade) =>
+      trade.status === "accepted" && (trade.fromTeam === teamIdx || trade.toTeam === teamIdx)
+    ).length
   );
-  const topTraderIdx = tradeCounts.reduce((best, c, i) => (c > tradeCounts[best] ? i : best), 0);
-  const topTrader = tradeCounts[topTraderIdx] > 0 ? { teamName: teams[topTraderIdx]?.name, count: tradeCounts[topTraderIdx] } : null;
-  if (pointFreeSnake) {
-    const adpByName = new Map(computeADP(state).rows.filter((row) => row.avg != null).map((row) => [row.name, Number(row.avg) + 1]));
+  const topTraderIdx = tradeCounts.reduce((best, count, index) =>
+    count > tradeCounts[best] ? index : best
+  , 0);
+  const topTrader = tradeCounts[topTraderIdx] > 0
+    ? { teamName: teams[topTraderIdx]?.name, count: tradeCounts[topTraderIdx] }
+    : null;
+
+  if (settings.draftType === "snake") {
+    const adpByName = new Map(
+      computeADP(state).rows
+        .filter((row) => row.avg != null)
+        .map((row) => [row.name, Number(row.avg) + 1])
+    );
     const withAdp = drafted
       .filter((mon) => mon.draftPick != null && adpByName.has(mon.name))
-      .map((mon) => ({ ...mon, adp: adpByName.get(mon.name), adpDifference: (Number(mon.draftPick) + 1) - adpByName.get(mon.name) }));
-    if (!withAdp.length) return { usesAdp: true, topTrader };
-    const byDifference = [...withAdp].sort((a, b) => b.adpDifference - a.adpDifference);
-    const byAdp = [...withAdp].sort((a, b) => a.adp - b.adp);
+      .map((mon) => ({
+        ...mon,
+        adp: adpByName.get(mon.name),
+        valueDifference: (Number(mon.draftPick) + 1) - adpByName.get(mon.name),
+      }));
+    if (withAdp.length) {
+      const byDifference = [...withAdp].sort((a, b) => b.valueDifference - a.valueDifference);
+      const byAdp = [...withAdp].sort((a, b) => a.adp - b.adp);
+      return {
+        metric: "adp",
+        bestValue: byDifference[0],
+        biggestReach: byDifference[byDifference.length - 1],
+        priciest: byAdp[0],
+        cheapest: byAdp[byAdp.length - 1],
+        topTrader,
+      };
+    }
+
+    const byExpectedPrice = drafted
+      .filter((mon) => mon.draftPick != null)
+      .map((mon) => ({ ...mon, expectedPrice: expectedDraftPrice(state, mon) }))
+      .filter((mon) => Number.isFinite(mon.expectedPrice))
+      .sort((a, b) => b.expectedPrice - a.expectedPrice || a.name.localeCompare(b.name));
+    let tierStart = 0;
+    while (tierStart < byExpectedPrice.length) {
+      let tierEnd = tierStart + 1;
+      while (
+        tierEnd < byExpectedPrice.length
+        && byExpectedPrice[tierEnd].expectedPrice === byExpectedPrice[tierStart].expectedPrice
+      ) tierEnd += 1;
+      const expectedPick = ((tierStart + 1) + tierEnd) / 2;
+      for (let index = tierStart; index < tierEnd; index += 1) {
+        byExpectedPrice[index].expectedPick = expectedPick;
+        byExpectedPrice[index].valueDifference =
+          (Number(byExpectedPrice[index].draftPick) + 1) - expectedPick;
+      }
+      tierStart = tierEnd;
+    }
+    const byDifference = [...byExpectedPrice].sort((a, b) => b.valueDifference - a.valueDifference);
     return {
-      usesAdp: true,
+      metric: "tier",
       bestValue: byDifference[0],
       biggestReach: byDifference[byDifference.length - 1],
-      priciest: byAdp[0],
-      cheapest: byAdp[byAdp.length - 1],
+      priciest: byExpectedPrice[0],
+      cheapest: byExpectedPrice[byExpectedPrice.length - 1],
       topTrader,
     };
   }
-  const priced = drafted.filter((m) => (m.cost || 0) > 0);
+
+  const priced = drafted
+    .filter((mon) => (Number(mon.cost) || 0) > 0)
+    .map((mon) => {
+      const expectedPrice = expectedDraftPrice(state, mon);
+      return {
+        ...mon,
+        expectedPrice,
+        priceDifference: expectedPrice - Number(mon.cost),
+      };
+    })
+    .filter((mon) => Number.isFinite(mon.expectedPrice));
   if (!priced.length) return null;
-  const byValue = [...priced].sort((a, b) => (b.bst / b.cost) - (a.bst / a.cost));
+  const byValue = [...priced].sort((a, b) => b.priceDifference - a.priceDifference);
   const byCost = [...priced].sort((a, b) => b.cost - a.cost);
   return {
-    usesAdp: false,
+    metric: "auction",
     bestValue: byValue[0],
     biggestReach: byValue[byValue.length - 1],
     priciest: byCost[0],
@@ -7020,7 +7088,12 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
         // value the mon carried into the auction — every downstream
         // display (Draft Board, My Team, budget math) should reflect what
         // it actually sold for.
-        rosters[currentBidder].push({ ...mon, cost: currentBid, acquiredVia: "draft" });
+        rosters[currentBidder].push({
+          ...mon,
+          listedCost: Number(mon.listedCost) || Number(mon.cost) || 1,
+          cost: currentBid,
+          acquiredVia: "draft",
+        });
       }
       const budgets = [...s.budgets];
       budgets[currentBidder] -= currentBid;
@@ -12163,13 +12236,35 @@ function HistoryView({ state, onViewTeam }) {
 
   // Best value pick per season — lowest cost relative to BST, among mons
   // that actually had both a real cost and BST on record.
+  const historicalAdp = new Map(
+    computeADP(state).rows
+      .filter((row) => row.avg != null)
+      .map((row) => [row.name, Number(row.avg) + 1])
+  );
   const steals = seasonHistory.map((season) => {
     let best = null;
     season.rosters.forEach((roster, teamId) => {
-      (roster || []).forEach((m) => {
-        if (!m.cost || !m.bst) return;
-        const ratio = m.bst / m.cost;
-        if (!best || ratio > best.ratio) best = { ...m, ratio, teamId };
+      (roster || []).forEach((mon) => {
+        if (mon.acquiredVia !== "draft") return;
+        const draftEntry = (season.draftLog || []).find((entry) => entry.name === mon.name);
+        if ((season.draftType || "snake") === "snake") {
+          const adp = historicalAdp.get(mon.name);
+          if (draftEntry?.draftPick == null || adp == null) return;
+          const valueDifference = Number(draftEntry.draftPick) + 1 - adp;
+          if (!best || valueDifference > best.valueDifference) {
+            best = { ...mon, draftPick: draftEntry.draftPick, adp, valueDifference, teamId, metric: "adp" };
+          }
+          return;
+        }
+        if (!mon.cost) return;
+        const expectedPrice = expectedDraftPrice(
+          { settings: season.settings || state.settings, seasonHistory },
+          mon
+        );
+        const priceDifference = expectedPrice - Number(mon.cost);
+        if (!best || priceDifference > best.priceDifference) {
+          best = { ...mon, expectedPrice, priceDifference, teamId, metric: "auction" };
+        }
       });
     });
     return { seasonNumber: season.seasonNumber, best };
@@ -12234,7 +12329,7 @@ function HistoryView({ state, onViewTeam }) {
 
       <div>
         <h2 className="display-font text-2xl mb-1" style={{ color: "#F0555A" }}>DRAFT STEALS</h2>
-        <p className="text-xs mb-3" style={{ color: "#9A9FBD" }}>The best value pick each season — highest base stat total for the fewest points spent.</p>
+        <p className="text-xs mb-3" style={{ color: "#9A9FBD" }}>The best market value each season, measured against ADP for snake drafts and listed price for auctions.</p>
         <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-3">
           {[...steals].reverse().map(({ seasonNumber: sn, best }) => (
             <div key={sn} style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }} className="rounded-lg p-4">
@@ -12242,10 +12337,14 @@ function HistoryView({ state, onViewTeam }) {
               {best ? (
                 <>
                   <p className="text-base font-medium">{best.name}</p>
-                  <p className="text-xs mono-font" style={{ color: "#F0555A" }}>{best.cost}pt · BST {best.bst} ({best.ratio.toFixed(1)}x value)</p>
+                  <p className="text-xs mono-font" style={{ color: "#F0555A" }}>
+                    {best.metric === "adp"
+                      ? `Pick ${Number(best.draftPick) + 1} · ADP ${Number(best.adp).toFixed(1)}`
+                      : `Paid ${best.cost}pt · Listed ${best.expectedPrice}pt`}
+                  </p>
                 </>
               ) : (
-                <span className="text-sm" style={{ color: "#5B5F7E" }}>No priced picks on record</span>
+                <span className="text-sm" style={{ color: "#5B5F7E" }}>No comparable ADP or price data</span>
               )}
             </div>
           ))}
@@ -12530,12 +12629,17 @@ function DraftBoard({ teams, rosters, draftType, rosterMax, snakeOrder = [], set
 function DraftRecapCard({ state, onViewTeam }) {
   const awards = computeDraftAwards(state);
   if (!awards) return null;
+  const awardDetail = (mon) => {
+    if (awards.metric === "adp") return `· Pick ${Number(mon.draftPick) + 1} · ADP ${Number(mon.adp).toFixed(1)}`;
+    if (awards.metric === "tier") return `· Pick ${Number(mon.draftPick) + 1} · Tier ${mon.expectedPrice}pt`;
+    return `· Paid ${mon.cost}pt · Listed ${mon.expectedPrice}pt`;
+  };
   const AwardRow = ({ label, mon, color }) => mon ? (
     <div className="flex items-center gap-3 px-4 py-3 rounded-lg" style={{ background: "#1B1F33", border: "1px solid rgba(255,255,255,0.06)" }}>
       <MonSprite mon={mon} size={36} />
       <div className="flex-1 min-w-0 text-left">
         <div className="text-xs mono-font uppercase" style={{ color }}>{label}</div>
-        <div className="text-sm font-medium truncate">{mon.name} <span style={{ color: "#5B5F7E" }}>{awards.usesAdp ? `· Pick ${Number(mon.draftPick) + 1} · ADP ${Number(mon.adp).toFixed(1)}` : `· ${mon.cost}pt · BST ${mon.bst}`}</span></div>
+        <div className="text-sm font-medium truncate">{mon.name} <span style={{ color: "#5B5F7E" }}>{awardDetail(mon)}</span></div>
         <button onClick={() => onViewTeam && onViewTeam(mon.teamIdx)} className="text-xs hover:underline" style={{ color: "#9A9FBD" }}>{mon.teamName}</button>
       </div>
     </div>
@@ -12544,12 +12648,11 @@ function DraftRecapCard({ state, onViewTeam }) {
   return (
     <div className="mt-8 max-w-2xl mx-auto text-left">
       <h3 className="display-font text-xl mb-3 text-center" style={{ color: "#FFD23F" }}>DRAFT RECAP</h3>
-      {awards.usesAdp && !awards.bestValue && <p className="text-sm text-center mb-3" style={{ color: "#9A9FBD" }}>ADP awards will appear as this league builds completed snake-draft history. No BST or point estimates are substituted.</p>}
       <div className="grid sm:grid-cols-2 gap-3">
-        <AwardRow label="Best Value" mon={awards.bestValue} color="#4FD1C5" />
-        <AwardRow label="Biggest Reach" mon={awards.biggestReach} color="#F0555A" />
-        <AwardRow label={awards.usesAdp ? "Earliest ADP" : "Priciest Pick"} mon={awards.priciest} color="#FFD23F" />
-        <AwardRow label={awards.usesAdp ? "Latest ADP" : "Cheapest Pick"} mon={awards.cheapest} color="#9A9FBD" />
+        <AwardRow label={awards.metric === "auction" ? "Best Bargain" : "Best Value"} mon={awards.bestValue} color="#4FD1C5" />
+        <AwardRow label={awards.metric === "auction" ? "Biggest Overpay" : "Biggest Reach"} mon={awards.biggestReach} color="#F0555A" />
+        <AwardRow label={awards.metric === "adp" ? "Earliest ADP" : awards.metric === "tier" ? "Highest Tier Pick" : "Highest Price Paid"} mon={awards.priciest} color="#FFD23F" />
+        <AwardRow label={awards.metric === "adp" ? "Latest ADP" : awards.metric === "tier" ? "Lowest Tier Pick" : "Lowest Price Paid"} mon={awards.cheapest} color="#9A9FBD" />
       </div>
       {awards.topTrader && (
         <div className="mt-3 px-4 py-3 rounded-lg text-center" style={{ background: "#1B1F33", border: "1px solid rgba(255,255,255,0.06)" }}>
