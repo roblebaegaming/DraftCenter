@@ -16318,6 +16318,8 @@ function TransactionsView({ state, myName, myTeamIdx, isCommissioner, freeAgents
   const [faDrop, setFaDrop] = useState("");
   const [faBid, setFaBid] = useState("");
   const [faError, setFaError] = useState("");
+  const [faSelectionMessage, setFaSelectionMessage] = useState("");
+  const freeAgencyFormRef = useRef(null);
 
   const [tradeToTeam, setTradeToTeam] = useState(null);
   const [offerSel, setOfferSel] = useState([]);
@@ -16382,7 +16384,7 @@ function TransactionsView({ state, myName, myTeamIdx, isCommissioner, freeAgents
     const actingTeam = isCommissioner ? faTeam : myTeamIdx;
     if (actingTeam < 0) return setFaError("Claim a team before making a transaction.");
     const outcome = await submitFreeAgentClaim(actingTeam, faAdd, faDrop || null, faBid);
-    if (outcome.ok) { setFaAdd(""); setFaDrop(""); setFaBid(""); setFaError(""); }
+    if (outcome.ok) { setFaAdd(""); setFaDrop(""); setFaBid(""); setFaError(""); setFaSelectionMessage(""); }
     else setFaError(outcome.reason || "That move isn't allowed.");
   }
 
@@ -16570,7 +16572,7 @@ function TransactionsView({ state, myName, myTeamIdx, isCommissioner, freeAgents
 
 
       {/* FREE AGENCY */}
-      <div style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }} className="rounded-lg p-6">
+      <div ref={freeAgencyFormRef} style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }} className="rounded-lg p-6">
         <h2 className="display-font text-2xl mb-1" style={{ color: "#FFD23F" }}>FREE AGENCY</h2>
         <p className="text-sm mb-1" style={{ color: "#9A9FBD" }}>{freeAgents.length} pokémon unrostered and available to pick up.</p>
         <p className="text-xs mb-4 mono-font" style={{ color: info.blocked ? "#F0555A" : "#5B5F7E" }}>
@@ -16592,7 +16594,7 @@ function TransactionsView({ state, myName, myTeamIdx, isCommissioner, freeAgents
             <select value={faAdd} onChange={(e) => setFaAdd(e.target.value)}
               className="w-full px-2 py-2 rounded mono-font text-sm" style={{ background: "#1F2338", border: "1px solid rgba(255,255,255,0.1)", color: "#EDEBFA" }}>
               <option value="">— select —</option>
-              {freeAgents.map((p) => <option key={p.id} value={p.name}>{p.name}{usesBudget ? ` (${p.cost}pt)` : ""}</option>)}
+              {freeAgents.slice().sort((a,b)=>a.name.localeCompare(b.name)).map((p) => <option key={p.id} value={p.name}>{p.name}{usesBudget ? ` (${p.cost}pt)` : ""}</option>)}
             </select>
           </div>
           <div>
@@ -16600,7 +16602,7 @@ function TransactionsView({ state, myName, myTeamIdx, isCommissioner, freeAgents
             <select value={faDrop} onChange={(e) => setFaDrop(e.target.value)}
               className="w-full px-2 py-2 rounded mono-font text-sm" style={{ background: "#1F2338", border: "1px solid rgba(255,255,255,0.1)", color: "#EDEBFA" }}>
               <option value="">— none —</option>
-              {(rosters[faTeam] || []).map((m) => <option key={m.id} value={m.name}>{m.name}{usesBudget ? ` (${m.cost}pt)` : ""}</option>)}
+              {(rosters[faTeam] || []).slice().sort((a,b)=>a.name.localeCompare(b.name)).map((m) => <option key={m.id} value={m.name}>{m.name}{usesBudget ? ` (${m.cost}pt)` : ""}</option>)}
             </select>
           </div>
         </div>
@@ -16629,6 +16631,7 @@ function TransactionsView({ state, myName, myTeamIdx, isCommissioner, freeAgents
             This queues a claim rather than acting right away — see Pending Claims below. The server resolves everyone's claims together at the scheduled time, or a commissioner can process them early.
           </p>
         )}
+        {faSelectionMessage && <p className="text-xs mb-3" style={{ color: "#4FD1C5" }}>{faSelectionMessage}</p>}
         <button onClick={submitFreeAgent} disabled={!canActFor(faTeam) || !faAdd || info.blocked}
           className="px-4 py-2 rounded font-semibold text-sm disabled:opacity-40"
           style={{ background: "#FFD23F", color: "#10121C" }}>
@@ -16653,7 +16656,7 @@ function TransactionsView({ state, myName, myTeamIdx, isCommissioner, freeAgents
           price, type, stats, and ability. Selecting one just fills in the
           "Add free agent" field above rather than duplicating the actual
           add/drop logic here. */}
-      <FreeAgentsBrowser freeAgents={freeAgents} onSelect={(name) => setFaAdd(name)} selectedName={faAdd} usesBudget={usesBudget}
+      <FreeAgentsBrowser freeAgents={freeAgents} onSelect={(name) => { setFaAdd(name); setFaSelectionMessage(`${name} is selected above. Choose an optional drop, then submit the claim.`); setFaError(""); freeAgencyFormRef.current?.scrollIntoView({ behavior:"smooth", block:"start" }); }} selectedName={faAdd} usesBudget={usesBudget}
         search={faBrowseSearch} setSearch={setFaBrowseSearch}
         typeFilter={faBrowseType} setTypeFilter={setFaBrowseType}
         minCost={faMinCost} setMinCost={setFaMinCost} maxCost={faMaxCost} setMaxCost={setFaMaxCost}
