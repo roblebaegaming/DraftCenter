@@ -4915,7 +4915,7 @@ function isWithinOvernightPause(date, settings) {
 export default function PokemonDraftLeague({ leagueId = null, leagueRole = null, league = null, profile = null, onOpenLeagueTools = null }) {
   const isSpectator = leagueId && leagueRole === "viewer";
   const [supabase] = useState(() => createClient());
-  const [tab, setTab] = useState("home");
+  const [tab, setTab] = useState(() => league?.isNew ? "setup" : "home");
   const [rolePreview, setRolePreview] = useState("commissioner");
   const commissionerPreviewActive = !!leagueId && ["commissioner", "co_commissioner"].includes(leagueRole) && rolePreview !== "commissioner";
   // Which of Schedule / Standings / Playoffs / History is showing inside the
@@ -8782,12 +8782,17 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   const scheduledDraftIsDue = draftRoomOpen && scheduleClock >= scheduledDraftTime;
   const isMyTurn = !isSpectator && state.locked && !draftDone && state.settings.draftType === "snake" && myTeamIdx >= 0 && myTeamIdx === currentTeamOnClock;
   useEffect(() => {
-    if (!synced || !isCommissioner || state.locked || !scheduledDraftIsDue) return;
+    if (!synced
+      || !isCommissioner
+      || state.locked
+      || !scheduledDraftIsDue
+      || scheduledStartStatus.phase !== "ready"
+      || Date.parse(scheduledStartStatus.startsAt || "") !== scheduledDraftTime) return;
     const priorAttempt = automaticStartAttemptedRef.current;
     if (priorAttempt?.scheduledTime === scheduledDraftTime && scheduleClock - priorAttempt.at < 30000) return;
     automaticStartAttemptedRef.current = { scheduledTime: scheduledDraftTime, at: scheduleClock };
     startDraft();
-  }, [synced, isCommissioner, state.locked, scheduledDraftIsDue, scheduledDraftTime, scheduleClock]);
+  }, [synced, isCommissioner, state.locked, scheduledDraftIsDue, scheduledDraftTime, scheduleClock, scheduledStartStatus.phase, scheduledStartStatus.startsAt]);
   // Landing on League while a draft is still actively underway should show
   // the draft itself first, not whatever sub-tab happened to be selected
   // last time — but only as a one-time jump on arrival, not something that
