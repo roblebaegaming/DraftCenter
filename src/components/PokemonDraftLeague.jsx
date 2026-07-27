@@ -8841,6 +8841,8 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     state.playoffs ||
     (state.seasonHistory || []).length
   );
+  const historySectionTabs = ["draft", "awards", "history", "adp"];
+  const historySectionActive = historySectionTabs.includes(leagueSubTab);
 
   if (!nameConfirmed) {
     return <NameGate myName={myName} setMyName={setMyName} onConfirm={() => { setMyName(myName.trim()); setNameConfirmed(true); }} />;
@@ -9041,22 +9043,22 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
           <div className="flex flex-col gap-6">
             <div className="flex gap-1 flex-wrap">
               {[
-              ["activity", "League Activity"], ["draft", "Draft"],
+              ["activity", "League Activity"],
                 ...((!state.locked || draftDone || isCommissioner) ? [["schedule", "Schedule"]] : []),
                 ...((state.playoffs || regularSeasonComplete) ? [["playoffs", "Playoffs"]] : []),
                 ...(hasSchedule && draftDone ? [["standings", "Standings"]] : []),
-                ...(hasAwardWinners ? [["awards", "Season Awards"]] : []),
                 ...(!displayIsSpectator ? [["predictions", "Predictions"], ["trades", "Transactions"]] : []),
-                ...(state.seasonHistory.length > 0 ? [["history", "History"], ["adp", "Draft Trends"]] : []),
+                ["history-section", "History"],
               ].map(([key, label]) => {
                 const subBadge = key === "trades" ? pendingTradesForMe : 0;
-                const pulseDraft = key === "draft" && isMyTurn;
+                const isActive = key === "history-section" ? historySectionActive : leagueSubTab === key;
+                const pulseDraft = key === "history-section" && isMyTurn;
                 return (
-                  <button key={key} onClick={() => setLeagueSubTab(key)}
+                  <button key={key} onClick={() => setLeagueSubTab(key === "history-section" ? "draft" : key)}
                     className={`relative px-3 py-1.5 rounded text-xs font-semibold uppercase mono-font ${pulseDraft ? "turn-pulse" : ""}`}
                     style={{
-                      background: leagueSubTab === key ? "#FFD23F" : pulseDraft ? "#4FD1C5" : "#1F2338",
-                      color: leagueSubTab === key ? "#10121C" : pulseDraft ? "#10121C" : "#9A9FBD",
+                      background: isActive ? "#FFD23F" : pulseDraft ? "#4FD1C5" : "#1F2338",
+                      color: isActive ? "#10121C" : pulseDraft ? "#10121C" : "#9A9FBD",
                       border: "1px solid rgba(255,255,255,0.08)",
                     }}>
                     {label}{pulseDraft ? " •" : ""}
@@ -9073,6 +9075,25 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
                 );
               })}
             </div>
+            {historySectionActive && (
+              <div className="flex gap-1 flex-wrap -mt-3 pl-2" aria-label="History sections">
+                {[
+                  ["draft", "Draft & Recap"],
+                  ...(hasAwardWinners ? [["awards", "Season Awards"]] : []),
+                  ...(state.seasonHistory.length > 0 ? [["history", "Past Seasons"], ["adp", "Draft Trends"]] : []),
+                ].map(([key, label]) => (
+                  <button key={key} type="button" onClick={() => setLeagueSubTab(key)}
+                    className="px-3 py-1.5 rounded text-xs font-semibold uppercase mono-font"
+                    style={{
+                      background: leagueSubTab === key ? "#4FD1C522" : "transparent",
+                      color: leagueSubTab === key ? "#4FD1C5" : "#7F84A5",
+                      border: `1px solid ${leagueSubTab === key ? "#4FD1C566" : "rgba(255,255,255,0.06)"}`,
+                    }}>
+                    {label}
+                  </button>
+                ))}
+              </div>
+            )}
             {leagueSubTab === "activity" && (
               <LeagueActivityView state={state} isCommissioner={displayIsCommissioner} isSpectator={displayIsSpectator} reverseFreeAgentMove={reverseFreeAgentMove}
                 myName={myName} postToBoard={postToBoard} deleteBoardPost={deleteBoardPost} markBoardRead={markBoardRead} />
