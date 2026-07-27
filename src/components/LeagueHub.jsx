@@ -224,6 +224,15 @@ function isCoachOnClock(state, profile, liveDraft = null) {
   return Boolean(coachName && String(teams[teamIndex]?.claimedBy || "").trim().toLowerCase() === coachName);
 }
 
+function isDraftLive(state) {
+  if (!state?.locked) return false;
+  if (state?.settings?.draftType === "auction") {
+    return !state.auctionEnded && (state.pool || []).length > 0;
+  }
+  const order = Array.isArray(state.snakeOrder) ? state.snakeOrder : [];
+  return order.length > 0 && (Number(state.pickIndex) || 0) < order.length;
+}
+
 export default function LeagueHub({ user, profile, onOpenLeague }) {
   const [supabase] = useState(() => createClient()); const [leagues, setLeagues] = useState([]); const [publicLeagues, setPublicLeagues] = useState([]); const [publicTab, setPublicTab] = useState("join"); const [communityPokemon, setCommunityPokemon] = useState(["Pikachu","Eevee","Charizard"]); const [loading, setLoading] = useState(true); const [turnAlert, setTurnAlert] = useState(""); const [name, setName] = useState(""); const [season, setSeason] = useState(""); const [description, setDescription] = useState(""); const [imageUrl, setImageUrl] = useState(""); const [draftStartsAt, setDraftStartsAt] = useState(""); const [visibility, setVisibility] = useState("private"); const [isPractice, setIsPractice] = useState(false); const [message, setMessage] = useState(""); const [busy, setBusy] = useState(false); const [pendingInvite, setPendingInvite] = useState(null); const [pendingTeamClaim, setPendingTeamClaim] = useState(null); const [inviteBusy, setInviteBusy] = useState(false); const [publicDetails, setPublicDetails] = useState(null); const [showArchived, setShowArchived] = useState(false); const [leagueActionId, setLeagueActionId] = useState("");
   async function loadLeagues(silent = false) {
@@ -254,12 +263,14 @@ export default function LeagueHub({ user, profile, onOpenLeague }) {
       if (live?.session?.id) liveDrafts.set(snapshot.league_id, live);
     }));
     const markedMemberships = memberships.map((entry) => {
-      const onClock = isCoachOnClock(states.get(entry.league.id), profile, liveDrafts.get(entry.league.id));
+      const leagueState = states.get(entry.league.id);
+      const onClock = isCoachOnClock(leagueState, profile, liveDrafts.get(entry.league.id));
       return {
         ...entry,
         league: {
           ...entry.league,
           on_clock: onClock,
+          draft_live: isDraftLive(leagueState),
         },
       };
     });
@@ -318,6 +329,7 @@ export default function LeagueHub({ user, profile, onOpenLeague }) {
   const activeLeagues = leagues.filter((entry) => !entry.archived_at);
   const archivedLeagues = leagues.filter((entry) => Boolean(entry.archived_at));
   const visibleLeagues = showArchived ? archivedLeagues : activeLeagues;
+  const liveDraftLeagues = activeLeagues.filter((entry) => entry.league.draft_live);
 return (
   <main className="hub-shell">
     <section className="hub-hero">
@@ -325,6 +337,7 @@ return (
       <div className="profile-chip">{profile?.avatar_url ? <img className="profile-chip-photo" src={profile.avatar_url} alt="" /> : <span className="profile-initial">{(profile?.display_name || profile?.username || user.email || "C")[0].toUpperCase()}</span>}<div><strong>{profile?.display_name || "Coach"}</strong><small>@{profile?.username || "setting-up"}</small></div></div>
     </section>
     {turnAlert && <p className="hub-message" style={{ background: "#4FD1C5", color: "#10121C", fontWeight: 800 }}>{turnAlert}</p>}
+    {!turnAlert && liveDraftLeagues.length > 0 && <p className="hub-message" style={{ background: "#122D31", color: "#BDF7EE", border: "1px solid #4FD1C566" }}>● Draft live now: {liveDraftLeagues.map((entry) => entry.league.name).join(", ")}. Open the league to follow the board.</p>}
     {message && <p className="hub-message">{message}</p>}
     {pendingInvite && <section className="hub-card invite-confirm"><span className="eyebrow">LEAGUE INVITATION</span><h2>{pendingInvite.is_spectator ? "Watch this league?" : pendingInvite.role === "co_commissioner" ? "Help run this league?" : "Join this league?"}</h2><p><strong>{pendingInvite.league_name}</strong>{pendingInvite.season_label ? ` - ${pendingInvite.season_label}` : ""}</p><p className="muted">{pendingInvite.is_spectator ? "You will have spectator access only. You can view and scout, but cannot claim a team or change league data." : pendingInvite.role === "co_commissioner" ? "Accepting gives you co-commissioner access to league settings, scheduling, results, and commissioner tools." : "Accept the invitation, then choose one of the league’s currently open teams. A competitive spot is only taken after you claim it."}</p><div className="flex gap-2 flex-wrap"><button className="primary-button" disabled={inviteBusy} onClick={acceptPendingInvite}>{inviteBusy ? "Accepting..." : pendingInvite.role === "co_commissioner" ? "Accept co-commissioner role" : pendingInvite.is_spectator ? "Watch league" : "Accept & choose a team"}</button><button className="quiet-button" disabled={inviteBusy} onClick={dismissInvite}>Not now</button></div></section>}
     {pendingTeamClaim && <section className="hub-card invite-confirm"><span className="eyebrow">CHOOSE YOUR TEAM</span><h2>You’re in {pendingTeamClaim.league.name}</h2><p className="muted">Choose an open team now. The league’s available-manager count goes down only after your selection succeeds.</p><div className="league-list">{pendingTeamClaim.teams.map((team) => <button key={team.index} className="league-row" disabled={inviteBusy} onClick={() => claimInvitedTeam(team.index)}><div><strong>{team.name || `Team ${team.index + 1}`}</strong><span>Open team · claim immediately</span></div><span className="open-arrow">{inviteBusy ? "Please wait" : "Claim team"}</span></button>)}</div><button className="quiet-button" disabled={inviteBusy} onClick={() => { const league=pendingTeamClaim.league; setPendingTeamClaim(null); onOpenLeague({ ...league, role:"coach" }); }}>Choose later</button></section>}
@@ -343,8 +356,8 @@ return (
       <div className="league-list">{visibleLeagues.map(({ league, role, archived_at: archivedAt }) => <article className="league-row dashboard-league-row dashboard-league-card" key={league.id}>
         <button type="button" className="dashboard-league-open" onClick={() => onOpenLeague({ ...league, role })}>
           {league.image_url && <img className="dashboard-league-image" src={league.image_url} alt="" />}
-          <div><strong>{league.name}</strong><span>{league.on_clock ? "⚡ YOUR PICK IS ON THE CLOCK" : `${league.season_label || "New season"} - ${role.replace("_", " ")}`}</span></div>
-          <span className="open-arrow">{league.on_clock ? "Draft now" : "Open"}</span>
+          <div><strong>{league.name}</strong><span>{league.on_clock ? "⚡ YOUR PICK IS ON THE CLOCK" : league.draft_live ? `● DRAFT LIVE · ${league.season_label || "New season"}` : `${league.season_label || "New season"} - ${role.replace("_", " ")}`}</span></div>
+          <span className="open-arrow">{league.on_clock ? "Draft now" : league.draft_live ? "Follow draft" : "Open"}</span>
         </button>
         <button type="button" className="quiet-button dashboard-league-archive" disabled={leagueActionId === league.id} onClick={() => setLeagueArchived(league.id, !archivedAt)}>{leagueActionId === league.id ? "Saving..." : archivedAt ? "Restore" : "Archive"}</button>
       </article>)}</div>
