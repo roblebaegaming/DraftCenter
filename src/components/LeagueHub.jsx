@@ -268,6 +268,7 @@ export default function LeagueHub({ user, profile, onOpenLeague }) {
       const onClock = isCoachOnClock(leagueState, profile, liveDrafts.get(entry.league.id));
       return {
         ...entry,
+        commissioner_vacant: !["commissioner", "viewer"].includes(entry.role) && !leagueState?.commissioner,
         league: {
           ...entry.league,
           on_clock: onClock,
@@ -347,6 +348,15 @@ export default function LeagueHub({ user, profile, onOpenLeague }) {
       : entry));
     setMessage(archived ? "League archived for your dashboard. You can restore it at any time." : "League restored to your active list.");
   }
+  async function claimVacantCommissioner(entry) {
+    if (leagueActionId) return;
+    setLeagueActionId(entry.league.id); setMessage("");
+    const { error } = await supabase.rpc("claim_vacant_league_commissioner", { p_league_id: entry.league.id });
+    setLeagueActionId("");
+    if (error) return setMessage(error.message);
+    await loadLeagues(true);
+    onOpenLeague({ ...entry.league, role: "commissioner" });
+  }
   const activeLeagues = leagues.filter((entry) => !entry.archived_at);
   const archivedLeagues = leagues.filter((entry) => Boolean(entry.archived_at));
   const visibleLeagues = showArchived ? archivedLeagues : activeLeagues;
@@ -380,7 +390,10 @@ return (
           <div><strong>{league.name}</strong><span>{league.on_clock ? "⚡ YOUR PICK IS ON THE CLOCK" : league.draft_live ? `● DRAFT LIVE · ${league.season_label || "New season"}` : `${league.season_label || "New season"} - ${role.replace("_", " ")}`}</span></div>
           <span className="open-arrow">{league.on_clock ? "Draft now" : league.draft_live ? "Follow draft" : "Open"}</span>
         </button>
-        <button type="button" className="quiet-button dashboard-league-archive" disabled={leagueActionId === league.id} onClick={() => setLeagueArchived(league.id, !archivedAt)}>{leagueActionId === league.id ? "Saving..." : archivedAt ? "Restore" : "Archive"}</button>
+        <div className="dashboard-league-actions">
+          {entry.commissioner_vacant && <button type="button" className="secondary-button" disabled={Boolean(leagueActionId)} onClick={() => claimVacantCommissioner(entry)}>{leagueActionId === league.id ? "Claiming..." : "Become commissioner"}</button>}
+          <button type="button" className="quiet-button dashboard-league-archive" disabled={leagueActionId === league.id} onClick={() => setLeagueArchived(league.id, !archivedAt)}>{leagueActionId === league.id ? "Saving..." : archivedAt ? "Restore" : "Archive"}</button>
+        </div>
       </article>)}</div>
     </section>
     <section className="dashboard-daily-three">
