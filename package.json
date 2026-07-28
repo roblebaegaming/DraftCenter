@@ -11,7 +11,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "test": "node --test test/notification-dispatch-config.test.js",
+    "test": "node --test test/*.test.js",
+    "test:concurrency": "node scripts/test-concurrent-team-claim.mjs",
     "check": "pnpm test && pnpm build",
     "smoke:production": "node scripts/production-smoke.mjs"
   },

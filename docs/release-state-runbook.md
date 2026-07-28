@@ -25,6 +25,24 @@ Do not infer the production commit from the checked-out branch or handoff alone.
 Vercel's active production deployment is authoritative for application code;
 the Supabase migration ledger is authoritative for database state.
 
+## Frozen rehearsal record — July 28, 2026
+
+- Frozen source commit: `351f3ba`
+- Immutable Git tag: `rehearsal-candidate-2026-07-28`
+- Active production deployment:
+  `dpl_CQVxzSULkrtNzSnCapoqCTaSN3Ht`
+- Active deployment URL:
+  `https://draftcenter-107n19vqk-rob-lebae.vercel.app`
+- Canonical alias: `https://www.draftcentral.gg`
+- Known-good application rollback deployment:
+  `dpl_6xB5btMSLetEsxdJzRowdeDEXCSx`
+- Latest verified production migration:
+  `237-repair-notification-event-created-at.sql`
+- Custom-domain assignment is manual. Reconfirm the canonical alias after every
+  deployment or rollback.
+- Cleanup work belongs on `cleanup/pre-rehearsal-2026-07-28` and must not be
+  deployed over the frozen candidate without a critical safety decision.
+
 ## Release checklist
 
 1. Start from the single designated production branch.
