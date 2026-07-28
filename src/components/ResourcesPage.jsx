@@ -3,7 +3,7 @@
 const sections = [
   ["Battle and team building", [
     ["Pokémon Showdown", "Build teams and play competitive battles.", "https://play.pokemonshowdown.com/"],
-    ["Showdown Damage Calculator", "Check damage ranges, speed, abilities, items, and field conditions.", "https://calc.pokemonshowdown.com/"],
+    ["Showdown Damage Calculator", "Check damage ranges, speed, abilities, items, and field conditions.", "https://nerd-of-now.github.io/NCP-VGC-Damage-Calculator/"],
     ["PokéPaste", "Share readable team sheets and importable sets.", "https://pokepast.es/"],
     ["PASRS Spreadsheet", "Learn about PASRS 7.0, a community team-planning spreadsheet.", "https://devoncorp.press/resources/the-release-of-pasrs-7-0"],
   ]],
