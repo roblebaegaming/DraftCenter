@@ -9255,7 +9255,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
             {leagueSubTab === "schedule" && (
               <ScheduleView
                 state={state} leagueId={leagueId} isCommissioner={isCommissioner} myName={myName} myTeamIdx={myTeamIdx}
-                setWeek={setWeek} simulateWeek={simulateWeek} onGenerate={generateSchedule} reportMatch={reportMatch}
+                simulateWeek={simulateWeek} onGenerate={generateSchedule} reportMatch={reportMatch}
                 setMatchMVP={setMatchMVP}
                 onViewTeam={goToTeam} setWeekMatchups={setWeekMatchups}
               />
@@ -14592,10 +14592,14 @@ function MatchAvailability({ leagueId, seasonNumber, weekIndex, matchIndex, sett
   </details>;
 }
 
-function ScheduleView({ state, leagueId, isCommissioner, myName, myTeamIdx, setWeek, simulateWeek, onGenerate, reportMatch, setMatchMVP, onViewTeam, setWeekMatchups }) {
-  const { teams, schedule, week, matchResults, rosters, settings } = state;
+function ScheduleView({ state, leagueId, isCommissioner, myName, myTeamIdx, simulateWeek, onGenerate, reportMatch, setMatchMVP, onViewTeam, setWeekMatchups }) {
+  const { teams, schedule, week: savedWeek, matchResults, rosters, settings } = state;
+  const [week, setViewedWeek] = useState(() => Math.max(0, Math.min(Number(savedWeek) || 0, Math.max(0, schedule.length - 1))));
   const [editingWeek, setEditingWeek] = useState(false);
   const [draftPairs, setDraftPairs] = useState([]);
+  useEffect(() => {
+    setViewedWeek(Math.max(0, Math.min(Number(savedWeek) || 0, Math.max(0, schedule.length - 1))));
+  }, [leagueId, schedule.length, savedWeek]);
   if (!schedule.length) {
     return <div className="text-center py-20" style={{ color: "#9A9FBD" }}>Finish the draft to generate your weekly schedule.</div>;
   }
@@ -14617,8 +14621,8 @@ function ScheduleView({ state, leagueId, isCommissioner, myName, myTeamIdx, setW
       <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
         <div><h2 className="display-font text-2xl" style={{ color: "#FFD23F" }}>WEEK {week + 1} OF {schedule.length}</h2>{formatLeagueWeek(settings,week)&&<p className="text-sm" style={{color:"#9A9FBD"}}>{formatLeagueWeek(settings,week)} · {settings.leagueTimeZone||"UTC"}</p>}</div>
         <div className="flex gap-2">
-          <button disabled={week === 0} onClick={() => setWeek(week - 1)} className="px-3 py-2 rounded text-sm mono-font disabled:opacity-30" style={{ background: "#1F2338", border: "1px solid rgba(255,255,255,0.08)" }}>← PREV</button>
-          <button disabled={week >= schedule.length - 1} onClick={() => setWeek(week + 1)} className="px-3 py-2 rounded text-sm mono-font disabled:opacity-30" style={{ background: "#1F2338", border: "1px solid rgba(255,255,255,0.08)" }}>NEXT →</button>
+          <button disabled={week === 0} onClick={() => setViewedWeek(week - 1)} className="px-3 py-2 rounded text-sm mono-font disabled:opacity-30" style={{ background: "#1F2338", border: "1px solid rgba(255,255,255,0.08)" }}>← PREV</button>
+          <button disabled={week >= schedule.length - 1} onClick={() => setViewedWeek(week + 1)} className="px-3 py-2 rounded text-sm mono-font disabled:opacity-30" style={{ background: "#1F2338", border: "1px solid rgba(255,255,255,0.08)" }}>NEXT →</button>
           {isCommissioner && hasBotTeams && <button onClick={simulateWeek} className="px-4 py-2 rounded text-sm font-semibold" style={{ background: "#4FD1C5", color: "#10121C" }}>GENERATE BOT SCORES</button>}
           {canEditSchedule && !editingWeek && (
             <button onClick={startEditing} className="px-4 py-2 rounded text-sm font-semibold" style={{ background: "#1F2338", color: "#FFD23F", border: "1px solid #FFD23F55" }}>
