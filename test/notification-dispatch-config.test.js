@@ -7,6 +7,10 @@ import {
   notificationConfiguration,
 } from "../src/lib/notification-dispatch-config.js";
 import { commissionerClaimAvailable } from "../src/lib/league-commissioner-status.js";
+import {
+  classifyTeamOwnership,
+  summarizeTeamOwnership,
+} from "../src/lib/team-ownership-consistency.js";
 
 test("reports missing values without exposing configured values", () => {
   assert.deepEqual(
@@ -68,5 +72,34 @@ test("shows commissioner recovery only after an authoritative vacancy check", ()
     hasCommissioner: false,
     snapshotCommissioner: null,
   }), false);
+});
+
+test("classifies snapshot and relational team ownership consistently", () => {
+  assert.equal(classifyTeamOwnership({ snapshotUserId: null, relationalUserId: null }), "open");
+  assert.equal(classifyTeamOwnership({ snapshotUserId: "user-1", relationalUserId: "user-1" }), "consistent");
+  assert.equal(classifyTeamOwnership({ snapshotUserId: "user-1", relationalUserId: null }), "mismatch");
+  assert.equal(classifyTeamOwnership({ snapshotUserId: null, relationalUserId: "user-1" }), "mismatch");
+  assert.equal(classifyTeamOwnership({ snapshotUserId: "user-1", relationalUserId: "user-2" }), "mismatch");
+});
+
+test("reports ownership mismatches without hiding otherwise healthy teams", () => {
+  assert.deepEqual(
+    summarizeTeamOwnership([
+      { teamIndex: 0, teamName: "Surat Swalots", snapshotUserId: "user-1", relationalUserId: "user-1" },
+      { teamIndex: 1, teamName: "Artazon Smolivs", snapshotUserId: null, relationalUserId: null },
+      { teamIndex: 2, teamName: "Littleroot Mudkips", snapshotUserId: "user-2", relationalUserId: null },
+    ]),
+    {
+      consistent: 1,
+      open: 1,
+      mismatch: 1,
+      mismatches: [{
+        teamIndex: 2,
+        teamName: "Littleroot Mudkips",
+        snapshotUserId: "user-2",
+        relationalUserId: null,
+      }],
+    },
+  );
 });
 

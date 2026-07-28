@@ -2,6 +2,7 @@
   "name": "draft-league",
   "private": true,
   "version": "0.1.0",
+  "type": "module",
   "packageManager": "pnpm@11.9.0",
   "engines": {
     "node": ">=20.9.0"
@@ -11,7 +12,8 @@
     "build": "next build",
     "start": "next start",
     "test": "node --test test/notification-dispatch-config.test.js",
-    "check": "pnpm test && pnpm build"
+    "check": "pnpm test && pnpm build",
+    "smoke:production": "node scripts/production-smoke.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.3",
