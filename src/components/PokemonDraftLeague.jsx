@@ -9254,7 +9254,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
             )}
             {leagueSubTab === "schedule" && (
               <ScheduleView
-                state={state} leagueId={leagueId} isCommissioner={isCommissioner} myName={myName} myTeamIdx={myTeamIdx}
+                state={state} leagueId={leagueId} isCommissioner={isCommissioner} isSpectator={isSpectator} myName={myName} myTeamIdx={myTeamIdx}
                 simulateWeek={simulateWeek} onGenerate={generateSchedule} reportMatch={reportMatch}
                 setMatchMVP={setMatchMVP}
                 onViewTeam={goToTeam} setWeekMatchups={setWeekMatchups}
@@ -14592,7 +14592,7 @@ function MatchAvailability({ leagueId, seasonNumber, weekIndex, matchIndex, sett
   </details>;
 }
 
-function ScheduleView({ state, leagueId, isCommissioner, myName, myTeamIdx, simulateWeek, onGenerate, reportMatch, setMatchMVP, onViewTeam, setWeekMatchups }) {
+function ScheduleView({ state, leagueId, isCommissioner, isSpectator, myName, myTeamIdx, simulateWeek, onGenerate, reportMatch, setMatchMVP, onViewTeam, setWeekMatchups }) {
   const { teams, schedule, week: savedWeek, matchResults, rosters, settings } = state;
   const [week, setViewedWeek] = useState(() => Math.max(0, Math.min(Number(savedWeek) || 0, Math.max(0, schedule.length - 1))));
   const [editingWeek, setEditingWeek] = useState(false);
