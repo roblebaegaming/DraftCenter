@@ -5013,7 +5013,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     const identity = profile?.display_name || profile?.username;
     if (identity) { setMyName(identity); setNameConfirmed(true); }
   }, [profile]);
-  const myTeamIndices = state.teams
+  const myTeamIndices = displayIsSpectator ? [] : state.teams
     .map((team, index) => index)
     .filter((index) => {
       const team = state.teams[index];
@@ -9756,7 +9756,7 @@ function MyTeamView({ state, leagueId, myTeamIdx, isCommissioner, myName, myTeam
   const roster = rosters[viewedTeam] || [];
   const usesRange = settings.draftType === "auction" || settings.snakeBudgetEnabled;
   const usesBudget = usesRange;
-  const canEdit = !!team && (isCommissioner || team.claimedBy === myName);
+  const canEdit = !!team && (isCommissioner || myTeamIndices.includes(viewedTeam));
   const notebookWeeks = Math.max(
     1,
     state.schedule?.length
