@@ -384,7 +384,7 @@ return (
       {loading && <p className="muted">Loading your leagues...</p>}
       {!loading && leagues.length === 0 && <div className="empty-state"><strong>You are ready to join.</strong><p>Ask a commissioner for an invite link, or create a league if you are running the season.</p></div>}
       {!loading && leagues.length > 0 && visibleLeagues.length === 0 && <div className="empty-state"><strong>{showArchived ? "No archived leagues." : "No active leagues."}</strong><p>{showArchived ? "Leagues you archive will remain available here." : "Restore a league from Archived, join one, or create a new league."}</p></div>}
-      <div className="league-list">{visibleLeagues.map(({ league, role, archived_at: archivedAt }) => <article className="league-row dashboard-league-row dashboard-league-card" key={league.id}>
+      <div className="league-list">{visibleLeagues.map((entry) => { const { league, role, archived_at: archivedAt } = entry; return <article className="league-row dashboard-league-row dashboard-league-card" key={league.id}>
         <button type="button" className="dashboard-league-open" onClick={() => onOpenLeague({ ...league, role })}>
           {league.image_url && <img className="dashboard-league-image" src={league.image_url} alt="" />}
           <div><strong>{league.name}</strong><span>{league.on_clock ? "⚡ YOUR PICK IS ON THE CLOCK" : league.draft_live ? `● DRAFT LIVE · ${league.season_label || "New season"}` : `${league.season_label || "New season"} - ${role.replace("_", " ")}`}</span></div>
@@ -394,7 +394,7 @@ return (
           {entry.commissioner_vacant && <button type="button" className="secondary-button" disabled={Boolean(leagueActionId)} onClick={() => claimVacantCommissioner(entry)}>{leagueActionId === league.id ? "Claiming..." : "Become commissioner"}</button>}
           <button type="button" className="quiet-button dashboard-league-archive" disabled={leagueActionId === league.id} onClick={() => setLeagueArchived(league.id, !archivedAt)}>{leagueActionId === league.id ? "Saving..." : archivedAt ? "Restore" : "Archive"}</button>
         </div>
-      </article>)}</div>
+      </article>; })}</div>
     </section>
     <section className="dashboard-daily-three">
       <PollOfTheDay supabase={supabase} />
