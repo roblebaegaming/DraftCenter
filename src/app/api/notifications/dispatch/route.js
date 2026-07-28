@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "../../../../lib/supabase/admin";
+import { classifyDispatchError, notificationConfiguration } from "../../../../lib/notification-dispatch-config";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -81,6 +82,15 @@ async function deliverEmail(event, supabase) {
 }
 
 async function deliverDailyThreeResults(supabase) {
+  const { missingEmail } = notificationConfiguration();
+  if (missingEmail.length) {
+    return {
+      delivered: 0,
+      skipped: 0,
+      failed: 0,
+      configurationSkipped: true,
+    };
+  }
   const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
   const [{ data: poll }, { data: bracket }, { data: quiz }] = await Promise.all([
     supabase.from("daily_polls").select("id, question, options, answer_type").eq("poll_date", yesterday).maybeSingle(),
@@ -198,7 +208,14 @@ async function deliverPersonalDiscord(event, supabase) {
 }
 
 async function dispatchDueEvents(includeDailyThree = false) {
+  const correlationId = crypto.randomUUID();
   try {
+    const { missingBase } = notificationConfiguration();
+    if (missingBase.length) {
+      const configurationError = new Error(`Required notification configuration is missing: ${missingBase.join(", ")}`);
+      configurationError.code = "NOTIFICATION_CONFIGURATION_MISSING";
+      throw configurationError;
+    }
     const supabase = createAdminClient();
     const dailyThree = includeDailyThree ? await deliverDailyThreeResults(supabase) : { delivered: 0, skipped: 0, failed: 0 };
     const claimToken = crypto.randomUUID();
@@ -252,9 +269,33 @@ async function dispatchDueEvents(includeDailyThree = false) {
         if (failError) throw failError;
       }
     }
-    return NextResponse.json({ delivered: delivered + dailyThree.delivered, skipped: skipped + dailyThree.skipped, failed: failed + dailyThree.failed });
+    console.info("notification_dispatch_completed", {
+      correlation_id: correlationId,
+      delivered: delivered + dailyThree.delivered,
+      skipped: skipped + dailyThree.skipped,
+      failed: failed + dailyThree.failed,
+      daily_three_configuration_skipped: Boolean(dailyThree.configurationSkipped),
+    });
+    return NextResponse.json({
+      delivered: delivered + dailyThree.delivered,
+      skipped: skipped + dailyThree.skipped,
+      failed: failed + dailyThree.failed,
+      correlationId,
+    });
   } catch (error) {
-    return NextResponse.json({ error: error.message || "Notification dispatch failed." }, { status: 500 });
+    const category = classifyDispatchError(error);
+    console.error("notification_dispatch_failed", {
+      correlation_id: correlationId,
+      category,
+      code: error?.code || null,
+      message: String(error?.message || "Notification dispatch failed.").slice(0, 500),
+      release: process.env.VERCEL_GIT_COMMIT_SHA || process.env.NEXT_PUBLIC_DRAFTCENTER_RELEASE || "local",
+    });
+    return NextResponse.json({
+      error: "Notification dispatch failed.",
+      category,
+      correlationId,
+    }, { status: 500 });
   }
 }
 
