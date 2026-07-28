@@ -11879,7 +11879,7 @@ function TransactionRulesCard({ state, leagueId, isCommissioner, updateSettings 
       <p className="text-sm mb-4" style={{ color: "#9A9FBD" }}>
         Free-agent adds/drops still respect each team's point budget (if enabled) — a team can't pick up more value than it can afford without dropping enough in return. These limits control how often teams can transact at all.
       </p>
-      <fieldset disabled={!isCommissioner} className="disabled:opacity-50">
+      <fieldset disabled={!isCommissioner} className="disabled:opacity-50 min-w-0 w-full">
         <div className="mb-6 pb-6" style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
           <h3 className="display-font text-xl mb-2" style={{ color: "#4FD1C5" }}>LEAGUE CLOCK</h3>
           <p className="text-xs mb-4" style={{ color: "#9A9FBD" }}>Choose untimed play for a commissioner-led league, or anchor match weeks and waiver claims to one schedule everyone can see.</p>
@@ -12129,7 +12129,7 @@ function ScheduleAndPlayoffsCard({ state, isCommissioner, updateSettings }) {
   return (
     <div style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }} className="rounded-lg p-6 mt-6">
       <h2 className="display-font text-2xl mb-4" style={{ color: "#FFD23F" }}>SCHEDULE &amp; PLAYOFFS</h2>
-      <fieldset disabled={!isCommissioner} className="disabled:opacity-50">
+      <fieldset disabled={!isCommissioner} className="disabled:opacity-50 min-w-0 w-full">
         <label className="block text-sm mb-2" style={{ color: "#9A9FBD" }}>
           Regular season length — <span style={{ color: "#EDEBFA" }}>{effectiveWeeks} week{effectiveWeeks === 1 ? "" : "s"}</span>
           {!settings.scheduleWeeks && <span style={{ color: "#5B5F7E" }}> (auto — one full round robin)</span>}
