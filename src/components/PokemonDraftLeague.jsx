@@ -5573,6 +5573,18 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
 
   const availablePool = fullPool(state.settings).filter((p) => isLegal(p, state.settings));
 
+  const preserveCurrentPrivateQueue = useCallback((current, hydrated) => {
+    const privateQueue = myTeamIdx >= 0 ? current.queues?.[myTeamIdx] : undefined;
+    if (!Array.isArray(privateQueue)) return hydrated;
+    return {
+      ...hydrated,
+      queues: {
+        ...hydrated.queues,
+        [myTeamIdx]: privateQueue,
+      },
+    };
+  }, [myTeamIdx]);
+
   // The normal prototype uses a shared JSON snapshot. A shared live snake
   // draft instead reads the official picks from Supabase after every event;
   // the browser only projects that server state for display.
@@ -5599,7 +5611,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       hydrated.paused = false;
       hydrated.pausedAt = null;
       revRef.current = Math.max(revRef.current, hydrated.rev || 0);
-      setState(hydrated);
+      setState((current) => preserveCurrentPrivateQueue(current, hydrated));
       return;
     }
     setState((previous) => {
@@ -5668,7 +5680,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
         liveDraft: { ...previous.liveDraft, sessionId: live.session.id, status: live.session.status, pokemonIds, basePool },
       };
     });
-  }, [leagueId, supabase]);
+  }, [leagueId, supabase, preserveCurrentPrivateQueue]);
 
   const requestDueSnakeTurnResolution = useCallback(async () => {
     if (!leagueId) return false;
@@ -5692,8 +5704,8 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     const hydrated = hydrateState(remote);
     if (hydrated.settings.draftType !== "auction" || !hydrated.locked) return;
     revRef.current = Math.max(revRef.current, hydrated.rev || 0);
-    setState(hydrated);
-  }, [leagueId]);
+    setState((current) => preserveCurrentPrivateQueue(current, hydrated));
+  }, [leagueId, preserveCurrentPrivateQueue]);
 
   const applyHostedAuctionAction = useCallback(async (action, payload = {}) => {
     if (!leagueId) return null;
@@ -5719,12 +5731,12 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     if (data) {
       const hydrated = hydrateState(data);
       revRef.current = Math.max(revRef.current, hydrated.rev || 0);
-      setState(hydrated);
+      setState((current) => preserveCurrentPrivateQueue(current, hydrated));
       setLiveDraftError("");
       return hydrated;
     }
     return null;
-  }, [leagueId, supabase, refreshLiveAuction]);
+  }, [leagueId, supabase, refreshLiveAuction, preserveCurrentPrivateQueue]);
 
   useEffect(() => {
     if (!leagueId) return undefined;
@@ -6694,6 +6706,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       queues: { ...current.queues, [teamIdx]: queue },
     }));
     setSaveStatus("saved");
+    setLiveDraftError("");
     return true;
   }
   function addToQueue(teamIdx, name) {
@@ -13675,7 +13688,9 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
               : affordLimit;
             const auctionN = auctionNominationOrder.length;
             const onDeckTeamIdx = auctionN ? auctionNominationOrder[auctionNominationIdx % auctionN] : null;
-            const canNominate = draftType === "auction" && (isCommissioner || myTeamIdx === onDeckTeamIdx);
+            const canNominate = draftType === "auction"
+              && !paused
+              && (isCommissioner || myTeamIdx === onDeckTeamIdx);
             const q = poolSearch.trim().toLowerCase();
             const statMinNum = poolStatMin === "" ? null : Number(poolStatMin);
             const dirMul = poolSortDir === "asc" ? -1 : 1;
@@ -13740,6 +13755,15 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
                     <MonAbilities mon={p} className="text-[9px] mono-font mt-1" style={{ color: "#5B5F7E" }} />
                     {unavailableReason && <div className="text-[9px] mono-font mt-2" style={{ color: capReason ? "#9A9FBD" : "#F0555A" }}>{capReason ? "LIMIT REACHED" : unavailableReason}</div>}
                   </button>
+                  {draftType === "auction" && canNominate && !nominee && (
+                    <button
+                      onClick={() => { setPendingNominee(p); setPendingBid("1"); }}
+                      className="mt-2 w-full text-xs py-1.5 rounded mono-font font-semibold"
+                      style={{ background: "#FFD23F", color: "#10121C" }}
+                    >
+                      NOMINATE
+                    </button>
+                  )}
                   {draftType === "snake" && myTeamIdx >= 0 && (
                     myOwnTurn ? (
                       <button onClick={() => snakePick(p)} disabled={cantAfford || !!capReason}
@@ -13768,6 +13792,19 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
 
             return (
               <div className="mb-8">
+                {draftType === "auction" && canNominate && !nominee && (
+                  <div
+                    className="rounded-lg px-4 py-3 mb-3"
+                    style={{ background: "#FFD23F18", border: "1px solid #FFD23F66" }}
+                  >
+                    <strong className="block text-sm" style={{ color: "#FFD23F" }}>
+                      {myTeamIdx === onDeckTeamIdx ? "YOUR NOMINATION TURN" : "COMMISSIONER NOMINATION CONTROL"}
+                    </strong>
+                    <span className="text-xs" style={{ color: "#C9CBE0" }}>
+                      Choose any available Pokémon below and click NOMINATE. Adding it to your queue first is optional.
+                    </span>
+                  </div>
+                )}
                 <div className="flex items-center gap-2 mb-3 flex-wrap">
                   <input
                     type="text" value={poolSearch} onChange={(e) => setPoolSearch(e.target.value)}
