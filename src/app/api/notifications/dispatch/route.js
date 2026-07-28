@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "../../../../lib/supabase/admin";
-import { classifyDispatchError, notificationConfiguration } from "../../../../lib/notification-dispatch-config";
+import { classifyDispatchError, notificationConfiguration, notificationEventIsStale } from "../../../../lib/notification-dispatch-config";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -227,6 +227,15 @@ async function dispatchDueEvents(includeDailyThree = false) {
     let delivered = 0; let skipped = 0; let failed = 0;
     for (const event of events || []) {
       try {
+        if (notificationEventIsStale(event)) {
+          const { data: completed, error: completeError } = await supabase.rpc("complete_notification_event", {
+            p_event_id: event.id,
+            p_claim_token: claimToken,
+          });
+          if (completeError || !completed) throw completeError || new Error("The stale notification claim expired before completion.");
+          skipped += 1;
+          continue;
+        }
         const result = event.channel === "discord" || event.channel === "discord_dm" ? await deliverDiscord(event, supabase) : await deliverEmail(event, supabase);
         if (result.deferredUntil) {
           const { data: deferred, error: deferError } = await supabase.rpc("defer_notification_event", {

@@ -19,6 +19,21 @@ export function notificationConfiguration(environment = process.env) {
   };
 }
 
+const MAX_EVENT_AGE_MS = {
+  draft_turn: 15 * 60 * 1000,
+  draft_schedule_update: 60 * 60 * 1000,
+  stream_live: 60 * 60 * 1000,
+  draft_reminder: 2 * 60 * 60 * 1000,
+  match_reminder: 2 * 60 * 60 * 1000,
+};
+
+export function notificationEventIsStale(event, now = Date.now()) {
+  const scheduledAt = Date.parse(event?.scheduled_for || "");
+  if (!Number.isFinite(scheduledAt)) return true;
+  const maxAge = MAX_EVENT_AGE_MS[event?.kind] || 24 * 60 * 60 * 1000;
+  return now - scheduledAt > maxAge;
+}
+
 export function classifyDispatchError(error) {
   const message = String(error?.message || error || "");
   const code = String(error?.code || "");

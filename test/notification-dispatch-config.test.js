@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   classifyDispatchError,
   missingEnvironmentVariables,
+  notificationEventIsStale,
   notificationConfiguration,
 } from "../src/lib/notification-dispatch-config.js";
 
@@ -29,5 +30,15 @@ test("classifies common failures into privacy-safe operational categories", () =
   assert.equal(classifyDispatchError({ code: "42703", message: "column event.created_at does not exist" }), "database");
   assert.equal(classifyDispatchError(new Error("Required value is missing")), "configuration");
   assert.equal(classifyDispatchError(new Error("Unexpected failure")), "unknown");
+});
+
+test("expires time-sensitive notification events before late delivery", () => {
+  const now = Date.parse("2026-07-28T20:00:00Z");
+  assert.equal(notificationEventIsStale({ kind: "draft_turn", scheduled_for: "2026-07-28T19:44:59Z" }, now), true);
+  assert.equal(notificationEventIsStale({ kind: "draft_turn", scheduled_for: "2026-07-28T19:50:00Z" }, now), false);
+  assert.equal(notificationEventIsStale({ kind: "draft_schedule_update", scheduled_for: "2026-07-28T18:59:59Z" }, now), true);
+  assert.equal(notificationEventIsStale({ kind: "draft_reminder", scheduled_for: "2026-07-28T18:30:00Z" }, now), false);
+  assert.equal(notificationEventIsStale({ kind: "result_posted", scheduled_for: "2026-07-27T19:59:59Z" }, now), true);
+  assert.equal(notificationEventIsStale({ kind: "draft_turn", scheduled_for: null }, now), true);
 });
 
