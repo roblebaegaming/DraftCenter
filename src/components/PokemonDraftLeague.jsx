@@ -11210,7 +11210,7 @@ function SetupView({ state, leagueId = null, isCommissioner, canBeCommissioner, 
             </p>
           )}
           {locked && <p className="text-xs mb-3" style={{ color: "#5B5F7E" }}>Locked — the draft has already started.</p>}
-          <fieldset disabled={!isCommissioner || locked} className="disabled:opacity-50 mt-3">
+          <fieldset disabled={!isCommissioner || locked} className="disabled:opacity-50 mt-3 min-w-0 w-full">
             <div className="flex gap-2 mb-6">
               {["snake", "auction"].map((dt) => (
                 <button key={dt} type="button" onClick={() => updateSettings({ draftType: dt })}
@@ -11380,7 +11380,7 @@ function SetupView({ state, leagueId = null, isCommissioner, canBeCommissioner, 
                     className="w-24 px-3 py-2 rounded mono-font text-sm" style={{ background: "#1F2338", border: "1px solid rgba(255,255,255,0.1)", color: "#EDEBFA" }} />
                   <span className="text-sm self-center" style={{ color: "#9A9FBD" }}>minutes (0 = no limit)</span>
                 </div>
-                <div className="flex gap-2 mb-4">
+                <div className="flex gap-2 mb-4 flex-wrap">
                   {[0, 2, 5, 15, 60, 360, 720, 1440].map((mins) => (
                     <button key={mins} type="button" onClick={() => updateSettings({ pickTimeLimitMinutes: mins })}
                       className="px-2 py-1 rounded text-xs mono-font" style={{ background: settings.pickTimeLimitMinutes === mins ? "#FFD23F" : "#1F2338", color: settings.pickTimeLimitMinutes === mins ? "#10121C" : "#9A9FBD", border: "1px solid rgba(255,255,255,0.08)" }}>
