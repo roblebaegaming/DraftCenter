@@ -6738,7 +6738,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     if (state.pickIndex >= state.snakeOrder.length) return;
     const teamIdx = state.snakeOrder[state.pickIndex];
     const team = state.teams[teamIdx];
-    if (team?.claimedBy) return;
+    if (teamHasManager(team)) return;
     if (leagueId && !isCommissioner) return;
     const rosterCount = (state.rosters[teamIdx] || []).length;
     if (rosterCount < state.settings.rosterMin) return;
@@ -6780,7 +6780,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     const team = state.teams[teamIdx];
     const turnKey = `${state.pickIndex}:${teamIdx}:${team?.id || ""}`;
     if (lastAutoFired.current === turnKey) return;
-    const isBotTeam = !team?.claimedBy;
+    const isBotTeam = !teamHasManager(team);
     if (!team?.autoDraft && !isBotTeam) return;
     if (leagueId && (
       (isBotTeam && !isCommissioner)
@@ -6880,7 +6880,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
 
   function botReachedAuctionRosterTarget(s, teamIdx) {
     const team = s.teams[teamIdx];
-    if (!team || team.claimedBy) return false;
+    if (!team || teamHasManager(team)) return false;
     const rosterCount = (s.rosters[teamIdx] || []).length;
     return rosterCount >= s.settings.rosterMax;
   }
@@ -6923,7 +6923,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     const nomKey = state.auctionNominationIdx;
     const teamIdx = state.auctionNominationOrder[nomKey % n];
     const team = state.teams[teamIdx];
-    const isBotTeam = !team?.claimedBy;
+    const isBotTeam = !teamHasManager(team);
     const fastTrack = isBotTeam || !!team?.autoDraft;
     if (leagueId && (
       (isBotTeam && !isCommissioner)
@@ -7036,7 +7036,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     const timers = [];
     state.teams.forEach((team, teamIdx) => {
       if (teamIdx === currentBidder) return;
-      const isBotTeam = !team?.claimedBy;
+      const isBotTeam = !teamHasManager(team);
       if (leagueId && ((isBotTeam && !isCommissioner) || (!isBotTeam && teamIdx !== myTeamIdx))) return;
       if (!team?.autoDraft && !isBotTeam) return;
       if ((state.rosters[teamIdx] || []).length >= state.settings.rosterMax) return;
@@ -7474,13 +7474,13 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     if (!isCommissioner) return;
     commit((s) => {
       if (!s.schedule[s.week]) return s;
-      const hasBotTeams = s.teams.some((team) => !team?.claimedBy);
+      const hasBotTeams = s.teams.some((team) => !teamHasManager(team));
       if (!hasBotTeams) return s;
       const matchResults = { ...s.matchResults };
       s.schedule[s.week].forEach(([a, b], idx) => {
         const key = `${s.week}-${idx}`;
         if (matchResults[key]) return; // don't overwrite already-reported matches
-        if (s.teams[a]?.claimedBy && s.teams[b]?.claimedBy) return; // human-vs-human matches must be reported
+        if (teamHasManager(s.teams[a]) && teamHasManager(s.teams[b])) return; // human-vs-human matches must be reported
         const bstA = (s.rosters[a] || []).reduce((sum, m) => sum + m.bst, 0) || 300;
         const bstB = (s.rosters[b] || []).reduce((sum, m) => sum + m.bst, 0) || 300;
         const aFavored = bstA + Math.random() * 200 > bstB + Math.random() * 200;
@@ -9848,8 +9848,8 @@ function MyTeamView({ state, leagueId, myTeamIdx, isCommissioner, myName, myTeam
           const oppIdx = match[0] === myTeamIdx ? match[1] : match[0];
           if (oppIdx == null || oppIdx < 0 || !teams[oppIdx]) return null;
           const canCoordinate = Boolean(leagueId)
-            && Boolean(teams[myTeamIdx]?.claimedBy)
-            && Boolean(teams[oppIdx]?.claimedBy);
+            && teamHasManager(teams[myTeamIdx])
+            && teamHasManager(teams[oppIdx]);
           return (
             <div className="mt-3">
               <button onClick={() => setViewedTeam(oppIdx)}
@@ -14470,6 +14470,10 @@ function availabilityInput(value) {
   return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
+function teamHasManager(team) {
+  return Boolean(team?.claimedByUserId || team?.claimedBy);
+}
+
 function MatchAvailability({ leagueId, seasonNumber, weekIndex, matchIndex, settings }) {
   const [supabase] = useState(() => createClient());
   const [open, setOpen] = useState(false);
@@ -14604,7 +14608,7 @@ function ScheduleView({ state, leagueId, isCommissioner, isSpectator, myName, my
     return <div className="text-center py-20" style={{ color: "#9A9FBD" }}>Finish the draft to generate your weekly schedule.</div>;
   }
   const canEditSchedule = isCommissioner && settings.manualScheduling;
-  const hasBotTeams = teams.some((team) => !team?.claimedBy);
+  const hasBotTeams = teams.some((team) => !teamHasManager(team));
 
   function startEditing() {
     setDraftPairs(schedule[week].map((pair) => [...pair]));
@@ -14668,8 +14672,8 @@ function ScheduleView({ state, leagueId, isCommissioner, isSpectator, myName, my
         <div className="grid sm:grid-cols-2 gap-4">
           {schedule[week].map(([a, b], idx) => {
             const key = `${week}-${idx}`;
-            const canReport = isCommissioner || teams[a]?.claimedBy === myName || teams[b]?.claimedBy === myName;
-            const canCoordinate = Boolean(leagueId) && (myTeamIdx===a||myTeamIdx===b) && Boolean(teams[a]?.claimedBy) && Boolean(teams[b]?.claimedBy);
+            const canReport = isCommissioner || myTeamIdx===a || myTeamIdx===b;
+            const canCoordinate = Boolean(leagueId) && (myTeamIdx===a||myTeamIdx===b) && teamHasManager(teams[a]) && teamHasManager(teams[b]);
             return (
               <MatchCard key={idx} teamA={teams[a]} teamB={teams[b]} result={matchResults[key]} canReport={canReport}
                 onReport={(...args) => reportMatch(week, idx, ...args)}
