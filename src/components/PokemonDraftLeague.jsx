@@ -14627,7 +14627,7 @@ function ScheduleView({ state, leagueId, isCommissioner, myName, myTeamIdx, setW
           )}
         </div>
       </div>
-      {!isCommissioner && hasBotTeams && <p className="text-xs mb-4" style={{ color: "#5B5F7E" }}>The commissioner can simulate matches involving bot teams; you can report your own match below.</p>}
+      {!isCommissioner && hasBotTeams && <p className="text-xs mb-4" style={{ color: "#5B5F7E" }}>{isSpectator ? "The commissioner can simulate matches involving bot teams. Spectators can follow results and scout rosters." : "The commissioner can simulate matches involving bot teams; you can report your own match below."}</p>}
 
       {editingWeek ? (
         <div style={{ background: "#171A2C", border: "1px solid #FFD23F55" }} className="rounded-lg p-4 mb-6">
