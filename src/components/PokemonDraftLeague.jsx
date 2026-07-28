@@ -8999,27 +8999,27 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
         .turn-pulse { animation: turnPulse 1.4s ease-in-out infinite; }
       `}</style>
 
-      <div style={{ borderBottom: "1px solid rgba(255,255,255,0.08)", background: "#141729" }} className="sticky top-0 z-10">
+      <div style={{ borderBottom: "1px solid rgba(255,255,255,0.08)", background: "#141729" }} className="league-shell-header sticky top-0 z-10">
         {previewReadOnly && <div className="px-6 py-2 text-center text-xs font-semibold" style={{ background: displayIsSpectator ? "#315887" : "#17443f", color: "#e9f2ff" }}>{displayIsSpectator ? "SPECTATOR PREVIEW" : "MANAGER PREVIEW"} — display only; your commissioner permissions have not changed.</div>}
         {isSpectator && <div className="px-6 py-2 text-center text-xs font-semibold" style={{ background: "#315887", color: "#e9f2ff" }}>SPECTATOR MODE — You can explore this league, but cannot claim a team, make picks, or change league data.</div>}
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between flex-wrap gap-3">
-          <div className="flex items-center gap-3">
-            <img src={league?.image_url || "/draftcenter-logo.png"} alt="" style={{ width: 44, height: 44, objectFit: "cover", borderRadius: 10 }} />
-            <span className="display-font text-3xl font-semibold tracking-wide" style={{ color: "#FFD23F" }}>{league?.name || "DRAFTCENTER"}</span>
+        <div className="league-header-inner max-w-6xl mx-auto px-6 py-4 flex items-center justify-between flex-wrap gap-3">
+          <div className="league-brand flex items-center gap-3">
+            <img className="league-brand-image" src={league?.image_url || "/draftcenter-logo.png"} alt="" style={{ width: 44, height: 44, objectFit: "cover", borderRadius: 10 }} />
+            <span className="league-brand-name display-font text-3xl font-semibold tracking-wide" style={{ color: "#FFD23F" }}>{league?.name || "DRAFTCENTER"}</span>
             {state.settings.publicLeague && (
-              <span className="mono-font text-[10px] px-2 py-0.5 rounded font-semibold" style={{ background: "#4FD1C522", color: "#4FD1C5", border: "1px solid #4FD1C555" }}>
+              <span className="league-public-badge mono-font text-[10px] px-2 py-0.5 rounded font-semibold" style={{ background: "#4FD1C522", color: "#4FD1C5", border: "1px solid #4FD1C555" }}>
                 🌐 PUBLIC
               </span>
             )}
             <IdentityBadge synced={synced} myName={myName} isCommissioner={isCommissioner} renameMe={renameMe} />
           </div>
-          {leagueId && displayIsCommissioner && <button onClick={saveNow} className="mono-font text-[10px] px-2 py-1 rounded font-semibold" style={{ background: saveStatus === "error" ? "#F0555A22" : "#4FD1C522", color: saveStatus === "error" ? "#F0555A" : "#4FD1C5", border: "1px solid currentColor" }}>
+          {leagueId && displayIsCommissioner && <button onClick={saveNow} className="league-save-state mono-font text-[10px] px-2 py-1 rounded font-semibold" style={{ background: saveStatus === "error" ? "#F0555A22" : "#4FD1C522", color: saveStatus === "error" ? "#F0555A" : "#4FD1C5", border: "1px solid currentColor" }}>
             {saveStatus === "saving" ? "SAVING..." : saveStatus === "error" ? "SAVE FAILED — RETRY" : "SAVED"}
           </button>}
-          <nav className="flex flex-wrap gap-1 justify-end">
+          <nav className="league-primary-nav flex flex-wrap gap-1 justify-end" aria-label="League sections">
             {[
-              ["home", `${league?.name || "League"} Home`],
-              ...(displayIsCommissioner ? [["setup", "Setup"]] : displayRole === "manager" ? [["setup", "League Details"]] : []),
+              ["home", "Home", "Home"],
+              ...(displayIsCommissioner ? [["setup", "Setup", "Setup"]] : displayRole === "manager" ? [["setup", "Details", "Details"]] : []),
               // Pre-lock, there's no live draft yet — just one coming up —
               // so it's its own clearly-labeled top-level tab. The moment
               // the draft actually starts, it stops being a standalone
@@ -9030,13 +9030,13 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
               // the future draft time. Once live, the actual Draft appears in
               // the League area below instead of two competing Draft buttons.
               ...(!state.locked && (displayIsCommissioner || (!displayIsSpectator && hasScheduledDraftTime))
-                ? [["draft", hasScheduledDraftTime ? "Draft Room" : "Schedule"]]
+                ? [["draft", hasScheduledDraftTime ? "Draft Room" : "Schedule", hasScheduledDraftTime ? "Draft" : "Schedule"]]
                 : []),
-              ["myteam", displayIsSpectator ? "Teams" : "My Team"],
-              ...(state.locked ? [["league", "League"]] : []),
-              ...(displayIsSpectator && state.locked ? [["predictions", "Predictions"]] : []),
-              ...(!displayIsSpectator ? [["messages", "Messages"]] : []),
-            ].map(([key, label]) => {
+              ["myteam", displayIsSpectator ? "Teams" : "My Team", displayIsSpectator ? "Teams" : "Team"],
+              ...(state.locked ? [["league", "League", "League"]] : []),
+              ...(displayIsSpectator && state.locked ? [["predictions", "Predictions", "Picks"]] : []),
+              ...(!displayIsSpectator ? [["messages", "Messages", "Messages"]] : []),
+            ].map(([key, label, mobileLabel]) => {
               // Pulses on League itself once the draft's underway and it's
               // your turn — the tab holding the actual Draft sub-tab now,
               // rather than a separate top-level Draft tab to pulse on.
@@ -9045,14 +9045,16 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
               return (
                 <button
                   key={key} onClick={() => setTab(key)}
-                  className={`relative px-4 py-2 rounded text-sm font-semibold transition-colors ${flagMyTurn ? "turn-pulse" : ""}`}
+                  className={`league-nav-button relative px-4 py-2 rounded text-sm font-semibold transition-colors ${flagMyTurn ? "turn-pulse" : ""}`}
                   style={{
                     fontFamily: "'Teko', sans-serif", fontSize: "16px", letterSpacing: "0.03em",
                     background: tab === key ? "#FFD23F" : flagMyTurn ? "#4FD1C5" : "transparent",
                     color: tab === key ? "#10121C" : flagMyTurn ? "#10121C" : "#C9CBE0",
                   }}
                 >
-                  {label.toUpperCase()}{flagMyTurn ? " •" : ""}
+                  <span className="league-nav-label-full">{label.toUpperCase()}</span>
+                  <span className="league-nav-label-short">{mobileLabel.toUpperCase()}</span>
+                  {flagMyTurn ? " •" : ""}
                   {badgeCount > 0 && (
                     <span className="mono-font" style={{
                       position: "absolute", top: -4, right: -4, minWidth: 18, height: 18, padding: "0 4px",
@@ -9074,16 +9076,17 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
                 reverseTrade,
                 reverseFreeAgentMove,
               })}
-                  className="px-4 py-2 rounded text-sm font-semibold"
+                  className="league-nav-button px-4 py-2 rounded text-sm font-semibold"
                   style={{ fontFamily: "'Teko', sans-serif", fontSize: "16px", letterSpacing: "0.03em", background: "#253354", color: "#D9E5FF", border: "1px solid #4B669B" }}>
-                  LEAGUE TOOLS
+                  <span className="league-nav-label-full">LEAGUE TOOLS</span>
+                  <span className="league-nav-label-short">TOOLS</span>
                 </button>
               </>
             )}
           </nav>
         </div>
         {isCommissioner && leagueId && (
-          <div className="max-w-6xl mx-auto px-6 pb-3 flex items-center justify-end gap-2 flex-wrap">
+          <div className="league-role-preview max-w-6xl mx-auto px-6 pb-3 flex items-center justify-end gap-2 flex-wrap">
             <span className="mono-font text-[10px]" style={{ color: "#9A9FBD" }}>VIEW AS</span>
             {[["commissioner", "Commissioner"], ["manager", "Manager"], ["spectator", "Spectator"]].map(([role, label]) => (
               <button key={role} type="button" onClick={() => { setRolePreview(role); setTab("home"); }}
@@ -9113,7 +9116,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
         )}
       </div>
 
-      <div className="max-w-6xl mx-auto px-6 py-8">
+      <div className="league-content max-w-6xl mx-auto px-6 py-8">
         {liveDraftError && <div className="mb-4 rounded p-3 text-sm" style={{ background: "#2A1620", color: "#FFD6D6", border: "1px solid #F0555A66" }}>{liveDraftError}</div>}
         {tab === "home" && (
           <HomeView state={state} leagueId={leagueId} leagueName={league?.name} isCommissioner={displayIsCommissioner} isSpectator={displayIsSpectator} myTeamIdx={myTeamIdx} standings={standings}
@@ -9349,8 +9352,11 @@ function IdentityBadge({ synced, myName, isCommissioner, renameMe }) {
     );
   }
   return (
-    <span className="mono-font text-[11px] flex items-center gap-1" style={{ color: "#9A9FBD" }}>
-      {synced ? "SYNCED" : "SYNCING…"} · {myName}{isCommissioner ? " (COMMISSIONER)" : ""}
+    <span className="league-identity-badge mono-font text-[11px] flex items-center gap-1" style={{ color: "#9A9FBD" }}>
+      <span className="league-sync-state">{synced ? "SYNCED" : "SYNCING…"}</span>
+      <span className="league-identity-separator">·</span>
+      <span className="league-identity-name">{myName}</span>
+      {isCommissioner && <span className="league-identity-role"> (COMMISSIONER)</span>}
       <button onClick={() => setEditing(true)} title="Fix a typo in your name" style={{ color: "#5B5F7E" }}>✎</button>
     </span>
   );
@@ -9373,7 +9379,7 @@ function DraftStatsStrip({ state, myTeamIdx }) {
 
   return (
     <div style={{ background: "#0D0F1A", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-      <div className="max-w-6xl mx-auto px-6 py-2 flex items-center gap-4 flex-wrap mono-font text-xs">
+      <div className="draft-stats-summary max-w-6xl mx-auto px-6 py-2 flex items-center gap-4 flex-wrap mono-font text-xs">
         <span style={{ color: "#9A9FBD" }}>
           Your mons: <span style={{ color: "#EDEBFA" }}>{count}{usesRange ? `/${settings.rosterMax}` : `/${settings.rosterSize}`}</span>
         </span>
@@ -9392,7 +9398,7 @@ function DraftStatsStrip({ state, myTeamIdx }) {
         )}
       </div>
       {types.length > 0 && (
-        <div className="max-w-6xl mx-auto px-6 pb-2 flex items-center gap-1.5 flex-wrap">
+        <div className="draft-stats-types max-w-6xl mx-auto px-6 pb-2 flex items-center gap-1.5 flex-wrap">
           <span className="mono-font text-[10px]" style={{ color: "#5B5F7E" }}>Types:</span>
           {types.map(([type, n]) => {
             const c = TYPE_COLORS[type];

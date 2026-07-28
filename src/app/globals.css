@@ -163,3 +163,33 @@ button { cursor: pointer; }
 
 /* Rehearsal feedback and privacy-safe operational evidence. */
 .feedback-modal{width:min(920px,calc(100vw - 28px));max-height:94vh;overflow:auto}.feedback-form{padding:16px;border:1px solid #303958;border-radius:12px;background:#0d1224}.feedback-two-column{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.feedback-monitor-test{margin-top:18px;padding:16px;border:1px solid #4fd1c555;border-radius:12px;background:#10172b}.feedback-monitor-test h3{margin-top:0;color:#4fd1c5}.feedback-list{display:grid;gap:10px;margin-top:22px}.feedback-list>h3{margin-bottom:0;color:#ffd23f}.feedback-list article{display:grid;gap:7px;padding:13px;border:1px solid #303958;border-radius:10px;background:#111625}.feedback-list header{display:flex;align-items:center;gap:9px;flex-wrap:wrap}.feedback-list header strong{color:#4fd1c5;font-family:"IBM Plex Mono",monospace}.feedback-list header b{margin-left:auto;color:#ffd23f;font-size:12px}.feedback-list article p{margin:0;color:#e6e9fa;white-space:pre-wrap}.feedback-list article small{display:block;color:#9da8ce;overflow-wrap:anywhere}.feedback-list article label{display:grid;grid-template-columns:auto minmax(170px,260px);align-items:center;justify-content:start;gap:9px;margin-top:4px}.feedback-status{padding:3px 7px;border:1px solid #45517a;border-radius:999px;color:#cbd4ff;background:#1b2340;font-size:10px;font-weight:900;text-transform:uppercase}.feedback-status-verified{color:#bdf7ee;border-color:#4fd1c5}.feedback-status-fixing,.feedback-status-ready-to-retest{color:#fff2ad;border-color:#ffd23f}.feedback-status-deferred{color:#ccd1e4;border-color:#66708d}@media(max-width:650px){.feedback-two-column{grid-template-columns:1fr}.feedback-list article label{grid-template-columns:1fr}.feedback-list header b{margin-left:0}}
+
+/* Compact league navigation: one calm line per control strip on phones. */
+.account-label-short,.league-nav-label-short{display:none}
+@media(max-width:760px){
+  .site-account{display:flex;min-height:50px;padding:8px 10px;gap:6px;align-items:center;justify-content:flex-start;flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none}
+  .site-account::-webkit-scrollbar,.league-primary-nav::-webkit-scrollbar,.league-role-preview::-webkit-scrollbar,.draft-stats-summary::-webkit-scrollbar,.draft-stats-types::-webkit-scrollbar{display:none}
+  .site-account>*{flex:0 0 auto}
+  .site-account>span{order:-1;margin:0 2px 0 0;padding:7px 9px;border-radius:999px;background:#202944;color:#cbd4ff}
+  .site-account a,.site-account button{display:inline-flex;align-items:center;justify-content:center;min-height:34px;padding:6px 9px;white-space:nowrap}
+  .site-account-league .site-account-secondary{display:none}
+  .account-label-full{display:none}
+  .account-label-short{display:inline}
+
+  .league-header-inner{display:grid!important;grid-template-columns:minmax(0,1fr) auto;align-items:center!important;gap:8px!important;padding:10px 12px 8px!important}
+  .league-brand{min-width:0;gap:8px!important}
+  .league-brand-image{width:34px!important;height:34px!important;border-radius:8px!important;flex:0 0 auto}
+  .league-brand-name{min-width:0;overflow:hidden;font-size:24px!important;line-height:1;text-overflow:ellipsis;white-space:nowrap}
+  .league-public-badge,.league-identity-badge{display:none!important}
+  .league-save-state{flex:0 0 auto;min-height:28px;padding:4px 7px!important;font-size:9px!important;white-space:nowrap}
+  .league-primary-nav{grid-column:1/-1;display:flex!important;width:100%;padding:2px 0;gap:4px!important;align-items:center;justify-content:flex-start!important;flex-wrap:nowrap!important;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none}
+  .league-nav-button{flex:0 0 auto;min-height:34px;padding:7px 10px!important;font-size:15px!important;white-space:nowrap}
+  .league-nav-label-full{display:none}
+  .league-nav-label-short{display:inline}
+  .league-role-preview{padding:0 12px 8px!important;justify-content:flex-start!important;flex-wrap:nowrap!important;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none}
+  .league-role-preview>*{flex:0 0 auto}
+  .league-content{padding:18px 12px 34px!important}
+  .league-content .p-5{padding:16px!important}
+  .draft-stats-summary,.draft-stats-types{padding-left:12px!important;padding-right:12px!important;flex-wrap:nowrap!important;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none}
+  .draft-stats-summary>*,.draft-stats-types>*{flex:0 0 auto}
+}
