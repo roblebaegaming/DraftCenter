@@ -11569,7 +11569,7 @@ function SetupView({ state, leagueId = null, isCommissioner, canBeCommissioner, 
           {viewMode === "board" ? (
             <PriceBoard pool={visiblePool} settings={settings} costFor={costFor} isCommissioner={isCommissioner} setMonCost={setMonCost} isLegal={isLegal} updateSettings={updateSettings} />
           ) : (
-          <div className="max-h-80 overflow-y-auto grid grid-cols-2 gap-2 pr-1">
+          <div className="max-h-80 overflow-y-auto grid grid-cols-1 sm:grid-cols-2 gap-2 pr-1">
             {visiblePool.map((p) => {
               const legal = isLegal(p, settings);
               const banned = settings.bannedMons.includes(p.name);
