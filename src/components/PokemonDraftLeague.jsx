@@ -4661,6 +4661,11 @@ async function loadRemote(leagueId) {
     return null;
   }
 }
+
+function hasPersistedSetupTeams(remote) {
+  return Array.isArray(remote?.teams) && remote.teams.length > 0;
+}
+
 async function saveRemote(state, leagueId) {
   try {
     if (leagueId) {
@@ -4953,7 +4958,13 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   // exact shape a future cross-league "My Teams" picker would reuse — this
   // just has one league's worth of options to choose from for now.
   const [activeTeamIdx, setActiveTeamIdx] = useState(null);
-  const [state, setState] = useState(freshState());
+  const [state, setState] = useState(() => freshState());
+  // A brand-new hosted league historically starts with an empty `{}` server
+  // snapshot. Keep the first locally generated setup stable long enough for
+  // the commissioner to persist it atomically; otherwise every browser can
+  // render a different random set of teams while all of them say SYNCED.
+  const initialSetupSeedRef = useRef(state);
+  const setupInitializationInFlightRef = useRef(false);
   const [synced, setSynced] = useState(false);
   const [saveStatus, setSaveStatus] = useState(leagueId ? "loading" : "local");
   const [liveDraftError, setLiveDraftError] = useState("");
@@ -5066,8 +5077,40 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   useEffect(() => {
     let alive = true;
     async function pull() {
-      const remote = await loadRemote(leagueId);
+      let remote = await loadRemote(leagueId);
       if (!alive) return;
+      if (leagueId && remote && !hasPersistedSetupTeams(remote)) {
+        if (isCommissioner) {
+          // Multiple commissioner tabs are safe: the RPC locks the snapshot
+          // row and returns the already-persisted setup if another tab won.
+          if (setupInitializationInFlightRef.current) return;
+          setupInitializationInFlightRef.current = true;
+          const { data: initialized, error: initializeError } = await supabase.rpc(
+            "initialize_league_setup_if_empty",
+            { p_league_id: leagueId, p_state: initialSetupSeedRef.current },
+          );
+          setupInitializationInFlightRef.current = false;
+          if (!alive) return;
+          if (initializeError) {
+            setSynced(true);
+            setSaveStatus("error");
+            setLiveDraftError(reportLeagueFailure(
+              "commissioner_action_failed",
+              "initialize_league_setup",
+              initializeError,
+              `The new league setup could not be initialized: ${initializeError.message}`,
+            ));
+            return;
+          }
+          remote = initialized;
+          setLiveDraftError("");
+        } else {
+          // Managers who reach an invite before the commissioner finishes
+          // initialization should see an honest waiting state, never a
+          // browser-local random team list that looks authoritative.
+          remote = { ...remote, rev: Number(remote.rev) || 0, teams: [] };
+        }
+      }
       if (remote && remote.rev >= revRef.current) {
         revRef.current = remote.rev;
         setState((current) => {
@@ -5108,7 +5151,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     pull();
     const iv = setInterval(pull, 4000);
     return () => { alive = false; clearInterval(iv); };
-  }, [leagueId, myTeamIdx]);
+  }, [leagueId, myTeamIdx, isCommissioner, supabase]);
 
   const commit = useCallback((updater) => {
     if (isSpectator || commissionerPreviewActive) return;
@@ -9183,10 +9226,11 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
           />
         )}
         {tab === "myteam" && (
-          <MyTeamView state={state} leagueId={leagueId} myTeamIdx={myTeamIdx} isCommissioner={displayIsCommissioner} myName={myName}
+          <MyTeamView state={state} leagueId={leagueId} myTeamIdx={myTeamIdx} isCommissioner={displayIsCommissioner} isSpectator={displayIsSpectator} myName={myName}
             myTeamIndices={myTeamIndices} activeTeamIdx={activeTeamIdx} setActiveTeamIdx={setActiveTeamIdx}
             renameTeam={renameTeam} setTeamLogo={setTeamLogo} setTeamColor={setTeamColor} setTeamDescription={setTeamDescription}
-            viewTeamRequest={viewTeamRequest} clearViewTeamRequest={() => setViewTeamRequest(null)} setKeeperSelection={setKeeperSelection} />
+            viewTeamRequest={viewTeamRequest} clearViewTeamRequest={() => setViewTeamRequest(null)} setKeeperSelection={setKeeperSelection}
+            onChooseTeam={() => setTab("setup")} />
         )}
         {tab === "predictions" && displayIsSpectator && (
           <PredictionsView state={state} myName={myName} submitPrediction={submitPrediction} onViewTeam={goToTeam} readOnly={previewReadOnly} />
@@ -9727,7 +9771,7 @@ function PrivateTeamNotebook({ leagueId, teamIndex, currentWeek, totalWeeks }) {
   );
 }
 
-function MyTeamView({ state, leagueId, myTeamIdx, isCommissioner, myName, myTeamIndices, activeTeamIdx, setActiveTeamIdx, renameTeam, setTeamLogo, setTeamColor, setTeamDescription, viewTeamRequest, clearViewTeamRequest, setKeeperSelection }) {
+function MyTeamView({ state, leagueId, myTeamIdx, isCommissioner, isSpectator = false, myName, myTeamIndices, activeTeamIdx, setActiveTeamIdx, renameTeam, setTeamLogo, setTeamColor, setTeamDescription, viewTeamRequest, clearViewTeamRequest, setKeeperSelection, onChooseTeam }) {
   const { teams, rosters, budgets, settings, locked } = state;
   const [viewedTeam, setViewedTeam] = useState(myTeamIdx >= 0 ? myTeamIdx : 0);
   const [editingName, setEditingName] = useState(false);
@@ -9789,6 +9833,21 @@ function MyTeamView({ state, leagueId, myTeamIdx, isCommissioner, myName, myTeam
   const currentWeekEnd = currentWeekStart
     ? new Date(currentWeekStart.getTime() + 7 * 24 * 60 * 60 * 1000 - 1)
     : null;
+
+  if (myTeamIdx < 0 && !isCommissioner && !isSpectator) {
+    return (
+      <section style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }} className="rounded-lg p-6">
+        <span className="eyebrow">MY TEAM</span>
+        <h2 className="display-font text-3xl mt-2" style={{ color: "#FFD23F" }}>Claim a team first</h2>
+        <p className="mt-2 mb-4" style={{ color: "#9A9FBD" }}>
+          You have not claimed a team in this league yet. Choose an open team in Details and it will appear here immediately.
+        </p>
+        <button type="button" onClick={onChooseTeam} className="px-5 py-2 rounded font-semibold" style={{ background: "#FFD23F", color: "#10121C" }}>
+          CHOOSE AN OPEN TEAM
+        </button>
+      </section>
+    );
+  }
 
   return (
     <div>
