@@ -6,6 +6,7 @@ import {
   notificationEventIsStale,
   notificationConfiguration,
 } from "../src/lib/notification-dispatch-config.js";
+import { commissionerClaimAvailable } from "../src/lib/league-commissioner-status.js";
 
 test("reports missing values without exposing configured values", () => {
   assert.deepEqual(
@@ -40,5 +41,32 @@ test("expires time-sensitive notification events before late delivery", () => {
   assert.equal(notificationEventIsStale({ kind: "draft_reminder", scheduled_for: "2026-07-28T18:30:00Z" }, now), false);
   assert.equal(notificationEventIsStale({ kind: "result_posted", scheduled_for: "2026-07-27T19:59:59Z" }, now), true);
   assert.equal(notificationEventIsStale({ kind: "draft_turn", scheduled_for: null }, now), true);
+});
+
+test("shows commissioner recovery only after an authoritative vacancy check", () => {
+  assert.equal(commissionerClaimAvailable({
+    role: "coach",
+    commissionerStatusLoaded: true,
+    hasCommissioner: false,
+    snapshotCommissioner: null,
+  }), true);
+  assert.equal(commissionerClaimAvailable({
+    role: "coach",
+    commissionerStatusLoaded: true,
+    hasCommissioner: true,
+    snapshotCommissioner: null,
+  }), false);
+  assert.equal(commissionerClaimAvailable({
+    role: "coach",
+    commissionerStatusLoaded: false,
+    hasCommissioner: false,
+    snapshotCommissioner: null,
+  }), false);
+  assert.equal(commissionerClaimAvailable({
+    role: "viewer",
+    commissionerStatusLoaded: true,
+    hasCommissioner: false,
+    snapshotCommissioner: null,
+  }), false);
 });
 

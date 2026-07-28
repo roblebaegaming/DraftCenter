@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "../lib/supabase/client";
+import { commissionerClaimAvailable } from "../lib/league-commissioner-status";
 import { POLL_POKEMON_DEX_NAMES, POLL_POKEMON_NAMES } from "./PokemonDraftLeague";
 import DailyCommunityGames from "./DailyCommunityGames";
 import PublicCoachProfile, { CoachProfileButton } from "./PublicCoachProfile";
@@ -258,6 +259,19 @@ export default function LeagueHub({ user, profile, onOpenLeague }) {
       snapshots = snapshotData || [];
     }
     const states = new Map(snapshots.map((snapshot) => [snapshot.league_id, snapshot.state]));
+    let commissionerStatusLoaded = leagueIds.length === 0;
+    const commissionerLeagueIds = new Set();
+    if (leagueIds.length) {
+      const { data: commissionerRows, error: commissionerError } = await supabase
+        .from("league_memberships")
+        .select("league_id")
+        .in("league_id", leagueIds)
+        .eq("role", "commissioner");
+      if (!commissionerError) {
+        commissionerStatusLoaded = true;
+        for (const row of commissionerRows || []) commissionerLeagueIds.add(row.league_id);
+      }
+    }
     const liveDrafts = new Map();
     await Promise.all(snapshots.filter((snapshot) => snapshot.state?.locked && snapshot.state?.settings?.draftType === "snake").map(async (snapshot) => {
       const { data: live } = await supabase.rpc("get_live_snake_draft", { p_league_id: snapshot.league_id });
@@ -268,7 +282,12 @@ export default function LeagueHub({ user, profile, onOpenLeague }) {
       const onClock = isCoachOnClock(leagueState, profile, liveDrafts.get(entry.league.id));
       return {
         ...entry,
-        commissioner_vacant: !["commissioner", "viewer"].includes(entry.role) && !leagueState?.commissioner,
+        commissioner_vacant: commissionerClaimAvailable({
+          role: entry.role,
+          commissionerStatusLoaded,
+          hasCommissioner: commissionerLeagueIds.has(entry.league.id),
+          snapshotCommissioner: leagueState?.commissioner,
+        }),
         league: {
           ...entry.league,
           on_clock: onClock,
