@@ -11962,7 +11962,7 @@ function TransactionRulesCard({ state, leagueId, isCommissioner, updateSettings 
         <label className="block text-sm mb-2" style={{ color: "#9A9FBD" }}>
           Transactions allowed per week — <span style={{ color: "#EDEBFA" }}>{settings.maxTransactionsPerWeek ?? "unlimited"}</span>
         </label>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           {[null, 1, 2, 3].map((n) => (
             <button key={String(n)} type="button" onClick={() => updateSettings({ maxTransactionsPerWeek: n })}
               className="px-3 py-1.5 rounded text-xs mono-font"
@@ -12051,7 +12051,7 @@ function TransactionRulesCard({ state, leagueId, isCommissioner, updateSettings 
 
         <div className="mt-6 pt-5" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
           <label className="block text-sm mb-2" style={{ color: "#9A9FBD" }}>Post-draft budget usage</label>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             {[[null, "Inherit from draft settings"], [true, "Always use a budget"], [false, "Never use a budget"]].map(([val, label]) => (
               <button key={String(val)} type="button" onClick={() => updateSettings({ postDraftBudgetEnabled: val })}
                 className="px-3 py-1.5 rounded text-xs mono-font"
