@@ -21,12 +21,13 @@ export function notificationConfiguration(environment = process.env) {
 
 export function classifyDispatchError(error) {
   const message = String(error?.message || error || "");
+  const code = String(error?.code || "");
   if (/not configured|missing|required/i.test(message)) return "configuration";
   if (/jwt|unauthorized|permission|row-level security|rls/i.test(message)) return "authorization";
   if (/fetch|network|timeout|timed out|econn/i.test(message)) return "network";
   if (/discord/i.test(message)) return "discord_provider";
   if (/resend|email/i.test(message)) return "email_provider";
-  if (/claim_notification_events|notification event|supabase|postgres|database/i.test(message)) return "database";
+  if (/^42|^22|^23|^P0/i.test(code) || /column .* does not exist|claim_notification_events|notification event|supabase|postgres|database/i.test(message)) return "database";
   return "unknown";
 }
 

@@ -26,6 +26,7 @@ test("classifies common failures into privacy-safe operational categories", () =
   assert.equal(classifyDispatchError(new Error("Resend rejected the email")), "email_provider");
   assert.equal(classifyDispatchError(new Error("Discord rejected the message")), "discord_provider");
   assert.equal(classifyDispatchError(new Error("claim_notification_events failed")), "database");
+  assert.equal(classifyDispatchError({ code: "42703", message: "column event.created_at does not exist" }), "database");
   assert.equal(classifyDispatchError(new Error("Required value is missing")), "configuration");
   assert.equal(classifyDispatchError(new Error("Unexpected failure")), "unknown");
 });
