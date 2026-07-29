@@ -8957,17 +8957,6 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   const scheduledDraftIsDue = draftRoomOpen && scheduleClock >= scheduledDraftTime;
   const isMyTurn = !isSpectator && state.locked && !draftDone && state.settings.draftType === "snake" && myTeamIdx >= 0 && myTeamIdx === currentTeamOnClock;
   useEffect(() => {
-    async function dispatchNotifications() {
-      const { data } = await supabase.auth.getSession();
-      const token = data.session?.access_token;
-      if (!token) return;
-      await fetch("/api/notifications/dispatch", { method: "POST", headers: { Authorization: `Bearer ${token}` } }).catch(() => {});
-    }
-    dispatchNotifications();
-    const timer = window.setInterval(dispatchNotifications, 30000);
-    return () => window.clearInterval(timer);
-  }, [supabase]);
-  useEffect(() => {
     if (!synced
       || !isCommissioner
       || state.locked

@@ -9,6 +9,14 @@ const migration = fs.readFileSync(
 const vercel = JSON.parse(
   fs.readFileSync(new URL("../vercel.json", import.meta.url), "utf8"),
 );
+const leagueHub = fs.readFileSync(
+  new URL("../src/components/LeagueHub.jsx", import.meta.url),
+  "utf8",
+);
+const draftLeague = fs.readFileSync(
+  new URL("../src/components/PokemonDraftLeague.jsx", import.meta.url),
+  "utf8",
+);
 
 test("autonomous notification dispatch is browser independent and secret protected", () => {
   assert.match(migration, /create extension if not exists pg_cron/i);
@@ -32,4 +40,9 @@ test("production Vercel cron runs the dispatcher every minute", () => {
   assert.deepEqual(vercel.crons, [
     { path: "/api/notifications/dispatch", schedule: "* * * * *" },
   ]);
+});
+
+test("signed-in browser tabs do not duplicate the scheduled dispatcher", () => {
+  assert.doesNotMatch(leagueHub, /fetch\(["']\/api\/notifications\/dispatch/);
+  assert.doesNotMatch(draftLeague, /fetch\(["']\/api\/notifications\/dispatch/);
 });

@@ -303,17 +303,6 @@ export default function LeagueHub({ user, profile, onOpenLeague }) {
     setLoading(false);
   }
   useEffect(() => { loadLeagues(); const timer = window.setInterval(() => loadLeagues(true), 5000); return () => window.clearInterval(timer); }, []);
-  useEffect(() => {
-    async function dispatchNotifications() {
-      const { data } = await supabase.auth.getSession();
-      const token = data.session?.access_token;
-      if (!token) return;
-      await fetch("/api/notifications/dispatch", { method: "POST", headers: { Authorization: `Bearer ${token}` } }).catch(() => {});
-    }
-    dispatchNotifications();
-    const timer = window.setInterval(dispatchNotifications, 30000);
-    return () => window.clearInterval(timer);
-  }, [supabase]);
   useEffect(() => { Promise.all([supabase.rpc("get_public_explore"),supabase.rpc("get_local_daily_poll",{p_local_date:localDateKey()})]).then(([exploreResult,pollResult]) => { const data=exploreResult.data; const localPoll=pollResult.data; const pollLeaders = localPoll?.answer_type === "pokemon" ? Object.entries(localPoll.counts || {}).sort(([, a], [, b]) => b - a).slice(0, 3).map(([pokemon]) => pokemon) : []; const favorites = (data?.popularity || []).slice(0, 3).map((item) => item.pokemon); const highlights = [...new Set([...pollLeaders, ...favorites])].filter(Boolean); if (highlights.length) setCommunityPokemon(highlights); }); }, [supabase]);
   useEffect(() => { const params = new URLSearchParams(window.location.search); const token = params.get("invite") || params.get("spectate"); if (!token) return; supabase.rpc("preview_league_invite", { p_token: token }).then(({ data, error }) => { if (error) setMessage(error.message); else setPendingInvite(data); }); }, [supabase]);
   function dismissInvite() { window.history.replaceState({}, "", window.location.pathname); setPendingInvite(null); }
