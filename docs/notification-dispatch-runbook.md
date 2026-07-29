@@ -75,7 +75,9 @@ After the rehearsal week:
    Hobby, apply `supabase/239-autonomous-notification-dispatch.sql` after storing
    the deployment-specific dispatcher URL and matching `CRON_SECRET` in
    Supabase Vault as `draftcenter_notification_dispatch_url` and
-   `draftcenter_notification_cron_secret`.
+   `draftcenter_notification_cron_secret`. If the target is a protected Preview,
+   also store its Vercel Protection Bypass for Automation value as
+   `draftcenter_vercel_automation_bypass_secret`.
 2. Split Daily Three email delivery into its own daily job.
 3. Remove browser-driven queue dispatch after the scheduled worker is verified.
 4. Alert on last-success age, oldest queued event, retry count, and dead letters.

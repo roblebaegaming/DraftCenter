@@ -5,6 +5,8 @@
 --     Example: https://draftcenter-discord-preview.vercel.app/api/notifications/dispatch
 --   draftcenter_notification_cron_secret
 --     Must match CRON_SECRET in the corresponding Vercel environment.
+--   draftcenter_vercel_automation_bypass_secret (protected Previews only)
+--     A Vercel Protection Bypass for Automation value.
 
 create extension if not exists pg_cron;
 create extension if not exists pg_net with schema extensions;
@@ -19,6 +21,8 @@ as $$
 declare
   v_url text;
   v_secret text;
+  v_bypass_secret text;
+  v_headers jsonb;
   v_request_id bigint;
 begin
   select decrypted_secret
@@ -31,16 +35,28 @@ begin
     from vault.decrypted_secrets
    where name = 'draftcenter_notification_cron_secret';
 
+  select decrypted_secret
+    into v_bypass_secret
+    from vault.decrypted_secrets
+   where name = 'draftcenter_vercel_automation_bypass_secret';
+
   if nullif(trim(v_url), '') is null or nullif(trim(v_secret), '') is null then
     raise exception 'DraftCenter notification dispatcher Vault secrets are not configured.';
   end if;
 
+  v_headers := jsonb_build_object(
+    'Authorization', 'Bearer ' || v_secret,
+    'Accept', 'application/json'
+  );
+  if nullif(trim(v_bypass_secret), '') is not null then
+    v_headers := v_headers || jsonb_build_object(
+      'x-vercel-protection-bypass', v_bypass_secret
+    );
+  end if;
+
   select net.http_get(
     url := v_url,
-    headers := jsonb_build_object(
-      'Authorization', 'Bearer ' || v_secret,
-      'Accept', 'application/json'
-    ),
+    headers := v_headers,
     timeout_milliseconds := 55000
   )
   into v_request_id;

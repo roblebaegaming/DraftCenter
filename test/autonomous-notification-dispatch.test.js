@@ -13,7 +13,9 @@ test("autonomous notification dispatch is browser independent and secret protect
   assert.match(migration, /vault\.decrypted_secrets/i);
   assert.match(migration, /draftcenter_notification_dispatch_url/i);
   assert.match(migration, /draftcenter_notification_cron_secret/i);
+  assert.match(migration, /draftcenter_vercel_automation_bypass_secret/i);
   assert.match(migration, /'Authorization', 'Bearer ' \|\| v_secret/i);
+  assert.match(migration, /'x-vercel-protection-bypass', v_bypass_secret/i);
   assert.match(migration, /'\* \* \* \* \*'/i);
   assert.match(migration, /revoke all on function public\.invoke_notification_dispatch\(\) from public, anon, authenticated/i);
 });
