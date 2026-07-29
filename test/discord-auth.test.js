@@ -14,6 +14,8 @@ test("Discord sign-in uses a dedicated Supabase Auth callback", async () => {
 
   assert.match(authGate, /signInWithOAuth\(\{provider:'discord'/);
   assert.match(authGate, /redirectTo:authCallbackUrl\(window\.location\.origin\)/);
+  assert.match(authGate, /skipBrowserRedirect:true/);
+  assert.match(authGate, /window\.location\.assign\(data\.url\)/);
   assert.match(callback, /exchangeCodeForSession\(code\)/);
   assert.match(profileConnection, /discord_oauth_states/);
   assert.doesNotMatch(profileConnection, /signInWithOAuth/);
