@@ -13,6 +13,6 @@ test("spectators see read-only empty-roster wording", async () => {
 
 test("hosted manager count stays neutral until authoritative sync", async () => {
   const source = await leagueSource();
-  assert.match(source, /managerAssignmentsReady=\{!leagueId \|\| synced\}/);
+  assert.match(source, /managerAssignmentsReady=\{\(!leagueId && !league\) \|\| synced\}/);
   assert.match(source, /managerAssignmentsReady \? `\$\{claimed\}\/\$\{state\.teams\.length\} managers assigned` : "Manager assignments loading\.\.\."/);
 });
