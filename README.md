@@ -130,3 +130,15 @@ deployment.
 - Keep consequential multiplayer mutations server-authoritative.
 - Do not rehearse destructive operations in the public league.
 - Do not expose production service-role credentials to general preview branches.
+
+## Discord authentication
+
+Discord sign-in uses the Supabase Auth Discord provider and `/auth/callback`.
+Enable Discord under Supabase Authentication -> Providers, use the Supabase
+project callback URL in the Discord developer application, and allow
+`http://localhost:3000/auth/callback` plus each deployed callback URL in
+Supabase URL Configuration.
+
+This sign-in provider is intentionally separate from the profile and
+league-server Discord connection under `/api/discord/oauth/*`, which continues
+to use the server-only `DISCORD_CLIENT_ID` and `DISCORD_CLIENT_SECRET`.
