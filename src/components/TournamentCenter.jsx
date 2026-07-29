@@ -49,7 +49,10 @@ export default function TournamentCenter() {
       supabase.from("tournament_team_sheets").select("entrant_id,team_name,pokemon,locked_at").eq("tournament_id", id),
       supabase.from("tournament_match_companions").select("*").eq("tournament_id", id),
       supabase.from("tournament_disputes").select("*").eq("tournament_id", id).order("opened_at", { ascending: false }),
-      supabase.from("tournament_staff").select("*,profile:profiles(display_name,username)").eq("tournament_id", id).order("created_at"),
+      // Authorization only needs the staff row. Keeping this query independent
+      // from profile visibility prevents a failed profile embed from hiding a
+      // valid judge assignment.
+      supabase.from("tournament_staff").select("*").eq("tournament_id", id).order("created_at"),
       supabase.from("tournament_penalties").select("*").eq("tournament_id", id).order("issued_at", { ascending: false }),
     ]);
     if (eventResult.error) return setMessage(eventResult.error.message);

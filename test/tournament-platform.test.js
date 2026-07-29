@@ -51,3 +51,10 @@ test("tournament schema remains isolated and activation uses guarded server func
   assert.match(roleSeparation, /check \(role = 'judge'\)/i);
   assert.match(roleSeparation, /security definer/i);
 });
+
+test("judge authorization does not depend on an embedded profile lookup", async () => {
+  const center = await readSource("../src/components/TournamentCenter.jsx");
+
+  assert.match(center, /from\("tournament_staff"\)\.select\("\*"\)/);
+  assert.doesNotMatch(center, /from\("tournament_staff"\)\.select\("\*,profile:/);
+});
