@@ -3,6 +3,7 @@ import { createClient } from "../lib/supabase/client";
 import { DiscordConnectionPanel, LeagueBroadcastCenter } from "./SocialSharing";
 import PublicCoachProfile, { CoachProfileButton } from "./PublicCoachProfile";
 import { DRAFTCENTER_RELEASE, reportOperationalIssue } from "../lib/operational-reporting";
+import { MATCH_SCHEDULING_ENABLED } from "../lib/match-scheduling-feature";
 
 /* ---------------------------------------------------------
    DESIGN TOKENS — stadium-jumbotron-at-night aesthetic.
@@ -14575,7 +14576,7 @@ function teamHasManager(team) {
   return Boolean(team?.claimedByUserId || team?.claimedBy);
 }
 
-function MatchAvailability({ leagueId, seasonNumber, weekIndex, matchIndex, settings }) {
+function MatchAvailability({ leagueId, seasonNumber, weekIndex, matchIndex, settings, staffOnly = false }) {
   const [supabase] = useState(() => createClient());
   const [open, setOpen] = useState(false);
   const [slots, setSlots] = useState([]);
@@ -14583,12 +14584,19 @@ function MatchAvailability({ leagueId, seasonNumber, weekIndex, matchIndex, sett
   const [opponentSubmitted, setOpponentSubmitted] = useState(false);
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
+  const [scheduleInfo, setScheduleInfo] = useState(null);
+  const [proposedAt, setProposedAt] = useState("");
+  const [remindersEnabled, setRemindersEnabled] = useState(true);
+  const [reminderOffsets, setReminderOffsets] = useState([1440,60]);
+  const [overrideReason, setOverrideReason] = useState("");
 
   async function load() {
     setBusy(true);
-    const { data, error } = await supabase.rpc("get_my_match_availability", {
-      p_league_id:leagueId, p_season_number:seasonNumber, p_week:weekIndex, p_match:matchIndex,
-    });
+    const { data, error } = staffOnly
+      ? { data:null, error:null }
+      : await supabase.rpc("get_my_match_availability", {
+          p_league_id:leagueId, p_season_number:seasonNumber, p_week:weekIndex, p_match:matchIndex,
+        });
     setBusy(false);
     if (error) {
       reportOperationalIssue(supabase, {
@@ -14604,10 +14612,23 @@ function MatchAvailability({ leagueId, seasonNumber, weekIndex, matchIndex, sett
       });
       return setMessage(error.message);
     }
-    setSlots((data?.own_slots || []).map((slot)=>({ starts_at:availabilityInput(slot.starts_at), ends_at:availabilityInput(slot.ends_at) })));
-    setMutual(data?.mutual_slots || []);
-    setOpponentSubmitted(Boolean(data?.opponent_has_submitted));
+    if(!staffOnly) {
+      setSlots((data?.own_slots || []).map((slot)=>({ starts_at:availabilityInput(slot.starts_at), ends_at:availabilityInput(slot.ends_at) })));
+      setMutual(data?.mutual_slots || []);
+      setOpponentSubmitted(Boolean(data?.opponent_has_submitted));
+    }
     setMessage("");
+    if (MATCH_SCHEDULING_ENABLED) await loadSchedule();
+  }
+  async function loadSchedule() {
+    const { data, error } = await supabase.rpc("get_my_match_schedule", {
+      p_league_id:leagueId, p_season_number:seasonNumber, p_week:weekIndex, p_match:matchIndex,
+    });
+    if(error) return setMessage(error.message);
+    setScheduleInfo(data);
+    setRemindersEnabled(data?.reminder_preferences?.enabled ?? true);
+    setReminderOffsets(data?.reminder_preferences?.offsets_minutes || [1440,60]);
+    if(data?.schedule?.scheduled_at) setProposedAt(availabilityInput(data.schedule.scheduled_at));
   }
   useEffect(()=>{ if(open) load(); },[open,leagueId,seasonNumber,weekIndex,matchIndex]);
   function addSlot() {
@@ -14681,20 +14702,133 @@ function MatchAvailability({ leagueId, seasonNumber, weekIndex, matchIndex, sett
     setOpponentSubmitted(Boolean(data?.opponent_has_submitted));
     setMessage("Availability saved. Only matching windows are shared with your opponent.");
   }
+  async function proposeTime() {
+    const date = new Date(proposedAt);
+    if(Number.isNaN(date.getTime())) return setMessage("Choose a proposed match time.");
+    setBusy(true); setMessage("");
+    const { data, error } = await supabase.rpc("propose_match_schedule", {
+      p_league_id:leagueId, p_season_number:seasonNumber, p_week:weekIndex,
+      p_match:matchIndex, p_scheduled_at:date.toISOString(), p_duration_minutes:60,
+      p_timezone:Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
+    });
+    setBusy(false);
+    if(error) return setMessage(error.message);
+    setScheduleInfo(data);
+    setMessage("Match time proposed. Your opponent must accept it.");
+  }
+  async function acceptTime() {
+    setBusy(true); setMessage("");
+    const { data, error } = await supabase.rpc("accept_match_schedule", {
+      p_schedule_id:scheduleInfo?.schedule?.id,
+    });
+    setBusy(false);
+    if(error) return setMessage(error.message);
+    setScheduleInfo(data);
+    setMessage("Match time confirmed. Eligible reminders are queued.");
+  }
+  async function overrideTime() {
+    const date = new Date(proposedAt);
+    if(Number.isNaN(date.getTime())) return setMessage("Choose a match time.");
+    if(overrideReason.trim().length<3) return setMessage("Add a brief override reason.");
+    setBusy(true); setMessage("");
+    const { data, error } = await supabase.rpc("override_match_schedule", {
+      p_league_id:leagueId, p_season_number:seasonNumber, p_week:weekIndex,
+      p_match:matchIndex, p_scheduled_at:date.toISOString(), p_duration_minutes:60,
+      p_timezone:Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
+      p_reason:overrideReason.trim(),
+    });
+    setBusy(false);
+    if(error) return setMessage(error.message);
+    setScheduleInfo(data);
+    setMessage("Staff override confirmed. Eligible reminders are queued.");
+  }
+  async function cancelTime() {
+    setBusy(true); setMessage("");
+    const { data, error } = await supabase.rpc("cancel_match_schedule", {
+      p_schedule_id:scheduleInfo?.schedule?.id, p_reason:null,
+    });
+    setBusy(false);
+    if(error) return setMessage(error.message);
+    setScheduleInfo(data);
+    setMessage("Match time cancelled. Unsent reminders were removed.");
+  }
+  async function saveReminderPreferences() {
+    setBusy(true); setMessage("");
+    const { data, error } = await supabase.rpc("save_my_match_reminder_preferences", {
+      p_enabled:remindersEnabled, p_offsets_minutes:reminderOffsets,
+    });
+    setBusy(false);
+    if(error) return setMessage(error.message);
+    setRemindersEnabled(data?.enabled ?? remindersEnabled);
+    setReminderOffsets(data?.offsets_minutes || []);
+    setMessage("Match reminder preferences saved.");
+  }
+  function toggleReminderOffset(offset) {
+    setReminderOffsets((current)=>current.includes(offset)
+      ? current.filter((value)=>value!==offset)
+      : [...current,offset].sort((a,b)=>b-a));
+  }
   const inputWindow = leagueWeekWindow(settings,weekIndex);
   const inputMin = inputWindow ? availabilityInput(inputWindow.start) : undefined;
   const inputMax = inputWindow ? availabilityInput(inputWindow.end) : undefined;
   return <details className="match-availability" open={open} onToggle={(event)=>setOpen(event.currentTarget.open)}>
     <summary>Coordinate match time privately</summary>
     <div>
-      <p className="text-xs" style={{color:"#9A9FBD"}}>Add times you could play during this week. Your opponent cannot see unmatched times; both of you see only overlaps.</p>
+      {!staffOnly&&<><p className="text-xs" style={{color:"#9A9FBD"}}>Add times you could play during this week. Your opponent cannot see unmatched times; both of you see only overlaps.</p>
       {busy&&!slots.length&&<p className="text-xs" style={{color:"#9A9FBD"}}>Loading availability…</p>}
       {slots.map((slot,index)=><section key={index}><input type="datetime-local" min={inputMin} max={inputMax} value={slot.starts_at} onChange={(event)=>changeStart(index,event.target.value)}/><span>to</span><input type="datetime-local" min={slot.starts_at||inputMin} max={inputMax} value={slot.ends_at} onChange={(event)=>{setMessage("");setSlots((current)=>current.map((item,itemIndex)=>itemIndex===index?{...item,ends_at:event.target.value}:item));}}/><button type="button" className="text-button danger-text" onClick={()=>setSlots((current)=>current.filter((_,itemIndex)=>itemIndex!==index))}>Remove</button></section>)}
       <div className="flex gap-2 flex-wrap"><button type="button" className="quiet-button" disabled={slots.length>=12} onClick={addSlot}>Add available time</button><button type="button" className="secondary-button" disabled={busy} onClick={save}>{busy?"Saving…":"Save availability"}</button></div>
       <aside><strong>Mutual times</strong>{mutual.length?mutual.map((slot,index)=><p key={index}>{new Date(slot.starts_at).toLocaleString()} – {new Date(slot.ends_at).toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"})}</p>):<p>{opponentSubmitted?"No matching times yet. Try adding another option.":"Waiting for your opponent to submit availability."}</p>}</aside>
+      </>}
+      {MATCH_SCHEDULING_ENABLED&&<aside>
+        <strong>Confirmed match time</strong>
+        {scheduleInfo?.schedule?.status==="confirmed"
+          ? <p>{new Date(scheduleInfo.schedule.scheduled_at).toLocaleString()} · confirmed</p>
+          : scheduleInfo?.schedule?.status==="proposed"
+            ? <p>{new Date(scheduleInfo.schedule.scheduled_at).toLocaleString()} · awaiting opponent</p>
+            : <p>No confirmed time yet.</p>}
+        <section>
+          <input type="datetime-local" min={inputMin} max={inputMax} value={proposedAt} onChange={(event)=>setProposedAt(event.target.value)}/>
+          <button type="button" className="secondary-button" disabled={busy} onClick={proposeTime}>{scheduleInfo?.schedule?"Reschedule":"Propose time"}</button>
+          {scheduleInfo?.can_accept&&<button type="button" className="secondary-button" disabled={busy} onClick={acceptTime}>Accept proposal</button>}
+          {staffOnly&&<><input value={overrideReason} onChange={(event)=>setOverrideReason(event.target.value)} placeholder="Required staff override reason"/><button type="button" className="secondary-button" disabled={busy} onClick={overrideTime}>Confirm staff override</button></>}
+          {scheduleInfo?.schedule&&scheduleInfo.schedule.status!=="cancelled"&&<button type="button" className="text-button danger-text" disabled={busy} onClick={cancelTime}>Cancel time</button>}
+        </section>
+        {!staffOnly&&<div>
+          <label className="check-row"><input type="checkbox" checked={remindersEnabled} onChange={(event)=>setRemindersEnabled(event.target.checked)}/> Personal Discord match reminders</label>
+          {[2880,1440,120,60].map((offset)=><label className="check-row" key={offset}><input type="checkbox" checked={reminderOffsets.includes(offset)} onChange={()=>toggleReminderOffset(offset)}/>{offset===2880?"48 hours":offset===1440?"24 hours":offset===120?"2 hours":"1 hour"} before</label>)}
+          <button type="button" className="quiet-button" disabled={busy} onClick={saveReminderPreferences}>Save reminder preferences</button>
+        </div>}
+      </aside>}
       {message&&<p className="text-xs" style={{color:message.startsWith("Availability saved")?"#4FD1C5":"#F0555A"}}>{message}</p>}
     </div>
   </details>;
+}
+
+function MatchScheduleRecoveryExport({ leagueId }) {
+  const [supabase] = useState(() => createClient());
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState("");
+  async function download() {
+    setBusy(true); setMessage("");
+    const { data, error } = await supabase.rpc("export_league_match_schedule_recovery", {
+      p_league_id:leagueId,
+    });
+    setBusy(false);
+    if(error) return setMessage(error.message);
+    const blob = new Blob([JSON.stringify(data,null,2)], {type:"application/json"});
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `draftcenter-match-scheduling-recovery-${leagueId}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+    setMessage("Recovery export downloaded.");
+  }
+  return <div>
+    <button type="button" className="quiet-button" disabled={busy} onClick={download}>{busy?"Preparing…":"Export scheduling recovery"}</button>
+    {message&&<p className="text-xs mt-1" style={{color:message.endsWith("downloaded.")?"#4FD1C5":"#F0555A"}}>{message}</p>}
+  </div>;
 }
 
 function ScheduleView({ state, leagueId, isCommissioner, isSpectator, myName, myTeamIdx, simulateWeek, onGenerate, reportMatch, setMatchMVP, onViewTeam, setWeekMatchups }) {
@@ -14734,6 +14868,7 @@ function ScheduleView({ state, leagueId, isCommissioner, isSpectator, myName, my
               EDIT MATCHUPS
             </button>
           )}
+          {MATCH_SCHEDULING_ENABLED&&isCommissioner&&leagueId&&<MatchScheduleRecoveryExport leagueId={leagueId}/>}
         </div>
       </div>
       {!isCommissioner && hasBotTeams && <p className="text-xs mb-4" style={{ color: "#5B5F7E" }}>{isSpectator ? "The commissioner can simulate matches involving bot teams. Spectators can follow results and scout rosters." : "The commissioner can simulate matches involving bot teams; you can report your own match below."}</p>}
@@ -14774,13 +14909,14 @@ function ScheduleView({ state, leagueId, isCommissioner, isSpectator, myName, my
           {schedule[week].map(([a, b], idx) => {
             const key = `${week}-${idx}`;
             const canReport = isCommissioner || myTeamIdx===a || myTeamIdx===b;
-            const canCoordinate = Boolean(leagueId) && (myTeamIdx===a||myTeamIdx===b) && teamHasManager(teams[a]) && teamHasManager(teams[b]);
+            const isMatchParticipant = myTeamIdx===a||myTeamIdx===b;
+            const canCoordinate = Boolean(leagueId) && (isMatchParticipant||isCommissioner) && teamHasManager(teams[a]) && teamHasManager(teams[b]);
             return (
               <MatchCard key={idx} teamA={teams[a]} teamB={teams[b]} result={matchResults[key]} canReport={canReport}
                 onReport={(...args) => reportMatch(week, idx, ...args)}
                 onSetMVP={(side, name) => setMatchMVP(week, idx, side, name)}
                 rosterA={rosters[a]} rosterB={rosters[b]} trackDifferential={!!settings.standingsCriteria?.differential} onViewTeam={onViewTeam}
-                availabilityPanel={canCoordinate?<MatchAvailability leagueId={leagueId} seasonNumber={state.seasonNumber||1} weekIndex={week} matchIndex={idx} settings={settings}/>:null} />
+                availabilityPanel={canCoordinate?<MatchAvailability leagueId={leagueId} seasonNumber={state.seasonNumber||1} weekIndex={week} matchIndex={idx} settings={settings} staffOnly={isCommissioner&&!isMatchParticipant}/>:null} />
             );
           })}
         </div>
