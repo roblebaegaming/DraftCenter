@@ -10,7 +10,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "test": "node --test test/notification-dispatch-config.test.js",
+    "test": "node --test test/*.test.js",
     "check": "pnpm test && pnpm build"
   },
   "dependencies": {

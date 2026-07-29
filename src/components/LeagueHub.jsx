@@ -7,6 +7,7 @@ import { POLL_POKEMON_DEX_NAMES, POLL_POKEMON_NAMES } from "./PokemonDraftLeague
 import DailyCommunityGames from "./DailyCommunityGames";
 import PublicCoachProfile, { CoachProfileButton } from "./PublicCoachProfile";
 import { reportOperationalIssue } from "../lib/operational-reporting";
+import { TOURNAMENTS_ENABLED } from "../lib/tournament-feature";
 
 function slugify(value) { return value.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "").slice(0, 72); }
 function localDateKey(date = new Date()) { const year=date.getFullYear(); const month=String(date.getMonth()+1).padStart(2,"0"); const day=String(date.getDate()).padStart(2,"0"); return `${year}-${month}-${day}`; }
@@ -415,7 +416,7 @@ return (
         </div>
       </article>; })}</div>
     </section>
-    <section className="hub-card tournament-preview-card">
+    {TOURNAMENTS_ENABLED && <section className="hub-card tournament-preview-card">
       <div className="section-heading">
         <div>
           <span className="eyebrow">TOURNAMENTS · PREVIEW</span>
@@ -424,7 +425,7 @@ return (
         <a className="primary-button" href="/tournaments">Open Tournament Center</a>
       </div>
       <p className="muted">Create or join an event, manage pairings and results, and test the player companion.</p>
-    </section>
+    </section>}
     <section className="dashboard-daily-three">
       <PollOfTheDay supabase={supabase} />
       <DailyCommunityGames signedIn />

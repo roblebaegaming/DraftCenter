@@ -1,5 +1,13 @@
 # DraftCenter tournament platform
 
+## Feature flag
+
+Tournament UI is disabled by default. Set
+`NEXT_PUBLIC_TOURNAMENTS_ENABLED=true` only in an isolated preview environment
+to expose the dashboard entry points and `/tournaments` route. Production must
+leave the variable unset or set it to `false` until the tournament release
+gates pass.
+
 This feature is intentionally isolated from the league snapshot and the ongoing
 league hardening work. It uses dedicated server-authoritative tournament tables
 and RPCs. Nothing in this branch should be copied to production until the SQL

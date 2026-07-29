@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "../lib/supabase/client";
+import { TOURNAMENTS_ENABLED } from "../lib/tournament-feature";
 
 export default function SiteQuickLinks() {
   const [signedIn, setSignedIn] = useState(false);
@@ -16,5 +17,5 @@ export default function SiteQuickLinks() {
     await supabase.auth.signOut();
     window.location.assign("/");
   }
-  return <nav className="site-quick-links" aria-label="Account and resources"><a href="/calendar">Calendar</a><a href="/my-teams">My Teams</a><a href="/tournaments">Tournaments (Preview)</a><a href="/resources">Resources</a>{signedIn && <button type="button" onClick={signOut}>Sign out</button>}</nav>;
+  return <nav className="site-quick-links" aria-label="Account and resources"><a href="/calendar">Calendar</a><a href="/my-teams">My Teams</a>{TOURNAMENTS_ENABLED && <a href="/tournaments">Tournaments (Preview)</a>}<a href="/resources">Resources</a>{signedIn && <button type="button" onClick={signOut}>Sign out</button>}</nav>;
 }
