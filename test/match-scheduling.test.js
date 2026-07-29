@@ -60,3 +60,14 @@ test("participant scheduling controls are gated in the league UI", async () => {
   assert.match(league, /Export scheduling recovery/);
   assert.match(league, /staffOnly=\{isCommissioner&&!isMatchParticipant\}/);
 });
+
+test("rollback rehearsal covers two managers, staff, recovery, and cleanup", async () => {
+  const harness = await readSource("./match-scheduling-rehearsal-harness.sql");
+  assert.match(harness, /A manager was able to accept their own proposal/);
+  assert.match(harness, /Expected 4 default reminder jobs/);
+  assert.match(harness, /Expected 4 reminder jobs after preference change/);
+  assert.match(harness, /Judge resolved a scheduling conflict/);
+  assert.match(harness, /export_league_match_schedule_recovery/);
+  assert.match(harness, /teardown_league_match_schedule_rehearsal\(v_league, true\)/);
+  assert.match(harness, /rollback;\s*$/i);
+});
