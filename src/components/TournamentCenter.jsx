@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "../lib/supabase/client";
+import { isTournamentSlug, normalizeTournamentSlug } from "../lib/tournament-slug";
 
 const EMPTY_EVENT = {
   name: "", slug: "", description: "", format_name: "Singles",
@@ -26,6 +27,7 @@ export default function TournamentCenter() {
   const [selectedId, setSelectedId] = useState(null);
   const [detail, setDetail] = useState(null);
   const [draft, setDraft] = useState(EMPTY_EVENT);
+  const [slugEdited, setSlugEdited] = useState(false);
   const [sheet, setSheet] = useState({ team_name: "", pokemon: "" });
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
@@ -94,10 +96,15 @@ export default function TournamentCenter() {
 
   async function createEvent(event) {
     event.preventDefault();
-    const result = await act("create_tournament", { p_settings: draft }, "Tournament created.");
+    const slug = normalizeTournamentSlug(draft.slug);
+    if (!isTournamentSlug(slug)) {
+      setMessage("Event link must contain at least 3 lowercase letters, numbers, or hyphens.");
+      return;
+    }
+    const result = await act("create_tournament", { p_settings: { ...draft, slug } }, "Tournament created.");
     if (result?.id) {
       if (draft.visibility === "public") await act("set_tournament_visibility", { p_tournament_id: result.id, p_visibility: "public" }, "Public tournament created.");
-      setSelectedId(result.id); setDraft(EMPTY_EVENT);
+      setSelectedId(result.id); setDraft(EMPTY_EVENT); setSlugEdited(false);
     }
   }
 
@@ -136,8 +143,8 @@ export default function TournamentCenter() {
             <span className="eyebrow">ORGANIZER</span><h2>Create a tournament</h2>
             {!user ? <p className="muted">Sign in from the DraftCenter dashboard to create or enter tournaments.</p> :
             <form className="tournament-form" onSubmit={createEvent}>
-              <label>Event name<input required maxLength="120" value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value, slug: draft.slug || e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") })}/></label>
-              <label>Event link<input required pattern="[a-z0-9-]{3,100}" value={draft.slug} onChange={(e) => setDraft({ ...draft, slug: e.target.value.toLowerCase() })}/></label>
+              <label>Event name<input required maxLength="120" value={draft.name} onChange={(e) => { const name = e.target.value; setDraft((current) => ({ ...current, name, slug: slugEdited ? current.slug : normalizeTournamentSlug(name) })); }}/></label>
+              <label>Event link<input required minLength="3" maxLength="100" pattern="[a-z0-9]+(?:-[a-z0-9]+)*" value={draft.slug} onChange={(e) => { setSlugEdited(true); setDraft({ ...draft, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "").slice(0, 100) }); }}/></label>
               <label>Format<input required value={draft.format_name} onChange={(e) => setDraft({ ...draft, format_name: e.target.value })}/></label>
               <label>Structure<select value={draft.structure} onChange={(e) => setDraft({ ...draft, structure: e.target.value })}><option value="swiss">Swiss only</option><option value="swiss_top_cut">Swiss into top cut</option><option value="regional">Regional-style staged event</option><option value="single_elimination">Single elimination</option></select></label>
               <div className="tournament-form-row"><label>Swiss rounds<input type="number" min="1" max="15" value={draft.swiss_rounds} onChange={(e) => setDraft({ ...draft, swiss_rounds: Number(e.target.value) })}/></label><label>Top cut<select value={draft.top_cut_size} onChange={(e) => setDraft({ ...draft, top_cut_size: Number(e.target.value) })}><option value="0">None</option><option value="4">Top 4</option><option value="8">Top 8</option><option value="16">Top 16</option><option value="32">Top 32</option></select></label></div>

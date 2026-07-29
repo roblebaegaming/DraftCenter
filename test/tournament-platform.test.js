@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { isTournamentFeatureEnabled } from "../src/lib/tournament-feature.js";
+import { isTournamentSlug, normalizeTournamentSlug } from "../src/lib/tournament-slug.js";
 
 const readSource = (path) => readFile(new URL(path, import.meta.url), "utf8");
 
@@ -10,6 +11,15 @@ test("tournament feature flag is default-off and requires an explicit true value
   assert.equal(isTournamentFeatureEnabled("false"), false);
   assert.equal(isTournamentFeatureEnabled("TRUE"), false);
   assert.equal(isTournamentFeatureEnabled("true"), true);
+});
+
+test("tournament slugs stay within the database constraint", () => {
+  assert.equal(normalizeTournamentSlug("Rehearsal Draft 2026!"), "rehearsal-draft-2026");
+  assert.equal(normalizeTournamentSlug(" R "), "r");
+  assert.equal(isTournamentSlug("rehearsal-draft-2026"), true);
+  assert.equal(isTournamentSlug("r"), false);
+  assert.equal(isTournamentSlug("Rehearsal Draft"), false);
+  assert.equal(normalizeTournamentSlug("a".repeat(120)).length, 100);
 });
 
 test("disabled tournament routes fail closed and navigation entry points are gated", async () => {
