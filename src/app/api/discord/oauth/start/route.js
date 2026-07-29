@@ -15,7 +15,7 @@ export async function POST(request) {
 
   try {
     const clientId = process.env.DISCORD_CLIENT_ID;
-    const siteUrl = process.env.DRAFTCENTER_SITE_URL || "https://www.draftcentral.gg";
+    const siteUrl = (process.env.DRAFTCENTER_SITE_URL || new URL(request.url).origin).replace(/\/$/, "");
     if (!clientId) throw new Error("Discord profile authorization is not configured yet.");
 
     const supabase = createAdminClient();
@@ -32,7 +32,7 @@ export async function POST(request) {
     });
     if (stateError) throw stateError;
 
-    const redirectUri = `${siteUrl.replace(/\/$/, "")}/api/discord/oauth/callback`;
+    const redirectUri = `${siteUrl}/api/discord/oauth/callback`;
     const authorizationUrl = new URL("https://discord.com/oauth2/authorize");
     authorizationUrl.searchParams.set("client_id", clientId);
     authorizationUrl.searchParams.set("response_type", "code");
