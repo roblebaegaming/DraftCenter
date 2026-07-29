@@ -71,8 +71,9 @@ Never test against a real participant without their knowledge.
 After the rehearsal week:
 
 1. Run the dispatcher from a platform-owned schedule every one to five minutes.
-   On Vercel Pro or Enterprise, configure the Vercel cron directly. On Vercel
-   Hobby, apply `supabase/239-autonomous-notification-dispatch.sql` after storing
+   Production uses the one-minute Vercel cron in `vercel.json`. Because Vercel
+   cron targets Production only, Preview uses
+   `supabase/239-autonomous-notification-dispatch.sql` after storing
    the deployment-specific dispatcher URL and matching `CRON_SECRET` in
    Supabase Vault as `draftcenter_notification_dispatch_url` and
    `draftcenter_notification_cron_secret`. If the target is a protected Preview,

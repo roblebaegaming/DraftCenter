@@ -6,6 +6,9 @@ const migration = fs.readFileSync(
   new URL("../supabase/239-autonomous-notification-dispatch.sql", import.meta.url),
   "utf8",
 );
+const vercel = JSON.parse(
+  fs.readFileSync(new URL("../vercel.json", import.meta.url), "utf8"),
+);
 
 test("autonomous notification dispatch is browser independent and secret protected", () => {
   assert.match(migration, /create extension if not exists pg_cron/i);
@@ -23,4 +26,10 @@ test("autonomous notification dispatch is browser independent and secret protect
 test("migration stays inert until both encrypted secrets exist", () => {
   assert.match(migration, /if v_has_url and v_has_secret then/i);
   assert.match(migration, /Vault secrets are missing; the autonomous notification dispatcher was not scheduled/i);
+});
+
+test("production Vercel cron runs the dispatcher every minute", () => {
+  assert.deepEqual(vercel.crons, [
+    { path: "/api/notifications/dispatch", schedule: "* * * * *" },
+  ]);
 });
