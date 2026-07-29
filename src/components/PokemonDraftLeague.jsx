@@ -9176,6 +9176,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
         {liveDraftError && <div className="mb-4 rounded p-3 text-sm" style={{ background: "#2A1620", color: "#FFD6D6", border: "1px solid #F0555A66" }}>{liveDraftError}</div>}
         {tab === "home" && (
           <HomeView state={state} leagueId={leagueId} leagueName={league?.name} isCommissioner={displayIsCommissioner} isSpectator={displayIsSpectator} myTeamIdx={myTeamIdx} standings={standings}
+            managerAssignmentsReady={!leagueId || synced}
             isMyTurn={isMyTurn} pendingTrades={pendingTradesForMe} unreadMessages={unreadDirectCount + unreadBoardCount}
             onGetStarted={() => state.locked ? (setTab("league"), setLeagueSubTab("draft")) : displayIsSpectator ? setTab("myteam") : setTab("setup")}
             onOpenDraftRoom={() => setTab("draft")}
@@ -10056,7 +10057,9 @@ function MyTeamView({ state, leagueId, myTeamIdx, isCommissioner, isSpectator = 
       {!locked ? (
         <div style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }} className="rounded-lg p-6 text-center">
           <p className="text-sm" style={{ color: "#9A9FBD" }}>
-            Roster shows up here once the draft is underway — for now, this is a good spot to set your team's name, logo, and color before things kick off.
+            {isSpectator
+              ? "This team's roster will appear here once the draft is underway."
+              : "Roster shows up here once the draft is underway — for now, this is a good spot to set your team's name, logo, and color before things kick off."}
           </p>
         </div>
       ) : (
@@ -10106,7 +10109,7 @@ function MyTeamView({ state, leagueId, myTeamIdx, isCommissioner, isSpectator = 
   );
 }
 
-function HomeView({ state, leagueId, leagueName, isCommissioner, isSpectator = false, myTeamIdx, standings, onGetStarted, onOpenDraftRoom, onGoToLeague, costFor, updateHomepage, addToQueue = null, removeFromQueue = null, moveQueueItem = null, readOnly = false, isMyTurn = false, pendingTrades = 0, unreadMessages = 0 }) {
+function HomeView({ state, leagueId, leagueName, isCommissioner, isSpectator = false, myTeamIdx, standings, onGetStarted, onOpenDraftRoom, onGoToLeague, costFor, updateHomepage, addToQueue = null, removeFromQueue = null, moveQueueItem = null, readOnly = false, isMyTurn = false, pendingTrades = 0, unreadMessages = 0, managerAssignmentsReady = true }) {
   const { coCommissioners: coCommissionersRaw, schedule, matchResults, trades = [], transactionLog = [], seasonNumber, commissioner, locked, teams } = state;
   const coCommissioners = coCommissionersRaw || [];
   const draftStillActive = locked && (
@@ -10132,7 +10135,7 @@ function HomeView({ state, leagueId, leagueName, isCommissioner, isSpectator = f
   );
   if (!locked) return <PreDraftScout state={state} isCommissioner={isCommissioner} costFor={costFor} updateHomepage={updateHomepage}
     myTeamIdx={myTeamIdx} addToQueue={addToQueue} removeFromQueue={removeFromQueue} moveQueueItem={moveQueueItem} readOnly={readOnly}
-    onOpenSetup={onGetStarted} />;
+    onOpenSetup={onGetStarted} managerAssignmentsReady={managerAssignmentsReady} />;
   if (false) {
     return (
       <div className="flex flex-col gap-6">
@@ -13044,7 +13047,7 @@ function DraftHeroVoteCard({ teams, votes, myName, castDraftHeroVote }) {
     </div>
   );
 }
-function PreDraftScout({ state, isCommissioner, costFor, updateHomepage, myTeamIdx = -1, addToQueue = null, removeFromQueue = null, moveQueueItem = null, readOnly = false, showLeagueInfo = true, onOpenSetup = null }) {
+function PreDraftScout({ state, isCommissioner, costFor, updateHomepage, myTeamIdx = -1, addToQueue = null, removeFromQueue = null, moveQueueItem = null, readOnly = false, showLeagueInfo = true, onOpenSetup = null, managerAssignmentsReady = true }) {
   const [search, setSearch] = useState("");
   const [type, setType] = useState("");
   const [sortMode, setSortMode] = useState("price-desc");
@@ -13072,7 +13075,9 @@ function PreDraftScout({ state, isCommissioner, costFor, updateHomepage, myTeamI
       <p className="text-sm mt-1" style={{ color: "#9A9FBD" }}>These are the league's saved draft settings. Every manager sees the same regulation, eligible pool, prices, and official date.</p>
       <div className="flex gap-3 flex-wrap mt-4 text-sm">
         <span className="px-3 py-1 rounded" style={{ background: "#1F2338", color: "#EDEBFA" }}>{pool.length} eligible Pokémon</span>
-        <span className="px-3 py-1 rounded" style={{ background: "#1F2338", color: "#EDEBFA" }}>{claimed}/{state.teams.length} managers assigned</span>
+        <span className="px-3 py-1 rounded" style={{ background: "#1F2338", color: managerAssignmentsReady ? "#EDEBFA" : "#9A9FBD" }}>
+          {managerAssignmentsReady ? `${claimed}/${state.teams.length} managers assigned` : "Manager assignments loading..."}
+        </span>
         {scheduledAt ? (
           <span className="px-3 py-1 rounded" style={{ background: "#4FD1C522", color: "#4FD1C5" }}>Draft: {new Date(scheduledAt).toLocaleString()}</span>
         ) : isCommissioner && onOpenSetup ? (
