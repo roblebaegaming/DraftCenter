@@ -15,7 +15,7 @@ export async function POST(request) {
 
   try {
     const clientId = process.env.DISCORD_CLIENT_ID;
-    const siteUrl = (process.env.DRAFTCENTER_SITE_URL || new URL(request.url).origin).replace(/\/$/, "");
+    const siteUrl = new URL(request.url).origin;
     if (!clientId) throw new Error("Discord profile authorization is not configured yet.");
 
     const supabase = createAdminClient();

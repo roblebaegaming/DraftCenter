@@ -31,16 +31,16 @@ test("authentication callback destinations stay on the DraftCenter origin", () =
   assert.equal(authCallbackUrl("https://draftcenter.example", "/?league=test-cup"), "https://draftcenter.example/auth/callback?next=%2F%3Fleague%3Dtest-cup");
 });
 
-test("personal Discord OAuth stays on the current deployment when no site URL override is configured", async () => {
+test("personal Discord OAuth stays on the current deployment even when an environment override is misconfigured", async () => {
   const [start, callback] = await Promise.all([
     readSource("../src/app/api/discord/oauth/start/route.js"),
     readSource("../src/app/api/discord/oauth/callback/route.js"),
   ]);
 
-  assert.match(start, /process\.env\.DRAFTCENTER_SITE_URL \|\| new URL\(request\.url\)\.origin/);
-  assert.match(callback, /process\.env\.DRAFTCENTER_SITE_URL \|\| requestUrl\.origin/);
-  assert.doesNotMatch(start, /DRAFTCENTER_SITE_URL \|\| "https:\/\/www\.draftcentral\.gg"/);
-  assert.doesNotMatch(callback, /DRAFTCENTER_SITE_URL \|\| "https:\/\/www\.draftcentral\.gg"/);
+  assert.match(start, /const siteUrl = new URL\(request\.url\)\.origin/);
+  assert.match(callback, /const siteUrl = requestUrl\.origin/);
+  assert.doesNotMatch(start, /DRAFTCENTER_SITE_URL/);
+  assert.doesNotMatch(callback, /DRAFTCENTER_SITE_URL/);
 });
 
 test("email sign-in, sign-out, and Discord notification connection remain available", async () => {

@@ -8,7 +8,7 @@ export async function GET(request) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
   const state = requestUrl.searchParams.get("state");
-  const siteUrl = (process.env.DRAFTCENTER_SITE_URL || requestUrl.origin).replace(/\/$/, "");
+  const siteUrl = requestUrl.origin;
   const failure = (message) => NextResponse.redirect(`${siteUrl}/?discord_error=${encodeURIComponent(message)}`);
 
   if (!code || !state) return failure("Discord authorization was canceled or incomplete.");
