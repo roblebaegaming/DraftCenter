@@ -392,13 +392,14 @@ function DailyQuiz({ quiz, previous, signedIn, onSaved }) {
   async function submit(event) {
     event.preventDefault();
     if (!signedIn) return setMessage("Sign in to submit today’s quiz.");
-    const selectedPokemon = POLL_POKEMON_NAMES.find((name) => name.toLowerCase() === answer.trim().toLowerCase());
-    if (!selectedPokemon) return setMessage("Choose a Pokémon from the matching choices before submitting.");
+    const submittedAnswer = answer.trim();
+    if (!submittedAnswer) return setMessage("Enter an answer before submitting.");
+    const selectedPokemon = POLL_POKEMON_NAMES.find((name) => name.toLowerCase() === submittedAnswer.toLowerCase());
     setBusy(true);
     const supabase = createClient();
     const { data, error } = await supabase.rpc("submit_daily_quiz_answer", {
       p_quiz_id: quiz.id,
-      p_answer: selectedPokemon,
+      p_answer: selectedPokemon || submittedAnswer,
       p_local_date: localDateKey(),
       p_time_zone: Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
     });
@@ -410,9 +411,9 @@ function DailyQuiz({ quiz, previous, signedIn, onSaved }) {
     <div className="daily-quiz-heading"><span className="eyebrow">DAILY POKÉMON QUIZ</span><span className={`quiz-difficulty ${quiz.difficulty}`}>{quiz.difficulty}</span></div>
     <h2>{cleanCommunityText(quiz.prompt)}</h2>
     {!quiz.answered ? <form onSubmit={submit}>
-      <div className="daily-quiz-input"><input value={answer} onFocus={() => setPickerOpen(true)} onChange={(event) => { setAnswer(event.target.value); setPickerOpen(true); }} placeholder="Search for a Pokémon" maxLength={60} autoComplete="off" /><button className="primary-button" disabled={busy || !POLL_POKEMON_NAMES.some((name) => name.toLowerCase() === answer.trim().toLowerCase())}>{busy ? "Checking…" : "Submit"}</button></div>
+      <div className="daily-quiz-input"><input value={answer} onFocus={() => setPickerOpen(true)} onChange={(event) => { setAnswer(event.target.value); setPickerOpen(true); }} placeholder="Enter a Pokémon, type, or answer" maxLength={60} autoComplete="off" /><button className="primary-button" disabled={busy || !answer.trim()}>{busy ? "Checking…" : "Submit"}</button></div>
       {pickerOpen && <div className="daily-quiz-pokemon-picker">
-        {pokemonMatches.length ? pokemonMatches.map((name) => <QuizPokemonChoice key={name} name={name} onChoose={(selected) => { setAnswer(selected); setPickerOpen(false); }} />) : <p className="muted">No matching Pokémon found. Try another spelling.</p>}
+        {pokemonMatches.length ? pokemonMatches.map((name) => <QuizPokemonChoice key={name} name={name} onChoose={(selected) => { setAnswer(selected); setPickerOpen(false); }} />) : <p className="muted">No matching Pokémon found. You can still submit this answer.</p>}
       </div>}
     </form> : <div className="daily-quiz-results">
       <strong style={{ color: quiz.selected_correct ? "#4FD1C5" : "#F0555A" }}>{quiz.selected_correct ? "Correct!" : "Not quite."}</strong>
