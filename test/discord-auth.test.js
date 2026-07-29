@@ -6,16 +6,18 @@ import { authCallbackUrl, safeAuthNextPath } from "../src/lib/auth-redirect.js";
 const readSource = (path) => readFile(new URL(path, import.meta.url), "utf8");
 
 test("Discord sign-in uses a dedicated Supabase Auth callback", async () => {
-  const [authGate, callback, profileConnection] = await Promise.all([
+  const [authGate, start, callback, profileConnection] = await Promise.all([
     readSource("../src/components/AuthGate.jsx"),
+    readSource("../src/app/auth/discord/route.js"),
     readSource("../src/app/auth/callback/route.js"),
     readSource("../src/app/api/discord/oauth/start/route.js"),
   ]);
 
-  assert.match(authGate, /signInWithOAuth\(\{provider:'discord'/);
-  assert.match(authGate, /redirectTo:authCallbackUrl\(window\.location\.origin\)/);
-  assert.match(authGate, /skipBrowserRedirect:true/);
-  assert.match(authGate, /window\.location\.assign\(data\.url\)/);
+  assert.match(authGate, /window\.location\.assign\('\/auth\/discord'\)/);
+  assert.match(start, /signInWithOAuth\(\{/);
+  assert.match(start, /provider: "discord"/);
+  assert.match(start, /redirectTo: authCallbackUrl\(requestUrl\.origin, next\)/);
+  assert.match(start, /skipBrowserRedirect: true/);
   assert.match(callback, /exchangeCodeForSession\(code\)/);
   assert.match(profileConnection, /discord_oauth_states/);
   assert.doesNotMatch(profileConnection, /signInWithOAuth/);
