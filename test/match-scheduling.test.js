@@ -61,6 +61,17 @@ test("participant scheduling controls are gated in the league UI", async () => {
   assert.match(league, /staffOnly=\{isCommissioner&&!isMatchParticipant\}/);
 });
 
+test("match time proposals require a complete, committed local date and time", async () => {
+  const league = await readSource("../src/components/PokemonDraftLeague.jsx");
+  const styles = await readSource("../src/app/globals.css");
+  assert.match(league, /proposedAtInputRef\.current\?\.value \|\| proposedAt/);
+  assert.match(league, /aria-label="Proposed local date and time"/);
+  assert.match(league, /onInput=\{updateProposedAt\}/);
+  assert.match(league, /disabled=\{busy\|\|!proposedAtReady\}/);
+  assert.match(league, /Date and time ready to submit\./);
+  assert.match(styles, /\.match-availability \.match-time-editor\{grid-template-columns:minmax\(270px,1fr\) auto/);
+});
+
 test("rollback rehearsal covers two managers, staff, recovery, and cleanup", async () => {
   const harness = await readSource("./match-scheduling-rehearsal-harness.sql");
   assert.match(harness, /A manager was able to accept their own proposal/);

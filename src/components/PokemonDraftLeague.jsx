@@ -14586,6 +14586,7 @@ function MatchAvailability({ leagueId, seasonNumber, weekIndex, matchIndex, sett
   const [busy, setBusy] = useState(false);
   const [scheduleInfo, setScheduleInfo] = useState(null);
   const [proposedAt, setProposedAt] = useState("");
+  const proposedAtInputRef = useRef(null);
   const [remindersEnabled, setRemindersEnabled] = useState(true);
   const [reminderOffsets, setReminderOffsets] = useState([1440,60]);
   const [overrideReason, setOverrideReason] = useState("");
@@ -14702,9 +14703,18 @@ function MatchAvailability({ leagueId, seasonNumber, weekIndex, matchIndex, sett
     setOpponentSubmitted(Boolean(data?.opponent_has_submitted));
     setMessage("Availability saved. Only matching windows are shared with your opponent.");
   }
+  function updateProposedAt(event) {
+    setProposedAt(event.currentTarget.value);
+    setMessage("");
+  }
+  function committedProposedAt() {
+    return proposedAtInputRef.current?.value || proposedAt;
+  }
   async function proposeTime() {
-    const date = new Date(proposedAt);
-    if(Number.isNaN(date.getTime())) return setMessage("Choose a proposed match time.");
+    const committedValue = committedProposedAt();
+    const date = new Date(committedValue);
+    if(Number.isNaN(date.getTime())) return setMessage("Choose the full proposed date and time first.");
+    setProposedAt(committedValue);
     setBusy(true); setMessage("");
     const { data, error } = await supabase.rpc("propose_match_schedule", {
       p_league_id:leagueId, p_season_number:seasonNumber, p_week:weekIndex,
@@ -14727,9 +14737,11 @@ function MatchAvailability({ leagueId, seasonNumber, weekIndex, matchIndex, sett
     setMessage("Match time confirmed. Eligible reminders are queued.");
   }
   async function overrideTime() {
-    const date = new Date(proposedAt);
-    if(Number.isNaN(date.getTime())) return setMessage("Choose a match time.");
+    const committedValue = committedProposedAt();
+    const date = new Date(committedValue);
+    if(Number.isNaN(date.getTime())) return setMessage("Choose the full match date and time first.");
     if(overrideReason.trim().length<3) return setMessage("Add a brief override reason.");
+    setProposedAt(committedValue);
     setBusy(true); setMessage("");
     const { data, error } = await supabase.rpc("override_match_schedule", {
       p_league_id:leagueId, p_season_number:seasonNumber, p_week:weekIndex,
@@ -14771,6 +14783,8 @@ function MatchAvailability({ leagueId, seasonNumber, weekIndex, matchIndex, sett
   const inputWindow = leagueWeekWindow(settings,weekIndex);
   const inputMin = inputWindow ? availabilityInput(inputWindow.start) : undefined;
   const inputMax = inputWindow ? availabilityInput(inputWindow.end) : undefined;
+  const proposedAtReady = Boolean(proposedAt) && !Number.isNaN(new Date(proposedAt).getTime());
+  const successMessage = /^(Availability saved|Match time proposed|Match time confirmed|Match reminder preferences saved|Match time updated|Match time cancelled)/.test(message);
   return <details className="match-availability" open={open} onToggle={(event)=>setOpen(event.currentTarget.open)}>
     <summary>Coordinate match time privately</summary>
     <div>
@@ -14787,12 +14801,13 @@ function MatchAvailability({ leagueId, seasonNumber, weekIndex, matchIndex, sett
           : scheduleInfo?.schedule?.status==="proposed"
             ? <p>{new Date(scheduleInfo.schedule.scheduled_at).toLocaleString()} · awaiting opponent</p>
             : <p>No confirmed time yet.</p>}
-        <section>
-          <input type="datetime-local" min={inputMin} max={inputMax} value={proposedAt} onChange={(event)=>setProposedAt(event.target.value)}/>
-          <button type="button" className="secondary-button" disabled={busy} onClick={proposeTime}>{scheduleInfo?.schedule?"Reschedule":"Propose time"}</button>
+        <section className={`match-time-editor${staffOnly?" staff-only":""}`}>
+          <label className="match-time-field"><span>Proposed local date and time</span><input ref={proposedAtInputRef} aria-label="Proposed local date and time" type="datetime-local" min={inputMin} max={inputMax} step="60" value={proposedAt} onInput={updateProposedAt} onChange={updateProposedAt}/></label>
+          {!staffOnly&&<button type="button" className="secondary-button" disabled={busy||!proposedAtReady} onClick={proposeTime}>{busy?"Submitting…":scheduleInfo?.schedule?"Reschedule":"Propose time"}</button>}
           {scheduleInfo?.can_accept&&<button type="button" className="secondary-button" disabled={busy} onClick={acceptTime}>Accept proposal</button>}
           {staffOnly&&<><input value={overrideReason} onChange={(event)=>setOverrideReason(event.target.value)} placeholder="Required staff override reason"/><button type="button" className="secondary-button" disabled={busy} onClick={overrideTime}>Confirm staff override</button></>}
           {scheduleInfo?.schedule&&scheduleInfo.schedule.status!=="cancelled"&&<button type="button" className="text-button danger-text" disabled={busy} onClick={cancelTime}>Cancel time</button>}
+          <small className={`match-time-readiness ${proposedAtReady?"ready":""}`}>{proposedAtReady?"Date and time ready to submit.":"Choose the complete date and time to enable the proposal."}</small>
         </section>
         {!staffOnly&&<div>
           <label className="check-row"><input type="checkbox" checked={remindersEnabled} onChange={(event)=>setRemindersEnabled(event.target.checked)}/> Personal Discord match reminders</label>
@@ -14800,7 +14815,7 @@ function MatchAvailability({ leagueId, seasonNumber, weekIndex, matchIndex, sett
           <button type="button" className="quiet-button" disabled={busy} onClick={saveReminderPreferences}>Save reminder preferences</button>
         </div>}
       </aside>}
-      {message&&<p className="text-xs" style={{color:message.startsWith("Availability saved")?"#4FD1C5":"#F0555A"}}>{message}</p>}
+      {message&&<p className="text-xs" role="status" style={{color:successMessage?"#4FD1C5":"#F0555A"}}>{message}</p>}
     </div>
   </details>;
 }
