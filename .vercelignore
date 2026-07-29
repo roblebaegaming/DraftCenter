@@ -1,6 +1,6 @@
-.git
+.git/
 .next
-.vercel
+.vercel/
 node_modules
 work
 .env*
