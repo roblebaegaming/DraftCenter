@@ -71,6 +71,11 @@ Never test against a real participant without their knowledge.
 After the rehearsal week:
 
 1. Run the dispatcher from a platform-owned schedule every one to five minutes.
+   On Vercel Pro or Enterprise, configure the Vercel cron directly. On Vercel
+   Hobby, apply `supabase/239-autonomous-notification-dispatch.sql` after storing
+   the deployment-specific dispatcher URL and matching `CRON_SECRET` in
+   Supabase Vault as `draftcenter_notification_dispatch_url` and
+   `draftcenter_notification_cron_secret`.
 2. Split Daily Three email delivery into its own daily job.
 3. Remove browser-driven queue dispatch after the scheduled worker is verified.
 4. Alert on last-success age, oldest queued event, retry count, and dead letters.
