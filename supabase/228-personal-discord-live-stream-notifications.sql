@@ -6,11 +6,6 @@ begin;
 alter table public.discord_user_connections
   add column if not exists notify_live_streams boolean not null default false;
 
-drop function if exists public.save_my_discord_notification_preferences(
-  boolean, boolean, boolean, boolean, boolean, boolean,
-  boolean, time, time, text
-);
-
 create or replace function public.save_my_discord_notification_preferences(
   p_dm_enabled boolean,
   p_notify_draft_reminders boolean,
