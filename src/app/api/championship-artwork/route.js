@@ -96,6 +96,36 @@ function playoffRounds(playoffs) {
   return rounds;
 }
 
+function winnerOfRounds(rounds) {
+  const final = rounds.at(-1)?.[0];
+  if (!final) return null;
+  if (final.a != null && final.b == null) return final.a;
+  if (final.b != null && final.a == null) return final.b;
+  if (!final.result) return null;
+  return final.result.gamesA > final.result.gamesB ? final.a : final.result.gamesB > final.result.gamesA ? final.b : null;
+}
+
+function posterPlayoffRounds(playoffs) {
+  if (!playoffs) return [];
+  if (playoffs.mode !== "divisions") return playoffRounds(playoffs);
+
+  const divisionBrackets = Array.isArray(playoffs.divisionBrackets) ? playoffs.divisionBrackets : [];
+  const divisionRounds = divisionBrackets.map((bracket) => playoffRounds(bracket));
+  const divisionChampions = divisionRounds.map(winnerOfRounds);
+  const divisionOrder = playoffs.championBracket?.divisionOrder || divisionBrackets.map((_, index) => index);
+  const orderedDivisionRounds = divisionOrder.map((divisionIndex) => divisionRounds[divisionIndex]).filter((rounds) => rounds?.length);
+  const combinedDivisionRounds = [];
+  const divisionRoundCount = Math.max(0, ...orderedDivisionRounds.map((rounds) => rounds.length));
+  for (let roundIndex = 0; roundIndex < divisionRoundCount; roundIndex++) {
+    combinedDivisionRounds.push(orderedDivisionRounds.flatMap((rounds) => rounds[roundIndex] || []));
+  }
+
+  const championBracket = playoffs.championBracket || {};
+  const championSeeds = divisionOrder.map((divisionIndex) => divisionIndex == null ? null : divisionChampions[divisionIndex]);
+  const championshipRounds = playoffRounds({ ...championBracket, seeds: championSeeds });
+  return [...combinedDivisionRounds, ...championshipRounds];
+}
+
 export async function renderPoster({ season, title, subtitle, coachName, themeKey }) {
   const fonts = await embeddedFonts;
   const themes = {
@@ -123,10 +153,7 @@ export async function renderPoster({ season, title, subtitle, coachName, themeKe
   const placement = Math.max(1, standings.findIndex((row) => row.id === championId) + 1);
   const ordinal = (value) => `${value}${value % 100 >= 11 && value % 100 <= 13 ? "th" : value % 10 === 1 ? "st" : value % 10 === 2 ? "nd" : value % 10 === 3 ? "rd" : "th"}`;
   const differential = Number(championStanding?.differential) || 0;
-  const bracketSource = season.playoffs?.championBracket?.bracketSize
-    ? season.playoffs.championBracket
-    : season.playoffs;
-  const rounds = playoffRounds(bracketSource);
+  const rounds = posterPlayoffRounds(season.playoffs);
 
   const bracketSvg = (() => {
     if (!rounds.length) {
