@@ -146,3 +146,26 @@ button { cursor: pointer; }
 .personal-team-sharing>p{display:block}
 .hub-shell>.my-leagues-card{order:1}.hub-shell>.public-card{order:3}.hub-shell>.create-card{order:4}.hub-shell>.dashboard-daily-three{order:5}
 @media(max-width:600px){.pokemon-browser-controls>.pokemon-list-controls,.pokemon-browser-controls>.pokemon-size-sort{grid-column:1/-1}.pokemon-list-controls{grid-template-columns:100px minmax(0,1fr);padding:12px;border:1px solid #34406a;border-radius:10px;background:#12182e}.pokemon-community-sort>div{grid-template-columns:repeat(3,1fr)}.pokemon-community-sort button{display:flex;align-items:center;justify-content:center;gap:6px;min-height:42px;padding:7px 8px}.pokemon-community-sort b{font-size:15px}.pokemon-community-sort small{overflow:visible;font-size:10px;text-overflow:clip}.pokemon-size-sort{padding:12px;border:1px solid #34406a;border-radius:10px;background:#12182e}.pokemon-size-sort>div{display:grid;grid-template-columns:1fr 1fr;gap:8px}}
+.pokemon-index-links {
+  width: min(1180px, calc(100% - 32px));
+  margin: 24px auto 48px;
+}
+
+.pokemon-index-links .pokemon-tags a {
+  color: #b9ccff;
+  text-decoration: none;
+}
+
+.pokemon-index-links .pokemon-tags a:hover {
+  color: #ffd54f;
+}
+
+.pokemon-seo-profile .pokemon-title {
+  align-items: center;
+}
+
+.pokemon-seo-profile .pokemon-title img {
+  width: min(260px, 38vw);
+  height: auto;
+  object-fit: contain;
+}
