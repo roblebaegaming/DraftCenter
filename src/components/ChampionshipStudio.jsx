@@ -36,12 +36,37 @@ function roundedRect(ctx, x, y, width, height, radius) {
 }
 
 async function downloadCanvas(canvas, filename) {
-  const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
-  if (!blob) throw new Error("PNG encoding failed");
+  async function encode(source) {
+    return await new Promise((resolve, reject) => {
+      try {
+        source.toBlob((blob) => blob ? resolve(blob) : reject(new Error("PNG encoding returned an empty file")), "image/png");
+      } catch (error) {
+        reject(error);
+      }
+    });
+  }
+
+  let blob;
+  let downloadedFilename = filename;
+  try {
+    blob = await encode(canvas);
+  } catch {
+    // Some mobile and embedded browsers cannot encode a 2400×3000 canvas in
+    // one pass. Preserve the 8×10 ratio and make a very usable 180-DPI file
+    // instead of leaving the commissioner with no artwork at all.
+    const fallback = document.createElement("canvas");
+    fallback.width = 1440;
+    fallback.height = 1800;
+    const context = fallback.getContext("2d");
+    if (!context) throw new Error("Print fallback unavailable");
+    context.drawImage(canvas, 0, 0, fallback.width, fallback.height);
+    blob = await encode(fallback);
+    downloadedFilename = filename.replace("300dpi", "180dpi");
+  }
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = filename;
+  link.download = downloadedFilename;
   link.style.display = "none";
   document.body.appendChild(link);
   link.click();
@@ -77,13 +102,29 @@ function pokemonApiSlug(name) {
 
 async function loadImage(url) {
   if (!url) return null;
-  return await new Promise((resolve) => {
-    const image = new Image();
-    image.crossOrigin = "anonymous";
-    image.onload = () => resolve(image);
-    image.onerror = () => resolve(null);
-    image.src = url;
-  });
+  try {
+    // Drawing a remote image element can mark the canvas as unsafe even when
+    // the image visibly loads. Fetching the bytes first and drawing a local
+    // object URL keeps the exported canvas origin-clean.
+    const response = await fetch(url, { mode: "cors" });
+    if (!response.ok) return null;
+    const blob = await response.blob();
+    const localUrl = URL.createObjectURL(blob);
+    return await new Promise((resolve) => {
+      const image = new Image();
+      image.onload = () => {
+        URL.revokeObjectURL(localUrl);
+        resolve(image);
+      };
+      image.onerror = () => {
+        URL.revokeObjectURL(localUrl);
+        resolve(null);
+      };
+      image.src = localUrl;
+    });
+  } catch {
+    return null;
+  }
 }
 
 async function loadRosterArtwork(roster) {
