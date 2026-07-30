@@ -155,6 +155,17 @@ function DiscordProfileConnection({ supabase, user }) {
     setMessage(result.message || result.error || "Personal Discord test finished.");
     if (response.ok) setConnection((current) => ({ ...current, last_dm_test_at: new Date().toISOString(), last_dm_test_status: "delivered", last_dm_test_error: null }));
   }
+  async function syncRoles() {
+    setBusy(true); setMessage("");
+    const { data } = await supabase.auth.getSession();
+    const response = await fetch("/api/discord/roles/sync", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${data.session?.access_token || ""}` },
+    });
+    const result = await response.json();
+    setBusy(false);
+    setMessage(result.message || result.error || "Discord role sync finished.");
+  }
   return <><hr/><h3>Personal Discord connection</h3>
     <p className="muted">Connect only your Discord identity for optional private DraftCenter updates. This does not give DraftCenter your server list, read messages, or connect a league server.</p>
     {connection ? <><div className="discord-profile-connected"><div><strong>Connected as {connection.discord_username}</strong><small>Connected</small></div><button type="button" className="quiet-button" disabled={busy} onClick={disconnect}>Disconnect</button></div>
@@ -177,7 +188,7 @@ function DiscordProfileConnection({ supabase, user }) {
             <label>Time zone<input value={preferences.timezone} onChange={(event)=>updatePreference("timezone",event.target.value)} placeholder="America/Los_Angeles"/></label>
           </div>
         </fieldset>
-        <div className="live-stream-actions"><button className="secondary-button" disabled={busy}>{busy?"Saving…":"Save notification settings"}</button><button type="button" className="quiet-button" disabled={busy||!preferences.enabled} onClick={sendTest}>Send private test message</button></div>
+        <div className="live-stream-actions"><button className="secondary-button" disabled={busy}>{busy?"Saving…":"Save notification settings"}</button><button type="button" className="quiet-button" disabled={busy||!preferences.enabled} onClick={sendTest}>Send private test message</button><button type="button" className="quiet-button" disabled={busy} onClick={syncRoles}>Sync Discord roles</button></div>
         {connection.last_dm_test_at&&<p className="muted">Last test: {connection.last_dm_test_status==="delivered"?"Delivered":"Failed"} · {new Date(connection.last_dm_test_at).toLocaleString()}{connection.last_dm_test_error?` · ${connection.last_dm_test_error}`:""}</p>}
       </form></>
       : <button type="button" className="discord-install-button" disabled={busy} onClick={connect}>{busy ? "Connecting…" : "Connect Discord Profile"}</button>}
