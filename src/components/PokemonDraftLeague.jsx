@@ -4577,6 +4577,7 @@ function freshState() {
     readReceipts: {},
     seasonNumber: 1,
     seasonHistory: [], // archived past seasons — see startNewSeason() for what each entry holds
+    seasonFinalizedAt: null, // commissioner-ended current season, before the next-season rollover
     // Owner-made picks of which roster mons to carry into next season
     // (keyed by team index), made while THIS season is still live — kept
     // separate from keeperRosters below since selections are provisional
@@ -4823,6 +4824,7 @@ function hydrateState(remote) {
     playoffs: migratePlayoffs(remote.playoffs),
     seasonNumber: remote.seasonNumber ?? 1,
     seasonHistory: arrayOr(remote.seasonHistory),
+    seasonFinalizedAt: remote.seasonFinalizedAt ?? null,
     keeperSelections: objectOr(remote.keeperSelections),
     keeperRosters: objectOr(remote.keeperRosters),
     waiverPriority: arrayOr(remote.waiverPriority),
@@ -7895,6 +7897,10 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   // advances. This is what makes "Season 2" mean something instead of
   // starting the whole league over from scratch.
   function buildNextSeasonState(s, ruleMode = "same") {
+      const alreadyFinalized = Boolean(
+        s.seasonFinalizedAt
+        && s.seasonHistory?.[s.seasonHistory.length - 1]?.seasonNumber === s.seasonNumber
+      );
       const standings = computeStandings(s);
       const champion = getLeagueChampion(s);
       // Badges are lifetime-within-this-league counters, awarded the
@@ -8016,7 +8022,8 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       return {
         ...s,
         seasonNumber: s.seasonNumber + 1,
-        seasonHistory: [...s.seasonHistory, summary],
+        seasonHistory: alreadyFinalized ? s.seasonHistory : [...s.seasonHistory, summary],
+        seasonFinalizedAt: null,
         settings: nextSettings,
         homepage: ruleMode === "new" ? { ...s.homepage, rules: "" } : s.homepage,
         locked: false,
@@ -8035,10 +8042,29 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
         playoffs: null,
         keeperRosters: ruleMode === "new" ? {} : keeperRosters,
         keeperSelections: {},
-        badges,
+        badges: alreadyFinalized ? s.badges : badges,
         draftHeroVotes: {},
         auditLog: [...(s.auditLog || []), auditEntry(myName, `Started Season ${s.seasonNumber + 1}`, ruleMode === "new" ? "started with new rules" : "carried forward the prior rules")],
       };
+  }
+
+  function finalizeSeason() {
+    const champion = getLeagueChampion(state);
+    if (!champion?.teamName || state.seasonFinalizedAt) return false;
+    commit((s) => {
+      if (s.seasonFinalizedAt) return s;
+      const projectedNextSeason = buildNextSeasonState(s, "same");
+      const summary = projectedNextSeason.seasonHistory[projectedNextSeason.seasonHistory.length - 1];
+      const finalizedAt = Date.now();
+      return {
+        ...s,
+        seasonHistory: [...(s.seasonHistory || []), { ...summary, endedAt: finalizedAt }],
+        seasonFinalizedAt: finalizedAt,
+        badges: projectedNextSeason.badges,
+        auditLog: [...(s.auditLog || []), auditEntry(myName, `Ended Season ${s.seasonNumber}`, `${champion.teamName} recorded as league champion; final season record frozen`)],
+      };
+    });
+    return true;
   }
 
   async function startNewSeason(ruleMode = "same") {
@@ -9044,7 +9070,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
             addDivision={addDivision} renameDivision={renameDivision} removeDivision={removeDivision} setTeamDivision={setTeamDivision}
             toggleBanMon={toggleBanMon} toggleAllowExtraMon={toggleAllowExtraMon} rebuildCurrentSeason={rebuildCurrentSeason} addCustomMon={addCustomMon} removeCustomMon={removeCustomMon}
             setSpriteOverride={setSpriteOverride} setTeamLogo={setTeamLogo}
-            onStart={startDraft} finalizeManualDraft={finalizeManualDraft} startNewSeason={startNewSeason}
+            onStart={startDraft} finalizeManualDraft={finalizeManualDraft} finalizeSeason={finalizeSeason} startNewSeason={startNewSeason}
             updateHomepage={updateHomepage} addExpansionTeam={addExpansionTeam} removeSpecificTeam={removeSpecificTeam}
             exportLeagueBackup={exportLeagueBackup} exportRecoveryBackup={exportRecoveryBackup} importLeagueBackup={importLeagueBackup}
             addCoCommissioner={addCoCommissioner} removeCoCommissioner={removeCoCommissioner}
@@ -10661,7 +10687,7 @@ function ScheduledStartNotice({ status, scheduledAt, draftType, isCommissioner =
   );
 }
 
-function SetupView({ state, leagueId = null, isCommissioner, canBeCommissioner, claimCommissioner, unclaimCommissioner, claimTeam, renameTeam, myName, updateSettings, resizeTeams, rerollAllTeamIdentities, costFor, toggleBanMon, toggleAllowExtraMon, rebuildCurrentSeason, addCustomMon, removeCustomMon, setSpriteOverride, setTeamLogo, onStart, addDivision, renameDivision, removeDivision, setTeamDivision, finalizeManualDraft, startNewSeason, updateHomepage, addExpansionTeam, removeSpecificTeam, exportLeagueBackup, exportRecoveryBackup, importLeagueBackup, addCoCommissioner, removeCoCommissioner, onOpenLeagueTools, copyLeagueInvite, saveNow, saveStatus, draftError = "", scheduledStartStatus = null, retryScheduledStart = null }) {
+function SetupView({ state, leagueId = null, isCommissioner, canBeCommissioner, claimCommissioner, unclaimCommissioner, claimTeam, renameTeam, myName, updateSettings, resizeTeams, rerollAllTeamIdentities, costFor, toggleBanMon, toggleAllowExtraMon, rebuildCurrentSeason, addCustomMon, removeCustomMon, setSpriteOverride, setTeamLogo, onStart, addDivision, renameDivision, removeDivision, setTeamDivision, finalizeManualDraft, finalizeSeason, startNewSeason, updateHomepage, addExpansionTeam, removeSpecificTeam, exportLeagueBackup, exportRecoveryBackup, importLeagueBackup, addCoCommissioner, removeCoCommissioner, onOpenLeagueTools, copyLeagueInvite, saveNow, saveStatus, draftError = "", scheduledStartStatus = null, retryScheduledStart = null }) {
   // A league may have been created before newer Setup options existed. Keep
   // this screen usable even if one of those older saved values is missing or
   // malformed; the next normal save will preserve the corrected shape.
@@ -11492,7 +11518,7 @@ function SetupView({ state, leagueId = null, isCommissioner, canBeCommissioner, 
       <TransactionRulesCard state={state} leagueId={leagueId} isCommissioner={isCommissioner} updateSettings={updateSettings} />
 
       {locked && isCommissioner && (
-        <NewSeasonCard state={state} startNewSeason={startNewSeason} />
+        <NewSeasonCard state={state} leagueId={leagueId} finalizeSeason={finalizeSeason} startNewSeason={startNewSeason} />
       )}
 
       {isCommissioner && (
@@ -12123,42 +12149,60 @@ function LeagueInfoCard({ state, isCommissioner, updateHomepage }) {
     </div>
   );
 }
-function NewSeasonCard({ state, startNewSeason }) {
-  const [confirming, setConfirming] = useState(false);
+function NewSeasonCard({ state, leagueId, finalizeSeason, startNewSeason }) {
+  const [confirmingEnd, setConfirmingEnd] = useState(false);
+  const [confirmingNext, setConfirmingNext] = useState(false);
   const [ruleMode, setRuleMode] = useState("same");
   const champion = getLeagueChampion(state);
+  const finalizedSeason = state.seasonFinalizedAt
+    ? state.seasonHistory?.[state.seasonHistory.length - 1]
+    : null;
   return (
-    <div style={{ background: "#171A2C", border: "1px solid #4FD1C555" }} className="rounded-lg p-6 mt-6">
-      <h2 className="display-font text-2xl mb-2" style={{ color: "#4FD1C5" }}>SEASON {state.seasonNumber}</h2>
-      <p className="text-sm mb-4" style={{ color: "#9A9FBD" }}>
-        When this season's done, start the next one — final standings, the champion, and this season's trades get saved to the league's history, then rosters, schedule, and the bracket reset for a fresh draft. Team names, colors, logos, and claims all carry over.
-      </p>
-      {!confirming ? (
-        <button onClick={() => setConfirming(true)} className="px-4 py-2 rounded font-semibold text-sm"
-          style={{ background: "#4FD1C522", color: "#4FD1C5", border: "1px solid #4FD1C555" }}>
-          START SEASON {state.seasonNumber + 1}
-        </button>
-      ) : (
-        <div className="px-3 py-3 rounded" style={{ background: "#0F1420", border: "1px solid rgba(255,255,255,0.08)" }}>
-          {champion ? (
-            <p className="text-sm mb-2" style={{ color: "#EDEBFA" }}>Season {state.seasonNumber} champion: <strong style={{ color: "#FFD23F" }}>{champion.teamName}</strong></p>
+    <div style={{ background: "#171A2C", border: `1px solid ${finalizedSeason ? "#FFD23F66" : "#4FD1C555"}` }} className="rounded-lg p-6 mt-6">
+      <span className="eyebrow">{finalizedSeason ? "SEASON COMPLETE" : "SEASON CONTROL"}</span>
+      <h2 className="display-font text-2xl mt-1 mb-2" style={{ color: finalizedSeason ? "#FFD23F" : "#4FD1C5" }}>SEASON {state.seasonNumber}</h2>
+      {!finalizedSeason ? (
+        <>
+          <p className="text-sm mb-4" style={{ color: "#9A9FBD" }}>
+            End the season when the final result is official. DraftCenter will freeze the standings, champion, rosters, bracket, awards, and transactions without starting or resetting anything.
+          </p>
+          {!confirmingEnd ? (
+            <button onClick={() => setConfirmingEnd(true)} className="px-4 py-2 rounded font-semibold text-sm"
+              style={{ background: "#FFD23F", color: "#10121C" }}>
+              END SEASON {state.seasonNumber}
+            </button>
           ) : (
-            <p className="text-sm mb-2" style={{ color: "#F0555A" }}>No champion decided yet this season — starting a new one now archives it as-is, with no champion on record.</p>
+            <div className="px-3 py-3 rounded" style={{ background: "#0F1420", border: "1px solid #FFD23F55" }}>
+              {champion ? <p className="text-sm mb-2" style={{ color: "#EDEBFA" }}>Record <strong style={{ color: "#FFD23F" }}>{champion.teamName}</strong> as the Season {state.seasonNumber} champion?</p> : <p className="text-sm mb-2" style={{ color: "#F0555A" }}>A champion must be decided before the season can end.</p>}
+              <p className="text-xs mb-3" style={{ color: "#9A9FBD" }}>This freezes the official season record and unlocks the championship artwork. It does not create the next season.</p>
+              <div className="flex gap-2">
+                <button disabled={!champion} onClick={() => { if (finalizeSeason()) setConfirmingEnd(false); }} className="px-3 py-1.5 rounded text-xs font-semibold disabled:opacity-50" style={{ background: "#FFD23F", color: "#10121C" }}>Yes, end Season {state.seasonNumber}</button>
+                <button onClick={() => setConfirmingEnd(false)} className="px-3 py-1.5 rounded text-xs" style={{ background: "#1F2338", color: "#9A9FBD" }}>Cancel</button>
+              </div>
+            </div>
           )}
-          <p className="text-sm mb-3" style={{ color: "#9A9FBD" }}>This can't be undone. Continue?</p>
-          <div className="grid sm:grid-cols-2 gap-2 mb-3">
-            <button type="button" onClick={() => setRuleMode("same")} className="p-3 rounded text-left text-sm" style={{ background: ruleMode === "same" ? "#4FD1C522" : "#1F2338", border: `1px solid ${ruleMode === "same" ? "#4FD1C5" : "rgba(255,255,255,0.08)"}`, color: "#EDEBFA" }}><strong>Use the same rules</strong><small className="block mt-1" style={{ color: "#9A9FBD" }}>Carry forward the regulation, allowed Pokémon, prices, draft format, schedule, playoffs, and transaction rules.</small></button>
-            <button type="button" onClick={() => setRuleMode("new")} className="p-3 rounded text-left text-sm" style={{ background: ruleMode === "new" ? "#FFD23F22" : "#1F2338", border: `1px solid ${ruleMode === "new" ? "#FFD23F" : "rgba(255,255,255,0.08)"}`, color: "#EDEBFA" }}><strong>Start with new rules</strong><small className="block mt-1" style={{ color: "#9A9FBD" }}>Reset league rules to defaults so the commissioner can select a new regulation, pool, prices, and house rules before drafting.</small></button>
-          </div>
-          <div className="flex gap-2">
-            <button onClick={async () => { if (await startNewSeason(ruleMode)) setConfirming(false); }} className="px-3 py-1.5 rounded text-xs font-semibold" style={{ background: "#4FD1C5", color: "#10121C" }}>
-              Yes, start Season {state.seasonNumber + 1}
-            </button>
-            <button onClick={() => setConfirming(false)} className="px-3 py-1.5 rounded text-xs" style={{ background: "#1F2338", color: "#9A9FBD" }}>
-              Cancel
-            </button>
-          </div>
-        </div>
+        </>
+      ) : (
+        <>
+          <p className="text-sm mb-3" style={{ color: "#EDEBFA" }}>Champion: <strong style={{ color: "#FFD23F" }}>{finalizedSeason.champion?.teamName}</strong></p>
+          <p className="text-sm mb-4" style={{ color: "#9A9FBD" }}>The official record is frozen. The league can remain here for awards, recaps, and championship production until you are ready for another season.</p>
+          <ChampionshipStudio season={finalizedSeason} leagueId={leagueId} />
+          {!confirmingNext ? (
+            <button onClick={() => setConfirmingNext(true)} className="px-4 py-2 rounded font-semibold text-sm mt-5" style={{ background: "#4FD1C522", color: "#4FD1C5", border: "1px solid #4FD1C555" }}>START SEASON {state.seasonNumber + 1}</button>
+          ) : (
+            <div className="px-3 py-3 rounded mt-5" style={{ background: "#0F1420", border: "1px solid rgba(255,255,255,0.08)" }}>
+              <p className="text-sm mb-3" style={{ color: "#9A9FBD" }}>Starting the next season resets current rosters, schedule, and bracket. The completed season stays in league history.</p>
+              <div className="grid sm:grid-cols-2 gap-2 mb-3">
+                <button type="button" onClick={() => setRuleMode("same")} className="p-3 rounded text-left text-sm" style={{ background: ruleMode === "same" ? "#4FD1C522" : "#1F2338", border: `1px solid ${ruleMode === "same" ? "#4FD1C5" : "rgba(255,255,255,0.08)"}`, color: "#EDEBFA" }}><strong>Use the same rules</strong><small className="block mt-1" style={{ color: "#9A9FBD" }}>Carry forward this season's format and league rules.</small></button>
+                <button type="button" onClick={() => setRuleMode("new")} className="p-3 rounded text-left text-sm" style={{ background: ruleMode === "new" ? "#FFD23F22" : "#1F2338", border: `1px solid ${ruleMode === "new" ? "#FFD23F" : "rgba(255,255,255,0.08)"}`, color: "#EDEBFA" }}><strong>Start with new rules</strong><small className="block mt-1" style={{ color: "#9A9FBD" }}>Return regulation and draft settings to defaults.</small></button>
+              </div>
+              <div className="flex gap-2">
+                <button onClick={async () => { if (await startNewSeason(ruleMode)) setConfirmingNext(false); }} className="px-3 py-1.5 rounded text-xs font-semibold" style={{ background: "#4FD1C5", color: "#10121C" }}>Yes, start Season {state.seasonNumber + 1}</button>
+                <button onClick={() => setConfirmingNext(false)} className="px-3 py-1.5 rounded text-xs" style={{ background: "#1F2338", color: "#9A9FBD" }}>Cancel</button>
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
@@ -12292,11 +12336,11 @@ function SeasonAwardsView({ state, standings, onViewTeam }) {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
+      {!state.seasonFinalizedAt && <div>
         <h2 className="display-font text-2xl mb-1" style={{ color: "#FFD23F" }}>SEASON {state.seasonNumber} AWARDS</h2>
         <p className="text-xs mb-3" style={{ color: "#9A9FBD" }}>Live — updates as the season plays out, final the moment a new season starts.</p>
         {renderAwards(liveSeason)}
-      </div>
+      </div>}
       {(state.seasonHistory || []).slice().reverse().map((season) => (
         <div key={season.seasonNumber}>
           <h2 className="display-font text-2xl mb-1" style={{ color: "#FFD23F" }}>SEASON {season.seasonNumber} AWARDS</h2>
