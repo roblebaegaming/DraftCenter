@@ -185,7 +185,9 @@ async function deliverPersonalDiscord(event, supabase) {
   const dm = await dmResponse.json();
   const content = event.kind === "draft_turn"
     ? `⚡ **You are on the clock in ${event.payload?.league_name || "DraftCenter"}**\nOpen DraftCenter now to make your pick.`
-    : event.payload?.hours_before === 1
+    : event.kind === "stream_live"
+      ? `🔴 **LIVE NOW — ${event.payload?.league_name || "Your DraftCenter league"}**\n${event.payload?.title || "A league battle is live."}\n${event.payload?.stream_url}`
+      : event.payload?.hours_before === 1
       ? `⏰ **${event.payload?.league_name || "Your DraftCenter draft"}** starts in about one hour.`
       : `📣 **${event.payload?.league_name || "Your DraftCenter draft"}** starts in ${event.payload?.hours_before} hours.`;
   const response = await fetch(`https://discord.com/api/v10/channels/${dm.id}/messages`, {

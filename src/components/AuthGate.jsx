@@ -78,7 +78,7 @@ function DiscordProfileConnection({ supabase, user }) {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [preferences, setPreferences] = useState({
-    enabled: false, drafts: true, scheduling: true, matches: true, transactions: false, results: false,
+    enabled: false, drafts: true, scheduling: true, matches: true, streams: false, transactions: false, results: false,
     quietEnabled: true, quietStart: "22:00", quietEnd: "08:00", timezone: "UTC",
   });
   useEffect(() => {
@@ -91,6 +91,7 @@ function DiscordProfileConnection({ supabase, user }) {
           drafts: data.notify_draft_reminders ?? true,
           scheduling: data.notify_match_scheduling ?? true,
           matches: data.notify_match_reminders ?? true,
+          streams: data.notify_live_streams ?? false,
           transactions: data.notify_transactions ?? false,
           results: data.notify_results ?? false,
           quietEnabled: data.quiet_hours_enabled ?? true,
@@ -131,6 +132,7 @@ function DiscordProfileConnection({ supabase, user }) {
       p_notify_draft_reminders: preferences.drafts,
       p_notify_match_scheduling: preferences.scheduling,
       p_notify_match_reminders: preferences.matches,
+      p_notify_live_streams: preferences.streams,
       p_notify_transactions: preferences.transactions,
       p_notify_results: preferences.results,
       p_quiet_hours_enabled: preferences.quietEnabled,
@@ -176,6 +178,7 @@ function DiscordProfileConnection({ supabase, user }) {
           <label className="check-row"><input type="checkbox" checked={preferences.drafts} onChange={(event)=>updatePreference("drafts",event.target.checked)}/> Draft reminders</label>
           <label className="check-row"><input type="checkbox" checked={preferences.scheduling} onChange={(event)=>updatePreference("scheduling",event.target.checked)}/> Match proposals, replies, and reschedules</label>
           <label className="check-row"><input type="checkbox" checked={preferences.matches} onChange={(event)=>updatePreference("matches",event.target.checked)}/> Confirmed match reminders</label>
+          <label className="check-row"><input type="checkbox" checked={preferences.streams} onChange={(event)=>updatePreference("streams",event.target.checked)}/> League streams going live</label>
           <label className="check-row"><input type="checkbox" checked={preferences.transactions} onChange={(event)=>updatePreference("transactions",event.target.checked)}/> Transaction updates</label>
           <label className="check-row"><input type="checkbox" checked={preferences.results} onChange={(event)=>updatePreference("results",event.target.checked)}/> Results, playoffs, and championships</label>
         </fieldset>
