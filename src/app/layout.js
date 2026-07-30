@@ -7,6 +7,7 @@ export const metadata = {
   title: { default: "DraftCenter — Pokémon Draft League Platform", template: "%s | DraftCenter" },
   description: "Run Pokémon draft leagues, explore community draft data, share teams by regulation, and follow public leagues on DraftCenter.",
   applicationName: "DraftCenter",
+  verification: { google: "WZBav7uPyWIoNs0PV95rujlY570GWua1aQnbnAraGWE" },
   keywords: ["Pokémon draft league", "Pokémon team builder", "Pokémon draft", "draft league manager", "Pokémon community"],
   openGraph: {
     type: "website",
