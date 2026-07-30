@@ -55,24 +55,45 @@ async function artworkDataUri(name) {
   }
 }
 
-function playoffRows(playoffs) {
-  const rows = [];
-  function walk(value, path = []) {
-    if (!value || typeof value !== "object") return;
-    if (Number.isFinite(value.gamesA) && Number.isFinite(value.gamesB)) {
-      rows.push({
-        label: path.filter((part) => !/results|rounds/i.test(part)).slice(-2).join(" / ") || "Playoffs",
-        teamA: value.teamA ?? value.a ?? value.teamAId,
-        teamB: value.teamB ?? value.b ?? value.teamBId,
-        score: `${value.gamesA}-${value.gamesB}`,
-      });
-    }
-    Object.entries(value).forEach(([key, child]) => {
-      if (child && typeof child === "object") walk(child, [...path, key]);
-    });
+function seedPairOrder(bracketSize) {
+  let order = [1, 2];
+  while (order.length < bracketSize) {
+    const size = order.length * 2;
+    order = order.flatMap((seed) => [seed, size + 1 - seed]);
   }
-  walk(playoffs);
-  return rows.slice(-8);
+  return order;
+}
+
+function playoffRounds(playoffs) {
+  if (!playoffs?.bracketSize || !Array.isArray(playoffs.seeds)) return [];
+  const order = seedPairOrder(playoffs.bracketSize);
+  let currentTeams = order.map((seed) => ({ teamId: playoffs.seeds[seed - 1] ?? null, seed }));
+  const rounds = [];
+  let roundIndex = 0;
+  while (currentTeams.length >= 2) {
+    const matches = [];
+    const winners = [];
+    for (let index = 0; index < currentTeams.length; index += 2) {
+      const left = currentTeams[index] || {};
+      const right = currentTeams[index + 1] || {};
+      const result = playoffs.results?.[`${roundIndex}-${index / 2}`];
+      let winner = null;
+      if (left.teamId != null && right.teamId != null && result) {
+        winner = result.gamesA > result.gamesB ? left : result.gamesB > result.gamesA ? right : null;
+      } else if (roundIndex === 0 && left.teamId != null && right.teamId == null) {
+        winner = left;
+      } else if (roundIndex === 0 && right.teamId != null && left.teamId == null) {
+        winner = right;
+      }
+      matches.push({ a: left.teamId ?? null, b: right.teamId ?? null, seedA: left.seed, seedB: right.seed, result });
+      winners.push(winner);
+    }
+    rounds.push(matches);
+    if (matches.length === 1) break;
+    currentTeams = winners.map((winner) => winner || { teamId: null, seed: null });
+    roundIndex++;
+  }
+  return rounds;
 }
 
 export async function renderPoster({ season, title, subtitle, coachName, themeKey }) {
@@ -97,26 +118,76 @@ export async function renderPoster({ season, title, subtitle, coachName, themeKe
   const championStanding = standings.find((row) => row.id === championId);
   const roster = (season.rosters?.[championId] || []).slice(0, 20);
   const artwork = await Promise.all(roster.map((mon) => artworkDataUri(mon.name)));
-  const matches = playoffRows(season.playoffs);
   const teamName = (id) => season.teams?.[id]?.name || season.standings?.find((row) => row.id === id)?.name || "";
   const record = championStanding ? `${championStanding.w}-${championStanding.l} regular-season record` : "Season champion";
+  const placement = Math.max(1, standings.findIndex((row) => row.id === championId) + 1);
+  const ordinal = (value) => `${value}${value % 100 >= 11 && value % 100 <= 13 ? "th" : value % 10 === 1 ? "st" : value % 10 === 2 ? "nd" : value % 10 === 3 ? "rd" : "th"}`;
+  const differential = Number(championStanding?.differential) || 0;
+  const bracketSource = season.playoffs?.championBracket?.bracketSize
+    ? season.playoffs.championBracket
+    : season.playoffs;
+  const rounds = playoffRounds(bracketSource);
 
-  const standingSvg = standings.map((row, index) => {
-    const y = 1115 + index * 92;
-    const active = row.id === championId;
-    return `<rect x="170" y="${y - 52}" width="970" height="72" rx="12" fill="${active ? theme.accent : theme.text}" opacity="${active ? ".15" : index % 2 ? ".05" : "0"}"/>
-      ${textPath(`${index + 1}. ${String(row.name || "").slice(0, 28)}`, 200, y, { size: 36, weight: active ? 900 : 700, fill: active ? theme.accent : theme.text })}
-      ${textPath(`${row.w}-${row.l}  ${(row.differential || 0) > 0 ? "+" : ""}${row.differential || 0}`, 1090, y, { size: 34, weight: 700, fill: active ? theme.accent : theme.text, anchor: "end" })}`;
-  }).join("");
-
-  const matchSvg = (matches.length ? matches : [{ label: "Championship", score: "Complete" }]).map((match, index) => {
-    const y = 1115 + index * 110;
-    const names = [teamName(match.teamA), teamName(match.teamB)].filter(Boolean);
-    return `<rect x="1260" y="${y - 60}" width="970" height="88" rx="14" fill="${theme.text}" opacity=".06"/>
-      ${textPath(match.label, 1290, y - 20, { size: 24, weight: 400, fill: theme.muted })}
-      ${textPath(names.length === 2 ? names.join(" vs ") : "Playoff matchup", 1290, y + 17, { size: 28, weight: 700, fill: theme.text })}
-      ${textPath(match.score, 2195, y, { size: 38, weight: 900, fill: theme.accent, anchor: "end" })}`;
-  }).join("");
+  const bracketSvg = (() => {
+    if (!rounds.length) {
+      return `${textPath("Championship complete", 1200, 1605, { size: 64, weight: 900, fill: theme.text, anchor: "middle" })}
+        ${textPath("The final bracket was not saved for this season.", 1200, 1680, { size: 34, weight: 400, fill: theme.muted, anchor: "middle" })}`;
+    }
+    const panelX = 190;
+    const panelY = 1330;
+    const panelW = 2020;
+    const panelH = 640;
+    const columnGap = rounds.length > 2 ? 95 : 150;
+    const boxW = Math.min(650, (panelW - columnGap * (rounds.length - 1)) / rounds.length);
+    const boxH = 128;
+    const columnStep = boxW + columnGap;
+    const firstCount = rounds[0].length;
+    const firstCenters = Array.from({ length: firstCount }, (_, index) => panelY + 90 + ((panelH - 130) * (index + .5)) / firstCount);
+    const centers = [firstCenters];
+    for (let roundIndex = 1; roundIndex < rounds.length; roundIndex++) {
+      centers.push(rounds[roundIndex].map((_, matchIndex) => {
+        const feeders = centers[roundIndex - 1];
+        return (feeders[matchIndex * 2] + (feeders[matchIndex * 2 + 1] ?? feeders[matchIndex * 2])) / 2;
+      }));
+    }
+    const connectors = [];
+    for (let roundIndex = 0; roundIndex < rounds.length - 1; roundIndex++) {
+      const fromX = panelX + roundIndex * columnStep + boxW;
+      const toX = panelX + (roundIndex + 1) * columnStep;
+      const elbowX = (fromX + toX) / 2;
+      centers[roundIndex].forEach((center, matchIndex) => {
+        const nextCenter = centers[roundIndex + 1][Math.floor(matchIndex / 2)];
+        connectors.push(`<path d="M ${fromX} ${center} H ${elbowX} V ${nextCenter} H ${toX}" fill="none" stroke="${theme.accent}" stroke-opacity=".42" stroke-width="5"/>`);
+      });
+    }
+    const boxes = rounds.flatMap((round, roundIndex) => {
+      const x = panelX + roundIndex * columnStep;
+      const label = roundIndex === rounds.length - 1 ? "FINAL" : roundIndex === rounds.length - 2 ? "SEMIFINALS" : roundIndex === rounds.length - 3 ? "QUARTERFINALS" : `ROUND ${roundIndex + 1}`;
+      const labelSvg = textPath(label, x + boxW / 2, 1320, { size: 30, weight: 900, fill: theme.accent, anchor: "middle" });
+      const matchSvgs = round.map((match, matchIndex) => {
+        const center = centers[roundIndex][matchIndex];
+        const y = center - boxH / 2;
+        const scoreA = Number.isFinite(match.result?.gamesA) ? String(match.result.gamesA) : "–";
+        const scoreB = Number.isFinite(match.result?.gamesB) ? String(match.result.gamesB) : "–";
+        const aWon = match.result && match.result.gamesA > match.result.gamesB;
+        const bWon = match.result && match.result.gamesB > match.result.gamesA;
+        const nameLimit = rounds.length >= 4 ? 18 : rounds.length === 3 ? 22 : 28;
+        const row = (teamId, seed, score, won, rowY) => {
+          const name = teamId == null ? "BYE" : teamName(teamId) || "Team";
+          return `${won ? `<rect x="${x + 8}" y="${rowY - 39}" width="${boxW - 16}" height="54" rx="10" fill="${theme.accent}" opacity=".15"/>` : ""}
+            ${seed ? textPath(seed, x + 30, rowY, { size: 24, weight: 700, fill: theme.muted }) : ""}
+            ${textPath(name.slice(0, nameLimit), x + 72, rowY, { size: 27, weight: won ? 900 : 700, fill: won ? theme.accent : theme.text })}
+            ${textPath(score, x + boxW - 28, rowY, { size: 30, weight: 900, fill: won ? theme.accent : theme.text, anchor: "end" })}`;
+        };
+        return `<rect x="${x}" y="${y}" width="${boxW}" height="${boxH}" rx="18" fill="${theme.bg}" stroke="${theme.text}" stroke-opacity=".14" stroke-width="3"/>
+          <line x1="${x + 15}" y1="${center}" x2="${x + boxW - 15}" y2="${center}" stroke="${theme.text}" stroke-opacity=".1" stroke-width="2"/>
+          ${row(match.a, match.seedA, scoreA, aWon, center - 18)}
+          ${row(match.b, match.seedB, scoreB, bWon, center + 48)}`;
+      }).join("");
+      return [labelSvg, matchSvgs];
+    }).join("");
+    return `${connectors.join("")}${boxes}`;
+  })();
 
   const rosterSvg = roster.map((mon, index) => {
     const column = index % 4;
@@ -141,11 +212,13 @@ export async function renderPoster({ season, title, subtitle, coachName, themeKe
     ${textPath("LEAGUE CHAMPION", 550, 650, { size: 48, weight: 700, fill: theme.accent })}
     ${textPath(championName.slice(0, 34), 550, 745, { size: 82, weight: 900, fill: theme.text })}
     ${textPath(coachName ? `${coachName}  •  ${record}` : record, 550, 825, { size: 40, weight: 400, fill: theme.muted })}
-    <rect x="150" y="980" width="1010" height="1080" rx="36" fill="${theme.panel}" opacity=".96"/>
-    <rect x="1240" y="980" width="1010" height="1080" rx="36" fill="${theme.panel}" opacity=".96"/>
-    ${textPath("FINAL STANDINGS", 200, 1045, { size: 44, weight: 700, fill: theme.accent })}
-    ${textPath(matches.length ? "PLAYOFF BRACKET" : "CHAMPIONSHIP RUN", 1290, 1045, { size: 44, weight: 700, fill: theme.accent })}
-    <g>${standingSvg}${matchSvg}</g>
+    <rect x="150" y="965" width="2100" height="185" rx="32" fill="${theme.panel}" opacity=".96"/>
+    ${textPath("REGULAR SEASON", 200, 1035, { size: 38, weight: 900, fill: theme.accent })}
+    ${textPath(`${ordinal(placement)} place`, 200, 1110, { size: 48, weight: 900, fill: theme.text })}
+    ${textPath(championStanding ? `${championStanding.w}-${championStanding.l} record  •  ${differential > 0 ? "+" : ""}${differential} differential` : "Season record complete", 2195, 1107, { size: 40, weight: 700, fill: theme.muted, anchor: "end" })}
+    <rect x="150" y="1190" width="2100" height="870" rx="36" fill="${theme.panel}" opacity=".96"/>
+    ${textPath("PLAYOFF BRACKET", 200, 1260, { size: 44, weight: 900, fill: theme.accent })}
+    <g>${bracketSvg}</g>
     <rect x="150" y="2130" width="2100" height="700" rx="36" fill="${theme.panel}" opacity=".96"/>
     ${textPath("CHAMPIONSHIP ROSTER", 200, 2205, { size: 44, weight: 700, fill: theme.accent })}
     <g>${rosterSvg}</g>
