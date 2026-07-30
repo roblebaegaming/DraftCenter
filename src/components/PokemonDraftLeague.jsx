@@ -9197,6 +9197,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
             {leagueSubTab === "playoffs" && (
               <PlayoffsView
                 state={state} isCommissioner={isCommissioner} myName={myName} standings={standings}
+                finalizeSeason={finalizeSeason}
                 generatePlayoffs={generatePlayoffs} resetPlayoffs={resetPlayoffs} reportPlayoffMatch={reportPlayoffMatch}
                 setPlayoffMVP={setPlayoffMVP} setDivisionMVP={setDivisionMVP} setChampionMVP={setChampionMVP}
                 setLosersMVP={setLosersMVP} setGrandFinalMVP={setGrandFinalMVP}
@@ -15096,7 +15097,7 @@ function CustomBracketSeeder({ teams, standings, onGenerate, onCancel }) {
   );
 }
 
-function PlayoffsView({ state, isCommissioner, myName, standings, generatePlayoffs, resetPlayoffs, reportPlayoffMatch, setPlayoffMVP, setDivisionMVP, setChampionMVP, setLosersMVP, setGrandFinalMVP, reportDivisionPlayoffMatch, reportChampionMatch, reportLosersMatch, reportGrandFinalGame, onViewTeam }) {
+function PlayoffsView({ state, isCommissioner, myName, standings, finalizeSeason, generatePlayoffs, resetPlayoffs, reportPlayoffMatch, setPlayoffMVP, setDivisionMVP, setChampionMVP, setLosersMVP, setGrandFinalMVP, reportDivisionPlayoffMatch, reportChampionMatch, reportLosersMatch, reportGrandFinalGame, onViewTeam }) {
   const { teams, playoffs, settings, locked, rosters } = state;
   const [viewMode, setViewMode] = useState("bracket"); // "bracket" | "list"
   const [showCustomSeeder, setShowCustomSeeder] = useState(false);
@@ -15159,20 +15160,26 @@ function PlayoffsView({ state, isCommissioner, myName, standings, generatePlayof
 
   if (playoffs.mode === "divisions") {
     return (
-      <DivisionPlayoffsView playoffs={playoffs} teams={teams} rosters={rosters} settings={settings}
-        isCommissioner={isCommissioner} myName={myName} onViewTeam={onViewTeam}
-        resetPlayoffs={resetPlayoffs} reportDivisionPlayoffMatch={reportDivisionPlayoffMatch} reportChampionMatch={reportChampionMatch}
-        setDivisionMVP={setDivisionMVP} setChampionMVP={setChampionMVP} />
+      <div className="flex flex-col gap-5">
+        <DivisionPlayoffsView playoffs={playoffs} teams={teams} rosters={rosters} settings={settings}
+          isCommissioner={isCommissioner} myName={myName} onViewTeam={onViewTeam}
+          resetPlayoffs={resetPlayoffs} reportDivisionPlayoffMatch={reportDivisionPlayoffMatch} reportChampionMatch={reportChampionMatch}
+          setDivisionMVP={setDivisionMVP} setChampionMVP={setChampionMVP} />
+        <EndSeasonAfterFinal state={state} isCommissioner={isCommissioner} finalizeSeason={finalizeSeason} />
+      </div>
     );
   }
 
   if (playoffs.mode === "double-elim") {
     return (
-      <DoubleElimView playoffs={playoffs} teams={teams} rosters={rosters} settings={settings}
-        isCommissioner={isCommissioner} myName={myName} onViewTeam={onViewTeam}
-        resetPlayoffs={resetPlayoffs} reportPlayoffMatch={reportPlayoffMatch} setPlayoffMVP={setPlayoffMVP}
-        reportLosersMatch={reportLosersMatch} reportGrandFinalGame={reportGrandFinalGame}
-        setLosersMVP={setLosersMVP} setGrandFinalMVP={setGrandFinalMVP} />
+      <div className="flex flex-col gap-5">
+        <DoubleElimView playoffs={playoffs} teams={teams} rosters={rosters} settings={settings}
+          isCommissioner={isCommissioner} myName={myName} onViewTeam={onViewTeam}
+          resetPlayoffs={resetPlayoffs} reportPlayoffMatch={reportPlayoffMatch} setPlayoffMVP={setPlayoffMVP}
+          reportLosersMatch={reportLosersMatch} reportGrandFinalGame={reportGrandFinalGame}
+          setLosersMVP={setLosersMVP} setGrandFinalMVP={setGrandFinalMVP} />
+        <EndSeasonAfterFinal state={state} isCommissioner={isCommissioner} finalizeSeason={finalizeSeason} />
+      </div>
     );
   }
 
@@ -15219,6 +15226,7 @@ function PlayoffsView({ state, isCommissioner, myName, standings, generatePlayof
           </div>
         );
       })()}
+      <EndSeasonAfterFinal state={state} isCommissioner={isCommissioner} finalizeSeason={finalizeSeason} />
 
       {viewMode === "bracket" ? (
         <BracketTree rounds={rounds} roundNames={normalizedPlayoffRoundNames(settings.playoffRoundNames, playoffs.bracketSize)} teams={teams} rosters={rosters}
@@ -15247,6 +15255,29 @@ function PlayoffsView({ state, isCommissioner, myName, standings, generatePlayof
             </div>
           </div>
         ))
+      )}
+    </div>
+  );
+}
+
+function EndSeasonAfterFinal({ state, isCommissioner, finalizeSeason }) {
+  const [confirming, setConfirming] = useState(false);
+  const champion = getLeagueChampion(state);
+  if (!isCommissioner || !champion?.teamName) return null;
+  if (state.seasonFinalizedAt) {
+    return <div className="rounded-lg px-4 py-3 text-center" style={{ background: "#4FD1C514", border: "1px solid #4FD1C555", color: "#4FD1C5" }}><strong>Season {state.seasonNumber} is complete.</strong> The championship record is frozen and ready in Setup and Past Seasons.</div>;
+  }
+  return (
+    <div className="rounded-lg p-4 text-center" style={{ background: "#FFD23F12", border: "1px solid #FFD23F66" }}>
+      <p className="text-sm mb-3" style={{ color: "#EDEBFA" }}><strong style={{ color: "#FFD23F" }}>{champion.teamName}</strong> has won the final. End the season now to freeze the official record and open the Championship Studio.</p>
+      {!confirming ? (
+        <button type="button" onClick={() => setConfirming(true)} className="px-5 py-2.5 rounded font-semibold" style={{ background: "#FFD23F", color: "#10121C" }}>END SEASON {state.seasonNumber}</button>
+      ) : (
+        <div className="flex items-center justify-center gap-2 flex-wrap">
+          <span className="text-sm mr-2" style={{ color: "#9A9FBD" }}>Record {champion.teamName} as champion?</span>
+          <button type="button" onClick={() => { if (finalizeSeason()) setConfirming(false); }} className="px-3 py-1.5 rounded text-xs font-semibold" style={{ background: "#FFD23F", color: "#10121C" }}>Yes, end season</button>
+          <button type="button" onClick={() => setConfirming(false)} className="px-3 py-1.5 rounded text-xs" style={{ background: "#1F2338", color: "#9A9FBD" }}>Cancel</button>
+        </div>
       )}
     </div>
   );
