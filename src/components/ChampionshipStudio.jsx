@@ -35,14 +35,18 @@ function roundedRect(ctx, x, y, width, height, radius) {
   ctx.roundRect(x, y, width, height, r);
 }
 
-function downloadCanvas(canvas, filename) {
+async function downloadCanvas(canvas, filename) {
+  const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
+  if (!blob) throw new Error("PNG encoding failed");
+  const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
-  link.href = canvas.toDataURL("image/png");
+  link.href = url;
   link.download = filename;
   link.style.display = "none";
   document.body.appendChild(link);
   link.click();
   link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 30000);
 }
 
 function pokemonApiSlug(name) {
@@ -182,49 +186,49 @@ async function drawArtwork({ season, title, subtitle, coachName, themeKey, forma
     ctx.fillText(line, pad, y);
     y += px(isSocial ? 72 : 86);
   });
-  ctx.font = `500 ${px(25)}px Arial, sans-serif`;
+  ctx.font = `500 ${px(isSocial ? 22 : 25)}px Arial, sans-serif`;
   ctx.fillStyle = theme.muted;
   ctx.fillText(subtitle, pad, y + px(4));
-  y += px(64);
+  y += px(isSocial ? 38 : 64);
 
-  roundedRect(ctx, pad, y, innerWidth, px(isSocial ? 238 : 286), px(28));
+  roundedRect(ctx, pad, y, innerWidth, px(isSocial ? 190 : 286), px(28));
   ctx.fillStyle = theme.panel;
   ctx.fill();
   ctx.strokeStyle = `${theme.accent}99`;
   ctx.lineWidth = px(2);
   ctx.stroke();
 
-  const markSize = px(isSocial ? 132 : 168);
+  const markSize = px(isSocial ? 104 : 168);
   const markX = pad + px(30);
-  const markY = y + px(34);
+  const markY = y + px(isSocial ? 34 : 34);
   ctx.fillStyle = team.color || theme.accent;
   ctx.beginPath();
   ctx.arc(markX + markSize / 2, markY + markSize / 2, markSize / 2, 0, Math.PI * 2);
   ctx.fill();
   ctx.fillStyle = theme.bg;
   ctx.textAlign = "center";
-  ctx.font = `900 ${px(isSocial ? 64 : 78)}px Arial, sans-serif`;
+  ctx.font = `900 ${px(isSocial ? 50 : 78)}px Arial, sans-serif`;
   ctx.fillText(safeText(champion.teamName, "?")[0].toUpperCase(), markX + markSize / 2, markY + markSize * 0.72);
   ctx.textAlign = "left";
 
   const championX = markX + markSize + px(36);
   ctx.fillStyle = theme.accent;
-  ctx.font = `800 ${px(23)}px Arial, sans-serif`;
-  ctx.fillText("LEAGUE CHAMPION", championX, y + px(58));
+  ctx.font = `800 ${px(isSocial ? 20 : 23)}px Arial, sans-serif`;
+  ctx.fillText("LEAGUE CHAMPION", championX, y + px(isSocial ? 48 : 58));
   ctx.fillStyle = theme.text;
-  ctx.font = `900 ${px(isSocial ? 44 : 54)}px Arial, sans-serif`;
+  ctx.font = `900 ${px(isSocial ? 36 : 54)}px Arial, sans-serif`;
   splitLines(ctx, safeText(champion.teamName, "Champion"), innerWidth - (championX - pad) - px(30)).slice(0, 2).forEach((line, index) => {
-    ctx.fillText(line, championX, y + px(112 + index * 55));
+    ctx.fillText(line, championX, y + px((isSocial ? 92 : 112) + index * (isSocial ? 42 : 55)));
   });
   ctx.fillStyle = theme.muted;
-  ctx.font = `500 ${px(22)}px Arial, sans-serif`;
+  ctx.font = `500 ${px(isSocial ? 18 : 22)}px Arial, sans-serif`;
   const record = championStanding ? `${championStanding.w}-${championStanding.l} regular-season record` : "Season champion";
-  ctx.fillText(coachName ? `${coachName}  •  ${record}` : record, championX, y + px(isSocial ? 208 : 244));
-  y += px(isSocial ? 276 : 330);
+  ctx.fillText(coachName ? `${coachName}  •  ${record}` : record, championX, y + px(isSocial ? 158 : 244));
+  y += px(isSocial ? 212 : 330);
 
   const sectionGap = px(22);
   const boxWidth = isSocial ? innerWidth : (innerWidth - sectionGap) / 2;
-  const standingsHeight = px(isSocial ? 272 : 610);
+  const standingsHeight = px(isSocial ? 218 : 610);
   roundedRect(ctx, pad, y, boxWidth, standingsHeight, px(22));
   ctx.fillStyle = `${theme.panel}EE`;
   ctx.fill();
@@ -233,11 +237,11 @@ async function drawArtwork({ season, title, subtitle, coachName, themeKey, forma
   ctx.fillText("FINAL STANDINGS", pad + px(28), y + px(44));
   const maxRows = isSocial ? 4 : 10;
   standings.slice(0, maxRows).forEach((row, index) => {
-    const rowY = y + px(82 + index * (isSocial ? 43 : 48));
+    const rowY = y + px((isSocial ? 76 : 82) + index * (isSocial ? 34 : 48));
     ctx.fillStyle = row.id === championId ? `${theme.accent}22` : index % 2 ? `${theme.text}08` : "transparent";
-    ctx.fillRect(pad + px(18), rowY - px(28), boxWidth - px(36), px(isSocial ? 38 : 42));
+    ctx.fillRect(pad + px(18), rowY - px(isSocial ? 24 : 28), boxWidth - px(36), px(isSocial ? 31 : 42));
     ctx.fillStyle = row.id === championId ? theme.accent : theme.text;
-    ctx.font = `${row.id === championId ? "800" : "600"} ${px(isSocial ? 18 : 20)}px Arial, sans-serif`;
+    ctx.font = `${row.id === championId ? "800" : "600"} ${px(isSocial ? 16 : 20)}px Arial, sans-serif`;
     ctx.fillText(`${index + 1}. ${safeText(row.name)}`.slice(0, 34), pad + px(30), rowY);
     ctx.textAlign = "right";
     ctx.fillText(`${row.w}-${row.l}  ${(row.differential || 0) > 0 ? "+" : ""}${row.differential || 0}`, pad + boxWidth - px(30), rowY);
@@ -285,7 +289,7 @@ async function drawArtwork({ season, title, subtitle, coachName, themeKey, forma
   ctx.fillText("CHAMPIONSHIP ROSTER", pad + px(28), y + px(44));
   const columns = isSocial ? 3 : 4;
   const cellWidth = (innerWidth - px(56)) / columns;
-  const cellHeight = px(isSocial ? 54 : 72);
+  const cellHeight = px(isSocial ? 48 : 72);
   roster.slice(0, isSocial ? 9 : 20).forEach((mon, index) => {
     const col = index % columns;
     const row = Math.floor(index / columns);
@@ -294,7 +298,7 @@ async function drawArtwork({ season, title, subtitle, coachName, themeKey, forma
     ctx.fillStyle = `${theme.text}0A`;
     roundedRect(ctx, cellX, cellY, cellWidth - px(12), cellHeight - px(12), px(12));
     ctx.fill();
-    const artSize = px(isSocial ? 43 : 58);
+    const artSize = px(isSocial ? 38 : 58);
     if (rosterArtwork[index]) {
       ctx.drawImage(rosterArtwork[index], cellX + px(4), cellY - px(2), artSize, artSize);
     } else {
@@ -304,8 +308,8 @@ async function drawArtwork({ season, title, subtitle, coachName, themeKey, forma
       ctx.fill();
     }
     ctx.fillStyle = theme.text;
-    ctx.font = `700 ${px(isSocial ? 17 : 20)}px Arial, sans-serif`;
-    ctx.fillText(safeText(mon.name).slice(0, 22), cellX + px(isSocial ? 52 : 67), cellY + (cellHeight - px(12)) / 2 + px(7));
+    ctx.font = `700 ${px(isSocial ? 14 : 20)}px Arial, sans-serif`;
+    ctx.fillText(safeText(mon.name).slice(0, 22), cellX + px(isSocial ? 46 : 67), cellY + (cellHeight - px(12)) / 2 + px(isSocial ? 5 : 7));
   });
 
   ctx.fillStyle = theme.muted;
@@ -344,7 +348,7 @@ export default function ChampionshipStudio({ season }) {
       const canvas = await drawArtwork({ season, title, subtitle, coachName, themeKey, format });
       if (!canvas) throw new Error("Canvas unavailable");
       const slug = safeText(season.champion.teamName, "champion").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-      downloadCanvas(canvas, `${slug}-season-${season.seasonNumber}-${format === "social" ? "social-1080" : "print-8x10-300dpi"}.png`);
+      await downloadCanvas(canvas, `${slug}-season-${season.seasonNumber}-${format === "social" ? "social-1080" : "print-8x10-300dpi"}.png`);
       setMessage("Download created.");
     } catch {
       setMessage("The artwork could not be downloaded. Please try again.");
