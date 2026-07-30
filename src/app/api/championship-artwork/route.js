@@ -1,12 +1,23 @@
 import sharp from "sharp";
-import { createAdminClient } from "../../../lib/supabase/admin";
+import { readFile } from "node:fs/promises";
+import { createAdminClient } from "../../../lib/supabase/admin.js";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
 
+const embeddedFonts = Promise.all([
+  readFile(new URL("../../../assets/fonts/inter-400.woff2", import.meta.url)),
+  readFile(new URL("../../../assets/fonts/inter-700.woff2", import.meta.url)),
+  readFile(new URL("../../../assets/fonts/inter-900.woff2", import.meta.url)),
+]).then(([regular, bold, black]) => ({
+  regular: regular.toString("base64"),
+  bold: bold.toString("base64"),
+  black: black.toString("base64"),
+}));
+
 function escapeXml(value) {
   return String(value ?? "").replace(/[<>&"']/g, (character) => ({
-    "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;", "'": "&apos;",
+    "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;", "'": "&#39;",
   })[character]);
 }
 
@@ -70,7 +81,8 @@ function playoffRows(playoffs) {
   return rows.slice(-8);
 }
 
-async function renderPoster({ season, title, subtitle, coachName, themeKey }) {
+export async function renderPoster({ season, title, subtitle, coachName, themeKey }) {
+  const fonts = await embeddedFonts;
   const themes = {
     night: { bg: "#10121C", panel: "#171A2C", accent: "#FFD23F", secondary: "#4FD1C5", text: "#EDEBFA", muted: "#9A9FBD" },
     legacy: { bg: "#17130D", panel: "#261E12", accent: "#E6B94A", secondary: "#F5E6B3", text: "#FFF9E8", muted: "#C4B78F" },
@@ -116,28 +128,34 @@ async function renderPoster({ season, title, subtitle, coachName, themeKey }) {
   }).join("");
 
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="2400" height="3000" viewBox="0 0 2400 3000">
+    <style>
+      @font-face { font-family: "DraftCenter Inter"; font-style: normal; font-weight: 400; src: url(data:font/woff2;base64,${fonts.regular}) format("woff2"); }
+      @font-face { font-family: "DraftCenter Inter"; font-style: normal; font-weight: 700; src: url(data:font/woff2;base64,${fonts.bold}) format("woff2"); }
+      @font-face { font-family: "DraftCenter Inter"; font-style: normal; font-weight: 900; src: url(data:font/woff2;base64,${fonts.black}) format("woff2"); }
+      text { font-family: "DraftCenter Inter"; font-weight: 700; }
+    </style>
     <rect width="2400" height="3000" fill="${theme.bg}"/>
     <defs><pattern id="lines" width="150" height="150" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="150" stroke="${theme.accent}" stroke-opacity=".07" stroke-width="4"/></pattern></defs>
     <rect width="2400" height="3000" fill="url(#lines)"/><rect width="2400" height="28" fill="${theme.accent}"/>
-    <text x="150" y="165" fill="${theme.secondary}" font-family="Arial,sans-serif" font-size="50" font-weight="800">DRAFTCENTER  •  SEASON CHAMPIONSHIP</text>
-    <text x="150" y="330" fill="${theme.text}" font-family="Arial,sans-serif" font-size="112" font-weight="900">${escapeXml(String(title || "").slice(0, 48))}</text>
-    <text x="150" y="425" fill="${theme.muted}" font-family="Arial,sans-serif" font-size="48">${escapeXml(String(subtitle || "").slice(0, 72))}</text>
+    <text x="150" y="165" fill="${theme.secondary}" font-size="50" font-weight="700">DRAFTCENTER  •  SEASON CHAMPIONSHIP</text>
+    <text x="150" y="330" fill="${theme.text}" font-size="112" font-weight="900">${escapeXml(String(title || "").slice(0, 48))}</text>
+    <text x="150" y="425" fill="${theme.muted}" font-size="48">${escapeXml(String(subtitle || "").slice(0, 72))}</text>
     <rect x="150" y="520" width="2100" height="390" rx="42" fill="${theme.panel}" stroke="${theme.accent}" stroke-width="5"/>
     <circle cx="355" cy="715" r="125" fill="${safeColor(team.color, theme.accent)}"/>
-    <text x="355" y="760" text-anchor="middle" fill="${theme.bg}" font-family="Arial,sans-serif" font-size="125" font-weight="900">${escapeXml(championName[0] || "?")}</text>
-    <text x="550" y="650" fill="${theme.accent}" font-family="Arial,sans-serif" font-size="48" font-weight="800">LEAGUE CHAMPION</text>
-    <text x="550" y="745" fill="${theme.text}" font-family="Arial,sans-serif" font-size="82" font-weight="900">${escapeXml(championName.slice(0, 34))}</text>
-    <text x="550" y="825" fill="${theme.muted}" font-family="Arial,sans-serif" font-size="40">${escapeXml(coachName ? `${coachName}  •  ${record}` : record)}</text>
+    <text x="355" y="760" text-anchor="middle" fill="${theme.bg}" font-size="125" font-weight="900">${escapeXml(championName[0] || "?")}</text>
+    <text x="550" y="650" fill="${theme.accent}" font-size="48" font-weight="700">LEAGUE CHAMPION</text>
+    <text x="550" y="745" fill="${theme.text}" font-size="82" font-weight="900">${escapeXml(championName.slice(0, 34))}</text>
+    <text x="550" y="825" fill="${theme.muted}" font-size="40">${escapeXml(coachName ? `${coachName}  •  ${record}` : record)}</text>
     <rect x="150" y="980" width="1010" height="1080" rx="36" fill="${theme.panel}" opacity=".96"/>
     <rect x="1240" y="980" width="1010" height="1080" rx="36" fill="${theme.panel}" opacity=".96"/>
-    <text x="200" y="1045" fill="${theme.accent}" font-family="Arial,sans-serif" font-size="44" font-weight="800">FINAL STANDINGS</text>
-    <text x="1290" y="1045" fill="${theme.accent}" font-family="Arial,sans-serif" font-size="44" font-weight="800">${matches.length ? "PLAYOFF BRACKET" : "CHAMPIONSHIP RUN"}</text>
-    <g font-family="Arial,sans-serif">${standingSvg}${matchSvg}</g>
+    <text x="200" y="1045" fill="${theme.accent}" font-size="44" font-weight="700">FINAL STANDINGS</text>
+    <text x="1290" y="1045" fill="${theme.accent}" font-size="44" font-weight="700">${matches.length ? "PLAYOFF BRACKET" : "CHAMPIONSHIP RUN"}</text>
+    <g>${standingSvg}${matchSvg}</g>
     <rect x="150" y="2130" width="2100" height="700" rx="36" fill="${theme.panel}" opacity=".96"/>
-    <text x="200" y="2205" fill="${theme.accent}" font-family="Arial,sans-serif" font-size="44" font-weight="800">CHAMPIONSHIP ROSTER</text>
-    <g font-family="Arial,sans-serif">${rosterSvg}</g>
-    <text x="150" y="2925" fill="${theme.muted}" font-family="Arial,sans-serif" font-size="30">Generated from the final DraftCenter Season ${Number(season.seasonNumber) || ""} record</text>
-    <text x="2250" y="2925" text-anchor="end" fill="${theme.muted}" font-family="Arial,sans-serif" font-size="30">draftcentral.gg</text>
+    <text x="200" y="2205" fill="${theme.accent}" font-size="44" font-weight="700">CHAMPIONSHIP ROSTER</text>
+    <g>${rosterSvg}</g>
+    <text x="150" y="2925" fill="${theme.muted}" font-size="30">Generated from the final DraftCenter Season ${Number(season.seasonNumber) || ""} record</text>
+    <text x="2250" y="2925" text-anchor="end" fill="${theme.muted}" font-size="30">draftcentral.gg</text>
   </svg>`;
   return await sharp(Buffer.from(svg)).png({ compressionLevel: 9 }).toBuffer();
 }
