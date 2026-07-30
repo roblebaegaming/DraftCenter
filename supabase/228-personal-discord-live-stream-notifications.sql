@@ -1,4 +1,4 @@
--- Opt-in personal Discord messages for Twitch streams in a user's leagues.
+-- Opt-in personal Discord messages for streams in a user's leagues.
 -- Run after 227-automatic-twitch-live-detection.sql.
 
 begin;
@@ -6,6 +6,8 @@ begin;
 alter table public.discord_user_connections
   add column if not exists notify_live_streams boolean not null default false;
 
+-- Keep the older ten-argument preference function in place during deployment.
+-- The UI uses this new overload after the application release is live.
 create or replace function public.save_my_discord_notification_preferences(
   p_dm_enabled boolean,
   p_notify_draft_reminders boolean,
@@ -72,93 +74,65 @@ grant execute on function public.save_my_discord_notification_preferences(
   boolean, time, time, text
 ) to authenticated;
 
-create or replace function public.mark_twitch_broadcaster_live(
-  p_broadcaster_id text,
-  p_started_at timestamptz default now()
-)
-returns integer
+-- This provider-neutral trigger covers Twitch auto-detection and manually
+-- published YouTube/Twitch Live Now transitions.
+create or replace function public.queue_personal_discord_stream_live()
+returns trigger
 language plpgsql
 security definer
 set search_path = public
 as $$
-declare
-  v_count integer := 0;
-  v_stream record;
 begin
-  for v_stream in
-    update public.league_live_streams stream
-    set status = 'live',
-        starts_at = coalesce(stream.starts_at, p_started_at),
-        twitch_monitoring_status = 'enabled',
-        twitch_monitoring_error = null,
-        updated_at = now()
-    where stream.platform = 'twitch'
-      and stream.twitch_broadcaster_id = p_broadcaster_id
-      and stream.status = 'scheduled'
-    returning stream.*
-  loop
-    v_count := v_count + 1;
+  if new.status <> 'live'
+     or (tg_op = 'UPDATE' and old.status is not distinct from 'live') then
+    return new;
+  end if;
 
-    if v_stream.visibility <> 'private' then
-      insert into public.notification_events(
-        league_id, user_id, kind, channel, dedupe_key, scheduled_for, payload
-      )
-      select
-        v_stream.league_id, null, 'stream_live', 'discord',
-        'stream-live:' || v_stream.id::text, now(),
-        jsonb_build_object(
-          'stream_id', v_stream.id,
-          'league_name', league.name,
-          'league_slug', league.slug,
-          'title', v_stream.title,
-          'stream_url', v_stream.stream_url,
-          'platform', 'twitch'
-        )
-      from public.leagues league
-      where league.id = v_stream.league_id
-      on conflict (dedupe_key) do nothing;
-    end if;
-
-    insert into public.notification_events(
-      league_id, user_id, kind, channel, dedupe_key, scheduled_for, payload
+  insert into public.notification_events(
+    league_id, user_id, kind, channel, dedupe_key, scheduled_for, payload
+  )
+  select
+    new.league_id,
+    membership.user_id,
+    'stream_live',
+    'discord_dm',
+    'discord-dm-stream-live:' || new.id::text || ':' || membership.user_id::text,
+    now(),
+    jsonb_build_object(
+      'stream_id', new.id,
+      'league_name', league.name,
+      'league_slug', league.slug,
+      'title', new.title,
+      'stream_url', new.stream_url,
+      'platform', new.platform
     )
-    select
-      v_stream.league_id,
-      membership.user_id,
-      'stream_live',
-      'discord_dm',
-      'discord-dm-stream-live:' || v_stream.id::text || ':' || membership.user_id::text,
-      now(),
-      jsonb_build_object(
-        'stream_id', v_stream.id,
-        'league_name', league.name,
-        'league_slug', league.slug,
-        'title', v_stream.title,
-        'stream_url', v_stream.stream_url,
-        'platform', 'twitch'
-      )
-    from public.league_memberships membership
-    join public.discord_user_connections connection
-      on connection.user_id = membership.user_id
-     and connection.dm_enabled
-     and connection.notify_live_streams
-    join public.leagues league on league.id = membership.league_id
-    where membership.league_id = v_stream.league_id
-      and membership.user_id <> v_stream.created_by
-      and (
-        v_stream.visibility in ('league', 'public')
-        or membership.role in ('commissioner', 'co_commissioner')
-      )
-    on conflict (dedupe_key) do nothing;
-  end loop;
-  return v_count;
+  from public.league_memberships membership
+  join public.discord_user_connections connection
+    on connection.user_id = membership.user_id
+   and connection.dm_enabled
+   and connection.notify_live_streams
+  join public.leagues league on league.id = membership.league_id
+  where membership.league_id = new.league_id
+    and membership.user_id <> new.created_by
+    and (
+      new.visibility in ('league', 'public')
+      or membership.role in ('commissioner', 'co_commissioner')
+    )
+  on conflict (dedupe_key) do nothing;
+
+  return new;
 end;
 $$;
 
-revoke all on function public.mark_twitch_broadcaster_live(text, timestamptz)
+drop trigger if exists queue_personal_discord_stream_live
+  on public.league_live_streams;
+create trigger queue_personal_discord_stream_live
+after insert or update of status
+on public.league_live_streams
+for each row execute function public.queue_personal_discord_stream_live();
+
+revoke all on function public.queue_personal_discord_stream_live()
   from public, anon, authenticated;
-grant execute on function public.mark_twitch_broadcaster_live(text, timestamptz)
-  to service_role;
 
 commit;
 
