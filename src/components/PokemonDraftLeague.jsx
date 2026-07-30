@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { createClient } from "../lib/supabase/client";
 import { DiscordConnectionPanel, LeagueBroadcastCenter } from "./SocialSharing";
 import PublicCoachProfile, { CoachProfileButton } from "./PublicCoachProfile";
+import ChampionshipStudio from "./ChampionshipStudio";
 
 /* ---------------------------------------------------------
    DESIGN TOKENS — stadium-jumbotron-at-night aesthetic.
@@ -12349,6 +12350,7 @@ function ArchivedSeasonView({ season }) {
       <div><h3 className="display-font text-lg mb-2" style={{ color: "#FFD23F" }}>SAVED BRACKET RESULTS</h3>{playoffResults.length ? playoffResults.map((result, index) => <div key={`${result.path}-${index}`} className="rounded px-3 py-2 mb-2 text-sm" style={{ background: "#1B1F33" }}><span style={{ color: "#9A9FBD" }}>{result.path.replace(/results|rounds/gi, "").replace(/\s+\/\s+/g, " / ")}</span><strong className="float-right" style={{ color: "#EDEBFA" }}>{result.gamesA}-{result.gamesB}</strong></div>) : <p className="text-sm" style={{ color: "#5B5F7E" }}>No saved playoff results for this season.</p>}</div>
       <div><h3 className="display-font text-lg mb-2" style={{ color: "#FFD23F" }}>SAVED REPLAYS</h3>{[...new Set(replayLinks)].length ? [...new Set(replayLinks)].map((url, index) => <a key={url} href={url} target="_blank" rel="noopener noreferrer" className="block rounded px-3 py-2 mb-2 text-sm hover:underline" style={{ background: "#1B1F33", color: "#4FD1C5" }}>Replay {index + 1} ↗</a>) : <p className="text-sm" style={{ color: "#5B5F7E" }}>No replay links were saved for this season.</p>}</div>
     </div>
+    <ChampionshipStudio season={season} />
   </section>;
 }
 
