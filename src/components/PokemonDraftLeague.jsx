@@ -9195,7 +9195,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
               />
             )}
             {leagueSubTab === "history" && (
-              <HistoryView state={state} onViewTeam={goToTeam} />
+              <HistoryView state={state} leagueId={leagueId} onViewTeam={goToTeam} />
             )}
             {leagueSubTab === "adp" && (
               <ADPView state={state} />
@@ -12322,7 +12322,7 @@ function SeasonAwardsView({ state, standings, onViewTeam }) {
     </div>
   );
 }
-function ArchivedSeasonView({ season }) {
+function ArchivedSeasonView({ season, leagueId }) {
   if (!season) return null;
   const replayLinks = [];
   const playoffResults = [];
@@ -12350,11 +12350,11 @@ function ArchivedSeasonView({ season }) {
       <div><h3 className="display-font text-lg mb-2" style={{ color: "#FFD23F" }}>SAVED BRACKET RESULTS</h3>{playoffResults.length ? playoffResults.map((result, index) => <div key={`${result.path}-${index}`} className="rounded px-3 py-2 mb-2 text-sm" style={{ background: "#1B1F33" }}><span style={{ color: "#9A9FBD" }}>{result.path.replace(/results|rounds/gi, "").replace(/\s+\/\s+/g, " / ")}</span><strong className="float-right" style={{ color: "#EDEBFA" }}>{result.gamesA}-{result.gamesB}</strong></div>) : <p className="text-sm" style={{ color: "#5B5F7E" }}>No saved playoff results for this season.</p>}</div>
       <div><h3 className="display-font text-lg mb-2" style={{ color: "#FFD23F" }}>SAVED REPLAYS</h3>{[...new Set(replayLinks)].length ? [...new Set(replayLinks)].map((url, index) => <a key={url} href={url} target="_blank" rel="noopener noreferrer" className="block rounded px-3 py-2 mb-2 text-sm hover:underline" style={{ background: "#1B1F33", color: "#4FD1C5" }}>Replay {index + 1} ↗</a>) : <p className="text-sm" style={{ color: "#5B5F7E" }}>No replay links were saved for this season.</p>}</div>
     </div>
-    <ChampionshipStudio season={season} />
+    <ChampionshipStudio season={season} leagueId={leagueId} />
   </section>;
 }
 
-function HistoryView({ state, onViewTeam }) {
+function HistoryView({ state, leagueId, onViewTeam }) {
   const { seasonHistory, seasonNumber, teams } = state;
   const [selectedSeasonNumber, setSelectedSeasonNumber] = useState(null);
 
@@ -12450,7 +12450,7 @@ function HistoryView({ state, onViewTeam }) {
         </div>
       </div>
 
-      {selectedSeasonNumber != null && <ArchivedSeasonView season={seasonHistory.find((season) => season.seasonNumber === selectedSeasonNumber)} />}
+      {selectedSeasonNumber != null && <ArchivedSeasonView leagueId={leagueId} season={seasonHistory.find((season) => season.seasonNumber === selectedSeasonNumber)} />}
 
       <div>
         <h2 className="display-font text-2xl mb-1" style={{ color: "#4FD1C5" }}>ALL-TIME RECORDS</h2>

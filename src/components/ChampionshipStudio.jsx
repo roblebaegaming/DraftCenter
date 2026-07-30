@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
+import { createClient } from "../lib/supabase/client";
 
 const THEMES = {
   night: { name: "Championship Night", bg: "#10121C", panel: "#171A2C", accent: "#FFD23F", secondary: "#4FD1C5", text: "#EDEBFA", muted: "#9A9FBD" },
@@ -362,7 +363,7 @@ async function drawArtwork({ season, title, subtitle, coachName, themeKey, forma
   return canvas;
 }
 
-export default function ChampionshipStudio({ season }) {
+export default function ChampionshipStudio({ season, leagueId }) {
   const championId = season?.champion?.teamId;
   const championRow = season?.standings?.find((row) => row.id === championId);
   const defaultCoach = championRow?.claimedBy || season?.teams?.[championId]?.claimedBy || "";
@@ -386,13 +387,43 @@ export default function ChampionshipStudio({ season }) {
     setExporting(format);
     setMessage("Loading Pokémon artwork…");
     try {
+      if (format === "print" && leagueId) {
+        setMessage("DraftCenter is creating the print file…");
+        const supabase = createClient();
+        const { data: sessionResult } = await supabase.auth.getSession();
+        const token = sessionResult?.session?.access_token;
+        if (!token) throw new Error("Sign in again before creating artwork.");
+        const response = await fetch("/api/championship-artwork", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ leagueId, season, title, subtitle, coachName, themeKey }),
+        });
+        if (!response.ok) {
+          const detail = await response.json().catch(() => ({}));
+          throw new Error(detail.error || "Print generation failed.");
+        }
+        const blob = await response.blob();
+        const disposition = response.headers.get("content-disposition") || "";
+        const filename = disposition.match(/filename="([^"]+)"/)?.[1] || `championship-season-${season.seasonNumber}-print.png`;
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = filename;
+        link.style.display = "none";
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 30000);
+        setMessage("Print download created.");
+        return;
+      }
       const canvas = await drawArtwork({ season, title, subtitle, coachName, themeKey, format });
       if (!canvas) throw new Error("Canvas unavailable");
       const slug = safeText(season.champion.teamName, "champion").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
       await downloadCanvas(canvas, `${slug}-season-${season.seasonNumber}-${format === "social" ? "social-1080" : "print-8x10-300dpi"}.png`);
       setMessage("Download created.");
-    } catch {
-      setMessage("The artwork could not be downloaded. Please try again.");
+    } catch (error) {
+      setMessage(error?.message || "The artwork could not be downloaded. Please try again.");
     } finally {
       setExporting("");
     }
