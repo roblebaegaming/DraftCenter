@@ -9,7 +9,7 @@
 - Vercel Web Analytics is enabled and the application includes `@vercel/analytics` for anonymized, cookie-free page-view measurement. Treat `/support` visits as the initial interest signal; no paid-plan conversion event exists yet.
 - The privacy and third-party-service disclosures cover Vercel Web Analytics and Ko-fi.
 - Production deployment completed successfully with all 43 routes, including `/support`.
-- Remaining owner-only check: make a real low-value tip from a separate account or private session and confirm delivery to PayPal. Do not announce support broadly until that end-to-end payment check succeeds.
+- End-to-end payment verification passed July 30, 2026: Ko-fi recorded a one-time $3 tip and confirmed that the payment went to the connected PayPal account.
 
 ## Mission and product constraint
 
