@@ -12,8 +12,9 @@ The first release includes:
 - Editable artwork title, season line, and coach name
 - An 8-by-10-inch PNG at 300 DPI (`2400 × 3000`)
 - A square social PNG (`1080 × 1080`)
-- Final standings, championship record, roster, playoff summary, and saved season awards
+- Final standings, championship record, roster with Pokémon artwork, a compact playoff bracket when archived matchup data is available, and saved season awards
 - A safe colored-initial team mark that remains exportable when an external logo host does not allow canvas use
+- A visible export status and a fallback when individual Pokémon artwork cannot be loaded
 
 The editable fields are presentation-only. They are not written back to the archived season or treated as official results.
 

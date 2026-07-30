@@ -36,18 +36,67 @@ function roundedRect(ctx, x, y, width, height, radius) {
 }
 
 function downloadCanvas(canvas, filename) {
-  canvas.toBlob((blob) => {
-    if (!blob) return;
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = filename;
-    link.click();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-  }, "image/png");
+  const link = document.createElement("a");
+  link.href = canvas.toDataURL("image/png");
+  link.download = filename;
+  link.style.display = "none";
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
 }
 
-function collectPlayoffPath(playoffs, championId, championName) {
+function pokemonApiSlug(name) {
+  let value = safeText(name).toLowerCase();
+  const regionalPatterns = [
+    [/^alolan (.+)/, "$1-alola"],
+    [/^galarian (.+)/, "$1-galar"],
+    [/^hisuian (.+)/, "$1-hisui"],
+    [/^paldean tauros \(water\)$/, "tauros-paldea-aqua-breed"],
+    [/^paldean tauros \(fire\)$/, "tauros-paldea-blaze-breed"],
+    [/^paldean tauros$/, "tauros-paldea-combat-breed"],
+    [/^paldean (.+)/, "$1-paldea"],
+  ];
+  for (const [pattern, replacement] of regionalPatterns) {
+    if (pattern.test(value)) {
+      value = value.replace(pattern, replacement);
+      break;
+    }
+  }
+  if (/^mega /.test(value)) {
+    value = value.replace(/^mega /, "");
+    if (/ x$/.test(value)) value = value.replace(/ x$/, "") + "-mega-x";
+    else if (/ y$/.test(value)) value = value.replace(/ y$/, "") + "-mega-y";
+    else value += "-mega";
+  }
+  return value.replace(/[().:'’%]/g, "").replace(/\s+/g, "-").replace(/-+/g, "-");
+}
+
+async function loadImage(url) {
+  if (!url) return null;
+  return await new Promise((resolve) => {
+    const image = new Image();
+    image.crossOrigin = "anonymous";
+    image.onload = () => resolve(image);
+    image.onerror = () => resolve(null);
+    image.src = url;
+  });
+}
+
+async function loadRosterArtwork(roster) {
+  return await Promise.all((roster || []).map(async (mon) => {
+    try {
+      const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokemonApiSlug(mon.name)}`);
+      if (!response.ok) return null;
+      const data = await response.json();
+      const url = data?.sprites?.other?.["official-artwork"]?.front_default || data?.sprites?.front_default;
+      return await loadImage(url);
+    } catch {
+      return null;
+    }
+  }));
+}
+
+function collectPlayoffMatches(playoffs, championId, championName) {
   const results = [];
   const seen = new Set();
   function walk(value, path = []) {
@@ -57,13 +106,18 @@ function collectPlayoffPath(playoffs, championId, championName) {
       const teamA = value.teamA ?? value.a ?? value.teamAId;
       const teamB = value.teamB ?? value.b ?? value.teamBId;
       const winner = value.winner ?? value.winnerId;
-      const involvesChampion = [teamA, teamB, winner].some((entry) => entry === championId || entry === championName);
-      if (involvesChampion) {
-        const key = `${path.join("-")}-${value.gamesA}-${value.gamesB}`;
-        if (!seen.has(key)) {
-          seen.add(key);
-          results.push({ label: path.filter((part) => !/results|rounds/i.test(part)).slice(-2).join(" / ") || "Playoffs", score: `${value.gamesA}-${value.gamesB}` });
-        }
+      const key = `${path.join("-")}-${value.gamesA}-${value.gamesB}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        const involvesChampion = [teamA, teamB, winner].some((entry) => entry === championId || entry === championName);
+        results.push({
+          label: path.filter((part) => !/results|rounds/i.test(part)).slice(-2).join(" / ") || "Playoffs",
+          score: `${value.gamesA}-${value.gamesB}`,
+          teamA,
+          teamB,
+          winner,
+          involvesChampion,
+        });
       }
     }
     Object.entries(value).forEach(([key, child]) => {
@@ -71,10 +125,10 @@ function collectPlayoffPath(playoffs, championId, championName) {
     });
   }
   walk(playoffs);
-  return results.slice(-4);
+  return results.slice(-8);
 }
 
-function drawArtwork({ season, title, subtitle, coachName, themeKey, format }) {
+async function drawArtwork({ season, title, subtitle, coachName, themeKey, format }) {
   const isSocial = format === "social";
   const width = isSocial ? 1080 : 2400;
   const height = isSocial ? 1080 : 3000;
@@ -93,7 +147,8 @@ function drawArtwork({ season, title, subtitle, coachName, themeKey, format }) {
   const roster = championId == null ? [] : (season.rosters?.[championId] || []);
   const standings = (season.standings || []).slice();
   const championStanding = standings.find((row) => row.id === championId);
-  const playoffPath = collectPlayoffPath(season.playoffs, championId, champion.teamName);
+  const playoffMatches = collectPlayoffMatches(season.playoffs, championId, champion.teamName);
+  const rosterArtwork = await loadRosterArtwork(roster);
   const pad = px(isSocial ? 64 : 76);
   const innerWidth = width - pad * 2;
 
@@ -196,13 +251,19 @@ function drawArtwork({ season, title, subtitle, coachName, themeKey, format }) {
     ctx.fill();
     ctx.fillStyle = theme.accent;
     ctx.font = `800 ${px(22)}px Arial, sans-serif`;
-    ctx.fillText("CHAMPIONSHIP RUN", rightX + px(28), y + px(44));
-    const facts = [
-      ...(playoffPath.length ? playoffPath.map((result) => `${result.label}: ${result.score}`) : ["Playoff bracket completed"]),
-      season.playoffMVP ? `Playoff MVP: ${season.playoffMVP}` : null,
-      season.regularSeasonChampions?.some((entry) => entry.teamId === championId) ? "Regular-season champion" : null,
-      season.dynasty ? `Dynasty: ${season.dynasty}` : null,
-    ].filter(Boolean).slice(0, 7);
+    ctx.fillText(playoffMatches.length ? "PLAYOFF BRACKET" : "CHAMPIONSHIP RUN", rightX + px(28), y + px(44));
+    const teamName = (teamId) => season.teams?.[teamId]?.name || season.standings?.find((row) => row.id === teamId)?.name || "";
+    const facts = playoffMatches.length
+      ? playoffMatches.map((result) => {
+        const names = [teamName(result.teamA), teamName(result.teamB)].filter(Boolean);
+        return `${result.label}${names.length === 2 ? ` • ${names.join(" vs ")}` : ""}: ${result.score}`;
+      })
+      : [
+        "Playoff bracket completed",
+        season.playoffMVP ? `Playoff MVP: ${season.playoffMVP}` : null,
+        season.regularSeasonChampions?.some((entry) => entry.teamId === championId) ? "Regular-season champion" : null,
+        season.dynasty ? `Dynasty: ${season.dynasty}` : null,
+      ].filter(Boolean);
     facts.forEach((fact, index) => {
       const factY = y + px(96 + index * 64);
       ctx.fillStyle = index === facts.length - 1 && /MVP|champion|Dynasty/i.test(fact) ? theme.secondary : theme.text;
@@ -233,13 +294,18 @@ function drawArtwork({ season, title, subtitle, coachName, themeKey, format }) {
     ctx.fillStyle = `${theme.text}0A`;
     roundedRect(ctx, cellX, cellY, cellWidth - px(12), cellHeight - px(12), px(12));
     ctx.fill();
-    ctx.fillStyle = theme.secondary;
-    ctx.beginPath();
-    ctx.arc(cellX + px(20), cellY + (cellHeight - px(12)) / 2, px(6), 0, Math.PI * 2);
-    ctx.fill();
+    const artSize = px(isSocial ? 43 : 58);
+    if (rosterArtwork[index]) {
+      ctx.drawImage(rosterArtwork[index], cellX + px(4), cellY - px(2), artSize, artSize);
+    } else {
+      ctx.fillStyle = theme.secondary;
+      ctx.beginPath();
+      ctx.arc(cellX + px(20), cellY + (cellHeight - px(12)) / 2, px(6), 0, Math.PI * 2);
+      ctx.fill();
+    }
     ctx.fillStyle = theme.text;
     ctx.font = `700 ${px(isSocial ? 17 : 20)}px Arial, sans-serif`;
-    ctx.fillText(safeText(mon.name).slice(0, 22), cellX + px(38), cellY + (cellHeight - px(12)) / 2 + px(7));
+    ctx.fillText(safeText(mon.name).slice(0, 22), cellX + px(isSocial ? 52 : 67), cellY + (cellHeight - px(12)) / 2 + px(7));
   });
 
   ctx.fillStyle = theme.muted;
@@ -264,16 +330,27 @@ export default function ChampionshipStudio({ season }) {
   const [subtitle, setSubtitle] = useState(defaults.subtitle);
   const [coachName, setCoachName] = useState(defaults.coachName);
   const [themeKey, setThemeKey] = useState("night");
+  const [exporting, setExporting] = useState("");
+  const [message, setMessage] = useState("");
 
   if (!season?.champion?.teamName) {
     return <p className="text-sm" style={{ color: "#9A9FBD" }}>This season does not have a recorded champion, so championship artwork cannot be generated yet.</p>;
   }
 
-  function exportArtwork(format) {
-    const canvas = drawArtwork({ season, title, subtitle, coachName, themeKey, format });
-    if (!canvas) return;
-    const slug = safeText(season.champion.teamName, "champion").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-    downloadCanvas(canvas, `${slug}-season-${season.seasonNumber}-${format === "social" ? "social-1080" : "print-8x10-300dpi"}.png`);
+  async function exportArtwork(format) {
+    setExporting(format);
+    setMessage("Loading Pokémon artwork…");
+    try {
+      const canvas = await drawArtwork({ season, title, subtitle, coachName, themeKey, format });
+      if (!canvas) throw new Error("Canvas unavailable");
+      const slug = safeText(season.champion.teamName, "champion").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+      downloadCanvas(canvas, `${slug}-season-${season.seasonNumber}-${format === "social" ? "social-1080" : "print-8x10-300dpi"}.png`);
+      setMessage("Download created.");
+    } catch {
+      setMessage("The artwork could not be downloaded. Please try again.");
+    } finally {
+      setExporting("");
+    }
   }
 
   return (
@@ -295,9 +372,10 @@ export default function ChampionshipStudio({ season }) {
         </div>
       </div>
       <div className="flex flex-wrap gap-3 mt-5">
-        <button type="button" onClick={() => exportArtwork("print")} className="px-4 py-2 rounded font-semibold" style={{ background: "#FFD23F", color: "#10121C" }}>Download 8×10 print PNG</button>
-        <button type="button" onClick={() => exportArtwork("social")} className="px-4 py-2 rounded font-semibold" style={{ background: "#4FD1C5", color: "#10121C" }}>Download square social PNG</button>
+        <button type="button" disabled={Boolean(exporting)} onClick={() => exportArtwork("print")} className="px-4 py-2 rounded font-semibold disabled:opacity-60" style={{ background: "#FFD23F", color: "#10121C" }}>{exporting === "print" ? "Creating print…" : "Download 8×10 print PNG"}</button>
+        <button type="button" disabled={Boolean(exporting)} onClick={() => exportArtwork("social")} className="px-4 py-2 rounded font-semibold disabled:opacity-60" style={{ background: "#4FD1C5", color: "#10121C" }}>{exporting === "social" ? "Creating social image…" : "Download square social PNG"}</button>
       </div>
+      {message && <p className="text-sm mt-3" role="status" style={{ color: message.includes("could not") ? "#F0555A" : "#4FD1C5" }}>{message}</p>}
       <p className="text-xs mt-3" style={{ color: "#5B5F7E" }}>Print export: 2400×3000 pixels (8×10 inches at 300 DPI). Social export: 1080×1080 pixels.</p>
     </section>
   );
