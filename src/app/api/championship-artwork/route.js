@@ -6,9 +6,9 @@ export const runtime = "nodejs";
 export const maxDuration = 30;
 
 const embeddedFonts = Promise.all([
-  readFile(new URL("../../../assets/fonts/inter-400.woff2", import.meta.url)),
-  readFile(new URL("../../../assets/fonts/inter-700.woff2", import.meta.url)),
-  readFile(new URL("../../../assets/fonts/inter-900.woff2", import.meta.url)),
+  readFile(new URL("../../../assets/fonts/inter-400.ttf", import.meta.url)),
+  readFile(new URL("../../../assets/fonts/inter-700.ttf", import.meta.url)),
+  readFile(new URL("../../../assets/fonts/inter-900.ttf", import.meta.url)),
 ]).then(([regular, bold, black]) => ({
   regular: regular.toString("base64"),
   bold: bold.toString("base64"),
@@ -129,9 +129,9 @@ export async function renderPoster({ season, title, subtitle, coachName, themeKe
 
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="2400" height="3000" viewBox="0 0 2400 3000">
     <style>
-      @font-face { font-family: "DraftCenter Inter"; font-style: normal; font-weight: 400; src: url(data:font/woff2;base64,${fonts.regular}) format("woff2"); }
-      @font-face { font-family: "DraftCenter Inter"; font-style: normal; font-weight: 700; src: url(data:font/woff2;base64,${fonts.bold}) format("woff2"); }
-      @font-face { font-family: "DraftCenter Inter"; font-style: normal; font-weight: 900; src: url(data:font/woff2;base64,${fonts.black}) format("woff2"); }
+      @font-face { font-family: "DraftCenter Inter"; font-style: normal; font-weight: 400; src: url(data:font/ttf;base64,${fonts.regular}) format("truetype"); }
+      @font-face { font-family: "DraftCenter Inter"; font-style: normal; font-weight: 700; src: url(data:font/ttf;base64,${fonts.bold}) format("truetype"); }
+      @font-face { font-family: "DraftCenter Inter"; font-style: normal; font-weight: 900; src: url(data:font/ttf;base64,${fonts.black}) format("truetype"); }
       text { font-family: "DraftCenter Inter"; font-weight: 700; }
     </style>
     <rect width="2400" height="3000" fill="${theme.bg}"/>
