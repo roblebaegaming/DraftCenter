@@ -209,6 +209,26 @@ export function LeagueBroadcastCenter({ leagueId, leagueName, isCommissioner = f
     if (error) setMessage(error.message); else setStreams(data || []);
   }
   useEffect(() => { load(); }, [leagueId]);
+  async function dispatchNotifications() {
+    const { data } = await supabase.auth.getSession();
+    const accessToken = data.session?.access_token;
+    if (!accessToken) return { delivered: false };
+    const response = await fetch("/api/notifications/dispatch", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    const result = await response.json().catch(() => ({}));
+    return {
+      delivered: response.ok && Number(result.delivered || 0) > 0,
+      failed: !response.ok || Number(result.failed || 0) > 0,
+    };
+  }
+  async function announceLive() {
+    const delivery = await dispatchNotifications();
+    if (delivery.delivered) return "You are live on DraftCenter and the Discord announcement was delivered.";
+    if (delivery.failed) return "You are live on DraftCenter. Discord delivery will retry automatically.";
+    return "You are live on DraftCenter. Discord will post if this league has Live Now announcements enabled.";
+  }
   async function publish(event) {
     event.preventDefault();
     setBusy(true); setMessage("");
@@ -225,8 +245,28 @@ export function LeagueBroadcastCenter({ leagueId, leagueName, isCommissioner = f
     setBusy(false);
     if (error) return setMessage(error.message);
     setTitle(""); setUrl(""); setMatchKey(""); setStartsAt(""); setStatus("scheduled");
-    setMessage(status === "live" ? "Your battle is now listed as live." : "Your stream has been scheduled.");
-    load();
+    setMessage(status === "live" ? await announceLive() : "Your stream has been scheduled.");
+    await load();
+  }
+  async function goLive(stream) {
+    setBusy(true); setMessage("");
+    const { error } = await supabase.rpc("publish_league_live_stream", {
+      p_league_id: leagueId,
+      p_stream_id: stream.id,
+      p_match_key: stream.match_key || null,
+      p_title: stream.title,
+      p_stream_url: stream.stream_url,
+      p_starts_at: stream.starts_at,
+      p_visibility: stream.visibility,
+      p_status: "live",
+    });
+    if (error) {
+      setBusy(false);
+      return setMessage(error.message);
+    }
+    setMessage(await announceLive());
+    await load();
+    setBusy(false);
   }
   async function endStream(id) {
     setBusy(true);
@@ -249,7 +289,10 @@ export function LeagueBroadcastCenter({ leagueId, leagueName, isCommissioner = f
         <button className="primary-button" disabled={busy}>{busy ? "Publishing…" : status === "live" ? "Go live on DraftCenter" : "Schedule stream"}</button>
       </form>
     </details>}
-    {streams.some((stream) => stream.can_manage && stream.status !== "ended") && <div className="broadcast-manage-list">{streams.filter((stream) => stream.can_manage && stream.status !== "ended").map((stream) => <button key={stream.id} className="text-button" disabled={busy} onClick={() => endStream(stream.id)}>End “{stream.title}”</button>)}</div>}
-    {message && <p className="hub-message">{message}</p>}
+    {streams.some((stream) => stream.can_manage && stream.status !== "ended") && <div className="broadcast-manage-list">{streams.filter((stream) => stream.can_manage && stream.status !== "ended").map((stream) => <div key={stream.id} className="broadcast-manage-actions">
+      {stream.status === "scheduled" && <button type="button" className="secondary-button" disabled={busy} onClick={() => goLive(stream)}>Go live: {stream.title}</button>}
+      <button type="button" className="text-button" disabled={busy} onClick={() => endStream(stream.id)}>End “{stream.title}”</button>
+    </div>)}</div>}
+    {message && <p className="hub-message" role="status" aria-live="polite">{message}</p>}
   </section>;
 }
