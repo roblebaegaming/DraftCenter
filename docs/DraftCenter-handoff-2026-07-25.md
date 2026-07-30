@@ -1,5 +1,16 @@
 # DraftCenter hardening handoff — 2026-07-25
 
+## July 30, 2026 — optional support launched
+
+- Optional community support is live at `https://www.draftcentral.gg/support`.
+- The site links to `https://ko-fi.com/draftcenter`; Ko-fi is connected to PayPal.
+- Ko-fi uses US dollars, a $3 minimum, “Tip” wording, no monthly default, and Contributor mode off. Stripe, membership tiers, and paid DraftCenter features are not enabled.
+- The support page promises no paywall, recurring commitment, or competitive advantage and explains that DraftCenter Pro remains exploratory.
+- Vercel Web Analytics is enabled and the application includes `@vercel/analytics` for anonymized, cookie-free page-view measurement. Treat `/support` visits as the initial interest signal; no paid-plan conversion event exists yet.
+- The privacy and third-party-service disclosures cover Vercel Web Analytics and Ko-fi.
+- Production deployment completed successfully with all 43 routes, including `/support`.
+- Remaining owner-only check: make a real low-value tip from a separate account or private session and confirm delivery to PayPal. Do not announce support broadly until that end-to-end payment check succeeds.
+
 ## Mission and product constraint
 
 DraftCenter is in feature freeze. Protect the complete league lifecycle before

@@ -1,4 +1,5 @@
 import "./globals.css";
+import { Analytics } from "@vercel/analytics/next";
 import SiteLegalFooter from "../components/SiteLegalFooter";
 import SiteQuickLinks from "../components/SiteQuickLinks";
 
@@ -59,7 +60,7 @@ export default function RootLayout({ children }) {
   };
   return (
     <html lang="en">
-      <body suppressHydrationWarning><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} /><SiteQuickLinks />{children}<SiteLegalFooter /></body>
+      <body suppressHydrationWarning><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} /><SiteQuickLinks />{children}<SiteLegalFooter /><Analytics /></body>
     </html>
   );
 }

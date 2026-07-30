@@ -44,14 +44,14 @@ export default function LegalPage() {
 
     <section id="privacy"><h2>7. Privacy overview</h2>
       <p>DraftCenter stores the information needed to run the service. This can include your email and profile, league membership, draft picks, results, messages, comments, votes, predictions, badges, notification choices, stream links, and basic security or diagnostic records.</p>
-      <p>That information is used to sign you in, save league activity, calculate community statistics, send notifications you request, prevent misuse, and troubleshoot problems.</p>
+      <p>That information is used to sign you in, save league activity, calculate community statistics, send notifications you request, prevent misuse, troubleshoot problems, and understand anonymized site traffic. DraftCenter uses Vercel Web Analytics for cookie-free, anonymized page-view measurement.</p>
       <p>Information you publish to Community, a public profile, or a public league may be visible to anyone. Private league information is limited to people with the appropriate access.</p>
       <p>DraftCenter does not sell personal information. Aggregated or de-identified league and community statistics may be displayed publicly, including draft trends, matchup results, win rates, poll totals, and Pokémon preference information.</p>
       <p>You can request access, correction, or deletion through DraftCenter’s published support channel. Some records may remain temporarily in backups or where they are needed to resolve security or account issues.</p>
     </section>
 
     <section id="third-party-services"><h2>8. Third-party services and processors</h2>
-      <p>DraftCenter uses Supabase for accounts and data, Vercel for hosting, Resend for requested emails, and PokéAPI for game information and artwork references. Optional features may also connect with Discord, Twitch, or YouTube.</p>
+      <p>DraftCenter uses Supabase for accounts and data, Vercel for hosting and anonymized Web Analytics, Resend for requested emails, and PokéAPI for game information and artwork references. Optional features may also connect with Discord, Twitch, YouTube, or Ko-fi.</p>
       <p>When you enable an integration, DraftCenter uses only the information needed to provide it. Discord information is not sold, used for unrelated profiling, or used to train machine-learning models.</p>
     </section>
 

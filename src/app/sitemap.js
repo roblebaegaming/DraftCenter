@@ -7,6 +7,7 @@ const routes = [
   ["/leagues", "daily", 0.9],
   ["/pokemon", "weekly", 0.9],
   ["/resources", "monthly", 0.7],
+  ["/support", "monthly", 0.5],
   ["/guides", "monthly", 0.9],
   ["/formats", "monthly", 0.9],
   ["/legal", "yearly", 0.3],

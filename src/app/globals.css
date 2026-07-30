@@ -210,3 +210,18 @@ button { cursor: pointer; }
   border-radius: 16px;
   background: #ffd54f0b;
 }
+
+.support-shell { min-height:100vh; padding:28px max(18px,calc((100vw - 920px)/2)) 72px; background:radial-gradient(circle at top,#263878,#080b18 56%); }
+.support-card,.support-pro-note { margin-top:28px; padding:clamp(24px,6vw,54px); border:1px solid #34446f; border-radius:20px; background:rgba(16,22,44,.95); }
+.support-card h1 { max-width:720px; margin:10px 0 16px; font-size:clamp(2.6rem,7vw,5.2rem); line-height:.96; letter-spacing:-.04em; }
+.support-lead { max-width:720px; color:#c3cbed; font-size:1.12rem; line-height:1.65; }
+.support-promises { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin:30px 0; }
+.support-promises article { display:grid; gap:8px; padding:17px; border:1px solid #303958; border-radius:12px; background:#11162b; }
+.support-promises strong { color:#4fd1c5; }
+.support-promises span,.support-fine-print,.support-pro-note p { color:#aeb7dc; line-height:1.55; }
+.support-kofi-button { display:inline-flex; align-items:center; gap:9px; padding:14px 18px; border-radius:10px; color:#161207; background:#ffd23f; font-weight:900; text-decoration:none; }
+.support-kofi-button:hover { background:#ffe276; }
+.support-fine-print { max-width:720px; margin:13px 0 0; font-size:12px; }
+.support-pro-note h2 { margin:8px 0; font-size:clamp(1.7rem,4vw,2.5rem); }
+.support-pro-note p { margin-bottom:0; }
+@media(max-width:720px){.support-promises{grid-template-columns:1fr}.support-kofi-button{width:100%;justify-content:center;text-align:center}}
