@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { getPublicPokemonDraftProfile } from "../../../lib/supabase/publicServer";
 
 function titleCase(value) {
   return String(value || "").split("-").map((word) => word ? `${word[0].toUpperCase()}${word.slice(1)}` : "").join(" ");
@@ -7,13 +8,14 @@ function titleCase(value) {
 async function loadPokemon(name) {
   const safeName = String(name || "").toLowerCase().replace(/[^a-z0-9-]/g, "");
   if (!safeName) return null;
-  const [pokemonResponse, speciesResponse] = await Promise.all([
+  const [pokemonResponse, speciesResponse, draftProfile] = await Promise.all([
     fetch(`https://pokeapi.co/api/v2/pokemon/${safeName}`, { next: { revalidate: 86400 } }),
     fetch(`https://pokeapi.co/api/v2/pokemon-species/${safeName}`, { next: { revalidate: 86400 } }),
+    getPublicPokemonDraftProfile(titleCase(safeName)),
   ]);
   if (!pokemonResponse.ok || !speciesResponse.ok) return null;
   const [pokemon, species] = await Promise.all([pokemonResponse.json(), speciesResponse.json()]);
-  return { pokemon, species };
+  return { pokemon, species, draftProfile };
 }
 
 export async function generateMetadata({ params }) {
@@ -43,7 +45,7 @@ export default async function PokemonDetailPage({ params }) {
   const { name } = await params;
   const data = await loadPokemon(name);
   if (!data) notFound();
-  const { pokemon, species } = data;
+  const { pokemon, species, draftProfile } = data;
   const displayName = titleCase(pokemon.name);
   const genus = species.genera?.find((entry) => entry.language.name === "en")?.genus || "Pokémon";
   const entry = species.flavor_text_entries?.find((item) => item.language.name === "en")?.flavor_text?.replace(/[\n\f]/g, " ");
@@ -89,6 +91,18 @@ export default async function PokemonDetailPage({ params }) {
     <section className="explore-card">
       <h2>{displayName} base stats</h2>
       <div className="pokemon-stats">{pokemon.stats.map(({ base_stat, stat }) => <div key={stat.name}><span>{titleCase(stat.name.replace("special-", "sp-"))}</span><strong>{base_stat}</strong></div>)}</div>
+    </section>
+    <section className="explore-card">
+      <h2>{displayName} DraftCenter community statistics</h2>
+      <p>Anonymous aggregates include all DraftCenter leagues, public and private. Every percentage is shown with its current sample size.</p>
+      <div className="career-record-grid">
+        <article><strong>{draftProfile?.eligible_drafts ? `${draftProfile.draft_rate || 0}%` : "—"}</strong><span>Draft rate</span><small>{draftProfile?.drafted_in || 0} of {draftProfile?.eligible_drafts || 0} eligible drafts</small></article>
+        <article><strong>{draftProfile?.average_pick != null ? `#${draftProfile.average_pick}` : "—"}</strong><span>Eligibility-aware ADP</span><small>Undrafted eligible pools count after the final pick</small></article>
+        <article><strong>{draftProfile?.average_auction_price ?? "—"}</strong><span>Average auction price</span><small>{draftProfile?.auction_samples || 0} auction samples</small></article>
+        <article><strong>{draftProfile?.games ? `${draftProfile.win_rate || 0}%` : "—"}</strong><span>Team win rate</span><small>{draftProfile?.games ? `${draftProfile.wins || 0}-${draftProfile.games - (draftProfile.wins || 0)} across ${draftProfile.games} matches` : "No confirmed matches yet"}</small></article>
+      </div>
+      {draftProfile?.adp_by_format?.length ? <><h3>ADP by legal format</h3><div className="public-pick-list">{draftProfile.adp_by_format.map((format) => <div key={format.regulation_id}><strong><a href={`/formats/${format.regulation_id}`}>{titleCase(format.regulation_id)}</a></strong><span>ADP {format.average_pick != null ? `#${format.average_pick}` : "—"} · drafted in {format.drafted_in || 0} of {format.eligible_drafts || 0} eligible pools</span></div>)}</div></> : <p className="muted">Format-specific ADP will appear after {displayName} is eligible in completed snake drafts.</p>}
+      {draftProfile?.partners?.length ? <><h3>Most common teammates</h3><div className="pokemon-tags">{draftProfile.partners.map((teammate) => <a key={teammate.pokemon} href={`/pokemon/${String(teammate.pokemon).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")}`}>{teammate.pokemon} · {teammate.teams} roster{teammate.teams === 1 ? "" : "s"}</a>)}</div></> : null}
     </section>
     <section className="explore-card">
       <h2>Study {displayName} in DraftCenter</h2>

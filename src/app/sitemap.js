@@ -1,4 +1,5 @@
 import { getPublicLeagueCards } from "../lib/supabase/publicServer";
+import { FORMATS, GUIDES } from "../lib/seoContent";
 
 const routes = [
   ["", "daily", 1],
@@ -6,6 +7,8 @@ const routes = [
   ["/leagues", "daily", 0.9],
   ["/pokemon", "weekly", 0.9],
   ["/resources", "monthly", 0.7],
+  ["/guides", "monthly", 0.9],
+  ["/formats", "monthly", 0.9],
   ["/legal", "yearly", 0.3],
 ];
 
@@ -39,5 +42,17 @@ export default async function sitemap() {
     changeFrequency: "daily",
     priority: 0.8,
   }));
-  return [...staticRoutes, ...leagueRoutes, ...pokemon];
+  const guideRoutes = Object.keys(GUIDES).map((slug) => ({
+    url: `https://www.draftcentral.gg/guides/${slug}`,
+    lastModified: new Date(),
+    changeFrequency: "monthly",
+    priority: 0.8,
+  }));
+  const formatRoutes = FORMATS.map((format) => ({
+    url: `https://www.draftcentral.gg/formats/${format.slug}`,
+    lastModified: new Date(),
+    changeFrequency: "monthly",
+    priority: 0.8,
+  }));
+  return [...staticRoutes, ...guideRoutes, ...formatRoutes, ...leagueRoutes, ...pokemon];
 }

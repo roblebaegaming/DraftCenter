@@ -28,3 +28,14 @@ export async function getPublicLeagueCards() {
     return [];
   }
 }
+
+export async function getPublicPokemonDraftProfile(pokemon) {
+  try {
+    const client = createPublicServerClient();
+    if (!client || !pokemon) return null;
+    const { data, error } = await client.rpc("get_public_pokemon_draft_profile", { p_pokemon: pokemon });
+    return error ? null : data;
+  } catch {
+    return null;
+  }
+}

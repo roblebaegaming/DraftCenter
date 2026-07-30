@@ -169,3 +169,44 @@ button { cursor: pointer; }
   height: auto;
   object-fit: contain;
 }
+
+.seo-article-shell {
+  width: min(900px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 28px 0 64px;
+}
+
+.seo-article-shell article {
+  margin-top: 28px;
+  padding: clamp(24px, 5vw, 54px);
+  border: 1px solid #34446f;
+  border-radius: 20px;
+  background: #10162c;
+}
+
+.seo-article-shell h1 {
+  margin: 10px 0 18px;
+  font-size: clamp(2.1rem, 6vw, 4rem);
+  line-height: 1;
+}
+
+.seo-article-shell article > section {
+  margin-top: 34px;
+}
+
+.seo-article-shell article p {
+  color: #b9c8ee;
+  line-height: 1.75;
+}
+
+.seo-article-intro {
+  font-size: 1.2rem;
+}
+
+.seo-next-step {
+  margin-top: 40px;
+  padding: 24px;
+  border: 1px solid #ffd54f66;
+  border-radius: 16px;
+  background: #ffd54f0b;
+}
