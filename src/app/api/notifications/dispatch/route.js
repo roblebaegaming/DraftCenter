@@ -258,6 +258,7 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
+  if (authorized(request)) return dispatchDueEvents(false);
   const authorization = request.headers.get("authorization") || "";
   const token = authorization.startsWith("Bearer ") ? authorization.slice(7) : "";
   if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

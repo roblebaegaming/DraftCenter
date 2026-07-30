@@ -229,10 +229,25 @@ export function LeagueBroadcastCenter({ leagueId, leagueName, isCommissioner = f
     if (delivery.failed) return "You are live on DraftCenter. Discord delivery will retry automatically.";
     return "You are live on DraftCenter. Discord will post if this league has Live Now announcements enabled.";
   }
+  async function enableTwitchMonitoring(stream, { updateMessage = true } = {}) {
+    if (stream?.platform !== "twitch") return { monitored: false };
+    const { data } = await supabase.auth.getSession();
+    const response = await fetch("/api/twitch/register", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${data.session?.access_token || ""}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ streamId: stream.id }),
+    });
+    const result = await response.json().catch(() => ({}));
+    if (updateMessage) setMessage(result.message || result.error || "Twitch monitoring setup finished.");
+    return { ...result, ok: response.ok };
+  }
   async function publish(event) {
     event.preventDefault();
     setBusy(true); setMessage("");
-    const { error } = await supabase.rpc("publish_league_live_stream", {
+    const { data: stream, error } = await supabase.rpc("publish_league_live_stream", {
       p_league_id: leagueId,
       p_stream_id: null,
       p_match_key: matchKey || null,
@@ -245,8 +260,24 @@ export function LeagueBroadcastCenter({ leagueId, leagueName, isCommissioner = f
     setBusy(false);
     if (error) return setMessage(error.message);
     setTitle(""); setUrl(""); setMatchKey(""); setStartsAt(""); setStatus("scheduled");
-    setMessage(status === "live" ? await announceLive() : "Your stream has been scheduled.");
+    const twitch = await enableTwitchMonitoring(stream, { updateMessage: false });
+    if (status === "live") {
+      setMessage(await announceLive());
+    } else if (stream?.platform === "twitch" && twitch.live) {
+      setMessage(await announceLive());
+    } else if (stream?.platform === "twitch" && twitch.ok) {
+      setMessage(twitch.message);
+    } else if (stream?.platform === "twitch") {
+      setMessage(`Your stream has been scheduled. ${twitch.error || "Automatic Twitch monitoring is not available yet; use the Go live button when the match starts."}`);
+    } else {
+      setMessage("Your YouTube stream has been scheduled. Use the Go live button when it starts; automatic YouTube detection is planned.");
+    }
     await load();
+  }
+  async function connectTwitch(stream) {
+    setBusy(true); setMessage("");
+    await enableTwitchMonitoring(stream);
+    setBusy(false);
   }
   async function goLive(stream) {
     setBusy(true); setMessage("");
@@ -290,6 +321,7 @@ export function LeagueBroadcastCenter({ leagueId, leagueName, isCommissioner = f
       </form>
     </details>}
     {streams.some((stream) => stream.can_manage && stream.status !== "ended") && <div className="broadcast-manage-list">{streams.filter((stream) => stream.can_manage && stream.status !== "ended").map((stream) => <div key={stream.id} className="broadcast-manage-actions">
+      {stream.platform === "twitch" && stream.status === "scheduled" && <button type="button" className="quiet-button" disabled={busy} onClick={() => connectTwitch(stream)}>Enable Twitch auto-detection</button>}
       {stream.status === "scheduled" && <button type="button" className="secondary-button" disabled={busy} onClick={() => goLive(stream)}>Go live: {stream.title}</button>}
       <button type="button" className="text-button" disabled={busy} onClick={() => endStream(stream.id)}>End “{stream.title}”</button>
     </div>)}</div>}
