@@ -82,10 +82,12 @@ async function deliverEmail(event, supabase) {
 
 async function deliverDailyThreeResults(supabase) {
   const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
-  const [{ data: poll }, { data: bracket }, { data: quiz }] = await Promise.all([
+  const today = new Date().toISOString().slice(0, 10);
+  const [{ data: poll }, { data: bracket }, { data: quiz }, { data: todayPoll }] = await Promise.all([
     supabase.from("daily_polls").select("id, question, options, answer_type").eq("poll_date", yesterday).maybeSingle(),
     supabase.from("daily_draft_brackets").select("id").eq("game_date", yesterday).maybeSingle(),
     supabase.from("daily_quizzes").select("id, prompt, accepted_answers").eq("quiz_date", yesterday).maybeSingle(),
+    supabase.from("daily_polls").select("id, question").eq("poll_date", today).maybeSingle(),
   ]);
   if (!poll) return { delivered: 0, skipped: 0, failed: 0 };
   const [{ data: answers }, { data: bracketResults }, { data: quizAnswers }, { data: preferences }] = await Promise.all([
@@ -124,6 +126,39 @@ async function deliverDailyThreeResults(supabase) {
     } catch (error) {
       failed += 1;
       await supabase.from("daily_poll_email_deliveries").delete().eq("poll_id", poll.id).eq("user_id", preference.user_id);
+    }
+  }
+  const { data: discordLeagues } = await supabase
+    .from("league_discord_settings")
+    .select("league_id, channel_id")
+    .eq("enabled", true)
+    .eq("notify_daily_three", true)
+    .not("channel_id", "is", null);
+  const token = process.env.DISCORD_BOT_TOKEN;
+  const pollLeaders = Object.entries(totals).sort(([, a], [, b]) => b - a).slice(0, 3)
+    .map(([key, count]) => `${labels[key] || key} (${count})`).join(", ") || "No votes were cast";
+  const bracketLeader = Object.entries(championTotals).sort(([, a], [, b]) => b - a)[0];
+  const bracketSummary = bracketLeader ? `${bracketLeader[0]} led with ${bracketLeader[1]} bracket${bracketLeader[1] === 1 ? "" : "s"}` : "No completed brackets";
+  const quizPercent = quizTotal ? Math.round((quizCorrect / quizTotal) * 100) : 0;
+  const discordContent = `📊 **Yesterday's Daily Three results**\n**Poll:** ${poll.question}\n${pollLeaders}\n**Draft Bracket:** ${bracketSummary}\n**Pokémon Quiz:** ${quizPercent}% correct (${quizCorrect}/${quizTotal})\n\n❓ **Today's Question of the Day**\n${todayPoll?.question || "Today's Daily Three is ready."}\nhttps://www.draftcentral.gg/explore`;
+  for (const league of discordLeagues || []) {
+    const { error: claimError } = await supabase.from("daily_three_discord_deliveries").insert({
+      league_id: league.league_id,
+      delivery_date: today,
+    });
+    if (claimError) { skipped += 1; continue; }
+    try {
+      if (!token) throw new Error("Discord bot is not configured yet.");
+      const response = await fetch(`https://discord.com/api/v10/channels/${league.channel_id}/messages`, {
+        method: "POST",
+        headers: { Authorization: `Bot ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ content: discordContent }),
+      });
+      if (!response.ok) throw new Error(`Discord rejected the Daily Three message: ${await response.text()}`);
+      delivered += 1;
+    } catch {
+      failed += 1;
+      await supabase.from("daily_three_discord_deliveries").delete().eq("league_id", league.league_id).eq("delivery_date", today);
     }
   }
   return { delivered, skipped, failed };

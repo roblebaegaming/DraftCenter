@@ -56,7 +56,7 @@ export function DiscordConnectionPanel({ supabase: suppliedSupabase, leagueId, d
   const [channelId, setChannelId] = useState("");
   const [enabled, setEnabled] = useState(false);
   const [preferences, setPreferences] = useState({
-    draft: true, matches: true, streams: true, transactions: false, results: false,
+    draft: true, matches: true, streams: true, transactions: false, results: false, dailyThree: false,
     quietEnabled: true, quietStart: "22:00", quietEnd: "08:00", timezone: "UTC",
   });
   const [lastTest, setLastTest] = useState(null);
@@ -80,6 +80,7 @@ export function DiscordConnectionPanel({ supabase: suppliedSupabase, leagueId, d
           streams: data.notify_live_streams ?? true,
           transactions: data.notify_transactions ?? false,
           results: data.notify_results ?? false,
+          dailyThree: data.notify_daily_three ?? false,
           quietEnabled: data.quiet_hours_enabled ?? true,
           quietStart: String(data.quiet_hours_start || "22:00").slice(0, 5),
           quietEnd: String(data.quiet_hours_end || "08:00").slice(0, 5),
@@ -114,8 +115,13 @@ export function DiscordConnectionPanel({ supabase: suppliedSupabase, leagueId, d
       p_quiet_hours_end: preferences.quietEnd,
       p_quiet_hours_timezone: preferences.timezone,
     });
+    const { error: dailyThreeError } = preferenceError ? { error: null } : await supabase.rpc("save_league_discord_daily_three", {
+      p_league_id: leagueId,
+      p_notify_daily_three: preferences.dailyThree,
+    });
     setBusy(false);
-    setMessage(preferenceError ? preferenceError.message : enabled ? "This league's Discord announcements and timing preferences are saved." : "Discord settings saved.");
+    const saveError = preferenceError || dailyThreeError;
+    setMessage(saveError ? saveError.message : enabled ? "This league's Discord announcements and timing preferences are saved." : "Discord settings saved.");
   }
   async function sendTest() {
     setBusy(true); setMessage("");
@@ -173,6 +179,7 @@ export function DiscordConnectionPanel({ supabase: suppliedSupabase, leagueId, d
           <label className="check-row"><input type="checkbox" checked={preferences.streams} onChange={(event) => updatePreference("streams", event.target.checked)} /> Scheduled streams and Live Now</label>
           <label className="check-row"><input type="checkbox" checked={preferences.transactions} onChange={(event) => updatePreference("transactions", event.target.checked)} /> Transaction-processing updates</label>
           <label className="check-row"><input type="checkbox" checked={preferences.results} onChange={(event) => updatePreference("results", event.target.checked)} /> Results, playoffs, and championships</label>
+          <label className="check-row"><input type="checkbox" checked={preferences.dailyThree} onChange={(event) => updatePreference("dailyThree", event.target.checked)} /> Daily Three: yesterday&apos;s results and today&apos;s question</label>
         </fieldset>
         <fieldset>
           <legend>League quiet hours</legend>
