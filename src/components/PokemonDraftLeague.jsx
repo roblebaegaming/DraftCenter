@@ -8682,6 +8682,12 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   // no other copy anywhere. Also doubles as a way to hand another
   // commissioner your exact settings today, without needing the shared
   // backend a live "copy settings between leagues" feature would need.
+  async function recordBackup(backupType) {
+    if (!leagueId) return;
+    const { data } = await supabase.auth.getSession();
+    if (!data.session) return;
+    fetch("/api/operations/backup", { method: "POST", keepalive: true, headers: { Authorization: `Bearer ${data.session.access_token}`, "Content-Type": "application/json" }, body: JSON.stringify({ league_id: leagueId, backup_type: backupType }) }).catch(() => {});
+  }
   async function exportLeagueBackup() {
     const XLSX = await import("xlsx");
     const workbook = XLSX.utils.book_new();
@@ -8783,6 +8789,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       ])),
     ], [10, 28, 14, 14]);
     XLSX.writeFile(workbook, `${String(league?.name || "league").replace(/[^a-z0-9]+/gi, "-").replace(/(^-|-$)/g, "").toLowerCase()}-backup-${new Date().toISOString().slice(0, 10)}.xlsx`);
+    recordBackup("spreadsheet");
   }
   function exportRecoveryBackup() {
     const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
@@ -8792,6 +8799,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     a.download = `league-backup-${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
     URL.revokeObjectURL(url);
+    recordBackup("recovery_json");
   }
   // Runs the uploaded file through the exact same hydrateState() every
   // remote poll already uses — so an old backup, one missing newer fields

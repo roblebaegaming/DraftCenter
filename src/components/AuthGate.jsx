@@ -396,6 +396,7 @@ export default function AuthGate(){
   function openLeague(league, replace = false) {
     const key = league?.slug || league?.id;
     if (!key) return;
+    if (league?.isNew && session?.access_token) fetch("/api/operations/league-created", { method: "POST", keepalive: true, headers: { Authorization: `Bearer ${session.access_token}`, "Content-Type": "application/json" }, body: JSON.stringify({ league_id: league.id }) }).catch(() => {});
     const destination = `/?league=${encodeURIComponent(key)}`;
     // Entering from the dashboard used to mount the full league application
     // while LeagueHub's snapshot/live-draft polling requests were still
