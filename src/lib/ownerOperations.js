@@ -18,7 +18,7 @@ export async function requireOwner(request) {
 function warning(code, severity, text) { return { code, severity, text }; }
 function countResults(state) { return Object.keys(state?.matchResults || {}).length; }
 
-export async function getOperationsOverview(supabase) {
+export async function getOperationsOverview(supabase, viewerUserId = null) {
   const now = Date.now();
   const [leaguesResult, snapshotsResult, membershipsResult, profilesResult, snakeResult, auctionResult, backupResult, failedResult, discordResult] = await Promise.all([
     supabase.from("leagues").select("id,name,slug,status,created_at,updated_at,created_by,is_practice,league_visibility,draft_starts_at,season_label").order("created_at", { ascending: false }),
@@ -53,7 +53,7 @@ export async function getOperationsOverview(supabase) {
     if (!league.is_practice && !["setup", "completed", "archived"].includes(String(league.status)) && idleDays >= 10) warnings.push(warning("inactive", "medium", `No saved league activity for ${Math.floor(idleDays)} days.`));
     if (!league.is_practice && (!Number.isFinite(lastBackupMs) || now - lastBackupMs > 30 * 86400000)) warnings.push(warning("backup_overdue", "low", backup ? "No recorded recovery backup in the last 30 days." : "No recovery backup has been recorded."));
     const commissioner = members.find((member) => member.role === "commissioner"); const profile = profiles.get(commissioner?.user_id || league.created_by);
-    return { ...league, commissioner: profile?.display_name || profile?.username || "Unknown", member_count: members.filter((member) => ["commissioner", "co_commissioner", "coach"].includes(member.role)).length, team_count: leagueSize, claimed_team_count: claimed, result_count: countResults(state), last_activity_at: lastActivity, last_backup_at: backup?.created_at || null, draft_job: job || null, discord_connected: Boolean(discord.get(league.id)?.enabled && discord.get(league.id)?.channel_id), warnings };
+    return { ...league, commissioner: profile?.display_name || profile?.username || "Unknown", owner_has_access: Boolean(viewerUserId && members.some((member) => member.user_id === viewerUserId)), owner_role: viewerUserId ? members.find((member) => member.user_id === viewerUserId)?.role || null : null, member_count: members.filter((member) => ["commissioner", "co_commissioner", "coach"].includes(member.role)).length, team_count: leagueSize, claimed_team_count: claimed, result_count: countResults(state), last_activity_at: lastActivity, last_backup_at: backup?.created_at || null, draft_job: job || null, discord_connected: Boolean(discord.get(league.id)?.enabled && discord.get(league.id)?.channel_id), warnings };
   });
   return { generated_at: new Date().toISOString(), totals: { leagues: leagues.length, real: leagues.filter((l) => !l.is_practice).length, practice: leagues.filter((l) => l.is_practice).length, needing_attention: leagues.filter((l) => l.warnings.length).length, high_priority: leagues.filter((l) => l.warnings.some((w) => w.severity === "high")).length }, leagues };
 }

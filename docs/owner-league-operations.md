@@ -47,6 +47,21 @@ Three shortcut. It shows each profile's last Daily Three activity, last full
 completion, today's Poll/Bracket/Quiz status, and completion-day counts. It does
 not return poll choices, bracket selections, quiz answers, or correctness.
 
+## Configuration support access
+
+League Operations never turns platform ownership into silent private-league
+access. Each league card reports whether the signed-in owner account already has
+a membership. Without one, the action reads **Support access required** and
+provides a copyable message explaining how the commissioner can invite the
+owner account as a co-commissioner. Once accepted, the action changes to
+**Open league**.
+
+The next support-access phase should replace manual co-commissioner cleanup with
+a commissioner-approved grant that is read-only by default, optionally scoped
+to named configuration areas, expires automatically, records every change in an
+audit log, and can be revoked immediately. It must not expose private notebooks,
+direct messages, personal notification data, or unrelated account information.
+
 ## Verification
 
 Create a practice league first and confirm it appears without sending email.
