@@ -113,7 +113,7 @@ begin
   set state = p_state, revision = coalesce(v_existing_revision, 0) + 1, updated_at = now()
   where league_id = p_league_id;
   update public.leagues
-  set settings = coalesce(p_state -> 'settings', '{}'::jsonb), status = 'preseason', draft_starts_at = null, updated_at = now()
+  set settings = coalesce(p_state -> 'settings', '{}'::jsonb), status = 'setup', draft_starts_at = null, updated_at = now()
   where id = p_league_id;
   insert into public.league_events(league_id, kind, actor_id, payload)
   values (p_league_id, 'season_started', auth.uid(), jsonb_build_object('closed_season', v_existing_season, 'new_season', v_incoming_season));
