@@ -29,14 +29,19 @@ begin
   if v_definition is null then
     raise exception 'transition_league_to_new_season is missing; run migration 229 first.';
   end if;
-  if position('status = ''preseason''' in v_definition) = 0 then
-    raise exception 'transition_league_to_new_season does not contain the expected status assignment.';
+  if position('status = ''preseason''' in v_definition) > 0 then
+    execute replace(
+      v_definition,
+      'status = ''preseason''',
+      'status = ''setup'''
+    );
+  elsif position('status = ''setup''' in v_definition) > 0 then
+    -- The corrected migration 229 may already have installed this version.
+    -- Treat that state as success so this repair is safe to rerun.
+    null;
+  else
+    raise exception 'transition_league_to_new_season contains an unknown status assignment.';
   end if;
-  execute replace(
-    v_definition,
-    'status = ''preseason''',
-    'status = ''setup'''
-  );
 end;
 $$;
 
