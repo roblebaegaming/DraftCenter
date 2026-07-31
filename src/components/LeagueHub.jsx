@@ -258,10 +258,18 @@ export default function LeagueHub({ user, profile, onOpenLeague }) {
     }
     const states = new Map(snapshots.map((snapshot) => [snapshot.league_id, snapshot.state]));
     const liveDrafts = new Map();
-    await Promise.all(snapshots.filter((snapshot) => snapshot.state?.locked && snapshot.state?.settings?.draftType === "snake").map(async (snapshot) => {
-      const { data: live } = await supabase.rpc("get_live_snake_draft", { p_league_id: snapshot.league_id });
-      if (live?.session?.id) liveDrafts.set(snapshot.league_id, live);
-    }));
+    const liveMatches = new Map();
+    await Promise.all([
+      ...snapshots.filter((snapshot) => snapshot.state?.locked && snapshot.state?.settings?.draftType === "snake").map(async (snapshot) => {
+        const { data: live } = await supabase.rpc("get_live_snake_draft", { p_league_id: snapshot.league_id });
+        if (live?.session?.id) liveDrafts.set(snapshot.league_id, live);
+      }),
+      ...leagueIds.map(async (leagueId) => {
+        const { data: streams } = await supabase.rpc("get_league_live_streams", { p_league_id: leagueId });
+        const active = (streams || []).filter((stream) => stream.status === "live");
+        if (active.length) liveMatches.set(leagueId, active);
+      }),
+    ]);
     const markedMemberships = memberships.map((entry) => {
       const leagueState = states.get(entry.league.id);
       const onClock = isCoachOnClock(leagueState, profile, liveDrafts.get(entry.league.id));
@@ -271,6 +279,7 @@ export default function LeagueHub({ user, profile, onOpenLeague }) {
           ...entry.league,
           on_clock: onClock,
           draft_live: isDraftLive(leagueState),
+          live_matches: liveMatches.get(entry.league.id) || [],
         },
       };
     });
@@ -341,6 +350,7 @@ export default function LeagueHub({ user, profile, onOpenLeague }) {
   const archivedLeagues = leagues.filter((entry) => Boolean(entry.archived_at));
   const visibleLeagues = showArchived ? archivedLeagues : activeLeagues;
   const liveDraftLeagues = activeLeagues.filter((entry) => entry.league.draft_live);
+  const liveMatchLeagues = activeLeagues.filter((entry) => entry.league.live_matches?.length);
 return (
   <main className="hub-shell">
     <section className="hub-hero">
@@ -349,6 +359,10 @@ return (
     </section>
     {turnAlert && <p className="hub-message" style={{ background: "#4FD1C5", color: "#10121C", fontWeight: 800 }}>{turnAlert}</p>}
     {!turnAlert && liveDraftLeagues.length > 0 && <p className="hub-message" style={{ background: "#122D31", color: "#BDF7EE", border: "1px solid #4FD1C566" }}>● Draft live now: {liveDraftLeagues.map((entry) => entry.league.name).join(", ")}. Open the league to follow the board.</p>}
+    {liveMatchLeagues.length > 0 && <section className="hub-message" style={{ background: "#32151E", color: "#FFFFFF", border: "1px solid #F0555A88" }}>
+      <strong>● MATCH LIVE NOW</strong>
+      <div className="live-stream-actions">{liveMatchLeagues.flatMap((entry) => entry.league.live_matches.map((stream) => <a key={stream.id} className="primary-button" href={stream.stream_url} target="_blank" rel="noopener noreferrer">Watch {entry.league.name}: {stream.title} ↗</a>))}</div>
+    </section>}
     {message && <p className="hub-message">{message}</p>}
     {pendingInvite && <section className="hub-card invite-confirm"><span className="eyebrow">LEAGUE INVITATION</span><h2>{pendingInvite.is_spectator ? "Watch this league?" : pendingInvite.role === "co_commissioner" ? "Help run this league?" : "Join this league?"}</h2><p><strong>{pendingInvite.league_name}</strong>{pendingInvite.season_label ? ` - ${pendingInvite.season_label}` : ""}</p><p className="muted">{pendingInvite.is_spectator ? "You will have spectator access only. You can view and scout, but cannot claim a team or change league data." : pendingInvite.role === "co_commissioner" ? "Accepting gives you co-commissioner access to league settings, scheduling, results, and commissioner tools." : "Accept the invitation, then choose one of the league’s currently open teams. A competitive spot is only taken after you claim it."}</p><div className="flex gap-2 flex-wrap"><button className="primary-button" disabled={inviteBusy} onClick={acceptPendingInvite}>{inviteBusy ? "Accepting..." : pendingInvite.role === "co_commissioner" ? "Accept co-commissioner role" : pendingInvite.is_spectator ? "Watch league" : "Accept & choose a team"}</button><button className="quiet-button" disabled={inviteBusy} onClick={dismissInvite}>Not now</button></div></section>}
     {pendingTeamClaim && <section className="hub-card invite-confirm"><span className="eyebrow">CHOOSE YOUR TEAM</span><h2>You’re in {pendingTeamClaim.league.name}</h2><p className="muted">Choose an open team now. The league’s available-manager count goes down only after your selection succeeds.</p><div className="league-list">{pendingTeamClaim.teams.map((team) => <button key={team.index} className="league-row" disabled={inviteBusy} onClick={() => claimInvitedTeam(team.index)}><div><strong>{team.name || `Team ${team.index + 1}`}</strong><span>Open team · claim immediately</span></div><span className="open-arrow">{inviteBusy ? "Please wait" : "Claim team"}</span></button>)}</div><button className="quiet-button" disabled={inviteBusy} onClick={() => { const league=pendingTeamClaim.league; setPendingTeamClaim(null); onOpenLeague({ ...league, role:"coach" }); }}>Choose later</button></section>}
@@ -367,8 +381,8 @@ return (
       <div className="league-list">{visibleLeagues.map(({ league, role, archived_at: archivedAt }) => <article className="league-row dashboard-league-row dashboard-league-card" key={league.id}>
         <button type="button" className="dashboard-league-open" onClick={() => onOpenLeague({ ...league, role })}>
           {league.image_url && <img className="dashboard-league-image" src={league.image_url} alt="" />}
-          <div><strong>{league.name}</strong><span>{league.on_clock ? "⚡ YOUR PICK IS ON THE CLOCK" : league.draft_live ? `● DRAFT LIVE · ${league.season_label || "New season"}` : `${league.season_label || "New season"} - ${role.replace("_", " ")}`}</span></div>
-          <span className="open-arrow">{league.on_clock ? "Draft now" : league.draft_live ? "Follow draft" : "Open"}</span>
+          <div><strong>{league.name}</strong><span>{league.on_clock ? "⚡ YOUR PICK IS ON THE CLOCK" : league.live_matches?.length ? `● MATCH LIVE · ${league.live_matches[0].title}` : league.draft_live ? `● DRAFT LIVE · ${league.season_label || "New season"}` : `${league.season_label || "New season"} - ${role.replace("_", " ")}`}</span></div>
+          <span className="open-arrow">{league.on_clock ? "Draft now" : league.live_matches?.length ? "Watch match" : league.draft_live ? "Follow draft" : "Open"}</span>
         </button>
         <button type="button" className="quiet-button dashboard-league-archive" disabled={leagueActionId === league.id} onClick={() => setLeagueArchived(league.id, !archivedAt)}>{leagueActionId === league.id ? "Saving..." : archivedAt ? "Restore" : "Archive"}</button>
       </article>)}</div>
