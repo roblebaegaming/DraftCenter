@@ -12189,16 +12189,16 @@ function NewSeasonCard({ state, leagueId, finalizeSeason, startNewSeason }) {
           <p className="text-sm mb-4" style={{ color: "#9A9FBD" }}>The official record is frozen. The league can remain here for awards, recaps, and championship production until you are ready for another season.</p>
           <ChampionshipStudio season={finalizedSeason} leagueId={leagueId} />
           {!confirmingNext ? (
-            <button onClick={() => setConfirmingNext(true)} className="px-4 py-2 rounded font-semibold text-sm mt-5" style={{ background: "#4FD1C522", color: "#4FD1C5", border: "1px solid #4FD1C555" }}>START SEASON {state.seasonNumber + 1}</button>
+            <button onClick={() => setConfirmingNext(true)} className="px-4 py-2 rounded font-semibold text-sm mt-5" style={{ background: "#4FD1C522", color: "#4FD1C5", border: "1px solid #4FD1C555" }}>START SEASON {state.seasonNumber + 1} — KEEP SEASON {state.seasonNumber} ARCHIVED</button>
           ) : (
             <div className="px-3 py-3 rounded mt-5" style={{ background: "#0F1420", border: "1px solid rgba(255,255,255,0.08)" }}>
-              <p className="text-sm mb-3" style={{ color: "#9A9FBD" }}>Starting the next season resets current rosters, schedule, and bracket. The completed season stays in league history.</p>
+              <p className="text-sm mb-3" style={{ color: "#9A9FBD" }}>Season {state.seasonNumber} is already safely archived. Starting the next season resets the active rosters, schedule, and bracket while keeping that completed record in league history.</p>
               <div className="grid sm:grid-cols-2 gap-2 mb-3">
                 <button type="button" onClick={() => setRuleMode("same")} className="p-3 rounded text-left text-sm" style={{ background: ruleMode === "same" ? "#4FD1C522" : "#1F2338", border: `1px solid ${ruleMode === "same" ? "#4FD1C5" : "rgba(255,255,255,0.08)"}`, color: "#EDEBFA" }}><strong>Use the same rules</strong><small className="block mt-1" style={{ color: "#9A9FBD" }}>Carry forward this season's format and league rules.</small></button>
                 <button type="button" onClick={() => setRuleMode("new")} className="p-3 rounded text-left text-sm" style={{ background: ruleMode === "new" ? "#FFD23F22" : "#1F2338", border: `1px solid ${ruleMode === "new" ? "#FFD23F" : "rgba(255,255,255,0.08)"}`, color: "#EDEBFA" }}><strong>Start with new rules</strong><small className="block mt-1" style={{ color: "#9A9FBD" }}>Return regulation and draft settings to defaults.</small></button>
               </div>
               <div className="flex gap-2">
-                <button onClick={async () => { if (await startNewSeason(ruleMode)) setConfirmingNext(false); }} className="px-3 py-1.5 rounded text-xs font-semibold" style={{ background: "#4FD1C5", color: "#10121C" }}>Yes, start Season {state.seasonNumber + 1}</button>
+                <button onClick={async () => { if (await startNewSeason(ruleMode)) setConfirmingNext(false); }} className="px-3 py-1.5 rounded text-xs font-semibold" style={{ background: "#4FD1C5", color: "#10121C" }}>Yes, keep the archive and start Season {state.seasonNumber + 1}</button>
                 <button onClick={() => setConfirmingNext(false)} className="px-3 py-1.5 rounded text-xs" style={{ background: "#1F2338", color: "#9A9FBD" }}>Cancel</button>
               </div>
             </div>
