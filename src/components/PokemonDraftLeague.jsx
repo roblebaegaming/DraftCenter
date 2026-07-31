@@ -9075,6 +9075,10 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
             exportLeagueBackup={exportLeagueBackup} exportRecoveryBackup={exportRecoveryBackup} importLeagueBackup={importLeagueBackup}
             addCoCommissioner={addCoCommissioner} removeCoCommissioner={removeCoCommissioner}
             onOpenLeagueTools={onOpenLeagueTools} copyLeagueInvite={copyLeagueInvite}
+            onOpenBroadcast={() => {
+              setTab("home");
+              window.setTimeout(() => document.getElementById("league-broadcast-center")?.scrollIntoView({ behavior: "smooth", block: "start" }), 0);
+            }}
             saveNow={saveNow} saveStatus={saveStatus} draftError={liveDraftError}
             scheduledStartStatus={scheduledStartStatus}
             retryScheduledStart={() => prepareScheduledSnakeDraft(state, { force: true })}
@@ -10691,7 +10695,7 @@ function ScheduledStartNotice({ status, scheduledAt, draftType, isCommissioner =
   );
 }
 
-function SetupView({ state, leagueId = null, isCommissioner, canBeCommissioner, claimCommissioner, unclaimCommissioner, claimTeam, renameTeam, myName, updateSettings, resizeTeams, rerollAllTeamIdentities, costFor, toggleBanMon, toggleAllowExtraMon, rebuildCurrentSeason, addCustomMon, removeCustomMon, setSpriteOverride, setTeamLogo, onStart, addDivision, renameDivision, removeDivision, setTeamDivision, finalizeManualDraft, finalizeSeason, startNewSeason, updateHomepage, addExpansionTeam, removeSpecificTeam, exportLeagueBackup, exportRecoveryBackup, importLeagueBackup, addCoCommissioner, removeCoCommissioner, onOpenLeagueTools, copyLeagueInvite, saveNow, saveStatus, draftError = "", scheduledStartStatus = null, retryScheduledStart = null }) {
+function SetupView({ state, leagueId = null, isCommissioner, canBeCommissioner, claimCommissioner, unclaimCommissioner, claimTeam, renameTeam, myName, updateSettings, resizeTeams, rerollAllTeamIdentities, costFor, toggleBanMon, toggleAllowExtraMon, rebuildCurrentSeason, addCustomMon, removeCustomMon, setSpriteOverride, setTeamLogo, onStart, addDivision, renameDivision, removeDivision, setTeamDivision, finalizeManualDraft, finalizeSeason, startNewSeason, updateHomepage, addExpansionTeam, removeSpecificTeam, exportLeagueBackup, exportRecoveryBackup, importLeagueBackup, addCoCommissioner, removeCoCommissioner, onOpenLeagueTools, onOpenBroadcast, copyLeagueInvite, saveNow, saveStatus, draftError = "", scheduledStartStatus = null, retryScheduledStart = null }) {
   // A league may have been created before newer Setup options existed. Keep
   // this screen usable even if one of those older saved values is missing or
   // malformed; the next normal save will preserve the corrected shape.
@@ -10866,7 +10870,8 @@ function SetupView({ state, leagueId = null, isCommissioner, canBeCommissioner, 
             <summary>Twitch & YouTube broadcasts</summary>
             <div className="discord-connection-body">
               <p className="muted">Managers can share a Twitch or YouTube battle from League Home by adding its public stream link, scheduled time, and audience.</p>
-              <p className="discord-setup-note"><strong>Coming next:</strong> Channel linking, automatic Live Now detection, and matchup-based stream scheduling.</p>
+              <button type="button" onClick={onOpenBroadcast} className="px-4 py-2 rounded font-semibold text-sm" style={{ background: "#F0555A", color: "#FFFFFF" }}>● OPEN SHARE MY LIVE BATTLE</button>
+              <p className="discord-setup-note"><strong>Twitch:</strong> Automatic Live Now detection is available after the stream is published. YouTube can be marked Live Now manually.</p>
             </div>
           </details>
         </section>
