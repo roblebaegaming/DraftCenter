@@ -10037,12 +10037,15 @@ function HomeView({ state, leagueId, leagueName, isCommissioner, isSpectator = f
               <button onClick={() => onGoToLeague("predictions")} className="px-3 py-1.5 rounded font-semibold" style={{ background: "#FFD23F", color: "#10121C" }}>Make a prediction →</button>
             </div>
           ) : (
+            <>
             <div className={`grid sm:grid-cols-2 ${draftStillActive ? "lg:grid-cols-4" : "lg:grid-cols-3"} gap-2 mt-3 text-sm`}>
               <span className="rounded p-3" style={{ background: "#10121C" }}>{myTeamIdx >= 0 ? `Team: ${teams[myTeamIdx]?.name}` : "No team claimed"}</span>
               {draftStillActive && <span className="rounded p-3" style={{ background: isMyTurn ? "#4FD1C5" : "#10121C", color: isMyTurn ? "#10121C" : "#C9CBE0" }}>{isMyTurn ? "You are on the clock" : "Not currently on the clock"}</span>}
               <span className="rounded p-3" style={{ background: "#10121C" }}>{pendingTrades} pending trade{pendingTrades === 1 ? "" : "s"}</span>
               <span className="rounded p-3" style={{ background: "#10121C" }}>{unreadMessages} unread message{unreadMessages === 1 ? "" : "s"}</span>
             </div>
+            <button type="button" onClick={() => document.getElementById("league-broadcast-center")?.scrollIntoView({ behavior: "smooth", block: "start" })} className="px-4 py-2 rounded font-semibold text-sm mt-3" style={{ background: "#F0555A", color: "#FFFFFF" }}>● SHARE MY LIVE BATTLE</button>
+            </>
           )}
         </section>
       )}

@@ -202,6 +202,11 @@ export default function PublicExplore() {
         setTeamRegulations(teamResult.data?.regulations || []);
       }
     });
+    const liveRefresh = window.setInterval(() => {
+      supabase.rpc("get_public_live_streams", { p_limit: 8 })
+        .then(({ data: streams, error }) => { if (!error) setLiveStreams(streams || []); });
+    }, 30000);
+    return () => window.clearInterval(liveRefresh);
   }, []);
   const signedIn = Boolean(data?.signed_in);
   return <main className="explore-shell">
@@ -216,7 +221,7 @@ export default function PublicExplore() {
     {message && <p className="hub-message">{message}</p>}
     {!data && !message && <p className="muted">Loading public DraftCenter data...</p>}
     {data && <>
-      <section className="explore-card community-live-now"><div className="section-heading"><div><span className="eyebrow">LIVE NOW</span><h2>Watch DraftCenter battles</h2></div><a className="quiet-button" href="/leagues">Browse public leagues</a></div><LiveNowList streams={liveStreams} /></section>
+      <section className="explore-card community-live-now"><div className="section-heading"><div><span className="eyebrow">LIVE NOW</span><h2>Watch DraftCenter battles</h2></div><a className="quiet-button" href="/leagues">Browse public leagues</a></div><p className="muted">League managers can share their own Twitch or YouTube match from their league home—commissioner approval is not required.</p><LiveNowList streams={liveStreams} /></section>
       <div className="daily-trio-grid">
         <section className="explore-card explore-poll">
         <span className="eyebrow">POLL OF THE DAY</span>

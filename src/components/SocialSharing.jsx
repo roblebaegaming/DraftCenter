@@ -206,8 +206,8 @@ export function LeagueBroadcastCenter({ leagueId, leagueName, isCommissioner = f
   const [url, setUrl] = useState("");
   const [matchKey, setMatchKey] = useState("");
   const [startsAt, setStartsAt] = useState("");
-  const [visibility, setVisibility] = useState("league");
-  const [status, setStatus] = useState("scheduled");
+  const [visibility, setVisibility] = useState("public");
+  const [status, setStatus] = useState("live");
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   async function load() {
@@ -258,7 +258,7 @@ export function LeagueBroadcastCenter({ leagueId, leagueName, isCommissioner = f
       p_league_id: leagueId,
       p_stream_id: null,
       p_match_key: matchKey || null,
-      p_title: title,
+      p_title: title.trim() || `${leagueName || "League"} battle — live now`,
       p_stream_url: url,
       p_starts_at: startsAt ? new Date(startsAt).toISOString() : null,
       p_visibility: visibility,
@@ -312,19 +312,20 @@ export function LeagueBroadcastCenter({ leagueId, leagueName, isCommissioner = f
     setBusy(false);
     if (error) setMessage(error.message); else load();
   }
-  return <section className="league-broadcast-center">
+  return <section className="league-broadcast-center" id="league-broadcast-center">
     <div className="broadcast-title-row"><div><span className="eyebrow">BROADCAST CENTER</span><h2>Live battles and streams</h2></div><ShareButton title={leagueName || "DraftCenter league"} text={`Follow ${leagueName || "this league"} on DraftCenter.`} /></div>
     <LiveNowList streams={streams} showLeague={false} empty="No live or scheduled broadcasts yet." />
-    {canPublish && <details className="broadcast-publish-panel">
-      <summary>Publish a Twitch or YouTube battle</summary>
+    {canPublish && <details className="broadcast-publish-panel" open>
+      <summary>Share my live battle</summary>
+      <p className="muted">Every league manager can share their own match—commissioner access is not required. Paste your Twitch or YouTube link and DraftCenter will announce it to the audiences you choose.</p>
       <form onSubmit={publish} className="broadcast-form">
-        <label>Stream title<input required value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Week 3: Team A vs Team B" /></label>
+        <label>Stream title (optional)<input value={title} onChange={(event) => setTitle(event.target.value)} placeholder={`${leagueName || "League"} battle — live now`} /></label>
         <label>Twitch or YouTube URL<input required type="url" value={url} onChange={(event) => setUrl(event.target.value)} placeholder="https://twitch.tv/... or https://youtube.com/..." /></label>
         <label>Match reference (optional)<input value={matchKey} onChange={(event) => setMatchKey(event.target.value)} placeholder="Week 3 · Match 2" /></label>
         <label>Scheduled local date and time<input type="datetime-local" value={startsAt} onChange={(event) => setStartsAt(event.target.value)} /></label>
-        <label>Audience<select value={visibility} onChange={(event) => setVisibility(event.target.value)}><option value="private">Only me and commissioners</option><option value="league">League members</option><option value="public">Public Live Now pages</option></select></label>
+        <label>Audience<select value={visibility} onChange={(event) => setVisibility(event.target.value)}><option value="public">Public Community Live Now</option><option value="league">League members only</option><option value="private">Only me and commissioners</option></select></label>
         <label>Status<select value={status} onChange={(event) => setStatus(event.target.value)}><option value="scheduled">Scheduled</option><option value="live">Live now</option></select></label>
-        <button className="primary-button" disabled={busy}>{busy ? "Publishing…" : status === "live" ? "Go live on DraftCenter" : "Schedule stream"}</button>
+        <button className="primary-button" disabled={busy}>{busy ? "Publishing…" : status === "live" ? "Share my live battle" : "Schedule stream"}</button>
       </form>
     </details>}
     {streams.some((stream) => stream.can_manage && stream.status !== "ended") && <div className="broadcast-manage-list">{streams.filter((stream) => stream.can_manage && stream.status !== "ended").map((stream) => <div key={stream.id} className="broadcast-manage-actions">
