@@ -17,15 +17,17 @@ users.
 
 Record these values after verifying them in the Supabase dashboard:
 
-- Production project:
-- Supabase plan:
-- Automated backup frequency:
-- Backup retention:
-- Point-in-time recovery enabled:
-- People with restore access:
-- Off-account encrypted backup location:
-- Last successful restore drill:
-- Next scheduled restore drill:
+- Production project: Supabase project `eukexfqpiuidwygllaye` in AWS `us-west-2`
+- Supabase plan: Pro
+- Automated backup frequency: Daily, around midnight in the project's region
+- Backup retention: The dashboard displayed eight daily physical backups from July 25 through August 1, 2026; the exact contractual retention window still needs confirmation before making a public promise
+- Point-in-time recovery enabled: No; the dashboard offers it as a separate add-on
+- People with restore access: One organization member, the owner account
+- Off-account encrypted backup location: Not yet established
+- Last successful restore drill: Not yet completed
+- Next scheduled restore drill: Not yet scheduled
+
+Dashboard verification on August 1, 2026 confirmed that the newest scheduled physical backup was created at 13:17:29 UTC. The dashboard provides a restore action for each backup and a beta **Restore to new project** path. Storage objects are not included in database backups; only their database metadata is covered.
 
 Database-provider backups and user-downloaded exports serve different needs.
 Provider backups recover the service; user exports provide portability and an

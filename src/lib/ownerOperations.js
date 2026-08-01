@@ -17,6 +17,13 @@ export async function requireOwner(request) {
 
 function warning(code, severity, text) { return { code, severity, text }; }
 function countResults(state) { return Object.keys(state?.matchResults || {}).length; }
+function isExpectedOperationalRejection(event) {
+  const kind = String(event?.kind || "");
+  const message = String(event?.message || "");
+  if (kind === "league_save_failed" && /only league commissioners can save|changed in another session|refresh before saving again/i.test(message)) return true;
+  if (kind === "draft_operation_failed" && /no longer available|already (?:drafted|selected|picked)|not (?:your|that team(?:'s)?) turn|changed in another session|refresh before|cannot afford|would leave less than|roster (?:minimum|maximum|limit)/i.test(message)) return true;
+  return false;
+}
 
 export async function getOperationsOverview(supabase, viewerUserId = null) {
   const now = Date.now();
@@ -69,9 +76,13 @@ export async function getOperationsOverview(supabase, viewerUserId = null) {
   });
   const leagueNames = new Map(leagues.map((league) => [league.id, league.name]));
   const supportRequests = (requestsResult.data || []).map((request) => ({ ...request, league_name: leagueNames.get(request.league_id) || "Unknown league" }));
-  const operationalErrors = (healthResult.data || []).map((event) => ({ ...event, league_name: leagueNames.get(event.league_id) || "No league", actor: profiles.get(event.actor_id)?.display_name || profiles.get(event.actor_id)?.username || "Unknown user" }));
-  const recentErrorCount = operationalErrors.filter((event) => Date.parse(event.occurred_at) > Date.now() - 86400000).length;
-  return { generated_at: new Date().toISOString(), totals: { leagues: leagues.length, real: leagues.filter((l) => !l.is_practice).length, practice: leagues.filter((l) => l.is_practice).length, needing_attention: leagues.filter((l) => l.warnings.length).length, high_priority: leagues.filter((l) => l.warnings.some((w) => w.severity === "high")).length, open_support_requests: supportRequests.length, errors_24h: recentErrorCount }, support_requests: supportRequests, operational_errors: operationalErrors, leagues };
+  const operationalErrors = (healthResult.data || []).map((event) => ({ ...event, classification: isExpectedOperationalRejection(event) ? "expected_rejection" : "system_failure", league_name: leagueNames.get(event.league_id) || "No league", actor: profiles.get(event.actor_id)?.display_name || profiles.get(event.actor_id)?.username || "Unknown user" }));
+  const operationalFailures = operationalErrors.filter((event) => event.classification === "system_failure");
+  const operationalRejections = operationalErrors.filter((event) => event.classification === "expected_rejection");
+  const sinceYesterday = Date.now() - 86400000;
+  const recentErrorCount = operationalFailures.filter((event) => Date.parse(event.occurred_at) > sinceYesterday).length;
+  const recentRejectionCount = operationalRejections.filter((event) => Date.parse(event.occurred_at) > sinceYesterday).length;
+  return { generated_at: new Date().toISOString(), totals: { leagues: leagues.length, real: leagues.filter((l) => !l.is_practice).length, practice: leagues.filter((l) => l.is_practice).length, needing_attention: leagues.filter((l) => l.warnings.length).length, high_priority: leagues.filter((l) => l.warnings.some((w) => w.severity === "high")).length, open_support_requests: supportRequests.length, errors_24h: recentErrorCount, expected_rejections_24h: recentRejectionCount }, support_requests: supportRequests, operational_errors: operationalErrors, operational_failures: operationalFailures, operational_rejections: operationalRejections, leagues };
 }
 
 export async function sendOwnerEmail({ to, subject, html }) {
