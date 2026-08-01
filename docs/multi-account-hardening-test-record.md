@@ -6,7 +6,7 @@ Use this record against a safe test league before each major release. Do not use
 
 - Date: August 1, 2026
 - Tester: Codex with the existing `@roblebae` production session
-- Build or commit: `32492c3`
+- Build or commit: `13fcd71` plus the production smoke automation added in this validation pass
 - Environment: Production (`https://www.draftcentral.gg`)
 - Desktop browser: Codex in-app browser
 - Mobile browser/device: 390 × 844 responsive viewport
@@ -16,10 +16,11 @@ Read-only evidence collected in this session:
 
 - Mega Test opens as Season 2 and displays the preserved Season 1 champion archive.
 - The Season 2 League Home, Messages, and League Tools surfaces fit without document-level horizontal overflow at 390 px.
-- Setup and My Team produce document-level horizontal overflow at 390 px (426 px and 429 px document widths respectively, versus a 382 px content viewport).
+- Setup and My Team now match the 382 px content viewport at 390 px after the targeted mobile layout fixes.
 - Owner Operations loads successfully and correctly requires commissioner-approved support access for leagues where the owner is not a member.
 - Owner Operations reports Mega Test as `DRAFTING`. A direct lifecycle-field check confirmed this is correct: Season 2 is locked, its hosted snake draft is complete, and Season 1 remains archived.
-- Mega Test League Tools exposes a July 31 recovery point, while Owner Operations reports no recovery backup for the league. Confirm whether these surfaces intentionally measure different backup records or are out of sync.
+- Mega Test's July 31 automatic recovery point now appears consistently in League Tools and Owner Operations under “Last recovery.”
+- A signed-out production sweep confirmed 14 public routes load while five owner/account/recovery APIs reject access with 401.
 
 ## Test setup
 
@@ -41,7 +42,7 @@ Read-only evidence collected in this session:
 - [ ] The default legal pool passes stable-ID validation, including the built-in Pokémon whose stable ID is numeric zero.
 - [ ] Start Draft shows an in-place progress state, prevents duplicate submission, and displays any server rejection beside the Start button.
 - [ ] Hosted snake start reloads saved queues without a client runtime exception and opens the Draft room.
-- [ ] Signed-out users cannot read private league, roster, notebook, queue, or planning data.
+- [x] Signed-out users cannot read private league, roster, notebook, queue, or planning data. (production API rejection plus public-projection/access-policy review, August 1)
 - [ ] Spectators cannot change league settings, rosters, results, queues, trades, or draft state.
 - [ ] Managers can change only their permitted team data.
 - [ ] Commissioners can use commissioner tools without exposing those controls to other roles.

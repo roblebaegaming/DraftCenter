@@ -154,13 +154,15 @@ Migration 238 received explicit live verification: the function exists, authenti
 2. Confirm the production Supabase confirmation template matches the saved HTML; test a new registration in Gmail and another major email client.
 3. Complete the final Mega Test flow: Twitch EventSub → league Live display → dashboard Live banner → exactly one personal Discord DM each to `DraftCenterOfficial` and `Rob Lebae` → stream-offline cleanup.
 4. Test the Daily Three Discord announcement end to end in a connected, noise-safe league channel.
-5. Exercise season finalization and next-season rollover once more through the UI after migration 230.
+5. **Completed August 1:** Season 2 is locked with its hosted snake draft complete, the active lifecycle correctly reports `DRAFTING`, and the Season 1 archive remains visible.
 6. Complete and record the formal commissioner/manager/spectator multi-account lifecycle matrix in `docs/multi-account-hardening-test-record.md`.
 7. Complete phone-width and major-browser launch checks in `docs/launch-stabilization-checklist.md`.
-8. **Partially completed August 1:** Supabase plan, backup schedule, visible backup history, point-in-time recovery status, and restore access are recorded in `docs/data-retention-and-recovery.md`; off-account encrypted storage remains unestablished.
+8. **Partially completed August 1:** Supabase plan, backup schedule, visible backup history, point-in-time recovery status, restore access, and the sole-owner responsibility are recorded in `docs/data-retention-and-recovery.md`; off-account encrypted storage remains unestablished.
 9. Complete a real restore drill in an isolated non-production Supabase project. Never restore over production.
 10. **Completed and deployed August 1:** Operations separates expected permission/concurrency/draft safety rejections from genuine system failures, and the daily digest includes only genuine failures. Production verification showed 3 system failures and 2 expected safety rejections in the preceding 24 hours.
 11. Decide whether and when to verify Google Search Console for the domain.
+
+Independent signed-out validation also passed on August 1: 14 public pages/discovery files returned successfully, five protected operations/account APIs returned 401, and the public database projections plus server-only Discord secret boundary were reviewed. Run `npm run smoke:production` to repeat the HTTP checks.
 
 YouTube automatic live detection remains intentionally deferred. Manual YouTube stream sharing is supported.
 
