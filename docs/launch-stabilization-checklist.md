@@ -16,9 +16,9 @@ Use this before each beta release. Record the date, commit, tester accounts, dev
 - Production smoke checks passed for `/`, `/explore`, `/operations`, `/operations/daily-three`, `/manuals/commissioner`, and `/manuals/manager`.
 - The tested public/operations/manual pages had no document-level horizontal overflow at 390 px.
 - Mega Test visibly preserved its Season 1 archive and now presents Season 2.
-- **Pending production retest:** Migration 239 repairs the historical Mega Test rollover status after confirming the future-rollover function is corrected.
-- **Pending deployed mobile retest:** Setup fieldsets and the My Team ability selector have targeted width fixes. See `DC-VAL-002` in `docs/multi-account-hardening-test-record.md`.
-- **Pending deployed Operations retest:** Owner Operations now includes automatic recovery snapshots and labels the combined timestamp “Last recovery.” See `DC-VAL-003`.
+- **Season lifecycle passed:** Mega Test is correctly `DRAFTING`: Season 2 is locked, its hosted snake draft is complete, and Season 1 remains archived. The initial mismatch finding was a false positive.
+- **Mobile retest passed:** Mega Test Setup and My Team both match the 382 px content viewport without horizontal overflow at a 390 × 844 browser viewport.
+- **Operations recovery retest passed:** Mega Test's July 31 automatic recovery point appears under “Last recovery.”
 
 ## Accounts, permissions, and privacy
 

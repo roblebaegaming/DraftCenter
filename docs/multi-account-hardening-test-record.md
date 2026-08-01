@@ -18,7 +18,7 @@ Read-only evidence collected in this session:
 - The Season 2 League Home, Messages, and League Tools surfaces fit without document-level horizontal overflow at 390 px.
 - Setup and My Team produce document-level horizontal overflow at 390 px (426 px and 429 px document widths respectively, versus a 382 px content viewport).
 - Owner Operations loads successfully and correctly requires commissioner-approved support access for leagues where the owner is not a member.
-- Owner Operations reports Mega Test as `DRAFTING` even though the league UI is in Season 2 after rollover. This status mismatch must be resolved before marking the rollover test complete.
+- Owner Operations reports Mega Test as `DRAFTING`. A direct lifecycle-field check confirmed this is correct: Season 2 is locked, its hosted snake draft is complete, and Season 1 remains archived.
 - Mega Test League Tools exposes a July 31 recovery point, while Owner Operations reports no recovery backup for the league. Confirm whether these surfaces intentionally measure different backup records or are out of sync.
 
 ## Test setup
@@ -119,6 +119,6 @@ Record each failure with the account, role, device, exact action, expected resul
 
 | ID | Area | Severity | Reproduction | Expected | Actual | Status |
 | --- | --- | --- | --- | --- | --- | --- |
-| DC-VAL-001 | Season rollover | High | Open Mega Test after its Season 1 archive, then compare League Home with Owner Operations. | The new active season and relational league status both report setup/new-season state. | Migration 239 narrowly repairs historical unlocked later-season snapshots still marked `drafting`; migration 230 remains the future-rollover guard. | Fixed locally; apply migration and retest production |
-| DC-VAL-002 | Mobile layout | Medium | Open Mega Test Setup or My Team at a 390 × 844 viewport. | No document-level horizontal scrolling. | Setup fieldsets now permit shrinking and the My Team ability selector is constrained to its roster card. | Fixed locally; retest deployed build |
-| DC-VAL-003 | Recovery monitoring | Medium | Compare Mega Test League Tools recovery history with its Owner Operations card. | Backup/recovery status is consistent or clearly distinguishes the two record types. | Operations now combines manual backup events with automatic and pre-restore recovery snapshots and labels the date “Last recovery.” | Fixed locally; retest deployed build |
+| DC-VAL-001 | Season rollover | High | Open Mega Test after its Season 1 archive, then compare League Home with Owner Operations and the lifecycle fields. | The relational status matches the active season's actual phase while prior archives remain intact. | Confirmed: Season 2 is locked, its snake draft session is complete, Season 1 is archived, and `DRAFTING` is therefore the correct active-season status. | Passed — initial finding was a false positive |
+| DC-VAL-002 | Mobile layout | Medium | Open Mega Test Setup or My Team at a 390 × 844 viewport. | No document-level horizontal scrolling. | Both pages now have equal 382 px document and viewport widths after targeted fieldset, preset-wrap, legality-grid, and ability-selector fixes. | Passed in production |
+| DC-VAL-003 | Recovery monitoring | Medium | Compare Mega Test League Tools recovery history with its Owner Operations card. | Backup/recovery status is consistent or clearly distinguishes the two record types. | Operations now combines manual backup events with automatic and pre-restore recovery snapshots; Mega Test shows its July 31 recovery point under “Last recovery.” | Passed in production |
