@@ -20,7 +20,7 @@ function countResults(state) { return Object.keys(state?.matchResults || {}).len
 
 export async function getOperationsOverview(supabase, viewerUserId = null) {
   const now = Date.now();
-  const [leaguesResult, snapshotsResult, membershipsResult, profilesResult, snakeResult, auctionResult, backupResult, failedResult, discordResult] = await Promise.all([
+  const [leaguesResult, snapshotsResult, membershipsResult, profilesResult, snakeResult, auctionResult, backupResult, failedResult, discordResult, supportResult] = await Promise.all([
     supabase.from("leagues").select("id,name,slug,status,created_at,updated_at,created_by,is_practice,league_visibility,draft_starts_at,season_label").order("created_at", { ascending: false }),
     supabase.from("league_state_snapshots").select("league_id,state,updated_at,revision"),
     supabase.from("league_memberships").select("league_id,user_id,role"),
@@ -30,11 +30,13 @@ export async function getOperationsOverview(supabase, viewerUserId = null) {
     supabase.from("league_backup_events").select("league_id,backup_type,created_at").order("created_at", { ascending: false }),
     supabase.from("notification_events").select("league_id,kind,channel,attempt_count,last_error,failed_at,created_at").not("failed_at", "is", null).order("failed_at", { ascending: false }).limit(200),
     supabase.from("league_discord_settings").select("league_id,enabled,channel_id,updated_at"),
+    supabase.from("league_support_grants").select("id,league_id,permission,expires_at,revoked_at,created_at").eq("support_user_id", viewerUserId || "00000000-0000-0000-0000-000000000000").is("revoked_at", null).gt("expires_at", new Date().toISOString()),
   ]);
   if (leaguesResult.error) throw leaguesResult.error;
   const byLeague = (rows) => new Map((rows || []).map((row) => [row.league_id, row]));
   const snapshots = byLeague(snapshotsResult.data); const snake = byLeague(snakeResult.data); const auction = byLeague(auctionResult.data); const discord = byLeague(discordResult.data);
   const profiles = new Map((profilesResult.data || []).map((row) => [row.id, row]));
+  const support = byLeague(supportResult.data);
   const backups = new Map(); for (const row of backupResult.data || []) if (!backups.has(row.league_id)) backups.set(row.league_id, row);
   const failedByLeague = new Map(); for (const row of failedResult.data || []) failedByLeague.set(row.league_id, (failedByLeague.get(row.league_id) || 0) + 1);
   const membersByLeague = new Map(); for (const row of membershipsResult.data || []) { const rows = membersByLeague.get(row.league_id) || []; rows.push(row); membersByLeague.set(row.league_id, rows); }
@@ -53,7 +55,8 @@ export async function getOperationsOverview(supabase, viewerUserId = null) {
     if (!league.is_practice && !["setup", "completed", "archived"].includes(String(league.status)) && idleDays >= 10) warnings.push(warning("inactive", "medium", `No saved league activity for ${Math.floor(idleDays)} days.`));
     if (!league.is_practice && (!Number.isFinite(lastBackupMs) || now - lastBackupMs > 30 * 86400000)) warnings.push(warning("backup_overdue", "low", backup ? "No recorded recovery backup in the last 30 days." : "No recovery backup has been recorded."));
     const commissioner = members.find((member) => member.role === "commissioner"); const profile = profiles.get(commissioner?.user_id || league.created_by);
-    return { ...league, commissioner: profile?.display_name || profile?.username || "Unknown", owner_has_access: Boolean(viewerUserId && members.some((member) => member.user_id === viewerUserId)), owner_role: viewerUserId ? members.find((member) => member.user_id === viewerUserId)?.role || null : null, member_count: members.filter((member) => ["commissioner", "co_commissioner", "coach"].includes(member.role)).length, team_count: leagueSize, claimed_team_count: claimed, result_count: countResults(state), last_activity_at: lastActivity, last_backup_at: backup?.created_at || null, draft_job: job || null, discord_connected: Boolean(discord.get(league.id)?.enabled && discord.get(league.id)?.channel_id), warnings };
+    const supportGrant = support.get(league.id);
+    return { ...league, commissioner: profile?.display_name || profile?.username || "Unknown", owner_has_access: Boolean(viewerUserId && members.some((member) => member.user_id === viewerUserId)), owner_role: viewerUserId ? members.find((member) => member.user_id === viewerUserId)?.role || null : null, support_access: supportGrant ? { id: supportGrant.id, permission: supportGrant.permission, expires_at: supportGrant.expires_at } : null, member_count: members.filter((member) => ["commissioner", "co_commissioner", "coach"].includes(member.role)).length, team_count: leagueSize, claimed_team_count: claimed, result_count: countResults(state), last_activity_at: lastActivity, last_backup_at: backup?.created_at || null, draft_job: job || null, discord_connected: Boolean(discord.get(league.id)?.enabled && discord.get(league.id)?.channel_id), warnings };
   });
   return { generated_at: new Date().toISOString(), totals: { leagues: leagues.length, real: leagues.filter((l) => !l.is_practice).length, practice: leagues.filter((l) => l.is_practice).length, needing_attention: leagues.filter((l) => l.warnings.length).length, high_priority: leagues.filter((l) => l.warnings.some((w) => w.severity === "high")).length }, leagues };
 }

@@ -50,17 +50,18 @@ not return poll choices, bracket selections, quiz answers, or correctness.
 ## Configuration support access
 
 League Operations never turns platform ownership into silent private-league
-access. Each league card reports whether the signed-in owner account already has
-a membership. Without one, the action reads **Support access required** and
-provides a copyable message explaining how the commissioner can invite the
-owner account as a co-commissioner. Once accepted, the action changes to
-**Open league**.
+access. Migration `233-temporary-support-access.sql` creates support grants and
+their audit log. Commissioners manage them in Commissioner Tools without adding
+the owner as a league member or co-commissioner.
 
-The next support-access phase should replace manual co-commissioner cleanup with
-a commissioner-approved grant that is read-only by default, optionally scoped
-to named configuration areas, expires automatically, records every change in an
-audit log, and can be revoked immediately. It must not expose private notebooks,
-direct messages, personal notification data, or unrelated account information.
+Support sessions are read-only, last 24 hours, 3 days, or 7 days, expire
+automatically, and can be revoked immediately. Operations shows the expiration
+and opens a dedicated read-only configuration view. Approval, each view, and
+revocation are recorded. The support response excludes private notebooks,
+direct messages, notification preferences, Discord data, and personal notes.
+
+A later phase may add explicitly scoped editing, but no support grant currently
+permits a league change.
 
 ## Verification
 
