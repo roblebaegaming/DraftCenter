@@ -1,11 +1,11 @@
 # DraftCenter agent handoff — outside-user operations, support, analytics, and launch validation
 
-**Handoff date:** August 1, 2026  
-**Public launch target:** Friday, September 4, 2026  
-**Production:** https://www.draftcentral.gg  
-**Repository:** `C:\Users\rober\Documents\Codex\2026-07-20\i-am-building-a-pok-mon\draft-league\DraftCenter`  
-**GitHub:** `roblebaegaming/DraftCenter`, branch `main`  
-**Production code at the start of this handoff:** `0993261 Use commissioner role for pricing approvals`
+- **Handoff date:** August 1, 2026
+- **Public launch target:** Friday, September 4, 2026
+- **Production:** https://www.draftcentral.gg
+- **Repository:** `C:\Users\rober\Documents\Codex\2026-07-20\i-am-building-a-pok-mon\draft-league\DraftCenter`
+- **GitHub:** `roblebaegaming/DraftCenter`, branch `main`
+- **Production code at the start of this handoff:** `0993261 Use commissioner role for pricing approvals`
 
 ## Executive outcome
 
