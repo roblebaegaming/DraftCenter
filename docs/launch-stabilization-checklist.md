@@ -87,12 +87,12 @@ Use this before each beta release. Record the date, commit, tester accounts, dev
 - [ ] Test current major desktop browsers where available.
 - [ ] Missing artwork uses a safe fallback.
 - [ ] Slow loading, reloads, reconnects, and expired sessions recover clearly.
-- [ ] Production build passes with every expected route.
-- [ ] Exact changed files are reviewed.
+- [x] Production build passes with every expected route. (62 routes, August 1)
+- [x] Exact changed files are reviewed. (through commit `9058f06`)
 - [ ] Required Supabase SQL reports success.
-- [ ] GitHub push completes with the intended commit.
-- [ ] Vercel production deployment reports **Ready**.
-- [ ] Production smoke test passes.
+- [x] GitHub push completes with the intended commit. (`9058f06`)
+- [x] Vercel production deployment reports **Ready**.
+- [x] Production smoke test passes.
 
 ## Release decision
 

@@ -159,7 +159,7 @@ Migration 238 received explicit live verification: the function exists, authenti
 7. Complete phone-width and major-browser launch checks in `docs/launch-stabilization-checklist.md`.
 8. **Partially completed August 1:** Supabase plan, backup schedule, visible backup history, point-in-time recovery status, and restore access are recorded in `docs/data-retention-and-recovery.md`; off-account encrypted storage remains unestablished.
 9. Complete a real restore drill in an isolated non-production Supabase project. Never restore over production.
-10. **Completed in code August 1:** Operations separates expected permission/concurrency/draft safety rejections from genuine system failures, and the daily digest includes only genuine failures.
+10. **Completed and deployed August 1:** Operations separates expected permission/concurrency/draft safety rejections from genuine system failures, and the daily digest includes only genuine failures. Production verification showed 3 system failures and 2 expected safety rejections in the preceding 24 hours.
 11. Decide whether and when to verify Google Search Console for the domain.
 
 YouTube automatic live detection remains intentionally deferred. Manual YouTube stream sharing is supported.
