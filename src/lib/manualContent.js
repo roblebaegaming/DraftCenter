@@ -19,6 +19,7 @@ export const MANUALS = {
         "Name teams and divisions if needed. Confirm that the legal pool is large and balanced enough for every roster.",
         "Set transaction limits, standings tiebreakers, schedule style, playoff size, and the league clock for match and claim deadlines.",
         "Save a recovery backup after major setup milestones. Use the spreadsheet export when you need a readable offline record.",
+        "League Tools also shows Automatic Recovery History. Review the team, roster, result, season, and draft summary before restoring; type the exact league name to confirm.",
       ]},
       { title: "3. Invite people and share responsibility", summary: "Use Commissioner Tools or Setup to distribute secure links.", steps: [
         "Copy a Manager invite for someone who will claim and run a team. Invite links expire, so create a new one if an old link no longer works.",

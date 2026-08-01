@@ -37,6 +37,10 @@ Do not expose `DRAFTCENTER_OWNER_EMAILS` through a `NEXT_PUBLIC_*` variable.
 - no saved activity for ten days in a live season phase;
 - no recorded commissioner backup, or none in the last 30 days.
 
+League Operations also shows privacy-safe operational errors for the last 30
+days and highlights the last 24 hours. The daily owner digest includes new
+errors alongside league-health warnings.
+
 Spreadsheet and recovery JSON downloads now record only the league, staff user,
 backup type, and timestamp. DraftCenter does not upload or inspect the file.
 
@@ -70,3 +74,12 @@ Then create a temporary non-practice league and confirm exactly one email per
 configured owner recipient. Download both backup types and refresh Operations;
 the newest timestamp should appear. Delete temporary leagues through the normal
 commissioner workflow when testing is complete.
+
+## Automatic recovery history
+
+Migration `235-automatic-league-recovery-history.sql` seeds an initial private
+recovery point for every league. When league state changes, DraftCentral keeps
+at most one automatic point per six-hour window and removes points older than
+30 days. Commissioners review and restore these in League Tools. A restore
+first preserves the current state and uses a revision check so a stale recovery
+screen cannot overwrite newer activity.

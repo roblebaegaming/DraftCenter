@@ -4,6 +4,7 @@ import { Component, useEffect, useState } from "react";
 import { createClient } from "../lib/supabase/client";
 import SupportAccessPanel from "./SupportAccessPanel";
 import LeagueSupportRequestPanel from "./LeagueSupportRequestPanel";
+import LeagueRecoveryPanel from "./LeagueRecoveryPanel";
 import LeagueHub, { RotatingPokemonArtwork, WORLD_CHAMPION_POKEMON, pokemonArtworkCandidates } from "./LeagueHub";
 import PokemonDraftLeague from "./PokemonDraftLeague";
 import { POLL_POKEMON_NAMES, POKEMON_DIRECTORY } from "./PokemonDraftLeague";
@@ -367,6 +368,7 @@ function LeagueTools({ league, corrections, onClose, onUpdated, onDeleted }) {
       {!leagueIsFull&&inviteControls}
       <SupportAccessPanel leagueId={league.id} />
       <LeagueSupportRequestPanel league={league} context={corrections?.supportContext || {}} />
+      <LeagueRecoveryPanel league={league} onRestored={()=>window.location.reload()} />
       <hr/><h3>Co-commissioner</h3>
       <p className="muted">Invite someone by email and they will become a co-commissioner after signing in and accepting. If they already joined and you know their username, you can promote them immediately instead.</p>
       <div className="form-stack"><label>Email address<input type="email" value={coEmail} onChange={(e)=>setCoEmail(e.target.value)} placeholder="co-commissioner@example.com" /></label><button type="button" className="primary-button league-tool-small-action" disabled={busy} onClick={inviteCoCommissioner}>Email invitation</button><span className="muted">or promote an existing league member</span><label>League member<select value={coUsername} onChange={(e)=>setCoUsername(e.target.value)}><option value="">Choose a manager</option>{promotableMembers.map((member)=><option key={member.membership_id} value={member.username}>{member.display_name||`@${member.username}`}{member.team_name?` — ${member.team_name}`:""}</option>)}</select></label><button type="button" className="secondary-button league-tool-small-action" disabled={busy||!coUsername} onClick={promoteCo}>Make co-commissioner</button></div>

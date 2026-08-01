@@ -20,7 +20,7 @@ function countResults(state) { return Object.keys(state?.matchResults || {}).len
 
 export async function getOperationsOverview(supabase, viewerUserId = null) {
   const now = Date.now();
-  const [leaguesResult, snapshotsResult, membershipsResult, profilesResult, snakeResult, auctionResult, backupResult, failedResult, discordResult, supportResult, requestsResult] = await Promise.all([
+  const [leaguesResult, snapshotsResult, membershipsResult, profilesResult, snakeResult, auctionResult, backupResult, failedResult, discordResult, supportResult, requestsResult, healthResult] = await Promise.all([
     supabase.from("leagues").select("id,name,slug,status,created_at,updated_at,created_by,is_practice,league_visibility,draft_starts_at,season_label").order("created_at", { ascending: false }),
     supabase.from("league_state_snapshots").select("league_id,state,updated_at,revision"),
     supabase.from("league_memberships").select("league_id,user_id,role"),
@@ -32,6 +32,7 @@ export async function getOperationsOverview(supabase, viewerUserId = null) {
     supabase.from("league_discord_settings").select("league_id,enabled,channel_id,updated_at"),
     supabase.from("league_support_grants").select("id,league_id,permission,expires_at,revoked_at,created_at").eq("support_user_id", viewerUserId || "00000000-0000-0000-0000-000000000000").is("revoked_at", null).gt("expires_at", new Date().toISOString()),
     supabase.from("league_support_requests").select("id,league_id,requested_by,category,message,page_path,diagnostics_included,diagnostic_context,status,owner_notified_at,notification_error,created_at").in("status", ["open", "in_progress"]).order("created_at", { ascending: false }).limit(100),
+    supabase.from("operational_health_events").select("id,occurred_at,actor_id,league_id,kind,message,context").gte("occurred_at", new Date(Date.now() - 30 * 86400000).toISOString()).order("occurred_at", { ascending: false }).limit(200),
   ]);
   if (leaguesResult.error) throw leaguesResult.error;
   const byLeague = (rows) => new Map((rows || []).map((row) => [row.league_id, row]));
@@ -61,7 +62,9 @@ export async function getOperationsOverview(supabase, viewerUserId = null) {
   });
   const leagueNames = new Map(leagues.map((league) => [league.id, league.name]));
   const supportRequests = (requestsResult.data || []).map((request) => ({ ...request, league_name: leagueNames.get(request.league_id) || "Unknown league" }));
-  return { generated_at: new Date().toISOString(), totals: { leagues: leagues.length, real: leagues.filter((l) => !l.is_practice).length, practice: leagues.filter((l) => l.is_practice).length, needing_attention: leagues.filter((l) => l.warnings.length).length, high_priority: leagues.filter((l) => l.warnings.some((w) => w.severity === "high")).length, open_support_requests: supportRequests.length }, support_requests: supportRequests, leagues };
+  const operationalErrors = (healthResult.data || []).map((event) => ({ ...event, league_name: leagueNames.get(event.league_id) || "No league", actor: profiles.get(event.actor_id)?.display_name || profiles.get(event.actor_id)?.username || "Unknown user" }));
+  const recentErrorCount = operationalErrors.filter((event) => Date.parse(event.occurred_at) > Date.now() - 86400000).length;
+  return { generated_at: new Date().toISOString(), totals: { leagues: leagues.length, real: leagues.filter((l) => !l.is_practice).length, practice: leagues.filter((l) => l.is_practice).length, needing_attention: leagues.filter((l) => l.warnings.length).length, high_priority: leagues.filter((l) => l.warnings.some((w) => w.severity === "high")).length, open_support_requests: supportRequests.length, errors_24h: recentErrorCount }, support_requests: supportRequests, operational_errors: operationalErrors, leagues };
 }
 
 export async function sendOwnerEmail({ to, subject, html }) {
