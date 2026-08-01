@@ -2,6 +2,25 @@
 
 Use this record against a safe test league before each major release. Do not use a production league for destructive lifecycle tests.
 
+## Validation session — August 1, 2026
+
+- Date: August 1, 2026
+- Tester: Codex with the existing `@roblebae` production session
+- Build or commit: `32492c3`
+- Environment: Production (`https://www.draftcentral.gg`)
+- Desktop browser: Codex in-app browser
+- Mobile browser/device: 390 × 844 responsive viewport
+- Safe test league: Mega Test (`mega-test-y1u94`)
+
+Read-only evidence collected in this session:
+
+- Mega Test opens as Season 2 and displays the preserved Season 1 champion archive.
+- The Season 2 League Home, Messages, and League Tools surfaces fit without document-level horizontal overflow at 390 px.
+- Setup and My Team produce document-level horizontal overflow at 390 px (426 px and 429 px document widths respectively, versus a 382 px content viewport).
+- Owner Operations loads successfully and correctly requires commissioner-approved support access for leagues where the owner is not a member.
+- Owner Operations reports Mega Test as `DRAFTING` even though the league UI is in Season 2 after rollover. This status mismatch must be resolved before marking the rollover test complete.
+- Mega Test League Tools exposes a July 31 recovery point, while Owner Operations reports no recovery backup for the league. Confirm whether these surfaces intentionally measure different backup records or are out of sync.
+
 ## Test setup
 
 - Date:
@@ -100,4 +119,6 @@ Record each failure with the account, role, device, exact action, expected resul
 
 | ID | Area | Severity | Reproduction | Expected | Actual | Status |
 | --- | --- | --- | --- | --- | --- | --- |
-| | | | | | | |
+| DC-VAL-001 | Season rollover | High | Open Mega Test after its Season 1 archive, then compare League Home with Owner Operations. | The new active season and relational league status both report setup/new-season state. | Migration 239 narrowly repairs historical unlocked later-season snapshots still marked `drafting`; migration 230 remains the future-rollover guard. | Fixed locally; apply migration and retest production |
+| DC-VAL-002 | Mobile layout | Medium | Open Mega Test Setup or My Team at a 390 × 844 viewport. | No document-level horizontal scrolling. | Setup fieldsets now permit shrinking and the My Team ability selector is constrained to its roster card. | Fixed locally; retest deployed build |
+| DC-VAL-003 | Recovery monitoring | Medium | Compare Mega Test League Tools recovery history with its Owner Operations card. | Backup/recovery status is consistent or clearly distinguishes the two record types. | Operations now combines manual backup events with automatic and pre-restore recovery snapshots and labels the date “Last recovery.” | Fixed locally; retest deployed build |

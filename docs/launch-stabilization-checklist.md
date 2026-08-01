@@ -4,12 +4,21 @@ Use this before each beta release. Record the date, commit, tester accounts, dev
 
 ## Release record
 
-- Date:
-- Commit:
-- Vercel production deployment: Ready / Not ready
-- Supabase migrations confirmed:
-- Testers and roles:
-- Desktop browsers and mobile devices:
+- Date: August 1, 2026 (validation in progress)
+- Commit: `32492c3`
+- Vercel production deployment: Ready; production pages loaded successfully
+- Supabase migrations confirmed: Previously confirmed through 238; not rerun in this session
+- Testers and roles: Existing `@roblebae` owner/commissioner session
+- Desktop browsers and mobile devices: Codex in-app browser; 390 × 844 responsive viewport
+
+### August 1 evidence and blockers
+
+- Production smoke checks passed for `/`, `/explore`, `/operations`, `/operations/daily-three`, `/manuals/commissioner`, and `/manuals/manager`.
+- The tested public/operations/manual pages had no document-level horizontal overflow at 390 px.
+- Mega Test visibly preserved its Season 1 archive and now presents Season 2.
+- **Pending production retest:** Migration 239 repairs the historical Mega Test rollover status after confirming the future-rollover function is corrected.
+- **Pending deployed mobile retest:** Setup fieldsets and the My Team ability selector have targeted width fixes. See `DC-VAL-002` in `docs/multi-account-hardening-test-record.md`.
+- **Pending deployed Operations retest:** Owner Operations now includes automatic recovery snapshots and labels the combined timestamp “Last recovery.” See `DC-VAL-003`.
 
 ## Accounts, permissions, and privacy
 
