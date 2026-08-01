@@ -11246,7 +11246,7 @@ function SetupView({ state, leagueId = null, leagueName = "league", isCommission
                     className="w-24 px-3 py-2 rounded mono-font text-sm" style={{ background: "#1F2338", border: "1px solid rgba(255,255,255,0.1)", color: "#EDEBFA" }} />
                   <span className="text-sm self-center" style={{ color: "#9A9FBD" }}>minutes (0 = no limit)</span>
                 </div>
-                <div className="flex gap-2 mb-4">
+                <div className="flex flex-wrap gap-2 mb-4">
                   {[0, 2, 5, 15, 60, 360, 720, 1440].map((mins) => (
                     <button key={mins} type="button" onClick={() => updateSettings({ pickTimeLimitMinutes: mins })}
                       className="px-2 py-1 rounded text-xs mono-font" style={{ background: settings.pickTimeLimitMinutes === mins ? "#FFD23F" : "#1F2338", color: settings.pickTimeLimitMinutes === mins ? "#10121C" : "#9A9FBD", border: "1px solid rgba(255,255,255,0.08)" }}>
@@ -11437,7 +11437,7 @@ function SetupView({ state, leagueId = null, leagueName = "league", isCommission
           {viewMode === "board" ? (
             <PriceBoard pool={visiblePool} settings={settings} costFor={costFor} isCommissioner={isCommissioner} setMonCost={setMonCost} isLegal={isLegal} updateSettings={updateSettings} />
           ) : (
-          <div className="max-h-80 overflow-y-auto grid grid-cols-2 gap-2 pr-1">
+          <div className="max-h-80 overflow-y-auto grid grid-cols-1 sm:grid-cols-2 gap-2 pr-1">
             {visiblePool.map((p) => {
               const legal = isLegal(p, settings);
               const banned = settings.bannedMons.includes(p.name);
