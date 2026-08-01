@@ -27,6 +27,7 @@ export const MANUALS = {
         "Invite a co-commissioner by email or promote an existing league member. Co-commissioners can help operate the league; only the primary commissioner can delete it.",
         "The primary commissioner can transfer league ownership to an existing manager or co-commissioner from League Tools. Review carefully: the former owner becomes a co-commissioner.",
         "If you need help, open League Tools and choose Get help with this league. Review the optional safe diagnostics before submitting.",
+        "Temporary support access is separate from league membership. Choose Review only for configuration advice. The primary commissioner may instead approve Review and edit tiers/pricing so DraftCentral support can apply a completed pricing file; that scope cannot change members, drafts, rosters, messages, results, or other settings and creates a recovery point and audit entry before saving.",
         "Ask every manager to sign in, accept the invite, and claim the correct team before draft day.",
       ]},
       { title: "4. Prepare and run the draft", summary: "Treat the Draft Setup readiness messages as the final preflight check.", steps: [

@@ -58,14 +58,22 @@ access. Migration `233-temporary-support-access.sql` creates support grants and
 their audit log. Commissioners manage them in Commissioner Tools without adding
 the owner as a league member or co-commissioner.
 
-Support sessions are read-only, last 24 hours, 3 days, or 7 days, expire
-automatically, and can be revoked immediately. Operations shows the expiration
-and opens a dedicated read-only configuration view. Approval, each view, and
-revocation are recorded. The support response excludes private notebooks,
-direct messages, notification preferences, Discord data, and personal notes.
+Support sessions last 24 hours, 3 days, or 7 days, expire automatically, and
+can be revoked immediately. Commissioners can approve review-only access.
+Only the primary commissioner can approve the stronger **Review and edit
+tiers/pricing** scope.
 
-A later phase may add explicitly scoped editing, but no support grant currently
-permits a league change.
+The pricing scope is consumed only by a guarded server importer. It can update
+`settings.costOverrides` and `settings.priceTierMax`; it cannot manage members,
+drafts, rosters, messages, results, or other settings. The update requires the
+exact league name, rejects a stale snapshot revision, creates a private
+`pre_support_edit` recovery point, applies the changes, and records every
+changed Pokémon in the support audit log in one database transaction.
+
+Operations shows the grant scope and expiration and opens the appropriate
+support view. Approval, each view, pricing changes, and revocation are recorded.
+Support responses continue to exclude private notebooks, direct messages,
+notification preferences, Discord data, and personal notes.
 
 ## Verification
 
