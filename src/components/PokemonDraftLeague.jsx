@@ -9072,7 +9072,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
         )}
         {tab === "setup" && displayIsCommissioner && (
           <SetupView
-            state={state} leagueId={leagueId} isCommissioner={isCommissioner} canBeCommissioner={canBeCommissioner}
+            state={state} leagueId={leagueId} leagueName={league?.name || "league"} isCommissioner={isCommissioner} canBeCommissioner={canBeCommissioner}
             claimCommissioner={claimCommissioner} unclaimCommissioner={unclaimCommissioner} claimTeam={claimTeam} renameTeam={renameTeam} myName={myName}
             updateSettings={updateSettings} resizeTeams={resizeTeams} rerollAllTeamIdentities={rerollAllTeamIdentities} costFor={costFor}
             addDivision={addDivision} renameDivision={renameDivision} removeDivision={removeDivision} setTeamDivision={setTeamDivision}
@@ -10703,7 +10703,7 @@ function ScheduledStartNotice({ status, scheduledAt, draftType, isCommissioner =
   );
 }
 
-function SetupView({ state, leagueId = null, isCommissioner, canBeCommissioner, claimCommissioner, unclaimCommissioner, claimTeam, renameTeam, myName, updateSettings, resizeTeams, rerollAllTeamIdentities, costFor, toggleBanMon, toggleAllowExtraMon, rebuildCurrentSeason, addCustomMon, removeCustomMon, setSpriteOverride, setTeamLogo, onStart, addDivision, renameDivision, removeDivision, setTeamDivision, finalizeManualDraft, finalizeSeason, startNewSeason, updateHomepage, addExpansionTeam, removeSpecificTeam, exportLeagueBackup, exportRecoveryBackup, importLeagueBackup, addCoCommissioner, removeCoCommissioner, onOpenLeagueTools, onOpenBroadcast, copyLeagueInvite, saveNow, saveStatus, draftError = "", scheduledStartStatus = null, retryScheduledStart = null }) {
+function SetupView({ state, leagueId = null, leagueName = "league", isCommissioner, canBeCommissioner, claimCommissioner, unclaimCommissioner, claimTeam, renameTeam, myName, updateSettings, resizeTeams, rerollAllTeamIdentities, costFor, toggleBanMon, toggleAllowExtraMon, rebuildCurrentSeason, addCustomMon, removeCustomMon, setSpriteOverride, setTeamLogo, onStart, addDivision, renameDivision, removeDivision, setTeamDivision, finalizeManualDraft, finalizeSeason, startNewSeason, updateHomepage, addExpansionTeam, removeSpecificTeam, exportLeagueBackup, exportRecoveryBackup, importLeagueBackup, addCoCommissioner, removeCoCommissioner, onOpenLeagueTools, onOpenBroadcast, copyLeagueInvite, saveNow, saveStatus, draftError = "", scheduledStartStatus = null, retryScheduledStart = null }) {
   // A league may have been created before newer Setup options existed. Keep
   // this screen usable even if one of those older saved values is missing or
   // malformed; the next normal save will preserve the corrected shape.
@@ -11423,6 +11423,8 @@ function SetupView({ state, leagueId = null, isCommissioner, canBeCommissioner, 
             </div>
           )}
 
+          {isCommissioner && <PricingSpreadsheetImport pool={availablePool} settings={settings} costFor={costFor} updateSettings={updateSettings} leagueName={leagueName} />}
+
           {viewMode === "board" ? (
             <PriceBoard pool={visiblePool} settings={settings} costFor={costFor} isCommissioner={isCommissioner} setMonCost={setMonCost} isLegal={isLegal} updateSettings={updateSettings} />
           ) : (
@@ -11611,6 +11613,97 @@ function AddMonForm({ addCustomMon, allTypes }) {
       </div>
     </div>
   );
+}
+
+function PricingSpreadsheetImport({ pool, settings, costFor, updateSettings, leagueName }) {
+  const inputRef = useRef(null);
+  const [preview, setPreview] = useState(null);
+  const [message, setMessage] = useState("");
+
+  async function downloadTemplate() {
+    const XLSX = await import("xlsx");
+    const workbook = XLSX.utils.book_new();
+    const instructions = XLSX.utils.aoa_to_sheet([
+      ["DraftCentral Pokémon Pricing Import"],
+      ["Fill New Price OR Rank on the Pricing sheet. If both are filled, New Price wins."],
+      ["Rank 1 is strongest. Rank-only rows are automatically spread from the league's top price down to 1."],
+      ["Do not rename Pokémon or column headings. Leave a row blank to keep its current price."],
+      ["Upload the completed .xlsx or .csv in League Setup, review the changes, then confirm."],
+    ]);
+    instructions["!cols"] = [{ wch: 100 }];
+    const rows = [...pool].sort((a, b) => a.name.localeCompare(b.name)).map((mon) => ({
+      "Pokémon": mon.name,
+      "Current Price": costFor(mon, settings),
+      "New Price": "",
+      "Rank": "",
+      "Type": [mon.t1, mon.t2].filter(Boolean).join(" / "),
+    }));
+    const pricing = XLSX.utils.json_to_sheet(rows);
+    pricing["!cols"] = [{ wch: 28 }, { wch: 15 }, { wch: 15 }, { wch: 12 }, { wch: 20 }];
+    XLSX.utils.book_append_sheet(workbook, instructions, "Instructions");
+    XLSX.utils.book_append_sheet(workbook, pricing, "Pricing");
+    const slug = String(leagueName || "league").replace(/[^a-z0-9]+/gi, "-").replace(/(^-|-$)/g, "").toLowerCase();
+    XLSX.writeFile(workbook, `${slug}-pokemon-pricing-template.xlsx`);
+  }
+
+  async function readUpload(event) {
+    const file = event.target.files?.[0]; event.target.value = ""; setPreview(null); setMessage("");
+    if (!file) return;
+    try {
+      const XLSX = await import("xlsx");
+      const workbook = XLSX.read(await file.arrayBuffer(), { type: "array" });
+      const sheet = workbook.Sheets.Pricing || workbook.Sheets[workbook.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+      const byName = new Map(pool.map((mon) => [mon.name.trim().toLowerCase(), mon]));
+      const seen = new Set(); const errors = []; const direct = []; const ranked = [];
+      rows.forEach((row, index) => {
+        const name = String(row["Pokémon"] || row["Pokemon"] || "").trim();
+        const rawPrice = String(row["New Price"] ?? row["Price"] ?? "").trim();
+        const rawRank = String(row["Rank"] ?? row["Ranking"] ?? "").trim();
+        if (!name && !rawPrice && !rawRank) return;
+        const mon = byName.get(name.toLowerCase());
+        if (!mon) { errors.push(`Row ${index + 2}: unknown Pokémon “${name || "blank"}”.`); return; }
+        if (seen.has(mon.name)) { errors.push(`Row ${index + 2}: ${mon.name} appears more than once.`); return; }
+        seen.add(mon.name);
+        if (!rawPrice && !rawRank) return;
+        if (rawPrice) {
+          const price = Number(rawPrice);
+          if (!Number.isInteger(price) || price < 1 || price > 100) errors.push(`Row ${index + 2}: ${mon.name} needs a whole-number price from 1 to 100.`);
+          else direct.push({ mon, price, source: "price" });
+        } else {
+          const rank = Number(rawRank);
+          if (!Number.isFinite(rank) || rank <= 0) errors.push(`Row ${index + 2}: ${mon.name} needs a positive numeric rank.`);
+          else ranked.push({ mon, rank, source: "rank" });
+        }
+      });
+      const duplicateRanks = ranked.filter((item, index) => ranked.findIndex((other) => other.rank === item.rank) !== index);
+      if (duplicateRanks.length) errors.push(`Ranks must be unique. Repeated: ${[...new Set(duplicateRanks.map((item) => item.rank))].join(", ")}.`);
+      if (errors.length) return setMessage(errors.slice(0, 12).join("\n"));
+      ranked.sort((a, b) => a.rank - b.rank);
+      const tierMax = Math.max(Number(settings.priceTierMax) || 20, ...direct.map((item) => item.price));
+      const rankedWithPrices = ranked.map((item, index) => ({ ...item, price: ranked.length === 1 ? tierMax : Math.max(1, tierMax - Math.round((index / (ranked.length - 1)) * (tierMax - 1))) }));
+      const changes = [...direct, ...rankedWithPrices].map((item) => ({ name: item.mon.name, oldPrice: costFor(item.mon, settings), newPrice: item.price, source: item.source, rank: item.rank })).filter((item) => item.oldPrice !== item.newPrice).sort((a, b) => b.newPrice - a.newPrice || a.name.localeCompare(b.name));
+      if (!changes.length) return setMessage("No price changes were found. Fill New Price or Rank for at least one Pokémon.");
+      setPreview({ changes, tierMax, fileName: file.name });
+    } catch (error) { setMessage(`That spreadsheet could not be read: ${error.message}`); }
+  }
+
+  function applyImport() {
+    if (!preview) return;
+    const costOverrides = { ...(settings.costOverrides || {}) };
+    preview.changes.forEach((item) => { costOverrides[item.name] = item.newPrice; });
+    updateSettings({ costOverrides, priceTierMax: Math.max(Number(settings.priceTierMax) || 20, preview.tierMax) });
+    setMessage(`${preview.changes.length} Pokémon price${preview.changes.length === 1 ? "" : "s"} imported. DraftCentral is saving the league now.`);
+    setPreview(null);
+  }
+
+  return <section className="rounded-lg p-4 mb-4" style={{ background: "#101522", border: "1px solid #4FD1C555" }}>
+    <h3 className="display-font text-lg" style={{ color: "#4FD1C5" }}>SPREADSHEET PRICE IMPORT</h3>
+    <p className="text-xs mt-1 mb-3" style={{ color: "#9A9FBD" }}>Download the league’s eligible Pokémon, fill in direct prices or rankings, then upload and review before anything changes.</p>
+    <div className="flex gap-2 flex-wrap"><button type="button" onClick={downloadTemplate} className="px-3 py-2 rounded text-xs font-semibold" style={{ background: "#4FD1C5", color: "#10121C" }}>Download pricing template</button><button type="button" onClick={() => inputRef.current?.click()} className="px-3 py-2 rounded text-xs font-semibold" style={{ background: "#1F2338", color: "#EDEBFA", border: "1px solid #4FD1C566" }}>Upload completed file</button><input ref={inputRef} type="file" hidden accept=".xlsx,.xls,.csv" onChange={readUpload} /></div>
+    {message && <p className="text-xs mt-3 whitespace-pre-line" style={{ color: message.startsWith("No ") || message.startsWith("That ") || message.startsWith("Row ") || message.startsWith("Ranks ") ? "#F4B860" : "#BDF7EE" }}>{message}</p>}
+    {preview && <div className="mt-4 rounded p-3" style={{ background: "#171A2C", border: "1px solid #FFD23F55" }}><strong className="text-sm" style={{ color: "#FFD23F" }}>Review {preview.changes.length} change{preview.changes.length === 1 ? "" : "s"}</strong><p className="text-xs mt-1" style={{ color: "#9A9FBD" }}>{preview.fileName} · Nothing has changed yet.</p><div className="max-h-48 overflow-y-auto mt-2">{preview.changes.map((item) => <div key={item.name} className="flex justify-between gap-3 py-1 text-xs" style={{ borderBottom: "1px solid rgba(255,255,255,.06)" }}><span>{item.name}{item.source === "rank" ? ` (rank ${item.rank})` : ""}</span><span>{item.oldPrice} → <strong style={{ color: "#4FD1C5" }}>{item.newPrice}</strong></span></div>)}</div><div className="flex gap-2 mt-3"><button type="button" onClick={applyImport} className="px-3 py-2 rounded text-xs font-semibold" style={{ background: "#FFD23F", color: "#10121C" }}>Confirm and apply prices</button><button type="button" onClick={() => setPreview(null)} className="px-3 py-2 rounded text-xs" style={{ background: "#1F2338", color: "#9A9FBD" }}>Cancel</button></div></div>}
+  </section>;
 }
 
 function PriceBoard({ pool, settings, costFor, isCommissioner, setMonCost, isLegal, updateSettings }) {

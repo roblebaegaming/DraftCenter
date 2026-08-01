@@ -14,6 +14,7 @@ export const MANUALS = {
       ]},
       { title: "2. Set rules and teams", summary: "Open Setup and work through the commissioner workspace before anyone drafts.", steps: [
         "Choose the supported format or custom legal pool, draft type, league size, roster limits, budget or point rules, timers, and special mechanics.",
+        "For bulk pricing, download the Pricing Template under Legality & Values. Fill New Price or Rank, upload it, review every proposed change, and confirm the import.",
         "Name teams and divisions if needed. Confirm that the legal pool is large and balanced enough for every roster.",
         "Set transaction limits, standings tiebreakers, schedule style, playoff size, and the league clock for match and claim deadlines.",
         "Save a recovery backup after major setup milestones. Use the spreadsheet export when you need a readable offline record.",
