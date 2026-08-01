@@ -1,0 +1,4 @@
+import { NextResponse } from "next/server";
+import { requireOwner } from "../../../../../lib/ownerOperations";
+export const runtime = "nodejs";
+export async function PATCH(request,{params}) { const access=await requireOwner(request); if(access.error)return NextResponse.json({error:access.error},{status:access.status}); const {id}=await params; const body=await request.json().catch(()=>({})); if(!["in_progress","resolved"].includes(body.status))return NextResponse.json({error:"Invalid support status."},{status:400}); const patch={status:body.status,resolved_at:body.status==="resolved"?new Date().toISOString():null}; const {error}=await access.supabase.from("league_support_requests").update(patch).eq("id",id); return error?NextResponse.json({error:error.message},{status:500}):NextResponse.json({updated:true}); }

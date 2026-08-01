@@ -8686,7 +8686,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     if (!leagueId) return;
     const { data } = await supabase.auth.getSession();
     if (!data.session) return;
-    fetch("/api/operations/backup", { method: "POST", keepalive: true, headers: { Authorization: `Bearer ${data.session.access_token}`, "Content-Type": "application/json" }, body: JSON.stringify({ league_id: leagueId, backup_type: backupType }) }).catch(() => {});
+    fetch("/api/operations/backup", { method: "POST", keepalive: true, headers: { Authorization: `Bearer ${data.session.access_token}`, "Content-Type": "application/json" }, body: JSON.stringify({ league_id: leagueId, backup_type: backupType }) }).then((response) => { if (response.ok) window.dispatchEvent(new CustomEvent("draftcenter-backup-recorded", { detail: { leagueId } })); }).catch(() => {});
   }
   async function exportLeagueBackup() {
     const XLSX = await import("xlsx");
@@ -9014,6 +9014,14 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
                 transactionLog: state.transactionLog,
                 reverseTrade,
                 reverseFreeAgentMove,
+                supportContext: {
+                  save_status: saveStatus,
+                  last_error: liveDraftError || scheduledStartStatus?.error || "",
+                  team_count: state.teams.length,
+                  claimed_count: state.teams.filter((team) => team.claimedBy || team.claimedByUserId).length,
+                  draft_type: state.settings?.draftType || "unknown",
+                  league_status: league?.status || (state.locked ? "drafting" : "setup"),
+                },
               })}
                   className="px-4 py-2 rounded text-sm font-semibold"
                   style={{ fontFamily: "'Teko', sans-serif", fontSize: "16px", letterSpacing: "0.03em", background: "#253354", color: "#D9E5FF", border: "1px solid #4B669B" }}>
@@ -10833,6 +10841,7 @@ function SetupView({ state, leagueId = null, leagueName = "league", isCommission
           </p>
         </section>
       )}
+      {isCommissioner && <CommissionerLaunchChecklist leagueId={leagueId} state={{ ...state, settings, teams }} availablePool={availablePool} readinessIssues={readinessIssues} />}
       {isCommissioner && locked && (
         <section className="rounded-lg p-5 mb-6" style={{ background: hasDraftSelections ? "#261822" : "#102B2B", border: `1px solid ${hasDraftSelections ? "#F0555A55" : "#4FD1C577"}` }}>
           <h2 className="display-font text-2xl mb-2" style={{ color: hasDraftSelections ? "#FF9AA7" : "#4FD1C5" }}>{hasStaleRosterCarryover ? "CARRIED-OVER ROSTERS DETECTED" : hasDraftSelections ? "EDIT MODE — ACTIVE SEASON SAFETY" : "NEED A LAST-MINUTE SETUP CHANGE?"}</h2>
@@ -11613,6 +11622,31 @@ function AddMonForm({ addCustomMon, allTypes }) {
       </div>
     </div>
   );
+}
+
+function CommissionerLaunchChecklist({ leagueId, state, availablePool, readinessIssues }) {
+  const [latestBackup, setLatestBackup] = useState(null);
+  useEffect(() => {
+    if (!leagueId) return;
+    const supabase = createClient(); const load = () => supabase.auth.getSession().then(async ({ data }) => {
+      if (!data.session) return;
+      const response = await fetch(`/api/operations/backup?league_id=${leagueId}`, { headers: { Authorization: `Bearer ${data.session.access_token}` } });
+      if (response.ok) setLatestBackup((await response.json()).latest || null);
+    });
+    load(); const onBackup = (event) => { if (event.detail?.leagueId === leagueId) load(); }; window.addEventListener("draftcenter-backup-recorded", onBackup); return () => window.removeEventListener("draftcenter-backup-recorded", onBackup);
+  }, [leagueId]);
+  const settings = state.settings || {}; const teams = state.teams || [];
+  const expectedTeams = Number(settings.leagueSize || teams.length || 0); const claimed = teams.filter((team) => team.claimedBy || team.claimedByUserId).length;
+  const steps = [
+    { label: "Format, legal pool, and prices", done: availablePool.length > 0 && !readinessIssues.some((issue) => /pool|pokémon|price|cost|budget/i.test(issue)), detail: `${availablePool.length} eligible Pokémon` },
+    { label: "Teams and roster rules", done: expectedTeams > 0 && teams.length === expectedTeams && Number(settings.rosterMax || settings.rosterSize || 0) > 0, detail: `${teams.length}/${expectedTeams || "?"} teams configured` },
+    { label: "Managers joined and claimed", done: expectedTeams > 0 && claimed >= expectedTeams, detail: `${claimed}/${expectedTeams || "?"} teams claimed` },
+    { label: "League rules posted", done: Boolean(String(state.homepage?.rules || "").trim()), detail: state.homepage?.rules ? "Visible on League Home" : "Add rules on League Home" },
+    { label: "Draft readiness checks", done: readinessIssues.length === 0, detail: readinessIssues.length ? `${readinessIssues.length} item${readinessIssues.length === 1 ? "" : "s"} need attention` : settings.draftScheduledAt ? `Scheduled ${new Date(settings.draftScheduledAt).toLocaleString()}` : "Ready for a manual start" },
+    { label: "Recovery backup", done: Boolean(latestBackup), detail: latestBackup ? `${latestBackup.backup_type === "recovery_json" ? "Recovery file" : "Spreadsheet"} saved ${new Date(latestBackup.created_at).toLocaleDateString()}` : "Download one below before inviting everyone" },
+  ];
+  const complete = steps.filter((step) => step.done).length; const percent = Math.round((complete / steps.length) * 100);
+  return <section className="rounded-lg p-5 mb-6" style={{ background: "#171A2C", border: "1px solid #FFD23F55" }}><div className="flex items-center justify-between gap-3 flex-wrap"><div><span className="mono-font text-[10px]" style={{ color: "#FFD23F" }}>COMMISSIONER LAUNCH CHECKLIST</span><h2 className="display-font text-2xl">{complete === steps.length ? "READY TO LAUNCH" : `${complete} OF ${steps.length} READY`}</h2></div><strong className="display-font text-3xl" style={{ color: complete === steps.length ? "#4FD1C5" : "#FFD23F" }}>{percent}%</strong></div><div className="mt-3" style={{ height: 8, borderRadius: 4, background: "#0F1420" }}><div style={{ height: "100%", width: `${percent}%`, borderRadius: 4, background: complete === steps.length ? "#4FD1C5" : "#FFD23F" }} /></div><div className="grid md:grid-cols-2 gap-2 mt-4">{steps.map((step) => <div key={step.label} className="rounded p-3 flex gap-3" style={{ background: step.done ? "#102B2B" : "#201D2B", border: `1px solid ${step.done ? "#4FD1C544" : "#F4B86044"}` }}><strong style={{ color: step.done ? "#4FD1C5" : "#F4B860" }}>{step.done ? "✓" : "○"}</strong><div><strong className="block text-sm">{step.label}</strong><span className="text-xs" style={{ color: "#9A9FBD" }}>{step.detail}</span></div></div>)}</div><p className="text-xs mt-3" style={{ color: "#9A9FBD" }}>This checklist updates from the league’s saved configuration. It does not block you from running a manual or informal league.</p></section>;
 }
 
 function PricingSpreadsheetImport({ pool, settings, costFor, updateSettings, leagueName }) {

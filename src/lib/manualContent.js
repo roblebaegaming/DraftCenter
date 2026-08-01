@@ -15,6 +15,7 @@ export const MANUALS = {
       { title: "2. Set rules and teams", summary: "Open Setup and work through the commissioner workspace before anyone drafts.", steps: [
         "Choose the supported format or custom legal pool, draft type, league size, roster limits, budget or point rules, timers, and special mechanics.",
         "For bulk pricing, download the Pricing Template under Legality & Values. Fill New Price or Rank, upload it, review every proposed change, and confirm the import.",
+        "Use the Commissioner Launch Checklist at the top of Setup to see what is configured, claimed, posted, backed up, and ready for draft day.",
         "Name teams and divisions if needed. Confirm that the legal pool is large and balanced enough for every roster.",
         "Set transaction limits, standings tiebreakers, schedule style, playoff size, and the league clock for match and claim deadlines.",
         "Save a recovery backup after major setup milestones. Use the spreadsheet export when you need a readable offline record.",
@@ -23,6 +24,7 @@ export const MANUALS = {
         "Copy a Manager invite for someone who will claim and run a team. Invite links expire, so create a new one if an old link no longer works.",
         "Use a Spectator link for view-only access. Spectators cannot draft, report results, or manage a roster.",
         "Invite a co-commissioner by email or promote an existing league member. Co-commissioners can help operate the league; only the primary commissioner can delete it.",
+        "If you need help, open League Tools and choose Get help with this league. Review the optional safe diagnostics before submitting.",
         "Ask every manager to sign in, accept the invite, and claim the correct team before draft day.",
       ]},
       { title: "4. Prepare and run the draft", summary: "Treat the Draft Setup readiness messages as the final preflight check.", steps: [

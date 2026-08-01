@@ -20,7 +20,7 @@ function countResults(state) { return Object.keys(state?.matchResults || {}).len
 
 export async function getOperationsOverview(supabase, viewerUserId = null) {
   const now = Date.now();
-  const [leaguesResult, snapshotsResult, membershipsResult, profilesResult, snakeResult, auctionResult, backupResult, failedResult, discordResult, supportResult] = await Promise.all([
+  const [leaguesResult, snapshotsResult, membershipsResult, profilesResult, snakeResult, auctionResult, backupResult, failedResult, discordResult, supportResult, requestsResult] = await Promise.all([
     supabase.from("leagues").select("id,name,slug,status,created_at,updated_at,created_by,is_practice,league_visibility,draft_starts_at,season_label").order("created_at", { ascending: false }),
     supabase.from("league_state_snapshots").select("league_id,state,updated_at,revision"),
     supabase.from("league_memberships").select("league_id,user_id,role"),
@@ -31,6 +31,7 @@ export async function getOperationsOverview(supabase, viewerUserId = null) {
     supabase.from("notification_events").select("league_id,kind,channel,attempt_count,last_error,failed_at,created_at").not("failed_at", "is", null).order("failed_at", { ascending: false }).limit(200),
     supabase.from("league_discord_settings").select("league_id,enabled,channel_id,updated_at"),
     supabase.from("league_support_grants").select("id,league_id,permission,expires_at,revoked_at,created_at").eq("support_user_id", viewerUserId || "00000000-0000-0000-0000-000000000000").is("revoked_at", null).gt("expires_at", new Date().toISOString()),
+    supabase.from("league_support_requests").select("id,league_id,requested_by,category,message,page_path,diagnostics_included,diagnostic_context,status,owner_notified_at,notification_error,created_at").in("status", ["open", "in_progress"]).order("created_at", { ascending: false }).limit(100),
   ]);
   if (leaguesResult.error) throw leaguesResult.error;
   const byLeague = (rows) => new Map((rows || []).map((row) => [row.league_id, row]));
@@ -58,7 +59,9 @@ export async function getOperationsOverview(supabase, viewerUserId = null) {
     const supportGrant = support.get(league.id);
     return { ...league, commissioner: profile?.display_name || profile?.username || "Unknown", owner_has_access: Boolean(viewerUserId && members.some((member) => member.user_id === viewerUserId)), owner_role: viewerUserId ? members.find((member) => member.user_id === viewerUserId)?.role || null : null, support_access: supportGrant ? { id: supportGrant.id, permission: supportGrant.permission, expires_at: supportGrant.expires_at } : null, member_count: members.filter((member) => ["commissioner", "co_commissioner", "coach"].includes(member.role)).length, team_count: leagueSize, claimed_team_count: claimed, result_count: countResults(state), last_activity_at: lastActivity, last_backup_at: backup?.created_at || null, draft_job: job || null, discord_connected: Boolean(discord.get(league.id)?.enabled && discord.get(league.id)?.channel_id), warnings };
   });
-  return { generated_at: new Date().toISOString(), totals: { leagues: leagues.length, real: leagues.filter((l) => !l.is_practice).length, practice: leagues.filter((l) => l.is_practice).length, needing_attention: leagues.filter((l) => l.warnings.length).length, high_priority: leagues.filter((l) => l.warnings.some((w) => w.severity === "high")).length }, leagues };
+  const leagueNames = new Map(leagues.map((league) => [league.id, league.name]));
+  const supportRequests = (requestsResult.data || []).map((request) => ({ ...request, league_name: leagueNames.get(request.league_id) || "Unknown league" }));
+  return { generated_at: new Date().toISOString(), totals: { leagues: leagues.length, real: leagues.filter((l) => !l.is_practice).length, practice: leagues.filter((l) => l.is_practice).length, needing_attention: leagues.filter((l) => l.warnings.length).length, high_priority: leagues.filter((l) => l.warnings.some((w) => w.severity === "high")).length, open_support_requests: supportRequests.length }, support_requests: supportRequests, leagues };
 }
 
 export async function sendOwnerEmail({ to, subject, html }) {
