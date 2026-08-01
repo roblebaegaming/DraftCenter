@@ -67,7 +67,17 @@ configuration has been verified.
 
 ## Account deletion procedure
 
-There is not yet a self-service account deletion button. Until one is built:
+Self-service account deletion is available from Profile after downloading a
+private export. The user must enter their account email and `DELETE MY ACCOUNT`.
+The request waits seven days and remains cancellable during that period.
+
+Deletion is blocked while the account remains the primary commissioner of any
+league. The commissioner must first use League Tools to transfer ownership to
+an existing manager or co-commissioner, or permanently delete the league.
+Daily server processing removes avatar storage, deletes the Auth user and
+cascading private records, and writes a de-identified completion audit.
+
+The operational procedure remains:
 
 1. Verify the request through the signed-in account or verified account email.
 2. Offer a private account export before deletion.
@@ -85,9 +95,9 @@ There is not yet a self-service account deletion button. Until one is built:
 9. Explain that provider backups expire according to the verified backup
    retention schedule rather than being rewritten immediately.
 
-Before offering self-service deletion, implement commissioner-transfer checks,
-storage cleanup, a server-side deletion operation, a cooling-off confirmation,
-and an auditable completion result.
+Migration `237-commissioner-transfer-and-account-deletion.sql` provides the
+transfer function, cooling-off request record, and de-identified completion
+audit used by this workflow.
 
 ## Recovery incident record
 

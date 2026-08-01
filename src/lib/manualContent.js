@@ -25,6 +25,7 @@ export const MANUALS = {
         "Copy a Manager invite for someone who will claim and run a team. Invite links expire, so create a new one if an old link no longer works.",
         "Use a Spectator link for view-only access. Spectators cannot draft, report results, or manage a roster.",
         "Invite a co-commissioner by email or promote an existing league member. Co-commissioners can help operate the league; only the primary commissioner can delete it.",
+        "The primary commissioner can transfer league ownership to an existing manager or co-commissioner from League Tools. Review carefully: the former owner becomes a co-commissioner.",
         "If you need help, open League Tools and choose Get help with this league. Review the optional safe diagnostics before submitting.",
         "Ask every manager to sign in, accept the invite, and claim the correct team before draft day.",
       ]},
