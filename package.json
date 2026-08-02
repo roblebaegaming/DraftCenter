@@ -8,7 +8,8 @@
     "start": "next start",
     "smoke:production": "node scripts/production-smoke.mjs",
     "test:national-dex": "node scripts/verify-national-dex-paging.mjs",
-    "test:regulations": "node --test test/regulation-catalog.test.js"
+    "test:regulations": "node --test test/regulation-catalog.test.js",
+    "test:security": "node --test test/security-notification-dispatch.test.js"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.3",

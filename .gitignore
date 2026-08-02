@@ -1,3 +1,14 @@
 node_modules/
 .next/
-.env.local
+.vercel/
+.env*
+!.env.local.example
+coverage/
+*.log
+*.zip
+*.tar
+*.tar.gz
+*.bak
+*.backup
+exports/
+backups/

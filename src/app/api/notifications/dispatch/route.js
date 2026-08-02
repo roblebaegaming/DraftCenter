@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "../../../../lib/supabase/admin";
+import { resolveNotificationDispatchScope } from "../../../../lib/notificationDispatchAuth";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -234,15 +235,15 @@ async function deliverPersonalDiscord(event, supabase) {
   return { delivered: true };
 }
 
-async function dispatchDueEvents(includeDailyThree = false) {
+async function dispatchDueEvents(includeDailyThree = false, leagueId = null) {
   try {
     const supabase = createAdminClient();
     const dailyThree = includeDailyThree ? await deliverDailyThreeResults(supabase) : { delivered: 0, skipped: 0, failed: 0 };
     const claimToken = crypto.randomUUID();
-    const { data: events, error } = await supabase.rpc("claim_notification_events", {
-      p_claim_token: claimToken,
-      p_limit: 50,
-    });
+    const claim = leagueId
+      ? supabase.rpc("claim_league_notification_events", { p_claim_token: claimToken, p_league_id: leagueId, p_limit: 50 })
+      : supabase.rpc("claim_notification_events", { p_claim_token: claimToken, p_limit: 50 });
+    const { data: events, error } = await claim;
     if (error) throw error;
     let delivered = 0; let skipped = 0; let failed = 0;
     for (const event of events || []) {
@@ -295,15 +296,16 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
-  if (authorized(request)) return dispatchDueEvents(false);
-  const authorization = request.headers.get("authorization") || "";
-  const token = authorization.startsWith("Bearer ") ? authorization.slice(7) : "";
-  if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const scope = await resolveNotificationDispatchScope(request);
+  if (scope.error) return NextResponse.json({ error: scope.error }, { status: scope.status });
+  if (scope.scope === "global") return dispatchDueEvents(false);
   try {
     const supabase = createAdminClient();
-    const { data, error } = await supabase.auth.getUser(token);
+    const { data, error } = await supabase.auth.getUser(scope.token);
     if (error || !data?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    return dispatchDueEvents(false);
+    const { data: membership } = await supabase.from("league_memberships").select("league_id").eq("league_id", scope.leagueId).eq("user_id", data.user.id).maybeSingle();
+    if (!membership) return NextResponse.json({ error: "League membership is required." }, { status: 403 });
+    return dispatchDueEvents(false, scope.leagueId);
   } catch {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

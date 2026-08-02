@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createClient } from "../lib/supabase/client";
 import { POLL_POKEMON_DEX_NAMES, POLL_POKEMON_NAMES } from "./PokemonDraftLeague";
 import DailyCommunityGames from "./DailyCommunityGames";
@@ -235,6 +235,7 @@ function isDraftLive(state) {
 
 export default function LeagueHub({ user, profile, onOpenLeague }) {
   const [supabase] = useState(() => createClient()); const [leagues, setLeagues] = useState([]); const [publicLeagues, setPublicLeagues] = useState([]); const [publicTab, setPublicTab] = useState("join"); const [communityPokemon, setCommunityPokemon] = useState(["Pikachu","Eevee","Charizard"]); const [loading, setLoading] = useState(true); const [turnAlert, setTurnAlert] = useState(""); const [name, setName] = useState(""); const [season, setSeason] = useState(""); const [description, setDescription] = useState(""); const [imageUrl, setImageUrl] = useState(""); const [draftStartsAt, setDraftStartsAt] = useState(""); const [visibility, setVisibility] = useState("private"); const [draftStartVisibility, setDraftStartVisibility] = useState("default"); const [isPractice, setIsPractice] = useState(false); const [message, setMessage] = useState(""); const [busy, setBusy] = useState(false); const [pendingInvite, setPendingInvite] = useState(null); const [pendingTeamClaim, setPendingTeamClaim] = useState(null); const [inviteBusy, setInviteBusy] = useState(false); const [publicDetails, setPublicDetails] = useState(null); const [showArchived, setShowArchived] = useState(false); const [leagueActionId, setLeagueActionId] = useState("");
+  const notificationLeagueKey = useMemo(() => [...new Set(leagues.filter((entry) => !entry.archived_at && entry.league?.status !== "archived").map((entry) => entry.league?.id).filter(Boolean))].slice(0, 10).join(","), [leagues]);
   async function loadLeagues(silent = false) {
     if (!silent) setLoading(true);
     const [{ data, error }, { data: publicData, error: publicError }] = await Promise.all([
@@ -295,12 +296,13 @@ export default function LeagueHub({ user, profile, onOpenLeague }) {
       const { data } = await supabase.auth.getSession();
       const token = data.session?.access_token;
       if (!token) return;
-      await fetch("/api/notifications/dispatch", { method: "POST", headers: { Authorization: `Bearer ${token}` } }).catch(() => {});
+      const leagueIds = notificationLeagueKey.split(",").filter(Boolean);
+      await Promise.all(leagueIds.map((leagueId) => fetch("/api/notifications/dispatch", { method: "POST", headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" }, body: JSON.stringify({ league_id: leagueId }) }).catch(() => {})));
     }
     dispatchNotifications();
     const timer = window.setInterval(dispatchNotifications, 30000);
     return () => window.clearInterval(timer);
-  }, [supabase]);
+  }, [supabase, notificationLeagueKey]);
   useEffect(() => { Promise.all([supabase.rpc("get_public_explore"),supabase.rpc("get_local_daily_poll",{p_local_date:localDateKey()})]).then(([exploreResult,pollResult]) => { const data=exploreResult.data; const localPoll=pollResult.data; const pollLeaders = localPoll?.answer_type === "pokemon" ? Object.entries(localPoll.counts || {}).sort(([, a], [, b]) => b - a).slice(0, 3).map(([pokemon]) => pokemon) : []; const favorites = (data?.popularity || []).slice(0, 3).map((item) => item.pokemon); const highlights = [...new Set([...pollLeaders, ...favorites])].filter(Boolean); if (highlights.length) setCommunityPokemon(highlights); }); }, [supabase]);
   useEffect(() => { const params = new URLSearchParams(window.location.search); const token = params.get("invite") || params.get("spectate"); if (!token) return; supabase.rpc("preview_league_invite", { p_token: token }).then(({ data, error }) => { if (error) setMessage(error.message); else setPendingInvite(data); }); }, [supabase]);
   function dismissInvite() { window.history.replaceState({}, "", window.location.pathname); setPendingInvite(null); }

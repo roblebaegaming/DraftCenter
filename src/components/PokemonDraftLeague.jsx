@@ -9283,12 +9283,12 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       const { data } = await supabase.auth.getSession();
       const token = data.session?.access_token;
       if (!token) return;
-      await fetch("/api/notifications/dispatch", { method: "POST", headers: { Authorization: `Bearer ${token}` } }).catch(() => {});
+      await fetch("/api/notifications/dispatch", { method: "POST", headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" }, body: JSON.stringify({ league_id: leagueId }) }).catch(() => {});
     }
     dispatchNotifications();
     const timer = window.setInterval(dispatchNotifications, 30000);
     return () => window.clearInterval(timer);
-  }, [supabase]);
+  }, [supabase, leagueId]);
   useEffect(() => {
     if (!synced
       || !isCommissioner

@@ -223,7 +223,8 @@ export function LeagueBroadcastCenter({ leagueId, leagueName, isCommissioner = f
     if (!accessToken) return { delivered: false };
     const response = await fetch("/api/notifications/dispatch", {
       method: "POST",
-      headers: { Authorization: `Bearer ${accessToken}` },
+      headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ league_id: leagueId }),
     });
     const result = await response.json().catch(() => ({}));
     return {
