@@ -409,16 +409,14 @@ export default function AuthGate(){
     if(recovery)setMode('reset_password');
     async function initializeAuth(){
       let {data}=await supabase.auth.getSession();
-      if(recovery&&!data.session){
-        const access_token=hashParams.get("access_token");
-        const refresh_token=hashParams.get("refresh_token");
-        if(access_token&&refresh_token){
+      const access_token=hashParams.get("access_token");
+      const refresh_token=hashParams.get("refresh_token");
+      if(!data.session&&access_token&&refresh_token){
           const restored=await supabase.auth.setSession({access_token,refresh_token});
           if(!restored.error)data={session:restored.data.session};
-        }
       }
       setSession(data.session);loadProfile(data.session);
-      if(recovery&&data.session)window.history.replaceState({},"",`${window.location.pathname}${window.location.search}`);
+      if(data.session&&access_token&&refresh_token)window.history.replaceState({},"",`${window.location.pathname}${window.location.search}`);
     }
     initializeAuth();
     const {data:listener}=supabase.auth.onAuthStateChange((event,next)=>{setSession(next);loadProfile(next);if(event==='PASSWORD_RECOVERY')setMode('reset_password');});
