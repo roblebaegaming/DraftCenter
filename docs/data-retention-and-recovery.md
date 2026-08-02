@@ -20,14 +20,45 @@ Record these values after verifying them in the Supabase dashboard:
 - Production project: Supabase project `eukexfqpiuidwygllaye` in AWS `us-west-2`
 - Supabase plan: Pro
 - Automated backup frequency: Daily, around midnight in the project's region
-- Backup retention: The dashboard displayed eight daily physical backups from July 25 through August 1, 2026; the exact contractual retention window still needs confirmation before making a public promise
+- Backup retention: The dashboard displayed seven daily physical backups from July 26 through August 1, 2026; the exact contractual retention window still needs confirmation before making a public promise
 - Point-in-time recovery enabled: No; the dashboard offers it as a separate add-on
 - People with restore access: One organization member, the owner account
 - Off-account encrypted backup location: Not yet established
-- Last successful restore drill: Not yet completed
-- Next scheduled restore drill: Not yet scheduled
+- Last successful restore drill: August 2, 2026 — passed in isolated project `phvlvcuxulzhrqrmfndz`
+- Next scheduled restore drill: November 2, 2026
 
 Dashboard verification on August 1, 2026 confirmed that the newest scheduled physical backup was created at 13:17:29 UTC. The dashboard provides a restore action for each backup and a beta **Restore to new project** path. Storage objects are not included in database backups; only their database metadata is covered.
+
+## Restore drill record — August 2, 2026
+
+- Source project: production project `eukexfqpiuidwygllaye`
+- Source backup: physical backup created August 1, 2026 at 13:17:29 UTC
+- Restore target: isolated project `phvlvcuxulzhrqrmfndz`, named `DraftCenter Restore Drill 2026-08-01`
+- Restore requested: August 2, 2026 at 06:17:51 UTC
+- Completion observed: August 2, 2026 by 06:27 UTC
+- Additional monthly compute shown before creation: $0
+- Additional monthly disk shown before creation: $0
+- Production impact: none; the dashboard's **Restore to new project** workflow was used
+- Provider result: `COMPLETED`
+
+Read-only validation in the restored project passed:
+
+- 72 public tables were present and all 72 retained row-level security.
+- 177 public functions and 126 foreign keys were present.
+- Representative restored counts were 17 Auth users, 17 profiles, 13 leagues,
+  34 league memberships, 13 league state snapshots, 5 draft sessions,
+  299 roster entries, 13 automatic recovery snapshots, 3 notification
+  preference records, 2,463 league-Pokémon rows, 4 team archives, and 2
+  private team notebooks.
+- The restored project reported a current physical backup and a responsive
+  primary database in `us-west-2`.
+
+This drill validates database schema, data, roles, permissions, users, indexes,
+and relational recovery. It does not validate Storage objects or settings,
+Edge Functions, Auth settings and API keys, project-specific database settings,
+or read replicas because Supabase explicitly lists those as manual
+reconfiguration items for this workflow. The isolated project should remain
+locked down until the owner approves its deletion.
 
 Database-provider backups and user-downloaded exports serve different needs.
 Provider backups recover the service; user exports provide portability and an

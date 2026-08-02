@@ -68,7 +68,7 @@ Use this before each beta release. Record the date, commit, tester accounts, dev
 - [ ] League spreadsheet export includes current and archived teams, rosters, standings, results, transactions, playoffs, and draft history.
 - [ ] League recovery JSON restores into a test league without altering archived history or protected live-draft authority.
 - [x] Automated database backup ownership, frequency, visible history, and restore access are documented. (August 1; exact contractual retention remains intentionally unpublished)
-- [ ] A database restore drill is completed in a safe non-production environment and recorded.
+- [x] A database restore drill is completed in a safe non-production environment and recorded. (Passed August 2, 2026 in isolated project `phvlvcuxulzhrqrmfndz`.)
 - [ ] Backup files are stored somewhere other than the production database and primary deployment account.
 - [ ] Account and My Teams data portability is tested without exposing another user's private data.
 
