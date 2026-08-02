@@ -5029,7 +5029,11 @@ async function loadRemote(leagueId) {
     return null;
   }
 }
-async function saveRemote(state, leagueId) {
+function isSnapshotSaveConflict(message) {
+  return /league changed in another session|refresh before saving again/i.test(String(message || ""));
+}
+
+async function saveRemote(state, leagueId, { reportConflicts = true } = {}) {
   try {
     if (leagueId) {
       const supabase = createClient();
@@ -5048,15 +5052,17 @@ async function saveRemote(state, leagueId) {
     return { ok: true };
   } catch (e) {
     console.error("Storage save failed", e);
-    if (leagueId) {
+    const message = e.message || "Could not save";
+    const conflict = isSnapshotSaveConflict(message);
+    if (leagueId && (reportConflicts || !conflict)) {
       createClient().rpc("report_operational_issue", {
         p_kind: "league_save_failed",
-        p_message: e.message || "League snapshot save failed",
+        p_message: message,
         p_league_id: leagueId,
         p_context: { revision: state?.rev ?? null },
       }).then(() => {});
     }
-    return { ok: false, message: e.message || "Could not save" };
+    return { ok: false, message, conflict };
   }
 }
 
@@ -5478,7 +5484,26 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       revRef.current = withRev.rev;
       const request = ++saveRequestRef.current;
       if (leagueId) setSaveStatus("saving");
-      saveChainRef.current = saveChainRef.current.then(() => saveRemote(withRev, leagueId));
+      saveChainRef.current = saveChainRef.current.then(async () => {
+        const firstResult = await saveRemote(withRev, leagueId, { reportConflicts: false });
+        if (!leagueId || !firstResult?.conflict || typeof updater !== "function") return firstResult;
+
+        // A manager action or another commissioner tab saved first. Reload
+        // that newer state, reapply only this functional edit, and retry once.
+        // Draft picks and other live-draft mutations use dedicated RPCs and
+        // never pass through this whole-snapshot recovery path.
+        const latest = await loadRemote(leagueId);
+        if (!latest) return saveRemote(withRev, leagueId);
+        const latestState = hydrateState(latest);
+        const retriedState = updater(latestState);
+        const rebased = { ...retriedState, rev: (latestState.rev || 0) + 1 };
+        const retryResult = await saveRemote(rebased, leagueId);
+        if (retryResult?.ok && request === saveRequestRef.current) {
+          revRef.current = rebased.rev;
+          setState(rebased);
+        }
+        return { ...retryResult, recoveredConflict: Boolean(retryResult?.ok) };
+      });
       saveChainRef.current.then((result) => {
         if (request !== saveRequestRef.current) return;
         if (leagueId) setSaveStatus(result?.ok ? "saved" : "error");
