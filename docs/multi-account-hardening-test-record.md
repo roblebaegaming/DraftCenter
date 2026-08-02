@@ -22,6 +22,27 @@ Read-only evidence collected in this session:
 - Mega Test's July 31 automatic recovery point now appears consistently in League Tools and Owner Operations under “Last recovery.”
 - A signed-out production sweep confirmed 14 public routes load while five owner/account/recovery APIs reject access with 401.
 
+## Validation session — August 2, 2026
+
+- Date: August 2, 2026
+- Tester: Codex
+- Build or commit: `1b42fd8`
+- Environment: Production (`https://www.draftcentral.gg`)
+- Desktop browser: Codex in-app browser plus independent Supabase clients with session persistence disabled
+- Safe test league: Multi Account Validation 2026-08-02 (`multi-account-validation-2026-08-02-mt2mx`)
+- Accounts: one existing commissioner, two dedicated temporary managers, and one dedicated temporary spectator
+
+Evidence collected in this session:
+
+- Creating the practice league initially exposed a real initialization race: the page displayed six saved teams while the server snapshot still contained no teams. Commit `1b42fd8` now initializes an empty server snapshot as soon as league staff first open it. The production retest persisted six teams at revision 1 before invitations were used.
+- Two manager accounts accepted the reusable manager invitation and received `coach` memberships; the spectator received a `viewer` membership.
+- Two managers claimed the same open team concurrently. Exactly one succeeded, the other received the expected already-claimed rejection, and that manager then claimed a second team successfully.
+- Spectator team claims, spectator preference writes, cross-team manager preference writes, cross-team queue reads, spectator queue reads, and direct nonstaff snapshot writes were rejected.
+- Manager A's private queue was visible only to Manager A; Manager B's own queue remained empty.
+- The live snake draft opened successfully. A concurrent duplicate pick using stable numeric Pokémon ID `0` produced one accepted pick and one rejection, with the authoritative pick count increasing by exactly one.
+- A second same-Pokémon race across Manager A and Manager B accepted only the on-clock manager's pick and rejected the out-of-turn request.
+- Commissioner pause and resume both worked in production. No single-pick undo control or hosted snake undo operation currently exists, so that portion remains open.
+
 ## Test setup
 
 - Date:
@@ -38,13 +59,13 @@ Read-only evidence collected in this session:
 
 ## Permissions and privacy
 
-- [ ] A brand-new standard or practice league persists its displayed setup before the first team claim; the first claim succeeds without a manual settings save or refresh.
-- [ ] The default legal pool passes stable-ID validation, including the built-in Pokémon whose stable ID is numeric zero.
+- [x] A brand-new standard or practice league persists its displayed setup before the first team claim; the first claim succeeds without a manual settings save or refresh. (fixed and production-verified August 2)
+- [x] The default legal pool passes stable-ID validation, including the built-in Pokémon whose stable ID is numeric zero. (production live-pick verification August 2)
 - [ ] Start Draft shows an in-place progress state, prevents duplicate submission, and displays any server rejection beside the Start button.
 - [ ] Hosted snake start reloads saved queues without a client runtime exception and opens the Draft room.
 - [x] Signed-out users cannot read private league, roster, notebook, queue, or planning data. (production API rejection plus public-projection/access-policy review, August 1)
 - [ ] Spectators cannot change league settings, rosters, results, queues, trades, or draft state.
-- [ ] Managers can change only their permitted team data.
+- [x] Managers can change only their permitted team data. (own-team preference and cross-team rejection verification August 2)
 - [ ] Commissioners can use commissioner tools without exposing those controls to other roles.
 - [ ] Private notebooks and account exports contain only the signed-in user's data.
 - [ ] A manager removed from a league immediately loses private league access.
@@ -52,8 +73,8 @@ Read-only evidence collected in this session:
 ## Concurrent draft and reconnect
 
 - [ ] Two managers submit different picks at nearly the same time; only valid server-authoritative picks are accepted.
-- [ ] Two sessions attempt the same Pokémon; only one succeeds.
-- [ ] Queue changes remain private and correctly ordered.
+- [x] Two sessions attempt the same Pokémon; only one succeeds. (same-session duplicate and cross-account race verification August 2)
+- [x] Queue changes remain private and correctly ordered. (independent manager and spectator sessions, August 2)
 - [ ] Refresh, background/foreground, network loss, and reconnect recover the authoritative draft state.
 - [ ] Commissioner pause, resume, undo, and correction operations remain consistent across connected clients.
 - [ ] Draft completion creates the expected rosters and does not leave stale active-draft state.
@@ -123,3 +144,6 @@ Record each failure with the account, role, device, exact action, expected resul
 | DC-VAL-001 | Season rollover | High | Open Mega Test after its Season 1 archive, then compare League Home with Owner Operations and the lifecycle fields. | The relational status matches the active season's actual phase while prior archives remain intact. | Confirmed: Season 2 is locked, its snake draft session is complete, Season 1 is archived, and `DRAFTING` is therefore the correct active-season status. | Passed — initial finding was a false positive |
 | DC-VAL-002 | Mobile layout | Medium | Open Mega Test Setup or My Team at a 390 × 844 viewport. | No document-level horizontal scrolling. | Both pages now have equal 382 px document and viewport widths after targeted fieldset, preset-wrap, legality-grid, and ability-selector fixes. | Passed in production |
 | DC-VAL-003 | Recovery monitoring | Medium | Compare Mega Test League Tools recovery history with its Owner Operations card. | Backup/recovery status is consistent or clearly distinguishes the two record types. | Operations now combines manual backup events with automatic and pre-restore recovery snapshots; Mega Test shows its July 31 recovery point under “Last recovery.” | Passed in production |
+| DC-VAL-004 | New-league setup persistence | High | Create a practice league, invite managers immediately, and attempt the first team claim. | The displayed six-team setup already exists in the server snapshot. | The initial snapshot had no teams and both claims returned `Team not found.` Commit `1b42fd8` now initializes the setup on first staff open; production retest persisted six teams and both manager claims completed safely. | Fixed and passed in production |
+| DC-VAL-005 | Multi-account permissions | High | Use two managers and one spectator against the same practice league, including concurrent claims, cross-team writes, queue reads, and direct snapshot writes. | Only the authorized role and team owner can mutate or read private data. | All negative checks were rejected; the concurrent claim produced one winner; private queues remained isolated. | Passed in production |
+| DC-VAL-006 | Hosted snake undo | Medium | Open a live hosted snake draft as commissioner and inspect correction controls after picks exist. | Commissioner can undo a mistaken last pick without restarting the whole draft. | Pause, resume, and full draft restart exist, but no single-pick undo control or server operation is implemented. | Open |
