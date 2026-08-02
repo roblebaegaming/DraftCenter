@@ -403,7 +403,27 @@ function LeagueTools({ league, corrections, onClose, onUpdated, onDeleted }) {
 export default function AuthGate(){
   const [supabase]=useState(()=>createClient()); const [session,setSession]=useState(undefined); const [profile,setProfile]=useState(undefined); const [mode,setMode]=useState(()=>typeof window!=="undefined"&&new URLSearchParams(window.location.hash.slice(1)).get("type")==="recovery"?'reset_password':'sign_in'); const [email,setEmail]=useState(''); const [password,setPassword]=useState(''); const [confirmPassword,setConfirmPassword]=useState(''); const [message,setMessage]=useState(''); const [busy,setBusy]=useState(false); const [activeLeague,setActiveLeague]=useState(null); const [showTools,setShowTools]=useState(false); const [toolCorrections,setToolCorrections]=useState(null); const [showProfile,setShowProfile]=useState(false);
   async function loadProfile(next){if(!next)return setProfile(undefined);const {data}=await supabase.from('profiles').select('id,display_name,username,avatar_url').eq('id',next.user.id).maybeSingle();setProfile(data||null);}
-  useEffect(()=>{if(new URLSearchParams(window.location.hash.slice(1)).get("type")==="recovery")setMode('reset_password');supabase.auth.getSession().then(({data})=>{setSession(data.session);loadProfile(data.session);});const {data:listener}=supabase.auth.onAuthStateChange((event,next)=>{setSession(next);loadProfile(next);if(event==='PASSWORD_RECOVERY')setMode('reset_password');});return()=>listener.subscription.unsubscribe();},[supabase]);
+  useEffect(()=>{
+    const hashParams=new URLSearchParams(window.location.hash.slice(1));
+    const recovery=hashParams.get("type")==="recovery";
+    if(recovery)setMode('reset_password');
+    async function initializeAuth(){
+      let {data}=await supabase.auth.getSession();
+      if(recovery&&!data.session){
+        const access_token=hashParams.get("access_token");
+        const refresh_token=hashParams.get("refresh_token");
+        if(access_token&&refresh_token){
+          const restored=await supabase.auth.setSession({access_token,refresh_token});
+          if(!restored.error)data={session:restored.data.session};
+        }
+      }
+      setSession(data.session);loadProfile(data.session);
+      if(recovery&&data.session)window.history.replaceState({},"",`${window.location.pathname}${window.location.search}`);
+    }
+    initializeAuth();
+    const {data:listener}=supabase.auth.onAuthStateChange((event,next)=>{setSession(next);loadProfile(next);if(event==='PASSWORD_RECOVERY')setMode('reset_password');});
+    return()=>listener.subscription.unsubscribe();
+  },[supabase]);
   function openLeague(league, replace = false) {
     const key = league?.slug || league?.id;
     if (!key) return;
