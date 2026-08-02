@@ -101,6 +101,7 @@ Use this before each beta release. Record the date, commit, tester accounts, dev
 - [x] GitHub push completes with the intended release commit. (August 2 release candidate)
 - [x] Vercel production deployment reports **Ready**.
 - [x] Production smoke test passes. (`npm run smoke:production`, 14 public routes and 5 protected APIs)
+- [x] Production dependency audit reports no known vulnerabilities. (Next.js 16.2.12, Sharp 0.35.3, PostCSS 8.5.25, and SheetJS 0.20.3; August 2)
 
 ## Release decision
 
