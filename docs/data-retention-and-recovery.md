@@ -25,6 +25,7 @@ Record these values after verifying them in the Supabase dashboard:
 - People with restore access: One organization member, the owner account
 - Off-account encrypted backup location: Google Drive, exact archive name `draftcenter-recovery-2026-08-02.zip`
 - Last successful restore drill: August 2, 2026 — passed in isolated project `phvlvcuxulzhrqrmfndz`
+- Restore-project cleanup: owner approved permanent deletion on August 2, 2026; the exact project URL redirected to the organization list and the project ID was absent from both accessible organization project lists, confirming it was already removed before the final delete action
 - Next scheduled restore drill: November 2, 2026
 
 Dashboard verification on August 1, 2026 confirmed that the newest scheduled physical backup was created at 13:17:29 UTC. The dashboard provides a restore action for each backup and a beta **Restore to new project** path. Storage objects are not included in database backups; only their database metadata is covered.
@@ -57,8 +58,10 @@ This drill validates database schema, data, roles, permissions, users, indexes,
 and relational recovery. It does not validate Storage objects or settings,
 Edge Functions, Auth settings and API keys, project-specific database settings,
 or read replicas because Supabase explicitly lists those as manual
-reconfiguration items for this workflow. The isolated project should remain
-locked down until the owner approves its deletion.
+reconfiguration items for this workflow. After explicit owner approval, the
+exact restore project ID was checked directly and across both accessible
+Supabase organizations. It was already absent, so no additional destructive
+action was required and production remained untouched.
 
 Database-provider backups and user-downloaded exports serve different needs.
 Provider backups recover the service; user exports provide portability and an

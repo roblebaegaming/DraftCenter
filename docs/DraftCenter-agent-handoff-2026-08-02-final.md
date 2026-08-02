@@ -79,10 +79,10 @@ Commit: `205672b`.
   Decrypted SHA-256 comparisons passed for all four source artifacts.
 - Uploaded the encrypted archive to Google Drive and verified the exact filename.
   The passphrase is delivered separately and is not committed.
-- The isolated Supabase restore drill remains locked down at project
-  `phvlvcuxulzhrqrmfndz`. Its restore and read-only validation already passed.
-  Permanently delete it only after an explicit owner confirmation and an exact
-  project-ID check.
+- The owner explicitly approved deletion of isolated restore project
+  `phvlvcuxulzhrqrmfndz`. The exact project URL redirected to the organization
+  list and the ID was absent from both accessible organization project lists,
+  confirming it had already been removed. Production was not changed.
 
 ## Final verification
 
@@ -106,15 +106,13 @@ These are not known regressions and do not invalidate the completed checks:
    already pass.
 2. View a signup and recovery message in a second major email client. Gmail web
    is verified; no second external mailbox/client was available.
-3. Decide whether to permanently delete isolated restore project
-   `phvlvcuxulzhrqrmfndz`.
-4. Run Firefox/Safari and true throttled-network testing when those environments
+3. Run Firefox/Safari and true throttled-network testing when those environments
    are available. The in-app Chromium and 390 × 844 responsive passes succeeded.
-5. Continue the intentionally broader, non-blocking checklist coverage for bot
+4. Continue the intentionally broader, non-blocking checklist coverage for bot
    heuristics and retry timing, simultaneous claim/rebuild races, transaction
    reversal, full Daily Three/community interaction, public profile behavior,
    and every My Teams limit/helper path.
-6. Return to Search Console after Google finishes initial processing and record
+5. Return to Search Console after Google finishes initial processing and record
    the first query/indexing comparison alongside the existing Vercel baseline.
 
 ## Safety and next-agent rules
@@ -123,7 +121,8 @@ These are not known regressions and do not invalidate the completed checks:
    URL fragments, archive contents, or the archive passphrase.
 2. Preserve the untracked `.vercel/` directory except for the explicitly named
    temporary validation files; never commit it.
-3. Do not delete `phvlvcuxulzhrqrmfndz` without explicit owner approval.
+3. The August 2 restore project is already absent. Never delete a similarly
+   named project without a new exact-ID check and explicit owner approval.
 4. Do not rerun destructive lifecycle tests against real leagues. Create an
    isolated practice league and exact cleanup guards if new evidence is needed.
 5. Do not recreate the National Dex, regulation, rollover, recovery, Auth,

@@ -112,6 +112,6 @@ Use this before each beta release. Record the date, commit, tester accounts, dev
 ## Release decision
 
 - Blocking failures: None found in the validated release scope.
-- Non-blocking follow-ups: real Twitch online/offline EventSub broadcast; a second major email client; Firefox/Safari and throttled-network breadth; the intentionally unchecked bot, reset/rebuild race, claim-race, transaction-reversal, Daily Three interaction, public-profile, and My Teams breadth items above.
+- Non-blocking follow-ups: real Twitch online/offline EventSub broadcast; a second major email client; Firefox/Safari and throttled-network breadth; the intentionally unchecked bot, reset/rebuild race, claim-race, transaction-reversal, Daily Three interaction, public-profile, and My Teams breadth items above. The isolated August 2 restore project was verified absent after explicit owner deletion approval.
 - Approved by:
 - Decision: Ready for owner ship decision; remaining items are coverage gaps, not known regressions.
