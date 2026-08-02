@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "../../../../lib/supabase/admin";
+import { consumeUserRateLimit } from "../../../../lib/apiRateLimit";
 
 export const runtime = "nodejs";
 
@@ -28,6 +29,7 @@ export async function POST(request) {
     const { data: userResult, error: userError } = await supabase.auth.getUser(token);
     user = userResult?.user;
     if (userError || !user) return NextResponse.json({ error: "Your sign-in session expired. Sign in again." }, { status: 401 });
+    if (!await consumeUserRateLimit(supabase, "discord-personal-test", user.id, 3, 600)) return NextResponse.json({ error: "Too many Discord tests were requested. Try again later." }, { status: 429 });
 
     const { data: connection, error: connectionError } = await supabase
       .from("discord_user_connections")

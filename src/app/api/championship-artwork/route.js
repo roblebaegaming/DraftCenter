@@ -2,6 +2,7 @@ import sharp from "sharp";
 import opentype from "opentype.js";
 import { readFile } from "node:fs/promises";
 import { createAdminClient } from "../../../lib/supabase/admin.js";
+import { consumeUserRateLimit } from "../../../lib/apiRateLimit.js";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -268,6 +269,7 @@ export async function POST(request) {
     if (!userResult?.user) return Response.json({ error: "Your sign-in session expired. Sign in again." }, { status: 401 });
     const { data: membership } = await supabase.from("league_memberships").select("role").eq("league_id", body.leagueId).eq("user_id", userResult.user.id).maybeSingle();
     if (!membership) return Response.json({ error: "You no longer have access to this league." }, { status: 403 });
+    if (!await consumeUserRateLimit(supabase, "championship-artwork", `${userResult.user.id}:${body.leagueId}`, 3, 600)) return Response.json({ error: "Too many print files were requested. Try again later." }, { status: 429 });
 
     const png = await renderPoster(body);
     const slug = String(body.season.champion.teamName).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "champion";

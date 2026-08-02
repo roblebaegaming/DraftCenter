@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "../../../../lib/supabase/admin";
+import { consumeUserRateLimit } from "../../../../lib/apiRateLimit";
 
 export const runtime = "nodejs";
 
@@ -72,6 +73,7 @@ export async function POST(request) {
     if (!["commissioner", "co_commissioner"].includes(membership?.role)) {
       return NextResponse.json({ error: "Only league commissioners can test Discord announcements." }, { status: 403 });
     }
+    if (!await consumeUserRateLimit(supabase, "discord-league-test", `${user.id}:${leagueId}`, 3, 600)) return NextResponse.json({ error: "Too many Discord tests were requested. Try again later." }, { status: 429 });
 
     const { data: settings, error: settingsError } = await supabase
       .from("league_discord_settings")

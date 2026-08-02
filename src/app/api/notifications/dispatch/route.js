@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "../../../../lib/supabase/admin";
 import { resolveNotificationDispatchScope } from "../../../../lib/notificationDispatchAuth";
+import { consumeUserRateLimit } from "../../../../lib/apiRateLimit";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -305,6 +306,7 @@ export async function POST(request) {
     if (error || !data?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     const { data: membership } = await supabase.from("league_memberships").select("league_id").eq("league_id", scope.leagueId).eq("user_id", data.user.id).maybeSingle();
     if (!membership) return NextResponse.json({ error: "League membership is required." }, { status: 403 });
+    if (!await consumeUserRateLimit(supabase, "notification-dispatch", `${data.user.id}:${scope.leagueId}`, 12, 60)) return NextResponse.json({ error: "Notification delivery is already being checked. Try again shortly." }, { status: 429 });
     return dispatchDueEvents(false, scope.leagueId);
   } catch {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

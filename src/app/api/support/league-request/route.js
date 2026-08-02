@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "../../../../lib/supabase/admin";
 import { escapeHtml, ownerEmails, sendOwnerEmail } from "../../../../lib/ownerOperations";
 import { authenticateUser, leagueStaffRole } from "../../../../lib/supportAccess";
+import { consumeUserRateLimit } from "../../../../lib/apiRateLimit";
 
 export const runtime = "nodejs";
 const categories = new Set(["setup","pricing","draft","teams","results","notifications","other"]);
@@ -13,6 +14,7 @@ export async function POST(request) {
   const body = await request.json().catch(() => ({})); const leagueId = body.league_id; const category = String(body.category || ""); const message = String(body.message || "").trim();
   if (!leagueId || !categories.has(category) || message.length < 10 || message.length > 2000) return NextResponse.json({ error: "Choose a category and enter 10–2,000 characters." }, { status: 400 });
   if (!await leagueStaffRole(supabase, leagueId, auth.user.id)) return NextResponse.json({ error: "Only league commissioners can submit a league support request." }, { status: 403 });
+  if (!await consumeUserRateLimit(supabase, "support-request", `${auth.user.id}:${leagueId}`, 3, 3600)) return NextResponse.json({ error: "Too many support requests were submitted. Try again later." }, { status: 429 });
   const { data: league, error: leagueError } = await supabase.from("leagues").select("id,name,slug,status").eq("id", leagueId).single();
   if (leagueError) return NextResponse.json({ error: "League could not be found." }, { status: 404 });
   const includeDiagnostics = Boolean(body.include_diagnostics); const context = {};

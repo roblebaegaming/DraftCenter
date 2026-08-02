@@ -7,6 +7,7 @@ import {
   twitchConfig,
   twitchLoginFromUrl,
 } from "../../../../lib/twitch";
+import { consumeUserRateLimit } from "../../../../lib/apiRateLimit";
 
 export const runtime = "nodejs";
 
@@ -27,6 +28,7 @@ export async function POST(request) {
     const { data: userResult, error: userError } = await supabase.auth.getUser(accessToken);
     const user = userResult?.user;
     if (userError || !user) return NextResponse.json({ error: "Your sign-in session expired. Sign in again." }, { status: 401 });
+    if (!await consumeUserRateLimit(supabase, "twitch-register", user.id, 5, 600)) return NextResponse.json({ error: "Twitch monitoring was checked too many times. Try again later." }, { status: 429 });
 
     const { data: stream, error: streamError } = await supabase
       .from("league_live_streams")
