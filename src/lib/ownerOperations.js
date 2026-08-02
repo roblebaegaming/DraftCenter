@@ -27,7 +27,7 @@ function isExpectedOperationalRejection(event) {
 
 export async function getOperationsOverview(supabase, viewerUserId = null) {
   const now = Date.now();
-  const [leaguesResult, snapshotsResult, membershipsResult, profilesResult, snakeResult, auctionResult, backupResult, recoveryResult, failedResult, discordResult, supportResult, requestsResult, healthResult] = await Promise.all([
+  const [leaguesResult, snapshotsResult, membershipsResult, profilesResult, snakeResult, auctionResult, backupResult, recoveryResult, failedResult, discordResult, supportResult, requestsResult, healthResult, sessionsResult, lifecycleEventsResult] = await Promise.all([
     supabase.from("leagues").select("id,name,slug,status,created_at,updated_at,created_by,is_practice,league_visibility,draft_starts_at,season_label").order("created_at", { ascending: false }),
     supabase.from("league_state_snapshots").select("league_id,state,updated_at,revision"),
     supabase.from("league_memberships").select("league_id,user_id,role"),
@@ -41,6 +41,8 @@ export async function getOperationsOverview(supabase, viewerUserId = null) {
     supabase.from("league_support_grants").select("id,league_id,permission,expires_at,revoked_at,created_at").eq("support_user_id", viewerUserId || "00000000-0000-0000-0000-000000000000").is("revoked_at", null).gt("expires_at", new Date().toISOString()),
     supabase.from("league_support_requests").select("id,league_id,requested_by,category,message,page_path,diagnostics_included,diagnostic_context,status,owner_notified_at,notification_error,created_at").in("status", ["open", "in_progress"]).order("created_at", { ascending: false }).limit(100),
     supabase.from("operational_health_events").select("id,occurred_at,actor_id,league_id,kind,message,context").gte("occurred_at", new Date(Date.now() - 30 * 86400000).toISOString()).order("occurred_at", { ascending: false }).limit(200),
+    supabase.from("draft_sessions").select("id,league_id,mode,status,current_pick_number,created_at,updated_at").order("created_at", { ascending: false }),
+    supabase.from("league_events").select("league_id,kind,payload,created_at").in("kind", ["draft_paused", "draft_resumed"]).order("created_at", { ascending: false }).limit(500),
   ]);
   if (leaguesResult.error) throw leaguesResult.error;
   if (backupResult.error) throw backupResult.error;
@@ -55,6 +57,8 @@ export async function getOperationsOverview(supabase, viewerUserId = null) {
   }
   const failedByLeague = new Map(); for (const row of failedResult.data || []) failedByLeague.set(row.league_id, (failedByLeague.get(row.league_id) || 0) + 1);
   const membersByLeague = new Map(); for (const row of membershipsResult.data || []) { const rows = membersByLeague.get(row.league_id) || []; rows.push(row); membersByLeague.set(row.league_id, rows); }
+  const latestSessionByLeague = new Map(); for (const row of sessionsResult.data || []) if (!latestSessionByLeague.has(row.league_id)) latestSessionByLeague.set(row.league_id, row);
+  const latestLifecycleEventByLeague = new Map(); for (const row of lifecycleEventsResult.data || []) if (!latestLifecycleEventByLeague.has(row.league_id)) latestLifecycleEventByLeague.set(row.league_id, row);
 
   const leagues = (leaguesResult.data || []).map((league) => {
     const snapshot = snapshots.get(league.id); const state = snapshot?.state || {}; const teams = Array.isArray(state.teams) ? state.teams : [];
@@ -75,7 +79,16 @@ export async function getOperationsOverview(supabase, viewerUserId = null) {
     if (!league.is_practice && (!Number.isFinite(lastBackupMs) || now - lastBackupMs > 30 * 86400000)) warnings.push(warning("backup_overdue", "low", backup ? "No recorded recovery backup in the last 30 days." : "No recovery backup has been recorded."));
     const commissioner = members.find((member) => member.role === "commissioner"); const profile = profiles.get(commissioner?.user_id || league.created_by);
     const supportGrant = support.get(league.id);
-    return { ...league, commissioner: profile?.display_name || profile?.username || "Unknown", owner_has_access: Boolean(viewerUserId && members.some((member) => member.user_id === viewerUserId)), owner_role: viewerUserId ? members.find((member) => member.user_id === viewerUserId)?.role || null : null, support_access: supportGrant ? { id: supportGrant.id, permission: supportGrant.permission, expires_at: supportGrant.expires_at } : null, member_count: members.filter((member) => ["commissioner", "co_commissioner", "coach"].includes(member.role)).length, team_count: leagueSize, claimed_team_count: claimed, result_count: countResults(state), last_activity_at: lastActivity, last_backup_at: backup?.created_at || null, draft_job: job || null, discord_connected: Boolean(discord.get(league.id)?.enabled && discord.get(league.id)?.channel_id), warnings };
+    const session = latestSessionByLeague.get(league.id); const lifecycleEvent = latestLifecycleEventByLeague.get(league.id); const picksCompleted = Math.max(0, Number(session?.current_pick_number || 0)); const totalPicks = Array.isArray(state?.snakeOrder) ? state.snakeOrder.length : 0;
+    let lifecycle = { phase: "pre_draft", label: "Pre-draft setup", detail: `${claimed}/${leagueSize || 0} teams claimed`, updated_at: lastActivity };
+    if (String(league.status) === "archived") lifecycle = { phase: "archived", label: "League archived", detail: "League history is preserved and hidden from active league lists.", updated_at: league.updated_at };
+    else if (session?.status === "active") lifecycle = { phase: "drafting", label: `Live ${session.mode || ""} draft`.replace("  ", " "), detail: `${picksCompleted} pick${picksCompleted === 1 ? "" : "s"} completed${totalPicks ? ` of ${totalPicks}` : ""}`, updated_at: session.updated_at };
+    else if (session?.status === "paused") { const overnight = lifecycleEvent?.kind === "draft_paused" && lifecycleEvent?.payload?.overnight === true; lifecycle = { phase: "paused", label: overnight ? "Draft paused overnight" : "Draft manually paused", detail: `${picksCompleted} pick${picksCompleted === 1 ? "" : "s"} completed${totalPicks ? ` of ${totalPicks}` : ""}. The commissioner can resume it.`, updated_at: lifecycleEvent?.created_at || session.updated_at }; }
+    else if (session?.status === "complete") lifecycle = { phase: "post_draft", label: "Draft complete", detail: `${picksCompleted} pick${picksCompleted === 1 ? "" : "s"} completed${countResults(state) ? ` · ${countResults(state)} result${countResults(state) === 1 ? "" : "s"} recorded` : ""}`, updated_at: session.updated_at };
+    else if (Number.isFinite(draftMs) && draftMs > now) lifecycle = { phase: "scheduled", label: "Pre-draft · scheduled", detail: `${claimed}/${leagueSize || 0} teams claimed`, updated_at: lastActivity };
+    else if (["active", "season"].includes(String(league.status))) lifecycle = { phase: "season", label: "Season underway", detail: `${countResults(state)} result${countResults(state) === 1 ? "" : "s"} recorded`, updated_at: lastActivity };
+    else if (String(league.status) === "completed") lifecycle = { phase: "completed", label: "Season complete", detail: `${countResults(state)} result${countResults(state) === 1 ? "" : "s"} recorded`, updated_at: lastActivity };
+    return { ...league, commissioner: profile?.display_name || profile?.username || "Unknown", owner_has_access: Boolean(viewerUserId && members.some((member) => member.user_id === viewerUserId)), owner_role: viewerUserId ? members.find((member) => member.user_id === viewerUserId)?.role || null : null, support_access: supportGrant ? { id: supportGrant.id, permission: supportGrant.permission, expires_at: supportGrant.expires_at } : null, member_count: members.filter((member) => ["commissioner", "co_commissioner", "coach"].includes(member.role)).length, team_count: leagueSize, claimed_team_count: claimed, result_count: countResults(state), last_activity_at: lastActivity, last_backup_at: backup?.created_at || null, draft_job: job || null, discord_connected: Boolean(discord.get(league.id)?.enabled && discord.get(league.id)?.channel_id), lifecycle, warnings };
   });
   const leagueNames = new Map(leagues.map((league) => [league.id, league.name]));
   const supportRequests = (requestsResult.data || []).map((request) => ({ ...request, league_name: leagueNames.get(request.league_id) || "Unknown league" }));
@@ -85,7 +98,7 @@ export async function getOperationsOverview(supabase, viewerUserId = null) {
   const sinceYesterday = Date.now() - 86400000;
   const recentErrorCount = operationalFailures.filter((event) => Date.parse(event.occurred_at) > sinceYesterday).length;
   const recentRejectionCount = operationalRejections.filter((event) => Date.parse(event.occurred_at) > sinceYesterday).length;
-  return { generated_at: new Date().toISOString(), totals: { leagues: leagues.length, real: leagues.filter((l) => !l.is_practice).length, practice: leagues.filter((l) => l.is_practice).length, needing_attention: leagues.filter((l) => l.warnings.length).length, high_priority: leagues.filter((l) => l.warnings.some((w) => w.severity === "high")).length, open_support_requests: supportRequests.length, errors_24h: recentErrorCount, expected_rejections_24h: recentRejectionCount }, support_requests: supportRequests, operational_errors: operationalErrors, operational_failures: operationalFailures, operational_rejections: operationalRejections, leagues };
+  return { generated_at: new Date().toISOString(), totals: { leagues: leagues.length, real: leagues.filter((l) => !l.is_practice).length, practice: leagues.filter((l) => l.is_practice).length, drafting: leagues.filter((l) => ["drafting", "paused"].includes(l.lifecycle.phase)).length, needing_attention: leagues.filter((l) => l.warnings.length).length, high_priority: leagues.filter((l) => l.warnings.some((w) => w.severity === "high")).length, open_support_requests: supportRequests.length, errors_24h: recentErrorCount, expected_rejections_24h: recentRejectionCount }, support_requests: supportRequests, operational_errors: operationalErrors, operational_failures: operationalFailures, operational_rejections: operationalRejections, leagues };
 }
 
 export async function sendOwnerEmail({ to, subject, html }) {

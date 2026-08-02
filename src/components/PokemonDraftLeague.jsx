@@ -50,6 +50,13 @@ const TYPE_DEFENSE = {
 };
 const ALL_TYPES = Object.keys(TYPE_DEFENSE);
 
+function friendlySaveFailure(prefix, error) {
+  const detail = String(error?.message || error || "An unexpected error occurred.").trim();
+  if (/networkerror|failed to fetch|network request failed|load failed/i.test(detail)) return `${prefix} because the connection was interrupted. Refresh first to confirm the latest league state, then try the change again.`;
+  if (/upstream request timeout|statement timeout|timed? out|timeout/i.test(detail)) return `${prefix} because DraftCenter took too long to respond. Refresh first to confirm whether the change saved, then try it once more.`;
+  return `${prefix}: ${detail}`;
+}
+
 function singleTypeMultiplier(attackType, defendType) {
   const d = TYPE_DEFENSE[defendType];
   if (!d) return 1;
@@ -5677,7 +5684,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     });
     if (error) {
       setSaveStatus("error");
-      setLiveDraftError(`That team change could not be saved: ${error.message}`);
+      setLiveDraftError(friendlySaveFailure("That team change could not be saved", error));
       return false;
     }
     const hydrated = hydrateState(data);
@@ -7075,7 +7082,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     });
     if (error) {
       setSaveStatus("error");
-      setLiveDraftError(`Your queue could not be saved: ${error.message}`);
+      setLiveDraftError(friendlySaveFailure("Your queue could not be saved", error));
       return false;
     }
     const queue = Array.isArray(data) ? data : [];
