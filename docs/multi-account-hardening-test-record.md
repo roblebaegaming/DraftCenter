@@ -45,6 +45,8 @@ Evidence collected in this session:
 - The hosted snake draft completed through all 36 picks. Every one of the six teams finished with six unique active roster entries, 36 league Pokémon were marked drafted, and the draft session moved to `complete` with no stale active session.
 - Manager A completed an instant free-agent add/drop while retaining a six-Pokémon roster. Manager B and the spectator were both blocked from applying the same move to Manager A's team.
 - Manager A proposed a one-for-one trade to Manager B. The proposer and spectator were blocked from accepting it; Manager B accepted it, both Pokémon moved exactly once, and both rosters remained at six.
+- Manager A and Manager B submitted competing FAAB claims with bids of 31 and 47. Each manager saw only their own bid; the competing bid was `null` for the other manager and spectator, and neither bid appeared in the shared snapshot. A manager could withdraw their own claim but could not withdraw the other manager's claim.
+- Season transaction limit, weekly transaction limit, and transaction deadline branches each rejected a new add/drop with the expected server message. The test settings were returned to their prior unlimited state afterward.
 
 ## Test setup
 
@@ -95,9 +97,9 @@ Evidence collected in this session:
 
 ## Season and transactions
 
-- [ ] Free-agent add/drop obeys roster ranges, deadlines, weekly limits, and season limits. (own-team add/drop and cross-role authorization passed August 2; configured deadline and limit branches remain)
-- [ ] Manager A can see their own pending FAAB bid after refresh and reconnect.
-- [ ] Manager B and spectators receive a sanitized pending-claim summary but cannot read Manager A's bid in page data or network responses.
+- [x] Free-agent add/drop obeys roster ranges, deadlines, weekly limits, and season limits. (all server branches verified August 2)
+- [x] Manager A can see their own pending FAAB bid after refresh and reconnect. (fresh isolated client verification August 2)
+- [x] Manager B and spectators receive a sanitized pending-claim summary but cannot read Manager A's bid in page data or network responses. (August 2)
 - [ ] Commissioners can see all bids required to process claims; nonstaff cannot call claim processing.
 - [ ] Simultaneous claim submission, withdrawal, and processing leaves each claim in exactly one state and never republishes bid amounts in the league snapshot.
 - [ ] Claim processing rejects a stale claim set, applies each winning add/drop once, and preserves claims submitted after processing.
