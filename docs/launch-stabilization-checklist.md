@@ -5,8 +5,8 @@ Use this before each beta release. Record the date, commit, tester accounts, dev
 ## Release record
 
 - Date: August 2, 2026
-- Commit: release candidate including Supabase migrations 239–240
-- Vercel production deployment: Ready (`G9KSRDjnq3sUfeYKjRQAutJsDyud`), aliased to `https://www.draftcentral.gg`
+- Commit: `4c7ef17` (`main` and `origin/main`)
+- Vercel production deployment: Ready (`7yXtca6RLU9WMgHQxSvY39A5UNyc`), aliased to `https://www.draftcentral.gg`
 - Supabase migrations confirmed: through 240 in production
 - Testers and roles: Existing `@roblebae` owner/commissioner session, two temporary managers, and one temporary spectator
 - Desktop browsers and mobile devices: Codex in-app browser; 390 × 844 responsive viewport
@@ -98,7 +98,7 @@ Use this before each beta release. Record the date, commit, tester accounts, dev
 - [x] Production build passes with every expected route. (63 routes, August 2)
 - [x] Exact changed files are reviewed. (August 2 release candidate)
 - [x] Required Supabase SQL reports success. (migrations 239–240 and production validation queries, August 2)
-- [x] GitHub push completes with the intended release commit. (August 2 release candidate)
+- [x] GitHub push completes with the intended release commit. (`4c7ef17`, August 2)
 - [x] Vercel production deployment reports **Ready**.
 - [x] Production smoke test passes. (`npm run smoke:production`, 14 public routes and 5 protected APIs)
 - [x] Production dependency audit reports no known vulnerabilities. (Next.js 16.2.12, Sharp 0.35.3, PostCSS 8.5.25, and SheetJS 0.20.3; August 2)

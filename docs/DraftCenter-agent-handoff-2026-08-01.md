@@ -1,5 +1,8 @@
 # DraftCenter agent handoff — outside-user operations, support, analytics, and launch validation
 
+> Superseded by `docs/DraftCenter-agent-handoff-2026-08-02.md`. Keep this file
+> for the implementation history and the original July 31–August 1 context.
+
 - **Handoff date:** August 1, 2026
 - **Public launch target:** Friday, September 4, 2026
 - **Production:** https://www.draftcentral.gg
