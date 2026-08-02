@@ -5406,8 +5406,28 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   useEffect(() => {
     let alive = true;
     async function pull() {
-      const remote = await loadRemote(leagueId);
+      let remote = await loadRemote(leagueId);
       if (!alive) return;
+      // create_league intentionally starts with a minimal snapshot. Persist
+      // the complete setup immediately when league staff first open it so a
+      // manager invite can never arrive before the teams exist server-side.
+      if (
+        leagueId
+        && isCommissioner
+        && (!Array.isArray(remote?.teams) || remote.teams.length === 0)
+      ) {
+        const { data: initialized, error: initializeError } = await supabase.rpc(
+          "initialize_league_setup_if_empty",
+          { p_league_id: leagueId, p_state: freshState() },
+        );
+        if (!alive) return;
+        if (initializeError) {
+          setSaveStatus("error");
+          setLiveDraftError(`The new league setup could not be initialized: ${initializeError.message}`);
+        } else {
+          remote = initialized;
+        }
+      }
       if (remote && remote.rev >= revRef.current) {
         revRef.current = remote.rev;
         setState((current) => {
@@ -5448,7 +5468,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     pull();
     const iv = setInterval(pull, 4000);
     return () => { alive = false; clearInterval(iv); };
-  }, [leagueId, myTeamIdx]);
+  }, [leagueId, myTeamIdx, isCommissioner, supabase]);
 
   const commit = useCallback((updater) => {
     if (isSpectator || commissionerPreviewActive) return;
