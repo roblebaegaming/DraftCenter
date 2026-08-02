@@ -65,7 +65,10 @@ export async function getOperationsOverview(supabase, viewerUserId = null) {
     const idleDays = (now - Date.parse(lastActivity)) / 86400000; const warnings = [];
     if (!league.is_practice && leagueSize > 0 && claimed < leagueSize) warnings.push(warning("unclaimed_teams", hoursToDraft != null && hoursToDraft <= 48 ? "high" : "medium", `${leagueSize - claimed} of ${leagueSize} teams remain unclaimed.`));
     if (!league.is_practice && hoursToDraft != null && hoursToDraft >= 0 && hoursToDraft <= 48 && (!job || !["scheduled", "starting", "started"].includes(job.status))) warnings.push(warning("draft_not_ready", "high", "Draft is within 48 hours but automatic start is not ready."));
-    if (job?.status === "failed") warnings.push(warning("automation_failed", "high", job.last_error || "Scheduled draft automation failed."));
+    const harmlessDuplicateStart = job?.status === "failed"
+      && String(league.status) === "drafting"
+      && /already has a live draft|do not provision it again/i.test(String(job.last_error || ""));
+    if (job?.status === "failed" && !harmlessDuplicateStart) warnings.push(warning("automation_failed", "high", job.last_error || "Scheduled draft automation failed."));
     const failedNotifications = failedByLeague.get(league.id) || 0; if (failedNotifications) warnings.push(warning("notifications_failed", "high", `${failedNotifications} notification delivery failure${failedNotifications === 1 ? "" : "s"} need review.`));
     if (!league.is_practice && !["setup", "completed", "archived"].includes(String(league.status)) && idleDays >= 10) warnings.push(warning("inactive", "medium", `No saved league activity for ${Math.floor(idleDays)} days.`));
     if (!league.is_practice && String(league.status) === "setup" && idleDays >= 3 && claimed <= 1) warnings.push(warning("setup_stalled", "medium", `Setup has not progressed for ${Math.floor(idleDays)} days and ${leagueSize - claimed} team${leagueSize - claimed === 1 ? " remains" : "s remain"} unclaimed.`));
