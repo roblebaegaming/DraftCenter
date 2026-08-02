@@ -312,7 +312,7 @@ function LeagueAppearanceEditor({ league, onClose, onUpdated }) {
 function LeagueTools({ league, corrections, onClose, onUpdated, onDeleted }) {
   const [supabase] = useState(() => createClient());
   const [name,setName]=useState(league.name||""); const [season,setSeason]=useState(league.season_label||""); const [description,setDescription]=useState(league.description||""); const [imageUrl,setImageUrl]=useState(league.image_url||""); const [startsAt,setStartsAt]=useState(league.draft_starts_at ? new Date(league.draft_starts_at).toISOString().slice(0,16) : ""); const [visibility,setVisibility]=useState(league.league_visibility||"private"); const [draftStartVisibility,setDraftStartVisibility]=useState(league.draft_start_visibility||"default");
-  const [invite,setInvite]=useState(""); const [inviteEmail,setInviteEmail]=useState(""); const [coUsername,setCoUsername]=useState(""); const [coEmail,setCoEmail]=useState(""); const [removeUsername,setRemoveUsername]=useState(""); const [members,setMembers]=useState([]); const [message,setMessage]=useState(""); const [busy,setBusy]=useState(false); const [reversedTrades,setReversedTrades]=useState([]); const [reversedMoves,setReversedMoves]=useState([]); const [deleteConfirmation,setDeleteConfirmation]=useState(""); const [transferUsername,setTransferUsername]=useState(""); const [transferConfirmation,setTransferConfirmation]=useState("");
+  const [invite,setInvite]=useState(""); const [inviteEmail,setInviteEmail]=useState(""); const [coUsername,setCoUsername]=useState(""); const [coEmail,setCoEmail]=useState(""); const [removeUsername,setRemoveUsername]=useState(""); const [members,setMembers]=useState([]); const [message,setMessage]=useState(""); const [busy,setBusy]=useState(false); const [reversedTrades,setReversedTrades]=useState([]); const [reversedMoves,setReversedMoves]=useState([]); const [deleteConfirmation,setDeleteConfirmation]=useState(""); const [archiveConfirmation,setArchiveConfirmation]=useState(""); const [transferUsername,setTransferUsername]=useState(""); const [transferConfirmation,setTransferConfirmation]=useState("");
   useEffect(()=>{supabase.rpc('get_league_tool_members',{p_league_id:league.id}).then(({data,error})=>{if(!error)setMembers(data||[]);});},[supabase,league.id]);
   if (!['commissioner','co_commissioner'].includes(league.role)) return null;
   async function saveDetails(event) { event.preventDefault(); setBusy(true); setMessage(""); const imageResult=await supabase.rpc('update_league_image',{p_league_id:league.id,p_image_url:imageUrl.trim()||null}); if(imageResult.error){setBusy(false);return setMessage(imageResult.error.message);} const {data,error}=await supabase.rpc('update_league_details',{p_league_id:league.id,p_name:name,p_description:description,p_season_label:season,p_draft_starts_at:startsAt ? new Date(startsAt).toISOString():null,p_is_public:visibility!=="private"}); if(error){setBusy(false);return setMessage(error.message);} const accessResult=await supabase.rpc('update_league_access',{p_league_id:league.id,p_visibility:visibility,p_is_practice:Boolean(league.is_practice),p_practice_expires_at:league.practice_expires_at||null}); if(accessResult.error){setBusy(false);return setMessage(`League details saved, but public access could not be updated: ${accessResult.error.message}`);} const planResult=await supabase.rpc('update_league_visibility_plan',{p_league_id:league.id,p_current_visibility:visibility,p_draft_start_visibility:draftStartVisibility==="default"?null:draftStartVisibility}); if(planResult.error){setBusy(false);return setMessage(`League details saved, but the draft-start visibility could not be updated: ${planResult.error.message}`);} let note=""; if(startsAt){const {data:count,error:reminderError}=await supabase.rpc('schedule_draft_reminders',{p_league_id:league.id});note=reminderError ? ' Draft reminders will need configuration first.' : ` ${count||0} reminder jobs scheduled.`;note += " Open Draft Setup and wait for AUTOMATIC START READY before leaving.";} setBusy(false);onUpdated({...league,...data,...accessResult.data,...planResult.data,image_url:imageResult.data?.image_url||null});setMessage(`League visibility plan saved.${note}`); }
@@ -329,6 +329,16 @@ function LeagueTools({ league, corrections, onClose, onUpdated, onDeleted }) {
     setBusy(false);
     if(error)return setMessage(error.message);
     onDeleted?.();
+  }
+  async function setLifecycleArchived(archived){
+    if(archiveConfirmation.trim()!==league.name)return setMessage("Type the exact league name to confirm this change.");
+    setBusy(true);setMessage("");
+    const {data,error}=await supabase.rpc("set_league_lifecycle_archived",{p_league_id:league.id,p_archived:archived,p_confirmation:archiveConfirmation});
+    setBusy(false);
+    if(error)return setMessage(error.message);
+    onUpdated({...league,status:data.status,league_visibility:data.league_visibility,lifecycle_archived_at:archived?new Date().toISOString():null});
+    setArchiveConfirmation("");
+    setMessage(archived?"League archived for every member. All history is preserved.":"League reopened for every member.");
   }
   const promotableMembers=members.filter((member)=>member.role==='coach'&&member.username);
   const transferCandidates=members.filter((member)=>['coach','co_commissioner'].includes(member.role)&&member.username);
@@ -386,9 +396,10 @@ function LeagueTools({ league, corrections, onClose, onUpdated, onDeleted }) {
         {!!completedTrades.length&&<div className="form-stack"><strong>Completed trades</strong>{completedTrades.map((trade)=><div className="league-tool-compact-actions" key={trade.id}><span>{corrections?.teams?.[trade.fromTeam]?.name||"Team A"} ⇄ {corrections?.teams?.[trade.toTeam]?.name||"Team B"}</span><button type="button" className="danger-button league-tool-small-action" onClick={()=>reverseTradeFromTools(trade)}>Reverse</button></div>)}</div>}
       </section>
       {leagueIsFull&&<><hr/>{inviteControls}</>}
+      {league.role==="commissioner"&&<section className="support-access-panel"><h3>{league.status==="archived"?"Reopen archived league":"Archive completed league"}</h3><p className="muted">{league.status==="archived"?"Reopening restores the league to every member's active dashboard and restores its prior public visibility.":"This closes the league for every member, removes it from public discovery, and preserves teams, seasons, drafts, results, messages, and history. A live draft must be completed first."}</p><div className="form-stack"><label>Type <strong>{league.name}</strong> to confirm<input value={archiveConfirmation} autoComplete="off" onChange={(event)=>setArchiveConfirmation(event.target.value)} /></label><button type="button" className="secondary-button" disabled={busy||archiveConfirmation.trim()!==league.name} onClick={()=>setLifecycleArchived(league.status!=="archived")}>{busy?"Saving...":league.status==="archived"?"Reopen league for everyone":"Archive league for everyone"}</button></div></section>}
       {league.role==="commissioner"&&<section className="league-delete-zone">
         <h3>Delete league permanently</h3>
-        <p className="muted">Use Archive on your dashboard when you only want to hide this league for yourself. Permanent deletion removes this league for every member, including drafts, rosters, messages, transactions, results, and history.</p>
+        <p className="muted">Use Hide for me on your dashboard for personal organization, or Archive completed league above to preserve the league for everyone. Permanent deletion removes drafts, rosters, messages, transactions, results, and history.</p>
         <div className="form-stack">
           <label>Type <strong>{league.name}</strong> to confirm<input value={deleteConfirmation} autoComplete="off" onChange={(event)=>setDeleteConfirmation(event.target.value)} /></label>
           <button type="button" className="danger-button" disabled={busy||deleteConfirmation.trim()!==league.name} onClick={deleteLeaguePermanently}>{busy?"Deleting...":"Delete league permanently"}</button>
@@ -450,7 +461,7 @@ export default function AuthGate(){
     async function restoreFromUrl(){
       const params=new URLSearchParams(window.location.search); const key=params.get("league");
       if(!key){if(alive)setActiveLeague(null);return;}
-      const {data,error}=await supabase.from("league_memberships").select("role, league:leagues(id,name,slug,description,image_url,season_label,status,draft_starts_at,league_visibility,draft_start_visibility,is_practice,practice_expires_at)").eq("user_id",session.user.id);
+      const {data,error}=await supabase.from("league_memberships").select("role, league:leagues(id,name,slug,description,image_url,season_label,status,draft_starts_at,league_visibility,draft_start_visibility,is_practice,practice_expires_at,lifecycle_archived_at)").eq("user_id",session.user.id);
       if(!alive)return;
       const membership=(data||[]).find((entry)=>entry.league&&(entry.league.slug===key||entry.league.id===key));
       if(error||!membership){setMessage(error?.message||"That league is unavailable or you no longer have access.");closeLeague(true);return;}

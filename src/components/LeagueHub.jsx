@@ -238,7 +238,7 @@ export default function LeagueHub({ user, profile, onOpenLeague }) {
   async function loadLeagues(silent = false) {
     if (!silent) setLoading(true);
     const [{ data, error }, { data: publicData, error: publicError }] = await Promise.all([
-      supabase.from("league_memberships").select("id, role, archived_at, league:leagues(id, name, slug, description, image_url, season_label, status, updated_at, draft_starts_at, league_visibility, draft_start_visibility, is_practice, practice_expires_at)").eq("user_id", user.id).order("joined_at", { ascending: false }),
+      supabase.from("league_memberships").select("id, role, archived_at, league:leagues(id, name, slug, description, image_url, season_label, status, updated_at, draft_starts_at, league_visibility, draft_start_visibility, is_practice, practice_expires_at, lifecycle_archived_at)").eq("user_id", user.id).order("joined_at", { ascending: false }),
       supabase.rpc("get_public_league_cards"),
     ]);
     if (error || publicError) {
@@ -283,7 +283,7 @@ export default function LeagueHub({ user, profile, onOpenLeague }) {
         },
       };
     });
-    const activeTurn = markedMemberships.find((entry) => !entry.archived_at && entry.league.on_clock);
+    const activeTurn = markedMemberships.find((entry) => !entry.archived_at && entry.league.status !== "archived" && entry.league.on_clock);
     setLeagues(markedMemberships);
     setPublicLeagues(publicData || []);
     setTurnAlert(activeTurn ? `⚡ You are on the clock in ${activeTurn.league.name}. Open that league to make your pick.` : "");
@@ -346,8 +346,8 @@ export default function LeagueHub({ user, profile, onOpenLeague }) {
       : entry));
     setMessage(archived ? "League archived for your dashboard. You can restore it at any time." : "League restored to your active list.");
   }
-  const activeLeagues = leagues.filter((entry) => !entry.archived_at);
-  const archivedLeagues = leagues.filter((entry) => Boolean(entry.archived_at));
+  const activeLeagues = leagues.filter((entry) => !entry.archived_at && entry.league.status !== "archived");
+  const archivedLeagues = leagues.filter((entry) => Boolean(entry.archived_at) || entry.league.status === "archived");
   const visibleLeagues = showArchived ? archivedLeagues : activeLeagues;
   const liveDraftLeagues = activeLeagues.filter((entry) => entry.league.draft_live);
   const liveMatchLeagues = activeLeagues.filter((entry) => entry.league.live_matches?.length);
@@ -378,14 +378,14 @@ return (
       {loading && <p className="muted">Loading your leagues...</p>}
       {!loading && leagues.length === 0 && <div className="empty-state"><strong>You are ready to join.</strong><p>Ask a commissioner for an invite link, or create a league if you are running the season.</p></div>}
       {!loading && leagues.length > 0 && visibleLeagues.length === 0 && <div className="empty-state"><strong>{showArchived ? "No archived leagues." : "No active leagues."}</strong><p>{showArchived ? "Leagues you archive will remain available here." : "Restore a league from Archived, join one, or create a new league."}</p></div>}
-      <div className="league-list">{visibleLeagues.map(({ league, role, archived_at: archivedAt }) => <article className="league-row dashboard-league-row dashboard-league-card" key={league.id}>
+      <div className="league-list">{visibleLeagues.map(({ league, role, archived_at: archivedAt }) => { const lifecycleArchived = league.status === "archived"; return <article className="league-row dashboard-league-row dashboard-league-card" key={league.id}>
         <button type="button" className="dashboard-league-open" onClick={() => onOpenLeague({ ...league, role })}>
           {league.image_url && <img className="dashboard-league-image" src={league.image_url} alt="" />}
-          <div><strong>{league.name}</strong><span>{league.on_clock ? "⚡ YOUR PICK IS ON THE CLOCK" : league.live_matches?.length ? `● MATCH LIVE · ${league.live_matches[0].title}` : league.draft_live ? `● DRAFT LIVE · ${league.season_label || "New season"}` : `${league.season_label || "New season"} - ${role.replace("_", " ")}`}</span></div>
+          <div><strong>{league.name}</strong><span>{lifecycleArchived ? `LEAGUE ARCHIVED · ${league.season_label || "History preserved"}` : league.on_clock ? "⚡ YOUR PICK IS ON THE CLOCK" : league.live_matches?.length ? `● MATCH LIVE · ${league.live_matches[0].title}` : league.draft_live ? `● DRAFT LIVE · ${league.season_label || "New season"}` : `${league.season_label || "New season"} - ${role.replace("_", " ")}`}</span></div>
           <span className="open-arrow">{league.on_clock ? "Draft now" : league.live_matches?.length ? "Watch match" : league.draft_live ? "Follow draft" : "Open"}</span>
         </button>
-        <button type="button" className="quiet-button dashboard-league-archive" disabled={leagueActionId === league.id} onClick={() => setLeagueArchived(league.id, !archivedAt)}>{leagueActionId === league.id ? "Saving..." : archivedAt ? "Restore" : "Archive"}</button>
-      </article>)}</div>
+        {!lifecycleArchived && <button type="button" className="quiet-button dashboard-league-archive" disabled={leagueActionId === league.id} onClick={() => setLeagueArchived(league.id, !archivedAt)}>{leagueActionId === league.id ? "Saving..." : archivedAt ? "Restore" : "Hide for me"}</button>}
+      </article>; })}</div>
     </section>
     <section className="dashboard-daily-three">
       <PollOfTheDay supabase={supabase} />
