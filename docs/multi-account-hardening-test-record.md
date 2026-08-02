@@ -47,6 +47,8 @@ Evidence collected in this session:
 - Manager A proposed a one-for-one trade to Manager B. The proposer and spectator were blocked from accepting it; Manager B accepted it, both Pokémon moved exactly once, and both rosters remained at six.
 - Manager A and Manager B submitted competing FAAB claims with bids of 31 and 47. Each manager saw only their own bid; the competing bid was `null` for the other manager and spectator, and neither bid appeared in the shared snapshot. A manager could withdraw their own claim but could not withdraw the other manager's claim.
 - Season transaction limit, weekly transaction limit, and transaction deadline branches each rejected a new add/drop with the expected server message. The test settings were returned to their prior unlimited state afterward.
+- The commissioner processed the remaining FAAB claim once. The winning roster stayed at six and its FAAB balance moved from 100 to 53 for the 47-point bid.
+- A five-week round-robin schedule generated from the completed draft. Manager A reported a matchup involving team 0, while Manager B and the spectator were rejected because that matchup did not involve their teams. Manager A corrected the result from 2-0 to 1-2; standings immediately changed to a 2-1 winner and 1-2 loser with matching differentials.
 
 ## Test setup
 
@@ -100,7 +102,7 @@ Evidence collected in this session:
 - [x] Free-agent add/drop obeys roster ranges, deadlines, weekly limits, and season limits. (all server branches verified August 2)
 - [x] Manager A can see their own pending FAAB bid after refresh and reconnect. (fresh isolated client verification August 2)
 - [x] Manager B and spectators receive a sanitized pending-claim summary but cannot read Manager A's bid in page data or network responses. (August 2)
-- [ ] Commissioners can see all bids required to process claims; nonstaff cannot call claim processing.
+- [x] Commissioners can see all bids required to process claims; nonstaff cannot call claim processing. (commissioner UI processing plus function authorization review, August 2)
 - [ ] Simultaneous claim submission, withdrawal, and processing leaves each claim in exactly one state and never republishes bid amounts in the league snapshot.
 - [ ] Claim processing rejects a stale claim set, applies each winning add/drop once, and preserves claims submitted after processing.
 - [x] Trades require the correct participants and cannot move Pokémon a team does not own. (propose/respond authorization and one-for-one ownership transfer, August 2)
@@ -110,8 +112,8 @@ Evidence collected in this session:
 
 ## Results, playoffs, archive, and new season
 
-- [ ] Only permitted participants or commissioners can submit or correct results.
-- [ ] Standings recalculate correctly after result entry and correction.
+- [x] Only permitted participants or commissioners can submit or correct results. (participant save/correction and manager/spectator rejection, August 2)
+- [x] Standings recalculate correctly after result entry and correction. (production UI verification, August 2)
 - [ ] Playoff qualification, bracket progression, ties, and champion selection are correct.
 - [ ] Archiving preserves season settings, rosters, results, standings, and draft history.
 - [ ] Starting a new season clears only active-season state and preserves archived history.
