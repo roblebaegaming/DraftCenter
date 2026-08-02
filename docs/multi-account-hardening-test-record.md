@@ -60,6 +60,15 @@ Evidence collected in this session:
 - The latest-pick undo passed commissioner UI, manager rejection, completed-draft reopening, budget/pool/roster restoration, and two-request race tests in production.
 - Final cleanup used exact guards before deletion: the practice league verified at zero remaining rows, all three temporary users had zero owned leagues and memberships, and all three then verified absent from Auth.
 
+## Final draft-edge validation — August 2, 2026
+
+- Environment: Production with a new disposable practice league; the league and both disposable managers were removed after the checks.
+- A two-manager budgeted snake session used a 10-point budget, roster minimum of two, and roster maximum of three. An opening 10-point pick was rejected because it would leave no point for the missing minimum slot.
+- Four legal picks completed the draft with both teams at the minimum of two, both below the maximum of three. Future turns were pruned, the final turn pointer advanced to six, the saved budgets were 6 and 0, and one unaffordable Pokémon remained available.
+- The same two accounts then ran a hosted auction with one-slot rosters. A manager could not bid for the other team, an over-budget bid was rejected, a valid competing bid became the leader, and the server resolved the sale after the reset timer.
+- The full-roster manager could not bid again. The commissioner safely skipped that full team's nomination turn, the remaining manager completed the second sale, and the auction ended with one Pokémon per team and final budgets of 9 and 8.
+- Exact league ID, slug, name, practice flag, and creator checks passed before deletion. The creator owned no other leagues, the second manager owned none, and all three disposable Auth test accounts used in the final Auth/draft pass were removed.
+
 ## Test setup
 
 - Date:
@@ -101,9 +110,9 @@ Evidence collected in this session:
 - [ ] After a human pick, the 300 ms and 900 ms authoritative refreshes do not cancel and permanently suppress the next bot's delayed pick.
 - [ ] If a hosted draft snapshot loses its cached `liveDraft.basePool`, refresh reconstructs the available board from authoritative undrafted `league_pokemon` rows without restarting the draft.
 - [ ] A randomized snake draft board displays columns in actual first-round order and marks alternating round direction (`→`, `←`).
-- [ ] Budgeted snake rejects any pick that would leave less than 1 point for each missing minimum roster slot in both the UI and database.
-- [ ] A budgeted snake session cannot enter `complete` while any team is below the configured roster minimum, including after budget exhaustion or turn advancement.
-- [ ] At or above the minimum, a budgeted-snake team can finish below the maximum; all of its future turns are removed and other teams continue normally.
+- [x] Budgeted snake rejects any pick that would leave less than 1 point for each missing minimum roster slot in both the UI and database. (production server rejection and UI rule path, August 2)
+- [x] A budgeted snake session cannot enter `complete` while any team is below the configured roster minimum, including after budget exhaustion or turn advancement. (production two-manager minimum-floor pass, August 2)
+- [x] At or above the minimum, a budgeted-snake team can finish below the maximum; all of its future turns are removed and other teams continue normally. (both teams completed at two of three slots; future turns pruned, August 2)
 - [ ] Unclaimed budget-snake bots finish at stable targets across the configured roster range instead of every bot being forced to the maximum.
 - [ ] Draft rules clearly show Restricted and Mega limits, and candidates beyond the current team’s cap are blacked out, labeled, and unselectable.
 

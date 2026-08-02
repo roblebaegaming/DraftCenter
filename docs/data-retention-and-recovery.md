@@ -23,7 +23,7 @@ Record these values after verifying them in the Supabase dashboard:
 - Backup retention: The dashboard displayed seven daily physical backups from July 26 through August 1, 2026; the exact contractual retention window still needs confirmation before making a public promise
 - Point-in-time recovery enabled: No; the dashboard offers it as a separate add-on
 - People with restore access: One organization member, the owner account
-- Off-account encrypted backup location: Not yet established
+- Off-account encrypted backup location: Google Drive, exact archive name `draftcenter-recovery-2026-08-02.zip`
 - Last successful restore drill: August 2, 2026 — passed in isolated project `phvlvcuxulzhrqrmfndz`
 - Next scheduled restore drill: November 2, 2026
 
@@ -63,6 +63,19 @@ locked down until the owner approves its deletion.
 Database-provider backups and user-downloaded exports serve different needs.
 Provider backups recover the service; user exports provide portability and an
 additional copy outside the production project.
+
+## Off-account encrypted archive — August 2, 2026
+
+- A recovery bundle containing the private account export, My Teams workbook,
+  league workbook, and league recovery JSON was packaged as an AES-256 encrypted
+  ZIP file.
+- Every archive member was decrypted and compared with its source using SHA-256;
+  all four hashes matched.
+- The archive was uploaded to the owner's Google Drive and verified by its exact
+  filename. A duplicate upload was cancelled so only the intended copy remains.
+- The passphrase is intentionally not stored in this repository or this
+  document. It is delivered separately to the owner and should be kept in a
+  password manager distinct from the Google account.
 
 ## Application export and recovery validation — August 2, 2026
 

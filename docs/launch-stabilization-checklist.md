@@ -5,10 +5,10 @@ Use this before each beta release. Record the date, commit, tester accounts, dev
 ## Release record
 
 - Date: August 2, 2026
-- Commit: `4c7ef17` (`main` and `origin/main`)
-- Vercel production deployment: Ready (`7yXtca6RLU9WMgHQxSvY39A5UNyc`), aliased to `https://www.draftcentral.gg`
+- Commit before final documentation: `205672b` (`main` and `origin/main`)
+- Vercel production deployment: Ready (`dpl_CFuyFAZhgfuhZFHRsUTGepzMFEAg`), aliased to `https://www.draftcentral.gg`
 - Supabase migrations confirmed: through 240 in production
-- Testers and roles: Existing `@roblebae` owner/commissioner session, two temporary managers, and one temporary spectator
+- Testers and roles: Existing `@roblebae` owner/commissioner session, the earlier two temporary managers and spectator, plus two final disposable manager sessions
 - Desktop browsers and mobile devices: Codex in-app browser; 390 × 844 responsive viewport
 
 ### August 1–2 evidence
@@ -26,10 +26,16 @@ Use this before each beta release. Record the date, commit, tester accounts, dev
 - **Portability and recovery passed:** private account JSON, a 12-sheet league workbook, league recovery JSON, and owner-isolated My Teams restore were downloaded, inspected, and exercised.
 - **Latest-pick correction passed:** the production commissioner UI and guarded server function restored roster, pool, budget, turn, and completed-draft state; unauthorized and stale concurrent requests were rejected.
 - **Cleanup passed:** the temporary league and all three temporary Auth accounts were deleted only after zero-ownership guards; all targets verified absent afterward.
+- **Authentication passed in Gmail:** production signup confirmation, recovery email delivery, recovery landing, password replacement, sign out, and sign in with the new password all passed. The recovery flow exposed and fixed a production redirect-session bug; Supabase tokens are now restored and removed from the URL after use.
+- **Discord delivery passed:** personal DM, league-channel test, and the real Daily Three league preview all returned successful delivery. Mega Test keeps Daily Three announcements enabled.
+- **Twitch integration configuration passed:** broadcaster lookup and EventSub registration succeeded, and a synthetic live listing appeared and cleared correctly. A real Twitch online/offline broadcast remains an owner-operated check.
+- **Final draft edge cases passed:** an isolated two-manager budgeted snake draft enforced minimum-slot affordability and completed below the roster maximum; an isolated two-manager auction enforced nomination ownership, bid ownership, budgets, roster limits, timed resolution, and final accounting.
+- **External operations passed:** the encrypted recovery archive was uploaded to Google Drive and verified by exact filename, and Google Search Console domain ownership was verified through the production DNS TXT record.
+- **Final cleanup passed:** the final disposable practice league was deleted after exact ID/name/slug/owner checks, and its two managers plus the separate Auth test account now return no matching Auth users.
 
 ## Accounts, permissions, and privacy
 
-- [ ] Sign up, confirmation, sign in, password reset, and sign out work.
+- [x] Sign up, confirmation, sign in, password reset, and sign out work. (production Gmail flow and recovered-session retest, August 2)
 - [x] Commissioner, co-commissioner, manager, and spectator see only permitted controls. (production multi-account checks, August 2)
 - [x] Public/watch pages do not reveal private league details or identities. (signed-out production/API and database-function review, August 1)
 - [x] League notebooks and My Teams workspaces are visible only to their owner. (access-policy and public-projection review, August 1)
@@ -43,8 +49,8 @@ Use this before each beta release. Record the date, commit, tester accounts, dev
 - [x] Invite, promote, remove, and restore managers safely. (production live-session checks, August 2)
 - [ ] Draft-time edits do not start or complete the draft.
 - [x] Complete a multi-account snake draft. (36 authoritative picks across six teams, August 2)
-- [ ] Complete a multi-account auction draft.
-- [ ] Complete a hosted budgeted snake draft; server rejects unaffordable picks and preserves remaining budgets.
+- [x] Complete a multi-account auction draft. (isolated two-manager production auction with invalid-bid, budget, timer, roster, and accounting checks, August 2)
+- [x] Complete a hosted budgeted snake draft; server rejects unaffordable picks and preserves remaining budgets. (isolated two-manager production pass with minimum-slot affordability and below-maximum completion, August 2)
 - [ ] Waiting room, scheduled start, timer, turn ownership, queues, sorting, and recap work.
 - [x] A manager queue survives reload and cannot modify another manager's queue. (two-manager isolation check, August 2)
 - [ ] Rapid roster-range slider changes persist the final selected values.
@@ -75,7 +81,7 @@ Use this before each beta release. Record the date, commit, tester accounts, dev
 - [x] League recovery JSON restores into a test league without altering archived history or protected live-draft authority. (meaningful-state comparison, August 2)
 - [x] Automated database backup ownership, frequency, visible history, and restore access are documented. (August 1; exact contractual retention remains intentionally unpublished)
 - [x] A database restore drill is completed in a safe non-production environment and recorded. (Passed August 2, 2026 in isolated project `phvlvcuxulzhrqrmfndz`.)
-- [x] Recovery artifacts are stored outside the production database and deployment account. (local account, workbook, and league-recovery downloads, August 2; an off-account encrypted archive is still recommended)
+- [x] Recovery artifacts are stored outside the production database and deployment account. (AES-256 recovery archive uploaded to Google Drive and exact-name verified, August 2)
 - [x] Account and My Teams data portability is tested without exposing another user's private data. (signed-out rejection and cross-owner restore isolation, August 2)
 
 ## Community and account features
@@ -105,7 +111,7 @@ Use this before each beta release. Record the date, commit, tester accounts, dev
 
 ## Release decision
 
-- Blocking failures:
-- Non-blocking follow-ups:
+- Blocking failures: None found in the validated release scope.
+- Non-blocking follow-ups: real Twitch online/offline EventSub broadcast; a second major email client; Firefox/Safari and throttled-network breadth; the intentionally unchecked bot, reset/rebuild race, claim-race, transaction-reversal, Daily Three interaction, public-profile, and My Teams breadth items above.
 - Approved by:
-- Decision: Ship / Hold
+- Decision: Ready for owner ship decision; remaining items are coverage gaps, not known regressions.
