@@ -4,6 +4,9 @@ import { loadAllLeaguePokemon } from "../lib/leaguePokemon.mjs";
 import { DiscordConnectionPanel, LeagueBroadcastCenter } from "./SocialSharing";
 import PublicCoachProfile, { CoachProfileButton } from "./PublicCoachProfile";
 import ChampionshipStudio from "./ChampionshipStudio";
+import { SHOWDOWN_GAME_AVAILABILITY, SHOWDOWN_REGIONAL_POKEDEXES } from "../lib/showdown-regional-pokedexes";
+import { withRegulationMetadata } from "../lib/regulation-catalog";
+import RegulationPicker from "./RegulationPicker";
 
 /* ---------------------------------------------------------
    DESIGN TOKENS — stadium-jumbotron-at-night aesthetic.
@@ -770,6 +773,8 @@ const GEN9_POOL = GEN9_RAW.map(([name, t1, t2, bst], i) => ({
 // Regulation D's HOME-exclusive legal list (sourced from the official VGC
 // ruleset text, not guessed).
 const REGIONAL_EXTRA_RAW = [
+  ["Alolan Rattata","dark","normal",253,7],["Alolan Raticate","dark","normal",413,7],
+  ["Alolan Marowak","fire","ghost",425,7],["Alolan Exeggutor","grass","dragon",530,7],
   ["Alolan Diglett","ground","steel",265,7],["Alolan Dugtrio","ground","steel",425,7],
   ["Alolan Meowth","dark",null,290,7],["Alolan Persian","dark",null,440,7],
   ["Alolan Grimer","poison","dark",325,7],["Alolan Muk","poison","dark",500,7],
@@ -786,6 +791,7 @@ const REGIONAL_EXTRA_RAW = [
   ["Alolan Vulpix","ice",null,299,7],["Alolan Geodude","rock","electric",300,7],
   ["Alolan Graveler","rock","electric",390,7],["Alolan Golem","rock","electric",495,7],
   ["Galarian Weezing","poison","fairy",490,8],
+  ["Toxtricity-Low-Key","electric","poison",502,8],
   ["Calyrex-Shadow Rider","psychic","ghost",680,8],["Calyrex-Ice Rider","psychic","ice",680,8],
   ["Primal Groudon","ground","fire",770,6],["Primal Kyogre","water",null,770,6],
 ];
@@ -884,14 +890,111 @@ const RESTRICTED_LEGENDARY_NAMES = [
 // consistently banned "Mythical Pokémon" as its own category (separate from
 // Restricted Legendaries) going all the way back to Gen 6.
 const ALL_MYTHICAL_NAMES = [
-  "Mew","Celebi","Jirachi","Deoxys","Manaphy","Darkrai","Shaymin","Victini","Keldeo","Meloetta","Genesect",
+  "Mew","Celebi","Jirachi","Deoxys","Phione","Manaphy","Darkrai","Shaymin","Arceus","Victini","Keldeo","Meloetta","Genesect",
   "Diancie","Hoopa","Volcanion","Magearna","Marshadow","Zeraora","Meltan","Melmetal","Zarude","Pecharunt",
 ];
-// "Everything through Gen N" — the natural legal-pool base for an older
-// generation's VGC format, since Pokémon HOME made nearly the whole National
-// Dex transferable forward by the back half of that generation's life.
-const MONS_THROUGH_GEN8 = MASTER_POKEDEX.filter((p) => p.gen <= 8).map((p) => p.name);
-const MONS_THROUGH_GEN7 = MASTER_POKEDEX.filter((p) => p.gen <= 7).map((p) => p.name);
+const ALL_RESTRICTED_LEGENDARY_NAMES = [
+  "Mewtwo","Lugia","Ho-Oh","Kyogre","Groudon","Rayquaza","Dialga","Palkia","Giratina","Reshiram","Zekrom","Kyurem",
+  "Xerneas","Yveltal","Zygarde","Cosmog","Cosmoem","Solgaleo","Lunala","Necrozma","Zacian","Zamazenta","Eternatus",
+  "Calyrex","Koraidon","Miraidon","Terapagos",
+];
+const HISTORICAL_FORM_EXCLUSIONS = new Set(["Floette-Eternal", "White-Striped Basculin"]);
+
+function baseSpeciesForRules(name) {
+  return String(name || "")
+    .replace(/^Mega /, "")
+    .replace(/\s+[XYZ]$/, "")
+    .replace(/^Primal /, "")
+    .replace(/^(Alolan|Galarian|Hisuian|Paldean) /, "")
+    .replace(/\s+\((Fire|Water)\)$/, "")
+    .replace(/-(Female|Midday|Midnight|Dusk)$/, "")
+    .replace(/-(Ice|Shadow) Rider$/, "");
+}
+
+function isMythicalName(name) {
+  return ALL_MYTHICAL_NAMES.includes(baseSpeciesForRules(name));
+}
+
+function isRestrictedLegendaryName(name) {
+  return ALL_RESTRICTED_LEGENDARY_NAMES.includes(baseSpeciesForRules(name));
+}
+
+function historicalNationalDex(generation) {
+  return MASTER_POKEDEX
+    .filter((pokemon) => pokemon.gen <= generation)
+    .filter((pokemon) => !HISTORICAL_FORM_EXCLUSIONS.has(pokemon.name))
+    .map((pokemon) => pokemon.name);
+}
+
+function dexKey(name) {
+  return String(name || "")
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "");
+}
+
+function showdownFormName(name) {
+  const regional = String(name || "").match(/^(Alolan|Galarian|Hisuian) (.+)$/);
+  if (regional) {
+    return `${regional[2]}-${{ Alolan: "Alola", Galarian: "Galar", Hisuian: "Hisui" }[regional[1]]}`;
+  }
+  if (name === "Paldean Tauros") return "Tauros-Paldea-Combat";
+  if (name === "Paldean Tauros (Fire)") return "Tauros-Paldea-Blaze";
+  if (name === "Paldean Tauros (Water)") return "Tauros-Paldea-Aqua";
+  if (name === "White-Striped Basculin") return "Basculin-White-Striped";
+  if (name === "Basculegion-Female") return "Basculegion-F";
+  if (name === "Lycanroc-Midday") return "Lycanroc";
+  return name;
+}
+
+function regionalDexPool(key, maximumGeneration, { includeMegas = false } = {}) {
+  const allowed = new Set((SHOWDOWN_REGIONAL_POKEDEXES[key] || []).map(dexKey));
+  return MASTER_POKEDEX
+    .filter((pokemon) => pokemon.gen <= maximumGeneration)
+    .filter((pokemon) => includeMegas || !pokemon.isMega)
+    .filter((pokemon) => allowed.has(dexKey(showdownFormName(pokemon.name))))
+    .map((pokemon) => pokemon.name);
+}
+
+function showdownAvailabilityPool(key, maximumGeneration) {
+  const allowed = new Set((SHOWDOWN_GAME_AVAILABILITY[key] || []).map(dexKey));
+  return MASTER_POKEDEX
+    .filter((pokemon) => pokemon.gen <= maximumGeneration && !pokemon.isMega)
+    .filter((pokemon) => allowed.has(dexKey(showdownFormName(pokemon.name))))
+    .map((pokemon) => pokemon.name);
+}
+
+function standardVgcPool(names, { allowRestricted = false } = {}) {
+  return [...new Set(names)]
+    .filter((name) => !isMythicalName(name))
+    .filter((name) => allowRestricted || !isRestrictedLegendaryName(name));
+}
+
+function restrictedNamesFor(names) {
+  return names.filter(isRestrictedLegendaryName);
+}
+
+const KANTO_DEX_NAMES = MASTER_POKEDEX.filter((pokemon) => pokemon.gen === 1 && !pokemon.isMega).map((pokemon) => pokemon.name);
+const UNOVA_BW_DEX_NAMES = MASTER_POKEDEX
+  .filter((pokemon) => pokemon.gen === 5 && !pokemon.isMega && !HISTORICAL_FORM_EXCLUSIONS.has(pokemon.name))
+  .map((pokemon) => pokemon.name);
+const HOENN_DEX_NAMES = regionalDexPool("hoenn", 6, { includeMegas: true });
+const SINNOH_DEX_NAMES = regionalDexPool("sinnoh", 4);
+const UNOVA_B2W2_DEX_NAMES = regionalDexPool("unovaB2W2", 5);
+const KALOS_DEX_NAMES = regionalDexPool("kalos", 6, { includeMegas: true });
+const ALOLA_SM_DEX_NAMES = regionalDexPool("alolaSM", 7, { includeMegas: true });
+const ALOLA_USUM_DEX_NAMES = regionalDexPool("alolaUSUM", 7, { includeMegas: true });
+const GALAR_DEX_NAMES = regionalDexPool("galar", 8);
+const ISLE_OF_ARMOR_DEX_NAMES = regionalDexPool("isleOfArmor", 8);
+const CROWN_TUNDRA_DEX_NAMES = regionalDexPool("crownTundra", 8);
+const GALAR_EXPANSION_DEX_NAMES = regionalDexPool("galarExpansion", 8);
+const PALDEA_DEX_NAMES = regionalDexPool("paldea", 9);
+const SHOWDOWN_KITAKAMI_DEX_NAMES = regionalDexPool("kitakami", 9);
+const BLUEBERRY_DEX_NAMES = regionalDexPool("blueberry", 9);
+const FULL_SV_DEX_NAMES = [...new Set([...PALDEA_DEX_NAMES, ...SHOWDOWN_KITAKAMI_DEX_NAMES, ...BLUEBERRY_DEX_NAMES])];
+const SWSH_2020_AVAILABLE_NAMES = showdownAvailabilityPool("gen8dlc1", 8);
+const SWSH_FULL_AVAILABLE_NAMES = showdownAvailabilityPool("gen8", 8);
 
 const REG_D_LEGAL_NAMES = [
   ...GEN9_NAMES.filter((n) => !PALDEA_BOX_LEGENDS.includes(n) && n !== "Walking Wake" && n !== "Iron Leaves"),
@@ -1211,7 +1314,7 @@ const REG_J_COSTS = {
   "Iron Hands": 11,   // 6.65%
 };
 
-export const REGULATION_SETS = {
+const REGULATION_POOLS = {
   "reg-mb": {
     id: "reg-mb",
     name: "Regulation M-B",
@@ -1451,21 +1554,21 @@ export const REGULATION_SETS = {
     // legal pool that still excludes box Legendaries. By this point in the
     // generation's life, Pokémon HOME had made virtually the entire
     // National Dex up through Gen 8 transferable into Sword & Shield —
-    // Mythicals and Restricted Legendaries are the two categories still
-    // excluded, same shape as SV's Regulation A-style bans, just spanning
-    // every generation instead of one region's native dex.
-    legalNames: MONS_THROUGH_GEN8.filter((n) => !ALL_MYTHICAL_NAMES.includes(n) && !RESTRICTED_LEGENDARY_NAMES.includes(n)),
+    // Mythicals and Restricted Legendaries remain excluded from the Pokémon
+    // that actually exist in Sword & Shield's final availability snapshot.
+    legalNames: standardVgcPool(SWSH_FULL_AVAILABLE_NAMES),
+    noTierData: true,
     defaultCosts: {}, // no curated draft tier data pulled for this one yet — falls back to the BST formula
   },
   "swsh-series13": {
     id: "swsh-series13",
     name: "Series 13",
     subtitle: "Sword & Shield VGC · Sep 1 – Oct 31, 2022",
-    // The final Sword & Shield ruleset, and the first time ever that every
-    // Legendary AND every Mythical became usable with no restrictions at
-    // all — literally the entire Gen 1-8 dex is legal here.
-    legalNames: MONS_THROUGH_GEN8,
+    // The final Sword & Shield ruleset allows every species and form that is
+    // actually available in Sword & Shield, including Mythicals.
+    legalNames: SWSH_FULL_AVAILABLE_NAMES,
     defaultCosts: {},
+    noTierData: true,
   },
   "sm-vgc2018": {
     id: "sm-vgc2018",
@@ -1475,20 +1578,271 @@ export const REGULATION_SETS = {
     // effectively the whole dex through Gen 7 — except Mythicals and
     // Restricted (box) Legendaries, which were banned as their own
     // categories the same way they would be in every VGC ruleset since.
-    legalNames: MONS_THROUGH_GEN7.filter((n) => !ALL_MYTHICAL_NAMES.includes(n) && !RESTRICTED_LEGENDARY_NAMES.includes(n)),
-    defaultCosts: {},
-  },
-  "national-dex": {
-    id: "national-dex",
-    name: "National Dex",
-    subtitle: "All supported generations, regional forms, alternate forms, and Mega Evolutions",
-    legalNames: null,
+    legalNames: standardVgcPool(historicalNationalDex(7)),
     defaultCosts: {},
     noTierData: true,
-    restrictedNames: [...new Set([...RESTRICTED_LEGENDARY_NAMES, ...ALL_MYTHICAL_NAMES])],
-    defaultRestrictedCap: null,
-    defaultMegaCap: null,
   },
+  "vgc2009": {
+    id: "vgc2009",
+    name: "VGC 2009",
+    subtitle: "Pokémon Platinum VGC · Level-50 national rules",
+    legalNames: standardVgcPool(historicalNationalDex(4))
+      .filter((name) => !["Tyranitar", "Rotom"].includes(baseSpeciesForRules(name))),
+    defaultCosts: {},
+    noTierData: true,
+  },
+  "vgc2010": {
+    id: "vgc2010",
+    name: "VGC 2010",
+    subtitle: "HeartGold & SoulSilver VGC · Restricted legends allowed",
+    legalNames: standardVgcPool(historicalNationalDex(4), { allowRestricted: true }),
+    defaultCosts: {},
+    noTierData: true,
+    restrictedNames: restrictedNamesFor(historicalNationalDex(4)),
+    defaultRestrictedCap: 2,
+  },
+  "vgc2011": {
+    id: "vgc2011",
+    name: "VGC 2011",
+    subtitle: "Black & White VGC · Original Unova Pokédex",
+    legalNames: standardVgcPool(UNOVA_BW_DEX_NAMES),
+    defaultCosts: {},
+    noTierData: true,
+  },
+  "vgc2012": {
+    id: "vgc2012",
+    name: "VGC 2012",
+    subtitle: "Black & White VGC · National rules",
+    legalNames: standardVgcPool(historicalNationalDex(5)),
+    defaultCosts: {},
+    noTierData: true,
+  },
+  "vgc2013": {
+    id: "vgc2013",
+    name: "VGC 2013",
+    subtitle: "Black 2 & White 2 VGC · National rules",
+    legalNames: standardVgcPool(historicalNationalDex(5)),
+    defaultCosts: {},
+    noTierData: true,
+  },
+  "vgc2014": {
+    id: "vgc2014",
+    name: "VGC 2014",
+    subtitle: "X & Y VGC · Kalos Pokédex",
+    legalNames: standardVgcPool(KALOS_DEX_NAMES),
+    defaultCosts: {},
+    noTierData: true,
+    defaultMegaCap: 1,
+  },
+  "vgc2015": {
+    id: "vgc2015",
+    name: "VGC 2015",
+    subtitle: "Omega Ruby & Alpha Sapphire VGC · National rules",
+    legalNames: standardVgcPool(historicalNationalDex(6)),
+    defaultCosts: {},
+    noTierData: true,
+    defaultMegaCap: 1,
+  },
+  "vgc2016": {
+    id: "vgc2016",
+    name: "VGC 2016",
+    subtitle: "Omega Ruby & Alpha Sapphire VGC · two restricted legends",
+    legalNames: standardVgcPool(historicalNationalDex(6), { allowRestricted: true }),
+    defaultCosts: {},
+    noTierData: true,
+    restrictedNames: restrictedNamesFor(historicalNationalDex(6)),
+    defaultRestrictedCap: 2,
+    defaultMegaCap: 1,
+  },
+  "vgc2017": {
+    id: "vgc2017",
+    name: "VGC 2017",
+    subtitle: "Sun & Moon VGC · Original Alola Pokédex · no Megas",
+    legalNames: standardVgcPool(ALOLA_SM_DEX_NAMES.filter((name) => !MASTER_POKEDEX.find((pokemon) => pokemon.name === name)?.isMega)),
+    defaultCosts: {},
+    noTierData: true,
+  },
+  "vgc2019": {
+    id: "vgc2019",
+    name: "VGC 2019",
+    subtitle: "Ultra Sun & Ultra Moon VGC · two restricted legends",
+    legalNames: standardVgcPool(historicalNationalDex(7), { allowRestricted: true }),
+    defaultCosts: {},
+    noTierData: true,
+    restrictedNames: restrictedNamesFor(historicalNationalDex(7)),
+    defaultRestrictedCap: 2,
+    defaultMegaCap: 1,
+  },
+  "vgc2020": {
+    id: "vgc2020",
+    name: "VGC 2020",
+    subtitle: "Sword & Shield VGC · Showdown Gen 8 DLC1 availability",
+    legalNames: standardVgcPool(SWSH_2020_AVAILABLE_NAMES),
+    defaultCosts: {},
+    noTierData: true,
+  },
+  "vgc2021": {
+    id: "vgc2021",
+    name: "VGC 2021",
+    subtitle: "Sword & Shield VGC · full Expansion Pass availability",
+    legalNames: standardVgcPool(SWSH_FULL_AVAILABLE_NAMES),
+    defaultCosts: {},
+    noTierData: true,
+  },
+  "vgc2022": {
+    id: "vgc2022",
+    name: "VGC 2022",
+    subtitle: "Sword & Shield VGC · two restricted legends",
+    legalNames: standardVgcPool(SWSH_FULL_AVAILABLE_NAMES, { allowRestricted: true }),
+    defaultCosts: {},
+    noTierData: true,
+    restrictedNames: restrictedNamesFor(SWSH_FULL_AVAILABLE_NAMES),
+    defaultRestrictedCap: 2,
+  },
+  "rby-kanto-dex": {
+    id: "rby-kanto-dex",
+    name: "Kanto Pokédex",
+    subtitle: "Red, Blue & Yellow · the original 151",
+    legalNames: KANTO_DEX_NAMES,
+    defaultCosts: {},
+    noTierData: true,
+  },
+  "oras-hoenn-dex": {
+    id: "oras-hoenn-dex",
+    name: "Hoenn Pokédex (ORAS)",
+    subtitle: "Omega Ruby & Alpha Sapphire · regional Pokédex",
+    legalNames: HOENN_DEX_NAMES,
+    defaultCosts: {},
+    noTierData: true,
+    defaultMegaCap: 1,
+  },
+  "platinum-sinnoh-dex": {
+    id: "platinum-sinnoh-dex",
+    name: "Sinnoh Pokédex (Platinum)",
+    subtitle: "Pokémon Platinum · expanded regional Pokédex",
+    legalNames: SINNOH_DEX_NAMES,
+    defaultCosts: {},
+    noTierData: true,
+  },
+  "bw-unova-dex": {
+    id: "bw-unova-dex",
+    name: "Original Unova Pokédex",
+    subtitle: "Black & White · Unova-native species",
+    legalNames: UNOVA_BW_DEX_NAMES,
+    defaultCosts: {},
+    noTierData: true,
+  },
+  "b2w2-unova-dex": {
+    id: "b2w2-unova-dex",
+    name: "New Unova Pokédex",
+    subtitle: "Black 2 & White 2 · expanded regional Pokédex",
+    legalNames: UNOVA_B2W2_DEX_NAMES,
+    defaultCosts: {},
+    noTierData: true,
+  },
+  "xy-kalos-dex": {
+    id: "xy-kalos-dex",
+    name: "Kalos Pokédex",
+    subtitle: "X & Y · Central, Coastal, and Mountain Pokédexes",
+    legalNames: KALOS_DEX_NAMES,
+    defaultCosts: {},
+    noTierData: true,
+    defaultMegaCap: 1,
+  },
+  "sm-alola-dex": {
+    id: "sm-alola-dex",
+    name: "Alola Pokédex",
+    subtitle: "Sun & Moon · original regional Pokédex",
+    legalNames: ALOLA_SM_DEX_NAMES,
+    defaultCosts: {},
+    noTierData: true,
+    defaultMegaCap: 1,
+  },
+  "usum-alola-dex": {
+    id: "usum-alola-dex",
+    name: "Ultra Alola Pokédex",
+    subtitle: "Ultra Sun & Ultra Moon · expanded regional Pokédex",
+    legalNames: ALOLA_USUM_DEX_NAMES,
+    defaultCosts: {},
+    noTierData: true,
+    defaultMegaCap: 1,
+  },
+  "swsh-galar-dex": {
+    id: "swsh-galar-dex",
+    name: "Galar Pokédex",
+    subtitle: "Sword & Shield · base-game regional Pokédex",
+    legalNames: GALAR_DEX_NAMES,
+    defaultCosts: {},
+    noTierData: true,
+  },
+  "swsh-isle-dex": {
+    id: "swsh-isle-dex",
+    name: "Isle of Armor Pokédex",
+    subtitle: "Sword & Shield Expansion Pass · Isle of Armor",
+    legalNames: ISLE_OF_ARMOR_DEX_NAMES,
+    defaultCosts: {},
+    noTierData: true,
+  },
+  "swsh-crown-dex": {
+    id: "swsh-crown-dex",
+    name: "Crown Tundra Pokédex",
+    subtitle: "Sword & Shield Expansion Pass · Crown Tundra",
+    legalNames: CROWN_TUNDRA_DEX_NAMES,
+    defaultCosts: {},
+    noTierData: true,
+  },
+  "swsh-expansion-dex": {
+    id: "swsh-expansion-dex",
+    name: "Galar + Expansion Pokédexes",
+    subtitle: "Sword & Shield · Galar, Isle of Armor, and Crown Tundra",
+    legalNames: GALAR_EXPANSION_DEX_NAMES,
+    defaultCosts: {},
+    noTierData: true,
+  },
+  "sv-paldea-dex": {
+    id: "sv-paldea-dex",
+    name: "Paldea Pokédex",
+    subtitle: "Scarlet & Violet · base-game regional Pokédex",
+    legalNames: PALDEA_DEX_NAMES,
+    defaultCosts: {},
+    noTierData: true,
+  },
+  "sv-kitakami-dex": {
+    id: "sv-kitakami-dex",
+    name: "Kitakami Pokédex",
+    subtitle: "Scarlet & Violet: The Teal Mask",
+    legalNames: SHOWDOWN_KITAKAMI_DEX_NAMES,
+    defaultCosts: {},
+    noTierData: true,
+  },
+  "sv-blueberry-dex": {
+    id: "sv-blueberry-dex",
+    name: "Blueberry Pokédex",
+    subtitle: "Scarlet & Violet: The Indigo Disk",
+    legalNames: BLUEBERRY_DEX_NAMES,
+    defaultCosts: {},
+    noTierData: true,
+  },
+  "sv-full-dex": {
+    id: "sv-full-dex",
+    name: "Scarlet/Violet + DLC Pokédexes",
+    subtitle: "Paldea, Kitakami, and Blueberry Pokédexes combined",
+    legalNames: FULL_SV_DEX_NAMES,
+    defaultCosts: {},
+    noTierData: true,
+  },
+  ...Object.fromEntries([1, 2, 3, 4, 5, 6, 7, 8, 9].map((generation) => [
+    `national-gen${generation}`,
+    {
+      id: `national-gen${generation}`,
+      name: `National Dex through Gen ${generation}`,
+      subtitle: `Every DraftCenter species and form available through Generation ${generation}`,
+      legalNames: historicalNationalDex(generation),
+      defaultCosts: {},
+      noTierData: true,
+      ...(generation >= 6 ? { defaultMegaCap: 1 } : {}),
+    },
+  ])),
   "custom": {
     id: "custom",
     name: "Custom",
@@ -1498,6 +1852,7 @@ export const REGULATION_SETS = {
     noTierData: true, // Custom never has curated data by definition, so treat the BST formula (full 1-20, not compressed) as the accepted real price rather than flagging every included mon as untiered
   },
 };
+export const REGULATION_SETS = withRegulationMetadata(REGULATION_POOLS);
 function regulationFor(settings) {
   return REGULATION_SETS[settings?.regulationId] || REGULATION_SETS["reg-mb"];
 }
@@ -10211,58 +10566,6 @@ function FormatCard({ state, isCommissioner, updateSettings, locked }) {
     setConfirmSwitchTo(null);
   }
 
-  // "Current" and "Custom" always get a full detail row. Everything else —
-  // which will just keep growing as more regulations get added — collapses
-  // into a compact button grid instead of one bar per regulation, so this
-  // card doesn't get longer forever.
-  const PRIMARY_IDS = ["reg-mb", "national-dex", "custom"];
-  const primaryRegs = PRIMARY_IDS.map((id) => REGULATION_SETS[id]).filter(Boolean);
-  const pastRegs = Object.values(REGULATION_SETS).filter((r) => !PRIMARY_IDS.includes(r.id));
-  // Whichever regulation is currently active OR pending confirmation gets
-  // its subtitle shown below the button grid, so picking a past reg still
-  // tells you what it actually is without a bar-per-regulation layout.
-  const detailReg = pastRegs.find((r) => r.id === (confirmSwitchTo || settings.regulationId));
-
-  function renderRow(reg) {
-    const active = settings.regulationId === reg.id;
-    return (
-      <div key={reg.id} className="flex items-center justify-between gap-2 px-3 py-2 rounded flex-wrap"
-        style={{ background: active ? "#FFD23F11" : "#1B1F33", border: `1px solid ${active ? "#FFD23F" : "rgba(255,255,255,0.06)"}` }}>
-        <div>
-          <div className="text-sm font-medium" style={{ color: active ? "#FFD23F" : "#EDEBFA" }}>{reg.name}{active && " (current)"}</div>
-          <div className="text-xs" style={{ color: "#9A9FBD" }}>{reg.subtitle}</div>
-        </div>
-        {isCommissioner && !locked && !active && (
-          confirmSwitchTo === reg.id ? (
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <span className="text-xs" style={{ color: "#F0555A" }}>Resets bans, cost overrides &amp; any custom mons. Sure?</span>
-              <button onClick={() => applySwitch(reg.id)} className="px-2 py-1 rounded text-xs font-semibold" style={{ background: "#F0555A", color: "#10121C" }}>Yes</button>
-              <button onClick={() => setConfirmSwitchTo(null)} className="px-2 py-1 rounded text-xs" style={{ background: "#141729", color: "#9A9FBD" }}>No</button>
-            </div>
-          ) : (
-            <button onClick={() => setConfirmSwitchTo(reg.id)} className="px-3 py-1.5 rounded text-xs font-semibold flex-shrink-0" style={{ background: "#1F2338", color: "#4FD1C5", border: "1px solid rgba(255,255,255,0.08)" }}>
-              Switch to this
-            </button>
-          )
-        )}
-        {isCommissioner && !locked && active && reg.id === "custom" && (
-          confirmSwitchTo === "reset-custom" ? (
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <span className="text-xs" style={{ color: "#F0555A" }}>Bans everything so you start fresh. Sure?</span>
-              <button onClick={() => resetCustomBlank()} className="px-2 py-1 rounded text-xs font-semibold" style={{ background: "#F0555A", color: "#10121C" }}>Yes</button>
-              <button onClick={() => setConfirmSwitchTo(null)} className="px-2 py-1 rounded text-xs" style={{ background: "#141729", color: "#9A9FBD" }}>No</button>
-            </div>
-          ) : (
-            <button onClick={() => setConfirmSwitchTo("reset-custom")} className="px-3 py-1.5 rounded text-xs font-semibold flex-shrink-0" style={{ background: "#1F2338", color: "#F0555A", border: "1px solid #F0555A55" }}>
-              Reset to blank slate
-            </button>
-          )
-        )}
-        {locked && !active && <span className="text-xs flex-shrink-0" style={{ color: "#5B5F7E" }}>Locked (draft in progress)</span>}
-      </div>
-    );
-  }
-
   // Re-seeds the ban list to "everything banned" without touching which
   // format is active — mainly for a league that was already on Custom
   // before this opt-in behavior existed, so it can adopt the blank-slate
@@ -10276,64 +10579,36 @@ function FormatCard({ state, isCommissioner, updateSettings, locked }) {
     <div style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }} className="rounded-lg p-6 mb-6">
       <h2 className="display-font text-2xl mb-1" style={{ color: "#FFD23F" }}>FORMAT</h2>
       <p className="text-sm mb-4" style={{ color: "#9A9FBD" }}>
-        Which game, regulation, legal pool, and default point values this league uses. Official regulations keep their historical VGC data, National Dex includes the complete supported Pokédex, and Custom starts from a blank slate.
+        Which legal pool and default point values this league uses. Official regulations get their pool and values from real VGC data; Custom starts from a blank slate you build yourself.
       </p>
 
-      <div className="flex flex-col gap-2 mb-4">
-        {primaryRegs.map(renderRow)}
-      </div>
+      <RegulationPicker
+        regulations={REGULATION_SETS}
+        selectedId={settings.regulationId || "reg-mb"}
+        pendingId={confirmSwitchTo}
+        disabled={!isCommissioner || locked}
+        onRequest={(regulationId) => setConfirmSwitchTo(confirmSwitchTo === regulationId ? null : regulationId)}
+        onConfirm={applySwitch}
+        onCancel={() => setConfirmSwitchTo(null)}
+      />
 
-      {pastRegs.length > 0 && (
-        <>
-          <p className="text-xs mb-2" style={{ color: "#9A9FBD" }}>Or play a past regulation:</p>
-          <div className="flex flex-wrap gap-1.5 mb-2">
-            {pastRegs.map((reg) => {
-              const active = settings.regulationId === reg.id;
-              return (
-                <button key={reg.id}
-                  onClick={() => {
-                    if (!isCommissioner || locked || active) return;
-                    setConfirmSwitchTo(confirmSwitchTo === reg.id ? null : reg.id);
-                  }}
-                  disabled={!isCommissioner || locked}
-                  className="px-3 py-1.5 rounded text-xs font-semibold mono-font disabled:opacity-50"
-                  style={{
-                    background: active ? "#FFD23F" : confirmSwitchTo === reg.id ? "#1F2338" : "#1B1F33",
-                    color: active ? "#10121C" : "#9A9FBD",
-                    border: `1px solid ${active ? "#FFD23F" : confirmSwitchTo === reg.id ? "#4FD1C5" : "rgba(255,255,255,0.08)"}`,
-                  }}>
-                  {reg.name}{active && " ✓"}
-                </button>
-              );
-            })}
-          </div>
-          {detailReg && (
-            <div className="px-3 py-2 rounded mb-2" style={{ background: "#1B1F33", border: "1px solid rgba(255,255,255,0.06)" }}>
-              <div className="text-xs" style={{ color: "#9A9FBD" }}>{detailReg.subtitle}</div>
-              {isCommissioner && !locked && confirmSwitchTo === detailReg.id && settings.regulationId !== detailReg.id && (
-                <div className="flex items-center gap-2 mt-2">
-                  <span className="text-xs" style={{ color: "#F0555A" }}>Switch to {detailReg.name}? Resets bans, cost overrides &amp; any custom mons.</span>
-                  <button onClick={() => applySwitch(detailReg.id)} className="px-2 py-1 rounded text-xs font-semibold" style={{ background: "#F0555A", color: "#10121C" }}>Yes</button>
-                  <button onClick={() => setConfirmSwitchTo(null)} className="px-2 py-1 rounded text-xs" style={{ background: "#141729", color: "#9A9FBD" }}>No</button>
-                </div>
-              )}
-            </div>
+      {settings.regulationId === "custom" && isCommissioner && !locked && (
+        <div className="regulation-picker-custom-reset">
+          {confirmSwitchTo === "reset-custom" ? (
+            <>
+              <span>Reset Custom to a blank legal pool? This clears its bans, inclusions, and point overrides.</span>
+              <button type="button" onClick={resetCustomBlank}>Yes, reset</button>
+              <button type="button" onClick={() => setConfirmSwitchTo(null)}>Cancel</button>
+            </>
+          ) : (
+            <button type="button" onClick={() => setConfirmSwitchTo("reset-custom")}>Reset Custom to blank</button>
           )}
-        </>
+        </div>
       )}
 
-      <p className="text-xs mb-4" style={{ color: "#5B5F7E" }}>
-        More regulations get added over time as new ones release — old ones stay available forever, so a league can always be run in a past format.
-      </p>
-
       {(() => {
-        // Only show each cap where it's actually meaningful for the active
-        // regulation — Restricted Legendaries only exist as a concept in
-        // G/I/J (M-A/M-B and the earlier SV regs don't have them at all),
-        // and Megas only exist in Champions formats plus Custom (no SV-era
-        // regulation's legal pool ever includes a Mega).
         const showsRestrictedCap = !!current.restrictedNames;
-        const showsMegaCap = current.id === "reg-mb" || current.id === "reg-ma" || current.id === "national-dex" || current.id === "custom";
+        const showsMegaCap = current.id === "custom" || current.defaultMegaCap != null;
         if (!showsRestrictedCap && !showsMegaCap) return null;
         return (
           <div className="pt-4" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
