@@ -123,7 +123,7 @@ export function DiscordConnectionPanel({ supabase: suppliedSupabase, leagueId, d
     const saveError = preferenceError || dailyThreeError;
     setMessage(saveError ? saveError.message : enabled ? "This league's Discord announcements and timing preferences are saved." : "Discord settings saved.");
   }
-  async function sendTest() {
+  async function sendTest(messageType = "connection") {
     setBusy(true); setMessage("");
     const { data } = await supabase.auth.getSession();
     const response = await fetch("/api/discord/test", {
@@ -132,7 +132,7 @@ export function DiscordConnectionPanel({ supabase: suppliedSupabase, leagueId, d
         Authorization: `Bearer ${data.session?.access_token || ""}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ leagueId }),
+      body: JSON.stringify({ leagueId, messageType }),
     });
     const result = await response.json();
     setBusy(false);
@@ -190,7 +190,8 @@ export function DiscordConnectionPanel({ supabase: suppliedSupabase, leagueId, d
         </fieldset>
         <div className="live-stream-actions">
           <button className="secondary-button" disabled={busy}>{busy ? "Saving…" : "Save Discord settings"}</button>
-          <button type="button" className="quiet-button" disabled={busy || !enabled} onClick={sendTest}>Send test message</button>
+          <button type="button" className="quiet-button" disabled={busy || !enabled} onClick={() => sendTest()}>Send test message</button>
+          <button type="button" className="quiet-button" disabled={busy || !enabled || !preferences.dailyThree} onClick={() => sendTest("daily_three")}>Send Daily Three preview</button>
         </div>
       </form>
       {lastTest && <p className="muted">Last test: {lastTest.status === "delivered" ? "Delivered" : "Failed"} · {new Date(lastTest.at).toLocaleString()}{lastTest.error ? ` · ${lastTest.error}` : ""}</p>}

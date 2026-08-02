@@ -16,6 +16,35 @@ async function recordTest(supabase, leagueId, status, error = null) {
   }).eq("league_id", leagueId);
 }
 
+async function dailyThreePreview(supabase) {
+  const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  const today = new Date().toISOString().slice(0, 10);
+  const [{ data: poll }, { data: bracket }, { data: quiz }, { data: todayPoll }] = await Promise.all([
+    supabase.from("daily_polls").select("id,question,options").eq("poll_date", yesterday).maybeSingle(),
+    supabase.from("daily_draft_brackets").select("id").eq("game_date", yesterday).maybeSingle(),
+    supabase.from("daily_quizzes").select("id").eq("quiz_date", yesterday).maybeSingle(),
+    supabase.from("daily_polls").select("question").eq("poll_date", today).maybeSingle(),
+  ]);
+  if (!poll) throw new Error("Yesterday's Daily Three results are not ready yet.");
+  const [{ data: answers }, { data: bracketResults }, { data: quizAnswers }] = await Promise.all([
+    supabase.from("daily_poll_answers").select("answer_key").eq("poll_id", poll.id),
+    bracket ? supabase.from("daily_bracket_matchups").select("winner").eq("bracket_id", bracket.id).eq("round_number", 3) : Promise.resolve({ data: [] }),
+    quiz ? supabase.from("daily_quiz_answers").select("is_correct").eq("quiz_id", quiz.id) : Promise.resolve({ data: [] }),
+  ]);
+  const totals = {};
+  for (const answer of answers || []) totals[answer.answer_key] = (totals[answer.answer_key] || 0) + 1;
+  const labels = Object.fromEntries((poll.options || []).map((option) => [option.key, option.label]));
+  const pollLeaders = Object.entries(totals).sort(([, a], [, b]) => b - a).slice(0, 3)
+    .map(([key, count]) => `${labels[key] || key} (${count})`).join(", ") || "No votes were cast";
+  const championTotals = {};
+  for (const result of bracketResults || []) championTotals[result.winner] = (championTotals[result.winner] || 0) + 1;
+  const bracketLeader = Object.entries(championTotals).sort(([, a], [, b]) => b - a)[0];
+  const bracketSummary = bracketLeader ? `${bracketLeader[0]} led with ${bracketLeader[1]} bracket${bracketLeader[1] === 1 ? "" : "s"}` : "No completed brackets";
+  const quizTotal = (quizAnswers || []).length;
+  const quizCorrect = (quizAnswers || []).filter((answer) => answer.is_correct).length;
+  return `✅ **DraftCenter Daily Three preview**\n📊 **Yesterday's Daily Three results**\n**Poll:** ${poll.question}\n${pollLeaders}\n**Draft Bracket:** ${bracketSummary}\n**Pokémon Quiz:** ${quizTotal ? Math.round((quizCorrect / quizTotal) * 100) : 0}% correct (${quizCorrect}/${quizTotal})\n\n❓ **Today's Question of the Day**\n${todayPoll?.question || "Today's Daily Three is ready."}\nhttps://www.draftcentral.gg/explore`;
+}
+
 export async function POST(request) {
   const token = bearerToken(request);
   if (!token) return NextResponse.json({ error: "Sign in before testing Discord." }, { status: 401 });
@@ -23,7 +52,9 @@ export async function POST(request) {
   let leagueId;
   let supabase;
   try {
-    ({ leagueId } = await request.json());
+    const body = await request.json();
+    leagueId = body.leagueId;
+    const messageType = body.messageType === "daily_three" ? "daily_three" : "connection";
     if (!leagueId) return NextResponse.json({ error: "League ID is required." }, { status: 400 });
 
     supabase = createAdminClient();
@@ -44,23 +75,27 @@ export async function POST(request) {
 
     const { data: settings, error: settingsError } = await supabase
       .from("league_discord_settings")
-      .select("channel_id, enabled")
+      .select("channel_id, enabled, notify_daily_three")
       .eq("league_id", leagueId)
       .maybeSingle();
     if (settingsError) throw settingsError;
     if (!settings?.enabled || !settings.channel_id) {
       return NextResponse.json({ error: "Enable and save this league's Discord connection first." }, { status: 400 });
     }
+    if (messageType === "daily_three" && !settings.notify_daily_three) {
+      return NextResponse.json({ error: "Enable and save Daily Three announcements before sending the preview." }, { status: 400 });
+    }
 
     const botToken = process.env.DISCORD_BOT_TOKEN;
     if (!botToken) throw new Error("The DraftCenter Discord bot is not configured in Vercel.");
 
+    const content = messageType === "daily_three"
+      ? await dailyThreePreview(supabase)
+      : "✅ **DraftCenter connection confirmed**\nThis league can send announcements to this channel. No real league event was triggered.";
     const response = await fetch(`https://discord.com/api/v10/channels/${settings.channel_id}/messages`, {
       method: "POST",
       headers: { Authorization: `Bot ${botToken}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        content: "✅ **DraftCenter connection confirmed**\nThis league can send announcements to this channel. No real league event was triggered.",
-      }),
+      body: JSON.stringify({ content }),
     });
 
     if (!response.ok) {
@@ -75,7 +110,7 @@ export async function POST(request) {
     }
 
     await recordTest(supabase, leagueId, "delivered");
-    return NextResponse.json({ success: true, message: "Test message delivered to Discord." });
+    return NextResponse.json({ success: true, message: messageType === "daily_three" ? "Daily Three preview delivered to Discord." : "Test message delivered to Discord." });
   } catch (error) {
     if (supabase && leagueId) await recordTest(supabase, leagueId, "failed", error.message || "Discord test failed.");
     return NextResponse.json({ error: error.message || "Discord test failed." }, { status: 500 });
