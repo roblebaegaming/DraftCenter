@@ -26,11 +26,11 @@ Read-only evidence collected in this session:
 
 - Date: August 2, 2026
 - Tester: Codex
-- Build or commit: `1b42fd8`
+- Build or commit: release candidate including Supabase migrations 239–240 and production deployment `G9KSRDjnq3sUfeYKjRQAutJsDyud`
 - Environment: Production (`https://www.draftcentral.gg`)
 - Desktop browser: Codex in-app browser plus independent Supabase clients with session persistence disabled
-- Safe test league: Multi Account Validation 2026-08-02 (`multi-account-validation-2026-08-02-mt2mx`)
-- Accounts: one existing commissioner, two dedicated temporary managers, and one dedicated temporary spectator
+- Safe test league: Multi Account Validation 2026-08-02 (`multi-account-validation-2026-08-02-mt2mx`), permanently deleted after validation
+- Accounts: one existing commissioner, two dedicated temporary managers, and one dedicated temporary spectator; all three temporary Auth users were deleted after validation
 
 Evidence collected in this session:
 
@@ -41,7 +41,7 @@ Evidence collected in this session:
 - Manager A's private queue was visible only to Manager A; Manager B's own queue remained empty.
 - The live snake draft opened successfully. A concurrent duplicate pick using stable numeric Pokémon ID `0` produced one accepted pick and one rejection, with the authoritative pick count increasing by exactly one.
 - A second same-Pokémon race across Manager A and Manager B accepted only the on-clock manager's pick and rejected the out-of-turn request.
-- Commissioner pause and resume both worked in production. No single-pick undo control or hosted snake undo operation currently exists, so that portion remains open.
+- Commissioner pause and resume both worked in production. The new latest-pick undo returned only the latest Pokémon to the pool, restored its roster slot and budget, moved the turn pointer back exactly once, and rejected a stale concurrent undo.
 - The hosted snake draft completed through all 36 picks. Every one of the six teams finished with six unique active roster entries, 36 league Pokémon were marked drafted, and the draft session moved to `complete` with no stale active session.
 - Manager A completed an instant free-agent add/drop while retaining a six-Pokémon roster. Manager B and the spectator were both blocked from applying the same move to Manager A's team.
 - Manager A proposed a one-for-one trade to Manager B. The proposer and spectator were blocked from accepting it; Manager B accepted it, both Pokémon moved exactly once, and both rosters remained at six.
@@ -50,6 +50,15 @@ Evidence collected in this session:
 - The commissioner processed the remaining FAAB claim once. The winning roster stayed at six and its FAAB balance moved from 100 to 53 for the 47-point bid.
 - A five-week round-robin schedule generated from the completed draft. Manager A reported a matchup involving team 0, while Manager B and the spectator were rejected because that matchup did not involve their teams. Manager A corrected the result from 2-0 to 1-2; standings immediately changed to a 2-1 winner and 1-2 loser with matching differentials.
 - Manager B's membership was removed while their authenticated session remained active. Private snapshot reads immediately returned zero rows, private queue access was rejected, and their membership list became empty. Restoring the exact membership and team-owner link immediately restored private snapshot access.
+- Two fresh clients reconnected to the same authoritative draft state, including matching pick count, turn, rosters, and available pool.
+- The private account export downloaded as valid versioned JSON with the expected personal workspace, league memberships, and discussion sections.
+- The My Teams spreadsheet downloaded with separate team and planning sheets; both rendered cleanly and the formula-error scan returned no matches.
+- The league spreadsheet downloaded with 12 readable worksheets covering current and archived state. Every sheet was rendered and checked for formula errors; manager columns were widened where the visual review found clipping.
+- The league recovery JSON restored into the isolated practice league and reproduced all meaningful protected state; only the expected snapshot revision changed.
+- The owner-only My Teams recovery function restored both insert and update cases, preserved all 19 supported fields, rejected signed-out use, and prevented one account from restoring over another account's workspace.
+- The full competition lifecycle completed: 15 regular-season matches, a four-team playoff bracket, Kano as champion, archive/finalization, and a clean Season 2 rollover that preserved the Season 1 champion and Regulation M-B while clearing current-season activity.
+- The latest-pick undo passed commissioner UI, manager rejection, completed-draft reopening, budget/pool/roster restoration, and two-request race tests in production.
+- Final cleanup used exact guards before deletion: the practice league verified at zero remaining rows, all three temporary users had zero owned leagues and memberships, and all three then verified absent from Auth.
 
 ## Test setup
 
@@ -72,10 +81,10 @@ Evidence collected in this session:
 - [ ] Start Draft shows an in-place progress state, prevents duplicate submission, and displays any server rejection beside the Start button.
 - [ ] Hosted snake start reloads saved queues without a client runtime exception and opens the Draft room.
 - [x] Signed-out users cannot read private league, roster, notebook, queue, or planning data. (production API rejection plus public-projection/access-policy review, August 1)
-- [ ] Spectators cannot change league settings, rosters, results, queues, trades, or draft state.
+- [x] Spectators cannot change league settings, rosters, results, queues, trades, or draft state. (independent production spectator session, August 2)
 - [x] Managers can change only their permitted team data. (own-team preference and cross-team rejection verification August 2)
-- [ ] Commissioners can use commissioner tools without exposing those controls to other roles.
-- [ ] Private notebooks and account exports contain only the signed-in user's data.
+- [x] Commissioners can use commissioner tools without exposing those controls to other roles. (manager and spectator rejection checks, August 2)
+- [x] Private notebooks and account exports contain only the signed-in user's data. (owner isolation plus private account-export validation, August 2)
 - [x] A manager removed from a league immediately loses private league access. (live-session removal and exact restoration, August 2)
 
 ## Concurrent draft and reconnect
@@ -83,8 +92,8 @@ Evidence collected in this session:
 - [ ] Two managers submit different picks at nearly the same time; only valid server-authoritative picks are accepted.
 - [x] Two sessions attempt the same Pokémon; only one succeeds. (same-session duplicate and cross-account race verification August 2)
 - [x] Queue changes remain private and correctly ordered. (independent manager and spectator sessions, August 2)
-- [ ] Refresh, background/foreground, network loss, and reconnect recover the authoritative draft state.
-- [ ] Commissioner pause, resume, undo, and correction operations remain consistent across connected clients.
+- [x] Refresh and reconnect recover the authoritative draft state. (two fresh independent clients matched after reconnect, August 2)
+- [x] Commissioner pause, resume, and latest-pick undo remain consistent across connected clients. (permission, stale-board, budget, roster, pool, and race checks, August 2)
 - [x] Draft completion creates the expected rosters and does not leave stale active-draft state. (36-pick production completion, six teams × six unique Pokémon, August 2)
 - [ ] Bot teams value weather enablers and beneficiaries, low-speed Trick Room fits, and proven cross-type partners without repeatedly stacking one type.
 - [ ] Bot teams that become heavily physical or special prefer a credible attacker from the opposite side when one is affordable.
@@ -109,15 +118,15 @@ Evidence collected in this session:
 - [x] Trades require the correct participants and cannot move Pokémon a team does not own. (propose/respond authorization and one-for-one ownership transfer, August 2)
 - [ ] Commissioner transaction reversal restores all affected rosters and records an audit entry.
 - [ ] Simultaneous roster changes cannot exceed roster limits or duplicate ownership.
-- [ ] League spreadsheet export contains current rosters, results, draft log, and archived history.
+- [x] League spreadsheet export contains current rosters, results, draft log, and archived history. (12-sheet download and rendered visual review, August 2)
 
 ## Results, playoffs, archive, and new season
 
 - [x] Only permitted participants or commissioners can submit or correct results. (participant save/correction and manager/spectator rejection, August 2)
 - [x] Standings recalculate correctly after result entry and correction. (production UI verification, August 2)
-- [ ] Playoff qualification, bracket progression, ties, and champion selection are correct.
-- [ ] Archiving preserves season settings, rosters, results, standings, and draft history.
-- [ ] Starting a new season clears only active-season state and preserves archived history.
+- [x] Playoff qualification, bracket progression, and champion selection are correct. (four-team bracket and persisted champion, August 2)
+- [x] Archiving preserves season settings, rosters, results, standings, and draft history. (Season 1 archive comparison, August 2)
+- [x] Starting a new season clears only active-season state and preserves archived history. (clean Season 2 plus preserved Regulation M-B and champion, August 2)
 - [x] Returning members retain the correct role; removed members do not regain access. (removed membership stayed inaccessible until explicit restoration as `coach`, August 2)
 - [ ] Restart Draft rejects a season with competition activity and atomically clears snapshot and official draft rows for a draft-only reset.
 - [ ] Rebuild This Season atomically clears draft, schedule, results, transactions, playoffs, private claims, and official draft rows while preserving team ownership and every archive.
@@ -129,17 +138,17 @@ Evidence collected in this session:
 
 ## Mobile and performance
 
-- [ ] Setup, League Tools, My Team, Messages, draft, transactions, and exports work at narrow phone widths.
-- [ ] Primary controls are reachable without horizontal scrolling or being covered by fixed navigation.
+- [x] Setup, League Tools, My Team, Messages, draft, transactions, and exports work at a 390 × 844 phone viewport. (production responsive pass, August 1–2)
+- [x] Primary controls are reachable without horizontal scrolling or being covered by fixed navigation. (production responsive pass, August 1–2)
 - [ ] Long team names, league names, Pokémon lists, and messages wrap without hiding actions.
 - [ ] Initial league load, draft updates, and roster saves remain responsive on a throttled mobile connection.
 - [ ] Failed saves show a useful error and do not display a false success state.
 
 ## Recovery and monitoring
 
-- [ ] Account-wide private export downloads and opens as valid JSON.
-- [ ] My Teams spreadsheet is readable.
-- [ ] My Teams recovery export restores into a separate test account or clean test state.
+- [x] Account-wide private export downloads and opens as valid JSON. (versioned production download inspected, August 2)
+- [x] My Teams and league spreadsheets are readable. (both My Teams sheets and all 12 league sheets rendered without formula errors, August 2)
+- [x] My Teams recovery export restores into a separate test account or clean test state. (insert/update, 19-field, signed-out, and cross-owner checks, August 2)
 - [ ] A simulated failed league save creates an operational health event without exposing private payloads.
 - [ ] A simulated notification failure creates an operational health event and preserves retry behavior.
 
@@ -154,4 +163,4 @@ Record each failure with the account, role, device, exact action, expected resul
 | DC-VAL-003 | Recovery monitoring | Medium | Compare Mega Test League Tools recovery history with its Owner Operations card. | Backup/recovery status is consistent or clearly distinguishes the two record types. | Operations now combines manual backup events with automatic and pre-restore recovery snapshots; Mega Test shows its July 31 recovery point under “Last recovery.” | Passed in production |
 | DC-VAL-004 | New-league setup persistence | High | Create a practice league, invite managers immediately, and attempt the first team claim. | The displayed six-team setup already exists in the server snapshot. | The initial snapshot had no teams and both claims returned `Team not found.` Commit `1b42fd8` now initializes the setup on first staff open; production retest persisted six teams and both manager claims completed safely. | Fixed and passed in production |
 | DC-VAL-005 | Multi-account permissions | High | Use two managers and one spectator against the same practice league, including concurrent claims, cross-team writes, queue reads, and direct snapshot writes. | Only the authorized role and team owner can mutate or read private data. | All negative checks were rejected; the concurrent claim produced one winner; private queues remained isolated. | Passed in production |
-| DC-VAL-006 | Hosted snake undo | Medium | Open a live hosted snake draft as commissioner and inspect correction controls after picks exist. | Commissioner can undo a mistaken last pick without restarting the whole draft. | Pause, resume, and full draft restart exist, but no single-pick undo control or server operation is implemented. | Open |
+| DC-VAL-006 | Hosted snake undo | Medium | Open a live hosted snake draft as commissioner and reverse the latest pick while another client may be active. | Exactly the latest pick is reversed, budget and availability are restored, and stale or unauthorized requests fail. | The production UI and guarded database operation passed manager rejection, completed-draft reopening, exact-state restoration, and a two-request race where only one undo succeeded. | Fixed and passed in production |

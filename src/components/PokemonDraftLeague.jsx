@@ -6812,6 +6812,25 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     return true;
   }
 
+  async function undoLastSnakePick(expectedPickNumber) {
+    if (!leagueId || !state.liveDraft?.sessionId || !Number.isInteger(expectedPickNumber)) {
+      setLiveDraftError("The latest live pick could not be identified. Refresh and try again.");
+      return false;
+    }
+    setLiveDraftError("");
+    const { error } = await supabase.rpc("undo_last_live_snake_pick", {
+      p_league_id: leagueId,
+      p_expected_pick_number: expectedPickNumber,
+    });
+    if (error) {
+      setLiveDraftError(error.message);
+      await refreshLiveSnakeDraft();
+      return false;
+    }
+    await refreshLiveSnakeDraft();
+    return true;
+  }
+
   async function finishBudgetSnakeRoster() {
     const teamIdx = state.snakeOrder[state.pickIndex];
     const rosterCount = (state.rosters[teamIdx] || []).length;
@@ -9115,18 +9134,18 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     addSheet("Teams", [
       ["Team #", "Team", "Manager", "Color", "Logo", "Description"],
       ...state.teams.map((team, index) => [index + 1, team.name, team.claimedBy || "Unclaimed", team.color || "", team.logoUrl || "", team.description || ""]),
-    ], [10, 28, 24, 14, 48, 60]);
+    ], [10, 28, 44, 14, 48, 60]);
     addSheet("Rosters", [
       ["Team", "Manager", "Pokemon", "Cost", "Draft pick", "Acquired via", "Primary type", "Secondary type", "BST"],
       ...state.rosters.flatMap((roster, teamIndex) => (roster || []).map((mon) => [
         state.teams[teamIndex]?.name || `Team ${teamIndex + 1}`, state.teams[teamIndex]?.claimedBy || "", mon.name,
         mon.cost ?? "", mon.draftPick ?? "", mon.acquiredVia || "Draft", mon.t1 || "", mon.t2 || "", mon.bst ?? "",
       ])),
-    ], [28, 24, 28, 10, 12, 16, 14, 14, 10]);
+    ], [28, 44, 28, 10, 12, 16, 14, 14, 10]);
     addSheet("Standings", [
       ["Rank", "Team", "Manager", "Wins", "Losses", "Game wins", "Game losses", "Differential"],
       ...standingsRows.map((row, index) => [index + 1, row.name, state.teams[row.id]?.claimedBy || "", row.w, row.l, row.gameW, row.gameL, row.differential]),
-    ], [10, 28, 24, 10, 10, 12, 12, 14]);
+    ], [10, 28, 44, 10, 10, 12, 12, 14]);
     addSheet("Schedule and Results", [
       ["Week", "Match", "Team A", "Team B", "Score", "Differential A", "Differential B", "MVP", "Replay A", "Replay B"],
       ...state.schedule.flatMap((week, weekIndex) => week.map(([a, b], matchIndex) => {
@@ -9159,7 +9178,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
         season.seasonNumber, season.teams?.[teamIndex]?.name || `Team ${teamIndex + 1}`, season.teams?.[teamIndex]?.claimedBy || "",
         mon.name || "", mon.cost ?? "", mon.draftPick ?? "", mon.acquiredVia || "",
       ]))),
-    ], [10, 28, 24, 28, 10, 12, 16]);
+    ], [10, 28, 44, 28, 10, 12, 16]);
     addSheet("Archived Results", [
       ["Season", "Week", "Match", "Team A", "Team B", "Score", "Differential A", "Differential B", "MVP", "Replay A", "Replay B"],
       ...(state.seasonHistory || []).flatMap((season) => (season.schedule || []).flatMap((week, weekIndex) => (week || []).map(([a, b], matchIndex) => {
@@ -9496,7 +9515,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
             state={state} leagueId={leagueId} isCommissioner={isCommissioner} canDraftNow={canDraftNow} myName={myName} myTeamIdx={myTeamIdx}
             costFor={costFor}
             currentTeamOnClock={currentTeamOnClock} draftDone={draftDone} allTeamsMetMin={allTeamsMetMin}
-            snakePick={snakePick} nominateForAuction={nominateForAuction} autoPickForClock={autoPickForClock}
+            snakePick={snakePick} undoLastSnakePick={undoLastSnakePick} nominateForAuction={nominateForAuction} autoPickForClock={autoPickForClock}
             requestDueSnakeTurnResolution={requestDueSnakeTurnResolution}
             finishBudgetSnakeRoster={finishBudgetSnakeRoster}
             placeBid={placeBid} endAuctionEarly={endAuctionEarly} pauseDraft={pauseDraft} resumeDraft={resumeDraft} skipAuctionNomination={skipAuctionNomination}
@@ -9579,7 +9598,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
                 state={state} leagueId={leagueId} isCommissioner={displayIsCommissioner} canDraftNow={canDraftNow && !previewReadOnly} myName={myName} myTeamIdx={myTeamIdx}
                 costFor={costFor}
                 currentTeamOnClock={currentTeamOnClock} draftDone={draftDone} allTeamsMetMin={allTeamsMetMin}
-                snakePick={snakePick} nominateForAuction={nominateForAuction} autoPickForClock={autoPickForClock}
+                snakePick={snakePick} undoLastSnakePick={undoLastSnakePick} nominateForAuction={nominateForAuction} autoPickForClock={autoPickForClock}
                 requestDueSnakeTurnResolution={requestDueSnakeTurnResolution}
                 finishBudgetSnakeRoster={finishBudgetSnakeRoster}
                 placeBid={placeBid} endAuctionEarly={endAuctionEarly} pauseDraft={pauseDraft} resumeDraft={resumeDraft} skipAuctionNomination={skipAuctionNomination}
@@ -13437,7 +13456,7 @@ function PreDraftScout({ state, isCommissioner, costFor, updateHomepage, myTeamI
   </div>;
 }
 
-function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTeamIdx, costFor, currentTeamOnClock, draftDone, allTeamsMetMin, snakePick, nominateForAuction, autoPickForClock, requestDueSnakeTurnResolution = null, finishBudgetSnakeRoster, placeBid, endAuctionEarly, pauseDraft, resumeDraft, skipAuctionNomination, toggleAutoDraft, addToQueue, removeFromQueue, moveQueueItem, onGenerateSchedule, updateSettings, onViewTeam, castDraftHeroVote, restartDraft, rebuildCurrentSeason, onStart, scheduledStartStatus = null, retryScheduledStart = null }) {
+function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTeamIdx, costFor, currentTeamOnClock, draftDone, allTeamsMetMin, snakePick, undoLastSnakePick, nominateForAuction, autoPickForClock, requestDueSnakeTurnResolution = null, finishBudgetSnakeRoster, placeBid, endAuctionEarly, pauseDraft, resumeDraft, skipAuctionNomination, toggleAutoDraft, addToQueue, removeFromQueue, moveQueueItem, onGenerateSchedule, updateSettings, onViewTeam, castDraftHeroVote, restartDraft, rebuildCurrentSeason, onStart, scheduledStartStatus = null, retryScheduledStart = null }) {
   const {
     locked,
     settings,
@@ -13472,6 +13491,8 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
   const [pendingBid, setPendingBid] = useState("1");
   const [confirmRestart, setConfirmRestart] = useState(false);
   const [restartingDraft, setRestartingDraft] = useState(false);
+  const [confirmUndoPick, setConfirmUndoPick] = useState(false);
+  const [undoingPick, setUndoingPick] = useState(false);
   const [poolSort, setPoolSort] = useState("cost"); // "cost" | "az" | "bst" | a stat key
   const [poolSortDir, setPoolSortDir] = useState("desc"); // "desc" | "asc"
   const [poolStatFilter, setPoolStatFilter] = useState(""); // "" | hp | atk | def | spa | spd | spe
@@ -13687,6 +13708,22 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
     || (state.transactionLog || []).length > 0
     || Boolean(state.playoffs);
   const hasStaleRosterCarryover = looksLikeCarriedOverRosterState(state);
+  let lastSnakePick = null;
+  rosters.forEach((roster, teamIndex) => {
+    (roster || []).forEach((mon) => {
+      const draftPick = Number(mon?.draftPick);
+      if (Number.isInteger(draftPick) && (!lastSnakePick || draftPick > lastSnakePick.pickNumber)) {
+        lastSnakePick = { mon, teamIndex, pickNumber: draftPick };
+      }
+    });
+  });
+  const canUndoLastSnakePick = isCommissioner
+    && leagueId
+    && draftType === "snake"
+    && Boolean(state.liveDraft?.sessionId)
+    && !paused
+    && !hasSeasonActivity
+    && Boolean(lastSnakePick);
 
   if (hasStaleRosterCarryover) {
     return (
@@ -13704,6 +13741,46 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
     <div>
       {state.liveDraft?.sessionId && <div className="mb-4 rounded-lg px-4 py-3 text-sm" style={{ background: "#102B2B", color: "#BDF7EE", border: "1px solid #4FD1C577" }}><strong>LIVE SHARED DRAFT</strong> — picks and whose turn it is are locked by DraftCenter. This board refreshes automatically for every manager.</div>}
       {leagueId && draftType === "auction" && locked && <div className="mb-4 rounded-lg px-4 py-3 text-sm" style={{ background: "#102B2B", color: "#BDF7EE", border: "1px solid #4FD1C577" }}><strong>LIVE SHARED AUCTION</strong> — nominations, bids, budgets, timers, and winning rosters are locked by DraftCenter and synchronized for every manager.</div>}
+      {canUndoLastSnakePick && (
+        <div className="mb-4 rounded-lg px-4 py-3 text-sm" style={{ background: "#171A2C", border: "1px solid #FFD23F55" }}>
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <span style={{ color: "#C8CDEA" }}>
+              Latest pick: <strong style={{ color: "#EDEBFA" }}>{lastSnakePick.mon.name}</strong> to <strong style={{ color: "#EDEBFA" }}>{teams[lastSnakePick.teamIndex]?.name || `Team ${lastSnakePick.teamIndex + 1}`}</strong> (Pick {lastSnakePick.pickNumber + 1}).
+            </span>
+            <button type="button" onClick={() => setConfirmUndoPick(true)} className="px-3 py-2 rounded font-semibold text-xs" style={{ background: "#FFD23F22", color: "#FFD23F", border: "1px solid #FFD23F66" }}>UNDO LAST PICK</button>
+          </div>
+        </div>
+      )}
+      {confirmUndoPick && lastSnakePick && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" style={{ background: "rgba(8, 10, 20, 0.82)" }}>
+          <section role="dialog" aria-modal="true" aria-labelledby="confirm-pick-undo-title" className="w-full max-w-lg rounded-xl p-5 shadow-2xl" style={{ background: "#171A2C", border: "1px solid #FFD23F88" }}>
+            <h2 id="confirm-pick-undo-title" className="display-font text-2xl mb-3" style={{ color: "#FFD23F" }}>UNDO THE LATEST PICK?</h2>
+            <p className="text-sm mb-4" style={{ color: "#EDEBFA" }}>
+              Return <strong>{lastSnakePick.mon.name}</strong> to the pool and put <strong>{teams[lastSnakePick.teamIndex]?.name || `Team ${lastSnakePick.teamIndex + 1}`}</strong> back on the clock?
+            </p>
+            <div className="rounded-lg p-3 mb-5 text-sm" style={{ background: "#102B2B", color: "#BDF7EE" }}>
+              Only Pick {lastSnakePick.pickNumber + 1} will be reversed. Any draft budget spent on it will be restored. If another pick has landed, DraftCenter will reject this request and refresh the board.
+            </div>
+            <div className="flex justify-end gap-3 flex-wrap">
+              <button type="button" disabled={undoingPick} onClick={() => setConfirmUndoPick(false)} className="px-4 py-2 rounded font-semibold text-sm disabled:opacity-50" style={{ background: "#1F2338", color: "#C8CDEA" }}>CANCEL</button>
+              <button
+                type="button"
+                disabled={undoingPick}
+                onClick={async () => {
+                  setUndoingPick(true);
+                  const undone = await undoLastSnakePick(lastSnakePick.pickNumber);
+                  setUndoingPick(false);
+                  if (undone) setConfirmUndoPick(false);
+                }}
+                className="px-4 py-2 rounded font-semibold text-sm disabled:opacity-60"
+                style={{ background: "#FFD23F", color: "#10121C" }}
+              >
+                {undoingPick ? "UNDOING…" : "UNDO LATEST PICK"}
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
       {isCommissioner && !hasStaleRosterCarryover && !hasSeasonActivity && (
         <div className="mb-4 rounded-lg px-4 py-3 text-sm" style={{ background: "#261822", border: "1px solid #F0555A55" }}>
           <div className="flex items-center justify-between gap-3 flex-wrap">

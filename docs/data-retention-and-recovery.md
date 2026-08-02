@@ -64,6 +64,36 @@ Database-provider backups and user-downloaded exports serve different needs.
 Provider backups recover the service; user exports provide portability and an
 additional copy outside the production project.
 
+## Application export and recovery validation — August 2, 2026
+
+Application-level recovery was exercised in a temporary production practice
+league and isolated account state after the provider restore drill:
+
+- The private account export downloaded as valid, versioned JSON with the
+  expected personal workspace, five league memberships, and one discussion.
+- The My Teams spreadsheet contained separate team and planning sheets. Both
+  rendered cleanly and a workbook-wide formula-error scan returned no matches.
+- The league spreadsheet contained 12 worksheets covering current and archived
+  teams, rosters, standings, schedule/results, transactions, playoffs, and
+  draft history. All worksheets rendered successfully and contained no formula
+  errors; manager columns were widened after the visual review found clipping.
+- The league recovery JSON restored all meaningful protected state into the
+  practice league. The only expected difference was the new snapshot revision.
+- The owner-only My Teams recovery operation passed insert and update restores,
+  preserved all 19 supported fields, rejected signed-out callers, and prevented
+  one user from restoring over another user's workspace.
+- The full regular season, playoff, champion, archive, and clean-new-season
+  lifecycle passed before cleanup, confirming that the restored data remained
+  usable rather than merely parseable.
+- The temporary practice league and three dedicated Auth users were removed
+  after validation. Exact preflight checks showed zero owned leagues and zero
+  memberships for the temporary users; the final checks showed zero remaining
+  league rows and zero remaining temporary Auth users.
+
+These checks complement the provider restore drill: provider backups protect
+the service as a whole, while the downloaded files and owner-scoped restore
+functions give commissioners and users portable, independently testable copies.
+
 ## Safe restore drill
 
 Never test restoration over production.
