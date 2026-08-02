@@ -13533,6 +13533,7 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
   const [showMyRoster, setShowMyRoster] = useState(true);
   const [finishingRoster, setFinishingRoster] = useState(false);
   const [confirmFinishRoster, setConfirmFinishRoster] = useState(false);
+  const [pauseReminderNow, setPauseReminderNow] = useState(Date.now());
   const currentRoster = rosters[currentTeamOnClock] || [];
   const currentRestrictedCount = currentRoster.filter((mon) => isRestrictedMon(mon, settings)).length;
   const currentMegaCount = currentRoster.filter((mon) => mon.isMega).length;
@@ -13549,6 +13550,12 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
   useEffect(() => {
     if (nominee) { setPendingNominee(null); setPendingBid("1"); }
   }, [nominee]);
+  useEffect(() => {
+    if (!paused || pauseIsOvernight) return undefined;
+    setPauseReminderNow(Date.now());
+    const timer = window.setInterval(() => setPauseReminderNow(Date.now()), 60000);
+    return () => window.clearInterval(timer);
+  }, [paused, pauseIsOvernight, pausedAt]);
 
   // Pokémon stats and abilities are permanent, unchanging data — worth
   // fetching completely rather than only whatever happens to have scrolled
@@ -13757,6 +13764,8 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
     && !paused
     && !hasSeasonActivity
     && Boolean(lastSnakePick);
+  const pauseReminderHours = pausedAt ? Math.floor((pauseReminderNow - pausedAt) / 3600000) : 0;
+  const showPauseReminder = isCommissioner && paused && !pauseIsOvernight && pauseReminderHours >= 6;
 
   if (hasStaleRosterCarryover) {
     return (
@@ -13774,6 +13783,15 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
     <div>
       {state.liveDraft?.sessionId && <div className="mb-4 rounded-lg px-4 py-3 text-sm" style={{ background: "#102B2B", color: "#BDF7EE", border: "1px solid #4FD1C577" }}><strong>LIVE SHARED DRAFT</strong> — picks and whose turn it is are locked by DraftCenter. This board refreshes automatically for every manager.</div>}
       {leagueId && draftType === "auction" && locked && <div className="mb-4 rounded-lg px-4 py-3 text-sm" style={{ background: "#102B2B", color: "#BDF7EE", border: "1px solid #4FD1C577" }}><strong>LIVE SHARED AUCTION</strong> — nominations, bids, budgets, timers, and winning rosters are locked by DraftCenter and synchronized for every manager.</div>}
+      {showPauseReminder && (
+        <section className="mb-4 rounded-lg px-4 py-4 flex items-center justify-between gap-4 flex-wrap" aria-label="Paused draft reminder" style={{ background: "#2B2412", border: "1px solid #FFD23F88" }}>
+          <div>
+            <strong className="block" style={{ color: "#FFD23F" }}>THIS DRAFT HAS BEEN PAUSED FOR {pauseReminderHours} HOURS</strong>
+            <span className="text-sm" style={{ color: "#E7DFAF" }}>If the break is over, resume the draft so managers can continue. Nothing will resume automatically.</span>
+          </div>
+          <button type="button" onClick={resumeDraft} className="px-4 py-2 rounded text-sm font-semibold mono-font" style={{ background: "#FFD23F", color: "#10121C" }}>RESUME DRAFT</button>
+        </section>
+      )}
       {canUndoLastSnakePick && (
         <div className="mb-4 rounded-lg px-4 py-3 text-sm" style={{ background: "#171A2C", border: "1px solid #FFD23F55" }}>
           <div className="flex items-center justify-between gap-3 flex-wrap">
