@@ -48,6 +48,7 @@ export const GUIDES = {
 };
 
 export const FORMATS = [
+  ["national-dex", "National Dex", "All supported generations, forms, and Mega Evolutions", "A complete DraftCenter pool for cross-generation draft leagues, with commissioner-controlled bans, costs, Restricted Pokémon limits, and Mega limits."],
   ["reg-mb", "Regulation M-B", "Pokémon Champions VGC · June 17–September 2, 2026", "The current Pokémon Champions regulation with Mega Evolution available and a curated DraftCenter legal pool."],
   ["reg-ma", "Regulation M-A", "Pokémon Champions VGC · April 8–June 17, 2026", "The opening Pokémon Champions regulation and its original competitive legal pool."],
   ["reg-a", "Regulation A", "Scarlet & Violet VGC · January 2023", "The initial Paldea format, excluding Paradox Pokémon, Treasures of Ruin, and box legends."],

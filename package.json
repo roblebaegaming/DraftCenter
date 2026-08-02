@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "smoke:production": "node scripts/production-smoke.mjs"
+    "smoke:production": "node scripts/production-smoke.mjs",
+    "test:national-dex": "node scripts/verify-national-dex-paging.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.3",

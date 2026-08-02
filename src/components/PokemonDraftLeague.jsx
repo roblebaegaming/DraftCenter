@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { createClient } from "../lib/supabase/client";
+import { loadAllLeaguePokemon } from "../lib/leaguePokemon.mjs";
 import { DiscordConnectionPanel, LeagueBroadcastCenter } from "./SocialSharing";
 import PublicCoachProfile, { CoachProfileButton } from "./PublicCoachProfile";
 import ChampionshipStudio from "./ChampionshipStudio";
@@ -1476,6 +1477,17 @@ export const REGULATION_SETS = {
     // categories the same way they would be in every VGC ruleset since.
     legalNames: MONS_THROUGH_GEN7.filter((n) => !ALL_MYTHICAL_NAMES.includes(n) && !RESTRICTED_LEGENDARY_NAMES.includes(n)),
     defaultCosts: {},
+  },
+  "national-dex": {
+    id: "national-dex",
+    name: "National Dex",
+    subtitle: "All supported generations, regional forms, alternate forms, and Mega Evolutions",
+    legalNames: null,
+    defaultCosts: {},
+    noTierData: true,
+    restrictedNames: [...new Set([...RESTRICTED_LEGENDARY_NAMES, ...ALL_MYTHICAL_NAMES])],
+    defaultRestrictedCap: null,
+    defaultMegaCap: null,
   },
   "custom": {
     id: "custom",
@@ -5539,7 +5551,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     if (!leagueId) return;
     const [{ data: live, error }, { data: pokemonRows, error: pokemonError }] = await Promise.all([
       supabase.rpc("get_live_snake_draft", { p_league_id: leagueId }),
-      supabase.from("league_pokemon").select("id, source_key, cost, is_drafted, is_restricted, is_mega").eq("league_id", leagueId),
+      loadAllLeaguePokemon(supabase, leagueId),
     ]);
     if (error || pokemonError || !live?.session?.id) return;
     // Draft tables own roster construction only while picks are still being
@@ -10203,7 +10215,7 @@ function FormatCard({ state, isCommissioner, updateSettings, locked }) {
   // which will just keep growing as more regulations get added — collapses
   // into a compact button grid instead of one bar per regulation, so this
   // card doesn't get longer forever.
-  const PRIMARY_IDS = ["reg-mb", "custom"];
+  const PRIMARY_IDS = ["reg-mb", "national-dex", "custom"];
   const primaryRegs = PRIMARY_IDS.map((id) => REGULATION_SETS[id]).filter(Boolean);
   const pastRegs = Object.values(REGULATION_SETS).filter((r) => !PRIMARY_IDS.includes(r.id));
   // Whichever regulation is currently active OR pending confirmation gets
@@ -10264,7 +10276,7 @@ function FormatCard({ state, isCommissioner, updateSettings, locked }) {
     <div style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }} className="rounded-lg p-6 mb-6">
       <h2 className="display-font text-2xl mb-1" style={{ color: "#FFD23F" }}>FORMAT</h2>
       <p className="text-sm mb-4" style={{ color: "#9A9FBD" }}>
-        Which legal pool and default point values this league uses. Official regulations get their pool and values from real VGC data; Custom starts from a blank slate you build yourself.
+        Which game, regulation, legal pool, and default point values this league uses. Official regulations keep their historical VGC data, National Dex includes the complete supported Pokédex, and Custom starts from a blank slate.
       </p>
 
       <div className="flex flex-col gap-2 mb-4">
@@ -10321,7 +10333,7 @@ function FormatCard({ state, isCommissioner, updateSettings, locked }) {
         // and Megas only exist in Champions formats plus Custom (no SV-era
         // regulation's legal pool ever includes a Mega).
         const showsRestrictedCap = !!current.restrictedNames;
-        const showsMegaCap = current.id === "reg-mb" || current.id === "reg-ma" || current.id === "custom";
+        const showsMegaCap = current.id === "reg-mb" || current.id === "reg-ma" || current.id === "national-dex" || current.id === "custom";
         if (!showsRestrictedCap && !showsMegaCap) return null;
         return (
           <div className="pt-4" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
