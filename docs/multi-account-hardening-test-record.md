@@ -49,6 +49,7 @@ Evidence collected in this session:
 - Season transaction limit, weekly transaction limit, and transaction deadline branches each rejected a new add/drop with the expected server message. The test settings were returned to their prior unlimited state afterward.
 - The commissioner processed the remaining FAAB claim once. The winning roster stayed at six and its FAAB balance moved from 100 to 53 for the 47-point bid.
 - A five-week round-robin schedule generated from the completed draft. Manager A reported a matchup involving team 0, while Manager B and the spectator were rejected because that matchup did not involve their teams. Manager A corrected the result from 2-0 to 1-2; standings immediately changed to a 2-1 winner and 1-2 loser with matching differentials.
+- Manager B's membership was removed while their authenticated session remained active. Private snapshot reads immediately returned zero rows, private queue access was rejected, and their membership list became empty. Restoring the exact membership and team-owner link immediately restored private snapshot access.
 
 ## Test setup
 
@@ -75,7 +76,7 @@ Evidence collected in this session:
 - [x] Managers can change only their permitted team data. (own-team preference and cross-team rejection verification August 2)
 - [ ] Commissioners can use commissioner tools without exposing those controls to other roles.
 - [ ] Private notebooks and account exports contain only the signed-in user's data.
-- [ ] A manager removed from a league immediately loses private league access.
+- [x] A manager removed from a league immediately loses private league access. (live-session removal and exact restoration, August 2)
 
 ## Concurrent draft and reconnect
 
@@ -117,7 +118,7 @@ Evidence collected in this session:
 - [ ] Playoff qualification, bracket progression, ties, and champion selection are correct.
 - [ ] Archiving preserves season settings, rosters, results, standings, and draft history.
 - [ ] Starting a new season clears only active-season state and preserves archived history.
-- [ ] Returning members retain the correct role; removed members do not regain access.
+- [x] Returning members retain the correct role; removed members do not regain access. (removed membership stayed inaccessible until explicit restoration as `coach`, August 2)
 - [ ] Restart Draft rejects a season with competition activity and atomically clears snapshot and official draft rows for a draft-only reset.
 - [ ] Rebuild This Season atomically clears draft, schedule, results, transactions, playoffs, private claims, and official draft rows while preserving team ownership and every archive.
 - [ ] A stale commissioner tab cannot restart or rebuild after a newer result, transaction, claim, or settings change.
