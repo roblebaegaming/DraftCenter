@@ -21,7 +21,7 @@ function isExpectedOperationalRejection(event) {
   const kind = String(event?.kind || "");
   const message = String(event?.message || "");
   if (kind === "league_save_failed" && /only league commissioners can save|changed in another session|refresh before saving again/i.test(message)) return true;
-  if (kind === "draft_operation_failed" && /no longer available|already (?:drafted|selected|picked)|not (?:your|that team(?:'s)?) turn|changed in another session|refresh before|cannot afford|would leave less than|roster (?:minimum|maximum|limit)/i.test(message)) return true;
+  if (kind === "draft_operation_failed" && /no longer available|already (?:drafted|selected|picked)|not (?:your|that team(?:'s)?) turn|changed in another session|refresh before|cannot afford|would leave less than|roster (?:minimum|maximum|limit)|no active (?:snake|auction) draft found|already has a live draft|not ready on the live draft board|team logos must use a secure https url/i.test(message)) return true;
   return false;
 }
 

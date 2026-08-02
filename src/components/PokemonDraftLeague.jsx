@@ -11567,8 +11567,9 @@ function SetupView({ state, leagueId = null, leagueName = "league", isCommission
                 </label>
                 <div className="flex gap-2 mb-2">
                   <input type="number" min={0} value={settings.pickTimeLimitMinutes}
-                    onChange={(e) => updateSettings({ pickTimeLimitMinutes: e.target.value === "" ? "" : Number(e.target.value) })}
-                    onBlur={(e) => updateSettings({ pickTimeLimitMinutes: Math.max(0, Number(e.target.value) || 0) })}
+                    step={1}
+                    onChange={(e) => updateSettings({ pickTimeLimitMinutes: e.target.value === "" ? "" : Math.max(0, Math.floor(Number(e.target.value) || 0)) })}
+                    onBlur={(e) => updateSettings({ pickTimeLimitMinutes: Math.max(0, Math.floor(Number(e.target.value) || 0)) })}
                     className="w-24 px-3 py-2 rounded mono-font text-sm" style={{ background: "#1F2338", border: "1px solid rgba(255,255,255,0.1)", color: "#EDEBFA" }} />
                   <span className="text-sm self-center" style={{ color: "#9A9FBD" }}>minutes (0 = no limit)</span>
                 </div>
