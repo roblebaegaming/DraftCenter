@@ -143,7 +143,7 @@ Status: **remediated**.
 
 ### DC-SEC-08 — retention and recovery policy
 
-Status: **technical minimization improved; final policy remains an owner/legal decision**.
+Status: **operational schedule approved; public/legal review remains separate**.
 
 - Operational errors are now minimized and sanitized at ingestion.
 - Vercel retains canceled deployments for 30 days, errored deployments for 90
@@ -151,9 +151,13 @@ Status: **technical minimization improved; final policy remains an owner/legal d
 - Recently deleted Vercel deployments remain recoverable within the provider's
   stated recovery window.
 
-Exact database/user-data retention promises, deletion evidence, backup custody,
-and the recurring restore-test calendar still require an explicit business and
-legal policy decision. Code cannot choose those promises on the owner's behalf.
+The owner approved the internal operating schedule recorded in
+`docs/data-retention-and-recovery.md`: seven-day provider database backups,
+quarterly restore drills and encrypted off-account archives, 30-day operational
+health and automatic recovery history, and guarded user/league deletion. The
+DraftCenter owner is the primary custodian and production-restore approver. No
+secondary human custodian is currently appointed. Public contractual language
+still requires a separate legal/privacy review.
 
 ### DC-SEC-09 — live provider configuration
 
@@ -227,7 +231,9 @@ These steps deliberately remain outside automated account control:
    signups.
 3. Complete the already documented second email-client test. The real Twitch
    broadcast passed August 2.
-4. Approve the business/legal retention schedule and backup-custody owners.
+4. Appoint a secondary backup custodian or document acceptance of the current
+   single-owner recovery dependency. The primary custodian and internal
+   retention schedule are now recorded.
 
 ## Release verification gate
 

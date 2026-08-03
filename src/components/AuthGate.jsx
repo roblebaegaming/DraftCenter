@@ -254,7 +254,7 @@ function PublicLanding({ email, password, setEmail, setPassword, busy, message, 
             const [pokemonResponse, speciesResponse] = await Promise.all([fetch(`https://pokeapi.co/api/v2/pokemon/${apiName}`), fetch(`https://pokeapi.co/api/v2/pokemon-species/${apiName}`)]);
             if (!pokemonResponse.ok || !speciesResponse.ok) continue;
             const [pokemonData, speciesData] = await Promise.all([pokemonResponse.json(), speciesResponse.json()]);
-            const image = pokemonData.sprites?.other?.["official-artwork"]?.front_default || pokemonData.sprites?.front_default;
+            const image = pokemonData.sprites?.other?.home?.front_default || pokemonData.sprites?.other?.["official-artwork"]?.front_default || pokemonData.sprites?.front_default;
             if (!image) continue;
             const entries = (speciesData.flavor_text_entries || []).filter((entry) => entry.language.name === "en");
             const entry = entries.length ? entries[Math.floor(Math.random() * entries.length)] : null;
