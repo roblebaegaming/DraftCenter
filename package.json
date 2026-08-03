@@ -10,7 +10,8 @@
     "test:national-dex": "node scripts/verify-national-dex-paging.mjs",
     "test:regulations": "node --test test/regulation-catalog.test.js",
     "test:security": "node --test test/security-notification-dispatch.test.js",
-    "test:all": "npm run test:security && npm run test:regulations"
+    "test:auth-captcha": "node --test test/auth-captcha.test.js",
+    "test:all": "npm run test:security && npm run test:regulations && npm run test:auth-captcha"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.3",
