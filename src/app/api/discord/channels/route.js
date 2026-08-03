@@ -33,7 +33,8 @@ export async function GET(request) {
 
     const botToken = process.env.DISCORD_BOT_TOKEN;
     if (!botToken) throw new Error("The DraftCenter Discord bot is not configured.");
-    const response = await fetch(`https://discord.com/api/v10/guilds/${guildId}/channels`, {
+    const discordChannelsUrl = new URL(`/api/v10/guilds/${encodeURIComponent(guildId)}/channels`, "https://discord.com");
+    const response = await fetch(discordChannelsUrl, {
       headers: { Authorization: `Bot ${botToken}` },
     });
     if (!response.ok) {

@@ -7,6 +7,7 @@ import ChampionshipStudio from "./ChampionshipStudio";
 import { SHOWDOWN_GAME_AVAILABILITY, SHOWDOWN_REGIONAL_POKEDEXES } from "../lib/showdown-regional-pokedexes";
 import { withRegulationMetadata } from "../lib/regulation-catalog";
 import RegulationPicker from "./RegulationPicker";
+import { safeHttpsImageSource } from "../lib/imageSecurity";
 
 /* ---------------------------------------------------------
    DESIGN TOKENS — stadium-jumbotron-at-night aesthetic.
@@ -9360,6 +9361,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   if (!nameConfirmed) {
     return <NameGate myName={myName} setMyName={setMyName} onConfirm={() => { setMyName(myName.trim()); setNameConfirmed(true); }} />;
   }
+  const leagueImageUrl = safeHttpsImageSource(league?.image_url, "/draftcenter-logo.png");
 
   return (
     <div style={{ background: "#10121C", minHeight: "100vh", color: "#EDEBFA", fontFamily: "'Manrope', sans-serif" }} className="w-full">
@@ -9383,7 +9385,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
         {isSpectator && <div className="px-6 py-2 text-center text-xs font-semibold" style={{ background: "#315887", color: "#e9f2ff" }}>SPECTATOR MODE — You can explore this league, but cannot claim a team, make picks, or change league data.</div>}
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between flex-wrap gap-3">
           <div className="flex items-center gap-3">
-            <img src={league?.image_url || "/draftcenter-logo.png"} alt="" style={{ width: 44, height: 44, objectFit: "cover", borderRadius: 10 }} />
+            <img src={leagueImageUrl} alt="" style={{ width: 44, height: 44, objectFit: "cover", borderRadius: 10 }} />
             <span className="display-font text-3xl font-semibold tracking-wide" style={{ color: "#FFD23F" }}>{league?.name || "DRAFTCENTER"}</span>
             {state.settings.publicLeague && (
               <span className="mono-font text-[10px] px-2 py-0.5 rounded font-semibold" style={{ background: "#4FD1C522", color: "#4FD1C5", border: "1px solid #4FD1C555" }}>

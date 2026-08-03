@@ -8,6 +8,7 @@ import LeagueRecoveryPanel from "./LeagueRecoveryPanel";
 import LeagueHub, { RotatingPokemonArtwork, WORLD_CHAMPION_POKEMON, pokemonArtworkCandidates } from "./LeagueHub";
 import PokemonDraftLeague from "./PokemonDraftLeague";
 import { POLL_POKEMON_NAMES, POKEMON_DIRECTORY } from "./PokemonDraftLeague";
+import { safeHttpsImageSource } from "../lib/imageSecurity";
 
 const inputStyle = { padding: 11, borderRadius: 8, border: "1px solid #46517c", background: "#080c1c", color: "#fff", width: "100%" };
 const authPanel = { width: "min(430px, calc(100vw - 32px))", padding: 28, borderRadius: 16, border: "1px solid #2a3157", background: "#11162b", boxShadow: "0 20px 70px rgba(0,0,0,.38)" };
@@ -306,7 +307,8 @@ function LeagueAppearanceEditor({ league, onClose, onUpdated }) {
     setMessage("League appearance saved.");
   }
 
-  return <div className="modal-backdrop"><section className="tools-modal"><button className="modal-close" onClick={onClose}>x</button><span className="eyebrow">COMMISSIONER TOOLS</span><h2>League appearance</h2><p className="muted">Change these whenever you need to. The description is shown on the public league page; the image is optional.</p><form className="form-stack" onSubmit={save}><label>League description<textarea rows={4} value={description} onChange={(event) => setDescription(event.target.value)} placeholder="What makes this league special?" /></label><label>League image URL (optional)<input type="url" value={imageUrl} onChange={(event) => setImageUrl(event.target.value)} placeholder="https://example.com/league-image.jpg" /></label>{imageUrl && <img className="league-cover" src={imageUrl} alt="League cover preview" onError={(event) => { event.currentTarget.style.display = "none"; }} />}{message && <p className="hub-message">{message}</p>}<button className="primary-button" disabled={busy}>{busy ? "Saving..." : "Save appearance"}</button></form></section></div>;
+  const previewImageUrl = safeHttpsImageSource(imageUrl);
+  return <div className="modal-backdrop"><section className="tools-modal"><button className="modal-close" onClick={onClose}>x</button><span className="eyebrow">COMMISSIONER TOOLS</span><h2>League appearance</h2><p className="muted">Change these whenever you need to. The description is shown on the public league page; the image is optional.</p><form className="form-stack" onSubmit={save}><label>League description<textarea rows={4} value={description} onChange={(event) => setDescription(event.target.value)} placeholder="What makes this league special?" /></label><label>League image URL (optional)<input type="url" value={imageUrl} onChange={(event) => setImageUrl(event.target.value)} placeholder="https://example.com/league-image.jpg" /></label>{previewImageUrl && <img className="league-cover" src={previewImageUrl} alt="League cover preview" onError={(event) => { event.currentTarget.style.display = "none"; }} />}{message && <p className="hub-message">{message}</p>}<button className="primary-button" disabled={busy}>{busy ? "Saving..." : "Save appearance"}</button></form></section></div>;
 }
 
 function LeagueTools({ league, corrections, onClose, onUpdated, onDeleted }) {
@@ -346,6 +348,7 @@ function LeagueTools({ league, corrections, onClose, onUpdated, onDeleted }) {
   const leagueIsFull=Number(league.total_spots)>0&&Number(league.filled_spots)>=Number(league.total_spots);
   const completedTrades=(corrections?.trades||[]).filter((trade)=>trade.status==='accepted'&&!reversedTrades.includes(trade.id)).slice().reverse();
   const completedMoves=(corrections?.transactionLog||[]).filter((entry)=>!entry.reversed&&!reversedMoves.includes(entry.id)).slice().reverse();
+  const previewImageUrl=safeHttpsImageSource(imageUrl);
   function reverseTradeFromTools(trade){if(!window.confirm(`Reverse the completed trade between ${corrections?.teams?.[trade.fromTeam]?.name||"Team A"} and ${corrections?.teams?.[trade.toTeam]?.name||"Team B"}?`))return;const outcome=corrections?.reverseTrade?.(trade.id);if(!outcome?.ok)return setMessage(outcome?.reason||"The trade could not be reversed.");setReversedTrades((current)=>[...current,trade.id]);setMessage("Trade reversed and recorded in the league audit log.");}
   function reverseMoveFromTools(entry){if(!window.confirm(`Undo ${corrections?.teams?.[entry.teamIdx]?.name||"this team"} adding ${entry.addName}?`))return;const outcome=corrections?.reverseFreeAgentMove?.(entry.id);if(!outcome?.ok)return setMessage(outcome?.reason||"The free-agent move could not be reversed.");setReversedMoves((current)=>[...current,entry.id]);setMessage("Free-agent move reversed and recorded in the league audit log.");}
   const inviteControls=<section className="league-tool-section"><h3>Invite links</h3><p className="muted">Invite a manager to claim a team or give someone view-only spectator access.</p><div className="league-tool-compact-actions"><button type="button" className="secondary-button" disabled={busy} onClick={()=>createLink('manager')}>Manager invite</button><button type="button" className="quiet-button" disabled={busy} onClick={()=>createLink('spectator')}>Spectator invite</button></div><details className="league-tool-email-invite"><summary>Email an invite instead</summary><div className="form-stack"><label>Email address<input type="email" value={inviteEmail} onChange={(e)=>setInviteEmail(e.target.value)} placeholder="coach@example.com" /></label><div className="league-tool-compact-actions"><button type="button" className="secondary-button" disabled={busy} onClick={()=>createLink('manager',true)}>Email manager</button><button type="button" className="quiet-button" disabled={busy} onClick={()=>createLink('spectator',true)}>Email spectator</button></div></div></details></section>;
@@ -360,7 +363,7 @@ function LeagueTools({ league, corrections, onClose, onUpdated, onDeleted }) {
         <p className="muted">The league's official draft date is managed once from Setup and shared everywhere else automatically.</p>
         <label>Description<textarea rows={3} value={description} onChange={(e)=>setDescription(e.target.value)} /></label>
         <label>League image URL (optional)<input type="url" value={imageUrl} onChange={(e)=>setImageUrl(e.target.value)} placeholder="https://example.com/league-image.jpg" /></label>
-        {imageUrl&&<img className="league-cover" src={imageUrl} alt="League cover preview" onError={(event)=>{event.currentTarget.style.display="none";}} />}
+        {previewImageUrl&&<img className="league-cover" src={previewImageUrl} alt="League cover preview" onError={(event)=>{event.currentTarget.style.display="none";}} />}
         <label>Public league listing
           <select value={visibility} onChange={(e)=>setVisibility(e.target.value)}>
             <option value="private">Private — invite links only</option>

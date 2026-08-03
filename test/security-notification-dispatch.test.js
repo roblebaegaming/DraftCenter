@@ -4,6 +4,7 @@ import { resolveNotificationDispatchScope, routeNotificationDispatch } from "../
 import { bearerToken, readBoundedJson, safeDiagnosticMessage } from "../src/lib/apiSecurity.js";
 import { validateTwitchEventSubEnvelope } from "../src/lib/twitchEventsubSecurity.js";
 import { normalizeArtworkOptions, selectArchivedArtworkSeason } from "../src/lib/championshipArtworkSecurity.js";
+import { safeHttpsImageSource } from "../src/lib/imageSecurity.js";
 
 test("notification dispatch rejects anonymous global invocation", async () => {
   const result = await resolveNotificationDispatchScope(new Request("https://www.draftcentral.gg/api/notifications/dispatch", { method: "POST" }), "cron-secret");
@@ -104,6 +105,14 @@ test("championship artwork accepts only a server-saved archived season", () => {
   assert.equal(options.title.length, 80);
   assert.equal(options.title.includes("\u0000"), false);
   assert.equal(options.themeKey, "night");
+});
+
+test("league artwork renders only normalized HTTPS sources", () => {
+  assert.equal(safeHttpsImageSource("javascript:alert(1)"), "");
+  assert.equal(safeHttpsImageSource("data:image/svg+xml,<svg onload=alert(1) />"), "");
+  assert.equal(safeHttpsImageSource("https://user:pass@example.com/image.png"), "");
+  assert.equal(safeHttpsImageSource("https://example.com/a b.png"), "https://example.com/a%20b.png");
+  assert.equal(safeHttpsImageSource("", "/draftcenter-logo.png"), "/draftcenter-logo.png");
 });
 
 test("Twitch EventSub accepts only the expected enabled subscription and broadcaster", () => {
