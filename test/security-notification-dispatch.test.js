@@ -1,10 +1,19 @@
 import assert from "node:assert/strict";
+import fs from "node:fs";
 import test from "node:test";
 import { resolveNotificationDispatchScope, routeNotificationDispatch } from "../src/lib/notificationDispatchAuth.js";
 import { bearerToken, readBoundedJson, safeDiagnosticMessage } from "../src/lib/apiSecurity.js";
 import { validateTwitchEventSubEnvelope } from "../src/lib/twitchEventsubSecurity.js";
 import { normalizeArtworkOptions, selectArchivedArtworkSeason } from "../src/lib/championshipArtworkSecurity.js";
 import { safeHttpsImageSource } from "../src/lib/imageSecurity.js";
+
+test("community Discord editorial posts cannot route through league channels", () => {
+  const source = fs.readFileSync(new URL("../src/app/api/notifications/dispatch/route.js", import.meta.url), "utf8");
+  assert.match(source, /DISCORD_QOTD_CHANNEL_ID/);
+  assert.match(source, /DISCORD_DAILY_THREE_RESULTS_CHANNEL_ID/);
+  assert.match(source, /community_discord_\$\{deliveryKind\}/);
+  assert.match(source, /eq\("notify_daily_three", true\)\s*\.limit\(0\)/);
+});
 
 test("notification dispatch rejects anonymous global invocation", async () => {
   const result = await resolveNotificationDispatchScope(new Request("https://www.draftcentral.gg/api/notifications/dispatch", { method: "POST" }), "cron-secret");
