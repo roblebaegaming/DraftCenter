@@ -1,7 +1,7 @@
 import LegalPage from "../../components/LegalPage";
 
 export const metadata = {
-  title: "Legal, Privacy & Community Rules | DraftCenter",
+  title: "Legal, Privacy & Community Rules",
   description: "DraftCenter unofficial fan-site notice, intellectual-property information, privacy overview, and community rules.",
 };
 
