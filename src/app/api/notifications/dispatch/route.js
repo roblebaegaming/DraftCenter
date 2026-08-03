@@ -83,6 +83,69 @@ async function deliverEmail(event, supabase) {
   return { delivered: true };
 }
 
+async function deliverCommunityDiscord(supabase, now = new Date()) {
+  let delivered = 0; let skipped = 0; let failed = 0;
+  const qotdChannel = process.env.DISCORD_QOTD_CHANNEL_ID;
+  const qotdClock = localDateHour(now, process.env.DISCORD_QOTD_TIME_ZONE || "America/Los_Angeles");
+  if (qotdChannel && qotdClock.hour >= configuredHour("DISCORD_QOTD_HOUR", 6)) {
+    const claimed = await claimCommunityDelivery(supabase, "question_of_the_day", qotdClock.date, qotdChannel);
+    if (!claimed) skipped += 1;
+    else try {
+      const { data: poll } = await supabase.from("daily_polls").select("question").eq("poll_date", qotdClock.date).maybeSingle();
+      if (!poll?.question) throw new Error("Today's Question of the Day is not ready yet.");
+      await sendDiscordChannelMessage(qotdChannel, `❓ **DraftCenter Question of the Day**\n${poll.question}\n\nVote in today's Daily Three:\nhttps://www.draftcentral.gg/explore`);
+      delivered += 1;
+    } catch {
+      failed += 1;
+      await releaseCommunityDelivery(supabase, "question_of_the_day", qotdClock.date);
+    }
+  }
+
+  const resultsEnabled = String(process.env.DISCORD_DAILY_THREE_RESULTS_ENABLED || "true").toLowerCase() === "true";
+  const resultsChannel = process.env.DISCORD_DAILY_THREE_RESULTS_CHANNEL_ID;
+  const resultsClock = localDateHour(now, process.env.DISCORD_DAILY_THREE_RESULTS_TIME_ZONE || "America/Los_Angeles");
+  if (resultsEnabled && resultsChannel && resultsClock.hour >= configuredHour("DISCORD_DAILY_THREE_RESULTS_HOUR", 7)) {
+    const claimed = await claimCommunityDelivery(supabase, "daily_three_results", resultsClock.date, resultsChannel);
+    if (!claimed) skipped += 1;
+    else try {
+      const resultDate = dateBefore(resultsClock.date);
+      const [{ data: poll }, { data: bracket }, { data: quiz }] = await Promise.all([
+        supabase.from("daily_polls").select("id,question,options").eq("poll_date", resultDate).maybeSingle(),
+        supabase.from("daily_draft_brackets").select("id").eq("game_date", resultDate).maybeSingle(),
+        supabase.from("daily_quizzes").select("id").eq("quiz_date", resultDate).maybeSingle(),
+      ]);
+      if (!poll) throw new Error("Yesterday's Daily Three results are not ready yet.");
+      const [{ data: answers }, { data: bracketResults }, { data: quizAnswers }] = await Promise.all([
+        supabase.from("daily_poll_answers").select("answer_key").eq("poll_id", poll.id),
+        bracket ? supabase.from("daily_bracket_matchups").select("winner").eq("bracket_id", bracket.id).eq("round_number", 3) : Promise.resolve({ data: [] }),
+        quiz ? supabase.from("daily_quiz_answers").select("is_correct").eq("quiz_id", quiz.id) : Promise.resolve({ data: [] }),
+      ]);
+      const minimum = Math.max(0, Number.parseInt(process.env.DISCORD_DAILY_THREE_RESULTS_MINIMUM_RESPONSES || "1", 10) || 0);
+      if ((answers || []).length < minimum) {
+        skipped += 1;
+        await releaseCommunityDelivery(supabase, "daily_three_results", resultsClock.date);
+      } else {
+        const totals = {};
+        for (const answer of answers || []) totals[answer.answer_key] = (totals[answer.answer_key] || 0) + 1;
+        const labels = Object.fromEntries((poll.options || []).map((option) => [option.key, option.label]));
+        const pollLeaders = Object.entries(totals).sort(([, a], [, b]) => b - a).slice(0, 3).map(([key, count]) => `${labels[key] || key} (${count})`).join(", ") || "No votes were cast";
+        const championTotals = {};
+        for (const result of bracketResults || []) championTotals[result.winner] = (championTotals[result.winner] || 0) + 1;
+        const bracketLeader = Object.entries(championTotals).sort(([, a], [, b]) => b - a)[0];
+        const bracketSummary = bracketLeader ? `${bracketLeader[0]} led with ${bracketLeader[1]} bracket${bracketLeader[1] === 1 ? "" : "s"}` : "No completed brackets";
+        const quizTotal = (quizAnswers || []).length;
+        const quizCorrect = (quizAnswers || []).filter((answer) => answer.is_correct).length;
+        await sendDiscordChannelMessage(resultsChannel, `📊 **DraftCenter Daily Three results**\n**Poll:** ${poll.question}\n${pollLeaders}\n**Draft Bracket:** ${bracketSummary}\n**Pokémon Quiz:** ${quizTotal ? Math.round((quizCorrect / quizTotal) * 100) : 0}% correct (${quizCorrect}/${quizTotal})\n\nhttps://www.draftcentral.gg/explore`);
+        delivered += 1;
+      }
+    } catch {
+      failed += 1;
+      await releaseCommunityDelivery(supabase, "daily_three_results", resultsClock.date);
+    }
+  }
+  return { delivered, skipped, failed };
+}
+
 async function deliverDailyThreeResults(supabase) {
   const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
   const today = new Date().toISOString().slice(0, 10);
@@ -136,6 +199,7 @@ async function deliverDailyThreeResults(supabase) {
     .select("league_id, channel_id")
     .eq("enabled", true)
     .eq("notify_daily_three", true)
+    .limit(0)
     .not("channel_id", "is", null);
   const token = process.env.DISCORD_BOT_TOKEN;
   const pollLeaders = Object.entries(totals).sort(([, a], [, b]) => b - a).slice(0, 3)
@@ -165,6 +229,62 @@ async function deliverDailyThreeResults(supabase) {
     }
   }
   return { delivered, skipped, failed };
+}
+
+function localDateHour(date, timeZone) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(date);
+  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  return { date: `${values.year}-${values.month}-${values.day}`, hour: Number(values.hour) };
+}
+
+function dateBefore(dateKey) {
+  const date = new Date(`${dateKey}T12:00:00Z`);
+  date.setUTCDate(date.getUTCDate() - 1);
+  return date.toISOString().slice(0, 10);
+}
+
+function configuredHour(name, fallback) {
+  const value = Number.parseInt(process.env[name] || "", 10);
+  return Number.isInteger(value) && value >= 0 && value <= 23 ? value : fallback;
+}
+
+async function sendDiscordChannelMessage(channelId, content) {
+  const token = process.env.DISCORD_BOT_TOKEN;
+  if (!token) throw new Error("Discord bot is not configured yet.");
+  const response = await fetch(`https://discord.com/api/v10/channels/${channelId}/messages`, {
+    method: "POST",
+    headers: { Authorization: `Bot ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ content }),
+  });
+  if (!response.ok) throw Object.assign(new Error("Discord rejected the community message."), { status: response.status });
+}
+
+async function claimCommunityDelivery(supabase, deliveryKind, deliveryDate, channelId) {
+  const kind = `community_discord_${deliveryKind}`;
+  const context = { delivery_date: deliveryDate, channel_id: channelId };
+  const { data: existing, error: readError } = await supabase.from("operational_health_events")
+    .select("id").eq("kind", kind).contains("context", context).limit(1);
+  if (readError || existing?.length) return false;
+  const { error } = await supabase.from("operational_health_events").insert({
+    league_id: null,
+    kind,
+    message: "Community Discord delivery claimed.",
+    context,
+  });
+  return !error;
+}
+
+async function releaseCommunityDelivery(supabase, deliveryKind, deliveryDate) {
+  await supabase.from("operational_health_events").delete()
+    .eq("kind", `community_discord_${deliveryKind}`)
+    .contains("context", { delivery_date: deliveryDate });
 }
 
 async function deliverDiscord(event, supabase) {
@@ -241,6 +361,7 @@ async function dispatchDueEvents(includeDailyThree = false, leagueId = null) {
   try {
     const supabase = createAdminClient();
     const dailyThree = includeDailyThree ? await deliverDailyThreeResults(supabase) : { delivered: 0, skipped: 0, failed: 0 };
+    const communityDiscord = includeDailyThree ? await deliverCommunityDiscord(supabase) : { delivered: 0, skipped: 0, failed: 0 };
     const claimToken = crypto.randomUUID();
     const claim = leagueId
       ? supabase.rpc("claim_league_notification_events", { p_claim_token: claimToken, p_league_id: leagueId, p_limit: 50 })
@@ -286,7 +407,7 @@ async function dispatchDueEvents(includeDailyThree = false, leagueId = null) {
         if (failError) throw failError;
       }
     }
-    return NextResponse.json({ delivered: delivered + dailyThree.delivered, skipped: skipped + dailyThree.skipped, failed: failed + dailyThree.failed });
+    return NextResponse.json({ delivered: delivered + dailyThree.delivered + communityDiscord.delivered, skipped: skipped + dailyThree.skipped + communityDiscord.skipped, failed: failed + dailyThree.failed + communityDiscord.failed });
   } catch (error) {
     return safeFailure(error, "Notification dispatch failed.", { context: "notification-dispatch" });
   }
