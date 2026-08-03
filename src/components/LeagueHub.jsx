@@ -6,6 +6,8 @@ import { POLL_POKEMON_DEX_NAMES, POLL_POKEMON_NAMES } from "./PokemonDraftLeague
 import DailyCommunityGames from "./DailyCommunityGames";
 import PublicCoachProfile, { CoachProfileButton } from "./PublicCoachProfile";
 
+const LEAGUE_HUB_FALLBACK_REFRESH_MS = 60000;
+
 function slugify(value) { return value.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "").slice(0, 72); }
 function localDateKey(date = new Date()) { const year=date.getFullYear(); const month=String(date.getMonth()+1).padStart(2,"0"); const day=String(date.getDate()).padStart(2,"0"); return `${year}-${month}-${day}`; }
 
@@ -290,7 +292,36 @@ export default function LeagueHub({ user, profile, onOpenLeague }) {
     setTurnAlert(activeTurn ? `⚡ You are on the clock in ${activeTurn.league.name}. Open that league to make your pick.` : "");
     setLoading(false);
   }
-  useEffect(() => { loadLeagues(); const timer = window.setInterval(() => loadLeagues(true), 5000); return () => window.clearInterval(timer); }, []);
+  useEffect(() => {
+    let disposed = false;
+    let refreshInFlight = false;
+
+    async function refresh(silent) {
+      if (disposed || refreshInFlight) return;
+      if (silent && document.visibilityState !== "visible") return;
+      refreshInFlight = true;
+      try {
+        await loadLeagues(silent);
+      } finally {
+        refreshInFlight = false;
+      }
+    }
+
+    function refreshWhenVisible() {
+      if (document.visibilityState === "visible") refresh(true);
+    }
+
+    refresh(false);
+    const timer = window.setInterval(() => refresh(true), LEAGUE_HUB_FALLBACK_REFRESH_MS);
+    document.addEventListener("visibilitychange", refreshWhenVisible);
+    window.addEventListener("focus", refreshWhenVisible);
+    return () => {
+      disposed = true;
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", refreshWhenVisible);
+      window.removeEventListener("focus", refreshWhenVisible);
+    };
+  }, []);
   useEffect(() => {
     async function dispatchNotifications() {
       const { data } = await supabase.auth.getSession();
