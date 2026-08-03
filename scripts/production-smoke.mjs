@@ -21,7 +21,7 @@ const protectedRoutes = [
   "/api/operations/overview",
   "/api/operations/daily-three",
   "/api/support-access",
-  "/api/league-recovery?league_id=00000000-0000-0000-0000-000000000000",
+  "/api/league-recovery?league_id=00000000-0000-4000-8000-000000000000",
   "/api/account-deletion",
 ];
 
