@@ -7,10 +7,11 @@ future vulnerabilities.
 
 ## Release baseline
 
-- Application release: the commit containing this record
+- Application release: `b0a755e` plus the documentation/workflow follow-up that
+  contains this record
 - Production Supabase project: `eukexfqpiuidwygllaye`
 - Applied production security migrations: `243` through `247`
-- Security tests: 11 passed
+- Security tests: 12 passed
 - Regulation tests: 2 passed
 - National Dex verification: 1,027 rows passed
 - Production dependency audit: no known production vulnerabilities
@@ -86,8 +87,9 @@ Status: **remediated in this release**.
 - `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`,
   `X-Frame-Options`, HSTS, COOP, and CORP are set centrally.
 
-Production pages and authenticated routes must be rechecked after this release
-to catch a provider origin that was not exercised locally.
+Production pages and authenticated routes were rechecked after release. The
+policy is enforced in production and the authenticated owner Operations view
+loaded without browser warnings.
 
 ### DC-SEC-05 — request and structure limits
 
@@ -122,12 +124,18 @@ Status: **remediated**.
 - CI now runs security/regulation tests, a production dependency audit, and a
   full-history Gitleaks scan.
 - CodeQL and weekly Dependabot configuration are included.
+- The first CodeQL scan reported four findings. Release `b0a755e` corrected the
+  fixed-origin Discord request construction and normalized commissioner-provided
+  image sources. The follow-up CodeQL run succeeded with **0 open / 4 closed**.
+- Full-history secret scanning reports **0 open / 0 closed** findings.
 - GitHub dependency graph, Dependabot alerts/security updates/malware alerts,
   grouped security updates, private vulnerability reporting, secret scanning,
   and push protection are enabled.
 - GitHub Actions defaults to read-only repository permissions, cannot create or
   approve pull requests, and requires owner approval for every external
   contributor's workflow.
+- `SECURITY.md` directs researchers to GitHub private vulnerability reporting
+  and prohibits public disclosure or testing against real user data.
 
 ### DC-SEC-08 — retention and recovery policy
 
@@ -176,8 +184,11 @@ GitHub:
 - Dependency/security monitoring, private reporting, secret scanning, and push
   protection are enabled as described above.
 - The repository's automated checks are supplied by this release.
-- Main-branch rules should be enabled only after those checks have registered,
-  with an audited owner emergency bypass retained.
+- The `Protect main` ruleset is prepared with deletion/force-push protection,
+  linear history, pull requests, resolved conversations, the two security
+  checks, and high-severity CodeQL results required. Saving it is waiting only
+  for GitHub's email verification challenge; an audited owner emergency bypass
+  is retained.
 
 Vercel:
 
@@ -207,14 +218,16 @@ These steps deliberately remain outside automated account control:
 
 ## Release verification gate
 
-After deployment:
+Completed after deployment:
 
-1. Confirm the GitHub security, CodeQL, and secret-history checks complete.
-2. Confirm the Vercel production deployment is healthy and the preceding
-   deployment remains available for rollback.
-3. Run the production smoke test.
-4. Verify enforced CSP/security headers on public pages and an authenticated
-   owner page.
-5. Verify unauthorized notification calls return `401/400/403` without outgoing
-   database/provider activity, while cron and Twitch-triggered paths remain
-   available to their authorized callers.
+1. GitHub security, CodeQL, and secret-history checks completed successfully;
+   CodeQL has zero open findings and secret scanning has no findings.
+2. Vercel marked the production deployment healthy and retains the preceding
+   deployment for rollback.
+3. The production smoke test passed all public and protected-route checks.
+4. Enforced CSP/security headers were verified on public pages, and the signed-in
+   owner Operations, Explore, and Pokémon pages loaded without browser warnings.
+5. Unauthorized notification and owner-route calls return `401` without
+   privileged work. Log review found browser dispatch requests were restricted
+   to the caller's authorized league and found no evidence requiring credential
+   rotation.
