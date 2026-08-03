@@ -3,8 +3,8 @@
 - Production: https://www.draftcentral.gg
 - Repository: `C:\Users\rober\Documents\Codex\2026-07-20\i-am-building-a-pok-mon\draft-league\DraftCenter`
 - GitHub: `roblebaegaming/DraftCenter`, branch `main`
-- Current production code commit: `d09ce76`
-- Current production deployment: `BZqxc8E7ZaoDamGg68kcCjEbuPPr` — Ready
+- Latest verified functional production commit: `e3ec339`
+- Verified functional production deployment: `6uYa9PQFUdB4Xpsyy9Ven516wWca` — Ready
 - Production Supabase project: `eukexfqpiuidwygllaye`
 - Previous comprehensive launch handoff: `docs/DraftCenter-agent-handoff-2026-08-02-final.md`
 
@@ -81,6 +81,25 @@ first, confirm the current state, and retry once. This replaces raw messages
 such as `NetworkError`, `upstream request timeout`, and statement timeout text.
 
 Commit: `947251f`.
+
+### Safe profile defaults during signup
+
+The Gmail plus-alias email test exposed a real signup defect on August 2. The
+Auth user trigger used the entire email local part as the initial public display
+name. A long plus alias exceeded the live `profiles_display_name_check` limit of
+40 characters, aborting the signup transaction with a database error.
+
+Migration `supabase/248-safe-default-profile-display-names.sql` now strips an
+email plus tag, trims the generated name to 40 characters, and falls back to
+`Coach` when the result is shorter than two characters. The browser signup path
+also supplies the same bounded default as Auth metadata. The database trigger
+remains authoritative for other clients and bounds supplied metadata as well.
+
+The migration was applied to production and the installed trigger definition
+was read back from the database. A fresh plus-alias signup created the expected
+`robert.lebeda` profile, and the temporary Auth user was deleted after testing.
+
+Pull request: `#13`. Commit: `e3ec339`.
 
 ## League lifecycle and archive improvements
 
@@ -219,9 +238,9 @@ Investigate as a new system failure if it occurs after the deployed fixes:
 
 ## Remaining owner-operated checks
 
-The real Twitch broadcast is complete. Two owner-visible checks still require a
-normal external client: live Turnstile completion and the second email-client
-test. Neither is a known regression.
+The real Twitch broadcast and Gmail confirmation/recovery flow are complete.
+One owner-visible check still requires a normal external client: live Turnstile
+completion. It is not a known regression.
 
 ### Live Turnstile completion
 
@@ -259,17 +278,23 @@ human-visible personal-DM check, publish the stream from a different DraftCenter
 member than the opted-in recipient and have the recipient inspect the Discord
 identity linked to that DraftCenter profile.
 
-### Second email client
+### Gmail email flow — completed August 2
 
-1. Add the existing Gmail account to Outlook mobile, Apple Mail, Samsung Email,
-   or another major client.
-2. Create a temporary DraftCenter account with a Gmail plus alias.
-3. Verify the branded confirmation email layout and confirmation link.
-4. Sign in, sign out, request a password reset, and verify the reset screen.
-5. Delete the temporary account afterward.
+- Gmail web displayed the branded confirmation email, readable body text, and
+  visible confirmation action.
+- The confirmation action worked and Supabase recorded the address as confirmed.
+- Sign-out and sign-in with the temporary account both passed.
+- Gmail received the branded password-reset email and exposed its reset action.
+- The reset link opened DraftCenter's password-replacement screen on the
+  allowlisted, signed-out production origin; the password update succeeded.
+- A second sign-out/sign-in cycle with the new password passed.
+- The exact temporary plus-alias account was permanently deleted and a refreshed
+  Auth search returned zero users.
 
-Gmail web confirmation and recovery already passed; this checks rendering and
-link behavior in a second client.
+This is a complete functional Gmail flow. Apple Mail, Samsung Email, Thunderbird,
+or another independent renderer can still be checked later for additional visual
+coverage, but it is a non-blocking compatibility enhancement rather than an open
+account-flow failure.
 
 ## Security and provider completion
 
@@ -387,6 +412,8 @@ Evidence commit: `fdf3f4f`.
 - `e5b6bb6` — remind commissioners about long-paused drafts
 - `37fd599` — protect signed-out authentication with staged Turnstile
 - `d09ce76` — record retention/custody and improve mobile launch performance
+- `0cabc4e` — update the final security and launch handoff
+- `e3ec339` — fix signup defaults for long email aliases
 
 ## Primary files
 
@@ -398,11 +425,14 @@ Evidence commit: `fdf3f4f`.
 - `docs/browser-network-and-search-audit-2026-08-02.md`
 - `src/lib/ownerOperations.js`
 - `src/lib/authCaptcha.js`
+- `src/lib/profileDefaults.js`
 - `src/components/OperationsDashboard.jsx`
 - `src/components/TurnstileChallenge.jsx`
 - `src/components/PokemonDraftLeague.jsx`
 - `supabase/241-collision-safe-private-queue-reordering.sql`
 - `supabase/242-commissioner-league-lifecycle-archive.sql`
+- `supabase/248-safe-default-profile-display-names.sql`
 - `scripts/production-smoke.mjs`
 - `scripts/verify-national-dex-paging.mjs`
 - `test/regulation-catalog.test.js`
+- `test/profile-defaults.test.js`
