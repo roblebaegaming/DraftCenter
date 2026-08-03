@@ -4,7 +4,7 @@
 - Repository: `C:\Users\rober\Documents\Codex\2026-07-20\i-am-building-a-pok-mon\draft-league\DraftCenter`
 - GitHub: `roblebaegaming/DraftCenter`, protected branch `main`
 - Production Supabase project: `eukexfqpiuidwygllaye`
-- Latest production commit: `5ace5f2`
+- Latest verified functional production commit: `5ace5f2`
 - Previous comprehensive handoff: `docs/DraftCenter-agent-handoff-2026-08-02-post-launch.md`
 
 ## Executive status
