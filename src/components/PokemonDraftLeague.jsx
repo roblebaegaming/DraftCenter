@@ -5351,6 +5351,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   const completedDraftScheduleClearedRef = useRef(false);
   const automaticStartAttemptedRef = useRef(null);
   const lastReportedOperationalErrorRef = useRef("");
+  const liveDraftPokemonCacheRef = useRef({ leagueId: null, sessionId: null, rows: null, request: null });
   // Role-derived values must be initialized before any hook dependency array
   // reads them. Keeping this below the scheduling effects caused the
   // production bundle to throw a temporal-dead-zone error while opening a
@@ -5385,23 +5386,37 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   useEffect(() => {
     if (!leagueId || myTeamIdx < 0) return undefined;
     let alive = true;
+    let inFlight = false;
     const loadPrivateQueue = async () => {
-      const { data, error } = await supabase.rpc("list_my_draft_queue", {
-        p_league_id: leagueId,
-        p_team_index: myTeamIdx,
-      });
-      if (!alive || error || !Array.isArray(data)) return;
-      setState((current) => {
-        const existing = current.queues?.[myTeamIdx] || [];
-        if (JSON.stringify(existing) === JSON.stringify(data)) return current;
-        return { ...current, queues: { ...current.queues, [myTeamIdx]: data } };
-      });
+      if (document.visibilityState !== "visible" || inFlight) return;
+      inFlight = true;
+      try {
+        const { data, error } = await supabase.rpc("list_my_draft_queue", {
+          p_league_id: leagueId,
+          p_team_index: myTeamIdx,
+        });
+        if (!alive || error || !Array.isArray(data)) return;
+        setState((current) => {
+          const existing = current.queues?.[myTeamIdx] || [];
+          if (JSON.stringify(existing) === JSON.stringify(data)) return current;
+          return { ...current, queues: { ...current.queues, [myTeamIdx]: data } };
+        });
+      } finally {
+        inFlight = false;
+      }
     };
     loadPrivateQueue();
     const interval = setInterval(loadPrivateQueue, 5000);
+    const refreshWhenVisible = () => {
+      if (document.visibilityState === "visible") loadPrivateQueue();
+    };
+    document.addEventListener("visibilitychange", refreshWhenVisible);
+    window.addEventListener("focus", refreshWhenVisible);
     return () => {
       alive = false;
       clearInterval(interval);
+      document.removeEventListener("visibilitychange", refreshWhenVisible);
+      window.removeEventListener("focus", refreshWhenVisible);
     };
   }, [leagueId, myTeamIdx, supabase]);
   useEffect(() => {
@@ -5419,9 +5434,13 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   // Initial load + polling for multiplayer sync
   useEffect(() => {
     let alive = true;
-    async function pull() {
-      let remote = await loadRemote(leagueId);
-      if (!alive) return;
+    let inFlight = false;
+    async function pull(force = false) {
+      if ((!force && document.visibilityState !== "visible") || inFlight) return;
+      inFlight = true;
+      try {
+        let remote = await loadRemote(leagueId);
+        if (!alive) return;
       // create_league intentionally starts with a minimal snapshot. Persist
       // the complete setup immediately when league staff first open it so a
       // manager invite can never arrive before the teams exist server-side.
@@ -5476,12 +5495,25 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
           };
         });
       }
-      setSynced(true);
-      if (leagueId) setSaveStatus("saved");
+        setSynced(true);
+        if (leagueId) setSaveStatus("saved");
+      } finally {
+        inFlight = false;
+      }
     }
-    pull();
+    pull(true);
     const iv = setInterval(pull, 4000);
-    return () => { alive = false; clearInterval(iv); };
+    const refreshWhenVisible = () => {
+      if (document.visibilityState === "visible") pull(true);
+    };
+    document.addEventListener("visibilitychange", refreshWhenVisible);
+    window.addEventListener("focus", refreshWhenVisible);
+    return () => {
+      alive = false;
+      clearInterval(iv);
+      document.removeEventListener("visibilitychange", refreshWhenVisible);
+      window.removeEventListener("focus", refreshWhenVisible);
+    };
   }, [leagueId, myTeamIdx, isCommissioner, supabase]);
 
   const commit = useCallback((updater) => {
@@ -5952,16 +5984,29 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
 
   const availablePool = fullPool(state.settings).filter((p) => isLegal(p, state.settings));
 
+  const loadCachedLiveDraftPokemon = useCallback(async (sessionId) => {
+    const cache = liveDraftPokemonCacheRef.current;
+    if (cache.leagueId !== leagueId || cache.sessionId !== sessionId) {
+      liveDraftPokemonCacheRef.current = { leagueId, sessionId, rows: null, request: null };
+    }
+    const current = liveDraftPokemonCacheRef.current;
+    if (current.rows) return { data: current.rows, error: null };
+    if (!current.request) current.request = loadAllLeaguePokemon(supabase, leagueId);
+    const result = await current.request;
+    if (!result.error && liveDraftPokemonCacheRef.current === current) current.rows = result.data || [];
+    current.request = null;
+    return result;
+  }, [leagueId, supabase]);
+
   // The normal prototype uses a shared JSON snapshot. A shared live snake
   // draft instead reads the official picks from Supabase after every event;
   // the browser only projects that server state for display.
   const refreshLiveSnakeDraft = useCallback(async () => {
     if (!leagueId) return;
-    const [{ data: live, error }, { data: pokemonRows, error: pokemonError }] = await Promise.all([
-      supabase.rpc("get_live_snake_draft", { p_league_id: leagueId }),
-      loadAllLeaguePokemon(supabase, leagueId),
-    ]);
-    if (error || pokemonError || !live?.session?.id) return;
+    const { data: live, error } = await supabase.rpc("get_live_snake_draft", { p_league_id: leagueId });
+    if (error || !live?.session?.id) return;
+    const { data: pokemonRows, error: pokemonError } = await loadCachedLiveDraftPokemon(live.session.id);
+    if (pokemonError) return;
     // Draft tables own roster construction only while picks are still being
     // made. Once the session completes, the league snapshot becomes the
     // source of truth because free agency and trades change those rosters.
@@ -6021,6 +6066,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       const drafted = new Set((pokemonRows || [])
         .filter((row) => row.is_drafted)
         .map((row) => String(row.source_key)));
+      for (const pick of live.picks || []) drafted.add(String(pick.pokemon_source_key));
       const budgets = previous.settings.snakeBudgetEnabled
         ? rosters.map((roster) => Number(previous.settings.budget) - roster.reduce((sum, mon) => sum + Number(mon.cost || 0), 0))
         : previous.budgets;
@@ -6047,7 +6093,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
         liveDraft: { ...previous.liveDraft, sessionId: live.session.id, status: live.session.status, pokemonIds, basePool },
       };
     });
-  }, [leagueId, supabase]);
+  }, [leagueId, supabase, loadCachedLiveDraftPokemon]);
 
   const requestDueSnakeTurnResolution = useCallback(async () => {
     if (!leagueId) return false;
@@ -6107,20 +6153,60 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
 
   useEffect(() => {
     if (!leagueId) return undefined;
+    let inFlight = false;
+    const refresh = async (force = false) => {
+      if ((!force && document.visibilityState !== "visible") || inFlight) return;
+      inFlight = true;
+      try {
+        await refreshLiveSnakeDraft();
+      } finally {
+        inFlight = false;
+      }
+    };
     const channel = supabase.channel(`live-draft-${leagueId}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "league_events", filter: `league_id=eq.${leagueId}` }, refreshLiveSnakeDraft)
+      .on("postgres_changes", { event: "*", schema: "public", table: "league_events", filter: `league_id=eq.${leagueId}` }, () => refresh())
       .subscribe();
-    const refreshTimer = setInterval(refreshLiveSnakeDraft, 3000);
-    return () => { clearInterval(refreshTimer); supabase.removeChannel(channel); };
+    const refreshTimer = setInterval(refresh, 3000);
+    const refreshWhenVisible = () => {
+      if (document.visibilityState === "visible") refresh(true);
+    };
+    document.addEventListener("visibilitychange", refreshWhenVisible);
+    window.addEventListener("focus", refreshWhenVisible);
+    return () => {
+      clearInterval(refreshTimer);
+      document.removeEventListener("visibilitychange", refreshWhenVisible);
+      window.removeEventListener("focus", refreshWhenVisible);
+      supabase.removeChannel(channel);
+    };
   }, [leagueId, supabase, refreshLiveSnakeDraft]);
 
   useEffect(() => {
     if (!leagueId || state.settings.draftType !== "auction" || !state.locked) return undefined;
+    let inFlight = false;
+    const refresh = async (force = false) => {
+      if ((!force && document.visibilityState !== "visible") || inFlight) return;
+      inFlight = true;
+      try {
+        await refreshLiveAuction();
+      } finally {
+        inFlight = false;
+      }
+    };
     const channel = supabase.channel(`live-auction-${leagueId}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "league_events", filter: `league_id=eq.${leagueId}` }, refreshLiveAuction)
+      .on("postgres_changes", { event: "*", schema: "public", table: "league_events", filter: `league_id=eq.${leagueId}` }, () => refresh())
       .subscribe();
-    const refreshTimer = setInterval(refreshLiveAuction, 2500);
-    return () => { clearInterval(refreshTimer); supabase.removeChannel(channel); };
+    const refreshTimer = setInterval(refresh, 2500);
+    const refreshWhenVisible = () => {
+      if (document.visibilityState === "visible") refresh(true);
+    };
+    document.addEventListener("visibilitychange", refreshWhenVisible);
+    window.addEventListener("focus", refreshWhenVisible);
+    return () => {
+      clearInterval(refreshTimer);
+      document.removeEventListener("visibilitychange", refreshWhenVisible);
+      window.removeEventListener("focus", refreshWhenVisible);
+      supabase.removeChannel(channel);
+    };
   }, [leagueId, state.settings.draftType, state.locked, supabase, refreshLiveAuction]);
 
   useEffect(() => {
