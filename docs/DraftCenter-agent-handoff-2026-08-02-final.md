@@ -50,6 +50,15 @@ Commits: `6c25fef`, `ac7cb83`, `ef82926`, and `3693f81`.
   broadcaster lookup and EventSub subscription creation succeeded.
 - A synthetic live listing appeared on DraftCenter and was then ended; the
   signed-out public live query confirmed that no test stream remained.
+- On August 2, a real owner broadcast completed the external EventSub test. A
+  fresh offline-registered stream transitioned `scheduled` → `live` →
+  `ended`; the member dashboard banner appeared and cleared; Discord accepted
+  one league-channel event and one eligible non-creator DM event; and no
+  duplicate or failed delivery record appeared.
+- Stream creators are intentionally excluded from personal live-stream DMs. A
+  future human-visible DM test must use a different publisher and opted-in
+  recipient, then check the Discord identity linked to that recipient's
+  DraftCenter profile.
 
 Commit: `205672b`.
 
@@ -100,19 +109,15 @@ Commit: `205672b`.
 
 These are not known regressions and do not invalidate the completed checks:
 
-1. Start one real Twitch broadcast to prove the external Twitch online event,
-   DraftCenter callback, exactly-once opted-in Discord notifications, and the
-   Twitch offline callback. DraftCenter registration and synthetic live cleanup
-   already pass.
-2. View a signup and recovery message in a second major email client. Gmail web
+1. View a signup and recovery message in a second major email client. Gmail web
    is verified; no second external mailbox/client was available.
-3. Run Firefox/Safari and true throttled-network testing when those environments
+2. Run Firefox/Safari and true throttled-network testing when those environments
    are available. The in-app Chromium and 390 × 844 responsive passes succeeded.
-4. Continue the intentionally broader, non-blocking checklist coverage for bot
+3. Continue the intentionally broader, non-blocking checklist coverage for bot
    heuristics and retry timing, simultaneous claim/rebuild races, transaction
    reversal, full Daily Three/community interaction, public profile behavior,
    and every My Teams limit/helper path.
-5. Return to Search Console after Google finishes initial processing and record
+4. Return to Search Console after Google finishes initial processing and record
    the first query/indexing comparison alongside the existing Vercel baseline.
 
 ## Safety and next-agent rules
