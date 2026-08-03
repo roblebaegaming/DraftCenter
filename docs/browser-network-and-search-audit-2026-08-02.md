@@ -22,12 +22,21 @@ page at 9:05 PM Pacific time.
 | Desktop, custom throttling | 95 | 96 | 96 | 100 | 0.3 s | 1.0 s | 160 ms | 0.018 |
 
 These are healthy launch results. The mobile run identified oversized image
-delivery as the main practical opportunity. The follow-up branch reduces the
-shared logo from 1,573,505 bytes to 58,545 bytes, prefers PokeAPI's compact
-Home sprites on the landing cards, and gives the Turnstile container an
-explicit accessibility role. A fresh production audit should be recorded after
-that follow-up deploys; no score increase is promised because Lighthouse values
-vary between runs.
+delivery as the main practical opportunity. Commit `d09ce76` reduced the shared
+logo from 1,573,505 bytes to 58,545 bytes, preferred PokeAPI's compact Home
+sprites on the landing cards, and gave the Turnstile container an explicit
+accessibility role.
+
+A fresh production audit after that deployment recorded:
+
+| Profile | Performance | Accessibility | Best practices | SEO | FCP | LCP | TBT | CLS |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Mobile, emulated Moto G Power, slow 4G | 91 | 100 | 96 | 100 | 1.1 s | 3.5 s | 40 ms | 0.021 |
+| Desktop, custom throttling | 99 | 100 | 96 | 100 | 0.3 s | 0.9 s | 40 ms | 0.013 |
+
+Lighthouse values vary between runs, but the post-release audit confirms the
+smaller payload, removes the automated ARIA finding, and materially reduces
+blocking time.
 
 The automated browser cannot prove real Cloudflare Turnstile completion because
 Cloudflare may reject automated browsers. The client deliberately remains

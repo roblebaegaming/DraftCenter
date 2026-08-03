@@ -3,7 +3,8 @@
 - Production: https://www.draftcentral.gg
 - Repository: `C:\Users\rober\Documents\Codex\2026-07-20\i-am-building-a-pok-mon\draft-league\DraftCenter`
 - GitHub: `roblebaegaming/DraftCenter`, branch `main`
-- Current production code commit: `e5b6bb6`
+- Current production code commit: `d09ce76`
+- Current production deployment: `BZqxc8E7ZaoDamGg68kcCjEbuPPr` — Ready
 - Production Supabase project: `eukexfqpiuidwygllaye`
 - Previous comprehensive launch handoff: `docs/DraftCenter-agent-handoff-2026-08-02-final.md`
 
@@ -218,9 +219,22 @@ Investigate as a new system failure if it occurs after the deployed fixes:
 
 ## Remaining owner-operated checks
 
-The real Twitch broadcast is complete. The second email-client check below is
-the only previously identified launch check that still requires the owner or an
-external client. It is not a known regression.
+The real Twitch broadcast is complete. Two owner-visible checks still require a
+normal external client: live Turnstile completion and the second email-client
+test. Neither is a known regression.
+
+### Live Turnstile completion
+
+1. Open https://www.draftcentral.gg in a normal signed-out private/incognito
+   browser.
+2. Confirm the **Security check** completes normally.
+3. Only after that pass, set `NEXT_PUBLIC_TURNSTILE_ENFORCED=true` for Vercel
+   Production, redeploy, and verify the signed-out form remains reachable.
+4. Configure Supabase Auth **Bot and Abuse Protection** for Turnstile using the
+   secret kept outside GitHub and Vercel.
+5. Immediately smoke-test sign-in, signup, and password reset. If any path
+   fails, disable Supabase enforcement and remove or set the Vercel enforcement
+   flag to false; the public site key may remain.
 
 ### Real Twitch broadcast — completed August 2
 
@@ -257,6 +271,86 @@ identity linked to that DraftCenter profile.
 Gmail web confirmation and recovery already passed; this checks rendering and
 link behavior in a second client.
 
+## Security and provider completion
+
+The independent security audit and its implementable remediation are complete.
+The detailed evidence is in `docs/DraftCenter-security-remediation-2026-08-02.md`.
+
+### Application and connected-service controls
+
+- The global notification dispatcher accepts only the exact cron secret.
+  Signed-in users and commissioners can request only an explicitly authorized,
+  league-scoped dispatch. Anonymous, ordinary-user, commissioner, malformed,
+  and oversized-call regression tests prove rejected callers reach no privileged
+  database or provider work.
+- Production log review found no evidence of unauthorized global dispatch or a
+  credential exposure that required rotation.
+- Twitch EventSub verifies signatures, expected subscription type and status,
+  the configured broadcaster, and durable replay IDs retained for 24 hours.
+- Durable rate limits protect notification, Discord, support, Twitch, OAuth,
+  and championship-artwork routes. Request bodies and external artwork sources
+  are explicitly bounded and validated.
+- Public failures use safe messages. Stored operational diagnostics are
+  sanitized and retained for 30 days.
+- CSP, HSTS, frame, MIME, referrer, permissions, opener, and resource policies
+  are active in production.
+- Repository CI runs security tests, a production dependency audit, CodeQL,
+  and a full-history secret scan. Secret scanning, push protection, dependency
+  monitoring, and private vulnerability reporting are enabled.
+
+### Live provider configuration
+
+- The production Supabase security review confirmed RLS on all public tables,
+  least-privilege function grants, fixed security-definer search paths, safe
+  avatar storage policy and limits, hardened password/session settings, and a
+  clean database security-advisor error result.
+- GitHub `main` is protected against deletion and force-pushes and requires an
+  up-to-date pull request, resolved conversations, both security checks, linear
+  history, and high-severity CodeQL results. The owner retains an audited
+  emergency bypass.
+- Vercel protects preview deployments, build/source output, and fork deployments;
+  production remains connected only to `main`. The verified deployment-retention
+  policy is 30 days canceled, 90 days errored, 180 days preview, and one year
+  production.
+- GitHub, Vercel, and the production Supabase organization require MFA for the
+  owner. Recovery material is stored outside the corresponding provider.
+
+### Authentication bot protection
+
+- Pull request #10 added Cloudflare Turnstile to signed-out sign-in, signup, and
+  password-reset actions and merged as `37fd599` after all checks passed.
+- The managed Cloudflare widget allows only `draftcentral.gg`; the root rule also
+  covers `www.draftcentral.gg`. The public site key is configured in Vercel for
+  Production and Preview. The secret is not in Vercel or GitHub.
+- The official always-pass Cloudflare test key validated sign-in, signup,
+  password reset, token renewal, expiration, and mode changes locally.
+- Production is intentionally staged fail-open: the widget is visible, but
+  `NEXT_PUBLIC_TURNSTILE_ENFORCED` is absent and Supabase enforcement remains
+  disabled until a normal human browser completes the real widget. This prevents
+  an automated rollout from locking out legitimate users.
+
+### Retention, recovery, browser, and Search evidence
+
+- Supabase Pro's seven-day daily-backup window is now verified against the live
+  dashboard and current provider documentation. Current physical restore points
+  were visible on August 2.
+- The DraftCenter owner (Rob Lebae) is the primary backup custodian, sole current
+  Supabase restore operator, and production-restore approver. No secondary human
+  custodian is appointed; that single-owner dependency is explicit.
+- The internal schedule uses quarterly restore drills and encrypted off-account
+  archives, 30-day operational and automatic recovery history, guarded account
+  and league deletion, and separate password-manager custody for archive and MFA
+  recovery material.
+- Pull request #11 reduced the shared logo from 1,573,505 bytes to 58,545 bytes,
+  uses compact landing-card sprites, and fixed the Turnstile accessibility role.
+  It merged as `d09ce76` after all six checks passed.
+- The post-release Lighthouse result is 91 performance / 100 accessibility /
+  96 best practices / 100 SEO on mobile slow 4G and 99 / 100 / 96 / 100 on
+  desktop. The production smoke sweep still passes.
+- Search Console reports the sitemap as Success with 1,059 discovered pages,
+  no security issues, and no manual actions. Initial indexing and experience
+  data are still processing.
+
 ## Restore-project cleanup
 
 Cleanup is complete. Project `phvlvcuxulzhrqrmfndz` was already absent from
@@ -291,6 +385,8 @@ Evidence commit: `fdf3f4f`.
 - `aa69377` — retry stale league saves safely
 - `947251f` — show draft lifecycle and clarify transient failures
 - `e5b6bb6` — remind commissioners about long-paused drafts
+- `37fd599` — protect signed-out authentication with staged Turnstile
+- `d09ce76` — record retention/custody and improve mobile launch performance
 
 ## Primary files
 
@@ -298,8 +394,12 @@ Evidence commit: `fdf3f4f`.
 - `docs/launch-stabilization-checklist.md`
 - `docs/multi-account-hardening-test-record.md`
 - `docs/data-retention-and-recovery.md`
+- `docs/DraftCenter-security-remediation-2026-08-02.md`
+- `docs/browser-network-and-search-audit-2026-08-02.md`
 - `src/lib/ownerOperations.js`
+- `src/lib/authCaptcha.js`
 - `src/components/OperationsDashboard.jsx`
+- `src/components/TurnstileChallenge.jsx`
 - `src/components/PokemonDraftLeague.jsx`
 - `supabase/241-collision-safe-private-queue-reordering.sql`
 - `supabase/242-commissioner-league-lifecycle-archive.sql`
