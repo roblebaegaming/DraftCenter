@@ -9448,6 +9448,11 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
             })}
             {displayIsCommissioner && leagueId && (
               <>
+              <a href="/manuals/commissioner"
+                  className="px-4 py-2 rounded text-sm font-semibold"
+                  style={{ fontFamily: "'Teko', sans-serif", fontSize: "16px", letterSpacing: "0.03em", background: "#FFD23F", color: "#10121C", border: "1px solid #FFD23F", textDecoration: "none" }}>
+                  HELP
+                </a>
               <button onClick={() => onOpenLeagueTools?.({
                 teams: state.teams,
                 trades: state.trades,
@@ -9465,7 +9470,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
               })}
                   className="px-4 py-2 rounded text-sm font-semibold"
                   style={{ fontFamily: "'Teko', sans-serif", fontSize: "16px", letterSpacing: "0.03em", background: "#253354", color: "#D9E5FF", border: "1px solid #4B669B" }}>
-                  LEAGUE TOOLS
+                  COMMISSIONER TOOLS
                 </button>
               </>
             )}
