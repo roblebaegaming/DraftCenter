@@ -28,7 +28,7 @@ Use this before each beta release. Record the date, commit, tester accounts, dev
 - **Cleanup passed:** the temporary league and all three temporary Auth accounts were deleted only after zero-ownership guards; all targets verified absent afterward.
 - **Authentication passed in Gmail:** production signup confirmation, recovery email delivery, recovery landing, password replacement, sign out, and sign in with the new password all passed. The recovery flow exposed and fixed a production redirect-session bug; Supabase tokens are now restored and removed from the URL after use.
 - **Discord delivery passed:** personal DM, league-channel test, and the real Daily Three league preview all returned successful delivery. Mega Test keeps Daily Three announcements enabled.
-- **Twitch integration configuration passed:** broadcaster lookup and EventSub registration succeeded, and a synthetic live listing appeared and cleared correctly. A real Twitch online/offline broadcast remains an owner-operated check.
+- **Twitch integration passed:** broadcaster lookup and EventSub registration succeeded; a real August 2 broadcast transitioned a fresh offline-registered stream from scheduled to live to ended; the member dashboard banner appeared and cleared; exactly one league-channel event and one eligible non-creator personal DM event were accepted by Discord; and no duplicate or failed delivery record appeared. Stream creators are intentionally excluded from personal live-stream DMs.
 - **Final draft edge cases passed:** an isolated two-manager budgeted snake draft enforced minimum-slot affordability and completed below the roster maximum; an isolated two-manager auction enforced nomination ownership, bid ownership, budgets, roster limits, timed resolution, and final accounting.
 - **External operations passed:** the encrypted recovery archive was uploaded to Google Drive and verified by exact filename, and Google Search Console domain ownership was verified through the production DNS TXT record.
 - **Final cleanup passed:** the final disposable practice league was deleted after exact ID/name/slug/owner checks, and its two managers plus the separate Auth test account now return no matching Auth users.
@@ -112,6 +112,6 @@ Use this before each beta release. Record the date, commit, tester accounts, dev
 ## Release decision
 
 - Blocking failures: None found in the validated release scope.
-- Non-blocking follow-ups: real Twitch online/offline EventSub broadcast; a second major email client; Firefox/Safari and throttled-network breadth; the intentionally unchecked bot, reset/rebuild race, claim-race, transaction-reversal, Daily Three interaction, public-profile, and My Teams breadth items above. The isolated August 2 restore project was verified absent after explicit owner deletion approval.
+- Non-blocking follow-ups: a second major email client; Firefox/Safari and throttled-network breadth; the intentionally unchecked bot, reset/rebuild race, claim-race, transaction-reversal, Daily Three interaction, public-profile, and My Teams breadth items above. The real Twitch online/offline EventSub broadcast passed August 2. The isolated August 2 restore project was verified absent after explicit owner deletion approval.
 - Approved by:
 - Decision: Ready for owner ship decision; remaining items are coverage gaps, not known regressions.

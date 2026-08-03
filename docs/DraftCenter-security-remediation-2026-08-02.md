@@ -55,8 +55,12 @@ Status: **remediated and deployed**.
 - The replay table and claim function are service-only.
 - Raw request bodies are capped at 256 KiB.
 
-The remaining real Twitch online/offline broadcast is an owner-operated external
-integration test. It is not a code or configuration gap.
+The real Twitch online/offline owner broadcast passed August 2. A fresh
+offline-registered stream transitioned from `scheduled` to `live` to `ended`;
+the signed-in member banner appeared and cleared; exactly one league-channel
+event and one eligible non-creator personal DM event were accepted by Discord;
+and no duplicate or failed delivery record appeared. Stream creators are
+intentionally excluded from personal live-stream DMs.
 
 ### DC-SEC-03 — application rate limits
 
@@ -221,8 +225,8 @@ These steps deliberately remain outside automated account control:
    Turnstile provider key plus client integration. It was not enabled server-side
    without a working client token flow, which would have blocked legitimate
    signups.
-3. Complete the already documented real Twitch broadcast and second email-client
-   tests.
+3. Complete the already documented second email-client test. The real Twitch
+   broadcast passed August 2.
 4. Approve the business/legal retention schedule and backup-custody owners.
 
 ## Release verification gate

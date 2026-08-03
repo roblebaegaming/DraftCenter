@@ -218,21 +218,32 @@ Investigate as a new system failure if it occurs after the deployed fixes:
 
 ## Remaining owner-operated checks
 
-These are the only previously identified launch checks that require the owner
-or an external client. They are not known regressions.
+The real Twitch broadcast is complete. The second email-client check below is
+the only previously identified launch check that still requires the owner or an
+external client. It is not a known regression.
 
-### Real Twitch broadcast
+### Real Twitch broadcast — completed August 2
 
-1. Start a short public Twitch broadcast with an obvious test title.
-2. Leave it live for approximately three minutes.
-3. Confirm it appears in DraftCenter’s Live area and dashboard banner.
-4. Confirm exactly one personal Discord notification and exactly one configured
-   league-channel notification.
-5. End the broadcast and confirm the Live display disappears after a few minutes.
-6. Confirm no duplicate Discord notifications arrive.
+- A fresh Mega Test record was registered while the Twitch channel was offline;
+  it was `scheduled` with Twitch monitoring `enabled` before the broadcast.
+- Twitch's external online callback changed the record to `live`.
+- The signed-in member dashboard displayed the **MATCH LIVE NOW** banner and
+  watch link. The public Community Live Now page omitted the stream because Mega
+  Test is a private league, which is expected.
+- Exactly one configured Mega Test league-channel notification and exactly one
+  eligible-member personal DM event were accepted by Discord. No duplicate or
+  failed delivery record appeared.
+- Twitch's external offline callback changed the record to `ended`, and the
+  member dashboard banner disappeared.
+- Personal quiet hours were restored after the controlled test window.
 
-Twitch account lookup and EventSub registration already passed. This test is
-only for Twitch’s real external online/offline callbacks.
+Important test rule: a stream creator is intentionally excluded from personal
+"league stream is live" DMs. The `@roblebae` creator therefore did not receive a
+personal DM. The eligible non-creator event was sent to the `@draftcenter`
+profile's linked Discord identity, `DraftCenterOfficial`. For a future
+human-visible personal-DM check, publish the stream from a different DraftCenter
+member than the opted-in recipient and have the recipient inspect the Discord
+identity linked to that DraftCenter profile.
 
 ### Second email client
 
