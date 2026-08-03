@@ -184,11 +184,10 @@ GitHub:
 - Dependency/security monitoring, private reporting, secret scanning, and push
   protection are enabled as described above.
 - The repository's automated checks are supplied by this release.
-- The `Protect main` ruleset is prepared with deletion/force-push protection,
-  linear history, pull requests, resolved conversations, the two security
-  checks, and high-severity CodeQL results required. Saving it is waiting only
-  for GitHub's email verification challenge; an audited owner emergency bypass
-  is retained.
+- The `Protect main` ruleset is active and verified. It blocks deletion and
+  force-pushes and requires linear history, an up-to-date pull request, resolved
+  conversations, both security checks, and high-severity CodeQL results. An
+  audited repository-admin emergency bypass is retained.
 
 Vercel:
 
