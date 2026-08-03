@@ -173,6 +173,11 @@ Supabase production:
   token replay detection is enabled with the recommended 10-second reuse window.
 - TOTP is enabled as an application MFA method and enhanced AAL1 session
   limitation is enabled.
+- The owner account has an enrolled authenticator factor. The production
+  **Draft League** organization requires MFA for access; its sole member was
+  confirmed MFA-enabled before enforcement. The unrelated **Rob Lebae** Free
+  organization was not changed because organization enforcement is unavailable
+  on that plan.
 - The redirect allowlist was reduced from 13 entries to the three exact active
   production domains. Manual identity linking was disabled.
 - The live database security advisor reports zero errors. Its warnings include
@@ -188,6 +193,8 @@ GitHub:
   force-pushes and requires linear history, an up-to-date pull request, resolved
   conversations, both security checks, and high-severity CodeQL results. An
   audited repository-admin emergency bypass is retained.
+- The repository owner has authenticator-app MFA enabled and stored the recovery
+  codes outside GitHub.
 
 Vercel:
 
@@ -197,6 +204,9 @@ Vercel:
   are enabled; Vercel Support code visibility is disabled.
 - There are no deploy hooks. Production is connected to `main`.
 - Historical deployments and their redeploy/rollback path are retained.
+- The owner has authenticator-app MFA enabled and stored the recovery material.
+  The **rob-lebae** team enforces 2FA after confirming its sole member is the
+  MFA-enabled owner.
 - The current notification timeout alert was provider connectivity-related and
   self-resolved.
 
@@ -204,9 +214,9 @@ Vercel:
 
 These steps deliberately remain outside automated account control:
 
-1. Enroll owner MFA on **GitHub, Vercel, and Supabase**. All three live account
-   pages currently show no enrolled owner factor. Enrollment creates a private
-   QR/recovery secret and must be completed on the owner's authenticator device.
+1. Add an independent backup authenticator, passkey, or security key where each
+   provider supports one. Primary owner MFA is complete on GitHub, Vercel, and
+   Supabase.
 2. Optional bot protection for Supabase Auth needs an hCaptcha or Cloudflare
    Turnstile provider key plus client integration. It was not enabled server-side
    without a working client token flow, which would have blocked legitimate
