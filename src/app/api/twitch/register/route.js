@@ -8,21 +8,19 @@ import {
   twitchLoginFromUrl,
 } from "../../../../lib/twitch";
 import { consumeUserRateLimit } from "../../../../lib/apiRateLimit";
+import { bearerToken, readBoundedJson, safeFailure, UUID_PATTERN } from "../../../../lib/apiSecurity";
 
 export const runtime = "nodejs";
-
-function bearerToken(request) {
-  const authorization = request.headers.get("authorization") || "";
-  return authorization.startsWith("Bearer ") ? authorization.slice(7) : "";
-}
 
 export async function POST(request) {
   const accessToken = bearerToken(request);
   if (!accessToken) return NextResponse.json({ error: "Sign in before monitoring a Twitch stream." }, { status: 401 });
 
   try {
-    const { streamId } = await request.json();
-    if (!streamId) return NextResponse.json({ error: "Stream ID is required." }, { status: 400 });
+    const parsed = await readBoundedJson(request, { maxBytes: 2048, maxDepth: 2, maxEntries: 5, maxArrayLength: 1, maxStringLength: 100 });
+    if (parsed.error) return NextResponse.json({ error: parsed.error }, { status: parsed.status });
+    const { streamId } = parsed.data;
+    if (!UUID_PATTERN.test(String(streamId || ""))) return NextResponse.json({ error: "A valid stream ID is required." }, { status: 400 });
 
     const supabase = createAdminClient();
     const { data: userResult, error: userError } = await supabase.auth.getUser(accessToken);
@@ -95,6 +93,6 @@ export async function POST(request) {
         : "Twitch is connected. DraftCenter will detect when this channel goes live.",
     });
   } catch (error) {
-    return NextResponse.json({ error: error.message || "Twitch monitoring could not be enabled." }, { status: 500 });
+    return safeFailure(error, "Twitch monitoring could not be enabled.", { context: "twitch-register" });
   }
 }

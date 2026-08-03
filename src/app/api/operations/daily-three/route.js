@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireOwner } from "../../../../lib/ownerOperations";
+import { safeFailure } from "../../../../lib/apiSecurity";
 
 export const runtime = "nodejs";
 export async function GET(request) {
@@ -8,7 +9,7 @@ export async function GET(request) {
   const results = await Promise.all([
     supabase.from("profiles").select("id,username,display_name"), supabase.from("daily_polls").select("id,poll_date"), supabase.from("daily_poll_answers").select("poll_id,user_id,answered_at"), supabase.from("daily_draft_brackets").select("id,game_date"), supabase.from("daily_bracket_matchups").select("bracket_id,user_id,created_at").eq("round_number", 3), supabase.from("daily_quizzes").select("id,quiz_date"), supabase.from("daily_quiz_answers").select("quiz_id,user_id,answered_at"), supabase.from("daily_three_completions").select("user_id,activity_date,completed_at").order("activity_date", { ascending: false }),
   ]);
-  const failure = results.find((result) => result.error); if (failure) return NextResponse.json({ error: failure.error.message }, { status: 500 });
+  const failure = results.find((result) => result.error); if (failure) return safeFailure(failure.error, "Daily Three operations data could not be loaded.", { context: "operations-daily-three" });
   const [profiles, polls, pollAnswers, brackets, bracketAnswers, quizzes, quizAnswers, completions] = results.map((result) => result.data || []);
   const pollDates = new Map(polls.map((row) => [row.id, row.poll_date])); const bracketDates = new Map(brackets.map((row) => [row.id, row.game_date])); const quizDates = new Map(quizzes.map((row) => [row.id, row.quiz_date]));
   const users = new Map(profiles.map((profile) => [profile.id, { user_id: profile.id, username: profile.username, display_name: profile.display_name, last_activity_at: null, last_activity_date: null, last_completed_date: null, completed_days_total: 0, completed_days_30: 0, today: { poll: false, bracket: false, quiz: false, complete: false } }]));

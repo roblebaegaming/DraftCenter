@@ -1,13 +1,9 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "../../../../lib/supabase/admin";
 import { consumeUserRateLimit } from "../../../../lib/apiRateLimit";
+import { bearerToken, safeFailure, safeStoredFailure } from "../../../../lib/apiSecurity";
 
 export const runtime = "nodejs";
-
-function bearerToken(request) {
-  const authorization = request.headers.get("authorization") || "";
-  return authorization.startsWith("Bearer ") ? authorization.slice(7) : "";
-}
 
 async function recordTest(supabase, userId, status, error = null) {
   await supabase.from("discord_user_connections").update({
@@ -71,7 +67,7 @@ export async function POST(request) {
     await recordTest(supabase, user.id, "delivered");
     return NextResponse.json({ success: true, message: "Private test message delivered to Discord." });
   } catch (error) {
-    if (supabase && user) await recordTest(supabase, user.id, "failed", error.message || "Discord test failed.");
-    return NextResponse.json({ error: error.message || "Discord test failed." }, { status: 500 });
+    if (supabase && user) await recordTest(supabase, user.id, "failed", safeStoredFailure("Discord test failed."));
+    return safeFailure(error, "Discord test failed.", { context: "discord-personal-test" });
   }
 }

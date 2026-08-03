@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "../../../lib/supabase/admin";
 import { activeGrant, authenticateUser, findSupportUser, leagueStaffRole } from "../../../lib/supportAccess";
+import { readBoundedJson, safeFailure, UUID_PATTERN } from "../../../lib/apiSecurity";
 
 export const runtime = "nodejs";
 const allowedHours = new Set([24, 72, 168]);
@@ -10,12 +11,12 @@ export async function GET(request) {
   const supabase = createAdminClient(); const auth = await authenticateUser(request, supabase);
   if (auth.error) return NextResponse.json({ error: auth.error }, { status: auth.status });
   const leagueId = new URL(request.url).searchParams.get("league_id");
-  if (!leagueId) return NextResponse.json({ error: "League is required." }, { status: 400 });
+  if (!UUID_PATTERN.test(String(leagueId || ""))) return NextResponse.json({ error: "A valid league is required." }, { status: 400 });
   const staffRole = await leagueStaffRole(supabase, leagueId, auth.user.id);
   const isOwner = ownerEmail(auth.user.email);
   if (!staffRole && !isOwner) return NextResponse.json({ error: "Commissioner or owner access is required." }, { status: 403 });
   const { data: grants, error } = await supabase.from("league_support_grants").select("id,support_user_id,approved_by,permission,expires_at,revoked_at,created_at").eq("league_id", leagueId).order("created_at", { ascending: false }).limit(20);
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return safeFailure(error, "Support access history could not be loaded.", { context: "support-access-list" });
   const current = (grants || []).find(activeGrant) || null;
   const { data: audit } = await supabase.from("league_support_audit_log").select("id,action,details,created_at").eq("league_id", leagueId).order("created_at", { ascending: false }).limit(30);
   return NextResponse.json({ current, audit: audit || [], can_approve_pricing: staffRole === "commissioner" });
@@ -26,8 +27,10 @@ function ownerEmail(email) { return String(process.env.DRAFTCENTER_OWNER_EMAILS 
 export async function POST(request) {
   const supabase = createAdminClient(); const auth = await authenticateUser(request, supabase);
   if (auth.error) return NextResponse.json({ error: auth.error }, { status: auth.status });
-  const body = await request.json(); const leagueId = body.league_id; const hours = Number(body.hours || 24); const permission = String(body.permission || "read_only");
-  if (!leagueId || !allowedHours.has(hours) || !allowedPermissions.has(permission)) return NextResponse.json({ error: "Choose a valid support scope and duration." }, { status: 400 });
+  const parsed = await readBoundedJson(request, { maxBytes: 2048, maxDepth: 2, maxEntries: 8, maxArrayLength: 1, maxStringLength: 100 });
+  if (parsed.error) return NextResponse.json({ error: parsed.error }, { status: parsed.status });
+  const body = parsed.data; const leagueId = body.league_id; const hours = Number(body.hours || 24); const permission = String(body.permission || "read_only");
+  if (!UUID_PATTERN.test(String(leagueId || "")) || !allowedHours.has(hours) || !allowedPermissions.has(permission)) return NextResponse.json({ error: "Choose a valid support scope and duration." }, { status: 400 });
   const staffRole = await leagueStaffRole(supabase, leagueId, auth.user.id);
   if (!staffRole) return NextResponse.json({ error: "Only a commissioner can approve support access." }, { status: 403 });
   if (permission === "pricing_edit" && staffRole !== "commissioner") return NextResponse.json({ error: "Only the primary commissioner can approve tier and pricing changes." }, { status: 403 });
@@ -41,7 +44,7 @@ export async function POST(request) {
   }
   const expiresAt = new Date(Date.now() + hours * 3600000).toISOString();
   const { data: grant, error } = await supabase.from("league_support_grants").insert({ league_id: leagueId, support_user_id: supportUser.id, approved_by: auth.user.id, permission, expires_at: expiresAt }).select().single();
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return safeFailure(error, "Support access could not be approved.", { context: "support-access-approve" });
   await supabase.from("league_support_audit_log").insert({ league_id: leagueId, grant_id: grant.id, actor_user_id: auth.user.id, action: "approved", details: { permission, hours, expires_at: expiresAt } });
   return NextResponse.json({ current: grant });
 }
@@ -49,8 +52,10 @@ export async function POST(request) {
 export async function DELETE(request) {
   const supabase = createAdminClient(); const auth = await authenticateUser(request, supabase);
   if (auth.error) return NextResponse.json({ error: auth.error }, { status: auth.status });
-  const body = await request.json(); const leagueId = body.league_id;
-  if (!leagueId || !await leagueStaffRole(supabase, leagueId, auth.user.id)) return NextResponse.json({ error: "Only a commissioner can revoke support access." }, { status: 403 });
+  const parsed = await readBoundedJson(request, { maxBytes: 1024, maxDepth: 2, maxEntries: 4, maxArrayLength: 1, maxStringLength: 100 });
+  if (parsed.error) return NextResponse.json({ error: parsed.error }, { status: parsed.status });
+  const body = parsed.data; const leagueId = body.league_id;
+  if (!UUID_PATTERN.test(String(leagueId || "")) || !await leagueStaffRole(supabase, leagueId, auth.user.id)) return NextResponse.json({ error: "Only a commissioner can revoke support access." }, { status: 403 });
   const { data: grant } = await supabase.from("league_support_grants").select("id").eq("league_id", leagueId).is("revoked_at", null).gt("expires_at", new Date().toISOString()).maybeSingle();
   if (grant) {
     await supabase.from("league_support_grants").update({ revoked_at: new Date().toISOString(), revoked_by: auth.user.id }).eq("id", grant.id);

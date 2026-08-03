@@ -3,6 +3,8 @@ import opentype from "opentype.js";
 import { readFile } from "node:fs/promises";
 import { createAdminClient } from "../../../lib/supabase/admin.js";
 import { consumeUserRateLimit } from "../../../lib/apiRateLimit.js";
+import { bearerToken, readBoundedJson, safeFailure, UUID_PATTERN } from "../../../lib/apiSecurity.js";
+import { normalizeArtworkOptions, selectArchivedArtworkSeason } from "../../../lib/championshipArtworkSecurity.js";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -258,30 +260,41 @@ export async function renderPoster({ season, title, subtitle, coachName, themeKe
 
 export async function POST(request) {
   try {
-    const authorization = request.headers.get("authorization") || "";
-    const token = authorization.startsWith("Bearer ") ? authorization.slice(7) : "";
+    const token = bearerToken(request);
     if (!token) return Response.json({ error: "Sign in before creating championship artwork." }, { status: 401 });
-    const body = await request.json();
-    if (!body.leagueId || !body.season?.champion?.teamName) return Response.json({ error: "A completed league season is required." }, { status: 400 });
+    const parsed = await readBoundedJson(request, { maxBytes: 4096, maxDepth: 2, maxEntries: 12, maxArrayLength: 1, maxStringLength: 200 });
+    if (parsed.error) return Response.json({ error: parsed.error }, { status: parsed.status });
+    const body = parsed.data;
+    const seasonNumber = Number(body.seasonNumber);
+    if (!UUID_PATTERN.test(String(body.leagueId || "")) || !Number.isInteger(seasonNumber) || seasonNumber < 1 || seasonNumber > 1000) {
+      return Response.json({ error: "A completed league season is required." }, { status: 400 });
+    }
 
     const supabase = createAdminClient();
     const { data: userResult } = await supabase.auth.getUser(token);
     if (!userResult?.user) return Response.json({ error: "Your sign-in session expired. Sign in again." }, { status: 401 });
-    const { data: membership } = await supabase.from("league_memberships").select("role").eq("league_id", body.leagueId).eq("user_id", userResult.user.id).maybeSingle();
+    const [{ data: membership }, { data: snapshot, error: snapshotError }] = await Promise.all([
+      supabase.from("league_memberships").select("role").eq("league_id", body.leagueId).eq("user_id", userResult.user.id).maybeSingle(),
+      supabase.from("league_state_snapshots").select("state").eq("league_id", body.leagueId).maybeSingle(),
+    ]);
     if (!membership) return Response.json({ error: "You no longer have access to this league." }, { status: 403 });
+    if (snapshotError) return safeFailure(snapshotError, "The completed season could not be loaded.", { context: "championship-artwork-season" });
+    const selected = selectArchivedArtworkSeason(snapshot?.state, seasonNumber);
+    if (selected.error) return Response.json({ error: selected.error }, { status: selected.status });
+    const season = selected.season;
     if (!await consumeUserRateLimit(supabase, "championship-artwork", `${userResult.user.id}:${body.leagueId}`, 3, 600)) return Response.json({ error: "Too many print files were requested. Try again later." }, { status: 429 });
 
-    const png = await renderPoster(body);
-    const slug = String(body.season.champion.teamName).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "champion";
+    const renderInput = normalizeArtworkOptions(body, season);
+    const png = await renderPoster(renderInput);
+    const slug = String(season.champion.teamName).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "champion";
     return new Response(png, {
       headers: {
         "Content-Type": "image/png",
-        "Content-Disposition": `attachment; filename="${slug}-season-${Number(body.season.seasonNumber) || 1}-print-8x10-300dpi.png"`,
+        "Content-Disposition": `attachment; filename="${slug}-season-${seasonNumber}-print-8x10-300dpi.png"`,
         "Cache-Control": "private, no-store",
       },
     });
   } catch (error) {
-    console.error("Championship artwork generation failed", error);
-    return Response.json({ error: "DraftCenter could not generate the print file." }, { status: 500 });
+    return safeFailure(error, "DraftCenter could not generate the print file.", { context: "championship-artwork" });
   }
 }

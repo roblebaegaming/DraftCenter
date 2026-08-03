@@ -396,7 +396,7 @@ export default function ChampionshipStudio({ season, leagueId }) {
         const response = await fetch("/api/championship-artwork", {
           method: "POST",
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-          body: JSON.stringify({ leagueId, season, title, subtitle, coachName, themeKey }),
+          body: JSON.stringify({ leagueId, seasonNumber: season.seasonNumber, title, subtitle, coachName, themeKey }),
         });
         if (!response.ok) {
           const detail = await response.json().catch(() => ({}));

@@ -1,13 +1,10 @@
 import crypto from "crypto";
 import { NextResponse } from "next/server";
 import { createAdminClient } from "../../../../../lib/supabase/admin";
+import { consumeUserRateLimit } from "../../../../../lib/apiRateLimit";
+import { bearerToken, safeFailure } from "../../../../../lib/apiSecurity";
 
 export const runtime = "nodejs";
-
-function bearerToken(request) {
-  const authorization = request.headers.get("authorization") || "";
-  return authorization.startsWith("Bearer ") ? authorization.slice(7) : "";
-}
 
 export async function POST(request) {
   const token = bearerToken(request);
@@ -22,6 +19,9 @@ export async function POST(request) {
     const { data: userResult, error: userError } = await supabase.auth.getUser(token);
     const user = userResult?.user;
     if (userError || !user) return NextResponse.json({ error: "Your sign-in session expired. Sign in again." }, { status: 401 });
+    if (!await consumeUserRateLimit(supabase, "discord-oauth-start", user.id, 5, 600)) {
+      return NextResponse.json({ error: "Too many Discord connection attempts were started. Try again later." }, { status: 429 });
+    }
 
     const state = `${crypto.randomUUID()}${crypto.randomBytes(24).toString("hex")}`;
     const stateHash = crypto.createHash("sha256").update(state).digest("hex");
@@ -43,6 +43,6 @@ export async function POST(request) {
 
     return NextResponse.json({ url: authorizationUrl.toString() });
   } catch (error) {
-    return NextResponse.json({ error: error.message || "Could not start Discord authorization." }, { status: 500 });
+    return safeFailure(error, "Could not start Discord authorization.", { context: "discord-oauth-start" });
   }
 }

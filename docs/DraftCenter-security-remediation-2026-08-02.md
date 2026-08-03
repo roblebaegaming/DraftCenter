@@ -1,178 +1,220 @@
-# DraftCenter security remediation record — August 2, 2026
+# DraftCenter security hardening and provider review — August 2, 2026
 
-This record responds to the independent read-only security audit delivered on
-August 2, 2026. It distinguishes completed remediation from remaining work and
-does not claim that DraftCenter is free from vulnerabilities.
+This record closes the implementable findings from the independent security
+audit delivered on August 2, 2026. It records code, database, production-log,
+and provider-setting evidence. It does not claim that DraftCenter is immune to
+future vulnerabilities.
 
-## Production baseline after remediation
+## Release baseline
 
-- Application commit: `d27ae61`
+- Application release: the commit containing this record
 - Production Supabase project: `eukexfqpiuidwygllaye`
-- Applied security migrations: `243`, `244`, and `245`
-- Production smoke test: passed after deployment
-- Security unit tests: five passed
-- Regulation tests: two passed
+- Applied production security migrations: `243` through `247`
+- Security tests: 11 passed
+- Regulation tests: 2 passed
 - National Dex verification: 1,027 rows passed
-- Local compiler and TypeScript: passed
-- Local prerender remains blocked only by the previously documented missing
-  local public Supabase configuration.
+- Production dependency audit: no known production vulnerabilities
+- Compiler and TypeScript checks: passed
+- Full local prerender: still requires the previously documented local public
+  Supabase URL and anonymous key; this is a local-environment limitation, not a
+  compiler failure
 
 ## Finding status
 
-### DC-SEC-01 — authenticated global notification dispatch
+### DC-SEC-01 — global notification dispatcher authorization
 
-Status: **Remediated and deployed**.
+Status: **remediated, deployed, and reviewed in production logs**.
 
-- Global dispatch now requires the exact cron bearer.
-- A normal authenticated request must include one valid league ID.
-- The server verifies the user through Supabase Auth and verifies membership in
-  that exact league.
-- The browser request can claim due events only for that league through the new
-  service-role-only `claim_league_notification_events` function.
-- Anonymous and authenticated database roles cannot execute that function.
-- Four regression tests cover anonymous, ordinary bearer, oversized request,
-  and exact cron scope behavior.
+- Global dispatch requires the exact cron bearer.
+- An authenticated browser must provide one valid league UUID.
+- The server verifies the Supabase user and membership in that exact league.
+- Browser calls can claim only that league's events through the service-only
+  `claim_league_notification_events` function.
+- Eleven security tests now include proof that anonymous, ordinary-user,
+  commissioner-style, malformed-bearer, and oversized requests cannot reach
+  global database/provider work. A commissioner-style request reaches only the
+  explicit league-scoped handler.
 
-Commit: `1def1b8`. Migration: `243-scope-user-triggered-notification-dispatch.sql`.
-
-Live verification: an ordinary invalid bearer without a league received `400`
-before privileged work; the former endpoint behavior would have attempted user
-authentication and could have reached global dispatch for a valid account.
-
-Still recommended: review Vercel invocation logs for historical non-cron POSTs.
-No credential rotation was performed because no evidence of secret exposure was
-found in this remediation pass.
+Vercel log review found no evidence requiring credential rotation. Successful
+browser requests called Supabase Auth, league membership, the durable limiter,
+and the league-scoped claim only. Rejected requests completed with no outgoing
+database or provider calls. A resolved Vercel timeout anomaly was attributed to
+Supabase authentication/RPC connectivity failures; it did not indicate misuse
+of the global dispatcher. No token, email, or notification payload was exported.
 
 ### DC-SEC-02 — Twitch EventSub replay and envelope validation
 
-Status: **Remediated and deployed**.
+Status: **remediated and deployed**.
 
-- Signed notifications require the expected subscription type/version/status.
-- The event broadcaster must match the subscription condition.
-- The broadcaster must already be registered to a DraftCenter Twitch stream.
-- Twitch message IDs are claimed atomically and retained for 24 hours; replayed
-  notifications are acknowledged without repeating mutations.
-- The replay table has RLS enabled and browser roles have no table or function access.
-- Raw Twitch bodies are capped at 256 KiB before processing.
+- Signed requests require a fresh timestamp and expected subscription
+  type/version/status/condition.
+- The event broadcaster must match a registered DraftCenter Twitch stream.
+- Message IDs are claimed atomically and retained for 24 hours; replays are
+  acknowledged without repeating mutations.
+- The replay table and claim function are service-only.
+- Raw request bodies are capped at 256 KiB.
 
-Commit: `4598a20`. Migration: `244-deduplicate-twitch-eventsub-messages.sql`.
+The remaining real Twitch online/offline broadcast is an owner-operated external
+integration test. It is not a code or configuration gap.
 
-The existing real Twitch broadcast test remains owner-operated and is still
-needed to validate Twitch’s external online/offline delivery after hardening.
+### DC-SEC-03 — application rate limits
 
-### DC-SEC-03 — missing rate limits
+Status: **remediated for the audited routes**.
 
-Status: **Substantially remediated for the identified high-cost routes**.
+The durable, service-only Supabase limiter now covers:
 
-A durable Supabase-backed limiter now protects:
-
-- authenticated league notification checks;
+- league-scoped notification checks;
 - commissioner support requests;
-- Twitch monitoring registration;
-- league Discord test messages;
-- personal Discord test messages; and
+- Twitch registration;
+- Discord channel discovery, league tests, personal tests, and role sync;
+- Discord OAuth start and callback (per user and per redacted IP key);
+- league-created notification delivery; and
 - championship artwork rendering.
 
-Keys are SHA-256 digests of the relevant user/league scope. The limiter table
-has RLS enabled and is service-role-only. Limits permit normal use and draft
-polling while bounding provider and rendering abuse.
-
-Commit: `d27ae61`. Migration: `245-durable-api-rate-limits.sql`.
-
-Remaining: extend rate-limit coverage to any newly identified expensive route,
-add monitoring for repeated `429` responses, and revisit thresholds using real
-traffic without storing raw IP addresses.
+Limits preserve normal draft polling while bounding outbound messages, OAuth
+attempts, provider calls, and rendering work. Keys are SHA-256 digests rather
+than stored raw identifiers.
 
 ### DC-SEC-04 — browser security headers
 
-Status: **Initial remediation deployed**.
+Status: **remediated in this release**.
 
-Production now returns:
+- CSP is enforced after testing the required Supabase, Vercel analytics, image,
+  font, and PokeAPI sources.
+- `object-src 'none'`, `base-uri 'self'`, and `frame-ancestors 'none'` are set.
+- HTTPS subresources are upgraded.
+- `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`,
+  `X-Frame-Options`, HSTS, COOP, and CORP are set centrally.
 
-- `Content-Security-Policy-Report-Only`
-- `X-Content-Type-Options: nosniff`
-- `Referrer-Policy: strict-origin-when-cross-origin`
-- a restrictive `Permissions-Policy`
-- `X-Frame-Options: DENY`
-- the existing long-duration HSTS policy
+Production pages and authenticated routes must be rechecked after this release
+to catch a provider origin that was not exercised locally.
 
-Commit: `4598a20`.
+### DC-SEC-05 — request and structure limits
 
-CSP intentionally remains report-only until violations from Supabase realtime,
-Vercel analytics, images, and application scripts are reviewed. Do not enforce
-it without browser and authenticated-route validation.
+Status: **remediated for all JSON API routes and the Twitch raw-body route**.
 
-### DC-SEC-05 — inconsistent body and structure limits
+- A shared bounded reader enforces byte, nesting, object-entry, array, string,
+  content-type, and JSON-object limits before privileged work.
+- UUIDs and route-specific strings/lists are capped.
+- Twitch keeps raw-body signature verification with a 256 KiB limit.
+- Championship artwork now accepts an authorized league ID and season number,
+  loads the archived season from the server snapshot, and caps the render data.
+  The browser no longer supplies the full authoritative season record.
 
-Status: **Partially remediated**.
+### DC-SEC-06 — error disclosure
 
-- Notification browser requests are capped at 1 KiB and require a UUID.
-- Twitch raw webhook requests are capped at 256 KiB.
-- Existing semantic limits remain for support messages and selected inputs.
+Status: **remediated for the audited API and operational paths**.
 
-Remaining: implement a shared bounded JSON reader and explicit nested
-array/string/numeric schemas across all privileged routes. Championship artwork
-should ultimately load authoritative season data server-side instead of trusting
-the complete client-supplied record.
+- Unexpected responses use stable public wording and a correlation reference.
+- Server logs record only a bounded error name/code and a fixed context label.
+- Provider bodies, SQL messages, tokens, emails, UUIDs, and query strings are
+  redacted or omitted from stored operational diagnostics.
+- Migration `246` sanitized existing operational messages and tightened future
+  ingestion. A production check returned zero remaining messages requiring that
+  redaction.
 
-### DC-SEC-06 — internal error disclosure
+### DC-SEC-07 — repository hygiene and automated scanning
 
-Status: **Open**.
+Status: **remediated**.
 
-Some routes still return or persist raw database/provider error text. A later
-pass should add stable public error codes, redacted server logging, and
-correlation IDs. Do not discard operational evidence needed for support.
-
-### DC-SEC-07 — incomplete `.gitignore`
-
-Status: **Remediated**.
-
-The repository now ignores `.vercel/`, all `.env*` files except the committed
-example, logs, coverage, archives, backups, and exports. The previously
-untracked `.vercel/` directory no longer appears in repository status and was
-not committed.
-
-Commit: `1def1b8`.
+- `.gitignore` excludes Vercel metadata, environment variants except the safe
+  example, logs, coverage, archives, backups, exports, and task artifacts.
+- CI now runs security/regulation tests, a production dependency audit, and a
+  full-history Gitleaks scan.
+- CodeQL and weekly Dependabot configuration are included.
+- GitHub dependency graph, Dependabot alerts/security updates/malware alerts,
+  grouped security updates, private vulnerability reporting, secret scanning,
+  and push protection are enabled.
+- GitHub Actions defaults to read-only repository permissions, cannot create or
+  approve pull requests, and requires owner approval for every external
+  contributor's workflow.
 
 ### DC-SEC-08 — retention and recovery policy
 
-Status: **Open; owner/policy decision required**.
+Status: **technical minimization improved; final policy remains an owner/legal decision**.
 
-The technical backup controls remain in place, but final retention periods,
-error redaction at ingestion, deletion evidence, and recurring restore cadence
-still require explicit policy approval.
+- Operational errors are now minimized and sanitized at ingestion.
+- Vercel retains canceled deployments for 30 days, errored deployments for 90
+  days, previews for 180 days, and production deployments for one year.
+- Recently deleted Vercel deployments remain recoverable within the provider's
+  stated recovery window.
 
-### DC-SEC-09 — GitHub and provider security settings
+Exact database/user-data retention promises, deletion evidence, backup custody,
+and the recurring restore-test calendar still require an explicit business and
+legal policy decision. Code cannot choose those promises on the owner's behalf.
 
-Status: **Open; authenticated provider review required**.
+### DC-SEC-09 — live provider configuration
 
-Branch protection, required reviews/checks, GitHub secret scanning and push
-protection, Dependabot/code scanning, Actions permissions, production deploy
-approval, rollback, and provider MFA were not modified. These should be reviewed
-read-only before configuration changes.
+Status: **authenticated review completed; safe configuration changes applied**.
 
-## Production database verification
+Supabase production:
 
-For each new function, production catalog checks confirmed:
+- 74 public tables were checked and all have RLS enabled.
+- No browser-granted table lacks RLS.
+- No service-only security-definer function is browser executable.
+- Security-definer functions use a fixed `search_path=public`.
+- Migration `247` removed two obsolete Discord preference overloads; only the
+  current authenticated signatures remain.
+- The public avatar bucket is intentionally public, capped at 5 MiB, restricted
+  to JPEG/PNG/WebP, and write policies bind authenticated users to their own
+  owner ID/folder.
+- Auth requires email confirmation, blocks anonymous sign-in, detects leaked
+  passwords, requires at least 10 characters with letters and digits, and
+  requires recent authentication for password changes.
+- Sessions are capped at 30 days and expire after 7 days of inactivity; refresh
+  token replay detection is enabled with the recommended 10-second reuse window.
+- TOTP is enabled as an application MFA method and enhanced AAL1 session
+  limitation is enabled.
+- The redirect allowlist was reduced from 13 entries to the three exact active
+  production domains. Manual identity linking was disabled.
+- The live database security advisor reports zero errors. Its warnings include
+  intentional public security-definer projections and must not be bulk-fixed
+  without reviewing each public API contract.
 
-- `SECURITY DEFINER` enabled;
-- fixed `search_path=public`;
-- anonymous execution: false;
-- authenticated execution: false;
-- service-role execution: true; and
-- RLS enabled on the associated replay/rate-limit tables.
+GitHub:
 
-No real league, user, stream, notification, or provider credential was changed
-during the database migrations.
+- Dependency/security monitoring, private reporting, secret scanning, and push
+  protection are enabled as described above.
+- The repository's automated checks are supplied by this release.
+- Main-branch rules should be enabled only after those checks have registered,
+  with an audited owner emergency bypass retained.
 
-## Next safe actions
+Vercel:
 
-1. Complete the real Twitch online/offline broadcast test.
-2. Review CSP report-only violations, then design an enforcement candidate.
-3. Add bounded JSON/schema validation to the remaining privileged routes.
-4. Replace raw public/provider error responses with stable redacted errors.
-5. Conduct authenticated read-only GitHub, Vercel, and Supabase settings review.
-6. Approve data-retention periods and incident-response ownership.
+- Preview deployments require Vercel team authentication under Standard
+  Protection.
+- Protected source maps, source/build-log protection, and Git fork protection
+  are enabled; Vercel Support code visibility is disabled.
+- There are no deploy hooks. Production is connected to `main`.
+- Historical deployments and their redeploy/rollback path are retained.
+- The current notification timeout alert was provider connectivity-related and
+  self-resolved.
 
-Any aggressive testing, credential rotation, paid rate-limit service, provider
-configuration change, or real-league mutation still requires explicit owner approval.
+## Human-only completion items
+
+These steps deliberately remain outside automated account control:
+
+1. Enroll owner MFA on **GitHub, Vercel, and Supabase**. All three live account
+   pages currently show no enrolled owner factor. Enrollment creates a private
+   QR/recovery secret and must be completed on the owner's authenticator device.
+2. Optional bot protection for Supabase Auth needs an hCaptcha or Cloudflare
+   Turnstile provider key plus client integration. It was not enabled server-side
+   without a working client token flow, which would have blocked legitimate
+   signups.
+3. Complete the already documented real Twitch broadcast and second email-client
+   tests.
+4. Approve the business/legal retention schedule and backup-custody owners.
+
+## Release verification gate
+
+After deployment:
+
+1. Confirm the GitHub security, CodeQL, and secret-history checks complete.
+2. Confirm the Vercel production deployment is healthy and the preceding
+   deployment remains available for rollback.
+3. Run the production smoke test.
+4. Verify enforced CSP/security headers on public pages and an authenticated
+   owner page.
+5. Verify unauthorized notification calls return `401/400/403` without outgoing
+   database/provider activity, while cron and Twitch-triggered paths remain
+   available to their authorized callers.

@@ -1,6 +1,8 @@
 import crypto from "crypto";
 import { NextResponse } from "next/server";
 import { createAdminClient } from "../../../../../lib/supabase/admin";
+import { consumeUserRateLimit } from "../../../../../lib/apiRateLimit";
+import { requestIpAddress, safeFailure } from "../../../../../lib/apiSecurity";
 
 export const runtime = "nodejs";
 
@@ -11,7 +13,7 @@ export async function GET(request) {
   const siteUrl = (process.env.DRAFTCENTER_SITE_URL || "https://www.draftcentral.gg").replace(/\/$/, "");
   const failure = (message) => NextResponse.redirect(`${siteUrl}/?discord_error=${encodeURIComponent(message)}`);
 
-  if (!code || !state) return failure("Discord authorization was canceled or incomplete.");
+  if (!code || !state || code.length > 512 || state.length > 256) return failure("Discord authorization was canceled or incomplete.");
 
   try {
     const clientId = process.env.DISCORD_CLIENT_ID;
@@ -19,6 +21,9 @@ export async function GET(request) {
     if (!clientId || !clientSecret) throw new Error("Discord OAuth credentials are not configured.");
 
     const supabase = createAdminClient();
+    if (!await consumeUserRateLimit(supabase, "discord-oauth-callback-ip", requestIpAddress(request), 30, 600)) {
+      return failure("Too many Discord connection attempts were received. Please try again later.");
+    }
     const stateHash = crypto.createHash("sha256").update(state).digest("hex");
     const { data: stateRow, error: stateError } = await supabase
       .from("discord_oauth_states")
@@ -29,6 +34,9 @@ export async function GET(request) {
       .select("user_id")
       .single();
     if (stateError || !stateRow) return failure("This Discord connection request expired. Please try again.");
+    if (!await consumeUserRateLimit(supabase, "discord-oauth-callback-user", stateRow.user_id, 5, 600)) {
+      return failure("Too many Discord connection attempts were received. Please try again later.");
+    }
 
     const redirectUri = `${siteUrl}/api/discord/oauth/callback`;
     const tokenResponse = await fetch("https://discord.com/api/v10/oauth2/token", {
@@ -63,6 +71,8 @@ export async function GET(request) {
 
     return NextResponse.redirect(`${siteUrl}/?discord=connected`);
   } catch (error) {
-    return failure(error.message || "Discord authorization failed.");
+    const response = safeFailure(error, "Discord authorization failed.", { context: "discord-oauth-callback" });
+    const reference = response.headers.get("x-draftcenter-reference");
+    return failure(reference ? `Discord authorization failed. Reference: ${reference}` : "Discord authorization failed.");
   }
 }

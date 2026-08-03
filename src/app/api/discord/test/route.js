@@ -1,13 +1,9 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "../../../../lib/supabase/admin";
 import { consumeUserRateLimit } from "../../../../lib/apiRateLimit";
+import { bearerToken, readBoundedJson, safeFailure, safeStoredFailure, UUID_PATTERN } from "../../../../lib/apiSecurity";
 
 export const runtime = "nodejs";
-
-function bearerToken(request) {
-  const authorization = request.headers.get("authorization") || "";
-  return authorization.startsWith("Bearer ") ? authorization.slice(7) : "";
-}
 
 async function recordTest(supabase, leagueId, status, error = null) {
   await supabase.from("league_discord_settings").update({
@@ -53,10 +49,12 @@ export async function POST(request) {
   let leagueId;
   let supabase;
   try {
-    const body = await request.json();
+    const parsed = await readBoundedJson(request, { maxBytes: 2048, maxDepth: 2, maxEntries: 8, maxArrayLength: 1, maxStringLength: 100 });
+    if (parsed.error) return NextResponse.json({ error: parsed.error }, { status: parsed.status });
+    const body = parsed.data;
     leagueId = body.leagueId;
     const messageType = body.messageType === "daily_three" ? "daily_three" : "connection";
-    if (!leagueId) return NextResponse.json({ error: "League ID is required." }, { status: 400 });
+    if (!UUID_PATTERN.test(String(leagueId || ""))) return NextResponse.json({ error: "A valid league ID is required." }, { status: 400 });
 
     supabase = createAdminClient();
     const { data: userResult, error: userError } = await supabase.auth.getUser(token);
@@ -114,7 +112,7 @@ export async function POST(request) {
     await recordTest(supabase, leagueId, "delivered");
     return NextResponse.json({ success: true, message: messageType === "daily_three" ? "Daily Three preview delivered to Discord." : "Test message delivered to Discord." });
   } catch (error) {
-    if (supabase && leagueId) await recordTest(supabase, leagueId, "failed", error.message || "Discord test failed.");
-    return NextResponse.json({ error: error.message || "Discord test failed." }, { status: 500 });
+    if (supabase && leagueId) await recordTest(supabase, leagueId, "failed", safeStoredFailure("Discord test failed."));
+    return safeFailure(error, "Discord test failed.", { context: "discord-league-test" });
   }
 }

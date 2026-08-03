@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "../../../../lib/supabase/admin";
-import { resolveNotificationDispatchScope } from "../../../../lib/notificationDispatchAuth";
+import { routeNotificationDispatch } from "../../../../lib/notificationDispatchAuth";
 import { consumeUserRateLimit } from "../../../../lib/apiRateLimit";
+import { safeFailure, safeStoredFailure } from "../../../../lib/apiSecurity";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -19,7 +20,7 @@ async function sendResendEmail({ to, subject, html }) {
     method: "POST", headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
     body: JSON.stringify({ from, to: [to], subject, html }),
   });
-  if (!response.ok) throw new Error(`Resend rejected the email: ${await response.text()}`);
+  if (!response.ok) throw Object.assign(new Error("Email provider rejected the request."), { status: response.status });
 }
 
 function escapeHtml(value) {
@@ -156,7 +157,7 @@ async function deliverDailyThreeResults(supabase) {
         headers: { Authorization: `Bot ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify({ content: discordContent }),
       });
-      if (!response.ok) throw new Error(`Discord rejected the Daily Three message: ${await response.text()}`);
+      if (!response.ok) throw Object.assign(new Error("Discord rejected the Daily Three message."), { status: response.status });
       delivered += 1;
     } catch {
       failed += 1;
@@ -199,7 +200,7 @@ async function deliverDiscord(event, supabase) {
   const response = await fetch(`https://discord.com/api/v10/channels/${settings.channel_id}/messages`, {
     method: "POST", headers: { Authorization: `Bot ${token}`, "Content-Type": "application/json" }, body: JSON.stringify({ content }),
   });
-  if (!response.ok) throw new Error(`Discord rejected the message: ${await response.text()}`);
+  if (!response.ok) throw Object.assign(new Error("Discord rejected the message."), { status: response.status });
   return { delivered: true };
 }
 
@@ -218,7 +219,7 @@ async function deliverPersonalDiscord(event, supabase) {
     headers: { Authorization: `Bot ${token}`, "Content-Type": "application/json" },
     body: JSON.stringify({ recipient_id: connection.discord_user_id }),
   });
-  if (!dmResponse.ok) throw new Error(`Discord could not open the personal conversation: ${await dmResponse.text()}`);
+  if (!dmResponse.ok) throw Object.assign(new Error("Discord could not open the personal conversation."), { status: dmResponse.status });
   const dm = await dmResponse.json();
   const content = event.kind === "draft_turn"
     ? `⚡ **You are on the clock in ${event.payload?.league_name || "DraftCenter"}**\nOpen DraftCenter now to make your pick.`
@@ -232,7 +233,7 @@ async function deliverPersonalDiscord(event, supabase) {
     headers: { Authorization: `Bot ${token}`, "Content-Type": "application/json" },
     body: JSON.stringify({ content }),
   });
-  if (!response.ok) throw new Error(`Discord rejected the personal message: ${await response.text()}`);
+  if (!response.ok) throw Object.assign(new Error("Discord rejected the personal message."), { status: response.status });
   return { delivered: true };
 }
 
@@ -272,14 +273,14 @@ async function dispatchDueEvents(includeDailyThree = false, leagueId = null) {
           await supabase.from("operational_health_events").insert({
             league_id: event.league_id || null,
             kind: "notification_dispatch_failed",
-            message: String(eventError.message || "Notification delivery failed.").slice(0, 1000),
+            message: safeStoredFailure("Notification delivery failed."),
             context: { event_id: event.id, channel: event.channel, event_kind: event.kind },
           });
         } catch {}
         const { error: failError } = await supabase.rpc("fail_notification_event", {
           p_event_id: event.id,
           p_claim_token: claimToken,
-          p_error: eventError.message || "Notification delivery failed.",
+          p_error: safeStoredFailure("Notification delivery failed."),
           p_max_attempts: 5,
         });
         if (failError) throw failError;
@@ -287,7 +288,7 @@ async function dispatchDueEvents(includeDailyThree = false, leagueId = null) {
     }
     return NextResponse.json({ delivered: delivered + dailyThree.delivered, skipped: skipped + dailyThree.skipped, failed: failed + dailyThree.failed });
   } catch (error) {
-    return NextResponse.json({ error: error.message || "Notification dispatch failed." }, { status: 500 });
+    return safeFailure(error, "Notification dispatch failed.", { context: "notification-dispatch" });
   }
 }
 
@@ -297,18 +298,20 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
-  const scope = await resolveNotificationDispatchScope(request);
-  if (scope.error) return NextResponse.json({ error: scope.error }, { status: scope.status });
-  if (scope.scope === "global") return dispatchDueEvents(false);
-  try {
-    const supabase = createAdminClient();
-    const { data, error } = await supabase.auth.getUser(scope.token);
-    if (error || !data?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    const { data: membership } = await supabase.from("league_memberships").select("league_id").eq("league_id", scope.leagueId).eq("user_id", data.user.id).maybeSingle();
-    if (!membership) return NextResponse.json({ error: "League membership is required." }, { status: 403 });
-    if (!await consumeUserRateLimit(supabase, "notification-dispatch", `${data.user.id}:${scope.leagueId}`, 12, 60)) return NextResponse.json({ error: "Notification delivery is already being checked. Try again shortly." }, { status: 429 });
-    return dispatchDueEvents(false, scope.leagueId);
-  } catch {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  return routeNotificationDispatch(request, {
+    global: () => dispatchDueEvents(false),
+    league: async (scope) => {
+      try {
+        const supabase = createAdminClient();
+        const { data, error } = await supabase.auth.getUser(scope.token);
+        if (error || !data?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        const { data: membership } = await supabase.from("league_memberships").select("league_id").eq("league_id", scope.leagueId).eq("user_id", data.user.id).maybeSingle();
+        if (!membership) return NextResponse.json({ error: "League membership is required." }, { status: 403 });
+        if (!await consumeUserRateLimit(supabase, "notification-dispatch", `${data.user.id}:${scope.leagueId}`, 12, 60)) return NextResponse.json({ error: "Notification delivery is already being checked. Try again shortly." }, { status: 429 });
+        return dispatchDueEvents(false, scope.leagueId);
+      } catch (error) {
+        return safeFailure(error, "Notification delivery could not be checked.", { context: "notification-dispatch-league" });
+      }
+    },
+  }).then((result) => result?.rejected ? NextResponse.json({ error: result.error }, { status: result.status }) : result);
 }

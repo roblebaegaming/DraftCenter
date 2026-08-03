@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireOwner } from "../../../../../lib/ownerOperations";
+import { readBoundedJson, safeFailure, UUID_PATTERN } from "../../../../../lib/apiSecurity";
 
 export const runtime = "nodejs";
 
@@ -38,13 +39,14 @@ export async function GET(request, { params }) {
   const access = await requireOwner(request);
   if (access.error) return NextResponse.json({ error: access.error }, { status: access.status });
   const { id } = await params;
+  if (!UUID_PATTERN.test(String(id || ""))) return NextResponse.json({ error: "A valid league is required." }, { status: 400 });
   const grant = await activeSupportGrant(access.supabase, id, access.user.id);
   if (!grant) return NextResponse.json({ error: "Active commissioner-approved support access is required." }, { status: 403 });
   const [{ data: league, error }, { data: snapshot }] = await Promise.all([
     access.supabase.from("leagues").select("id,name,slug,status,season_label,draft_starts_at,updated_at").eq("id", id).single(),
     access.supabase.from("league_state_snapshots").select("state,revision,updated_at").eq("league_id", id).single(),
   ]);
-  if (error) return NextResponse.json({ error: error.message }, { status: 404 });
+  if (error) return NextResponse.json({ error: "That league could not be loaded." }, { status: 404 });
   await access.supabase.from("league_support_audit_log").insert({ league_id: id, grant_id: grant.id, actor_user_id: access.user.id, action: "viewed", details: { surface: grant.permission === "pricing_edit" ? "owner_pricing_support" : "owner_read_only_support" } });
   return NextResponse.json({ league, grant, snapshot: { revision: snapshot?.revision || 0, updated_at: snapshot?.updated_at, state: sanitizeState(snapshot?.state) } });
 }
@@ -53,10 +55,13 @@ export async function POST(request, { params }) {
   const access = await requireOwner(request);
   if (access.error) return NextResponse.json({ error: access.error }, { status: access.status });
   const { id } = await params;
+  if (!UUID_PATTERN.test(String(id || ""))) return NextResponse.json({ error: "A valid league is required." }, { status: 400 });
   const grant = await activeSupportGrant(access.supabase, id, access.user.id);
   if (!grant || grant.permission !== "pricing_edit") return NextResponse.json({ error: "An active commissioner-approved tier and pricing grant is required." }, { status: 403 });
 
-  const body = await request.json().catch(() => ({}));
+  const parsed = await readBoundedJson(request, { maxBytes: 256 * 1024, maxDepth: 4, maxEntries: 5000, maxArrayLength: 1000, maxStringLength: 300 });
+  if (parsed.error) return NextResponse.json({ error: parsed.error }, { status: parsed.status });
+  const body = parsed.data;
   const [{ data: league }, { data: snapshot, error: snapshotError }] = await Promise.all([
     access.supabase.from("leagues").select("name").eq("id", id).maybeSingle(),
     access.supabase.from("league_state_snapshots").select("state,revision").eq("league_id", id).maybeSingle(),
@@ -86,7 +91,9 @@ export async function POST(request, { params }) {
   });
   if (updateError) {
     const status = /changed|reviewing|before .* saved/i.test(updateError.message) ? 409 : /required|confirm|price|pricing|upload|Pokémon/i.test(updateError.message) ? 400 : 500;
-    return NextResponse.json({ error: updateError.message }, { status });
+    if (status === 409) return NextResponse.json({ error: "The league changed while you were reviewing it. Reload support access and review the file again." }, { status });
+    if (status === 400) return NextResponse.json({ error: "The pricing changes did not pass validation. Review the file and try again." }, { status });
+    return safeFailure(updateError, "The pricing changes could not be saved.", { context: "owner-pricing-update" });
   }
   const saved = Array.isArray(result) ? result[0] : result;
   return NextResponse.json({ saved: true, revision: saved?.new_revision, change_count: changes.length, recovery_snapshot_id: saved?.recovery_snapshot_id });

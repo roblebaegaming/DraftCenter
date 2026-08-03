@@ -1,7 +1,8 @@
 import { ownerEmails } from "./ownerOperations";
+import { bearerToken } from "./apiSecurity";
 
 export async function authenticateUser(request, supabase) {
-  const token = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
+  const token = bearerToken(request);
   if (!token) return { error: "Sign in is required.", status: 401 };
   const { data, error } = await supabase.auth.getUser(token);
   if (error || !data?.user) return { error: "Your session could not be verified.", status: 401 };

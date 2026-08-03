@@ -1,11 +1,12 @@
 import { createAdminClient } from "./supabase/admin";
+import { bearerToken } from "./apiSecurity";
 
 export function ownerEmails() {
   return String(process.env.DRAFTCENTER_OWNER_EMAILS || process.env.DRAFTCENTER_OWNER_EMAIL || "").split(",").map((email) => email.trim().toLowerCase()).filter(Boolean);
 }
 
 export async function requireOwner(request) {
-  const token = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
+  const token = bearerToken(request);
   if (!token) return { error: "Sign in is required.", status: 401 };
   const supabase = createAdminClient();
   const { data, error } = await supabase.auth.getUser(token);
@@ -106,7 +107,7 @@ export async function sendOwnerEmail({ to, subject, html }) {
   const apiKey = process.env.RESEND_API_KEY; const from = process.env.RESEND_FROM_EMAIL;
   if (!apiKey || !from) throw new Error("Resend is not configured.");
   const response = await fetch("https://api.resend.com/emails", { method: "POST", headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" }, body: JSON.stringify({ from, to: [to], subject, html }) });
-  if (!response.ok) throw new Error(`Resend rejected the owner email: ${await response.text()}`);
+  if (!response.ok) throw Object.assign(new Error("Email provider rejected the owner notification."), { status: response.status });
 }
 
 export function escapeHtml(value) { return String(value ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[c])); }

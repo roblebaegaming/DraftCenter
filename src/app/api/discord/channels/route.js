@@ -1,12 +1,9 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "../../../../lib/supabase/admin";
+import { consumeUserRateLimit } from "../../../../lib/apiRateLimit";
+import { bearerToken, safeFailure } from "../../../../lib/apiSecurity";
 
 export const runtime = "nodejs";
-
-function bearerToken(request) {
-  const authorization = request.headers.get("authorization") || "";
-  return authorization.startsWith("Bearer ") ? authorization.slice(7) : "";
-}
 
 export async function GET(request) {
   const token = bearerToken(request);
@@ -14,12 +11,15 @@ export async function GET(request) {
 
   try {
     const guildId = new URL(request.url).searchParams.get("guildId");
-    if (!guildId) return NextResponse.json({ error: "Choose a Discord server." }, { status: 400 });
+    if (!/^\d{17,20}$/.test(String(guildId || ""))) return NextResponse.json({ error: "Choose a valid Discord server." }, { status: 400 });
 
     const supabase = createAdminClient();
     const { data: userResult, error: userError } = await supabase.auth.getUser(token);
     const user = userResult?.user;
     if (userError || !user) return NextResponse.json({ error: "Your sign-in session expired. Sign in again." }, { status: 401 });
+    if (!await consumeUserRateLimit(supabase, "discord-channels", user.id, 12, 600)) {
+      return NextResponse.json({ error: "Discord channels were refreshed too many times. Try again later." }, { status: 429 });
+    }
 
     const { data: connection, error: connectionError } = await supabase
       .from("discord_user_connections")
@@ -49,6 +49,6 @@ export async function GET(request) {
       .map((channel) => ({ id: channel.id, name: channel.name }));
     return NextResponse.json({ channels });
   } catch (error) {
-    return NextResponse.json({ error: error.message || "Discord channels could not be loaded." }, { status: 500 });
+    return safeFailure(error, "Discord channels could not be loaded.", { context: "discord-channels" });
   }
 }
