@@ -1,5 +1,6 @@
 import { createAdminClient } from "./supabase/admin";
 import { bearerToken } from "./apiSecurity";
+import { summarizeAuthUsers } from "./authUserTotals";
 
 export function ownerEmails() {
   return String(process.env.DRAFTCENTER_OWNER_EMAILS || process.env.DRAFTCENTER_OWNER_EMAIL || "").split(",").map((email) => email.trim().toLowerCase()).filter(Boolean);
@@ -101,6 +102,17 @@ export async function getOperationsOverview(supabase, viewerUserId = null) {
   const recentRejectionCount = operationalRejections.filter((event) => Date.parse(event.occurred_at) > sinceYesterday).length;
   const activeLeagues = leagues.filter((league) => String(league.status) !== "archived");
   return { generated_at: new Date().toISOString(), totals: { leagues: activeLeagues.length, archived: leagues.length - activeLeagues.length, real: activeLeagues.filter((l) => !l.is_practice).length, practice: activeLeagues.filter((l) => l.is_practice).length, drafting: activeLeagues.filter((l) => ["drafting", "paused"].includes(l.lifecycle.phase)).length, needing_attention: activeLeagues.filter((l) => l.warnings.length).length, high_priority: activeLeagues.filter((l) => l.warnings.some((w) => w.severity === "high")).length, open_support_requests: supportRequests.length, errors_24h: recentErrorCount, expected_rejections_24h: recentRejectionCount }, support_requests: supportRequests, operational_errors: operationalErrors, operational_failures: operationalFailures, operational_rejections: operationalRejections, leagues };
+}
+
+export async function getAuthUserTotals(supabase) {
+  const users = [];
+  for (let page = 1; page <= 100; page += 1) {
+    const { data, error } = await supabase.auth.admin.listUsers({ page, perPage: 1000 });
+    if (error) throw error;
+    users.push(...(data?.users || []));
+    if ((data?.users || []).length < 1000) break;
+  }
+  return summarizeAuthUsers(users);
 }
 
 export async function sendOwnerEmail({ to, subject, html }) {
