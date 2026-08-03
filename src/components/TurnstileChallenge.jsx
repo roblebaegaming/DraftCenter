@@ -100,5 +100,5 @@ export default function TurnstileChallenge({ siteKey, action, resetKey, onTokenC
   }, [action, resetKey, siteKey]);
 
   if (!siteKey) return null;
-  return <div><div ref={containerRef} aria-label="Security check" />{error && <p className="hub-message" role="alert">{error}</p>}</div>;
+  return <div><div ref={containerRef} role="group" aria-label="Security check" />{error && <p className="hub-message" role="alert">{error}</p>}</div>;
 }

@@ -20,15 +20,22 @@ Record these values after verifying them in the Supabase dashboard:
 - Production project: Supabase project `eukexfqpiuidwygllaye` in AWS `us-west-2`
 - Supabase plan: Pro
 - Automated backup frequency: Daily, around midnight in the project's region
-- Backup retention: The dashboard displayed seven daily physical backups from July 26 through August 1, 2026; the exact contractual retention window still needs confirmation before making a public promise
+- Backup retention: Seven days of daily backups on the production Pro plan. This matches both the live dashboard history and the current Supabase plan documentation checked August 2, 2026.
 - Point-in-time recovery enabled: No; the dashboard offers it as a separate add-on
 - People with restore access: One organization member, the owner account
+- Primary backup custodian and production-restore approver: DraftCenter owner (Rob Lebae)
+- Secondary backup custodian: Not appointed. Until one is appointed, recovery depends on the owner's provider access and separately stored MFA recovery material.
 - Off-account encrypted backup location: Google Drive, exact archive name `draftcenter-recovery-2026-08-02.zip`
 - Last successful restore drill: August 2, 2026 — passed in isolated project `phvlvcuxulzhrqrmfndz`
 - Restore-project cleanup: owner approved permanent deletion on August 2, 2026; the exact project URL redirected to the organization list and the project ID was absent from both accessible organization project lists, confirming it was already removed before the final delete action
 - Next scheduled restore drill: November 2, 2026
 
-Dashboard verification on August 1, 2026 confirmed that the newest scheduled physical backup was created at 13:17:29 UTC. The dashboard provides a restore action for each backup and a beta **Restore to new project** path. Storage objects are not included in database backups; only their database metadata is covered.
+Dashboard verification on August 2, 2026 confirmed eight visible physical restore points from July 27 through August 2, including current restore points at 13:17:03 UTC and 23:36:04 UTC on August 2. Supabase documents that Pro projects can access the last seven days of daily backups. The dashboard provides a restore action for each backup and a beta **Restore to new project** path. Storage objects are not included in database backups; only their database metadata is covered.
+
+Provider references checked August 2, 2026:
+
+- [Supabase database backups](https://supabase.com/docs/guides/platform/backups)
+- [Vercel deployment retention](https://vercel.com/docs/deployment-retention)
 
 ## Restore drill record — August 2, 2026
 
@@ -128,21 +135,49 @@ Never test restoration over production.
 8. Record the backup timestamp, restore duration, failures, tester, and result.
 9. Remove or lock down the temporary restored project after verification.
 
-## Suggested retention rules
+## Approved operational retention and custody
 
-- Active account and league data: retain while the account or league is active.
-- Archived league seasons: retain until the league owner deletes the league or
-  an applicable deletion request requires removal.
-- Expired OAuth state and short-lived security records: delete on a recurring
-  schedule after they are no longer needed.
-- Notification delivery and diagnostic errors: retain only long enough to
-  investigate reliability, initially 30 days.
-- User-downloaded exports: DraftCenter does not control copies after download.
-- Backups: follow the verified provider retention window and maintain at least
-  one encrypted copy outside the production project/account when feasible.
+The owner approved this internal operating schedule on August 2, 2026. It
+describes current operations; it is not a substitute for legal or privacy
+review before publishing a contractual promise to users.
 
-Do not silently promise a specific retention period until the operational
-configuration has been verified.
+- Active account and league data: retain while the account or league remains
+  active. A lifecycle archive preserves league history and does not delete it.
+- Permanently ended leagues: retain while archived until the primary
+  commissioner permanently deletes the league or a verified deletion request
+  requires removal.
+- Account deletion: keep the existing seven-day cancellable waiting period,
+  remove production account data after the guarded deletion completes, and let
+  deleted database records age out of the seven-day provider backup window.
+- Operational health events: retain for 30 days, using the existing scheduled
+  cleanup and sanitized diagnostic fields.
+- Automatic league recovery snapshots: retain for 30 days, with at most one
+  automatic point per six-hour window when league state changes.
+- Twitch EventSub replay receipts: retain for 24 hours, which is sufficient for
+  duplicate-message prevention.
+- Discord OAuth state: expires after ten minutes. Expired state is not valid for
+  authentication even if cleanup has not yet removed the row.
+- Supabase database backups: retain according to the verified Pro-plan window
+  of seven days. Point-in-time recovery remains disabled unless the owner later
+  approves its additional recurring cost.
+- Off-account recovery archives: create a fresh AES-256 encrypted archive at
+  each quarterly restore drill. Retain the newest verified archive and the
+  immediately previous quarterly archive for overlap, with a maximum planned
+  age of six months; remove an older archive only after the replacement has
+  passed integrity checks and its passphrase is stored separately.
+- Vercel deployments: retain canceled deployments for 30 days, errored
+  deployments for 90 days, previews for 180 days, and production deployments
+  for one year under the verified project policy. Most policy-deleted successful
+  deployments remain recoverable for 30 additional days.
+- User-downloaded exports: DraftCenter does not control copies after download;
+  users and commissioners are responsible for securing or deleting their own
+  files.
+
+The DraftCenter owner is the primary data and backup custodian, the only current
+Supabase restore operator, and the approver for any production restore. The
+encrypted archive remains in the owner's Google Drive, while its passphrase and
+provider recovery material remain outside that account. A secondary human
+custodian is intentionally recorded as unassigned rather than implied.
 
 ## Account deletion procedure
 

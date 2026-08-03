@@ -79,7 +79,7 @@ Use this before each beta release. Record the date, commit, tester accounts, dev
 - [x] Start a clean second season, then recheck the first archive. (Season 2 rollover, August 2)
 - [x] League spreadsheet export includes current and archived teams, rosters, standings, results, transactions, playoffs, and draft history. (12-sheet rendered review, August 2)
 - [x] League recovery JSON restores into a test league without altering archived history or protected live-draft authority. (meaningful-state comparison, August 2)
-- [x] Automated database backup ownership, frequency, visible history, and restore access are documented. (August 1; exact contractual retention remains intentionally unpublished)
+- [x] Automated database backup ownership, frequency, visible history, restore access, and the seven-day Supabase Pro retention window are documented. (Reverified August 2; public contractual wording still requires legal/privacy review.)
 - [x] A database restore drill is completed in a safe non-production environment and recorded. (Passed August 2, 2026 in isolated project `phvlvcuxulzhrqrmfndz`.)
 - [x] Recovery artifacts are stored outside the production database and deployment account. (AES-256 recovery archive uploaded to Google Drive and exact-name verified, August 2)
 - [x] Account and My Teams data portability is tested without exposing another user's private data. (signed-out rejection and cross-owner restore isolation, August 2)
@@ -112,6 +112,6 @@ Use this before each beta release. Record the date, commit, tester accounts, dev
 ## Release decision
 
 - Blocking failures: None found in the validated release scope.
-- Non-blocking follow-ups: a second major email client; Firefox/Safari and throttled-network breadth; the intentionally unchecked bot, reset/rebuild race, claim-race, transaction-reversal, Daily Three interaction, public-profile, and My Teams breadth items above. The real Twitch online/offline EventSub broadcast passed August 2. The isolated August 2 restore project was verified absent after explicit owner deletion approval.
+- Non-blocking follow-ups: a second major email client; Firefox/Safari breadth; the intentionally unchecked bot, reset/rebuild race, claim-race, transaction-reversal, Daily Three interaction, public-profile, and My Teams breadth items above. Google PageSpeed completed mobile slow-4G and desktop throttled audits on August 2 with healthy launch results; see `docs/browser-network-and-search-audit-2026-08-02.md`. The real Twitch online/offline EventSub broadcast passed August 2. The isolated August 2 restore project was verified absent after explicit owner deletion approval.
 - Approved by:
 - Decision: Ready for owner ship decision; remaining items are coverage gaps, not known regressions.

@@ -72,7 +72,7 @@ export async function loadPokemonArtwork(name) {
       const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${encodeURIComponent(apiName)}`);
       if (!response.ok) continue;
       const data = await response.json();
-      const image = data?.sprites?.other?.["official-artwork"]?.front_default || data?.sprites?.front_default;
+      const image = data?.sprites?.other?.home?.front_default || data?.sprites?.other?.["official-artwork"]?.front_default || data?.sprites?.front_default;
       if (image) return image;
     } catch {}
   }
@@ -88,7 +88,7 @@ export async function loadPokemonArtwork(name) {
         const varietyResponse = await fetch(defaultVariety.pokemon.url);
         if (varietyResponse.ok) {
           const variety = await varietyResponse.json();
-          const image = variety?.sprites?.other?.["official-artwork"]?.front_default || variety?.sprites?.front_default;
+          const image = variety?.sprites?.other?.home?.front_default || variety?.sprites?.other?.["official-artwork"]?.front_default || variety?.sprites?.front_default;
           if (image) return image;
         }
       }
