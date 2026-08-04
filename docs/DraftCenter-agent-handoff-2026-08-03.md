@@ -1,5 +1,10 @@
 # DraftCenter agent handoff — August 3, 2026
 
+> **Superseded by `docs/DraftCenter-agent-handoff-2026-08-04-final.md`.**
+> On August 4, strict Turnstile enforcement was enabled in Vercel Production
+> and Supabase Auth after the successful human check. Use the August 4 final
+> handoff for current operational state.
+
 - Production: https://www.draftcentral.gg
 - Repository: `C:\Users\rober\Documents\Codex\2026-07-20\i-am-building-a-pok-mon\draft-league\DraftCenter`
 - GitHub: `roblebaegaming/DraftCenter`, protected branch `main`

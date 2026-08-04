@@ -1,5 +1,10 @@
 # DraftCenter SEO and content agent handoff — August 3, 2026
 
+> **Operational status superseded by
+> `docs/DraftCenter-agent-handoff-2026-08-04-final.md`.** Strict Turnstile
+> enforcement was completed on August 4 after the successful human check.
+> This file remains authoritative only for the SEO and content backlog.
+
 - Production: https://www.draftcentral.gg
 - GitHub: `roblebaegaming/DraftCenter`; protected branch `main`
 - Production baseline for this handoff: `441d3fe`
