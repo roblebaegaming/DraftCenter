@@ -229,6 +229,20 @@ button { cursor: pointer; }
   border-radius: 16px;
   background: #ffd54f0b;
 }
+.guide-feature-callout {
+  margin-top: 18px;
+  padding: 16px 18px;
+  border: 1px solid rgba(130, 170, 255, 0.28);
+  border-left: 4px solid #82aaff;
+  border-radius: 12px;
+  background: rgba(24, 31, 58, 0.72);
+}
+.guide-feature-callout h3 {
+  margin: 0 0 7px;
+  color: #ffd23f;
+  font-size: 1rem;
+}
+.guide-feature-callout p { margin: 0; }
 
 .support-shell { min-height:100vh; padding:28px max(18px,calc((100vw - 920px)/2)) 72px; background:radial-gradient(circle at top,#263878,#080b18 56%); }
 .support-card,.support-pro-note { margin-top:28px; padding:clamp(24px,6vw,54px); border:1px solid #34446f; border-radius:20px; background:rgba(16,22,44,.95); }
