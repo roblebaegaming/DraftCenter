@@ -58,3 +58,16 @@ test("Pokémon profiles have crawlable indexes and complete core facts", () => {
   assert.match(pokemonIndexData, /pokemonProfileSlugForSpecies/);
   assert.match(pokemonIndexData, /zygarde:\s*"zygarde-50"/);
 });
+
+test("the cornerstone draft guide covers the full season and links to next steps", () => {
+  const content = source("src/lib/seoContent.js");
+  const guidePage = source("src/app/guides/[slug]/page.js");
+
+  assert.match(content, /Draft League Guide: Rules, Drafting, Weekly Matches, and Playoffs/);
+  assert.match(content, /Prepare for a different matchup each week/);
+  assert.match(content, /Use clear standings and tiebreakers/);
+  assert.match(content, /\/guides\/snake-vs-auction-pokemon-draft/);
+  assert.match(content, /\/manuals\/commissioner/);
+  assert.match(guidePage, /Continue your draft-league research/);
+  assert.match(guidePage, /guide\.links\.map/);
+});

@@ -59,3 +59,15 @@ After deployment:
 3. wait at least 14 days before treating an unchanged status as a problem;
 4. record impressions, clicks, position, and indexing state after 28 complete days; and
 5. choose the first five profiles for editorial enrichment from the updated evidence.
+
+## Post-release update
+
+The expanded indexes and 1,414-URL sitemap were deployed on August 3 through
+protected pull request #21. Google Search Console successfully read the new
+sitemap. Indexing requests were then accepted once for Archaludon, Garchomp,
+Dragonite, and Venusaur. Gengar remained indexed and was not resubmitted.
+
+At the time of submission, Archaludon, Garchomp, and Venusaur were reported as
+discovered but not indexed. Dragonite was reported as unknown to Google. These
+statuses describe Google's processed report at that moment, not a defect in the
+live pages. The next inspection should occur no earlier than August 17.

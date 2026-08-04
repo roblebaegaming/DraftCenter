@@ -1,13 +1,24 @@
 export const GUIDES = {
   "what-is-pokemon-draft-league": {
-    title: "What Is a Pokémon Draft League?",
-    description: "Learn how Pokémon draft leagues work, from unique rosters and weekly matchups to standings, playoffs, and championships.",
-    intro: "A Pokémon draft league is a season-long competition where every coach builds a unique roster from a shared pool. Instead of bringing any legal Pokémon each week, coaches draft a limited group and must solve every matchup with that roster.",
+    title: "Pokémon Draft League Guide: Rules, Drafting, Weekly Matches, and Playoffs",
+    description: "Learn how a Pokémon draft league works, including formats, snake and auction drafts, roster rules, weekly preparation, transactions, standings, and playoffs.",
+    intro: "A Pokémon draft league is a season-long competition where every coach builds a unique roster from a shared pool. Instead of bringing any legal Pokémon each week, coaches draft a limited group and must adapt that roster to a different opponent throughout the season.",
     sections: [
-      ["The draft", "Before the season, commissioners publish the format, legal pool, prices or tiers, roster size, and draft order. In a snake draft, the order reverses each round. In an auction, coaches spend from a fixed budget. Once one coach drafts a Pokémon, it is normally unavailable to everyone else."],
-      ["The regular season", "Coaches receive a schedule and prepare for a different opponent each week. They study the opposing roster, build a legal team from their own drafted Pokémon, play the agreed battle format, and report the result. Standings usually use match wins, game differential, or Pokémon differential as tiebreakers."],
-      ["Transactions and adaptation", "Free-agent claims and trades let coaches respond to weaknesses, injuries to a strategy, or changes in the metagame. Good rules specify transaction deadlines, priority, budgets, roster minimums, and whether dropped Pokémon can be reclaimed."],
-      ["Playoffs and champions", "The best regular-season records advance to a playoff bracket. Draft leagues reward long-term planning: a roster must handle many opponents, survive changing matchups, and still have enough flexibility for elimination rounds."],
+      ["Choose the format and legal pool", "Every league begins with a specific game, generation, battle style, legal Pokémon pool, and set of mechanics. Commissioners should state whether the league uses singles or doubles, which transformations or Restricted Pokémon are allowed, how many Pokémon make a roster, and which clauses apply in battle."],
+      ["Draft one unique roster per coach", "Before the season, commissioners publish prices or tiers, roster limits, and the draft order. In a snake draft, the order reverses each round. In an auction, coaches bid from equal starting budgets. Once one coach drafts a Pokémon, it is normally unavailable to everyone else, so every roster develops different strengths and weaknesses."],
+      ["Build for roles, not only favorites", "A useful roster needs more than individually powerful Pokémon. Coaches balance speed tiers, physical and special damage, defensive answers, hazard or field control, disruption, recovery, and flexible support. Pokémon that cover several jobs can be especially valuable because roster slots are limited."],
+      ["Prepare for a different matchup each week", "Coaches receive a schedule and study the opposing roster before every match. They identify likely threats, choose a legal team from their drafted Pokémon, plan items and moves for that opponent, play the agreed format, and report the result. This matchup-specific preparation is what separates draft play from a normal open-team ladder."],
+      ["Use clear standings and tiebreakers", "Rules should explain how wins, losses, forfeits, and incomplete matches are recorded. Standings commonly use match record first, followed by game differential or remaining-Pokémon differential. Publishing the order of tiebreakers before the season prevents an important late-season decision from becoming an improvised ruling."],
+      ["Allow controlled transactions", "Free-agent claims and trades let coaches repair roster weaknesses or respond to new strategies. Good rules define transaction deadlines, priority or budgets, roster minimums, trade approval, and whether a dropped Pokémon can be reclaimed. The same process should apply to every coach."],
+      ["Advance qualifying teams to playoffs", "The best regular-season records move into a playoff bracket. Draft leagues reward long-term planning: a roster must handle many opponents, survive changing matchups, and retain enough flexibility for elimination rounds. Commissioners should publish qualification, seeding, deadlines, and championship tiebreak procedures in advance."],
+      ["Keep one public source of truth", "Coaches should not have to reconcile conflicting spreadsheets and message threads. Keep rules, legal Pokémon, rosters, schedules, standings, transactions, rulings, and playoff results in one maintained place. Clear records make the league easier to play, commission, and follow as a spectator."],
+    ],
+    links: [
+      ["Compare snake and auction drafts", "/guides/snake-vs-auction-pokemon-draft"],
+      ["Build a draft tier list", "/guides/pokemon-draft-tier-list-guide"],
+      ["Browse supported formats", "/formats"],
+      ["Explore public leagues", "/leagues"],
+      ["Open commissioner manuals", "/manuals/commissioner"],
     ],
   },
   "how-to-run-pokemon-draft-league": {
