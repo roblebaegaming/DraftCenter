@@ -1,24 +1,45 @@
-# Current production status
+# DraftCenter current status
 
-Last updated: August 4, 2026.
+- Last updated: August 4, 2026
+- Production: https://www.draftcentral.gg
+- Repository: roblebaegaming/DraftCenter
+- Production branch: main
+- Verified release: `b0fb1f9`
 
-DraftCenter is ready for monitored public use and real drafts. There are no
-known launch-blocking defects, and no evidence of lost picks, corrupt rosters,
-or damaged active drafts. The latest verified functional production commit is
-`cb33c5a`.
+## Status
 
-Cloudflare Turnstile is enforced for production authentication. The final
-validation included the automated suite, security and performance checks,
-production builds, provider delivery checks, a successful human Turnstile
-check, and a signed-out smoke sweep in which 14 public routes returned 200 and
-five protected endpoints returned 401.
+DraftCenter is approved for monitored public use and real drafts. There are no
+known launch blockers.
 
-Production remains a monitored service. Continue watching new Operations
-events, Supabase Disk IO and memory during normal draft days, scheduled reminder
-delivery, and live-draft polling behavior. Do not treat historical events as
-current failures without fresh evidence.
+Strict Turnstile enforcement is active in DraftCenter and Supabase. Authentication,
+production smoke tests, Discord delivery, notification recovery, Operations
+visibility, guides, and public Pokémon discovery have been validated.
 
-For full evidence, remaining follow-up, and production-specific safety notes,
-read the
-[current detailed handoff](handoffs/DraftCenter-agent-handoff-2026-08-04-final.md).
-Permanent repository rules are in [`AGENTS.md`](../AGENTS.md).
+## Active watch items
+
+- Supabase memory and Disk IO during normal live-draft days
+- Autonomous-claim reconciliation workload
+- Duplicate live-draft polling
+- Search Console indexing and canonical reports
+- Historical versus new Operations events
+
+## Non-blocking work
+
+- Apple Mail, Samsung Email, or Thunderbird coverage
+- Continued performance monitoring
+- August–December SEO roadmap
+- Further polling optimization after regression coverage
+
+## Authoritative records
+
+- Detailed current handoff:
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-04-final.md`](handoffs/DraftCenter-agent-handoff-2026-08-04-final.md)
+- Security remediation:
+  [`docs/DraftCenter-security-remediation-2026-08-02.md`](DraftCenter-security-remediation-2026-08-02.md)
+- Retention and recovery:
+  [`docs/data-retention-and-recovery.md`](data-retention-and-recovery.md)
+- SEO roadmap:
+  [`docs/seo-content-roadmap-2026-08-to-12.md`](seo-content-roadmap-2026-08-to-12.md)
+
+When this file conflicts with an older handoff, the newest verified production
+record and repository state take precedence.
