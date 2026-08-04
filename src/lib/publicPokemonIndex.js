@@ -35,6 +35,58 @@ const DEFAULT_PROFILE_BY_SPECIES = {
   dudunsparce: "dudunsparce-two-segment",
 };
 
+// DraftCenter and Showdown use several reader-friendly form names while
+// PokéAPI uses species-first slugs. Keep these aliases at the public-route
+// boundary so league legality and draft-board names remain untouched.
+const EXPLICIT_PROFILE_ALIASES = {
+  "white-striped-basculin": "basculin-white-striped",
+  "calyrex-shadow-rider": "calyrex-shadow",
+  "calyrex-ice-rider": "calyrex-ice",
+  "primal-groudon": "groudon-primal",
+  "primal-kyogre": "kyogre-primal",
+  "paldean-tauros": "tauros-paldea-combat",
+  "paldean-tauros-water": "tauros-paldea-aqua",
+  "paldean-tauros-fire": "tauros-paldea-blaze",
+};
+
+export function pokemonRouteSlug(value) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}
+
+export function pokemonProfileSlugCandidates(value) {
+  const key = pokemonRouteSlug(value);
+  if (!key) return [];
+  const candidates = [];
+  const add = (slug) => { if (slug && !candidates.includes(slug)) candidates.push(slug); };
+
+  add(EXPLICIT_PROFILE_ALIASES[key]);
+  add(DEFAULT_PROFILE_BY_SPECIES[key]);
+
+  const regional = key.match(/^(alolan|galarian|hisuian|paldean)-(.+)$/);
+  if (regional) {
+    const suffix = { alolan: "alola", galarian: "galar", hisuian: "hisui", paldean: "paldea" }[regional[1]];
+    add(`${regional[2]}-${suffix}`);
+  }
+
+  const mega = key.match(/^mega-(.+?)(?:-(x|y))?$/);
+  if (mega) add(`${mega[1]}-mega${mega[2] ? `-${mega[2]}` : ""}`);
+
+  add(key);
+  if (regional) add(regional[2]);
+  if (mega) add(mega[1]);
+  return candidates;
+}
+
+export function pokemonProfileSlugForName(value, availableProfiles) {
+  const candidates = pokemonProfileSlugCandidates(value);
+  if (!availableProfiles) return candidates[0] || "";
+  const profiles = availableProfiles instanceof Set ? availableProfiles : new Set(availableProfiles);
+  return candidates.find((slug) => profiles.has(slug)) || "";
+}
+
 export function pokemonProfileSlugForSpecies(species) {
   return DEFAULT_PROFILE_BY_SPECIES[species] || species;
 }

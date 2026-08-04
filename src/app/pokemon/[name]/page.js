@@ -1,5 +1,6 @@
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { getPublicPokemonDraftProfile } from "../../../lib/supabase/publicServer";
+import { getAllPokemonProfiles, pokemonProfileSlugCandidates, pokemonProfileSlugForName, pokemonRouteSlug } from "../../../lib/publicPokemonIndex";
 
 function titleCase(value) {
   return String(value || "").split("-").map((word) => word ? `${word[0].toUpperCase()}${word.slice(1)}` : "").join(" ");
@@ -17,10 +18,14 @@ function formatWeight(hectograms) {
 }
 
 async function loadPokemon(name) {
-  const safeName = String(name || "").toLowerCase().replace(/[^a-z0-9-]/g, "");
+  const safeName = pokemonRouteSlug(name);
   if (!safeName) return null;
-  const pokemonResponse = await fetch(`https://pokeapi.co/api/v2/pokemon/${safeName}`, { next: { revalidate: 86400 } });
-  if (!pokemonResponse.ok) return null;
+  let pokemonResponse = null;
+  for (const candidate of pokemonProfileSlugCandidates(safeName)) {
+    const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${candidate}`, { next: { revalidate: 86400 } });
+    if (response.ok) { pokemonResponse = response; break; }
+  }
+  if (!pokemonResponse) return null;
   const pokemon = await pokemonResponse.json();
   const speciesName = String(pokemon.species?.name || "").replace(/[^a-z0-9-]/g, "");
   const formName = String(pokemon.forms?.[0]?.name || safeName).replace(/[^a-z0-9-]/g, "");
@@ -65,7 +70,9 @@ export default async function PokemonDetailPage({ params }) {
   const { name } = await params;
   const data = await loadPokemon(name);
   if (!data) notFound();
+  if (pokemonRouteSlug(name) !== data.pokemon.name) permanentRedirect(`/pokemon/${data.pokemon.name}`);
   const { pokemon, species, displayName, draftProfile } = data;
+  const availableProfiles = draftProfile?.partners?.length ? new Set(await getAllPokemonProfiles()) : null;
   const baseStatTotal = pokemon.stats.reduce((total, { base_stat }) => total + base_stat, 0);
   const genus = species.genera?.find((entry) => entry.language.name === "en")?.genus || "Pokémon";
   const entry = species.flavor_text_entries?.find((item) => item.language.name === "en")?.flavor_text?.replace(/[\n\f]/g, " ");
@@ -143,7 +150,7 @@ export default async function PokemonDetailPage({ params }) {
         <article><strong>{draftProfile?.games ? `${draftProfile.win_rate || 0}%` : "—"}</strong><span>Team win rate</span><small>{draftProfile?.games ? `${draftProfile.wins || 0}-${draftProfile.games - (draftProfile.wins || 0)} across ${draftProfile.games} matches` : "No confirmed matches yet"}</small></article>
       </div>
       {draftProfile?.adp_by_format?.length ? <><h3>ADP by legal format</h3><div className="public-pick-list">{draftProfile.adp_by_format.map((format) => <div key={format.regulation_id}><strong><a href={`/formats/${format.regulation_id}`}>{titleCase(format.regulation_id)}</a></strong><span>ADP {format.average_pick != null ? `#${format.average_pick}` : "—"} · drafted in {format.drafted_in || 0} of {format.eligible_drafts || 0} eligible pools</span></div>)}</div></> : <p className="muted">Format-specific ADP will appear after {displayName} is eligible in completed snake drafts.</p>}
-      {draftProfile?.partners?.length ? <><h3>Most common teammates</h3><div className="pokemon-tags">{draftProfile.partners.map((teammate) => <a key={teammate.pokemon} href={`/pokemon/${String(teammate.pokemon).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")}`}>{teammate.pokemon} · {teammate.teams} roster{teammate.teams === 1 ? "" : "s"}</a>)}</div></> : null}
+      {draftProfile?.partners?.length ? <><h3>Most common teammates</h3><div className="pokemon-tags">{draftProfile.partners.map((teammate) => { const profileSlug = pokemonProfileSlugForName(teammate.pokemon, availableProfiles); return profileSlug ? <a key={teammate.pokemon} href={`/pokemon/${profileSlug}`}>{teammate.pokemon} · {teammate.teams} roster{teammate.teams === 1 ? "" : "s"}</a> : <span key={teammate.pokemon}>{teammate.pokemon} · {teammate.teams} roster{teammate.teams === 1 ? "" : "s"}</span>; })}</div></> : null}
     </section>
     <section className="explore-card">
       <h2>Study {displayName} in DraftCenter</h2>
