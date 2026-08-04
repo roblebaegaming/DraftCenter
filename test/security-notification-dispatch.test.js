@@ -9,10 +9,15 @@ import { safeHttpsImageSource } from "../src/lib/imageSecurity.js";
 
 test("community Discord editorial posts cannot route through league channels", () => {
   const source = fs.readFileSync(new URL("../src/app/api/notifications/dispatch/route.js", import.meta.url), "utf8");
+  const migration = fs.readFileSync(new URL("../supabase/251-community-discord-delivery-ledger.sql", import.meta.url), "utf8");
   assert.match(source, /DISCORD_QOTD_CHANNEL_ID/);
   assert.match(source, /DISCORD_DAILY_THREE_RESULTS_CHANNEL_ID/);
-  assert.match(source, /community_discord_\$\{deliveryKind\}/);
+  assert.match(source, /from\("community_discord_deliveries"\)\.insert/);
+  assert.match(source, /error\.code === "23505"/);
   assert.match(source, /eq\("notify_daily_three", true\)\s*\.limit\(0\)/);
+  assert.match(migration, /primary key \(delivery_kind, delivery_date\)/);
+  assert.match(migration, /revoke all on table public\.community_discord_deliveries\s+from public, anon, authenticated/);
+  assert.match(migration, /grant select, insert, delete on table public\.community_discord_deliveries\s+to service_role/);
 });
 
 test("notification dispatch rejects anonymous global invocation", async () => {
