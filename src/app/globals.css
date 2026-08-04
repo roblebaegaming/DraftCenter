@@ -222,6 +222,20 @@ button { cursor: pointer; }
   font-size: 1.2rem;
 }
 
+.guide-byline { margin-top: 18px; color: #8f9cc7 !important; font-size: .86rem; }
+.guide-byline a,.guide-source-note a { color: #9fc0ff; }
+.guide-direct-answer {
+  margin-top: 28px;
+  padding: 22px 24px;
+  border: 1px solid rgba(79, 209, 197, .42);
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(79, 209, 197, .11), rgba(130, 170, 255, .07));
+}
+.guide-direct-answer h2 { margin: 7px 0 9px; font-size: clamp(1.3rem, 3vw, 1.8rem); }
+.guide-direct-answer p { margin: 0; color: #d5def6 !important; }
+.guide-source-note { padding-top: 22px; border-top: 1px solid #2d3b63; }
+.guide-source-note h2 { font-size: 1.15rem; }
+
 .seo-next-step {
   margin-top: 40px;
   padding: 24px;

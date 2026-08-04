@@ -44,17 +44,8 @@ export default function RootLayout({ children }) {
         name: "DraftCenter",
         url: "https://www.draftcentral.gg/",
         logo: "https://www.draftcentral.gg/draftcenter-logo.png",
-      },
-      {
-        "@type": "WebApplication",
-        "@id": "https://www.draftcentral.gg/#application",
-        name: "DraftCenter",
-        url: "https://www.draftcentral.gg/",
-        applicationCategory: "GameApplication",
-        operatingSystem: "Web",
-        isAccessibleForFree: true,
         description: "Create and manage Pokémon draft leagues, run drafts, track seasons, and explore community draft data.",
-        publisher: { "@id": "https://www.draftcentral.gg/#organization" },
+        publishingPrinciples: "https://www.draftcentral.gg/about#editorial-standards",
       },
     ],
   };

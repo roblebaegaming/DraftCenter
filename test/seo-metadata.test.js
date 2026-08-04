@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import test from "node:test";
+import { pokemonProfileSlugForName } from "../src/lib/publicPokemonIndex.js";
 
 function source(path) {
   return fs.readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
@@ -28,6 +29,7 @@ test("sitemap contains only indexable routes and truthful modification dates", (
   assert.match(sitemap, /league\.updated_at \? \{ lastModified: new Date\(league\.updated_at\) \} : \{\}/);
   assert.match(sitemap, /POKEMON_TYPES\.map/);
   assert.match(sitemap, /POKEMON_GENERATIONS\.map/);
+  assert.match(sitemap, /\["\/about", "monthly", 0\.7\]/);
 });
 
 test("Pokémon profiles have crawlable indexes and complete core facts", () => {
@@ -57,6 +59,21 @@ test("Pokémon profiles have crawlable indexes and complete core facts", () => {
   assert.match(sitemap, /getAllPokemonProfiles/);
   assert.match(pokemonIndexData, /pokemonProfileSlugForSpecies/);
   assert.match(pokemonIndexData, /zygarde:\s*"zygarde-50"/);
+  assert.match(pokemonIndexData, /pokemonProfileSlugCandidates/);
+  assert.match(pokemonIndexData, /galarian:\s*"galar"/);
+  assert.match(pokemonIndexData, /pokemonProfileSlugForName/);
+  assert.match(profile, /permanentRedirect\(`\/pokemon\/\$\{data\.pokemon\.name\}`\)/);
+  assert.match(profile, /pokemonProfileSlugForName\(teammate\.pokemon, availableProfiles\)/);
+});
+
+test("reader-friendly Pokémon names resolve to live canonical profiles", () => {
+  const profiles = new Set(["urshifu-single-strike", "shaymin-land", "landorus-incarnate", "moltres-galar", "charizard-mega-x", "chandelure"]);
+  assert.equal(pokemonProfileSlugForName("Urshifu", profiles), "urshifu-single-strike");
+  assert.equal(pokemonProfileSlugForName("Shaymin", profiles), "shaymin-land");
+  assert.equal(pokemonProfileSlugForName("Landorus", profiles), "landorus-incarnate");
+  assert.equal(pokemonProfileSlugForName("Galarian Moltres", profiles), "moltres-galar");
+  assert.equal(pokemonProfileSlugForName("Mega Charizard X", profiles), "charizard-mega-x");
+  assert.equal(pokemonProfileSlugForName("Mega Chandelure", profiles), "chandelure");
 });
 
 test("the guide collection explains real DraftCenter workflows in a human voice", () => {
@@ -90,4 +107,33 @@ test("the guide collection explains real DraftCenter workflows in a human voice"
   assert.match(templates, /MISSED PICK PROCEDURE/i);
   assert.match(templates, /ACTIVITY AND REPLACEMENTS/);
   assert.match(templates, /CONDUCT, RULINGS, AND APPEALS/);
+  assert.match(content, /GUIDE_PUBLISHED_DATE/);
+  assert.match(content, /GUIDE_UPDATED_DATE/);
+  assert.equal((content.match(/answer:\s*"/g) || []).length, 6);
+  assert.match(guidePage, /SHORT ANSWER/);
+  assert.match(guidePage, /Written and reviewed by the/);
+  assert.match(guidePage, /datePublished: GUIDE_PUBLISHED_DATE/);
+  assert.match(guidePage, /dateModified: GUIDE_UPDATED_DATE/);
+  assert.match(guidePage, /about#data-methodology/);
+});
+
+test("AI discovery foundation exposes a trustworthy entity and reference index", () => {
+  const layout = source("src/app/layout.js");
+  const about = source("src/app/about/page.js");
+  const llms = source("src/app/llms.txt/route.js");
+  const footer = source("src/components/SiteLegalFooter.jsx");
+  const content = source("src/lib/seoContent.js");
+
+  assert.match(layout, /"@type": "Organization"/);
+  assert.match(layout, /publishingPrinciples/);
+  assert.doesNotMatch(layout, /"@type": "WebApplication"/);
+  assert.match(about, /What is DraftCenter\?/);
+  assert.match(about, /id="data-methodology"/);
+  assert.match(about, /id="editorial-standards"/);
+  assert.match(about, /confirmed match results/);
+  assert.match(footer, /href="\/about"/);
+  assert.match(llms, /Content-Type": "text\/plain; charset=utf-8"/);
+  assert.match(llms, /Pokémon Draft League Rules Template/);
+  assert.match(llms, /Private queues/);
+  assert.match(content, /national-gen\$\{generation\}/);
 });
