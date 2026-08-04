@@ -1,3 +1,5 @@
+import { COMMISSIONER_RULES_LAUNCH_CHECKLIST, POKEMON_DRAFT_LEAGUE_RULES_TEMPLATE } from "./guideTemplates";
+
 export const GUIDES = {
   "what-is-pokemon-draft-league": {
     title: "How a Pokémon Draft League Works",
@@ -61,6 +63,54 @@ export const GUIDES = {
       ["Change the list slowly and explain why", "After the season, look for Pokémon that repeatedly went undrafted, disappeared much earlier than expected, or produced extreme auction prices across several rooms. Make a small adjustment, record the reason, and keep the old version. Coaches trust a list more when they can understand how it evolved.", "Export the current pricing before a major revision. For bulk updates, fill the Pricing Template's new value or rank column, upload it, review every proposed change, and confirm only when the preview matches your intention."],
     ],
     links: [["Explore the Pokémon catalog", "/pokemon"], ["Browse supported formats", "/formats"], ["Open the commissioner manual", "/manuals/commissioner"]],
+  },
+  "how-to-join-first-pokemon-draft-league": {
+    title: "How to Join Your First Pokémon Draft League",
+    description: "A welcoming first-season guide to finding the right Pokémon draft league, joining a team, preparing for the draft, playing weekly matches, and managing your roster.",
+    intro: "Your first draft league should feel exciting, not like you accidentally signed up for a second job. The right league will tell you what it plays, how often matches happen, and what it expects from coaches before asking you to commit. You do not need to know every matchup or have a perfect draft plan. You do need enough time to communicate, prepare, and play one match at a time.",
+    sections: [
+      ["Look for a league that fits your real schedule", "Start with the weekly commitment. Ask when matches are due, how coaches schedule them, how long the season lasts, and whether the draft date works for you. A beginner-friendly league should welcome questions and have written rules you can read before joining.", "Browse Public Leagues to see formats, season status, open teams, and public league information. An Open to join league is recruiting; Public to watch lets you follow the season without taking a team."],
+      ["Read the format before you claim a team", "Check whether the league is singles or doubles, which game or generation it uses, which special mechanics are allowed, and how large the drafted roster will be. Also read its transaction limits, weekly deadline, standings tiebreakers, and playoff rules. If a term is unfamiliar, ask now rather than guessing during a timer.", "League Home and League Info show the posted format, rules, draft time, and season details. The format library explains DraftCenter's supported pools, and the Pokédex can show whether a Pokémon belongs to a selected regulation."],
+      ["Join with the account you plan to keep", "Use one account for the season so your team access, notifications, match record, and archived history stay together. Open the manager invitation from the commissioner and claim only the team assigned to you. If the link expired or the wrong team was claimed, stop and ask the commissioner to correct it.", "After accepting a Manager invite, open the league from your DraftCenter home and choose the assigned unclaimed team. Spectator access is view-only and cannot draft, report results, or manage a roster."],
+      ["Prepare a flexible draft plan", "Make a short list of favorites, then give each one alternatives. Think about speed, physical and special damage, defensive options, disruption, and support. Your exact plan will change as other coaches make picks; a useful queue is a set of choices, not a script that must survive every round.", "Use the league's legal pool and the DraftCenter Pokédex to study types, stats, abilities, and versioned move pools. Build and reorder your private draft queue before the room opens. Nobody else can see it, and it does not reserve a Pokémon."],
+      ["On draft night, slow down enough to confirm the right choice", "Join early, keep the league rules nearby, and watch your remaining roster requirements. In snake, plan for the gap until your next turn. In auction, protect enough budget to finish the roster. If the timer, connection, or saved pick looks wrong, tell the commissioner instead of repeatedly refreshing or clicking.", "The live draft room shows availability, your roster, the current turn or nomination, the timer, and budget or roster safeguards. A pick becomes official when the room confirms and saves it."],
+      ["Treat the first matchup as one manageable puzzle", "Contact your opponent early, agree on a time, and study only the roster in front of you. Build a legal team from your drafted Pokémon and focus on having a plan for the opponent's biggest threats. Nobody expects a first-time coach to solve the whole format in week one.", "Open Schedule for the opponent and deadline. Either participating manager can report the result and eligible MVP details. Check that the saved result and standings are correct before leaving the page."],
+      ["Use the official transaction and message tools", "A trade, free-agent move, or claim is not official because it was mentioned in chat. Follow the league's process so every coach sees the same roster history and deadlines. Read commissioner announcements, answer trade responses, and communicate early if a match or absence may become a problem.", "Transactions keeps trades, add/drop moves, and queued claims with the official roster. Messages and the League Board hold responses and durable league announcements. Personal Discord notifications are optional and separate from a league announcement channel."],
+      ["Ask for help before a small issue becomes a forfeit", "Good commissioners would rather answer an early question than repair a missed deadline. Say something if you cannot find a setting, your opponent is unavailable, a result looks wrong, or real life changes your availability. Clear communication is one of the most valuable skills in a draft league.", "The manager manual explains each DraftCenter workflow. For a league-specific decision, contact the commissioner or co-commissioner because they control that league's rules and deadlines."],
+    ],
+    checklistTitle: "Before you commit to your first team",
+    checklist: [
+      "I understand the game, battle style, legal mechanics, and weekly deadline.",
+      "I can attend the draft or have agreed on an absence procedure.",
+      "I know the expected season length and can schedule one match most weeks.",
+      "I have read the transaction, standings, playoff, inactivity, and conduct rules.",
+      "I joined with the account I intend to use and claimed the correct team.",
+      "I know where the league posts durable rules and commissioner announcements.",
+      "I know who to contact if an invite, team, result, timer, or deadline looks wrong.",
+    ],
+    links: [["Learn how a draft league works", "/guides/what-is-pokemon-draft-league"], ["Open the manager manual", "/manuals/manager"], ["Browse public leagues", "/leagues"], ["Explore the Pokédex", "/pokemon"]],
+  },
+  "pokemon-draft-league-rules-template": {
+    title: "Pokémon Draft League Rules Template and Commissioner Checklist",
+    description: "Copy and customize a practical Pokémon draft league rules template covering format, rosters, drafting, matches, transactions, standings, playoffs, disputes, and inactivity.",
+    intro: "A useful rules document answers the questions that can change a coach's decision or a match result. It does not need legal language, and it should not repeat every button in DraftCenter. Write the competitive agreement in plain language, make the saved league settings match it, and tell coaches which source wins if something differs.",
+    sections: [
+      ["Use the template as a conversation, not a finished rulebook", "Replace every bracketed field, delete sections your league does not use, and ask at least one other commissioner or experienced coach to review it. The goal is for a new coach to understand the season without needing private explanations that other teams never received.", "DraftCenter stores the operational settings, but your rules should explain why they were chosen and what happens in situations that software cannot decide fairly."],
+      ["Make the competitive identity unmistakable", "Name the game, generation, battle style, legal pool, mechanics, special-category limits, clauses, and team-sheet rules. A coach should be able to tell whether this is the format they want before joining or drafting.", "Select the supported format or custom pool in Setup, then save league-specific bans, prices, Restricted limits, roster limits, and mechanics. Link coaches to the league's visible rules and legal pool."],
+      ["Write down what happens when draft night is imperfect", "Publish the draft type, order method, timers, budget or points, and missed-pick procedure. Include what happens when a coach cannot attend or loses connection. Fair rules describe the remedy before anyone knows which team will need it.", "DraftCenter enforces the saved snake or auction structure and roster safeguards. The Commissioner Launch Checklist catches incomplete setup, while a recovery backup protects the configured state before the room begins."],
+      ["Define a normal match week and its exceptions", "State the deadline, time zone, early-contact expectation, extension process, reporting responsibility, disconnect policy, evidence requirements, and forfeit standard. Leave the commissioner enough discretion for genuine emergencies without turning every late match into a negotiation.", "Schedule is the source of truth for opponents and saved results. Either participating manager can report a match, and commissioners can review corrections that affect standings."],
+      ["Make roster movement and playoff qualification predictable", "Explain trades, free agency, claims, cooldowns, deadlines, tiebreakers, playoff size, and seeding. Coaches should be able to plan without asking whether a move will process differently for someone else.", "Match the written rules to Transactions, the league clock, standings tiebreakers, and Playoffs in Setup. If you change a setting, update the rules version at the same time."],
+      ["Plan for inactivity, conflicts, and appeals", "Name the response-time expectation, warning steps, replacement process, conflict-of-interest reviewer, appeal window, and standard for emergency midseason changes. These sections matter most when the commissioner is personally involved in the outcome.", "Add a co-commissioner or neutral reviewer before the season. Record material rulings on the League Board so every coach receives the same durable explanation."],
+      ["Publish, test, and preserve the final version", "Read the completed rules as if you were a new coach. Run a practice setup, compare every operational rule with the saved settings, and add a last-updated date. Keep the season's version after the champion is crowned so archived results retain their context.", "Use a Practice league for the rehearsal, export the final pricing or league spreadsheet when useful, and save a recovery backup before draft day. End season preserves the competitive archive when the season is complete."],
+    ],
+    template: {
+      title: "Copyable Pokémon draft league rules",
+      intro: "Copy this starting document, replace every bracketed field, and remove anything your league does not use. DraftCenter settings should match the final published version.",
+      content: POKEMON_DRAFT_LEAGUE_RULES_TEMPLATE,
+    },
+    checklistTitle: "Commissioner rules and launch check",
+    checklist: COMMISSIONER_RULES_LAUNCH_CHECKLIST,
+    links: [["Read the commissioner walkthrough", "/guides/how-to-run-pokemon-draft-league"], ["Open the commissioner manual", "/manuals/commissioner"], ["Compare snake and auction", "/guides/snake-vs-auction-pokemon-draft"], ["Browse formats", "/formats"]],
   },
 };
 

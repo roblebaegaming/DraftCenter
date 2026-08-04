@@ -62,6 +62,8 @@ test("Pokémon profiles have crawlable indexes and complete core facts", () => {
 test("the guide collection explains real DraftCenter workflows in a human voice", () => {
   const content = source("src/lib/seoContent.js");
   const guidePage = source("src/app/guides/[slug]/page.js");
+  const copyBlock = source("src/components/GuideCopyBlock.jsx");
+  const templates = source("src/lib/guideTemplates.js");
 
   assert.match(content, /If you are new to draft leagues/);
   assert.match(content, /How to Run a .* Draft League: A Commissioner/);
@@ -77,4 +79,15 @@ test("the guide collection explains real DraftCenter workflows in a human voice"
   assert.match(guidePage, /Where to go next/);
   assert.match(guidePage, /guide-feature-callout/);
   assert.match(guidePage, /guide\.links\.map/);
+  assert.match(content, /how-to-join-first-pokemon-draft-league/);
+  assert.match(content, /pokemon-draft-league-rules-template/);
+  assert.match(content, /Before you commit to your first team/);
+  assert.match(content, /POKEMON_DRAFT_LEAGUE_RULES_TEMPLATE/);
+  assert.match(guidePage, /GuideCopyBlock/);
+  assert.match(guidePage, /guide\.checklist\.map/);
+  assert.match(copyBlock, /navigator\.clipboard\.writeText/);
+  assert.match(copyBlock, /Copy the rules template/);
+  assert.match(templates, /MISSED PICK PROCEDURE/i);
+  assert.match(templates, /ACTIVITY AND REPLACEMENTS/);
+  assert.match(templates, /CONDUCT, RULINGS, AND APPEALS/);
 });
