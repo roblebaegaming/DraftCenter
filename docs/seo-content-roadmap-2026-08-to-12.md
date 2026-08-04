@@ -13,7 +13,7 @@ Search Console on August 3 reported:
 - 1 click;
 - 2.3% click-through rate;
 - average position 26.7;
-- one accepted sitemap with 1,059 discovered URLs; and
+- one accepted sitemap with 1,414 discovered URLs after the August 3 catalog release; and
 - indexing and experience reports still processing.
 
 Early queries include `gengar stats`, `vgc draft`, `what is the current pokemon
@@ -23,6 +23,23 @@ firm conclusions, but it supports three initial content clusters:
 1. Pokémon draft profiles and statistics;
 2. current and historical VGC/draft formats; and
 3. practical draft-league education for commissioners and coaches.
+
+## August 3 release baseline
+
+The expanded public catalog was released through protected pull request #21.
+Production verification confirmed 1,414 sitemap URLs, working A–Z, type, and
+generation indexes, and public form profiles. Search Console read the refreshed
+sitemap successfully on August 3 and reported all 1,414 URLs as discovered.
+
+The available performance window, July 29–August 1, remained intentionally
+small: 43 impressions, one click, 2.3% CTR, and average position 26.7. The guide
+page had the first organic click; Gengar led Pokémon profiles with eight
+impressions. No title or profile-template decision should be based on this
+sample alone.
+
+One-time post-release indexing requests were accepted for Archaludon, Garchomp,
+Dragonite, and Venusaur. Gengar was already indexed and was not resubmitted.
+Review these URLs after at least 14 days instead of submitting them again.
 
 ## Principles
 
