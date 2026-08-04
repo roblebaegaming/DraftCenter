@@ -6,7 +6,7 @@
 - Latest verified functional production commit: `e3ec339`
 - Verified functional production deployment: `6uYa9PQFUdB4Xpsyy9Ven516wWca` — Ready
 - Production Supabase project: `eukexfqpiuidwygllaye`
-- Previous comprehensive launch handoff: `docs/DraftCenter-agent-handoff-2026-08-02-final.md`
+- Previous comprehensive launch handoff: [`DraftCenter-agent-handoff-2026-08-02-final.md`](DraftCenter-agent-handoff-2026-08-02-final.md)
 
 ## Current outcome
 
@@ -417,7 +417,7 @@ Evidence commit: `fdf3f4f`.
 
 ## Primary files
 
-- `docs/DraftCenter-agent-handoff-2026-08-02-final.md`
+- `docs/handoffs/archive/DraftCenter-agent-handoff-2026-08-02-final.md`
 - `docs/launch-stabilization-checklist.md`
 - `docs/multi-account-hardening-test-record.md`
 - `docs/data-retention-and-recovery.md`

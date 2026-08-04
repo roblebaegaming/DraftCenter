@@ -1,7 +1,7 @@
 # DraftCenter SEO and content agent handoff — August 3, 2026
 
 > **Operational status superseded by
-> `docs/DraftCenter-agent-handoff-2026-08-04-final.md`.** Strict Turnstile
+> [`docs/handoffs/DraftCenter-agent-handoff-2026-08-04-final.md`](handoffs/DraftCenter-agent-handoff-2026-08-04-final.md).** Strict Turnstile
 > enforcement was completed on August 4 after the successful human check.
 > This file remains authoritative only for the SEO and content backlog.
 
@@ -9,7 +9,7 @@
 - GitHub: `roblebaegaming/DraftCenter`; protected branch `main`
 - Production baseline for this handoff: `441d3fe`
 - Pull requests covered: #21, #22, #24, and #25
-- Broader operations and launch handoff: `docs/DraftCenter-agent-handoff-2026-08-03.md`
+- Broader operations and launch handoff: [`docs/handoffs/archive/DraftCenter-agent-handoff-2026-08-03.md`](handoffs/archive/DraftCenter-agent-handoff-2026-08-03.md)
 - SEO roadmap: `docs/seo-content-roadmap-2026-08-to-12.md`
 - Initial Pokémon cohort: `docs/pokemon-seo-priority-2026-08-03.md`
 - Outside-reference queue: `docs/seo-outside-reference-backlog-2026-08.md`

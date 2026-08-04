@@ -1,6 +1,7 @@
 # DraftCenter agent handoff — August 3, 2026
 
-> **Superseded by `docs/DraftCenter-agent-handoff-2026-08-04-final.md`.**
+> **Superseded by
+> [`DraftCenter-agent-handoff-2026-08-04-final.md`](../DraftCenter-agent-handoff-2026-08-04-final.md).**
 > On August 4, strict Turnstile enforcement was enabled in Vercel Production
 > and Supabase Auth after the successful human check. Use the August 4 final
 > handoff for current operational state.
@@ -10,7 +11,7 @@
 - GitHub: `roblebaegaming/DraftCenter`, protected branch `main`
 - Production Supabase project: `eukexfqpiuidwygllaye`
 - Latest verified functional production commit: `5ace5f2`
-- Previous comprehensive handoff: `docs/DraftCenter-agent-handoff-2026-08-02-post-launch.md`
+- Previous comprehensive handoff: [`DraftCenter-agent-handoff-2026-08-02-post-launch.md`](DraftCenter-agent-handoff-2026-08-02-post-launch.md)
 
 ## Executive status
 
@@ -380,8 +381,8 @@ recovery material stay outside the corresponding production provider.
 
 ## Primary files
 
-- `docs/DraftCenter-agent-handoff-2026-08-02-post-launch.md`
-- `docs/DraftCenter-agent-handoff-2026-08-03.md`
+- `docs/handoffs/archive/DraftCenter-agent-handoff-2026-08-02-post-launch.md`
+- `docs/handoffs/archive/DraftCenter-agent-handoff-2026-08-03.md`
 - `docs/DraftCenter-security-remediation-2026-08-02.md`
 - `docs/data-retention-and-recovery.md`
 - `src/app/api/notifications/dispatch/route.js`
