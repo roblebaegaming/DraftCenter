@@ -59,15 +59,22 @@ test("Pokémon profiles have crawlable indexes and complete core facts", () => {
   assert.match(pokemonIndexData, /zygarde:\s*"zygarde-50"/);
 });
 
-test("the cornerstone draft guide covers the full season and links to next steps", () => {
+test("the guide collection explains real DraftCenter workflows in a human voice", () => {
   const content = source("src/lib/seoContent.js");
   const guidePage = source("src/app/guides/[slug]/page.js");
 
-  assert.match(content, /Draft League Guide: Rules, Drafting, Weekly Matches, and Playoffs/);
-  assert.match(content, /Prepare for a different matchup each week/);
-  assert.match(content, /Use clear standings and tiebreakers/);
+  assert.match(content, /If you are new to draft leagues/);
+  assert.match(content, /How to Run a .* Draft League: A Commissioner/);
+  assert.match(content, /Snake or Auction\? Choosing Your .* Draft Style/);
+  assert.match(content, /Tier List That Fits Your League/);
+  assert.match(content, /DraftCenter's live draft room/);
+  assert.match(content, /Commissioner Launch Checklist/);
+  assert.match(content, /Pricing Template/);
+  assert.match(content, /Practice league/);
   assert.match(content, /\/guides\/snake-vs-auction-pokemon-draft/);
   assert.match(content, /\/manuals\/commissioner/);
-  assert.match(guidePage, /Continue your draft-league research/);
+  assert.match(guidePage, /How this works in DraftCenter/);
+  assert.match(guidePage, /Where to go next/);
+  assert.match(guidePage, /guide-feature-callout/);
   assert.match(guidePage, /guide\.links\.map/);
 });
