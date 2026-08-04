@@ -189,7 +189,7 @@ league operations.
 
 ## Work still required
 
-### Immediate, with Turnstile kept last
+### Immediate SEO follow-up
 
 1. Record the first complete seven-day Search Console snapshot when available:
    clicks, impressions, CTR, position, top pages and queries, and initial
@@ -205,9 +205,13 @@ league operations.
 5. Share the beginner guide and rules template once in an appropriate
    DraftCenter community channel after the owner selects the destination and
    confirms posting rules.
-6. Complete the separate human Turnstile test last, in a normal signed-out
-   private browser. Keep strict enforcement off until that passes, following
-   the sequence and rollback instructions in the broader August 3 handoff.
+
+The separate human Turnstile widget check passed on August 4. The owner-provided
+production screenshot showed the green **Success!** state in a signed-out
+Chrome session. The check intentionally stopped there: strict application
+enforcement and Supabase Bot and Abuse Protection remain off. Any later strict
+enforcement should use the change-window and rollback sequence in the broader
+August 3 handoff.
 
 ### August 17–31
 

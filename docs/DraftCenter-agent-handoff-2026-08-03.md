@@ -18,9 +18,10 @@ No evidence of lost picks, corrupt rosters, or damaged active drafts was found.
 Do not infer that an inactive or commissioner-paused league is broken without
 authoritative state evidence and commissioner confirmation.
 
-The only outstanding hands-on launch check is a human Cloudflare Turnstile pass
-in a normal signed-out private browser. Strict Turnstile enforcement remains
-off until that succeeds. This does not need to delay real drafting.
+A human Cloudflare Turnstile check passed on August 4 in a signed-out Chrome
+session. The live widget displayed its green **Success!** state. Strict
+Turnstile enforcement remains off by owner choice; no Vercel or Supabase
+enforcement settings were changed during the check.
 
 Optional Apple Mail, Samsung Email, or Thunderbird rendering coverage remains
 non-blocking.
@@ -287,24 +288,27 @@ verified with a fresh account. The temporary account was permanently deleted.
 Apple Mail, Samsung Email, Thunderbird, or another renderer may be checked for
 optional compatibility coverage but is not a launch blocker.
 
-### Turnstile human check still pending
+### Turnstile human check passed August 4
 
-Turnstile remains staged fail-open. The widget and public site key are live,
-but strict application enforcement and Supabase Bot and Abuse Protection remain
-disabled until a person completes the real widget in a normal signed-out
-private browser.
+The owner completed the live Cloudflare widget in a signed-out Chrome session.
+Owner-provided screenshot evidence showed the green **Success!** state on the
+production sign-in panel. This confirms that the production site key, widget
+script, and human challenge can complete in a normal external browser.
 
-Required sequence:
+The check stopped at widget completion as requested. No credentials were
+submitted, `NEXT_PUBLIC_TURNSTILE_ENFORCED` remains false or absent, and
+Supabase Auth Bot and Abuse Protection remain disabled. DraftCenter therefore
+continues to operate in the staged fail-open state.
 
-1. Open https://www.draftcentral.gg in a normal signed-out private/incognito
-   browser.
-2. Confirm the visible Security check completes normally.
-3. Only after that pass, set `NEXT_PUBLIC_TURNSTILE_ENFORCED=true` for Vercel
-   Production and redeploy.
-4. Configure Supabase Auth Bot and Abuse Protection with the Turnstile secret
+If the owner later chooses strict enforcement, treat that as a separate change
+window:
+
+1. Set `NEXT_PUBLIC_TURNSTILE_ENFORCED=true` for Vercel Production and redeploy.
+2. Configure Supabase Auth Bot and Abuse Protection with the Turnstile secret
    stored outside GitHub and Vercel.
-5. Immediately test sign-in, signup, and password reset.
-6. If any path fails, disable Supabase enforcement and remove or set the Vercel
+3. Immediately test signed-out sign-in, signup, and password reset in a private
+   browser.
+4. If any path fails, disable Supabase enforcement and remove or set the Vercel
    flag to false. The public site key may remain.
 
 ## Retention and recovery policy
@@ -322,8 +326,9 @@ recovery material stay outside the corresponding production provider.
 
 ## Recommended next work
 
-1. Complete the human Turnstile check and only then consider strict
-   enforcement.
+1. Decide separately whether and when to enable strict Turnstile enforcement;
+   the human widget check is complete, and staged fail-open remains acceptable
+   until an owner-approved change window.
 2. Measure Disk IO after several hours, after 24 hours, and across normal live
    draft days.
 3. Optimize `reconcile_autonomous_league_claims()` to identify only leagues
