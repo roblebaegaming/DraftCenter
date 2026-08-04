@@ -95,8 +95,13 @@ async function deliverCommunityDiscord(supabase, now = new Date()) {
       if (!poll?.question) throw new Error("Today's Question of the Day is not ready yet.");
       await sendDiscordChannelMessage(qotdChannel, `❓ **DraftCenter Question of the Day**\n${poll.question}\n\nVote in today's Daily Three:\nhttps://www.draftcentral.gg/explore`);
       delivered += 1;
-    } catch {
+    } catch (error) {
       failed += 1;
+      console.warn("community_discord_delivery_failed", {
+        delivery_kind: "question_of_the_day",
+        delivery_date: qotdClock.date,
+        provider_status: Number(error?.status) || null,
+      });
       await releaseCommunityDelivery(supabase, "question_of_the_day", qotdClock.date);
     }
   }
@@ -138,8 +143,13 @@ async function deliverCommunityDiscord(supabase, now = new Date()) {
         await sendDiscordChannelMessage(resultsChannel, `📊 **DraftCenter Daily Three results**\n**Poll:** ${poll.question}\n${pollLeaders}\n**Draft Bracket:** ${bracketSummary}\n**Pokémon Quiz:** ${quizTotal ? Math.round((quizCorrect / quizTotal) * 100) : 0}% correct (${quizCorrect}/${quizTotal})\n\nhttps://www.draftcentral.gg/explore`);
         delivered += 1;
       }
-    } catch {
+    } catch (error) {
       failed += 1;
+      console.warn("community_discord_delivery_failed", {
+        delivery_kind: "daily_three_results",
+        delivery_date: resultsClock.date,
+        provider_status: Number(error?.status) || null,
+      });
       await releaseCommunityDelivery(supabase, "daily_three_results", resultsClock.date);
     }
   }
@@ -267,24 +277,21 @@ async function sendDiscordChannelMessage(channelId, content) {
 }
 
 async function claimCommunityDelivery(supabase, deliveryKind, deliveryDate, channelId) {
-  const kind = `community_discord_${deliveryKind}`;
-  const context = { delivery_date: deliveryDate, channel_id: channelId };
-  const { data: existing, error: readError } = await supabase.from("operational_health_events")
-    .select("id").eq("kind", kind).contains("context", context).limit(1);
-  if (readError || existing?.length) return false;
-  const { error } = await supabase.from("operational_health_events").insert({
-    league_id: null,
-    kind,
-    message: "Community Discord delivery claimed.",
-    context,
+  const { error } = await supabase.from("community_discord_deliveries").insert({
+    delivery_kind: deliveryKind,
+    delivery_date: deliveryDate,
+    channel_id: channelId,
   });
-  return !error;
+  if (!error) return true;
+  if (error.code === "23505") return false;
+  throw error;
 }
 
 async function releaseCommunityDelivery(supabase, deliveryKind, deliveryDate) {
-  await supabase.from("operational_health_events").delete()
-    .eq("kind", `community_discord_${deliveryKind}`)
-    .contains("context", { delivery_date: deliveryDate });
+  const { error } = await supabase.from("community_discord_deliveries").delete()
+    .eq("delivery_kind", deliveryKind)
+    .eq("delivery_date", deliveryDate);
+  if (error) throw error;
 }
 
 async function deliverDiscord(event, supabase) {
