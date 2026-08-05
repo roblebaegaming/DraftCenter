@@ -7,8 +7,8 @@
 - Latest verified functional production commit: `cb33c5a`
 - Turnstile enforcement deployment: `A3PpmpcA1WJsF9tYnocNsrhakgSE`
 - Previous broad handoffs:
-  - `docs/DraftCenter-agent-handoff-2026-08-02-post-launch.md`
-  - `docs/DraftCenter-agent-handoff-2026-08-03.md`
+  - [`DraftCenter-agent-handoff-2026-08-02-post-launch.md`](archive/DraftCenter-agent-handoff-2026-08-02-post-launch.md)
+  - [`DraftCenter-agent-handoff-2026-08-03.md`](archive/DraftCenter-agent-handoff-2026-08-03.md)
 
 ## Executive status
 
@@ -384,7 +384,8 @@ incident recovery.
 ## Security, repository, and provider posture
 
 The independent security audit and implementable remediation are complete. See
-`docs/DraftCenter-security-remediation-2026-08-02.md` for detailed evidence.
+[`DraftCenter-security-remediation-2026-08-02.md`](../DraftCenter-security-remediation-2026-08-02.md)
+for detailed evidence.
 
 Confirmed controls include:
 
@@ -521,7 +522,7 @@ Operational follow-up:
 
 ## Primary files
 
-- `docs/DraftCenter-agent-handoff-2026-08-04-final.md`
+- `docs/handoffs/DraftCenter-agent-handoff-2026-08-04-final.md`
 - `docs/DraftCenter-security-remediation-2026-08-02.md`
 - `docs/data-retention-and-recovery.md`
 - `docs/browser-network-and-search-audit-2026-08-02.md`

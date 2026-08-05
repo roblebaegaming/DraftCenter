@@ -22,9 +22,9 @@ smallest safe remediation and verification plan.
 - Production Supabase project ID: `eukexfqpiuidwygllaye`
 - Security-handoff baseline commit: `12828c7`
 - Post-launch operational handoff:
-  `docs/DraftCenter-agent-handoff-2026-08-02-post-launch.md`
+  [`docs/handoffs/archive/DraftCenter-agent-handoff-2026-08-02-post-launch.md`](handoffs/archive/DraftCenter-agent-handoff-2026-08-02-post-launch.md)
 - Earlier comprehensive launch handoff:
-  `docs/DraftCenter-agent-handoff-2026-08-02-final.md`
+  [`docs/handoffs/archive/DraftCenter-agent-handoff-2026-08-02-final.md`](handoffs/archive/DraftCenter-agent-handoff-2026-08-02-final.md)
 
 Never place secret values, access tokens, cookies, passwords, webhook secrets,
 private recovery URLs, or archive passphrases in findings, logs, screenshots,

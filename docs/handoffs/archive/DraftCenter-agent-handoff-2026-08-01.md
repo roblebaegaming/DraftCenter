@@ -1,6 +1,6 @@
 # DraftCenter agent handoff — outside-user operations, support, analytics, and launch validation
 
-> Superseded by `docs/DraftCenter-agent-handoff-2026-08-02.md`. Keep this file
+> Superseded by [`DraftCenter-agent-handoff-2026-08-02.md`](DraftCenter-agent-handoff-2026-08-02.md). Keep this file
 > for the implementation history and the original July 31–August 1 context.
 
 - **Handoff date:** August 1, 2026
@@ -178,7 +178,7 @@ YouTube automatic live detection remains intentionally deferred. Manual YouTube 
 - `37fc006` — Add scoped pricing support access
 - `0993261` — Use commissioner role for pricing approvals
 
-Earlier Twitch, Discord, season rollover, public Live Now, and Daily Three automation work is documented in `docs/DraftCenter-agent-handoff-2026-07-31.md` and remains relevant.
+Earlier Twitch, Discord, season rollover, public Live Now, and Daily Three automation work is documented in [`DraftCenter-agent-handoff-2026-07-31.md`](DraftCenter-agent-handoff-2026-07-31.md) and remains relevant.
 
 ## Main files for this batch
 
@@ -228,7 +228,7 @@ Inspect the exact diff and `git status`, commit only intended files, push `main`
 
 ## Next-agent start procedure
 
-1. Read this document, `docs/DraftCenter-agent-handoff-2026-07-31.md`, and the three launch/recovery checklists named above.
+1. Read this document, [`DraftCenter-agent-handoff-2026-07-31.md`](DraftCenter-agent-handoff-2026-07-31.md), and the three launch/recovery checklists named above.
 2. Inspect `git status`, `git log`, and the current production deployment before making changes.
 3. Do not rebuild already-deployed owner/support infrastructure unless a concrete defect is reproduced.
 4. Help the owner establish the Vercel Analytics baseline first; add Search Console only if the owner wants organic-search reporting.

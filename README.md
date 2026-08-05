@@ -8,7 +8,10 @@ Discord/Twitch integrations.
 - Production: https://www.draftcentral.gg
 - Public manuals: https://www.draftcentral.gg/manuals
 - Owner operations: https://www.draftcentral.gg/operations
-- Current agent handoff: `docs/DraftCenter-agent-handoff-2026-08-02.md`
+- Current status: [`docs/CURRENT-STATUS.md`](docs/CURRENT-STATUS.md)
+- Current detailed handoff:
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-04-final.md`](docs/handoffs/DraftCenter-agent-handoff-2026-08-04-final.md)
+- Permanent agent rules: [`AGENTS.md`](AGENTS.md)
 
 ## Local development
 
@@ -37,6 +40,7 @@ requests.
 
 ## Operational documentation
 
+- [`docs/handoffs/README.md`](docs/handoffs/README.md)
 - `docs/launch-stabilization-checklist.md`
 - `docs/multi-account-hardening-test-record.md`
 - `docs/data-retention-and-recovery.md`
