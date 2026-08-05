@@ -7,8 +7,10 @@ import { validateTwitchEventSubEnvelope } from "../src/lib/twitchEventsubSecurit
 import { normalizeArtworkOptions, selectArchivedArtworkSeason } from "../src/lib/championshipArtworkSecurity.js";
 import { safeHttpsImageSource } from "../src/lib/imageSecurity.js";
 
+const notificationDispatchSource = fs.readFileSync(new URL("../src/app/api/notifications/dispatch/route.js", import.meta.url), "utf8");
+
 test("community Discord editorial posts cannot route through league channels", () => {
-  const source = fs.readFileSync(new URL("../src/app/api/notifications/dispatch/route.js", import.meta.url), "utf8");
+  const source = notificationDispatchSource;
   const migration = fs.readFileSync(new URL("../supabase/251-community-discord-delivery-ledger.sql", import.meta.url), "utf8");
   assert.match(source, /DISCORD_QOTD_CHANNEL_ID/);
   assert.match(source, /DISCORD_DAILY_THREE_RESULTS_CHANNEL_ID/);
@@ -18,6 +20,18 @@ test("community Discord editorial posts cannot route through league channels", (
   assert.match(migration, /primary key \(delivery_kind, delivery_date\)/);
   assert.match(migration, /revoke all on table public\.community_discord_deliveries\s+from public, anon, authenticated/);
   assert.match(migration, /grant select, insert, delete on table public\.community_discord_deliveries\s+to service_role/);
+  assert.match(source, /from\("community_questions_of_the_day"\)/);
+  assert.doesNotMatch(source, /Question of the Day\*\*\\n\$\{poll\.question\}/);
+});
+
+test("late draft notifications are checked against current draft state", () => {
+  assert.match(notificationDispatchSource, /draftNotificationIsStale/);
+  assert.match(notificationDispatchSource, /startsAt <= now\.getTime\(\)/);
+  assert.match(notificationDispatchSource, /from\("leagues"\)\.select\("draft_starts_at"\)/);
+  assert.match(notificationDispatchSource, /currentStartsAt !== startsAt/);
+  assert.match(notificationDispatchSource, /Boolean\(activeSession\)/);
+  assert.match(notificationDispatchSource, /session\.status !== "active"/);
+  assert.match(notificationDispatchSource, /session\.current_team_id !== event\.payload\?\.team_id/);
 });
 
 test("notification dispatch rejects anonymous global invocation", async () => {
