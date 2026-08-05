@@ -41,6 +41,7 @@ create table public.pokemon_game_locations (
 create table public.pokemon_game_encounters (
   id bigint generated always as identity primary key,
   game_key text not null references public.pokemon_games(game_key) on delete restrict,
+  source_encounter_id bigint not null check (source_encounter_id > 0),
   area_key text not null,
   pokemon_id integer not null check (pokemon_id > 0),
   pokemon_name text not null,
@@ -55,7 +56,7 @@ create table public.pokemon_game_encounters (
   artwork_url text,
   source_commit text not null check (source_commit ~ '^[0-9a-f]{40}$'),
   foreign key (game_key, area_key) references public.pokemon_game_locations(game_key, area_key) on delete restrict,
-  unique nulls not distinct (game_key, area_key, pokemon_id, form_name, method, min_level, max_level, conditions)
+  unique (game_key, source_encounter_id)
 );
 
 create index pokemon_game_pokedex_game_species_idx on public.pokemon_game_pokedex_entries(game_key, species_family);
