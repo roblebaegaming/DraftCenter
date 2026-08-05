@@ -5843,7 +5843,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   }
   async function postToBoard(text) {
     const trimmed = text.trim();
-    if (!trimmed) return;
+    if (!trimmed) return false;
     if (leagueId) return mutateCommunication("board_post", { text: trimmed });
     commit((s) => ({
       ...s,
@@ -5855,6 +5855,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
         ],
       },
     }));
+    return true;
   }
   function deleteBoardPost(id) {
     if (leagueId) return mutateCommunication("board_delete", { id });
@@ -9690,9 +9691,10 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
         {liveDraftError && <div className="mb-4 rounded p-3 text-sm" style={{ background: "#2A1620", color: "#FFD6D6", border: "1px solid #F0555A66" }}>{liveDraftError}</div>}
         {tab === "home" && (
           <HomeView state={state} leagueId={leagueId} leagueName={league?.name} isCommissioner={displayIsCommissioner} isSpectator={displayIsSpectator} myTeamIdx={myTeamIdx} standings={standings}
-            isMyTurn={isMyTurn} pendingTrades={pendingTradesForMe} unreadMessages={unreadDirectCount + unreadBoardCount}
+            isMyTurn={isMyTurn} pendingTrades={pendingTradesForMe} unreadDirectMessages={unreadDirectCount} unreadBoardMessages={unreadBoardCount}
             onGetStarted={() => state.locked ? (setTab("league"), setLeagueSubTab("draft")) : displayIsSpectator ? setTab("myteam") : setTab("setup")}
             onOpenDraftRoom={() => setTab("draft")}
+            onOpenMessages={() => setTab("messages")}
             onGoToLeague={(sub) => { setTab("league"); setLeagueSubTab(sub); }}
             costFor={costFor}
             updateHomepage={updateHomepage}
@@ -9740,6 +9742,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
             placeBid={placeBid} endAuctionEarly={endAuctionEarly} pauseDraft={pauseDraft} resumeDraft={resumeDraft} skipAuctionNomination={skipAuctionNomination}
             toggleAutoDraft={toggleAutoDraft} addToQueue={addToQueue} removeFromQueue={removeFromQueue} moveQueueItem={moveQueueItem}
             onGenerateSchedule={generateSchedule} updateSettings={updateSettings} onViewTeam={goToTeam} castDraftHeroVote={castDraftHeroVote} restartDraft={restartDraft} rebuildCurrentSeason={rebuildCurrentSeason} onStart={startDraft}
+            postToBoard={postToBoard} markBoardRead={markBoardRead} canPostChat={!displayIsSpectator && !previewReadOnly}
             scheduledStartStatus={scheduledStartStatus}
             retryScheduledStart={() => prepareScheduledSnakeDraft(state, { force: true })}
           />
@@ -9823,6 +9826,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
                 placeBid={placeBid} endAuctionEarly={endAuctionEarly} pauseDraft={pauseDraft} resumeDraft={resumeDraft} skipAuctionNomination={skipAuctionNomination}
                 toggleAutoDraft={toggleAutoDraft} addToQueue={addToQueue} removeFromQueue={removeFromQueue} moveQueueItem={moveQueueItem}
                 onGenerateSchedule={generateSchedule} updateSettings={updateSettings} onViewTeam={goToTeam} castDraftHeroVote={castDraftHeroVote} restartDraft={restartDraft} rebuildCurrentSeason={rebuildCurrentSeason} onStart={startDraft}
+                postToBoard={postToBoard} markBoardRead={markBoardRead} canPostChat={!displayIsSpectator && !previewReadOnly}
                 scheduledStartStatus={scheduledStartStatus}
                 retryScheduledStart={() => prepareScheduledSnakeDraft(state, { force: true })}
               />
@@ -10648,7 +10652,7 @@ function MyTeamView({ state, leagueId, myTeamIdx, isCommissioner, myName, myTeam
   );
 }
 
-function HomeView({ state, leagueId, leagueName, isCommissioner, isSpectator = false, myTeamIdx, standings, onGetStarted, onOpenDraftRoom, onGoToLeague, costFor, updateHomepage, addToQueue = null, removeFromQueue = null, moveQueueItem = null, readOnly = false, isMyTurn = false, pendingTrades = 0, unreadMessages = 0 }) {
+function HomeView({ state, leagueId, leagueName, isCommissioner, isSpectator = false, myTeamIdx, standings, onGetStarted, onOpenDraftRoom, onOpenMessages, onGoToLeague, costFor, updateHomepage, addToQueue = null, removeFromQueue = null, moveQueueItem = null, readOnly = false, isMyTurn = false, pendingTrades = 0, unreadDirectMessages = 0, unreadBoardMessages = 0 }) {
   const { coCommissioners: coCommissionersRaw, schedule, matchResults, trades = [], transactionLog = [], seasonNumber, commissioner, locked, teams } = state;
   const coCommissioners = coCommissionersRaw || [];
   const draftStillActive = locked && (
@@ -10743,7 +10747,19 @@ function HomeView({ state, leagueId, leagueName, isCommissioner, isSpectator = f
               <span className="rounded p-3" style={{ background: "#10121C" }}>{myTeamIdx >= 0 ? `Team: ${teams[myTeamIdx]?.name}` : "No team claimed"}</span>
               {draftStillActive && <span className="rounded p-3" style={{ background: isMyTurn ? "#4FD1C5" : "#10121C", color: isMyTurn ? "#10121C" : "#C9CBE0" }}>{isMyTurn ? "You are on the clock" : "Not currently on the clock"}</span>}
               <span className="rounded p-3" style={{ background: "#10121C" }}>{pendingTrades} pending trade{pendingTrades === 1 ? "" : "s"}</span>
-              <span className="rounded p-3" style={{ background: "#10121C" }}>{unreadMessages} unread message{unreadMessages === 1 ? "" : "s"}</span>
+              <div className="rounded p-2 flex flex-col gap-1" style={{ background: "#10121C" }}>
+                {unreadBoardMessages > 0 && (
+                  <button type="button" onClick={() => onGoToLeague("activity")} className="rounded px-2 py-1.5 text-left font-semibold" style={{ background: "#FFD23F22", color: "#FFD23F" }}>
+                    {unreadBoardMessages} unread League Board post{unreadBoardMessages === 1 ? "" : "s"} â†’
+                  </button>
+                )}
+                {unreadDirectMessages > 0 && (
+                  <button type="button" onClick={onOpenMessages} className="rounded px-2 py-1.5 text-left font-semibold" style={{ background: "#4FD1C522", color: "#4FD1C5" }}>
+                    {unreadDirectMessages} unread direct message{unreadDirectMessages === 1 ? "" : "s"} â†’
+                  </button>
+                )}
+                {unreadBoardMessages === 0 && unreadDirectMessages === 0 && <span className="px-2 py-1.5">No unread messages</span>}
+              </div>
             </div>
             <button type="button" onClick={() => document.getElementById("league-broadcast-center")?.scrollIntoView({ behavior: "smooth", block: "start" })} className="px-4 py-2 rounded font-semibold text-sm mt-3" style={{ background: "#F0555A", color: "#FFFFFF" }}>● SHARE MY LIVE BATTLE</button>
             </>
@@ -13744,7 +13760,81 @@ function PreDraftScout({ state, isCommissioner, costFor, updateHomepage, myTeamI
   </div>;
 }
 
-function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTeamIdx, costFor, currentTeamOnClock, draftDone, allTeamsMetMin, snakePick, undoLastSnakePick, nominateForAuction, autoPickForClock, requestDueSnakeTurnResolution = null, finishBudgetSnakeRoster, placeBid, endAuctionEarly, pauseDraft, resumeDraft, skipAuctionNomination, toggleAutoDraft, addToQueue, removeFromQueue, moveQueueItem, onGenerateSchedule, updateSettings, onViewTeam, castDraftHeroVote, restartDraft, rebuildCurrentSeason, onStart, scheduledStartStatus = null, retryScheduledStart = null }) {
+function DraftChatPanel({ board = [], myName, postToBoard, markBoardRead, canPost = true }) {
+  const [text, setText] = useState("");
+  const [posting, setPosting] = useState(false);
+  const messageListRef = useRef(null);
+  const recentMessages = board.slice(-40);
+
+  useEffect(() => {
+    if (canPost && typeof markBoardRead === "function") markBoardRead();
+  }, [board.length, canPost]);
+
+  useEffect(() => {
+    const list = messageListRef.current;
+    if (list) list.scrollTop = list.scrollHeight;
+  }, [board.length]);
+
+  async function submit() {
+    const message = text.trim();
+    if (!message || posting || !canPost || typeof postToBoard !== "function") return;
+    setPosting(true);
+    const posted = await postToBoard(message);
+    setPosting(false);
+    if (posted !== false) setText("");
+  }
+
+  return (
+    <section className="rounded-lg p-4 mb-6" aria-label="Draft chat" style={{ background: "#15192A", border: "1px solid #4FD1C555" }}>
+      <div className="flex items-start justify-between gap-3 flex-wrap mb-3">
+        <div>
+          <h3 className="display-font text-xl" style={{ color: "#4FD1C5" }}>DRAFT CHAT</h3>
+          <p className="text-xs" style={{ color: "#9A9FBD" }}>This is the League Board conversation, shown here so nobody has to leave the live draft.</p>
+        </div>
+        <span className="mono-font text-[10px] px-2 py-1 rounded" style={{ background: "#102B2B", color: "#4FD1C5" }}>LIVE LEAGUE CHAT</span>
+      </div>
+      <div ref={messageListRef} className="rounded p-3 mb-3 overflow-y-auto flex flex-col gap-2" aria-live="polite" style={{ background: "#10121C", maxHeight: 240, minHeight: 96 }}>
+        {recentMessages.length === 0 ? (
+          <p className="text-sm my-auto text-center" style={{ color: "#5B5F7E" }}>No messages yet. Start the draft-day conversation.</p>
+        ) : recentMessages.map((message) => {
+          const mine = message.author === myName;
+          return (
+            <article key={message.id} className="rounded px-3 py-2" style={{ background: mine ? "#173230" : "#1B1F33", border: `1px solid ${mine ? "#4FD1C544" : "rgba(255,255,255,0.05)"}` }}>
+              <div className="flex items-center justify-between gap-3 mb-1">
+                <strong className="text-xs" style={{ color: mine ? "#4FD1C5" : "#FFD23F" }}>{message.author}{mine ? " (you)" : ""}</strong>
+                <time className="mono-font text-[9px]" style={{ color: "#5B5F7E" }} dateTime={new Date(message.ts).toISOString()}>
+                  {new Date(message.ts).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}
+                </time>
+              </div>
+              <p className="text-sm whitespace-pre-wrap break-words" style={{ color: "#C9CBE0" }}>{message.text}</p>
+            </article>
+          );
+        })}
+      </div>
+      {canPost ? (
+        <div className="flex gap-2">
+          <input
+            value={text}
+            onChange={(event) => setText(event.target.value)}
+            onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); submit(); } }}
+            maxLength={1000}
+            placeholder="Message everyone in the draftâ€¦"
+            aria-label="Draft chat message"
+            className="flex-1 min-w-0 px-3 py-2 rounded text-sm"
+            style={{ background: "#1F2338", border: "1px solid rgba(255,255,255,0.1)", color: "#EDEBFA" }}
+          />
+          <button type="button" onClick={submit} disabled={posting || !text.trim()} className="px-4 py-2 rounded font-semibold text-sm disabled:opacity-40" style={{ background: "#4FD1C5", color: "#10121C" }}>
+            {posting ? "SENDINGâ€¦" : "SEND"}
+          </button>
+        </div>
+      ) : (
+        <p className="text-xs" style={{ color: "#9A9FBD" }}>Read-only while viewing as a spectator.</p>
+      )}
+    </section>
+  );
+}
+
+function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTeamIdx, costFor, currentTeamOnClock, draftDone, allTeamsMetMin, snakePick, undoLastSnakePick, nominateForAuction, autoPickForClock, requestDueSnakeTurnResolution = null, finishBudgetSnakeRoster, placeBid, endAuctionEarly, pauseDraft, resumeDraft, skipAuctionNomination, toggleAutoDraft, addToQueue, removeFromQueue, moveQueueItem, onGenerateSchedule, updateSettings, onViewTeam, castDraftHeroVote, restartDraft, rebuildCurrentSeason, onStart, postToBoard, markBoardRead, canPostChat = true, scheduledStartStatus = null, retryScheduledStart = null }) {
   const {
     locked,
     settings,
@@ -14216,6 +14306,14 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
           </div>
         </div>
       )}
+
+      <DraftChatPanel
+        board={state.messages?.board || []}
+        myName={myName}
+        postToBoard={postToBoard}
+        markBoardRead={markBoardRead}
+        canPost={canPostChat}
+      />
 
       {(draftType === "snake" || draftType === "auction") && myTeamIdx >= 0 && !draftDone && (
         <div style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }} className="rounded-lg p-4 mb-6">
