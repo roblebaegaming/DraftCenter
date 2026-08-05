@@ -3,7 +3,9 @@
 [`DraftCenter-agent-handoff-2026-08-05-nuzlocke-tournaments-finalization.md`](DraftCenter-agent-handoff-2026-08-05-nuzlocke-tournaments-finalization.md)
 is the current detailed implementation and release handoff. It records the
 verified editorial/reminder production release and the required order for
-finishing Nuzlocke Lab and standalone tournaments.
+finishing Nuzlocke Lab and standalone tournaments, including verified Red and
+Blue Preview state and the game-by-game roadmap for remaining main-series
+Nuzlocke catalogs.
 
 Use [`../CURRENT-STATUS.md`](../CURRENT-STATUS.md) for the short canonical
 production status and [`../../AGENTS.md`](../../AGENTS.md) for permanent

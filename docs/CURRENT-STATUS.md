@@ -26,12 +26,14 @@ Migrations 252-255 are present on the core production database.
 
 Nuzlocke Lab and standalone tournaments are not in production. Nuzlocke pull
 request [#38](https://github.com/roblebaegaming/DraftCenter/pull/38) is rebased
-onto the current mainline with its unpublished migrations renumbered 261-264
-and is undergoing final Preview validation. Stacked tournament pull request
-[#39](https://github.com/roblebaegaming/DraftCenter/pull/39) must follow the
-released Nuzlocke mainline, rename its unpublished migration after 264, and be
-revalidated in its isolated Preview before the two features are released in
-that order.
+onto the current mainline with separate audited Red and Blue catalogs and
+unpublished migrations 261-266. Its isolated Preview database reports both
+games verified, all six repository checks pass, the full local validation suite
+passes, and live deterministic/shared/final-evolution browser checks pass. A
+narrow mobile visual review remains before release. Stacked tournament pull
+request [#39](https://github.com/roblebaegaming/DraftCenter/pull/39) must follow
+the released Nuzlocke work, receive the first unused migration number, and be
+revalidated in its isolated Preview.
 
 ## Active watch items
 

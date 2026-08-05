@@ -96,38 +96,72 @@ integration badge, or generic environment-variable name.
 ## Nuzlocke Lab state
 
 - Branch: `codex/nuzlocke-release`
-- Final-evolution implementation commit after rebasing: `09f25e0`
+- Red/Blue catalog and UI implementation commit: `41db92a`
+- Isolated Preview configuration fix: `d6d7bca`
 - Pull request: [#38](https://github.com/roblebaegaming/DraftCenter/pull/38)
 - Preview: https://draftcenter-git-codex-nuzlocke-release-rob-lebae.vercel.app/nuzlocke
 - Production: not merged and not migrated
 
 The branch is rebased onto the August 5 mainline and preserves the released
 footer cleanup while adding only the Nuzlocke Lab quick link. It supports
-Pokemon Red encounter generation with a pinned, audited catalog. The public
-route accepts game, seed, encounter count, mode, weighting, filters, and an
-optional seeded final-evolution mode. That mode keeps the selected route and
-catch details, displays a final evolution available in Red, keeps standalone
-species unchanged, resolves branches deterministically from the seed, and
-fails closed if its pinned evolution mapping does not match the database source
-commit. Existing shared links keep the original encounter behavior unless
-`evolutions=final` is present.
+separate, pinned, audited Pokemon Red and Pokemon Blue catalogs. Blue is not a
+renamed copy of Red: its verification asserts Blue's Route 22 Nidoran female
+slot and Pokemon Mansion Magmar table and rejects the corresponding Red
+Nidoran male and Growlithe rows. Red and Blue each contain 151 Pokedex rows, 74
+locations, 891 encounter rows, 106 obtainable profiles, and nine encounter
+methods. The catalogs differ by 181 exact encounter tuples in each direction.
 
-The pinned mapping covers all 106 obtainable Red profiles. Red-specific
-behavior is deliberate: Pidgey becomes Pidgeot, Zubat becomes Golbat, Onix
-remains Onix, and Eevee resolves to one of its three Red evolutions. Later-game
-forms such as Crobat and Steelix are not treated as available in Red.
+The user-facing seed is now called the **Run code** and remains automatically
+generated. Keeping it is useful because it makes a Run Card repeatable and
+shareable. The query parameter remains `seed` for existing-link compatibility.
+The two selection modes retain their query values but have clearer names:
 
-Validation after rebasing and adding the toggle passed:
+- **Route-first random** (`route-random`) shuffles eligible locations evenly,
+  then rolls one encounter from each selected location.
+- **Encounter-pool random** (`true-random`) rolls from the complete eligible
+  encounter catalog, so locations with more qualifying entries can appear more
+  often.
 
-- focused Nuzlocke tests: 20/20;
+The optional final-evolution mode covers all 106 obtainable profiles in each
+game. It preserves the original route, method, level, and conditions while
+showing a seeded final evolution available in that game's 151-species Pokedex.
+Standalone species remain unchanged, branched evolutions are deterministic,
+and the request fails closed if the pinned mapping does not match the database
+source commit. Later-generation forms such as Crobat and Steelix are therefore
+not treated as available in Red or Blue. Existing shared links keep original
+encounters unless `evolutions=final` is present.
+
+Validation on the current branch passed:
+
+- focused Nuzlocke tests: 25/25;
 - complete application test suite;
 - all 1,027 National Dex rows;
 - production dependency audit with no known vulnerabilities;
-- pinned Red source audit; and
-- Preview-configured production build across all 108 generated pages.
+- pinned Red and Blue source audits against PokeAPI, Veekun, and the
+  version-specific `pret/pokered` tables;
+- Preview-configured production build across all 108 generated pages;
+- CodeQL, JavaScript security analysis, dependency/security tests,
+  full-history secret scan, Supabase Preview, and Vercel checks; and
+- a live Preview browser pass for both games.
 
-The branch uses an isolated, billable Supabase Preview branch. Desktop and
-mobile review of the newly redeployed Preview remains required before release.
+The isolated Preview database reports both games as `verified` with the exact
+counts above, the bounded public summary exposes both and all nine methods, and
+RLS is enabled on all four catalog tables. The browser pass generated a six
+encounter Blue Route-first Run Card, reproduced the exact team from the same
+shared URL, restored and reproduced final-evolution mode with catch context,
+and generated a six-encounter Red Encounter-pool regression card. The desktop
+functional review is complete; retain a narrow mobile visual pass as the final
+human release check.
+
+Vercel Preview deployments now select the standard variables injected by the
+isolated Supabase branch. Production continues to prefer the DraftCenter-
+specific production variables. This prevents Preview traffic from inheriting
+the production target. The isolated branch initially lacked the already-
+released durable rate-limit function from migration 245, so that existing
+migration was applied only as Preview fixture setup before POST generation was
+tested. Do not reapply migration 245 to production; it is already part of the
+production baseline. If Supabase re-provisions the Preview branch, verify its
+baseline dependencies before testing instead of assuming they were cloned.
 
 Current unpublished migrations:
 
@@ -135,13 +169,14 @@ Current unpublished migrations:
 - `262-import-pokemon-red-encounter-catalog.sql`
 - `263-verify-pokemon-red-encounter-catalog.sql`
 - `264-bounded-nuzlocke-game-summary.sql`
+- `265-import-pokemon-blue-encounter-catalog.sql`
+- `266-verify-pokemon-blue-encounter-catalog.sql`
 
 The files and their test, audit, documentation, and secret-scan references have
 been renumbered after deployed migration 260. No production migration was
-rewritten. The isolated Preview database still contains the equivalent schema
-and data applied under the old manual filenames; carefully reconcile or
-re-provision that isolated branch before release rather than assuming its
-history matches 261-264.
+rewritten. The isolated Preview currently contains the exact Red and Blue data
+and passed the verification gates, but its migration-history table is not an
+authoritative substitute for reviewing the six forward-only production files.
 
 The #38 rebase resolved navigation intentionally:
 
@@ -151,12 +186,73 @@ The #38 rebase resolved navigation intentionally:
 - keep Resources and Support in the legal footer and keep Public Leagues and My
   Teams out of that footer.
 
-Release #38 only after the clean branch passes all required checks, its Preview
-uses the isolated database with renamed migrations 261-264, the public
-Nuzlocke UI is reviewed on desktop and mobile, and strict incomplete-catalog
-behavior remains fail-closed. After merge, apply 261-264 to the exact core
+Release #38 only after the remaining mobile visual review and protected PR
+review. After merge, apply migrations 261-266 in order to the exact core
 production project, confirm the deployed commit, test `/nuzlocke` signed out,
-and run `npm run smoke:production`.
+and run `npm run smoke:production`. Do not treat the passing Preview as a
+production deployment.
+
+## Remaining Nuzlocke game roadmap
+
+The default coverage target is the official main-series versions and remakes
+through Scarlet/Violet, including version-specific DLC encounter areas. Do not
+silently include Colosseum, XD, Mystery Dungeon, GO, or other spin-offs; add
+those only after the owner explicitly expands scope and their encounter rules
+are defined.
+
+Keep every version as a separate `game_key`, artifact, evolution mapping,
+import migration, and verification migration. A game stays `pending`,
+`partial`, or `unsupported` until its independent audit passes. Never publish a
+paired game's data by copying and relabeling its counterpart. For every game:
+
+1. Pin the primary snapshot and at least one independent source or disassembly.
+2. Record exact Pokedex, location, encounter, method, condition, form, and
+   obtainable-profile counts.
+3. Assert several version-exclusive early-, middle-, and late-game encounters.
+4. Generate a game-limited final-evolution mapping and test standalone,
+   branched, regional-form, and cross-generation evolution boundaries.
+5. Import as `pending`, verify exact counts and source commits, then publish only
+   that snapshot as `verified`.
+6. Exercise both selection styles, odds/equal weighting, family and legendary
+   clauses, exclusions, method filters, shared URLs, and final forms in the
+   isolated Preview.
+
+Recommended implementation order:
+
+1. **Pokemon Yellow.** Extend the Generation I builder and audit for Yellow's
+   own wild tables, starters, gifts, trades, and version-specific exclusions.
+2. **Gold, Silver, Crystal.** Add time-of-day, day-of-week, headbutt, swarm,
+   fishing-group, Bug-Catching Contest, roaming, and Crystal-only conditions.
+3. **Ruby, Sapphire, Emerald, FireRed, LeafGreen.** Cover Rock Smash, rods,
+   Safari areas, version exclusives, Emerald differences, and Sevii Islands.
+4. **Diamond, Pearl, Platinum, HeartGold, SoulSilver.** Cover time windows,
+   swarms, dual-slot, Poke Radar, Great Marsh, Trophy Garden, headbutt, and
+   remake-specific areas.
+5. **Black, White, Black 2, White 2.** Cover seasons, shaking grass, dust
+   clouds, bridge shadows, rippling water, swarms, and Hidden Grottos.
+6. **X, Y, Omega Ruby, Alpha Sapphire.** Cover hordes, Friend Safari policy,
+   DexNav, mirage areas, soaring encounters, and version-exclusive forms.
+7. **Sun, Moon, Ultra Sun, Ultra Moon, Let's Go Pikachu/Eevee.** Define SOS,
+   Island Scan, Ultra Space, ambush, overworld, catch-combo, and rare-spawn
+   policies before importing data.
+8. **Sword/Shield plus DLC, Brilliant Diamond/Shining Pearl, and Legends:
+   Arceus.** Define grass versus visible overworld slots, weather, Wild Area,
+   raid, Grand Underground, hideaway, outbreak, distortion, and sub-area rules.
+9. **Scarlet/Violet plus DLC.** Agree on open-world encounter units, biome and
+   zone boundaries, outbreaks, static encounters, raids, forms, and DLC maps
+   before changing the schema or generator.
+
+Before Generation II, decide whether the current `conditions text[]` and
+method filters are sufficient for time, weather, season, DLC, and encounter-
+system controls. Before Let's Go or Generation VIII/IX, write a product rule
+for what counts as one Nuzlocke encounter in an open-world zone. Add capability
+metadata and new forward-only schema only when those decisions require it; do
+not flatten materially different mechanics into misleading Route-first odds.
+
+Ship the catalog expansion in small generation-sized pull requests even if one
+agent owns the whole roadmap. Each release gets fresh migration numbers and a
+separate Preview audit. This keeps a source error in one game from delaying or
+invalidating every verified catalog.
 
 ## Tournament state
 
@@ -181,37 +277,41 @@ The branch previously passed all seven repository checks and uses its own
 billable Supabase Preview branch.
 
 Its unpublished migration is currently
-`260-standalone-single-elimination-tournaments.sql`. After Nuzlocke migrations
-are renamed to 261-264, rename the tournament migration to 265 and update every
-reference. The tournament Preview database was manually given the old 260
-migration, so rebuild or explicitly reconcile that isolated branch rather than
-assuming its history matches the renamed file.
+`260-standalone-single-elimination-tournaments.sql`. With only the current
+Red/Blue release ahead of it, its next safe number is 267, not 265. If the owner
+completes additional Nuzlocke game releases before tournaments, assign those
+catalog migrations from 267 upward and renumber the tournament migration to
+the first unused number when #39 is finally rebased. Update every code, test,
+scan, and documentation reference. The tournament Preview database was
+manually given the old 260 migration, so rebuild or explicitly reconcile that
+isolated branch rather than assuming its history matches the renamed file.
 
-After #38 is released, rebase #39 onto the new `main` and change its base from
-`codex/nuzlocke-release` to `main`. Resolve navigation so both released feature
-links appear exactly once. Re-run the SQL transaction regression and full
-application checks, review the isolated Preview, then release migration 265 and
-the application through the protected PR flow. Confirm the deployed commit and
-run the signed-out production smoke sweep. Do not mutate a real tournament or
-league merely to validate advancement.
+After the agreed Nuzlocke game coverage is released, rebase #39 onto the then-
+current `main` and change its base to `main`. Resolve navigation so both
+released feature links appear exactly once. Re-run the SQL transaction
+regression and full application checks, review the isolated Preview, then
+release the newly numbered migration and application through the protected PR
+flow. Confirm the deployed commit and run the signed-out production smoke
+sweep. Do not mutate a real tournament or league merely to validate
+advancement.
 
 ## Recommended order for the next agent
 
-1. Review the updated #38 Preview on desktop and mobile, including final mode
-   off and on, shared URL restoration, same-seed repeatability, catch context,
-   exclusions, and strict incomplete-catalog behavior.
-2. Re-provision or reconcile the isolated Nuzlocke Preview database migration
-   history to 261-264 and rerun the database/RLS regression matrix.
-3. Release #38 through the protected PR flow, apply 261-264 to the exact core
-   production database, confirm the deployed commit, and smoke-test production.
-4. Rebase #39 onto the new `main`, rename tournament migration 260 to 265, and
+1. Perform the narrow mobile visual pass on #38, then release Red/Blue through
+   the protected PR flow. Apply 261-266 to the exact core production database,
+   confirm the deployed commit, and smoke-test production.
+2. Implement the remaining Nuzlocke games in the generation batches above.
+   Keep each game fail-closed until its pinned independent audit passes.
+3. After the owner's agreed Nuzlocke coverage target is released, rebase #39
+   onto current `main`, give its old migration 260 the first unused number, and
    update all references.
-5. Re-provision or reconcile the isolated tournament Preview database and
+4. Re-provision or reconcile the isolated tournament Preview database and
    rerun the transactional tournament matrix plus full checks.
-6. Release #39 through the protected PR flow, apply migration 265 to the exact
-   core production database, confirm the deployed commit, and smoke-test.
-7. Pause new feature development and concentrate on monitoring, bug fixes,
-   documentation, and cleanup of superseded branches/Previews.
+5. Release #39 through the protected PR flow, apply its newly numbered
+   migration to the exact core production database, confirm the deployed
+   commit, and smoke-test.
+6. Pause new feature development and concentrate on monitoring, bug fixes,
+   documentation, and cleanup of superseded branches and Previews.
 
 ## Release gates for both features
 
@@ -238,16 +338,19 @@ npm run build
 
 ## Definition of done
 
-Nuzlocke is done when #38 is rebased and clean, migrations 261-264 are verified
-and deployed, the public generator works deterministically and randomly on
-production, incomplete games remain fail-closed, the Nuzlocke link is live,
-and the post-deployment smoke sweep passes.
+The Red/Blue Nuzlocke release is done when #38 is clean, migrations 261-266 are
+deployed to the exact core project, both games work in both selection styles on
+production, final-evolution shared links are repeatable, incomplete games
+remain fail-closed, the Nuzlocke link is live, and the smoke sweep passes. The
+broader catalog roadmap is done only when each agreed main-series version has
+its own pinned artifact, independent audit, verification migration, and live
+regression evidence.
 
 Tournaments are done when #39 is rebased onto the released Nuzlocke mainline,
-migration 265 is verified and deployed, single-elimination advancement remains
-atomic and idempotent, private/public boundaries and archived read-only rules
-hold, both feature links are live exactly once, and the post-deployment smoke
-sweep passes.
+its migration has the first unused forward-only number and is deployed,
+single-elimination advancement remains atomic and idempotent, private/public
+boundaries and archived read-only rules hold, both feature links are live
+exactly once, and the post-deployment smoke sweep passes.
 
 After both are complete, stop adding features for the requested stabilization
 period.
