@@ -6,14 +6,16 @@
 - Working branch: `codex/test-draft-feedback-rollup`
 - Pull request: [#34 - Apply Pallet Town test-draft feedback](https://github.com/roblebaegaming/DraftCenter/pull/34)
 - Implementation head before this documentation update: `2f3cca6`
-- Production state: unchanged by this work
+- Squashed production commit: `0cc7ded`
+- Production state: released and verified August 5, 2026
 
 ## Read this first
 
 Pull request #34 contains the fixes derived from the live Pallet Town test
-draft. The branch is pushed and reviewable, but it is not merged or verified in
-production. Never tell the owner that these changes are live until the deployed
-commit is confirmed and the signed-out production smoke sweep passes.
+draft. It was squash-merged to `main`, forward-only migrations 252-255 were
+applied to the core production database, and the exact merged source commit
+`0cc7ded` was deployed. The signed-out production smoke sweep passed, so these
+changes are live.
 
 The Pallet Town league is real production data. The investigation and this
 implementation did not alter its picks, rosters, queues, memberships, teams,
@@ -154,38 +156,56 @@ npx --yes dotenv-cli -e .vercel/.env.preview.local -- npm run build
 ```
 
 The linked Preview environment is stored under the ignored `.vercel/`
-directory. Preserve `.vercel/` and never commit its contents. A production
-smoke test was intentionally not run because PR #34 is not deployed.
+directory. Preserve `.vercel/` and never commit its contents.
 
-## Release checklist for the next agent
+## Verified production release
 
-1. Read the current PR conversation and wait for all required GitHub checks.
-2. Review the Preview deployment without changing the real Pallet Town league.
-3. Exercise the new workflows in an isolated practice league or approved
-   preview fixture: queued auto-draft, reload resume, public claim, team shrink,
-   removal grouping, unread routing, transaction allowance, and live takeover.
-4. Confirm migrations 252-255 are forward-only and retain least-privilege
-   grants.
-5. Do not merge while required checks or review are incomplete.
-6. After an authorized merge, confirm the deployed commit rather than assuming
-   the Preview is production.
-7. Run `npm run smoke:production` only after deployment.
-8. Verify public, Setup, and Operations claimed-team totals read the same for a
-   suitable league without mutating it.
-9. Record the verified release in `docs/CURRENT-STATUS.md` and update this
-   handoff from pre-release to deployed status.
+Completed August 5, 2026:
+
+- GitHub reported all seven PR checks passing with no merge conflict before
+  PR #34 was squash-merged.
+- The core Supabase production branch passed a prerequisite schema and RLS
+  audit before any migration ran.
+- Migrations 252, 253, 254, and 255 were applied in order. A post-migration
+  catalog audit confirmed all seven changed functions, fixed search paths,
+  expected least-privilege grants, and RLS on all nine affected tables.
+- The exact clean `origin/main` source at `0cc7ded` built all 106 generated
+  pages and was promoted to the production alias.
+- `npm run smoke:production` passed after deployment. Public routes returned
+  200 and protected Operations, support-access, recovery, and account-deletion
+  endpoints returned 401 without authentication.
+- A read-only production UI sweep found no fatal error on the landing page,
+  public league directory, Explore, or My Teams. The browser UI session was
+  authenticated, so the credential-free smoke script is the authoritative
+  signed-out evidence.
+- No Pallet Town, Mushroom Cup, Mushroom Hut, or other production league data
+  was mutated for validation.
+
+The Vercel project still contains both a DraftCenter-specific public Supabase
+URL and an older generic fallback. Application configuration correctly prefers
+the DraftCenter-specific value used for this release. The fallback project was
+inspected read-only, found not to have the complete current schema, and left
+unchanged. Treat removing or changing that legacy provider configuration as a
+separate explicitly authorized task.
+
+## Release result
+
+The protected release sequence is complete. Future regression work should use
+an isolated practice league or approved Preview fixture for queued auto-draft,
+reload resume, public claim, team shrink, removal grouping, unread routing,
+transaction allowance, and live takeover. Keep production league verification
+read-only unless the owner explicitly authorizes a narrowly scoped mutation.
 
 ## Known pending items
 
-- PR #34 is open and was created with required checks pending.
 - PR #33 contains the earlier manager-removal subset and is superseded by #34;
   it was not closed automatically.
-- No production deployment or migration was performed in this work.
-- No production smoke result exists for this branch yet.
 - Existing leagues keep their explicitly saved transaction setting. The new
   one-per-week default applies to newly created leagues.
 - Managers do not independently claim an arbitrary team once a draft is live;
   the safe path is the commissioner-controlled open bot-team takeover.
+- The legacy generic Supabase fallback configuration remains intentionally
+  unchanged pending separate provider authorization.
 
 ## Safety boundaries
 

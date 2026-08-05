@@ -1,20 +1,21 @@
 # DraftCenter current status
 
-- Last updated: August 4, 2026
+- Last updated: August 5, 2026
 - Production: https://www.draftcentral.gg
 - Repository: roblebaegaming/DraftCenter
 - Production branch: main
-- Verified release: `b0fb1f9`
+- Verified release: `0cc7ded`
 
 ## Status
 
 DraftCenter is approved for monitored public use and real drafts. There are no
 known launch blockers.
 
-Pull request [#34](https://github.com/roblebaegaming/DraftCenter/pull/34) is the
-active pre-release rollup from the August 4 Pallet Town test draft. It has not
-been merged or verified in production. Do not describe those changes as live
-until the protected release flow and post-deployment smoke test finish.
+Pull request [#34](https://github.com/roblebaegaming/DraftCenter/pull/34), the
+August 4 Pallet Town test-draft feedback rollup, was released on August 5.
+Forward-only migrations 252-255 were applied to the core production database,
+the deployed source was confirmed at `0cc7ded`, and the signed-out production
+smoke sweep passed.
 
 Strict Turnstile enforcement is active in DraftCenter and Supabase. Authentication,
 production smoke tests, Discord delivery, notification recovery, Operations
