@@ -11,6 +11,11 @@
 DraftCenter is approved for monitored public use and real drafts. There are no
 known launch blockers.
 
+Pull request [#34](https://github.com/roblebaegaming/DraftCenter/pull/34) is the
+active pre-release rollup from the August 4 Pallet Town test draft. It has not
+been merged or verified in production. Do not describe those changes as live
+until the protected release flow and post-deployment smoke test finish.
+
 Strict Turnstile enforcement is active in DraftCenter and Supabase. Authentication,
 production smoke tests, Discord delivery, notification recovery, Operations
 visibility, guides, and public Pokémon discovery have been validated.
@@ -33,6 +38,8 @@ visibility, guides, and public Pokémon discovery have been validated.
 ## Authoritative records
 
 - Detailed current handoff:
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-04-test-draft-feedback.md`](handoffs/DraftCenter-agent-handoff-2026-08-04-test-draft-feedback.md)
+- Last verified production handoff:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-04-final.md`](handoffs/DraftCenter-agent-handoff-2026-08-04-final.md)
 - Security remediation:
   [`docs/DraftCenter-security-remediation-2026-08-02.md`](DraftCenter-security-remediation-2026-08-02.md)

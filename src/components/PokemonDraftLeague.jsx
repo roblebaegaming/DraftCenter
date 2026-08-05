@@ -8,6 +8,10 @@ import { SHOWDOWN_GAME_AVAILABILITY, SHOWDOWN_REGIONAL_POKEDEXES } from "../lib/
 import { withRegulationMetadata } from "../lib/regulation-catalog";
 import RegulationPicker from "./RegulationPicker";
 import { safeHttpsImageSource } from "../lib/imageSecurity";
+import { browserCanResolveHostedAutoDraft, preserveLoadedPrivateDraftQueue } from "../lib/draftQueueSafety";
+import { readLeagueNavigation, writeLeagueNavigation } from "../lib/leagueNavigation";
+import { claimedTeamCount, compactLocalTeamsClaimedFirst, openSetupTeams, teamIsClaimed } from "../lib/teamOwnership";
+import { draftManagerLabel, snakeDraftContext } from "../lib/draftBoardContext";
 
 /* ---------------------------------------------------------
    DESIGN TOKENS — stadium-jumbotron-at-night aesthetic.
@@ -4876,7 +4880,7 @@ function freshState() {
       // division playoffs in this pass.
       doubleElimination: false,
       maxTransactionsTotal: null, // null = unlimited
-      maxTransactionsPerWeek: null, // null = unlimited
+      maxTransactionsPerWeek: 1, // safer new-league default; commissioners may choose unlimited
       transactionsLastWeek: null, // null = no deadline; else last week (1-indexed) transactions are allowed
       lockTransactionsAtPlayoffs: false,
       // Which criteria count toward standings rank, applied in this fixed
@@ -5136,7 +5140,11 @@ function hydrateState(remote) {
         nextPowerOfTwo(remote.settings?.playoffTeams ?? 4),
       ),
       maxTransactionsTotal: remote.settings?.maxTransactionsTotal ?? null,
-      maxTransactionsPerWeek: remote.settings?.maxTransactionsPerWeek ?? null,
+      // Preserve an existing league's explicitly saved null (unlimited). Only
+      // snapshots created before this field existed inherit the safer default.
+      maxTransactionsPerWeek: Object.prototype.hasOwnProperty.call(remoteSettings, "maxTransactionsPerWeek")
+        ? remoteSettings.maxTransactionsPerWeek
+        : base.settings.maxTransactionsPerWeek,
       transactionsLastWeek: remote.settings?.transactionsLastWeek ?? null,
       lockTransactionsAtPlayoffs: remote.settings?.lockTransactionsAtPlayoffs ?? false,
       standingsCriteria: { setWinLoss: true, gameWinLoss: true, differential: true, other: false, ...(remote.settings?.standingsCriteria || {}) },
@@ -5306,7 +5314,11 @@ function isWithinOvernightPause(date, settings) {
 export default function PokemonDraftLeague({ leagueId = null, leagueRole = null, league = null, profile = null, onOpenLeagueTools = null }) {
   const isSpectator = leagueId && leagueRole === "viewer";
   const [supabase] = useState(() => createClient());
-  const [tab, setTab] = useState(() => league?.isNew ? "setup" : "home");
+  const [initialNavigation] = useState(() => readLeagueNavigation(
+    typeof window === "undefined" ? "" : window.location.search,
+    { isNew: Boolean(league?.isNew) },
+  ));
+  const [tab, setTab] = useState(initialNavigation.tab);
   const [rolePreview, setRolePreview] = useState("commissioner");
   const commissionerPreviewActive = !!leagueId && ["commissioner", "co_commissioner"].includes(leagueRole) && rolePreview !== "commissioner";
   // Which of Schedule / Standings / Playoffs / History is showing inside the
@@ -5315,7 +5327,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   // reports about the season," so they share one tab with a small sub-nav
   // instead, the same pill-toggle pattern already used elsewhere (bracket
   // vs. list view, etc.).
-  const [leagueSubTab, setLeagueSubTab] = useState("activity");
+  const [leagueSubTab, setLeagueSubTab] = useState(initialNavigation.section);
   const [viewTeamRequest, setViewTeamRequest] = useState(null);
   function goToTeam(teamIdx) {
     setViewTeamRequest(teamIdx);
@@ -5333,9 +5345,11 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   // just has one league's worth of options to choose from for now.
   const [activeTeamIdx, setActiveTeamIdx] = useState(null);
   const [state, setState] = useState(freshState());
+  const [privateQueueLoadedTeamIdx, setPrivateQueueLoadedTeamIdx] = useState(null);
   const [synced, setSynced] = useState(false);
   const [saveStatus, setSaveStatus] = useState(leagueId ? "loading" : "local");
   const [liveDraftError, setLiveDraftError] = useState("");
+  const [teamResizeMessage, setTeamResizeMessage] = useState("");
   const [scheduledStartStatus, setScheduledStartStatus] = useState({
     phase: "idle",
     startsAt: null,
@@ -5351,6 +5365,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   const completedDraftScheduleClearedRef = useRef(false);
   const automaticStartAttemptedRef = useRef(null);
   const lastReportedOperationalErrorRef = useRef("");
+  const unassignedManagerRoutedRef = useRef(false);
   const liveDraftPokemonCacheRef = useRef({ leagueId: null, sessionId: null, rows: null, request: null });
   // Role-derived values must be initialized before any hook dependency array
   // reads them. Keeping this below the scheduling effects caused the
@@ -5385,6 +5400,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   const myTeamIdx = myTeamIndices.includes(activeTeamIdx) ? activeTeamIdx : (myTeamIndices[0] ?? -1);
   useEffect(() => {
     if (!leagueId || myTeamIdx < 0) return undefined;
+    setPrivateQueueLoadedTeamIdx(null);
     let alive = true;
     let inFlight = false;
     const loadPrivateQueue = async () => {
@@ -5401,6 +5417,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
           if (JSON.stringify(existing) === JSON.stringify(data)) return current;
           return { ...current, queues: { ...current.queues, [myTeamIdx]: data } };
         });
+        setPrivateQueueLoadedTeamIdx(myTeamIdx);
       } finally {
         inFlight = false;
       }
@@ -5701,10 +5718,18 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       setState(hydrated);
       return;
     }
-    commit((s) => ({
-      ...s,
-      teams: s.teams.map((t, i) => (i === teamIdx ? { ...t, claimedBy: myName } : t)),
-    }));
+    commit((s) => {
+      const claimed = s.teams.map((team, index) => index === teamIdx ? { ...team, claimedBy: myName } : team);
+      return {
+        ...s,
+        teams: compactLocalTeamsClaimedFirst(claimed, claimed.length),
+        settings: {
+          ...s.settings,
+          manualDraftOrder: null,
+          divisions: redistributeEvenly(s.settings.divisions, claimed.length),
+        },
+      };
+    });
   }
 
   async function mutateHostedTeamPreference(action, teamIdx, payload = {}) {
@@ -5722,7 +5747,12 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     }
     const hydrated = hydrateState(data);
     revRef.current = Math.max(revRef.current, hydrated.rev || 0);
-    setState(hydrated);
+    setState((current) => preserveLoadedPrivateDraftQueue(
+      hydrated,
+      current,
+      myTeamIdx,
+      privateQueueLoadedTeamIdx,
+    ));
     setSaveStatus("saved");
     setLiveDraftError("");
     return true;
@@ -5817,7 +5847,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   }
   async function postToBoard(text) {
     const trimmed = text.trim();
-    if (!trimmed) return;
+    if (!trimmed) return false;
     if (leagueId) return mutateCommunication("board_post", { text: trimmed });
     commit((s) => ({
       ...s,
@@ -5829,6 +5859,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
         ],
       },
     }));
+    return true;
   }
   function deleteBoardPost(id) {
     if (leagueId) return mutateCommunication("board_delete", { id });
@@ -6253,22 +6284,55 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     }
   }
 
-  function resizeTeams(size) {
+  async function resizeTeams(size) {
+    const targetSize = Math.max(2, Math.min(16, Number(size) || 2));
+    const humanTeams = claimedTeamCount(state.teams);
+    setTeamResizeMessage("");
+    if (state.locked) {
+      setTeamResizeMessage("The team count cannot change after the draft starts.");
+      return false;
+    }
+    if (targetSize < humanTeams) {
+      setTeamResizeMessage(`This league already has ${humanTeams} human-controlled teams. Remove a manager before lowering it below ${humanTeams}.`);
+      return false;
+    }
+    if (targetSize === state.teams.length) return true;
+
+    if (leagueId && targetSize < state.teams.length) {
+      setSaveStatus("saving");
+      const { data, error } = await supabase.rpc("resize_pre_draft_league_bot_first", {
+        p_league_id: leagueId,
+        p_size: targetSize,
+      });
+      if (error) {
+        setSaveStatus("error");
+        setTeamResizeMessage(error.message);
+        return false;
+      }
+      const hydrated = hydrateState(data);
+      revRef.current = Math.max(revRef.current, hydrated.rev || 0);
+      setState(hydrated);
+      setSaveStatus("saved");
+      setTeamResizeMessage(`League reduced to ${targetSize} teams. Human-controlled teams were kept first; only open bot slots were removed.`);
+      return true;
+    }
+
     commit((s) => {
-      const teams = [];
-      for (let i = 0; i < size; i++) {
-        if (s.teams[i]) {
-          teams.push(s.teams[i]);
-        } else {
-          const kept = s.teams.slice(0, size).filter(Boolean);
-          const usedNames = kept.map((t) => t.name).concat(teams.map((t) => t.name));
-          const usedColors = kept.map((t) => t.color).concat(teams.map((t) => t.color)).filter(Boolean);
+      const teams = targetSize < s.teams.length
+        ? compactLocalTeamsClaimedFirst(s.teams, targetSize)
+        : s.teams.map((team, index) => ({ ...team, id: index }));
+      for (let i = teams.length; i < targetSize; i++) {
+          const usedNames = teams.map((t) => t.name);
+          const usedColors = teams.map((t) => t.color).filter(Boolean);
           const pick = pickRandomTrainerTeam(usedNames, usedColors);
           teams.push({ id: i, name: pick.name, color: pick.color, claimedBy: null, autoDraft: false, archetypes: [], logoUrl: null, otherStandingsValue: 0, description: "" });
-        }
       }
-      return { ...s, teams, settings: { ...s.settings, leagueSize: size, manualDraftOrder: null, divisions: redistributeEvenly(s.settings.divisions, size) } };
+      return { ...s, teams, settings: { ...s.settings, leagueSize: targetSize, manualDraftOrder: null, divisions: redistributeEvenly(s.settings.divisions, targetSize) } };
     });
+    setTeamResizeMessage(targetSize < state.teams.length
+      ? `League reduced to ${targetSize} teams. Human-controlled teams were kept first; only open bot slots were removed.`
+      : `League expanded to ${targetSize} teams.`);
+    return true;
   }
   // Lets a commissioner retire ONE specific team (rather than just
   // shrinking from the end the way resizeTeams's plain number field does)
@@ -7222,7 +7286,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     if (state.pickIndex >= state.snakeOrder.length) return;
     const teamIdx = state.snakeOrder[state.pickIndex];
     const team = state.teams[teamIdx];
-    if (team?.claimedBy) return;
+    if (team?.claimedBy || team?.claimedByUserId) return;
     if (leagueId && !isCommissioner) return;
     const rosterCount = (state.rosters[teamIdx] || []).length;
     if (rosterCount < state.settings.rosterMin) return;
@@ -7264,12 +7328,16 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     const team = state.teams[teamIdx];
     const turnKey = `${state.pickIndex}:${teamIdx}:${team?.id || ""}`;
     if (lastAutoFired.current === turnKey) return;
-    const isBotTeam = !team?.claimedBy;
+    const isBotTeam = !(team?.claimedBy || team?.claimedByUserId);
     if (!team?.autoDraft && !isBotTeam) return;
-    if (leagueId && (
-      (isBotTeam && !isCommissioner)
-      || (!isBotTeam && teamIdx !== myTeamIdx && !isCommissioner)
-    )) return;
+    if (!browserCanResolveHostedAutoDraft({
+      leagueId,
+      isBotTeam,
+      isCommissioner,
+      teamIndex: teamIdx,
+      myTeamIndex: myTeamIdx,
+      loadedPrivateQueueTeamIndex: privateQueueLoadedTeamIdx,
+    })) return;
     const botReachedBudgetTarget = isBotTeam
       && state.settings.snakeBudgetEnabled
       && (state.rosters[teamIdx] || []).length >= (team?.budgetRosterTarget ?? state.settings.rosterMax);
@@ -7318,7 +7386,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     // Small delay on bot picks so a solo practice draft feels less instant.
     const timer = window.setTimeout(runAutoPick, isBotTeam ? 600 : 0);
     return () => window.clearTimeout(timer);
-  }, [leagueId, isCommissioner, myTeamIdx, state.pickIndex, state.locked, state.paused, state.settings.draftType, state.teams, state.queues, state.pool, state.budgets, state.snakeOrder]);
+  }, [leagueId, isCommissioner, myTeamIdx, privateQueueLoadedTeamIdx, state.pickIndex, state.locked, state.paused, state.settings.draftType, state.teams, state.queues, state.pool, state.budgets, state.snakeOrder]);
 
   // Automatic overnight pause — checks periodically whether the current
   // moment falls inside the commissioner's configured window and pauses or
@@ -9365,6 +9433,28 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   const draftRoomOpen = !state.locked && hasScheduledDraftTime && scheduleClock >= scheduledDraftTime - 60 * 60 * 1000;
   const scheduledDraftIsDue = draftRoomOpen && scheduleClock >= scheduledDraftTime;
   const isMyTurn = !isSpectator && state.locked && !draftDone && state.settings.draftType === "snake" && myTeamIdx >= 0 && myTeamIdx === currentTeamOnClock;
+  // A shared draft is the safest and most useful default when a manager
+  // returns through a plain league link. An explicit URL tab still wins, so
+  // reloading Setup, Messages, or another section keeps the manager exactly
+  // where they chose to be.
+  useEffect(() => {
+    if (!leagueId || !synced || !state.locked || draftDone) return;
+    if (initialNavigation.explicit && tab !== "draft") return;
+    setTab("league");
+    setLeagueSubTab("draft");
+  }, [leagueId, synced, state.locked, draftDone, initialNavigation.explicit, tab]);
+
+  // Keep the selected league area in the URL. Refresh, browser Back/Forward,
+  // and a copied in-league link now restore the same screen instead of always
+  // falling back to League Home.
+  useEffect(() => {
+    if (!leagueId || !synced || typeof window === "undefined") return;
+    const search = writeLeagueNavigation(window.location.search, tab, leagueSubTab);
+    const destination = `${window.location.pathname}${search}${window.location.hash}`;
+    const current = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+    if (destination !== current) window.history.replaceState(window.history.state, "", destination);
+  }, [leagueId, synced, tab, leagueSubTab]);
+
   useEffect(() => {
     async function dispatchNotifications() {
       const { data } = await supabase.auth.getSession();
@@ -9398,6 +9488,11 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   useEffect(() => {
     if (isSpectator && tab === "setup") setTab("home");
   }, [isSpectator, tab]);
+  useEffect(() => {
+    if (!synced || displayRole !== "manager" || state.locked || myTeamIdx >= 0 || unassignedManagerRoutedRef.current) return;
+    unassignedManagerRoutedRef.current = true;
+    setTab("setup");
+  }, [synced, displayRole, state.locked, myTeamIdx]);
 
   // Existing browsers may still remember the retired standalone Board tab.
   // Send them straight to the combined Activity view instead of showing a
@@ -9499,7 +9594,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
               ...(!state.locked && (displayIsCommissioner || (!displayIsSpectator && hasScheduledDraftTime))
                 ? [["draft", hasScheduledDraftTime ? "Draft Room" : "Schedule"]]
                 : []),
-              ["myteam", displayIsSpectator ? "Teams" : "My Team"],
+              ...(displayIsSpectator ? [["myteam", "Teams"]] : myTeamIdx >= 0 ? [["myteam", "My Team"]] : []),
               ...(state.locked ? [["league", "League"]] : []),
               ...(displayIsSpectator && state.locked ? [["predictions", "Predictions"]] : []),
               ...(!displayIsSpectator ? [["messages", "Messages"]] : []),
@@ -9588,6 +9683,9 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
             </div>
           </div>
         )}
+        {((tab === "draft") || (tab === "league" && leagueSubTab === "draft")) && state.locked && !draftDone && (
+          <LiveDraftContextStrip state={state} myTeamIdx={myTeamIdx} />
+        )}
         {((tab === "draft") || (tab === "league" && leagueSubTab === "draft")) && state.locked && myTeamIdx >= 0 && (
           <DraftStatsStrip state={state} myTeamIdx={myTeamIdx} />
         )}
@@ -9597,9 +9695,10 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
         {liveDraftError && <div className="mb-4 rounded p-3 text-sm" style={{ background: "#2A1620", color: "#FFD6D6", border: "1px solid #F0555A66" }}>{liveDraftError}</div>}
         {tab === "home" && (
           <HomeView state={state} leagueId={leagueId} leagueName={league?.name} isCommissioner={displayIsCommissioner} isSpectator={displayIsSpectator} myTeamIdx={myTeamIdx} standings={standings}
-            isMyTurn={isMyTurn} pendingTrades={pendingTradesForMe} unreadMessages={unreadDirectCount + unreadBoardCount}
+            isMyTurn={isMyTurn} pendingTrades={pendingTradesForMe} unreadDirectMessages={unreadDirectCount} unreadBoardMessages={unreadBoardCount}
             onGetStarted={() => state.locked ? (setTab("league"), setLeagueSubTab("draft")) : displayIsSpectator ? setTab("myteam") : setTab("setup")}
             onOpenDraftRoom={() => setTab("draft")}
+            onOpenMessages={() => setTab("messages")}
             onGoToLeague={(sub) => { setTab("league"); setLeagueSubTab(sub); }}
             costFor={costFor}
             updateHomepage={updateHomepage}
@@ -9627,6 +9726,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
               window.setTimeout(() => document.getElementById("league-broadcast-center")?.scrollIntoView({ behavior: "smooth", block: "start" }), 0);
             }}
             saveNow={saveNow} saveStatus={saveStatus} draftError={liveDraftError}
+            teamResizeMessage={teamResizeMessage}
             scheduledStartStatus={scheduledStartStatus}
             retryScheduledStart={() => prepareScheduledSnakeDraft(state, { force: true })}
           />
@@ -9646,6 +9746,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
             placeBid={placeBid} endAuctionEarly={endAuctionEarly} pauseDraft={pauseDraft} resumeDraft={resumeDraft} skipAuctionNomination={skipAuctionNomination}
             toggleAutoDraft={toggleAutoDraft} addToQueue={addToQueue} removeFromQueue={removeFromQueue} moveQueueItem={moveQueueItem}
             onGenerateSchedule={generateSchedule} updateSettings={updateSettings} onViewTeam={goToTeam} castDraftHeroVote={castDraftHeroVote} restartDraft={restartDraft} rebuildCurrentSeason={rebuildCurrentSeason} onStart={startDraft}
+            postToBoard={postToBoard} markBoardRead={markBoardRead} canPostChat={!displayIsSpectator && !previewReadOnly}
             scheduledStartStatus={scheduledStartStatus}
             retryScheduledStart={() => prepareScheduledSnakeDraft(state, { force: true })}
           />
@@ -9729,6 +9830,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
                 placeBid={placeBid} endAuctionEarly={endAuctionEarly} pauseDraft={pauseDraft} resumeDraft={resumeDraft} skipAuctionNomination={skipAuctionNomination}
                 toggleAutoDraft={toggleAutoDraft} addToQueue={addToQueue} removeFromQueue={removeFromQueue} moveQueueItem={moveQueueItem}
                 onGenerateSchedule={generateSchedule} updateSettings={updateSettings} onViewTeam={goToTeam} castDraftHeroVote={castDraftHeroVote} restartDraft={restartDraft} rebuildCurrentSeason={rebuildCurrentSeason} onStart={startDraft}
+                postToBoard={postToBoard} markBoardRead={markBoardRead} canPostChat={!displayIsSpectator && !previewReadOnly}
                 scheduledStartStatus={scheduledStartStatus}
                 retryScheduledStart={() => prepareScheduledSnakeDraft(state, { force: true })}
               />
@@ -9891,6 +9993,62 @@ function DraftStatsStrip({ state, myTeamIdx }) {
           })}
         </div>
       )}
+    </div>
+  );
+}
+
+function DraftCountdownLabel({ deadline, paused, pausedAt }) {
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, []);
+  if (paused) return <span style={{ color: "#F4B860" }}>PAUSED</span>;
+  if (!deadline) return <span style={{ color: "#9A9FBD" }}>NO TIMER</span>;
+  const clockNow = paused ? (pausedAt || now) : now;
+  const seconds = Math.max(0, Math.ceil((deadline - clockNow) / 1000));
+  const minutes = Math.floor(seconds / 60);
+  const remainder = String(seconds % 60).padStart(2, "0");
+  return <span style={{ color: seconds <= 30 ? "#F0555A" : "#FFD23F" }}>{minutes}:{remainder}</span>;
+}
+
+function LiveDraftContextStrip({ state, myTeamIdx }) {
+  if (state.settings?.draftType !== "snake") return null;
+  const context = snakeDraftContext(state, myTeamIdx);
+  const currentTeam = context.currentTeamIndex == null ? null : state.teams[context.currentTeamIndex];
+  if (!currentTeam) return null;
+  const myPickLabel = context.picksUntilMine === 0
+    ? "YOUR PICK"
+    : context.picksUntilMine == null
+      ? "NO PICKS LEFT"
+      : context.picksUntilMine === 1
+        ? "YOUR PICK NEXT"
+        : `YOUR PICK IN ${context.picksUntilMine}`;
+  return (
+    <div style={{ background: "#111625", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+      <div className="max-w-6xl mx-auto px-6 py-2 flex items-center gap-3 flex-wrap">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="mono-font text-[10px]" style={{ color: "#9A9FBD" }}>ON CLOCK</span>
+          <TeamLogo team={currentTeam} size={22} />
+          <span className="text-xs font-semibold truncate" style={{ color: context.currentTeamIndex === myTeamIdx ? "#4FD1C5" : "#EDEBFA", maxWidth: 180 }}>{currentTeam.name}</span>
+          <span className="mono-font text-[10px]" style={{ color: "#7F84A5" }}>{draftManagerLabel(currentTeam)}</span>
+        </div>
+        <span className="mono-font text-sm font-bold"><DraftCountdownLabel deadline={state.pickDeadline} paused={state.paused} pausedAt={state.pausedAt} /></span>
+        <div className="flex items-center gap-1 overflow-x-auto" style={{ maxWidth: "100%" }}>
+          <span className="mono-font text-[10px] mr-1" style={{ color: "#5B5F7E" }}>UP NEXT</span>
+          {context.upcomingTeamIndices.map((teamIndex, index) => {
+            const team = state.teams[teamIndex];
+            return <span key={`${state.pickIndex}-${index}-${teamIndex}`} className="mono-font text-[10px] px-2 py-1 rounded whitespace-nowrap" style={{ background: teamIndex === myTeamIdx ? "#123238" : "#1F2338", color: teamIndex === myTeamIdx ? "#4FD1C5" : "#9A9FBD", border: `1px solid ${teamIndex === myTeamIdx ? "#4FD1C5" : "rgba(255,255,255,0.06)"}` }}>{team?.name} · {draftManagerLabel(team)}</span>;
+          })}
+        </div>
+        {myTeamIdx >= 0 && (
+          <button type="button" onClick={() => document.getElementById(`draft-team-${myTeamIdx}`)?.scrollIntoView({ behavior: "smooth", block: "center" })}
+            className="mono-font text-[10px] px-2 py-1 rounded ml-auto"
+            style={{ background: context.picksUntilMine === 0 ? "#4FD1C5" : "#1F2338", color: context.picksUntilMine === 0 ? "#10121C" : "#4FD1C5", border: "1px solid #4FD1C566" }}>
+            {myPickLabel} · JUMP TO MY TEAM
+          </button>
+        )}
+      </div>
     </div>
   );
 }
@@ -10498,7 +10656,7 @@ function MyTeamView({ state, leagueId, myTeamIdx, isCommissioner, myName, myTeam
   );
 }
 
-function HomeView({ state, leagueId, leagueName, isCommissioner, isSpectator = false, myTeamIdx, standings, onGetStarted, onOpenDraftRoom, onGoToLeague, costFor, updateHomepage, addToQueue = null, removeFromQueue = null, moveQueueItem = null, readOnly = false, isMyTurn = false, pendingTrades = 0, unreadMessages = 0 }) {
+function HomeView({ state, leagueId, leagueName, isCommissioner, isSpectator = false, myTeamIdx, standings, onGetStarted, onOpenDraftRoom, onOpenMessages, onGoToLeague, costFor, updateHomepage, addToQueue = null, removeFromQueue = null, moveQueueItem = null, readOnly = false, isMyTurn = false, pendingTrades = 0, unreadDirectMessages = 0, unreadBoardMessages = 0 }) {
   const { coCommissioners: coCommissionersRaw, schedule, matchResults, trades = [], transactionLog = [], seasonNumber, commissioner, locked, teams } = state;
   const coCommissioners = coCommissionersRaw || [];
   const draftStillActive = locked && (
@@ -10593,7 +10751,19 @@ function HomeView({ state, leagueId, leagueName, isCommissioner, isSpectator = f
               <span className="rounded p-3" style={{ background: "#10121C" }}>{myTeamIdx >= 0 ? `Team: ${teams[myTeamIdx]?.name}` : "No team claimed"}</span>
               {draftStillActive && <span className="rounded p-3" style={{ background: isMyTurn ? "#4FD1C5" : "#10121C", color: isMyTurn ? "#10121C" : "#C9CBE0" }}>{isMyTurn ? "You are on the clock" : "Not currently on the clock"}</span>}
               <span className="rounded p-3" style={{ background: "#10121C" }}>{pendingTrades} pending trade{pendingTrades === 1 ? "" : "s"}</span>
-              <span className="rounded p-3" style={{ background: "#10121C" }}>{unreadMessages} unread message{unreadMessages === 1 ? "" : "s"}</span>
+              <div className="rounded p-2 flex flex-col gap-1" style={{ background: "#10121C" }}>
+                {unreadBoardMessages > 0 && (
+                  <button type="button" onClick={() => onGoToLeague("activity")} className="rounded px-2 py-1.5 text-left font-semibold" style={{ background: "#FFD23F22", color: "#FFD23F" }}>
+                    {unreadBoardMessages} unread League Board post{unreadBoardMessages === 1 ? "" : "s"} â†’
+                  </button>
+                )}
+                {unreadDirectMessages > 0 && (
+                  <button type="button" onClick={onOpenMessages} className="rounded px-2 py-1.5 text-left font-semibold" style={{ background: "#4FD1C522", color: "#4FD1C5" }}>
+                    {unreadDirectMessages} unread direct message{unreadDirectMessages === 1 ? "" : "s"} â†’
+                  </button>
+                )}
+                {unreadBoardMessages === 0 && unreadDirectMessages === 0 && <span className="px-2 py-1.5">No unread messages</span>}
+              </div>
             </div>
             <button type="button" onClick={() => document.getElementById("league-broadcast-center")?.scrollIntoView({ behavior: "smooth", block: "start" })} className="px-4 py-2 rounded font-semibold text-sm mt-3" style={{ background: "#F0555A", color: "#FFFFFF" }}>● SHARE MY LIVE BATTLE</button>
             </>
@@ -11075,8 +11245,8 @@ function ManualRosterEntry({ teams, settings, finalizeManualDraft }) {
 
 function ManagerLeagueDetails({ state, myName, myTeamIdx, claimTeam, costFor, updateHomepage, addToQueue, removeFromQueue, moveQueueItem, readOnly = false }) {
   const settings = state.settings;
-  const myTeam = state.teams.find((team) => team.claimedBy === myName);
-  const openTeams = state.teams.map((team, index) => ({ ...team, index })).filter((team) => !team.claimedBy);
+  const myTeam = myTeamIdx >= 0 ? state.teams[myTeamIdx] : null;
+  const openTeams = openSetupTeams(state.teams);
   const regulation = regulationFor(settings);
   const usesRosterRange = settings.draftType === "auction" || settings.snakeBudgetEnabled;
   const draftComplete = state.locked && (
@@ -11106,8 +11276,9 @@ function ManagerLeagueDetails({ state, myName, myTeamIdx, claimTeam, costFor, up
         <p className="text-sm mb-4" style={{ color: "#9A9FBD" }}>{myTeam ? `You are managing ${myTeam.name}.` : "Choose one open team. Your selection is saved immediately and removes one available manager spot."}</p>
         <div className="grid sm:grid-cols-2 gap-3">
           {state.teams.map((team, index) => {
-            const mine = team.claimedBy === myName;
-            return <article key={team.id ?? index} className="rounded p-3 flex items-center justify-between gap-3" style={{ background: mine ? "#2A2618" : "#1F2338", border: `1px solid ${mine ? "#FFD23F66" : "rgba(255,255,255,0.06)"}` }}><div className="flex items-center gap-3"><TeamLogo team={team} size={34} /><div><strong className="block">{team.name}</strong><span className="text-xs" style={{ color: team.claimedBy ? "#4FD1C5" : "#9A9FBD" }}>{mine ? "Your team" : team.claimedBy ? `Manager: ${team.claimedBy}` : "Open"}</span></div></div>{!readOnly && !myTeam && !team.claimedBy && <button onClick={() => claimTeam(index)} className="px-3 py-1.5 rounded text-xs font-semibold" style={{ background: "#FFD23F", color: "#10121C" }}>CLAIM</button>}</article>;
+            const mine = index === myTeamIdx;
+            const claimed = teamIsClaimed(team);
+            return <article key={team.id ?? index} className="rounded p-3 flex items-center justify-between gap-3" style={{ background: mine ? "#2A2618" : "#1F2338", border: `1px solid ${mine ? "#FFD23F66" : "rgba(255,255,255,0.06)"}` }}><div className="flex items-center gap-3"><TeamLogo team={team} size={34} /><div><strong className="block">{team.name}</strong><span className="text-xs" style={{ color: claimed ? "#4FD1C5" : "#9A9FBD" }}>{mine ? "Your team" : claimed ? `Manager: ${team.claimedBy || "Claimed manager"}` : "Open"}</span></div></div>{!readOnly && !myTeam && !claimed && <button onClick={() => claimTeam(index)} className="px-3 py-1.5 rounded text-xs font-semibold" style={{ background: "#FFD23F", color: "#10121C" }}>CLAIM</button>}</article>;
           })}
         </div>
         {!myTeam && openTeams.length === 0 && <p className="text-sm mt-4" style={{ color: "#F4B860" }}>No teams are currently open. Ask the commissioner to add or release a team.</p>}
@@ -11162,7 +11333,7 @@ function ScheduledStartNotice({ status, scheduledAt, draftType, isCommissioner =
   );
 }
 
-function SetupView({ state, leagueId = null, leagueName = "league", isCommissioner, canBeCommissioner, claimCommissioner, unclaimCommissioner, claimTeam, renameTeam, myName, updateSettings, resizeTeams, rerollAllTeamIdentities, costFor, toggleBanMon, toggleAllowExtraMon, rebuildCurrentSeason, addCustomMon, removeCustomMon, setSpriteOverride, setTeamLogo, onStart, addDivision, renameDivision, removeDivision, setTeamDivision, finalizeManualDraft, finalizeSeason, startNewSeason, updateHomepage, addExpansionTeam, removeSpecificTeam, exportLeagueBackup, exportRecoveryBackup, importLeagueBackup, addCoCommissioner, removeCoCommissioner, onOpenLeagueTools, onOpenBroadcast, copyLeagueInvite, saveNow, saveStatus, draftError = "", scheduledStartStatus = null, retryScheduledStart = null }) {
+function SetupView({ state, leagueId = null, leagueName = "league", isCommissioner, canBeCommissioner, claimCommissioner, unclaimCommissioner, claimTeam, renameTeam, myName, updateSettings, resizeTeams, rerollAllTeamIdentities, costFor, toggleBanMon, toggleAllowExtraMon, rebuildCurrentSeason, addCustomMon, removeCustomMon, setSpriteOverride, setTeamLogo, onStart, addDivision, renameDivision, removeDivision, setTeamDivision, finalizeManualDraft, finalizeSeason, startNewSeason, updateHomepage, addExpansionTeam, removeSpecificTeam, exportLeagueBackup, exportRecoveryBackup, importLeagueBackup, addCoCommissioner, removeCoCommissioner, onOpenLeagueTools, onOpenBroadcast, copyLeagueInvite, saveNow, saveStatus, draftError = "", teamResizeMessage = "", scheduledStartStatus = null, retryScheduledStart = null }) {
   // A league may have been created before newer Setup options existed. Keep
   // this screen usable even if one of those older saved values is missing or
   // malformed; the next normal save will preserve the corrected shape.
@@ -11575,7 +11746,13 @@ function SetupView({ state, leagueId = null, leagueName = "league", isCommission
               </div>
             )}
             <label className="block text-sm mb-2" style={{ color: "#9A9FBD" }}>League size — <span style={{ color: "#EDEBFA" }}>{settings.leagueSize} teams</span></label>
-            <input type="range" min={2} max={16} value={settings.leagueSize} onChange={(e) => resizeTeams(Number(e.target.value))} className="w-full mb-6" />
+            <select value={settings.leagueSize} disabled={saveStatus === "saving"} onChange={(e) => resizeTeams(Number(e.target.value))}
+              className="w-full px-3 py-2 rounded mono-font text-sm" style={{ background: "#1F2338", border: "1px solid rgba(255,255,255,0.1)", color: "#EDEBFA" }}>
+              {Array.from({ length: 15 }, (_, index) => index + 2).map((size) => <option key={size} value={size}>{size} teams</option>)}
+            </select>
+            <p className="text-xs mt-2 mb-6" style={{ color: teamResizeMessage && !teamResizeMessage.startsWith("League ") ? "#F4B860" : "#5B5F7E" }}>
+              {teamResizeMessage || `${claimedTeamCount(state.teams)} human-controlled team${claimedTeamCount(state.teams) === 1 ? "" : "s"}. Lowering the size keeps every claimed team and removes open bot slots first.`}
+            </p>
 
             <label className="flex items-center gap-2 text-sm mb-2" style={{ color: "#9A9FBD" }}>
               <input type="checkbox" checked={settings.publicLeague} onChange={(e) => updateSettings({ publicLeague: e.target.checked })} />
@@ -12407,6 +12584,9 @@ function TransactionRulesCard({ state, leagueId, isCommissioner, updateSettings 
             </button>
           ))}
         </div>
+        <p className="text-xs mt-2" style={{ color: "#5B5F7E" }}>
+          New leagues start at 1 per week to prevent a free-agent rush. Existing leagues keep their saved choice, including Unlimited.
+        </p>
 
         <label className="block text-sm mb-2 mt-5" style={{ color: "#9A9FBD" }}>Transaction deadline</label>
         <div className="flex items-center gap-2 mb-1">
@@ -13329,7 +13509,7 @@ function DangerZoneCard({ rebuildCurrentSeason, locked, seasonNumber, archivedSe
 // A round-by-round (or, for auction, pick-order-by-pick-order) grid of
 // every team's picks so far — designed to look clean enough to screenshot
 // once the draft wraps up, not just function as a live status view.
-function DraftBoard({ teams, rosters, draftType, rosterMax, snakeOrder = [], settings }) {
+function DraftBoard({ teams, rosters, draftType, rosterMax, snakeOrder = [], settings, myTeamIdx = -1 }) {
   const longestRoster = rosters.reduce((max, r) => Math.max(max, r.length), 0);
   const rowCount = Math.min(rosterMax, Math.max(1, longestRoster));
   const rows = Array.from({ length: rowCount }, (_, i) => i);
@@ -13372,11 +13552,15 @@ function DraftBoard({ teams, rosters, draftType, rosterMax, snakeOrder = [], set
                 <th className="px-2 py-2 text-left mono-font text-[10px] uppercase" style={{ color: "#5B5F7E", position: "sticky", left: 0, background: "#171A2C" }}>{roundLabel}</th>
                 {boardTeamIndices.map((teamIndex) => {
                   const t = teams[teamIndex];
+                  const isMine = teamIndex === myTeamIdx;
                   return (
-                  <th key={t.id} className="px-3 py-2 text-left whitespace-nowrap" style={{ minWidth: 160 }}>
+                  <th key={t.id} className="px-3 py-2 text-left whitespace-nowrap" style={{ minWidth: 180, background: isMine ? "#123238" : "transparent", borderTop: isMine ? "2px solid #4FD1C5" : "2px solid transparent" }}>
                     <div className="flex items-center gap-1.5">
                       <TeamLogo team={t} size={20} />
-                      <span className="text-sm font-semibold truncate" style={{ color: t.color || "#FFD23F", maxWidth: 130 }}>{t.name}</span>
+                      <span className="min-w-0">
+                        <span className="text-sm font-semibold truncate block" style={{ color: isMine ? "#4FD1C5" : t.color || "#FFD23F", maxWidth: 145 }}>{t.name}</span>
+                        <span className="mono-font text-[9px] truncate block" style={{ color: isMine ? "#8AF5EA" : "#7F84A5", maxWidth: 145 }}>{isMine ? "YOU · " : ""}{draftManagerLabel(t)}</span>
+                      </span>
                     </div>
                   </th>
                   );
@@ -13392,8 +13576,9 @@ function DraftBoard({ teams, rosters, draftType, rosterMax, snakeOrder = [], set
                   {boardTeamIndices.map((teamIndex) => {
                     const t = teams[teamIndex];
                     const mon = rosters[teamIndex]?.[r];
+                    const isMine = teamIndex === myTeamIdx;
                     return (
-                      <td key={t.id} className="px-3 py-2" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
+                      <td key={t.id} className="px-3 py-2" style={{ borderTop: "1px solid rgba(255,255,255,0.05)", background: isMine ? "#12323888" : "transparent", borderLeft: isMine ? "1px solid #4FD1C555" : "none", borderRight: isMine ? "1px solid #4FD1C555" : "none" }}>
                         {mon ? (
                           <div>
                             <div className="text-xs font-medium truncate" style={{ maxWidth: 140 }}>{mon.name}</div>
@@ -13582,7 +13767,81 @@ function PreDraftScout({ state, isCommissioner, costFor, updateHomepage, myTeamI
   </div>;
 }
 
-function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTeamIdx, costFor, currentTeamOnClock, draftDone, allTeamsMetMin, snakePick, undoLastSnakePick, nominateForAuction, autoPickForClock, requestDueSnakeTurnResolution = null, finishBudgetSnakeRoster, placeBid, endAuctionEarly, pauseDraft, resumeDraft, skipAuctionNomination, toggleAutoDraft, addToQueue, removeFromQueue, moveQueueItem, onGenerateSchedule, updateSettings, onViewTeam, castDraftHeroVote, restartDraft, rebuildCurrentSeason, onStart, scheduledStartStatus = null, retryScheduledStart = null }) {
+function DraftChatPanel({ board = [], myName, postToBoard, markBoardRead, canPost = true }) {
+  const [text, setText] = useState("");
+  const [posting, setPosting] = useState(false);
+  const messageListRef = useRef(null);
+  const recentMessages = board.slice(-40);
+
+  useEffect(() => {
+    if (canPost && typeof markBoardRead === "function") markBoardRead();
+  }, [board.length, canPost]);
+
+  useEffect(() => {
+    const list = messageListRef.current;
+    if (list) list.scrollTop = list.scrollHeight;
+  }, [board.length]);
+
+  async function submit() {
+    const message = text.trim();
+    if (!message || posting || !canPost || typeof postToBoard !== "function") return;
+    setPosting(true);
+    const posted = await postToBoard(message);
+    setPosting(false);
+    if (posted !== false) setText("");
+  }
+
+  return (
+    <section className="rounded-lg p-4 mb-6" aria-label="Draft chat" style={{ background: "#15192A", border: "1px solid #4FD1C555" }}>
+      <div className="flex items-start justify-between gap-3 flex-wrap mb-3">
+        <div>
+          <h3 className="display-font text-xl" style={{ color: "#4FD1C5" }}>DRAFT CHAT</h3>
+          <p className="text-xs" style={{ color: "#9A9FBD" }}>This is the League Board conversation, shown here so nobody has to leave the live draft.</p>
+        </div>
+        <span className="mono-font text-[10px] px-2 py-1 rounded" style={{ background: "#102B2B", color: "#4FD1C5" }}>LIVE LEAGUE CHAT</span>
+      </div>
+      <div ref={messageListRef} className="rounded p-3 mb-3 overflow-y-auto flex flex-col gap-2" aria-live="polite" style={{ background: "#10121C", maxHeight: 240, minHeight: 96 }}>
+        {recentMessages.length === 0 ? (
+          <p className="text-sm my-auto text-center" style={{ color: "#5B5F7E" }}>No messages yet. Start the draft-day conversation.</p>
+        ) : recentMessages.map((message) => {
+          const mine = message.author === myName;
+          return (
+            <article key={message.id} className="rounded px-3 py-2" style={{ background: mine ? "#173230" : "#1B1F33", border: `1px solid ${mine ? "#4FD1C544" : "rgba(255,255,255,0.05)"}` }}>
+              <div className="flex items-center justify-between gap-3 mb-1">
+                <strong className="text-xs" style={{ color: mine ? "#4FD1C5" : "#FFD23F" }}>{message.author}{mine ? " (you)" : ""}</strong>
+                <time className="mono-font text-[9px]" style={{ color: "#5B5F7E" }} dateTime={new Date(message.ts).toISOString()}>
+                  {new Date(message.ts).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}
+                </time>
+              </div>
+              <p className="text-sm whitespace-pre-wrap break-words" style={{ color: "#C9CBE0" }}>{message.text}</p>
+            </article>
+          );
+        })}
+      </div>
+      {canPost ? (
+        <div className="flex gap-2">
+          <input
+            value={text}
+            onChange={(event) => setText(event.target.value)}
+            onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); submit(); } }}
+            maxLength={1000}
+            placeholder="Message everyone in the draftâ€¦"
+            aria-label="Draft chat message"
+            className="flex-1 min-w-0 px-3 py-2 rounded text-sm"
+            style={{ background: "#1F2338", border: "1px solid rgba(255,255,255,0.1)", color: "#EDEBFA" }}
+          />
+          <button type="button" onClick={submit} disabled={posting || !text.trim()} className="px-4 py-2 rounded font-semibold text-sm disabled:opacity-40" style={{ background: "#4FD1C5", color: "#10121C" }}>
+            {posting ? "SENDINGâ€¦" : "SEND"}
+          </button>
+        </div>
+      ) : (
+        <p className="text-xs" style={{ color: "#9A9FBD" }}>Read-only while viewing as a spectator.</p>
+      )}
+    </section>
+  );
+}
+
+function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTeamIdx, costFor, currentTeamOnClock, draftDone, allTeamsMetMin, snakePick, undoLastSnakePick, nominateForAuction, autoPickForClock, requestDueSnakeTurnResolution = null, finishBudgetSnakeRoster, placeBid, endAuctionEarly, pauseDraft, resumeDraft, skipAuctionNomination, toggleAutoDraft, addToQueue, removeFromQueue, moveQueueItem, onGenerateSchedule, updateSettings, onViewTeam, castDraftHeroVote, restartDraft, rebuildCurrentSeason, onStart, postToBoard, markBoardRead, canPostChat = true, scheduledStartStatus = null, retryScheduledStart = null }) {
   const {
     locked,
     settings,
@@ -13999,18 +14258,20 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
               const t = teams[teamIdx];
               const isCurrent = i === pickIndex;
               const isPast = i < pickIndex;
+              const isMine = teamIdx === myTeamIdx;
               return (
-                <div key={i} title={t?.name}
+                <div key={i} title={`${t?.name || "Team"} · ${draftManagerLabel(t)}`}
                   className="flex items-center gap-1.5 px-2 py-1.5 rounded flex-shrink-0"
                   style={{
-                    background: isCurrent ? "#FFD23F" : isPast ? "#2A2F45" : "#1F2338",
-                    border: isCurrent ? "2px solid #FFD23F" : "1px solid rgba(255,255,255,0.06)",
+                    background: isCurrent ? "#FFD23F" : isMine ? "#123238" : isPast ? "#2A2F45" : "#1F2338",
+                    border: isCurrent && isMine ? "2px solid #4FD1C5" : isCurrent ? "2px solid #FFD23F" : isMine ? "2px solid #4FD1C5" : "1px solid rgba(255,255,255,0.06)",
                     opacity: isPast ? 0.6 : 1,
-                    minWidth: 96,
+                    minWidth: 132,
                   }}>
                   <TeamLogo team={t} size={18} />
-                  <span className="text-xs mono-font truncate" style={{ color: isCurrent ? "#10121C" : isPast ? "#6C7195" : "#9A9FBD", maxWidth: 70 }}>
-                    {t?.name}
+                  <span className="min-w-0">
+                    <span className="text-xs mono-font truncate block" style={{ color: isCurrent ? "#10121C" : isMine ? "#4FD1C5" : isPast ? "#6C7195" : "#9A9FBD", maxWidth: 94 }}>{t?.name}</span>
+                    <span className="mono-font text-[9px] truncate block" style={{ color: isCurrent ? "#4A4216" : isMine ? "#8AF5EA" : "#5B5F7E", maxWidth: 94 }}>{isMine ? "YOU · " : ""}{draftManagerLabel(t)}</span>
                   </span>
                 </div>
               );
@@ -14029,17 +14290,19 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
                 const isCurrent = i === (auctionNominationIdx % n);
                 const isNext = i === ((auctionNominationIdx + 1) % n);
                 const t = teams[teamIdx];
+                const isMine = teamIdx === myTeamIdx;
                 return (
-                  <div key={i} title={t?.name}
+                  <div key={i} title={`${t?.name || "Team"} · ${draftManagerLabel(t)}`}
                     className="flex items-center gap-1.5 px-2.5 py-1.5 rounded flex-shrink-0"
                     style={{
-                      background: isCurrent ? "#FFD23F" : isNext ? "#1F2338" : "#141729",
-                      border: isCurrent ? "2px solid #FFD23F" : isNext ? "1px solid #4FD1C555" : "1px solid rgba(255,255,255,0.06)",
+                      background: isCurrent ? "#FFD23F" : isMine ? "#123238" : isNext ? "#1F2338" : "#141729",
+                      border: isCurrent && isMine ? "2px solid #4FD1C5" : isCurrent ? "2px solid #FFD23F" : isMine ? "2px solid #4FD1C5" : isNext ? "1px solid #4FD1C555" : "1px solid rgba(255,255,255,0.06)",
                       opacity: isCurrent ? 1 : isNext ? 1 : 0.6,
                     }}>
                     <TeamLogo team={t} size={18} />
-                    <span className="text-xs font-medium truncate" style={{ color: isCurrent ? "#10121C" : isNext ? "#4FD1C5" : "#9A9FBD", maxWidth: 90 }}>
-                      {t?.name}
+                    <span className="min-w-0">
+                      <span className="text-xs font-medium truncate block" style={{ color: isCurrent ? "#10121C" : isMine || isNext ? "#4FD1C5" : "#9A9FBD", maxWidth: 100 }}>{t?.name}</span>
+                      <span className="mono-font text-[9px] truncate block" style={{ color: isCurrent ? "#4A4216" : isMine ? "#8AF5EA" : "#5B5F7E", maxWidth: 100 }}>{isMine ? "YOU · " : ""}{draftManagerLabel(t)}</span>
                     </span>
                     {isCurrent && <span className="mono-font text-[9px] flex-shrink-0" style={{ color: "#10121C" }}>NOW</span>}
                     {isNext && !isCurrent && <span className="mono-font text-[9px] flex-shrink-0" style={{ color: "#4FD1C5" }}>NEXT</span>}
@@ -14050,6 +14313,14 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
           </div>
         </div>
       )}
+
+      <DraftChatPanel
+        board={state.messages?.board || []}
+        myName={myName}
+        postToBoard={postToBoard}
+        markBoardRead={markBoardRead}
+        canPost={canPostChat}
+      />
 
       {(draftType === "snake" || draftType === "auction") && myTeamIdx >= 0 && !draftDone && (
         <div style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }} className="rounded-lg p-4 mb-6">
@@ -14141,11 +14412,10 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
                 <TeamLogo team={teams[currentTeamOnClock]} size={32} />
                 <div className="display-font text-3xl" style={{ color: "#FFD23F" }}>{teams[currentTeamOnClock]?.name}</div>
               </div>
-              {!canDraftNow && (
-                <div className="text-xs mt-1" style={{ color: "#5B5F7E" }}>
-                  {teams[currentTeamOnClock]?.claimedBy ? `Waiting for ${teams[currentTeamOnClock].claimedBy}…` : "Bot team is drafting…"}
-                </div>
-              )}
+              <div className="text-xs mt-1 mono-font" style={{ color: currentTeamOnClock === myTeamIdx ? "#4FD1C5" : "#7F84A5" }}>
+                {currentTeamOnClock === myTeamIdx ? "YOU · " : ""}{draftManagerLabel(teams[currentTeamOnClock])}
+                {!canDraftNow ? teams[currentTeamOnClock]?.claimedBy ? " · waiting for pick…" : " · drafting…" : " · choose your pick"}
+              </div>
               {settings.pickTimeLimitMinutes > 0 && (
                 <PickTimer
                   deadline={pickDeadline}
@@ -14460,7 +14730,7 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
           {showDraftBoard ? "Hide" : "Show"} Draft Board
         </button>
       </div>
-      {showDraftBoard && <DraftBoard teams={teams} rosters={rosters} draftType={draftType} rosterMax={settings.rosterMax} snakeOrder={snakeOrder} settings={settings} />}
+      {showDraftBoard && <DraftBoard teams={teams} rosters={rosters} draftType={draftType} rosterMax={settings.rosterMax} snakeOrder={snakeOrder} settings={settings} myTeamIdx={myTeamIdx} />}
 
       <div style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }} className="rounded-lg p-4 mb-4">
         <div className="flex items-center justify-between flex-wrap gap-2 mb-3">
@@ -14468,7 +14738,7 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
           <select value={viewedTeam} onChange={(e) => setViewedTeam(Number(e.target.value))}
             className="px-3 py-2 rounded mono-font text-sm" style={{ background: "#1F2338", border: "1px solid rgba(255,255,255,0.1)", color: "#EDEBFA" }}>
             {teams.map((t, i) => (
-              <option key={t.id} value={i}>{t.name}{i === myTeamIdx ? " (yours)" : !t.claimedBy ? " (bot)" : ""}</option>
+              <option key={t.id} value={i}>{t.name} — {i === myTeamIdx ? "YOU" : draftManagerLabel(t)}</option>
             ))}
           </select>
         </div>
@@ -14517,13 +14787,15 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
           const usesRosterRange = draftType === "auction" || settings.snakeBudgetEnabled;
           const belowMin = usesRosterRange && draftDone && count < settings.rosterMin;
           const showBudget = draftType === "auction" || settings.snakeBudgetEnabled;
+          const isMine = i === myTeamIdx;
+          const isOnClock = draftType === "snake" && i === currentTeamOnClock && !draftDone;
           return (
-            <div key={t.id} style={{ background: "#141729", border: `1px solid ${belowMin ? "#F0555A55" : "rgba(255,255,255,0.08)"}` }} className="rounded-lg p-4">
+            <div id={`draft-team-${i}`} key={t.id} style={{ background: isMine ? "#123238" : "#141729", border: `2px solid ${isMine && isOnClock ? "#FFD23F" : isMine ? "#4FD1C5" : isOnClock ? "#FFD23F88" : belowMin ? "#F0555A55" : "rgba(255,255,255,0.08)"}`, boxShadow: isMine ? "0 0 20px #4FD1C522" : "none", scrollMarginTop: 210 }} className="rounded-lg p-4">
               <div className="flex justify-between items-center mb-2">
-                <span className="font-semibold text-sm flex items-center gap-2">
+                <span className="font-semibold text-sm flex items-center gap-2 min-w-0">
                   <TeamLogo team={t} size={20} />
-                  {t.name}
-                  {!t.claimedBy && <span className="mono-font text-[9px] ml-1 px-1.5 py-0.5 rounded" style={{ background: "#4FD1C522", color: "#4FD1C5" }}>BOT</span>}
+                  <span className="min-w-0"><span className="truncate block" style={{ color: isMine ? "#4FD1C5" : "#EDEBFA" }}>{t.name}</span><span className="mono-font text-[9px] truncate block" style={{ color: isMine ? "#8AF5EA" : "#7F84A5" }}>{isMine ? "YOU · " : ""}{draftManagerLabel(t)}</span></span>
+                  {isOnClock && <span className="mono-font text-[9px] ml-1 px-1.5 py-0.5 rounded" style={{ background: "#FFD23F", color: "#10121C" }}>ON CLOCK</span>}
                 </span>
                 <span className="mono-font text-xs" style={{ color: belowMin ? "#F0555A" : "#4FD1C5" }}>
                   {usesRosterRange ? `${count}/${settings.rosterMax}${belowMin ? ` (min ${settings.rosterMin})` : ""}` : ""}
@@ -17062,6 +17334,8 @@ function TransactionsView({ state, myName, myTeamIdx, isCommissioner, freeAgents
   const [faDrop, setFaDrop] = useState("");
   const [faBid, setFaBid] = useState("");
   const [faError, setFaError] = useState("");
+  const [confirmFreeAgent, setConfirmFreeAgent] = useState(false);
+  const [faSubmitting, setFaSubmitting] = useState(false);
 
   const [tradeToTeam, setTradeToTeam] = useState(null);
   const [offerSel, setOfferSel] = useState([]);
@@ -17118,10 +17392,19 @@ function TransactionsView({ state, myName, myTeamIdx, isCommissioner, freeAgents
   const canActFor = (teamIdx) => isCommissioner || teams[teamIdx]?.claimedBy === myName;
 
   async function submitFreeAgent() {
-    if (!faAdd) return;
+    if (!faAdd || faSubmitting) return;
+    setFaSubmitting(true);
     const outcome = await submitFreeAgentClaim(faTeam, faAdd, faDrop || null, faBid);
+    setFaSubmitting(false);
+    setConfirmFreeAgent(false);
     if (outcome.ok) { setFaAdd(""); setFaDrop(""); setFaBid(""); setFaError(""); }
     else setFaError(outcome.reason || "That move isn't allowed.");
+  }
+
+  function requestFreeAgent() {
+    if (!faAdd || faSubmitting) return;
+    if (settings.faClaimMode === "instant") setConfirmFreeAgent(true);
+    else submitFreeAgent();
   }
 
   function toggleSel(list, setList, name) {
@@ -17142,9 +17425,33 @@ function TransactionsView({ state, myName, myTeamIdx, isCommissioner, freeAgents
   const historyTrades = trades.filter((t) => t.status !== "pending");
   const usesBudget = settings.draftType === "auction" || settings.snakeBudgetEnabled;
   const info = teamTransactionInfo(faTeam);
+  const weeklyRemaining = info.weekLimit == null ? null : Math.max(0, info.weekLimit - info.weekUsed);
+  const seasonRemaining = info.totalLimit == null ? null : Math.max(0, info.totalLimit - info.totalUsed);
 
   return (
     <div className="flex flex-col gap-6">
+      {confirmFreeAgent && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" style={{ background: "rgba(8, 10, 20, 0.84)" }}>
+          <section role="dialog" aria-modal="true" aria-labelledby="confirm-free-agent-title" className="w-full max-w-lg rounded-xl p-5 shadow-2xl" style={{ background: "#171A2C", border: "1px solid #FFD23F88" }}>
+            <h2 id="confirm-free-agent-title" className="display-font text-2xl mb-3" style={{ color: "#FFD23F" }}>USE A TRANSACTION?</h2>
+            <p className="text-sm mb-3" style={{ color: "#EDEBFA" }}>
+              <strong>{teams[faTeam]?.name}</strong> will add <strong>{faAdd}</strong>{faDrop ? <> and drop <strong>{faDrop}</strong></> : ""} immediately.
+            </p>
+            <div className="rounded-lg p-3 mb-5 text-sm" style={{ background: weeklyRemaining === 1 ? "#2B2412" : "#102B2B", color: weeklyRemaining === 1 ? "#FFE9A1" : "#BDF7EE" }}>
+              {info.weekLimit == null
+                ? "This league currently allows unlimited weekly transactions."
+                : `This will use transaction ${info.weekUsed + 1} of ${info.weekLimit} for this week${weeklyRemaining === 1 ? "; no more moves will remain this week" : ""}.`}
+              {seasonRemaining != null ? ` ${seasonRemaining} season transaction${seasonRemaining === 1 ? "" : "s"} remain before this move.` : ""}
+            </div>
+            <div className="flex justify-end gap-3 flex-wrap">
+              <button type="button" disabled={faSubmitting} onClick={() => setConfirmFreeAgent(false)} className="px-4 py-2 rounded font-semibold text-sm disabled:opacity-50" style={{ background: "#1F2338", color: "#C8CDEA" }}>CANCEL</button>
+              <button type="button" disabled={faSubmitting} onClick={submitFreeAgent} className="px-4 py-2 rounded font-semibold text-sm disabled:opacity-60" style={{ background: "#FFD23F", color: "#10121C" }}>
+                {faSubmitting ? "PROCESSING…" : "CONFIRM TRANSACTION"}
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
       {/* TRADES */}
       <div style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }} className="rounded-lg p-6">
         <h2 className="display-font text-2xl mb-1" style={{ color: "#FFD23F" }}>PROPOSE A TRADE</h2>
@@ -17311,10 +17618,14 @@ function TransactionsView({ state, myName, myTeamIdx, isCommissioner, freeAgents
       <div style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }} className="rounded-lg p-6">
         <h2 className="display-font text-2xl mb-1" style={{ color: "#FFD23F" }}>FREE AGENCY</h2>
         <p className="text-sm mb-1" style={{ color: "#9A9FBD" }}>{freeAgents.length} pokémon unrostered and available to pick up.</p>
-        <p className="text-xs mb-4 mono-font" style={{ color: info.blocked ? "#F0555A" : "#5B5F7E" }}>
-          {teams[faTeam]?.name}: {info.totalUsed} used this season{info.totalLimit ? ` of ${info.totalLimit}` : ""} · {info.weekUsed} used this week{info.weekLimit ? ` of ${info.weekLimit}` : ""}
+        <p className="text-xs mb-2 mono-font" style={{ color: info.blocked ? "#F0555A" : "#5B5F7E" }}>
+          {teams[faTeam]?.name}: {info.totalUsed} used this season{info.totalLimit != null ? ` of ${info.totalLimit}` : " (unlimited)"} · {info.weekUsed} used this week{info.weekLimit != null ? ` of ${info.weekLimit}` : " (unlimited)"}
           {usesBudget && ` · ${budgets[faTeam] ?? 0}pt budget left`}
         </p>
+        <div className="rounded px-3 py-2 mb-4 text-sm" style={{ background: info.blocked ? "#2A1620" : "#102B2B", border: `1px solid ${info.blocked ? "#F0555A55" : "#4FD1C544"}`, color: info.blocked ? "#FFB8C0" : "#BDF7EE" }}>
+          {weeklyRemaining == null ? "Weekly allowance: Unlimited" : `Weekly allowance: ${weeklyRemaining} of ${info.weekLimit} remaining`}
+          {seasonRemaining != null ? ` · Season allowance: ${seasonRemaining} remaining` : ""}
+        </div>
 
         <div className="grid md:grid-cols-3 gap-3 mb-4">
           <div>
@@ -17366,10 +17677,10 @@ function TransactionsView({ state, myName, myTeamIdx, isCommissioner, freeAgents
             This queues a claim rather than acting right away — see Pending Claims below. The server resolves everyone's claims together at the scheduled time, or a commissioner can process them early.
           </p>
         )}
-        <button onClick={submitFreeAgent} disabled={!canActFor(faTeam) || !faAdd || info.blocked}
+        <button onClick={requestFreeAgent} disabled={!canActFor(faTeam) || !faAdd || info.blocked || faSubmitting}
           className="px-4 py-2 rounded font-semibold text-sm disabled:opacity-40"
           style={{ background: "#FFD23F", color: "#10121C" }}>
-          {settings.faClaimMode === "instant" ? "PROCESS TRANSACTION" : "SUBMIT CLAIM"}
+          {faSubmitting ? "PROCESSING…" : settings.faClaimMode === "instant" ? "REVIEW TRANSACTION" : "SUBMIT CLAIM"}
         </button>
         {!canActFor(faTeam) && <p className="text-xs mt-2" style={{ color: "#5B5F7E" }}>Only that team's owner or the commissioner can make this move.</p>}
         {info.blocked && canActFor(faTeam) && (

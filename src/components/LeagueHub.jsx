@@ -5,6 +5,7 @@ import { createClient } from "../lib/supabase/client";
 import { POLL_POKEMON_DEX_NAMES, POLL_POKEMON_NAMES } from "./PokemonDraftLeague";
 import DailyCommunityGames from "./DailyCommunityGames";
 import PublicCoachProfile, { CoachProfileButton } from "./PublicCoachProfile";
+import { openSetupTeams } from "../lib/teamOwnership";
 
 const LEAGUE_HUB_FALLBACK_REFRESH_MS = 60000;
 
@@ -204,8 +205,16 @@ function PollOfTheDay({ supabase }) {
 function PublicLeagueDetails({ league, membership, busy, onClose, onOpen, onJoin }) {
   if (!league) return null;
   const watchOnly = league.league_visibility === "watch";
-  const action = membership ? (membership.role === "commissioner" ? "Manage league" : "Open league") : watchOnly ? "Watch league" : "View setup and choose a team";
-  return <div className="modal-backdrop"><section className="tools-modal"><button className="modal-close" onClick={onClose}>x</button><span className="eyebrow">{watchOnly ? "PUBLIC TO WATCH" : "OPEN TO JOIN"}</span>{league.image_url && <img className="league-cover" src={league.image_url} alt={`${league.name} cover`} />}{league.is_practice && <span className="practice-badge">Practice league</span>}<h2>{league.name}</h2><p className="muted">{league.season_label || "New season"}</p><p><strong>Draft:</strong> {formatDraftStart(league.draft_starts_at)}</p><p><strong>Managers:</strong> {league.filled_spots || 0}{league.total_spots ? ` / ${league.total_spots}` : ""} filled</p><PublicDraftDetails league={league} /><p>{league.description || "The commissioner has not added a league description yet."}</p><button className="primary-button" disabled={busy} onClick={() => membership ? onOpen({ ...league, role: membership.role }) : watchOnly ? window.location.assign(`/league/${league.slug}`) : onJoin(league)}>{action}</button></section></div>;
+  const action = membership
+    ? membership.role === "commissioner"
+      ? "Manage league"
+      : membership.league?.has_team === false && !watchOnly
+        ? "Choose a team"
+        : "Open league"
+    : watchOnly
+      ? "Watch league"
+      : "View setup and choose a team";
+  return <div className="modal-backdrop"><section className="tools-modal"><button className="modal-close" onClick={onClose}>x</button><span className="eyebrow">{watchOnly ? "PUBLIC TO WATCH" : "OPEN TO JOIN"}</span>{league.image_url && <img className="league-cover" src={league.image_url} alt={`${league.name} cover`} />}{league.is_practice && <span className="practice-badge">Practice league</span>}<h2>{league.name}</h2><p className="muted">{league.season_label || "New season"}</p><p><strong>Draft:</strong> {formatDraftStart(league.draft_starts_at)}</p><p><strong>Teams claimed:</strong> {league.filled_spots || 0}{league.total_spots ? ` / ${league.total_spots}` : ""}</p><PublicDraftDetails league={league} /><p>{league.description || "The commissioner has not added a league description yet."}</p><button className="primary-button" disabled={busy} onClick={() => membership ? onOpen({ ...league, role: membership.role }) : watchOnly ? window.location.assign(`/league/${league.slug}`) : onJoin(league)}>{action}</button></section></div>;
 }
 
 function isCoachOnClock(state, profile, liveDraft = null) {
@@ -276,11 +285,18 @@ export default function LeagueHub({ user, profile, onOpenLeague }) {
     const markedMemberships = memberships.map((entry) => {
       const leagueState = states.get(entry.league.id);
       const onClock = isCoachOnClock(leagueState, profile, liveDrafts.get(entry.league.id));
+      const identity = String(profile?.display_name || profile?.username || "").trim().toLowerCase();
+      const ownedTeam = (leagueState?.teams || []).find((team) =>
+        team?.claimedByUserId
+          ? team.claimedByUserId === user.id
+          : identity && String(team?.claimedBy || "").trim().toLowerCase() === identity
+      );
       return {
         ...entry,
         league: {
           ...entry.league,
           on_clock: onClock,
+          has_team: Boolean(ownedTeam),
           draft_live: isDraftLive(leagueState),
           live_matches: liveMatches.get(entry.league.id) || [],
         },
@@ -350,7 +366,7 @@ export default function LeagueHub({ user, profile, onOpenLeague }) {
       supabase.from("league_state_snapshots").select("state").eq("league_id", leagueId).maybeSingle(),
     ]);
     setInviteBusy(false); dismissInvite(); await loadLeagues();
-    const openTeams = (snapshot?.state?.teams || []).map((team, index) => ({ ...team, index })).filter((team) => !team.claimedBy);
+    const openTeams = openSetupTeams(snapshot?.state?.teams || []);
     if (league && acceptedRole === "coach" && !snapshot?.state?.locked && openTeams.length) {
       setPendingTeamClaim({ league, role: acceptedRole, teams: openTeams });
       return;
@@ -367,7 +383,29 @@ export default function LeagueHub({ user, profile, onOpenLeague }) {
     onOpenLeague({ ...league, role: "coach" });
   }
   async function createLeague(event) { event.preventDefault(); const cleanName = name.trim(); if (!cleanName) return; const slug = `${slugify(cleanName)}-${Math.random().toString(36).slice(2, 7)}`; setBusy(true); setMessage(""); const { data, error } = await supabase.rpc("create_league", { p_name: cleanName, p_slug: slug, p_description: description, p_season_label: season, p_visibility: visibility, p_is_practice: isPractice, p_draft_starts_at: draftStartsAt ? new Date(draftStartsAt).toISOString() : null }); if (error) { setBusy(false); return setMessage(error.message); } const {data: visibilityPlan, error: visibilityError}=await supabase.rpc("update_league_visibility_plan",{p_league_id:data,p_current_visibility:visibility,p_draft_start_visibility:draftStartVisibility==="default"?null:draftStartVisibility}); if (visibilityError) { setBusy(false); return setMessage(`League created, but its visibility plan could not be saved: ${visibilityError.message}`); } if (imageUrl.trim()) { const { error: imageError } = await supabase.rpc("update_league_image", { p_league_id: data, p_image_url: imageUrl.trim() }); if (imageError) setMessage(`League created, but its image could not be saved: ${imageError.message}`); } setBusy(false); onOpenLeague({ id: data, name: cleanName, slug, description, image_url: imageUrl.trim() || null, season_label: season, draft_starts_at: draftStartsAt ? new Date(draftStartsAt).toISOString() : null, league_visibility: visibilityPlan?.league_visibility||visibility, draft_start_visibility:visibilityPlan?.draft_start_visibility||null, is_practice: isPractice, role: "commissioner", isNew: true }); }
-  async function joinPublicLeague(league) { const membership = membershipFor(league); if (membership) return onOpenLeague({ ...league, role: membership.role }); setBusy(true); setMessage(""); const { data, error } = await supabase.rpc("join_open_league", { p_slug: league.slug }); setBusy(false); if (error) return setMessage(error.message); setPublicDetails(null); onOpenLeague({ ...league, id: data, role: "coach" }); }
+  async function joinPublicLeague(league) {
+    const membership = membershipFor(league);
+    if (membership) return onOpenLeague({ ...league, role: membership.role });
+    setBusy(true); setMessage("");
+    const { data: leagueId, error } = await supabase.rpc("join_open_league", { p_slug: league.slug });
+    if (error) { setBusy(false); return setMessage(error.message); }
+    const { data: snapshot, error: snapshotError } = await supabase
+      .from("league_state_snapshots")
+      .select("state")
+      .eq("league_id", leagueId)
+      .maybeSingle();
+    setBusy(false);
+    if (snapshotError) return setMessage(snapshotError.message);
+    const joinedLeague = { ...league, id: leagueId, role: "coach" };
+    const openTeams = openSetupTeams(snapshot?.state?.teams || []);
+    setPublicDetails(null);
+    await loadLeagues();
+    if (!snapshot?.state?.locked && openTeams.length) {
+      setPendingTeamClaim({ league: joinedLeague, role: "coach", teams: openTeams });
+      return;
+    }
+    onOpenLeague(joinedLeague);
+  }
   async function setLeagueArchived(leagueId, archived) {
     if (leagueActionId) return;
     setLeagueActionId(leagueId); setMessage("");
@@ -411,11 +449,11 @@ return (
       {loading && <p className="muted">Loading your leagues...</p>}
       {!loading && leagues.length === 0 && <div className="empty-state"><strong>You are ready to join.</strong><p>Ask a commissioner for an invite link, or create a league if you are running the season.</p></div>}
       {!loading && leagues.length > 0 && visibleLeagues.length === 0 && <div className="empty-state"><strong>{showArchived ? "No archived leagues." : "No active leagues."}</strong><p>{showArchived ? "Leagues you archive will remain available here." : "Restore a league from Archived, join one, or create a new league."}</p></div>}
-      <div className="league-list">{visibleLeagues.map(({ league, role, archived_at: archivedAt }) => { const lifecycleArchived = league.status === "archived"; return <article className="league-row dashboard-league-row dashboard-league-card" key={league.id}>
+      <div className="league-list">{visibleLeagues.map(({ league, role, archived_at: archivedAt }) => { const lifecycleArchived = league.status === "archived"; const needsTeam = role === "coach" && league.has_team === false && !league.draft_live; return <article className="league-row dashboard-league-row dashboard-league-card" key={league.id}>
         <button type="button" className="dashboard-league-open" onClick={() => onOpenLeague({ ...league, role })}>
           {league.image_url && <img className="dashboard-league-image" src={league.image_url} alt="" />}
-          <div><strong>{league.name}</strong><span>{lifecycleArchived ? `LEAGUE ARCHIVED · ${league.season_label || "History preserved"}` : league.on_clock ? "⚡ YOUR PICK IS ON THE CLOCK" : league.live_matches?.length ? `● MATCH LIVE · ${league.live_matches[0].title}` : league.draft_live ? `● DRAFT LIVE · ${league.season_label || "New season"}` : `${league.season_label || "New season"} - ${role.replace("_", " ")}`}</span></div>
-          <span className="open-arrow">{league.on_clock ? "Draft now" : league.live_matches?.length ? "Watch match" : league.draft_live ? "Follow draft" : "Open"}</span>
+          <div><strong>{league.name}</strong><span>{lifecycleArchived ? `LEAGUE ARCHIVED · ${league.season_label || "History preserved"}` : league.on_clock ? "⚡ YOUR PICK IS ON THE CLOCK" : league.live_matches?.length ? `● MATCH LIVE · ${league.live_matches[0].title}` : league.draft_live ? `● DRAFT LIVE · ${league.season_label || "New season"}` : needsTeam ? `${league.season_label || "New season"} · Team not claimed` : `${league.season_label || "New season"} - ${role.replace("_", " ")}`}</span></div>
+          <span className="open-arrow">{league.on_clock ? "Draft now" : league.live_matches?.length ? "Watch match" : league.draft_live ? "Follow draft" : needsTeam ? "Choose team" : "Open"}</span>
         </button>
         {!lifecycleArchived && <button type="button" className="quiet-button dashboard-league-archive" disabled={leagueActionId === league.id} onClick={() => setLeagueArchived(league.id, !archivedAt)}>{leagueActionId === league.id ? "Saving..." : archivedAt ? "Restore" : "Hide for me"}</button>}
       </article>; })}</div>
@@ -424,7 +462,7 @@ return (
       <PollOfTheDay supabase={supabase} />
       <DailyCommunityGames signedIn />
     </section>
-    <section className="hub-card public-card" id="public-leagues"><div className="section-heading"><div><span className="eyebrow">DISCOVER</span><h2>Public leagues</h2></div><span className="muted">Join a team or follow a season.</span></div><div className="flex gap-2 mb-5"><button className={publicTab === "join" ? "primary-button" : "quiet-button"} onClick={() => setPublicTab("join")}>Open to join</button><button className={publicTab === "watch" ? "primary-button" : "quiet-button"} onClick={() => setPublicTab("watch")}>Open to watch</button></div>{!loading && publicLeagues.filter((league) => league.league_visibility === (publicTab === "join" ? "open" : "watch")).length === 0 && <p className="muted">{publicTab === "join" ? "No leagues are open for new managers yet." : "No watchable leagues have been published yet."}</p>}<div className="public-grid">{publicLeagues.filter((league) => league.league_visibility === (publicTab === "join" ? "open" : "watch")).map((league) => { const membership = membershipFor(league); const watchOnly = league.league_visibility === "watch"; return <article key={league.id} className="public-league">{league.image_url && <img className="public-league-image" src={league.image_url} alt="" />}<button className="public-league-title" onClick={() => setPublicDetails(league)}><strong>{league.name}</strong><span>View league details</span></button><p>{league.description || league.season_label || "Public league"}</p><small className="muted">{formatDraftStart(league.draft_starts_at)} · {league.filled_spots || 0}{league.total_spots ? ` / ${league.total_spots}` : ""} managers filled</small><PublicDraftDetails league={league} compact />{league.is_practice && <span className="practice-badge">Practice</span>}<button className="secondary-button" disabled={busy} onClick={() => membership ? onOpenLeague({ ...league, role: membership.role }) : watchOnly ? window.location.assign(`/league/${league.slug}`) : joinPublicLeague(league)}>{membership ? (membership.role === "commissioner" ? "Manage league" : "Open your league") : watchOnly ? "Watch league" : "Join as a manager"}</button></article>; })}</div></section>
+    <section className="hub-card public-card" id="public-leagues"><div className="section-heading"><div><span className="eyebrow">DISCOVER</span><h2>Public leagues</h2></div><span className="muted">Join a team or follow a season.</span></div><div className="flex gap-2 mb-5"><button className={publicTab === "join" ? "primary-button" : "quiet-button"} onClick={() => setPublicTab("join")}>Open to join</button><button className={publicTab === "watch" ? "primary-button" : "quiet-button"} onClick={() => setPublicTab("watch")}>Open to watch</button></div>{!loading && publicLeagues.filter((league) => league.league_visibility === (publicTab === "join" ? "open" : "watch")).length === 0 && <p className="muted">{publicTab === "join" ? "No leagues are open for new managers yet." : "No watchable leagues have been published yet."}</p>}<div className="public-grid">{publicLeagues.filter((league) => league.league_visibility === (publicTab === "join" ? "open" : "watch")).map((league) => { const membership = membershipFor(league); const watchOnly = league.league_visibility === "watch"; return <article key={league.id} className="public-league">{league.image_url && <img className="public-league-image" src={league.image_url} alt="" />}<button className="public-league-title" onClick={() => setPublicDetails(league)}><strong>{league.name}</strong><span>View league details</span></button><p>{league.description || league.season_label || "Public league"}</p><small className="muted">{formatDraftStart(league.draft_starts_at)} · {league.filled_spots || 0}{league.total_spots ? ` / ${league.total_spots}` : ""} teams claimed</small><PublicDraftDetails league={league} compact />{league.is_practice && <span className="practice-badge">Practice</span>}<button className="secondary-button" disabled={busy} onClick={() => membership ? onOpenLeague({ ...league, role: membership.role }) : watchOnly ? window.location.assign(`/league/${league.slug}`) : joinPublicLeague(league)}>{membership ? (membership.role === "commissioner" ? "Manage league" : "Open your league") : watchOnly ? "Watch league" : "Join as a manager"}</button></article>; })}</div></section>
     <details className="hub-card create-card"><summary><span><span className="eyebrow">COMMISSIONERS</span><strong>Start a new league</strong><small>Create and customize a league when you are ready.</small></span><b>Open setup</b></summary><div className="create-card-body"><p className="muted">Set up a league now; you can change every detail later.</p><form onSubmit={createLeague} className="form-stack"><label>League name<input required minLength={2} value={name} onChange={(e) => setName(e.target.value)} placeholder="Kanto Cup" /></label><label>Season label<input value={season} onChange={(e) => setSeason(e.target.value)} placeholder="Season 1" /></label><label>Draft start date and time (optional)<input type="datetime-local" value={draftStartsAt} onChange={(e) => setDraftStartsAt(e.target.value)} /><small>For unattended snake drafts, confirm AUTOMATIC START READY in Draft Setup after creation.</small></label><label>Short public description<textarea rows={3} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="What kind of league is this?" /></label><label>League image URL (optional)<input type="url" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="https://..." /></label><label>Who can access it before the draft?<select value={visibility} onChange={(e) => setVisibility(e.target.value)}><option value="private">Private - invite link only</option><option value="watch">Public to watch - people can view setup</option><option value="open">Open to join - shown in Discover</option></select></label><label>When the draft starts<select value={draftStartVisibility} onChange={(e)=>setDraftStartVisibility(e.target.value)}><option value="default">Default - close joining and keep the season public</option><option value="private">Make the league private</option><option value="watch">Make the season public to watch</option></select></label><label className="check-label"><input type="checkbox" checked={isPractice} onChange={(e) => setIsPractice(e.target.checked)} /> <span>Practice league - kept out of career stats</span></label><button className="primary-button" disabled={busy}>{busy ? "Working..." : "Create league"}</button></form></div></details>
     <section className="hub-destination-grid hub-home-destinations"><a className="hub-destination-card community-destination" href="/explore"><div><span className="eyebrow">COMMUNITY</span><h3>Trends and favorites</h3><p>See what coaches are voting for, favoriting, and drafting.</p><strong>Explore community →</strong></div><FeaturePokemon names={communityPokemon} /></a><a className="hub-destination-card pokemon-destination" href="/pokemon"><div><span className="eyebrow">POKÉMON</span><h3>Explore the Pokédex</h3><p>Search Pokémon, compare stats, and study game-specific move pools.</p><strong>Explore Pokémon →</strong></div><FeaturePokemon names={POLL_POKEMON_NAMES} interval={6200} /></a></section>
     {publicDetails && <PublicLeagueDetails league={publicDetails} membership={membershipFor(publicDetails)} busy={busy} onClose={() => setPublicDetails(null)} onOpen={onOpenLeague} onJoin={joinPublicLeague} />}
