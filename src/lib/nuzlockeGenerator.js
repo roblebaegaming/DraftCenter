@@ -67,17 +67,27 @@ export function generateNuzlockeTeam(encounters, options = {}) {
   }
 
   const random = seededRandom(`${options.seed}:${mode}:${weighting}`);
-  const areaKeys = mode === "true-random" ? shuffled([...byArea.keys()], random) : [...byArea.keys()];
-  const candidates = areaKeys.map((areaKey) => pick(byArea.get(areaKey), random, weighting));
-  const ordered = candidates;
   const selected = [];
   const families = new Set();
-  for (const entry of ordered) {
+  const accept = (entry) => {
     const family = String(entry.species_family || entry.pokemon_id).toLowerCase();
-    if (options.familyClause && families.has(family)) continue;
+    if (options.familyClause && families.has(family)) return false;
     selected.push(entry);
     families.add(family);
-    if (selected.length === teamSize) break;
+    return true;
+  };
+  if (mode === "route-random") {
+    for (const areaKey of shuffled([...byArea.keys()], random)) {
+      accept(pick(byArea.get(areaKey), random, weighting));
+      if (selected.length === teamSize) break;
+    }
+  } else {
+    let pool = [...eligible];
+    while (pool.length && selected.length < teamSize) {
+      const entry = pick(pool, random, weighting);
+      pool = pool.filter((candidate) => candidate.area_key !== entry.area_key);
+      accept(entry);
+    }
   }
   return {
     team: selected,
