@@ -54,6 +54,7 @@ create table public.pokemon_game_encounters (
   is_legendary boolean not null default false,
   artwork_url text,
   source_commit text not null check (source_commit ~ '^[0-9a-f]{40}$'),
+  foreign key (game_key, area_key) references public.pokemon_game_locations(game_key, area_key) on delete restrict,
   unique nulls not distinct (game_key, area_key, pokemon_id, form_name, method, min_level, max_level, conditions)
 );
 
