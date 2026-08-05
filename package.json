@@ -26,7 +26,7 @@
     "test:league-counts": "node --test test/league-count-consistency.test.js",
     "test:nuzlocke": "node --test test/nuzlocke-generator.test.js test/nuzlocke-catalog-security.test.js",
     "catalog:audit": "node scripts/audit-pokemon-game-catalog.mjs",
-    "catalog:audit:red": "node scripts/audit-pokemon-red-sources.mjs",
+    "catalog:audit:red": "node scripts/audit-pokemon-red-sources.mjs --input data/nuzlocke/pokemon-red.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json --pret-commit cf621a76d4941c93c078eb38e0880fe8db48ef40 --veekun-commit cc483e1877f22b8c19ac27ec0ff5fafd09c5cd5b",
     "catalog:build": "node scripts/build-pokeapi-game-catalog.mjs",
     "catalog:build:migration": "node scripts/build-pokemon-catalog-migration.mjs",
     "catalog:import": "node scripts/import-pokemon-game-catalog.mjs",
