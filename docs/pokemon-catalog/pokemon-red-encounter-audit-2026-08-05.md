@@ -8,10 +8,10 @@ change league legality.
 
 The import and verification are separate forward-only migrations:
 
-- `256-versioned-pokemon-encounter-catalog.sql` creates the fail-closed schema;
-- `257-import-pokemon-red-encounter-catalog.sql` imports the pinned snapshot as
+- `261-versioned-pokemon-encounter-catalog.sql` creates the fail-closed schema;
+- `262-import-pokemon-red-encounter-catalog.sql` imports the pinned snapshot as
   `pending`; and
-- `258-verify-pokemon-red-encounter-catalog.sql` verifies exact counts and
+- `263-verify-pokemon-red-encounter-catalog.sql` verifies exact counts and
   publishes only that pinned pending snapshot.
 
 No migration was applied while preparing this audit.
@@ -36,6 +36,8 @@ The generated snapshot contains:
 - 74 unique location-area keys;
 - 891 encounter rows;
 - 106 obtainable Pokémon profiles;
+- a pinned final-evolution mapping for all 106 obtainable profiles, limited to
+  the 151 species available in Pokémon Red;
 - nine encounter methods: walking, surfing, all three rods, gifts, static
   encounters, Poké Flute encounters, and NPC trades; and
 - pinned source commits on every imported row.
@@ -57,17 +59,20 @@ systems, so those categories are correctly empty rather than omitted.
 
 ## Reproduction
 
-Run the builder, preview importer, and source audit with the exact commits
-recorded above. The source audit fails closed on changed counts, unresolved or
-duplicate area keys, missing methods, ordinary encounter drift, an unexpected
-special-encounter delta, or a wild-table mismatch.
+Run the builder with `--evolutions-output`, then run the preview importer and
+source audit with the exact commits recorded above. The final-evolution mapping
+is derived from the pinned species relationships and the game-specific
+Pokédex, so later-generation evolutions such as Crobat and Steelix are not
+treated as available in Red. The source audit fails closed on changed counts,
+unresolved or duplicate area keys, missing methods, ordinary encounter drift,
+an unexpected special-encounter delta, or a wild-table mismatch.
 
 The database audit additionally reports per-game Pokédex, species, form,
 location, encounter, method, and condition totals after migrations are applied.
 
 ## Release boundary
 
-Review migrations 256–258 and the Preview deployment before merge. Apply them
+Review migrations 261–264 and the Preview deployment before merge. Apply them
 only through the authorized release flow. Do not run the production smoke test
 until the deployed commit is confirmed. No production league, draft, roster,
 queue, membership, deadline, notification, provider, or catalog row was changed

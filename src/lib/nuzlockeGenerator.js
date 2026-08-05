@@ -54,6 +54,40 @@ function shuffled(values, random) {
   return result;
 }
 
+function applyFinalEvolutions(encounters, options) {
+  if (options.finalEvolutionOnly !== true) return encounters;
+  const rows = options.evolutionCatalog?.evolutions;
+  if (!Array.isArray(rows) || !rows.length) throw new Error("Final evolution data is unavailable for this game.");
+  const evolutionByPokemon = new Map(rows.map((row) => [String(row.pokemon_id), row.final_evolutions]));
+  const selectedFinalByPokemon = new Map();
+  return encounters.map((entry) => {
+    const sourceId = String(entry?.pokemon_id || "");
+    const finalChoices = evolutionByPokemon.get(sourceId);
+    if (!Array.isArray(finalChoices) || !finalChoices.length) throw new Error("Final evolution data is incomplete for this game's encounter pool.");
+    if (!selectedFinalByPokemon.has(sourceId)) {
+      const random = seededRandom(`${options.seed}:${options.evolutionCatalog.game_key}:final-evolution:${sourceId}`);
+      selectedFinalByPokemon.set(sourceId, finalChoices[Math.floor(random() * finalChoices.length)]);
+    }
+    const finalPokemon = selectedFinalByPokemon.get(sourceId);
+    if (!finalPokemon?.pokemon_id || !finalPokemon?.pokemon_name) throw new Error("Final evolution data is incomplete for this game's encounter pool.");
+    const changed = Number(finalPokemon.pokemon_id) !== Number(entry.pokemon_id) || finalPokemon.pokemon_name !== entry.pokemon_name || String(finalPokemon.form_name || "") !== String(entry.form_name || "");
+    return {
+      ...entry,
+      ...(changed ? {
+        encounter_pokemon_id: entry.pokemon_id,
+        encounter_pokemon_name: entry.pokemon_name,
+        encounter_form_name: entry.form_name,
+        encounter_artwork_url: entry.artwork_url,
+      } : {}),
+      pokemon_id: Number(finalPokemon.pokemon_id),
+      pokemon_name: finalPokemon.pokemon_name,
+      form_name: String(finalPokemon.form_name || ""),
+      artwork_url: finalPokemon.artwork_url || entry.artwork_url,
+      is_final_evolution: true,
+    };
+  });
+}
+
 export function generateNuzlockeTeam(encounters, options = {}) {
   const mode = String(options.mode || "");
   const weighting = String(options.weighting || "equal");
@@ -62,11 +96,15 @@ export function generateNuzlockeTeam(encounters, options = {}) {
   if (!WEIGHTING.has(weighting)) throw new Error("Unknown Nuzlocke weighting mode.");
   if (!Number.isInteger(teamSize) || teamSize < 1 || teamSize > 12) throw new Error("Team size must be between 1 and 12.");
 
+  const preparedEncounters = applyFinalEvolutions(encounters || [], options);
   const excluded = new Set((options.exclusions || []).map((value) => String(value).toLowerCase()));
   const methods = new Set((options.methods || []).map((value) => String(value).toLowerCase()));
-  const eligible = (encounters || []).filter((entry) => {
+  const eligible = preparedEncounters.filter((entry) => {
     if (!entry?.area_key || !entry?.pokemon_name) return false;
-    if (excluded.has(String(entry.pokemon_name).toLowerCase()) || excluded.has(String(entry.pokemon_id).toLowerCase())) return false;
+    const identities = [entry.pokemon_name, entry.pokemon_id, entry.encounter_pokemon_name, entry.encounter_pokemon_id]
+      .filter((value) => value != null)
+      .map((value) => String(value).toLowerCase());
+    if (identities.some((value) => excluded.has(value))) return false;
     if (options.excludeLegendaries && entry.is_legendary) return false;
     if (methods.size && !methods.has(String(entry.method || "").toLowerCase())) return false;
     return true;
@@ -126,5 +164,6 @@ export function generateNuzlockeTeam(encounters, options = {}) {
     complete: selected.length === teamSize,
     requested: teamSize,
     available: selected.length,
+    finalEvolutionOnly: options.finalEvolutionOnly === true,
   };
 }

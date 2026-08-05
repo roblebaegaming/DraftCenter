@@ -22,7 +22,7 @@ description = "Pinned Pokemon Red import public location identifiers"
 condition = "AND"
 regexTarget = "match"
 paths = [
-  '''^supabase/257-import-pokemon-red-encounter-catalog\.sql$''',
+  '''^supabase/262-import-pokemon-red-encounter-catalog\.sql$''',
 ]
 regexes = [
   '''^(?:area_key|location_key)"\s*:\s*"[a-z0-9-]+"$''',
