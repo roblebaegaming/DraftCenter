@@ -1,0 +1,39 @@
+import fs from "node:fs/promises";
+import path from "node:path";
+
+const args=new Map(process.argv.slice(2).map((value,index,list)=>value.startsWith("--")?[value,list[index+1]]:null).filter(Boolean));
+const game=String(args.get("--game")||""); const commit=String(args.get("--commit")||""); const spritesCommit=String(args.get("--sprites-commit")||""); const output=String(args.get("--output")||"");
+if(game!=="red") throw new Error("The first reviewed builder supports exactly --game red.");
+if(!/^[0-9a-f]{40}$/.test(commit)) throw new Error("--commit must be an exact 40-character PokeAPI commit.");
+if(!/^[0-9a-f]{40}$/.test(spritesCommit)) throw new Error("--sprites-commit must be an exact 40-character PokeAPI sprites commit.");
+if(!output) throw new Error("--output is required.");
+const base=`https://raw.githubusercontent.com/PokeAPI/pokeapi/${commit}/data/v2/csv`;
+
+function csv(text){
+  const rows=[]; let row=[]; let field=""; let quoted=false;
+  for(let index=0;index<text.length;index+=1){ const character=text[index];
+    if(quoted){ if(character==='"'&&text[index+1]==='"'){field+='"';index+=1;} else if(character==='"') quoted=false; else field+=character; }
+    else if(character==='"') quoted=true; else if(character===','){row.push(field);field="";} else if(character==='\n'){row.push(field.replace(/\r$/, ""));rows.push(row);row=[];field="";} else field+=character;
+  }
+  if(field||row.length){row.push(field);rows.push(row);} const headers=rows.shift();
+  return rows.filter((values)=>values.some(Boolean)).map((values)=>Object.fromEntries(headers.map((header,index)=>[header,values[index]??""])));
+}
+async function load(name){ const response=await fetch(`${base}/${name}`); if(!response.ok) throw new Error(`${name} returned ${response.status}`); return csv(await response.text()); }
+const names=["versions.csv","version_groups.csv","encounters.csv","encounter_slots.csv","encounter_methods.csv","encounter_condition_values.csv","encounter_condition_value_map.csv","location_areas.csv","location_area_prose.csv","locations.csv","pokemon.csv","pokemon_species.csv","pokemon_species_names.csv","pokemon_forms.csv","pokemon_dex_numbers.csv","pokedexes.csv","pokedex_version_groups.csv"];
+const loaded=await Promise.all(names.map(load)); const data=Object.fromEntries(names.map((name,index)=>[name,loaded[index]]));
+const byId=(rows)=>new Map(rows.map((row)=>[row.id,row])); const version=data["versions.csv"].find((row)=>row.identifier===game); if(!version) throw new Error("Red version is missing.");
+const slots=byId(data["encounter_slots.csv"]); const methods=byId(data["encounter_methods.csv"]); const areas=byId(data["location_areas.csv"]); const locations=byId(data["locations.csv"]); const pokemon=byId(data["pokemon.csv"]); const species=byId(data["pokemon_species.csv"]);
+const englishSpecies=new Map(data["pokemon_species_names.csv"].filter((row)=>row.local_language_id==="9").map((row)=>[row.pokemon_species_id,row.name]));
+const englishAreas=new Map(data["location_area_prose.csv"].filter((row)=>row.local_language_id==="9").map((row)=>[row.location_area_id,row.name]));
+const conditionNames=new Map(data["encounter_condition_values.csv"].map((row)=>[row.id,row.identifier])); const conditions=new Map();
+for(const row of data["encounter_condition_value_map.csv"]){if(!conditions.has(row.encounter_id))conditions.set(row.encounter_id,[]);conditions.get(row.encounter_id).push(conditionNames.get(row.encounter_condition_value_id));}
+const title=(value)=>String(value||"").replaceAll("-"," ").replace(/\b\w/g,(letter)=>letter.toUpperCase());
+const rawEncounters=data["encounters.csv"].filter((row)=>row.version_id===version.id); const usedAreas=new Set(rawEncounters.map((row)=>row.location_area_id));
+const areaDetails=new Map([...usedAreas].map((areaId)=>{const area=areas.get(areaId);const location=locations.get(area.location_id);const locationKey=location?.identifier||`location-${area.location_id}`;const subArea=area.identifier||"main-area";return [areaId,{locationKey,subArea,areaKey:`${locationKey}-${subArea}`}];}));
+const locationRows=[...usedAreas].map((areaId,index)=>{const details=areaDetails.get(areaId);const areaName=englishAreas.get(areaId)||title(details.subArea);return {location_key:details.locationKey,area_key:details.areaKey,sub_area:details.subArea,display_name:details.subArea==="main-area"?title(details.locationKey):`${title(details.locationKey)} — ${areaName}`,sort_order:index+1};});
+const encounterRows=rawEncounters.map((row)=>{const profile=pokemon.get(row.pokemon_id);const parent=species.get(profile.species_id);const slot=slots.get(row.encounter_slot_id);return {source_encounter_id:Number(row.id),area_key:areaDetails.get(row.location_area_id).areaKey,pokemon_id:Number(row.pokemon_id),pokemon_name:englishSpecies.get(profile.species_id)||title(profile.identifier),form_name:profile.identifier===parent.identifier?"":title(profile.identifier),species_family:`evolution-chain-${parent.evolution_chain_id}`,method:methods.get(slot.encounter_method_id).identifier,min_level:Number(row.min_level)||null,max_level:Number(row.max_level)||null,chance:Number(slot.rarity)||null,conditions:(conditions.get(row.id)||[]).filter(Boolean).sort(),is_legendary:parent.is_legendary==="1"||parent.is_mythical==="1",artwork_url:`https://raw.githubusercontent.com/PokeAPI/sprites/${spritesCommit}/sprites/pokemon/other/official-artwork/${row.pokemon_id}.png`};});
+const groupPokedexIds=new Set(data["pokedex_version_groups.csv"].filter((row)=>row.version_group_id===version.version_group_id).map((row)=>row.pokedex_id)); const pokedexes=byId(data["pokedexes.csv"]);
+const dexRows=data["pokemon_dex_numbers.csv"].filter((row)=>groupPokedexIds.has(row.pokedex_id)).map((row)=>{const parent=species.get(row.species_id);return {pokedex_key:pokedexes.get(row.pokedex_id).identifier,entry_number:Number(row.pokedex_number),pokemon_id:Number(row.species_id),pokemon_name:englishSpecies.get(row.species_id)||title(parent.identifier),form_name:"",species_family:`evolution-chain-${parent.evolution_chain_id}`};});
+const payload={game:{game_key:"red",display_name:"Pokémon Red",generation:1,family:"Red / Blue / Yellow",release_order:1,coverage_note:`PokéAPI encounter snapshot ${commit}; PokeAPI sprites snapshot ${spritesCommit}; independent source audit required before verification.`,encounter_status:"pending"},pokedex_entries:dexRows,locations:locationRows,encounters:encounterRows};
+await fs.mkdir(path.dirname(path.resolve(output)),{recursive:true}); await fs.writeFile(output,`${JSON.stringify(payload,null,2)}\n`);
+console.log(JSON.stringify({game,source_commit:commit,sprites_commit:spritesCommit,pokedex_entries:dexRows.length,locations:locationRows.length,encounters:encounterRows.length,methods:[...new Set(encounterRows.map((row)=>row.method))].sort(),species:new Set(encounterRows.map((row)=>row.pokemon_id)).size},null,2));
