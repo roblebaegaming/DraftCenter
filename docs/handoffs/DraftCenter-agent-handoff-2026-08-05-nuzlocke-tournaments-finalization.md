@@ -96,32 +96,54 @@ integration badge, or generic environment-variable name.
 ## Nuzlocke Lab state
 
 - Branch: `codex/nuzlocke-release`
-- Tip before rebasing: `95045d0`
+- Final-evolution implementation commit after rebasing: `09f25e0`
 - Pull request: [#38](https://github.com/roblebaegaming/DraftCenter/pull/38)
 - Preview: https://draftcenter-git-codex-nuzlocke-release-rob-lebae.vercel.app/nuzlocke
 - Production: not merged and not migrated
 
-The Preview currently supports Pokemon Red encounter generation with a pinned,
-audited catalog. The public route accepts game, seed, encounter count, mode,
-and weighting parameters. Red was manually validated for deterministic seeded
-runs, true-random runs, filters, strict incomplete-catalog behavior, and
-generation. The branch previously passed all repository checks and uses an
-isolated, billable Supabase Preview branch.
+The branch is rebased onto the August 5 mainline and preserves the released
+footer cleanup while adding only the Nuzlocke Lab quick link. It supports
+Pokemon Red encounter generation with a pinned, audited catalog. The public
+route accepts game, seed, encounter count, mode, weighting, filters, and an
+optional seeded final-evolution mode. That mode keeps the selected route and
+catch details, displays a final evolution available in Red, keeps standalone
+species unchanged, resolves branches deterministically from the seed, and
+fails closed if its pinned evolution mapping does not match the database source
+commit. Existing shared links keep the original encounter behavior unless
+`evolutions=final` is present.
+
+The pinned mapping covers all 106 obtainable Red profiles. Red-specific
+behavior is deliberate: Pidgey becomes Pidgeot, Zubat becomes Golbat, Onix
+remains Onix, and Eevee resolves to one of its three Red evolutions. Later-game
+forms such as Crobat and Steelix are not treated as available in Red.
+
+Validation after rebasing and adding the toggle passed:
+
+- focused Nuzlocke tests: 20/20;
+- complete application test suite;
+- all 1,027 National Dex rows;
+- production dependency audit with no known vulnerabilities;
+- pinned Red source audit; and
+- Preview-configured production build across all 108 generated pages.
+
+The branch uses an isolated, billable Supabase Preview branch. Desktop and
+mobile review of the newly redeployed Preview remains required before release.
 
 Current unpublished migrations:
 
-- `256-versioned-pokemon-encounter-catalog.sql`
-- `257-import-pokemon-red-encounter-catalog.sql`
-- `258-verify-pokemon-red-encounter-catalog.sql`
-- `259-bounded-nuzlocke-game-summary.sql`
+- `261-versioned-pokemon-encounter-catalog.sql`
+- `262-import-pokemon-red-encounter-catalog.sql`
+- `263-verify-pokemon-red-encounter-catalog.sql`
+- `264-bounded-nuzlocke-game-summary.sql`
 
-Because migration 260 is now deployed, rename these unpublished files to
-261-264 before release, preserving their order. Update every test, script, and
-documentation reference. Do not rewrite production migration 260. Recreate or
-carefully reconcile the isolated Preview database after renumbering; its manual
-migration history still reflects the old filenames.
+The files and their test, audit, documentation, and secret-scan references have
+been renumbered after deployed migration 260. No production migration was
+rewritten. The isolated Preview database still contains the equivalent schema
+and data applied under the old manual filenames; carefully reconcile or
+re-provision that isolated branch before release rather than assuming its
+history matches 261-264.
 
-When rebasing #38 onto current `main`, resolve navigation intentionally:
+The #38 rebase resolved navigation intentionally:
 
 - keep the released removal of duplicate Resources and Support quick links;
 - add only Nuzlocke Lab to the quick links for the Nuzlocke release;
@@ -175,20 +197,20 @@ league merely to validate advancement.
 
 ## Recommended order for the next agent
 
-1. Fetch current `main` and inspect both feature worktrees for user changes.
-2. Rebase #38, rename Nuzlocke migrations 256-259 to 261-264, and update all
-   references.
-3. Re-provision or reconcile the isolated Nuzlocke Preview database and rerun
-   the full Nuzlocke regression matrix.
-4. Release #38 through the protected PR flow, apply 261-264 to the exact core
+1. Review the updated #38 Preview on desktop and mobile, including final mode
+   off and on, shared URL restoration, same-seed repeatability, catch context,
+   exclusions, and strict incomplete-catalog behavior.
+2. Re-provision or reconcile the isolated Nuzlocke Preview database migration
+   history to 261-264 and rerun the database/RLS regression matrix.
+3. Release #38 through the protected PR flow, apply 261-264 to the exact core
    production database, confirm the deployed commit, and smoke-test production.
-5. Rebase #39 onto the new `main`, rename tournament migration 260 to 265, and
+4. Rebase #39 onto the new `main`, rename tournament migration 260 to 265, and
    update all references.
-6. Re-provision or reconcile the isolated tournament Preview database and
+5. Re-provision or reconcile the isolated tournament Preview database and
    rerun the transactional tournament matrix plus full checks.
-7. Release #39 through the protected PR flow, apply migration 265 to the exact
+6. Release #39 through the protected PR flow, apply migration 265 to the exact
    core production database, confirm the deployed commit, and smoke-test.
-8. Pause new feature development and concentrate on monitoring, bug fixes,
+7. Pause new feature development and concentrate on monitoring, bug fixes,
    documentation, and cleanup of superseded branches/Previews.
 
 ## Release gates for both features

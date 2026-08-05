@@ -25,10 +25,13 @@ The Pallet Town feedback release in pull request
 Migrations 252-255 are present on the core production database.
 
 Nuzlocke Lab and standalone tournaments are not in production. Nuzlocke pull
-request [#38](https://github.com/roblebaegaming/DraftCenter/pull/38) and stacked
-tournament pull request [#39](https://github.com/roblebaegaming/DraftCenter/pull/39)
-must be rebased, renumber their unpublished migrations after production
-migration 260, revalidated in isolated Previews, and released in that order.
+request [#38](https://github.com/roblebaegaming/DraftCenter/pull/38) is rebased
+onto the current mainline with its unpublished migrations renumbered 261-264
+and is undergoing final Preview validation. Stacked tournament pull request
+[#39](https://github.com/roblebaegaming/DraftCenter/pull/39) must follow the
+released Nuzlocke mainline, rename its unpublished migration after 264, and be
+revalidated in its isolated Preview before the two features are released in
+that order.
 
 ## Active watch items
 
