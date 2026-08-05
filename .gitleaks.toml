@@ -1,0 +1,29 @@
+title = "DraftCenter gitleaks configuration"
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "generic-api-key"
+
+[[rules.allowlists]]
+description = "Pinned Pokemon Red artifact public location identifiers"
+condition = "AND"
+regexTarget = "match"
+paths = [
+  '''^data/nuzlocke/pokemon-red\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\.json$''',
+]
+regexes = [
+  '''^(?:area_key|location_key)"\s*:\s*"[a-z0-9-]+"$''',
+]
+
+[[rules.allowlists]]
+description = "Pinned Pokemon Red import public location identifiers"
+condition = "AND"
+regexTarget = "match"
+paths = [
+  '''^supabase/257-import-pokemon-red-encounter-catalog\.sql$''',
+]
+regexes = [
+  '''^(?:area_key|location_key)"\s*:\s*"[a-z0-9-]+"$''',
+]
