@@ -1,9 +1,13 @@
 import { COMMISSIONER_RULES_LAUNCH_CHECKLIST, POKEMON_DRAFT_LEAGUE_RULES_TEMPLATE } from "./guideTemplates";
 
+export const GUIDE_PUBLISHED_DATE = "2026-08-03";
+export const GUIDE_UPDATED_DATE = "2026-08-04";
+
 export const GUIDES = {
   "what-is-pokemon-draft-league": {
     title: "How a Pokémon Draft League Works",
     description: "A friendly walkthrough of Pokémon draft leagues, from choosing a format and drafting unique rosters to weekly matches, transactions, standings, and playoffs.",
+    answer: "A Pokémon draft league is a season in which coaches draft different Pokémon from one shared pool, build a new battle team for each weekly opponent, and compete for standings and playoff position. DraftCenter keeps the league's rules, draft, rosters, schedule, transactions, results, and archive connected.",
     intro: "If you are new to draft leagues, the easiest way to picture one is as a season with your own Pokémon roster. You and the other coaches draft from the same pool, so no two teams are alike. Then you prepare for one opponent at a time, make roster moves when you need them, and try to earn a place in the playoffs. Here is what that looks like in practice—and where DraftCenter helps along the way.",
     sections: [
       ["First, the commissioner chooses the kind of league", "Every league needs a shared answer to a few basics: Which game or generation are we using? Is this singles or doubles? Which Pokémon and special mechanics are legal? How large is each roster? These choices shape everything that follows, so they should be visible before anyone commits to a team.", "In DraftCenter, the commissioner creates the league and works through Setup. They choose a supported format or a custom pool, then review roster limits, special mechanics, access, and league-specific bans before inviting everyone."],
@@ -25,6 +29,7 @@ export const GUIDES = {
   "how-to-run-pokemon-draft-league": {
     title: "How to Run a Pokémon Draft League: A Commissioner’s Walkthrough",
     description: "A practical, step-by-step walkthrough for setting up a Pokémon draft league, inviting coaches, running the draft, managing the season, and crowning a champion.",
+    answer: "To run a Pokémon draft league, choose the competitive format and league rules, invite and assign coaches, test the legal pool and roster math, run the draft, publish the schedule, and apply transactions and rulings consistently through the playoffs. DraftCenter organizes those steps and provides readiness checks before the official draft begins.",
     intro: "Running a league can look intimidating because there are a lot of small decisions. You do not need to solve all of them at once. Start with the experience you want your group to have, test the setup with a few people, and use DraftCenter's readiness checks to catch the details before draft day. This walkthrough follows the same order you will use in the product.",
     sections: [
       ["Create the league before you perfect the rules", "Give the league a clear name and season label, decide whether it is private, public to watch, or open to join, and add a description that tells coaches what they are signing up for. A practice league is useful when you want to learn the controls without adding results to career statistics.", "Select Start a new league from DraftCenter. You can invite a small test group first and adjust most settings later from Commissioner Tools and Setup."],
@@ -40,6 +45,7 @@ export const GUIDES = {
   "snake-vs-auction-pokemon-draft": {
     title: "Snake or Auction? Choosing Your Pokémon Draft Style",
     description: "Choose between snake and auction drafting by comparing the experience for coaches, roster strategy, draft-day pacing, budgets, and commissioner setup.",
+    answer: "Choose a snake draft when your group wants clear turns, predictable pacing, and the easiest format for new coaches to follow. Choose an auction when coaches enjoy continuous bidding, budget tradeoffs, and the freedom to compete for any available Pokémon.",
     intro: "There is no universally better draft style. Snake drafts make turns and availability the main puzzle. Auctions make value and budget management the puzzle. The best choice is the one your group will enjoy understanding and playing for an entire draft night—not the one that sounds most advanced.",
     sections: [
       ["Choose snake when you want the easiest draft to follow", "Coaches take one Pokémon at a time in an order that reverses each round. The reversal helps balance early and late positions, while long gaps between turns reward backup plans. New coaches usually understand the room quickly because every turn has one clear decision.", "Select Snake in Setup, choose the roster limits and timer, and confirm the order. During the live draft, DraftCenter shows the current coach, upcoming order, available Pokémon, rosters, and each coach's private queue."],
@@ -53,6 +59,7 @@ export const GUIDES = {
   "pokemon-draft-tier-list-guide": {
     title: "How to Build a Pokémon Draft Tier List That Fits Your League",
     description: "Build and maintain a practical Pokémon draft tier list using your exact format, useful roles, scarcity, roster math, and transparent league evidence.",
+    answer: "A useful Pokémon draft tier list prices one league's exact legal pool—not Pokémon in the abstract. Start with the format, value repeatable roles and scarce alternatives, test complete rosters under the real budget, and adjust slowly using transparent draft and match samples.",
     intro: "A draft tier list is really a pricing tool for one specific league. It is not a universal ranking of which Pokémon are best. The same Pokémon can be a bargain in one format and a poor fit in another because the legal pool, battle style, mechanics, roster size, and available alternatives all changed. Start with your league—not somebody else's finished list.",
     sections: [
       ["Lock the format before you rank anything", "Write down the game, generation, singles or doubles rules, legal mechanics, clauses, and excluded Pokémon. Move pools and abilities change between games. A list built for a different ruleset may look polished while being wrong for the league you are about to run.", "Choose the format in DraftCenter first and inspect the generated legal pool. League-specific bans and overrides can still be added, but the selected format should remain the starting source of truth."],
@@ -67,6 +74,7 @@ export const GUIDES = {
   "how-to-join-first-pokemon-draft-league": {
     title: "How to Join Your First Pokémon Draft League",
     description: "A welcoming first-season guide to finding the right Pokémon draft league, joining a team, preparing for the draft, playing weekly matches, and managing your roster.",
+    answer: "Join a first Pokémon draft league by choosing one whose format, schedule, and expectations fit your experience and availability. Read the rules before claiming a team, prepare several draft alternatives, communicate early each week, and keep official results and roster moves inside the league's approved workflow.",
     intro: "Your first draft league should feel exciting, not like you accidentally signed up for a second job. The right league will tell you what it plays, how often matches happen, and what it expects from coaches before asking you to commit. You do not need to know every matchup or have a perfect draft plan. You do need enough time to communicate, prepare, and play one match at a time.",
     sections: [
       ["Look for a league that fits your real schedule", "Start with the weekly commitment. Ask when matches are due, how coaches schedule them, how long the season lasts, and whether the draft date works for you. A beginner-friendly league should welcome questions and have written rules you can read before joining.", "Browse Public Leagues to see formats, season status, open teams, and public league information. An Open to join league is recruiting; Public to watch lets you follow the season without taking a team."],
@@ -93,6 +101,7 @@ export const GUIDES = {
   "pokemon-draft-league-rules-template": {
     title: "Pokémon Draft League Rules Template and Commissioner Checklist",
     description: "Copy and customize a practical Pokémon draft league rules template covering format, rosters, drafting, matches, transactions, standings, playoffs, disputes, and inactivity.",
+    answer: "A complete Pokémon draft league rules document should define the format, legal pool, roster and draft rules, weekly deadlines, result reporting, transactions, standings, playoffs, inactivity, conduct, rulings, and appeals. The copyable DraftCenter template covers each decision while leaving bracketed fields for the commissioner to customize.",
     intro: "A useful rules document answers the questions that can change a coach's decision or a match result. It does not need legal language, and it should not repeat every button in DraftCenter. Write the competitive agreement in plain language, make the saved league settings match it, and tell coaches which source wins if something differs.",
     sections: [
       ["Use the template as a conversation, not a finished rulebook", "Replace every bracketed field, delete sections your league does not use, and ask at least one other commissioner or experienced coach to review it. The goal is for a new coach to understand the season without needing private explanations that other teams never received.", "DraftCenter stores the operational settings, but your rules should explain why they were chosen and what happens in situations that software cannot decide fairly."],
@@ -116,6 +125,12 @@ export const GUIDES = {
 
 export const FORMATS = [
   ["national-dex", "National Dex", "All supported generations, forms, and Mega Evolutions", "A complete DraftCenter pool for cross-generation draft leagues, with commissioner-controlled bans, costs, Restricted Pokémon limits, and Mega limits."],
+  ...Array.from({ length: 9 }, (_, index) => 9 - index).map((generation) => [
+    `national-gen${generation}`,
+    `National Dex through Generation ${generation}`,
+    `Cross-generation draft pool capped at Generation ${generation}`,
+    `A historical National Dex pool containing Pokémon introduced through Generation ${generation}, with commissioner-controlled bans, costs, and roster restrictions.`,
+  ]),
   ["reg-mb", "Regulation M-B", "Pokémon Champions VGC · June 17–September 2, 2026", "The current Pokémon Champions regulation with Mega Evolution available and a curated DraftCenter legal pool."],
   ["reg-ma", "Regulation M-A", "Pokémon Champions VGC · April 8–June 17, 2026", "The opening Pokémon Champions regulation and its original competitive legal pool."],
   ["reg-a", "Regulation A", "Scarlet & Violet VGC · January 2023", "The initial Paldea format, excluding Paradox Pokémon, Treasures of Ruin, and box legends."],
