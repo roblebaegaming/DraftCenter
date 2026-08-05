@@ -18,5 +18,5 @@ export default function SiteQuickLinks() {
     await supabase.auth.signOut();
     window.location.assign("/");
   }
-  return <nav className="site-quick-links" aria-label="Account and resources">{isOwner && <><a href="/operations">Operations</a><a href="/operations/daily-three">Daily Three</a></>}<a href="/my-teams">My Teams</a><a href="/manuals">Help</a>{signedIn && <button type="button" onClick={signOut}>Sign out</button>}</nav>;
+  return <nav className="site-quick-links" aria-label="Account and resources">{isOwner && <><a href="/operations">Operations</a><a href="/operations/daily-three">Daily Three</a></>}<a href="/nuzlocke">Nuzlocke Lab</a><a href="/my-teams">My Teams</a><a href="/manuals">Help</a>{signedIn && <button type="button" onClick={signOut}>Sign out</button>}</nav>;
 }

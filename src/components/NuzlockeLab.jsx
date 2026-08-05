@@ -1,0 +1,88 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+
+const pretty = (value) => String(value || "").replaceAll("-", " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
+const newSeed = () => globalThis.crypto?.randomUUID?.().slice(0, 12) || Math.random().toString(36).slice(2, 14);
+
+export default function NuzlockeLab() {
+  const [games, setGames] = useState([]);
+  const [game, setGame] = useState("");
+  const [seed, setSeed] = useState("");
+  const [teamSize, setTeamSize] = useState(6);
+  const [mode, setMode] = useState("route-random");
+  const [weighting, setWeighting] = useState("equal");
+  const [familyClause, setFamilyClause] = useState(true);
+  const [excludeLegendaries, setExcludeLegendaries] = useState(true);
+  const [methods, setMethods] = useState([]);
+  const [exclusions, setExclusions] = useState("");
+  const [result, setResult] = useState(null);
+  const [message, setMessage] = useState("Loading verified games…");
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setSeed(params.get("seed") || newSeed());
+    if (/^(?:[1-9]|1[0-2])$/.test(params.get("size") || "")) setTeamSize(Number(params.get("size")));
+    if (["route-random", "true-random"].includes(params.get("mode"))) setMode(params.get("mode"));
+    if (["equal", "authentic"].includes(params.get("weighting"))) setWeighting(params.get("weighting"));
+    setFamilyClause(params.get("family") !== "off");
+    setExcludeLegendaries(params.get("legendaries") !== "include");
+    const sharedMethods = (params.get("methods") || "").split(",").filter((item) => ["walk","surf","old-rod","good-rod","super-rod","gift","static"].includes(item));
+    setMethods(sharedMethods);
+    setExclusions((params.get("exclude") || "").slice(0, 500));
+    fetch("/api/nuzlocke").then(async (response) => {
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error);
+      setGames(data.games || []);
+      const selected = params.get("game");
+      setGame(data.games?.some((item) => item.game_key === selected) ? selected : data.games?.[0]?.game_key || "");
+      setMessage(data.games?.length ? "" : "No game encounter catalog has completed independent verification yet.");
+    }).catch((error) => setMessage(error.message || "Verified games could not be loaded."));
+  }, []);
+
+  const shareUrl = useMemo(() => {
+    if (typeof window === "undefined" || !game || !seed) return "";
+    const url = new URL("/nuzlocke", window.location.origin);
+    url.searchParams.set("game", game); url.searchParams.set("seed", seed);
+    url.searchParams.set("size", String(teamSize)); url.searchParams.set("mode", mode); url.searchParams.set("weighting", weighting);
+    if (!familyClause) url.searchParams.set("family", "off");
+    if (!excludeLegendaries) url.searchParams.set("legendaries", "include");
+    if (methods.length) url.searchParams.set("methods", methods.join(","));
+    if (exclusions.trim()) url.searchParams.set("exclude", exclusions.trim().slice(0, 500));
+    return url.toString();
+  }, [excludeLegendaries, exclusions, familyClause, game, methods, mode, seed, teamSize, weighting]);
+
+  async function generate(event) {
+    event.preventDefault(); setLoading(true); setMessage(""); setResult(null);
+    try {
+      const response = await fetch("/api/nuzlocke", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ game, seed, teamSize, mode, weighting, familyClause, excludeLegendaries, methods, exclusions: exclusions.split(",").map((item) => item.trim()).filter(Boolean) }) });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error);
+      setResult(data);
+      window.history.replaceState({}, "", new URL(shareUrl));
+    } catch (error) { setMessage(error.message || "The Run Card could not be generated."); }
+    finally { setLoading(false); }
+  }
+
+  function toggleMethod(value) { setMethods((current) => current.includes(value) ? current.filter((item) => item !== value) : [...current, value]); }
+
+  return <main className="nuzlocke-shell"><header className="nuzlocke-hero"><a href="/?view=dashboard" className="quiet-button">← DraftCenter home</a><span className="eyebrow">NUZLOCKE LAB</span><h1>Build a seeded Run Card</h1><p>Generate a repeatable team from verified, game-specific encounters. DraftCenter never changes your leagues, drafts, or rosters from this page.</p></header>
+    <div className="nuzlocke-layout"><form className="nuzlocke-controls" onSubmit={generate}><h2>Run rules</h2>
+      <label>Game version<select value={game} onChange={(event) => setGame(event.target.value)} disabled={!games.length}><option value="">Choose a verified game</option>{games.map((item) => <option key={item.game_key} value={item.game_key}>{item.display_name}</option>)}</select></label>
+      <div className="nuzlocke-pair"><label>Seed<input value={seed} maxLength={80} onChange={(event) => setSeed(event.target.value)} /></label><button type="button" className="quiet-button" onClick={() => setSeed(newSeed())}>New seed</button></div>
+      <label>Team size <strong>{teamSize}</strong><input type="range" min="1" max="12" value={teamSize} onChange={(event) => setTeamSize(Number(event.target.value))} /></label>
+      <label>Selection mode<select value={mode} onChange={(event) => setMode(event.target.value)}><option value="route-random">Route random</option><option value="true-random">True random</option></select></label>
+      <label>Encounter weighting<select value={weighting} onChange={(event) => setWeighting(event.target.value)}><option value="equal">Equal chance</option><option value="authentic">Authentic encounter odds</option></select></label>
+      <fieldset><legend>Encounter methods</legend>{["walk","surf","old-rod","good-rod","super-rod","gift","static"].map((item) => <label className="check-row" key={item}><input type="checkbox" checked={methods.includes(item)} onChange={() => toggleMethod(item)} />{pretty(item)}</label>)}<small>Leave all unchecked to include every verified method.</small></fieldset>
+      <label>Exclude Pokémon<input value={exclusions} onChange={(event) => setExclusions(event.target.value)} placeholder="Pikachu, Zubat" /><small>Separate names with commas.</small></label>
+      <label className="check-row"><input type="checkbox" checked={familyClause} onChange={(event) => setFamilyClause(event.target.checked)} />Species/evolutionary-family clause</label>
+      <label className="check-row"><input type="checkbox" checked={excludeLegendaries} onChange={(event) => setExcludeLegendaries(event.target.checked)} />Exclude legendary Pokémon</label>
+      <button className="primary-button" disabled={loading || !game || !seed}>{loading ? "Generating…" : "Generate Run Card"}</button>{message && <p className="hub-message" role="status">{message}</p>}
+    </form>
+    <section className="nuzlocke-output"><div className="section-heading"><div><span className="eyebrow">RUN CARD</span><h2>{result?.game?.display_name || "Your encounters"}</h2></div>{shareUrl && <button className="quiet-button" type="button" onClick={() => navigator.clipboard.writeText(shareUrl)}>Copy seed link</button>}</div>
+      {!result && <div className="empty-state">Choose a verified game and your rules, then generate a team.</div>}
+      {result && !result.complete && <p className="nuzlocke-incomplete">Only {result.available} of {result.requested} slots could be filled under these rules. No rule was relaxed.</p>}
+      <div className="nuzlocke-team">{result?.team?.map((entry, index) => <article key={`${entry.area_key}-${entry.pokemon_id}`}><span className="nuzlocke-number">{index + 1}</span>{entry.artwork_url && <img src={entry.artwork_url} alt="" />}<div><h3>{entry.pokemon_name}{entry.form_name ? ` (${entry.form_name})` : ""}</h3><strong>{entry.area_name}</strong><p>{pretty(entry.method)} · Lv. {entry.min_level ?? "?"}{entry.max_level && entry.max_level !== entry.min_level ? `–${entry.max_level}` : ""}</p>{entry.conditions?.length ? <small>{entry.conditions.map(pretty).join(", ")}</small> : <small>No special conditions</small>}</div></article>)}</div>
+    </section></div></main>;
+}
