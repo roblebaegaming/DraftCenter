@@ -11,6 +11,7 @@ import { safeHttpsImageSource } from "../lib/imageSecurity";
 import { browserCanResolveHostedAutoDraft, preserveLoadedPrivateDraftQueue } from "../lib/draftQueueSafety";
 import { readLeagueNavigation, writeLeagueNavigation } from "../lib/leagueNavigation";
 import { claimedTeamCount, compactLocalTeamsClaimedFirst, openSetupTeams, teamIsClaimed } from "../lib/teamOwnership";
+import { draftManagerLabel, snakeDraftContext } from "../lib/draftBoardContext";
 
 /* ---------------------------------------------------------
    DESIGN TOKENS — stadium-jumbotron-at-night aesthetic.
@@ -9677,6 +9678,9 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
             </div>
           </div>
         )}
+        {((tab === "draft") || (tab === "league" && leagueSubTab === "draft")) && state.locked && !draftDone && (
+          <LiveDraftContextStrip state={state} myTeamIdx={myTeamIdx} />
+        )}
         {((tab === "draft") || (tab === "league" && leagueSubTab === "draft")) && state.locked && myTeamIdx >= 0 && (
           <DraftStatsStrip state={state} myTeamIdx={myTeamIdx} />
         )}
@@ -9981,6 +9985,62 @@ function DraftStatsStrip({ state, myTeamIdx }) {
           })}
         </div>
       )}
+    </div>
+  );
+}
+
+function DraftCountdownLabel({ deadline, paused, pausedAt }) {
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, []);
+  if (paused) return <span style={{ color: "#F4B860" }}>PAUSED</span>;
+  if (!deadline) return <span style={{ color: "#9A9FBD" }}>NO TIMER</span>;
+  const clockNow = paused ? (pausedAt || now) : now;
+  const seconds = Math.max(0, Math.ceil((deadline - clockNow) / 1000));
+  const minutes = Math.floor(seconds / 60);
+  const remainder = String(seconds % 60).padStart(2, "0");
+  return <span style={{ color: seconds <= 30 ? "#F0555A" : "#FFD23F" }}>{minutes}:{remainder}</span>;
+}
+
+function LiveDraftContextStrip({ state, myTeamIdx }) {
+  if (state.settings?.draftType !== "snake") return null;
+  const context = snakeDraftContext(state, myTeamIdx);
+  const currentTeam = context.currentTeamIndex == null ? null : state.teams[context.currentTeamIndex];
+  if (!currentTeam) return null;
+  const myPickLabel = context.picksUntilMine === 0
+    ? "YOUR PICK"
+    : context.picksUntilMine == null
+      ? "NO PICKS LEFT"
+      : context.picksUntilMine === 1
+        ? "YOUR PICK NEXT"
+        : `YOUR PICK IN ${context.picksUntilMine}`;
+  return (
+    <div style={{ background: "#111625", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+      <div className="max-w-6xl mx-auto px-6 py-2 flex items-center gap-3 flex-wrap">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="mono-font text-[10px]" style={{ color: "#9A9FBD" }}>ON CLOCK</span>
+          <TeamLogo team={currentTeam} size={22} />
+          <span className="text-xs font-semibold truncate" style={{ color: context.currentTeamIndex === myTeamIdx ? "#4FD1C5" : "#EDEBFA", maxWidth: 180 }}>{currentTeam.name}</span>
+          <span className="mono-font text-[10px]" style={{ color: "#7F84A5" }}>{draftManagerLabel(currentTeam)}</span>
+        </div>
+        <span className="mono-font text-sm font-bold"><DraftCountdownLabel deadline={state.pickDeadline} paused={state.paused} pausedAt={state.pausedAt} /></span>
+        <div className="flex items-center gap-1 overflow-x-auto" style={{ maxWidth: "100%" }}>
+          <span className="mono-font text-[10px] mr-1" style={{ color: "#5B5F7E" }}>UP NEXT</span>
+          {context.upcomingTeamIndices.map((teamIndex, index) => {
+            const team = state.teams[teamIndex];
+            return <span key={`${state.pickIndex}-${index}-${teamIndex}`} className="mono-font text-[10px] px-2 py-1 rounded whitespace-nowrap" style={{ background: teamIndex === myTeamIdx ? "#123238" : "#1F2338", color: teamIndex === myTeamIdx ? "#4FD1C5" : "#9A9FBD", border: `1px solid ${teamIndex === myTeamIdx ? "#4FD1C5" : "rgba(255,255,255,0.06)"}` }}>{team?.name} · {draftManagerLabel(team)}</span>;
+          })}
+        </div>
+        {myTeamIdx >= 0 && (
+          <button type="button" onClick={() => document.getElementById(`draft-team-${myTeamIdx}`)?.scrollIntoView({ behavior: "smooth", block: "center" })}
+            className="mono-font text-[10px] px-2 py-1 rounded ml-auto"
+            style={{ background: context.picksUntilMine === 0 ? "#4FD1C5" : "#1F2338", color: context.picksUntilMine === 0 ? "#10121C" : "#4FD1C5", border: "1px solid #4FD1C566" }}>
+            {myPickLabel} · JUMP TO MY TEAM
+          </button>
+        )}
+      </div>
     </div>
   );
 }
@@ -13426,7 +13486,7 @@ function DangerZoneCard({ rebuildCurrentSeason, locked, seasonNumber, archivedSe
 // A round-by-round (or, for auction, pick-order-by-pick-order) grid of
 // every team's picks so far — designed to look clean enough to screenshot
 // once the draft wraps up, not just function as a live status view.
-function DraftBoard({ teams, rosters, draftType, rosterMax, snakeOrder = [], settings }) {
+function DraftBoard({ teams, rosters, draftType, rosterMax, snakeOrder = [], settings, myTeamIdx = -1 }) {
   const longestRoster = rosters.reduce((max, r) => Math.max(max, r.length), 0);
   const rowCount = Math.min(rosterMax, Math.max(1, longestRoster));
   const rows = Array.from({ length: rowCount }, (_, i) => i);
@@ -13469,11 +13529,15 @@ function DraftBoard({ teams, rosters, draftType, rosterMax, snakeOrder = [], set
                 <th className="px-2 py-2 text-left mono-font text-[10px] uppercase" style={{ color: "#5B5F7E", position: "sticky", left: 0, background: "#171A2C" }}>{roundLabel}</th>
                 {boardTeamIndices.map((teamIndex) => {
                   const t = teams[teamIndex];
+                  const isMine = teamIndex === myTeamIdx;
                   return (
-                  <th key={t.id} className="px-3 py-2 text-left whitespace-nowrap" style={{ minWidth: 160 }}>
+                  <th key={t.id} className="px-3 py-2 text-left whitespace-nowrap" style={{ minWidth: 180, background: isMine ? "#123238" : "transparent", borderTop: isMine ? "2px solid #4FD1C5" : "2px solid transparent" }}>
                     <div className="flex items-center gap-1.5">
                       <TeamLogo team={t} size={20} />
-                      <span className="text-sm font-semibold truncate" style={{ color: t.color || "#FFD23F", maxWidth: 130 }}>{t.name}</span>
+                      <span className="min-w-0">
+                        <span className="text-sm font-semibold truncate block" style={{ color: isMine ? "#4FD1C5" : t.color || "#FFD23F", maxWidth: 145 }}>{t.name}</span>
+                        <span className="mono-font text-[9px] truncate block" style={{ color: isMine ? "#8AF5EA" : "#7F84A5", maxWidth: 145 }}>{isMine ? "YOU · " : ""}{draftManagerLabel(t)}</span>
+                      </span>
                     </div>
                   </th>
                   );
@@ -13489,8 +13553,9 @@ function DraftBoard({ teams, rosters, draftType, rosterMax, snakeOrder = [], set
                   {boardTeamIndices.map((teamIndex) => {
                     const t = teams[teamIndex];
                     const mon = rosters[teamIndex]?.[r];
+                    const isMine = teamIndex === myTeamIdx;
                     return (
-                      <td key={t.id} className="px-3 py-2" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
+                      <td key={t.id} className="px-3 py-2" style={{ borderTop: "1px solid rgba(255,255,255,0.05)", background: isMine ? "#12323888" : "transparent", borderLeft: isMine ? "1px solid #4FD1C555" : "none", borderRight: isMine ? "1px solid #4FD1C555" : "none" }}>
                         {mon ? (
                           <div>
                             <div className="text-xs font-medium truncate" style={{ maxWidth: 140 }}>{mon.name}</div>
@@ -14096,18 +14161,20 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
               const t = teams[teamIdx];
               const isCurrent = i === pickIndex;
               const isPast = i < pickIndex;
+              const isMine = teamIdx === myTeamIdx;
               return (
-                <div key={i} title={t?.name}
+                <div key={i} title={`${t?.name || "Team"} · ${draftManagerLabel(t)}`}
                   className="flex items-center gap-1.5 px-2 py-1.5 rounded flex-shrink-0"
                   style={{
-                    background: isCurrent ? "#FFD23F" : isPast ? "#2A2F45" : "#1F2338",
-                    border: isCurrent ? "2px solid #FFD23F" : "1px solid rgba(255,255,255,0.06)",
+                    background: isCurrent ? "#FFD23F" : isMine ? "#123238" : isPast ? "#2A2F45" : "#1F2338",
+                    border: isCurrent && isMine ? "2px solid #4FD1C5" : isCurrent ? "2px solid #FFD23F" : isMine ? "2px solid #4FD1C5" : "1px solid rgba(255,255,255,0.06)",
                     opacity: isPast ? 0.6 : 1,
-                    minWidth: 96,
+                    minWidth: 132,
                   }}>
                   <TeamLogo team={t} size={18} />
-                  <span className="text-xs mono-font truncate" style={{ color: isCurrent ? "#10121C" : isPast ? "#6C7195" : "#9A9FBD", maxWidth: 70 }}>
-                    {t?.name}
+                  <span className="min-w-0">
+                    <span className="text-xs mono-font truncate block" style={{ color: isCurrent ? "#10121C" : isMine ? "#4FD1C5" : isPast ? "#6C7195" : "#9A9FBD", maxWidth: 94 }}>{t?.name}</span>
+                    <span className="mono-font text-[9px] truncate block" style={{ color: isCurrent ? "#4A4216" : isMine ? "#8AF5EA" : "#5B5F7E", maxWidth: 94 }}>{isMine ? "YOU · " : ""}{draftManagerLabel(t)}</span>
                   </span>
                 </div>
               );
@@ -14126,17 +14193,19 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
                 const isCurrent = i === (auctionNominationIdx % n);
                 const isNext = i === ((auctionNominationIdx + 1) % n);
                 const t = teams[teamIdx];
+                const isMine = teamIdx === myTeamIdx;
                 return (
-                  <div key={i} title={t?.name}
+                  <div key={i} title={`${t?.name || "Team"} · ${draftManagerLabel(t)}`}
                     className="flex items-center gap-1.5 px-2.5 py-1.5 rounded flex-shrink-0"
                     style={{
-                      background: isCurrent ? "#FFD23F" : isNext ? "#1F2338" : "#141729",
-                      border: isCurrent ? "2px solid #FFD23F" : isNext ? "1px solid #4FD1C555" : "1px solid rgba(255,255,255,0.06)",
+                      background: isCurrent ? "#FFD23F" : isMine ? "#123238" : isNext ? "#1F2338" : "#141729",
+                      border: isCurrent && isMine ? "2px solid #4FD1C5" : isCurrent ? "2px solid #FFD23F" : isMine ? "2px solid #4FD1C5" : isNext ? "1px solid #4FD1C555" : "1px solid rgba(255,255,255,0.06)",
                       opacity: isCurrent ? 1 : isNext ? 1 : 0.6,
                     }}>
                     <TeamLogo team={t} size={18} />
-                    <span className="text-xs font-medium truncate" style={{ color: isCurrent ? "#10121C" : isNext ? "#4FD1C5" : "#9A9FBD", maxWidth: 90 }}>
-                      {t?.name}
+                    <span className="min-w-0">
+                      <span className="text-xs font-medium truncate block" style={{ color: isCurrent ? "#10121C" : isMine || isNext ? "#4FD1C5" : "#9A9FBD", maxWidth: 100 }}>{t?.name}</span>
+                      <span className="mono-font text-[9px] truncate block" style={{ color: isCurrent ? "#4A4216" : isMine ? "#8AF5EA" : "#5B5F7E", maxWidth: 100 }}>{isMine ? "YOU · " : ""}{draftManagerLabel(t)}</span>
                     </span>
                     {isCurrent && <span className="mono-font text-[9px] flex-shrink-0" style={{ color: "#10121C" }}>NOW</span>}
                     {isNext && !isCurrent && <span className="mono-font text-[9px] flex-shrink-0" style={{ color: "#4FD1C5" }}>NEXT</span>}
@@ -14238,11 +14307,10 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
                 <TeamLogo team={teams[currentTeamOnClock]} size={32} />
                 <div className="display-font text-3xl" style={{ color: "#FFD23F" }}>{teams[currentTeamOnClock]?.name}</div>
               </div>
-              {!canDraftNow && (
-                <div className="text-xs mt-1" style={{ color: "#5B5F7E" }}>
-                  {teams[currentTeamOnClock]?.claimedBy ? `Waiting for ${teams[currentTeamOnClock].claimedBy}…` : "Bot team is drafting…"}
-                </div>
-              )}
+              <div className="text-xs mt-1 mono-font" style={{ color: currentTeamOnClock === myTeamIdx ? "#4FD1C5" : "#7F84A5" }}>
+                {currentTeamOnClock === myTeamIdx ? "YOU · " : ""}{draftManagerLabel(teams[currentTeamOnClock])}
+                {!canDraftNow ? teams[currentTeamOnClock]?.claimedBy ? " · waiting for pick…" : " · drafting…" : " · choose your pick"}
+              </div>
               {settings.pickTimeLimitMinutes > 0 && (
                 <PickTimer
                   deadline={pickDeadline}
@@ -14557,7 +14625,7 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
           {showDraftBoard ? "Hide" : "Show"} Draft Board
         </button>
       </div>
-      {showDraftBoard && <DraftBoard teams={teams} rosters={rosters} draftType={draftType} rosterMax={settings.rosterMax} snakeOrder={snakeOrder} settings={settings} />}
+      {showDraftBoard && <DraftBoard teams={teams} rosters={rosters} draftType={draftType} rosterMax={settings.rosterMax} snakeOrder={snakeOrder} settings={settings} myTeamIdx={myTeamIdx} />}
 
       <div style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }} className="rounded-lg p-4 mb-4">
         <div className="flex items-center justify-between flex-wrap gap-2 mb-3">
@@ -14565,7 +14633,7 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
           <select value={viewedTeam} onChange={(e) => setViewedTeam(Number(e.target.value))}
             className="px-3 py-2 rounded mono-font text-sm" style={{ background: "#1F2338", border: "1px solid rgba(255,255,255,0.1)", color: "#EDEBFA" }}>
             {teams.map((t, i) => (
-              <option key={t.id} value={i}>{t.name}{i === myTeamIdx ? " (yours)" : !t.claimedBy ? " (bot)" : ""}</option>
+              <option key={t.id} value={i}>{t.name} — {i === myTeamIdx ? "YOU" : draftManagerLabel(t)}</option>
             ))}
           </select>
         </div>
@@ -14614,13 +14682,15 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
           const usesRosterRange = draftType === "auction" || settings.snakeBudgetEnabled;
           const belowMin = usesRosterRange && draftDone && count < settings.rosterMin;
           const showBudget = draftType === "auction" || settings.snakeBudgetEnabled;
+          const isMine = i === myTeamIdx;
+          const isOnClock = draftType === "snake" && i === currentTeamOnClock && !draftDone;
           return (
-            <div key={t.id} style={{ background: "#141729", border: `1px solid ${belowMin ? "#F0555A55" : "rgba(255,255,255,0.08)"}` }} className="rounded-lg p-4">
+            <div id={`draft-team-${i}`} key={t.id} style={{ background: isMine ? "#123238" : "#141729", border: `2px solid ${isMine && isOnClock ? "#FFD23F" : isMine ? "#4FD1C5" : isOnClock ? "#FFD23F88" : belowMin ? "#F0555A55" : "rgba(255,255,255,0.08)"}`, boxShadow: isMine ? "0 0 20px #4FD1C522" : "none", scrollMarginTop: 210 }} className="rounded-lg p-4">
               <div className="flex justify-between items-center mb-2">
-                <span className="font-semibold text-sm flex items-center gap-2">
+                <span className="font-semibold text-sm flex items-center gap-2 min-w-0">
                   <TeamLogo team={t} size={20} />
-                  {t.name}
-                  {!t.claimedBy && <span className="mono-font text-[9px] ml-1 px-1.5 py-0.5 rounded" style={{ background: "#4FD1C522", color: "#4FD1C5" }}>BOT</span>}
+                  <span className="min-w-0"><span className="truncate block" style={{ color: isMine ? "#4FD1C5" : "#EDEBFA" }}>{t.name}</span><span className="mono-font text-[9px] truncate block" style={{ color: isMine ? "#8AF5EA" : "#7F84A5" }}>{isMine ? "YOU · " : ""}{draftManagerLabel(t)}</span></span>
+                  {isOnClock && <span className="mono-font text-[9px] ml-1 px-1.5 py-0.5 rounded" style={{ background: "#FFD23F", color: "#10121C" }}>ON CLOCK</span>}
                 </span>
                 <span className="mono-font text-xs" style={{ color: belowMin ? "#F0555A" : "#4FD1C5" }}>
                   {usesRosterRange ? `${count}/${settings.rosterMax}${belowMin ? ` (min ${settings.rosterMin})` : ""}` : ""}
