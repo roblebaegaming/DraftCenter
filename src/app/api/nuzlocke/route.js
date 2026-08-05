@@ -4,10 +4,11 @@ import { consumeUserRateLimit } from "../../../lib/apiRateLimit";
 import { readBoundedJson, requestIpAddress, safeFailure } from "../../../lib/apiSecurity";
 import { generateNuzlockeTeam } from "../../../lib/nuzlockeGenerator";
 import redEvolutionCatalog from "../../../../data/nuzlocke/pokemon-red-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json";
+import blueEvolutionCatalog from "../../../../data/nuzlocke/pokemon-blue-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json";
 
 export const runtime = "nodejs";
 const GAME_KEY = /^[a-z0-9-]{2,64}$/;
-const EVOLUTION_CATALOGS = Object.freeze({ red: redEvolutionCatalog });
+const EVOLUTION_CATALOGS = Object.freeze({ red: redEvolutionCatalog, blue: blueEvolutionCatalog });
 
 export async function GET() {
   try {

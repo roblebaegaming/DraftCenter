@@ -28,3 +28,25 @@ paths = [
 regexes = [
   '''^(?:area_key|location_key)"\s*:\s*"[a-z0-9-]+"$''',
 ]
+
+[[rules.allowlists]]
+description = "Pinned Pokemon Blue artifact public location identifiers"
+condition = "AND"
+regexTarget = "match"
+paths = [
+  '''^data/nuzlocke/pokemon-blue\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\.json$''',
+]
+regexes = [
+  '''^(?:area_key|location_key)"\s*:\s*"[a-z0-9-]+"$''',
+]
+
+[[rules.allowlists]]
+description = "Pinned Pokemon Blue import public location identifiers"
+condition = "AND"
+regexTarget = "match"
+paths = [
+  '''^supabase/265-import-pokemon-blue-encounter-catalog\.sql$''',
+]
+regexes = [
+  '''^(?:area_key|location_key)"\s*:\s*"[a-z0-9-]+"$''',
+]
