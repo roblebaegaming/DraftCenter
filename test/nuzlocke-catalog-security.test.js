@@ -46,10 +46,11 @@ regexes = [
 ]
 
 [[rules.allowlists]]
-description = "Pinned Pokemon Red import public location identifiers"
+description = "Pinned Pokemon Red import public location identifiers, current and historical paths"
 condition = "AND"
 regexTarget = "match"
 paths = [
+  '''^supabase/257-import-pokemon-red-encounter-catalog\\.sql$''',
   '''^supabase/262-import-pokemon-red-encounter-catalog\\.sql$''',
 ]
 regexes = [
