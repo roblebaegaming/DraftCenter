@@ -9,9 +9,16 @@ const GAME_KEY = /^[a-z0-9-]{2,64}$/;
 export async function GET() {
   try {
     const supabase = createAdminClient();
-    const { data, error } = await supabase.from("pokemon_games").select("game_key,display_name,generation,family,coverage_note").eq("encounter_status", "verified").order("release_order");
-    if (error) throw error;
-    return Response.json({ games: data || [] }, { headers: { "Cache-Control": "public, max-age=300" } });
+    const [{ data, error }, { data: methodRows, error: methodError }] = await Promise.all([
+      supabase.from("pokemon_games").select("game_key,display_name,generation,family,coverage_note").eq("encounter_status", "verified").order("release_order"),
+      supabase.from("pokemon_game_encounters").select("game_key,method"),
+    ]);
+    if (error || methodError) throw error || methodError;
+    const verifiedKeys = new Set((data || []).map((game) => game.game_key));
+    const methods = {};
+    for (const row of methodRows || []) { if (!verifiedKeys.has(row.game_key)) continue; if (!methods[row.game_key]) methods[row.game_key] = []; if (!methods[row.game_key].includes(row.method)) methods[row.game_key].push(row.method); }
+    for (const values of Object.values(methods)) values.sort();
+    return Response.json({ games: data || [], methods }, { headers: { "Cache-Control": "public, max-age=300" } });
   } catch (error) {
     return safeFailure(error, "Verified game data is temporarily unavailable.", { context: "nuzlocke-games" });
   }
