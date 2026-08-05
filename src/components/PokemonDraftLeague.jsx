@@ -8,6 +8,8 @@ import { SHOWDOWN_GAME_AVAILABILITY, SHOWDOWN_REGIONAL_POKEDEXES } from "../lib/
 import { withRegulationMetadata } from "../lib/regulation-catalog";
 import RegulationPicker from "./RegulationPicker";
 import { safeHttpsImageSource } from "../lib/imageSecurity";
+import { browserCanResolveHostedAutoDraft, preserveLoadedPrivateDraftQueue } from "../lib/draftQueueSafety";
+import { readLeagueNavigation, writeLeagueNavigation } from "../lib/leagueNavigation";
 
 /* ---------------------------------------------------------
    DESIGN TOKENS — stadium-jumbotron-at-night aesthetic.
@@ -5306,7 +5308,11 @@ function isWithinOvernightPause(date, settings) {
 export default function PokemonDraftLeague({ leagueId = null, leagueRole = null, league = null, profile = null, onOpenLeagueTools = null }) {
   const isSpectator = leagueId && leagueRole === "viewer";
   const [supabase] = useState(() => createClient());
-  const [tab, setTab] = useState(() => league?.isNew ? "setup" : "home");
+  const [initialNavigation] = useState(() => readLeagueNavigation(
+    typeof window === "undefined" ? "" : window.location.search,
+    { isNew: Boolean(league?.isNew) },
+  ));
+  const [tab, setTab] = useState(initialNavigation.tab);
   const [rolePreview, setRolePreview] = useState("commissioner");
   const commissionerPreviewActive = !!leagueId && ["commissioner", "co_commissioner"].includes(leagueRole) && rolePreview !== "commissioner";
   // Which of Schedule / Standings / Playoffs / History is showing inside the
@@ -5315,7 +5321,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   // reports about the season," so they share one tab with a small sub-nav
   // instead, the same pill-toggle pattern already used elsewhere (bracket
   // vs. list view, etc.).
-  const [leagueSubTab, setLeagueSubTab] = useState("activity");
+  const [leagueSubTab, setLeagueSubTab] = useState(initialNavigation.section);
   const [viewTeamRequest, setViewTeamRequest] = useState(null);
   function goToTeam(teamIdx) {
     setViewTeamRequest(teamIdx);
@@ -5333,6 +5339,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   // just has one league's worth of options to choose from for now.
   const [activeTeamIdx, setActiveTeamIdx] = useState(null);
   const [state, setState] = useState(freshState());
+  const [privateQueueLoadedTeamIdx, setPrivateQueueLoadedTeamIdx] = useState(null);
   const [synced, setSynced] = useState(false);
   const [saveStatus, setSaveStatus] = useState(leagueId ? "loading" : "local");
   const [liveDraftError, setLiveDraftError] = useState("");
@@ -5385,6 +5392,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   const myTeamIdx = myTeamIndices.includes(activeTeamIdx) ? activeTeamIdx : (myTeamIndices[0] ?? -1);
   useEffect(() => {
     if (!leagueId || myTeamIdx < 0) return undefined;
+    setPrivateQueueLoadedTeamIdx(null);
     let alive = true;
     let inFlight = false;
     const loadPrivateQueue = async () => {
@@ -5401,6 +5409,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
           if (JSON.stringify(existing) === JSON.stringify(data)) return current;
           return { ...current, queues: { ...current.queues, [myTeamIdx]: data } };
         });
+        setPrivateQueueLoadedTeamIdx(myTeamIdx);
       } finally {
         inFlight = false;
       }
@@ -5722,7 +5731,12 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     }
     const hydrated = hydrateState(data);
     revRef.current = Math.max(revRef.current, hydrated.rev || 0);
-    setState(hydrated);
+    setState((current) => preserveLoadedPrivateDraftQueue(
+      hydrated,
+      current,
+      myTeamIdx,
+      privateQueueLoadedTeamIdx,
+    ));
     setSaveStatus("saved");
     setLiveDraftError("");
     return true;
@@ -7222,7 +7236,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     if (state.pickIndex >= state.snakeOrder.length) return;
     const teamIdx = state.snakeOrder[state.pickIndex];
     const team = state.teams[teamIdx];
-    if (team?.claimedBy) return;
+    if (team?.claimedBy || team?.claimedByUserId) return;
     if (leagueId && !isCommissioner) return;
     const rosterCount = (state.rosters[teamIdx] || []).length;
     if (rosterCount < state.settings.rosterMin) return;
@@ -7264,12 +7278,16 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     const team = state.teams[teamIdx];
     const turnKey = `${state.pickIndex}:${teamIdx}:${team?.id || ""}`;
     if (lastAutoFired.current === turnKey) return;
-    const isBotTeam = !team?.claimedBy;
+    const isBotTeam = !(team?.claimedBy || team?.claimedByUserId);
     if (!team?.autoDraft && !isBotTeam) return;
-    if (leagueId && (
-      (isBotTeam && !isCommissioner)
-      || (!isBotTeam && teamIdx !== myTeamIdx && !isCommissioner)
-    )) return;
+    if (!browserCanResolveHostedAutoDraft({
+      leagueId,
+      isBotTeam,
+      isCommissioner,
+      teamIndex: teamIdx,
+      myTeamIndex: myTeamIdx,
+      loadedPrivateQueueTeamIndex: privateQueueLoadedTeamIdx,
+    })) return;
     const botReachedBudgetTarget = isBotTeam
       && state.settings.snakeBudgetEnabled
       && (state.rosters[teamIdx] || []).length >= (team?.budgetRosterTarget ?? state.settings.rosterMax);
@@ -7318,7 +7336,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     // Small delay on bot picks so a solo practice draft feels less instant.
     const timer = window.setTimeout(runAutoPick, isBotTeam ? 600 : 0);
     return () => window.clearTimeout(timer);
-  }, [leagueId, isCommissioner, myTeamIdx, state.pickIndex, state.locked, state.paused, state.settings.draftType, state.teams, state.queues, state.pool, state.budgets, state.snakeOrder]);
+  }, [leagueId, isCommissioner, myTeamIdx, privateQueueLoadedTeamIdx, state.pickIndex, state.locked, state.paused, state.settings.draftType, state.teams, state.queues, state.pool, state.budgets, state.snakeOrder]);
 
   // Automatic overnight pause — checks periodically whether the current
   // moment falls inside the commissioner's configured window and pauses or
@@ -9365,6 +9383,28 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   const draftRoomOpen = !state.locked && hasScheduledDraftTime && scheduleClock >= scheduledDraftTime - 60 * 60 * 1000;
   const scheduledDraftIsDue = draftRoomOpen && scheduleClock >= scheduledDraftTime;
   const isMyTurn = !isSpectator && state.locked && !draftDone && state.settings.draftType === "snake" && myTeamIdx >= 0 && myTeamIdx === currentTeamOnClock;
+  // A shared draft is the safest and most useful default when a manager
+  // returns through a plain league link. An explicit URL tab still wins, so
+  // reloading Setup, Messages, or another section keeps the manager exactly
+  // where they chose to be.
+  useEffect(() => {
+    if (!leagueId || !synced || !state.locked || draftDone) return;
+    if (initialNavigation.explicit && tab !== "draft") return;
+    setTab("league");
+    setLeagueSubTab("draft");
+  }, [leagueId, synced, state.locked, draftDone, initialNavigation.explicit, tab]);
+
+  // Keep the selected league area in the URL. Refresh, browser Back/Forward,
+  // and a copied in-league link now restore the same screen instead of always
+  // falling back to League Home.
+  useEffect(() => {
+    if (!leagueId || !synced || typeof window === "undefined") return;
+    const search = writeLeagueNavigation(window.location.search, tab, leagueSubTab);
+    const destination = `${window.location.pathname}${search}${window.location.hash}`;
+    const current = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+    if (destination !== current) window.history.replaceState(window.history.state, "", destination);
+  }, [leagueId, synced, tab, leagueSubTab]);
+
   useEffect(() => {
     async function dispatchNotifications() {
       const { data } = await supabase.auth.getSession();
