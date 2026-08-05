@@ -27,6 +27,10 @@ test("commissioner manual uses current product labels and explains direct suppor
 
 test("financial support is not mislabeled as product help", () => {
   const navigation = source("src/components/SiteQuickLinks.jsx");
+  const footer = source("src/components/SiteLegalFooter.jsx");
   assert.match(navigation, /href="\/manuals">Help/);
-  assert.match(navigation, /href="\/support">Support DraftCenter/);
+  assert.doesNotMatch(navigation, /href="\/(resources|support)"/);
+  assert.match(footer, /href="\/resources">Resources/);
+  assert.match(footer, /href="\/support">Support DraftCenter/);
+  assert.doesNotMatch(footer, /href="\/(leagues|my-teams)"/);
 });
