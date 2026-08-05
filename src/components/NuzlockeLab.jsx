@@ -15,6 +15,7 @@ export default function NuzlockeLab() {
   const [weighting, setWeighting] = useState("equal");
   const [familyClause, setFamilyClause] = useState(true);
   const [excludeLegendaries, setExcludeLegendaries] = useState(true);
+  const [finalEvolutionOnly, setFinalEvolutionOnly] = useState(false);
   const [methods, setMethods] = useState([]);
   const [exclusions, setExclusions] = useState("");
   const [result, setResult] = useState(null);
@@ -29,6 +30,7 @@ export default function NuzlockeLab() {
     if (["equal", "authentic"].includes(params.get("weighting"))) setWeighting(params.get("weighting"));
     setFamilyClause(params.get("family") !== "off");
     setExcludeLegendaries(params.get("legendaries") !== "include");
+    setFinalEvolutionOnly(params.get("evolutions") === "final");
     const sharedMethods = (params.get("methods") || "").split(",").filter((item) => /^[a-z0-9-]{1,40}$/.test(item)).slice(0, 30);
     setMethods(sharedMethods);
     setExclusions((params.get("exclude") || "").slice(0, 500));
@@ -50,15 +52,16 @@ export default function NuzlockeLab() {
     url.searchParams.set("size", String(teamSize)); url.searchParams.set("mode", mode); url.searchParams.set("weighting", weighting);
     if (!familyClause) url.searchParams.set("family", "off");
     if (!excludeLegendaries) url.searchParams.set("legendaries", "include");
+    if (finalEvolutionOnly) url.searchParams.set("evolutions", "final");
     if (methods.length) url.searchParams.set("methods", methods.join(","));
     if (exclusions.trim()) url.searchParams.set("exclude", exclusions.trim().slice(0, 500));
     return url.toString();
-  }, [excludeLegendaries, exclusions, familyClause, game, methods, mode, seed, teamSize, weighting]);
+  }, [excludeLegendaries, exclusions, familyClause, finalEvolutionOnly, game, methods, mode, seed, teamSize, weighting]);
 
   async function generate(event) {
     event.preventDefault(); setLoading(true); setMessage(""); setResult(null);
     try {
-      const response = await fetch("/api/nuzlocke", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ game, seed, teamSize, mode, weighting, familyClause, excludeLegendaries, methods, exclusions: exclusions.split(",").map((item) => item.trim()).filter(Boolean) }) });
+      const response = await fetch("/api/nuzlocke", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ game, seed, teamSize, mode, weighting, familyClause, excludeLegendaries, finalEvolutionOnly, methods, exclusions: exclusions.split(",").map((item) => item.trim()).filter(Boolean) }) });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error);
       setResult(data);
@@ -80,11 +83,12 @@ export default function NuzlockeLab() {
       <label>Exclude Pokémon<input value={exclusions} onChange={(event) => setExclusions(event.target.value)} placeholder="Pikachu, Zubat" /><small>Separate names with commas.</small></label>
       <label className="check-row"><input type="checkbox" checked={familyClause} onChange={(event) => setFamilyClause(event.target.checked)} />Species/evolutionary-family clause</label>
       <label className="check-row"><input type="checkbox" checked={excludeLegendaries} onChange={(event) => setExcludeLegendaries(event.target.checked)} />Exclude legendary Pokémon</label>
+      <div className="nuzlocke-rule-option"><label className="check-row"><input type="checkbox" checked={finalEvolutionOnly} onChange={(event) => setFinalEvolutionOnly(event.target.checked)} aria-describedby="final-evolution-help" />Final evolutions or non-evolving Pokémon only</label><small id="final-evolution-help">Shows each catch as a seeded final evolution available in that game, while preserving its original route and encounter details.</small></div>
       <button className="primary-button" disabled={loading || !game || !seed}>{loading ? "Generating…" : "Generate Run Card"}</button>{message && <p className="hub-message" role="status">{message}</p>}
     </form>
     <section className="nuzlocke-output"><div className="section-heading"><div><span className="eyebrow">RUN CARD</span><h2>{result?.game?.display_name || "Your encounters"}</h2></div>{shareUrl && <button className="quiet-button" type="button" onClick={() => navigator.clipboard.writeText(shareUrl)}>Copy seed link</button>}</div>
       {!result && <div className="empty-state">Choose a verified game and your rules, then generate a team.</div>}
       {result && !result.complete && <p className="nuzlocke-incomplete">Only {result.available} of {result.requested} slots could be filled under these rules. No rule was relaxed.</p>}
-      <div className="nuzlocke-team">{result?.team?.map((entry, index) => <article key={`${entry.area_key}-${entry.pokemon_id}`}><span className="nuzlocke-number">{index + 1}</span>{entry.artwork_url && <img src={entry.artwork_url} alt="" />}<div><h3>{entry.pokemon_name}{entry.form_name ? ` (${entry.form_name})` : ""}</h3><strong>{entry.area_name}</strong><p>{pretty(entry.method)} · Lv. {entry.min_level ?? "?"}{entry.max_level && entry.max_level !== entry.min_level ? `–${entry.max_level}` : ""}</p>{entry.conditions?.length ? <small>{entry.conditions.map(pretty).join(", ")}</small> : <small>No special conditions</small>}</div></article>)}</div>
+      <div className="nuzlocke-team">{result?.team?.map((entry, index) => <article key={`${entry.area_key}-${entry.pokemon_id}`}><span className="nuzlocke-number">{index + 1}</span>{entry.artwork_url && <img src={entry.artwork_url} alt="" />}<div><h3>{entry.pokemon_name}{entry.form_name ? ` (${entry.form_name})` : ""}</h3><strong>{entry.area_name}</strong><p>{entry.encounter_pokemon_name ? `Catch ${entry.encounter_pokemon_name}${entry.encounter_form_name ? ` (${entry.encounter_form_name})` : ""} · ` : ""}{pretty(entry.method)} · Lv. {entry.min_level ?? "?"}{entry.max_level && entry.max_level !== entry.min_level ? `–${entry.max_level}` : ""}</p>{entry.conditions?.length ? <small>{entry.conditions.map(pretty).join(", ")}</small> : <small>No special conditions</small>}</div></article>)}</div>
     </section></div></main>;
 }
