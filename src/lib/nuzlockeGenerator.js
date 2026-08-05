@@ -34,6 +34,17 @@ function pick(entries, random, weighting) {
   return entries.at(-1);
 }
 
+function weightedOrder(entries, random, weighting) {
+  const remaining = [...entries];
+  const ordered = [];
+  while (remaining.length) {
+    const entry = pick(remaining, random, weighting);
+    ordered.push(entry);
+    remaining.splice(remaining.indexOf(entry), 1);
+  }
+  return ordered;
+}
+
 function shuffled(values, random) {
   const result = [...values];
   for (let index = result.length - 1; index > 0; index -= 1) {
@@ -67,28 +78,49 @@ export function generateNuzlockeTeam(encounters, options = {}) {
   }
 
   const random = seededRandom(`${options.seed}:${mode}:${weighting}`);
-  const selected = [];
-  const families = new Set();
-  const accept = (entry) => {
-    const family = String(entry.species_family || entry.pokemon_id).toLowerCase();
-    if (options.familyClause && families.has(family)) return false;
-    selected.push(entry);
-    families.add(family);
-    return true;
-  };
-  if (mode === "route-random") {
-    for (const areaKey of shuffled([...byArea.keys()], random)) {
-      accept(pick(byArea.get(areaKey), random, weighting));
-      if (selected.length === teamSize) break;
-    }
-  } else {
+  let areaOrder;
+  if (mode === "route-random") areaOrder = shuffled([...byArea.keys()], random);
+  else {
+    areaOrder = [];
     let pool = [...eligible];
-    while (pool.length && selected.length < teamSize) {
+    while (pool.length) {
       const entry = pick(pool, random, weighting);
+      areaOrder.push(entry.area_key);
       pool = pool.filter((candidate) => candidate.area_key !== entry.area_key);
-      accept(entry);
     }
   }
+
+  const candidatesByArea = new Map(areaOrder.map((areaKey) => [areaKey, weightedOrder(byArea.get(areaKey), random, weighting)]));
+  const selectedByArea = new Map();
+  if (!options.familyClause) {
+    for (const areaKey of areaOrder.slice(0, teamSize)) selectedByArea.set(areaKey, candidatesByArea.get(areaKey)[0]);
+  } else {
+    const areaByFamily = new Map();
+    const familyOf = (entry) => String(entry.species_family || entry.pokemon_id).toLowerCase();
+    const assignArea = (areaKey, visitedAreas, visitedFamilies) => {
+      if (visitedAreas.has(areaKey)) return false;
+      visitedAreas.add(areaKey);
+      for (const entry of candidatesByArea.get(areaKey)) {
+        const family = familyOf(entry);
+        if (visitedFamilies.has(family)) continue;
+        visitedFamilies.add(family);
+        const occupiedArea = areaByFamily.get(family);
+        if (!occupiedArea || assignArea(occupiedArea, visitedAreas, visitedFamilies)) {
+          const previous = selectedByArea.get(areaKey);
+          if (previous) areaByFamily.delete(familyOf(previous));
+          selectedByArea.set(areaKey, entry);
+          areaByFamily.set(family, areaKey);
+          return true;
+        }
+      }
+      return false;
+    };
+    for (const areaKey of areaOrder) {
+      assignArea(areaKey, new Set(), new Set());
+      if (selectedByArea.size === teamSize) break;
+    }
+  }
+  const selected = areaOrder.map((areaKey) => selectedByArea.get(areaKey)).filter(Boolean).slice(0, teamSize);
   return {
     team: selected,
     complete: selected.length === teamSize,
