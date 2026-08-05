@@ -7,6 +7,7 @@ const newSeed = () => globalThis.crypto?.randomUUID?.().slice(0, 12) || Math.ran
 
 export default function NuzlockeLab() {
   const [games, setGames] = useState([]);
+  const [gameMethods, setGameMethods] = useState({});
   const [game, setGame] = useState("");
   const [seed, setSeed] = useState("");
   const [teamSize, setTeamSize] = useState(6);
@@ -28,13 +29,14 @@ export default function NuzlockeLab() {
     if (["equal", "authentic"].includes(params.get("weighting"))) setWeighting(params.get("weighting"));
     setFamilyClause(params.get("family") !== "off");
     setExcludeLegendaries(params.get("legendaries") !== "include");
-    const sharedMethods = (params.get("methods") || "").split(",").filter((item) => ["walk","surf","old-rod","good-rod","super-rod","gift","static"].includes(item));
+    const sharedMethods = (params.get("methods") || "").split(",").filter((item) => /^[a-z0-9-]{1,40}$/.test(item)).slice(0, 30);
     setMethods(sharedMethods);
     setExclusions((params.get("exclude") || "").slice(0, 500));
     fetch("/api/nuzlocke").then(async (response) => {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error);
       setGames(data.games || []);
+      setGameMethods(data.methods || {});
       const selected = params.get("game");
       setGame(data.games?.some((item) => item.game_key === selected) ? selected : data.games?.[0]?.game_key || "");
       setMessage(data.games?.length ? "" : "No game encounter catalog has completed independent verification yet.");
@@ -74,7 +76,7 @@ export default function NuzlockeLab() {
       <label>Team size <strong>{teamSize}</strong><input type="range" min="1" max="12" value={teamSize} onChange={(event) => setTeamSize(Number(event.target.value))} /></label>
       <label>Selection mode<select value={mode} onChange={(event) => setMode(event.target.value)}><option value="route-random">Route random</option><option value="true-random">True random</option></select></label>
       <label>Encounter weighting<select value={weighting} onChange={(event) => setWeighting(event.target.value)}><option value="equal">Equal chance</option><option value="authentic">Authentic encounter odds</option></select></label>
-      <fieldset><legend>Encounter methods</legend>{["walk","surf","old-rod","good-rod","super-rod","gift","static"].map((item) => <label className="check-row" key={item}><input type="checkbox" checked={methods.includes(item)} onChange={() => toggleMethod(item)} />{pretty(item)}</label>)}<small>Leave all unchecked to include every verified method.</small></fieldset>
+      <fieldset><legend>Encounter methods</legend>{(gameMethods[game] || []).map((item) => <label className="check-row" key={item}><input type="checkbox" checked={methods.includes(item)} onChange={() => toggleMethod(item)} />{pretty(item)}</label>)}<small>Leave all unchecked to include every verified method.</small></fieldset>
       <label>Exclude Pokémon<input value={exclusions} onChange={(event) => setExclusions(event.target.value)} placeholder="Pikachu, Zubat" /><small>Separate names with commas.</small></label>
       <label className="check-row"><input type="checkbox" checked={familyClause} onChange={(event) => setFamilyClause(event.target.checked)} />Species/evolutionary-family clause</label>
       <label className="check-row"><input type="checkbox" checked={excludeLegendaries} onChange={(event) => setExcludeLegendaries(event.target.checked)} />Exclude legendary Pokémon</label>
