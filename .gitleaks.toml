@@ -50,3 +50,25 @@ paths = [
 regexes = [
   '''^(?:area_key|location_key)"\s*:\s*"[a-z0-9-]+"$''',
 ]
+
+[[rules.allowlists]]
+description = "Pokemon Blue verification public area identifiers"
+condition = "AND"
+regexTarget = "match"
+paths = [
+  '''^supabase/266-verify-pokemon-blue-encounter-catalog\.sql$''',
+]
+regexes = [
+  '''^area_key='[a-z0-9-]+'$''',
+]
+
+[[rules.allowlists]]
+description = "Nuzlocke catalog regression public area identifier"
+condition = "AND"
+regexTarget = "match"
+paths = [
+  '''^test/nuzlocke-catalog-security\.test\.js$''',
+]
+regexes = [
+  '''^row\.area_key==="[a-z0-9-]+"$''',
+]

@@ -1,4 +1,5 @@
 import test from "node:test"; import assert from "node:assert/strict"; import fs from "node:fs";
+import { publicSupabaseConfig } from "../src/lib/supabase/config.js";
 const migration=fs.readFileSync(new URL("../supabase/261-versioned-pokemon-encounter-catalog.sql",import.meta.url),"utf8");
 const imported=fs.readFileSync(new URL("../supabase/262-import-pokemon-red-encounter-catalog.sql",import.meta.url),"utf8");
 const verified=fs.readFileSync(new URL("../supabase/263-verify-pokemon-red-encounter-catalog.sql",import.meta.url),"utf8");
@@ -100,7 +101,46 @@ paths = [
 regexes = [
   '''^(?:area_key|location_key)"\\s*:\\s*"[a-z0-9-]+"$''',
 ]
+
+[[rules.allowlists]]
+description = "Pokemon Blue verification public area identifiers"
+condition = "AND"
+regexTarget = "match"
+paths = [
+  '''^supabase/266-verify-pokemon-blue-encounter-catalog\\.sql$''',
+]
+regexes = [
+  '''^area_key='[a-z0-9-]+'$''',
+]
+
+[[rules.allowlists]]
+description = "Nuzlocke catalog regression public area identifier"
+condition = "AND"
+regexTarget = "match"
+paths = [
+  '''^test/nuzlocke-catalog-security\\.test\\.js$''',
+]
+regexes = [
+  '''^row\\.area_key==="[a-z0-9-]+"$''',
+]
 `;assert.equal(leakConfig,expected);const migrationPayloads=[...imported.matchAll(/\$catalog\$(.+?)\$catalog\$/g)].map((match)=>JSON.parse(match[1]));const blueMigrationPayloads=[...blueImported.matchAll(/\$catalog\$(.+?)\$catalog\$/g)].map((match)=>JSON.parse(match[1]));assert.deepEqual(migrationPayloads[0],artifact.pokedex_entries);assert.deepEqual(migrationPayloads[1],artifact.locations);assert.deepEqual(migrationPayloads[2],artifact.encounters);assert.deepEqual(blueMigrationPayloads[0],blueArtifact.pokedex_entries);assert.deepEqual(blueMigrationPayloads[1],blueArtifact.locations);assert.deepEqual(blueMigrationPayloads[2],blueArtifact.encounters);assert.ok(artifact.locations.every((row)=>/^[a-z0-9-]+$/.test(row.location_key)&&/^[a-z0-9-]+$/.test(row.area_key)));assert.ok(artifact.encounters.every((row)=>/^[a-z0-9-]+$/.test(row.area_key)));assert.ok(blueArtifact.locations.every((row)=>/^[a-z0-9-]+$/.test(row.location_key)&&/^[a-z0-9-]+$/.test(row.area_key)));assert.ok(blueArtifact.encounters.every((row)=>/^[a-z0-9-]+$/.test(row.area_key))); });
+test("Vercel Preview uses its isolated Supabase integration while production keeps DraftCenter credentials",()=>{
+  const names=["VERCEL_ENV","VERCEL_TARGET_ENV","NEXT_PUBLIC_DRAFTCENTER_SUPABASE_URL","NEXT_PUBLIC_DRAFTCENTER_SUPABASE_PUBLISHABLE_KEY","NEXT_PUBLIC_SUPABASE_URL","NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY","NEXT_PUBLIC_SUPABASE_ANON_KEY"];
+  const previous=Object.fromEntries(names.map((name)=>[name,process.env[name]]));
+  try {
+    process.env.NEXT_PUBLIC_DRAFTCENTER_SUPABASE_URL="https://draftcenter.example.test";
+    process.env.NEXT_PUBLIC_DRAFTCENTER_SUPABASE_PUBLISHABLE_KEY="d".repeat(40);
+    process.env.NEXT_PUBLIC_SUPABASE_URL="https://preview.example.test";
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY="p".repeat(40);
+    process.env.VERCEL_ENV="preview";
+    delete process.env.VERCEL_TARGET_ENV;
+    assert.deepEqual(publicSupabaseConfig(),{url:"https://preview.example.test",key:"p".repeat(40),source:"preview"});
+    process.env.VERCEL_ENV="production";
+    assert.deepEqual(publicSupabaseConfig(),{url:"https://draftcenter.example.test",key:"d".repeat(40),source:"draftcenter"});
+  } finally {
+    for (const name of names) previous[name]===undefined?delete process.env[name]:process.env[name]=previous[name];
+  }
+});
 test("verified game summaries are bounded, RLS-backed, and browser read-only",()=>{ assert.match(summaryMigration,/list_verified_nuzlocke_games/); assert.match(summaryMigration,/security invoker/); assert.match(summaryMigration,/encounter_status='verified'/); assert.match(summaryMigration,/limit 100/); assert.match(summaryMigration,/grant execute[^;]+to anon, authenticated/); });
 test("server route uses public RLS catalog access and privileged rate limiting",()=>{ assert.match(route,/createPublicServerClient/); assert.match(route,/list_verified_nuzlocke_games/); assert.match(route,/eq\("encounter_status", "verified"\)/); assert.match(route,/consumeUserRateLimit\(adminClient/); assert.match(route,/get_verified_nuzlocke_encounters/); assert.doesNotMatch(route,/adminClient\.from\("pokemon_games"/); });
 test("final evolution requests require source-matched pinned Red and Blue catalogs",()=>{ assert.match(route,/red: redEvolutionCatalog, blue: blueEvolutionCatalog/); assert.match(route,/body\.finalEvolutionOnly === true/); assert.match(route,/evolutionCatalog\.source_commit !== game\.source_commit/); assert.match(route,/Final evolution data is not verified/); });
