@@ -23,7 +23,8 @@
     "test:transaction-takeover": "node --test test/transaction-takeover.test.js",
     "test:pokemon-catalog": "node scripts/verify-public-pokemon-catalog.mjs",
     "test:manager-removal": "node --test test/manager-removal-claim-cleanup.test.js",
-    "test:all": "npm run test:security && npm run test:regulations && npm run test:auth-captcha && npm run test:profile-defaults && npm run test:performance && npm run test:help-guides && npm run test:operations-users && npm run test:draft-experience && npm run test:team-ownership && npm run test:draft-board-ux && npm run test:seo && npm run test:draft-chat-routing && npm run test:transaction-takeover && npm run test:manager-removal"
+    "test:league-counts": "node --test test/league-count-consistency.test.js",
+    "test:all": "npm run test:security && npm run test:regulations && npm run test:auth-captcha && npm run test:profile-defaults && npm run test:performance && npm run test:help-guides && npm run test:operations-users && npm run test:draft-experience && npm run test:team-ownership && npm run test:draft-board-ux && npm run test:seo && npm run test:draft-chat-routing && npm run test:transaction-takeover && npm run test:manager-removal && npm run test:league-counts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.3",
