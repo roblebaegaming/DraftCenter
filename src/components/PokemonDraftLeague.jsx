@@ -4876,7 +4876,7 @@ function freshState() {
       // division playoffs in this pass.
       doubleElimination: false,
       maxTransactionsTotal: null, // null = unlimited
-      maxTransactionsPerWeek: null, // null = unlimited
+      maxTransactionsPerWeek: 1, // safer new-league default; commissioners may choose unlimited
       transactionsLastWeek: null, // null = no deadline; else last week (1-indexed) transactions are allowed
       lockTransactionsAtPlayoffs: false,
       // Which criteria count toward standings rank, applied in this fixed
@@ -5136,7 +5136,11 @@ function hydrateState(remote) {
         nextPowerOfTwo(remote.settings?.playoffTeams ?? 4),
       ),
       maxTransactionsTotal: remote.settings?.maxTransactionsTotal ?? null,
-      maxTransactionsPerWeek: remote.settings?.maxTransactionsPerWeek ?? null,
+      // Preserve an existing league's explicitly saved null (unlimited). Only
+      // snapshots created before this field existed inherit the safer default.
+      maxTransactionsPerWeek: Object.prototype.hasOwnProperty.call(remoteSettings, "maxTransactionsPerWeek")
+        ? remoteSettings.maxTransactionsPerWeek
+        : base.settings.maxTransactionsPerWeek,
       transactionsLastWeek: remote.settings?.transactionsLastWeek ?? null,
       lockTransactionsAtPlayoffs: remote.settings?.lockTransactionsAtPlayoffs ?? false,
       standingsCriteria: { setWinLoss: true, gameWinLoss: true, differential: true, other: false, ...(remote.settings?.standingsCriteria || {}) },
@@ -12407,6 +12411,9 @@ function TransactionRulesCard({ state, leagueId, isCommissioner, updateSettings 
             </button>
           ))}
         </div>
+        <p className="text-xs mt-2" style={{ color: "#5B5F7E" }}>
+          New leagues start at 1 per week to prevent a free-agent rush. Existing leagues keep their saved choice, including Unlimited.
+        </p>
 
         <label className="block text-sm mb-2 mt-5" style={{ color: "#9A9FBD" }}>Transaction deadline</label>
         <div className="flex items-center gap-2 mb-1">
@@ -17062,6 +17069,8 @@ function TransactionsView({ state, myName, myTeamIdx, isCommissioner, freeAgents
   const [faDrop, setFaDrop] = useState("");
   const [faBid, setFaBid] = useState("");
   const [faError, setFaError] = useState("");
+  const [confirmFreeAgent, setConfirmFreeAgent] = useState(false);
+  const [faSubmitting, setFaSubmitting] = useState(false);
 
   const [tradeToTeam, setTradeToTeam] = useState(null);
   const [offerSel, setOfferSel] = useState([]);
@@ -17118,10 +17127,19 @@ function TransactionsView({ state, myName, myTeamIdx, isCommissioner, freeAgents
   const canActFor = (teamIdx) => isCommissioner || teams[teamIdx]?.claimedBy === myName;
 
   async function submitFreeAgent() {
-    if (!faAdd) return;
+    if (!faAdd || faSubmitting) return;
+    setFaSubmitting(true);
     const outcome = await submitFreeAgentClaim(faTeam, faAdd, faDrop || null, faBid);
+    setFaSubmitting(false);
+    setConfirmFreeAgent(false);
     if (outcome.ok) { setFaAdd(""); setFaDrop(""); setFaBid(""); setFaError(""); }
     else setFaError(outcome.reason || "That move isn't allowed.");
+  }
+
+  function requestFreeAgent() {
+    if (!faAdd || faSubmitting) return;
+    if (settings.faClaimMode === "instant") setConfirmFreeAgent(true);
+    else submitFreeAgent();
   }
 
   function toggleSel(list, setList, name) {
@@ -17142,9 +17160,33 @@ function TransactionsView({ state, myName, myTeamIdx, isCommissioner, freeAgents
   const historyTrades = trades.filter((t) => t.status !== "pending");
   const usesBudget = settings.draftType === "auction" || settings.snakeBudgetEnabled;
   const info = teamTransactionInfo(faTeam);
+  const weeklyRemaining = info.weekLimit == null ? null : Math.max(0, info.weekLimit - info.weekUsed);
+  const seasonRemaining = info.totalLimit == null ? null : Math.max(0, info.totalLimit - info.totalUsed);
 
   return (
     <div className="flex flex-col gap-6">
+      {confirmFreeAgent && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" style={{ background: "rgba(8, 10, 20, 0.84)" }}>
+          <section role="dialog" aria-modal="true" aria-labelledby="confirm-free-agent-title" className="w-full max-w-lg rounded-xl p-5 shadow-2xl" style={{ background: "#171A2C", border: "1px solid #FFD23F88" }}>
+            <h2 id="confirm-free-agent-title" className="display-font text-2xl mb-3" style={{ color: "#FFD23F" }}>USE A TRANSACTION?</h2>
+            <p className="text-sm mb-3" style={{ color: "#EDEBFA" }}>
+              <strong>{teams[faTeam]?.name}</strong> will add <strong>{faAdd}</strong>{faDrop ? <> and drop <strong>{faDrop}</strong></> : ""} immediately.
+            </p>
+            <div className="rounded-lg p-3 mb-5 text-sm" style={{ background: weeklyRemaining === 1 ? "#2B2412" : "#102B2B", color: weeklyRemaining === 1 ? "#FFE9A1" : "#BDF7EE" }}>
+              {info.weekLimit == null
+                ? "This league currently allows unlimited weekly transactions."
+                : `This will use transaction ${info.weekUsed + 1} of ${info.weekLimit} for this week${weeklyRemaining === 1 ? "; no more moves will remain this week" : ""}.`}
+              {seasonRemaining != null ? ` ${seasonRemaining} season transaction${seasonRemaining === 1 ? "" : "s"} remain before this move.` : ""}
+            </div>
+            <div className="flex justify-end gap-3 flex-wrap">
+              <button type="button" disabled={faSubmitting} onClick={() => setConfirmFreeAgent(false)} className="px-4 py-2 rounded font-semibold text-sm disabled:opacity-50" style={{ background: "#1F2338", color: "#C8CDEA" }}>CANCEL</button>
+              <button type="button" disabled={faSubmitting} onClick={submitFreeAgent} className="px-4 py-2 rounded font-semibold text-sm disabled:opacity-60" style={{ background: "#FFD23F", color: "#10121C" }}>
+                {faSubmitting ? "PROCESSING…" : "CONFIRM TRANSACTION"}
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
       {/* TRADES */}
       <div style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }} className="rounded-lg p-6">
         <h2 className="display-font text-2xl mb-1" style={{ color: "#FFD23F" }}>PROPOSE A TRADE</h2>
@@ -17311,10 +17353,14 @@ function TransactionsView({ state, myName, myTeamIdx, isCommissioner, freeAgents
       <div style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }} className="rounded-lg p-6">
         <h2 className="display-font text-2xl mb-1" style={{ color: "#FFD23F" }}>FREE AGENCY</h2>
         <p className="text-sm mb-1" style={{ color: "#9A9FBD" }}>{freeAgents.length} pokémon unrostered and available to pick up.</p>
-        <p className="text-xs mb-4 mono-font" style={{ color: info.blocked ? "#F0555A" : "#5B5F7E" }}>
-          {teams[faTeam]?.name}: {info.totalUsed} used this season{info.totalLimit ? ` of ${info.totalLimit}` : ""} · {info.weekUsed} used this week{info.weekLimit ? ` of ${info.weekLimit}` : ""}
+        <p className="text-xs mb-2 mono-font" style={{ color: info.blocked ? "#F0555A" : "#5B5F7E" }}>
+          {teams[faTeam]?.name}: {info.totalUsed} used this season{info.totalLimit != null ? ` of ${info.totalLimit}` : " (unlimited)"} · {info.weekUsed} used this week{info.weekLimit != null ? ` of ${info.weekLimit}` : " (unlimited)"}
           {usesBudget && ` · ${budgets[faTeam] ?? 0}pt budget left`}
         </p>
+        <div className="rounded px-3 py-2 mb-4 text-sm" style={{ background: info.blocked ? "#2A1620" : "#102B2B", border: `1px solid ${info.blocked ? "#F0555A55" : "#4FD1C544"}`, color: info.blocked ? "#FFB8C0" : "#BDF7EE" }}>
+          {weeklyRemaining == null ? "Weekly allowance: Unlimited" : `Weekly allowance: ${weeklyRemaining} of ${info.weekLimit} remaining`}
+          {seasonRemaining != null ? ` · Season allowance: ${seasonRemaining} remaining` : ""}
+        </div>
 
         <div className="grid md:grid-cols-3 gap-3 mb-4">
           <div>
@@ -17366,10 +17412,10 @@ function TransactionsView({ state, myName, myTeamIdx, isCommissioner, freeAgents
             This queues a claim rather than acting right away — see Pending Claims below. The server resolves everyone's claims together at the scheduled time, or a commissioner can process them early.
           </p>
         )}
-        <button onClick={submitFreeAgent} disabled={!canActFor(faTeam) || !faAdd || info.blocked}
+        <button onClick={requestFreeAgent} disabled={!canActFor(faTeam) || !faAdd || info.blocked || faSubmitting}
           className="px-4 py-2 rounded font-semibold text-sm disabled:opacity-40"
           style={{ background: "#FFD23F", color: "#10121C" }}>
-          {settings.faClaimMode === "instant" ? "PROCESS TRANSACTION" : "SUBMIT CLAIM"}
+          {faSubmitting ? "PROCESSING…" : settings.faClaimMode === "instant" ? "REVIEW TRANSACTION" : "SUBMIT CLAIM"}
         </button>
         {!canActFor(faTeam) && <p className="text-xs mt-2" style={{ color: "#5B5F7E" }}>Only that team's owner or the commissioner can make this move.</p>}
         {info.blocked && canActFor(faTeam) && (

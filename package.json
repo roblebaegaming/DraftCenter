@@ -16,8 +16,9 @@
     "test:help-guides": "node --test test/help-guides.test.js",
     "test:operations-users": "node --test test/operations-user-count.test.js",
     "test:seo": "node --test test/seo-metadata.test.js",
+    "test:transaction-takeover": "node --test test/transaction-takeover.test.js",
     "test:pokemon-catalog": "node scripts/verify-public-pokemon-catalog.mjs",
-    "test:all": "npm run test:security && npm run test:regulations && npm run test:auth-captcha && npm run test:profile-defaults && npm run test:performance && npm run test:help-guides && npm run test:operations-users && npm run test:seo"
+    "test:all": "npm run test:security && npm run test:regulations && npm run test:auth-captcha && npm run test:profile-defaults && npm run test:performance && npm run test:help-guides && npm run test:operations-users && npm run test:seo && npm run test:transaction-takeover"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.3",
