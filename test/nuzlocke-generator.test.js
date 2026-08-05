@@ -80,3 +80,25 @@ test("reviewed Pokémon Red final evolution mode is complete, game-specific, and
   assert.ok(result.team.some((row)=>row.encounter_pokemon_name));
   assert.deepEqual(result,generateNuzlockeTeam(catalog.encounters,options));
 });
+test("reviewed Pokémon Blue catalog is complete and deterministic in both selection styles",()=>{
+  const catalog=JSON.parse(fs.readFileSync(new URL("../data/nuzlocke/pokemon-blue.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json",import.meta.url),"utf8"));
+  for(const mode of ["route-random","true-random"]){
+    const options={seed:`blue-${mode}`,teamSize:12,mode,weighting:"authentic",familyClause:true,excludeLegendaries:true};
+    const result=generateNuzlockeTeam(catalog.encounters,options);
+    assert.equal(result.complete,true);
+    assert.equal(new Set(result.team.map((row)=>row.area_key)).size,12);
+    assert.equal(new Set(result.team.map((row)=>row.species_family)).size,12);
+    assert.deepEqual(result,generateNuzlockeTeam(catalog.encounters,options));
+  }
+});
+test("reviewed Pokémon Blue final evolution mode remains complete and deterministic",()=>{
+  const catalog=JSON.parse(fs.readFileSync(new URL("../data/nuzlocke/pokemon-blue.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json",import.meta.url),"utf8"));
+  const evolutionCatalog=JSON.parse(fs.readFileSync(new URL("../data/nuzlocke/pokemon-blue-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json",import.meta.url),"utf8"));
+  const options={seed:"blue-finals",teamSize:12,mode:"true-random",weighting:"equal",familyClause:true,excludeLegendaries:true,finalEvolutionOnly:true,evolutionCatalog};
+  const result=generateNuzlockeTeam(catalog.encounters,options);
+  const finalIds=new Set(evolutionCatalog.evolutions.flatMap((row)=>row.final_evolutions.map((item)=>item.pokemon_id)));
+  assert.equal(result.complete,true);
+  assert.ok(result.team.every((row)=>row.is_final_evolution&&finalIds.has(row.pokemon_id)));
+  assert.ok(result.team.some((row)=>row.encounter_pokemon_name));
+  assert.deepEqual(result,generateNuzlockeTeam(catalog.encounters,options));
+});

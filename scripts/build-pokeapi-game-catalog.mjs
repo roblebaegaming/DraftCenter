@@ -3,7 +3,12 @@ import path from "node:path";
 
 const args=new Map(process.argv.slice(2).map((value,index,list)=>value.startsWith("--")?[value,list[index+1]]:null).filter(Boolean));
 const game=String(args.get("--game")||""); const commit=String(args.get("--commit")||""); const spritesCommit=String(args.get("--sprites-commit")||""); const output=String(args.get("--output")||""); const evolutionsOutput=String(args.get("--evolutions-output")||"");
-if(game!=="red") throw new Error("The first reviewed builder supports exactly --game red.");
+const gameDefinitions={
+  red:{display_name:"Pokémon Red",generation:1,family:"Red / Blue / Yellow",release_order:1},
+  blue:{display_name:"Pokémon Blue",generation:1,family:"Red / Blue / Yellow",release_order:2},
+};
+const gameDefinition=gameDefinitions[game];
+if(!gameDefinition) throw new Error("The reviewed builder currently supports --game red or --game blue.");
 if(!/^[0-9a-f]{40}$/.test(commit)) throw new Error("--commit must be an exact 40-character PokeAPI commit.");
 if(!/^[0-9a-f]{40}$/.test(spritesCommit)) throw new Error("--sprites-commit must be an exact 40-character PokeAPI sprites commit.");
 if(!output) throw new Error("--output is required.");
@@ -21,7 +26,7 @@ function csv(text){
 async function load(name){ const response=await fetch(`${base}/${name}`); if(!response.ok) throw new Error(`${name} returned ${response.status}`); return csv(await response.text()); }
 const names=["versions.csv","version_groups.csv","encounters.csv","encounter_slots.csv","encounter_methods.csv","encounter_condition_values.csv","encounter_condition_value_map.csv","location_areas.csv","location_area_prose.csv","locations.csv","pokemon.csv","pokemon_species.csv","pokemon_species_names.csv","pokemon_forms.csv","pokemon_dex_numbers.csv","pokedexes.csv","pokedex_version_groups.csv"];
 const loaded=await Promise.all(names.map(load)); const data=Object.fromEntries(names.map((name,index)=>[name,loaded[index]]));
-const byId=(rows)=>new Map(rows.map((row)=>[row.id,row])); const version=data["versions.csv"].find((row)=>row.identifier===game); if(!version) throw new Error("Red version is missing.");
+const byId=(rows)=>new Map(rows.map((row)=>[row.id,row])); const version=data["versions.csv"].find((row)=>row.identifier===game); if(!version) throw new Error(`${gameDefinition.display_name} is missing from the pinned source.`);
 const slots=byId(data["encounter_slots.csv"]); const methods=byId(data["encounter_methods.csv"]); const areas=byId(data["location_areas.csv"]); const locations=byId(data["locations.csv"]); const pokemon=byId(data["pokemon.csv"]); const species=byId(data["pokemon_species.csv"]);
 const englishSpecies=new Map(data["pokemon_species_names.csv"].filter((row)=>row.local_language_id==="9").map((row)=>[row.pokemon_species_id,row.name]));
 const englishAreas=new Map(data["location_area_prose.csv"].filter((row)=>row.local_language_id==="9").map((row)=>[row.location_area_id,row.name]));
@@ -40,8 +45,8 @@ function finalSpeciesIds(speciesId,visiting=new Set()){const key=String(speciesI
 const defaultProfileBySpecies=new Map(data["pokemon.csv"].filter((row)=>row.is_default==="1").map((row)=>[row.species_id,row]));
 const encounteredProfiles=new Map(encounterRows.map((row)=>[row.pokemon_id,pokemon.get(String(row.pokemon_id))]));
 const evolutionRows=[...encounteredProfiles.entries()].sort(([left],[right])=>left-right).map(([pokemonId,profile])=>{if(!profile||!dexSpeciesIds.has(profile.species_id))throw new Error(`Encounter profile ${pokemonId} is missing from the game Pokédex.`);return {pokemon_id:pokemonId,pokemon_name:englishSpecies.get(profile.species_id)||title(profile.identifier),final_evolutions:finalSpeciesIds(profile.species_id).map((finalSpeciesId)=>{const finalSpecies=species.get(finalSpeciesId);const finalProfile=defaultProfileBySpecies.get(finalSpeciesId);if(!finalSpecies||!finalProfile)throw new Error(`Final species ${finalSpeciesId} is missing a default profile.`);return {pokemon_id:Number(finalProfile.id),pokemon_name:englishSpecies.get(finalSpeciesId)||title(finalSpecies.identifier),form_name:finalProfile.identifier===finalSpecies.identifier?"":title(finalProfile.identifier),artwork_url:`https://raw.githubusercontent.com/PokeAPI/sprites/${spritesCommit}/sprites/pokemon/other/official-artwork/${finalProfile.id}.png`};})};});
-const payload={game:{game_key:"red",display_name:"Pokémon Red",generation:1,family:"Red / Blue / Yellow",release_order:1,coverage_note:`PokéAPI encounter snapshot ${commit}; PokeAPI sprites snapshot ${spritesCommit}; independent source audit required before verification.`,encounter_status:"pending"},pokedex_entries:dexRows,locations:locationRows,encounters:encounterRows};
-const evolutionPayload={game_key:"red",source_commit:commit,sprites_commit:spritesCommit,evolutions:evolutionRows};
+const payload={game:{game_key:game,...gameDefinition,coverage_note:`PokéAPI encounter snapshot ${commit}; PokeAPI sprites snapshot ${spritesCommit}; independent source audit required before verification.`,encounter_status:"pending"},pokedex_entries:dexRows,locations:locationRows,encounters:encounterRows};
+const evolutionPayload={game_key:game,source_commit:commit,sprites_commit:spritesCommit,evolutions:evolutionRows};
 await fs.mkdir(path.dirname(path.resolve(output)),{recursive:true}); await fs.writeFile(output,`${JSON.stringify(payload,null,2)}\n`);
 if(evolutionsOutput){await fs.mkdir(path.dirname(path.resolve(evolutionsOutput)),{recursive:true});await fs.writeFile(evolutionsOutput,`${JSON.stringify(evolutionPayload,null,2)}\n`);}
 console.log(JSON.stringify({game,source_commit:commit,sprites_commit:spritesCommit,pokedex_entries:dexRows.length,locations:locationRows.length,encounters:encounterRows.length,methods:[...new Set(encounterRows.map((row)=>row.method))].sort(),species:new Set(encounterRows.map((row)=>row.pokemon_id)).size,evolution_rows:evolutionRows.length,evolutions_output:evolutionsOutput||null},null,2));
