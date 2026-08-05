@@ -29,6 +29,7 @@ create table public.tournament_entrants (
   seed smallint check (seed between 1 and 64),
   status text not null default 'registered' check (status in ('registered','dropped','disqualified')),
   registered_at timestamptz not null default now(),
+  unique (id,tournament_id),
   unique (tournament_id,user_id),
   unique (tournament_id,seed)
 );
@@ -44,21 +45,27 @@ create table public.tournament_matches (
   tournament_id uuid not null references public.tournaments(id) on delete cascade,
   round_number smallint not null check (round_number between 1 and 10),
   match_number smallint not null check (match_number between 1 and 64),
-  entrant_a_id uuid references public.tournament_entrants(id) on delete restrict,
-  entrant_b_id uuid references public.tournament_entrants(id) on delete restrict,
-  winner_to_match_id uuid references public.tournament_matches(id) on delete restrict,
+  entrant_a_id uuid,
+  entrant_b_id uuid,
+  winner_to_match_id uuid,
   winner_to_slot text check (winner_to_slot in ('a','b')),
   best_of smallint not null check (best_of in (1,3)),
   status text not null default 'pending' check (status in ('pending','ready','reported','complete','bye')),
   revision bigint not null default 0,
   games_a smallint check (games_a >= 0),
   games_b smallint check (games_b >= 0),
-  winner_id uuid references public.tournament_entrants(id) on delete restrict,
-  loser_id uuid references public.tournament_entrants(id) on delete restrict,
+  winner_id uuid,
+  loser_id uuid,
   replay_urls text[] not null default '{}',
   mvp text check (mvp is null or char_length(mvp) <= 120),
   completed_at timestamptz,
+  unique (id,tournament_id),
   unique (tournament_id,round_number,match_number),
+  foreign key (entrant_a_id,tournament_id) references public.tournament_entrants(id,tournament_id) on delete restrict,
+  foreign key (entrant_b_id,tournament_id) references public.tournament_entrants(id,tournament_id) on delete restrict,
+  foreign key (winner_id,tournament_id) references public.tournament_entrants(id,tournament_id) on delete restrict,
+  foreign key (loser_id,tournament_id) references public.tournament_entrants(id,tournament_id) on delete restrict,
+  foreign key (winner_to_match_id,tournament_id) references public.tournament_matches(id,tournament_id) on delete restrict,
   check (entrant_a_id is null or entrant_a_id<>entrant_b_id),
   check ((winner_to_match_id is null)=(winner_to_slot is null))
 );
@@ -66,7 +73,7 @@ create table public.tournament_matches (
 create table public.tournament_result_submissions (
   id uuid primary key default gen_random_uuid(),
   tournament_id uuid not null references public.tournaments(id) on delete cascade,
-  match_id uuid not null references public.tournament_matches(id) on delete cascade,
+  match_id uuid not null,
   submitted_by uuid not null references auth.users(id) on delete restrict,
   expected_match_revision bigint not null,
   games_a smallint not null check (games_a >= 0),
@@ -76,7 +83,8 @@ create table public.tournament_result_submissions (
   status text not null default 'pending' check (status in ('pending','confirmed','rejected')),
   confirmed_by uuid references auth.users(id) on delete restrict,
   created_at timestamptz not null default now(),
-  resolved_at timestamptz
+  resolved_at timestamptz,
+  foreign key (match_id,tournament_id) references public.tournament_matches(id,tournament_id) on delete cascade
 );
 
 create table public.tournament_audit_events (
@@ -126,7 +134,7 @@ begin
   if nullif(v_name,'') is null or char_length(v_name) not between 2 and 120 or p_visibility not in ('public','private') or p_best_of not in (1,3) or p_entrant_limit not between 2 and 64 or char_length(coalesce(p_description,''))>2000 or char_length(coalesce(p_rules,''))>10000 then raise exception 'Tournament settings are invalid.';end if;
   v_slug_base:=left(trim(both '-' from regexp_replace(lower(v_name),'[^a-z0-9]+','-','g')),60);if v_slug_base='' then v_slug_base:='tournament';end if;v_slug:=v_slug_base||'-'||left(replace(v_id::text,'-',''),8);
   insert into public.tournaments(id,slug,owner_id,name,description,visibility,best_of,entrant_limit,rules) values(v_id,v_slug,auth.uid(),v_name,coalesce(p_description,''),p_visibility,p_best_of,p_entrant_limit,coalesce(p_rules,''));
-  if p_visibility='private' then v_code:=left(replace(gen_random_uuid()::text,'-',''),16);insert into public.tournament_registration_codes(tournament_id,code_hash)values(v_id,encode(digest(v_code,'sha256'),'hex'));end if;
+  if p_visibility='private' then v_code:=encode(gen_random_bytes(16),'hex');insert into public.tournament_registration_codes(tournament_id,code_hash)values(v_id,encode(digest(v_code,'sha256'),'hex'));end if;
   insert into public.tournament_audit_events(tournament_id,actor_id,kind) values(v_id,auth.uid(),'tournament_created');return jsonb_build_object('slug',v_slug,'registration_code',v_code);
 end $$;
 
@@ -135,7 +143,7 @@ returns uuid language plpgsql security definer set search_path=public,extensions
 declare v_t public.tournaments%rowtype;v_id uuid;v_name text:=btrim(p_display_name);
 begin
   if auth.uid() is null then raise exception 'Sign in to register.';end if;select * into v_t from public.tournaments where id=p_tournament_id for update;
-  if not found or v_t.status<>'registration' then raise exception 'Registration is closed.';end if;if v_t.visibility<>'public' and v_t.owner_id<>auth.uid() and not exists(select 1 from public.tournament_registration_codes c where c.tournament_id=v_t.id and c.code_hash=encode(digest(coalesce(p_access_code,''),'sha256'),'hex')) then raise exception 'This private registration link is invalid.';end if;
+  if not found or v_t.status<>'registration' then raise exception 'Registration is closed.';end if;if v_t.visibility<>'public' and v_t.owner_id<>auth.uid() and not(coalesce(p_access_code,'')~'^[0-9a-f]{32}$' and exists(select 1 from public.tournament_registration_codes c where c.tournament_id=v_t.id and c.code_hash=encode(digest(p_access_code,'sha256'),'hex'))) then raise exception 'This private registration link is invalid.';end if;
   if char_length(v_name) not between 1 and 100 then raise exception 'Enter a display name.';end if;if(select count(*) from public.tournament_entrants where tournament_id=v_t.id and status='registered')>=v_t.entrant_limit then raise exception 'This tournament is full.';end if;
   if p_registered_team_id is not null and not exists(select 1 from public.personal_teams where id=p_registered_team_id and owner_id=auth.uid()) then raise exception 'Choose one of your own registered teams.';end if;
   insert into public.tournament_entrants(tournament_id,user_id,registered_team_id,display_name) values(v_t.id,auth.uid(),p_registered_team_id,v_name) returning id into v_id;
@@ -147,7 +155,7 @@ returns text language plpgsql security definer set search_path=public,extensions
 declare v_code text;
 begin
   if auth.uid() is null or not exists(select 1 from public.tournaments where id=p_tournament_id and owner_id=auth.uid() and visibility='private' and status='registration') then raise exception 'Only the owner can replace a private registration link while registration is open.';end if;
-  v_code:=left(replace(gen_random_uuid()::text,'-',''),16);
+  v_code:=encode(gen_random_bytes(16),'hex');
   insert into public.tournament_registration_codes(tournament_id,code_hash) values(p_tournament_id,encode(digest(v_code,'sha256'),'hex')) on conflict(tournament_id) do update set code_hash=excluded.code_hash,created_at=now();
   insert into public.tournament_audit_events(tournament_id,actor_id,kind) values(p_tournament_id,auth.uid(),'registration_code_rotated');
   return v_code;
@@ -179,7 +187,7 @@ create or replace function public.lock_single_elimination_tournament(p_tournamen
 returns void language plpgsql security definer set search_path=public as $$
 declare v_t public.tournaments%rowtype;v_count integer;v_size integer:=2;v_rounds integer:=1;v_round integer;v_match integer;v_matches integer;v_order integer[];v_entrant_order uuid[];v_index integer;v_a uuid;v_b uuid;v_current uuid;v_next uuid;v_winner uuid;
 begin
-  select * into v_t from public.tournaments where id=p_tournament_id for update;if not found or v_t.owner_id<>auth.uid() or v_t.status<>'registration' then raise exception 'Only the owner can lock open registration.';end if;
+  if auth.uid() is null then raise exception 'Only the owner can lock open registration.';end if;select * into v_t from public.tournaments where id=p_tournament_id for update;if not found or v_t.owner_id<>auth.uid() or v_t.status<>'registration' then raise exception 'Only the owner can lock open registration.';end if;
   select count(*) into v_count from public.tournament_entrants where tournament_id=p_tournament_id and status='registered';if v_count<2 then raise exception 'At least two entrants are required.';end if;
   select array_agg(id order by seed nulls last,registered_at,id) into v_entrant_order from public.tournament_entrants where tournament_id=p_tournament_id and status='registered';update public.tournament_entrants set seed=null where tournament_id=p_tournament_id;for v_index in 1..array_length(v_entrant_order,1) loop update public.tournament_entrants set seed=v_index where id=v_entrant_order[v_index];end loop;
   while v_size<v_count loop v_size:=v_size*2;v_rounds:=v_rounds+1;end loop;v_order:=public.single_elimination_seed_order(v_size);
@@ -192,7 +200,7 @@ end $$;
 create or replace function public.submit_tournament_result(p_match_id uuid,p_expected_revision bigint,p_games_a integer,p_games_b integer,p_replay_urls text[] default '{}',p_mvp text default null)
 returns uuid language plpgsql security definer set search_path=public as $$
 declare v_m public.tournament_matches%rowtype;v_t public.tournaments%rowtype;v_wins integer;v_id uuid;
-begin if auth.uid() is null then raise exception 'Sign in to report a result.';end if;select * into v_m from public.tournament_matches where id=p_match_id for update;if not found then raise exception 'Match not found.';end if;select * into v_t from public.tournaments where id=v_m.tournament_id;if v_m.status<>'ready' or v_m.revision<>p_expected_revision then raise exception 'That match changed. Refresh before reporting.';end if;if v_t.owner_id<>auth.uid() and not exists(select 1 from public.tournament_entrants where id in(v_m.entrant_a_id,v_m.entrant_b_id) and user_id=auth.uid()) then raise exception 'Only a participant can report this match.';end if;v_wins:=(v_m.best_of+1)/2;if not((p_games_a=v_wins and p_games_b between 0 and v_wins-1)or(p_games_b=v_wins and p_games_a between 0 and v_wins-1))then raise exception 'Enter a completed series score.';end if;if coalesce(array_length(p_replay_urls,1),0)>3 or exists(select 1 from unnest(coalesce(p_replay_urls,'{}')) u where char_length(u)>2000 or u!~*'^https://')or char_length(coalesce(p_mvp,''))>120 then raise exception 'Replay or MVP details are invalid.';end if;
+begin if auth.uid() is null then raise exception 'Sign in to report a result.';end if;select * into v_m from public.tournament_matches where id=p_match_id for update;if not found then raise exception 'Match not found.';end if;select * into v_t from public.tournaments where id=v_m.tournament_id;if v_m.status<>'ready' or v_m.revision<>p_expected_revision then raise exception 'That match changed. Refresh before reporting.';end if;if v_t.owner_id<>auth.uid() and not exists(select 1 from public.tournament_entrants where id in(v_m.entrant_a_id,v_m.entrant_b_id) and user_id=auth.uid()) then raise exception 'Only a participant can report this match.';end if;v_wins:=(v_m.best_of+1)/2;if not((p_games_a=v_wins and p_games_b between 0 and v_wins-1)or(p_games_b=v_wins and p_games_a between 0 and v_wins-1))then raise exception 'Enter a completed series score.';end if;if coalesce(array_length(p_replay_urls,1),0)>3 or exists(select 1 from unnest(coalesce(p_replay_urls,'{}')) u where u is null or char_length(u)>2000 or u!~*'^https://')or char_length(coalesce(p_mvp,''))>120 then raise exception 'Replay or MVP details are invalid.';end if;
 update public.tournament_result_submissions set status='rejected',resolved_at=now(),confirmed_by=auth.uid() where match_id=v_m.id and status='pending';insert into public.tournament_result_submissions(tournament_id,match_id,submitted_by,expected_match_revision,games_a,games_b,replay_urls,mvp) values(v_m.tournament_id,v_m.id,auth.uid(),v_m.revision,p_games_a,p_games_b,coalesce(p_replay_urls,'{}'),nullif(btrim(p_mvp),'')) returning id into v_id;update public.tournament_matches set status='reported' where id=v_m.id;insert into public.tournament_audit_events(tournament_id,actor_id,kind,payload) values(v_m.tournament_id,auth.uid(),'result_submitted',jsonb_build_object('match_id',v_m.id,'submission_id',v_id));return v_id;end $$;
 
 create or replace function public.confirm_tournament_result(p_submission_id uuid,p_expected_match_revision bigint)
@@ -208,10 +216,10 @@ declare v_m public.tournament_matches%rowtype;v_t public.tournaments%rowtype;v_n
 begin
   if auth.uid() is null then raise exception 'Sign in to correct a result.';end if;
   select * into v_m from public.tournament_matches where id=p_match_id for update;if not found then raise exception 'Match not found.';end if;
-  select * into v_t from public.tournaments where id=v_m.tournament_id;if v_t.owner_id<>auth.uid() then raise exception 'Only the tournament owner can correct a result.';end if;
+  select * into v_t from public.tournaments where id=v_m.tournament_id;if v_t.owner_id<>auth.uid() then raise exception 'Only the tournament owner can correct a result.';end if;if v_t.status='archived' then raise exception 'Archived tournaments are read-only.';end if;
   if v_m.status<>'complete' or v_m.revision<>p_expected_revision then raise exception 'That result changed. Refresh before correcting it.';end if;
   v_wins:=(v_m.best_of+1)/2;if not((p_games_a=v_wins and p_games_b between 0 and v_wins-1)or(p_games_b=v_wins and p_games_a between 0 and v_wins-1))then raise exception 'Enter a completed series score.';end if;
-  if coalesce(array_length(p_replay_urls,1),0)>3 or exists(select 1 from unnest(coalesce(p_replay_urls,'{}')) u where char_length(u)>2000 or u!~*'^https://')or char_length(coalesce(p_mvp,''))>120 then raise exception 'Replay or MVP details are invalid.';end if;
+  if coalesce(array_length(p_replay_urls,1),0)>3 or exists(select 1 from unnest(coalesce(p_replay_urls,'{}')) u where u is null or char_length(u)>2000 or u!~*'^https://')or char_length(coalesce(p_mvp,''))>120 then raise exception 'Replay or MVP details are invalid.';end if;
   v_winner:=case when p_games_a>p_games_b then v_m.entrant_a_id else v_m.entrant_b_id end;v_loser:=case when v_winner=v_m.entrant_a_id then v_m.entrant_b_id else v_m.entrant_a_id end;
   if v_m.winner_to_match_id is not null then
     select * into v_next from public.tournament_matches where id=v_m.winner_to_match_id for update;if not found or v_next.status not in('pending','ready') or v_next.winner_id is not null then raise exception 'The next match has already started. Its earlier result cannot be corrected safely.';end if;
@@ -239,7 +247,7 @@ select coalesce(jsonb_agg(jsonb_build_object('id',t.id,'slug',t.slug,'name',t.na
 $$;
 
 create or replace function public.get_tournament_workspace(p_slug text,p_access_code text default null)
-returns jsonb language plpgsql stable security definer set search_path=public,extensions as $$ declare v_t public.tournaments%rowtype;begin select * into v_t from public.tournaments where slug=p_slug;if not found or (not public.can_view_tournament(v_t.id) and not(v_t.status='registration' and exists(select 1 from public.tournament_registration_codes c where c.tournament_id=v_t.id and c.code_hash=encode(digest(coalesce(p_access_code,''),'sha256'),'hex'))))then return null;end if;return jsonb_build_object('tournament',jsonb_build_object('id',v_t.id,'slug',v_t.slug,'name',v_t.name,'description',v_t.description,'visibility',v_t.visibility,'format',v_t.format,'status',v_t.status,'rules',v_t.rules,'best_of',v_t.best_of,'entrant_limit',v_t.entrant_limit,'revision',v_t.revision,'is_owner',v_t.owner_id=auth.uid()),'entrants',coalesce((select jsonb_agg(jsonb_build_object('id',e.id,'display_name',e.display_name,'seed',e.seed,'status',e.status,'is_me',e.user_id=auth.uid())order by e.seed nulls last,e.registered_at)from public.tournament_entrants e where e.tournament_id=v_t.id),'[]'),'matches',coalesce((select jsonb_agg(jsonb_build_object('id',m.id,'round_number',m.round_number,'match_number',m.match_number,'entrant_a_id',m.entrant_a_id,'entrant_b_id',m.entrant_b_id,'winner_id',m.winner_id,'games_a',m.games_a,'games_b',m.games_b,'best_of',m.best_of,'status',m.status,'revision',m.revision,'replay_urls',m.replay_urls,'mvp',m.mvp)order by m.round_number,m.match_number)from public.tournament_matches m where m.tournament_id=v_t.id),'[]'),'submissions',case when auth.uid() is null then'[]'::jsonb else coalesce((select jsonb_agg(jsonb_build_object('id',s.id,'match_id',s.match_id,'submitted_by_me',s.submitted_by=auth.uid(),'games_a',s.games_a,'games_b',s.games_b,'replay_urls',s.replay_urls,'mvp',s.mvp,'status',s.status,'expected_match_revision',s.expected_match_revision))from public.tournament_result_submissions s join public.tournament_matches m on m.id=s.match_id where s.tournament_id=v_t.id and s.status='pending' and(v_t.owner_id=auth.uid() or exists(select 1 from public.tournament_entrants e where e.id in(m.entrant_a_id,m.entrant_b_id)and e.user_id=auth.uid()))),'[]')end);end $$;
+returns jsonb language plpgsql stable security definer set search_path=public,extensions as $$ declare v_t public.tournaments%rowtype;begin select * into v_t from public.tournaments where slug=p_slug;if not found or (not public.can_view_tournament(v_t.id) and not(v_t.status='registration' and coalesce(p_access_code,'')~'^[0-9a-f]{32}$' and exists(select 1 from public.tournament_registration_codes c where c.tournament_id=v_t.id and c.code_hash=encode(digest(p_access_code,'sha256'),'hex'))))then return null;end if;return jsonb_build_object('tournament',jsonb_build_object('id',v_t.id,'slug',v_t.slug,'name',v_t.name,'description',v_t.description,'visibility',v_t.visibility,'format',v_t.format,'status',v_t.status,'rules',v_t.rules,'best_of',v_t.best_of,'entrant_limit',v_t.entrant_limit,'revision',v_t.revision,'is_owner',v_t.owner_id=auth.uid()),'entrants',coalesce((select jsonb_agg(jsonb_build_object('id',e.id,'display_name',e.display_name,'seed',e.seed,'status',e.status,'is_me',e.user_id=auth.uid())order by e.seed nulls last,e.registered_at)from public.tournament_entrants e where e.tournament_id=v_t.id),'[]'),'matches',coalesce((select jsonb_agg(jsonb_build_object('id',m.id,'round_number',m.round_number,'match_number',m.match_number,'entrant_a_id',m.entrant_a_id,'entrant_b_id',m.entrant_b_id,'winner_id',m.winner_id,'games_a',m.games_a,'games_b',m.games_b,'best_of',m.best_of,'status',m.status,'revision',m.revision,'replay_urls',m.replay_urls,'mvp',m.mvp)order by m.round_number,m.match_number)from public.tournament_matches m where m.tournament_id=v_t.id),'[]'),'submissions',case when auth.uid() is null then'[]'::jsonb else coalesce((select jsonb_agg(jsonb_build_object('id',s.id,'match_id',s.match_id,'submitted_by_me',s.submitted_by=auth.uid(),'games_a',s.games_a,'games_b',s.games_b,'replay_urls',s.replay_urls,'mvp',s.mvp,'status',s.status,'expected_match_revision',s.expected_match_revision))from public.tournament_result_submissions s join public.tournament_matches m on m.id=s.match_id where s.tournament_id=v_t.id and s.status='pending' and(v_t.owner_id=auth.uid() or exists(select 1 from public.tournament_entrants e where e.id in(m.entrant_a_id,m.entrant_b_id)and e.user_id=auth.uid()))),'[]')end);end $$;
 
 revoke all on function public.create_single_elimination_tournament(text,text,text,integer,integer,text),public.join_tournament(uuid,text,uuid,text),public.rotate_tournament_registration_code(uuid),public.set_tournament_seed(uuid,uuid,integer),public.randomize_tournament_seeds(uuid,text),public.single_elimination_seed_order(integer),public.lock_single_elimination_tournament(uuid),public.submit_tournament_result(uuid,bigint,integer,integer,text[],text),public.confirm_tournament_result(uuid,bigint),public.correct_tournament_result(uuid,bigint,integer,integer,text[],text),public.reject_tournament_result(uuid,bigint),public.archive_tournament(uuid),public.list_tournaments(),public.get_tournament_workspace(text,text) from public,anon,authenticated;
 grant execute on function public.create_single_elimination_tournament(text,text,text,integer,integer,text),public.join_tournament(uuid,text,uuid,text),public.rotate_tournament_registration_code(uuid),public.set_tournament_seed(uuid,uuid,integer),public.randomize_tournament_seeds(uuid,text),public.lock_single_elimination_tournament(uuid),public.submit_tournament_result(uuid,bigint,integer,integer,text[],text),public.confirm_tournament_result(uuid,bigint),public.correct_tournament_result(uuid,bigint,integer,integer,text[],text),public.reject_tournament_result(uuid,bigint),public.archive_tournament(uuid) to authenticated;

@@ -12,7 +12,16 @@ export function singleEliminationSeedOrder(size) {
 
 export function buildSingleEliminationBracket(entrants) {
   if (!Array.isArray(entrants)) throw new Error("Entrants are required.");
-  const active = entrants.map((entrant, index) => ({ ...entrant, seed: Number(entrant.seed) || index + 1 })).sort((a, b) => a.seed - b.seed);
+  const active = entrants.map((entrant, index) => {
+    const seed = entrant?.seed == null ? index + 1 : Number(entrant.seed);
+    if (!entrant?.id || !Number.isInteger(seed) || seed < 1 || seed > entrants.length) {
+      throw new Error("Every entrant needs a unique ID and a valid seed.");
+    }
+    return { ...entrant, seed };
+  }).sort((a, b) => a.seed - b.seed);
+  if (new Set(active.map((entrant) => entrant.id)).size !== active.length || new Set(active.map((entrant) => entrant.seed)).size !== active.length) {
+    throw new Error("Entrant IDs and seeds must be unique.");
+  }
   const size = nextBracketSize(active.length); const seedOrder = singleEliminationSeedOrder(size); const rounds = [];
   let matches = seedOrder.reduce((result, seed, index) => { if (index % 2 === 0) result.push({ round:1, match:index / 2 + 1, a:active.find((entrant) => entrant.seed === seed) || null, b:null }); else result.at(-1).b=active.find((entrant) => entrant.seed === seed) || null; return result; }, []);
   rounds.push(matches); let round=2;
