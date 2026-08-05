@@ -21,6 +21,17 @@ test("family clauses, exclusions, and methods are enforced without relaxing rule
   assert.equal(result.complete,false); assert.ok(result.team.every((item)=>item.method==="walk"&&item.pokemon_name!=="Zubat"));
   assert.equal(new Set(result.team.map((item)=>item.species_family)).size,result.team.length);
 });
+test("family clauses try another eligible encounter in the same area",()=>{
+  const pool=[
+    {area_key:"route-1",pokemon_id:1,pokemon_name:"Bulbasaur",species_family:"starter",method:"walk",chance:100},
+    {area_key:"route-2",pokemon_id:2,pokemon_name:"Ivysaur",species_family:"starter",method:"walk",chance:100},
+    {area_key:"route-2",pokemon_id:10,pokemon_name:"Caterpie",species_family:"bug",method:"walk",chance:1},
+  ];
+  for(const mode of ["route-random","true-random"]){
+    const result=generateNuzlockeTeam(pool,{seed:"family-fallback",teamSize:2,mode,weighting:"authentic",familyClause:true});
+    assert.equal(result.complete,true); assert.equal(new Set(result.team.map((item)=>item.species_family)).size,2);
+  }
+});
 test("route-random samples distinct areas instead of always taking catalog order",()=>{ const result=generateNuzlockeTeam(encounters,{seed:"route",teamSize:3,mode:"route-random",weighting:"equal"}); assert.equal(new Set(result.team.map((item)=>item.area_key)).size,3); assert.notDeepEqual(result.team.map((item)=>item.area_key),["route-1","route-2","lake"]); });
 test("unknown modes and invalid sizes fail closed",()=>{
   assert.throws(()=>generateNuzlockeTeam(encounters,{seed:"x",teamSize:6,mode:"balanced",weighting:"equal"}),/Unknown/);
