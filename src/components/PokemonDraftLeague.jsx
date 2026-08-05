@@ -8,6 +8,7 @@ import { SHOWDOWN_GAME_AVAILABILITY, SHOWDOWN_REGIONAL_POKEDEXES } from "../lib/
 import { withRegulationMetadata } from "../lib/regulation-catalog";
 import RegulationPicker from "./RegulationPicker";
 import { safeHttpsImageSource } from "../lib/imageSecurity";
+import { claimedTeamCount, compactLocalTeamsClaimedFirst, openSetupTeams, teamIsClaimed } from "../lib/teamOwnership";
 
 /* ---------------------------------------------------------
    DESIGN TOKENS — stadium-jumbotron-at-night aesthetic.
@@ -5336,6 +5337,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   const [synced, setSynced] = useState(false);
   const [saveStatus, setSaveStatus] = useState(leagueId ? "loading" : "local");
   const [liveDraftError, setLiveDraftError] = useState("");
+  const [teamResizeMessage, setTeamResizeMessage] = useState("");
   const [scheduledStartStatus, setScheduledStartStatus] = useState({
     phase: "idle",
     startsAt: null,
@@ -5351,6 +5353,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   const completedDraftScheduleClearedRef = useRef(false);
   const automaticStartAttemptedRef = useRef(null);
   const lastReportedOperationalErrorRef = useRef("");
+  const unassignedManagerRoutedRef = useRef(false);
   const liveDraftPokemonCacheRef = useRef({ leagueId: null, sessionId: null, rows: null, request: null });
   // Role-derived values must be initialized before any hook dependency array
   // reads them. Keeping this below the scheduling effects caused the
@@ -5701,10 +5704,18 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       setState(hydrated);
       return;
     }
-    commit((s) => ({
-      ...s,
-      teams: s.teams.map((t, i) => (i === teamIdx ? { ...t, claimedBy: myName } : t)),
-    }));
+    commit((s) => {
+      const claimed = s.teams.map((team, index) => index === teamIdx ? { ...team, claimedBy: myName } : team);
+      return {
+        ...s,
+        teams: compactLocalTeamsClaimedFirst(claimed, claimed.length),
+        settings: {
+          ...s.settings,
+          manualDraftOrder: null,
+          divisions: redistributeEvenly(s.settings.divisions, claimed.length),
+        },
+      };
+    });
   }
 
   async function mutateHostedTeamPreference(action, teamIdx, payload = {}) {
@@ -6253,22 +6264,55 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     }
   }
 
-  function resizeTeams(size) {
+  async function resizeTeams(size) {
+    const targetSize = Math.max(2, Math.min(16, Number(size) || 2));
+    const humanTeams = claimedTeamCount(state.teams);
+    setTeamResizeMessage("");
+    if (state.locked) {
+      setTeamResizeMessage("The team count cannot change after the draft starts.");
+      return false;
+    }
+    if (targetSize < humanTeams) {
+      setTeamResizeMessage(`This league already has ${humanTeams} human-controlled teams. Remove a manager before lowering it below ${humanTeams}.`);
+      return false;
+    }
+    if (targetSize === state.teams.length) return true;
+
+    if (leagueId && targetSize < state.teams.length) {
+      setSaveStatus("saving");
+      const { data, error } = await supabase.rpc("resize_pre_draft_league_bot_first", {
+        p_league_id: leagueId,
+        p_size: targetSize,
+      });
+      if (error) {
+        setSaveStatus("error");
+        setTeamResizeMessage(error.message);
+        return false;
+      }
+      const hydrated = hydrateState(data);
+      revRef.current = Math.max(revRef.current, hydrated.rev || 0);
+      setState(hydrated);
+      setSaveStatus("saved");
+      setTeamResizeMessage(`League reduced to ${targetSize} teams. Human-controlled teams were kept first; only open bot slots were removed.`);
+      return true;
+    }
+
     commit((s) => {
-      const teams = [];
-      for (let i = 0; i < size; i++) {
-        if (s.teams[i]) {
-          teams.push(s.teams[i]);
-        } else {
-          const kept = s.teams.slice(0, size).filter(Boolean);
-          const usedNames = kept.map((t) => t.name).concat(teams.map((t) => t.name));
-          const usedColors = kept.map((t) => t.color).concat(teams.map((t) => t.color)).filter(Boolean);
+      const teams = targetSize < s.teams.length
+        ? compactLocalTeamsClaimedFirst(s.teams, targetSize)
+        : s.teams.map((team, index) => ({ ...team, id: index }));
+      for (let i = teams.length; i < targetSize; i++) {
+          const usedNames = teams.map((t) => t.name);
+          const usedColors = teams.map((t) => t.color).filter(Boolean);
           const pick = pickRandomTrainerTeam(usedNames, usedColors);
           teams.push({ id: i, name: pick.name, color: pick.color, claimedBy: null, autoDraft: false, archetypes: [], logoUrl: null, otherStandingsValue: 0, description: "" });
-        }
       }
-      return { ...s, teams, settings: { ...s.settings, leagueSize: size, manualDraftOrder: null, divisions: redistributeEvenly(s.settings.divisions, size) } };
+      return { ...s, teams, settings: { ...s.settings, leagueSize: targetSize, manualDraftOrder: null, divisions: redistributeEvenly(s.settings.divisions, targetSize) } };
     });
+    setTeamResizeMessage(targetSize < state.teams.length
+      ? `League reduced to ${targetSize} teams. Human-controlled teams were kept first; only open bot slots were removed.`
+      : `League expanded to ${targetSize} teams.`);
+    return true;
   }
   // Lets a commissioner retire ONE specific team (rather than just
   // shrinking from the end the way resizeTeams's plain number field does)
@@ -9398,6 +9442,11 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   useEffect(() => {
     if (isSpectator && tab === "setup") setTab("home");
   }, [isSpectator, tab]);
+  useEffect(() => {
+    if (!synced || displayRole !== "manager" || state.locked || myTeamIdx >= 0 || unassignedManagerRoutedRef.current) return;
+    unassignedManagerRoutedRef.current = true;
+    setTab("setup");
+  }, [synced, displayRole, state.locked, myTeamIdx]);
 
   // Existing browsers may still remember the retired standalone Board tab.
   // Send them straight to the combined Activity view instead of showing a
@@ -9499,7 +9548,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
               ...(!state.locked && (displayIsCommissioner || (!displayIsSpectator && hasScheduledDraftTime))
                 ? [["draft", hasScheduledDraftTime ? "Draft Room" : "Schedule"]]
                 : []),
-              ["myteam", displayIsSpectator ? "Teams" : "My Team"],
+              ...(displayIsSpectator ? [["myteam", "Teams"]] : myTeamIdx >= 0 ? [["myteam", "My Team"]] : []),
               ...(state.locked ? [["league", "League"]] : []),
               ...(displayIsSpectator && state.locked ? [["predictions", "Predictions"]] : []),
               ...(!displayIsSpectator ? [["messages", "Messages"]] : []),
@@ -9627,6 +9676,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
               window.setTimeout(() => document.getElementById("league-broadcast-center")?.scrollIntoView({ behavior: "smooth", block: "start" }), 0);
             }}
             saveNow={saveNow} saveStatus={saveStatus} draftError={liveDraftError}
+            teamResizeMessage={teamResizeMessage}
             scheduledStartStatus={scheduledStartStatus}
             retryScheduledStart={() => prepareScheduledSnakeDraft(state, { force: true })}
           />
@@ -11075,8 +11125,8 @@ function ManualRosterEntry({ teams, settings, finalizeManualDraft }) {
 
 function ManagerLeagueDetails({ state, myName, myTeamIdx, claimTeam, costFor, updateHomepage, addToQueue, removeFromQueue, moveQueueItem, readOnly = false }) {
   const settings = state.settings;
-  const myTeam = state.teams.find((team) => team.claimedBy === myName);
-  const openTeams = state.teams.map((team, index) => ({ ...team, index })).filter((team) => !team.claimedBy);
+  const myTeam = myTeamIdx >= 0 ? state.teams[myTeamIdx] : null;
+  const openTeams = openSetupTeams(state.teams);
   const regulation = regulationFor(settings);
   const usesRosterRange = settings.draftType === "auction" || settings.snakeBudgetEnabled;
   const draftComplete = state.locked && (
@@ -11106,8 +11156,9 @@ function ManagerLeagueDetails({ state, myName, myTeamIdx, claimTeam, costFor, up
         <p className="text-sm mb-4" style={{ color: "#9A9FBD" }}>{myTeam ? `You are managing ${myTeam.name}.` : "Choose one open team. Your selection is saved immediately and removes one available manager spot."}</p>
         <div className="grid sm:grid-cols-2 gap-3">
           {state.teams.map((team, index) => {
-            const mine = team.claimedBy === myName;
-            return <article key={team.id ?? index} className="rounded p-3 flex items-center justify-between gap-3" style={{ background: mine ? "#2A2618" : "#1F2338", border: `1px solid ${mine ? "#FFD23F66" : "rgba(255,255,255,0.06)"}` }}><div className="flex items-center gap-3"><TeamLogo team={team} size={34} /><div><strong className="block">{team.name}</strong><span className="text-xs" style={{ color: team.claimedBy ? "#4FD1C5" : "#9A9FBD" }}>{mine ? "Your team" : team.claimedBy ? `Manager: ${team.claimedBy}` : "Open"}</span></div></div>{!readOnly && !myTeam && !team.claimedBy && <button onClick={() => claimTeam(index)} className="px-3 py-1.5 rounded text-xs font-semibold" style={{ background: "#FFD23F", color: "#10121C" }}>CLAIM</button>}</article>;
+            const mine = index === myTeamIdx;
+            const claimed = teamIsClaimed(team);
+            return <article key={team.id ?? index} className="rounded p-3 flex items-center justify-between gap-3" style={{ background: mine ? "#2A2618" : "#1F2338", border: `1px solid ${mine ? "#FFD23F66" : "rgba(255,255,255,0.06)"}` }}><div className="flex items-center gap-3"><TeamLogo team={team} size={34} /><div><strong className="block">{team.name}</strong><span className="text-xs" style={{ color: claimed ? "#4FD1C5" : "#9A9FBD" }}>{mine ? "Your team" : claimed ? `Manager: ${team.claimedBy || "Claimed manager"}` : "Open"}</span></div></div>{!readOnly && !myTeam && !claimed && <button onClick={() => claimTeam(index)} className="px-3 py-1.5 rounded text-xs font-semibold" style={{ background: "#FFD23F", color: "#10121C" }}>CLAIM</button>}</article>;
           })}
         </div>
         {!myTeam && openTeams.length === 0 && <p className="text-sm mt-4" style={{ color: "#F4B860" }}>No teams are currently open. Ask the commissioner to add or release a team.</p>}
@@ -11162,7 +11213,7 @@ function ScheduledStartNotice({ status, scheduledAt, draftType, isCommissioner =
   );
 }
 
-function SetupView({ state, leagueId = null, leagueName = "league", isCommissioner, canBeCommissioner, claimCommissioner, unclaimCommissioner, claimTeam, renameTeam, myName, updateSettings, resizeTeams, rerollAllTeamIdentities, costFor, toggleBanMon, toggleAllowExtraMon, rebuildCurrentSeason, addCustomMon, removeCustomMon, setSpriteOverride, setTeamLogo, onStart, addDivision, renameDivision, removeDivision, setTeamDivision, finalizeManualDraft, finalizeSeason, startNewSeason, updateHomepage, addExpansionTeam, removeSpecificTeam, exportLeagueBackup, exportRecoveryBackup, importLeagueBackup, addCoCommissioner, removeCoCommissioner, onOpenLeagueTools, onOpenBroadcast, copyLeagueInvite, saveNow, saveStatus, draftError = "", scheduledStartStatus = null, retryScheduledStart = null }) {
+function SetupView({ state, leagueId = null, leagueName = "league", isCommissioner, canBeCommissioner, claimCommissioner, unclaimCommissioner, claimTeam, renameTeam, myName, updateSettings, resizeTeams, rerollAllTeamIdentities, costFor, toggleBanMon, toggleAllowExtraMon, rebuildCurrentSeason, addCustomMon, removeCustomMon, setSpriteOverride, setTeamLogo, onStart, addDivision, renameDivision, removeDivision, setTeamDivision, finalizeManualDraft, finalizeSeason, startNewSeason, updateHomepage, addExpansionTeam, removeSpecificTeam, exportLeagueBackup, exportRecoveryBackup, importLeagueBackup, addCoCommissioner, removeCoCommissioner, onOpenLeagueTools, onOpenBroadcast, copyLeagueInvite, saveNow, saveStatus, draftError = "", teamResizeMessage = "", scheduledStartStatus = null, retryScheduledStart = null }) {
   // A league may have been created before newer Setup options existed. Keep
   // this screen usable even if one of those older saved values is missing or
   // malformed; the next normal save will preserve the corrected shape.
@@ -11575,7 +11626,13 @@ function SetupView({ state, leagueId = null, leagueName = "league", isCommission
               </div>
             )}
             <label className="block text-sm mb-2" style={{ color: "#9A9FBD" }}>League size — <span style={{ color: "#EDEBFA" }}>{settings.leagueSize} teams</span></label>
-            <input type="range" min={2} max={16} value={settings.leagueSize} onChange={(e) => resizeTeams(Number(e.target.value))} className="w-full mb-6" />
+            <select value={settings.leagueSize} disabled={saveStatus === "saving"} onChange={(e) => resizeTeams(Number(e.target.value))}
+              className="w-full px-3 py-2 rounded mono-font text-sm" style={{ background: "#1F2338", border: "1px solid rgba(255,255,255,0.1)", color: "#EDEBFA" }}>
+              {Array.from({ length: 15 }, (_, index) => index + 2).map((size) => <option key={size} value={size}>{size} teams</option>)}
+            </select>
+            <p className="text-xs mt-2 mb-6" style={{ color: teamResizeMessage && !teamResizeMessage.startsWith("League ") ? "#F4B860" : "#5B5F7E" }}>
+              {teamResizeMessage || `${claimedTeamCount(state.teams)} human-controlled team${claimedTeamCount(state.teams) === 1 ? "" : "s"}. Lowering the size keeps every claimed team and removes open bot slots first.`}
+            </p>
 
             <label className="flex items-center gap-2 text-sm mb-2" style={{ color: "#9A9FBD" }}>
               <input type="checkbox" checked={settings.publicLeague} onChange={(e) => updateSettings({ publicLeague: e.target.checked })} />
