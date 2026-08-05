@@ -1,8 +1,7 @@
 "use client";
 import { useEffect,useState } from "react";
 import { createClient } from "../lib/supabase/client";
-
-const tournamentError=(error)=>error?.code==="PGRST202"?"Tournaments are not enabled in this environment yet.":error?.message||"Tournament service is unavailable. Please try again.";
+import { tournamentError } from "../lib/tournamentErrors";
 
 export default function TournamentDirectory(){
   const [supabase]=useState(()=>createClient());const [user,setUser]=useState(undefined);const [tournaments,setTournaments]=useState([]);const [message,setMessage]=useState("");const [busy,setBusy]=useState(false);const [form,setForm]=useState({name:"",description:"",visibility:"public",bestOf:3,entrantLimit:16,rules:""});

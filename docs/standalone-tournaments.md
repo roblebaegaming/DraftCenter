@@ -8,7 +8,7 @@ Nuzlocke catalog.
 
 The implementation and forward-only migration are prepared on the tournament
 feature branch. They are not deployed, and migration
-`259-standalone-single-elimination-tournaments.sql` must not be applied to
+`260-standalone-single-elimination-tournaments.sql` must not be applied to
 production outside the protected release flow.
 
 Release it after the test-draft feedback rollup and the separately reviewed
@@ -42,7 +42,8 @@ Nuzlocke tables even when the branches are reviewed as a stacked series.
   security-definer functions, while every tournament table has RLS enabled.
 - Public spectators use explicit JSON projections that omit account IDs,
   private-team IDs, registration hashes, and audit records.
-- Private registration codes are generated once, stored only as SHA-256 hashes,
+- Private registration codes use 128 bits of cryptographic randomness, are
+  generated once, stored only as SHA-256 hashes,
   and can be rotated by the owner while registration is open.
 - Invite links carry the code in a URL fragment. Fragments are not sent in HTTP
   requests, keeping the bearer code out of normal server request logs and
@@ -53,7 +54,7 @@ Nuzlocke tables even when the branches are reviewed as a stacked series.
 
 ## Required isolated validation
 
-Before release, apply migration 259 to an isolated Preview database and test
+Before release, apply migration 260 to an isolated Preview database and test
 with separate owner, entrant A, entrant B, unrelated signed-in, and signed-out
 sessions. Verify private isolation, public projections, manual and shuffled
 seeds, byes, stale and simultaneous submissions, opponent confirmation,
