@@ -12,7 +12,8 @@
 - Added forward-only migration `261-trainer-dex-and-shiny-discoveries.sql`.
 - Daily Pokémon polls, correct Pokémon quiz answers, completed Daily Bracket champions, and relational hosted snake-draft picks create immutable collection events.
 - Every source event can be awarded only once. Its server-side shiny result is persisted at a 1-in-128 rate, so refreshes, revised polls, and replayed UI requests cannot reroll it.
-- Existing eligible Daily Three and relational draft history is backfilled when the migration runs.
+- Existing eligible Daily Three and relational draft history is backfilled when the migration runs. Backfilled history is deliberately non-shiny; only new activity after migration can roll a shiny.
+- Undoing a relational snake-draft pick removes that pick's discovery event and refreshes collection progress. Other discovery sources for the same Pokémon remain intact.
 - Added Pokédex Researcher, Draft Collector, and Shiny Hunter badge tracks.
 - A new Daily Three shiny is revealed immediately and remains available in the Trainer Dex until acknowledged.
 
@@ -34,7 +35,7 @@
 ## Before release
 
 1. Review migration 261 against Preview schema column types and run a transaction-scoped migration rehearsal.
-2. Confirm the backfill volume and resulting shiny count are reasonable before committing the migration in Preview.
+2. Confirm the backfill volume and verify that it creates zero shiny events before committing the migration in Preview.
 3. Verify RLS and function grants with anonymous and ordinary authenticated accounts.
 4. Test first-time and repeated poll, bracket, quiz, and hosted snake-pick events in an isolated Preview league.
 5. Perform mobile visual review of both new pages and the shiny popup.
