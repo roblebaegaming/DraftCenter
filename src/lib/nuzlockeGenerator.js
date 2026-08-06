@@ -93,7 +93,7 @@ function matchesConditionSelections(entry, options) {
   const selections = options.conditionSelections && typeof options.conditionSelections === "object" ? options.conditionSelections : {};
   const entryConditions = new Set((entry.conditions || []).map(String));
   for (const group of groups) {
-    const selectedValue = String(selections[group.id] || "any");
+    const selectedValue = String(selections[group.id] || group.default_value || "any");
     const selected = Array.isArray(group.options) ? group.options.find((item) => item.value === selectedValue) : null;
     if (!selected || selected.value === "any") continue;
     const groupConditions = new Set(group.options.flatMap((item) => Array.isArray(item.conditions) ? item.conditions : []));
@@ -127,6 +127,13 @@ export function generateNuzlockeTeam(encounters, options = {}) {
   const starter = options.includeStarter && starterChoices.length
     ? starterChoices[Math.floor(seededRandom(`${options.seed}:starter`)() * starterChoices.length)]
     : null;
+  const effectiveConditionSelections = { ...conditionSelections };
+  if (starter) {
+    for (const group of conditionGroups.filter((item) => item.match_included_starter === true)) {
+      const matchingOption = group.options?.find((option) => Array.isArray(option.starter_ids) && option.starter_ids.includes(Number(starter.pokemon_id)));
+      if (matchingOption) effectiveConditionSelections[group.id] = matchingOption.value;
+    }
+  }
   const encounterTeamSize = Math.max(0, teamSize - (starter ? 1 : 0));
   const preparedEncounters = applyFinalEvolutions(encounters || [], options);
   const methods = new Set((options.methods || []).map((value) => String(value).toLowerCase()));
@@ -139,7 +146,7 @@ export function generateNuzlockeTeam(encounters, options = {}) {
     if (options.excludeLegendaries && entry.is_legendary) return false;
     if (options.familyClause && starter && String(entry.species_family || entry.pokemon_id).toLowerCase() === String(starter.species_family || starter.pokemon_id).toLowerCase()) return false;
     if (methods.size && !methods.has(String(entry.method || "").toLowerCase())) return false;
-    if (!matchesConditionSelections(entry, options)) return false;
+    if (!matchesConditionSelections(entry, { ...options, conditionSelections: effectiveConditionSelections })) return false;
     return true;
   });
   const byArea = new Map();
@@ -199,7 +206,7 @@ export function generateNuzlockeTeam(encounters, options = {}) {
     requested: teamSize,
     available: team.length,
     includeStarter: options.includeStarter === true,
-    conditionSelections: options.conditionSelections || {},
+    conditionSelections: effectiveConditionSelections,
     finalEvolutionOnly: options.finalEvolutionOnly === true,
   };
 }

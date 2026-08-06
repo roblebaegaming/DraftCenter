@@ -15,6 +15,11 @@ paths = [
   '''^data/nuzlocke/pokemon-gold\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\.json$''',
   '''^data/nuzlocke/pokemon-silver\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\.json$''',
   '''^data/nuzlocke/pokemon-crystal\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\.json$''',
+  '''^data/nuzlocke/pokemon-ruby\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\.json$''',
+  '''^data/nuzlocke/pokemon-sapphire\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\.json$''',
+  '''^data/nuzlocke/pokemon-emerald\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\.json$''',
+  '''^data/nuzlocke/pokemon-firered\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\.json$''',
+  '''^data/nuzlocke/pokemon-leafgreen\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\.json$''',
 ]
 regexes = [
   '''^(?:area_key|location_key)"\s*:\s*"[a-z0-9-]+"$''',
@@ -30,6 +35,11 @@ paths = [
   '''^docs/pokemon-catalog/pokemon-gold-encounter-audit-2026-08-05\.md$''',
   '''^docs/pokemon-catalog/pokemon-silver-encounter-audit-2026-08-05\.md$''',
   '''^docs/pokemon-catalog/pokemon-crystal-encounter-audit-2026-08-05\.md$''',
+  '''^docs/pokemon-catalog/pokemon-ruby-encounter-audit-2026-08-05\.md$''',
+  '''^docs/pokemon-catalog/pokemon-sapphire-encounter-audit-2026-08-05\.md$''',
+  '''^docs/pokemon-catalog/pokemon-emerald-encounter-audit-2026-08-05\.md$''',
+  '''^docs/pokemon-catalog/pokemon-firered-encounter-audit-2026-08-05\.md$''',
+  '''^docs/pokemon-catalog/pokemon-leafgreen-encounter-audit-2026-08-05\.md$''',
 ]
 regexes = [
   '''^5064f1d72746b3a6a931616dae3fb6445c556d4f$''',
@@ -45,6 +55,11 @@ paths = [
   '''^supabase/270-import-pokemon-gold-encounter-catalog\.sql$''',
   '''^supabase/272-import-pokemon-silver-encounter-catalog\.sql$''',
   '''^supabase/274-import-pokemon-crystal-encounter-catalog\.sql$''',
+  '''^supabase/276-import-pokemon-ruby-encounter-catalog\.sql$''',
+  '''^supabase/278-import-pokemon-sapphire-encounter-catalog\.sql$''',
+  '''^supabase/280-import-pokemon-emerald-encounter-catalog\.sql$''',
+  '''^supabase/282-import-pokemon-firered-encounter-catalog\.sql$''',
+  '''^supabase/284-import-pokemon-leafgreen-encounter-catalog\.sql$''',
 ]
 regexes = [
   '''^(?:area_key|location_key)"\s*:\s*"[a-z0-9-]+"$''',
@@ -81,6 +96,11 @@ paths = [
   '''^supabase/271-verify-pokemon-gold-encounter-catalog\.sql$''',
   '''^supabase/273-verify-pokemon-silver-encounter-catalog\.sql$''',
   '''^supabase/275-verify-pokemon-crystal-encounter-catalog\.sql$''',
+  '''^supabase/277-verify-pokemon-ruby-encounter-catalog\.sql$''',
+  '''^supabase/279-verify-pokemon-sapphire-encounter-catalog\.sql$''',
+  '''^supabase/281-verify-pokemon-emerald-encounter-catalog\.sql$''',
+  '''^supabase/283-verify-pokemon-firered-encounter-catalog\.sql$''',
+  '''^supabase/285-verify-pokemon-leafgreen-encounter-catalog\.sql$''',
 ]
 regexes = [
   '''^area_key='[a-z0-9-]+'$''',

@@ -42,9 +42,18 @@ migrations 267-275. Focused tests and all four source audits pass. Preview
 migration and visual validation remain paused until the isolated Preview
 credential is rotated; none of this follow-on work is in production.
 
+Stacked branch `codex/nuzlocke-gen3` has separate independently audited Ruby,
+Sapphire, Emerald, FireRed, and LeafGreen catalogs locally prepared with
+unpublished migrations 276-285. It covers Hoenn and Sevii encounters, Feebas
+tiles, Rock Smash, starter-dependent roaming beasts, fossils, postgame state,
+and all nine Altering Cave tables. All five source audits, the full application
+suite, the 1,027-row National Dex check, dependency audit, and 108-page build
+pass locally. The migrations have not been applied to Preview or production;
+Preview database and visual validation remain required.
+
 The complete application suite, all 1,027 National Dex rows, production
-dependency audit, and a 108-page production build also pass locally on the
-follow-on branch.
+dependency audit, and a 108-page production build pass locally on the stacked
+Generation III branch.
 
 ## Active watch items
 

@@ -76,6 +76,32 @@ test("game condition groups filter mutually exclusive schedules without removing
   const contest=generateNuzlockeTeam(pool,{...base,conditionSelections:{weekday:"contest-day"}}).team;
   assert.ok(contest.some((row)=>row.pokemon_name==="Scyther")); assert.ok(!contest.some((row)=>row.pokemon_name==="Lapras"));
 });
+test("condition defaults and included starters resolve mutually exclusive special encounters",()=>{
+  const alteringGroup={id:"altering-cave",default_value:"standard",options:[{value:"any"},{value:"standard",conditions:["altering-cave-standard"]},{value:"mareep",conditions:["altering-cave-mareep"]}]};
+  const cavePool=[
+    {area_key:"ordinary",pokemon_id:16,pokemon_name:"Pidgey",species_family:"bird",method:"walk",chance:100,conditions:[]},
+    {area_key:"cave-standard",pokemon_id:41,pokemon_name:"Zubat",species_family:"bat",method:"walk",chance:100,conditions:["altering-cave-standard"]},
+    {area_key:"cave-event",pokemon_id:179,pokemon_name:"Mareep",species_family:"sheep",method:"walk",chance:100,conditions:["altering-cave-mareep"]},
+  ];
+  const defaults=generateNuzlockeTeam(cavePool,{seed:"cave-default",teamSize:3,mode:"route-random",weighting:"equal",conditionGroups:[alteringGroup]});
+  assert.ok(defaults.team.some((row)=>row.pokemon_name==="Zubat"));
+  assert.ok(!defaults.team.some((row)=>row.pokemon_name==="Mareep"));
+
+  const roamerGroup={id:"starter-roamer",match_included_starter:true,options:[
+    {value:"any"},
+    {value:"bulbasaur",conditions:["starter-bulbasaur"],starter_ids:[1]},
+    {value:"charmander",conditions:["starter-charmander"],starter_ids:[4]},
+    {value:"squirtle",conditions:["starter-squirtle"],starter_ids:[7]},
+  ]};
+  const roamers=[
+    {area_key:"roamer-entei",pokemon_id:244,pokemon_name:"Entei",species_family:"entei",method:"roaming-grass",chance:100,conditions:["starter-bulbasaur"]},
+    {area_key:"roamer-suicune",pokemon_id:245,pokemon_name:"Suicune",species_family:"suicune",method:"roaming-grass",chance:100,conditions:["starter-charmander"]},
+    {area_key:"roamer-raikou",pokemon_id:243,pokemon_name:"Raikou",species_family:"raikou",method:"roaming-grass",chance:100,conditions:["starter-squirtle"]},
+  ];
+  const matched=generateNuzlockeTeam(roamers,{seed:"starter-roamer",teamSize:2,mode:"route-random",weighting:"equal",includeStarter:true,starters:[{pokemon_id:4,pokemon_name:"Charmander",species_family:"charmander"}],conditionGroups:[roamerGroup]});
+  assert.deepEqual(matched.team.map((row)=>row.pokemon_name),["Charmander","Suicune"]);
+  assert.equal(matched.conditionSelections["starter-roamer"],"charmander");
+});
 test("final evolution mode evolves catches without changing their route details",()=>{
   const options={seed:"finals",teamSize:4,mode:"route-random",weighting:"equal",finalEvolutionOnly:true,evolutionCatalog:fixtureEvolutions};
   const result=generateNuzlockeTeam(encounters,options);
@@ -163,4 +189,21 @@ test("reviewed Generation II catalogs support starters, schedules, contests, and
     const finals=generateNuzlockeTeam(catalog.encounters,{...options,includeStarter:false,finalEvolutionOnly:true,evolutionCatalog});
     assert.equal(finals.complete,true); assert.ok(finals.team.every((row)=>row.is_final_evolution)); assert.deepEqual(finals,generateNuzlockeTeam(catalog.encounters,{...options,includeStarter:false,finalEvolutionOnly:true,evolutionCatalog}));
   }
+});
+test("reviewed Generation III catalogs support starters, special states, and generation-limited final evolutions",()=>{
+  for(const game of ["ruby","sapphire","emerald","firered","leafgreen"]){
+    const catalog=JSON.parse(fs.readFileSync(new URL(`../data/nuzlocke/pokemon-${game}.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json`,import.meta.url),"utf8"));
+    const evolutionCatalog=JSON.parse(fs.readFileSync(new URL(`../data/nuzlocke/pokemon-${game}-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json`,import.meta.url),"utf8"));
+    const options={seed:`${game}-review`,teamSize:12,mode:"route-random",weighting:"authentic",familyClause:true,excludeLegendaries:true,includeStarter:true,starters:catalog.game.starters,conditionGroups:catalog.game.condition_groups};
+    const result=generateNuzlockeTeam(catalog.encounters,options);
+    const expectedStarters=["firered","leafgreen"].includes(game)?[1,4,7]:[252,255,258];
+    assert.equal(result.complete,true); assert.ok(expectedStarters.includes(result.team[0].pokemon_id)); assert.equal(new Set(result.team.map((row)=>row.species_family)).size,12);
+    assert.ok(result.team.every((row)=>!(row.conditions||[]).some((condition)=>condition.startsWith("altering-cave-")&&condition!=="altering-cave-standard")));
+    assert.deepEqual(result,generateNuzlockeTeam(catalog.encounters,options));
+    const finals=generateNuzlockeTeam(catalog.encounters,{...options,includeStarter:false,finalEvolutionOnly:true,evolutionCatalog});
+    assert.equal(finals.complete,true); assert.ok(finals.team.every((row)=>row.is_final_evolution&&row.pokemon_id<=386)); assert.deepEqual(finals,generateNuzlockeTeam(catalog.encounters,{...options,includeStarter:false,finalEvolutionOnly:true,evolutionCatalog}));
+    assert.deepEqual(new Set(evolutionCatalog.evolutions.map((row)=>row.pokemon_id)),new Set(catalog.encounters.map((row)=>row.pokemon_id)));
+  }
+  const fireRedEvolutions=JSON.parse(fs.readFileSync(new URL("../data/nuzlocke/pokemon-firered-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json",import.meta.url),"utf8"));
+  assert.deepEqual(fireRedEvolutions.evolutions.find((row)=>row.pokemon_id===42).final_evolutions.map((row)=>row.pokemon_name),["Crobat"]);
 });

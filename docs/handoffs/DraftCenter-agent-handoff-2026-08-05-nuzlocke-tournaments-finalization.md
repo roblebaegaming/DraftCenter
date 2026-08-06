@@ -192,7 +192,7 @@ production project, confirm the deployed commit, test `/nuzlocke` signed out,
 and run `npm run smoke:production`. Do not treat the passing Preview as a
 production deployment.
 
-## Yellow and Generation II follow-up state
+## Yellow, Generation II, and Generation III follow-up state
 
 - Branch: `codex/nuzlocke-gen2`
 - Production: not merged and not migrated
@@ -201,6 +201,12 @@ production deployment.
 - Gold migrations: 270-271
 - Silver migrations: 272-273
 - Crystal migrations: 274-275
+- Generation III branch: `codex/nuzlocke-gen3`
+- Ruby migrations: 276-277
+- Sapphire migrations: 278-279
+- Emerald migrations: 280-281
+- FireRed migrations: 282-283
+- LeafGreen migrations: 284-285
 
 Yellow is locally implemented and audited. Gold, Silver, and Crystal now have
 separate pinned artifacts, game-limited evolution maps, independent Veekun and
@@ -223,6 +229,29 @@ The Preview credential must be rotated before applying 267-275 to the isolated
 Preview. After rotation, apply them in order, verify the exact counts plus
 RLS/grants, and complete desktop/mobile shared-link and condition-filter
 testing. No Preview or production database was changed for this follow-up.
+
+Ruby, Sapphire, Emerald, FireRed, and LeafGreen are also locally implemented
+as separate pinned artifacts, Generation III-limited evolution maps,
+independent Veekun/pret audits, and pending-first import/verification
+migrations. Exact Pokedex/location/encounter/profile counts are Ruby
+202/103/1,530/129, Sapphire 202/104/1,527/129, Emerald 202/117/1,743/158,
+FireRed 151/129/2,108/136, and LeafGreen 151/129/2,108/136. Ruby and Sapphire
+have 18 methods, Emerald has 17, and FireRed/LeafGreen have 12.
+
+Generation III uses the existing condition-group contract for fossil and
+postgame choices, Emerald's roaming Lati TV choice, and Altering Cave. Emerald
+restores the eight event tables omitted from the newer base snapshot; the
+ordinary Zubat state is the default across Emerald and FireRed/LeafGreen. All
+nine states share one encounter location so they cannot produce multiple
+catches from the same cave.
+FireRed/LeafGreen automatically match the roaming beast to an included seeded
+starter. Evolution graphs stop at species 386 so Sevii and other postgame
+profiles outside the regional Dex cannot evolve into later-generation forms.
+All five source audits, the 38 focused Nuzlocke regressions, the full
+application suite, 1,027-row National Dex check, production dependency audit,
+and 108-page build pass locally. Migrations 276-285 remain unapplied and no
+Preview or production database was changed. The local gitleaks binary was not
+available, so the repository secret scan remains a required CI gate.
 
 ## Remaining Nuzlocke game roadmap
 
@@ -254,8 +283,10 @@ Recommended implementation order:
 1. **Pokemon Yellow.** Locally complete; Preview and release validation remain.
 2. **Gold, Silver, Crystal.** Locally complete with condition capabilities and
    independent audits; Preview and release validation remain.
-3. **Ruby, Sapphire, Emerald, FireRed, LeafGreen.** Cover Rock Smash, rods,
-   Safari areas, version exclusives, Emerald differences, and Sevii Islands.
+3. **Ruby, Sapphire, Emerald, FireRed, LeafGreen.** Locally complete with Rock
+   Smash, rods, Safari areas, version exclusives, Emerald differences, all
+   Altering Cave states, and Sevii Islands; Preview and release validation
+   remain.
 4. **Diamond, Pearl, Platinum, HeartGold, SoulSilver.** Cover time windows,
    swarms, dual-slot, Poke Radar, Great Marsh, Trophy Garden, headbutt, and
    remake-specific areas.
@@ -309,9 +340,10 @@ The branch previously passed all seven repository checks and uses its own
 billable Supabase Preview branch.
 
 Its unpublished migration is currently
-`260-standalone-single-elimination-tournaments.sql`. If Yellow and Generation
-II migrations 267-275 release before tournaments, its next safe number is 276.
-Otherwise use the first genuinely unused number when #39 is finally rebased.
+`260-standalone-single-elimination-tournaments.sql`. If Yellow through
+Generation III migrations 267-285 release before tournaments, its next safe
+number is 286. If only part of that stack releases, use the first genuinely
+unused number.
 Update every code, test, scan, and documentation reference. The tournament
 Preview database was manually given the old 260 migration, so rebuild or
 explicitly reconcile that isolated branch rather than assuming its history

@@ -98,6 +98,13 @@ const gen2Artifacts = Object.fromEntries(["gold", "silver", "crystal"].map((game
   imported: fs.readFileSync(new URL(`../supabase/${game === "gold" ? 270 : game === "silver" ? 272 : 274}-import-pokemon-${game}-encounter-catalog.sql`, import.meta.url), "utf8"),
   verified: fs.readFileSync(new URL(`../supabase/${game === "gold" ? 271 : game === "silver" ? 273 : 275}-verify-pokemon-${game}-encounter-catalog.sql`, import.meta.url), "utf8"),
 }]));
+const gen3MigrationNumbers={ruby:[276,277],sapphire:[278,279],emerald:[280,281],firered:[282,283],leafgreen:[284,285]};
+const gen3Artifacts=Object.fromEntries(Object.entries(gen3MigrationNumbers).map(([game,[importNumber,verifyNumber]])=>[game,{
+  catalog:JSON.parse(fs.readFileSync(new URL(`../data/nuzlocke/pokemon-${game}.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json`,import.meta.url),"utf8")),
+  evolutions:JSON.parse(fs.readFileSync(new URL(`../data/nuzlocke/pokemon-${game}-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json`,import.meta.url),"utf8")),
+  imported:fs.readFileSync(new URL(`../supabase/${importNumber}-import-pokemon-${game}-encounter-catalog.sql`,import.meta.url),"utf8"),
+  verified:fs.readFileSync(new URL(`../supabase/${verifyNumber}-verify-pokemon-${game}-encounter-catalog.sql`,import.meta.url),"utf8"),
+}]));
 test("catalog is verified-only and browser read-only", () => {
   for (const table of [
     "pokemon_games",
@@ -321,6 +328,11 @@ paths = [
   '''^data/nuzlocke/pokemon-gold\\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\\.json$''',
   '''^data/nuzlocke/pokemon-silver\\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\\.json$''',
   '''^data/nuzlocke/pokemon-crystal\\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\\.json$''',
+  '''^data/nuzlocke/pokemon-ruby\\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\\.json$''',
+  '''^data/nuzlocke/pokemon-sapphire\\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\\.json$''',
+  '''^data/nuzlocke/pokemon-emerald\\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\\.json$''',
+  '''^data/nuzlocke/pokemon-firered\\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\\.json$''',
+  '''^data/nuzlocke/pokemon-leafgreen\\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\\.json$''',
 ]
 regexes = [
   '''^(?:area_key|location_key)"\\s*:\\s*"[a-z0-9-]+"$''',
@@ -336,6 +348,11 @@ paths = [
   '''^docs/pokemon-catalog/pokemon-gold-encounter-audit-2026-08-05\\.md$''',
   '''^docs/pokemon-catalog/pokemon-silver-encounter-audit-2026-08-05\\.md$''',
   '''^docs/pokemon-catalog/pokemon-crystal-encounter-audit-2026-08-05\\.md$''',
+  '''^docs/pokemon-catalog/pokemon-ruby-encounter-audit-2026-08-05\\.md$''',
+  '''^docs/pokemon-catalog/pokemon-sapphire-encounter-audit-2026-08-05\\.md$''',
+  '''^docs/pokemon-catalog/pokemon-emerald-encounter-audit-2026-08-05\\.md$''',
+  '''^docs/pokemon-catalog/pokemon-firered-encounter-audit-2026-08-05\\.md$''',
+  '''^docs/pokemon-catalog/pokemon-leafgreen-encounter-audit-2026-08-05\\.md$''',
 ]
 regexes = [
   '''^5064f1d72746b3a6a931616dae3fb6445c556d4f$''',
@@ -351,6 +368,11 @@ paths = [
   '''^supabase/270-import-pokemon-gold-encounter-catalog\\.sql$''',
   '''^supabase/272-import-pokemon-silver-encounter-catalog\\.sql$''',
   '''^supabase/274-import-pokemon-crystal-encounter-catalog\\.sql$''',
+  '''^supabase/276-import-pokemon-ruby-encounter-catalog\\.sql$''',
+  '''^supabase/278-import-pokemon-sapphire-encounter-catalog\\.sql$''',
+  '''^supabase/280-import-pokemon-emerald-encounter-catalog\\.sql$''',
+  '''^supabase/282-import-pokemon-firered-encounter-catalog\\.sql$''',
+  '''^supabase/284-import-pokemon-leafgreen-encounter-catalog\\.sql$''',
 ]
 regexes = [
   '''^(?:area_key|location_key)"\\s*:\\s*"[a-z0-9-]+"$''',
@@ -387,6 +409,11 @@ paths = [
   '''^supabase/271-verify-pokemon-gold-encounter-catalog\\.sql$''',
   '''^supabase/273-verify-pokemon-silver-encounter-catalog\\.sql$''',
   '''^supabase/275-verify-pokemon-crystal-encounter-catalog\\.sql$''',
+  '''^supabase/277-verify-pokemon-ruby-encounter-catalog\\.sql$''',
+  '''^supabase/279-verify-pokemon-sapphire-encounter-catalog\\.sql$''',
+  '''^supabase/281-verify-pokemon-emerald-encounter-catalog\\.sql$''',
+  '''^supabase/283-verify-pokemon-firered-encounter-catalog\\.sql$''',
+  '''^supabase/285-verify-pokemon-leafgreen-encounter-catalog\\.sql$''',
 ]
 regexes = [
   '''^area_key='[a-z0-9-]+'$''',
@@ -506,6 +533,20 @@ test("Generation II artifacts and migrations stay exact, pending-first, and vers
     assert.match(records.verified,new RegExp(`where game_key='${game}'[\\s\\S]+encounter_status='pending'`)); assert.match(records.verified,/bug-catching-contest/); assert.match(records.verified,/count\(distinct method\)/); assert.match(records.verified,/count\(distinct pokemon_id\)/);
   }
 });
+test("Generation III artifacts and migrations stay exact, pending-first, and version-specific",()=>{
+  const expected={ruby:{dex:202,locations:103,encounters:1530,profiles:129,methods:18,groups:2},sapphire:{dex:202,locations:104,encounters:1527,profiles:129,methods:18,groups:2},emerald:{dex:202,locations:117,encounters:1743,profiles:158,methods:17,groups:4},firered:{dex:151,locations:129,encounters:2108,profiles:136,methods:12,groups:3},leafgreen:{dex:151,locations:129,encounters:2108,profiles:136,methods:12,groups:3}};
+  for(const [game,records] of Object.entries(gen3Artifacts)){
+    const counts=expected[game];
+    assert.equal(records.catalog.pokedex_entries.length,counts.dex);assert.equal(records.catalog.locations.length,counts.locations);assert.equal(records.catalog.encounters.length,counts.encounters);assert.equal(new Set(records.catalog.encounters.map((row)=>row.pokemon_id)).size,counts.profiles);assert.equal(new Set(records.catalog.encounters.map((row)=>row.method)).size,counts.methods);
+    assert.deepEqual(records.catalog.game.starters.map((row)=>row.pokemon_id),["firered","leafgreen"].includes(game)?[1,4,7]:[252,255,258]);assert.equal(records.catalog.game.condition_groups.length,counts.groups);
+    assert.deepEqual(new Set(records.evolutions.evolutions.map((row)=>row.pokemon_id)),new Set(records.catalog.encounters.map((row)=>row.pokemon_id)));assert.ok(records.evolutions.evolutions.flatMap((row)=>row.final_evolutions).every((row)=>row.pokemon_id<=386));
+    const payloads=[...records.imported.matchAll(/\$catalog\$(.+?)\$catalog\$/g)].map((match)=>JSON.parse(match[1]));assert.deepEqual(payloads,[records.catalog.game.starters,records.catalog.game.condition_groups,records.catalog.pokedex_entries,records.catalog.locations,records.catalog.encounters]);
+    assert.match(records.imported,new RegExp(`encounter_status[^)]*\\) values \\('${game}'[\\s\\S]+,'pending'`));assert.doesNotMatch(records.imported,/encounter_status='verified'/);assert.match(records.verified,new RegExp(`where game_key='${game}'[\\s\\S]+encounter_status='pending'`));assert.match(records.verified,/count\(distinct method\)/);assert.match(records.verified,/count\(distinct pokemon_id\)/);
+  }
+  assert.equal(gen3Artifacts.emerald.catalog.encounters.filter((row)=>(row.conditions||[]).includes("altering-cave-smeargle")).length,12);
+  assert.ok(gen3Artifacts.firered.catalog.encounters.some((row)=>row.area_key==="sevault-canyon-main-area"&&row.pokemon_id===227));
+  assert.ok(gen3Artifacts.leafgreen.catalog.encounters.some((row)=>row.area_key==="icefall-cave-1f"&&row.pokemon_id===215));
+});
 test("server route uses public RLS catalog access and privileged rate limiting", () => {
   assert.match(route, /createPublicServerClient/);
   assert.match(route, /list_verified_nuzlocke_games/);
@@ -515,7 +556,7 @@ test("server route uses public RLS catalog access and privileged rate limiting",
   assert.doesNotMatch(route, /adminClient\.from\("pokemon_games"/);
 });
 test("final evolution requests require source-matched pinned game catalogs", () => {
-  assert.match(route, /red: redEvolutionCatalog, blue: blueEvolutionCatalog, yellow: yellowEvolutionCatalog, gold: goldEvolutionCatalog, silver: silverEvolutionCatalog, crystal: crystalEvolutionCatalog/);
+  for(const game of ["red","blue","yellow","gold","silver","crystal","ruby","sapphire","emerald","firered","leafgreen"]) assert.match(route,new RegExp(`${game}: ${game}EvolutionCatalog`));
   assert.match(route, /body\.finalEvolutionOnly === true/);
   assert.match(
     route,
@@ -529,6 +570,8 @@ test("final evolution mode is shareable and the UI explains run codes and both r
   assert.match(lab, /finalEvolutionOnly/);
   assert.match(lab, /Catch \$\{entry\.encounter_pokemon_name\}/);
   assert.match(lab, /Run code/);
+  assert.match(lab, /Build a Nuzlocke Team/);
+  assert.doesNotMatch(lab, /Build a seeded Run Card/);
   assert.match(lab, /Route-first random/);
   assert.match(lab, /Encounter-pool random/);
   assert.match(
@@ -542,6 +585,8 @@ test("game-specific condition filters are restored and shared without leaking be
   assert.match(lab, /conditionSelections/);
   assert.match(lab, /Encounter conditions/);
   assert.match(lab, /setMethods\(\[\]\)/);
+  assert.match(lab, /includeStarter && group\.match_included_starter/);
+  assert.match(lab, /disabled=\{includeStarter && group\.match_included_starter\}/);
 });
 test("starter inclusion is explicit in shared links and old seeded links retain their original output", () => {
   assert.match(
@@ -551,5 +596,6 @@ test("starter inclusion is explicit in shared links and old seeded links retain 
   assert.match(lab, /url\.searchParams\.set\("starter", "include"\)/);
   assert.match(lab, /Include a starter Pokémon/);
   assert.match(lab, /entry\.method === "starter" \? "Starter Pokémon"/);
-  assert.match(route, /red: KANTO_STARTERS, blue: KANTO_STARTERS, yellow: YELLOW_STARTER/);
+  assert.match(route, /ruby: HOENN_STARTERS, sapphire: HOENN_STARTERS, emerald: HOENN_STARTERS/);
+  assert.match(route, /firered: KANTO_STARTERS, leafgreen: KANTO_STARTERS/);
 });
