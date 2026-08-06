@@ -207,3 +207,23 @@ test("reviewed Generation III catalogs support starters, special states, and gen
   const fireRedEvolutions=JSON.parse(fs.readFileSync(new URL("../data/nuzlocke/pokemon-firered-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json",import.meta.url),"utf8"));
   assert.deepEqual(fireRedEvolutions.evolutions.find((row)=>row.pokemon_id===42).final_evolutions.map((row)=>row.pokemon_name),["Crobat"]);
 });
+test("reviewed Generation IV catalogs support activated encounter systems and generation-limited final evolutions",()=>{
+  for(const game of ["diamond","pearl","platinum","heartgold","soulsilver"]){
+    const catalog=JSON.parse(fs.readFileSync(new URL(`../data/nuzlocke/pokemon-${game}.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json`,import.meta.url),"utf8"));
+    const evolutionCatalog=JSON.parse(fs.readFileSync(new URL(`../data/nuzlocke/pokemon-${game}-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json`,import.meta.url),"utf8"));
+    const sinnoh=["diamond","pearl","platinum"].includes(game);
+    const conditionSelections=sinnoh
+      ? {time:"night",swarm:"no","poke-radar":"off","dual-slot":"none","trophy-garden":"not-mentioned","great-marsh":"none","honey-tree":"common"}
+      : {time:"night",swarm:"no",weekday:"other","pokegear-radio":"off","bug-catching-contest":"no","headbutt-tree":"common","safari-blocks":"inactive"};
+    const options={seed:`${game}-review`,teamSize:12,mode:"route-random",weighting:"authentic",familyClause:true,excludeLegendaries:true,includeStarter:true,starters:catalog.game.starters,conditionGroups:catalog.game.condition_groups,conditionSelections};
+    const result=generateNuzlockeTeam(catalog.encounters,options);
+    assert.equal(result.complete,true);assert.ok((sinnoh?[387,390,393]:[152,155,158]).includes(result.team[0].pokemon_id));assert.equal(new Set(result.team.map((row)=>row.species_family)).size,12);
+    const selectedConditions=new Set(result.team.flatMap((row)=>row.conditions||[]));
+    assert.ok(!selectedConditions.has("time-morning")&&!selectedConditions.has("time-day")&&!selectedConditions.has("swarm-yes"));
+    if(sinnoh){assert.ok(!selectedConditions.has("radar-on")&&![...selectedConditions].some((value)=>value.startsWith("slot2-")&&value!=="slot2-none")&&!selectedConditions.has("backlot-mentioned")&&!selectedConditions.has("honey-tree-group-b")&&!selectedConditions.has("honey-tree-group-c"));}
+    else{assert.ok(!selectedConditions.has("radio-hoenn")&&!selectedConditions.has("radio-sinnoh")&&!selectedConditions.has("bug-catching-contest-yes")&&!selectedConditions.has("headbutt-tree-rare")&&!selectedConditions.has("headbutt-tree-secret")&&![...selectedConditions].some((value)=>value.startsWith("johto-safari-blocks-")&&value!=="johto-safari-blocks-inactive"));}
+    assert.deepEqual(result,generateNuzlockeTeam(catalog.encounters,options));
+    const finalOptions={...options,includeStarter:false,finalEvolutionOnly:true,evolutionCatalog};const finals=generateNuzlockeTeam(catalog.encounters,finalOptions);
+    assert.equal(finals.complete,true);assert.ok(finals.team.every((row)=>row.is_final_evolution&&row.pokemon_id<=493));assert.deepEqual(finals,generateNuzlockeTeam(catalog.encounters,finalOptions));
+  }
+});

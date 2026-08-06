@@ -51,9 +51,20 @@ suite, the 1,027-row National Dex check, dependency audit, and 108-page build
 pass locally. The migrations have not been applied to Preview or production;
 Preview database and visual validation remain required.
 
+Stacked branch `codex/nuzlocke-gen4` has separate independently audited
+Diamond, Pearl, Platinum, HeartGold, and SoulSilver catalogs locally prepared
+with unpublished migrations 286-295. It covers Sinnoh time windows, swarms,
+Poke Radar, dual-slot cartridges, Trophy Garden, Great Marsh, and Honey Trees,
+plus the remakes' weekday/radio, Bug-Catching Contest, headbutt-tree, Safari
+block, and version-exclusive encounters. All five source audits, 40 focused
+regressions, the full application suite, the 1,027-row National Dex check,
+dependency audit, and 108-page build pass locally. The migrations have not been
+applied to Preview or production; Preview database and visual validation remain
+required.
+
 The complete application suite, all 1,027 National Dex rows, production
 dependency audit, and a 108-page production build pass locally on the stacked
-Generation III branch.
+Generation IV branch.
 
 ## Active watch items
 

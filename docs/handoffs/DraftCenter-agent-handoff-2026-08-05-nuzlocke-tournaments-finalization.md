@@ -192,7 +192,7 @@ production project, confirm the deployed commit, test `/nuzlocke` signed out,
 and run `npm run smoke:production`. Do not treat the passing Preview as a
 production deployment.
 
-## Yellow, Generation II, and Generation III follow-up state
+## Yellow through Generation IV follow-up state
 
 - Branch: `codex/nuzlocke-gen2`
 - Production: not merged and not migrated
@@ -207,6 +207,12 @@ production deployment.
 - Emerald migrations: 280-281
 - FireRed migrations: 282-283
 - LeafGreen migrations: 284-285
+- Generation IV branch: `codex/nuzlocke-gen4`
+- Diamond migrations: 286-287
+- Pearl migrations: 288-289
+- Platinum migrations: 290-291
+- HeartGold migrations: 292-293
+- SoulSilver migrations: 294-295
 
 Yellow is locally implemented and audited. Gold, Silver, and Crystal now have
 separate pinned artifacts, game-limited evolution maps, independent Veekun and
@@ -247,11 +253,39 @@ catches from the same cave.
 FireRed/LeafGreen automatically match the roaming beast to an included seeded
 starter. Evolution graphs stop at species 386 so Sevii and other postgame
 profiles outside the regional Dex cannot evolve into later-generation forms.
-All five source audits, the 38 focused Nuzlocke regressions, the full
+All five source audits, the 40 focused Nuzlocke regressions, the full
 application suite, 1,027-row National Dex check, production dependency audit,
 and 108-page build pass locally. Migrations 276-285 remain unapplied and no
 Preview or production database was changed. The local gitleaks binary was not
 available, so the repository secret scan remains a required CI gate.
+
+Diamond, Pearl, Platinum, HeartGold, and SoulSilver are locally implemented as
+separate pinned artifacts, Generation IV-limited evolution maps, independent
+Veekun/pret audits, and pending-first import/verification migrations. Exact
+Pokedex/location/encounter/profile counts are Diamond 151/157/4,388/277,
+Pearl 151/157/4,388/278, Platinum 210/159/4,227/290, HeartGold
+256/168/6,205/283, and SoulSilver 256/168/6,205/283. Diamond, Pearl, and
+Platinum have 13 encounter methods; HeartGold and SoulSilver have 14.
+
+Generation IV reuses the bounded condition-group contract without a schema
+change. Sinnoh exposes time of day, swarms, Poke Radar, GBA dual-slot
+cartridges, announced Trophy Garden Pokemon, Great Marsh daily rotations, and
+Honey Tree groups. HeartGold/SoulSilver expose time, swarms, weekdays, Pokegear
+radio, the Bug-Catching Contest, common/rare/secret Headbutt trees, and Safari
+Zone block upgrades. Defaults represent the ordinary encounter state, and all
+choices are validated and restored through shared Run Card URLs. Starters are
+Turtwig/Chimchar/Piplup in Sinnoh and Chikorita/Cyndaquil/Totodile in the
+remakes. The catalog API's bounded page ceiling is 7,500 so both 6,205-row
+remake catalogs load completely.
+
+The five source audits, 40 focused Nuzlocke regressions, full application suite,
+1,027-row National Dex check, production dependency audit, and 108-page build
+pass locally. Migrations 286-295 remain unapplied and no Preview or production
+database was changed. The local gitleaks binary was not available, so the
+repository secret scan remains a required CI gate. After the isolated Preview
+credential is rotated, apply migrations 267-295 in order, verify exact counts
+plus RLS/grants, and complete desktop/mobile shared-link and condition-filter
+testing for each stacked generation before release.
 
 ## Remaining Nuzlocke game roadmap
 
@@ -287,9 +321,10 @@ Recommended implementation order:
    Smash, rods, Safari areas, version exclusives, Emerald differences, all
    Altering Cave states, and Sevii Islands; Preview and release validation
    remain.
-4. **Diamond, Pearl, Platinum, HeartGold, SoulSilver.** Cover time windows,
-   swarms, dual-slot, Poke Radar, Great Marsh, Trophy Garden, headbutt, and
-   remake-specific areas.
+4. **Diamond, Pearl, Platinum, HeartGold, SoulSilver.** Locally complete with
+   time windows, swarms, dual-slot, Poke Radar, Great Marsh, Trophy Garden,
+   Honey Trees, radio, Safari blocks, headbutt, and remake-specific areas;
+   Preview and release validation remain.
 5. **Black, White, Black 2, White 2.** Cover seasons, shaking grass, dust
    clouds, bridge shadows, rippling water, swarms, and Hidden Grottos.
 6. **X, Y, Omega Ruby, Alpha Sapphire.** Cover hordes, Friend Safari policy,
@@ -341,8 +376,8 @@ billable Supabase Preview branch.
 
 Its unpublished migration is currently
 `260-standalone-single-elimination-tournaments.sql`. If Yellow through
-Generation III migrations 267-285 release before tournaments, its next safe
-number is 286. If only part of that stack releases, use the first genuinely
+Generation IV migrations 267-295 release before tournaments, its next safe
+number is 296. If only part of that stack releases, use the first genuinely
 unused number.
 Update every code, test, scan, and documentation reference. The tournament
 Preview database was manually given the old 260 migration, so rebuild or
@@ -363,8 +398,8 @@ advancement.
 1. Perform the narrow mobile visual pass on #38, then release Red/Blue through
    the protected PR flow. Apply 261-266 to the exact core production database,
    confirm the deployed commit, and smoke-test production.
-2. Implement the remaining Nuzlocke games in the generation batches above.
-   Keep each game fail-closed until its pinned independent audit passes.
+2. Continue with Generation V and the remaining Nuzlocke games in the batches
+   above. Keep each game fail-closed until its pinned independent audit passes.
 3. After the owner's agreed Nuzlocke coverage target is released, rebase #39
    onto current `main`, give its old migration 260 the first unused number, and
    update all references.
