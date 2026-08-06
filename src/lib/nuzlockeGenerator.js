@@ -121,17 +121,26 @@ export function generateNuzlockeTeam(encounters, options = {}) {
   }
 
   const excluded = new Set((options.exclusions || []).map((value) => String(value).toLowerCase()));
-  const starterChoices = Array.isArray(options.starters) ? options.starters.filter((entry) => {
+  const sourceStarterChoices = Array.isArray(options.starters) ? options.starters.filter((entry) => {
     const identities = [entry?.pokemon_name, entry?.pokemon_id].filter((value) => value != null).map((value) => String(value).toLowerCase());
     return entry?.pokemon_name && !identities.some((value) => excluded.has(value));
   }) : [];
+  const starterChoices = options.includeStarter
+    ? applyFinalEvolutions(sourceStarterChoices, options).filter((entry) => {
+        const identities = [entry?.pokemon_name, entry?.pokemon_id, entry?.encounter_pokemon_name, entry?.encounter_pokemon_id]
+          .filter((value) => value != null)
+          .map((value) => String(value).toLowerCase());
+        return !identities.some((value) => excluded.has(value));
+      })
+    : sourceStarterChoices;
   const starter = options.includeStarter && starterChoices.length
     ? starterChoices[Math.floor(seededRandom(`${options.seed}:starter`)() * starterChoices.length)]
     : null;
   const effectiveConditionSelections = { ...conditionSelections };
   if (starter) {
+    const starterPokemonId = Number(starter.encounter_pokemon_id || starter.pokemon_id);
     for (const group of conditionGroups.filter((item) => item.match_included_starter === true)) {
-      const matchingOption = group.options?.find((option) => Array.isArray(option.starter_ids) && option.starter_ids.includes(Number(starter.pokemon_id)));
+      const matchingOption = group.options?.find((option) => Array.isArray(option.starter_ids) && option.starter_ids.includes(starterPokemonId));
       if (matchingOption) effectiveConditionSelections[group.id] = matchingOption.value;
     }
   }

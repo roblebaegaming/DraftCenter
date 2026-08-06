@@ -58,6 +58,13 @@ test("optional starters are deterministic, count as a team slot, and respect exc
   const familySafe=generateNuzlockeTeam(encounters,{...options,familyClause:true,starters:[starters[0]]});
   assert.equal(familySafe.team.filter((entry)=>entry.species_family==="bulbasaur").length,1);
 });
+test("final evolution mode evolves an included starter and preserves its starter details",()=>{
+  const options={seed:"final-starter",teamSize:1,mode:"route-random",weighting:"equal",includeStarter:true,starters:[{pokemon_id:1,pokemon_name:"Bulbasaur",species_family:"bulbasaur"}],finalEvolutionOnly:true,evolutionCatalog:fixtureEvolutions};
+  const result=generateNuzlockeTeam([],options);
+  assert.equal(result.complete,true);assert.equal(result.team[0].pokemon_name,"Venusaur");assert.equal(result.team[0].encounter_pokemon_name,"Bulbasaur");assert.equal(result.team[0].method,"starter");assert.equal(result.team[0].is_final_evolution,true);
+  const excluded=generateNuzlockeTeam([],{...options,exclusions:["Venusaur"]});
+  assert.equal(excluded.complete,false);assert.equal(excluded.available,0);
+});
 test("game condition groups filter mutually exclusive schedules without removing ordinary encounters",()=>{
   const pool=[
     {area_key:"route-general",pokemon_id:1,pokemon_name:"Chikorita",species_family:"leaf",method:"walk",chance:100,conditions:[]},
