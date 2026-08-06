@@ -38,6 +38,8 @@ import shieldEvolutionCatalog from "../../../../data/nuzlocke/pokemon-shield-evo
 import brilliantDiamondEvolutionCatalog from "../../../../data/nuzlocke/pokemon-brilliant-diamond-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json";
 import shiningPearlEvolutionCatalog from "../../../../data/nuzlocke/pokemon-shining-pearl-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json";
 import legendsArceusEvolutionCatalog from "../../../../data/nuzlocke/pokemon-legends-arceus-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json";
+import scarletEvolutionCatalog from "../../../../data/nuzlocke/pokemon-scarlet-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json";
+import violetEvolutionCatalog from "../../../../data/nuzlocke/pokemon-violet-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json";
 
 export const runtime = "nodejs";
 const GAME_KEY = /^[a-z0-9-]{2,64}$/;
@@ -58,8 +60,9 @@ const EVOLUTION_CATALOGS = Object.freeze({
   sword: swordEvolutionCatalog, shield: shieldEvolutionCatalog,
   "brilliant-diamond": brilliantDiamondEvolutionCatalog, "shining-pearl": shiningPearlEvolutionCatalog,
   "legends-arceus": legendsArceusEvolutionCatalog,
+  scarlet: scarletEvolutionCatalog, violet: violetEvolutionCatalog,
 });
-const MAX_CATALOG_ENCOUNTERS = 12000;
+const MAX_CATALOG_ENCOUNTERS = 16000;
 const KANTO_STARTERS = Object.freeze([
   { pokemon_id: 1, pokemon_name: "Bulbasaur", form_name: "", species_family: "evolution-chain-1", artwork_url: "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/1.png" },
   { pokemon_id: 4, pokemon_name: "Charmander", form_name: "", species_family: "evolution-chain-2", artwork_url: "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/4.png" },
@@ -103,7 +106,12 @@ const GALAR_STARTERS = Object.freeze([
   { pokemon_id: 816, pokemon_name: "Sobble", form_name: "", species_family: "evolution-chain-432", artwork_url: "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/816.png" },
 ]);
 const HISUI_STARTERS = Object.freeze([ALOLA_STARTERS[0], JOHTO_STARTERS[1], UNOVA_STARTERS[2]]);
-const GAME_STARTERS = Object.freeze({ red: KANTO_STARTERS, blue: KANTO_STARTERS, yellow: YELLOW_STARTER, gold: JOHTO_STARTERS, silver: JOHTO_STARTERS, crystal: JOHTO_STARTERS, ruby: HOENN_STARTERS, sapphire: HOENN_STARTERS, emerald: HOENN_STARTERS, firered: KANTO_STARTERS, leafgreen: KANTO_STARTERS, diamond: SINNOH_STARTERS, pearl: SINNOH_STARTERS, platinum: SINNOH_STARTERS, heartgold: JOHTO_STARTERS, soulsilver: JOHTO_STARTERS, black: UNOVA_STARTERS, white: UNOVA_STARTERS, "black-2": UNOVA_STARTERS, "white-2": UNOVA_STARTERS, x: KALOS_STARTERS, y: KALOS_STARTERS, "omega-ruby": HOENN_STARTERS, "alpha-sapphire": HOENN_STARTERS, sun: ALOLA_STARTERS, moon: ALOLA_STARTERS, "ultra-sun": ALOLA_STARTERS, "ultra-moon": ALOLA_STARTERS, "lets-go-pikachu": YELLOW_STARTER, "lets-go-eevee": LETS_GO_EEVEE_STARTER, sword: GALAR_STARTERS, shield: GALAR_STARTERS, "brilliant-diamond": SINNOH_STARTERS, "shining-pearl": SINNOH_STARTERS, "legends-arceus": HISUI_STARTERS });
+const PALDEA_STARTERS = Object.freeze([
+  { pokemon_id: 906, pokemon_name: "Sprigatito", form_name: "", species_family: "evolution-chain-478", artwork_url: "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/906.png" },
+  { pokemon_id: 909, pokemon_name: "Fuecoco", form_name: "", species_family: "evolution-chain-479", artwork_url: "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/909.png" },
+  { pokemon_id: 912, pokemon_name: "Quaxly", form_name: "", species_family: "evolution-chain-480", artwork_url: "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/912.png" },
+]);
+const GAME_STARTERS = Object.freeze({ red: KANTO_STARTERS, blue: KANTO_STARTERS, yellow: YELLOW_STARTER, gold: JOHTO_STARTERS, silver: JOHTO_STARTERS, crystal: JOHTO_STARTERS, ruby: HOENN_STARTERS, sapphire: HOENN_STARTERS, emerald: HOENN_STARTERS, firered: KANTO_STARTERS, leafgreen: KANTO_STARTERS, diamond: SINNOH_STARTERS, pearl: SINNOH_STARTERS, platinum: SINNOH_STARTERS, heartgold: JOHTO_STARTERS, soulsilver: JOHTO_STARTERS, black: UNOVA_STARTERS, white: UNOVA_STARTERS, "black-2": UNOVA_STARTERS, "white-2": UNOVA_STARTERS, x: KALOS_STARTERS, y: KALOS_STARTERS, "omega-ruby": HOENN_STARTERS, "alpha-sapphire": HOENN_STARTERS, sun: ALOLA_STARTERS, moon: ALOLA_STARTERS, "ultra-sun": ALOLA_STARTERS, "ultra-moon": ALOLA_STARTERS, "lets-go-pikachu": YELLOW_STARTER, "lets-go-eevee": LETS_GO_EEVEE_STARTER, sword: GALAR_STARTERS, shield: GALAR_STARTERS, "brilliant-diamond": SINNOH_STARTERS, "shining-pearl": SINNOH_STARTERS, "legends-arceus": HISUI_STARTERS, scarlet: PALDEA_STARTERS, violet: PALDEA_STARTERS });
 
 export async function GET() {
   try {

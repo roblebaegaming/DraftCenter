@@ -1,6 +1,6 @@
 # DraftCenter current status
 
-- Last updated: August 5, 2026
+- Last updated: August 6, 2026
 - Production: https://www.draftcentral.gg
 - Repository: `roblebaegaming/DraftCenter`
 - Production branch: `main`
@@ -98,6 +98,17 @@ and mass outbreaks. All five source audits and 48 focused regressions pass.
 The full application suite, all 1,027 National Dex rows, production dependency
 audit, and 108-page production build also pass locally. CI, Preview database,
 and visual validation remain; nothing from this stack is in production.
+
+Stacked branch `codex/nuzlocke-gen9` has separate independently audited
+Scarlet and Violet catalogs locally prepared with unpublished migrations
+334-337. It covers Paldea, The Teal Mask, The Indigo Disk, time, weather,
+fixed encounters, gifts, trades, stock Tera Raids, Union Circle-required
+legendary snacks, selected historical distribution raids, and version-specific
+base-game and DLC encounters. No schema change was required. Both source
+audits, 50 focused regressions, the full application suite, all 1,027 National
+Dex rows, the production dependency audit, and the 108-page production build
+pass locally. CI, Preview database, and visual validation remain; nothing from
+this stack is in production.
 
 ## Active watch items
 

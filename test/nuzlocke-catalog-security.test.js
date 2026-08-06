@@ -140,6 +140,13 @@ const gen8Artifacts=Object.fromEntries(Object.entries(gen8MigrationNumbers).map(
   imported:fs.readFileSync(new URL(`../supabase/${importNumber}-import-pokemon-${game}-encounter-catalog.sql`,import.meta.url),"utf8"),
   verified:fs.readFileSync(new URL(`../supabase/${verifyNumber}-verify-pokemon-${game}-encounter-catalog.sql`,import.meta.url),"utf8"),
 }]));
+const gen9MigrationNumbers={scarlet:[334,335],violet:[336,337]};
+const gen9Artifacts=Object.fromEntries(Object.entries(gen9MigrationNumbers).map(([game,[importNumber,verifyNumber]])=>[game,{
+  catalog:JSON.parse(fs.readFileSync(new URL(`../data/nuzlocke/pokemon-${game}.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json`,import.meta.url),"utf8")),
+  evolutions:JSON.parse(fs.readFileSync(new URL(`../data/nuzlocke/pokemon-${game}-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json`,import.meta.url),"utf8")),
+  imported:fs.readFileSync(new URL(`../supabase/${importNumber}-import-pokemon-${game}-encounter-catalog.sql`,import.meta.url),"utf8"),
+  verified:fs.readFileSync(new URL(`../supabase/${verifyNumber}-verify-pokemon-${game}-encounter-catalog.sql`,import.meta.url),"utf8"),
+}]));
 test("catalog is verified-only and browser read-only", () => {
   for (const table of [
     "pokemon_games",
@@ -392,6 +399,8 @@ paths = [
   '''^data/nuzlocke/pokemon-brilliant-diamond\\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\\.json$''',
   '''^data/nuzlocke/pokemon-shining-pearl\\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\\.json$''',
   '''^data/nuzlocke/pokemon-legends-arceus\\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\\.json$''',
+  '''^data/nuzlocke/pokemon-scarlet\\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\\.json$''',
+  '''^data/nuzlocke/pokemon-violet\\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\\.json$''',
 ]
 regexes = [
   '''^(?:area_key|location_key)"\\s*:\\s*"[a-z0-9-]+"$''',
@@ -439,6 +448,9 @@ paths = [
   '''^docs/pokemon-catalog/pokemon-brilliant-diamond-encounter-audit-2026-08-05\\.md$''',
   '''^docs/pokemon-catalog/pokemon-shining-pearl-encounter-audit-2026-08-05\\.md$''',
   '''^docs/pokemon-catalog/pokemon-legends-arceus-encounter-audit-2026-08-05\\.md$''',
+  '''^docs/pokemon-catalog/generation-9-schema-investigation-2026-08-06\\.md$''',
+  '''^docs/pokemon-catalog/pokemon-scarlet-encounter-audit-2026-08-06\\.md$''',
+  '''^docs/pokemon-catalog/pokemon-violet-encounter-audit-2026-08-06\\.md$''',
 ]
 regexes = [
   '''^5064f1d72746b3a6a931616dae3fb6445c556d4f$''',
@@ -488,6 +500,8 @@ paths = [
   '''^supabase/328-import-pokemon-brilliant-diamond-encounter-catalog\\.sql$''',
   '''^supabase/330-import-pokemon-shining-pearl-encounter-catalog\\.sql$''',
   '''^supabase/332-import-pokemon-legends-arceus-encounter-catalog\\.sql$''',
+  '''^supabase/334-import-pokemon-scarlet-encounter-catalog\\.sql$''',
+  '''^supabase/336-import-pokemon-violet-encounter-catalog\\.sql$''',
 ]
 regexes = [
   '''^(?:area_key|location_key)"\\s*:\\s*"[a-z0-9-]+"$''',
@@ -553,6 +567,8 @@ paths = [
   '''^supabase/329-verify-pokemon-brilliant-diamond-encounter-catalog\\.sql$''',
   '''^supabase/331-verify-pokemon-shining-pearl-encounter-catalog\\.sql$''',
   '''^supabase/333-verify-pokemon-legends-arceus-encounter-catalog\\.sql$''',
+  '''^supabase/335-verify-pokemon-scarlet-encounter-catalog\\.sql$''',
+  '''^supabase/337-verify-pokemon-violet-encounter-catalog\\.sql$''',
 ]
 regexes = [
   '''^area_key='[a-z0-9-]+'$''',
@@ -771,6 +787,21 @@ test("Generation VIII artifacts and migrations stay exact, pending-first, form-a
   for(const game of ["brilliant-diamond","shining-pearl"]){const catalog=gen8Artifacts[game].catalog;assert.ok(catalog.encounters.some((row)=>row.method==="grand-underground"));assert.ok(catalog.locations.some((row)=>row.display_name.includes("Grand Underground (")));const east=gen8Artifacts[game].evolutions.evolutions.find((row)=>row.pokemon_id===422&&row.form_name==="East Sea");assert.deepEqual(east.final_evolutions.map((row)=>row.form_name),["East Sea"]);}
   const pla=gen8Artifacts["legends-arceus"];for(const method of ["space-time-distortion","mass-outbreak","massive-mass-outbreak","fixed-unown"])assert.ok(pla.catalog.encounters.some((row)=>row.method===method));assert.equal(pla.evolutions.evolutions.find((row)=>row.pokemon_id===155&&row.form_name==="").final_evolutions[0].pokemon_id,10233);
 });
+test("Generation IX artifacts and migrations stay exact, pending-first, DLC-aware, and version-specific",()=>{
+  const expected={scarlet:{dex:843,locations:80,encounters:13005,profiles:638,teal:3699,indigo:1239},violet:{dex:843,locations:80,encounters:13075,profiles:637,teal:3713,indigo:1239}};
+  for(const [game,records] of Object.entries(gen9Artifacts)){
+    const counts=expected[game],catalog=records.catalog;
+    assert.equal(catalog.pokedex_entries.length,counts.dex);assert.equal(catalog.locations.length,counts.locations);assert.equal(catalog.encounters.length,counts.encounters);assert.equal(new Set(catalog.encounters.map((row)=>row.pokemon_id)).size,counts.profiles);assert.equal(new Set(catalog.encounters.map((row)=>row.method)).size,13);assert.equal(catalog.game.condition_groups.length,7);
+    assert.deepEqual(catalog.game.starters.map((row)=>row.pokemon_id),[906,909,912]);assert.ok(catalog.locations.every((row)=>row.area_key===`${row.location_key}-main-area`));assert.deepEqual(new Set(records.evolutions.evolutions.map((row)=>`${row.pokemon_id}|${row.form_name||""}`)),new Set(catalog.encounters.map((row)=>`${row.pokemon_id}|${row.form_name||""}`)));
+    assert.equal(catalog.encounters.filter((row)=>(row.conditions||[]).includes("content-teal-mask")).length,counts.teal);assert.equal(catalog.encounters.filter((row)=>(row.conditions||[]).includes("content-indigo-disk")).length,counts.indigo);assert.equal(catalog.encounters.filter((row)=>(row.conditions||[]).includes("tera-raid-encounter")).length,584);assert.equal(catalog.encounters.filter((row)=>(row.conditions||[]).includes("union-circle-required")).length,16);assert.equal(catalog.encounters.filter((row)=>(row.conditions||[]).includes("limited-time-event")).length,2);assert.equal(catalog.encounters.filter((row)=>(row.conditions||[]).includes("league-club-trade")).length,30);
+    const payloads=[...records.imported.matchAll(/\$catalog\$(.+?)\$catalog\$/g)].map((match)=>JSON.parse(match[1]));assert.deepEqual(payloads,[catalog.game.starters,catalog.game.condition_groups,catalog.pokedex_entries,catalog.locations,catalog.encounters]);assert.match(records.imported,new RegExp(`encounter_status[^)]*\\) values \\('${game}'[\\s\\S]+,'pending'`));assert.doesNotMatch(records.imported,/encounter_status='verified'/);assert.match(records.verified,new RegExp(`where game_key='${game}'[\\s\\S]+encounter_status='pending'`));assert.match(records.verified,/count\(distinct method\)/);assert.match(records.verified,/count\(distinct pokemon_id\)/);
+    assert.ok(!catalog.encounters.some((row)=>row.method==="mightiest-mark-raid"||row.method==="mass-outbreak"));
+  }
+  const scarlet=gen9Artifacts.scarlet.catalog.encounters,violet=gen9Artifacts.violet.catalog.encounters;
+  assert.ok(scarlet.some((row)=>row.pokemon_id===1007)&&!scarlet.some((row)=>row.pokemon_id===1008));assert.ok(scarlet.some((row)=>row.pokemon_id===1020)&&scarlet.some((row)=>row.pokemon_id===1021)&&!scarlet.some((row)=>[1022,1023].includes(row.pokemon_id)));
+  assert.ok(violet.some((row)=>row.pokemon_id===1008)&&!violet.some((row)=>row.pokemon_id===1007));assert.ok(violet.some((row)=>row.pokemon_id===1022)&&violet.some((row)=>row.pokemon_id===1023)&&!violet.some((row)=>[1020,1021].includes(row.pokemon_id)));
+  const artisan=gen9Artifacts.scarlet.evolutions.evolutions.find((row)=>row.pokemon_id===1012&&row.form_name==="Artisan Form");assert.deepEqual(artisan.final_evolutions.map((row)=>[row.pokemon_id,row.form_name]),[[1013,"Masterpiece Form"]]);
+});
 test("server route uses public RLS catalog access and privileged rate limiting", () => {
   assert.match(route, /createPublicServerClient/);
   assert.match(route, /list_verified_nuzlocke_games/);
@@ -785,13 +816,14 @@ test("final evolution requests require source-matched pinned game catalogs", () 
   assert.match(route,/x: xEvolutionCatalog/);assert.match(route,/y: yEvolutionCatalog/);assert.match(route,/"omega-ruby": omegaRubyEvolutionCatalog/);assert.match(route,/"alpha-sapphire": alphaSapphireEvolutionCatalog/);
   assert.match(route,/sun: sunEvolutionCatalog/);assert.match(route,/moon: moonEvolutionCatalog/);assert.match(route,/"ultra-sun": ultraSunEvolutionCatalog/);assert.match(route,/"ultra-moon": ultraMoonEvolutionCatalog/);assert.match(route,/"lets-go-pikachu": letsGoPikachuEvolutionCatalog/);assert.match(route,/"lets-go-eevee": letsGoEeveeEvolutionCatalog/);
   assert.match(route,/sword: swordEvolutionCatalog/);assert.match(route,/shield: shieldEvolutionCatalog/);assert.match(route,/"brilliant-diamond": brilliantDiamondEvolutionCatalog/);assert.match(route,/"shining-pearl": shiningPearlEvolutionCatalog/);assert.match(route,/"legends-arceus": legendsArceusEvolutionCatalog/);
+  assert.match(route,/scarlet: scarletEvolutionCatalog/);assert.match(route,/violet: violetEvolutionCatalog/);
   assert.match(route, /body\.finalEvolutionOnly === true/);
   assert.match(
     route,
     /evolutionCatalog\.source_commit !== game\.source_commit/,
   );
   assert.match(route, /Final evolution data is not verified/);
-  assert.match(route, /MAX_CATALOG_ENCOUNTERS = 12000/);
+  assert.match(route, /MAX_CATALOG_ENCOUNTERS = 16000/);
 });
 test("final evolution mode is shareable and the UI explains team codes and both random styles", () => {
   assert.match(lab, /params\.get\("evolutions"\) === "final"/);
@@ -837,4 +869,5 @@ test("starter inclusion is explicit in shared links and old seeded links retain 
   assert.match(route, /"lets-go-pikachu": YELLOW_STARTER, "lets-go-eevee": LETS_GO_EEVEE_STARTER/);
   assert.match(route, /sword: GALAR_STARTERS, shield: GALAR_STARTERS/);
   assert.match(route, /"brilliant-diamond": SINNOH_STARTERS, "shining-pearl": SINNOH_STARTERS, "legends-arceus": HISUI_STARTERS/);
+  assert.match(route, /scarlet: PALDEA_STARTERS, violet: PALDEA_STARTERS/);
 });
