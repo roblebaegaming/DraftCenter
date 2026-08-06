@@ -43,6 +43,21 @@ test("family clauses try another eligible encounter in the same area",()=>{
   }
 });
 test("route-random samples distinct areas instead of always taking catalog order",()=>{ const result=generateNuzlockeTeam(encounters,{seed:"route",teamSize:3,mode:"route-random",weighting:"equal"}); assert.equal(new Set(result.team.map((item)=>item.area_key)).size,3); assert.notDeepEqual(result.team.map((item)=>item.area_key),["route-1","route-2","lake"]); });
+test("optional starters are deterministic, count as a team slot, and respect exclusions",()=>{
+  const starters=[
+    {pokemon_id:1,pokemon_name:"Bulbasaur",species_family:"bulbasaur"},
+    {pokemon_id:4,pokemon_name:"Charmander",species_family:"charmander"},
+    {pokemon_id:7,pokemon_name:"Squirtle",species_family:"squirtle"},
+  ];
+  const options={seed:"starter-run",teamSize:4,mode:"route-random",weighting:"equal",includeStarter:true,starters};
+  const result=generateNuzlockeTeam(encounters,options);
+  assert.equal(result.complete,true); assert.equal(result.team.length,4); assert.equal(result.team[0].area_key,"starter-choice");
+  assert.deepEqual(result,generateNuzlockeTeam(encounters,options));
+  const excluded=generateNuzlockeTeam(encounters,{...options,teamSize:1,exclusions:[result.team[0].pokemon_name]});
+  assert.equal(excluded.complete,true); assert.notEqual(excluded.team[0].pokemon_name,result.team[0].pokemon_name);
+  const familySafe=generateNuzlockeTeam(encounters,{...options,familyClause:true,starters:[starters[0]]});
+  assert.equal(familySafe.team.filter((entry)=>entry.species_family==="bulbasaur").length,1);
+});
 test("final evolution mode evolves catches without changing their route details",()=>{
   const options={seed:"finals",teamSize:4,mode:"route-random",weighting:"equal",finalEvolutionOnly:true,evolutionCatalog:fixtureEvolutions};
   const result=generateNuzlockeTeam(encounters,options);
@@ -101,4 +116,18 @@ test("reviewed Pokémon Blue final evolution mode remains complete and determini
   assert.ok(result.team.every((row)=>row.is_final_evolution&&finalIds.has(row.pokemon_id)));
   assert.ok(result.team.some((row)=>row.encounter_pokemon_name));
   assert.deepEqual(result,generateNuzlockeTeam(catalog.encounters,options));
+});
+test("reviewed Pokémon Yellow catalog and final evolutions are complete and deterministic",()=>{
+  const catalog=JSON.parse(fs.readFileSync(new URL("../data/nuzlocke/pokemon-yellow.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json",import.meta.url),"utf8"));
+  const evolutionCatalog=JSON.parse(fs.readFileSync(new URL("../data/nuzlocke/pokemon-yellow-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json",import.meta.url),"utf8"));
+  const starter={pokemon_id:25,pokemon_name:"Pikachu",species_family:"evolution-chain-10"};
+  for(const mode of ["route-random","true-random"]){
+    const options={seed:`yellow-${mode}`,teamSize:12,mode,weighting:"authentic",familyClause:true,excludeLegendaries:true,includeStarter:true,starters:[starter]};
+    const result=generateNuzlockeTeam(catalog.encounters,options);
+    assert.equal(result.complete,true); assert.equal(result.team[0].pokemon_name,"Pikachu"); assert.equal(new Set(result.team.map((row)=>row.species_family)).size,12);
+    assert.deepEqual(result,generateNuzlockeTeam(catalog.encounters,options));
+  }
+  const finalOptions={seed:"yellow-finals",teamSize:12,mode:"route-random",weighting:"equal",familyClause:true,excludeLegendaries:true,finalEvolutionOnly:true,evolutionCatalog};
+  const finals=generateNuzlockeTeam(catalog.encounters,finalOptions);
+  assert.equal(finals.complete,true); assert.ok(finals.team.every((row)=>row.is_final_evolution)); assert.deepEqual(finals,generateNuzlockeTeam(catalog.encounters,finalOptions));
 });

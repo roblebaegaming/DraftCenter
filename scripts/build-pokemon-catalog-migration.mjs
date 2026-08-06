@@ -15,7 +15,7 @@ if (!/^[0-9a-f]{40}$/.test(commit)) throw new Error("--commit must be an exact 4
 
 const payload = JSON.parse(await fs.readFile(input, "utf8"));
 const game = String(payload.game?.game_key || "");
-if (!["red", "blue"].includes(game)) throw new Error("The reviewed Gen 1 migration builder accepts only Pokemon Red or Blue.");
+if (!["red", "blue", "yellow"].includes(game)) throw new Error("The reviewed Gen 1 migration builder accepts only Pokemon Red, Blue, or Yellow.");
 if (!String(payload.game.coverage_note || "").includes(commit)) throw new Error("The migration commit must match the pinned catalog source.");
 if (payload.encounters.length !== new Set(payload.encounters.map((row) => row.source_encounter_id)).size) {
   throw new Error("Encounter source identifiers must be unique before a migration can be generated.");
@@ -29,7 +29,7 @@ const quoted = (value) => `'${String(value).replaceAll("'", "''")}'`;
 const gameSql = quoted(game);
 const displayNameSql = quoted(payload.game.display_name);
 const familySql = quoted(payload.game.family);
-const coverageSql = quoted(`Pinned PokéAPI snapshot; independently compared with Veekun and pret/pokered for ${payload.game.display_name}.`);
+const coverageSql = quoted(`Pinned PokéAPI snapshot; independently compared with Veekun and pret/${game === "yellow" ? "pokeyellow" : "pokered"} for ${payload.game.display_name}.`);
 const sql = `-- Generated from ${input}
 -- Source commit: ${commit}
 -- Imports reviewed data as pending. Verification is a separate migration.

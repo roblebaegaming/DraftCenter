@@ -6,9 +6,10 @@ const game=String(args.get("--game")||""); const commit=String(args.get("--commi
 const gameDefinitions={
   red:{display_name:"Pokémon Red",generation:1,family:"Red / Blue / Yellow",release_order:1},
   blue:{display_name:"Pokémon Blue",generation:1,family:"Red / Blue / Yellow",release_order:2},
+  yellow:{display_name:"Pokémon Yellow",generation:1,family:"Red / Blue / Yellow",release_order:3},
 };
 const gameDefinition=gameDefinitions[game];
-if(!gameDefinition) throw new Error("The reviewed builder currently supports --game red or --game blue.");
+if(!gameDefinition) throw new Error("The reviewed builder currently supports --game red, blue, or yellow.");
 if(!/^[0-9a-f]{40}$/.test(commit)) throw new Error("--commit must be an exact 40-character PokeAPI commit.");
 if(!/^[0-9a-f]{40}$/.test(spritesCommit)) throw new Error("--sprites-commit must be an exact 40-character PokeAPI sprites commit.");
 if(!output) throw new Error("--output is required.");

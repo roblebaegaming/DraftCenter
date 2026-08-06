@@ -96,8 +96,16 @@ export function generateNuzlockeTeam(encounters, options = {}) {
   if (!WEIGHTING.has(weighting)) throw new Error("Unknown Nuzlocke weighting mode.");
   if (!Number.isInteger(teamSize) || teamSize < 1 || teamSize > 12) throw new Error("Team size must be between 1 and 12.");
 
-  const preparedEncounters = applyFinalEvolutions(encounters || [], options);
   const excluded = new Set((options.exclusions || []).map((value) => String(value).toLowerCase()));
+  const starterChoices = Array.isArray(options.starters) ? options.starters.filter((entry) => {
+    const identities = [entry?.pokemon_name, entry?.pokemon_id].filter((value) => value != null).map((value) => String(value).toLowerCase());
+    return entry?.pokemon_name && !identities.some((value) => excluded.has(value));
+  }) : [];
+  const starter = options.includeStarter && starterChoices.length
+    ? starterChoices[Math.floor(seededRandom(`${options.seed}:starter`)() * starterChoices.length)]
+    : null;
+  const encounterTeamSize = Math.max(0, teamSize - (starter ? 1 : 0));
+  const preparedEncounters = applyFinalEvolutions(encounters || [], options);
   const methods = new Set((options.methods || []).map((value) => String(value).toLowerCase()));
   const eligible = preparedEncounters.filter((entry) => {
     if (!entry?.area_key || !entry?.pokemon_name) return false;
@@ -106,6 +114,7 @@ export function generateNuzlockeTeam(encounters, options = {}) {
       .map((value) => String(value).toLowerCase());
     if (identities.some((value) => excluded.has(value))) return false;
     if (options.excludeLegendaries && entry.is_legendary) return false;
+    if (options.familyClause && starter && String(entry.species_family || entry.pokemon_id).toLowerCase() === String(starter.species_family || starter.pokemon_id).toLowerCase()) return false;
     if (methods.size && !methods.has(String(entry.method || "").toLowerCase())) return false;
     return true;
   });
@@ -131,7 +140,7 @@ export function generateNuzlockeTeam(encounters, options = {}) {
   const candidatesByArea = new Map(areaOrder.map((areaKey) => [areaKey, weightedOrder(byArea.get(areaKey), random, weighting)]));
   const selectedByArea = new Map();
   if (!options.familyClause) {
-    for (const areaKey of areaOrder.slice(0, teamSize)) selectedByArea.set(areaKey, candidatesByArea.get(areaKey)[0]);
+    for (const areaKey of areaOrder.slice(0, encounterTeamSize)) selectedByArea.set(areaKey, candidatesByArea.get(areaKey)[0]);
   } else {
     const areaByFamily = new Map();
     const familyOf = (entry) => String(entry.species_family || entry.pokemon_id).toLowerCase();
@@ -155,15 +164,17 @@ export function generateNuzlockeTeam(encounters, options = {}) {
     };
     for (const areaKey of areaOrder) {
       assignArea(areaKey, new Set(), new Set());
-      if (selectedByArea.size === teamSize) break;
+      if (selectedByArea.size === encounterTeamSize) break;
     }
   }
-  const selected = areaOrder.map((areaKey) => selectedByArea.get(areaKey)).filter(Boolean).slice(0, teamSize);
+  const selected = areaOrder.map((areaKey) => selectedByArea.get(areaKey)).filter(Boolean).slice(0, encounterTeamSize);
+  const team = starter ? [{ ...starter, area_key: "starter-choice", area_name: "Starter choice", method: "starter", chance: 100, conditions: [] }, ...selected] : selected;
   return {
-    team: selected,
-    complete: selected.length === teamSize,
+    team,
+    complete: team.length === teamSize,
     requested: teamSize,
-    available: selected.length,
+    available: team.length,
+    includeStarter: options.includeStarter === true,
     finalEvolutionOnly: options.finalEvolutionOnly === true,
   };
 }
