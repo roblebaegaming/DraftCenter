@@ -1,0 +1,9 @@
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import test from "node:test";
+const source=(path)=>fs.readFileSync(new URL(`../${path}`,import.meta.url),"utf8");
+
+test("Trainer Dex migration uses immutable source events and private access",()=>{const sql=source("supabase/261-trainer-dex-and-shiny-discoveries.sql");assert.match(sql,/unique \(user_id, source_type, source_id\)/);assert.match(sql,/random\(\) < \(1\.0\/128\.0\)/);assert.match(sql,/revoke all on table public\.trainer_dex_events/);assert.match(sql,/where user_id=auth\.uid\(\)/);assert.match(sql,/after insert on public\.daily_poll_answers/);assert.match(sql,/new\.is_correct/);assert.match(sql,/new\.round_number=3/);assert.match(sql,/join public\.league_memberships membership/);});
+test("Trainer Dex exposes collection filters, shiny artwork, and sharing",()=>{const page=source("src/components/TrainerDexPage.jsx");assert.match(page,/get_my_trainer_dex/);assert.match(page,/front_shiny/);assert.match(page,/Shinies only/);assert.match(page,/navigator\.share/);assert.match(page,/1-in-128 shiny chance/);});
+test("Daily Three reveals a newly awarded shiny immediately",()=>{const daily=source("src/components/DailyCommunityGames.jsx");assert.match(daily,/get_my_trainer_dex/);assert.match(daily,/SHINY DISCOVERY/);assert.match(daily,/mark_trainer_dex_shinies_seen/);});
+test("signed-in navigation includes the Trainer Dex",()=>{assert.match(source("src/components/SiteQuickLinks.jsx"),/signedIn&&<a href="\/trainer-dex">Trainer Dex<\/a>/);});
