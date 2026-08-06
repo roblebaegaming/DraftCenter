@@ -42,6 +42,17 @@ const orasSoaring={id:"soaring",label:"Soaring encounters",default_value:"off",o
 const orasWeekday={id:"weekday",label:"Day of week",options:[{value:"any",label:"Any day"},{value:"monday",label:"Monday",conditions:["weekday-monday"]},{value:"tuesday",label:"Tuesday",conditions:["weekday-tuesday"]},{value:"wednesday",label:"Wednesday",conditions:["weekday-wednesday"]},{value:"thursday",label:"Thursday",conditions:["weekday-thursday"]},{value:"friday",label:"Friday",conditions:["weekday-friday"]},{value:"saturday",label:"Saturday",conditions:["weekday-saturday"]},{value:"sunday",label:"Sunday",conditions:["weekday-sunday"]}]};
 const orasTimeWindow={id:"time-window",label:"Time of day",options:[{value:"any",label:"Any time"},{value:"day",label:"4:00 a.m.–7:59 p.m.",conditions:["time-04-00-to-19-59"]},{value:"evening",label:"8:00–9:59 p.m.",conditions:["time-20-00-to-21-59"]},{value:"night",label:"9:00 p.m.–3:59 a.m.",conditions:["time-21-00-to-03-59"]}]};
 const orasMinuteWindow={id:"minute-window",label:"Minute window",options:[{value:"any",label:"Any minute"},{value:"00-19",label:"Minutes 00–19",conditions:["time-minute-00-to-19"]},{value:"20-39",label:"Minutes 20–39",conditions:["time-minute-20-to-39"]},{value:"40-59",label:"Minutes 40–59",conditions:["time-minute-40-to-59"]}]};
+const alolaStoryProgress={id:"story-progress",label:"Story progress",default_value:"main-story",options:[{value:"any",label:"Any point"},{value:"main-story",label:"Main story",conditions:[]},{value:"postgame",label:"After entering the Hall of Fame",conditions:["story-progress-hall-of-fame","story-progress-finished-looker-sidequest","other-captured-all-ultra-beasts"]}]};
+const alolaSos={id:"sos-allies",label:"SOS ally encounters",default_value:"off",options:[{value:"any",label:"Either"},{value:"off",label:"Initial encounters only",conditions:[]},{value:"on",label:"Include called allies",conditions:["sos-chain-active"]}]};
+const islandScan={id:"island-scan",label:"Island Scan",default_value:"off",options:[{value:"any",label:"Either"},{value:"off",label:"Do not include",conditions:[]},{value:"on",label:"Include scanned Pokémon",conditions:["island-scan-active"]}]};
+const islandScanWeekday={id:"island-scan-day",label:"Island Scan day",default_value:"any",options:[{value:"any",label:"Any day"},{value:"sunday",label:"Sunday",conditions:["weekday-sunday"]},{value:"monday",label:"Monday",conditions:["weekday-monday"]},{value:"tuesday",label:"Tuesday",conditions:["weekday-tuesday"]},{value:"wednesday",label:"Wednesday",conditions:["weekday-wednesday"]},{value:"thursday",label:"Thursday",conditions:["weekday-thursday"]},{value:"friday",label:"Friday",conditions:["weekday-friday"]},{value:"saturday",label:"Saturday",conditions:["weekday-saturday"]}]};
+const pokePelago={id:"poke-pelago",label:"Poké Pelago visitors",default_value:"off",options:[{value:"any",label:"Either"},{value:"off",label:"Do not include",conditions:[]},{value:"on",label:"Include visiting Pokémon",conditions:["poke-pelago-visitor"]}]};
+const ultraSpace={id:"ultra-space",label:"Ultra Space encounters",default_value:"off",options:[{value:"any",label:"Either"},{value:"off",label:"Do not include",conditions:[]},{value:"on",label:"Include Ultra Warp Ride encounters",conditions:["ultra-space-access"]}]};
+const ultraSpacePairs={id:"ultra-space-pairs",label:"Ultra Space pair requirements",default_value:"off",options:[{value:"any",label:"Either"},{value:"off",label:"Do not include pair-required legends",conditions:[]},{value:"on",label:"Include when both required legends are owned",conditions:["other-dialga-palkia-in-party","other-groudon-kyogre-in-party","other-raikou-entei-in-party","other-reshiram-zekrom-in-party","other-tornadus-thundurus-in-party"]}]};
+const qrCodeGift={id:"qr-code-gift",label:"QR Code gift",default_value:"off",options:[{value:"any",label:"Either"},{value:"off",label:"Do not include",conditions:[]},{value:"on",label:"Include scanned gift",conditions:["other-scan-qr-code"]}]};
+const letsGoStoryProgress={id:"story-progress",label:"Story progress",default_value:"main-story",options:[{value:"any",label:"Any point"},{value:"main-story",label:"Before the Hall of Fame",conditions:[]},{value:"postgame",label:"After the Hall of Fame",conditions:["story-progress-hall-of-fame"]}]};
+const letsGoRareSpawns={id:"rare-spawns",label:"Catch Combo and rare spawns",default_value:"off",options:[{value:"any",label:"Either"},{value:"off",label:"Base overworld pool",conditions:[]},{value:"on",label:"Include rare spawn slots",conditions:["rare-overworld-spawn"]}]};
+const letsGoRoamingBirds={id:"roaming-birds",label:"Roaming legendary birds",default_value:"off",options:[{value:"any",label:"Either"},{value:"off",label:"Static birds only",conditions:[]},{value:"on",label:"Include after the static bird is caught",conditions:["roaming-legendary-bird"]}]};
 const gameDefinitions={
   red:{display_name:"Pokémon Red",generation:1,family:"Red / Blue / Yellow",release_order:1,starter_ids:[1,4,7],condition_groups:[]},
   blue:{display_name:"Pokémon Blue",generation:1,family:"Red / Blue / Yellow",release_order:2,starter_ids:[1,4,7],condition_groups:[]},
@@ -67,14 +78,22 @@ const gameDefinitions={
   y:{display_name:"Pokémon Y",generation:6,family:"X / Y",release_order:22,starter_ids:[650,653,656],condition_groups:[kalosStoryProgress,friendSafari,kalosStarterBird,kalosTrashCans],evolution_species_max:721},
   "omega-ruby":{display_name:"Pokémon Omega Ruby",generation:6,family:"Omega Ruby / Alpha Sapphire",release_order:23,starter_ids:[252,255,258],condition_groups:[orasNationalDex,orasDexNav,orasMirageSpots,orasSoaring,orasWeekday,orasTimeWindow,orasMinuteWindow],evolution_species_max:721},
   "alpha-sapphire":{display_name:"Pokémon Alpha Sapphire",generation:6,family:"Omega Ruby / Alpha Sapphire",release_order:24,starter_ids:[252,255,258],condition_groups:[orasNationalDex,orasDexNav,orasMirageSpots,orasSoaring,orasWeekday,orasTimeWindow,orasMinuteWindow],evolution_species_max:721},
+  sun:{display_name:"Pokémon Sun",generation:7,family:"Sun / Moon",release_order:25,starter_ids:[722,725,728],condition_groups:[alolaStoryProgress,alolaSos,islandScan,islandScanWeekday,pokePelago],evolution_species_max:809},
+  moon:{display_name:"Pokémon Moon",generation:7,family:"Sun / Moon",release_order:26,starter_ids:[722,725,728],condition_groups:[alolaStoryProgress,alolaSos,islandScan,islandScanWeekday,pokePelago],evolution_species_max:809},
+  "ultra-sun":{display_name:"Pokémon Ultra Sun",generation:7,family:"Ultra Sun / Ultra Moon",release_order:27,starter_ids:[722,725,728],condition_groups:[alolaStoryProgress,alolaSos,islandScan,islandScanWeekday,pokePelago,ultraSpace,ultraSpacePairs,qrCodeGift],evolution_species_max:809},
+  "ultra-moon":{display_name:"Pokémon Ultra Moon",generation:7,family:"Ultra Sun / Ultra Moon",release_order:28,starter_ids:[722,725,728],condition_groups:[alolaStoryProgress,alolaSos,islandScan,islandScanWeekday,pokePelago,ultraSpace,ultraSpacePairs,qrCodeGift],evolution_species_max:809},
+  "lets-go-pikachu":{display_name:"Pokémon: Let's Go, Pikachu!",generation:7,family:"Let's Go, Pikachu! / Let's Go, Eevee!",release_order:29,starter_ids:[25],condition_groups:[letsGoStoryProgress,letsGoRareSpawns,letsGoRoamingBirds]},
+  "lets-go-eevee":{display_name:"Pokémon: Let's Go, Eevee!",generation:7,family:"Let's Go, Pikachu! / Let's Go, Eevee!",release_order:30,starter_ids:[133],condition_groups:[letsGoStoryProgress,letsGoRareSpawns,letsGoRoamingBirds]},
 };
 const gameDefinition=gameDefinitions[game];
-if(!gameDefinition) throw new Error("The catalog builder currently supports reviewed Generation I–VI games.");
+if(!gameDefinition) throw new Error("The catalog builder currently supports reviewed Generation I–VII games.");
 if(!/^[0-9a-f]{40}$/.test(commit)) throw new Error("--commit must be an exact 40-character PokeAPI commit.");
 if(!/^[0-9a-f]{40}$/.test(spritesCommit)) throw new Error("--sprites-commit must be an exact 40-character PokeAPI sprites commit.");
 if(gameDefinition.generation===5&&!/^[0-9a-f]{40}$/.test(pkhexCommit)) throw new Error("--pkhex-commit must be an exact 40-character PKHeX commit for Generation V.");
 if(gameDefinition.generation===6&&!/^[0-9a-f]{40}$/.test(pkhexCommit)) throw new Error("--pkhex-commit must be an exact 40-character PKHeX commit for Generation VI.");
 if(gameDefinition.generation===6&&!/^[0-9a-f]{40}$/.test(pk3dsCommit)) throw new Error("--pk3ds-commit must be an exact 40-character pk3DS commit for Generation VI.");
+if(gameDefinition.generation===7&&!/^[0-9a-f]{40}$/.test(pkhexCommit)) throw new Error("--pkhex-commit must be an exact 40-character PKHeX commit for Generation VII.");
+if(gameDefinition.generation===7&&!game.startsWith("lets-go-")&&!/^[0-9a-f]{40}$/.test(pk3dsCommit)) throw new Error("--pk3ds-commit must be an exact 40-character pk3DS commit for Alola games.");
 if(!output) throw new Error("--output is required.");
 const base=`https://raw.githubusercontent.com/PokeAPI/pokeapi/${commit}/data/v2/csv`;
 
@@ -308,6 +327,51 @@ if(gameDefinition.generation===6){
   const activeAreaKeys=new Set(encounterRows.map((row)=>row.area_key));
   locationRows.splice(0,locationRows.length,...locationRows.filter((row)=>activeAreaKeys.has(row.area_key)));
 }
+if(gameDefinition.generation===7){
+  const letsGo=game.startsWith("lets-go-");const ultraGame=["ultra-sun","ultra-moon"].includes(game);
+  const sourceLocationByArea=new Map(locationRows.map((row)=>[row.area_key,row.location_key]));
+  const islandScanWeekdays=new Map();
+  if(!letsGo){
+    const staticFile=ultraGame?"Encounters7USUM.cs":"Encounters7SM.cs";const staticResponse=await fetch(`https://raw.githubusercontent.com/kwsch/PKHeX/${pkhexCommit}/PKHeX.Core/Legality/Encounters/Data/Gen7/${staticFile}`);
+    if(!staticResponse.ok)throw new Error(`PKHeX ${staticFile} returned ${staticResponse.status}.`);
+    const scanSection=(await staticResponse.text()).split("// QR Scan:")[1]||"";const scanSpecies=[...scanSection.matchAll(/Species\s*=\s*0*(\d+)/g)].slice(0,28).map((match)=>Number(match[1]));
+    if(scanSpecies.length!==28)throw new Error(`PKHeX ${game} supplied ${scanSpecies.length} Island Scan entries; expected 28.`);
+    const weekdays=["sunday","monday","tuesday","wednesday","thursday","friday","saturday"];scanSpecies.forEach((speciesId,index)=>islandScanWeekdays.set(speciesId,weekdays[index%7]));
+  }
+  if(game==="sun"){
+    const invalidAreas=new Set(locationRows.filter((row)=>row.location_key==="new-mauville").map((row)=>row.area_key));
+    encounterRows.splice(0,encounterRows.length,...encounterRows.filter((row)=>!invalidAreas.has(row.area_key)));
+  }
+  const addCondition=(row,condition)=>{row.conditions=[...new Set([...(row.conditions||[]),condition])].sort();};
+  const postgameAlolaSpecies=new Set([772,785,786,787,788,789,793,794,795,796,797,798,799,...(["sun","moon"].includes(game)?[800]:[805,806])]);
+  const displayByArea=new Map();
+  for(const row of encounterRows){
+    const sourceLocation=sourceLocationByArea.get(row.area_key);if(!sourceLocation)throw new Error(`${game} encounter ${row.source_encounter_id} does not resolve to a source location.`);
+    if(!letsGo){
+      if(["sos","sos-from-bubbling-spot"].includes(row.method))addCondition(row,"sos-chain-active");
+      if(row.method==="island-scan"){const profile=pokemon.get(String(row.pokemon_id));const weekday=islandScanWeekdays.get(Number(profile?.species_id));if(!weekday)throw new Error(`${game} Island Scan profile ${row.pokemon_id} has no audited weekday.`);addCondition(row,"island-scan-active");addCondition(row,`weekday-${weekday}`);}
+      if(sourceLocation==="poke-pelago")addCondition(row,"poke-pelago-visitor");
+      if(postgameAlolaSpecies.has(row.pokemon_id))addCondition(row,"story-progress-hall-of-fame");
+      if(ultraGame&&["ultra-space","ultra-space-wilds"].includes(sourceLocation)){addCondition(row,"ultra-space-access");addCondition(row,"story-progress-hall-of-fame");}
+    }else{
+      if(row.method.endsWith("-special"))addCondition(row,"rare-overworld-spawn");
+      if(row.method.startsWith("overworld-flying")||sourceLocation==="cerulean-cave"||(row.pokemon_id===150&&row.method==="static"))addCondition(row,"story-progress-hall-of-fame");
+      if([144,145,146].includes(row.pokemon_id)&&row.method==="overworld-flying-special")addCondition(row,"roaming-legendary-bird");
+    }
+    const targetLocation=ultraGame&&["ultra-space","ultra-space-wilds"].includes(sourceLocation)?"ultra-space-wilds":sourceLocation;
+    row.area_key=`${targetLocation}-main-area`;displayByArea.set(row.area_key,targetLocation==="ultra-space-wilds"?"Ultra Space Wilds":title(targetLocation));
+  }
+  if(ultraGame){
+    const seenUltraSpace=new Set();
+    encounterRows.splice(0,encounterRows.length,...encounterRows.filter((row)=>{
+      if(row.area_key!=="ultra-space-wilds-main-area")return true;
+      const signature=[row.pokemon_id,row.form_name,row.method,row.min_level,row.max_level,row.chance??null,(row.conditions||[]).join(",")].join("|");
+      if(seenUltraSpace.has(signature))return false;seenUltraSpace.add(signature);return true;
+    }));
+  }
+  const activeAreas=[...new Set(encounterRows.map((row)=>row.area_key))];
+  locationRows.splice(0,locationRows.length,...activeAreas.map((areaKey,index)=>({location_key:areaKey.replace(/-main-area$/,""),area_key:areaKey,sub_area:"main-area",display_name:displayByArea.get(areaKey)||title(areaKey.replace(/-main-area$/,"")),sort_order:index+1})));
+}
 const groupPokedexIds=new Set(data["pokedex_version_groups.csv"].filter((row)=>row.version_group_id===version.version_group_id).map((row)=>row.pokedex_id)); const pokedexes=byId(data["pokedexes.csv"]);
 const dexRows=data["pokemon_dex_numbers.csv"].filter((row)=>groupPokedexIds.has(row.pokedex_id)).map((row)=>{const parent=species.get(row.species_id);return {pokedex_key:pokedexes.get(row.pokedex_id).identifier,entry_number:Number(row.pokedex_number),pokemon_id:Number(row.species_id),pokemon_name:englishSpecies.get(row.species_id)||title(parent.identifier),form_name:"",species_family:`evolution-chain-${parent.evolution_chain_id}`};});
 const dexSpeciesIds=new Set(dexRows.map((row)=>String(row.pokemon_id)));
@@ -328,10 +392,21 @@ if(["x","y"].includes(game)){
     {pokemon_id:671,pokemon_name:"Florges",form_name:"Blue Flower",artwork_url:`https://raw.githubusercontent.com/PokeAPI/sprites/${spritesCommit}/sprites/pokemon/other/official-artwork/10113.png`},
   ];
 }
+if(gameDefinition.generation===7){
+  const makeFinal=(profileId)=>{const profile=pokemon.get(String(profileId));const parent=profile&&species.get(profile.species_id);if(!profile||!parent)throw new Error(`Generation VII final profile ${profileId} is missing from PokeAPI.`);return {pokemon_id:Number(profile.id),pokemon_name:englishSpecies.get(profile.species_id)||title(parent.identifier),form_name:profile.identifier===parent.identifier?"":title(profile.identifier),artwork_url:`https://raw.githubusercontent.com/PokeAPI/sprites/${spritesCommit}/sprites/pokemon/other/official-artwork/${profile.id}.png`};};
+  for(const row of evolutionRows){
+    const profile=pokemon.get(String(row.pokemon_id));
+    if(profile?.is_default!=="1"&&finalSpeciesIds(profile.species_id).length===1&&finalSpeciesIds(profile.species_id)[0]===profile.species_id)row.final_evolutions=[makeFinal(row.pokemon_id)];
+    if(profile?.identifier.includes("-cap"))row.final_evolutions=[makeFinal(row.pokemon_id)];
+  }
+  const regionalFinals=new Map([[10091,[10092]],[10101,[10102]],[10103,[10104]],[10105,[10106]],[10107,[10108]],[10109,[10111]],[10110,[10111]],[10112,[10113]]]);
+  if(!game.startsWith("lets-go-")){regionalFinals.set(25,[10100]);regionalFinals.set(102,[10114]);regionalFinals.set(104,[10115]);regionalFinals.set(10151,[10152]);regionalFinals.set(744,game==="sun"?[745]:game==="moon"?[10126]:[745,10126]);}
+  for(const [sourceProfile,finalProfiles] of regionalFinals){const row=evolutionRows.find((entry)=>entry.pokemon_id===sourceProfile);if(row)row.final_evolutions=finalProfiles.map(makeFinal);}
+}
 const starters=gameDefinition.starter_ids.map((id)=>{const profile=pokemon.get(String(id));const parent=species.get(profile.species_id);return {pokemon_id:id,pokemon_name:englishSpecies.get(profile.species_id)||title(profile.identifier),form_name:"",species_family:`evolution-chain-${parent.evolution_chain_id}`,artwork_url:`https://raw.githubusercontent.com/PokeAPI/sprites/${spritesCommit}/sprites/pokemon/other/official-artwork/${id}.png`};});
 const {starter_ids:unusedStarterIds,evolution_species_max:unusedEvolutionSpeciesMax,condition_groups:unusedConditionGroups,...publishedGameDefinition}=gameDefinition;
 publishedGameDefinition.condition_groups=resolvedConditionGroups;
-const coverageNote=`PokéAPI encounter snapshot ${commit}; PokeAPI sprites snapshot ${spritesCommit};${gameDefinition.generation===5?` PKHeX Generation V swarm snapshot ${pkhexCommit};`:""}${gameDefinition.generation===6?` PKHeX Generation VI encounter snapshot ${pkhexCommit}; pk3DS table-layout snapshot ${pk3dsCommit};`:""} independent source audit required before verification.`;
+const coverageNote=`PokéAPI encounter snapshot ${commit}; PokeAPI sprites snapshot ${spritesCommit};${gameDefinition.generation===5?` PKHeX Generation V swarm snapshot ${pkhexCommit};`:""}${gameDefinition.generation===6?` PKHeX Generation VI encounter snapshot ${pkhexCommit}; pk3DS table-layout snapshot ${pk3dsCommit};`:""}${gameDefinition.generation===7?` PKHeX Generation VII encounter snapshot ${pkhexCommit};${game.startsWith("lets-go-")?"":` pk3DS Generation VII table-layout snapshot ${pk3dsCommit};`}`:""} independent source audit required before verification.`;
 const payload={game:{game_key:game,...publishedGameDefinition,starters,coverage_note:coverageNote,encounter_status:"pending"},pokedex_entries:dexRows,locations:locationRows,encounters:encounterRows};
 const evolutionPayload={game_key:game,source_commit:commit,sprites_commit:spritesCommit,evolutions:evolutionRows};
 await fs.mkdir(path.dirname(path.resolve(output)),{recursive:true}); await fs.writeFile(output,`${JSON.stringify(payload,null,2)}\n`);

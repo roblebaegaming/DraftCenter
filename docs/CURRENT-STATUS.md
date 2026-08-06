@@ -78,6 +78,17 @@ Dex rows, the production dependency audit, and a 108-page production build
 pass locally. Preview database, CI, and visual validation remain; nothing from
 this stack is in production.
 
+Stacked branch `codex/nuzlocke-gen7` has separate independently audited Sun,
+Moon, Ultra Sun, Ultra Moon, Let's Go Pikachu, and Let's Go Eevee catalogs
+locally prepared with unpublished migrations 312-323. It covers SOS allies,
+weekday Island Scan, Poké Pelago, one-location Ultra Warp Ride, pair-required
+legends, QR gifts, visible overworld encounters, rare/catch-combo pools,
+postgame flying encounters, and repeated roaming birds. No schema change was
+required. All six source audits, 46 focused regressions, the full application
+suite, all 1,027 National Dex rows, the production dependency audit, and a
+108-page production build pass locally. Preview database, CI, and visual
+validation remain; nothing from this stack is in production.
+
 ## Active watch items
 
 - Supabase memory and Disk IO during normal live-draft days
