@@ -159,7 +159,8 @@ for (const [source, finals] of [
   ["10247|", [902, "basculegion-female"]], ["211|", [211]],
   ["10151|", ["lycanroc-dusk"]], ["216|", [217]], ["217|", [217]], ["234|", [234]], ["935|", [936, 937]], ["924|", [925, "maushold-family-of-three"]], ["206|", [982, "dudunsparce-three-segment"]],
 ]) setOverride(source, finals);
-const sourceForms = new Map(encounterRows.map((row) => [`${row.pokemon_id}|${row.form_name}`, row]));
+const starterIds = [906, 909, 912]; const starters = starterIds.map((id) => { const profile = pokemon.get(String(id)); const parent = species.get(profile.species_id); return { pokemon_id: id, pokemon_name: englishSpecies.get(profile.species_id) || title(profile.identifier), form_name: "", species_family: `evolution-chain-${parent.evolution_chain_id}`, artwork_url: `https://raw.githubusercontent.com/PokeAPI/sprites/${spritesCommit}/sprites/pokemon/other/official-artwork/${id}.png` }; });
+const sourceForms = new Map([...encounterRows, ...starters].map((row) => [`${row.pokemon_id}|${row.form_name}`, row]));
 const evolutionRows = [...sourceForms.values()].sort((a, b) => a.pokemon_id - b.pokemon_id || a.form_name.localeCompare(b.form_name)).map((row) => { const profile = pokemon.get(String(row.pokemon_id)); const sourceKey = `${row.pokemon_id}|${row.form_name}`; const broadKey = `${row.pokemon_id}|`; let finals;
   if (row.pokemon_id === 550 && row.form_name === "Red-Striped Form") finals = [finalFromIdentifier("basculin-red-striped", "Red-Striped Form")];
   else if (row.pokemon_id === 10016 && row.form_name === "Blue-Striped Form") finals = [finalFromIdentifier("basculin-blue-striped", "Blue-Striped Form")];
@@ -176,7 +177,6 @@ const evolutionRows = [...sourceForms.values()].sort((a, b) => a.pokemon_id - b.
   else finals = finalSpeciesIds(profile.species_id).map((id) => finalFromIdentifier(Number(defaultProfileBySpecies.get(id).id)));
   return { pokemon_id: row.pokemon_id, form_name: row.form_name, pokemon_name: row.pokemon_name, final_evolutions: finals };
 });
-const starterIds = [906, 909, 912]; const starters = starterIds.map((id) => { const profile = pokemon.get(String(id)); const parent = species.get(profile.species_id); return { pokemon_id: id, pokemon_name: englishSpecies.get(profile.species_id) || title(profile.identifier), form_name: "", species_family: `evolution-chain-${parent.evolution_chain_id}`, artwork_url: `https://raw.githubusercontent.com/PokeAPI/sprites/${spritesCommit}/sprites/pokemon/other/official-artwork/${id}.png` }; });
 const conditionGroups = [
   { id: "content", label: "Game content", default_value: "base-game", options: [{ value: "any", label: "Base game and both expansions" }, { value: "base-game", label: "Base game only", conditions: [] }, { value: "teal-mask", label: "Include The Teal Mask", conditions: ["content-teal-mask"] }, { value: "indigo-disk", label: "Include both expansions", conditions: ["content-teal-mask", "content-indigo-disk"] }] },
   { id: "time", label: "Time of day", default_value: "any", options: [{ value: "any", label: "Any time" }, ...timeNames.map((name) => ({ value: name, label: title(name), conditions: [`time-${name}`] }))] },

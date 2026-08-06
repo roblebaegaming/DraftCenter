@@ -48,7 +48,7 @@ const parts = viewParts(wild); const containers = {
 const partner = game === "scarlet" ? "violet" : "scarlet"; const partnerCatalog = JSON.parse(await fs.readFile(input.replace(`pokemon-${game}.`, `pokemon-${partner}.`), "utf8"));
 const signature = (row) => [row.area_key, row.pokemon_id, row.form_name, row.method, row.min_level, row.max_level, row.chance, (row.conditions || []).join(",")].join("|"); const own = new Set(catalog.encounters.map(signature)); const other = new Set(partnerCatalog.encounters.map(signature)); const pairLeft = [...own].filter((row) => !other.has(row)).length; const pairRight = [...other].filter((row) => !own.has(row)).length;
 const profiles = new Set(catalog.encounters.map((row) => row.pokemon_id)); const methods = new Set(catalog.encounters.map((row) => row.method));
-const encounterForms = new Set(catalog.encounters.map((row) => `${row.pokemon_id}|${row.form_name || ""}`)); const evolutionForms = new Set(evolutionCatalog.evolutions.map((row) => `${row.pokemon_id}|${row.form_name || ""}`));
+const requiredEvolutionForms = new Set([...catalog.encounters, ...catalog.game.starters].map((row) => `${row.pokemon_id}|${row.form_name || ""}`)); const evolutionForms = new Set(evolutionCatalog.evolutions.map((row) => `${row.pokemon_id}|${row.form_name || ""}`));
 const conditionCount = (condition) => catalog.encounters.filter((row) => (row.conditions || []).includes(condition)).length;
 const has = (pokemonId, method, condition) => catalog.encounters.some((row) => Number(row.pokemon_id) === pokemonId && (!method || row.method === method) && (!condition || row.conditions.includes(condition)));
 const versionSpecific = game === "scarlet"
@@ -70,7 +70,7 @@ const assertions = {
   version_specific_catalog_matches: versionSpecific,
   mechanics_are_explicit: conditionCount("content-teal-mask") === expected.teal && conditionCount("content-indigo-disk") === expected.indigo && conditionCount("tera-raid-encounter") === 584 && conditionCount("union-circle-required") === 16 && conditionCount("limited-time-event") === 2 && conditionCount("league-club-trade") === 30,
   historical_distributions_are_bounded: [483, 484, 1009, 1010].filter((id) => has(id, "event-tera-raid", "limited-time-event")).length === 2 && !catalog.encounters.some((row) => row.method === "mass-outbreak" || row.method === "mightiest-mark-raid"),
-  evolutions_are_form_scoped: encounterForms.size === evolutionForms.size && [...encounterForms].every((identity) => evolutionForms.has(identity)),
+  evolutions_cover_encounters_and_starters: requiredEvolutionForms.size === evolutionForms.size && [...requiredEvolutionForms].every((identity) => evolutionForms.has(identity)),
 };
 console.log(JSON.stringify({ game, counts: { pokedex_entries: catalog.pokedex_entries.length, locations: catalog.locations.length, encounters: catalog.encounters.length, profiles: profiles.size, methods: methods.size, condition_groups: catalog.game.condition_groups.length, pair_left: pairLeft, pair_right: pairRight }, containers, assertions }, null, 2));
 if (Object.values(assertions).some((value) => !value)) process.exitCode = 1;

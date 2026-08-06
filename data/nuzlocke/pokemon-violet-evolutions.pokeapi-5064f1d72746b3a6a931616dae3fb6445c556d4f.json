@@ -7012,6 +7012,45 @@
       ]
     },
     {
+      "pokemon_id": 906,
+      "form_name": "",
+      "pokemon_name": "Sprigatito",
+      "final_evolutions": [
+        {
+          "pokemon_id": 908,
+          "pokemon_name": "Meowscarada",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/908.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 909,
+      "form_name": "",
+      "pokemon_name": "Fuecoco",
+      "final_evolutions": [
+        {
+          "pokemon_id": 911,
+          "pokemon_name": "Skeledirge",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/911.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 912,
+      "form_name": "",
+      "pokemon_name": "Quaxly",
+      "final_evolutions": [
+        {
+          "pokemon_id": 914,
+          "pokemon_name": "Quaquaval",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/914.png"
+        }
+      ]
+    },
+    {
       "pokemon_id": 915,
       "form_name": "",
       "pokemon_name": "Lechonk",
