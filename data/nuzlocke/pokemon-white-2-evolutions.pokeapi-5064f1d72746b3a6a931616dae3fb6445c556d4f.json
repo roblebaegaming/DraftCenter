@@ -1,0 +1,3811 @@
+{
+  "game_key": "white-2",
+  "source_commit": "5064f1d72746b3a6a931616dae3fb6445c556d4f",
+  "sprites_commit": "5841d46f1a0d2b8918a29a7376b1424878b86b59",
+  "evolutions": [
+    {
+      "pokemon_id": 12,
+      "pokemon_name": "Butterfree",
+      "final_evolutions": [
+        {
+          "pokemon_id": 12,
+          "pokemon_name": "Butterfree",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/12.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 19,
+      "pokemon_name": "Rattata",
+      "final_evolutions": [
+        {
+          "pokemon_id": 20,
+          "pokemon_name": "Raticate",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/20.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 20,
+      "pokemon_name": "Raticate",
+      "final_evolutions": [
+        {
+          "pokemon_id": 20,
+          "pokemon_name": "Raticate",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/20.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 22,
+      "pokemon_name": "Fearow",
+      "final_evolutions": [
+        {
+          "pokemon_id": 22,
+          "pokemon_name": "Fearow",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/22.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 27,
+      "pokemon_name": "Sandshrew",
+      "final_evolutions": [
+        {
+          "pokemon_id": 28,
+          "pokemon_name": "Sandslash",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/28.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 28,
+      "pokemon_name": "Sandslash",
+      "final_evolutions": [
+        {
+          "pokemon_id": 28,
+          "pokemon_name": "Sandslash",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/28.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 29,
+      "pokemon_name": "Nidoran♀",
+      "final_evolutions": [
+        {
+          "pokemon_id": 31,
+          "pokemon_name": "Nidoqueen",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/31.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 32,
+      "pokemon_name": "Nidoran♂",
+      "final_evolutions": [
+        {
+          "pokemon_id": 34,
+          "pokemon_name": "Nidoking",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/34.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 35,
+      "pokemon_name": "Clefairy",
+      "final_evolutions": [
+        {
+          "pokemon_id": 36,
+          "pokemon_name": "Clefable",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/36.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 36,
+      "pokemon_name": "Clefable",
+      "final_evolutions": [
+        {
+          "pokemon_id": 36,
+          "pokemon_name": "Clefable",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/36.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 37,
+      "pokemon_name": "Vulpix",
+      "final_evolutions": [
+        {
+          "pokemon_id": 38,
+          "pokemon_name": "Ninetales",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/38.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 38,
+      "pokemon_name": "Ninetales",
+      "final_evolutions": [
+        {
+          "pokemon_id": 38,
+          "pokemon_name": "Ninetales",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/38.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 39,
+      "pokemon_name": "Jigglypuff",
+      "final_evolutions": [
+        {
+          "pokemon_id": 40,
+          "pokemon_name": "Wigglytuff",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/40.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 40,
+      "pokemon_name": "Wigglytuff",
+      "final_evolutions": [
+        {
+          "pokemon_id": 40,
+          "pokemon_name": "Wigglytuff",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/40.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 41,
+      "pokemon_name": "Zubat",
+      "final_evolutions": [
+        {
+          "pokemon_id": 169,
+          "pokemon_name": "Crobat",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/169.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 42,
+      "pokemon_name": "Golbat",
+      "final_evolutions": [
+        {
+          "pokemon_id": 169,
+          "pokemon_name": "Crobat",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/169.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 48,
+      "pokemon_name": "Venonat",
+      "final_evolutions": [
+        {
+          "pokemon_id": 49,
+          "pokemon_name": "Venomoth",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/49.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 54,
+      "pokemon_name": "Psyduck",
+      "final_evolutions": [
+        {
+          "pokemon_id": 55,
+          "pokemon_name": "Golduck",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/55.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 55,
+      "pokemon_name": "Golduck",
+      "final_evolutions": [
+        {
+          "pokemon_id": 55,
+          "pokemon_name": "Golduck",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/55.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 58,
+      "pokemon_name": "Growlithe",
+      "final_evolutions": [
+        {
+          "pokemon_id": 59,
+          "pokemon_name": "Arcanine",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/59.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 60,
+      "pokemon_name": "Poliwag",
+      "final_evolutions": [
+        {
+          "pokemon_id": 62,
+          "pokemon_name": "Poliwrath",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/62.png"
+        },
+        {
+          "pokemon_id": 186,
+          "pokemon_name": "Politoed",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/186.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 61,
+      "pokemon_name": "Poliwhirl",
+      "final_evolutions": [
+        {
+          "pokemon_id": 62,
+          "pokemon_name": "Poliwrath",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/62.png"
+        },
+        {
+          "pokemon_id": 186,
+          "pokemon_name": "Politoed",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/186.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 62,
+      "pokemon_name": "Poliwrath",
+      "final_evolutions": [
+        {
+          "pokemon_id": 62,
+          "pokemon_name": "Poliwrath",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/62.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 65,
+      "pokemon_name": "Alakazam",
+      "final_evolutions": [
+        {
+          "pokemon_id": 65,
+          "pokemon_name": "Alakazam",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/65.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 79,
+      "pokemon_name": "Slowpoke",
+      "final_evolutions": [
+        {
+          "pokemon_id": 80,
+          "pokemon_name": "Slowbro",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/80.png"
+        },
+        {
+          "pokemon_id": 199,
+          "pokemon_name": "Slowking",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/199.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 81,
+      "pokemon_name": "Magnemite",
+      "final_evolutions": [
+        {
+          "pokemon_id": 462,
+          "pokemon_name": "Magnezone",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/462.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 82,
+      "pokemon_name": "Magneton",
+      "final_evolutions": [
+        {
+          "pokemon_id": 462,
+          "pokemon_name": "Magnezone",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/462.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 83,
+      "pokemon_name": "Farfetch’d",
+      "final_evolutions": [
+        {
+          "pokemon_id": 83,
+          "pokemon_name": "Farfetch’d",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/83.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 84,
+      "pokemon_name": "Doduo",
+      "final_evolutions": [
+        {
+          "pokemon_id": 85,
+          "pokemon_name": "Dodrio",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/85.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 86,
+      "pokemon_name": "Seel",
+      "final_evolutions": [
+        {
+          "pokemon_id": 87,
+          "pokemon_name": "Dewgong",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/87.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 87,
+      "pokemon_name": "Dewgong",
+      "final_evolutions": [
+        {
+          "pokemon_id": 87,
+          "pokemon_name": "Dewgong",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/87.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 88,
+      "pokemon_name": "Grimer",
+      "final_evolutions": [
+        {
+          "pokemon_id": 89,
+          "pokemon_name": "Muk",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/89.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 89,
+      "pokemon_name": "Muk",
+      "final_evolutions": [
+        {
+          "pokemon_id": 89,
+          "pokemon_name": "Muk",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/89.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 90,
+      "pokemon_name": "Shellder",
+      "final_evolutions": [
+        {
+          "pokemon_id": 91,
+          "pokemon_name": "Cloyster",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/91.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 91,
+      "pokemon_name": "Cloyster",
+      "final_evolutions": [
+        {
+          "pokemon_id": 91,
+          "pokemon_name": "Cloyster",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/91.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 95,
+      "pokemon_name": "Onix",
+      "final_evolutions": [
+        {
+          "pokemon_id": 208,
+          "pokemon_name": "Steelix",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/208.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 97,
+      "pokemon_name": "Hypno",
+      "final_evolutions": [
+        {
+          "pokemon_id": 97,
+          "pokemon_name": "Hypno",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/97.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 98,
+      "pokemon_name": "Krabby",
+      "final_evolutions": [
+        {
+          "pokemon_id": 99,
+          "pokemon_name": "Kingler",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/99.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 99,
+      "pokemon_name": "Kingler",
+      "final_evolutions": [
+        {
+          "pokemon_id": 99,
+          "pokemon_name": "Kingler",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/99.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 108,
+      "pokemon_name": "Lickitung",
+      "final_evolutions": [
+        {
+          "pokemon_id": 463,
+          "pokemon_name": "Lickilicky",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/463.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 109,
+      "pokemon_name": "Koffing",
+      "final_evolutions": [
+        {
+          "pokemon_id": 110,
+          "pokemon_name": "Weezing",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/110.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 110,
+      "pokemon_name": "Weezing",
+      "final_evolutions": [
+        {
+          "pokemon_id": 110,
+          "pokemon_name": "Weezing",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/110.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 114,
+      "pokemon_name": "Tangela",
+      "final_evolutions": [
+        {
+          "pokemon_id": 465,
+          "pokemon_name": "Tangrowth",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/465.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 116,
+      "pokemon_name": "Horsea",
+      "final_evolutions": [
+        {
+          "pokemon_id": 230,
+          "pokemon_name": "Kingdra",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/230.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 117,
+      "pokemon_name": "Seadra",
+      "final_evolutions": [
+        {
+          "pokemon_id": 230,
+          "pokemon_name": "Kingdra",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/230.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 118,
+      "pokemon_name": "Goldeen",
+      "final_evolutions": [
+        {
+          "pokemon_id": 119,
+          "pokemon_name": "Seaking",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/119.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 119,
+      "pokemon_name": "Seaking",
+      "final_evolutions": [
+        {
+          "pokemon_id": 119,
+          "pokemon_name": "Seaking",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/119.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 120,
+      "pokemon_name": "Staryu",
+      "final_evolutions": [
+        {
+          "pokemon_id": 121,
+          "pokemon_name": "Starmie",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/121.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 121,
+      "pokemon_name": "Starmie",
+      "final_evolutions": [
+        {
+          "pokemon_id": 121,
+          "pokemon_name": "Starmie",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/121.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 122,
+      "pokemon_name": "Mr. Mime",
+      "final_evolutions": [
+        {
+          "pokemon_id": 122,
+          "pokemon_name": "Mr. Mime",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/122.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 127,
+      "pokemon_name": "Pinsir",
+      "final_evolutions": [
+        {
+          "pokemon_id": 127,
+          "pokemon_name": "Pinsir",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/127.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 129,
+      "pokemon_name": "Magikarp",
+      "final_evolutions": [
+        {
+          "pokemon_id": 130,
+          "pokemon_name": "Gyarados",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/130.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 130,
+      "pokemon_name": "Gyarados",
+      "final_evolutions": [
+        {
+          "pokemon_id": 130,
+          "pokemon_name": "Gyarados",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/130.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 131,
+      "pokemon_name": "Lapras",
+      "final_evolutions": [
+        {
+          "pokemon_id": 131,
+          "pokemon_name": "Lapras",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/131.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 132,
+      "pokemon_name": "Ditto",
+      "final_evolutions": [
+        {
+          "pokemon_id": 132,
+          "pokemon_name": "Ditto",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/132.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 133,
+      "pokemon_name": "Eevee",
+      "final_evolutions": [
+        {
+          "pokemon_id": 134,
+          "pokemon_name": "Vaporeon",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/134.png"
+        },
+        {
+          "pokemon_id": 135,
+          "pokemon_name": "Jolteon",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/135.png"
+        },
+        {
+          "pokemon_id": 136,
+          "pokemon_name": "Flareon",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/136.png"
+        },
+        {
+          "pokemon_id": 196,
+          "pokemon_name": "Espeon",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/196.png"
+        },
+        {
+          "pokemon_id": 197,
+          "pokemon_name": "Umbreon",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/197.png"
+        },
+        {
+          "pokemon_id": 470,
+          "pokemon_name": "Leafeon",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/470.png"
+        },
+        {
+          "pokemon_id": 471,
+          "pokemon_name": "Glaceon",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/471.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 138,
+      "pokemon_name": "Omanyte",
+      "final_evolutions": [
+        {
+          "pokemon_id": 139,
+          "pokemon_name": "Omastar",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/139.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 140,
+      "pokemon_name": "Kabuto",
+      "final_evolutions": [
+        {
+          "pokemon_id": 141,
+          "pokemon_name": "Kabutops",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/141.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 142,
+      "pokemon_name": "Aerodactyl",
+      "final_evolutions": [
+        {
+          "pokemon_id": 142,
+          "pokemon_name": "Aerodactyl",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/142.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 147,
+      "pokemon_name": "Dratini",
+      "final_evolutions": [
+        {
+          "pokemon_id": 149,
+          "pokemon_name": "Dragonite",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/149.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 148,
+      "pokemon_name": "Dragonair",
+      "final_evolutions": [
+        {
+          "pokemon_id": 149,
+          "pokemon_name": "Dragonite",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/149.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 149,
+      "pokemon_name": "Dragonite",
+      "final_evolutions": [
+        {
+          "pokemon_id": 149,
+          "pokemon_name": "Dragonite",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/149.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 162,
+      "pokemon_name": "Furret",
+      "final_evolutions": [
+        {
+          "pokemon_id": 162,
+          "pokemon_name": "Furret",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/162.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 164,
+      "pokemon_name": "Noctowl",
+      "final_evolutions": [
+        {
+          "pokemon_id": 164,
+          "pokemon_name": "Noctowl",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/164.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 166,
+      "pokemon_name": "Ledian",
+      "final_evolutions": [
+        {
+          "pokemon_id": 166,
+          "pokemon_name": "Ledian",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/166.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 169,
+      "pokemon_name": "Crobat",
+      "final_evolutions": [
+        {
+          "pokemon_id": 169,
+          "pokemon_name": "Crobat",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/169.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 170,
+      "pokemon_name": "Chinchou",
+      "final_evolutions": [
+        {
+          "pokemon_id": 171,
+          "pokemon_name": "Lanturn",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/171.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 171,
+      "pokemon_name": "Lanturn",
+      "final_evolutions": [
+        {
+          "pokemon_id": 171,
+          "pokemon_name": "Lanturn",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/171.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 177,
+      "pokemon_name": "Natu",
+      "final_evolutions": [
+        {
+          "pokemon_id": 178,
+          "pokemon_name": "Xatu",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/178.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 179,
+      "pokemon_name": "Mareep",
+      "final_evolutions": [
+        {
+          "pokemon_id": 181,
+          "pokemon_name": "Ampharos",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/181.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 183,
+      "pokemon_name": "Marill",
+      "final_evolutions": [
+        {
+          "pokemon_id": 184,
+          "pokemon_name": "Azumarill",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/184.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 184,
+      "pokemon_name": "Azumarill",
+      "final_evolutions": [
+        {
+          "pokemon_id": 184,
+          "pokemon_name": "Azumarill",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/184.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 186,
+      "pokemon_name": "Politoed",
+      "final_evolutions": [
+        {
+          "pokemon_id": 186,
+          "pokemon_name": "Politoed",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/186.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 187,
+      "pokemon_name": "Hoppip",
+      "final_evolutions": [
+        {
+          "pokemon_id": 189,
+          "pokemon_name": "Jumpluff",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/189.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 191,
+      "pokemon_name": "Sunkern",
+      "final_evolutions": [
+        {
+          "pokemon_id": 192,
+          "pokemon_name": "Sunflora",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/192.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 193,
+      "pokemon_name": "Yanma",
+      "final_evolutions": [
+        {
+          "pokemon_id": 469,
+          "pokemon_name": "Yanmega",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/469.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 195,
+      "pokemon_name": "Quagsire",
+      "final_evolutions": [
+        {
+          "pokemon_id": 195,
+          "pokemon_name": "Quagsire",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/195.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 198,
+      "pokemon_name": "Murkrow",
+      "final_evolutions": [
+        {
+          "pokemon_id": 430,
+          "pokemon_name": "Honchkrow",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/430.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 203,
+      "pokemon_name": "Girafarig",
+      "final_evolutions": [
+        {
+          "pokemon_id": 203,
+          "pokemon_name": "Girafarig",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/203.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 204,
+      "pokemon_name": "Pineco",
+      "final_evolutions": [
+        {
+          "pokemon_id": 205,
+          "pokemon_name": "Forretress",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/205.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 206,
+      "pokemon_name": "Dunsparce",
+      "final_evolutions": [
+        {
+          "pokemon_id": 206,
+          "pokemon_name": "Dunsparce",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/206.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 207,
+      "pokemon_name": "Gligar",
+      "final_evolutions": [
+        {
+          "pokemon_id": 472,
+          "pokemon_name": "Gliscor",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/472.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 208,
+      "pokemon_name": "Steelix",
+      "final_evolutions": [
+        {
+          "pokemon_id": 208,
+          "pokemon_name": "Steelix",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/208.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 210,
+      "pokemon_name": "Granbull",
+      "final_evolutions": [
+        {
+          "pokemon_id": 210,
+          "pokemon_name": "Granbull",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/210.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 211,
+      "pokemon_name": "Qwilfish",
+      "final_evolutions": [
+        {
+          "pokemon_id": 211,
+          "pokemon_name": "Qwilfish",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/211.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 213,
+      "pokemon_name": "Shuckle",
+      "final_evolutions": [
+        {
+          "pokemon_id": 213,
+          "pokemon_name": "Shuckle",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/213.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 214,
+      "pokemon_name": "Heracross",
+      "final_evolutions": [
+        {
+          "pokemon_id": 214,
+          "pokemon_name": "Heracross",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/214.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 215,
+      "pokemon_name": "Sneasel",
+      "final_evolutions": [
+        {
+          "pokemon_id": 461,
+          "pokemon_name": "Weavile",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/461.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 221,
+      "pokemon_name": "Piloswine",
+      "final_evolutions": [
+        {
+          "pokemon_id": 473,
+          "pokemon_name": "Mamoswine",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/473.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 222,
+      "pokemon_name": "Corsola",
+      "final_evolutions": [
+        {
+          "pokemon_id": 222,
+          "pokemon_name": "Corsola",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/222.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 223,
+      "pokemon_name": "Remoraid",
+      "final_evolutions": [
+        {
+          "pokemon_id": 224,
+          "pokemon_name": "Octillery",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/224.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 224,
+      "pokemon_name": "Octillery",
+      "final_evolutions": [
+        {
+          "pokemon_id": 224,
+          "pokemon_name": "Octillery",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/224.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 225,
+      "pokemon_name": "Delibird",
+      "final_evolutions": [
+        {
+          "pokemon_id": 225,
+          "pokemon_name": "Delibird",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/225.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 226,
+      "pokemon_name": "Mantine",
+      "final_evolutions": [
+        {
+          "pokemon_id": 226,
+          "pokemon_name": "Mantine",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/226.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 227,
+      "pokemon_name": "Skarmory",
+      "final_evolutions": [
+        {
+          "pokemon_id": 227,
+          "pokemon_name": "Skarmory",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/227.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 230,
+      "pokemon_name": "Kingdra",
+      "final_evolutions": [
+        {
+          "pokemon_id": 230,
+          "pokemon_name": "Kingdra",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/230.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 239,
+      "pokemon_name": "Elekid",
+      "final_evolutions": [
+        {
+          "pokemon_id": 466,
+          "pokemon_name": "Electivire",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/466.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 247,
+      "pokemon_name": "Pupitar",
+      "final_evolutions": [
+        {
+          "pokemon_id": 248,
+          "pokemon_name": "Tyranitar",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/248.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 248,
+      "pokemon_name": "Tyranitar",
+      "final_evolutions": [
+        {
+          "pokemon_id": 248,
+          "pokemon_name": "Tyranitar",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/248.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 271,
+      "pokemon_name": "Lombre",
+      "final_evolutions": [
+        {
+          "pokemon_id": 272,
+          "pokemon_name": "Ludicolo",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/272.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 274,
+      "pokemon_name": "Nuzleaf",
+      "final_evolutions": [
+        {
+          "pokemon_id": 275,
+          "pokemon_name": "Shiftry",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/275.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 275,
+      "pokemon_name": "Shiftry",
+      "final_evolutions": [
+        {
+          "pokemon_id": 275,
+          "pokemon_name": "Shiftry",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/275.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 277,
+      "pokemon_name": "Swellow",
+      "final_evolutions": [
+        {
+          "pokemon_id": 277,
+          "pokemon_name": "Swellow",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/277.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 279,
+      "pokemon_name": "Pelipper",
+      "final_evolutions": [
+        {
+          "pokemon_id": 279,
+          "pokemon_name": "Pelipper",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/279.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 284,
+      "pokemon_name": "Masquerain",
+      "final_evolutions": [
+        {
+          "pokemon_id": 284,
+          "pokemon_name": "Masquerain",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/284.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 286,
+      "pokemon_name": "Breloom",
+      "final_evolutions": [
+        {
+          "pokemon_id": 286,
+          "pokemon_name": "Breloom",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/286.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 288,
+      "pokemon_name": "Vigoroth",
+      "final_evolutions": [
+        {
+          "pokemon_id": 289,
+          "pokemon_name": "Slaking",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/289.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 289,
+      "pokemon_name": "Slaking",
+      "final_evolutions": [
+        {
+          "pokemon_id": 289,
+          "pokemon_name": "Slaking",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/289.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 297,
+      "pokemon_name": "Hariyama",
+      "final_evolutions": [
+        {
+          "pokemon_id": 297,
+          "pokemon_name": "Hariyama",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/297.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 298,
+      "pokemon_name": "Azurill",
+      "final_evolutions": [
+        {
+          "pokemon_id": 184,
+          "pokemon_name": "Azumarill",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/184.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 299,
+      "pokemon_name": "Nosepass",
+      "final_evolutions": [
+        {
+          "pokemon_id": 476,
+          "pokemon_name": "Probopass",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/476.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 300,
+      "pokemon_name": "Skitty",
+      "final_evolutions": [
+        {
+          "pokemon_id": 301,
+          "pokemon_name": "Delcatty",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/301.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 301,
+      "pokemon_name": "Delcatty",
+      "final_evolutions": [
+        {
+          "pokemon_id": 301,
+          "pokemon_name": "Delcatty",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/301.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 304,
+      "pokemon_name": "Aron",
+      "final_evolutions": [
+        {
+          "pokemon_id": 306,
+          "pokemon_name": "Aggron",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/306.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 305,
+      "pokemon_name": "Lairon",
+      "final_evolutions": [
+        {
+          "pokemon_id": 306,
+          "pokemon_name": "Aggron",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/306.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 308,
+      "pokemon_name": "Medicham",
+      "final_evolutions": [
+        {
+          "pokemon_id": 308,
+          "pokemon_name": "Medicham",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/308.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 310,
+      "pokemon_name": "Manectric",
+      "final_evolutions": [
+        {
+          "pokemon_id": 310,
+          "pokemon_name": "Manectric",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/310.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 312,
+      "pokemon_name": "Minun",
+      "final_evolutions": [
+        {
+          "pokemon_id": 312,
+          "pokemon_name": "Minun",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/312.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 314,
+      "pokemon_name": "Illumise",
+      "final_evolutions": [
+        {
+          "pokemon_id": 314,
+          "pokemon_name": "Illumise",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/314.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 315,
+      "pokemon_name": "Roselia",
+      "final_evolutions": [
+        {
+          "pokemon_id": 407,
+          "pokemon_name": "Roserade",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/407.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 317,
+      "pokemon_name": "Swalot",
+      "final_evolutions": [
+        {
+          "pokemon_id": 317,
+          "pokemon_name": "Swalot",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/317.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 318,
+      "pokemon_name": "Carvanha",
+      "final_evolutions": [
+        {
+          "pokemon_id": 319,
+          "pokemon_name": "Sharpedo",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/319.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 319,
+      "pokemon_name": "Sharpedo",
+      "final_evolutions": [
+        {
+          "pokemon_id": 319,
+          "pokemon_name": "Sharpedo",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/319.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 320,
+      "pokemon_name": "Wailmer",
+      "final_evolutions": [
+        {
+          "pokemon_id": 321,
+          "pokemon_name": "Wailord",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/321.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 321,
+      "pokemon_name": "Wailord",
+      "final_evolutions": [
+        {
+          "pokemon_id": 321,
+          "pokemon_name": "Wailord",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/321.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 322,
+      "pokemon_name": "Numel",
+      "final_evolutions": [
+        {
+          "pokemon_id": 323,
+          "pokemon_name": "Camerupt",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/323.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 323,
+      "pokemon_name": "Camerupt",
+      "final_evolutions": [
+        {
+          "pokemon_id": 323,
+          "pokemon_name": "Camerupt",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/323.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 328,
+      "pokemon_name": "Trapinch",
+      "final_evolutions": [
+        {
+          "pokemon_id": 330,
+          "pokemon_name": "Flygon",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/330.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 329,
+      "pokemon_name": "Vibrava",
+      "final_evolutions": [
+        {
+          "pokemon_id": 330,
+          "pokemon_name": "Flygon",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/330.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 332,
+      "pokemon_name": "Cacturne",
+      "final_evolutions": [
+        {
+          "pokemon_id": 332,
+          "pokemon_name": "Cacturne",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/332.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 333,
+      "pokemon_name": "Swablu",
+      "final_evolutions": [
+        {
+          "pokemon_id": 334,
+          "pokemon_name": "Altaria",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/334.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 334,
+      "pokemon_name": "Altaria",
+      "final_evolutions": [
+        {
+          "pokemon_id": 334,
+          "pokemon_name": "Altaria",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/334.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 335,
+      "pokemon_name": "Zangoose",
+      "final_evolutions": [
+        {
+          "pokemon_id": 335,
+          "pokemon_name": "Zangoose",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/335.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 336,
+      "pokemon_name": "Seviper",
+      "final_evolutions": [
+        {
+          "pokemon_id": 336,
+          "pokemon_name": "Seviper",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/336.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 337,
+      "pokemon_name": "Lunatone",
+      "final_evolutions": [
+        {
+          "pokemon_id": 337,
+          "pokemon_name": "Lunatone",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/337.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 338,
+      "pokemon_name": "Solrock",
+      "final_evolutions": [
+        {
+          "pokemon_id": 338,
+          "pokemon_name": "Solrock",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/338.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 339,
+      "pokemon_name": "Barboach",
+      "final_evolutions": [
+        {
+          "pokemon_id": 340,
+          "pokemon_name": "Whiscash",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/340.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 340,
+      "pokemon_name": "Whiscash",
+      "final_evolutions": [
+        {
+          "pokemon_id": 340,
+          "pokemon_name": "Whiscash",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/340.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 341,
+      "pokemon_name": "Corphish",
+      "final_evolutions": [
+        {
+          "pokemon_id": 342,
+          "pokemon_name": "Crawdaunt",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/342.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 342,
+      "pokemon_name": "Crawdaunt",
+      "final_evolutions": [
+        {
+          "pokemon_id": 342,
+          "pokemon_name": "Crawdaunt",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/342.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 343,
+      "pokemon_name": "Baltoy",
+      "final_evolutions": [
+        {
+          "pokemon_id": 344,
+          "pokemon_name": "Claydol",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/344.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 345,
+      "pokemon_name": "Lileep",
+      "final_evolutions": [
+        {
+          "pokemon_id": 346,
+          "pokemon_name": "Cradily",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/346.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 347,
+      "pokemon_name": "Anorith",
+      "final_evolutions": [
+        {
+          "pokemon_id": 348,
+          "pokemon_name": "Armaldo",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/348.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 349,
+      "pokemon_name": "Feebas",
+      "final_evolutions": [
+        {
+          "pokemon_id": 350,
+          "pokemon_name": "Milotic",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/350.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 350,
+      "pokemon_name": "Milotic",
+      "final_evolutions": [
+        {
+          "pokemon_id": 350,
+          "pokemon_name": "Milotic",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/350.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 351,
+      "pokemon_name": "Castform",
+      "final_evolutions": [
+        {
+          "pokemon_id": 351,
+          "pokemon_name": "Castform",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/351.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 352,
+      "pokemon_name": "Kecleon",
+      "final_evolutions": [
+        {
+          "pokemon_id": 352,
+          "pokemon_name": "Kecleon",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/352.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 354,
+      "pokemon_name": "Banette",
+      "final_evolutions": [
+        {
+          "pokemon_id": 354,
+          "pokemon_name": "Banette",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/354.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 357,
+      "pokemon_name": "Tropius",
+      "final_evolutions": [
+        {
+          "pokemon_id": 357,
+          "pokemon_name": "Tropius",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/357.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 359,
+      "pokemon_name": "Absol",
+      "final_evolutions": [
+        {
+          "pokemon_id": 359,
+          "pokemon_name": "Absol",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/359.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 363,
+      "pokemon_name": "Spheal",
+      "final_evolutions": [
+        {
+          "pokemon_id": 365,
+          "pokemon_name": "Walrein",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/365.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 364,
+      "pokemon_name": "Sealeo",
+      "final_evolutions": [
+        {
+          "pokemon_id": 365,
+          "pokemon_name": "Walrein",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/365.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 365,
+      "pokemon_name": "Walrein",
+      "final_evolutions": [
+        {
+          "pokemon_id": 365,
+          "pokemon_name": "Walrein",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/365.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 366,
+      "pokemon_name": "Clamperl",
+      "final_evolutions": [
+        {
+          "pokemon_id": 367,
+          "pokemon_name": "Huntail",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/367.png"
+        },
+        {
+          "pokemon_id": 368,
+          "pokemon_name": "Gorebyss",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/368.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 368,
+      "pokemon_name": "Gorebyss",
+      "final_evolutions": [
+        {
+          "pokemon_id": 368,
+          "pokemon_name": "Gorebyss",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/368.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 369,
+      "pokemon_name": "Relicanth",
+      "final_evolutions": [
+        {
+          "pokemon_id": 369,
+          "pokemon_name": "Relicanth",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/369.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 370,
+      "pokemon_name": "Luvdisc",
+      "final_evolutions": [
+        {
+          "pokemon_id": 370,
+          "pokemon_name": "Luvdisc",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/370.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 371,
+      "pokemon_name": "Bagon",
+      "final_evolutions": [
+        {
+          "pokemon_id": 373,
+          "pokemon_name": "Salamence",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/373.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 375,
+      "pokemon_name": "Metang",
+      "final_evolutions": [
+        {
+          "pokemon_id": 376,
+          "pokemon_name": "Metagross",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/376.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 376,
+      "pokemon_name": "Metagross",
+      "final_evolutions": [
+        {
+          "pokemon_id": 376,
+          "pokemon_name": "Metagross",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/376.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 377,
+      "pokemon_name": "Regirock",
+      "final_evolutions": [
+        {
+          "pokemon_id": 377,
+          "pokemon_name": "Regirock",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/377.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 378,
+      "pokemon_name": "Regice",
+      "final_evolutions": [
+        {
+          "pokemon_id": 378,
+          "pokemon_name": "Regice",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/378.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 379,
+      "pokemon_name": "Registeel",
+      "final_evolutions": [
+        {
+          "pokemon_id": 379,
+          "pokemon_name": "Registeel",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/379.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 380,
+      "pokemon_name": "Latias",
+      "final_evolutions": [
+        {
+          "pokemon_id": 380,
+          "pokemon_name": "Latias",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/380.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 400,
+      "pokemon_name": "Bibarel",
+      "final_evolutions": [
+        {
+          "pokemon_id": 400,
+          "pokemon_name": "Bibarel",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/400.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 407,
+      "pokemon_name": "Roserade",
+      "final_evolutions": [
+        {
+          "pokemon_id": 407,
+          "pokemon_name": "Roserade",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/407.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 408,
+      "pokemon_name": "Cranidos",
+      "final_evolutions": [
+        {
+          "pokemon_id": 409,
+          "pokemon_name": "Rampardos",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/409.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 410,
+      "pokemon_name": "Shieldon",
+      "final_evolutions": [
+        {
+          "pokemon_id": 411,
+          "pokemon_name": "Bastiodon",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/411.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 415,
+      "pokemon_name": "Combee",
+      "final_evolutions": [
+        {
+          "pokemon_id": 416,
+          "pokemon_name": "Vespiquen",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/416.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 416,
+      "pokemon_name": "Vespiquen",
+      "final_evolutions": [
+        {
+          "pokemon_id": 416,
+          "pokemon_name": "Vespiquen",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/416.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 417,
+      "pokemon_name": "Pachirisu",
+      "final_evolutions": [
+        {
+          "pokemon_id": 417,
+          "pokemon_name": "Pachirisu",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/417.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 418,
+      "pokemon_name": "Buizel",
+      "final_evolutions": [
+        {
+          "pokemon_id": 419,
+          "pokemon_name": "Floatzel",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/419.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 419,
+      "pokemon_name": "Floatzel",
+      "final_evolutions": [
+        {
+          "pokemon_id": 419,
+          "pokemon_name": "Floatzel",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/419.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 424,
+      "pokemon_name": "Ambipom",
+      "final_evolutions": [
+        {
+          "pokemon_id": 424,
+          "pokemon_name": "Ambipom",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/424.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 425,
+      "pokemon_name": "Drifloon",
+      "final_evolutions": [
+        {
+          "pokemon_id": 426,
+          "pokemon_name": "Drifblim",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/426.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 426,
+      "pokemon_name": "Drifblim",
+      "final_evolutions": [
+        {
+          "pokemon_id": 426,
+          "pokemon_name": "Drifblim",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/426.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 436,
+      "pokemon_name": "Bronzor",
+      "final_evolutions": [
+        {
+          "pokemon_id": 437,
+          "pokemon_name": "Bronzong",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/437.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 437,
+      "pokemon_name": "Bronzong",
+      "final_evolutions": [
+        {
+          "pokemon_id": 437,
+          "pokemon_name": "Bronzong",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/437.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 440,
+      "pokemon_name": "Happiny",
+      "final_evolutions": [
+        {
+          "pokemon_id": 242,
+          "pokemon_name": "Blissey",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/242.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 441,
+      "pokemon_name": "Chatot",
+      "final_evolutions": [
+        {
+          "pokemon_id": 441,
+          "pokemon_name": "Chatot",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/441.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 447,
+      "pokemon_name": "Riolu",
+      "final_evolutions": [
+        {
+          "pokemon_id": 448,
+          "pokemon_name": "Lucario",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/448.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 450,
+      "pokemon_name": "Hippowdon",
+      "final_evolutions": [
+        {
+          "pokemon_id": 450,
+          "pokemon_name": "Hippowdon",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/450.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 451,
+      "pokemon_name": "Skorupi",
+      "final_evolutions": [
+        {
+          "pokemon_id": 452,
+          "pokemon_name": "Drapion",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/452.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 453,
+      "pokemon_name": "Croagunk",
+      "final_evolutions": [
+        {
+          "pokemon_id": 454,
+          "pokemon_name": "Toxicroak",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/454.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 454,
+      "pokemon_name": "Toxicroak",
+      "final_evolutions": [
+        {
+          "pokemon_id": 454,
+          "pokemon_name": "Toxicroak",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/454.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 455,
+      "pokemon_name": "Carnivine",
+      "final_evolutions": [
+        {
+          "pokemon_id": 455,
+          "pokemon_name": "Carnivine",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/455.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 456,
+      "pokemon_name": "Finneon",
+      "final_evolutions": [
+        {
+          "pokemon_id": 457,
+          "pokemon_name": "Lumineon",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/457.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 457,
+      "pokemon_name": "Lumineon",
+      "final_evolutions": [
+        {
+          "pokemon_id": 457,
+          "pokemon_name": "Lumineon",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/457.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 458,
+      "pokemon_name": "Mantyke",
+      "final_evolutions": [
+        {
+          "pokemon_id": 226,
+          "pokemon_name": "Mantine",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/226.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 462,
+      "pokemon_name": "Magnezone",
+      "final_evolutions": [
+        {
+          "pokemon_id": 462,
+          "pokemon_name": "Magnezone",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/462.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 463,
+      "pokemon_name": "Lickilicky",
+      "final_evolutions": [
+        {
+          "pokemon_id": 463,
+          "pokemon_name": "Lickilicky",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/463.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 465,
+      "pokemon_name": "Tangrowth",
+      "final_evolutions": [
+        {
+          "pokemon_id": 465,
+          "pokemon_name": "Tangrowth",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/465.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 469,
+      "pokemon_name": "Yanmega",
+      "final_evolutions": [
+        {
+          "pokemon_id": 469,
+          "pokemon_name": "Yanmega",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/469.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 472,
+      "pokemon_name": "Gliscor",
+      "final_evolutions": [
+        {
+          "pokemon_id": 472,
+          "pokemon_name": "Gliscor",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/472.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 473,
+      "pokemon_name": "Mamoswine",
+      "final_evolutions": [
+        {
+          "pokemon_id": 473,
+          "pokemon_name": "Mamoswine",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/473.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 479,
+      "pokemon_name": "Rotom",
+      "final_evolutions": [
+        {
+          "pokemon_id": 479,
+          "pokemon_name": "Rotom",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/479.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 480,
+      "pokemon_name": "Uxie",
+      "final_evolutions": [
+        {
+          "pokemon_id": 480,
+          "pokemon_name": "Uxie",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/480.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 481,
+      "pokemon_name": "Mesprit",
+      "final_evolutions": [
+        {
+          "pokemon_id": 481,
+          "pokemon_name": "Mesprit",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/481.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 482,
+      "pokemon_name": "Azelf",
+      "final_evolutions": [
+        {
+          "pokemon_id": 482,
+          "pokemon_name": "Azelf",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/482.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 485,
+      "pokemon_name": "Heatran",
+      "final_evolutions": [
+        {
+          "pokemon_id": 485,
+          "pokemon_name": "Heatran",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/485.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 486,
+      "pokemon_name": "Regigigas",
+      "final_evolutions": [
+        {
+          "pokemon_id": 486,
+          "pokemon_name": "Regigigas",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/486.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 488,
+      "pokemon_name": "Cresselia",
+      "final_evolutions": [
+        {
+          "pokemon_id": 488,
+          "pokemon_name": "Cresselia",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/488.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 495,
+      "pokemon_name": "Snivy",
+      "final_evolutions": [
+        {
+          "pokemon_id": 497,
+          "pokemon_name": "Serperior",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/497.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 498,
+      "pokemon_name": "Tepig",
+      "final_evolutions": [
+        {
+          "pokemon_id": 500,
+          "pokemon_name": "Emboar",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/500.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 501,
+      "pokemon_name": "Oshawott",
+      "final_evolutions": [
+        {
+          "pokemon_id": 503,
+          "pokemon_name": "Samurott",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/503.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 504,
+      "pokemon_name": "Patrat",
+      "final_evolutions": [
+        {
+          "pokemon_id": 505,
+          "pokemon_name": "Watchog",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/505.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 505,
+      "pokemon_name": "Watchog",
+      "final_evolutions": [
+        {
+          "pokemon_id": 505,
+          "pokemon_name": "Watchog",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/505.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 506,
+      "pokemon_name": "Lillipup",
+      "final_evolutions": [
+        {
+          "pokemon_id": 508,
+          "pokemon_name": "Stoutland",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/508.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 507,
+      "pokemon_name": "Herdier",
+      "final_evolutions": [
+        {
+          "pokemon_id": 508,
+          "pokemon_name": "Stoutland",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/508.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 508,
+      "pokemon_name": "Stoutland",
+      "final_evolutions": [
+        {
+          "pokemon_id": 508,
+          "pokemon_name": "Stoutland",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/508.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 509,
+      "pokemon_name": "Purrloin",
+      "final_evolutions": [
+        {
+          "pokemon_id": 510,
+          "pokemon_name": "Liepard",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/510.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 510,
+      "pokemon_name": "Liepard",
+      "final_evolutions": [
+        {
+          "pokemon_id": 510,
+          "pokemon_name": "Liepard",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/510.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 511,
+      "pokemon_name": "Pansage",
+      "final_evolutions": [
+        {
+          "pokemon_id": 512,
+          "pokemon_name": "Simisage",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/512.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 513,
+      "pokemon_name": "Pansear",
+      "final_evolutions": [
+        {
+          "pokemon_id": 514,
+          "pokemon_name": "Simisear",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/514.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 515,
+      "pokemon_name": "Panpour",
+      "final_evolutions": [
+        {
+          "pokemon_id": 516,
+          "pokemon_name": "Simipour",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/516.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 517,
+      "pokemon_name": "Munna",
+      "final_evolutions": [
+        {
+          "pokemon_id": 518,
+          "pokemon_name": "Musharna",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/518.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 518,
+      "pokemon_name": "Musharna",
+      "final_evolutions": [
+        {
+          "pokemon_id": 518,
+          "pokemon_name": "Musharna",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/518.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 519,
+      "pokemon_name": "Pidove",
+      "final_evolutions": [
+        {
+          "pokemon_id": 521,
+          "pokemon_name": "Unfezant",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/521.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 520,
+      "pokemon_name": "Tranquill",
+      "final_evolutions": [
+        {
+          "pokemon_id": 521,
+          "pokemon_name": "Unfezant",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/521.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 521,
+      "pokemon_name": "Unfezant",
+      "final_evolutions": [
+        {
+          "pokemon_id": 521,
+          "pokemon_name": "Unfezant",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/521.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 523,
+      "pokemon_name": "Zebstrika",
+      "final_evolutions": [
+        {
+          "pokemon_id": 523,
+          "pokemon_name": "Zebstrika",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/523.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 524,
+      "pokemon_name": "Roggenrola",
+      "final_evolutions": [
+        {
+          "pokemon_id": 526,
+          "pokemon_name": "Gigalith",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/526.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 525,
+      "pokemon_name": "Boldore",
+      "final_evolutions": [
+        {
+          "pokemon_id": 526,
+          "pokemon_name": "Gigalith",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/526.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 526,
+      "pokemon_name": "Gigalith",
+      "final_evolutions": [
+        {
+          "pokemon_id": 526,
+          "pokemon_name": "Gigalith",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/526.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 527,
+      "pokemon_name": "Woobat",
+      "final_evolutions": [
+        {
+          "pokemon_id": 528,
+          "pokemon_name": "Swoobat",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/528.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 529,
+      "pokemon_name": "Drilbur",
+      "final_evolutions": [
+        {
+          "pokemon_id": 530,
+          "pokemon_name": "Excadrill",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/530.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 530,
+      "pokemon_name": "Excadrill",
+      "final_evolutions": [
+        {
+          "pokemon_id": 530,
+          "pokemon_name": "Excadrill",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/530.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 531,
+      "pokemon_name": "Audino",
+      "final_evolutions": [
+        {
+          "pokemon_id": 531,
+          "pokemon_name": "Audino",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/531.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 532,
+      "pokemon_name": "Timburr",
+      "final_evolutions": [
+        {
+          "pokemon_id": 534,
+          "pokemon_name": "Conkeldurr",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/534.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 533,
+      "pokemon_name": "Gurdurr",
+      "final_evolutions": [
+        {
+          "pokemon_id": 534,
+          "pokemon_name": "Conkeldurr",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/534.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 536,
+      "pokemon_name": "Palpitoad",
+      "final_evolutions": [
+        {
+          "pokemon_id": 537,
+          "pokemon_name": "Seismitoad",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/537.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 537,
+      "pokemon_name": "Seismitoad",
+      "final_evolutions": [
+        {
+          "pokemon_id": 537,
+          "pokemon_name": "Seismitoad",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/537.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 538,
+      "pokemon_name": "Throh",
+      "final_evolutions": [
+        {
+          "pokemon_id": 538,
+          "pokemon_name": "Throh",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/538.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 539,
+      "pokemon_name": "Sawk",
+      "final_evolutions": [
+        {
+          "pokemon_id": 539,
+          "pokemon_name": "Sawk",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/539.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 540,
+      "pokemon_name": "Sewaddle",
+      "final_evolutions": [
+        {
+          "pokemon_id": 542,
+          "pokemon_name": "Leavanny",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/542.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 541,
+      "pokemon_name": "Swadloon",
+      "final_evolutions": [
+        {
+          "pokemon_id": 542,
+          "pokemon_name": "Leavanny",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/542.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 542,
+      "pokemon_name": "Leavanny",
+      "final_evolutions": [
+        {
+          "pokemon_id": 542,
+          "pokemon_name": "Leavanny",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/542.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 543,
+      "pokemon_name": "Venipede",
+      "final_evolutions": [
+        {
+          "pokemon_id": 545,
+          "pokemon_name": "Scolipede",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/545.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 544,
+      "pokemon_name": "Whirlipede",
+      "final_evolutions": [
+        {
+          "pokemon_id": 545,
+          "pokemon_name": "Scolipede",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/545.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 545,
+      "pokemon_name": "Scolipede",
+      "final_evolutions": [
+        {
+          "pokemon_id": 545,
+          "pokemon_name": "Scolipede",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/545.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 546,
+      "pokemon_name": "Cottonee",
+      "final_evolutions": [
+        {
+          "pokemon_id": 547,
+          "pokemon_name": "Whimsicott",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/547.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 548,
+      "pokemon_name": "Petilil",
+      "final_evolutions": [
+        {
+          "pokemon_id": 549,
+          "pokemon_name": "Lilligant",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/549.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 549,
+      "pokemon_name": "Lilligant",
+      "final_evolutions": [
+        {
+          "pokemon_id": 549,
+          "pokemon_name": "Lilligant",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/549.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 550,
+      "pokemon_name": "Basculin",
+      "final_evolutions": [
+        {
+          "pokemon_id": 550,
+          "pokemon_name": "Basculin",
+          "form_name": "Basculin Red Striped",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/550.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 551,
+      "pokemon_name": "Sandile",
+      "final_evolutions": [
+        {
+          "pokemon_id": 553,
+          "pokemon_name": "Krookodile",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/553.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 552,
+      "pokemon_name": "Krokorok",
+      "final_evolutions": [
+        {
+          "pokemon_id": 553,
+          "pokemon_name": "Krookodile",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/553.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 554,
+      "pokemon_name": "Darumaka",
+      "final_evolutions": [
+        {
+          "pokemon_id": 555,
+          "pokemon_name": "Darmanitan",
+          "form_name": "Darmanitan Standard",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/555.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 556,
+      "pokemon_name": "Maractus",
+      "final_evolutions": [
+        {
+          "pokemon_id": 556,
+          "pokemon_name": "Maractus",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/556.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 557,
+      "pokemon_name": "Dwebble",
+      "final_evolutions": [
+        {
+          "pokemon_id": 558,
+          "pokemon_name": "Crustle",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/558.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 558,
+      "pokemon_name": "Crustle",
+      "final_evolutions": [
+        {
+          "pokemon_id": 558,
+          "pokemon_name": "Crustle",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/558.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 559,
+      "pokemon_name": "Scraggy",
+      "final_evolutions": [
+        {
+          "pokemon_id": 560,
+          "pokemon_name": "Scrafty",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/560.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 560,
+      "pokemon_name": "Scrafty",
+      "final_evolutions": [
+        {
+          "pokemon_id": 560,
+          "pokemon_name": "Scrafty",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/560.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 561,
+      "pokemon_name": "Sigilyph",
+      "final_evolutions": [
+        {
+          "pokemon_id": 561,
+          "pokemon_name": "Sigilyph",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/561.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 562,
+      "pokemon_name": "Yamask",
+      "final_evolutions": [
+        {
+          "pokemon_id": 563,
+          "pokemon_name": "Cofagrigus",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/563.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 564,
+      "pokemon_name": "Tirtouga",
+      "final_evolutions": [
+        {
+          "pokemon_id": 565,
+          "pokemon_name": "Carracosta",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/565.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 566,
+      "pokemon_name": "Archen",
+      "final_evolutions": [
+        {
+          "pokemon_id": 567,
+          "pokemon_name": "Archeops",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/567.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 568,
+      "pokemon_name": "Trubbish",
+      "final_evolutions": [
+        {
+          "pokemon_id": 569,
+          "pokemon_name": "Garbodor",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/569.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 569,
+      "pokemon_name": "Garbodor",
+      "final_evolutions": [
+        {
+          "pokemon_id": 569,
+          "pokemon_name": "Garbodor",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/569.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 570,
+      "pokemon_name": "Zorua",
+      "final_evolutions": [
+        {
+          "pokemon_id": 571,
+          "pokemon_name": "Zoroark",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/571.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 572,
+      "pokemon_name": "Minccino",
+      "final_evolutions": [
+        {
+          "pokemon_id": 573,
+          "pokemon_name": "Cinccino",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/573.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 573,
+      "pokemon_name": "Cinccino",
+      "final_evolutions": [
+        {
+          "pokemon_id": 573,
+          "pokemon_name": "Cinccino",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/573.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 577,
+      "pokemon_name": "Solosis",
+      "final_evolutions": [
+        {
+          "pokemon_id": 579,
+          "pokemon_name": "Reuniclus",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/579.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 578,
+      "pokemon_name": "Duosion",
+      "final_evolutions": [
+        {
+          "pokemon_id": 579,
+          "pokemon_name": "Reuniclus",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/579.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 579,
+      "pokemon_name": "Reuniclus",
+      "final_evolutions": [
+        {
+          "pokemon_id": 579,
+          "pokemon_name": "Reuniclus",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/579.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 580,
+      "pokemon_name": "Ducklett",
+      "final_evolutions": [
+        {
+          "pokemon_id": 581,
+          "pokemon_name": "Swanna",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/581.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 581,
+      "pokemon_name": "Swanna",
+      "final_evolutions": [
+        {
+          "pokemon_id": 581,
+          "pokemon_name": "Swanna",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/581.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 583,
+      "pokemon_name": "Vanillish",
+      "final_evolutions": [
+        {
+          "pokemon_id": 584,
+          "pokemon_name": "Vanilluxe",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/584.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 584,
+      "pokemon_name": "Vanilluxe",
+      "final_evolutions": [
+        {
+          "pokemon_id": 584,
+          "pokemon_name": "Vanilluxe",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/584.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 585,
+      "pokemon_name": "Deerling",
+      "final_evolutions": [
+        {
+          "pokemon_id": 586,
+          "pokemon_name": "Sawsbuck",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/586.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 586,
+      "pokemon_name": "Sawsbuck",
+      "final_evolutions": [
+        {
+          "pokemon_id": 586,
+          "pokemon_name": "Sawsbuck",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/586.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 587,
+      "pokemon_name": "Emolga",
+      "final_evolutions": [
+        {
+          "pokemon_id": 587,
+          "pokemon_name": "Emolga",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/587.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 588,
+      "pokemon_name": "Karrablast",
+      "final_evolutions": [
+        {
+          "pokemon_id": 589,
+          "pokemon_name": "Escavalier",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/589.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 590,
+      "pokemon_name": "Foongus",
+      "final_evolutions": [
+        {
+          "pokemon_id": 591,
+          "pokemon_name": "Amoonguss",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/591.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 591,
+      "pokemon_name": "Amoonguss",
+      "final_evolutions": [
+        {
+          "pokemon_id": 591,
+          "pokemon_name": "Amoonguss",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/591.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 592,
+      "pokemon_name": "Frillish",
+      "final_evolutions": [
+        {
+          "pokemon_id": 593,
+          "pokemon_name": "Jellicent",
+          "form_name": "Jellicent Male",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/593.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 593,
+      "pokemon_name": "Jellicent",
+      "final_evolutions": [
+        {
+          "pokemon_id": 593,
+          "pokemon_name": "Jellicent",
+          "form_name": "Jellicent Male",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/593.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 594,
+      "pokemon_name": "Alomomola",
+      "final_evolutions": [
+        {
+          "pokemon_id": 594,
+          "pokemon_name": "Alomomola",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/594.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 595,
+      "pokemon_name": "Joltik",
+      "final_evolutions": [
+        {
+          "pokemon_id": 596,
+          "pokemon_name": "Galvantula",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/596.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 597,
+      "pokemon_name": "Ferroseed",
+      "final_evolutions": [
+        {
+          "pokemon_id": 598,
+          "pokemon_name": "Ferrothorn",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/598.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 599,
+      "pokemon_name": "Klink",
+      "final_evolutions": [
+        {
+          "pokemon_id": 601,
+          "pokemon_name": "Klinklang",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/601.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 600,
+      "pokemon_name": "Klang",
+      "final_evolutions": [
+        {
+          "pokemon_id": 601,
+          "pokemon_name": "Klinklang",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/601.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 601,
+      "pokemon_name": "Klinklang",
+      "final_evolutions": [
+        {
+          "pokemon_id": 601,
+          "pokemon_name": "Klinklang",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/601.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 602,
+      "pokemon_name": "Tynamo",
+      "final_evolutions": [
+        {
+          "pokemon_id": 604,
+          "pokemon_name": "Eelektross",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/604.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 603,
+      "pokemon_name": "Eelektrik",
+      "final_evolutions": [
+        {
+          "pokemon_id": 604,
+          "pokemon_name": "Eelektross",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/604.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 605,
+      "pokemon_name": "Elgyem",
+      "final_evolutions": [
+        {
+          "pokemon_id": 606,
+          "pokemon_name": "Beheeyem",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/606.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 607,
+      "pokemon_name": "Litwick",
+      "final_evolutions": [
+        {
+          "pokemon_id": 609,
+          "pokemon_name": "Chandelure",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/609.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 610,
+      "pokemon_name": "Axew",
+      "final_evolutions": [
+        {
+          "pokemon_id": 612,
+          "pokemon_name": "Haxorus",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/612.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 611,
+      "pokemon_name": "Fraxure",
+      "final_evolutions": [
+        {
+          "pokemon_id": 612,
+          "pokemon_name": "Haxorus",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/612.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 612,
+      "pokemon_name": "Haxorus",
+      "final_evolutions": [
+        {
+          "pokemon_id": 612,
+          "pokemon_name": "Haxorus",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/612.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 613,
+      "pokemon_name": "Cubchoo",
+      "final_evolutions": [
+        {
+          "pokemon_id": 614,
+          "pokemon_name": "Beartic",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/614.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 614,
+      "pokemon_name": "Beartic",
+      "final_evolutions": [
+        {
+          "pokemon_id": 614,
+          "pokemon_name": "Beartic",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/614.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 615,
+      "pokemon_name": "Cryogonal",
+      "final_evolutions": [
+        {
+          "pokemon_id": 615,
+          "pokemon_name": "Cryogonal",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/615.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 616,
+      "pokemon_name": "Shelmet",
+      "final_evolutions": [
+        {
+          "pokemon_id": 617,
+          "pokemon_name": "Accelgor",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/617.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 618,
+      "pokemon_name": "Stunfisk",
+      "final_evolutions": [
+        {
+          "pokemon_id": 618,
+          "pokemon_name": "Stunfisk",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/618.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 619,
+      "pokemon_name": "Mienfoo",
+      "final_evolutions": [
+        {
+          "pokemon_id": 620,
+          "pokemon_name": "Mienshao",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/620.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 620,
+      "pokemon_name": "Mienshao",
+      "final_evolutions": [
+        {
+          "pokemon_id": 620,
+          "pokemon_name": "Mienshao",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/620.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 621,
+      "pokemon_name": "Druddigon",
+      "final_evolutions": [
+        {
+          "pokemon_id": 621,
+          "pokemon_name": "Druddigon",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/621.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 623,
+      "pokemon_name": "Golurk",
+      "final_evolutions": [
+        {
+          "pokemon_id": 623,
+          "pokemon_name": "Golurk",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/623.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 624,
+      "pokemon_name": "Pawniard",
+      "final_evolutions": [
+        {
+          "pokemon_id": 625,
+          "pokemon_name": "Bisharp",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/625.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 626,
+      "pokemon_name": "Bouffalant",
+      "final_evolutions": [
+        {
+          "pokemon_id": 626,
+          "pokemon_name": "Bouffalant",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/626.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 627,
+      "pokemon_name": "Rufflet",
+      "final_evolutions": [
+        {
+          "pokemon_id": 628,
+          "pokemon_name": "Braviary",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/628.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 628,
+      "pokemon_name": "Braviary",
+      "final_evolutions": [
+        {
+          "pokemon_id": 628,
+          "pokemon_name": "Braviary",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/628.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 631,
+      "pokemon_name": "Heatmor",
+      "final_evolutions": [
+        {
+          "pokemon_id": 631,
+          "pokemon_name": "Heatmor",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/631.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 632,
+      "pokemon_name": "Durant",
+      "final_evolutions": [
+        {
+          "pokemon_id": 632,
+          "pokemon_name": "Durant",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/632.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 634,
+      "pokemon_name": "Zweilous",
+      "final_evolutions": [
+        {
+          "pokemon_id": 635,
+          "pokemon_name": "Hydreigon",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/635.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 637,
+      "pokemon_name": "Volcarona",
+      "final_evolutions": [
+        {
+          "pokemon_id": 637,
+          "pokemon_name": "Volcarona",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/637.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 638,
+      "pokemon_name": "Cobalion",
+      "final_evolutions": [
+        {
+          "pokemon_id": 638,
+          "pokemon_name": "Cobalion",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/638.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 639,
+      "pokemon_name": "Terrakion",
+      "final_evolutions": [
+        {
+          "pokemon_id": 639,
+          "pokemon_name": "Terrakion",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/639.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 640,
+      "pokemon_name": "Virizion",
+      "final_evolutions": [
+        {
+          "pokemon_id": 640,
+          "pokemon_name": "Virizion",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/640.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 643,
+      "pokemon_name": "Reshiram",
+      "final_evolutions": [
+        {
+          "pokemon_id": 643,
+          "pokemon_name": "Reshiram",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/643.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 646,
+      "pokemon_name": "Kyurem",
+      "final_evolutions": [
+        {
+          "pokemon_id": 646,
+          "pokemon_name": "Kyurem",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/646.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 10016,
+      "pokemon_name": "Basculin",
+      "final_evolutions": [
+        {
+          "pokemon_id": 550,
+          "pokemon_name": "Basculin",
+          "form_name": "Basculin Red Striped",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/550.png"
+        }
+      ]
+    }
+  ]
+}

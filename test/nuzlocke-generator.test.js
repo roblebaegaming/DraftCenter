@@ -227,3 +227,20 @@ test("reviewed Generation IV catalogs support activated encounter systems and ge
     assert.equal(finals.complete,true);assert.ok(finals.team.every((row)=>row.is_final_evolution&&row.pokemon_id<=493));assert.deepEqual(finals,generateNuzlockeTeam(catalog.encounters,finalOptions));
   }
 });
+test("reviewed Generation V catalogs support starters, seasons, swarms, weekday encounters, Hidden Grottoes, and generation-limited final evolutions",()=>{
+  for(const game of ["black","white","black-2","white-2"]){
+    const catalog=JSON.parse(fs.readFileSync(new URL(`../data/nuzlocke/pokemon-${game}.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json`,import.meta.url),"utf8"));
+    const evolutionCatalog=JSON.parse(fs.readFileSync(new URL(`../data/nuzlocke/pokemon-${game}-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json`,import.meta.url),"utf8"));
+    const conditionSelections={season:"spring",swarm:"no",weekday:"other"};
+    const options={seed:`${game}-review`,teamSize:12,mode:"route-random",weighting:"authentic",familyClause:true,excludeLegendaries:true,includeStarter:true,starters:catalog.game.starters,conditionGroups:catalog.game.condition_groups,conditionSelections};
+    const result=generateNuzlockeTeam(catalog.encounters,options);
+    assert.equal(result.complete,true);assert.ok([495,498,501].includes(result.team[0].pokemon_id));assert.equal(new Set(result.team.map((row)=>row.species_family)).size,12);
+    const selectedConditions=new Set(result.team.flatMap((row)=>row.conditions||[]));
+    assert.ok(!selectedConditions.has("season-summer")&&!selectedConditions.has("season-autumn")&&!selectedConditions.has("season-winter")&&!selectedConditions.has("swarm-yes")&&!selectedConditions.has("weekday-monday")&&!selectedConditions.has("weekday-thursday")&&!selectedConditions.has("weekday-friday"));
+    assert.deepEqual(result,generateNuzlockeTeam(catalog.encounters,options));
+    const finalOptions={...options,includeStarter:false,finalEvolutionOnly:true,evolutionCatalog};const finals=generateNuzlockeTeam(catalog.encounters,finalOptions);
+    assert.equal(finals.complete,true);assert.ok(finals.team.every((row)=>row.is_final_evolution&&row.pokemon_id<=649));assert.deepEqual(finals,generateNuzlockeTeam(catalog.encounters,finalOptions));
+    assert.deepEqual(new Set(evolutionCatalog.evolutions.map((row)=>row.pokemon_id)),new Set(catalog.encounters.map((row)=>row.pokemon_id)));
+    if(game.endsWith("-2")) assert.equal(catalog.encounters.filter((row)=>row.method==="hidden-grotto").length,70);
+  }
+});
