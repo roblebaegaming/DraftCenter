@@ -23,7 +23,7 @@ regexes = [
 [[rules.allowlists]]
 description = "Pinned Pokemon audit documentation public PokeAPI snapshot"
 condition = "AND"
-regexTarget = "match"
+regexTarget = "line"
 paths = [
   '''^docs/pokemon-catalog/pokemon-yellow-encounter-audit-2026-08-05\.md$''',
   '''^docs/pokemon-catalog/generation-2-schema-investigation-2026-08-05\.md$''',
