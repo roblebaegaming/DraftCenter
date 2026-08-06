@@ -16,7 +16,7 @@ test("daily games hub leads with DraftCenter and uses safe external links", () =
   const page = source("src/components/DailyGamesResourcesPage.jsx");
   assert.match(page, /href="\/explore"/);
   for (const destination of ["pokedoku.io", "pokedle.io", "squirdle.fireblend.com", "pokedoodle.com", "pokequizz.com", "poketypequiz.com", "pokyfriends.com"]) {
-    assert.match(page, new RegExp(destination.replaceAll(".", "\\.")));
+    assert.ok(page.includes(destination), `missing daily-game destination: ${destination}`);
   }
   assert.doesNotMatch(page, /<iframe/i);
   assert.equal((page.match(/target="_blank" rel="noreferrer"/g) || []).length, 1);
