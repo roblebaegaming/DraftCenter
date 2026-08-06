@@ -2,119 +2,45 @@
 
 - Last updated: August 6, 2026
 - Production: https://www.draftcentral.gg
-- Repository: `roblebaegaming/DraftCenter`
 - Production branch: `main`
-- Verified application release: `3d67d98`
+- Verified production release: `3d67d98`
+- Latest production migration: 260
 
 ## Status
 
-DraftCenter is approved for monitored public use and real drafts. There are no
-known launch blockers.
+DraftCenter production remains approved for monitored public use and real
+drafts. The Nuzlocke, tournaments, Daily Games, and Trainer Dex integration is
+Preview-only and has not changed production.
 
-Pull request [#41](https://github.com/roblebaegaming/DraftCenter/pull/41) is
-released. Draft reminders now expire against authoritative draft state, stale
-turn alerts are discarded, the footer has one clean resource/support link set,
-and the owner-only Daily Three Operations page includes a future editorial
-calendar with a separate human-first Question of the Day. Migration 260 is on
-the core production database with RLS and grants verified. The deployed source
-was confirmed at `3d67d98`; the owner calendar loaded successfully and the
-signed-out production smoke sweep passed.
+Branch `codex/nuzlocke-tournaments-daily-integration` combines all 37 audited
+main-series Nuzlocke game catalogs from Red through Violet, standalone
+single-elimination tournaments, Daily Games resources, and the signed-in
+Trainer Dex. The integrated application head is `1fc6399`; the dated release
+handoff follows on the same branch. Its forward-only production migration map
+is collision-free: Nuzlocke 261-339, tournaments 340, Trainer Dex 341, and the
+Trainer Dex draft-name correction 342.
 
-The Pallet Town feedback release in pull request
-[#34](https://github.com/roblebaegaming/DraftCenter/pull/34) remains live.
-Migrations 252-255 are present on the core production database.
+The isolated Preview database reports 37 verified catalogs and no pending
+catalogs. Catalog/RLS audits, signed-out UI checks, signed-in Daily discovery
+and shiny checks, and an isolated practice-league draft pick/undo check pass.
+The draft check also verified that Trainer Dex records the Pokémon name rather
+than a numeric pool identifier and removes that discovery after undo. The
+disposable account and practice league were deleted after testing.
 
-Nuzlocke Lab and standalone tournaments are not in production. Nuzlocke pull
-request [#38](https://github.com/roblebaegaming/DraftCenter/pull/38) is rebased
-onto the current mainline with separate audited Red and Blue catalogs and
-unpublished migrations 261-266. Its isolated Preview database reports both
-games verified, all six repository checks pass, the full local validation suite
-passes, and live deterministic/shared/final-evolution browser checks pass. A
-narrow mobile visual review remains before release. Stacked tournament pull
-request [#39](https://github.com/roblebaegaming/DraftCenter/pull/39) must follow
-the released Nuzlocke work, receive the first unused migration number, and be
-revalidated in its isolated Preview.
+The dependency audit, full application test suite, all 1,027 National Dex
+rows, and the 111-page production build pass. Preview is available at
+https://draftcenter-git-codex-nuzlocke-tournaments-dai-5c9468-rob-lebae.vercel.app.
 
-Follow-on branch `codex/nuzlocke-gen2` has Pokemon Yellow plus independently
-audited Gold, Silver, and Crystal locally prepared. It adds starter metadata,
-shareable time/swarm/weekday filters, the Bug-Catching Contest, and unpublished
-migrations 267-275. Focused tests and all four source audits pass. Preview
-migration and visual validation remain paused until the isolated Preview
-credential is rotated; none of this follow-on work is in production.
+## Remaining release gates
 
-Stacked branch `codex/nuzlocke-gen3` has separate independently audited Ruby,
-Sapphire, Emerald, FireRed, and LeafGreen catalogs locally prepared with
-unpublished migrations 276-285. It covers Hoenn and Sevii encounters, Feebas
-tiles, Rock Smash, starter-dependent roaming beasts, fossils, postgame state,
-and all nine Altering Cave tables. All five source audits, the full application
-suite, the 1,027-row National Dex check, dependency audit, and 108-page build
-pass locally. The migrations have not been applied to Preview or production;
-Preview database and visual validation remain required.
-
-Stacked pull request [#45](https://github.com/roblebaegaming/DraftCenter/pull/45)
-on branch `codex/nuzlocke-gen4` has separate independently audited Diamond,
-Pearl, Platinum, HeartGold, and SoulSilver catalogs locally prepared with
-unpublished migrations 286-295. It covers Sinnoh time windows, swarms,
-Poke Radar, dual-slot cartridges, Trophy Garden, Great Marsh, and Honey Trees,
-plus the remakes' weekday/radio, Bug-Catching Contest, headbutt-tree, Safari
-block, and version-exclusive encounters. All five source audits, 40 focused
-regressions, the full application suite, the 1,027-row National Dex check,
-dependency audit, and 108-page build pass locally. The migrations have not been
-applied to Preview or production; Preview database and visual validation remain
-required.
-
-Stacked branch `codex/nuzlocke-gen5` has separate independently audited Black,
-White, Black 2, and White 2 catalogs locally prepared with unpublished
-migrations 296-303. It covers seasons, phenomenon encounters, exact PKHeX
-swarm tables, weekday-only static encounters, Regi keys, and 70 explicit
-Hidden Grotto rows in each sequel. All four source audits, 42 focused
-regressions, the full application suite, the 1,027-row National Dex check,
-dependency audit, and 108-page build pass locally. The migrations have not
-been applied to Preview or production; Preview database, CI, and visual
-validation remain.
-
-Stacked branch `codex/nuzlocke-gen6` has separate independently audited X, Y,
-Omega Ruby, and Alpha Sapphire catalogs locally prepared with unpublished
-migrations 304-311. It covers hordes, a one-location opt-in Friend Safari,
-starter-matched legendary birds, exact ORAS wild tables, National Pokédex
-DexNav species, rotating Mirage Spots, soaring, schedules, and
-version-exclusive forms. No schema change was required. All four source
-audits, 44 focused regressions, the full application suite, all 1,027 National
-Dex rows, the production dependency audit, and a 108-page production build
-pass locally. Preview database, CI, and visual validation remain; nothing from
-this stack is in production.
-
-Stacked branch `codex/nuzlocke-gen7` has separate independently audited Sun,
-Moon, Ultra Sun, Ultra Moon, Let's Go Pikachu, and Let's Go Eevee catalogs
-locally prepared with unpublished migrations 312-323. It covers SOS allies,
-weekday Island Scan, Poké Pelago, one-location Ultra Warp Ride, pair-required
-legends, QR gifts, visible overworld encounters, rare/catch-combo pools,
-postgame flying encounters, and repeated roaming birds. No schema change was
-required. All six source audits, 46 focused regressions, the full application
-suite, all 1,027 National Dex rows, the production dependency audit, and a
-108-page production build pass locally. Preview database, CI, and visual
-validation remain; nothing from this stack is in production.
-
-Stacked branch `codex/nuzlocke-gen8` has separate independently audited Sword,
-Shield, Brilliant Diamond, Shining Pearl, and Legends: Arceus catalogs locally
-prepared with unpublished migrations 324-333. It covers weather and visible
-encounters, both Sword/Shield expansions, stock raids and Dynamax Adventures,
-Grand Underground hideaways, Alpha Pokemon, landmarks, distortions, outbreaks,
-and mass outbreaks. All five source audits and 48 focused regressions pass.
-The full application suite, all 1,027 National Dex rows, production dependency
-audit, and 108-page production build also pass locally. CI, Preview database,
-and visual validation remain; nothing from this stack is in production.
-
-Stacked branch `codex/nuzlocke-gen9` has separate independently audited
-Scarlet and Violet catalogs locally prepared with unpublished migrations
-334-337. It covers Paldea, The Teal Mask, The Indigo Disk, time, weather,
-fixed encounters, gifts, trades, stock Tera Raids, Union Circle-required
-legendary snacks, selected historical distribution raids, and version-specific
-base-game and DLC encounters. No schema change was required. Both source
-audits, 50 focused regressions, the full application suite, all 1,027 National
-Dex rows, the production dependency audit, and the 108-page production build
-pass locally. CI, Preview database, and visual validation remain; nothing from
-this stack is in production.
+- Deploy and verify the final integration branch head on the stable Preview.
+- Open the integration pull request and require its repository checks/review.
+- Complete the narrow mobile visual pass and, if Vercel protection remains,
+  one deployment-origin signed-in confirmation.
+- Rehearse the exact 261-342 production migration sequence against current
+  production schema state.
+- Obtain explicit owner approval before any production migration, merge, or
+  deployment. Production must not receive the legacy Preview fixture repairs.
 
 ## Active watch items
 
@@ -125,21 +51,12 @@ this stack is in production.
 - The inactive generic Supabase fallback and its schema drift; do not change
   provider configuration or either project without exact-ID owner approval
 
-## Non-blocking work
-
-- Apple Mail, Samsung Email, or Thunderbird coverage
-- Continued performance monitoring
-- August-December SEO roadmap
-- Further polling optimization after regression coverage
-
 ## Authoritative records
 
-- Detailed current handoff:
-  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-05-nuzlocke-tournaments-finalization.md`](handoffs/DraftCenter-agent-handoff-2026-08-05-nuzlocke-tournaments-finalization.md)
+- Current detailed handoff:
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-06-release-integration.md`](handoffs/DraftCenter-agent-handoff-2026-08-06-release-integration.md)
 - Pallet Town release record:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-04-test-draft-feedback.md`](handoffs/DraftCenter-agent-handoff-2026-08-04-test-draft-feedback.md)
-- Last broad production handoff:
-  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-04-final.md`](handoffs/DraftCenter-agent-handoff-2026-08-04-final.md)
 - Security remediation:
   [`docs/DraftCenter-security-remediation-2026-08-02.md`](DraftCenter-security-remediation-2026-08-02.md)
 - Retention and recovery:
