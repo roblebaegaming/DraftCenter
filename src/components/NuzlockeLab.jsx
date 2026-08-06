@@ -15,6 +15,7 @@ export default function NuzlockeLab() {
   const [weighting, setWeighting] = useState("equal");
   const [familyClause, setFamilyClause] = useState(true);
   const [excludeLegendaries, setExcludeLegendaries] = useState(true);
+  const [includeStarter, setIncludeStarter] = useState(true);
   const [finalEvolutionOnly, setFinalEvolutionOnly] = useState(false);
   const [methods, setMethods] = useState([]);
   const [exclusions, setExclusions] = useState("");
@@ -30,6 +31,7 @@ export default function NuzlockeLab() {
     if (["equal", "authentic"].includes(params.get("weighting"))) setWeighting(params.get("weighting"));
     setFamilyClause(params.get("family") !== "off");
     setExcludeLegendaries(params.get("legendaries") !== "include");
+    setIncludeStarter(!params.has("seed") || params.get("starter") === "include");
     setFinalEvolutionOnly(params.get("evolutions") === "final");
     const sharedMethods = (params.get("methods") || "").split(",").filter((item) => /^[a-z0-9-]{1,40}$/.test(item)).slice(0, 30);
     setMethods(sharedMethods);
@@ -52,16 +54,17 @@ export default function NuzlockeLab() {
     url.searchParams.set("size", String(teamSize)); url.searchParams.set("mode", mode); url.searchParams.set("weighting", weighting);
     if (!familyClause) url.searchParams.set("family", "off");
     if (!excludeLegendaries) url.searchParams.set("legendaries", "include");
+    if (includeStarter) url.searchParams.set("starter", "include");
     if (finalEvolutionOnly) url.searchParams.set("evolutions", "final");
     if (methods.length) url.searchParams.set("methods", methods.join(","));
     if (exclusions.trim()) url.searchParams.set("exclude", exclusions.trim().slice(0, 500));
     return url.toString();
-  }, [excludeLegendaries, exclusions, familyClause, finalEvolutionOnly, game, methods, mode, seed, teamSize, weighting]);
+  }, [excludeLegendaries, exclusions, familyClause, finalEvolutionOnly, game, includeStarter, methods, mode, seed, teamSize, weighting]);
 
   async function generate(event) {
     event.preventDefault(); setLoading(true); setMessage(""); setResult(null);
     try {
-      const response = await fetch("/api/nuzlocke", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ game, seed, teamSize, mode, weighting, familyClause, excludeLegendaries, finalEvolutionOnly, methods, exclusions: exclusions.split(",").map((item) => item.trim()).filter(Boolean) }) });
+      const response = await fetch("/api/nuzlocke", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ game, seed, teamSize, mode, weighting, familyClause, excludeLegendaries, includeStarter, finalEvolutionOnly, methods, exclusions: exclusions.split(",").map((item) => item.trim()).filter(Boolean) }) });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error);
       setResult(data);
@@ -83,6 +86,7 @@ export default function NuzlockeLab() {
       <label>Exclude Pokémon<input value={exclusions} onChange={(event) => setExclusions(event.target.value)} placeholder="Pikachu, Zubat" /><small>Separate names with commas.</small></label>
       <label className="check-row"><input type="checkbox" checked={familyClause} onChange={(event) => setFamilyClause(event.target.checked)} />Species/evolutionary-family clause</label>
       <label className="check-row"><input type="checkbox" checked={excludeLegendaries} onChange={(event) => setExcludeLegendaries(event.target.checked)} />Exclude legendary Pokémon</label>
+      <div className="nuzlocke-rule-option"><label className="check-row"><input type="checkbox" checked={includeStarter} onChange={(event) => setIncludeStarter(event.target.checked)} aria-describedby="starter-help" />Include a starter Pokémon</label><small id="starter-help">Uses the Run code to choose one of this game&apos;s starters and counts it as one team slot.</small></div>
       <div className="nuzlocke-rule-option"><label className="check-row"><input type="checkbox" checked={finalEvolutionOnly} onChange={(event) => setFinalEvolutionOnly(event.target.checked)} aria-describedby="final-evolution-help" />Final evolutions or non-evolving Pokémon only</label><small id="final-evolution-help">Shows each catch as a seeded final evolution available in that game, while preserving its original route and encounter details.</small></div>
       <button className="primary-button" disabled={loading || !game || !seed}>{loading ? "Generating…" : "Generate Run Card"}</button>{message && <p className="hub-message" role="status">{message}</p>}
     </form>
