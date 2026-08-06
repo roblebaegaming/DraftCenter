@@ -208,6 +208,7 @@ production deployment.
 - FireRed migrations: 282-283
 - LeafGreen migrations: 284-285
 - Generation IV branch: `codex/nuzlocke-gen4`
+- Generation IV pull request: [#45](https://github.com/roblebaegaming/DraftCenter/pull/45)
 - Diamond migrations: 286-287
 - Pearl migrations: 288-289
 - Platinum migrations: 290-291
@@ -281,11 +282,12 @@ remake catalogs load completely.
 The five source audits, 40 focused Nuzlocke regressions, full application suite,
 1,027-row National Dex check, production dependency audit, and 108-page build
 pass locally. Migrations 286-295 remain unapplied and no Preview or production
-database was changed. The local gitleaks binary was not available, so the
-repository secret scan remains a required CI gate. After the isolated Preview
-credential is rotated, apply migrations 267-295 in order, verify exact counts
-plus RLS/grants, and complete desktop/mobile shared-link and condition-filter
-testing for each stacked generation before release.
+database was changed. PR #45's full-history secret scan, CodeQL, JavaScript
+security analysis, and security/test/dependency checks pass; its Supabase
+Preview job is intentionally skipped until the isolated credential is rotated.
+After rotation, apply migrations 267-295 in order, verify exact counts plus
+RLS/grants, and complete desktop/mobile shared-link and condition-filter testing
+for each stacked generation before release.
 
 ## Remaining Nuzlocke game roadmap
 

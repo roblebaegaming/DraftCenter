@@ -51,9 +51,10 @@ suite, the 1,027-row National Dex check, dependency audit, and 108-page build
 pass locally. The migrations have not been applied to Preview or production;
 Preview database and visual validation remain required.
 
-Stacked branch `codex/nuzlocke-gen4` has separate independently audited
-Diamond, Pearl, Platinum, HeartGold, and SoulSilver catalogs locally prepared
-with unpublished migrations 286-295. It covers Sinnoh time windows, swarms,
+Stacked pull request [#45](https://github.com/roblebaegaming/DraftCenter/pull/45)
+on branch `codex/nuzlocke-gen4` has separate independently audited Diamond,
+Pearl, Platinum, HeartGold, and SoulSilver catalogs locally prepared with
+unpublished migrations 286-295. It covers Sinnoh time windows, swarms,
 Poke Radar, dual-slot cartridges, Trophy Garden, Great Marsh, and Honey Trees,
 plus the remakes' weekday/radio, Bug-Catching Contest, headbutt-tree, Safari
 block, and version-exclusive encounters. All five source audits, 40 focused
