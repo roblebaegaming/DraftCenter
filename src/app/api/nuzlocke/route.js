@@ -19,6 +19,10 @@ import pearlEvolutionCatalog from "../../../../data/nuzlocke/pokemon-pearl-evolu
 import platinumEvolutionCatalog from "../../../../data/nuzlocke/pokemon-platinum-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json";
 import heartgoldEvolutionCatalog from "../../../../data/nuzlocke/pokemon-heartgold-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json";
 import soulsilverEvolutionCatalog from "../../../../data/nuzlocke/pokemon-soulsilver-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json";
+import blackEvolutionCatalog from "../../../../data/nuzlocke/pokemon-black-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json";
+import whiteEvolutionCatalog from "../../../../data/nuzlocke/pokemon-white-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json";
+import black2EvolutionCatalog from "../../../../data/nuzlocke/pokemon-black-2-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json";
+import white2EvolutionCatalog from "../../../../data/nuzlocke/pokemon-white-2-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json";
 
 export const runtime = "nodejs";
 const GAME_KEY = /^[a-z0-9-]{2,64}$/;
@@ -29,6 +33,8 @@ const EVOLUTION_CATALOGS = Object.freeze({
   firered: fireredEvolutionCatalog, leafgreen: leafgreenEvolutionCatalog,
   diamond: diamondEvolutionCatalog, pearl: pearlEvolutionCatalog, platinum: platinumEvolutionCatalog,
   heartgold: heartgoldEvolutionCatalog, soulsilver: soulsilverEvolutionCatalog,
+  black: blackEvolutionCatalog, white: whiteEvolutionCatalog,
+  "black-2": black2EvolutionCatalog, "white-2": white2EvolutionCatalog,
 });
 const MAX_CATALOG_ENCOUNTERS = 7500;
 const KANTO_STARTERS = Object.freeze([
@@ -52,7 +58,12 @@ const SINNOH_STARTERS = Object.freeze([
   { pokemon_id: 390, pokemon_name: "Chimchar", form_name: "", species_family: "evolution-chain-204", artwork_url: "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/390.png" },
   { pokemon_id: 393, pokemon_name: "Piplup", form_name: "", species_family: "evolution-chain-205", artwork_url: "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/393.png" },
 ]);
-const GAME_STARTERS = Object.freeze({ red: KANTO_STARTERS, blue: KANTO_STARTERS, yellow: YELLOW_STARTER, gold: JOHTO_STARTERS, silver: JOHTO_STARTERS, crystal: JOHTO_STARTERS, ruby: HOENN_STARTERS, sapphire: HOENN_STARTERS, emerald: HOENN_STARTERS, firered: KANTO_STARTERS, leafgreen: KANTO_STARTERS, diamond: SINNOH_STARTERS, pearl: SINNOH_STARTERS, platinum: SINNOH_STARTERS, heartgold: JOHTO_STARTERS, soulsilver: JOHTO_STARTERS });
+const UNOVA_STARTERS = Object.freeze([
+  { pokemon_id: 495, pokemon_name: "Snivy", form_name: "", species_family: "evolution-chain-256", artwork_url: "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/495.png" },
+  { pokemon_id: 498, pokemon_name: "Tepig", form_name: "", species_family: "evolution-chain-257", artwork_url: "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/498.png" },
+  { pokemon_id: 501, pokemon_name: "Oshawott", form_name: "", species_family: "evolution-chain-258", artwork_url: "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/501.png" },
+]);
+const GAME_STARTERS = Object.freeze({ red: KANTO_STARTERS, blue: KANTO_STARTERS, yellow: YELLOW_STARTER, gold: JOHTO_STARTERS, silver: JOHTO_STARTERS, crystal: JOHTO_STARTERS, ruby: HOENN_STARTERS, sapphire: HOENN_STARTERS, emerald: HOENN_STARTERS, firered: KANTO_STARTERS, leafgreen: KANTO_STARTERS, diamond: SINNOH_STARTERS, pearl: SINNOH_STARTERS, platinum: SINNOH_STARTERS, heartgold: JOHTO_STARTERS, soulsilver: JOHTO_STARTERS, black: UNOVA_STARTERS, white: UNOVA_STARTERS, "black-2": UNOVA_STARTERS, "white-2": UNOVA_STARTERS });
 
 export async function GET() {
   try {
@@ -78,7 +89,7 @@ export async function POST(request) {
     const body = parsed.data;
     if (!GAME_KEY.test(String(body.game || ""))) return Response.json({ error: "Choose a supported game." }, { status: 400 });
     const seed = String(body.seed || "").slice(0, 80);
-    if (!seed) return Response.json({ error: "Enter a seed." }, { status: 400 });
+    if (!seed) return Response.json({ error: "Enter a team code." }, { status: 400 });
     const adminClient = createAdminClient();
     if (!await consumeUserRateLimit(adminClient, "nuzlocke-generate", requestIpAddress(request), 30, 600)) {
       return Response.json({ error: "Too many teams were generated. Try again in a few minutes." }, { status: 429 });

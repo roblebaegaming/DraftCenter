@@ -63,6 +63,16 @@ dependency audit, and 108-page build pass locally. The migrations have not been
 applied to Preview or production; Preview database and visual validation remain
 required.
 
+Stacked branch `codex/nuzlocke-gen5` has separate independently audited Black,
+White, Black 2, and White 2 catalogs locally prepared with unpublished
+migrations 296-303. It covers seasons, phenomenon encounters, exact PKHeX
+swarm tables, weekday-only static encounters, Regi keys, and 70 explicit
+Hidden Grotto rows in each sequel. All four source audits, 42 focused
+regressions, the full application suite, the 1,027-row National Dex check,
+dependency audit, and 108-page build pass locally. The migrations have not
+been applied to Preview or production; Preview database, CI, and visual
+validation remain.
+
 The complete application suite, all 1,027 National Dex rows, production
 dependency audit, and a 108-page production build pass locally on the stacked
 Generation IV branch.

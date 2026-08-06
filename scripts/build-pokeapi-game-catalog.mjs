@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 
 const args=new Map(process.argv.slice(2).map((value,index,list)=>value.startsWith("--")?[value,list[index+1]]:null).filter(Boolean));
-const game=String(args.get("--game")||""); const commit=String(args.get("--commit")||""); const spritesCommit=String(args.get("--sprites-commit")||""); const output=String(args.get("--output")||""); const evolutionsOutput=String(args.get("--evolutions-output")||"");
+const game=String(args.get("--game")||""); const commit=String(args.get("--commit")||""); const spritesCommit=String(args.get("--sprites-commit")||""); const pkhexCommit=String(args.get("--pkhex-commit")||""); const output=String(args.get("--output")||""); const evolutionsOutput=String(args.get("--evolutions-output")||"");
 const generationTwoConditions=[
   {id:"time",label:"Time of day",options:[{value:"any",label:"Any time"},{value:"morning",label:"Morning",conditions:["time-morning"]},{value:"day",label:"Day",conditions:["time-day"]},{value:"night",label:"Night",conditions:["time-night"]}]},
   {id:"swarm",label:"Swarm",options:[{value:"any",label:"Either"},{value:"yes",label:"Active swarm",conditions:["swarm-yes"]},{value:"no",label:"No swarm",conditions:["swarm-no"]}]},
@@ -20,6 +20,11 @@ const pokegearRadio={id:"pokegear-radio",label:"Pokégear radio",default_value:"
 const bugCatchingContest={id:"bug-catching-contest",label:"Bug-Catching Contest",default_value:"no",options:[{value:"any",label:"Either"},{value:"no",label:"Not running",conditions:["bug-catching-contest-no"]},{value:"yes",label:"Contest encounter",conditions:["bug-catching-contest-yes"]}]};
 const headbuttTree={id:"headbutt-tree",label:"Headbutt tree type",options:[{value:"any",label:"Any tree"},{value:"common",label:"Common tree",conditions:["headbutt-tree-common"]},{value:"rare",label:"Rare tree",conditions:["headbutt-tree-rare"]},{value:"secret",label:"Secret tree",conditions:["headbutt-tree-secret"]}]};
 const johtoSafariBlocks={id:"safari-blocks",label:"Johto Safari Zone blocks",default_value:"inactive",options:[{value:"any",label:"Any block setup"},{value:"inactive",label:"No upgraded block encounter",conditions:["johto-safari-blocks-inactive"]},{value:"configured",label:"Configured block encounter",condition_prefixes:["johto-safari-blocks-"],excluded_conditions:["johto-safari-blocks-inactive"]}]};
+const unovaSeason={id:"season",label:"Season",default_value:"spring",options:[{value:"any",label:"Any season"},{value:"spring",label:"Spring",conditions:["season-spring"]},{value:"summer",label:"Summer",conditions:["season-summer"]},{value:"autumn",label:"Autumn",conditions:["season-autumn"]},{value:"winter",label:"Winter",conditions:["season-winter"]}]};
+const unovaSwarm={id:"swarm",label:"Pokémon outbreak",default_value:"no",options:[{value:"any",label:"Either"},{value:"no",label:"No outbreak",conditions:[]},{value:"yes",label:"Outbreak active",conditions:["swarm-yes"]}]};
+const bwWeekday={id:"weekday",label:"Day of week",default_value:"other",options:[{value:"any",label:"Any day"},{value:"friday",label:"Friday",conditions:["weekday-friday"]},{value:"other",label:"Any other day",conditions:[]}]};
+const b2w2Weekday={id:"weekday",label:"Day of week",default_value:"other",options:[{value:"any",label:"Any day"},{value:"monday",label:"Monday",conditions:["weekday-monday"]},{value:"thursday",label:"Thursday",conditions:["weekday-thursday"]},{value:"other",label:"Any other day",conditions:[]}]};
+const unovaRegiKey=(defaultValue)=>({id:"regi-key",label:"Key System chamber",default_value:defaultValue,options:[{value:"any",label:"Either key"},{value:"ice",label:"Iceberg Key",conditions:["item-ice-key"]},{value:"iron",label:"Iron Key",conditions:["item-iron-key"]}]});
 const fossilChoice={id:"fossil-choice",label:"Fossil choice",options:[{value:"any",label:"Either fossil"},{value:"root",label:"Root Fossil",conditions:["item-root-fossil"]},{value:"claw",label:"Claw Fossil",conditions:["item-claw-fossil"]}]};
 const hallOfFame={id:"story-progress",label:"Story progress",options:[{value:"any",label:"Any point"},{value:"main-story",label:"Main story only",conditions:[]},{value:"postgame",label:"After the Hall of Fame",conditions:["story-progress-hall-of-fame"]}]};
 const eliteFourRematch={id:"story-progress",label:"Story progress",options:[{value:"any",label:"Any point"},{value:"main-story",label:"Main story only",conditions:[]},{value:"postgame",label:"After the Elite Four rematch",conditions:["story-progress-beat-elite-four-round-two"]}]};
@@ -43,11 +48,16 @@ const gameDefinitions={
   platinum:{display_name:"Pokémon Platinum",generation:4,family:"Diamond / Pearl / Platinum",release_order:14,starter_ids:[387,390,393],condition_groups:[timeOfDay,swarm,pokeRadar,dualSlot,trophyGarden,greatMarsh,honeyTree],evolution_species_max:493},
   heartgold:{display_name:"Pokémon HeartGold",generation:4,family:"HeartGold / SoulSilver",release_order:15,starter_ids:[152,155,158],condition_groups:[timeOfDay,swarm,weekday,pokegearRadio,bugCatchingContest,headbuttTree,johtoSafariBlocks],evolution_species_max:493},
   soulsilver:{display_name:"Pokémon SoulSilver",generation:4,family:"HeartGold / SoulSilver",release_order:16,starter_ids:[152,155,158],condition_groups:[timeOfDay,swarm,weekday,pokegearRadio,bugCatchingContest,headbuttTree,johtoSafariBlocks],evolution_species_max:493},
+  black:{display_name:"Pokémon Black",generation:5,family:"Black / White",release_order:17,starter_ids:[495,498,501],condition_groups:[unovaSeason,unovaSwarm,bwWeekday],evolution_species_max:649},
+  white:{display_name:"Pokémon White",generation:5,family:"Black / White",release_order:18,starter_ids:[495,498,501],condition_groups:[unovaSeason,unovaSwarm,bwWeekday],evolution_species_max:649},
+  "black-2":{display_name:"Pokémon Black 2",generation:5,family:"Black 2 / White 2",release_order:19,starter_ids:[495,498,501],condition_groups:[unovaSeason,unovaSwarm,b2w2Weekday,unovaRegiKey("iron")],evolution_species_max:649},
+  "white-2":{display_name:"Pokémon White 2",generation:5,family:"Black 2 / White 2",release_order:20,starter_ids:[495,498,501],condition_groups:[unovaSeason,unovaSwarm,b2w2Weekday,unovaRegiKey("ice")],evolution_species_max:649},
 };
 const gameDefinition=gameDefinitions[game];
-if(!gameDefinition) throw new Error("The catalog builder currently supports reviewed Generation I–IV games.");
+if(!gameDefinition) throw new Error("The catalog builder currently supports reviewed Generation I–V games.");
 if(!/^[0-9a-f]{40}$/.test(commit)) throw new Error("--commit must be an exact 40-character PokeAPI commit.");
 if(!/^[0-9a-f]{40}$/.test(spritesCommit)) throw new Error("--sprites-commit must be an exact 40-character PokeAPI sprites commit.");
+if(gameDefinition.generation===5&&!/^[0-9a-f]{40}$/.test(pkhexCommit)) throw new Error("--pkhex-commit must be an exact 40-character PKHeX commit for Generation V.");
 if(!output) throw new Error("--output is required.");
 const base=`https://raw.githubusercontent.com/PokeAPI/pokeapi/${commit}/data/v2/csv`;
 
@@ -65,6 +75,7 @@ const names=["versions.csv","version_groups.csv","encounters.csv","encounter_slo
 const loaded=await Promise.all(names.map(load)); const data=Object.fromEntries(names.map((name,index)=>[name,loaded[index]]));
 const byId=(rows)=>new Map(rows.map((row)=>[row.id,row])); const version=data["versions.csv"].find((row)=>row.identifier===game); if(!version) throw new Error(`${gameDefinition.display_name} is missing from the pinned source.`);
 const slots=byId(data["encounter_slots.csv"]); const methods=byId(data["encounter_methods.csv"]); const areas=byId(data["location_areas.csv"]); const locations=byId(data["locations.csv"]); const pokemon=byId(data["pokemon.csv"]); const species=byId(data["pokemon_species.csv"]);
+const defaultProfileBySpecies=new Map(data["pokemon.csv"].filter((row)=>row.is_default==="1").map((row)=>[row.species_id,row]));
 const englishSpecies=new Map(data["pokemon_species_names.csv"].filter((row)=>row.local_language_id==="9").map((row)=>[row.pokemon_species_id,row.name]));
 const englishAreas=new Map(data["location_area_prose.csv"].filter((row)=>row.local_language_id==="9").map((row)=>[row.location_area_id,row.name]));
 const conditionNames=new Map(data["encounter_condition_values.csv"].map((row)=>[row.id,row.identifier])); const conditions=new Map();
@@ -109,6 +120,56 @@ if(["firered","leafgreen"].includes(game)){
   retainedLocations.push({...canonicalLocation,area_key:"kanto-altering-cave-main-area",sub_area:"main-area",display_name:"Kanto Altering Cave"});
   locationRows.splice(0,locationRows.length,...retainedLocations);
 }
+if(gameDefinition.generation===5){
+  if(["black","white"].includes(game)){
+    const roamerId=game==="black"?641:642;
+    const roamer=encounterRows.find((entry)=>entry.pokemon_id===roamerId&&entry.area_key==="team-flare-secret-hq-main-area"&&entry.method==="static");
+    if(!roamer)throw new Error(`The pinned ${game} catalog is missing its expected roaming Pokémon.`);
+    roamer.area_key="unova-route-12-main-area";
+    roamer.method="roaming-grass";
+  }
+  const weekdayRows=game==="black-2"
+    ? [["unova-route-4-main-area",630,"weekday-thursday"],["undella-bay-main-area",593,"weekday-monday"]]
+    : game==="white-2"
+      ? [["unova-route-4-main-area",628,"weekday-monday"],["undella-bay-main-area",593,"weekday-thursday"]]
+      : [];
+  for(const [areaKey,pokemonId,condition] of weekdayRows){
+    const row=encounterRows.find((entry)=>entry.area_key===areaKey&&entry.pokemon_id===pokemonId&&entry.method==="static");
+    if(!row)throw new Error(`The pinned ${game} catalog is missing the expected weekday encounter ${pokemonId} at ${areaKey}.`);
+    row.conditions=[...new Set([...(row.conditions||[]),condition])].sort();
+  }
+
+  const pkhexFiles={black:"b",white:"w","black-2":"b2","white-2":"w2"};
+  const pkhexResponse=await fetch(`https://raw.githubusercontent.com/kwsch/PKHeX/${pkhexCommit}/PKHeX.Core/Resources/legality/wild/Gen5/encounter_${pkhexFiles[game]}.pkl`);
+  if(!pkhexResponse.ok)throw new Error(`PKHeX ${game} encounter data returned ${pkhexResponse.status}.`);
+  const pkhexBytes=new Uint8Array(await pkhexResponse.arrayBuffer());
+  const view=new DataView(pkhexBytes.buffer,pkhexBytes.byteOffset,pkhexBytes.byteLength);
+  const expectedMagic=["black","white"].includes(game)?"51":"52";
+  if(new TextDecoder().decode(pkhexBytes.slice(0,2))!==expectedMagic)throw new Error(`PKHeX ${game} encounter data has an unexpected identifier.`);
+  const swarmAreaByLocation=new Map([
+    [14,"unova-route-1-main-area"],[15,"unova-route-2-main-area"],[16,"unova-route-3-main-area"],[17,"unova-route-4-main-area"],[18,"unova-route-5-main-area"],[19,"unova-route-6-main-area"],[20,"unova-route-7-main-area"],[21,"unova-route-8-main-area"],[22,"unova-route-9-main-area"],[23,"unova-route-10-main-area"],[24,"unova-route-11-main-area"],[25,"unova-route-12-main-area"],[26,"unova-route-13-main-area"],[27,"unova-route-14-main-area"],[28,"unova-route-15-main-area"],[29,"unova-route-16-main-area"],[31,"unova-route-18-main-area"],[32,"dreamyard-main-area"],[34,"desert-resort-main-area"],[70,"abundant-shrine-main-area"],[125,"unova-route-20-main-area"],[127,"unova-route-22-main-area"],[132,"reversal-mountain-b1f"],
+  ]);
+  const areaCount=view.getUint16(2,true);let swarmIndex=0;
+  for(let index=0;index<areaCount;index+=1){
+    const start=view.getUint32(4+(index*4),true);const end=view.getUint32(8+(index*4),true);
+    const locationId=view.getUint16(start,true);const encounterType=pkhexBytes[start+2];
+    if(encounterType!==4)continue;
+    const areaKey=swarmAreaByLocation.get(locationId);
+    if(!areaKey||!locationRows.some((row)=>row.area_key===areaKey))throw new Error(`PKHeX ${game} swarm location ${locationId} does not resolve to a catalog area.`);
+    for(let offset=start+4;offset<end;offset+=4){
+      const packed=view.getUint16(offset,true);const speciesId=packed&0x3ff;const form=packed>>11;
+      if(form!==0)throw new Error(`PKHeX ${game} swarm species ${speciesId} uses an unsupported form ${form}.`);
+      const profile=defaultProfileBySpecies.get(String(speciesId));const parent=profile&&species.get(profile.species_id);
+      if(!profile||!parent)throw new Error(`PKHeX ${game} swarm species ${speciesId} is missing from PokeAPI.`);
+      encounterRows.push({source_encounter_id:5000000+swarmIndex,area_key:areaKey,pokemon_id:Number(profile.id),pokemon_name:englishSpecies.get(profile.species_id)||title(profile.identifier),form_name:profile.identifier===parent.identifier?"":title(profile.identifier),species_family:`evolution-chain-${parent.evolution_chain_id}`,method:"swarm",min_level:Number(pkhexBytes[offset+2])||null,max_level:Number(pkhexBytes[offset+3])||null,chance:40,conditions:["swarm-yes"],is_legendary:parent.is_legendary==="1"||parent.is_mythical==="1",artwork_url:`https://raw.githubusercontent.com/PokeAPI/sprites/${spritesCommit}/sprites/pokemon/other/official-artwork/${profile.id}.png`});
+      swarmIndex+=1;
+    }
+  }
+  const expectedSwarms=["black","white"].includes(game)?17:19;
+  if(swarmIndex!==expectedSwarms)throw new Error(`PKHeX ${game} supplied ${swarmIndex} swarms; expected ${expectedSwarms}.`);
+  const activeAreaKeys=new Set(encounterRows.map((row)=>row.area_key));
+  locationRows.splice(0,locationRows.length,...locationRows.filter((row)=>activeAreaKeys.has(row.area_key)));
+}
 const groupPokedexIds=new Set(data["pokedex_version_groups.csv"].filter((row)=>row.version_group_id===version.version_group_id).map((row)=>row.pokedex_id)); const pokedexes=byId(data["pokedexes.csv"]);
 const dexRows=data["pokemon_dex_numbers.csv"].filter((row)=>groupPokedexIds.has(row.pokedex_id)).map((row)=>{const parent=species.get(row.species_id);return {pokedex_key:pokedexes.get(row.pokedex_id).identifier,entry_number:Number(row.pokedex_number),pokemon_id:Number(row.species_id),pokemon_name:englishSpecies.get(row.species_id)||title(parent.identifier),form_name:"",species_family:`evolution-chain-${parent.evolution_chain_id}`};});
 const dexSpeciesIds=new Set(dexRows.map((row)=>String(row.pokemon_id)));
@@ -118,13 +179,13 @@ const evolutionSpeciesIds=gameDefinition.evolution_species_max
 const childrenBySpecies=new Map();
 for(const speciesId of evolutionSpeciesIds){const evolvesFrom=species.get(speciesId)?.evolves_from_species_id;if(!evolvesFrom||!evolutionSpeciesIds.has(evolvesFrom))continue;if(!childrenBySpecies.has(evolvesFrom))childrenBySpecies.set(evolvesFrom,[]);childrenBySpecies.get(evolvesFrom).push(speciesId);}
 function finalSpeciesIds(speciesId,visiting=new Set()){const key=String(speciesId);if(visiting.has(key))throw new Error(`Evolution cycle detected at species ${key}.`);const children=childrenBySpecies.get(key)||[];if(!children.length)return [key];const next=new Set(visiting);next.add(key);return [...new Set(children.flatMap((child)=>finalSpeciesIds(child,next)))].sort((left,right)=>Number(left)-Number(right));}
-const defaultProfileBySpecies=new Map(data["pokemon.csv"].filter((row)=>row.is_default==="1").map((row)=>[row.species_id,row]));
 const encounteredProfiles=new Map(encounterRows.map((row)=>[row.pokemon_id,pokemon.get(String(row.pokemon_id))]));
 const evolutionRows=[...encounteredProfiles.entries()].sort(([left],[right])=>left-right).map(([pokemonId,profile])=>{if(!profile||!evolutionSpeciesIds.has(profile.species_id))throw new Error(`Encounter profile ${pokemonId} is missing from the game's supported evolution set.`);return {pokemon_id:pokemonId,pokemon_name:englishSpecies.get(profile.species_id)||title(profile.identifier),final_evolutions:finalSpeciesIds(profile.species_id).map((finalSpeciesId)=>{const finalSpecies=species.get(finalSpeciesId);const finalProfile=defaultProfileBySpecies.get(finalSpeciesId);if(!finalSpecies||!finalProfile)throw new Error(`Final species ${finalSpeciesId} is missing a default profile.`);return {pokemon_id:Number(finalProfile.id),pokemon_name:englishSpecies.get(finalSpeciesId)||title(finalSpecies.identifier),form_name:finalProfile.identifier===finalSpecies.identifier?"":title(finalProfile.identifier),artwork_url:`https://raw.githubusercontent.com/PokeAPI/sprites/${spritesCommit}/sprites/pokemon/other/official-artwork/${finalProfile.id}.png`};})};});
 const starters=gameDefinition.starter_ids.map((id)=>{const profile=pokemon.get(String(id));const parent=species.get(profile.species_id);return {pokemon_id:id,pokemon_name:englishSpecies.get(profile.species_id)||title(profile.identifier),form_name:"",species_family:`evolution-chain-${parent.evolution_chain_id}`,artwork_url:`https://raw.githubusercontent.com/PokeAPI/sprites/${spritesCommit}/sprites/pokemon/other/official-artwork/${id}.png`};});
 const {starter_ids:unusedStarterIds,evolution_species_max:unusedEvolutionSpeciesMax,condition_groups:unusedConditionGroups,...publishedGameDefinition}=gameDefinition;
 publishedGameDefinition.condition_groups=resolvedConditionGroups;
-const payload={game:{game_key:game,...publishedGameDefinition,starters,coverage_note:`PokéAPI encounter snapshot ${commit}; PokeAPI sprites snapshot ${spritesCommit}; independent source audit required before verification.`,encounter_status:"pending"},pokedex_entries:dexRows,locations:locationRows,encounters:encounterRows};
+const coverageNote=`PokéAPI encounter snapshot ${commit}; PokeAPI sprites snapshot ${spritesCommit};${gameDefinition.generation===5?` PKHeX Generation V swarm snapshot ${pkhexCommit};`:""} independent source audit required before verification.`;
+const payload={game:{game_key:game,...publishedGameDefinition,starters,coverage_note:coverageNote,encounter_status:"pending"},pokedex_entries:dexRows,locations:locationRows,encounters:encounterRows};
 const evolutionPayload={game_key:game,source_commit:commit,sprites_commit:spritesCommit,evolutions:evolutionRows};
 await fs.mkdir(path.dirname(path.resolve(output)),{recursive:true}); await fs.writeFile(output,`${JSON.stringify(payload,null,2)}\n`);
 if(evolutionsOutput){await fs.mkdir(path.dirname(path.resolve(evolutionsOutput)),{recursive:true});await fs.writeFile(evolutionsOutput,`${JSON.stringify(evolutionPayload,null,2)}\n`);}

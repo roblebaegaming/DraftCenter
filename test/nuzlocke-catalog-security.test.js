@@ -112,6 +112,13 @@ const gen4Artifacts=Object.fromEntries(Object.entries(gen4MigrationNumbers).map(
   imported:fs.readFileSync(new URL(`../supabase/${importNumber}-import-pokemon-${game}-encounter-catalog.sql`,import.meta.url),"utf8"),
   verified:fs.readFileSync(new URL(`../supabase/${verifyNumber}-verify-pokemon-${game}-encounter-catalog.sql`,import.meta.url),"utf8"),
 }]));
+const gen5MigrationNumbers={black:[296,297],white:[298,299],"black-2":[300,301],"white-2":[302,303]};
+const gen5Artifacts=Object.fromEntries(Object.entries(gen5MigrationNumbers).map(([game,[importNumber,verifyNumber]])=>[game,{
+  catalog:JSON.parse(fs.readFileSync(new URL(`../data/nuzlocke/pokemon-${game}.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json`,import.meta.url),"utf8")),
+  evolutions:JSON.parse(fs.readFileSync(new URL(`../data/nuzlocke/pokemon-${game}-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json`,import.meta.url),"utf8")),
+  imported:fs.readFileSync(new URL(`../supabase/${importNumber}-import-pokemon-${game}-encounter-catalog.sql`,import.meta.url),"utf8"),
+  verified:fs.readFileSync(new URL(`../supabase/${verifyNumber}-verify-pokemon-${game}-encounter-catalog.sql`,import.meta.url),"utf8"),
+}]));
 test("catalog is verified-only and browser read-only", () => {
   for (const table of [
     "pokemon_games",
@@ -345,6 +352,10 @@ paths = [
   '''^data/nuzlocke/pokemon-platinum\\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\\.json$''',
   '''^data/nuzlocke/pokemon-heartgold\\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\\.json$''',
   '''^data/nuzlocke/pokemon-soulsilver\\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\\.json$''',
+  '''^data/nuzlocke/pokemon-black\\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\\.json$''',
+  '''^data/nuzlocke/pokemon-white\\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\\.json$''',
+  '''^data/nuzlocke/pokemon-black-2\\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\\.json$''',
+  '''^data/nuzlocke/pokemon-white-2\\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\\.json$''',
 ]
 regexes = [
   '''^(?:area_key|location_key)"\\s*:\\s*"[a-z0-9-]+"$''',
@@ -370,10 +381,15 @@ paths = [
   '''^docs/pokemon-catalog/pokemon-platinum-encounter-audit-2026-08-05\\.md$''',
   '''^docs/pokemon-catalog/pokemon-heartgold-encounter-audit-2026-08-05\\.md$''',
   '''^docs/pokemon-catalog/pokemon-soulsilver-encounter-audit-2026-08-05\\.md$''',
+  '''^docs/pokemon-catalog/pokemon-black-encounter-audit-2026-08-05\\.md$''',
+  '''^docs/pokemon-catalog/pokemon-white-encounter-audit-2026-08-05\\.md$''',
+  '''^docs/pokemon-catalog/pokemon-black-2-encounter-audit-2026-08-05\\.md$''',
+  '''^docs/pokemon-catalog/pokemon-white-2-encounter-audit-2026-08-05\\.md$''',
 ]
 regexes = [
   '''^5064f1d72746b3a6a931616dae3fb6445c556d4f$''',
   '''^5841d46f1a0d2b8918a29a7376b1424878b86b59$''',
+  '''^18cc30d6416b8fc58320af0f9b9d1b62bee405e1$''',
 ]
 
 [[rules.allowlists]]
@@ -396,6 +412,10 @@ paths = [
   '''^supabase/290-import-pokemon-platinum-encounter-catalog\\.sql$''',
   '''^supabase/292-import-pokemon-heartgold-encounter-catalog\\.sql$''',
   '''^supabase/294-import-pokemon-soulsilver-encounter-catalog\\.sql$''',
+  '''^supabase/296-import-pokemon-black-encounter-catalog\\.sql$''',
+  '''^supabase/298-import-pokemon-white-encounter-catalog\\.sql$''',
+  '''^supabase/300-import-pokemon-black-2-encounter-catalog\\.sql$''',
+  '''^supabase/302-import-pokemon-white-2-encounter-catalog\\.sql$''',
 ]
 regexes = [
   '''^(?:area_key|location_key)"\\s*:\\s*"[a-z0-9-]+"$''',
@@ -442,6 +462,10 @@ paths = [
   '''^supabase/291-verify-pokemon-platinum-encounter-catalog\\.sql$''',
   '''^supabase/293-verify-pokemon-heartgold-encounter-catalog\\.sql$''',
   '''^supabase/295-verify-pokemon-soulsilver-encounter-catalog\\.sql$''',
+  '''^supabase/297-verify-pokemon-black-encounter-catalog\\.sql$''',
+  '''^supabase/299-verify-pokemon-white-encounter-catalog\\.sql$''',
+  '''^supabase/301-verify-pokemon-black-2-encounter-catalog\\.sql$''',
+  '''^supabase/303-verify-pokemon-white-2-encounter-catalog\\.sql$''',
 ]
 regexes = [
   '''^area_key='[a-z0-9-]+'$''',
@@ -593,6 +617,28 @@ test("Generation IV artifacts and migrations stay exact, pending-first, and vers
   assert.ok(gen4Artifacts.heartgold.catalog.encounters.some((row)=>row.method==="headbutt"&&(row.conditions||[]).includes("headbutt-tree-secret")));
   assert.ok(gen4Artifacts.soulsilver.catalog.encounters.some((row)=>(row.conditions||[]).some((condition)=>condition.startsWith("johto-safari-blocks-water-min-"))));
 });
+test("Generation V artifacts and migrations stay exact, pending-first, and version-specific",()=>{
+  const expected={black:{dex:156,locations:87,encounters:2708,profiles:257,methods:14,groups:3,swarms:17,grottoes:0},white:{dex:156,locations:87,encounters:2708,profiles:257,methods:14,groups:3,swarms:17,grottoes:0},"black-2":{dex:301,locations:137,encounters:3869,profiles:313,methods:15,groups:4,swarms:19,grottoes:70},"white-2":{dex:301,locations:137,encounters:3869,profiles:312,methods:15,groups:4,swarms:19,grottoes:70}};
+  for(const [game,records] of Object.entries(gen5Artifacts)){
+    const counts=expected[game];
+    assert.equal(records.catalog.pokedex_entries.length,counts.dex);assert.equal(records.catalog.locations.length,counts.locations);assert.equal(records.catalog.encounters.length,counts.encounters);assert.equal(new Set(records.catalog.encounters.map((row)=>row.pokemon_id)).size,counts.profiles);assert.equal(new Set(records.catalog.encounters.map((row)=>row.method)).size,counts.methods);
+    assert.deepEqual(records.catalog.game.starters.map((row)=>row.pokemon_id),[495,498,501]);assert.equal(records.catalog.game.condition_groups.length,counts.groups);
+    assert.equal(records.catalog.encounters.filter((row)=>row.method==="swarm").length,counts.swarms);assert.equal(records.catalog.encounters.filter((row)=>row.method==="hidden-grotto").length,counts.grottoes);
+    assert.deepEqual(new Set(records.evolutions.evolutions.map((row)=>row.pokemon_id)),new Set(records.catalog.encounters.map((row)=>row.pokemon_id)));assert.ok(records.evolutions.evolutions.flatMap((row)=>row.final_evolutions).every((row)=>row.pokemon_id<=649));
+    const payloads=[...records.imported.matchAll(/\$catalog\$(.+?)\$catalog\$/g)].map((match)=>JSON.parse(match[1]));assert.deepEqual(payloads,[records.catalog.game.starters,records.catalog.game.condition_groups,records.catalog.pokedex_entries,records.catalog.locations,records.catalog.encounters]);
+    assert.match(records.imported,new RegExp(`encounter_status[^)]*\\) values \\('${game}'[\\s\\S]+,'pending'`));assert.doesNotMatch(records.imported,/encounter_status='verified'/);assert.match(records.verified,new RegExp(`where game_key='${game}'[\\s\\S]+encounter_status='pending'`));assert.match(records.verified,/count\(distinct method\)/);assert.match(records.verified,/count\(distinct pokemon_id\)/);
+    assert.ok(!records.catalog.locations.some((row)=>row.location_key==="team-flare-secret-hq"));
+  }
+  const exactTuple=(row)=>[row.area_key,row.pokemon_id,row.method,row.min_level,row.max_level,row.chance,(row.conditions||[]).join(",")].join("|");
+  const differences=(left,right)=>{const leftRows=new Set(left.map(exactTuple));const rightRows=new Set(right.map(exactTuple));return [...leftRows].filter((row)=>!rightRows.has(row)).length;};
+  assert.equal(differences(gen5Artifacts.black.catalog.encounters,gen5Artifacts.white.catalog.encounters),304);assert.equal(differences(gen5Artifacts.white.catalog.encounters,gen5Artifacts.black.catalog.encounters),304);
+  assert.equal(differences(gen5Artifacts["black-2"].catalog.encounters,gen5Artifacts["white-2"].catalog.encounters),513);assert.equal(differences(gen5Artifacts["white-2"].catalog.encounters,gen5Artifacts["black-2"].catalog.encounters),513);
+  assert.ok(gen5Artifacts.black.catalog.encounters.some((row)=>row.area_key==="unova-route-12-main-area"&&row.pokemon_id===641&&row.method==="roaming-grass"));
+  assert.ok(gen5Artifacts["black-2"].catalog.encounters.some((row)=>row.pokemon_id===630&&(row.conditions||[]).includes("weekday-thursday")));
+  assert.ok(gen5Artifacts["white-2"].catalog.encounters.some((row)=>row.pokemon_id===628&&(row.conditions||[]).includes("weekday-monday")));
+  assert.equal(gen5Artifacts["black-2"].catalog.game.condition_groups.find((group)=>group.id==="regi-key")?.default_value,"iron");
+  assert.equal(gen5Artifacts["white-2"].catalog.game.condition_groups.find((group)=>group.id==="regi-key")?.default_value,"ice");
+});
 test("server route uses public RLS catalog access and privileged rate limiting", () => {
   assert.match(route, /createPublicServerClient/);
   assert.match(route, /list_verified_nuzlocke_games/);
@@ -602,7 +648,8 @@ test("server route uses public RLS catalog access and privileged rate limiting",
   assert.doesNotMatch(route, /adminClient\.from\("pokemon_games"/);
 });
 test("final evolution requests require source-matched pinned game catalogs", () => {
-  for(const game of ["red","blue","yellow","gold","silver","crystal","ruby","sapphire","emerald","firered","leafgreen","diamond","pearl","platinum","heartgold","soulsilver"]) assert.match(route,new RegExp(`${game}: ${game}EvolutionCatalog`));
+  for(const game of ["red","blue","yellow","gold","silver","crystal","ruby","sapphire","emerald","firered","leafgreen","diamond","pearl","platinum","heartgold","soulsilver","black","white"]) assert.match(route,new RegExp(`${game}: ${game}EvolutionCatalog`));
+  assert.match(route,/"black-2": black2EvolutionCatalog/);assert.match(route,/"white-2": white2EvolutionCatalog/);
   assert.match(route, /body\.finalEvolutionOnly === true/);
   assert.match(
     route,
@@ -611,14 +658,16 @@ test("final evolution requests require source-matched pinned game catalogs", () 
   assert.match(route, /Final evolution data is not verified/);
   assert.match(route, /MAX_CATALOG_ENCOUNTERS = 7500/);
 });
-test("final evolution mode is shareable and the UI explains run codes and both random styles", () => {
+test("final evolution mode is shareable and the UI explains team codes and both random styles", () => {
   assert.match(lab, /params\.get\("evolutions"\) === "final"/);
   assert.match(lab, /url\.searchParams\.set\("evolutions", "final"\)/);
   assert.match(lab, /finalEvolutionOnly/);
   assert.match(lab, /Catch \$\{entry\.encounter_pokemon_name\}/);
-  assert.match(lab, /Run code/);
+  assert.match(lab, /Team code/);
+  assert.doesNotMatch(lab, /Room code/);
   assert.match(lab, /Build a Nuzlocke Team/);
   assert.doesNotMatch(lab, /Build a seeded Run Card/);
+  assert.doesNotMatch(lab, /Generate Run Card/);
   assert.match(lab, /Route-first random/);
   assert.match(lab, /Encounter-pool random/);
   assert.match(
@@ -647,4 +696,5 @@ test("starter inclusion is explicit in shared links and old seeded links retain 
   assert.match(route, /firered: KANTO_STARTERS, leafgreen: KANTO_STARTERS/);
   assert.match(route, /diamond: SINNOH_STARTERS, pearl: SINNOH_STARTERS, platinum: SINNOH_STARTERS/);
   assert.match(route, /heartgold: JOHTO_STARTERS, soulsilver: JOHTO_STARTERS/);
+  assert.match(route, /black: UNOVA_STARTERS, white: UNOVA_STARTERS, "black-2": UNOVA_STARTERS, "white-2": UNOVA_STARTERS/);
 });

@@ -111,9 +111,10 @@ Nidoran male and Growlithe rows. Red and Blue each contain 151 Pokedex rows, 74
 locations, 891 encounter rows, 106 obtainable profiles, and nine encounter
 methods. The catalogs differ by 181 exact encounter tuples in each direction.
 
-The user-facing seed is now called the **Run code** and remains automatically
-generated. Keeping it is useful because it makes a Run Card repeatable and
-shareable. The query parameter remains `seed` for existing-link compatibility.
+The user-facing seed is now called the **Team code** and remains automatically
+generated. It is not a multiplayer room code; a player only needs to keep it
+to recreate or share that exact team. The query parameter remains `seed` for
+existing-link compatibility.
 The two selection modes retain their query values but have clearer names:
 
 - **Route-first random** (`route-random`) shuffles eligible locations evenly,
@@ -192,7 +193,7 @@ production project, confirm the deployed commit, test `/nuzlocke` signed out,
 and run `npm run smoke:production`. Do not treat the passing Preview as a
 production deployment.
 
-## Yellow through Generation IV follow-up state
+## Yellow through Generation V follow-up state
 
 - Branch: `codex/nuzlocke-gen2`
 - Production: not merged and not migrated
@@ -214,6 +215,11 @@ production deployment.
 - Platinum migrations: 290-291
 - HeartGold migrations: 292-293
 - SoulSilver migrations: 294-295
+- Generation V branch: `codex/nuzlocke-gen5`
+- Black migrations: 296-297
+- White migrations: 298-299
+- Black 2 migrations: 300-301
+- White 2 migrations: 302-303
 
 Yellow is locally implemented and audited. Gold, Silver, and Crystal now have
 separate pinned artifacts, game-limited evolution maps, independent Veekun and
@@ -274,7 +280,7 @@ cartridges, announced Trophy Garden Pokemon, Great Marsh daily rotations, and
 Honey Tree groups. HeartGold/SoulSilver expose time, swarms, weekdays, Pokegear
 radio, the Bug-Catching Contest, common/rare/secret Headbutt trees, and Safari
 Zone block upgrades. Defaults represent the ordinary encounter state, and all
-choices are validated and restored through shared Run Card URLs. Starters are
+choices are validated and restored through shared team URLs. Starters are
 Turtwig/Chimchar/Piplup in Sinnoh and Chikorita/Cyndaquil/Totodile in the
 remakes. The catalog API's bounded page ceiling is 7,500 so both 6,205-row
 remake catalogs load completely.
@@ -288,6 +294,32 @@ Preview job is intentionally skipped until the isolated credential is rotated.
 After rotation, apply migrations 267-295 in order, verify exact counts plus
 RLS/grants, and complete desktop/mobile shared-link and condition-filter testing
 for each stacked generation before release.
+
+Black, White, Black 2, and White 2 are locally implemented as separate pinned
+artifacts, Generation V-limited evolution maps, independent Veekun/PKHeX
+audits, and pending-first import/verification migrations. Exact
+Pokedex/location/encounter/profile counts are Black 156/87/2,708/257, White
+156/87/2,708/257, Black 2 301/137/3,869/313, and White 2
+301/137/3,869/312. Black/White expose 14 encounter methods and the sequels
+expose 15.
+
+Generation V reuses the existing bounded condition-group contract without a
+schema change. It covers seasons, shaking grass, dust clouds, bridge shadows,
+rippling water, fishing spots, swarms, and Friday Musharna. Black 2/White 2 add
+70 explicit Hidden Grotto rows per game, NPC trades, Monday/Thursday static
+encounters, and shareable Iceberg/Iron Key choices. Defaults use spring, no
+active swarm, and ordinary weekday encounters. Starters are Snivy, Tepig, and
+Oshawott; final evolutions stop at species 649.
+
+The source builder fixes the upstream Tornadus/Thundurus location error, adds
+the weekday metadata absent from the primary feed, and imports exact swarms
+from pinned PKHeX wild tables. Black/White differ by 304 normalized tuples in
+each direction; Black 2/White 2 differ by 513. All four source audits, 42
+focused regressions, the full application suite, the 1,027-row National Dex
+check, dependency audit, and 108-page build pass locally. Migrations 296-303
+remain unapplied, and no Preview or production database was changed. CI,
+Preview database, and visual validation still follow in the release gates
+below.
 
 ## Remaining Nuzlocke game roadmap
 
@@ -327,8 +359,10 @@ Recommended implementation order:
    time windows, swarms, dual-slot, Poke Radar, Great Marsh, Trophy Garden,
    Honey Trees, radio, Safari blocks, headbutt, and remake-specific areas;
    Preview and release validation remain.
-5. **Black, White, Black 2, White 2.** Cover seasons, shaking grass, dust
-   clouds, bridge shadows, rippling water, swarms, and Hidden Grottos.
+5. **Black, White, Black 2, White 2.** Locally complete with seasons, shaking
+   grass, dust clouds, bridge shadows, rippling water, swarms, weekday
+   encounters, Regi keys, and Hidden Grottoes; Preview and release validation
+   remain.
 6. **X, Y, Omega Ruby, Alpha Sapphire.** Cover hordes, Friend Safari policy,
    DexNav, mirage areas, soaring encounters, and version-exclusive forms.
 7. **Sun, Moon, Ultra Sun, Ultra Moon, Let's Go Pikachu/Eevee.** Define SOS,
@@ -378,8 +412,8 @@ billable Supabase Preview branch.
 
 Its unpublished migration is currently
 `260-standalone-single-elimination-tournaments.sql`. If Yellow through
-Generation IV migrations 267-295 release before tournaments, its next safe
-number is 296. If only part of that stack releases, use the first genuinely
+Generation V migrations 267-303 release before tournaments, its next safe
+number is 304. If only part of that stack releases, use the first genuinely
 unused number.
 Update every code, test, scan, and documentation reference. The tournament
 Preview database was manually given the old 260 migration, so rebuild or
@@ -400,7 +434,7 @@ advancement.
 1. Perform the narrow mobile visual pass on #38, then release Red/Blue through
    the protected PR flow. Apply 261-266 to the exact core production database,
    confirm the deployed commit, and smoke-test production.
-2. Continue with Generation V and the remaining Nuzlocke games in the batches
+2. Continue with Generation VI and the remaining Nuzlocke games in the batches
    above. Keep each game fail-closed until its pinned independent audit passes.
 3. After the owner's agreed Nuzlocke coverage target is released, rebase #39
    onto current `main`, give its old migration 260 the first unused number, and
