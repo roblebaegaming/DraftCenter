@@ -491,5 +491,6 @@ test("starter inclusion is explicit in shared links and old seeded links retain 
   );
   assert.match(lab, /url\.searchParams\.set\("starter", "include"\)/);
   assert.match(lab, /Include a starter Pokémon/);
+  assert.match(lab, /entry\.method === "starter" \? "Starter Pokémon"/);
   assert.match(route, /red: KANTO_STARTERS, blue: KANTO_STARTERS, yellow: YELLOW_STARTER/);
 });
