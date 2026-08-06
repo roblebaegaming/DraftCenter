@@ -137,6 +137,9 @@ These should not be inferred in the browser. Supporting them later requires stab
 - Fresh Next.js 16.2.12 production build with webpack — passed after restoring the frozen lockfile dependencies in the isolated worktree.
 - The build generated all 108 static pages and included `/resources/daily-games` and `/trainer-dex`.
 - `git diff --check` — passed after the final migration, test, and handoff edits.
+- PR checks for deployed commit `a9baf22` completed successfully: CodeQL, full-history secret scan, JavaScript security analysis, security tests/dependency audit, Vercel, and Vercel Preview Comments. Supabase Preview remained intentionally skipped, with the manual transactional rehearsal and post-migration audit above supplying the database evidence.
+- The Vercel deployment for `a9baf22` reached Ready and the stable branch Preview alias was updated.
+- A final live alias sweep confirmed the current poll, bracket, and quiz; the Daily Games hub; and the signed-out Trainer Dex state, with no PostgREST schema-cache error.
 
 The successful build used syntactically valid non-secret public Supabase placeholders for static generation. It printed the pre-existing championship-artwork URL warning after completing with exit code 0; this feature did not modify that route.
 
