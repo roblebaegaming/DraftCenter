@@ -14,6 +14,11 @@ import sapphireEvolutionCatalog from "../../../../data/nuzlocke/pokemon-sapphire
 import emeraldEvolutionCatalog from "../../../../data/nuzlocke/pokemon-emerald-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json";
 import fireredEvolutionCatalog from "../../../../data/nuzlocke/pokemon-firered-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json";
 import leafgreenEvolutionCatalog from "../../../../data/nuzlocke/pokemon-leafgreen-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json";
+import diamondEvolutionCatalog from "../../../../data/nuzlocke/pokemon-diamond-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json";
+import pearlEvolutionCatalog from "../../../../data/nuzlocke/pokemon-pearl-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json";
+import platinumEvolutionCatalog from "../../../../data/nuzlocke/pokemon-platinum-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json";
+import heartgoldEvolutionCatalog from "../../../../data/nuzlocke/pokemon-heartgold-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json";
+import soulsilverEvolutionCatalog from "../../../../data/nuzlocke/pokemon-soulsilver-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json";
 
 export const runtime = "nodejs";
 const GAME_KEY = /^[a-z0-9-]{2,64}$/;
@@ -22,7 +27,10 @@ const EVOLUTION_CATALOGS = Object.freeze({
   gold: goldEvolutionCatalog, silver: silverEvolutionCatalog, crystal: crystalEvolutionCatalog,
   ruby: rubyEvolutionCatalog, sapphire: sapphireEvolutionCatalog, emerald: emeraldEvolutionCatalog,
   firered: fireredEvolutionCatalog, leafgreen: leafgreenEvolutionCatalog,
+  diamond: diamondEvolutionCatalog, pearl: pearlEvolutionCatalog, platinum: platinumEvolutionCatalog,
+  heartgold: heartgoldEvolutionCatalog, soulsilver: soulsilverEvolutionCatalog,
 });
+const MAX_CATALOG_ENCOUNTERS = 7500;
 const KANTO_STARTERS = Object.freeze([
   { pokemon_id: 1, pokemon_name: "Bulbasaur", form_name: "", species_family: "evolution-chain-1", artwork_url: "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/1.png" },
   { pokemon_id: 4, pokemon_name: "Charmander", form_name: "", species_family: "evolution-chain-2", artwork_url: "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/4.png" },
@@ -34,7 +42,17 @@ const HOENN_STARTERS = Object.freeze([
   { pokemon_id: 255, pokemon_name: "Torchic", form_name: "", species_family: "evolution-chain-131", artwork_url: "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/255.png" },
   { pokemon_id: 258, pokemon_name: "Mudkip", form_name: "", species_family: "evolution-chain-132", artwork_url: "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/258.png" },
 ]);
-const GAME_STARTERS = Object.freeze({ red: KANTO_STARTERS, blue: KANTO_STARTERS, yellow: YELLOW_STARTER, ruby: HOENN_STARTERS, sapphire: HOENN_STARTERS, emerald: HOENN_STARTERS, firered: KANTO_STARTERS, leafgreen: KANTO_STARTERS });
+const JOHTO_STARTERS = Object.freeze([
+  { pokemon_id: 152, pokemon_name: "Chikorita", form_name: "", species_family: "evolution-chain-79", artwork_url: "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/152.png" },
+  { pokemon_id: 155, pokemon_name: "Cyndaquil", form_name: "", species_family: "evolution-chain-80", artwork_url: "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/155.png" },
+  { pokemon_id: 158, pokemon_name: "Totodile", form_name: "", species_family: "evolution-chain-81", artwork_url: "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/158.png" },
+]);
+const SINNOH_STARTERS = Object.freeze([
+  { pokemon_id: 387, pokemon_name: "Turtwig", form_name: "", species_family: "evolution-chain-203", artwork_url: "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/387.png" },
+  { pokemon_id: 390, pokemon_name: "Chimchar", form_name: "", species_family: "evolution-chain-204", artwork_url: "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/390.png" },
+  { pokemon_id: 393, pokemon_name: "Piplup", form_name: "", species_family: "evolution-chain-205", artwork_url: "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/393.png" },
+]);
+const GAME_STARTERS = Object.freeze({ red: KANTO_STARTERS, blue: KANTO_STARTERS, yellow: YELLOW_STARTER, gold: JOHTO_STARTERS, silver: JOHTO_STARTERS, crystal: JOHTO_STARTERS, ruby: HOENN_STARTERS, sapphire: HOENN_STARTERS, emerald: HOENN_STARTERS, firered: KANTO_STARTERS, leafgreen: KANTO_STARTERS, diamond: SINNOH_STARTERS, pearl: SINNOH_STARTERS, platinum: SINNOH_STARTERS, heartgold: JOHTO_STARTERS, soulsilver: JOHTO_STARTERS });
 
 export async function GET() {
   try {
@@ -78,14 +96,14 @@ export async function POST(request) {
 
     const encounters = [];
     let after = 0;
-    for (let page = 0; page < 10; page += 1) {
+    for (let page = 0; page < MAX_CATALOG_ENCOUNTERS / 500; page += 1) {
       const { data, error } = await catalogClient.rpc("get_verified_nuzlocke_encounters", { p_game_key: body.game, p_after_id: after, p_limit: 500 });
       if (error) throw error;
       encounters.push(...(data || []));
       if (!data?.length || data.length < 500) break;
       after = data.at(-1).id;
     }
-    if (encounters.length >= 5000) return Response.json({ error: "This game's encounter pool is too large to generate safely." }, { status: 422 });
+    if (encounters.length >= MAX_CATALOG_ENCOUNTERS) return Response.json({ error: "This game's encounter pool is too large to generate safely." }, { status: 422 });
     encounters.sort((left, right) => Number(left.sort_order) - Number(right.sort_order) || Number(left.id) - Number(right.id));
     const result = generateNuzlockeTeam(encounters, {
       seed, teamSize: Number(body.teamSize), mode: body.mode,
