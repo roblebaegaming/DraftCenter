@@ -7,9 +7,12 @@ const gameDefinitions={
   red:{display_name:"Pokémon Red",generation:1,family:"Red / Blue / Yellow",release_order:1},
   blue:{display_name:"Pokémon Blue",generation:1,family:"Red / Blue / Yellow",release_order:2},
   yellow:{display_name:"Pokémon Yellow",generation:1,family:"Red / Blue / Yellow",release_order:3},
+  gold:{display_name:"Pokémon Gold",generation:2,family:"Gold / Silver / Crystal",release_order:4},
+  silver:{display_name:"Pokémon Silver",generation:2,family:"Gold / Silver / Crystal",release_order:5},
+  crystal:{display_name:"Pokémon Crystal",generation:2,family:"Gold / Silver / Crystal",release_order:6},
 };
 const gameDefinition=gameDefinitions[game];
-if(!gameDefinition) throw new Error("The reviewed builder currently supports --game red, blue, or yellow.");
+if(!gameDefinition) throw new Error("The catalog builder currently supports reviewed Generation I and pending Generation II games.");
 if(!/^[0-9a-f]{40}$/.test(commit)) throw new Error("--commit must be an exact 40-character PokeAPI commit.");
 if(!/^[0-9a-f]{40}$/.test(spritesCommit)) throw new Error("--sprites-commit must be an exact 40-character PokeAPI sprites commit.");
 if(!output) throw new Error("--output is required.");
