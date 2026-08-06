@@ -20,6 +20,14 @@ create index if not exists trainer_dex_events_user_pokemon_idx on public.trainer
 alter table public.trainer_dex_events enable row level security;
 revoke all on table public.trainer_dex_events from public,anon,authenticated;
 
+-- Daily quizzes can contain non-Pokémon answers (for example, type-matchup
+-- questions). Keep that classification with the authoritative quiz row so a
+-- correct non-Pokémon answer never becomes a Trainer Dex entry.
+alter table public.daily_quizzes
+  add column if not exists answer_type text not null default 'pokemon'
+  check (answer_type in ('pokemon','other'));
+update public.daily_quizzes set answer_type='other' where quiz_date='2026-07-29';
+
 insert into public.badge_catalog(code,name,description,icon,category,thresholds) values
 ('pokedex_researcher','Pokédex Researcher','Discover distinct Pokémon through Daily Three and DraftCenter drafts.','📖','collection',array[25,100,250]),
 ('draft_collector','Draft Collector','Discover distinct Pokémon by drafting them onto your teams.','⚾','collection',array[25,100,250]),
@@ -49,16 +57,14 @@ end; $$;
 
 create or replace function public.trainer_dex_daily_trigger()
 returns trigger language plpgsql security definer set search_path=public as $$
-declare v_pokemon text;
 begin
   if tg_table_name='daily_poll_answers' then
     if exists(select 1 from public.daily_polls where id=new.poll_id and answer_type='pokemon') then
       perform public.record_trainer_dex_event(new.user_id,new.answer_key,'daily_poll',new.poll_id::text,new.answered_at);
     end if;
   elsif tg_table_name='daily_quiz_answers' then
-    if new.is_correct and exists(select 1 from public.pokemon_species where lower(name)=lower(new.display_answer)) then
-      select name into v_pokemon from public.pokemon_species where lower(name)=lower(new.display_answer) limit 1;
-      perform public.record_trainer_dex_event(new.user_id,v_pokemon,'daily_quiz',new.quiz_id::text,new.answered_at);
+    if new.is_correct and exists(select 1 from public.daily_quizzes where id=new.quiz_id and answer_type='pokemon') then
+      perform public.record_trainer_dex_event(new.user_id,new.display_answer,'daily_quiz',new.quiz_id::text,new.answered_at);
     end if;
   elsif new.round_number=3 then
     perform public.record_trainer_dex_event(new.user_id,new.winner,'daily_bracket',new.bracket_id::text,new.created_at);
@@ -83,7 +89,13 @@ begin
     if v_user is not null then perform public.refresh_trainer_dex_badges(v_user); end if;
     return old;
   end if;
-  select membership.user_id, pokemon.source_key into v_user,v_pokemon
+  select membership.user_id,
+    coalesce(
+      to_jsonb(pokemon)->>'source_key',
+      to_jsonb(pokemon)->>'name',
+      to_jsonb(pokemon)->>'pokemon_id'
+    )
+  into v_user,v_pokemon
   from public.teams team
   join public.league_memberships membership on membership.id=team.owner_membership_id
   join public.league_pokemon pokemon on pokemon.id=new.league_pokemon_id
@@ -119,6 +131,9 @@ revoke all on function public.refresh_trainer_dex_badges(uuid) from public,anon,
 revoke all on function public.record_trainer_dex_event(uuid,text,text,text,timestamptz,boolean) from public,anon,authenticated;
 revoke all on function public.trainer_dex_daily_trigger() from public,anon,authenticated;
 revoke all on function public.trainer_dex_draft_trigger() from public,anon,authenticated;
+revoke all on function public.set_badge_progress(uuid,text,text,integer) from public,anon,authenticated;
+revoke all on function public.refresh_daily_three(uuid,date) from public,anon,authenticated;
+revoke all on function public.daily_three_activity_trigger() from public,anon,authenticated;
 revoke all on function public.get_my_trainer_dex() from public,anon,authenticated;
 revoke all on function public.mark_trainer_dex_shinies_seen(uuid[]) from public,anon,authenticated;
 grant execute on function public.get_my_trainer_dex() to authenticated;
@@ -127,11 +142,15 @@ grant execute on function public.mark_trainer_dex_shinies_seen(uuid[]) to authen
 -- Existing activity fills the collection without changing any source records.
 select public.record_trainer_dex_event(a.user_id,a.answer_key,'daily_poll',a.poll_id::text,a.answered_at,false)
 from public.daily_poll_answers a join public.daily_polls p on p.id=a.poll_id where p.answer_type='pokemon';
-select public.record_trainer_dex_event(a.user_id,s.name,'daily_quiz',a.quiz_id::text,a.answered_at,false)
-from public.daily_quiz_answers a join public.pokemon_species s on lower(s.name)=lower(a.display_answer) where a.is_correct;
+select public.record_trainer_dex_event(a.user_id,a.display_answer,'daily_quiz',a.quiz_id::text,a.answered_at,false)
+from public.daily_quiz_answers a join public.daily_quizzes q on q.id=a.quiz_id where a.is_correct and q.answer_type='pokemon';
 select public.record_trainer_dex_event(m.user_id,m.winner,'daily_bracket',m.bracket_id::text,m.created_at,false)
 from public.daily_bracket_matchups m where m.round_number=3;
-select public.record_trainer_dex_event(m.user_id,lp.source_key,'draft',p.id::text,p.created_at,false)
+select public.record_trainer_dex_event(
+  m.user_id,
+  coalesce(to_jsonb(lp)->>'source_key',to_jsonb(lp)->>'name',to_jsonb(lp)->>'pokemon_id'),
+  'draft',p.id::text,p.created_at,false
+)
 from public.draft_picks p join public.teams t on t.id=p.team_id join public.league_memberships m on m.id=t.owner_membership_id join public.league_pokemon lp on lp.id=p.league_pokemon_id;
 
 commit;
