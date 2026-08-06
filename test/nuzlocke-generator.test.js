@@ -269,3 +269,30 @@ test("reviewed Generation VI catalogs support starters, Friend Safari, DexNav, M
   const alphaEvolutions=JSON.parse(fs.readFileSync(new URL("../data/nuzlocke/pokemon-alpha-sapphire-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json",import.meta.url),"utf8"));
   assert.deepEqual(alphaEvolutions.evolutions.find((row)=>row.pokemon_id===422).final_evolutions.map((row)=>row.form_name),["East Sea"]);
 });
+test("reviewed Generation VII catalogs support Alola mechanics, Let's Go overworld rules, starters, and regional final evolutions",()=>{
+  const games=["sun","moon","ultra-sun","ultra-moon","lets-go-pikachu","lets-go-eevee"];
+  for(const game of games){
+    const catalog=JSON.parse(fs.readFileSync(new URL(`../data/nuzlocke/pokemon-${game}.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json`,import.meta.url),"utf8"));
+    const evolutionCatalog=JSON.parse(fs.readFileSync(new URL(`../data/nuzlocke/pokemon-${game}-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json`,import.meta.url),"utf8"));
+    const letsGo=game.startsWith("lets-go-");
+    const options={seed:`${game}-review`,teamSize:12,mode:"route-random",weighting:"authentic",familyClause:true,excludeLegendaries:true,includeStarter:true,starters:catalog.game.starters,conditionGroups:catalog.game.condition_groups};
+    const result=generateNuzlockeTeam(catalog.encounters,options);
+    assert.equal(result.complete,true);assert.ok((letsGo?(game.endsWith("pikachu")?[25]:[133]):[722,725,728]).includes(result.team[0].pokemon_id));assert.equal(new Set(result.team.map((row)=>row.species_family)).size,12);
+    const selectedConditions=new Set(result.team.flatMap((row)=>row.conditions||[]));
+    assert.ok(!selectedConditions.has("story-progress-hall-of-fame"));
+    if(letsGo)assert.ok(!selectedConditions.has("rare-overworld-spawn")&&!selectedConditions.has("roaming-legendary-bird"));
+    else assert.ok(!selectedConditions.has("sos-chain-active")&&!selectedConditions.has("island-scan-active")&&!selectedConditions.has("poke-pelago-visitor")&&!selectedConditions.has("ultra-space-access")&&!selectedConditions.has("other-scan-qr-code"));
+    assert.deepEqual(result,generateNuzlockeTeam(catalog.encounters,options));
+    const finals=generateNuzlockeTeam(catalog.encounters,{...options,includeStarter:false,finalEvolutionOnly:true,evolutionCatalog});
+    assert.equal(finals.complete,true);assert.ok(finals.team.every((row)=>row.is_final_evolution));assert.deepEqual(finals,generateNuzlockeTeam(catalog.encounters,{...options,includeStarter:false,finalEvolutionOnly:true,evolutionCatalog}));
+    assert.deepEqual(new Set(evolutionCatalog.evolutions.map((row)=>row.pokemon_id)),new Set(catalog.encounters.map((row)=>row.pokemon_id)));
+  }
+  const loadEvolutions=(game)=>JSON.parse(fs.readFileSync(new URL(`../data/nuzlocke/pokemon-${game}-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json`,import.meta.url),"utf8")).evolutions;
+  const finals=(rows,id)=>rows.find((row)=>row.pokemon_id===id).final_evolutions.map((row)=>[row.pokemon_id,row.form_name]);
+  assert.deepEqual(finals(loadEvolutions("sun"),25),[[10100,"Raichu Alola"]]);
+  assert.deepEqual(finals(loadEvolutions("sun"),744),[[745,"Lycanroc Midday"]]);
+  assert.deepEqual(finals(loadEvolutions("moon"),744),[[10126,"Lycanroc Midnight"]]);
+  assert.deepEqual(finals(loadEvolutions("ultra-sun"),744),[[745,"Lycanroc Midday"],[10126,"Lycanroc Midnight"]]);
+  assert.deepEqual(finals(loadEvolutions("lets-go-pikachu"),25),[[26,""]]);
+  assert.deepEqual(finals(loadEvolutions("lets-go-eevee"),102),[[103,""]]);
+});

@@ -27,6 +27,12 @@ import xEvolutionCatalog from "../../../../data/nuzlocke/pokemon-x-evolutions.po
 import yEvolutionCatalog from "../../../../data/nuzlocke/pokemon-y-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json";
 import omegaRubyEvolutionCatalog from "../../../../data/nuzlocke/pokemon-omega-ruby-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json";
 import alphaSapphireEvolutionCatalog from "../../../../data/nuzlocke/pokemon-alpha-sapphire-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json";
+import sunEvolutionCatalog from "../../../../data/nuzlocke/pokemon-sun-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json";
+import moonEvolutionCatalog from "../../../../data/nuzlocke/pokemon-moon-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json";
+import ultraSunEvolutionCatalog from "../../../../data/nuzlocke/pokemon-ultra-sun-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json";
+import ultraMoonEvolutionCatalog from "../../../../data/nuzlocke/pokemon-ultra-moon-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json";
+import letsGoPikachuEvolutionCatalog from "../../../../data/nuzlocke/pokemon-lets-go-pikachu-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json";
+import letsGoEeveeEvolutionCatalog from "../../../../data/nuzlocke/pokemon-lets-go-eevee-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json";
 
 export const runtime = "nodejs";
 const GAME_KEY = /^[a-z0-9-]{2,64}$/;
@@ -41,6 +47,9 @@ const EVOLUTION_CATALOGS = Object.freeze({
   "black-2": black2EvolutionCatalog, "white-2": white2EvolutionCatalog,
   x: xEvolutionCatalog, y: yEvolutionCatalog,
   "omega-ruby": omegaRubyEvolutionCatalog, "alpha-sapphire": alphaSapphireEvolutionCatalog,
+  sun: sunEvolutionCatalog, moon: moonEvolutionCatalog,
+  "ultra-sun": ultraSunEvolutionCatalog, "ultra-moon": ultraMoonEvolutionCatalog,
+  "lets-go-pikachu": letsGoPikachuEvolutionCatalog, "lets-go-eevee": letsGoEeveeEvolutionCatalog,
 });
 const MAX_CATALOG_ENCOUNTERS = 7500;
 const KANTO_STARTERS = Object.freeze([
@@ -74,7 +83,13 @@ const KALOS_STARTERS = Object.freeze([
   { pokemon_id: 653, pokemon_name: "Fennekin", form_name: "", species_family: "evolution-chain-338", artwork_url: "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/653.png" },
   { pokemon_id: 656, pokemon_name: "Froakie", form_name: "", species_family: "evolution-chain-339", artwork_url: "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/656.png" },
 ]);
-const GAME_STARTERS = Object.freeze({ red: KANTO_STARTERS, blue: KANTO_STARTERS, yellow: YELLOW_STARTER, gold: JOHTO_STARTERS, silver: JOHTO_STARTERS, crystal: JOHTO_STARTERS, ruby: HOENN_STARTERS, sapphire: HOENN_STARTERS, emerald: HOENN_STARTERS, firered: KANTO_STARTERS, leafgreen: KANTO_STARTERS, diamond: SINNOH_STARTERS, pearl: SINNOH_STARTERS, platinum: SINNOH_STARTERS, heartgold: JOHTO_STARTERS, soulsilver: JOHTO_STARTERS, black: UNOVA_STARTERS, white: UNOVA_STARTERS, "black-2": UNOVA_STARTERS, "white-2": UNOVA_STARTERS, x: KALOS_STARTERS, y: KALOS_STARTERS, "omega-ruby": HOENN_STARTERS, "alpha-sapphire": HOENN_STARTERS });
+const ALOLA_STARTERS = Object.freeze([
+  { pokemon_id: 722, pokemon_name: "Rowlet", form_name: "", species_family: "evolution-chain-374", artwork_url: "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/722.png" },
+  { pokemon_id: 725, pokemon_name: "Litten", form_name: "", species_family: "evolution-chain-375", artwork_url: "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/725.png" },
+  { pokemon_id: 728, pokemon_name: "Popplio", form_name: "", species_family: "evolution-chain-376", artwork_url: "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/728.png" },
+]);
+const LETS_GO_EEVEE_STARTER = Object.freeze([{ pokemon_id: 133, pokemon_name: "Eevee", form_name: "", species_family: "evolution-chain-67", artwork_url: "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/133.png" }]);
+const GAME_STARTERS = Object.freeze({ red: KANTO_STARTERS, blue: KANTO_STARTERS, yellow: YELLOW_STARTER, gold: JOHTO_STARTERS, silver: JOHTO_STARTERS, crystal: JOHTO_STARTERS, ruby: HOENN_STARTERS, sapphire: HOENN_STARTERS, emerald: HOENN_STARTERS, firered: KANTO_STARTERS, leafgreen: KANTO_STARTERS, diamond: SINNOH_STARTERS, pearl: SINNOH_STARTERS, platinum: SINNOH_STARTERS, heartgold: JOHTO_STARTERS, soulsilver: JOHTO_STARTERS, black: UNOVA_STARTERS, white: UNOVA_STARTERS, "black-2": UNOVA_STARTERS, "white-2": UNOVA_STARTERS, x: KALOS_STARTERS, y: KALOS_STARTERS, "omega-ruby": HOENN_STARTERS, "alpha-sapphire": HOENN_STARTERS, sun: ALOLA_STARTERS, moon: ALOLA_STARTERS, "ultra-sun": ALOLA_STARTERS, "ultra-moon": ALOLA_STARTERS, "lets-go-pikachu": YELLOW_STARTER, "lets-go-eevee": LETS_GO_EEVEE_STARTER });
 
 export async function GET() {
   try {

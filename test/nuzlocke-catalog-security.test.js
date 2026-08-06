@@ -126,6 +126,13 @@ const gen6Artifacts=Object.fromEntries(Object.entries(gen6MigrationNumbers).map(
   imported:fs.readFileSync(new URL(`../supabase/${importNumber}-import-pokemon-${game}-encounter-catalog.sql`,import.meta.url),"utf8"),
   verified:fs.readFileSync(new URL(`../supabase/${verifyNumber}-verify-pokemon-${game}-encounter-catalog.sql`,import.meta.url),"utf8"),
 }]));
+const gen7MigrationNumbers={sun:[312,313],moon:[314,315],"ultra-sun":[316,317],"ultra-moon":[318,319],"lets-go-pikachu":[320,321],"lets-go-eevee":[322,323]};
+const gen7Artifacts=Object.fromEntries(Object.entries(gen7MigrationNumbers).map(([game,[importNumber,verifyNumber]])=>[game,{
+  catalog:JSON.parse(fs.readFileSync(new URL(`../data/nuzlocke/pokemon-${game}.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json`,import.meta.url),"utf8")),
+  evolutions:JSON.parse(fs.readFileSync(new URL(`../data/nuzlocke/pokemon-${game}-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json`,import.meta.url),"utf8")),
+  imported:fs.readFileSync(new URL(`../supabase/${importNumber}-import-pokemon-${game}-encounter-catalog.sql`,import.meta.url),"utf8"),
+  verified:fs.readFileSync(new URL(`../supabase/${verifyNumber}-verify-pokemon-${game}-encounter-catalog.sql`,import.meta.url),"utf8"),
+}]));
 test("catalog is verified-only and browser read-only", () => {
   for (const table of [
     "pokemon_games",
@@ -367,6 +374,12 @@ paths = [
   '''^data/nuzlocke/pokemon-y\\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\\.json$''',
   '''^data/nuzlocke/pokemon-omega-ruby\\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\\.json$''',
   '''^data/nuzlocke/pokemon-alpha-sapphire\\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\\.json$''',
+  '''^data/nuzlocke/pokemon-sun\\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\\.json$''',
+  '''^data/nuzlocke/pokemon-moon\\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\\.json$''',
+  '''^data/nuzlocke/pokemon-ultra-sun\\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\\.json$''',
+  '''^data/nuzlocke/pokemon-ultra-moon\\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\\.json$''',
+  '''^data/nuzlocke/pokemon-lets-go-pikachu\\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\\.json$''',
+  '''^data/nuzlocke/pokemon-lets-go-eevee\\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\\.json$''',
 ]
 regexes = [
   '''^(?:area_key|location_key)"\\s*:\\s*"[a-z0-9-]+"$''',
@@ -401,6 +414,13 @@ paths = [
   '''^docs/pokemon-catalog/pokemon-omega-ruby-encounter-audit-2026-08-05\\.md$''',
   '''^docs/pokemon-catalog/pokemon-alpha-sapphire-encounter-audit-2026-08-05\\.md$''',
   '''^docs/pokemon-catalog/generation-6-schema-investigation-2026-08-05\\.md$''',
+  '''^docs/pokemon-catalog/pokemon-sun-encounter-audit-2026-08-05\\.md$''',
+  '''^docs/pokemon-catalog/pokemon-moon-encounter-audit-2026-08-05\\.md$''',
+  '''^docs/pokemon-catalog/pokemon-ultra-sun-encounter-audit-2026-08-05\\.md$''',
+  '''^docs/pokemon-catalog/pokemon-ultra-moon-encounter-audit-2026-08-05\\.md$''',
+  '''^docs/pokemon-catalog/pokemon-lets-go-pikachu-encounter-audit-2026-08-05\\.md$''',
+  '''^docs/pokemon-catalog/pokemon-lets-go-eevee-encounter-audit-2026-08-05\\.md$''',
+  '''^docs/pokemon-catalog/generation-7-schema-investigation-2026-08-05\\.md$''',
 ]
 regexes = [
   '''^5064f1d72746b3a6a931616dae3fb6445c556d4f$''',
@@ -437,6 +457,12 @@ paths = [
   '''^supabase/306-import-pokemon-y-encounter-catalog\\.sql$''',
   '''^supabase/308-import-pokemon-omega-ruby-encounter-catalog\\.sql$''',
   '''^supabase/310-import-pokemon-alpha-sapphire-encounter-catalog\\.sql$''',
+  '''^supabase/312-import-pokemon-sun-encounter-catalog\\.sql$''',
+  '''^supabase/314-import-pokemon-moon-encounter-catalog\\.sql$''',
+  '''^supabase/316-import-pokemon-ultra-sun-encounter-catalog\\.sql$''',
+  '''^supabase/318-import-pokemon-ultra-moon-encounter-catalog\\.sql$''',
+  '''^supabase/320-import-pokemon-lets-go-pikachu-encounter-catalog\\.sql$''',
+  '''^supabase/322-import-pokemon-lets-go-eevee-encounter-catalog\\.sql$''',
 ]
 regexes = [
   '''^(?:area_key|location_key)"\\s*:\\s*"[a-z0-9-]+"$''',
@@ -491,6 +517,12 @@ paths = [
   '''^supabase/307-verify-pokemon-y-encounter-catalog\\.sql$''',
   '''^supabase/309-verify-pokemon-omega-ruby-encounter-catalog\\.sql$''',
   '''^supabase/311-verify-pokemon-alpha-sapphire-encounter-catalog\\.sql$''',
+  '''^supabase/313-verify-pokemon-sun-encounter-catalog\\.sql$''',
+  '''^supabase/315-verify-pokemon-moon-encounter-catalog\\.sql$''',
+  '''^supabase/317-verify-pokemon-ultra-sun-encounter-catalog\\.sql$''',
+  '''^supabase/319-verify-pokemon-ultra-moon-encounter-catalog\\.sql$''',
+  '''^supabase/321-verify-pokemon-lets-go-pikachu-encounter-catalog\\.sql$''',
+  '''^supabase/323-verify-pokemon-lets-go-eevee-encounter-catalog\\.sql$''',
 ]
 regexes = [
   '''^area_key='[a-z0-9-]+'$''',
@@ -680,6 +712,22 @@ test("Generation VI artifacts and migrations stay exact, pending-first, and vers
   assert.ok(gen6Artifacts.y.catalog.encounters.some((row)=>row.pokemon_id===717)&&!gen6Artifacts.y.catalog.encounters.some((row)=>row.pokemon_id===716));
   assert.equal(gen6Artifacts["omega-ruby"].catalog.encounters.filter((row)=>row.pokemon_id===422&&row.form_name==="West Sea").length,2);assert.equal(gen6Artifacts["alpha-sapphire"].catalog.encounters.filter((row)=>row.pokemon_id===422&&row.form_name==="East Sea").length,2);
 });
+test("Generation VII artifacts and migrations stay exact, pending-first, location-scoped, and version-specific",()=>{
+  const expected={sun:{dex:782,locations:67,encounters:886,profiles:251,methods:11,groups:5,sos:181,pelago:64},moon:{dex:782,locations:68,encounters:890,profiles:251,methods:11,groups:5,sos:181,pelago:64},"ultra-sun":{dex:1003,locations:74,encounters:1216,profiles:378,methods:11,groups:8,sos:270,pelago:63},"ultra-moon":{dex:1003,locations:74,encounters:1216,profiles:377,methods:11,groups:8,sos:268,pelago:63},"lets-go-pikachu":{dex:153,locations:44,encounters:693,profiles:125,methods:10,groups:3},"lets-go-eevee":{dex:153,locations:44,encounters:693,profiles:125,methods:10,groups:3}};
+  for(const [game,records] of Object.entries(gen7Artifacts)){
+    const counts=expected[game],letsGo=game.startsWith("lets-go-");
+    assert.equal(records.catalog.pokedex_entries.length,counts.dex);assert.equal(records.catalog.locations.length,counts.locations);assert.equal(records.catalog.encounters.length,counts.encounters);assert.equal(new Set(records.catalog.encounters.map((row)=>row.pokemon_id)).size,counts.profiles);assert.equal(new Set(records.catalog.encounters.map((row)=>row.method)).size,counts.methods);
+    assert.deepEqual(records.catalog.game.starters.map((row)=>row.pokemon_id),letsGo?[game.endsWith("pikachu")?25:133]:[722,725,728]);assert.equal(records.catalog.game.condition_groups.length,counts.groups);
+    assert.ok(records.catalog.locations.every((row)=>row.area_key===`${row.location_key}-main-area`));assert.deepEqual(new Set(records.evolutions.evolutions.map((row)=>row.pokemon_id)),new Set(records.catalog.encounters.map((row)=>row.pokemon_id)));
+    const payloads=[...records.imported.matchAll(/\$catalog\$(.+?)\$catalog\$/g)].map((match)=>JSON.parse(match[1]));assert.deepEqual(payloads,[records.catalog.game.starters,records.catalog.game.condition_groups,records.catalog.pokedex_entries,records.catalog.locations,records.catalog.encounters]);
+    assert.match(records.imported,new RegExp(`encounter_status[^)]*\\) values \\('${game}'[\\s\\S]+,'pending'`));assert.doesNotMatch(records.imported,/encounter_status='verified'/);assert.match(records.verified,new RegExp(`where game_key='${game}'[\\s\\S]+encounter_status='pending'`));assert.match(records.verified,/count\(distinct method\)/);assert.match(records.verified,/count\(distinct pokemon_id\)/);
+    if(letsGo){assert.equal(records.catalog.encounters.filter((row)=>(row.conditions||[]).includes("rare-overworld-spawn")).length,174);assert.equal(records.catalog.encounters.filter((row)=>(row.conditions||[]).includes("roaming-legendary-bird")).length,75);assert.equal(records.catalog.encounters.filter((row)=>(row.conditions||[]).includes("story-progress-hall-of-fame")).length,238);}
+    else{assert.equal(records.catalog.encounters.filter((row)=>(row.conditions||[]).includes("sos-chain-active")).length,counts.sos);assert.equal(records.catalog.encounters.filter((row)=>row.method==="island-scan").length,28);assert.equal(records.catalog.encounters.filter((row)=>(row.conditions||[]).includes("poke-pelago-visitor")).length,counts.pelago);}
+  }
+  for(const game of ["ultra-sun","ultra-moon"]){assert.equal(gen7Artifacts[game].catalog.locations.filter((row)=>row.location_key==="ultra-space-wilds").length,1);assert.equal(gen7Artifacts[game].catalog.encounters.filter((row)=>row.area_key==="ultra-space-wilds-main-area").length,86);}
+  assert.ok(gen7Artifacts.sun.catalog.encounters.some((row)=>row.pokemon_id===791)&&!gen7Artifacts.sun.catalog.encounters.some((row)=>row.pokemon_id===792));assert.ok(gen7Artifacts.moon.catalog.encounters.some((row)=>row.pokemon_id===792)&&!gen7Artifacts.moon.catalog.encounters.some((row)=>row.pokemon_id===791));
+  assert.ok(gen7Artifacts["lets-go-pikachu"].catalog.encounters.some((row)=>row.pokemon_id===53&&row.method==="gift")&&!gen7Artifacts["lets-go-pikachu"].catalog.encounters.some((row)=>row.pokemon_id===59&&row.method==="gift"));assert.ok(gen7Artifacts["lets-go-eevee"].catalog.encounters.some((row)=>row.pokemon_id===59&&row.method==="gift")&&!gen7Artifacts["lets-go-eevee"].catalog.encounters.some((row)=>row.pokemon_id===53&&row.method==="gift"));
+});
 test("server route uses public RLS catalog access and privileged rate limiting", () => {
   assert.match(route, /createPublicServerClient/);
   assert.match(route, /list_verified_nuzlocke_games/);
@@ -692,6 +740,7 @@ test("final evolution requests require source-matched pinned game catalogs", () 
   for(const game of ["red","blue","yellow","gold","silver","crystal","ruby","sapphire","emerald","firered","leafgreen","diamond","pearl","platinum","heartgold","soulsilver","black","white"]) assert.match(route,new RegExp(`${game}: ${game}EvolutionCatalog`));
   assert.match(route,/"black-2": black2EvolutionCatalog/);assert.match(route,/"white-2": white2EvolutionCatalog/);
   assert.match(route,/x: xEvolutionCatalog/);assert.match(route,/y: yEvolutionCatalog/);assert.match(route,/"omega-ruby": omegaRubyEvolutionCatalog/);assert.match(route,/"alpha-sapphire": alphaSapphireEvolutionCatalog/);
+  assert.match(route,/sun: sunEvolutionCatalog/);assert.match(route,/moon: moonEvolutionCatalog/);assert.match(route,/"ultra-sun": ultraSunEvolutionCatalog/);assert.match(route,/"ultra-moon": ultraMoonEvolutionCatalog/);assert.match(route,/"lets-go-pikachu": letsGoPikachuEvolutionCatalog/);assert.match(route,/"lets-go-eevee": letsGoEeveeEvolutionCatalog/);
   assert.match(route, /body\.finalEvolutionOnly === true/);
   assert.match(
     route,
@@ -740,4 +789,6 @@ test("starter inclusion is explicit in shared links and old seeded links retain 
   assert.match(route, /heartgold: JOHTO_STARTERS, soulsilver: JOHTO_STARTERS/);
   assert.match(route, /black: UNOVA_STARTERS, white: UNOVA_STARTERS, "black-2": UNOVA_STARTERS, "white-2": UNOVA_STARTERS/);
   assert.match(route, /x: KALOS_STARTERS, y: KALOS_STARTERS, "omega-ruby": HOENN_STARTERS, "alpha-sapphire": HOENN_STARTERS/);
+  assert.match(route, /sun: ALOLA_STARTERS, moon: ALOLA_STARTERS, "ultra-sun": ALOLA_STARTERS, "ultra-moon": ALOLA_STARTERS/);
+  assert.match(route, /"lets-go-pikachu": YELLOW_STARTER, "lets-go-eevee": LETS_GO_EEVEE_STARTER/);
 });

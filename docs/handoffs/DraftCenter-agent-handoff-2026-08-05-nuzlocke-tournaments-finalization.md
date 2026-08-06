@@ -225,6 +225,13 @@ production deployment.
 - Y migrations: 306-307
 - Omega Ruby migrations: 308-309
 - Alpha Sapphire migrations: 310-311
+- Generation VII branch: `codex/nuzlocke-gen7`
+- Sun migrations: 312-313
+- Moon migrations: 314-315
+- Ultra Sun migrations: 316-317
+- Ultra Moon migrations: 318-319
+- Let's Go Pikachu migrations: 320-321
+- Let's Go Eevee migrations: 322-323
 
 Yellow is locally implemented and audited. Gold, Silver, and Crystal now have
 separate pinned artifacts, game-limited evolution maps, independent Veekun and
@@ -338,6 +345,28 @@ the full application suite, the 1,027-row National Dex check, dependency audit,
 and 108-page build pass locally. CI, Preview database application, and visual
 review remain.
 
+Generation VII also reuses the existing schema. Sun has 782/67/886/251 and
+Moon has 782/68/890/251 Pokédex/location/encounter/profile counts. Ultra Sun
+has 1,003/74/1,216/378 and Ultra Moon has 1,003/74/1,216/377. Let's Go
+Pikachu and Let's Go Eevee each have 153 Pokédex rows, 44 catch locations,
+693 encounters, and 125 obtainable profiles.
+
+Alola defaults to ordinary main-story encounters. SOS allies, Island Scan and
+its seven weekdays, Poké Pelago visitors, Ultra Warp Ride, pair-required
+wormhole legends, the USUM QR gift, and postgame encounters remain explicit
+choices. All 86 USUM Ultra Space entries share one Nuzlocke catch location.
+Let's Go defaults to visible overworld encounters; 174 rare/catch-combo rows,
+238 postgame rows, and 75 repeated roaming-bird rows per version are opt-in.
+All internal floors and crossover areas collapse to the displayed met
+location, and GO Park transfers are excluded. Regional and version-specific
+final evolutions are pinned per game.
+
+All six independent source audits, 46 focused regressions, the full application
+suite, all 1,027 National Dex rows, the production dependency audit, and a
+108-page production build pass locally. Unpublished pending-first migrations
+312-323 are prepared but have not been applied to Preview or production. CI,
+Preview application, and desktop/mobile visual testing are release gates.
+
 ## Remaining Nuzlocke game roadmap
 
 The default coverage target is the official main-series versions and remakes
@@ -384,11 +413,12 @@ Recommended implementation order:
    one-location opt-in Friend Safari, starter-matched legendary birds, exact
    ORAS grass/Surf/Rock Smash/rod/horde tables, National Pokédex DexNav,
    rotating Mirage Spots, soaring, schedules, and version-exclusive forms;
-   Preview and release validation remain. Unpublished migrations are 304-311,
-   so a tournament rebase after this full stack must begin at 312.
-7. **Sun, Moon, Ultra Sun, Ultra Moon, Let's Go Pikachu/Eevee.** Define SOS,
-   Island Scan, Ultra Space, ambush, overworld, catch-combo, and rare-spawn
-   policies before importing data.
+   Preview and release validation remain. Unpublished migrations are 304-311.
+7. **Sun, Moon, Ultra Sun, Ultra Moon, Let's Go Pikachu/Eevee.** Locally
+   complete with SOS, weekday Island Scan, Poké Pelago, Ultra Space,
+   pair-required legends, overworld, catch-combo/rare-spawn, postgame flying,
+   roaming-bird, and one-catch-location policies. Unpublished migrations are
+   312-323; Preview and release validation remain.
 8. **Sword/Shield plus DLC, Brilliant Diamond/Shining Pearl, and Legends:
    Arceus.** Define grass versus visible overworld slots, weather, Wild Area,
    raid, Grand Underground, hideaway, outbreak, distortion, and sub-area rules.
@@ -399,7 +429,7 @@ Recommended implementation order:
 Generation II keeps `conditions text[]` for source fidelity and adds bounded,
 data-driven condition groups for player controls. Revisit this capability
 contract before weather, seasons, DLC, or materially different encounter
-systems are imported. Before Let's Go or Generation VIII/IX, write a product
+systems are imported. Before Generation VIII/IX, write a product
 rule for what counts as one Nuzlocke encounter in an open-world zone. Add new
 forward-only schema only when those decisions require it; do not flatten
 materially different mechanics into misleading Route-first odds.
@@ -432,9 +462,9 @@ The branch previously passed all seven repository checks and uses its own
 billable Supabase Preview branch.
 
 Its unpublished migration is currently
-`260-standalone-single-elimination-tournaments.sql`. If Yellow through
-Yellow-through-Generation VI migrations 267-311 release before tournaments, its next safe
-number is 312. If only part of that stack releases, use the first genuinely
+`260-standalone-single-elimination-tournaments.sql`. If Yellow-through-
+Generation VII migrations 267-323 release before tournaments, its next safe
+number is 324. If only part of that stack releases, use the first genuinely
 unused number.
 Update every code, test, scan, and documentation reference. The tournament
 Preview database was manually given the old 260 migration, so rebuild or
@@ -455,7 +485,7 @@ advancement.
 1. Perform the narrow mobile visual pass on #38, then release Red/Blue through
    the protected PR flow. Apply 261-266 to the exact core production database,
    confirm the deployed commit, and smoke-test production.
-2. Continue with Generation VII and the remaining Nuzlocke games in the batches
+2. Continue with Generation VIII and the remaining Nuzlocke games in the batches
    above. Keep each game fail-closed until its pinned independent audit passes.
 3. After the owner's agreed Nuzlocke coverage target is released, rebase #39
    onto current `main`, give its old migration 260 the first unused number, and

@@ -33,6 +33,12 @@ paths = [
   '''^data/nuzlocke/pokemon-y\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\.json$''',
   '''^data/nuzlocke/pokemon-omega-ruby\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\.json$''',
   '''^data/nuzlocke/pokemon-alpha-sapphire\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\.json$''',
+  '''^data/nuzlocke/pokemon-sun\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\.json$''',
+  '''^data/nuzlocke/pokemon-moon\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\.json$''',
+  '''^data/nuzlocke/pokemon-ultra-sun\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\.json$''',
+  '''^data/nuzlocke/pokemon-ultra-moon\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\.json$''',
+  '''^data/nuzlocke/pokemon-lets-go-pikachu\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\.json$''',
+  '''^data/nuzlocke/pokemon-lets-go-eevee\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\.json$''',
 ]
 regexes = [
   '''^(?:area_key|location_key)"\s*:\s*"[a-z0-9-]+"$''',
@@ -67,6 +73,13 @@ paths = [
   '''^docs/pokemon-catalog/pokemon-omega-ruby-encounter-audit-2026-08-05\.md$''',
   '''^docs/pokemon-catalog/pokemon-alpha-sapphire-encounter-audit-2026-08-05\.md$''',
   '''^docs/pokemon-catalog/generation-6-schema-investigation-2026-08-05\.md$''',
+  '''^docs/pokemon-catalog/pokemon-sun-encounter-audit-2026-08-05\.md$''',
+  '''^docs/pokemon-catalog/pokemon-moon-encounter-audit-2026-08-05\.md$''',
+  '''^docs/pokemon-catalog/pokemon-ultra-sun-encounter-audit-2026-08-05\.md$''',
+  '''^docs/pokemon-catalog/pokemon-ultra-moon-encounter-audit-2026-08-05\.md$''',
+  '''^docs/pokemon-catalog/pokemon-lets-go-pikachu-encounter-audit-2026-08-05\.md$''',
+  '''^docs/pokemon-catalog/pokemon-lets-go-eevee-encounter-audit-2026-08-05\.md$''',
+  '''^docs/pokemon-catalog/generation-7-schema-investigation-2026-08-05\.md$''',
 ]
 regexes = [
   '''^5064f1d72746b3a6a931616dae3fb6445c556d4f$''',
@@ -103,6 +116,12 @@ paths = [
   '''^supabase/306-import-pokemon-y-encounter-catalog\.sql$''',
   '''^supabase/308-import-pokemon-omega-ruby-encounter-catalog\.sql$''',
   '''^supabase/310-import-pokemon-alpha-sapphire-encounter-catalog\.sql$''',
+  '''^supabase/312-import-pokemon-sun-encounter-catalog\.sql$''',
+  '''^supabase/314-import-pokemon-moon-encounter-catalog\.sql$''',
+  '''^supabase/316-import-pokemon-ultra-sun-encounter-catalog\.sql$''',
+  '''^supabase/318-import-pokemon-ultra-moon-encounter-catalog\.sql$''',
+  '''^supabase/320-import-pokemon-lets-go-pikachu-encounter-catalog\.sql$''',
+  '''^supabase/322-import-pokemon-lets-go-eevee-encounter-catalog\.sql$''',
 ]
 regexes = [
   '''^(?:area_key|location_key)"\s*:\s*"[a-z0-9-]+"$''',
@@ -157,6 +176,12 @@ paths = [
   '''^supabase/307-verify-pokemon-y-encounter-catalog\.sql$''',
   '''^supabase/309-verify-pokemon-omega-ruby-encounter-catalog\.sql$''',
   '''^supabase/311-verify-pokemon-alpha-sapphire-encounter-catalog\.sql$''',
+  '''^supabase/313-verify-pokemon-sun-encounter-catalog\.sql$''',
+  '''^supabase/315-verify-pokemon-moon-encounter-catalog\.sql$''',
+  '''^supabase/317-verify-pokemon-ultra-sun-encounter-catalog\.sql$''',
+  '''^supabase/319-verify-pokemon-ultra-moon-encounter-catalog\.sql$''',
+  '''^supabase/321-verify-pokemon-lets-go-pikachu-encounter-catalog\.sql$''',
+  '''^supabase/323-verify-pokemon-lets-go-eevee-encounter-catalog\.sql$''',
 ]
 regexes = [
   '''^area_key='[a-z0-9-]+'$''',

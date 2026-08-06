@@ -15,7 +15,7 @@ if (!/^[0-9a-f]{40}$/.test(commit)) throw new Error("--commit must be an exact 4
 
 const payload = JSON.parse(await fs.readFile(input, "utf8"));
 const game = String(payload.game?.game_key || "");
-if (!["red", "blue", "yellow", "gold", "silver", "crystal", "ruby", "sapphire", "emerald", "firered", "leafgreen", "diamond", "pearl", "platinum", "heartgold", "soulsilver", "black", "white", "black-2", "white-2", "x", "y", "omega-ruby", "alpha-sapphire"].includes(game)) throw new Error("The reviewed migration builder accepts only supported Generation I–VI games.");
+if (!["red", "blue", "yellow", "gold", "silver", "crystal", "ruby", "sapphire", "emerald", "firered", "leafgreen", "diamond", "pearl", "platinum", "heartgold", "soulsilver", "black", "white", "black-2", "white-2", "x", "y", "omega-ruby", "alpha-sapphire", "sun", "moon", "ultra-sun", "ultra-moon", "lets-go-pikachu", "lets-go-eevee"].includes(game)) throw new Error("The reviewed migration builder accepts only supported Generation I–VII games.");
 if (!String(payload.game.coverage_note || "").includes(commit)) throw new Error("The migration commit must match the pinned catalog source.");
 if (payload.encounters.length !== new Set(payload.encounters.map((row) => row.source_encounter_id)).size) {
   throw new Error("Encounter source identifiers must be unique before a migration can be generated.");
@@ -30,7 +30,7 @@ const gameSql = quoted(game);
 const displayNameSql = quoted(payload.game.display_name);
 const familySql = quoted(payload.game.family);
 const pretRepository = game === "yellow" ? "pokeyellow" : game === "crystal" ? "pokecrystal" : ["gold", "silver"].includes(game) ? "pokegold" : ["ruby", "sapphire"].includes(game) ? "pokeruby" : game === "emerald" ? "pokeemerald" : ["firered", "leafgreen"].includes(game) ? "pokefirered" : ["diamond", "pearl"].includes(game) ? "pokediamond" : game === "platinum" ? "pokeplatinum" : ["heartgold", "soulsilver"].includes(game) ? "pokeheartgold" : "pokered";
-const independentSources = Number(payload.game.generation) === 6 ? "Veekun, PKHeX, and pk3DS" : Number(payload.game.generation) === 5 ? "Veekun and PKHeX" : `Veekun and pret/${pretRepository}`;
+const independentSources = Number(payload.game.generation) === 7 ? (game.startsWith("lets-go-") ? "PKHeX" : "PKHeX and pk3DS") : Number(payload.game.generation) === 6 ? "Veekun, PKHeX, and pk3DS" : Number(payload.game.generation) === 5 ? "Veekun and PKHeX" : `Veekun and pret/${pretRepository}`;
 const coverageSql = quoted(`Pinned PokéAPI snapshot; independently compared with ${independentSources} for ${payload.game.display_name}.`);
 const sql = `-- Generated from ${input}
 -- Source commit: ${commit}
