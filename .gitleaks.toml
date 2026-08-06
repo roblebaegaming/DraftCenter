@@ -21,6 +21,21 @@ regexes = [
 ]
 
 [[rules.allowlists]]
+description = "Pinned Pokemon audit documentation public PokeAPI snapshot"
+condition = "AND"
+regexTarget = "match"
+paths = [
+  '''^docs/pokemon-catalog/pokemon-yellow-encounter-audit-2026-08-05\.md$''',
+  '''^docs/pokemon-catalog/generation-2-schema-investigation-2026-08-05\.md$''',
+  '''^docs/pokemon-catalog/pokemon-gold-encounter-audit-2026-08-05\.md$''',
+  '''^docs/pokemon-catalog/pokemon-silver-encounter-audit-2026-08-05\.md$''',
+  '''^docs/pokemon-catalog/pokemon-crystal-encounter-audit-2026-08-05\.md$''',
+]
+regexes = [
+  '''^-\s+Pok(?:e|é)API snapshot:\s+`5064f1d72746b3a6a931616dae3fb6445c556d4f`$''',
+]
+
+[[rules.allowlists]]
 description = "Pinned Pokemon catalog import public location identifiers, current and historical paths"
 condition = "AND"
 regexTarget = "match"
