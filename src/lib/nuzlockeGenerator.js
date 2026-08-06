@@ -58,17 +58,18 @@ function applyFinalEvolutions(encounters, options) {
   if (options.finalEvolutionOnly !== true) return encounters;
   const rows = options.evolutionCatalog?.evolutions;
   if (!Array.isArray(rows) || !rows.length) throw new Error("Final evolution data is unavailable for this game.");
-  const evolutionByPokemon = new Map(rows.map((row) => [String(row.pokemon_id), row.final_evolutions]));
+  const evolutionByPokemon = new Map(rows.map((row) => [`${row.pokemon_id}|${String(row.form_name || "")}`, row.final_evolutions]));
   const selectedFinalByPokemon = new Map();
   return encounters.map((entry) => {
     const sourceId = String(entry?.pokemon_id || "");
-    const finalChoices = evolutionByPokemon.get(sourceId);
+    const sourceIdentity = `${sourceId}|${String(entry.form_name || "")}`;
+    const finalChoices = evolutionByPokemon.get(sourceIdentity) || evolutionByPokemon.get(`${sourceId}|`);
     if (!Array.isArray(finalChoices) || !finalChoices.length) throw new Error("Final evolution data is incomplete for this game's encounter pool.");
-    if (!selectedFinalByPokemon.has(sourceId)) {
-      const random = seededRandom(`${options.seed}:${options.evolutionCatalog.game_key}:final-evolution:${sourceId}`);
-      selectedFinalByPokemon.set(sourceId, finalChoices[Math.floor(random() * finalChoices.length)]);
+    if (!selectedFinalByPokemon.has(sourceIdentity)) {
+      const random = seededRandom(`${options.seed}:${options.evolutionCatalog.game_key}:final-evolution:${sourceIdentity}`);
+      selectedFinalByPokemon.set(sourceIdentity, finalChoices[Math.floor(random() * finalChoices.length)]);
     }
-    const finalPokemon = selectedFinalByPokemon.get(sourceId);
+    const finalPokemon = selectedFinalByPokemon.get(sourceIdentity);
     if (!finalPokemon?.pokemon_id || !finalPokemon?.pokemon_name) throw new Error("Final evolution data is incomplete for this game's encounter pool.");
     const changed = Number(finalPokemon.pokemon_id) !== Number(entry.pokemon_id) || finalPokemon.pokemon_name !== entry.pokemon_name || String(finalPokemon.form_name || "") !== String(entry.form_name || "");
     return {

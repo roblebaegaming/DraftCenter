@@ -296,3 +296,17 @@ test("reviewed Generation VII catalogs support Alola mechanics, Let's Go overwor
   assert.deepEqual(finals(loadEvolutions("lets-go-pikachu"),25),[[26,""]]);
   assert.deepEqual(finals(loadEvolutions("lets-go-eevee"),102),[[103,""]]);
 });
+test("reviewed Generation VIII catalogs support expansion mechanics, open-zone events, starters, and form-aware final evolutions",()=>{
+  const games=["sword","shield","brilliant-diamond","shining-pearl","legends-arceus"];
+  for(const game of games){
+    const catalog=JSON.parse(fs.readFileSync(new URL(`../data/nuzlocke/pokemon-${game}.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json`,import.meta.url),"utf8"));
+    const evolutionCatalog=JSON.parse(fs.readFileSync(new URL(`../data/nuzlocke/pokemon-${game}-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json`,import.meta.url),"utf8"));
+    const options={seed:`${game}-review`,teamSize:12,mode:"route-random",weighting:"authentic",familyClause:true,excludeLegendaries:true,includeStarter:true,starters:catalog.game.starters,conditionGroups:catalog.game.condition_groups};
+    const result=generateNuzlockeTeam(catalog.encounters,options);assert.equal(result.complete,true);assert.ok(catalog.game.starters.some((row)=>row.pokemon_id===result.team[0].pokemon_id));assert.equal(new Set(result.team.map((row)=>row.species_family)).size,12);const selected=new Set(result.team.flatMap((row)=>row.conditions||[]));
+    if(["sword","shield"].includes(game))assert.ok(!selected.has("content-isle-of-armor")&&!selected.has("content-crown-tundra")&&!selected.has("max-raid-encounter")&&!selected.has("max-lair-encounter")&&!selected.has("story-progress-hall-of-fame"));
+    else if(game==="legends-arceus")assert.ok(!selected.has("space-time-distortion-encounter")&&!selected.has("mass-outbreak-encounter")&&!selected.has("massive-mass-outbreak-encounter")&&!selected.has("external-save-bonus"));
+    else assert.ok(!selected.has("grand-underground-encounter")&&!selected.has("limited-time-event")&&!selected.has("external-save-bonus"));
+    assert.deepEqual(result,generateNuzlockeTeam(catalog.encounters,options));const finalOptions={...options,includeStarter:false,finalEvolutionOnly:true,evolutionCatalog};const finals=generateNuzlockeTeam(catalog.encounters,finalOptions);assert.equal(finals.complete,true);assert.ok(finals.team.every((row)=>row.is_final_evolution));
+  }
+  const catalog=JSON.parse(fs.readFileSync(new URL("../data/nuzlocke/pokemon-brilliant-diamond.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json",import.meta.url),"utf8"));const evolutionCatalog=JSON.parse(fs.readFileSync(new URL("../data/nuzlocke/pokemon-brilliant-diamond-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json",import.meta.url),"utf8"));const west=catalog.encounters.find((row)=>row.pokemon_id===422&&row.form_name==="");const east=catalog.encounters.find((row)=>row.pokemon_id===422&&row.form_name==="East Sea");const forms=generateNuzlockeTeam([{...west,area_key:"west-sea-main-area"},{...east,area_key:"east-sea-main-area"}],{seed:"shellos-forms",teamSize:2,mode:"route-random",weighting:"equal",finalEvolutionOnly:true,evolutionCatalog});assert.deepEqual(new Set(forms.team.map((row)=>row.form_name)),new Set(["","East Sea"]));assert.ok(forms.team.every((row)=>row.pokemon_id===423));
+});

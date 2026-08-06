@@ -193,7 +193,7 @@ production project, confirm the deployed commit, test `/nuzlocke` signed out,
 and run `npm run smoke:production`. Do not treat the passing Preview as a
 production deployment.
 
-## Yellow through Generation V follow-up state
+## Yellow through Generation VIII follow-up state
 
 - Branch: `codex/nuzlocke-gen2`
 - Production: not merged and not migrated
@@ -232,6 +232,12 @@ production deployment.
 - Ultra Moon migrations: 318-319
 - Let's Go Pikachu migrations: 320-321
 - Let's Go Eevee migrations: 322-323
+- Generation VIII branch: `codex/nuzlocke-gen8`
+- Sword migrations: 324-325
+- Shield migrations: 326-327
+- Brilliant Diamond migrations: 328-329
+- Shining Pearl migrations: 330-331
+- Legends: Arceus migrations: 332-333
 
 Yellow is locally implemented and audited. Gold, Silver, and Crystal now have
 separate pinned artifacts, game-limited evolution maps, independent Veekun and
@@ -367,6 +373,38 @@ suite, all 1,027 National Dex rows, the production dependency audit, and a
 312-323 are prepared but have not been applied to Preview or production. CI,
 Preview application, and desktop/mobile visual testing are release gates.
 
+Generation VIII also reuses the existing schema. Sword has
+821/87/9,114/613 and Shield has 821/87/9,109/614
+Pokedex/location/encounter/profile counts. Brilliant Diamond has
+151/96/7,976/296 and Shining Pearl has 151/96/8,014/300. Legends: Arceus has
+242/112/7,523/245. Sword/Shield expose 19 methods, the remakes expose 13, and
+Legends: Arceus exposes eight.
+
+Sword/Shield default to ordinary base-game encounters. Isle of Armor and Crown
+Tundra areas, stock Max Raids, and Dynamax Adventures are explicit choices;
+distribution-event raids are excluded. A stock raid pool counts as one catch
+location for the base Wild Area or the corresponding expansion, and Max Lair
+is one catch location. Brilliant Diamond/Shining Pearl default to surface
+encounters. Grand Underground encounters are optional and collapse by the
+displayed hideaway name; Honey Trees remain ordinary encounters but can be
+filtered. Limited-time Darkrai/Shaymin and external-save bonuses are optional.
+Legends: Arceus defaults to standard, landmark, Alpha, static, and Unown
+encounters. Space-time distortions and both outbreak systems are optional and
+use the displayed field region as their catch location.
+
+Exact duplicate source slots are normalized by summing their weights so the
+public API can load the complete catalogs within a 12,000-row ceiling without
+changing encounter-pool odds. Regional and cosmetic forms now use a
+form-scoped evolution lookup with a backward-compatible profile fallback.
+This keeps Galarian and Hisuian lines, Shellos seas, Unown letters, Sinistea
+forms, Kubfu branches, and white-striped Basculin on the correct final form.
+All five source audits and 48 focused Nuzlocke regressions pass. Unpublished
+pending-first migrations 324-333 are prepared but have not been applied to
+Preview or production. The full application suite, all 1,027 National Dex
+rows, production dependency audit, and 108-page production build also pass
+locally. CI, Preview database, and desktop/mobile visual testing remain release
+gates.
+
 ## Remaining Nuzlocke game roadmap
 
 The default coverage target is the official main-series versions and remakes
@@ -420,8 +458,10 @@ Recommended implementation order:
    roaming-bird, and one-catch-location policies. Unpublished migrations are
    312-323; Preview and release validation remain.
 8. **Sword/Shield plus DLC, Brilliant Diamond/Shining Pearl, and Legends:
-   Arceus.** Define grass versus visible overworld slots, weather, Wild Area,
-   raid, Grand Underground, hideaway, outbreak, distortion, and sub-area rules.
+   Arceus.** Locally complete with weather and visible encounters, DLC areas,
+   raids, Dynamax Adventures, Grand Underground hideaways, landmarks, Alpha
+   Pokemon, distortions, and outbreaks. Unpublished migrations are 324-333;
+   full validation, Preview, and release validation remain.
 9. **Scarlet/Violet plus DLC.** Agree on open-world encounter units, biome and
    zone boundaries, outbreaks, static encounters, raids, forms, and DLC maps
    before changing the schema or generator.
@@ -429,10 +469,13 @@ Recommended implementation order:
 Generation II keeps `conditions text[]` for source fidelity and adds bounded,
 data-driven condition groups for player controls. Revisit this capability
 contract before weather, seasons, DLC, or materially different encounter
-systems are imported. Before Generation VIII/IX, write a product
-rule for what counts as one Nuzlocke encounter in an open-world zone. Add new
-forward-only schema only when those decisions require it; do not flatten
-materially different mechanics into misleading Route-first odds.
+systems are imported. Generation VIII's encounter-unit product rules are
+recorded in
+[`../pokemon-catalog/generation-8-schema-investigation-2026-08-05.md`](../pokemon-catalog/generation-8-schema-investigation-2026-08-05.md).
+Before Generation IX, define what counts as one Nuzlocke encounter in each
+open-world zone. Add new forward-only schema only when those decisions require
+it; do not flatten materially different mechanics into misleading Route-first
+odds.
 
 Ship the catalog expansion in small generation-sized pull requests even if one
 agent owns the whole roadmap. Each release gets fresh migration numbers and a
@@ -463,8 +506,8 @@ billable Supabase Preview branch.
 
 Its unpublished migration is currently
 `260-standalone-single-elimination-tournaments.sql`. If Yellow-through-
-Generation VII migrations 267-323 release before tournaments, its next safe
-number is 324. If only part of that stack releases, use the first genuinely
+Generation VIII migrations 267-333 release before tournaments, its next safe
+number is 334. If only part of that stack releases, use the first genuinely
 unused number.
 Update every code, test, scan, and documentation reference. The tournament
 Preview database was manually given the old 260 migration, so rebuild or
@@ -485,8 +528,9 @@ advancement.
 1. Perform the narrow mobile visual pass on #38, then release Red/Blue through
    the protected PR flow. Apply 261-266 to the exact core production database,
    confirm the deployed commit, and smoke-test production.
-2. Continue with Generation VIII and the remaining Nuzlocke games in the batches
-   above. Keep each game fail-closed until its pinned independent audit passes.
+2. Finish Generation VIII's remaining full-suite and Preview gates, then
+   continue with Generation IX. Keep each game fail-closed until its pinned
+   independent audit passes.
 3. After the owner's agreed Nuzlocke coverage target is released, rebase #39
    onto current `main`, give its old migration 260 the first unused number, and
    update all references.

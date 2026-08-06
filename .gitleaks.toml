@@ -39,6 +39,11 @@ paths = [
   '''^data/nuzlocke/pokemon-ultra-moon\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\.json$''',
   '''^data/nuzlocke/pokemon-lets-go-pikachu\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\.json$''',
   '''^data/nuzlocke/pokemon-lets-go-eevee\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\.json$''',
+  '''^data/nuzlocke/pokemon-sword\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\.json$''',
+  '''^data/nuzlocke/pokemon-shield\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\.json$''',
+  '''^data/nuzlocke/pokemon-brilliant-diamond\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\.json$''',
+  '''^data/nuzlocke/pokemon-shining-pearl\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\.json$''',
+  '''^data/nuzlocke/pokemon-legends-arceus\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\.json$''',
 ]
 regexes = [
   '''^(?:area_key|location_key)"\s*:\s*"[a-z0-9-]+"$''',
@@ -80,12 +85,20 @@ paths = [
   '''^docs/pokemon-catalog/pokemon-lets-go-pikachu-encounter-audit-2026-08-05\.md$''',
   '''^docs/pokemon-catalog/pokemon-lets-go-eevee-encounter-audit-2026-08-05\.md$''',
   '''^docs/pokemon-catalog/generation-7-schema-investigation-2026-08-05\.md$''',
+  '''^docs/pokemon-catalog/generation-8-schema-investigation-2026-08-05\.md$''',
+  '''^docs/pokemon-catalog/pokemon-sword-encounter-audit-2026-08-05\.md$''',
+  '''^docs/pokemon-catalog/pokemon-shield-encounter-audit-2026-08-05\.md$''',
+  '''^docs/pokemon-catalog/pokemon-brilliant-diamond-encounter-audit-2026-08-05\.md$''',
+  '''^docs/pokemon-catalog/pokemon-shining-pearl-encounter-audit-2026-08-05\.md$''',
+  '''^docs/pokemon-catalog/pokemon-legends-arceus-encounter-audit-2026-08-05\.md$''',
 ]
 regexes = [
   '''^5064f1d72746b3a6a931616dae3fb6445c556d4f$''',
   '''^5841d46f1a0d2b8918a29a7376b1424878b86b59$''',
   '''^18cc30d6416b8fc58320af0f9b9d1b62bee405e1$''',
   '''^6daaca934ca2284a73ab743bf89c848c57cd9de1$''',
+  '''^d191cd0e5c05f2af81d9a41c1f1d82e6621b351a$''',
+  '''^1be7f719a44586321eadb9a54ac8f0351fbc8073$''',
 ]
 
 [[rules.allowlists]]
@@ -122,6 +135,11 @@ paths = [
   '''^supabase/318-import-pokemon-ultra-moon-encounter-catalog\.sql$''',
   '''^supabase/320-import-pokemon-lets-go-pikachu-encounter-catalog\.sql$''',
   '''^supabase/322-import-pokemon-lets-go-eevee-encounter-catalog\.sql$''',
+  '''^supabase/324-import-pokemon-sword-encounter-catalog\.sql$''',
+  '''^supabase/326-import-pokemon-shield-encounter-catalog\.sql$''',
+  '''^supabase/328-import-pokemon-brilliant-diamond-encounter-catalog\.sql$''',
+  '''^supabase/330-import-pokemon-shining-pearl-encounter-catalog\.sql$''',
+  '''^supabase/332-import-pokemon-legends-arceus-encounter-catalog\.sql$''',
 ]
 regexes = [
   '''^(?:area_key|location_key)"\s*:\s*"[a-z0-9-]+"$''',
@@ -182,6 +200,11 @@ paths = [
   '''^supabase/319-verify-pokemon-ultra-moon-encounter-catalog\.sql$''',
   '''^supabase/321-verify-pokemon-lets-go-pikachu-encounter-catalog\.sql$''',
   '''^supabase/323-verify-pokemon-lets-go-eevee-encounter-catalog\.sql$''',
+  '''^supabase/325-verify-pokemon-sword-encounter-catalog\.sql$''',
+  '''^supabase/327-verify-pokemon-shield-encounter-catalog\.sql$''',
+  '''^supabase/329-verify-pokemon-brilliant-diamond-encounter-catalog\.sql$''',
+  '''^supabase/331-verify-pokemon-shining-pearl-encounter-catalog\.sql$''',
+  '''^supabase/333-verify-pokemon-legends-arceus-encounter-catalog\.sql$''',
 ]
 regexes = [
   '''^area_key='[a-z0-9-]+'$''',
