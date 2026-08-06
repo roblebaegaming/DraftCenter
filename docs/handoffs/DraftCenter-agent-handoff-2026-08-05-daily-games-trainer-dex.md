@@ -4,12 +4,13 @@
 - Repository: `roblebaegaming/DraftCenter`
 - Branch: `codex/daily-games-trainer-dex`
 - Worktree: `C:\Users\rober\Documents\Codex\2026-07-20\i-am-building-a-pok-mon\draft-league\DraftCenter-daily-games-trainer-dex`
-- Current head: `0d76c2f`
-- Feature commit: `02d0494`
-- Safety follow-up: `0d76c2f`
+- Integration base: current `origin/main` at `ee4a6d5`
+- Feature commit after rebase: `6a94347`
+- Safety follow-up after rebase: `81ea660`
 - Production: unchanged
 - Supabase: migration 261 has not been applied anywhere by this work
-- Remote/PR: branch has not been pushed and no pull request has been opened
+- Pull request: [#42 — Add Daily Games hub and personal Trainer Dex](https://github.com/roblebaegaming/DraftCenter/pull/42)
+- Preview: `https://draftcenter-git-codex-daily-games-trainer-dex-rob-lebae.vercel.app`
 
 ## Read this first
 
@@ -134,7 +135,13 @@ The ordinary Turbopack build could not follow a temporary dependency junction ac
 
 Production smoke was intentionally not run because this branch has not been deployed.
 
-## Required Preview validation
+## Preview status and required validation
+
+The branch was rebased onto current `origin/main`, pushed, and deployed successfully by Vercel. Signed-out mobile review passed for `/resources/daily-games` and `/trainer-dex`, including page content, external destinations, responsive width, and the delayed signed-out Trainer Dex state.
+
+Migration rehearsal stopped safely before applying changes because the configured DraftCenter Preview database does not contain the existing `badge_catalog` prerequisite. The Supabase Preview check was skipped by CI. Do not apply migration 261 until the Preview database target and prerequisite migration history are reconciled.
+
+The Preview database credential used during diagnosis must be rotated before further database work. After rotation, update the Preview environment connection values and redeploy before resuming the steps below.
 
 1. Read repository policy, `docs/CURRENT-STATUS.md`, and the current integration-branch handoff.
 2. Inspect the tournament and Nuzlocke branch state before choosing the rebase target. Do not overwrite either agent's work.
@@ -166,4 +173,4 @@ Production smoke was intentionally not run because this branch has not been depl
 
 ## Current repository state
 
-At handoff creation, the feature worktree was clean at `0d76c2f`. No secrets, local Vercel files, provider credentials, production settings, production data, database migrations, remote branch, pull request, or deployment were changed by this work.
+The feature is isolated on `codex/daily-games-trainer-dex`; tournament and Nuzlocke commits were removed from its ancestry during the rebase onto `origin/main`. No production settings, production data, production database migration, merge, or production deployment was performed.
