@@ -220,6 +220,11 @@ production deployment.
 - White migrations: 298-299
 - Black 2 migrations: 300-301
 - White 2 migrations: 302-303
+- Generation VI branch: `codex/nuzlocke-gen6`
+- X migrations: 304-305
+- Y migrations: 306-307
+- Omega Ruby migrations: 308-309
+- Alpha Sapphire migrations: 310-311
 
 Yellow is locally implemented and audited. Gold, Silver, and Crystal now have
 separate pinned artifacts, game-limited evolution maps, independent Veekun and
@@ -321,6 +326,18 @@ remain unapplied, and no Preview or production database was changed. CI,
 Preview database, and visual validation still follow in the release gates
 below.
 
+Generation VI also reuses the existing schema. X/Y have 454 Pokédex rows,
+61 catch locations, and 1,469 encounter rows apiece, with 196 Friend Safari
+form rows collapsed to one catch location. Omega Ruby/Alpha Sapphire have 211
+Pokédex rows, 89 locations, and 2,822 encounter rows apiece. Each remake
+contains an exact 2,747-row reconstruction of its pinned 273-table PKHeX wild
+container plus special encounters and seven normal soaring species. Friend
+Safari, National Pokédex DexNav species, rotating Mirage Spots, and soaring are
+explicit opt-ins. All four independent source audits, 44 focused regressions,
+the full application suite, the 1,027-row National Dex check, dependency audit,
+and 108-page build pass locally. CI, Preview database application, and visual
+review remain.
+
 ## Remaining Nuzlocke game roadmap
 
 The default coverage target is the official main-series versions and remakes
@@ -363,8 +380,12 @@ Recommended implementation order:
    grass, dust clouds, bridge shadows, rippling water, swarms, weekday
    encounters, Regi keys, and Hidden Grottoes; Preview and release validation
    remain.
-6. **X, Y, Omega Ruby, Alpha Sapphire.** Cover hordes, Friend Safari policy,
-   DexNav, mirage areas, soaring encounters, and version-exclusive forms.
+6. **X, Y, Omega Ruby, Alpha Sapphire.** Locally complete with hordes, a
+   one-location opt-in Friend Safari, starter-matched legendary birds, exact
+   ORAS grass/Surf/Rock Smash/rod/horde tables, National Pokédex DexNav,
+   rotating Mirage Spots, soaring, schedules, and version-exclusive forms;
+   Preview and release validation remain. Unpublished migrations are 304-311,
+   so a tournament rebase after this full stack must begin at 312.
 7. **Sun, Moon, Ultra Sun, Ultra Moon, Let's Go Pikachu/Eevee.** Define SOS,
    Island Scan, Ultra Space, ambush, overworld, catch-combo, and rare-spawn
    policies before importing data.
@@ -412,8 +433,8 @@ billable Supabase Preview branch.
 
 Its unpublished migration is currently
 `260-standalone-single-elimination-tournaments.sql`. If Yellow through
-Generation V migrations 267-303 release before tournaments, its next safe
-number is 304. If only part of that stack releases, use the first genuinely
+Yellow-through-Generation VI migrations 267-311 release before tournaments, its next safe
+number is 312. If only part of that stack releases, use the first genuinely
 unused number.
 Update every code, test, scan, and documentation reference. The tournament
 Preview database was manually given the old 260 migration, so rebuild or
@@ -434,7 +455,7 @@ advancement.
 1. Perform the narrow mobile visual pass on #38, then release Red/Blue through
    the protected PR flow. Apply 261-266 to the exact core production database,
    confirm the deployed commit, and smoke-test production.
-2. Continue with Generation VI and the remaining Nuzlocke games in the batches
+2. Continue with Generation VII and the remaining Nuzlocke games in the batches
    above. Keep each game fail-closed until its pinned independent audit passes.
 3. After the owner's agreed Nuzlocke coverage target is released, rebase #39
    onto current `main`, give its old migration 260 the first unused number, and

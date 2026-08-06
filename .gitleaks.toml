@@ -29,6 +29,10 @@ paths = [
   '''^data/nuzlocke/pokemon-white\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\.json$''',
   '''^data/nuzlocke/pokemon-black-2\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\.json$''',
   '''^data/nuzlocke/pokemon-white-2\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\.json$''',
+  '''^data/nuzlocke/pokemon-x\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\.json$''',
+  '''^data/nuzlocke/pokemon-y\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\.json$''',
+  '''^data/nuzlocke/pokemon-omega-ruby\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\.json$''',
+  '''^data/nuzlocke/pokemon-alpha-sapphire\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\.json$''',
 ]
 regexes = [
   '''^(?:area_key|location_key)"\s*:\s*"[a-z0-9-]+"$''',
@@ -58,11 +62,17 @@ paths = [
   '''^docs/pokemon-catalog/pokemon-white-encounter-audit-2026-08-05\.md$''',
   '''^docs/pokemon-catalog/pokemon-black-2-encounter-audit-2026-08-05\.md$''',
   '''^docs/pokemon-catalog/pokemon-white-2-encounter-audit-2026-08-05\.md$''',
+  '''^docs/pokemon-catalog/pokemon-x-encounter-audit-2026-08-05\.md$''',
+  '''^docs/pokemon-catalog/pokemon-y-encounter-audit-2026-08-05\.md$''',
+  '''^docs/pokemon-catalog/pokemon-omega-ruby-encounter-audit-2026-08-05\.md$''',
+  '''^docs/pokemon-catalog/pokemon-alpha-sapphire-encounter-audit-2026-08-05\.md$''',
+  '''^docs/pokemon-catalog/generation-6-schema-investigation-2026-08-05\.md$''',
 ]
 regexes = [
   '''^5064f1d72746b3a6a931616dae3fb6445c556d4f$''',
   '''^5841d46f1a0d2b8918a29a7376b1424878b86b59$''',
   '''^18cc30d6416b8fc58320af0f9b9d1b62bee405e1$''',
+  '''^6daaca934ca2284a73ab743bf89c848c57cd9de1$''',
 ]
 
 [[rules.allowlists]]
@@ -89,6 +99,10 @@ paths = [
   '''^supabase/298-import-pokemon-white-encounter-catalog\.sql$''',
   '''^supabase/300-import-pokemon-black-2-encounter-catalog\.sql$''',
   '''^supabase/302-import-pokemon-white-2-encounter-catalog\.sql$''',
+  '''^supabase/304-import-pokemon-x-encounter-catalog\.sql$''',
+  '''^supabase/306-import-pokemon-y-encounter-catalog\.sql$''',
+  '''^supabase/308-import-pokemon-omega-ruby-encounter-catalog\.sql$''',
+  '''^supabase/310-import-pokemon-alpha-sapphire-encounter-catalog\.sql$''',
 ]
 regexes = [
   '''^(?:area_key|location_key)"\s*:\s*"[a-z0-9-]+"$''',
@@ -139,6 +153,10 @@ paths = [
   '''^supabase/299-verify-pokemon-white-encounter-catalog\.sql$''',
   '''^supabase/301-verify-pokemon-black-2-encounter-catalog\.sql$''',
   '''^supabase/303-verify-pokemon-white-2-encounter-catalog\.sql$''',
+  '''^supabase/305-verify-pokemon-x-encounter-catalog\.sql$''',
+  '''^supabase/307-verify-pokemon-y-encounter-catalog\.sql$''',
+  '''^supabase/309-verify-pokemon-omega-ruby-encounter-catalog\.sql$''',
+  '''^supabase/311-verify-pokemon-alpha-sapphire-encounter-catalog\.sql$''',
 ]
 regexes = [
   '''^area_key='[a-z0-9-]+'$''',
