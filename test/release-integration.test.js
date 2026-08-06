@@ -19,9 +19,17 @@ test("release migrations use one production number each", () => {
   assert.ok(migrations.includes("260-community-editorial-calendar.sql"));
   assert.ok(migrations.includes("261-versioned-pokemon-encounter-catalog.sql"));
   assert.ok(migrations.includes("296-allow-zero-based-regional-pokedex-entries.sql"));
-  assert.ok(migrations.includes("338-verify-pokemon-violet-encounter-catalog.sql"));
-  assert.ok(migrations.includes("339-standalone-single-elimination-tournaments.sql"));
-  assert.ok(migrations.includes("340-trainer-dex-and-shiny-discoveries.sql"));
+  assert.ok(migrations.includes("305-allow-single-character-pokemon-game-keys.sql"));
+  assert.ok(migrations.includes("339-verify-pokemon-violet-encounter-catalog.sql"));
+  assert.ok(migrations.includes("340-standalone-single-elimination-tournaments.sql"));
+  assert.ok(migrations.includes("341-trainer-dex-and-shiny-discoveries.sql"));
+});
+
+test("the Gen 6 schema gate supports the official X and Y game keys", () => {
+  const gate = source("supabase/305-allow-single-character-pokemon-game-keys.sql");
+  const x = source("supabase/306-import-pokemon-x-encounter-catalog.sql");
+  assert.match(gate, /\{1,64\}/);
+  assert.match(x, /select 'x',/);
 });
 
 test("the Gen 5 schema gate supports official zero-based regional entries", () => {
