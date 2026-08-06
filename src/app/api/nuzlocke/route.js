@@ -42,7 +42,7 @@ import scarletEvolutionCatalog from "../../../../data/nuzlocke/pokemon-scarlet-e
 import violetEvolutionCatalog from "../../../../data/nuzlocke/pokemon-violet-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json";
 
 export const runtime = "nodejs";
-const GAME_KEY = /^[a-z0-9-]{2,64}$/;
+const GAME_KEY = /^[a-z0-9-]{1,64}$/;
 const EVOLUTION_CATALOGS = Object.freeze({
   red: redEvolutionCatalog, blue: blueEvolutionCatalog, yellow: yellowEvolutionCatalog,
   gold: goldEvolutionCatalog, silver: silverEvolutionCatalog, crystal: crystalEvolutionCatalog,

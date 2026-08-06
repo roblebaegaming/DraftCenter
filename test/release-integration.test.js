@@ -28,8 +28,10 @@ test("release migrations use one production number each", () => {
 test("the Gen 6 schema gate supports the official X and Y game keys", () => {
   const gate = source("supabase/305-allow-single-character-pokemon-game-keys.sql");
   const x = source("supabase/306-import-pokemon-x-encounter-catalog.sql");
+  const route = source("src/app/api/nuzlocke/route.js");
   assert.match(gate, /\{1,64\}/);
   assert.match(x, /select 'x',/);
+  assert.match(route, /const GAME_KEY = \/\^\[a-z0-9-\]\{1,64\}\$\//);
 });
 
 test("the Gen 5 schema gate supports official zero-based regional entries", () => {
