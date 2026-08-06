@@ -244,3 +244,28 @@ test("reviewed Generation V catalogs support starters, seasons, swarms, weekday 
     if(game.endsWith("-2")) assert.equal(catalog.encounters.filter((row)=>row.method==="hidden-grotto").length,70);
   }
 });
+test("reviewed Generation VI catalogs support starters, Friend Safari, DexNav, Mirage Spots, soaring, forms, and generation-limited final evolutions",()=>{
+  for(const game of ["x","y","omega-ruby","alpha-sapphire"]){
+    const catalog=JSON.parse(fs.readFileSync(new URL(`../data/nuzlocke/pokemon-${game}.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json`,import.meta.url),"utf8"));
+    const evolutionCatalog=JSON.parse(fs.readFileSync(new URL(`../data/nuzlocke/pokemon-${game}-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json`,import.meta.url),"utf8"));
+    const kalos=["x","y"].includes(game);
+    const conditionSelections=kalos?{"story-progress":"main-story","friend-safari":"unavailable","trash-cans":"daily"}:{"national-dex":"main-story",dexnav:"off","mirage-spots":"off",soaring:"off"};
+    const options={seed:`${game}-review`,teamSize:12,mode:"route-random",weighting:"authentic",familyClause:true,excludeLegendaries:true,includeStarter:true,starters:catalog.game.starters,conditionGroups:catalog.game.condition_groups,conditionSelections};
+    const result=generateNuzlockeTeam(catalog.encounters,options);
+    assert.equal(result.complete,true);assert.ok((kalos?[650,653,656]:[252,255,258]).includes(result.team[0].pokemon_id));assert.equal(new Set(result.team.map((row)=>row.species_family)).size,12);
+    const selectedConditions=new Set(result.team.flatMap((row)=>row.conditions||[]));
+    if(kalos){assert.ok(!selectedConditions.has("story-progress-hall-of-fame")&&![...selectedConditions].some((value)=>value.startsWith("friend-safari-slot-")));}
+    else{assert.ok(!selectedConditions.has("story-progress-national-dex")&&!selectedConditions.has("dexnav-exclusive")&&!selectedConditions.has("mirage-spot-active")&&!selectedConditions.has("soaring-encounter"));}
+    assert.deepEqual(result,generateNuzlockeTeam(catalog.encounters,options));
+    const finalOptions={...options,includeStarter:false,finalEvolutionOnly:true,evolutionCatalog};const finals=generateNuzlockeTeam(catalog.encounters,finalOptions);
+    assert.equal(finals.complete,true);assert.ok(finals.team.every((row)=>row.is_final_evolution&&row.pokemon_id<=721));assert.deepEqual(finals,generateNuzlockeTeam(catalog.encounters,finalOptions));
+    assert.deepEqual(new Set(evolutionCatalog.evolutions.map((row)=>row.pokemon_id)),new Set(catalog.encounters.map((row)=>row.pokemon_id)));
+  }
+  const x=JSON.parse(fs.readFileSync(new URL("../data/nuzlocke/pokemon-x.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json",import.meta.url),"utf8"));
+  const starterBird=x.game.condition_groups.find((group)=>group.id==="starter-bird");
+  const birds=x.encounters.filter((row)=>row.area_key==="sea-spirits-den-main-area");
+  const matchedBird=generateNuzlockeTeam(birds,{seed:"kalos-bird",teamSize:2,mode:"route-random",weighting:"equal",includeStarter:true,starters:[x.game.starters[0]],conditionGroups:[starterBird],excludeLegendaries:false});
+  assert.equal(matchedBird.team[0].pokemon_id,650);assert.equal(matchedBird.team[1].pokemon_id,144);
+  const alphaEvolutions=JSON.parse(fs.readFileSync(new URL("../data/nuzlocke/pokemon-alpha-sapphire-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json",import.meta.url),"utf8"));
+  assert.deepEqual(alphaEvolutions.evolutions.find((row)=>row.pokemon_id===422).final_evolutions.map((row)=>row.form_name),["East Sea"]);
+});

@@ -119,6 +119,13 @@ const gen5Artifacts=Object.fromEntries(Object.entries(gen5MigrationNumbers).map(
   imported:fs.readFileSync(new URL(`../supabase/${importNumber}-import-pokemon-${game}-encounter-catalog.sql`,import.meta.url),"utf8"),
   verified:fs.readFileSync(new URL(`../supabase/${verifyNumber}-verify-pokemon-${game}-encounter-catalog.sql`,import.meta.url),"utf8"),
 }]));
+const gen6MigrationNumbers={x:[304,305],y:[306,307],"omega-ruby":[308,309],"alpha-sapphire":[310,311]};
+const gen6Artifacts=Object.fromEntries(Object.entries(gen6MigrationNumbers).map(([game,[importNumber,verifyNumber]])=>[game,{
+  catalog:JSON.parse(fs.readFileSync(new URL(`../data/nuzlocke/pokemon-${game}.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json`,import.meta.url),"utf8")),
+  evolutions:JSON.parse(fs.readFileSync(new URL(`../data/nuzlocke/pokemon-${game}-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json`,import.meta.url),"utf8")),
+  imported:fs.readFileSync(new URL(`../supabase/${importNumber}-import-pokemon-${game}-encounter-catalog.sql`,import.meta.url),"utf8"),
+  verified:fs.readFileSync(new URL(`../supabase/${verifyNumber}-verify-pokemon-${game}-encounter-catalog.sql`,import.meta.url),"utf8"),
+}]));
 test("catalog is verified-only and browser read-only", () => {
   for (const table of [
     "pokemon_games",
@@ -356,6 +363,10 @@ paths = [
   '''^data/nuzlocke/pokemon-white\\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\\.json$''',
   '''^data/nuzlocke/pokemon-black-2\\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\\.json$''',
   '''^data/nuzlocke/pokemon-white-2\\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\\.json$''',
+  '''^data/nuzlocke/pokemon-x\\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\\.json$''',
+  '''^data/nuzlocke/pokemon-y\\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\\.json$''',
+  '''^data/nuzlocke/pokemon-omega-ruby\\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\\.json$''',
+  '''^data/nuzlocke/pokemon-alpha-sapphire\\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\\.json$''',
 ]
 regexes = [
   '''^(?:area_key|location_key)"\\s*:\\s*"[a-z0-9-]+"$''',
@@ -385,11 +396,17 @@ paths = [
   '''^docs/pokemon-catalog/pokemon-white-encounter-audit-2026-08-05\\.md$''',
   '''^docs/pokemon-catalog/pokemon-black-2-encounter-audit-2026-08-05\\.md$''',
   '''^docs/pokemon-catalog/pokemon-white-2-encounter-audit-2026-08-05\\.md$''',
+  '''^docs/pokemon-catalog/pokemon-x-encounter-audit-2026-08-05\\.md$''',
+  '''^docs/pokemon-catalog/pokemon-y-encounter-audit-2026-08-05\\.md$''',
+  '''^docs/pokemon-catalog/pokemon-omega-ruby-encounter-audit-2026-08-05\\.md$''',
+  '''^docs/pokemon-catalog/pokemon-alpha-sapphire-encounter-audit-2026-08-05\\.md$''',
+  '''^docs/pokemon-catalog/generation-6-schema-investigation-2026-08-05\\.md$''',
 ]
 regexes = [
   '''^5064f1d72746b3a6a931616dae3fb6445c556d4f$''',
   '''^5841d46f1a0d2b8918a29a7376b1424878b86b59$''',
   '''^18cc30d6416b8fc58320af0f9b9d1b62bee405e1$''',
+  '''^6daaca934ca2284a73ab743bf89c848c57cd9de1$''',
 ]
 
 [[rules.allowlists]]
@@ -416,6 +433,10 @@ paths = [
   '''^supabase/298-import-pokemon-white-encounter-catalog\\.sql$''',
   '''^supabase/300-import-pokemon-black-2-encounter-catalog\\.sql$''',
   '''^supabase/302-import-pokemon-white-2-encounter-catalog\\.sql$''',
+  '''^supabase/304-import-pokemon-x-encounter-catalog\\.sql$''',
+  '''^supabase/306-import-pokemon-y-encounter-catalog\\.sql$''',
+  '''^supabase/308-import-pokemon-omega-ruby-encounter-catalog\\.sql$''',
+  '''^supabase/310-import-pokemon-alpha-sapphire-encounter-catalog\\.sql$''',
 ]
 regexes = [
   '''^(?:area_key|location_key)"\\s*:\\s*"[a-z0-9-]+"$''',
@@ -466,6 +487,10 @@ paths = [
   '''^supabase/299-verify-pokemon-white-encounter-catalog\\.sql$''',
   '''^supabase/301-verify-pokemon-black-2-encounter-catalog\\.sql$''',
   '''^supabase/303-verify-pokemon-white-2-encounter-catalog\\.sql$''',
+  '''^supabase/305-verify-pokemon-x-encounter-catalog\\.sql$''',
+  '''^supabase/307-verify-pokemon-y-encounter-catalog\\.sql$''',
+  '''^supabase/309-verify-pokemon-omega-ruby-encounter-catalog\\.sql$''',
+  '''^supabase/311-verify-pokemon-alpha-sapphire-encounter-catalog\\.sql$''',
 ]
 regexes = [
   '''^area_key='[a-z0-9-]+'$''',
@@ -639,6 +664,22 @@ test("Generation V artifacts and migrations stay exact, pending-first, and versi
   assert.equal(gen5Artifacts["black-2"].catalog.game.condition_groups.find((group)=>group.id==="regi-key")?.default_value,"iron");
   assert.equal(gen5Artifacts["white-2"].catalog.game.condition_groups.find((group)=>group.id==="regi-key")?.default_value,"ice");
 });
+test("Generation VI artifacts and migrations stay exact, pending-first, and version-specific",()=>{
+  const expected={x:{dex:454,locations:61,encounters:1469,profiles:358,methods:20,groups:4},y:{dex:454,locations:61,encounters:1469,profiles:357,methods:20,groups:4},"omega-ruby":{dex:211,locations:89,encounters:2822,profiles:251,methods:14,groups:7},"alpha-sapphire":{dex:211,locations:89,encounters:2822,profiles:251,methods:14,groups:7}};
+  for(const [game,records] of Object.entries(gen6Artifacts)){
+    const counts=expected[game],kalos=["x","y"].includes(game);
+    assert.equal(records.catalog.pokedex_entries.length,counts.dex);assert.equal(records.catalog.locations.length,counts.locations);assert.equal(records.catalog.encounters.length,counts.encounters);assert.equal(new Set(records.catalog.encounters.map((row)=>row.pokemon_id)).size,counts.profiles);assert.equal(new Set(records.catalog.encounters.map((row)=>row.method)).size,counts.methods);
+    assert.deepEqual(records.catalog.game.starters.map((row)=>row.pokemon_id),kalos?[650,653,656]:[252,255,258]);assert.equal(records.catalog.game.condition_groups.length,counts.groups);
+    assert.deepEqual(new Set(records.evolutions.evolutions.map((row)=>row.pokemon_id)),new Set(records.catalog.encounters.map((row)=>row.pokemon_id)));assert.ok(records.evolutions.evolutions.flatMap((row)=>row.final_evolutions).every((row)=>row.pokemon_id<=721));
+    const payloads=[...records.imported.matchAll(/\$catalog\$(.+?)\$catalog\$/g)].map((match)=>JSON.parse(match[1]));assert.deepEqual(payloads,[records.catalog.game.starters,records.catalog.game.condition_groups,records.catalog.pokedex_entries,records.catalog.locations,records.catalog.encounters]);
+    assert.match(records.imported,new RegExp(`encounter_status[^)]*\\) values \\('${game}'[\\s\\S]+,'pending'`));assert.doesNotMatch(records.imported,/encounter_status='verified'/);assert.match(records.verified,new RegExp(`where game_key='${game}'[\\s\\S]+encounter_status='pending'`));assert.match(records.verified,/count\(distinct method\)/);assert.match(records.verified,/count\(distinct pokemon_id\)/);
+  }
+  for(const game of ["x","y"]){const records=gen6Artifacts[game];assert.equal(records.catalog.encounters.filter((row)=>row.method==="friend-safari").length,196);assert.equal(new Set(records.catalog.encounters.filter((row)=>row.method==="friend-safari").map((row)=>row.area_key)).size,1);assert.ok(!records.catalog.locations.some((row)=>row.area_key==="roaming-kalos-main-area"));assert.deepEqual(records.evolutions.evolutions.find((row)=>row.pokemon_id===670).final_evolutions.map((row)=>row.form_name),["Red Flower","Yellow Flower","Blue Flower"]);}
+  for(const game of ["omega-ruby","alpha-sapphire"]){const records=gen6Artifacts[game];assert.equal(records.catalog.encounters.filter((row)=>row.source_encounter_id>=6000000&&row.source_encounter_id<6002747).length,2747);assert.equal(records.catalog.encounters.filter((row)=>row.method==="dexnav").length,150);assert.equal(records.catalog.encounters.filter((row)=>row.method==="soaring").length,7);assert.equal(records.catalog.encounters.filter((row)=>(row.conditions||[]).includes("mirage-spot-active")).length,420);}
+  assert.ok(gen6Artifacts.x.catalog.encounters.some((row)=>row.pokemon_id===716)&&!gen6Artifacts.x.catalog.encounters.some((row)=>row.pokemon_id===717));
+  assert.ok(gen6Artifacts.y.catalog.encounters.some((row)=>row.pokemon_id===717)&&!gen6Artifacts.y.catalog.encounters.some((row)=>row.pokemon_id===716));
+  assert.equal(gen6Artifacts["omega-ruby"].catalog.encounters.filter((row)=>row.pokemon_id===422&&row.form_name==="West Sea").length,2);assert.equal(gen6Artifacts["alpha-sapphire"].catalog.encounters.filter((row)=>row.pokemon_id===422&&row.form_name==="East Sea").length,2);
+});
 test("server route uses public RLS catalog access and privileged rate limiting", () => {
   assert.match(route, /createPublicServerClient/);
   assert.match(route, /list_verified_nuzlocke_games/);
@@ -650,6 +691,7 @@ test("server route uses public RLS catalog access and privileged rate limiting",
 test("final evolution requests require source-matched pinned game catalogs", () => {
   for(const game of ["red","blue","yellow","gold","silver","crystal","ruby","sapphire","emerald","firered","leafgreen","diamond","pearl","platinum","heartgold","soulsilver","black","white"]) assert.match(route,new RegExp(`${game}: ${game}EvolutionCatalog`));
   assert.match(route,/"black-2": black2EvolutionCatalog/);assert.match(route,/"white-2": white2EvolutionCatalog/);
+  assert.match(route,/x: xEvolutionCatalog/);assert.match(route,/y: yEvolutionCatalog/);assert.match(route,/"omega-ruby": omegaRubyEvolutionCatalog/);assert.match(route,/"alpha-sapphire": alphaSapphireEvolutionCatalog/);
   assert.match(route, /body\.finalEvolutionOnly === true/);
   assert.match(
     route,
@@ -697,4 +739,5 @@ test("starter inclusion is explicit in shared links and old seeded links retain 
   assert.match(route, /diamond: SINNOH_STARTERS, pearl: SINNOH_STARTERS, platinum: SINNOH_STARTERS/);
   assert.match(route, /heartgold: JOHTO_STARTERS, soulsilver: JOHTO_STARTERS/);
   assert.match(route, /black: UNOVA_STARTERS, white: UNOVA_STARTERS, "black-2": UNOVA_STARTERS, "white-2": UNOVA_STARTERS/);
+  assert.match(route, /x: KALOS_STARTERS, y: KALOS_STARTERS, "omega-ruby": HOENN_STARTERS, "alpha-sapphire": HOENN_STARTERS/);
 });

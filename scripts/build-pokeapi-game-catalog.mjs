@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 
 const args=new Map(process.argv.slice(2).map((value,index,list)=>value.startsWith("--")?[value,list[index+1]]:null).filter(Boolean));
-const game=String(args.get("--game")||""); const commit=String(args.get("--commit")||""); const spritesCommit=String(args.get("--sprites-commit")||""); const pkhexCommit=String(args.get("--pkhex-commit")||""); const output=String(args.get("--output")||""); const evolutionsOutput=String(args.get("--evolutions-output")||"");
+const game=String(args.get("--game")||""); const commit=String(args.get("--commit")||""); const spritesCommit=String(args.get("--sprites-commit")||""); const pkhexCommit=String(args.get("--pkhex-commit")||""); const pk3dsCommit=String(args.get("--pk3ds-commit")||""); const output=String(args.get("--output")||""); const evolutionsOutput=String(args.get("--evolutions-output")||"");
 const generationTwoConditions=[
   {id:"time",label:"Time of day",options:[{value:"any",label:"Any time"},{value:"morning",label:"Morning",conditions:["time-morning"]},{value:"day",label:"Day",conditions:["time-day"]},{value:"night",label:"Night",conditions:["time-night"]}]},
   {id:"swarm",label:"Swarm",options:[{value:"any",label:"Either"},{value:"yes",label:"Active swarm",conditions:["swarm-yes"]},{value:"no",label:"No swarm",conditions:["swarm-no"]}]},
@@ -31,6 +31,17 @@ const eliteFourRematch={id:"story-progress",label:"Story progress",options:[{val
 const emeraldRoamer={id:"roaming-lati",label:"TV color choice",options:[{value:"any",label:"Either roaming Pokémon"},{value:"red",label:"Red — Latias",conditions:["tv-option-red"]},{value:"blue",label:"Blue — Latios",conditions:["tv-option-blue"]}]};
 const kantoRoamer={id:"starter-roamer",label:"Roaming Pokémon",match_included_starter:true,options:[{value:"any",label:"Match included starter / any"},{value:"bulbasaur",label:"Bulbasaur — Entei",conditions:["starter-bulbasaur"],starter_ids:[1]},{value:"charmander",label:"Charmander — Suicune",conditions:["starter-charmander"],starter_ids:[4]},{value:"squirtle",label:"Squirtle — Raikou",conditions:["starter-squirtle"],starter_ids:[7]}]};
 const alteringCave={id:"altering-cave",label:"Altering Cave state",default_value:"standard",options:[{value:"any",label:"Any event state"},{value:"standard",label:"Standard — Zubat",conditions:["altering-cave-standard"]},{value:"mareep",label:"Event — Mareep",conditions:["altering-cave-mareep"]},{value:"pineco",label:"Event — Pineco",conditions:["altering-cave-pineco"]},{value:"houndour",label:"Event — Houndour",conditions:["altering-cave-houndour"]},{value:"teddiursa",label:"Event — Teddiursa",conditions:["altering-cave-teddiursa"]},{value:"aipom",label:"Event — Aipom",conditions:["altering-cave-aipom"]},{value:"shuckle",label:"Event — Shuckle",conditions:["altering-cave-shuckle"]},{value:"stantler",label:"Event — Stantler",conditions:["altering-cave-stantler"]},{value:"smeargle",label:"Event — Smeargle",conditions:["altering-cave-smeargle"]}]};
+const kalosStoryProgress={id:"story-progress",label:"Story progress",default_value:"main-story",options:[{value:"any",label:"Any point"},{value:"main-story",label:"Before the Hall of Fame",conditions:[]},{value:"postgame",label:"After the Hall of Fame",conditions:["story-progress-hall-of-fame"]}]};
+const friendSafari={id:"friend-safari",label:"Friend Safari",default_value:"unavailable",options:[{value:"any",label:"Either"},{value:"unavailable",label:"Not available",conditions:[]},{value:"available",label:"Include a friend's Safari",conditions:["friend-safari-slot-1","friend-safari-slot-2","friend-safari-slot-3"]}]};
+const kalosStarterBird={id:"starter-bird",label:"Roaming legendary bird",match_included_starter:true,options:[{value:"any",label:"Match included starter / any"},{value:"chespin",label:"Chespin — Articuno",conditions:["starter-chespin"],starter_ids:[650]},{value:"fennekin",label:"Fennekin — Zapdos",conditions:["starter-fennekin"],starter_ids:[653]},{value:"froakie",label:"Froakie — Moltres",conditions:["starter-froakie"],starter_ids:[656]}]};
+const kalosTrashCans={id:"trash-cans",label:"Lost Hotel trash cans",default_value:"daily",options:[{value:"any",label:"Any schedule"},{value:"daily",label:"Daily encounter",conditions:["trash-can-type-daily"]},{value:"tuesday",label:"Tuesday",conditions:["trash-can-type-tuesday"]},{value:"thursday",label:"Thursday",conditions:["trash-can-type-thursday"]}]};
+const orasNationalDex={id:"national-dex",label:"Story progress",default_value:"main-story",options:[{value:"any",label:"Any point"},{value:"main-story",label:"Main story",conditions:[]},{value:"postgame",label:"National Pokédex unlocked",conditions:["story-progress-national-dex"]}]};
+const orasDexNav={id:"dexnav",label:"DexNav search species",default_value:"off",options:[{value:"any",label:"Either"},{value:"off",label:"Standard encounters only",conditions:[]},{value:"on",label:"Include search-only species",conditions:["dexnav-exclusive"]}]};
+const orasMirageSpots={id:"mirage-spots",label:"Daily Mirage Spots",default_value:"off",options:[{value:"any",label:"Either"},{value:"off",label:"Do not include",conditions:[]},{value:"on",label:"Include rotating locations",conditions:["mirage-spot-active"]}]};
+const orasSoaring={id:"soaring",label:"Soaring encounters",default_value:"off",options:[{value:"any",label:"Either"},{value:"off",label:"Do not include",conditions:[]},{value:"on",label:"Include soaring in the sky",conditions:["soaring-encounter"]}]};
+const orasWeekday={id:"weekday",label:"Day of week",options:[{value:"any",label:"Any day"},{value:"monday",label:"Monday",conditions:["weekday-monday"]},{value:"tuesday",label:"Tuesday",conditions:["weekday-tuesday"]},{value:"wednesday",label:"Wednesday",conditions:["weekday-wednesday"]},{value:"thursday",label:"Thursday",conditions:["weekday-thursday"]},{value:"friday",label:"Friday",conditions:["weekday-friday"]},{value:"saturday",label:"Saturday",conditions:["weekday-saturday"]},{value:"sunday",label:"Sunday",conditions:["weekday-sunday"]}]};
+const orasTimeWindow={id:"time-window",label:"Time of day",options:[{value:"any",label:"Any time"},{value:"day",label:"4:00 a.m.–7:59 p.m.",conditions:["time-04-00-to-19-59"]},{value:"evening",label:"8:00–9:59 p.m.",conditions:["time-20-00-to-21-59"]},{value:"night",label:"9:00 p.m.–3:59 a.m.",conditions:["time-21-00-to-03-59"]}]};
+const orasMinuteWindow={id:"minute-window",label:"Minute window",options:[{value:"any",label:"Any minute"},{value:"00-19",label:"Minutes 00–19",conditions:["time-minute-00-to-19"]},{value:"20-39",label:"Minutes 20–39",conditions:["time-minute-20-to-39"]},{value:"40-59",label:"Minutes 40–59",conditions:["time-minute-40-to-59"]}]};
 const gameDefinitions={
   red:{display_name:"Pokémon Red",generation:1,family:"Red / Blue / Yellow",release_order:1,starter_ids:[1,4,7],condition_groups:[]},
   blue:{display_name:"Pokémon Blue",generation:1,family:"Red / Blue / Yellow",release_order:2,starter_ids:[1,4,7],condition_groups:[]},
@@ -52,12 +63,18 @@ const gameDefinitions={
   white:{display_name:"Pokémon White",generation:5,family:"Black / White",release_order:18,starter_ids:[495,498,501],condition_groups:[unovaSeason,unovaSwarm,bwWeekday],evolution_species_max:649},
   "black-2":{display_name:"Pokémon Black 2",generation:5,family:"Black 2 / White 2",release_order:19,starter_ids:[495,498,501],condition_groups:[unovaSeason,unovaSwarm,b2w2Weekday,unovaRegiKey("iron")],evolution_species_max:649},
   "white-2":{display_name:"Pokémon White 2",generation:5,family:"Black 2 / White 2",release_order:20,starter_ids:[495,498,501],condition_groups:[unovaSeason,unovaSwarm,b2w2Weekday,unovaRegiKey("ice")],evolution_species_max:649},
+  x:{display_name:"Pokémon X",generation:6,family:"X / Y",release_order:21,starter_ids:[650,653,656],condition_groups:[kalosStoryProgress,friendSafari,kalosStarterBird,kalosTrashCans],evolution_species_max:721},
+  y:{display_name:"Pokémon Y",generation:6,family:"X / Y",release_order:22,starter_ids:[650,653,656],condition_groups:[kalosStoryProgress,friendSafari,kalosStarterBird,kalosTrashCans],evolution_species_max:721},
+  "omega-ruby":{display_name:"Pokémon Omega Ruby",generation:6,family:"Omega Ruby / Alpha Sapphire",release_order:23,starter_ids:[252,255,258],condition_groups:[orasNationalDex,orasDexNav,orasMirageSpots,orasSoaring,orasWeekday,orasTimeWindow,orasMinuteWindow],evolution_species_max:721},
+  "alpha-sapphire":{display_name:"Pokémon Alpha Sapphire",generation:6,family:"Omega Ruby / Alpha Sapphire",release_order:24,starter_ids:[252,255,258],condition_groups:[orasNationalDex,orasDexNav,orasMirageSpots,orasSoaring,orasWeekday,orasTimeWindow,orasMinuteWindow],evolution_species_max:721},
 };
 const gameDefinition=gameDefinitions[game];
-if(!gameDefinition) throw new Error("The catalog builder currently supports reviewed Generation I–V games.");
+if(!gameDefinition) throw new Error("The catalog builder currently supports reviewed Generation I–VI games.");
 if(!/^[0-9a-f]{40}$/.test(commit)) throw new Error("--commit must be an exact 40-character PokeAPI commit.");
 if(!/^[0-9a-f]{40}$/.test(spritesCommit)) throw new Error("--sprites-commit must be an exact 40-character PokeAPI sprites commit.");
 if(gameDefinition.generation===5&&!/^[0-9a-f]{40}$/.test(pkhexCommit)) throw new Error("--pkhex-commit must be an exact 40-character PKHeX commit for Generation V.");
+if(gameDefinition.generation===6&&!/^[0-9a-f]{40}$/.test(pkhexCommit)) throw new Error("--pkhex-commit must be an exact 40-character PKHeX commit for Generation VI.");
+if(gameDefinition.generation===6&&!/^[0-9a-f]{40}$/.test(pk3dsCommit)) throw new Error("--pk3ds-commit must be an exact 40-character pk3DS commit for Generation VI.");
 if(!output) throw new Error("--output is required.");
 const base=`https://raw.githubusercontent.com/PokeAPI/pokeapi/${commit}/data/v2/csv`;
 
@@ -170,6 +187,127 @@ if(gameDefinition.generation===5){
   const activeAreaKeys=new Set(encounterRows.map((row)=>row.area_key));
   locationRows.splice(0,locationRows.length,...locationRows.filter((row)=>activeAreaKeys.has(row.area_key)));
 }
+if(gameDefinition.generation===6){
+  const oras=["omega-ruby","alpha-sapphire"].includes(game);
+  const editorFile=oras?"RSWE.cs":"XYWE.cs";
+  const editorResponse=await fetch(`https://raw.githubusercontent.com/kwsch/pk3DS/${pk3dsCommit}/pk3DS.WinForms/Subforms/Gen6/${editorFile}`);
+  if(!editorResponse.ok)throw new Error(`pk3DS ${editorFile} returned ${editorResponse.status}.`);
+  const editorSource=await editorResponse.text();
+  const expectedEditorMarkers=oras
+    ? ["CB_Grass1", "CB_TallGrass1", "CB_Swarm1", "CB_Surf1", "CB_RockSmash1", "CB_Old1", "CB_Good1", "CB_Super1", "CB_HordeA1"]
+    : ["CB_Grass1", "CB_Yellow1", "CB_Purple1", "CB_Red1", "CB_RT1", "CB_Surf1", "CB_RockSmash1", "CB_Old1", "CB_Good1", "CB_Super1", "CB_HordeA1"];
+  if(!expectedEditorMarkers.every((marker)=>editorSource.includes(marker)))throw new Error(`pk3DS ${editorFile} no longer matches the reviewed Generation VI table layout.`);
+
+  if(!oras){
+    encounterRows.splice(0,encounterRows.length,...encounterRows.filter((row)=>row.area_key!=="roaming-kalos-main-area"));
+    for(const row of encounterRows.filter((entry)=>[144,145,146].includes(entry.pokemon_id)&&(entry.conditions||[]).some((condition)=>condition.startsWith("starter-"))))row.conditions=[...new Set([...(row.conditions||[]),"story-progress-hall-of-fame"])].sort();
+    const safariRows=encounterRows.filter((row)=>row.area_key.startsWith("friend-safari-")&&(row.conditions||[]).some((condition)=>condition.startsWith("friend-safari-slot-")));
+    if(safariRows.length!==194)throw new Error(`PokeAPI ${game} supplied ${safariRows.length} Friend Safari rows; expected 194.`);
+    for(const row of safariRows){row.area_key="friend-safari-main-area";row.method="friend-safari";}
+    const floette=safariRows.find((row)=>row.pokemon_id===670);const vivillon=safariRows.find((row)=>row.pokemon_id===666);
+    if(!floette||!vivillon)throw new Error(`PokeAPI ${game} is missing a reviewed Friend Safari form entry.`);
+    floette.form_name="Red Flower";vivillon.form_name="Regional pattern";
+    encounterRows.push({...floette,source_encounter_id:6100000,form_name:"Yellow Flower",artwork_url:`https://raw.githubusercontent.com/PokeAPI/sprites/${spritesCommit}/sprites/pokemon/other/official-artwork/10107.png`});
+    encounterRows.push({...floette,source_encounter_id:6100001,form_name:"Blue Flower",artwork_url:`https://raw.githubusercontent.com/PokeAPI/sprites/${spritesCommit}/sprites/pokemon/other/official-artwork/10109.png`});
+    const firstSafariLocation=locationRows.find((row)=>row.location_key==="friend-safari");
+    locationRows.splice(0,locationRows.length,...locationRows.filter((row)=>row.location_key!=="friend-safari"));
+    locationRows.push({location_key:"friend-safari",area_key:"friend-safari-main-area",sub_area:"main-area",display_name:"Friend Safari",sort_order:firstSafariLocation?.sort_order||locationRows.length+1});
+  } else {
+    const pkhexFile=game==="omega-ruby"?"or":"as";
+    const [pkhexResponse,locationTextResponse]=await Promise.all([
+      fetch(`https://raw.githubusercontent.com/kwsch/PKHeX/${pkhexCommit}/PKHeX.Core/Resources/legality/wild/Gen6/encounter_${pkhexFile}.pkl`),
+      fetch(`https://raw.githubusercontent.com/kwsch/PKHeX/${pkhexCommit}/PKHeX.Core/Resources/text/locations/gen6/text_xy_00000_en.txt`),
+    ]);
+    if(!pkhexResponse.ok)throw new Error(`PKHeX ${game} encounter data returned ${pkhexResponse.status}.`);
+    if(!locationTextResponse.ok)throw new Error(`PKHeX Generation VI locations returned ${locationTextResponse.status}.`);
+    const pkhexBytes=new Uint8Array(await pkhexResponse.arrayBuffer());
+    const pkhexView=new DataView(pkhexBytes.buffer,pkhexBytes.byteOffset,pkhexBytes.byteLength);
+    if(new TextDecoder().decode(pkhexBytes.slice(0,2))!=="ao")throw new Error(`PKHeX ${game} encounter data has an unexpected identifier.`);
+    const pkhexAreaCount=pkhexView.getUint16(2,true);
+    if(pkhexAreaCount!==273||pkhexBytes.length!==28196)throw new Error(`PKHeX ${game} encounter container no longer matches the reviewed 273-table layout.`);
+    const locationNames=(await locationTextResponse.text()).split(/\r?\n/);
+    const slug=(value)=>String(value||"").normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-zA-Z0-9]+/g,"-").replace(/^-|-$/g,"").toLowerCase();
+    const resolveLocation=(locationId)=>{
+      const displayName=String(locationNames[locationId]||`ORAS location ${locationId}`).trim();
+      const mirageKeys=new Map([[326,"mirage-spot-forest"],[328,"mirage-spot-cave"],[330,"mirage-spot-island"],[332,"mirage-spot-mountain"]]);
+      if(mirageKeys.has(locationId))return {locationKey:mirageKeys.get(locationId),displayName};
+      const key=slug(displayName.replace(/^Pokémon League$/u,"Hoenn Pokémon League"));
+      const route=displayName.match(/^Route (\d+)$/);
+      const expected=route?`hoenn-route-${route[1]}`:key;
+      const candidates=data["locations.csv"].filter((row)=>row.identifier===expected||row.identifier===key||row.identifier.endsWith(`-${key}`));
+      const preferred=candidates.find((row)=>row.region_id==="3")||candidates[0];
+      return {locationKey:preferred?.identifier||`oras-${key||locationId}`,displayName};
+    };
+    const locationDetails=new Map();
+    for(let index=0;index<pkhexAreaCount;index+=1){
+      const start=pkhexView.getUint32(4+(index*4),true);const locationId=pkhexView.getUint16(start,true);
+      if(!locationDetails.has(locationId))locationDetails.set(locationId,resolveLocation(locationId));
+    }
+    const replacedMethods=new Set(["walk","rock-smash","horde"]);
+    encounterRows.splice(0,encounterRows.length,...encounterRows.filter((row)=>!replacedMethods.has(row.method)));
+    const landChances=[10,10,10,10,10,10,10,10,10,5,4,1];
+    const waterChances=[50,30,15,4,1];
+    const rodChances=[60,35,5];
+    const hordeChances=[12,7,1];
+    const standardGroups=[
+      {start:0,length:12,method:"walk",chances:landChances},
+      {start:12,length:12,method:"tall-grass",chances:landChances},
+      {start:24,length:3,method:"dexnav",chances:[null,null,null],conditions:["dexnav-exclusive","story-progress-national-dex"]},
+      {start:27,length:5,method:"surf",chances:waterChances},
+      {start:32,length:3,method:"old-rod",chances:rodChances},
+      {start:35,length:3,method:"good-rod",chances:rodChances},
+      {start:38,length:3,method:"super-rod",chances:rodChances},
+    ];
+    let generatedIndex=0;
+    const addSlot=(slot,areaKey,method,chance,extraConditions=[])=>{
+      const packed=pkhexView.getUint16(slot,true);const speciesId=packed&0x3ff;const form=packed>>11;
+      if(!speciesId)return;
+      const profile=defaultProfileBySpecies.get(String(speciesId));const parent=profile&&species.get(profile.species_id);
+      if(!profile||!parent)throw new Error(`PKHeX ${game} species ${speciesId} is missing from PokeAPI.`);
+      const shellosEast=speciesId===422&&form===1;
+      const formName=speciesId===201&&form===31?"Random form":speciesId===422?(shellosEast?"East Sea":"West Sea"):form?`Form ${form}`:"";
+      const artworkId=shellosEast?10039:profile.id;
+      encounterRows.push({source_encounter_id:6000000+generatedIndex,area_key:areaKey,pokemon_id:Number(profile.id),pokemon_name:englishSpecies.get(profile.species_id)||title(profile.identifier),form_name:formName,species_family:`evolution-chain-${parent.evolution_chain_id}`,method,min_level:Number(pkhexBytes[slot+2])||null,max_level:Number(pkhexBytes[slot+3])||null,chance,conditions:[...extraConditions].sort(),is_legendary:parent.is_legendary==="1"||parent.is_mythical==="1",artwork_url:`https://raw.githubusercontent.com/PokeAPI/sprites/${spritesCommit}/sprites/pokemon/other/official-artwork/${artworkId}.png`});
+      generatedIndex+=1;
+    };
+    for(let index=0;index<pkhexAreaCount;index+=1){
+      const start=pkhexView.getUint32(4+(index*4),true);const end=pkhexView.getUint32(8+(index*4),true);const locationId=pkhexView.getUint16(start,true);const type=pkhexBytes[start+2];
+      const details=locationDetails.get(locationId);const areaKey=`${details.locationKey}-main-area`;const mirage=locationId>=326&&locationId<=332;const locationConditions=mirage?["mirage-spot-active"]:[];
+      if(type===0){
+        if((end-start-4)/4!==41)throw new Error(`PKHeX ${game} standard table ${index} has an unexpected length.`);
+        for(const group of standardGroups)for(let slotIndex=0;slotIndex<group.length;slotIndex+=1)addSlot(start+4+((group.start+slotIndex)*4),areaKey,group.method,group.chances[slotIndex],[...locationConditions,...(group.conditions||[])]);
+      } else if(type===6){
+        if((end-start-4)/4!==5)throw new Error(`PKHeX ${game} Rock Smash table ${index} has an unexpected length.`);
+        for(let slotIndex=0;slotIndex<5;slotIndex+=1)addSlot(start+4+(slotIndex*4),areaKey,"rock-smash",waterChances[slotIndex],locationConditions);
+      } else if(type===7){
+        if((end-start-4)/4!==15)throw new Error(`PKHeX ${game} horde table ${index} has an unexpected length.`);
+        for(let slotIndex=0;slotIndex<15;slotIndex+=1)addSlot(start+4+(slotIndex*4),areaKey,"horde",hordeChances[Math.floor(slotIndex/5)],locationConditions);
+      } else throw new Error(`PKHeX ${game} supplied unsupported encounter type ${type}.`);
+    }
+    if(generatedIndex!==2747)throw new Error(`PKHeX ${game} supplied ${generatedIndex} usable wild slots; expected 2747.`);
+    const soaringDetails=resolveLocation(348);const soaringAreaKey=`${soaringDetails.locationKey}-main-area`;
+    for(const [speciesId,level] of [[198,45],[276,40],[278,40],[279,40],[333,40],[425,45],[628,45]]){
+      const profile=defaultProfileBySpecies.get(String(speciesId));const parent=profile&&species.get(profile.species_id);
+      if(!profile||!parent)throw new Error(`PKHeX ${game} soaring species ${speciesId} is missing from PokeAPI.`);
+      encounterRows.push({source_encounter_id:6000000+generatedIndex,area_key:soaringAreaKey,pokemon_id:Number(profile.id),pokemon_name:englishSpecies.get(profile.species_id)||title(profile.identifier),form_name:"",species_family:`evolution-chain-${parent.evolution_chain_id}`,method:"soaring",min_level:level,max_level:level,chance:null,conditions:["soaring-encounter"],is_legendary:false,artwork_url:`https://raw.githubusercontent.com/PokeAPI/sprites/${spritesCommit}/sprites/pokemon/other/official-artwork/${profile.id}.png`});
+      generatedIndex+=1;
+    }
+    for(const [locationId,details] of [...locationDetails].sort(([left],[right])=>left-right)){
+      const areaKey=`${details.locationKey}-main-area`;
+      if(!locationRows.some((row)=>row.area_key===areaKey))locationRows.push({location_key:details.locationKey,area_key:areaKey,sub_area:"main-area",display_name:details.displayName,sort_order:locationRows.length+1});
+    }
+    const mirageLocationKeys=new Set([...locationDetails].filter(([locationId])=>locationId>=326&&locationId<=332).map(([,details])=>details.locationKey));
+    for(const key of ["trackless-forest","pathless-plain","nameless-cavern","fabled-cave","gnarled-den","crescent-isle"])mirageLocationKeys.add(key);
+    const soaringLocationKey=soaringDetails.locationKey;
+    for(const row of encounterRows){
+      const locationKey=locationRows.find((location)=>location.area_key===row.area_key)?.location_key||"";
+      if(mirageLocationKeys.has(locationKey)&&!(row.conditions||[]).includes("mirage-spot-active"))row.conditions=[...(row.conditions||[]),"mirage-spot-active"].sort();
+      if(locationKey===soaringLocationKey&&!(row.conditions||[]).includes("soaring-encounter"))row.conditions=[...(row.conditions||[]),"soaring-encounter"].sort();
+    }
+  }
+  const activeAreaKeys=new Set(encounterRows.map((row)=>row.area_key));
+  locationRows.splice(0,locationRows.length,...locationRows.filter((row)=>activeAreaKeys.has(row.area_key)));
+}
 const groupPokedexIds=new Set(data["pokedex_version_groups.csv"].filter((row)=>row.version_group_id===version.version_group_id).map((row)=>row.pokedex_id)); const pokedexes=byId(data["pokedexes.csv"]);
 const dexRows=data["pokemon_dex_numbers.csv"].filter((row)=>groupPokedexIds.has(row.pokedex_id)).map((row)=>{const parent=species.get(row.species_id);return {pokedex_key:pokedexes.get(row.pokedex_id).identifier,entry_number:Number(row.pokedex_number),pokemon_id:Number(row.species_id),pokemon_name:englishSpecies.get(row.species_id)||title(parent.identifier),form_name:"",species_family:`evolution-chain-${parent.evolution_chain_id}`};});
 const dexSpeciesIds=new Set(dexRows.map((row)=>String(row.pokemon_id)));
@@ -180,11 +318,20 @@ const childrenBySpecies=new Map();
 for(const speciesId of evolutionSpeciesIds){const evolvesFrom=species.get(speciesId)?.evolves_from_species_id;if(!evolvesFrom||!evolutionSpeciesIds.has(evolvesFrom))continue;if(!childrenBySpecies.has(evolvesFrom))childrenBySpecies.set(evolvesFrom,[]);childrenBySpecies.get(evolvesFrom).push(speciesId);}
 function finalSpeciesIds(speciesId,visiting=new Set()){const key=String(speciesId);if(visiting.has(key))throw new Error(`Evolution cycle detected at species ${key}.`);const children=childrenBySpecies.get(key)||[];if(!children.length)return [key];const next=new Set(visiting);next.add(key);return [...new Set(children.flatMap((child)=>finalSpeciesIds(child,next)))].sort((left,right)=>Number(left)-Number(right));}
 const encounteredProfiles=new Map(encounterRows.map((row)=>[row.pokemon_id,pokemon.get(String(row.pokemon_id))]));
-const evolutionRows=[...encounteredProfiles.entries()].sort(([left],[right])=>left-right).map(([pokemonId,profile])=>{if(!profile||!evolutionSpeciesIds.has(profile.species_id))throw new Error(`Encounter profile ${pokemonId} is missing from the game's supported evolution set.`);return {pokemon_id:pokemonId,pokemon_name:englishSpecies.get(profile.species_id)||title(profile.identifier),final_evolutions:finalSpeciesIds(profile.species_id).map((finalSpeciesId)=>{const finalSpecies=species.get(finalSpeciesId);const finalProfile=defaultProfileBySpecies.get(finalSpeciesId);if(!finalSpecies||!finalProfile)throw new Error(`Final species ${finalSpeciesId} is missing a default profile.`);return {pokemon_id:Number(finalProfile.id),pokemon_name:englishSpecies.get(finalSpeciesId)||title(finalSpecies.identifier),form_name:finalProfile.identifier===finalSpecies.identifier?"":title(finalProfile.identifier),artwork_url:`https://raw.githubusercontent.com/PokeAPI/sprites/${spritesCommit}/sprites/pokemon/other/official-artwork/${finalProfile.id}.png`};})};});
+const evolutionRows=[...encounteredProfiles.entries()].sort(([left],[right])=>left-right).map(([pokemonId,profile])=>{if(!profile||!evolutionSpeciesIds.has(profile.species_id))throw new Error(`Encounter profile ${pokemonId} is missing from the game's supported evolution set.`);return {pokemon_id:pokemonId,pokemon_name:englishSpecies.get(profile.species_id)||title(profile.identifier),final_evolutions:finalSpeciesIds(profile.species_id).map((finalSpeciesId)=>{const finalSpecies=species.get(finalSpeciesId);const finalProfile=defaultProfileBySpecies.get(finalSpeciesId);if(!finalSpecies||!finalProfile)throw new Error(`Final species ${finalSpeciesId} is missing a default profile.`);const eastSea=game==="alpha-sapphire"&&pokemonId===422&&finalSpeciesId==="423";return {pokemon_id:Number(finalProfile.id),pokemon_name:englishSpecies.get(finalSpeciesId)||title(finalSpecies.identifier),form_name:eastSea?"East Sea":finalProfile.identifier===finalSpecies.identifier?"":title(finalProfile.identifier),artwork_url:`https://raw.githubusercontent.com/PokeAPI/sprites/${spritesCommit}/sprites/pokemon/other/official-artwork/${eastSea?10040:finalProfile.id}.png`};})};});
+if(["x","y"].includes(game)){
+  const floetteEvolution=evolutionRows.find((row)=>row.pokemon_id===670);
+  if(!floetteEvolution)throw new Error(`The ${game} evolution catalog is missing Floette.`);
+  floetteEvolution.final_evolutions=[
+    {pokemon_id:671,pokemon_name:"Florges",form_name:"Red Flower",artwork_url:`https://raw.githubusercontent.com/PokeAPI/sprites/${spritesCommit}/sprites/pokemon/other/official-artwork/671.png`},
+    {pokemon_id:671,pokemon_name:"Florges",form_name:"Yellow Flower",artwork_url:`https://raw.githubusercontent.com/PokeAPI/sprites/${spritesCommit}/sprites/pokemon/other/official-artwork/10111.png`},
+    {pokemon_id:671,pokemon_name:"Florges",form_name:"Blue Flower",artwork_url:`https://raw.githubusercontent.com/PokeAPI/sprites/${spritesCommit}/sprites/pokemon/other/official-artwork/10113.png`},
+  ];
+}
 const starters=gameDefinition.starter_ids.map((id)=>{const profile=pokemon.get(String(id));const parent=species.get(profile.species_id);return {pokemon_id:id,pokemon_name:englishSpecies.get(profile.species_id)||title(profile.identifier),form_name:"",species_family:`evolution-chain-${parent.evolution_chain_id}`,artwork_url:`https://raw.githubusercontent.com/PokeAPI/sprites/${spritesCommit}/sprites/pokemon/other/official-artwork/${id}.png`};});
 const {starter_ids:unusedStarterIds,evolution_species_max:unusedEvolutionSpeciesMax,condition_groups:unusedConditionGroups,...publishedGameDefinition}=gameDefinition;
 publishedGameDefinition.condition_groups=resolvedConditionGroups;
-const coverageNote=`PokéAPI encounter snapshot ${commit}; PokeAPI sprites snapshot ${spritesCommit};${gameDefinition.generation===5?` PKHeX Generation V swarm snapshot ${pkhexCommit};`:""} independent source audit required before verification.`;
+const coverageNote=`PokéAPI encounter snapshot ${commit}; PokeAPI sprites snapshot ${spritesCommit};${gameDefinition.generation===5?` PKHeX Generation V swarm snapshot ${pkhexCommit};`:""}${gameDefinition.generation===6?` PKHeX Generation VI encounter snapshot ${pkhexCommit}; pk3DS table-layout snapshot ${pk3dsCommit};`:""} independent source audit required before verification.`;
 const payload={game:{game_key:game,...publishedGameDefinition,starters,coverage_note:coverageNote,encounter_status:"pending"},pokedex_entries:dexRows,locations:locationRows,encounters:encounterRows};
 const evolutionPayload={game_key:game,source_commit:commit,sprites_commit:spritesCommit,evolutions:evolutionRows};
 await fs.mkdir(path.dirname(path.resolve(output)),{recursive:true}); await fs.writeFile(output,`${JSON.stringify(payload,null,2)}\n`);

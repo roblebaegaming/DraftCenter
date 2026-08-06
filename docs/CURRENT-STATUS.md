@@ -67,9 +67,16 @@ dependency audit, and 108-page build pass locally. The migrations have not
 been applied to Preview or production; Preview database, CI, and visual
 validation remain.
 
-The complete application suite, all 1,027 National Dex rows, production
-dependency audit, and a 108-page production build pass locally on the stacked
-Generation IV branch.
+Stacked branch `codex/nuzlocke-gen6` has separate independently audited X, Y,
+Omega Ruby, and Alpha Sapphire catalogs locally prepared with unpublished
+migrations 304-311. It covers hordes, a one-location opt-in Friend Safari,
+starter-matched legendary birds, exact ORAS wild tables, National Pokédex
+DexNav species, rotating Mirage Spots, soaring, schedules, and
+version-exclusive forms. No schema change was required. All four source
+audits, 44 focused regressions, the full application suite, all 1,027 National
+Dex rows, the production dependency audit, and a 108-page production build
+pass locally. Preview database, CI, and visual validation remain; nothing from
+this stack is in production.
 
 ## Active watch items
 

@@ -23,6 +23,10 @@ import blackEvolutionCatalog from "../../../../data/nuzlocke/pokemon-black-evolu
 import whiteEvolutionCatalog from "../../../../data/nuzlocke/pokemon-white-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json";
 import black2EvolutionCatalog from "../../../../data/nuzlocke/pokemon-black-2-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json";
 import white2EvolutionCatalog from "../../../../data/nuzlocke/pokemon-white-2-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json";
+import xEvolutionCatalog from "../../../../data/nuzlocke/pokemon-x-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json";
+import yEvolutionCatalog from "../../../../data/nuzlocke/pokemon-y-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json";
+import omegaRubyEvolutionCatalog from "../../../../data/nuzlocke/pokemon-omega-ruby-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json";
+import alphaSapphireEvolutionCatalog from "../../../../data/nuzlocke/pokemon-alpha-sapphire-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json";
 
 export const runtime = "nodejs";
 const GAME_KEY = /^[a-z0-9-]{2,64}$/;
@@ -35,6 +39,8 @@ const EVOLUTION_CATALOGS = Object.freeze({
   heartgold: heartgoldEvolutionCatalog, soulsilver: soulsilverEvolutionCatalog,
   black: blackEvolutionCatalog, white: whiteEvolutionCatalog,
   "black-2": black2EvolutionCatalog, "white-2": white2EvolutionCatalog,
+  x: xEvolutionCatalog, y: yEvolutionCatalog,
+  "omega-ruby": omegaRubyEvolutionCatalog, "alpha-sapphire": alphaSapphireEvolutionCatalog,
 });
 const MAX_CATALOG_ENCOUNTERS = 7500;
 const KANTO_STARTERS = Object.freeze([
@@ -63,7 +69,12 @@ const UNOVA_STARTERS = Object.freeze([
   { pokemon_id: 498, pokemon_name: "Tepig", form_name: "", species_family: "evolution-chain-257", artwork_url: "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/498.png" },
   { pokemon_id: 501, pokemon_name: "Oshawott", form_name: "", species_family: "evolution-chain-258", artwork_url: "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/501.png" },
 ]);
-const GAME_STARTERS = Object.freeze({ red: KANTO_STARTERS, blue: KANTO_STARTERS, yellow: YELLOW_STARTER, gold: JOHTO_STARTERS, silver: JOHTO_STARTERS, crystal: JOHTO_STARTERS, ruby: HOENN_STARTERS, sapphire: HOENN_STARTERS, emerald: HOENN_STARTERS, firered: KANTO_STARTERS, leafgreen: KANTO_STARTERS, diamond: SINNOH_STARTERS, pearl: SINNOH_STARTERS, platinum: SINNOH_STARTERS, heartgold: JOHTO_STARTERS, soulsilver: JOHTO_STARTERS, black: UNOVA_STARTERS, white: UNOVA_STARTERS, "black-2": UNOVA_STARTERS, "white-2": UNOVA_STARTERS });
+const KALOS_STARTERS = Object.freeze([
+  { pokemon_id: 650, pokemon_name: "Chespin", form_name: "", species_family: "evolution-chain-337", artwork_url: "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/650.png" },
+  { pokemon_id: 653, pokemon_name: "Fennekin", form_name: "", species_family: "evolution-chain-338", artwork_url: "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/653.png" },
+  { pokemon_id: 656, pokemon_name: "Froakie", form_name: "", species_family: "evolution-chain-339", artwork_url: "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/656.png" },
+]);
+const GAME_STARTERS = Object.freeze({ red: KANTO_STARTERS, blue: KANTO_STARTERS, yellow: YELLOW_STARTER, gold: JOHTO_STARTERS, silver: JOHTO_STARTERS, crystal: JOHTO_STARTERS, ruby: HOENN_STARTERS, sapphire: HOENN_STARTERS, emerald: HOENN_STARTERS, firered: KANTO_STARTERS, leafgreen: KANTO_STARTERS, diamond: SINNOH_STARTERS, pearl: SINNOH_STARTERS, platinum: SINNOH_STARTERS, heartgold: JOHTO_STARTERS, soulsilver: JOHTO_STARTERS, black: UNOVA_STARTERS, white: UNOVA_STARTERS, "black-2": UNOVA_STARTERS, "white-2": UNOVA_STARTERS, x: KALOS_STARTERS, y: KALOS_STARTERS, "omega-ruby": HOENN_STARTERS, "alpha-sapphire": HOENN_STARTERS });
 
 export async function GET() {
   try {
