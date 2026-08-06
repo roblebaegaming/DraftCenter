@@ -4,8 +4,8 @@
 
 Branch `codex/nuzlocke-tournaments-daily-integration` is the release-integration
 branch for Nuzlocke Lab, standalone tournaments, Daily Games resources, and
-Trainer Dex. Application code is integrated through `1fc6399`; this handoff and
-the current-status update follow on the same branch.
+Trainer Dex. Application code through `1fc6399`, the final starter-evolution
+correction, this handoff, and the current-status update are on the same branch.
 
 The stable isolated Preview is:
 
@@ -33,7 +33,10 @@ The integration preserves the audited per-game encounter mechanics, starters,
 condition filters, encounter methods, deterministic sharing, route-first and
 encounter-pool weighting, family/legendary exclusions, and game-limited final
 evolutions. The page uses “Build a Nuzlocke Team,” explains the reusable team
-code, and makes starter inclusion explicit and shareable.
+code, and makes starter inclusion explicit and shareable. When final-evolution
+mode and starter inclusion are both enabled, the displayed starter now evolves
+through the same pinned game catalogue while retaining its starter route and
+source details. Final-form exclusions apply to starters as well as catches.
 
 Standalone tournaments remain independent of league tables and expose bounded
 RPC-driven registration, invitations, seeding, bracket locking, score reports,
@@ -117,7 +120,8 @@ Local application checks used the isolated Preview database and verified:
 
 - the selector exposes a placeholder plus all 37 verified games
 - Pokémon X generates a complete deterministic six-Pokémon team with a starter
-  and final-evolution mode, and its shared URL restores those choices
+  and final-evolution mode, evolves that starter, and restores those choices
+  from its shared URL
 - Pokémon Violet generates a complete team and share URL
 - signed-out tournament and Trainer Dex gates and the Daily Games hub render
 
@@ -149,7 +153,7 @@ The integration branch passes:
 
 - `pnpm audit --prod --audit-level high` — no known vulnerabilities
 - `npm run test:all` — all application, Nuzlocke, tournament, Trainer Dex, and
-  release-integration suites
+  release-integration suites, including 51 Nuzlocke regressions
 - `npm run test:national-dex` — all 1,027 Pokémon rows
 - `npm run build` — 111 routes/pages generated successfully
 - `git diff --check`
@@ -159,8 +163,9 @@ validation and cannot prove an undeployed local or Preview change.
 
 ## Remaining release sequence
 
-1. Confirm the final branch-head Preview is Ready and run authenticated deployed
-   `GET /api/nuzlocke` plus a Pokémon X `POST /api/nuzlocke` check.
+1. Keep the final branch-head Preview Ready. The August 6 authenticated deployed
+   checks returned 37 games from Red through Violet and a complete Pokémon X
+   team with an evolved starter in final-evolution mode.
 2. Open one integration pull request against `main`; require repository checks,
    review, and the remaining narrow mobile visual pass.
 3. If Vercel protection remains, complete one deployment-origin signed-in check

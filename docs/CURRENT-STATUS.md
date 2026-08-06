@@ -15,9 +15,9 @@ Preview-only and has not changed production.
 Branch `codex/nuzlocke-tournaments-daily-integration` combines all 37 audited
 main-series Nuzlocke game catalogs from Red through Violet, standalone
 single-elimination tournaments, Daily Games resources, and the signed-in
-Trainer Dex. The integrated application head is `1fc6399`; the dated release
-handoff follows on the same branch. Its forward-only production migration map
-is collision-free: Nuzlocke 261-339, tournaments 340, Trainer Dex 341, and the
+Trainer Dex. The final branch head also evolves an included starter when
+“final evolutions only” is active. Its forward-only production migration map is
+collision-free: Nuzlocke 261-339, tournaments 340, Trainer Dex 341, and the
 Trainer Dex draft-name correction 342.
 
 The isolated Preview database reports 37 verified catalogs and no pending
@@ -31,9 +31,12 @@ The dependency audit, full application test suite, all 1,027 National Dex
 rows, and the 111-page production build pass. Preview is available at
 https://draftcenter-git-codex-nuzlocke-tournaments-dai-5c9468-rob-lebae.vercel.app.
 
+The final stable Preview is Ready. Its authenticated deployed checks return all
+37 games from Red through Violet and a complete Pokémon X team with an evolved
+starter in final-evolution mode.
+
 ## Remaining release gates
 
-- Deploy and verify the final integration branch head on the stable Preview.
 - Open the integration pull request and require its repository checks/review.
 - Complete the narrow mobile visual pass and, if Vercel protection remains,
   one deployment-origin signed-in confirmation.
