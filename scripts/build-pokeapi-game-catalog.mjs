@@ -8,6 +8,12 @@ const generationTwoConditions=[
   {id:"swarm",label:"Swarm",options:[{value:"any",label:"Either"},{value:"yes",label:"Active swarm",conditions:["swarm-yes"]},{value:"no",label:"No swarm",conditions:["swarm-no"]}]},
   {id:"weekday",label:"Day of week",options:[{value:"any",label:"Any day"},{value:"contest-day",label:"Tuesday, Thursday, or Saturday",conditions:["weekday-tuesday","weekday-thursday","weekday-saturday"]},{value:"friday",label:"Friday",conditions:["weekday-friday"]},{value:"other",label:"Other day",conditions:[]}]},
 ];
+const fossilChoice={id:"fossil-choice",label:"Fossil choice",options:[{value:"any",label:"Either fossil"},{value:"root",label:"Root Fossil",conditions:["item-root-fossil"]},{value:"claw",label:"Claw Fossil",conditions:["item-claw-fossil"]}]};
+const hallOfFame={id:"story-progress",label:"Story progress",options:[{value:"any",label:"Any point"},{value:"main-story",label:"Main story only",conditions:[]},{value:"postgame",label:"After the Hall of Fame",conditions:["story-progress-hall-of-fame"]}]};
+const eliteFourRematch={id:"story-progress",label:"Story progress",options:[{value:"any",label:"Any point"},{value:"main-story",label:"Main story only",conditions:[]},{value:"postgame",label:"After the Elite Four rematch",conditions:["story-progress-beat-elite-four-round-two"]}]};
+const emeraldRoamer={id:"roaming-lati",label:"TV color choice",options:[{value:"any",label:"Either roaming Pokémon"},{value:"red",label:"Red — Latias",conditions:["tv-option-red"]},{value:"blue",label:"Blue — Latios",conditions:["tv-option-blue"]}]};
+const kantoRoamer={id:"starter-roamer",label:"Roaming Pokémon",match_included_starter:true,options:[{value:"any",label:"Match included starter / any"},{value:"bulbasaur",label:"Bulbasaur — Entei",conditions:["starter-bulbasaur"],starter_ids:[1]},{value:"charmander",label:"Charmander — Suicune",conditions:["starter-charmander"],starter_ids:[4]},{value:"squirtle",label:"Squirtle — Raikou",conditions:["starter-squirtle"],starter_ids:[7]}]};
+const alteringCave={id:"altering-cave",label:"Altering Cave state",default_value:"standard",options:[{value:"any",label:"Any event state"},{value:"standard",label:"Standard — Zubat",conditions:["altering-cave-standard"]},{value:"mareep",label:"Event — Mareep",conditions:["altering-cave-mareep"]},{value:"pineco",label:"Event — Pineco",conditions:["altering-cave-pineco"]},{value:"houndour",label:"Event — Houndour",conditions:["altering-cave-houndour"]},{value:"teddiursa",label:"Event — Teddiursa",conditions:["altering-cave-teddiursa"]},{value:"aipom",label:"Event — Aipom",conditions:["altering-cave-aipom"]},{value:"shuckle",label:"Event — Shuckle",conditions:["altering-cave-shuckle"]},{value:"stantler",label:"Event — Stantler",conditions:["altering-cave-stantler"]},{value:"smeargle",label:"Event — Smeargle",conditions:["altering-cave-smeargle"]}]};
 const gameDefinitions={
   red:{display_name:"Pokémon Red",generation:1,family:"Red / Blue / Yellow",release_order:1,starter_ids:[1,4,7],condition_groups:[]},
   blue:{display_name:"Pokémon Blue",generation:1,family:"Red / Blue / Yellow",release_order:2,starter_ids:[1,4,7],condition_groups:[]},
@@ -15,9 +21,14 @@ const gameDefinitions={
   gold:{display_name:"Pokémon Gold",generation:2,family:"Gold / Silver / Crystal",release_order:4,starter_ids:[152,155,158],condition_groups:generationTwoConditions},
   silver:{display_name:"Pokémon Silver",generation:2,family:"Gold / Silver / Crystal",release_order:5,starter_ids:[152,155,158],condition_groups:generationTwoConditions},
   crystal:{display_name:"Pokémon Crystal",generation:2,family:"Gold / Silver / Crystal",release_order:6,starter_ids:[152,155,158],condition_groups:generationTwoConditions},
+  ruby:{display_name:"Pokémon Ruby",generation:3,family:"Ruby / Sapphire / Emerald",release_order:7,starter_ids:[252,255,258],condition_groups:[fossilChoice,hallOfFame],evolution_species_max:386},
+  sapphire:{display_name:"Pokémon Sapphire",generation:3,family:"Ruby / Sapphire / Emerald",release_order:8,starter_ids:[252,255,258],condition_groups:[fossilChoice,hallOfFame],evolution_species_max:386},
+  emerald:{display_name:"Pokémon Emerald",generation:3,family:"Ruby / Sapphire / Emerald",release_order:9,starter_ids:[252,255,258],condition_groups:[fossilChoice,hallOfFame,emeraldRoamer,alteringCave],evolution_species_max:386},
+  firered:{display_name:"Pokémon FireRed",generation:3,family:"FireRed / LeafGreen",release_order:10,starter_ids:[1,4,7],condition_groups:[eliteFourRematch,kantoRoamer,alteringCave],evolution_species_max:386},
+  leafgreen:{display_name:"Pokémon LeafGreen",generation:3,family:"FireRed / LeafGreen",release_order:11,starter_ids:[1,4,7],condition_groups:[eliteFourRematch,kantoRoamer,alteringCave],evolution_species_max:386},
 };
 const gameDefinition=gameDefinitions[game];
-if(!gameDefinition) throw new Error("The catalog builder currently supports reviewed Generation I and pending Generation II games.");
+if(!gameDefinition) throw new Error("The catalog builder currently supports reviewed Generation I–III games.");
 if(!/^[0-9a-f]{40}$/.test(commit)) throw new Error("--commit must be an exact 40-character PokeAPI commit.");
 if(!/^[0-9a-f]{40}$/.test(spritesCommit)) throw new Error("--sprites-commit must be an exact 40-character PokeAPI sprites commit.");
 if(!output) throw new Error("--output is required.");
@@ -51,16 +62,48 @@ if(gameDefinition.generation===2){
   locationRows.push({location_key:"national-park",area_key:"national-park-bug-catching-contest",sub_area:"bug-catching-contest",display_name:"National Park — Bug-Catching Contest",sort_order:locationRows.length+1});
   for(const [index,row] of contest.entries()){const profile=pokemon.get(String(row.id));const parent=species.get(profile.species_id);encounterRows.push({source_encounter_id:2000000+index,area_key:"national-park-bug-catching-contest",pokemon_id:row.id,pokemon_name:englishSpecies.get(profile.species_id)||title(profile.identifier),form_name:"",species_family:`evolution-chain-${parent.evolution_chain_id}`,method:"bug-catching-contest",min_level:row.min,max_level:row.max,chance:row.chance,conditions:["weekday-saturday","weekday-thursday","weekday-tuesday"],is_legendary:false,artwork_url:`https://raw.githubusercontent.com/PokeAPI/sprites/${spritesCommit}/sprites/pokemon/other/official-artwork/${row.id}.png`});}
 }
+const alteringCaveStates=[
+  {suffix:"standard",speciesId:41,levels:[10,12,8,14,10,12,16,6,8,14,8,14]},
+  {suffix:"mareep",speciesId:179,levels:[7,9,5,11,7,9,13,3,5,11,5,11]},
+  {suffix:"pineco",speciesId:204,levels:[23,25,22,27,23,25,29,19,21,27,21,27]},
+  {suffix:"houndour",speciesId:228,levels:[16,18,14,20,16,18,22,12,14,20,14,20]},
+  {suffix:"teddiursa",speciesId:216,levels:[10,12,8,14,10,12,16,6,8,14,8,14]},
+  {suffix:"aipom",speciesId:190,levels:[22,24,20,26,22,24,28,18,20,26,20,26]},
+  {suffix:"shuckle",speciesId:213,levels:[22,24,20,26,22,24,28,18,20,26,20,26]},
+  {suffix:"stantler",speciesId:234,levels:[22,24,20,26,22,24,28,18,20,26,20,26]},
+  {suffix:"smeargle",speciesId:235,levels:[22,24,20,26,22,24,28,18,20,26,20,26]},
+];
+if(game==="emerald"){
+  const standardArea="hoenn-altering-cave-main-area";
+  for(const row of encounterRows.filter((entry)=>entry.area_key===standardArea))row.conditions=["altering-cave-standard"];
+  const chances=[20,20,10,10,10,10,5,5,4,4,1,1];
+  for(const [stateIndex,state] of alteringCaveStates.slice(1).entries()){
+    const profile=pokemon.get(String(state.speciesId));const parent=species.get(profile.species_id);
+    state.levels.forEach((level,index)=>encounterRows.push({source_encounter_id:3000000+(stateIndex*100)+index,area_key:standardArea,pokemon_id:state.speciesId,pokemon_name:englishSpecies.get(profile.species_id)||title(profile.identifier),form_name:"",species_family:`evolution-chain-${parent.evolution_chain_id}`,method:"walk",min_level:level,max_level:level,chance:chances[index],conditions:[`altering-cave-${state.suffix}`],is_legendary:false,artwork_url:`https://raw.githubusercontent.com/PokeAPI/sprites/${spritesCommit}/sprites/pokemon/other/official-artwork/${state.speciesId}.png`}));
+  }
+}
+if(["firered","leafgreen"].includes(game)){
+  const stateByAreaSuffix=new Map(alteringCaveStates.map((state,index)=>[String.fromCharCode(97+index),state.suffix]));
+  for(const row of encounterRows){const match=row.area_key.match(/^kanto-altering-cave-([a-i])$/);if(match){row.conditions=[`altering-cave-${stateByAreaSuffix.get(match[1])}`];row.area_key="kanto-altering-cave-main-area";}}
+  const canonicalLocation=locationRows.find((row)=>row.area_key==="kanto-altering-cave-a");
+  const retainedLocations=locationRows.filter((row)=>!row.area_key.startsWith("kanto-altering-cave-"));
+  retainedLocations.push({...canonicalLocation,area_key:"kanto-altering-cave-main-area",sub_area:"main-area",display_name:"Kanto Altering Cave"});
+  locationRows.splice(0,locationRows.length,...retainedLocations);
+}
 const groupPokedexIds=new Set(data["pokedex_version_groups.csv"].filter((row)=>row.version_group_id===version.version_group_id).map((row)=>row.pokedex_id)); const pokedexes=byId(data["pokedexes.csv"]);
 const dexRows=data["pokemon_dex_numbers.csv"].filter((row)=>groupPokedexIds.has(row.pokedex_id)).map((row)=>{const parent=species.get(row.species_id);return {pokedex_key:pokedexes.get(row.pokedex_id).identifier,entry_number:Number(row.pokedex_number),pokemon_id:Number(row.species_id),pokemon_name:englishSpecies.get(row.species_id)||title(parent.identifier),form_name:"",species_family:`evolution-chain-${parent.evolution_chain_id}`};});
-const dexSpeciesIds=new Set(dexRows.map((row)=>String(row.pokemon_id))); const childrenBySpecies=new Map();
-for(const speciesId of dexSpeciesIds){const evolvesFrom=species.get(speciesId)?.evolves_from_species_id;if(!evolvesFrom||!dexSpeciesIds.has(evolvesFrom))continue;if(!childrenBySpecies.has(evolvesFrom))childrenBySpecies.set(evolvesFrom,[]);childrenBySpecies.get(evolvesFrom).push(speciesId);}
+const dexSpeciesIds=new Set(dexRows.map((row)=>String(row.pokemon_id)));
+const evolutionSpeciesIds=gameDefinition.evolution_species_max
+  ? new Set(data["pokemon_species.csv"].filter((row)=>Number(row.id)<=gameDefinition.evolution_species_max).map((row)=>row.id))
+  : dexSpeciesIds;
+const childrenBySpecies=new Map();
+for(const speciesId of evolutionSpeciesIds){const evolvesFrom=species.get(speciesId)?.evolves_from_species_id;if(!evolvesFrom||!evolutionSpeciesIds.has(evolvesFrom))continue;if(!childrenBySpecies.has(evolvesFrom))childrenBySpecies.set(evolvesFrom,[]);childrenBySpecies.get(evolvesFrom).push(speciesId);}
 function finalSpeciesIds(speciesId,visiting=new Set()){const key=String(speciesId);if(visiting.has(key))throw new Error(`Evolution cycle detected at species ${key}.`);const children=childrenBySpecies.get(key)||[];if(!children.length)return [key];const next=new Set(visiting);next.add(key);return [...new Set(children.flatMap((child)=>finalSpeciesIds(child,next)))].sort((left,right)=>Number(left)-Number(right));}
 const defaultProfileBySpecies=new Map(data["pokemon.csv"].filter((row)=>row.is_default==="1").map((row)=>[row.species_id,row]));
 const encounteredProfiles=new Map(encounterRows.map((row)=>[row.pokemon_id,pokemon.get(String(row.pokemon_id))]));
-const evolutionRows=[...encounteredProfiles.entries()].sort(([left],[right])=>left-right).map(([pokemonId,profile])=>{if(!profile||!dexSpeciesIds.has(profile.species_id))throw new Error(`Encounter profile ${pokemonId} is missing from the game Pokédex.`);return {pokemon_id:pokemonId,pokemon_name:englishSpecies.get(profile.species_id)||title(profile.identifier),final_evolutions:finalSpeciesIds(profile.species_id).map((finalSpeciesId)=>{const finalSpecies=species.get(finalSpeciesId);const finalProfile=defaultProfileBySpecies.get(finalSpeciesId);if(!finalSpecies||!finalProfile)throw new Error(`Final species ${finalSpeciesId} is missing a default profile.`);return {pokemon_id:Number(finalProfile.id),pokemon_name:englishSpecies.get(finalSpeciesId)||title(finalSpecies.identifier),form_name:finalProfile.identifier===finalSpecies.identifier?"":title(finalProfile.identifier),artwork_url:`https://raw.githubusercontent.com/PokeAPI/sprites/${spritesCommit}/sprites/pokemon/other/official-artwork/${finalProfile.id}.png`};})};});
+const evolutionRows=[...encounteredProfiles.entries()].sort(([left],[right])=>left-right).map(([pokemonId,profile])=>{if(!profile||!evolutionSpeciesIds.has(profile.species_id))throw new Error(`Encounter profile ${pokemonId} is missing from the game's supported evolution set.`);return {pokemon_id:pokemonId,pokemon_name:englishSpecies.get(profile.species_id)||title(profile.identifier),final_evolutions:finalSpeciesIds(profile.species_id).map((finalSpeciesId)=>{const finalSpecies=species.get(finalSpeciesId);const finalProfile=defaultProfileBySpecies.get(finalSpeciesId);if(!finalSpecies||!finalProfile)throw new Error(`Final species ${finalSpeciesId} is missing a default profile.`);return {pokemon_id:Number(finalProfile.id),pokemon_name:englishSpecies.get(finalSpeciesId)||title(finalSpecies.identifier),form_name:finalProfile.identifier===finalSpecies.identifier?"":title(finalProfile.identifier),artwork_url:`https://raw.githubusercontent.com/PokeAPI/sprites/${spritesCommit}/sprites/pokemon/other/official-artwork/${finalProfile.id}.png`};})};});
 const starters=gameDefinition.starter_ids.map((id)=>{const profile=pokemon.get(String(id));const parent=species.get(profile.species_id);return {pokemon_id:id,pokemon_name:englishSpecies.get(profile.species_id)||title(profile.identifier),form_name:"",species_family:`evolution-chain-${parent.evolution_chain_id}`,artwork_url:`https://raw.githubusercontent.com/PokeAPI/sprites/${spritesCommit}/sprites/pokemon/other/official-artwork/${id}.png`};});
-const {starter_ids:unusedStarterIds,...publishedGameDefinition}=gameDefinition;
+const {starter_ids:unusedStarterIds,evolution_species_max:unusedEvolutionSpeciesMax,...publishedGameDefinition}=gameDefinition;
 const payload={game:{game_key:game,...publishedGameDefinition,starters,coverage_note:`PokéAPI encounter snapshot ${commit}; PokeAPI sprites snapshot ${spritesCommit}; independent source audit required before verification.`,encounter_status:"pending"},pokedex_entries:dexRows,locations:locationRows,encounters:encounterRows};
 const evolutionPayload={game_key:game,source_commit:commit,sprites_commit:spritesCommit,evolutions:evolutionRows};
 await fs.mkdir(path.dirname(path.resolve(output)),{recursive:true}); await fs.writeFile(output,`${JSON.stringify(payload,null,2)}\n`);

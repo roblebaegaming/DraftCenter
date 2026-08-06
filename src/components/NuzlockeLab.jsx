@@ -68,6 +68,7 @@ export default function NuzlockeLab() {
     if (finalEvolutionOnly) url.searchParams.set("evolutions", "final");
     if (methods.length) url.searchParams.set("methods", methods.join(","));
     for (const group of conditionGroups) {
+      if (includeStarter && group.match_included_starter) continue;
       const value = conditionSelections[group.id];
       if (value && value !== "any") url.searchParams.set(`condition_${group.id}`, value);
     }
@@ -97,7 +98,7 @@ export default function NuzlockeLab() {
       <label>Selection style<select value={mode} onChange={(event) => setMode(event.target.value)}><option value="route-random">Route-first random</option><option value="true-random">Encounter-pool random</option></select><small>{mode === "route-random" ? "Shuffles eligible locations evenly, then rolls one encounter from each selected location." : "Rolls across the full encounter catalog, so locations with more eligible entries can appear more often."}</small></label>
       <label>Encounter weighting<select value={weighting} onChange={(event) => setWeighting(event.target.value)}><option value="equal">Equal chance</option><option value="authentic">Authentic encounter odds</option></select></label>
       <fieldset><legend>Encounter methods</legend>{(gameMethods[game] || []).map((item) => <label className="check-row" key={item}><input type="checkbox" checked={methods.includes(item)} onChange={() => toggleMethod(item)} />{pretty(item)}</label>)}<small>Leave all unchecked to include every verified method.</small></fieldset>
-      {conditionGroups.length > 0 && <fieldset className="nuzlocke-condition-filters"><legend>Encounter conditions</legend>{conditionGroups.map((group) => <label key={group.id}>{group.label}<select value={conditionSelections[group.id] || "any"} onChange={(event) => setConditionSelections((current) => ({ ...current, [group.id]: event.target.value }))}>{group.options.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>)}</fieldset>}
+      {conditionGroups.length > 0 && <fieldset className="nuzlocke-condition-filters"><legend>Encounter conditions</legend>{conditionGroups.map((group) => <label key={group.id}>{group.label}<select value={includeStarter && group.match_included_starter ? "any" : conditionSelections[group.id] || group.default_value || "any"} disabled={includeStarter && group.match_included_starter} onChange={(event) => setConditionSelections((current) => ({ ...current, [group.id]: event.target.value }))}>{group.options.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>)}</fieldset>}
       <label>Exclude Pokémon<input value={exclusions} onChange={(event) => setExclusions(event.target.value)} placeholder="Pikachu, Zubat" /><small>Separate names with commas.</small></label>
       <label className="check-row"><input type="checkbox" checked={familyClause} onChange={(event) => setFamilyClause(event.target.checked)} />Species/evolutionary-family clause</label>
       <label className="check-row"><input type="checkbox" checked={excludeLegendaries} onChange={(event) => setExcludeLegendaries(event.target.checked)} />Exclude legendary Pokémon</label>

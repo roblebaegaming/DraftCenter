@@ -9,17 +9,32 @@ import yellowEvolutionCatalog from "../../../../data/nuzlocke/pokemon-yellow-evo
 import goldEvolutionCatalog from "../../../../data/nuzlocke/pokemon-gold-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json";
 import silverEvolutionCatalog from "../../../../data/nuzlocke/pokemon-silver-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json";
 import crystalEvolutionCatalog from "../../../../data/nuzlocke/pokemon-crystal-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json";
+import rubyEvolutionCatalog from "../../../../data/nuzlocke/pokemon-ruby-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json";
+import sapphireEvolutionCatalog from "../../../../data/nuzlocke/pokemon-sapphire-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json";
+import emeraldEvolutionCatalog from "../../../../data/nuzlocke/pokemon-emerald-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json";
+import fireredEvolutionCatalog from "../../../../data/nuzlocke/pokemon-firered-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json";
+import leafgreenEvolutionCatalog from "../../../../data/nuzlocke/pokemon-leafgreen-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json";
 
 export const runtime = "nodejs";
 const GAME_KEY = /^[a-z0-9-]{2,64}$/;
-const EVOLUTION_CATALOGS = Object.freeze({ red: redEvolutionCatalog, blue: blueEvolutionCatalog, yellow: yellowEvolutionCatalog, gold: goldEvolutionCatalog, silver: silverEvolutionCatalog, crystal: crystalEvolutionCatalog });
+const EVOLUTION_CATALOGS = Object.freeze({
+  red: redEvolutionCatalog, blue: blueEvolutionCatalog, yellow: yellowEvolutionCatalog,
+  gold: goldEvolutionCatalog, silver: silverEvolutionCatalog, crystal: crystalEvolutionCatalog,
+  ruby: rubyEvolutionCatalog, sapphire: sapphireEvolutionCatalog, emerald: emeraldEvolutionCatalog,
+  firered: fireredEvolutionCatalog, leafgreen: leafgreenEvolutionCatalog,
+});
 const KANTO_STARTERS = Object.freeze([
   { pokemon_id: 1, pokemon_name: "Bulbasaur", form_name: "", species_family: "evolution-chain-1", artwork_url: "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/1.png" },
   { pokemon_id: 4, pokemon_name: "Charmander", form_name: "", species_family: "evolution-chain-2", artwork_url: "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/4.png" },
   { pokemon_id: 7, pokemon_name: "Squirtle", form_name: "", species_family: "evolution-chain-3", artwork_url: "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/7.png" },
 ]);
 const YELLOW_STARTER = Object.freeze([{ pokemon_id: 25, pokemon_name: "Pikachu", form_name: "", species_family: "evolution-chain-10", artwork_url: "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/25.png" }]);
-const GAME_STARTERS = Object.freeze({ red: KANTO_STARTERS, blue: KANTO_STARTERS, yellow: YELLOW_STARTER });
+const HOENN_STARTERS = Object.freeze([
+  { pokemon_id: 252, pokemon_name: "Treecko", form_name: "", species_family: "evolution-chain-130", artwork_url: "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/252.png" },
+  { pokemon_id: 255, pokemon_name: "Torchic", form_name: "", species_family: "evolution-chain-131", artwork_url: "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/255.png" },
+  { pokemon_id: 258, pokemon_name: "Mudkip", form_name: "", species_family: "evolution-chain-132", artwork_url: "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/258.png" },
+]);
+const GAME_STARTERS = Object.freeze({ red: KANTO_STARTERS, blue: KANTO_STARTERS, yellow: YELLOW_STARTER, ruby: HOENN_STARTERS, sapphire: HOENN_STARTERS, emerald: HOENN_STARTERS, firered: KANTO_STARTERS, leafgreen: KANTO_STARTERS });
 
 export async function GET() {
   try {
