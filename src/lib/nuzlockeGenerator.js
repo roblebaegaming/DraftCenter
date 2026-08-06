@@ -88,6 +88,23 @@ function applyFinalEvolutions(encounters, options) {
   });
 }
 
+function matchesConditionSelections(entry, options) {
+  const groups = Array.isArray(options.conditionGroups) ? options.conditionGroups : [];
+  const selections = options.conditionSelections && typeof options.conditionSelections === "object" ? options.conditionSelections : {};
+  const entryConditions = new Set((entry.conditions || []).map(String));
+  for (const group of groups) {
+    const selectedValue = String(selections[group.id] || "any");
+    const selected = Array.isArray(group.options) ? group.options.find((item) => item.value === selectedValue) : null;
+    if (!selected || selected.value === "any") continue;
+    const groupConditions = new Set(group.options.flatMap((item) => Array.isArray(item.conditions) ? item.conditions : []));
+    const activeGroupConditions = [...entryConditions].filter((condition) => groupConditions.has(condition));
+    const selectedConditions = Array.isArray(selected.conditions) ? selected.conditions : [];
+    if (!selectedConditions.length && activeGroupConditions.length) return false;
+    if (activeGroupConditions.length && !activeGroupConditions.some((condition) => selectedConditions.includes(condition))) return false;
+  }
+  return true;
+}
+
 export function generateNuzlockeTeam(encounters, options = {}) {
   const mode = String(options.mode || "");
   const weighting = String(options.weighting || "equal");
@@ -95,6 +112,12 @@ export function generateNuzlockeTeam(encounters, options = {}) {
   if (!MODES.has(mode)) throw new Error("Unknown Nuzlocke selection mode.");
   if (!WEIGHTING.has(weighting)) throw new Error("Unknown Nuzlocke weighting mode.");
   if (!Number.isInteger(teamSize) || teamSize < 1 || teamSize > 12) throw new Error("Team size must be between 1 and 12.");
+  const conditionGroups = Array.isArray(options.conditionGroups) ? options.conditionGroups : [];
+  const conditionSelections = options.conditionSelections && typeof options.conditionSelections === "object" ? options.conditionSelections : {};
+  for (const [groupId, value] of Object.entries(conditionSelections)) {
+    const group = conditionGroups.find((item) => item.id === groupId);
+    if (!group || !Array.isArray(group.options) || !group.options.some((item) => item.value === value)) throw new Error("Unknown Nuzlocke condition selection.");
+  }
 
   const excluded = new Set((options.exclusions || []).map((value) => String(value).toLowerCase()));
   const starterChoices = Array.isArray(options.starters) ? options.starters.filter((entry) => {
@@ -116,6 +139,7 @@ export function generateNuzlockeTeam(encounters, options = {}) {
     if (options.excludeLegendaries && entry.is_legendary) return false;
     if (options.familyClause && starter && String(entry.species_family || entry.pokemon_id).toLowerCase() === String(starter.species_family || starter.pokemon_id).toLowerCase()) return false;
     if (methods.size && !methods.has(String(entry.method || "").toLowerCase())) return false;
+    if (!matchesConditionSelections(entry, options)) return false;
     return true;
   });
   const byArea = new Map();
@@ -175,6 +199,7 @@ export function generateNuzlockeTeam(encounters, options = {}) {
     requested: teamSize,
     available: team.length,
     includeStarter: options.includeStarter === true,
+    conditionSelections: options.conditionSelections || {},
     finalEvolutionOnly: options.finalEvolutionOnly === true,
   };
 }

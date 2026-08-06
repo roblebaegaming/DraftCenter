@@ -6,10 +6,13 @@ import { generateNuzlockeTeam } from "../../../lib/nuzlockeGenerator";
 import redEvolutionCatalog from "../../../../data/nuzlocke/pokemon-red-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json";
 import blueEvolutionCatalog from "../../../../data/nuzlocke/pokemon-blue-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json";
 import yellowEvolutionCatalog from "../../../../data/nuzlocke/pokemon-yellow-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json";
+import goldEvolutionCatalog from "../../../../data/nuzlocke/pokemon-gold-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json";
+import silverEvolutionCatalog from "../../../../data/nuzlocke/pokemon-silver-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json";
+import crystalEvolutionCatalog from "../../../../data/nuzlocke/pokemon-crystal-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json";
 
 export const runtime = "nodejs";
 const GAME_KEY = /^[a-z0-9-]{2,64}$/;
-const EVOLUTION_CATALOGS = Object.freeze({ red: redEvolutionCatalog, blue: blueEvolutionCatalog, yellow: yellowEvolutionCatalog });
+const EVOLUTION_CATALOGS = Object.freeze({ red: redEvolutionCatalog, blue: blueEvolutionCatalog, yellow: yellowEvolutionCatalog, gold: goldEvolutionCatalog, silver: silverEvolutionCatalog, crystal: crystalEvolutionCatalog });
 const KANTO_STARTERS = Object.freeze([
   { pokemon_id: 1, pokemon_name: "Bulbasaur", form_name: "", species_family: "evolution-chain-1", artwork_url: "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/1.png" },
   { pokemon_id: 4, pokemon_name: "Charmander", form_name: "", species_family: "evolution-chain-2", artwork_url: "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/4.png" },
@@ -49,7 +52,7 @@ export async function POST(request) {
     }
     const catalogClient = createPublicServerClient();
     if (!catalogClient) throw new Error("DraftCenter public catalog access is not configured.");
-    const { data: game, error: gameError } = await catalogClient.from("pokemon_games").select("game_key,display_name,source_commit").eq("game_key", body.game).eq("encounter_status", "verified").maybeSingle();
+    const { data: game, error: gameError } = await catalogClient.from("pokemon_games").select("game_key,display_name,source_commit,starters,condition_groups").eq("game_key", body.game).eq("encounter_status", "verified").maybeSingle();
     if (gameError) throw gameError;
     if (!game) return Response.json({ error: "That game's encounter catalog is not verified yet." }, { status: 404 });
     const finalEvolutionOnly = body.finalEvolutionOnly === true;
@@ -76,7 +79,9 @@ export async function POST(request) {
       finalEvolutionOnly,
       evolutionCatalog,
       includeStarter: body.includeStarter === true,
-      starters: GAME_STARTERS[body.game] || [],
+      starters: Array.isArray(game.starters) && game.starters.length ? game.starters : GAME_STARTERS[body.game] || [],
+      conditionGroups: Array.isArray(game.condition_groups) ? game.condition_groups : [],
+      conditionSelections: body.conditionSelections && typeof body.conditionSelections === "object" ? body.conditionSelections : {},
       exclusions: Array.isArray(body.exclusions) ? body.exclusions.slice(0, 40) : [],
       methods: Array.isArray(body.methods) ? body.methods.slice(0, 30) : [],
     });
