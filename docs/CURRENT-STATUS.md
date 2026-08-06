@@ -89,6 +89,16 @@ suite, all 1,027 National Dex rows, the production dependency audit, and a
 108-page production build pass locally. Preview database, CI, and visual
 validation remain; nothing from this stack is in production.
 
+Stacked branch `codex/nuzlocke-gen8` has separate independently audited Sword,
+Shield, Brilliant Diamond, Shining Pearl, and Legends: Arceus catalogs locally
+prepared with unpublished migrations 324-333. It covers weather and visible
+encounters, both Sword/Shield expansions, stock raids and Dynamax Adventures,
+Grand Underground hideaways, Alpha Pokemon, landmarks, distortions, outbreaks,
+and mass outbreaks. All five source audits and 48 focused regressions pass.
+The full application suite, all 1,027 National Dex rows, production dependency
+audit, and 108-page production build also pass locally. CI, Preview database,
+and visual validation remain; nothing from this stack is in production.
+
 ## Active watch items
 
 - Supabase memory and Disk IO during normal live-draft days
