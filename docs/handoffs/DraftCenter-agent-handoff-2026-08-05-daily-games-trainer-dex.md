@@ -12,13 +12,13 @@
 - Preview release-blocker record: `84bc087`
 - Preview schema compatibility hardening: `21054a1`
 - Production: unchanged
-- Supabase: the old migration number 261 is applied only to the isolated feature-branch Preview database; the production candidate is reconciled as migration 339 and production is unchanged
+- Supabase: the old migration number 261 is applied only to the isolated feature-branch Preview database; the production candidate is reconciled as migration 340 and production is unchanged
 - Pull request: [#42 — Add Daily Games hub and personal Trainer Dex](https://github.com/roblebaegaming/DraftCenter/pull/42)
 - Preview: `https://draftcenter-git-codex-daily-games-trainer-dex-rob-lebae.vercel.app`
 
 ## Read this first
 
-The Daily Games hub and personal Trainer Dex are implemented, committed, deployed to the original branch Preview, and connected to an isolated Preview Supabase resource. That legacy Preview applied the feature under migration number 261 with the smallest required Daily Three prerequisites. The integrated production candidate renames the same final SQL to migration 339, after Nuzlocke 261-337 and tournament 338. Production is unchanged.
+The Daily Games hub and personal Trainer Dex are implemented, committed, deployed to the original branch Preview, and connected to an isolated Preview Supabase resource. That legacy Preview applied the feature under migration number 261 with the smallest required Daily Three prerequisites. The integrated production candidate renames the same final SQL to migration 340, after Nuzlocke 261-338 and tournament 339. Production is unchanged.
 
 Do not merge or deploy to production without explicit owner approval. Production still uses the protected `main` release flow. The remaining meaningful release validation is signed-in behavior with an isolated Preview account/league; production smoke must not run until a merged commit is actually deployed.
 
@@ -91,7 +91,7 @@ The Trainer Dex migration adds:
 
 ## Database and security design
 
-Primary production-candidate migration: `supabase/339-trainer-dex-and-shiny-discoveries.sql`.
+Primary production-candidate migration: `supabase/340-trainer-dex-and-shiny-discoveries.sql`.
 
 - Adds `trainer_dex_events` with RLS enabled.
 - Revokes direct table access from public, anonymous, and authenticated browser roles.
@@ -104,7 +104,7 @@ Primary production-candidate migration: `supabase/339-trainer-dex-and-shiny-disc
 - Resolves draft Pokémon through `source_key`, legacy `name`, or `pokemon_id` using the row as JSON, so the trigger is compatible with both the current production schema and the older isolated Preview schema.
 - Explicitly revokes browser execution of inherited badge helpers as well as the Trainer Dex internal helpers.
 
-The feature SQL was applied to the legacy Preview under migration number 261 on August 5, 2026; that Preview history is frozen. Because production never received it, the integrated production candidate carries the identical final SQL as migration 339. Any correction after production migration 339 must use the next unused forward-only number.
+The feature SQL was applied to the legacy Preview under migration number 261 on August 5, 2026; that Preview history is frozen. Because production never received it, the integrated production candidate carries the identical final SQL as migration 340. Any correction after production migration 340 must use the next unused forward-only number.
 
 ## Intentionally excluded from this release
 
@@ -125,7 +125,7 @@ These should not be inferred in the browser. Supporting them later requires stab
 - `src/components/SiteQuickLinks.jsx`
 - `src/app/globals.css`
 - `src/app/sitemap.js`
-- `supabase/339-trainer-dex-and-shiny-discoveries.sql`
+- `supabase/340-trainer-dex-and-shiny-discoveries.sql`
 - `test/daily-games-resources.test.js`
 - `test/trainer-dex.test.js`
 
@@ -184,14 +184,14 @@ The manual SQL-editor reconciliation does not populate the formal Supabase migra
 2. Submit a poll, correct Pokémon quiz answer, and completed bracket; confirm one discovery per source and no reroll after a repeat/revision.
 3. In a disposable Preview practice league, make and undo one relational snake pick; confirm only that pick's discovery disappears.
 4. Review the populated collection, filters, shiny artwork/popup, sharing fallback, and signed-in navigation at phone and desktop widths.
-5. Migration numbering is reconciled for the integrated release: Nuzlocke 261-337, tournament 338, and Trainer Dex 339. The legacy Preview's old 261 history remains frozen.
+5. Migration numbering is reconciled for the integrated release: Nuzlocke 261-338, including the zero-based regional Pokédex correction at 296; tournament 339; and Trainer Dex 340. The legacy Preview's old 261 history remains frozen.
 
 ## Protected release sequence
 
 1. Push the final branch commits and wait for every required PR check; do not push directly to `main`.
 2. Complete the remaining signed-in tests with an isolated Preview account and disposable practice league. Do not use a real league for lifecycle testing.
 3. Merge only after explicit owner approval and successful Preview validation.
-4. Confirm production still has migrations 013–062 prerequisites before applying migration 339 once. Do not replay the legacy Preview reconciliation bundle in production.
+4. Confirm production still has migrations 013–062 prerequisites before applying migration 340 once. Do not replay the legacy Preview reconciliation bundle in production.
 5. Confirm the deployed production commit instead of assuming the merge deployed successfully.
 6. Run the signed-out production smoke sweep only after deployment.
 7. Perform a small signed-in production verification without changing a real league merely for testing.

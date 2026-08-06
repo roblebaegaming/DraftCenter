@@ -18,9 +18,17 @@ test("release migrations use one production number each", () => {
   assert.deepEqual(duplicates, []);
   assert.ok(migrations.includes("260-community-editorial-calendar.sql"));
   assert.ok(migrations.includes("261-versioned-pokemon-encounter-catalog.sql"));
-  assert.ok(migrations.includes("337-verify-pokemon-violet-encounter-catalog.sql"));
-  assert.ok(migrations.includes("338-standalone-single-elimination-tournaments.sql"));
-  assert.ok(migrations.includes("339-trainer-dex-and-shiny-discoveries.sql"));
+  assert.ok(migrations.includes("296-allow-zero-based-regional-pokedex-entries.sql"));
+  assert.ok(migrations.includes("338-verify-pokemon-violet-encounter-catalog.sql"));
+  assert.ok(migrations.includes("339-standalone-single-elimination-tournaments.sql"));
+  assert.ok(migrations.includes("340-trainer-dex-and-shiny-discoveries.sql"));
+});
+
+test("the Gen 5 schema gate supports official zero-based regional entries", () => {
+  const gate = source("supabase/296-allow-zero-based-regional-pokedex-entries.sql");
+  const black = source("supabase/297-import-pokemon-black-encounter-catalog.sql");
+  assert.match(gate, /check \(entry_number >= 0\)/);
+  assert.match(black, /"entry_number":0,"pokemon_id":494,"pokemon_name":"Victini"/);
 });
 
 test("integrated quick links expose each released feature once", () => {

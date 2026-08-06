@@ -511,9 +511,11 @@ The branch previously passed all seven repository checks and uses its own
 billable Supabase Preview branch.
 
 Its production-candidate migration is now
-`338-standalone-single-elimination-tournaments.sql`, following the complete
-Nuzlocke range at 261-337. Every code, test, scan, and documentation reference
-uses the reconciled number. The tournament
+`339-standalone-single-elimination-tournaments.sql`, following the complete
+Nuzlocke range at 261-338. Migration 296 is the forward-only schema correction
+that permits official zero-based regional Pokédex entries before the Gen 5
+imports. Every code, test, scan, and documentation reference uses the
+reconciled number. The tournament
 Preview database was manually given the old 260 migration, so rebuild or
 explicitly reconcile that isolated branch rather than assuming its history
 matches the renamed file.
@@ -535,7 +537,7 @@ advancement.
 2. Finish Generation IX's remaining full-suite and Preview gates. Keep each
    game fail-closed until its pinned independent audit passes.
 3. After the owner's agreed Nuzlocke coverage target is released, rebase #39
-   onto current `main` and preserve its reconciled migration number 338.
+   onto current `main` and preserve its reconciled migration number 339.
 4. Re-provision or reconcile the isolated tournament Preview database and
    rerun the transactional tournament matrix plus full checks.
 5. Release #39 through the protected PR flow, apply its newly numbered
@@ -549,7 +551,7 @@ advancement.
 - Preserve unrelated user work and use clean release worktrees.
 - Use forward-only migrations with new numbers; never rewrite production
   migration 260 or assume the old tournament Preview ledger matches migration
-  338.
+  339.
 - Verify RLS, grants, public projections, and server-only credentials.
 - Keep server credentials out of `NEXT_PUBLIC_*` variables.
 - Run focused tests while developing and, before merge:
