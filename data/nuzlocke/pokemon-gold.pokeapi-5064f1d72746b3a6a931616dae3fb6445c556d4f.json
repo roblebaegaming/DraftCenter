@@ -5,6 +5,117 @@
     "generation": 2,
     "family": "Gold / Silver / Crystal",
     "release_order": 4,
+    "condition_groups": [
+      {
+        "id": "time",
+        "label": "Time of day",
+        "options": [
+          {
+            "value": "any",
+            "label": "Any time"
+          },
+          {
+            "value": "morning",
+            "label": "Morning",
+            "conditions": [
+              "time-morning"
+            ]
+          },
+          {
+            "value": "day",
+            "label": "Day",
+            "conditions": [
+              "time-day"
+            ]
+          },
+          {
+            "value": "night",
+            "label": "Night",
+            "conditions": [
+              "time-night"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "swarm",
+        "label": "Swarm",
+        "options": [
+          {
+            "value": "any",
+            "label": "Either"
+          },
+          {
+            "value": "yes",
+            "label": "Active swarm",
+            "conditions": [
+              "swarm-yes"
+            ]
+          },
+          {
+            "value": "no",
+            "label": "No swarm",
+            "conditions": [
+              "swarm-no"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "weekday",
+        "label": "Day of week",
+        "options": [
+          {
+            "value": "any",
+            "label": "Any day"
+          },
+          {
+            "value": "contest-day",
+            "label": "Tuesday, Thursday, or Saturday",
+            "conditions": [
+              "weekday-tuesday",
+              "weekday-thursday",
+              "weekday-saturday"
+            ]
+          },
+          {
+            "value": "friday",
+            "label": "Friday",
+            "conditions": [
+              "weekday-friday"
+            ]
+          },
+          {
+            "value": "other",
+            "label": "Other day",
+            "conditions": []
+          }
+        ]
+      }
+    ],
+    "starters": [
+      {
+        "pokemon_id": 152,
+        "pokemon_name": "Chikorita",
+        "form_name": "",
+        "species_family": "evolution-chain-79",
+        "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/152.png"
+      },
+      {
+        "pokemon_id": 155,
+        "pokemon_name": "Cyndaquil",
+        "form_name": "",
+        "species_family": "evolution-chain-80",
+        "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/155.png"
+      },
+      {
+        "pokemon_id": 158,
+        "pokemon_name": "Totodile",
+        "form_name": "",
+        "species_family": "evolution-chain-81",
+        "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/158.png"
+      }
+    ],
     "coverage_note": "PokéAPI encounter snapshot 5064f1d72746b3a6a931616dae3fb6445c556d4f; PokeAPI sprites snapshot 5841d46f1a0d2b8918a29a7376b1424878b86b59; independent source audit required before verification.",
     "encounter_status": "pending"
   },
@@ -2886,6 +2997,13 @@
       "sub_area": "main-area",
       "display_name": "Pewter City",
       "sort_order": 124
+    },
+    {
+      "location_key": "national-park",
+      "area_key": "national-park-bug-catching-contest",
+      "sub_area": "bug-catching-contest",
+      "display_name": "National Park — Bug-Catching Contest",
+      "sort_order": 125
     }
   ],
   "encounters": [
@@ -48084,6 +48202,196 @@
       ],
       "is_legendary": false,
       "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/78.png"
+    },
+    {
+      "source_encounter_id": 2000000,
+      "area_key": "national-park-bug-catching-contest",
+      "pokemon_id": 10,
+      "pokemon_name": "Caterpie",
+      "form_name": "",
+      "species_family": "evolution-chain-4",
+      "method": "bug-catching-contest",
+      "min_level": 7,
+      "max_level": 18,
+      "chance": 20,
+      "conditions": [
+        "weekday-saturday",
+        "weekday-thursday",
+        "weekday-tuesday"
+      ],
+      "is_legendary": false,
+      "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/10.png"
+    },
+    {
+      "source_encounter_id": 2000001,
+      "area_key": "national-park-bug-catching-contest",
+      "pokemon_id": 13,
+      "pokemon_name": "Weedle",
+      "form_name": "",
+      "species_family": "evolution-chain-5",
+      "method": "bug-catching-contest",
+      "min_level": 7,
+      "max_level": 18,
+      "chance": 20,
+      "conditions": [
+        "weekday-saturday",
+        "weekday-thursday",
+        "weekday-tuesday"
+      ],
+      "is_legendary": false,
+      "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/13.png"
+    },
+    {
+      "source_encounter_id": 2000002,
+      "area_key": "national-park-bug-catching-contest",
+      "pokemon_id": 11,
+      "pokemon_name": "Metapod",
+      "form_name": "",
+      "species_family": "evolution-chain-4",
+      "method": "bug-catching-contest",
+      "min_level": 9,
+      "max_level": 18,
+      "chance": 10,
+      "conditions": [
+        "weekday-saturday",
+        "weekday-thursday",
+        "weekday-tuesday"
+      ],
+      "is_legendary": false,
+      "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/11.png"
+    },
+    {
+      "source_encounter_id": 2000003,
+      "area_key": "national-park-bug-catching-contest",
+      "pokemon_id": 14,
+      "pokemon_name": "Kakuna",
+      "form_name": "",
+      "species_family": "evolution-chain-5",
+      "method": "bug-catching-contest",
+      "min_level": 9,
+      "max_level": 18,
+      "chance": 10,
+      "conditions": [
+        "weekday-saturday",
+        "weekday-thursday",
+        "weekday-tuesday"
+      ],
+      "is_legendary": false,
+      "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/14.png"
+    },
+    {
+      "source_encounter_id": 2000004,
+      "area_key": "national-park-bug-catching-contest",
+      "pokemon_id": 12,
+      "pokemon_name": "Butterfree",
+      "form_name": "",
+      "species_family": "evolution-chain-4",
+      "method": "bug-catching-contest",
+      "min_level": 12,
+      "max_level": 15,
+      "chance": 5,
+      "conditions": [
+        "weekday-saturday",
+        "weekday-thursday",
+        "weekday-tuesday"
+      ],
+      "is_legendary": false,
+      "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/12.png"
+    },
+    {
+      "source_encounter_id": 2000005,
+      "area_key": "national-park-bug-catching-contest",
+      "pokemon_id": 15,
+      "pokemon_name": "Beedrill",
+      "form_name": "",
+      "species_family": "evolution-chain-5",
+      "method": "bug-catching-contest",
+      "min_level": 12,
+      "max_level": 15,
+      "chance": 5,
+      "conditions": [
+        "weekday-saturday",
+        "weekday-thursday",
+        "weekday-tuesday"
+      ],
+      "is_legendary": false,
+      "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/15.png"
+    },
+    {
+      "source_encounter_id": 2000006,
+      "area_key": "national-park-bug-catching-contest",
+      "pokemon_id": 48,
+      "pokemon_name": "Venonat",
+      "form_name": "",
+      "species_family": "evolution-chain-20",
+      "method": "bug-catching-contest",
+      "min_level": 10,
+      "max_level": 16,
+      "chance": 10,
+      "conditions": [
+        "weekday-saturday",
+        "weekday-thursday",
+        "weekday-tuesday"
+      ],
+      "is_legendary": false,
+      "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/48.png"
+    },
+    {
+      "source_encounter_id": 2000007,
+      "area_key": "national-park-bug-catching-contest",
+      "pokemon_id": 46,
+      "pokemon_name": "Paras",
+      "form_name": "",
+      "species_family": "evolution-chain-19",
+      "method": "bug-catching-contest",
+      "min_level": 10,
+      "max_level": 17,
+      "chance": 10,
+      "conditions": [
+        "weekday-saturday",
+        "weekday-thursday",
+        "weekday-tuesday"
+      ],
+      "is_legendary": false,
+      "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/46.png"
+    },
+    {
+      "source_encounter_id": 2000008,
+      "area_key": "national-park-bug-catching-contest",
+      "pokemon_id": 123,
+      "pokemon_name": "Scyther",
+      "form_name": "",
+      "species_family": "evolution-chain-58",
+      "method": "bug-catching-contest",
+      "min_level": 13,
+      "max_level": 14,
+      "chance": 5,
+      "conditions": [
+        "weekday-saturday",
+        "weekday-thursday",
+        "weekday-tuesday"
+      ],
+      "is_legendary": false,
+      "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/123.png"
+    },
+    {
+      "source_encounter_id": 2000009,
+      "area_key": "national-park-bug-catching-contest",
+      "pokemon_id": 127,
+      "pokemon_name": "Pinsir",
+      "form_name": "",
+      "species_family": "evolution-chain-62",
+      "method": "bug-catching-contest",
+      "min_level": 13,
+      "max_level": 14,
+      "chance": 5,
+      "conditions": [
+        "weekday-saturday",
+        "weekday-thursday",
+        "weekday-tuesday"
+      ],
+      "is_legendary": false,
+      "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/127.png"
     }
   ]
 }

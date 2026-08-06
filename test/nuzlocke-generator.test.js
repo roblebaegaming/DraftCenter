@@ -58,6 +58,24 @@ test("optional starters are deterministic, count as a team slot, and respect exc
   const familySafe=generateNuzlockeTeam(encounters,{...options,familyClause:true,starters:[starters[0]]});
   assert.equal(familySafe.team.filter((entry)=>entry.species_family==="bulbasaur").length,1);
 });
+test("game condition groups filter mutually exclusive schedules without removing ordinary encounters",()=>{
+  const pool=[
+    {area_key:"route-general",pokemon_id:1,pokemon_name:"Chikorita",species_family:"leaf",method:"walk",chance:100,conditions:[]},
+    {area_key:"route-morning",pokemon_id:2,pokemon_name:"Ledyba",species_family:"ladybug",method:"walk",chance:100,conditions:["time-morning"]},
+    {area_key:"route-night",pokemon_id:3,pokemon_name:"Spinarak",species_family:"spider",method:"walk",chance:100,conditions:["time-night"]},
+    {area_key:"contest",pokemon_id:4,pokemon_name:"Scyther",species_family:"mantis",method:"bug-catching-contest",chance:100,conditions:["weekday-tuesday","weekday-thursday","weekday-saturday"]},
+    {area_key:"friday",pokemon_id:5,pokemon_name:"Lapras",species_family:"transport",method:"surf",chance:100,conditions:["weekday-friday"]},
+  ];
+  const conditionGroups=[
+    {id:"time",options:[{value:"any"},{value:"morning",conditions:["time-morning"]},{value:"night",conditions:["time-night"]}]},
+    {id:"weekday",options:[{value:"any"},{value:"contest-day",conditions:["weekday-tuesday","weekday-thursday","weekday-saturday"]},{value:"friday",conditions:["weekday-friday"]},{value:"other",conditions:[]}]},
+  ];
+  const base={seed:"conditions",teamSize:5,mode:"route-random",weighting:"equal",conditionGroups};
+  const morning=generateNuzlockeTeam(pool,{...base,conditionSelections:{time:"morning",weekday:"other"}}).team;
+  assert.ok(morning.some((row)=>row.pokemon_name==="Chikorita")); assert.ok(morning.some((row)=>row.pokemon_name==="Ledyba")); assert.ok(!morning.some((row)=>["Spinarak","Scyther","Lapras"].includes(row.pokemon_name)));
+  const contest=generateNuzlockeTeam(pool,{...base,conditionSelections:{weekday:"contest-day"}}).team;
+  assert.ok(contest.some((row)=>row.pokemon_name==="Scyther")); assert.ok(!contest.some((row)=>row.pokemon_name==="Lapras"));
+});
 test("final evolution mode evolves catches without changing their route details",()=>{
   const options={seed:"finals",teamSize:4,mode:"route-random",weighting:"equal",finalEvolutionOnly:true,evolutionCatalog:fixtureEvolutions};
   const result=generateNuzlockeTeam(encounters,options);
@@ -82,6 +100,7 @@ test("final evolution mode fails closed when its game mapping is incomplete",()=
 test("unknown modes and invalid sizes fail closed",()=>{
   assert.throws(()=>generateNuzlockeTeam(encounters,{seed:"x",teamSize:6,mode:"balanced",weighting:"equal"}),/Unknown/);
   assert.throws(()=>generateNuzlockeTeam(encounters,{seed:"x",teamSize:13,mode:"true-random",weighting:"equal"}),/between 1 and 12/);
+  assert.throws(()=>generateNuzlockeTeam(encounters,{seed:"x",teamSize:6,mode:"true-random",weighting:"equal",conditionGroups:[],conditionSelections:{time:"night"}}),/Unknown/);
 });
 test("reviewed Pokémon Red catalog produces a complete deterministic Run Card",()=>{ const catalog=JSON.parse(fs.readFileSync(new URL("../data/nuzlocke/pokemon-red.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json",import.meta.url),"utf8")); const options={seed:"pallet-town",teamSize:12,mode:"route-random",weighting:"authentic",familyClause:true,excludeLegendaries:true}; const result=generateNuzlockeTeam(catalog.encounters,options); assert.equal(result.complete,true); assert.equal(result.team.length,12); assert.equal(new Set(result.team.map((row)=>row.area_key)).size,12); assert.equal(new Set(result.team.map((row)=>row.species_family)).size,12); assert.deepEqual(result,generateNuzlockeTeam(catalog.encounters,options)); });
 test("reviewed Pokémon Red final evolution mode is complete, game-specific, and deterministic",()=>{
@@ -130,4 +149,18 @@ test("reviewed Pokémon Yellow catalog and final evolutions are complete and det
   const finalOptions={seed:"yellow-finals",teamSize:12,mode:"route-random",weighting:"equal",familyClause:true,excludeLegendaries:true,finalEvolutionOnly:true,evolutionCatalog};
   const finals=generateNuzlockeTeam(catalog.encounters,finalOptions);
   assert.equal(finals.complete,true); assert.ok(finals.team.every((row)=>row.is_final_evolution)); assert.deepEqual(finals,generateNuzlockeTeam(catalog.encounters,finalOptions));
+});
+test("reviewed Generation II catalogs support starters, schedules, contests, and game-limited final evolutions",()=>{
+  for(const game of ["gold","silver","crystal"]){
+    const catalog=JSON.parse(fs.readFileSync(new URL(`../data/nuzlocke/pokemon-${game}.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json`,import.meta.url),"utf8"));
+    const evolutionCatalog=JSON.parse(fs.readFileSync(new URL(`../data/nuzlocke/pokemon-${game}-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json`,import.meta.url),"utf8"));
+    const conditionSelections={time:"night",swarm:"no",weekday:"contest-day"};
+    const options={seed:`${game}-review`,teamSize:12,mode:"route-random",weighting:"authentic",familyClause:true,excludeLegendaries:true,includeStarter:true,starters:catalog.game.starters,conditionGroups:catalog.game.condition_groups,conditionSelections};
+    const result=generateNuzlockeTeam(catalog.encounters,options);
+    assert.equal(result.complete,true); assert.ok([152,155,158].includes(result.team[0].pokemon_id)); assert.equal(new Set(result.team.map((row)=>row.species_family)).size,12);
+    assert.ok(result.team.every((row)=>!(row.conditions||[]).includes("time-morning")&&!(row.conditions||[]).includes("time-day")));
+    assert.deepEqual(result,generateNuzlockeTeam(catalog.encounters,options));
+    const finals=generateNuzlockeTeam(catalog.encounters,{...options,includeStarter:false,finalEvolutionOnly:true,evolutionCatalog});
+    assert.equal(finals.complete,true); assert.ok(finals.team.every((row)=>row.is_final_evolution)); assert.deepEqual(finals,generateNuzlockeTeam(catalog.encounters,{...options,includeStarter:false,finalEvolutionOnly:true,evolutionCatalog}));
+  }
 });

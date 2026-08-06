@@ -35,6 +35,17 @@ request [#39](https://github.com/roblebaegaming/DraftCenter/pull/39) must follow
 the released Nuzlocke work, receive the first unused migration number, and be
 revalidated in its isolated Preview.
 
+Follow-on branch `codex/nuzlocke-gen2` has Pokemon Yellow plus independently
+audited Gold, Silver, and Crystal locally prepared. It adds starter metadata,
+shareable time/swarm/weekday filters, the Bug-Catching Contest, and unpublished
+migrations 267-275. Focused tests and all four source audits pass. Preview
+migration and visual validation remain paused until the isolated Preview
+credential is rotated; none of this follow-on work is in production.
+
+The complete application suite, all 1,027 National Dex rows, production
+dependency audit, and a 108-page production build also pass locally on the
+follow-on branch.
+
 ## Active watch items
 
 - Supabase memory and Disk IO during normal live-draft days

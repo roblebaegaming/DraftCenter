@@ -7,23 +7,29 @@ useDefault = true
 id = "generic-api-key"
 
 [[rules.allowlists]]
-description = "Pinned Pokemon Red artifact public location identifiers"
+description = "Pinned Pokemon catalog artifact public location identifiers"
 condition = "AND"
 regexTarget = "match"
 paths = [
   '''^data/nuzlocke/pokemon-red\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\.json$''',
+  '''^data/nuzlocke/pokemon-gold\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\.json$''',
+  '''^data/nuzlocke/pokemon-silver\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\.json$''',
+  '''^data/nuzlocke/pokemon-crystal\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\.json$''',
 ]
 regexes = [
   '''^(?:area_key|location_key)"\s*:\s*"[a-z0-9-]+"$''',
 ]
 
 [[rules.allowlists]]
-description = "Pinned Pokemon Red import public location identifiers, current and historical paths"
+description = "Pinned Pokemon catalog import public location identifiers, current and historical paths"
 condition = "AND"
 regexTarget = "match"
 paths = [
   '''^supabase/257-import-pokemon-red-encounter-catalog\.sql$''',
   '''^supabase/262-import-pokemon-red-encounter-catalog\.sql$''',
+  '''^supabase/270-import-pokemon-gold-encounter-catalog\.sql$''',
+  '''^supabase/272-import-pokemon-silver-encounter-catalog\.sql$''',
+  '''^supabase/274-import-pokemon-crystal-encounter-catalog\.sql$''',
 ]
 regexes = [
   '''^(?:area_key|location_key)"\s*:\s*"[a-z0-9-]+"$''',
@@ -52,11 +58,14 @@ regexes = [
 ]
 
 [[rules.allowlists]]
-description = "Pokemon Blue verification public area identifiers"
+description = "Pokemon catalog verification public area identifiers"
 condition = "AND"
 regexTarget = "match"
 paths = [
   '''^supabase/266-verify-pokemon-blue-encounter-catalog\.sql$''',
+  '''^supabase/271-verify-pokemon-gold-encounter-catalog\.sql$''',
+  '''^supabase/273-verify-pokemon-silver-encounter-catalog\.sql$''',
+  '''^supabase/275-verify-pokemon-crystal-encounter-catalog\.sql$''',
 ]
 regexes = [
   '''^area_key='[a-z0-9-]+'$''',

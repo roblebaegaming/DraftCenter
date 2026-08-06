@@ -1,33 +1,40 @@
-# Generation II Nuzlocke schema investigation
+# Generation II Nuzlocke schema decision
 
 - Date: August 5, 2026
-- Games: Pokémon Gold, Silver, and Crystal
-- Status: pending research artifacts only; not independently audited or publishable
-- PokéAPI snapshot: `5064f1d72746b3a6a931616dae3fb6445c556d4f`
-- Candidate disassembly pins: pret/pokegold `add1dbe018170d7f25f7b7360e8046cec6354906`; pret/pokecrystal `5593381195342e481b69a2fd4ab25e202ddcf708`
+- Games: Pokemon Gold, Silver, and Crystal
+- Status: locally audited and implemented; Preview migration and visual review pending credential rotation
+- PokeAPI snapshot: `5064f1d72746b3a6a931616dae3fb6445c556d4f`
+- Veekun snapshot: `cc483e1877f22b8c19ac27ec0ff5fafd09c5cd5b`
+- pret/pokegold snapshot: `add1dbe018170d7f25f7b7360e8046cec6354906`
+- pret/pokecrystal snapshot: `5593381195342e481b69a2fd4ab25e202ddcf708`
 
-## Initial snapshot counts
+## Decision
 
-| Game | Pokédex | Locations | Encounter rows | Obtainable profiles |
-| --- | ---: | ---: | ---: | ---: |
-| Gold | 251 | 124 | 2,820 | 151 |
-| Silver | 251 | 124 | 2,820 | 151 |
-| Crystal | 251 | 126 | 3,183 | 170 |
+The existing `conditions text[]` column remains the lossless source field. Migration 269 adds bounded, data-driven `starters` and `condition_groups` metadata to each game. The public summary exposes only the condition groups for verified games through the existing RLS-backed function.
 
-All three snapshots expose 16 methods: walk, surf, three rods, three headbutt tables, Rock Smash, roaming grass, gift, gift egg, NPC trade, Poké Flute, SquirtBottle, and static.
+The Run Card now validates game-specific condition selections and supports shareable controls for time of day, swarm state, and weekday. An unselected group means any schedule. Selecting a value keeps unconditioned encounters available, includes rows matching that value, and excludes mutually exclusive rows. Selecting "Other day" excludes Friday and Bug-Catching Contest rows. Unknown groups or values fail closed.
 
-The existing `conditions text[]` column losslessly retains the available source tokens for morning/day/night, swarm on/off, Friday, awakened-beast story progress, trades, prizes, and Crystal Virtual Console. It is sufficient for storage, but the current UI cannot let a player choose a time window, swarm state, or weekday. Publishing these games without condition controls would mix mutually exclusive schedules in one draw.
+Headbutt tables, roaming grass, Rock Smash, gifts, trades, fishing rods, and the Bug-Catching Contest remain distinct methods. They are not flattened into ordinary walking odds. Switching game versions clears method and condition selections so a prior game's filters cannot leak into the new game.
 
-## Required product and schema work
+## Reviewed catalog counts
 
-1. Keep raw `conditions text[]` for source fidelity.
-2. Add game capability metadata describing supported condition groups and exclusive choices, rather than hard-coding Generation II controls into the component.
-3. Add request and shared-link condition filters and validate them against the selected verified game.
-4. Define whether an unselected time filter means “all possible schedules” or a seeded schedule. Prefer an explicit player choice with an “Any time” option.
-5. Keep headbutt table types as distinct encounter methods; do not flatten them into ordinary walking odds.
-6. Treat roaming Pokémon as a distinct method and preserve the awakened-beast requirement.
-7. Independently audit fishing groups and level/rarity tables against the disassemblies.
-8. Add the Bug-Catching Contest explicitly. The pinned PokéAPI snapshot exposes National Park but does not identify a contest method or Tuesday/Thursday/Saturday condition, so the current artifact is incomplete.
-9. Verify Crystal-only encounter areas and version-specific early, middle, and late encounters before any migration can mark a game verified.
+| Game | Pokedex | Locations | Encounter rows | Obtainable profiles | Methods |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Gold | 251 | 125 | 2,830 | 156 | 17 |
+| Silver | 251 | 125 | 2,830 | 156 | 17 |
+| Crystal | 251 | 127 | 3,193 | 172 | 17 |
 
-No Generation II migration should be generated until the contest gap is filled and the condition-filter contract is implemented. Gold, Silver, and Crystal artifacts remain `pending` research inputs and must ship in a separate generation-sized pull request after Yellow.
+Each catalog includes Chikorita, Cyndaquil, and Totodile as starter choices. Each evolution artifact covers every obtainable profile and limits final forms to the selected game's 251-species Pokedex.
+
+The Bug-Catching Contest adds one explicit National Park location and ten exact disassembly-backed rows in every game. Those rows retain Tuesday, Thursday, and Saturday conditions.
+
+## Migration and release boundary
+
+- 269: game capability metadata and bounded verified-game summary
+- 270-271: Gold pending import and exact verification
+- 272-273: Silver pending import and exact verification
+- 274-275: Crystal pending import and exact verification
+
+The verification migrations assert counts, source pins, resolvable locations, starter and capability metadata, 17 methods, obtainable-profile totals, exact contest scheduling, and version-specific early and late encounters before publishing only the pinned pending row.
+
+These migrations have not been applied to Preview or production. Preview work remains paused until its credential is rotated. After rotation, apply Yellow migrations 267-268 followed by 269-275 to the isolated Preview, verify RLS and grants, and test all three games on desktop and mobile before release.

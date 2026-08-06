@@ -91,6 +91,13 @@ const summaryMigration = fs.readFileSync(
   new URL("../supabase/264-bounded-nuzlocke-game-summary.sql", import.meta.url),
   "utf8",
 );
+const capabilityMigration = fs.readFileSync(new URL("../supabase/269-nuzlocke-game-capabilities.sql", import.meta.url), "utf8");
+const gen2Artifacts = Object.fromEntries(["gold", "silver", "crystal"].map((game) => [game, {
+  catalog: JSON.parse(fs.readFileSync(new URL(`../data/nuzlocke/pokemon-${game}.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json`, import.meta.url), "utf8")),
+  evolutions: JSON.parse(fs.readFileSync(new URL(`../data/nuzlocke/pokemon-${game}-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json`, import.meta.url), "utf8")),
+  imported: fs.readFileSync(new URL(`../supabase/${game === "gold" ? 270 : game === "silver" ? 272 : 274}-import-pokemon-${game}-encounter-catalog.sql`, import.meta.url), "utf8"),
+  verified: fs.readFileSync(new URL(`../supabase/${game === "gold" ? 271 : game === "silver" ? 273 : 275}-verify-pokemon-${game}-encounter-catalog.sql`, import.meta.url), "utf8"),
+}]));
 test("catalog is verified-only and browser read-only", () => {
   for (const table of [
     "pokemon_games",
@@ -306,23 +313,29 @@ useDefault = true
 id = "generic-api-key"
 
 [[rules.allowlists]]
-description = "Pinned Pokemon Red artifact public location identifiers"
+description = "Pinned Pokemon catalog artifact public location identifiers"
 condition = "AND"
 regexTarget = "match"
 paths = [
   '''^data/nuzlocke/pokemon-red\\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\\.json$''',
+  '''^data/nuzlocke/pokemon-gold\\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\\.json$''',
+  '''^data/nuzlocke/pokemon-silver\\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\\.json$''',
+  '''^data/nuzlocke/pokemon-crystal\\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\\.json$''',
 ]
 regexes = [
   '''^(?:area_key|location_key)"\\s*:\\s*"[a-z0-9-]+"$''',
 ]
 
 [[rules.allowlists]]
-description = "Pinned Pokemon Red import public location identifiers, current and historical paths"
+description = "Pinned Pokemon catalog import public location identifiers, current and historical paths"
 condition = "AND"
 regexTarget = "match"
 paths = [
   '''^supabase/257-import-pokemon-red-encounter-catalog\\.sql$''',
   '''^supabase/262-import-pokemon-red-encounter-catalog\\.sql$''',
+  '''^supabase/270-import-pokemon-gold-encounter-catalog\\.sql$''',
+  '''^supabase/272-import-pokemon-silver-encounter-catalog\\.sql$''',
+  '''^supabase/274-import-pokemon-crystal-encounter-catalog\\.sql$''',
 ]
 regexes = [
   '''^(?:area_key|location_key)"\\s*:\\s*"[a-z0-9-]+"$''',
@@ -351,11 +364,14 @@ regexes = [
 ]
 
 [[rules.allowlists]]
-description = "Pokemon Blue verification public area identifiers"
+description = "Pokemon catalog verification public area identifiers"
 condition = "AND"
 regexTarget = "match"
 paths = [
   '''^supabase/266-verify-pokemon-blue-encounter-catalog\\.sql$''',
+  '''^supabase/271-verify-pokemon-gold-encounter-catalog\\.sql$''',
+  '''^supabase/273-verify-pokemon-silver-encounter-catalog\\.sql$''',
+  '''^supabase/275-verify-pokemon-crystal-encounter-catalog\\.sql$''',
 ]
 regexes = [
   '''^area_key='[a-z0-9-]+'$''',
@@ -454,6 +470,27 @@ test("verified game summaries are bounded, RLS-backed, and browser read-only", (
   assert.match(summaryMigration, /limit 100/);
   assert.match(summaryMigration, /grant execute[^;]+to anon, authenticated/);
 });
+test("game capabilities remain bounded, RLS-backed metadata", () => {
+  assert.match(capabilityMigration, /add column starters jsonb not null/);
+  assert.match(capabilityMigration, /add column condition_groups jsonb not null/);
+  assert.match(capabilityMigration, /jsonb_typeof\(starters\)='array'/);
+  assert.match(capabilityMigration, /security invoker/);
+  assert.match(capabilityMigration, /limit 100/);
+  assert.match(capabilityMigration, /grant execute[^;]+to anon, authenticated/);
+});
+test("Generation II artifacts and migrations stay exact, pending-first, and version-specific", () => {
+  const expected={gold:{locations:125,encounters:2830},silver:{locations:125,encounters:2830},crystal:{locations:127,encounters:3193}};
+  for(const [game,records] of Object.entries(gen2Artifacts)){
+    assert.equal(records.catalog.pokedex_entries.length,251); assert.equal(records.catalog.locations.length,expected[game].locations); assert.equal(records.catalog.encounters.length,expected[game].encounters);
+    assert.deepEqual(records.catalog.game.starters.map((row)=>row.pokemon_id),[152,155,158]); assert.equal(records.catalog.game.condition_groups.length,3);
+    assert.equal(records.catalog.encounters.filter((row)=>row.method==="bug-catching-contest").length,10);
+    assert.deepEqual(new Set(records.evolutions.evolutions.map((row)=>row.pokemon_id)),new Set(records.catalog.encounters.map((row)=>row.pokemon_id)));
+    const payloads=[...records.imported.matchAll(/\$catalog\$(.+?)\$catalog\$/g)].map((match)=>JSON.parse(match[1]));
+    assert.deepEqual(payloads,[records.catalog.game.starters,records.catalog.game.condition_groups,records.catalog.pokedex_entries,records.catalog.locations,records.catalog.encounters]);
+    assert.match(records.imported,new RegExp(`encounter_status[^)]*\\) values \\('${game}'[\\s\\S]+,'pending'`)); assert.doesNotMatch(records.imported,/encounter_status='verified'/);
+    assert.match(records.verified,new RegExp(`where game_key='${game}'[\\s\\S]+encounter_status='pending'`)); assert.match(records.verified,/bug-catching-contest/); assert.match(records.verified,/count\(distinct method\)/); assert.match(records.verified,/count\(distinct pokemon_id\)/);
+  }
+});
 test("server route uses public RLS catalog access and privileged rate limiting", () => {
   assert.match(route, /createPublicServerClient/);
   assert.match(route, /list_verified_nuzlocke_games/);
@@ -463,7 +500,7 @@ test("server route uses public RLS catalog access and privileged rate limiting",
   assert.doesNotMatch(route, /adminClient\.from\("pokemon_games"/);
 });
 test("final evolution requests require source-matched pinned game catalogs", () => {
-  assert.match(route, /red: redEvolutionCatalog, blue: blueEvolutionCatalog, yellow: yellowEvolutionCatalog/);
+  assert.match(route, /red: redEvolutionCatalog, blue: blueEvolutionCatalog, yellow: yellowEvolutionCatalog, gold: goldEvolutionCatalog, silver: silverEvolutionCatalog, crystal: crystalEvolutionCatalog/);
   assert.match(route, /body\.finalEvolutionOnly === true/);
   assert.match(
     route,
@@ -483,6 +520,13 @@ test("final evolution mode is shareable and the UI explains run codes and both r
     lab,
     /locations with more eligible entries can appear more often/,
   );
+});
+test("game-specific condition filters are restored and shared without leaking between games", () => {
+  assert.match(lab, /params\.get\(`condition_\$\{group\.id\}`\)/);
+  assert.match(lab, /url\.searchParams\.set\(`condition_\$\{group\.id\}`, value\)/);
+  assert.match(lab, /conditionSelections/);
+  assert.match(lab, /Encounter conditions/);
+  assert.match(lab, /setMethods\(\[\]\)/);
 });
 test("starter inclusion is explicit in shared links and old seeded links retain their original output", () => {
   assert.match(

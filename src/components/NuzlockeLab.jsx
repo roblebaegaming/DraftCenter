@@ -18,6 +18,7 @@ export default function NuzlockeLab() {
   const [includeStarter, setIncludeStarter] = useState(true);
   const [finalEvolutionOnly, setFinalEvolutionOnly] = useState(false);
   const [methods, setMethods] = useState([]);
+  const [conditionSelections, setConditionSelections] = useState({});
   const [exclusions, setExclusions] = useState("");
   const [result, setResult] = useState(null);
   const [message, setMessage] = useState("Loading verified games…");
@@ -42,10 +43,19 @@ export default function NuzlockeLab() {
       setGames(data.games || []);
       setGameMethods(data.methods || {});
       const selected = params.get("game");
-      setGame(data.games?.some((item) => item.game_key === selected) ? selected : data.games?.[0]?.game_key || "");
+      const selectedGame = data.games?.find((item) => item.game_key === selected) || data.games?.[0];
+      setGame(selectedGame?.game_key || "");
+      const restoredConditions = {};
+      for (const group of selectedGame?.condition_groups || []) {
+        const value = params.get(`condition_${group.id}`);
+        if (group.options?.some((option) => option.value === value && value !== "any")) restoredConditions[group.id] = value;
+      }
+      setConditionSelections(restoredConditions);
       setMessage(data.games?.length ? "" : "No game encounter catalog has completed independent verification yet.");
     }).catch((error) => setMessage(error.message || "Verified games could not be loaded."));
   }, []);
+
+  const conditionGroups = games.find((item) => item.game_key === game)?.condition_groups || [];
 
   const shareUrl = useMemo(() => {
     if (typeof window === "undefined" || !game || !seed) return "";
@@ -57,14 +67,18 @@ export default function NuzlockeLab() {
     if (includeStarter) url.searchParams.set("starter", "include");
     if (finalEvolutionOnly) url.searchParams.set("evolutions", "final");
     if (methods.length) url.searchParams.set("methods", methods.join(","));
+    for (const group of conditionGroups) {
+      const value = conditionSelections[group.id];
+      if (value && value !== "any") url.searchParams.set(`condition_${group.id}`, value);
+    }
     if (exclusions.trim()) url.searchParams.set("exclude", exclusions.trim().slice(0, 500));
     return url.toString();
-  }, [excludeLegendaries, exclusions, familyClause, finalEvolutionOnly, game, includeStarter, methods, mode, seed, teamSize, weighting]);
+  }, [conditionGroups, conditionSelections, excludeLegendaries, exclusions, familyClause, finalEvolutionOnly, game, includeStarter, methods, mode, seed, teamSize, weighting]);
 
   async function generate(event) {
     event.preventDefault(); setLoading(true); setMessage(""); setResult(null);
     try {
-      const response = await fetch("/api/nuzlocke", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ game, seed, teamSize, mode, weighting, familyClause, excludeLegendaries, includeStarter, finalEvolutionOnly, methods, exclusions: exclusions.split(",").map((item) => item.trim()).filter(Boolean) }) });
+      const response = await fetch("/api/nuzlocke", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ game, seed, teamSize, mode, weighting, familyClause, excludeLegendaries, includeStarter, finalEvolutionOnly, methods, conditionSelections, exclusions: exclusions.split(",").map((item) => item.trim()).filter(Boolean) }) });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error);
       setResult(data);
@@ -77,12 +91,13 @@ export default function NuzlockeLab() {
 
   return <main className="nuzlocke-shell"><header className="nuzlocke-hero"><a href="/?view=dashboard" className="quiet-button">← DraftCenter home</a><span className="eyebrow">NUZLOCKE LAB</span><h1>Build a seeded Run Card</h1><p>Generate a repeatable team from verified, game-specific encounters. DraftCenter never changes your leagues, drafts, or rosters from this page.</p></header>
     <div className="nuzlocke-layout"><form className="nuzlocke-controls" onSubmit={generate}><h2>Run rules</h2>
-      <label>Game version<select value={game} onChange={(event) => setGame(event.target.value)} disabled={!games.length}><option value="">Choose a verified game</option>{games.map((item) => <option key={item.game_key} value={item.game_key}>{item.display_name}</option>)}</select></label>
+      <label>Game version<select value={game} onChange={(event) => { setGame(event.target.value); setMethods([]); setConditionSelections({}); }} disabled={!games.length}><option value="">Choose a verified game</option>{games.map((item) => <option key={item.game_key} value={item.game_key}>{item.display_name}</option>)}</select></label>
       <div className="nuzlocke-run-code-field"><div className="nuzlocke-pair"><label>Run code<input value={seed} maxLength={80} onChange={(event) => setSeed(event.target.value)} /></label><button type="button" className="quiet-button" onClick={() => setSeed(newSeed())}>New code</button></div><small>Generated automatically. Keep this code to recreate or share the same Run Card.</small></div>
       <label>Team size <strong>{teamSize}</strong><input type="range" min="1" max="12" value={teamSize} onChange={(event) => setTeamSize(Number(event.target.value))} /></label>
       <label>Selection style<select value={mode} onChange={(event) => setMode(event.target.value)}><option value="route-random">Route-first random</option><option value="true-random">Encounter-pool random</option></select><small>{mode === "route-random" ? "Shuffles eligible locations evenly, then rolls one encounter from each selected location." : "Rolls across the full encounter catalog, so locations with more eligible entries can appear more often."}</small></label>
       <label>Encounter weighting<select value={weighting} onChange={(event) => setWeighting(event.target.value)}><option value="equal">Equal chance</option><option value="authentic">Authentic encounter odds</option></select></label>
       <fieldset><legend>Encounter methods</legend>{(gameMethods[game] || []).map((item) => <label className="check-row" key={item}><input type="checkbox" checked={methods.includes(item)} onChange={() => toggleMethod(item)} />{pretty(item)}</label>)}<small>Leave all unchecked to include every verified method.</small></fieldset>
+      {conditionGroups.length > 0 && <fieldset className="nuzlocke-condition-filters"><legend>Encounter conditions</legend>{conditionGroups.map((group) => <label key={group.id}>{group.label}<select value={conditionSelections[group.id] || "any"} onChange={(event) => setConditionSelections((current) => ({ ...current, [group.id]: event.target.value }))}>{group.options.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>)}</fieldset>}
       <label>Exclude Pokémon<input value={exclusions} onChange={(event) => setExclusions(event.target.value)} placeholder="Pikachu, Zubat" /><small>Separate names with commas.</small></label>
       <label className="check-row"><input type="checkbox" checked={familyClause} onChange={(event) => setFamilyClause(event.target.checked)} />Species/evolutionary-family clause</label>
       <label className="check-row"><input type="checkbox" checked={excludeLegendaries} onChange={(event) => setExcludeLegendaries(event.target.checked)} />Exclude legendary Pokémon</label>

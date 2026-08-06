@@ -40,6 +40,42 @@
       ]
     },
     {
+      "pokemon_id": 13,
+      "pokemon_name": "Weedle",
+      "final_evolutions": [
+        {
+          "pokemon_id": 15,
+          "pokemon_name": "Beedrill",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/15.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 14,
+      "pokemon_name": "Kakuna",
+      "final_evolutions": [
+        {
+          "pokemon_id": 15,
+          "pokemon_name": "Beedrill",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/15.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 15,
+      "pokemon_name": "Beedrill",
+      "final_evolutions": [
+        {
+          "pokemon_id": 15,
+          "pokemon_name": "Beedrill",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/15.png"
+        }
+      ]
+    },
+    {
       "pokemon_id": 16,
       "pokemon_name": "Pidgey",
       "final_evolutions": [
@@ -1018,6 +1054,18 @@
       ]
     },
     {
+      "pokemon_id": 123,
+      "pokemon_name": "Scyther",
+      "final_evolutions": [
+        {
+          "pokemon_id": 212,
+          "pokemon_name": "Scizor",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/212.png"
+        }
+      ]
+    },
+    {
       "pokemon_id": 124,
       "pokemon_name": "Jynx",
       "final_evolutions": [
@@ -1050,6 +1098,18 @@
           "pokemon_name": "Magmar",
           "form_name": "",
           "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/126.png"
+        }
+      ]
+    },
+    {
+      "pokemon_id": 127,
+      "pokemon_name": "Pinsir",
+      "final_evolutions": [
+        {
+          "pokemon_id": 127,
+          "pokemon_name": "Pinsir",
+          "form_name": "",
+          "artwork_url": "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/127.png"
         }
       ]
     },

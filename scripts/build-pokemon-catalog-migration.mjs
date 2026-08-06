@@ -15,7 +15,7 @@ if (!/^[0-9a-f]{40}$/.test(commit)) throw new Error("--commit must be an exact 4
 
 const payload = JSON.parse(await fs.readFile(input, "utf8"));
 const game = String(payload.game?.game_key || "");
-if (!["red", "blue", "yellow"].includes(game)) throw new Error("The reviewed Gen 1 migration builder accepts only Pokemon Red, Blue, or Yellow.");
+if (!["red", "blue", "yellow", "gold", "silver", "crystal"].includes(game)) throw new Error("The reviewed migration builder accepts only supported Generation I or II games.");
 if (!String(payload.game.coverage_note || "").includes(commit)) throw new Error("The migration commit must match the pinned catalog source.");
 if (payload.encounters.length !== new Set(payload.encounters.map((row) => row.source_encounter_id)).size) {
   throw new Error("Encounter source identifiers must be unique before a migration can be generated.");
@@ -29,13 +29,14 @@ const quoted = (value) => `'${String(value).replaceAll("'", "''")}'`;
 const gameSql = quoted(game);
 const displayNameSql = quoted(payload.game.display_name);
 const familySql = quoted(payload.game.family);
-const coverageSql = quoted(`Pinned PokéAPI snapshot; independently compared with Veekun and pret/${game === "yellow" ? "pokeyellow" : "pokered"} for ${payload.game.display_name}.`);
+const pretRepository = game === "yellow" ? "pokeyellow" : game === "crystal" ? "pokecrystal" : ["gold", "silver"].includes(game) ? "pokegold" : "pokered";
+const coverageSql = quoted(`Pinned PokéAPI snapshot; independently compared with Veekun and pret/${pretRepository} for ${payload.game.display_name}.`);
 const sql = `-- Generated from ${input}
 -- Source commit: ${commit}
 -- Imports reviewed data as pending. Verification is a separate migration.
 begin;
 
-insert into public.pokemon_games(game_key,display_name,generation,family,release_order,source_commit,coverage_note,encounter_status) values (${gameSql},${displayNameSql},${Number(payload.game.generation)},${familySql},${Number(payload.game.release_order)},'${commit}',${coverageSql},'pending') on conflict(game_key) do update set display_name=excluded.display_name,generation=excluded.generation,family=excluded.family,release_order=excluded.release_order,source_commit=excluded.source_commit,coverage_note=excluded.coverage_note,encounter_status='pending',updated_at=now();
+insert into public.pokemon_games(game_key,display_name,generation,family,release_order,source_commit,coverage_note,encounter_status,starters,condition_groups) values (${gameSql},${displayNameSql},${Number(payload.game.generation)},${familySql},${Number(payload.game.release_order)},'${commit}',${coverageSql},'pending',$catalog$${literal(payload.game.starters || [])}$catalog$::jsonb,$catalog$${literal(payload.game.condition_groups || [])}$catalog$::jsonb) on conflict(game_key) do update set display_name=excluded.display_name,generation=excluded.generation,family=excluded.family,release_order=excluded.release_order,source_commit=excluded.source_commit,coverage_note=excluded.coverage_note,encounter_status='pending',starters=excluded.starters,condition_groups=excluded.condition_groups,updated_at=now();
 
 insert into public.pokemon_game_pokedex_entries(game_key,pokedex_key,entry_number,pokemon_id,pokemon_name,form_name,species_family,source_commit) select ${gameSql},r.pokedex_key,r.entry_number,r.pokemon_id,r.pokemon_name,r.form_name,r.species_family,'${commit}' from jsonb_to_recordset($catalog$${literal(payload.pokedex_entries)}$catalog$::jsonb) as r(pokedex_key text,entry_number integer,pokemon_id integer,pokemon_name text,form_name text,species_family text) on conflict(game_key,pokedex_key,entry_number,pokemon_id,form_name) do update set pokemon_name=excluded.pokemon_name,species_family=excluded.species_family,source_commit=excluded.source_commit;
 

@@ -192,6 +192,38 @@ production project, confirm the deployed commit, test `/nuzlocke` signed out,
 and run `npm run smoke:production`. Do not treat the passing Preview as a
 production deployment.
 
+## Yellow and Generation II follow-up state
+
+- Branch: `codex/nuzlocke-gen2`
+- Production: not merged and not migrated
+- Yellow migrations: 267-268
+- Shared capability migration: 269
+- Gold migrations: 270-271
+- Silver migrations: 272-273
+- Crystal migrations: 274-275
+
+Yellow is locally implemented and audited. Gold, Silver, and Crystal now have
+separate pinned artifacts, game-limited evolution maps, independent Veekun and
+pret audits, and pending-first import/verification migrations. Exact reviewed
+counts are Gold 251/125/2,830/156, Silver 251/125/2,830/156, and Crystal
+251/127/3,193/172 for Pokedex rows, locations, encounters, and obtainable
+profiles respectively. All three expose 17 methods, including an exact
+ten-row Bug-Catching Contest table.
+
+Migration 269 adds per-game starter and condition-group metadata. The UI and
+generator support validated, shareable time-of-day, swarm, and weekday
+choices. Chikorita, Cyndaquil, and Totodile are the Generation II starter
+choices. Game changes clear method and condition filters to prevent rules from
+one version leaking into another.
+
+Focused Generation I/II tests, all four Yellow/Gold/Silver/Crystal source
+audits, the complete application suite, all 1,027 National Dex rows, the
+production dependency audit, and a 108-page production build pass locally.
+The Preview credential must be rotated before applying 267-275 to the isolated
+Preview. After rotation, apply them in order, verify the exact counts plus
+RLS/grants, and complete desktop/mobile shared-link and condition-filter
+testing. No Preview or production database was changed for this follow-up.
+
 ## Remaining Nuzlocke game roadmap
 
 The default coverage target is the official main-series versions and remakes
@@ -219,10 +251,9 @@ paired game's data by copying and relabeling its counterpart. For every game:
 
 Recommended implementation order:
 
-1. **Pokemon Yellow.** Extend the Generation I builder and audit for Yellow's
-   own wild tables, starters, gifts, trades, and version-specific exclusions.
-2. **Gold, Silver, Crystal.** Add time-of-day, day-of-week, headbutt, swarm,
-   fishing-group, Bug-Catching Contest, roaming, and Crystal-only conditions.
+1. **Pokemon Yellow.** Locally complete; Preview and release validation remain.
+2. **Gold, Silver, Crystal.** Locally complete with condition capabilities and
+   independent audits; Preview and release validation remain.
 3. **Ruby, Sapphire, Emerald, FireRed, LeafGreen.** Cover Rock Smash, rods,
    Safari areas, version exclusives, Emerald differences, and Sevii Islands.
 4. **Diamond, Pearl, Platinum, HeartGold, SoulSilver.** Cover time windows,
@@ -242,12 +273,13 @@ Recommended implementation order:
    zone boundaries, outbreaks, static encounters, raids, forms, and DLC maps
    before changing the schema or generator.
 
-Before Generation II, decide whether the current `conditions text[]` and
-method filters are sufficient for time, weather, season, DLC, and encounter-
-system controls. Before Let's Go or Generation VIII/IX, write a product rule
-for what counts as one Nuzlocke encounter in an open-world zone. Add capability
-metadata and new forward-only schema only when those decisions require it; do
-not flatten materially different mechanics into misleading Route-first odds.
+Generation II keeps `conditions text[]` for source fidelity and adds bounded,
+data-driven condition groups for player controls. Revisit this capability
+contract before weather, seasons, DLC, or materially different encounter
+systems are imported. Before Let's Go or Generation VIII/IX, write a product
+rule for what counts as one Nuzlocke encounter in an open-world zone. Add new
+forward-only schema only when those decisions require it; do not flatten
+materially different mechanics into misleading Route-first odds.
 
 Ship the catalog expansion in small generation-sized pull requests even if one
 agent owns the whole roadmap. Each release gets fresh migration numbers and a
@@ -277,14 +309,13 @@ The branch previously passed all seven repository checks and uses its own
 billable Supabase Preview branch.
 
 Its unpublished migration is currently
-`260-standalone-single-elimination-tournaments.sql`. With only the current
-Red/Blue release ahead of it, its next safe number is 267, not 265. If the owner
-completes additional Nuzlocke game releases before tournaments, assign those
-catalog migrations from 267 upward and renumber the tournament migration to
-the first unused number when #39 is finally rebased. Update every code, test,
-scan, and documentation reference. The tournament Preview database was
-manually given the old 260 migration, so rebuild or explicitly reconcile that
-isolated branch rather than assuming its history matches the renamed file.
+`260-standalone-single-elimination-tournaments.sql`. If Yellow and Generation
+II migrations 267-275 release before tournaments, its next safe number is 276.
+Otherwise use the first genuinely unused number when #39 is finally rebased.
+Update every code, test, scan, and documentation reference. The tournament
+Preview database was manually given the old 260 migration, so rebuild or
+explicitly reconcile that isolated branch rather than assuming its history
+matches the renamed file.
 
 After the agreed Nuzlocke game coverage is released, rebase #39 onto the then-
 current `main` and change its base to `main`. Resolve navigation so both
