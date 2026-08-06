@@ -7,6 +7,8 @@
 - Integration base: current `origin/main` at `ee4a6d5`
 - Feature commit after rebase: `6a94347`
 - Safety follow-up after rebase: `81ea660`
+- Deployment-handoff update: `00838fc`
+- Final security-check repair: `d59b031`
 - Production: unchanged
 - Supabase: migration 261 has not been applied anywhere by this work
 - Pull request: [#42 — Add Daily Games hub and personal Trainer Dex](https://github.com/roblebaegaming/DraftCenter/pull/42)
@@ -137,26 +139,34 @@ Production smoke was intentionally not run because this branch has not been depl
 
 ## Preview status and required validation
 
-The branch was rebased onto current `origin/main`, pushed, and deployed successfully by Vercel. Signed-out mobile review passed for `/resources/daily-games` and `/trainer-dex`, including page content, external destinations, responsive width, and the delayed signed-out Trainer Dex state.
+The branch was rebased onto current `origin/main`, pushed, and deployed successfully by Vercel. Signed-out mobile review passed for `/resources/daily-games` and `/trainer-dex`, including page content, external destinations, responsive width, and the delayed signed-out Trainer Dex state. The final PR head passed CodeQL, the full-history secret scan, JavaScript security analysis, security tests/dependency audit, and the Vercel checks. The Supabase Preview check was skipped rather than passed.
 
-Migration rehearsal stopped safely before applying changes because the configured DraftCenter Preview database does not contain the existing `badge_catalog` prerequisite. The Supabase Preview check was skipped by CI. Do not apply migration 261 until the Preview database target and prerequisite migration history are reconciled.
+Migration rehearsal stopped safely before applying changes because the configured DraftCenter Preview database does not contain the existing `badge_catalog` prerequisite. A read-only schema audit then confirmed that this database has the relational `draft_picks`, `teams`, `league_memberships`, and `league_pokemon` tables, but does not have the Daily Poll, Daily Bracket, Daily Quiz, account-badge, or `pokemon_species` tables/functions required by migration 261. Its formal Supabase migration ledger is also empty. Do not apply migration 261 by itself, and do not replay the repository's entire migration directory blindly. Reconcile the smallest forward-only prerequisite set against the actual schema first.
 
-The Preview database credential used during diagnosis must be rotated before further database work. After rotation, update the Preview environment connection values and redeploy before resuming the steps below.
+### Preview credential incident and required owner action
+
+During command-line diagnosis, the Preview database password was inadvertently displayed in agent tool output. Treat that Preview-only credential as compromised. It was not committed, pushed, added to this document, or disclosed in the PR. Production credentials and production configuration were not accessed or changed.
+
+An attempted coordinated rotation updated the four Vercel Preview-only Postgres values first, but the managed database role was not permitted to change its own password. The attempt then restored all four Vercel Preview values to their prior values. The effective Preview database password and Vercel Preview environment therefore remain unchanged. The supported Supabase owner-dashboard reset is still required.
+
+The in-app browser could not open the database-settings route because its URL safety policy blocked that navigation. Do not bypass that browser policy. The owner should manually open **Supabase Dashboard > Database > Settings > Reset database password** for the Vercel-connected Preview resource. After the reset, update or verify the four Vercel **Preview-only** Postgres values, redeploy the PR Preview, and verify a new database connection before any migration work. Never paste the old or new password into a handoff, issue, PR, chat, or source file.
 
 1. Read repository policy, `docs/CURRENT-STATUS.md`, and the current integration-branch handoff.
-2. Inspect the tournament and Nuzlocke branch state before choosing the rebase target. Do not overwrite either agent's work.
-3. Rebase `codex/daily-games-trainer-dex` onto the intended integration head.
-4. Resolve migration numbering/order without rewriting a migration that has run anywhere.
-5. Review migration 261 against the actual Preview schema, especially draft-pick IDs/timestamps, team ownership joins, Pokémon source keys, badge helpers, RLS, and grants.
-6. Rehearse the migration transactionally in Preview.
-7. Confirm backfill row counts and verify that the backfill creates exactly zero shiny events.
-8. Verify anonymous callers cannot read or mutate Trainer Dex data.
-9. Verify an ordinary signed-in account can read only its own collection and acknowledge only its own shiny events.
-10. In an isolated Preview account/league, test first submissions and repeated/revised submissions for poll, quiz, bracket, and hosted snake draft.
-11. Confirm a repeated source event cannot reroll a shiny.
-12. Undo an isolated snake pick and confirm only that pick's event disappears while unrelated discoveries remain.
-13. Review `/resources`, `/resources/daily-games`, `/trainer-dex`, the Daily Three shiny popup, empty collection, populated collection, filters, artwork fallbacks, sharing, and signed-out behavior on phone and desktop widths.
-14. Run the full required checks again after the final rebase.
+2. Rotate the compromised Preview-only database password through the supported owner control.
+3. Update or verify the four Vercel Preview-only Postgres values, redeploy, and prove the new database connection works without printing credentials.
+4. Inspect the tournament and Nuzlocke branch state before choosing any later rebase target. Do not overwrite either agent's work.
+5. Resolve migration numbering/order without rewriting a migration that has run anywhere.
+6. Reconcile the absent Daily Three, Pokémon catalog, and badge prerequisites with the smallest reviewed forward-only migration set; do not treat the empty ledger as an instruction to replay everything.
+7. Review migration 261 against the actual Preview schema, especially draft-pick IDs/timestamps, team ownership joins, Pokémon source keys, badge helpers, RLS, and grants.
+8. Rehearse the prerequisite set and migration 261 transactionally in Preview.
+9. Confirm backfill row counts and verify that the backfill creates exactly zero shiny events.
+10. Verify anonymous callers cannot read or mutate Trainer Dex data.
+11. Verify an ordinary signed-in account can read only its own collection and acknowledge only its own shiny events.
+12. In an isolated Preview account/league, test first submissions and repeated/revised submissions for poll, quiz, bracket, and hosted snake draft.
+13. Confirm a repeated source event cannot reroll a shiny.
+14. Undo an isolated snake pick and confirm only that pick's event disappears while unrelated discoveries remain.
+15. Review `/resources`, `/resources/daily-games`, `/trainer-dex`, the Daily Three shiny popup, empty collection, populated collection, filters, artwork fallbacks, sharing, and signed-out behavior on phone and desktop widths.
+16. Run the full required checks again after the final rebase.
 
 ## Protected release sequence
 
