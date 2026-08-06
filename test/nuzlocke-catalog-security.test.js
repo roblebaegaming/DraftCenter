@@ -339,7 +339,7 @@ regexes = [
 ]
 
 [[rules.allowlists]]
-description = "Pinned Pokemon audit documentation public PokeAPI snapshot"
+description = "Pinned Pokemon audit documentation public PokeAPI and sprite snapshots"
 condition = "AND"
 regexTarget = "secret"
 paths = [
@@ -356,6 +356,7 @@ paths = [
 ]
 regexes = [
   '''^5064f1d72746b3a6a931616dae3fb6445c556d4f$''',
+  '''^5841d46f1a0d2b8918a29a7376b1424878b86b59$''',
 ]
 
 [[rules.allowlists]]
