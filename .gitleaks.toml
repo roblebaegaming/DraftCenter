@@ -23,7 +23,7 @@ regexes = [
 [[rules.allowlists]]
 description = "Pinned Pokemon audit documentation public PokeAPI snapshot"
 condition = "AND"
-regexTarget = "line"
+regexTarget = "secret"
 paths = [
   '''^docs/pokemon-catalog/pokemon-yellow-encounter-audit-2026-08-05\.md$''',
   '''^docs/pokemon-catalog/generation-2-schema-investigation-2026-08-05\.md$''',
@@ -32,7 +32,7 @@ paths = [
   '''^docs/pokemon-catalog/pokemon-crystal-encounter-audit-2026-08-05\.md$''',
 ]
 regexes = [
-  '''^-\s+Pok(?:e|é)API snapshot:\s+`5064f1d72746b3a6a931616dae3fb6445c556d4f`$''',
+  '''^5064f1d72746b3a6a931616dae3fb6445c556d4f$''',
 ]
 
 [[rules.allowlists]]
