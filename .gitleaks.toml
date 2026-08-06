@@ -44,6 +44,8 @@ paths = [
   '''^data/nuzlocke/pokemon-brilliant-diamond\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\.json$''',
   '''^data/nuzlocke/pokemon-shining-pearl\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\.json$''',
   '''^data/nuzlocke/pokemon-legends-arceus\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\.json$''',
+  '''^data/nuzlocke/pokemon-scarlet\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\.json$''',
+  '''^data/nuzlocke/pokemon-violet\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\.json$''',
 ]
 regexes = [
   '''^(?:area_key|location_key)"\s*:\s*"[a-z0-9-]+"$''',
@@ -91,6 +93,9 @@ paths = [
   '''^docs/pokemon-catalog/pokemon-brilliant-diamond-encounter-audit-2026-08-05\.md$''',
   '''^docs/pokemon-catalog/pokemon-shining-pearl-encounter-audit-2026-08-05\.md$''',
   '''^docs/pokemon-catalog/pokemon-legends-arceus-encounter-audit-2026-08-05\.md$''',
+  '''^docs/pokemon-catalog/generation-9-schema-investigation-2026-08-06\.md$''',
+  '''^docs/pokemon-catalog/pokemon-scarlet-encounter-audit-2026-08-06\.md$''',
+  '''^docs/pokemon-catalog/pokemon-violet-encounter-audit-2026-08-06\.md$''',
 ]
 regexes = [
   '''^5064f1d72746b3a6a931616dae3fb6445c556d4f$''',
@@ -140,6 +145,8 @@ paths = [
   '''^supabase/328-import-pokemon-brilliant-diamond-encounter-catalog\.sql$''',
   '''^supabase/330-import-pokemon-shining-pearl-encounter-catalog\.sql$''',
   '''^supabase/332-import-pokemon-legends-arceus-encounter-catalog\.sql$''',
+  '''^supabase/334-import-pokemon-scarlet-encounter-catalog\.sql$''',
+  '''^supabase/336-import-pokemon-violet-encounter-catalog\.sql$''',
 ]
 regexes = [
   '''^(?:area_key|location_key)"\s*:\s*"[a-z0-9-]+"$''',
@@ -205,6 +212,8 @@ paths = [
   '''^supabase/329-verify-pokemon-brilliant-diamond-encounter-catalog\.sql$''',
   '''^supabase/331-verify-pokemon-shining-pearl-encounter-catalog\.sql$''',
   '''^supabase/333-verify-pokemon-legends-arceus-encounter-catalog\.sql$''',
+  '''^supabase/335-verify-pokemon-scarlet-encounter-catalog\.sql$''',
+  '''^supabase/337-verify-pokemon-violet-encounter-catalog\.sql$''',
 ]
 regexes = [
   '''^area_key='[a-z0-9-]+'$''',

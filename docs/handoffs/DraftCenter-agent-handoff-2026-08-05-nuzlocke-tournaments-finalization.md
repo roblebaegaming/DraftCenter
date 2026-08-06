@@ -193,7 +193,7 @@ production project, confirm the deployed commit, test `/nuzlocke` signed out,
 and run `npm run smoke:production`. Do not treat the passing Preview as a
 production deployment.
 
-## Yellow through Generation VIII follow-up state
+## Yellow through Generation IX follow-up state
 
 - Branch: `codex/nuzlocke-gen2`
 - Production: not merged and not migrated
@@ -238,6 +238,9 @@ production deployment.
 - Brilliant Diamond migrations: 328-329
 - Shining Pearl migrations: 330-331
 - Legends: Arceus migrations: 332-333
+- Generation IX branch: `codex/nuzlocke-gen9`
+- Scarlet migrations: 334-335
+- Violet migrations: 336-337
 
 Yellow is locally implemented and audited. Gold, Silver, and Crystal now have
 separate pinned artifacts, game-limited evolution maps, independent Veekun and
@@ -462,9 +465,12 @@ Recommended implementation order:
    raids, Dynamax Adventures, Grand Underground hideaways, landmarks, Alpha
    Pokemon, distortions, and outbreaks. Unpublished migrations are 324-333;
    full validation, Preview, and release validation remain.
-9. **Scarlet/Violet plus DLC.** Agree on open-world encounter units, biome and
-   zone boundaries, outbreaks, static encounters, raids, forms, and DLC maps
-   before changing the schema or generator.
+9. **Scarlet/Violet plus DLC.** Locally complete with displayed met locations
+   as catch units, crossover/spawner normalization, time, weather, fixed and
+   static encounters, stock Tera Raids, bounded historical events, Union
+   Circle rewards, League Club trades, forms, and both DLC maps. Unpublished
+   migrations are 334-337; local validation passes while Preview and release
+   validation remain.
 
 Generation II keeps `conditions text[]` for source fidelity and adds bounded,
 data-driven condition groups for player controls. Revisit this capability
@@ -472,10 +478,10 @@ contract before weather, seasons, DLC, or materially different encounter
 systems are imported. Generation VIII's encounter-unit product rules are
 recorded in
 [`../pokemon-catalog/generation-8-schema-investigation-2026-08-05.md`](../pokemon-catalog/generation-8-schema-investigation-2026-08-05.md).
-Before Generation IX, define what counts as one Nuzlocke encounter in each
-open-world zone. Add new forward-only schema only when those decisions require
-it; do not flatten materially different mechanics into misleading Route-first
-odds.
+Generation IX's displayed-location boundaries and opt-in treatment of raids,
+historical events, Union Circle rewards, and League Club trades are recorded
+in
+[`../pokemon-catalog/generation-9-schema-investigation-2026-08-06.md`](../pokemon-catalog/generation-9-schema-investigation-2026-08-06.md).
 
 Ship the catalog expansion in small generation-sized pull requests even if one
 agent owns the whole roadmap. Each release gets fresh migration numbers and a
@@ -506,8 +512,8 @@ billable Supabase Preview branch.
 
 Its unpublished migration is currently
 `260-standalone-single-elimination-tournaments.sql`. If Yellow-through-
-Generation VIII migrations 267-333 release before tournaments, its next safe
-number is 334. If only part of that stack releases, use the first genuinely
+Generation IX migrations 267-337 release before tournaments, its next safe
+number is 338. If only part of that stack releases, use the first genuinely
 unused number.
 Update every code, test, scan, and documentation reference. The tournament
 Preview database was manually given the old 260 migration, so rebuild or
@@ -528,9 +534,8 @@ advancement.
 1. Perform the narrow mobile visual pass on #38, then release Red/Blue through
    the protected PR flow. Apply 261-266 to the exact core production database,
    confirm the deployed commit, and smoke-test production.
-2. Finish Generation VIII's remaining full-suite and Preview gates, then
-   continue with Generation IX. Keep each game fail-closed until its pinned
-   independent audit passes.
+2. Finish Generation IX's remaining full-suite and Preview gates. Keep each
+   game fail-closed until its pinned independent audit passes.
 3. After the owner's agreed Nuzlocke coverage target is released, rebase #39
    onto current `main`, give its old migration 260 the first unused number, and
    update all references.
