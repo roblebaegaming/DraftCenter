@@ -510,12 +510,10 @@ projection. Test writes were rolled back and the test tables were left empty.
 The branch previously passed all seven repository checks and uses its own
 billable Supabase Preview branch.
 
-Its unpublished migration is currently
-`260-standalone-single-elimination-tournaments.sql`. If Yellow-through-
-Generation IX migrations 267-337 release before tournaments, its next safe
-number is 338. If only part of that stack releases, use the first genuinely
-unused number.
-Update every code, test, scan, and documentation reference. The tournament
+Its production-candidate migration is now
+`338-standalone-single-elimination-tournaments.sql`, following the complete
+Nuzlocke range at 261-337. Every code, test, scan, and documentation reference
+uses the reconciled number. The tournament
 Preview database was manually given the old 260 migration, so rebuild or
 explicitly reconcile that isolated branch rather than assuming its history
 matches the renamed file.
@@ -537,8 +535,7 @@ advancement.
 2. Finish Generation IX's remaining full-suite and Preview gates. Keep each
    game fail-closed until its pinned independent audit passes.
 3. After the owner's agreed Nuzlocke coverage target is released, rebase #39
-   onto current `main`, give its old migration 260 the first unused number, and
-   update all references.
+   onto current `main` and preserve its reconciled migration number 338.
 4. Re-provision or reconcile the isolated tournament Preview database and
    rerun the transactional tournament matrix plus full checks.
 5. Release #39 through the protected PR flow, apply its newly numbered
@@ -550,7 +547,9 @@ advancement.
 ## Release gates for both features
 
 - Preserve unrelated user work and use clean release worktrees.
-- Use forward-only migrations with new numbers; never rewrite migration 260.
+- Use forward-only migrations with new numbers; never rewrite production
+  migration 260 or assume the old tournament Preview ledger matches migration
+  338.
 - Verify RLS, grants, public projections, and server-only credentials.
 - Keep server credentials out of `NEXT_PUBLIC_*` variables.
 - Run focused tests while developing and, before merge:

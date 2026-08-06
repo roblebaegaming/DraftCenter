@@ -8,7 +8,7 @@ Nuzlocke catalog.
 
 The implementation and forward-only migration are prepared on the tournament
 feature branch. They are not deployed, and migration
-`260-standalone-single-elimination-tournaments.sql` must not be applied to
+`338-standalone-single-elimination-tournaments.sql` must not be applied to
 production outside the protected release flow.
 
 Release it after the test-draft feedback rollup and the separately reviewed
@@ -54,7 +54,7 @@ Nuzlocke tables even when the branches are reviewed as a stacked series.
 
 ## Required isolated validation
 
-Before release, apply migration 260 to an isolated Preview database and test
+Before release, apply migration 338 to a fresh isolated Preview database and test
 with separate owner, entrant A, entrant B, unrelated signed-in, and signed-out
 sessions. Verify private isolation, public projections, manual and shuffled
 seeds, byes, stale and simultaneous submissions, opponent confirmation,
