@@ -3,59 +3,39 @@
 - Last updated: August 6, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified production release: `3d67d98`
-- Latest production migration: 260
+- Verified production release: `cd90679`
+- Latest production migration: 342
 
 ## Status
 
-DraftCenter production remains approved for monitored public use and real
-drafts. The Nuzlocke, tournaments, Daily Games, and Trainer Dex integration is
-Preview-only and has not changed production.
+DraftCenter production is approved for monitored public use and real drafts.
+The August 6 release is live and includes Nuzlocke Lab, standalone tournaments,
+Daily Games resources, Trainer Dex, and the completed Nuzlocke search-discovery
+pass.
 
-Branch `codex/nuzlocke-tournaments-daily-integration` combines all 37 audited
-main-series Nuzlocke game catalogs from Red through Violet, standalone
-single-elimination tournaments, Daily Games resources, and the signed-in
-Trainer Dex. The final branch head evolves an included starter when “final
-evolutions only” is active, including the non-wild Scarlet/Violet starters, and
-loads the 37-game selector from bounded pinned method metadata. Its forward-only
-production migration map is collision-free: Nuzlocke 261-339, tournaments 340,
-Trainer Dex 341, and the Trainer Dex draft-name correction 342.
+Production commit `cd90679` is the squash merge of pull request 47. Its
+repository checks passed, Vercel reports the `main` deployment Ready, and the
+post-deployment signed-out production smoke sweep passes.
 
-The Nuzlocke page also includes the completed search-discovery pass: expanded
-metadata, WebApplication and breadcrumb structured data, crawlable game/rule
-explanations using the current Team code language, links from generated Pokemon
-to their Pokedex profiles, reciprocal Pokedex/Resources links, and a higher
-Nuzlocke sitemap priority. No database migration was added for this work.
+The production database now contains the forward-only migration sequence
+261-342: Nuzlocke 261-339, tournaments 340, Trainer Dex 341, and the Trainer Dex
+draft-name correction 342. The sequence remains collision-free. Production
+verification reports all 37 audited main-series Nuzlocke catalogs from Red
+through Violet verified, all affected tables protected by RLS and least-privilege
+grants, no initial tournament records, and the intended private Trainer Dex
+execution boundary.
 
-The isolated Preview database reports 37 verified catalogs and no pending
-catalogs. Catalog/RLS audits, signed-out UI checks, signed-in Daily discovery
-and shiny checks, and an isolated practice-league draft pick/undo check pass.
-The draft check also verified that Trainer Dex records the Pokémon name rather
-than a numeric pool identifier and removes that discovery after undo. The
-disposable account and practice league were deleted after testing.
+The live signed-out review passes for `/nuzlocke`, `/resources/daily-games`,
+`/trainer-dex`, and `/tournaments`. Nuzlocke publishes its expanded metadata,
+structured data, crawlable game/rule guidance, canonical Pokédex links, and
+weekly priority-0.9 sitemap entry. Trainer Dex presents its sign-in invitation,
+and the tournament directory presents its empty public state without creating
+test data.
 
-The dependency audit, full application test suite (including seven focused SEO
-checks and 52 Nuzlocke regressions), all 1,027 National Dex rows, and the
-111-page production build pass. Preview is available at
-https://draftcenter-git-codex-nuzlocke-tournaments-dai-5c9468-rob-lebae.vercel.app.
-
-The final stable Preview is Ready. Its authenticated deployed checks return all
-37 games from Red through Violet with method filters and complete Scarlet and
-Violet teams with evolved starters in final-evolution mode. Exact live catalog
-counts remain below the 16,000-row safety bound; Violet is largest at 13,075.
-The deployed application snapshot is `2b862ac`. Its desktop and 390px Nuzlocke
-visual checks, SEO content/links, generated Pokemon profile links, and browser
-console review pass.
-
-## Remaining release gates
-
-- Open the integration pull request and require its repository checks/review.
-- If Vercel protection remains, complete one deployment-origin signed-in
-  confirmation. The Nuzlocke desktop and 390px mobile visual pass is complete.
-- Rehearse the exact 261-342 production migration sequence against current
-  production schema state.
-- Obtain explicit owner approval before any production migration, merge, or
-  deployment. Production must not receive the legacy Preview fixture repairs.
+The release validation includes a clean production dependency audit, the full
+application suite, all 1,027 National Dex rows, the 111-page production build,
+the full-history secret scan, database catalog/RLS/grant verification, and the
+post-deployment production smoke sweep.
 
 ## Active watch items
 
