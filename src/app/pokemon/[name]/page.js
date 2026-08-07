@@ -1,7 +1,9 @@
 import { notFound, permanentRedirect } from "next/navigation";
-import { getPublicPokemonDraftProfile } from "../../../lib/supabase/publicServer";
+import { getPublicPokemonCompetitiveProfile, getPublicPokemonDraftProfile, getPublicPokemonTournamentProfile } from "../../../lib/supabase/publicServer";
 import { getAllPokemonProfiles, pokemonProfileCanonicalPath, pokemonProfileSlugCandidates, pokemonProfileSlugForName, pokemonRouteSlug } from "../../../lib/publicPokemonIndex";
 import { pokemonDirectoryHref } from "../../../lib/pokemonNavigation";
+import CompetitivePokemonProfile from "../../../components/CompetitivePokemonProfile";
+import TournamentPokemonProfile from "../../../components/TournamentPokemonProfile";
 
 function titleCase(value) {
   return String(value || "").split("-").map((word) => word ? `${word[0].toUpperCase()}${word.slice(1)}` : "").join(" ");
@@ -40,8 +42,12 @@ async function loadPokemon(name) {
     formResponse.ok ? formResponse.json() : null,
   ]);
   const displayName = form?.names?.find((entry) => entry.language.name === "en")?.name || titleCase(pokemon.name);
-  const draftProfile = await getPublicPokemonDraftProfile(displayName);
-  return { pokemon, species, form, displayName, draftProfile };
+  const [draftProfile, competitiveProfile, tournamentProfile] = await Promise.all([
+    getPublicPokemonDraftProfile(displayName),
+    getPublicPokemonCompetitiveProfile(pokemon.name),
+    getPublicPokemonTournamentProfile(pokemon.name),
+  ]);
+  return { pokemon, species, form, displayName, draftProfile, competitiveProfile, tournamentProfile };
 }
 
 export async function generateMetadata({ params }) {
@@ -72,7 +78,7 @@ export default async function PokemonDetailPage({ params }) {
   const data = await loadPokemon(name);
   if (!data) notFound();
   if (pokemonRouteSlug(name) !== data.pokemon.name) permanentRedirect(pokemonProfileCanonicalPath(data.pokemon.name));
-  const { pokemon, species, displayName, draftProfile } = data;
+  const { pokemon, species, displayName, draftProfile, competitiveProfile, tournamentProfile } = data;
   const generationNumber = String(species.generation?.url || "").match(/generation\/(\d+)\//)?.[1];
   const availableProfiles = draftProfile?.partners?.length ? new Set(await getAllPokemonProfiles()) : null;
   const baseStatTotal = pokemon.stats.reduce((total, { base_stat }) => total + base_stat, 0);
@@ -153,6 +159,14 @@ export default async function PokemonDetailPage({ params }) {
       </div>
       {draftProfile?.adp_by_format?.length ? <><h3>ADP by legal format</h3><div className="public-pick-list">{draftProfile.adp_by_format.map((format) => <div key={format.regulation_id}><strong><a href={`/formats/${format.regulation_id}`}>{titleCase(format.regulation_id)}</a></strong><span>ADP {format.average_pick != null ? `#${format.average_pick}` : "—"} · drafted in {format.drafted_in || 0} of {format.eligible_drafts || 0} eligible pools</span></div>)}</div></> : <p className="muted">Format-specific ADP will appear after {displayName} is eligible in completed snake drafts.</p>}
       {draftProfile?.partners?.length ? <><h3>Most common teammates</h3><div className="pokemon-tags">{draftProfile.partners.map((teammate) => { const profileSlug = pokemonProfileSlugForName(teammate.pokemon, availableProfiles); return profileSlug ? <a key={teammate.pokemon} href={`/pokemon/${profileSlug}`}>{teammate.pokemon} · {teammate.teams} roster{teammate.teams === 1 ? "" : "s"}</a> : <span key={teammate.pokemon}>{teammate.pokemon} · {teammate.teams} roster{teammate.teams === 1 ? "" : "s"}</span>; })}</div></> : null}
+    </section>
+    <section className="explore-card">
+      <h2>{displayName} competitive format results</h2>
+      <CompetitivePokemonProfile observations={competitiveProfile} pokemonName={displayName} />
+    </section>
+    <section className="explore-card">
+      <h2>{displayName} tournament performance</h2>
+      <TournamentPokemonProfile formats={tournamentProfile} pokemonName={displayName} />
     </section>
     <section className="explore-card">
       <h2>Study {displayName} in DraftCenter</h2>

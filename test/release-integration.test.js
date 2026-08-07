@@ -24,6 +24,8 @@ test("release migrations use one production number each", () => {
   assert.ok(migrations.includes("340-standalone-single-elimination-tournaments.sql"));
   assert.ok(migrations.includes("341-trainer-dex-and-shiny-discoveries.sql"));
   assert.ok(migrations.includes("342-use-pokemon-names-for-trainer-dex-draft-discoveries.sql"));
+  assert.ok(migrations.includes("348-reload-competitive-profile-schema-cache.sql"));
+  assert.ok(migrations.includes("349-catalog-complete-versioned-pokemon-move-pools.sql"));
 });
 
 test("the Gen 6 schema gate supports the official X and Y game keys", () => {
@@ -44,10 +46,13 @@ test("the Gen 5 schema gate supports official zero-based regional entries", () =
 
 test("integrated quick links expose each released feature once", () => {
   const links = source("src/components/SiteQuickLinks.jsx");
+  const nuzlocke = source("src/components/NuzlockeLab.jsx");
   for (const path of ["/nuzlocke", "/tournaments", "/trainer-dex"]) {
     assert.equal((links.match(new RegExp(`href=\"${path}\"`, "g")) || []).length, 1);
   }
-  assert.match(links, /signedIn&&<a href="\/trainer-dex">Trainer Dex<\/a>/);
+  assert.match(links, /href="\/nuzlocke"[^>]*>[\s\S]*?quick-label-wide">Nuzlockes<\/span>/);
+  assert.match(nuzlocke, />NUZLOCKE DRAFT<\/span>/);
+  assert.match(links, /signedIn && <a href="\/trainer-dex"[^>]*>[\s\S]*?quick-label-wide">Trainer Dex<\/span>/);
   assert.doesNotMatch(links, /href="\/(resources|support)"/);
 });
 

@@ -2,57 +2,10 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { loadPokemonArtwork } from "./LeagueHub";
-
-const CONNECTION_GROUPS = [
-  { title: "Pseudo-legendary Pokémon", note: "Three-stage powerhouses with a 600 base-stat total", pokemon: ["Dragonite", "Tyranitar", "Metagross", "Garchomp"] },
-  { title: "Prankster utility", note: "Draft support Pokémon known for priority status moves", pokemon: ["Grimmsnarl", "Whimsicott", "Klefki", "Sableye"] },
-  { title: "Regenerator pivots", note: "Defensive pivots that heal when switching out", pokemon: ["Slowking", "Tornadus", "Toxapex", "Tangrowth"] },
-  { title: "Automatic weather setters", note: "Abilities summon weather when these Pokémon enter battle", pokemon: ["Pelipper", "Torkoal", "Hippowdon", "Politoed"] },
-  { title: "Intimidate staples", note: "Common draft picks that lower the opponent’s Attack on entry", pokemon: ["Incineroar", "Landorus-Therian", "Gyarados", "Arcanine"] },
-  { title: "Magic Guard users", note: "Ignore indirect damage through Magic Guard", pokemon: ["Clefable", "Reuniclus", "Alakazam", "Sigilyph"] },
-  { title: "Rapid Spin users", note: "Can clear entry hazards while boosting Speed", pokemon: ["Great Tusk", "Excadrill", "Iron Treads", "Starmie"] },
-  { title: "Unaware walls", note: "Can ignore an opponent’s stat boosts", pokemon: ["Dondozo", "Skeledirge", "Clodsire", "Quagsire"] },
-  { title: "Eeveelutions", note: "Evolutions of Eevee", pokemon: ["Vaporeon", "Jolteon", "Flareon", "Umbreon"] },
-  { title: "Guardian deities", note: "The four island guardians of Alola", pokemon: ["Tapu Koko", "Tapu Lele", "Tapu Bulu", "Tapu Fini"] },
-  { title: "Ultra Beasts", note: "Pokémon that arrived through Ultra Wormholes", pokemon: ["Nihilego", "Buzzwole", "Pheromosa", "Celesteela"] },
-  { title: "Trick Room setters", note: "Slow-team staples that commonly establish Trick Room", pokemon: ["Cresselia", "Porygon2", "Hatterene", "Indeedee-Female"] },
-];
+import { normalizeRosterConnectionsSave, rosterConnectionsPuzzle, seededConnectionsShuffle } from "../lib/rosterConnections";
 
 const GROUP_COLORS = ["yellow", "green", "blue", "purple"];
 const GROUP_MARKS = ["🟨", "🟩", "🟦", "🟪"];
-
-function localDateKey(date = new Date()) {
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-}
-
-function hash(value) {
-  let result = 2166136261;
-  for (const character of value) {
-    result ^= character.charCodeAt(0);
-    result = Math.imul(result, 16777619);
-  }
-  return result >>> 0;
-}
-
-function seededShuffle(items, seed) {
-  const shuffled = [...items];
-  let state = seed || 1;
-  for (let index = shuffled.length - 1; index > 0; index -= 1) {
-    state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
-    const target = state % (index + 1);
-    [shuffled[index], shuffled[target]] = [shuffled[target], shuffled[index]];
-  }
-  return shuffled;
-}
-
-export function rosterConnectionsPuzzle(dateKey = localDateKey()) {
-  const groups = seededShuffle(CONNECTION_GROUPS, hash(`groups-${dateKey}`)).slice(0, 4);
-  return {
-    dateKey,
-    groups,
-    pokemon: seededShuffle(groups.flatMap((group) => group.pokemon), hash(`pokemon-${dateKey}`)),
-  };
-}
 
 function PokemonTile({ name, selected, disabled, onClick }) {
   const [artwork, setArtwork] = useState("");
@@ -81,9 +34,10 @@ export default function RosterConnections() {
     try {
       const saved = JSON.parse(localStorage.getItem(storageKey) || "null");
       if (saved) {
-        setSolved(Array.isArray(saved.solved) ? saved.solved : []);
-        setMistakes(Number(saved.mistakes) || 0);
-        if (Array.isArray(saved.order) && saved.order.length === 16) setOrder(saved.order);
+        const normalized = normalizeRosterConnectionsSave(saved, puzzle);
+        setSolved(normalized.solved);
+        setMistakes(normalized.mistakes);
+        setOrder(normalized.order);
       }
     } catch {}
     setReady(true);
@@ -91,7 +45,9 @@ export default function RosterConnections() {
 
   useEffect(() => {
     if (!ready) return;
-    localStorage.setItem(storageKey, JSON.stringify({ solved, mistakes, order }));
+    try {
+      localStorage.setItem(storageKey, JSON.stringify({ solved, mistakes, order }));
+    } catch {}
   }, [mistakes, order, ready, solved, storageKey]);
 
   const complete = solved.length === 4;
@@ -125,8 +81,13 @@ export default function RosterConnections() {
   async function share() {
     const rows = displayedGroups.map((_, index) => GROUP_MARKS[index].repeat(4));
     const result = `DraftCenter Roster Connections ${puzzle.dateKey}\n${complete ? `Solved with ${mistakes}/4 mistakes` : "Better luck tomorrow"}\n${rows.join("\n")}\nhttps://www.draftcentral.gg/resources/daily-games`;
-    if (navigator.share) await navigator.share({ title: "Roster Connections", text: result });
-    else { await navigator.clipboard.writeText(result); setMessage("Result copied to your clipboard."); }
+    try {
+      if (navigator.share) await navigator.share({ title: "Roster Connections", text: result });
+      else if (navigator.clipboard?.writeText) { await navigator.clipboard.writeText(result); setMessage("Result copied to your clipboard."); }
+      else setMessage("Sharing is unavailable in this browser.");
+    } catch {
+      setMessage("Sharing was cancelled or is unavailable in this browser.");
+    }
   }
 
   return <section className="roster-connections" aria-labelledby="roster-connections-title">
@@ -137,7 +98,7 @@ export default function RosterConnections() {
     </div>
     <p className="connections-message" role="status">{message}</p>
     <div className="connections-actions">
-      {!finished ? <><button type="button" className="quiet-button" disabled={!selected.length} onClick={() => setSelected([])}>Deselect all</button><button type="button" className="quiet-button" onClick={() => { setOrder((current) => seededShuffle(current, Date.now())); setSelected([]); }}>Shuffle</button><button type="button" className="primary-button" disabled={selected.length !== 4} onClick={submit}>Submit group</button></> : <button type="button" className="primary-button" onClick={share}>Share result</button>}
+      {!finished ? <><button type="button" className="quiet-button" disabled={!selected.length} onClick={() => setSelected([])}>Deselect all</button><button type="button" className="quiet-button" onClick={() => { setOrder((current) => seededConnectionsShuffle(current, Date.now())); setSelected([]); }}>Shuffle</button><button type="button" className="primary-button" disabled={selected.length !== 4} onClick={submit}>Submit group</button></> : <button type="button" className="primary-button" onClick={share}>Share result</button>}
     </div>
   </section>;
 }

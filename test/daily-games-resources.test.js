@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import test from "node:test";
+import { normalizeRosterConnectionsSave, rosterConnectionsPuzzle } from "../src/lib/rosterConnections.js";
 
 function source(path) {
   return fs.readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
@@ -10,6 +11,18 @@ test("resources prominently links to the Pokémon daily games hub", () => {
   const resources = source("src/components/ResourcesPage.jsx");
   assert.match(resources, /href="\/resources\/daily-games"/);
   assert.match(resources, /Pokémon Daily Games/);
+});
+
+test("external resource cards include locally hosted, accessible site artwork", () => {
+  const resources = source("src/components/ResourcesPage.jsx");
+  const artwork = ["pokemon-showdown.png", "damage-calculator.png", "pokepaste.png", "devoncorp.webp", "smogon.ico", "serebii.jpg", "bulbapedia.png", "victory-road.png", "labmaus.png", "munchstats.png"];
+
+  for (const file of artwork) {
+    assert.match(resources, new RegExp(`/resource-sites/${file.replace(".", "\\.")}`));
+    assert.ok(fs.existsSync(new URL(`../public/resource-sites/${file}`, import.meta.url)), `missing resource artwork: ${file}`);
+  }
+  assert.match(resources, /alt=\{imageAlt\}/);
+  assert.match(resources, /loading="lazy"/);
 });
 
 test("daily games hub leads with DraftCenter and uses safe external links", () => {
@@ -30,12 +43,23 @@ test("daily games hub leads with DraftCenter and uses safe external links", () =
 test("Roster Connections creates a stable daily four-by-four puzzle", () => {
   const game = source("src/components/RosterConnections.jsx");
   assert.match(game, /rosterConnectionsPuzzle/);
-  assert.match(game, /slice\(0, 4\)/);
   assert.match(game, /selected\.length !== 4/);
   assert.match(game, /mistakes >= 4/);
   assert.match(game, /localStorage\.setItem/);
   assert.match(game, /Share result/);
   assert.match(game, /One away!/);
+
+  const first = rosterConnectionsPuzzle("2026-08-07");
+  const second = rosterConnectionsPuzzle("2026-08-07");
+  assert.deepEqual(first, second);
+  assert.equal(first.groups.length, 4);
+  assert.equal(first.pokemon.length, 16);
+  assert.equal(new Set(first.pokemon).size, 16);
+
+  const normalized = normalizeRosterConnectionsSave({ solved: [0, 0, 2, 7, "1"], mistakes: 99, order: ["tampered"] }, first);
+  assert.deepEqual(normalized.solved, [0, 2]);
+  assert.equal(normalized.mistakes, 4);
+  assert.deepEqual(normalized.order, first.pokemon);
 });
 
 test("daily games page has metadata and a sitemap entry", () => {

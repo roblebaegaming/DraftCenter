@@ -28,9 +28,25 @@ test("commissioner manual uses current product labels and explains direct suppor
 test("financial support is not mislabeled as product help", () => {
   const navigation = source("src/components/SiteQuickLinks.jsx");
   const footer = source("src/components/SiteLegalFooter.jsx");
-  assert.match(navigation, /href="\/manuals">Help/);
+  assert.match(navigation, /href="\/manuals"[^>]*>[\s\S]*?quick-label-wide">Help/);
   assert.doesNotMatch(navigation, /href="\/(resources|support)"/);
   assert.match(footer, /href="\/resources">Resources/);
-  assert.match(footer, /href="\/support">Support DraftCenter/);
+  assert.match(footer, /href="\/support">Support/);
   assert.doesNotMatch(footer, /href="\/(leagues|my-teams)"/);
+});
+
+test("global navigation separates account actions, tools, and reference links", () => {
+  const navigation = source("src/components/SiteQuickLinks.jsx");
+  const footer = source("src/components/SiteLegalFooter.jsx");
+  const css = source("src/app/globals.css");
+  const header = navigation.slice(navigation.indexOf('<header className="site-global-header">'), navigation.indexOf("</header>"));
+  const quickLinks = navigation.slice(navigation.indexOf('<nav className="site-quick-links"'));
+
+  for (const label of ["Pokémon", "Community", "Profile", "Sign out"]) assert.match(header, new RegExp(`>${label}<`));
+  assert.match(header, /accountName/);
+  assert.doesNotMatch(quickLinks, /Sign out/);
+  assert.match(quickLinks, /signedIn && <a href="\/trainer-dex"/);
+  assert.match(quickLinks, /!signedIn && <a href="\/manuals"/);
+  assert.match(css, /grid-template-columns:\s*repeat\(5,minmax\(0,1fr\)\)/);
+  for (const group of ["Explore", "DraftCenter", "Policies"]) assert.match(footer, new RegExp(`<h2>${group}</h2>`));
 });

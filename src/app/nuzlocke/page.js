@@ -2,9 +2,9 @@ import NuzlockeLab from "../../components/NuzlockeLab";
 
 export const metadata = {
   title: "Pokémon Nuzlocke Team Generator by Game",
-  description: "Build a repeatable Pokémon Nuzlocke team from verified encounters by game, route, method, level, and encounter odds, then share the same rules and result.",
+  description: "Build, save, and download a repeatable Pokémon Nuzlocke Draft with one Pokémon per route or area, game-specific rules, themes, and verified encounter odds.",
   alternates: { canonical: "/nuzlocke" },
-  keywords: ["Pokémon Nuzlocke generator", "Nuzlocke encounter generator", "Pokémon random team generator", "Nuzlocke team code"],
+  keywords: ["Pokémon Nuzlocke generator", "Nuzlocke encounter generator", "one Pokémon per area", "themed Nuzlocke", "Nuzlocke randomizer seed"],
   openGraph: {
     type: "website",
     title: "Pokémon Nuzlocke Team Generator by Game",
@@ -25,13 +25,13 @@ export default function NuzlockePage() {
         operatingSystem: "Any",
         isAccessibleForFree: true,
         description: "A repeatable Nuzlocke team generator using verified, game-specific Pokémon encounters.",
-        featureList: ["Game-specific encounters", "Shareable Team code results", "Route-first and encounter-pool random modes", "Species clause", "Encounter-method filters"],
+        featureList: ["Game-specific encounters", "Saved teams and downloadable Run Cards", "Shareable repeatable runs", "One Pokémon per eligible route or area", "Type, color, and evolution-stage themes", "Route-first and encounter-pool random modes", "Species clause"],
       },
       {
         "@type": "BreadcrumbList",
         itemListElement: [
           { "@type": "ListItem", position: 1, name: "DraftCenter", item: "https://www.draftcentral.gg/" },
-          { "@type": "ListItem", position: 2, name: "Nuzlocke Lab", item: "https://www.draftcentral.gg/nuzlocke" },
+          { "@type": "ListItem", position: 2, name: "Nuzlocke Draft", item: "https://www.draftcentral.gg/nuzlocke" },
         ],
       },
     ],
@@ -43,7 +43,7 @@ export default function NuzlockePage() {
     <section className="explore-card nuzlocke-seo-guide" aria-labelledby="nuzlocke-guide-title">
       <span className="eyebrow">HOW IT WORKS</span>
       <h2 id="nuzlocke-guide-title">A repeatable Nuzlocke encounter generator</h2>
-      <p>Choose a verified Pokémon game, a team size, and a Team code. Route-first random gives each eligible location equal priority, while encounter-pool random draws across every eligible encounter entry. Anyone opening a shared team link can use the same setup and reproduce the same team.</p>
+      <p>Choose a verified Pokémon game, name your run, and keep its randomizer seed to reproduce the same encounters. Select a team size of up to 20 or draft one Pokémon from every eligible route or area, then save its setup and generated team in your browser, download a readable Run Card, or share its exact rules by link.</p>
       <div className="pokemon-detail-grid">
         <section>
           <h3>Use game-specific encounter data</h3>
@@ -51,7 +51,7 @@ export default function NuzlockePage() {
         </section>
         <section>
           <h3>Set your Nuzlocke clauses</h3>
-          <p>Include a starter, apply an evolutionary-family clause, exclude legendary Pokémon or named species, filter encounter methods, and choose equal selection or authentic encounter-odds weighting. If the rules leave too few choices, the generator says so instead of silently relaxing them.</p>
+          <p>Include a starter, apply an evolutionary-family clause, filter methods and game-specific conditions, or build a themed run by Pokémon type, official Pokédex color, or evolution stage. Equal weighting gives every eligible encounter the same chance; authentic weighting uses the reviewed in-game rates.</p>
         </section>
       </div>
       <aside className="seo-next-step">
@@ -59,6 +59,12 @@ export default function NuzlockePage() {
         <p>Every generated Pokémon links to its DraftCenter profile for typing, abilities, base stats, forms, measurements, and versioned moves.</p>
         <div className="pokemon-tags"><a href="/pokemon">Explore the Pokédex</a><a href="/pokemon/generations">Browse Pokémon by generation</a><a href="/resources">Open Pokémon resources</a></div>
       </aside>
+      <section className="nuzlocke-guide-index" aria-labelledby="nuzlocke-game-guides-title">
+        <span className="eyebrow">GAME-SPECIFIC GUIDES</span>
+        <h2 id="nuzlocke-game-guides-title">Research every route before you draft</h2>
+        <p>Browse the complete Nuzlocke guide library by generation and game. Each guide lists every reviewed route or area, then shows each Pokémon with its encounter method and level range in one compact list.</p>
+        <a className="primary-button inline-link-button" href="/nuzlocke/guides">Browse all Nuzlocke guides</a>
+      </section>
     </section>
   </>;
 }

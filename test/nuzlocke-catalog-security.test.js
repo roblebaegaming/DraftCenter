@@ -94,6 +94,8 @@ const summaryMigration = fs.readFileSync(
 const capabilityMigration = fs.readFileSync(new URL("../supabase/269-nuzlocke-game-capabilities.sql", import.meta.url), "utf8");
 const verifiedGameMethods = JSON.parse(fs.readFileSync(new URL("../data/nuzlocke/verified-game-methods.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json", import.meta.url), "utf8"));
 const methodSummaryBuilder = fs.readFileSync(new URL("../scripts/build-nuzlocke-method-summary.mjs", import.meta.url), "utf8");
+const themeMetadata = JSON.parse(fs.readFileSync(new URL("../data/nuzlocke/nuzlocke-theme-metadata.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json", import.meta.url), "utf8"));
+const themeMetadataBuilder = fs.readFileSync(new URL("../scripts/build-nuzlocke-theme-metadata.mjs", import.meta.url), "utf8");
 const gen2Artifacts = Object.fromEntries(["gold", "silver", "crystal"].map((game) => [game, {
   catalog: JSON.parse(fs.readFileSync(new URL(`../data/nuzlocke/pokemon-${game}.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json`, import.meta.url), "utf8")),
   evolutions: JSON.parse(fs.readFileSync(new URL(`../data/nuzlocke/pokemon-${game}-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json`, import.meta.url), "utf8")),
@@ -365,11 +367,20 @@ description = "Generated public Pokemon encounter catalogs"
 targetRules = ["generic-api-key"]
 paths = [
   '''^data/nuzlocke/pokemon-[a-z0-9-]+\\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\\.json$''',
+  '''^src/lib/nuzlockeGameGuides\\.json$''',
   '''^docs/pokemon-catalog/(?:pokemon-[a-z0-9-]+-encounter-audit|generation-[0-9]+-schema-investigation)-2026-08-(?:05|06)\\.md$''',
   '''^scripts/build-pokeapi-game-catalog\\.mjs$''',
   '''^supabase/(?:257|262|265|267|270|272|274|276|278|280|282|284|286|288|290|292|294|297|299|301|303|306|308|310|312|314|316|318|320|322|324|326|328|330|332|334|336|338)-import-pokemon-[a-z0-9-]+-encounter-catalog\\.sql$''',
   '''^supabase/(?:263|266|268|271|273|275|277|279|281|283|285|287|289|291|293|295|298|300|302|304|307|309|311|313|315|317|319|321|323|325|327|329|331|333|335|337|339)-verify-pokemon-[a-z0-9-]+-encounter-catalog\\.sql$''',
   '''^test/nuzlocke-catalog-security\\.test\\.js$''',
+]
+
+[[allowlists]]
+description = "Reviewed anonymous competitive tournament artifact"
+targetRules = ["generic-api-key"]
+paths = [
+  '''^data/competitive/tournaments/limitless-vgc-2026-08-reg-mb\\.json$''',
+  '''^supabase/347-import-limitless-vgc-tournament-cohort\\.sql$''',
 ]
 
 [[rules]]
@@ -705,6 +716,26 @@ test("deployed game methods are a bounded pinned summary of all reviewed catalog
   assert.match(methodSummaryBuilder, /records\.length !== 37/);
   assert.match(methodSummaryBuilder, /methods\.length > 50/);
 });
+test("themed-run metadata is pinned and covers every reviewed encounter profile", () => {
+  const catalogFiles = fs.readdirSync(new URL("../data/nuzlocke/", import.meta.url))
+    .filter((name) => /^pokemon-(?!.*-evolutions\.).*\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\.json$/.test(name));
+  assert.equal(themeMetadata.source_commit, verifiedGameMethods.source_commit);
+  assert.equal(Object.keys(themeMetadata.games).length, 37);
+  assert.ok(Object.keys(themeMetadata.profiles).length >= 1000);
+  for (const file of catalogFiles) {
+    const catalog = JSON.parse(fs.readFileSync(new URL(`../data/nuzlocke/${file}`, import.meta.url), "utf8"));
+    const gameTheme = themeMetadata.games[catalog.game.game_key];
+    assert.ok(gameTheme);
+    assert.ok(gameTheme.types.length > 0 && gameTheme.types.length <= 18);
+    assert.ok(gameTheme.colors.length > 0 && gameTheme.colors.length <= 10);
+    const profileIds = new Set([...catalog.encounters, ...(catalog.game.starters || [])].map((row) => row.pokemon_id));
+    assert.ok([...profileIds].every((pokemonId) => themeMetadata.profiles[pokemonId]));
+    assert.ok([...profileIds].every((pokemonId) => typeof themeMetadata.profiles[pokemonId].has_evolution === "boolean"));
+    assert.ok(gameTheme.can_evolve.every((pokemonId) => profileIds.has(pokemonId)));
+  }
+  assert.match(themeMetadataBuilder, /Expected 37 reviewed game catalogs/);
+  assert.match(themeMetadataBuilder, /PokeAPI theme metadata is incomplete/);
+});
 test("Generation II artifacts and migrations stay exact, pending-first, and version-specific", () => {
   const expected={gold:{locations:125,encounters:2830},silver:{locations:125,encounters:2830},crystal:{locations:127,encounters:3193}};
   for(const [game,records] of Object.entries(gen2Artifacts)){
@@ -839,9 +870,13 @@ test("server route uses public RLS catalog access and privileged rate limiting",
   assert.match(route, /order\("release_order", \{ ascending: true \}\)/);
   assert.match(route, /limit\(100\)/);
   assert.match(route, /summary\.source_commit !== sourceCommit/);
+  assert.match(route, /pokemonThemeMetadata\.source_commit !== sourceCommit/);
+  assert.match(route, /themes\[game\.game_key\]/);
   assert.match(route, /consumeUserRateLimit\(adminClient/);
   assert.match(route, /get_verified_nuzlocke_encounters/);
   assert.doesNotMatch(route, /adminClient\.from\("pokemon_games"/);
+  assert.match(route, /allAreas: body\.allAreas === true/);
+  assert.match(route, /themeCatalog: \{ \.\.\.gameTheme, profiles: pokemonThemeMetadata\.profiles \}/);
 });
 test("final evolution requests require source-matched pinned game catalogs", () => {
   for(const game of ["red","blue","yellow","gold","silver","crystal","ruby","sapphire","emerald","firered","leafgreen","diamond","pearl","platinum","heartgold","soulsilver","black","white"]) assert.match(route,new RegExp(`${game}: ${game}EvolutionCatalog`));
@@ -858,21 +893,40 @@ test("final evolution requests require source-matched pinned game catalogs", () 
   assert.match(route, /Final evolution data is not verified/);
   assert.match(route, /MAX_CATALOG_ENCOUNTERS = 16000/);
 });
-test("final evolution mode is shareable and the UI explains team codes and both random styles", () => {
+test("run configuration is shareable and the UI explains seeds, weighting, length, themes, and both random styles", () => {
   assert.match(lab, /params\.get\("evolutions"\) === "final"/);
   assert.match(lab, /url\.searchParams\.set\("evolutions", "final"\)/);
   assert.match(lab, /finalEvolutionOnly/);
   assert.match(lab, /Catch \$\{entry\.encounter_pokemon_name\}/);
-  assert.match(lab, /Team code/);
+  assert.match(lab, /Randomizer seed/);
+  assert.match(lab, /Run name/);
+  assert.match(lab, /Save setup/);
+  assert.match(lab, /Save team/);
+  assert.match(lab, /Download team/);
+  assert.match(lab, /normalizeSavedNuzlockeResult/);
+  assert.match(lab, /url\.searchParams\.set\("saved", saved\.id\)/);
+  assert.match(lab, /new Blob\(\[text\]/);
+  assert.match(lab, /One Pokémon per route\/area/);
+  assert.match(lab, /Select Team Size/);
+  assert.match(lab, /Build the full run/);
+  assert.match(lab, /max="20"/);
+  assert.doesNotMatch(lab, /more than 12/);
+  assert.match(lab, /aria-pressed=\{allAreas\}/);
+  assert.match(lab, /Equal chance per eligible encounter/);
+  assert.match(lab, /Authentic in-game encounter odds/);
+  assert.match(lab, /Pokémon color/);
+  assert.match(lab, /Base-stage Pokémon only/);
+  assert.match(lab, /params\.get\("length"\) === "all-areas"/);
+  assert.match(lab, /url\.searchParams\.set\("length", "all-areas"\)/);
   assert.doesNotMatch(lab, /Room code/);
-  assert.match(lab, /Build a Nuzlocke Team/);
+  assert.match(lab, /Build a Nuzlocke Draft/);
   assert.doesNotMatch(lab, /Build a seeded Run Card/);
   assert.doesNotMatch(lab, /Generate Run Card/);
   assert.match(lab, /Route-first random/);
   assert.match(lab, /Encounter-pool random/);
   assert.match(
     lab,
-    /locations with more eligible entries can appear more often/,
+    /locations with more eligible entries can be selected earlier/,
   );
 });
 test("game-specific condition filters are restored and shared without leaking between games", () => {
