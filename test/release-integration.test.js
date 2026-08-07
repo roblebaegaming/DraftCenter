@@ -50,9 +50,9 @@ test("integrated quick links expose each released feature once", () => {
   for (const path of ["/nuzlocke", "/tournaments", "/trainer-dex"]) {
     assert.equal((links.match(new RegExp(`href=\"${path}\"`, "g")) || []).length, 1);
   }
-  assert.match(links, /href="\/nuzlocke">Nuzlockes<\/a>/);
+  assert.match(links, /href="\/nuzlocke"[^>]*>[\s\S]*?quick-label-wide">Nuzlockes<\/span>/);
   assert.match(nuzlocke, />NUZLOCKE DRAFT<\/span>/);
-  assert.match(links, /signedIn&&<a href="\/trainer-dex">Trainer Dex<\/a>/);
+  assert.match(links, /signedIn && <a href="\/trainer-dex"[^>]*>[\s\S]*?quick-label-wide">Trainer Dex<\/span>/);
   assert.doesNotMatch(links, /href="\/(resources|support)"/);
 });
 

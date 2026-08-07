@@ -337,3 +337,132 @@ button { cursor: pointer; }
 .trainer-dex-shell{min-height:100vh;padding:28px max(16px,calc((100vw - 1160px)/2)) 70px;color:#edebfa;background:radial-gradient(circle at 80% 0,rgba(255,210,63,.15),transparent 32%),radial-gradient(circle at top left,#17334b,#080b18 58%)}.trainer-dex-hero{display:flex;align-items:end;justify-content:space-between;gap:24px;margin:34px 0 24px}.trainer-dex-hero>div{max-width:780px}.trainer-dex-hero h1{margin:8px 0;font-size:clamp(2.3rem,6vw,4.8rem);line-height:1}.trainer-dex-hero p{color:#bac4e7;line-height:1.55}.trainer-dex-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.trainer-dex-summary article{padding:18px;border:1px solid #304267;border-radius:14px;background:rgba(17,22,43,.86)}.trainer-dex-summary strong{display:block;color:#4fd1c5;font-size:2rem}.trainer-dex-summary .shiny strong{color:#ffd23f}.trainer-dex-summary span{color:#abb5db;font-size:13px}.trainer-dex-controls{display:flex;align-items:center;gap:12px;margin:24px 0}.trainer-dex-controls input[type=text],.trainer-dex-controls>input,.trainer-dex-controls select{padding:11px 12px;border:1px solid #3a456e;border-radius:9px;background:#10162b;color:#fff}.trainer-dex-controls>input{flex:1}.trainer-dex-controls label{display:flex;align-items:center;gap:7px}.trainer-dex-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px}.trainer-dex-card{overflow:hidden;padding:15px;border:1px solid #2a3559;border-radius:16px;background:#11162b}.trainer-dex-card.is-shiny{border-color:rgba(255,210,63,.72);box-shadow:0 0 24px rgba(255,210,63,.12)}.trainer-dex-art{position:relative;display:grid;place-items:center;height:155px;border-radius:12px;background:radial-gradient(circle,#26375d,#0b1020)}.trainer-dex-art img{width:140px;height:140px;object-fit:contain}.trainer-dex-art b{position:absolute;top:8px;right:8px;padding:4px 7px;border-radius:99px;color:#191405;background:#ffd23f;font-size:10px}.trainer-dex-card h2{margin:12px 0 8px;font-size:1.1rem}.trainer-dex-card p{color:#909bc3;font-size:12px}.trainer-dex-card>a{color:#ffd23f;font-size:12px;font-weight:800;text-decoration:none}.trainer-dex-sources{display:flex;flex-wrap:wrap;gap:5px}.trainer-dex-sources span{padding:4px 6px;border-radius:99px;color:#bdf7ee;background:#1c3151;font-size:10px}.trainer-dex-empty{padding:48px;text-align:center;border:1px dashed #3a456e;border-radius:16px}.trainer-shiny-popup>div{font-size:5rem}@media(max-width:850px){.trainer-dex-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.trainer-dex-summary{grid-template-columns:repeat(2,1fr)}}@media(max-width:560px){.trainer-dex-hero{align-items:start;flex-direction:column}.trainer-dex-controls{align-items:stretch;flex-direction:column}.trainer-dex-grid{grid-template-columns:1fr}}
 .competitive-profile{display:grid;gap:14px}.competitive-observation-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.competitive-observation-grid article{display:grid;align-content:start;gap:7px;padding:16px;border:1px solid #34416b;border-radius:13px;background:#151c35}.competitive-observation-grid h3{margin:0}.competitive-observation-grid>article>strong{color:#4fd1c5;font-size:1.55rem}.competitive-observation-grid p{margin:0;color:#d7dcf1}.competitive-observation-grid small{color:#98a3c8;line-height:1.45}.competitive-observation-grid a{color:#ffd23f;font-size:12px;font-weight:800;text-decoration:none}@media(max-width:620px){.competitive-observation-grid{grid-template-columns:1fr}}
 .tournament-pokemon-profile,.tournament-pokemon-profile>section{display:grid;gap:14px}.tournament-pokemon-profile>section>header{display:flex;align-items:start;justify-content:space-between;gap:18px}.tournament-pokemon-profile h3,.tournament-pokemon-profile h4{margin:4px 0}.tournament-pokemon-profile>section>header>small{color:#9ca7cc;white-space:nowrap}.tournament-result-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}.tournament-result-metrics article{padding:13px;border:1px solid #34416b;border-radius:11px;background:#151c35}.tournament-result-metrics strong,.tournament-result-metrics span,.tournament-result-metrics small{display:block}.tournament-result-metrics strong{color:#ffd23f;font-size:1.45rem}.tournament-result-metrics span{margin:3px 0;color:#f1f3ff;font-weight:800}.tournament-result-metrics small{color:#929dc2;line-height:1.4}.tournament-pokemon-finishes{display:grid;gap:7px}.tournament-pokemon-finishes a{display:grid;gap:3px;padding:11px 13px;border:1px solid #303b61;border-radius:9px;color:#f0f2ff;text-decoration:none;background:#11172d}.tournament-pokemon-finishes a:hover{border-color:#ffd23f}.tournament-pokemon-finishes span{color:#9da8cc;font-size:11px}@media(max-width:850px){.tournament-result-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:560px){.tournament-pokemon-profile>section>header{display:grid}.tournament-result-metrics{grid-template-columns:1fr}}
+
+/* Global navigation keeps discovery, account, tools, and reference links in
+   distinct places. The mobile tool bar uses five equal slots instead of a
+   horizontally scrolling pill. */
+.site-global-header {
+  position: relative;
+  z-index: 90;
+  color: #eef1ff;
+  border-bottom: 1px solid rgba(255,255,255,.09);
+  background: rgba(10,14,31,.98);
+}
+.site-global-header-inner {
+  display: grid;
+  grid-template-columns: auto minmax(0,1fr) auto;
+  align-items: center;
+  gap: 22px;
+  min-height: 60px;
+  padding: 9px max(16px,calc((100vw - 1160px)/2));
+}
+.site-brand-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: #fff;
+  font-weight: 950;
+  letter-spacing: .04em;
+  text-decoration: none;
+}
+.site-brand-link img { width: 34px; height: 34px; object-fit: cover; border-radius: 8px; }
+.site-primary-links,.site-global-account { display: flex; align-items: center; gap: 7px; }
+.site-global-account { justify-content: flex-end; }
+.site-primary-links a,.site-global-account>a,.site-global-account>button,.site-owner-menu>summary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  padding: 7px 10px;
+  color: #d9def3;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 850;
+  line-height: 1;
+  text-decoration: none;
+}
+.site-global-account>button { cursor: pointer; }
+.site-primary-links a:hover,.site-global-account>a:hover,.site-global-account>button:hover,.site-owner-menu>summary:hover,
+.site-primary-links a.is-active { color: #10121c; border-color: #ffd23f; background: #ffd23f; }
+.site-account-name { max-width: 160px; overflow: hidden; color: #9fadd8; font-size: 12px; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
+.site-owner-menu { position: relative; }
+.site-owner-menu>summary { max-width: 160px; overflow: hidden; color: #9fadd8; cursor: pointer; list-style: none; text-overflow: ellipsis; white-space: nowrap; }
+.site-owner-menu>summary::-webkit-details-marker { display: none; }
+.site-owner-menu>div {
+  position: absolute;
+  top: calc(100% + 7px);
+  right: 0;
+  display: grid;
+  gap: 4px;
+  min-width: 150px;
+  padding: 7px;
+  border: 1px solid #3b466e;
+  border-radius: 10px;
+  background: #11162b;
+  box-shadow: 0 14px 38px rgba(0,0,0,.45);
+}
+.site-owner-menu>div a { padding: 9px 10px; color: #eef1ff; border-radius: 7px; font-size: 12px; font-weight: 800; text-decoration: none; }
+.site-owner-menu>div a:hover { color: #10121c; background: #ffd23f; }
+
+.site-quick-links { gap: 5px; }
+.site-quick-links a { border: 1px solid transparent; }
+.site-quick-links a.is-active { color: #10121c; border-color: #ffd23f; background: #ffd23f; }
+.quick-label-compact { display: none; }
+
+.site-legal-footer { padding: 34px max(18px,calc((100vw - 1160px)/2)) 30px; }
+.site-footer-links { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 28px; max-width: 880px; }
+.site-footer-group h2 { margin: 0 0 11px; color: #f0f2ff; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; }
+.site-legal-footer .site-footer-group nav { display: grid; gap: 8px; margin: 0; }
+.site-footer-group a { width: max-content; max-width: 100%; }
+.site-footer-notes { max-width: 1000px; margin-top: 24px; padding-top: 17px; border-top: 1px solid #242d4d; }
+
+@media (max-width:760px) {
+  .site-global-header-inner { grid-template-columns: minmax(0,1fr) auto; gap: 7px 10px; min-height: 0; padding: 8px 12px 9px; }
+  .site-brand-link { grid-column: 1; grid-row: 1; min-width: 0; font-size: 14px; }
+  .site-brand-link img { display: none; }
+  .site-primary-links { grid-column: 1/-1; grid-row: 2; display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 5px; }
+  .site-primary-links a { min-height: 32px; padding: 6px; border-color: #283252; background: #13192e; }
+  .site-global-account { grid-column: 2; grid-row: 1; min-width: 0; gap: 4px; }
+  .site-global-account>a,.site-global-account>button,.site-owner-menu>summary { min-height: 30px; padding: 6px 7px; font-size: 11px; }
+  .site-account-name,.site-owner-menu>summary { max-width: 74px; }
+  .hub-shell { padding: 28px 16px 96px; }
+  .site-quick-links {
+    left: 8px;
+    right: 8px;
+    bottom: max(8px,env(safe-area-inset-bottom));
+    display: grid;
+    grid-template-columns: repeat(5,minmax(0,1fr));
+    gap: 2px;
+    width: auto;
+    max-width: none;
+    padding: 5px;
+    overflow: visible;
+    border-radius: 14px;
+  }
+  .site-quick-links a {
+    min-width: 0;
+    min-height: 44px;
+    padding: 7px 2px;
+    font-size: 10px;
+    line-height: 1.15;
+    text-align: center;
+    white-space: normal;
+  }
+  .site-legal-footer { padding: 29px 18px calc(92px + env(safe-area-inset-bottom)); }
+  .site-footer-links { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 25px 18px; }
+  .site-footer-group:last-child { grid-column: 1/-1; }
+  .site-footer-notes { margin-top: 22px; }
+}
+
+@media (max-width:340px) {
+  .site-global-header-inner { padding-right: 8px; padding-left: 8px; }
+  .site-brand-link { font-size: 12px; }
+  .site-account-name,.site-owner-menu>summary { max-width: 58px; }
+  .site-global-account>a,.site-global-account>button,.site-owner-menu>summary { padding-right: 5px; padding-left: 5px; font-size: 10px; }
+  .site-quick-links { left: 5px; right: 5px; }
+  .site-quick-links a { font-size: 10px; }
+  .quick-label-wide { display: none; }
+  .quick-label-compact { display: inline; }
+}
