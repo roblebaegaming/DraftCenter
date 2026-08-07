@@ -1,5 +1,7 @@
 const MODES = new Set(["route-random", "true-random"]);
 const WEIGHTING = new Set(["equal", "authentic"]);
+const EVOLUTION_STAGES = new Set(["any", "base", "not-final", "non-evolving"]);
+const MAX_ALL_AREA_SIZE = 250;
 
 function seedHash(value) {
   let hash = 2166136261;
@@ -106,13 +108,40 @@ function matchesConditionSelections(entry, options) {
   return true;
 }
 
+function themeSettings(options) {
+  const type = String(options.themeType || "any");
+  const color = String(options.themeColor || "any");
+  const evolutionStage = String(options.evolutionStage || "any");
+  const catalog = options.themeCatalog;
+  if (!EVOLUTION_STAGES.has(evolutionStage)) throw new Error("Unknown Nuzlocke evolution-stage theme.");
+  if (type !== "any" && !catalog?.types?.includes(type)) throw new Error("Unknown Nuzlocke type theme.");
+  if (color !== "any" && !catalog?.colors?.includes(color)) throw new Error("Unknown Nuzlocke color theme.");
+  return { type, color, evolutionStage, catalog };
+}
+
+function matchesTheme(entry, theme) {
+  if (theme.type === "any" && theme.color === "any" && theme.evolutionStage === "any") return true;
+  const pokemonId = Number(entry?.encounter_pokemon_id || entry?.pokemon_id);
+  const profile = theme.catalog?.profiles?.[pokemonId];
+  if (!profile) throw new Error("Nuzlocke theme data is incomplete for this game's encounter pool.");
+  if (theme.type !== "any" && !profile.types?.includes(theme.type)) return false;
+  if (theme.color !== "any" && profile.color !== theme.color) return false;
+  const canEvolve = theme.catalog.can_evolve?.includes(pokemonId) === true;
+  if (theme.evolutionStage === "base" && profile.base_stage !== true) return false;
+  if (theme.evolutionStage === "not-final" && !canEvolve) return false;
+  if (theme.evolutionStage === "non-evolving" && (profile.base_stage !== true || profile.has_evolution !== false)) return false;
+  return true;
+}
+
 export function generateNuzlockeTeam(encounters, options = {}) {
   const mode = String(options.mode || "");
   const weighting = String(options.weighting || "equal");
   const teamSize = Number(options.teamSize);
+  const allAreas = options.allAreas === true;
   if (!MODES.has(mode)) throw new Error("Unknown Nuzlocke selection mode.");
   if (!WEIGHTING.has(weighting)) throw new Error("Unknown Nuzlocke weighting mode.");
-  if (!Number.isInteger(teamSize) || teamSize < 1 || teamSize > 12) throw new Error("Team size must be between 1 and 12.");
+  if (!allAreas && (!Number.isInteger(teamSize) || teamSize < 1 || teamSize > 12)) throw new Error("Team size must be between 1 and 12.");
+  const theme = themeSettings(options);
   const conditionGroups = Array.isArray(options.conditionGroups) ? options.conditionGroups : [];
   const conditionSelections = options.conditionSelections && typeof options.conditionSelections === "object" ? options.conditionSelections : {};
   for (const [groupId, value] of Object.entries(conditionSelections)) {
@@ -123,7 +152,7 @@ export function generateNuzlockeTeam(encounters, options = {}) {
   const excluded = new Set((options.exclusions || []).map((value) => String(value).toLowerCase()));
   const sourceStarterChoices = Array.isArray(options.starters) ? options.starters.filter((entry) => {
     const identities = [entry?.pokemon_name, entry?.pokemon_id].filter((value) => value != null).map((value) => String(value).toLowerCase());
-    return entry?.pokemon_name && !identities.some((value) => excluded.has(value));
+    return entry?.pokemon_name && !identities.some((value) => excluded.has(value)) && matchesTheme(entry, theme);
   }) : [];
   const starterChoices = options.includeStarter
     ? applyFinalEvolutions(sourceStarterChoices, options).filter((entry) => {
@@ -144,7 +173,6 @@ export function generateNuzlockeTeam(encounters, options = {}) {
       if (matchingOption) effectiveConditionSelections[group.id] = matchingOption.value;
     }
   }
-  const encounterTeamSize = Math.max(0, teamSize - (starter ? 1 : 0));
   const preparedEncounters = applyFinalEvolutions(encounters || [], options);
   const methods = new Set((options.methods || []).map((value) => String(value).toLowerCase()));
   const eligible = preparedEncounters.filter((entry) => {
@@ -157,6 +185,7 @@ export function generateNuzlockeTeam(encounters, options = {}) {
     if (options.familyClause && starter && String(entry.species_family || entry.pokemon_id).toLowerCase() === String(starter.species_family || starter.pokemon_id).toLowerCase()) return false;
     if (methods.size && !methods.has(String(entry.method || "").toLowerCase())) return false;
     if (!matchesConditionSelections(entry, { ...options, conditionSelections: effectiveConditionSelections })) return false;
+    if (!matchesTheme(entry, theme)) return false;
     return true;
   });
   const byArea = new Map();
@@ -164,6 +193,9 @@ export function generateNuzlockeTeam(encounters, options = {}) {
     if (!byArea.has(entry.area_key)) byArea.set(entry.area_key, []);
     byArea.get(entry.area_key).push(entry);
   }
+  if (allAreas && byArea.size > MAX_ALL_AREA_SIZE) throw new Error("This game has too many eligible areas to generate safely.");
+  const encounterTeamSize = allAreas ? byArea.size : Math.max(0, teamSize - (starter ? 1 : 0));
+  const requested = encounterTeamSize + (starter ? 1 : 0);
 
   const random = seededRandom(`${options.seed}:${mode}:${weighting}`);
   let areaOrder;
@@ -212,11 +244,13 @@ export function generateNuzlockeTeam(encounters, options = {}) {
   const team = starter ? [{ ...starter, area_key: "starter-choice", area_name: "Starter choice", method: "starter", chance: 100, conditions: [] }, ...selected] : selected;
   return {
     team,
-    complete: team.length === teamSize,
-    requested: teamSize,
+    complete: team.length === requested,
+    requested,
     available: team.length,
+    allAreas,
     includeStarter: options.includeStarter === true,
     conditionSelections: effectiveConditionSelections,
     finalEvolutionOnly: options.finalEvolutionOnly === true,
+    theme: { type: theme.type, color: theme.color, evolutionStage: theme.evolutionStage },
   };
 }

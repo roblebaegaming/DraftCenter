@@ -7,10 +7,9 @@ function source(path) {
 }
 
 const contract = JSON.parse(source("src/lib/nuzlockeGameGuides.json"));
-const expectedSlugs = ["fire-red", "emerald", "platinum", "scarlet"];
-
-test("the first Nuzlocke game-guide cohort is bounded and catalog-derived", () => {
-  assert.deepEqual(contract.games.map(({ slug }) => slug), expectedSlugs);
+test("all reviewed Nuzlocke games have complete catalog-derived guides", () => {
+  assert.equal(contract.games.length, 37);
+  assert.deepEqual(contract.games.map(({ gameKey }) => gameKey), [...contract.games.map(({ gameKey }) => gameKey)].sort((a, b) => contract.games.find((game) => game.gameKey === a).releaseOrder - contract.games.find((game) => game.gameKey === b).releaseOrder));
   assert.equal(contract.sourceCommit, "5064f1d72746b3a6a931616dae3fb6445c556d4f");
   for (const guide of contract.games) {
     const catalog = JSON.parse(source(`data/nuzlocke/pokemon-${guide.gameKey}.pokeapi-${contract.sourceCommit}.json`));
@@ -18,11 +17,11 @@ test("the first Nuzlocke game-guide cohort is bounded and catalog-derived", () =
     assert.equal(guide.displayName, catalog.game.display_name);
     assert.equal(guide.generation, catalog.game.generation);
     assert.equal(guide.family, catalog.game.family);
-    assert.equal(guide.counts.encounters, catalog.encounters.length);
     assert.equal(guide.counts.locations, catalog.locations.length);
     assert.equal(guide.counts.methods, methods.length);
+    assert.equal(guide.counts.pokemon, new Set(catalog.encounters.map(({ pokemon_id, form_name }) => `${pokemon_id}:${form_name || ""}`)).size);
     assert.deepEqual([...guide.methods].sort(), methods);
-    assert.deepEqual(guide.starters.map(({ pokemonId, name }) => [pokemonId, name]), catalog.game.starters.map(({ pokemon_id, pokemon_name }) => [pokemon_id, pokemon_name]));
+    if (catalog.game.starters) assert.deepEqual(guide.starters.map(({ pokemonId, name }) => [pokemonId, name]), catalog.game.starters.map(({ pokemon_id, pokemon_name }) => [pokemon_id, pokemon_name]));
     for (const condition of guide.conditions) {
       const catalogCondition = catalog.game.condition_groups.find(({ id }) => id === condition.id);
       assert.ok(catalogCondition, `${guide.gameKey} should contain ${condition.id}`);
@@ -35,6 +34,7 @@ test("the first Nuzlocke game-guide cohort is bounded and catalog-derived", () =
       assert.ok(catalogArea, `${guide.gameKey} should contain ${area.areaKey}`);
       assert.equal(area.label, catalogArea.display_name);
       assert.ok(catalog.encounters.some(({ area_key }) => area_key === area.areaKey), `${area.areaKey} should have encounter rows`);
+      for (const method of area.methods) for (const pokemon of method.pokemon) assert.ok(catalog.encounters.some((row) => row.area_key === area.areaKey && row.method === method.method && row.pokemon_id === pokemon.pokemonId), `${area.areaKey} ${method.method} should include ${pokemon.name}`);
     }
     const generatorUrl = new URL(guide.generatorHref, "https://www.draftcentral.gg");
     assert.equal(generatorUrl.pathname, "/nuzlocke");
@@ -56,6 +56,9 @@ test("game guides are static, canonical, structured, and internally linked", () 
   assert.match(page, /"@type": "Article"/);
   assert.match(page, /"@type": "BreadcrumbList"/);
   assert.match(page, /guide\.generatorHref/);
+  assert.doesNotMatch(page, /encounter rows/i);
+  assert.match(page, /guide\.areas\.map/);
+  assert.match(page, /method\.pokemon\.map/);
   assert.match(page, /href={`\/pokemon\/\$\{starter\.profileSlug\}`}/);
   assert.match(landing, /nuzlockeGameGuides\.games\.map/);
   assert.match(sitemap, /nuzlockeGameGuides\.games\.map/);

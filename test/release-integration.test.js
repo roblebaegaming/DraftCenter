@@ -50,7 +50,7 @@ test("integrated quick links expose each released feature once", () => {
     assert.equal((links.match(new RegExp(`href=\"${path}\"`, "g")) || []).length, 1);
   }
   assert.match(links, /href="\/nuzlocke">Nuzlockes<\/a>/);
-  assert.match(nuzlocke, />NUZLOCKE DRAFT<\/span>/);
+  assert.match(nuzlocke, />NUZLOCKE LAB<\/span>/);
   assert.match(links, /signedIn&&<a href="\/trainer-dex">Trainer Dex<\/a>/);
   assert.doesNotMatch(links, /href="\/(resources|support)"/);
 });

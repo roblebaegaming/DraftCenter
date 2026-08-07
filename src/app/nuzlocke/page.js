@@ -3,9 +3,9 @@ import nuzlockeGameGuides from "../../lib/nuzlockeGameGuides.json";
 
 export const metadata = {
   title: "Pokémon Nuzlocke Team Generator by Game",
-  description: "Build a repeatable Pokémon Nuzlocke team from verified encounters by game, route, method, level, and encounter odds, then share the same rules and result.",
+  description: "Build, save, and download a repeatable Pokémon Nuzlocke team with one encounter per area, game-specific rules, themes, and verified encounter odds.",
   alternates: { canonical: "/nuzlocke" },
-  keywords: ["Pokémon Nuzlocke generator", "Nuzlocke encounter generator", "Pokémon random team generator", "Nuzlocke team code"],
+  keywords: ["Pokémon Nuzlocke generator", "Nuzlocke encounter generator", "one Pokémon per area", "themed Nuzlocke", "Nuzlocke randomizer seed"],
   openGraph: {
     type: "website",
     title: "Pokémon Nuzlocke Team Generator by Game",
@@ -26,7 +26,7 @@ export default function NuzlockePage() {
         operatingSystem: "Any",
         isAccessibleForFree: true,
         description: "A repeatable Nuzlocke team generator using verified, game-specific Pokémon encounters.",
-        featureList: ["Game-specific encounters", "Shareable Team code results", "Route-first and encounter-pool random modes", "Species clause", "Encounter-method filters"],
+        featureList: ["Game-specific encounters", "Saved teams and downloadable Run Cards", "Shareable repeatable runs", "One encounter per eligible area", "Type, color, and evolution-stage themes", "Route-first and encounter-pool random modes", "Species clause"],
       },
       {
         "@type": "BreadcrumbList",
@@ -44,7 +44,7 @@ export default function NuzlockePage() {
     <section className="explore-card nuzlocke-seo-guide" aria-labelledby="nuzlocke-guide-title">
       <span className="eyebrow">HOW IT WORKS</span>
       <h2 id="nuzlocke-guide-title">A repeatable Nuzlocke encounter generator</h2>
-      <p>Choose a verified Pokémon game, a team size, and a Team code. Route-first random gives each eligible location equal priority, while encounter-pool random draws across every eligible encounter entry. Anyone opening a shared team link can use the same setup and reproduce the same team.</p>
+      <p>Choose a verified Pokémon game, name your run, and keep its randomizer seed to reproduce the same encounters. Build a compact team or request one encounter from every eligible area, then save its setup and generated team in your browser, download a readable Run Card, or share its exact rules by link.</p>
       <div className="pokemon-detail-grid">
         <section>
           <h3>Use game-specific encounter data</h3>
@@ -52,7 +52,7 @@ export default function NuzlockePage() {
         </section>
         <section>
           <h3>Set your Nuzlocke clauses</h3>
-          <p>Include a starter, apply an evolutionary-family clause, exclude legendary Pokémon or named species, filter encounter methods, and choose equal selection or authentic encounter-odds weighting. If the rules leave too few choices, the generator says so instead of silently relaxing them.</p>
+          <p>Include a starter, apply an evolutionary-family clause, filter methods and game-specific conditions, or build a themed run by Pokémon type, official Pokédex color, or evolution stage. Equal weighting gives every eligible encounter the same chance; authentic weighting uses the reviewed in-game rates.</p>
         </section>
       </div>
       <aside className="seo-next-step">
@@ -63,7 +63,7 @@ export default function NuzlockePage() {
       <section className="nuzlocke-guide-index" aria-labelledby="nuzlocke-game-guides-title">
         <span className="eyebrow">GAME-SPECIFIC GUIDES</span>
         <h2 id="nuzlocke-game-guides-title">Start with a reviewed encounter catalog</h2>
-        <p>The first four guides publish exact catalog totals, starters, encounter controls, representative areas, and a preconfigured link back into the generator.</p>
+        <p>Choose any supported main-series game for a complete route-by-route guide. Open an area to see every available Pokémon, then open an encounter method to see exactly how each one is found.</p>
         <div>{nuzlockeGameGuides.games.map((game) => <a key={game.slug} href={`/nuzlocke/${game.slug}`}><strong>{game.displayName} Nuzlocke guide</strong><span>{game.counts.locations} areas · {game.counts.methods} methods</span></a>)}</div>
       </section>
     </section>
