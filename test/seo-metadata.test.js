@@ -32,6 +32,27 @@ test("sitemap contains only indexable routes and truthful modification dates", (
   assert.match(sitemap, /\["\/about", "monthly", 0\.7\]/);
 });
 
+test("the Nuzlocke generator is crawlable, internally linked, and uses current product language", () => {
+  const page = source("src/app/nuzlocke/page.js");
+  const lab = source("src/components/NuzlockeLab.jsx");
+  const pokemonHome = source("src/app/pokemon/page.js");
+  const resources = source("src/components/ResourcesPage.jsx");
+  const sitemap = source("src/app/sitemap.js");
+
+  assert.match(page, /Pokémon Nuzlocke Team Generator by Game/);
+  assert.match(page, /"@type": "WebApplication"/);
+  assert.match(page, /"@type": "BreadcrumbList"/);
+  assert.match(page, /Choose a verified Pokémon game, a team size, and a Team code/);
+  assert.match(page, /Route-first random gives each eligible location equal priority/);
+  assert.match(page, /Include a starter/);
+  assert.match(lab, /pokemonProfileSlugForName\(entry\.pokemon_name\)/);
+  assert.match(lab, /href={`\/pokemon\/\$\{profileSlug\}`}/);
+  assert.match(pokemonHome, /href="\/nuzlocke">Build a Nuzlocke Team/);
+  assert.match(resources, /href="\/nuzlocke"/);
+  assert.match(sitemap, /\["\/nuzlocke", "weekly", 0\.9\]/);
+  assert.doesNotMatch(page, /Build a seeded Run Card/);
+});
+
 test("Pokémon profiles have crawlable indexes and complete core facts", () => {
   const pokemonHome = source("src/app/pokemon/page.js");
   const profile = source("src/app/pokemon/[name]/page.js");
