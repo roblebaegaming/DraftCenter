@@ -39,6 +39,8 @@ const DEFAULT_PROFILE_BY_SPECIES = {
 // PokéAPI uses species-first slugs. Keep these aliases at the public-route
 // boundary so league legality and draft-board names remain untouched.
 const EXPLICIT_PROFILE_ALIASES = {
+  "farfetch-d": "farfetchd",
+  "sirfetch-d": "sirfetchd",
   "white-striped-basculin": "basculin-white-striped",
   "calyrex-shadow-rider": "calyrex-shadow",
   "calyrex-ice-rider": "calyrex-ice",
@@ -54,6 +56,16 @@ export function pokemonRouteSlug(value) {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "");
+}
+
+// Canonical profile routes follow the resolved PokéAPI battle/stat endpoint.
+// Species varieties remain separate when PokéAPI gives them distinct Pokémon
+// records; cosmetic appearances within one record stay grouped on that page.
+// Do not collapse a non-default record merely because it is a form: typing,
+// stats, abilities, or competitive identity may be materially different.
+export function pokemonProfileCanonicalPath(resolvedPokemonName) {
+  const slug = pokemonRouteSlug(resolvedPokemonName);
+  return slug ? `/pokemon/${slug}` : "/pokemon";
 }
 
 export function pokemonProfileSlugCandidates(value) {
