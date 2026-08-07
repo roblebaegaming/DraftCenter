@@ -10,6 +10,7 @@ DraftCenter helps communities configure leagues, run snake and auction drafts, m
 - [Pokémon draft league guides](https://www.draftcentral.gg/guides)
 - [Supported draft formats](https://www.draftcentral.gg/formats)
 - [Public Pokémon catalog](https://www.draftcentral.gg/pokemon)
+- [PokÃ©mon Daily Games](https://www.draftcentral.gg/resources/daily-games)
 - [Public leagues](https://www.draftcentral.gg/leagues)
 
 ## Practical guides

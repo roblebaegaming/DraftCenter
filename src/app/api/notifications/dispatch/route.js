@@ -141,7 +141,7 @@ async function deliverCommunityDiscord(supabase, now = new Date()) {
         const bracketSummary = bracketLeader ? `${bracketLeader[0]} led with ${bracketLeader[1]} bracket${bracketLeader[1] === 1 ? "" : "s"}` : "No completed brackets";
         const quizTotal = (quizAnswers || []).length;
         const quizCorrect = (quizAnswers || []).filter((answer) => answer.is_correct).length;
-        await sendDiscordChannelMessage(resultsChannel, `📊 **DraftCenter Daily Three results**\n**Poll:** ${poll.question}\n${pollLeaders}\n**Draft Bracket:** ${bracketSummary}\n**Pokémon Quiz:** ${quizTotal ? Math.round((quizCorrect / quizTotal) * 100) : 0}% correct (${quizCorrect}/${quizTotal})\n\nhttps://www.draftcentral.gg/explore`);
+        await sendDiscordChannelMessage(resultsChannel, `📊 **DraftCenter Daily Three results**\n**Poll:** ${poll.question}\n${pollLeaders}\n**Draft Bracket:** ${bracketSummary}\n**Pokémon Quiz:** ${quizTotal ? Math.round((quizCorrect / quizTotal) * 100) : 0}% correct (${quizCorrect}/${quizTotal})\n\nhttps://www.draftcentral.gg/resources/daily-games`);
         delivered += 1;
       }
     } catch (error) {
@@ -190,7 +190,7 @@ async function deliverDailyThreeResults(supabase) {
     <h2>Poll of the Day</h2><p>${escapeHtml(poll.question)}</p><ul>${rows}</ul><p>Total votes: ${totalVotes}</p>
     <h2>Daily Draft Bracket</h2><p>${(bracketResults || []).length} completed bracket${(bracketResults || []).length === 1 ? "" : "s"}.</p><ul>${championRows}</ul>
     <h2>Daily Pokémon Quiz</h2><p>${escapeHtml(quiz?.prompt || "Yesterday's quiz")}</p><p>${quizTotal ? Math.round((quizCorrect / quizTotal) * 100) : 0}% answered correctly (${quizCorrect} of ${quizTotal}).</p><ul>${quizRows}</ul>
-    <p><a href="https://www.draftcentral.gg/explore">Play today's Daily Three</a></p><p>You can change this email preference in your DraftCenter profile.</p>`;
+    <p><a href="https://www.draftcentral.gg/resources/daily-games">Play today's Daily Three</a></p><p>You can change this email preference in your DraftCenter profile.</p>`;
   let delivered = 0; let skipped = 0; let failed = 0;
   for (const preference of preferences || []) {
     const { error: claimError } = await supabase.from("daily_poll_email_deliveries").insert({ poll_id: poll.id, user_id: preference.user_id });
@@ -218,7 +218,7 @@ async function deliverDailyThreeResults(supabase) {
   const bracketLeader = Object.entries(championTotals).sort(([, a], [, b]) => b - a)[0];
   const bracketSummary = bracketLeader ? `${bracketLeader[0]} led with ${bracketLeader[1]} bracket${bracketLeader[1] === 1 ? "" : "s"}` : "No completed brackets";
   const quizPercent = quizTotal ? Math.round((quizCorrect / quizTotal) * 100) : 0;
-  const discordContent = `📊 **Yesterday's Daily Three results**\n**Poll:** ${poll.question}\n${pollLeaders}\n**Draft Bracket:** ${bracketSummary}\n**Pokémon Quiz:** ${quizPercent}% correct (${quizCorrect}/${quizTotal})\n\n❓ **Today's Question of the Day**\n${todayPoll?.question || "Today's Daily Three is ready."}\nhttps://www.draftcentral.gg/explore`;
+  const discordContent = `📊 **Yesterday's Daily Three results**\n**Poll:** ${poll.question}\n${pollLeaders}\n**Draft Bracket:** ${bracketSummary}\n**Pokémon Quiz:** ${quizPercent}% correct (${quizCorrect}/${quizTotal})\n\n❓ **Today's Question of the Day**\n${todayPoll?.question || "Today's Daily Three is ready."}\nhttps://www.draftcentral.gg/resources/daily-games`;
   for (const league of discordLeagues || []) {
     const { error: claimError } = await supabase.from("daily_three_discord_deliveries").insert({
       league_id: league.league_id,

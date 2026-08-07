@@ -367,7 +367,7 @@ function DailyBracket({ bracket, previous, signedIn, onSaved }) {
       <p>{bracket.completed_brackets || 0} completed community bracket{bracket.completed_brackets === 1 ? "" : "s"}</p>
       <div className="daily-game-actions">
         <button type="button" className="primary-button" onClick={() => downloadBracket(bracket, winners)}>Download my bracket</button>
-        <ShareButton title="My DraftCenter Daily Draft Bracket" text={`My ${bracket.game_date} Daily Draft Bracket champion is ${winners[6]}.`} url="https://www.draftcentral.gg/explore" />
+        <ShareButton title="My DraftCenter Daily Draft Bracket" text={`My ${bracket.game_date} Daily Draft Bracket champion is ${winners[6]}.`} url="https://www.draftcentral.gg/resources/daily-games" />
         <button type="button" className="quiet-button" onClick={() => setWinners([])}>Redo my bracket</button>
       </div>
       <small className="muted">Redoing lets you revise today’s choices. Your saved bracket remains recorded until you complete the replacement, and only your latest completed bracket counts toward community preference data.</small>
@@ -470,7 +470,7 @@ function DailyGameDiscussion({ type, gameId, signedIn }) {
   </details>;
 }
 
-export default function DailyCommunityGames({ signedIn }) {
+export default function DailyCommunityGames({ signedIn, standalone = false }) {
   const [games, setGames] = useState(null);
   const [previous, setPrevious] = useState(null);
   const [badgeEvents, setBadgeEvents] = useState([]);
@@ -492,13 +492,13 @@ export default function DailyCommunityGames({ signedIn }) {
     });
   }, [date]);
   useEffect(() => {
-    if (!signedIn || window.location.pathname !== "/explore") return;
+    if (!signedIn || (window.location.pathname !== "/explore" && !standalone)) return;
     const supabase = createClient();
     supabase.rpc("refresh_my_daily_three_badges").then(({ data }) => setBadgeEvents(data?.events || []));
-  }, [signedIn]);
+  }, [signedIn, standalone]);
   if (message) return <section className="explore-card"><p className="hub-message">{message}</p></section>;
   if (!games) return <section className="explore-card"><p className="muted">Loading today’s community games…</p></section>;
-  async function saved(next){const supabase=createClient();setGames(await addChampionRankings(supabase,next));if(!signedIn)return;const [{data,error},{data:dex}]=await Promise.all([supabase.rpc("refresh_my_daily_three_badges"),supabase.rpc("get_my_trainer_dex")]);setShinyEvents(dex?.new_shinies||[]);if(error)setMessage(error.message);else if(window.location.pathname==="/explore")setBadgeEvents(data?.events||[]);else window.dispatchEvent(new CustomEvent("draftcenter:badge-events",{detail:data?.events||[]}));}
+  async function saved(next){const supabase=createClient();setGames(await addChampionRankings(supabase,next));if(!signedIn)return;const [{data,error},{data:dex}]=await Promise.all([supabase.rpc("refresh_my_daily_three_badges"),supabase.rpc("get_my_trainer_dex")]);setShinyEvents(dex?.new_shinies||[]);if(error)setMessage(error.message);else if(window.location.pathname==="/explore"||standalone)setBadgeEvents(data?.events||[]);else window.dispatchEvent(new CustomEvent("draftcenter:badge-events",{detail:data?.events||[]}));}
   async function dismissBadge(){const event=badgeEvents[0];const supabase=createClient();await supabase.rpc("mark_badge_events_seen",{p_event_ids:[event.id]});setBadgeEvents((current)=>current.slice(1));}
   async function dismissShiny(){const event=shinyEvents[0];const supabase=createClient();await supabase.rpc("mark_trainer_dex_shinies_seen",{p_event_ids:[event.id]});setShinyEvents((current)=>current.slice(1));}
   return <>
