@@ -2,9 +2,12 @@
 
 ## Outcome
 
-The Pokédex versioned move-pool expansion is implemented and fully validated
-locally on branch `codex/versioned-move-pools`, based on main commit `587d4dc`.
-Production and Preview databases are untouched.
+The Pokédex versioned move-pool expansion is implemented and fully validated on
+branch `codex/versioned-move-pools`, based on main commit `587d4dc`. Pull request
+[#65](https://github.com/roblebaegaming/DraftCenter/pull/65) is mergeable with
+all six active checks passing. The Supabase Preview check is skipped because no
+Supabase branch is associated with the pull request. Production and Preview
+databases are untouched.
 
 The Pokédex now exposes 28 separate move-bearing pools across Generations I–IX
 instead of seven incomplete/misconfigured choices. The import contains all
@@ -116,18 +119,17 @@ The production smoke test was not run because this branch is not deployed.
 
 ## Release steps
 
-1. Push the branch and open a protected pull request against `main`.
-2. Let Supabase Preview apply migration 349; verify 32 catalog rows, 28 ready
+1. Review the [Vercel Preview](https://draftcenter-qwstvvmel-rob-lebae.vercel.app)
+   on desktop and mobile with Pikachu, Bulbasaur, Ogerpon, and one Z-A Mega
+   form. Pikachu and its Red/Blue Stadium-gift Surf entry are already verified.
+2. Because Supabase Preview is skipped, apply migration 349 to an isolated
+   non-production database before merge; verify 32 catalog rows, 28 ready
    pools, four retired DLC aliases, RLS enabled, browser SELECT allowed, and
    browser mutation denied.
-3. Review the Vercel Preview on desktop and mobile with Pikachu, Bulbasaur,
-   Ogerpon, and one Z-A Mega form.
-4. Require the full repository checks, secret scan, CodeQL/security analysis,
-   and dependency audit.
-5. After approval, merge through protected `main`, apply migration 349 to the
+3. After approval, merge through protected `main`, apply migration 349 to the
    exact core production project, confirm the deployed commit, and run
    `npm run smoke:production`.
-6. Perform a signed-out production check of Champions, Red/Blue, BDSP, base
+4. Perform a signed-out production check of Champions, Red/Blue, BDSP, base
    Z-A, Mega Dimension, and Scarlet/Violet + DLC before updating
    `docs/CURRENT-STATUS.md`.
 
