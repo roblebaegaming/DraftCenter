@@ -2,6 +2,31 @@
 
 ## Outcome
 
+### August 7 compact guide and directory follow-up (Preview)
+
+Owner mobile feedback prompted a second presentation pass on pull request 67.
+Each game guide now has one disclosure per route or area. Opening it shows the
+complete encounter list immediately, with the encounter method to the left of
+the Pokémon name and the level range to the right. The nested disclosure for
+each method was removed, making long route guides substantially shorter and
+easier to scan on phones.
+
+A new indexable `/nuzlocke/guides` directory contains all 37 reviewed game
+guides, grouped across Generations I–IX. The generator links to the directory,
+individual game guides link back to it, and the directory links to every game
+guide and the Nuzlocke Draft. SEO support includes a canonical URL, unique
+metadata, CollectionPage and ItemList structured data, breadcrumbs, sitemap
+and `llms.txt` entries, updated guide descriptions, and crawlable
+server-rendered copy. No database migration is required.
+
+Local validation passes the complete test suite, all 1,027 National Dex rows,
+the production dependency audit, the 179-page production build, and focused
+Nuzlocke/SEO tests. A 390-by-844 browser review confirmed all 37 directory
+links, nine generation sections, no page-level horizontal overflow, and an
+expanded Pokémon Red Route 6 with eight flat method/Pokémon/level rows and no
+nested disclosures. Production remains unchanged pending owner review and an
+authorized merge of pull request 67.
+
 ### August 7 guide follow-up (released)
 
 Owner feedback identified that the four initial game guides used the technical

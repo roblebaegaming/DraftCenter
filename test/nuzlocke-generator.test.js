@@ -82,7 +82,7 @@ test("generated teams can be safely saved and exported as readable Run Cards",()
   assert.equal(normalizeSavedNuzlockeResult({...generated,team:Array(252).fill(generated.team[0])}),null);
   const url="https://draftcentral.gg/nuzlocke?game=scarlet&seed=ember-seed&name=Scarlet+Ember&length=all-areas&mode=route-random&weighting=authentic&starter=include&type=fire&family=off";
   const rules=nuzlockeRulesFromShareUrl(url);
-  assert.ok(rules.includes("Run length: One encounter per eligible area"));assert.ok(rules.includes("Type theme: Fire"));assert.ok(rules.includes("Evolutionary-family clause: Off"));
+  assert.ok(rules.includes("Draft size: One Pokémon per eligible route/area"));assert.ok(rules.includes("Type theme: Fire"));assert.ok(rules.includes("Evolutionary-family clause: Off"));
   const text=buildNuzlockeRunCardText({runName:"Scarlet Ember",result:generated,rules,shareUrl:url});
   assert.match(text,/Scarlet Ember/);assert.match(text,/1\. Fuecoco — Starter choice — Starter Pokémon/);assert.match(text,/Only 1 of 2 requested results/);assert.match(text,/Recreate this run/);assert.match(text,/draftcentral\.gg\/nuzlocke/);
   assert.equal(nuzlockeRunCardFilename("Pokémon Scarlet: Ember Run","Pokémon Scarlet"),"pokemon-scarlet-ember-run.txt");
