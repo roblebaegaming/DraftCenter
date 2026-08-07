@@ -21,7 +21,7 @@ test("sensitive tournament actions use the accessible in-page confirmation dialo
     "Confirm and advance this result?",
     "Reject this reported result?",
     "Save this result correction?",
-  ]) assert.match(ui, new RegExp(label.replace(/[?&]/g, "\\$&")));
+  ]) assert.ok(ui.includes(label));
 });
 
 test("workspace controls and feedback expose names, landmarks, and live status", () => {
