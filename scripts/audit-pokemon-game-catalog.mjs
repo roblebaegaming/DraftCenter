@@ -16,4 +16,3 @@ for(const game of games||[]){
   const unique=(rows,keyFn)=>new Set((rows||[]).map(keyFn)).size;
   console.log(JSON.stringify({game:game.game_key,name:game.display_name,status:game.encounter_status,source_commit:game.source_commit,pokedex_rows:dex.count||0,unique_species:unique(dex.data,(row)=>row.pokemon_id),forms:unique(encounters.data,(row)=>`${row.pokemon_id}:${row.form_name}`),locations:locations.count||0,encounter_rows:encounters.count||0,methods:unique(encounters.data,(row)=>row.method),conditions:unique(encounters.data,(row)=>JSON.stringify(row.conditions||[]))}));
 }
-

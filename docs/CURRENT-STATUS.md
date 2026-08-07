@@ -1,6 +1,6 @@
 # DraftCenter current status
 
-- Last updated: August 6, 2026
+- Last updated: August 5, 2026
 - Production: https://www.draftcentral.gg
 - Repository: `roblebaegaming/DraftCenter`
 - Production branch: `main`
@@ -29,86 +29,6 @@ request [#38](https://github.com/roblebaegaming/DraftCenter/pull/38) and stacked
 tournament pull request [#39](https://github.com/roblebaegaming/DraftCenter/pull/39)
 must be rebased, renumber their unpublished migrations after production
 migration 260, revalidated in isolated Previews, and released in that order.
-
-Follow-on branch `codex/nuzlocke-gen2` has Pokemon Yellow plus independently
-audited Gold, Silver, and Crystal locally prepared. It adds starter metadata,
-shareable time/swarm/weekday filters, the Bug-Catching Contest, and unpublished
-migrations 267-275. Focused tests and all four source audits pass. Preview
-migration and visual validation remain paused until the isolated Preview
-credential is rotated; none of this follow-on work is in production.
-
-Stacked branch `codex/nuzlocke-gen3` has separate independently audited Ruby,
-Sapphire, Emerald, FireRed, and LeafGreen catalogs locally prepared with
-unpublished migrations 276-285. It covers Hoenn and Sevii encounters, Feebas
-tiles, Rock Smash, starter-dependent roaming beasts, fossils, postgame state,
-and all nine Altering Cave tables. All five source audits, the full application
-suite, the 1,027-row National Dex check, dependency audit, and 108-page build
-pass locally. The migrations have not been applied to Preview or production;
-Preview database and visual validation remain required.
-
-Stacked branch `codex/nuzlocke-gen4` has separate independently audited
-Diamond, Pearl, Platinum, HeartGold, and SoulSilver catalogs locally prepared
-with unpublished migrations 286-295. It covers Sinnoh time windows, swarms,
-Poke Radar, dual-slot cartridges, Trophy Garden, Great Marsh, and Honey Trees,
-plus the remakes' weekday/radio, Bug-Catching Contest, headbutt-tree, Safari
-block, and version-exclusive encounters. All five source audits, 40 focused
-regressions, the full application suite, the 1,027-row National Dex check,
-dependency audit, and 108-page build pass locally. The migrations have not been
-applied to Preview or production; Preview database and visual validation remain
-required.
-
-Stacked branch `codex/nuzlocke-gen5` has separate independently audited Black,
-White, Black 2, and White 2 catalogs locally prepared with unpublished
-migrations 296-303. It covers seasons, phenomenon encounters, exact PKHeX
-swarm tables, weekday-only static encounters, Regi keys, and 70 explicit
-Hidden Grotto rows in each sequel. All four source audits, 42 focused
-regressions, the full application suite, the 1,027-row National Dex check,
-dependency audit, and 108-page build pass locally. The migrations have not
-been applied to Preview or production; Preview database, CI, and visual
-validation remain.
-
-Stacked branch `codex/nuzlocke-gen6` has separate independently audited X, Y,
-Omega Ruby, and Alpha Sapphire catalogs locally prepared with unpublished
-migrations 304-311. It covers hordes, a one-location opt-in Friend Safari,
-starter-matched legendary birds, exact ORAS wild tables, National Pokédex
-DexNav species, rotating Mirage Spots, soaring, schedules, and
-version-exclusive forms. No schema change was required. All four source
-audits, 44 focused regressions, the full application suite, all 1,027 National
-Dex rows, the production dependency audit, and a 108-page production build
-pass locally. Preview database, CI, and visual validation remain; nothing from
-this stack is in production.
-
-Stacked branch `codex/nuzlocke-gen7` has separate independently audited Sun,
-Moon, Ultra Sun, Ultra Moon, Let's Go Pikachu, and Let's Go Eevee catalogs
-locally prepared with unpublished migrations 312-323. It covers SOS allies,
-weekday Island Scan, Poké Pelago, one-location Ultra Warp Ride, pair-required
-legends, QR gifts, visible overworld encounters, rare/catch-combo pools,
-postgame flying encounters, and repeated roaming birds. No schema change was
-required. All six source audits, 46 focused regressions, the full application
-suite, all 1,027 National Dex rows, the production dependency audit, and a
-108-page production build pass locally. Preview database, CI, and visual
-validation remain; nothing from this stack is in production.
-
-Stacked branch `codex/nuzlocke-gen8` has separate independently audited Sword,
-Shield, Brilliant Diamond, Shining Pearl, and Legends: Arceus catalogs locally
-prepared with unpublished migrations 324-333. It covers weather and visible
-encounters, both Sword/Shield expansions, stock raids and Dynamax Adventures,
-Grand Underground hideaways, Alpha Pokemon, landmarks, distortions, outbreaks,
-and mass outbreaks. All five source audits and 48 focused regressions pass.
-The full application suite, all 1,027 National Dex rows, production dependency
-audit, and 108-page production build also pass locally. CI, Preview database,
-and visual validation remain; nothing from this stack is in production.
-
-Stacked branch `codex/nuzlocke-gen9` has separate independently audited
-Scarlet and Violet catalogs locally prepared with unpublished migrations
-334-337. It covers Paldea, The Teal Mask, The Indigo Disk, time, weather,
-fixed encounters, gifts, trades, stock Tera Raids, Union Circle-required
-legendary snacks, selected historical distribution raids, and version-specific
-base-game and DLC encounters. No schema change was required. Both source
-audits, 50 focused regressions, the full application suite, all 1,027 National
-Dex rows, the production dependency audit, and the 108-page production build
-pass locally. CI, Preview database, and visual validation remain; nothing from
-this stack is in production.
 
 ## Active watch items
 
