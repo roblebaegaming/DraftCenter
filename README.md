@@ -40,6 +40,7 @@ requests.
 
 ## Operational documentation
 
+- [`docs/project-organization.md`](docs/project-organization.md)
 - [`docs/handoffs/README.md`](docs/handoffs/README.md)
 - `docs/launch-stabilization-checklist.md`
 - `docs/multi-account-hardening-test-record.md`
