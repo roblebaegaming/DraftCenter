@@ -1,6 +1,7 @@
 import { notFound, permanentRedirect } from "next/navigation";
 import { getPublicPokemonDraftProfile } from "../../../lib/supabase/publicServer";
-import { getAllPokemonProfiles, pokemonProfileSlugCandidates, pokemonProfileSlugForName, pokemonRouteSlug } from "../../../lib/publicPokemonIndex";
+import { getAllPokemonProfiles, pokemonProfileCanonicalPath, pokemonProfileSlugCandidates, pokemonProfileSlugForName, pokemonRouteSlug } from "../../../lib/publicPokemonIndex";
+import { pokemonDirectoryHref } from "../../../lib/pokemonNavigation";
 
 function titleCase(value) {
   return String(value || "").split("-").map((word) => word ? `${word[0].toUpperCase()}${word.slice(1)}` : "").join(" ");
@@ -55,7 +56,7 @@ export async function generateMetadata({ params }) {
   return {
     title: `${displayName} Pokédex, Stats and Draft Profile`,
     description,
-    alternates: { canonical: `/pokemon/${data.pokemon.name}` },
+    alternates: { canonical: pokemonProfileCanonicalPath(data.pokemon.name) },
     openGraph: {
       type: "article",
       title: `${displayName} — ${genus}`,
@@ -70,8 +71,9 @@ export default async function PokemonDetailPage({ params }) {
   const { name } = await params;
   const data = await loadPokemon(name);
   if (!data) notFound();
-  if (pokemonRouteSlug(name) !== data.pokemon.name) permanentRedirect(`/pokemon/${data.pokemon.name}`);
+  if (pokemonRouteSlug(name) !== data.pokemon.name) permanentRedirect(pokemonProfileCanonicalPath(data.pokemon.name));
   const { pokemon, species, displayName, draftProfile } = data;
+  const generationNumber = String(species.generation?.url || "").match(/generation\/(\d+)\//)?.[1];
   const availableProfiles = draftProfile?.partners?.length ? new Set(await getAllPokemonProfiles()) : null;
   const baseStatTotal = pokemon.stats.reduce((total, { base_stat }) => total + base_stat, 0);
   const genus = species.genera?.find((entry) => entry.language.name === "en")?.genus || "Pokémon";
@@ -155,7 +157,12 @@ export default async function PokemonDetailPage({ params }) {
     <section className="explore-card">
       <h2>Study {displayName} in DraftCenter</h2>
       <p>Open the interactive Pokédex to review moves by game, format legality, DraftCenter community results, draft rate, ADP, auction prices, win rate, and common teammates as the sample grows.</p>
-      <a className="primary-button inline-link-button" href={`/pokemon?pokemon=${encodeURIComponent(displayName)}`}>Open {displayName} in the interactive Pokédex</a>
+      <a className="primary-button inline-link-button" href={pokemonDirectoryHref(displayName)}>Open {displayName} in the interactive Pokédex</a>
+    </section>
+    <section className="explore-card">
+      <h2>Related {displayName} research</h2>
+      <p>Compare this profile with Pokémon that share its types, generation, and supported draft formats.</p>
+      <div className="pokemon-tags">{pokemon.types.map(({ type }) => <a key={type.name} href={`/pokemon/type/${type.name}`}>{titleCase(type.name)}-type Pokémon</a>)}{generationNumber ? <a href={`/pokemon/generation/${generationNumber}`}>{titleCase(species.generation?.name)} profiles</a> : null}<a href="/pokemon/a-z">All Pokémon A–Z</a><a href="/formats">Compare draft formats</a></div>
     </section>
     <section className="explore-card pokemon-profile-sources">
       <h2>Sources and methodology</h2>

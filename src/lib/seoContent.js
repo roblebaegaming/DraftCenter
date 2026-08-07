@@ -1,4 +1,4 @@
-import { COMMISSIONER_RULES_LAUNCH_CHECKLIST, POKEMON_DRAFT_LEAGUE_RULES_TEMPLATE } from "./guideTemplates";
+import { COMMISSIONER_RULES_LAUNCH_CHECKLIST, POKEMON_DRAFT_LEAGUE_RULES_TEMPLATE } from "./guideTemplates.js";
 
 export const GUIDE_PUBLISHED_DATE = "2026-08-03";
 export const GUIDE_UPDATED_DATE = "2026-08-04";
@@ -28,6 +28,7 @@ export const GUIDES = {
   },
   "how-to-run-pokemon-draft-league": {
     title: "How to Run a Pokémon Draft League: A Commissioner’s Walkthrough",
+    seoTitle: "How to Run a Pokémon Draft League",
     description: "A practical, step-by-step walkthrough for setting up a Pokémon draft league, inviting coaches, running the draft, managing the season, and crowning a champion.",
     answer: "To run a Pokémon draft league, choose the competitive format and league rules, invite and assign coaches, test the legal pool and roster math, run the draft, publish the schedule, and apply transactions and rulings consistently through the playoffs. DraftCenter organizes those steps and provides readiness checks before the official draft begins.",
     intro: "Running a league can look intimidating because there are a lot of small decisions. You do not need to solve all of them at once. Start with the experience you want your group to have, test the setup with a few people, and use DraftCenter's readiness checks to catch the details before draft day. This walkthrough follows the same order you will use in the product.",
@@ -100,6 +101,7 @@ export const GUIDES = {
   },
   "pokemon-draft-league-rules-template": {
     title: "Pokémon Draft League Rules Template and Commissioner Checklist",
+    seoTitle: "Pokémon Draft League Rules Template",
     description: "Copy and customize a practical Pokémon draft league rules template covering format, rosters, drafting, matches, transactions, standings, playoffs, disputes, and inactivity.",
     answer: "A complete Pokémon draft league rules document should define the format, legal pool, roster and draft rules, weekly deadlines, result reporting, transactions, standings, playoffs, inactivity, conduct, rulings, and appeals. The copyable DraftCenter template covers each decision while leaving bracketed fields for the commissioner to customize.",
     intro: "A useful rules document answers the questions that can change a coach's decision or a match result. It does not need legal language, and it should not repeat every button in DraftCenter. Write the competitive agreement in plain language, make the saved league settings match it, and tell coaches which source wins if something differs.",
@@ -151,4 +153,28 @@ export const FORMATS = [
 
 export function formatBySlug(slug) {
   return FORMATS.find((format) => format.slug === slug);
+}
+
+function formatFamily(slug) {
+  if (slug.startsWith("national-")) return "national";
+  if (slug.startsWith("reg-")) return "regulation";
+  if (slug.startsWith("swsh-")) return "sword-shield";
+  if (slug.startsWith("sm-")) return "sun-moon";
+  return slug;
+}
+
+export function relatedFormatsBySlug(slug, limit = 3) {
+  const currentIndex = FORMATS.findIndex((format) => format.slug === slug);
+  if (currentIndex < 0 || limit < 1) return [];
+  const family = formatFamily(slug);
+  return FORMATS
+    .filter((format) => format.slug !== slug)
+    .map((format) => ({
+      format,
+      familyRank: formatFamily(format.slug) === family ? 0 : 1,
+      distance: Math.abs(FORMATS.findIndex((item) => item.slug === format.slug) - currentIndex),
+    }))
+    .sort((a, b) => a.familyRank - b.familyRank || a.distance - b.distance)
+    .slice(0, limit)
+    .map(({ format }) => format);
 }

@@ -10,7 +10,7 @@ export function generateStaticParams() { return Object.keys(GUIDES).map((slug) =
 export async function generateMetadata({ params }) {
   const { slug } = await params; const guide = GUIDES[slug];
   if (!guide) return { title: "Guide Not Found", robots: { index: false, follow: true } };
-  return { title: guide.title, description: guide.description, alternates: { canonical: `/guides/${slug}` }, openGraph: { type: "article", title: guide.title, description: guide.description, url: `/guides/${slug}` } };
+  return { title: guide.seoTitle || guide.title, description: guide.description, alternates: { canonical: `/guides/${slug}` }, openGraph: { type: "article", title: guide.title, description: guide.description, url: `/guides/${slug}` } };
 }
 export default async function GuidePage({ params }) {
   const { slug } = await params; const guide = GUIDES[slug]; if (!guide) notFound();

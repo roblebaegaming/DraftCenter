@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "../lib/supabase/client";
+import { pokemonDirectoryHref } from "../lib/pokemonNavigation";
 import { loadPokemonArtwork, pokemonArtworkCandidates } from "./LeagueHub";
 
 const sourceLabels = { daily_poll: "Daily Poll", daily_bracket: "Daily Bracket", daily_quiz: "Daily Quiz", draft: "Drafted" };
@@ -28,7 +29,7 @@ function CollectionPokemon({ entry }) {
     <h2>{entry.pokemon}</h2>
     <div className="trainer-dex-sources">{entry.sources.map((source)=><span key={source}>{sourceLabels[source]||source}</span>)}</div>
     <p>{entry.appearances} appearance{Number(entry.appearances)===1?"":"s"} · First found {new Date(entry.first_discovered).toLocaleDateString()}</p>
-    <a href={`/pokemon?pokemon=${encodeURIComponent(entry.pokemon)}`}>Open Pokédex entry →</a>
+    <a href={pokemonDirectoryHref(entry.pokemon)}>Open Pokédex entry →</a>
   </article>;
 }
 
