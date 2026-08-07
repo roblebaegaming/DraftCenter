@@ -1,7 +1,9 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import test from "node:test";
-import { pokemonProfileSlugForName } from "../src/lib/publicPokemonIndex.js";
+import { GUIDES, relatedFormatsBySlug } from "../src/lib/seoContent.js";
+import { pokemonDirectoryFragment, pokemonDirectoryHref } from "../src/lib/pokemonNavigation.js";
+import { pokemonProfileCanonicalPath, pokemonProfileSlugForName } from "../src/lib/publicPokemonIndex.js";
 
 function source(path) {
   return fs.readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
@@ -83,7 +85,7 @@ test("Pokémon profiles have crawlable indexes and complete core facts", () => {
   assert.match(pokemonIndexData, /pokemonProfileSlugCandidates/);
   assert.match(pokemonIndexData, /galarian:\s*"galar"/);
   assert.match(pokemonIndexData, /pokemonProfileSlugForName/);
-  assert.match(profile, /permanentRedirect\(`\/pokemon\/\$\{data\.pokemon\.name\}`\)/);
+  assert.match(profile, /permanentRedirect\(pokemonProfileCanonicalPath\(data\.pokemon\.name\)\)/);
   assert.match(profile, /pokemonProfileSlugForName\(teammate\.pokemon, availableProfiles\)/);
 });
 
@@ -95,6 +97,37 @@ test("reader-friendly Pokémon names resolve to live canonical profiles", () => 
   assert.equal(pokemonProfileSlugForName("Galarian Moltres", profiles), "moltres-galar");
   assert.equal(pokemonProfileSlugForName("Mega Charizard X", profiles), "charizard-mega-x");
   assert.equal(pokemonProfileSlugForName("Mega Chandelure", profiles), "chandelure");
+});
+
+test("interactive Pokédex selection uses fragments and preserves legacy entry points", () => {
+  const directory = source("src/components/PokemonDirectory.jsx");
+  const profile = source("src/app/pokemon/[name]/page.js");
+  const trainerDex = source("src/components/TrainerDexPage.jsx");
+
+  assert.equal(pokemonDirectoryFragment("Mega Charizard X"), "mega-charizard-x");
+  assert.equal(pokemonDirectoryHref("Farfetch’d"), "/pokemon#farfetch-d");
+  assert.match(directory, /window\.location\.hash/);
+  assert.match(directory, /url\.searchParams\.delete\("pokemon"\)/);
+  assert.match(directory, /window\.history\.replaceState/);
+  assert.match(profile, /pokemonDirectoryHref\(displayName\)/);
+  assert.match(trainerDex, /pokemonDirectoryHref\(entry\.pokemon\)/);
+  assert.doesNotMatch(`${directory}\n${profile}\n${trainerDex}`, /\/pokemon\?pokemon=/);
+});
+
+test("Pokémon form canonical policy stays conservative and documented", () => {
+  const policy = source("docs/pokemon-profile-canonical-policy.md");
+  const profile = source("src/app/pokemon/[name]/page.js");
+
+  for (const name of ["pikachu", "moltres-galar", "charizard-mega-x", "rotom-wash", "miraidon-low-power-mode"]) {
+    assert.equal(pokemonProfileCanonicalPath(name), `/pokemon/${name}`);
+  }
+  assert.equal(pokemonProfileCanonicalPath("farfetchd"), "/pokemon/farfetchd");
+  assert.equal(pokemonProfileSlugForName("Farfetch’d", new Set(["farfetchd"])), "farfetchd");
+  assert.match(profile, /pokemonProfileCanonicalPath\(data\.pokemon\.name\)/);
+  assert.match(profile, /permanentRedirect\(pokemonProfileCanonicalPath\(data\.pokemon\.name\)\)/);
+  assert.match(policy, /is_default: false.*not enough evidence/);
+  assert.match(policy, /Cosmetic appearances/);
+  assert.match(policy, /materially distinct battle identity/);
 });
 
 test("the guide collection explains real DraftCenter workflows in a human voice", () => {
@@ -136,6 +169,31 @@ test("the guide collection explains real DraftCenter workflows in a human voice"
   assert.match(guidePage, /datePublished: GUIDE_PUBLISHED_DATE/);
   assert.match(guidePage, /dateModified: GUIDE_UPDATED_DATE/);
   assert.match(guidePage, /about#data-methodology/);
+  assert.equal(GUIDES["how-to-run-pokemon-draft-league"].seoTitle, "How to Run a Pokémon Draft League");
+  assert.equal(GUIDES["pokemon-draft-league-rules-template"].seoTitle, "Pokémon Draft League Rules Template");
+  assert.match(guidePage, /guide\.seoTitle \|\| guide\.title/);
+  for (const guide of Object.values(GUIDES)) {
+    assert.ok(guide.links.length >= 3, `${guide.title} should expose at least three related links`);
+    assert.ok(guide.links.every(([, href]) => href.startsWith("/")), `${guide.title} related links should remain internal`);
+  }
+});
+
+test("public templates expose useful server-rendered headings and related links", () => {
+  const authGate = source("src/components/AuthGate.jsx");
+  const directory = source("src/components/PokemonDirectory.jsx");
+  const profile = source("src/app/pokemon/[name]/page.js");
+  const formatPage = source("src/app/formats/[slug]/page.js");
+
+  assert.match(authGate, /function PublicLoadingShell/);
+  assert.match(authGate, /<h1>Your Draft League Headquarters<\/h1>/);
+  assert.match(directory, /fallback=.*<h1>Explore the Pokédex<\/h1>/);
+  assert.match(profile, /Related \{displayName\} research/);
+  assert.match(formatPage, /Related Pokémon draft formats/);
+  for (const slug of ["national-dex", "reg-mb", "swsh-series9", "custom"]) {
+    const related = relatedFormatsBySlug(slug);
+    assert.equal(related.length, 3);
+    assert.ok(related.every((format) => format.slug !== slug));
+  }
 });
 
 test("AI discovery foundation exposes a trustworthy entity and reference index", () => {

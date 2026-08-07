@@ -4,6 +4,7 @@ import { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { POKEMON_DATA, POKEMON_DIRECTORY, regulationPokemonStatus } from "./PokemonDraftLeague";
 import { createClient } from "../lib/supabase/client";
+import { pokemonDirectoryFragment } from "../lib/pokemonNavigation";
 
 const TYPES = ["bug","dark","dragon","electric","fairy","fighting","fire","flying","ghost","grass","ground","ice","normal","poison","psychic","rock","steel","water"];
 
@@ -197,13 +198,14 @@ function WidePokemonDirectory(props) {
 }
 
 export default function PokemonDirectory() {
-  return <Suspense fallback={<main className="pokemon-directory"><p className="muted">Loading the Pokedex...</p></main>}><PokemonDirectoryContent /></Suspense>;
+  return <Suspense fallback={<main className="pokemon-directory pokemon-directory-wide"><header className="pokemon-directory-header"><a href="/" className="quiet-button pokemon-home-link"><span>← DraftCenter home</span><img src="/draftcenter-logo.png" alt="" /></a><div><span className="eyebrow">POKÉMON</span><h1>Explore the Pokédex</h1><p className="muted">Compare Pokémon base stats, typing, abilities, game-specific moves, draft-league eligibility, and DraftCenter community results.</p></div></header><p className="muted">Loading the interactive Pokédex…</p></main>}><PokemonDirectoryContent /></Suspense>;
 }
 
 function PokemonDirectoryContent() {
   const searchParams = useSearchParams();
   const regulationId = searchParams.get("regulation") || "";
-  const requestedPokemon = searchParams.get("pokemon") || "";
+  const legacyRequestedPokemon = searchParams.get("pokemon") || "";
+  const [requestedPokemon, setRequestedPokemon] = useState("");
   const [query, setQuery] = useState(""); const [type, setType] = useState(""); const [generation, setGeneration] = useState(""); const [resultLimit, setResultLimit] = useState(100); const [sortBy, setSortBy] = useState("name"); const [sortDirection, setSortDirection] = useState("asc"); const [ability, setAbility] = useState(""); const [abilityMatches, setAbilityMatches] = useState(null); const [dexNumbers, setDexNumbers] = useState({}); const [dexSearchName, setDexSearchName] = useState(""); const [statLookup, setStatLookup] = useState(builtInStatLookup); const [selected, setSelected] = useState(null); const [details, setDetails] = useState(null); const [species, setSpecies] = useState(null); const [loading, setLoading] = useState(false); const [message, setMessage] = useState("");
   const [importedMoves, setImportedMoves] = useState([]); const [moveSource, setMoveSource] = useState(""); const [moveCategory, setMoveCategory] = useState("all"); const [moveQuery, setMoveQuery] = useState(""); const [selectedMove, setSelectedMove] = useState(null); const [moveDetails, setMoveDetails] = useState({}); const [moveCategories, setMoveCategories] = useState({}); const [loadingMove, setLoadingMove] = useState(false); const [loadingMoveCategories, setLoadingMoveCategories] = useState(false); const [pollPlacements, setPollPlacements] = useState(null); const [dailyThreeProfile, setDailyThreeProfile] = useState(null); const [communityRankingLookup, setCommunityRankingLookup] = useState({}); const [draftProfile, setDraftProfile] = useState(null);
 
@@ -267,7 +269,13 @@ function PokemonDirectoryContent() {
   }
   function clearFilters() { setQuery(""); setType(""); setGeneration(""); setSortBy("name"); setAbility(""); setAbilityMatches(null); setMessage(""); }
 
-  async function choose(name) {
+  async function choose(name, updateLocation = true) {
+    if (updateLocation && typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("pokemon");
+      url.hash = pokemonDirectoryFragment(name);
+      window.history.pushState({}, "", `${url.pathname}${url.search}${url.hash}`);
+    }
     setSelected(name); setDetails(null); setSpecies(null); setImportedMoves([]); setPollPlacements(null); setDailyThreeProfile(null); setDraftProfile(null); setMessage(""); setMoveSource(""); setMoveCategory("all"); setMoveQuery(""); setSelectedMove(null); setLoading(true);
     try {
       const reference = pokemonReference(name);
@@ -286,11 +294,32 @@ function PokemonDirectoryContent() {
     setLoading(false);
   }
   useEffect(() => {
+    function readRequestedPokemon() {
+      let fragment = "";
+      try { fragment = decodeURIComponent(window.location.hash.slice(1)); } catch { fragment = window.location.hash.slice(1); }
+      setRequestedPokemon(fragment || legacyRequestedPokemon);
+    }
+    readRequestedPokemon();
+    window.addEventListener("hashchange", readRequestedPokemon);
+    window.addEventListener("popstate", readRequestedPokemon);
+    if (legacyRequestedPokemon) {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("pokemon");
+      if (!url.hash) url.hash = pokemonDirectoryFragment(legacyRequestedPokemon);
+      window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
+    }
+    return () => {
+      window.removeEventListener("hashchange", readRequestedPokemon);
+      window.removeEventListener("popstate", readRequestedPokemon);
+    };
+  }, [legacyRequestedPokemon]);
+  useEffect(() => {
     if (!requestedPokemon) return;
-    const match = POKEMON_DIRECTORY.find((pokemon) => pokemon.name.toLowerCase() === requestedPokemon.toLowerCase());
+    const fragment = pokemonDirectoryFragment(requestedPokemon);
+    const match = POKEMON_DIRECTORY.find((pokemon) => pokemonDirectoryFragment(pokemon.name) === fragment);
     if (match) {
       setQuery(match.name);
-      choose(match.name);
+      choose(match.name, false);
     }
   }, [requestedPokemon]);
 
