@@ -31,3 +31,15 @@ test("daily games page has metadata and a sitemap entry", () => {
   assert.match(source("src/app/sitemap.js"), /\["\/resources\/daily-games", "daily", 1\]/);
   assert.match(source("src/app/resources/daily-games/page.js"), /"@type": "FAQPage"/);
 });
+
+test("daily bracket champion rankings are restored as a bounded read-only RPC", () => {
+  const migration = source("supabase/343-restore-daily-bracket-champion-rankings.sql");
+  assert.match(migration, /create or replace function public\.get_daily_bracket_champion_rankings\(p_bracket_id uuid\)/);
+  assert.match(migration, /security definer/);
+  assert.match(migration, /where id = p_bracket_id/);
+  assert.match(migration, /m\.bracket_id = p_bracket_id/);
+  assert.match(migration, /game_date >= current_date and auth\.uid\(\) is null/);
+  assert.match(migration, /revoke all on function public\.get_daily_bracket_champion_rankings\(uuid\)[\s\S]*from public, anon, authenticated/);
+  assert.match(migration, /grant execute on function public\.get_daily_bracket_champion_rankings\(uuid\)[\s\S]*to anon, authenticated/);
+  assert.match(migration, /notify pgrst, 'reload schema'/);
+});
