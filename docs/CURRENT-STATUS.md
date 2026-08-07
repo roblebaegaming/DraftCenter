@@ -21,6 +21,12 @@ loads the 37-game selector from bounded pinned method metadata. Its forward-only
 production migration map is collision-free: Nuzlocke 261-339, tournaments 340,
 Trainer Dex 341, and the Trainer Dex draft-name correction 342.
 
+The Nuzlocke page also includes the completed search-discovery pass: expanded
+metadata, WebApplication and breadcrumb structured data, crawlable game/rule
+explanations using the current Team code language, links from generated Pokemon
+to their Pokedex profiles, reciprocal Pokedex/Resources links, and a higher
+Nuzlocke sitemap priority. No database migration was added for this work.
+
 The isolated Preview database reports 37 verified catalogs and no pending
 catalogs. Catalog/RLS audits, signed-out UI checks, signed-in Daily discovery
 and shiny checks, and an isolated practice-league draft pick/undo check pass.
@@ -28,8 +34,9 @@ The draft check also verified that Trainer Dex records the Pokémon name rather
 than a numeric pool identifier and removes that discovery after undo. The
 disposable account and practice league were deleted after testing.
 
-The dependency audit, full application test suite, all 1,027 National Dex
-rows, and the 111-page production build pass. Preview is available at
+The dependency audit, full application test suite (including seven focused SEO
+checks and 52 Nuzlocke regressions), all 1,027 National Dex rows, and the
+111-page production build pass. Preview is available at
 https://draftcenter-git-codex-nuzlocke-tournaments-dai-5c9468-rob-lebae.vercel.app.
 
 The final stable Preview is Ready. Its authenticated deployed checks return all

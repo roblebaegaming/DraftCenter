@@ -4,9 +4,9 @@
 
 Branch `codex/nuzlocke-tournaments-daily-integration` is the release-integration
 branch for Nuzlocke Lab, standalone tournaments, Daily Games resources, and
-Trainer Dex. Application code through `cd80fd9`, the final Paldea
-starter-evolution and bounded-selector corrections, this handoff, and the
-current-status update are on the same branch.
+Trainer Dex. It includes the final Paldea starter-evolution and bounded-selector
+corrections, the completed Nuzlocke search-discovery pass, this handoff, and the
+current-status update on the same branch.
 
 The stable isolated Preview is:
 
@@ -43,6 +43,22 @@ and Quaxly even though those starters are not wild encounters. The game selector
 uses a generated 37-game method summary pinned to the same reviewed source
 commit and fails closed on a database/source mismatch, so loading the selector
 does not aggregate over every encounter row.
+
+The Nuzlocke search-discovery pass is also integrated. It expands page metadata
+around game-specific Nuzlocke team and encounter searches, publishes
+WebApplication and breadcrumb structured data, and adds crawlable explanations
+of Team codes, both random-selection styles, encounter weighting, clauses,
+starter inclusion, and reviewed catalogs. Generated Pokemon link to canonical
+DraftCenter Pokedex profiles. The Pokedex and Resources hub link back to
+Nuzlocke Lab, and the sitemap now marks `/nuzlocke` as weekly priority 0.9. The
+visible language was reconciled with the finalized product wording: "Build a
+Nuzlocke Team" and "Team code," not the older seeded Run Card phrasing.
+
+These SEO changes were selectively ported from the other agent's dirty primary
+worktree. Its unrelated tournament, Operations, notification, documentation,
+and editorial-calendar changes were not copied or modified. The integration
+added only the intended page/link changes, small layout/link styling, and a
+focused regression test. It did not add or renumber a migration.
 
 Standalone tournaments remain independent of league tables and expose bounded
 RPC-driven registration, invitations, seeding, bracket locking, score reports,
@@ -179,7 +195,8 @@ The integration branch passes:
 
 - `pnpm audit --prod --audit-level high` — no known vulnerabilities
 - `npm run test:all` — all application, Nuzlocke, tournament, Trainer Dex, and
-  release-integration suites, including 52 Nuzlocke regressions
+  release-integration suites, including seven focused SEO checks and 52
+  Nuzlocke regressions
 - `npm run test:national-dex` — all 1,027 Pokémon rows
 - `npm run build` — 111 routes/pages generated successfully
 - `git diff --check`

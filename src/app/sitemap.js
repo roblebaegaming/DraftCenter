@@ -10,7 +10,7 @@ const routes = [
   ["/pokemon/a-z", "monthly", 0.8],
   ["/pokemon/types", "monthly", 0.8],
   ["/pokemon/generations", "monthly", 0.8],
-  ["/nuzlocke", "monthly", 0.8],
+  ["/nuzlocke", "weekly", 0.9],
   ["/tournaments", "daily", 0.8],
   ["/resources", "monthly", 0.7],
   ["/resources/daily-games", "weekly", 0.7],
