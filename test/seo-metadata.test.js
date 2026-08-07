@@ -54,14 +54,15 @@ test("the Nuzlocke generator is crawlable, internally linked, and uses current p
   assert.match(page, /Pokémon Nuzlocke Team Generator by Game/);
   assert.match(page, /"@type": "WebApplication"/);
   assert.match(page, /"@type": "BreadcrumbList"/);
-  assert.match(page, /request one encounter from every eligible area/);
+  assert.match(page, /draft one Pokémon from every eligible route or area/);
+  assert.match(page, /more than 12/);
   assert.match(page, /download a readable Run Card/);
   assert.match(page, /randomizer seed/);
   assert.match(page, /type, official Pokédex color, or evolution stage/);
   assert.match(page, /Equal weighting gives every eligible encounter the same chance/);
   assert.match(lab, /pokemonProfileSlugForName\(entry\.pokemon_name\)/);
   assert.match(lab, /href={`\/pokemon\/\$\{profileSlug\}`}/);
-  assert.match(pokemonHome, /href="\/nuzlocke">Build a Nuzlocke Team/);
+  assert.match(pokemonHome, /href="\/nuzlocke">Build a Nuzlocke Draft/);
   assert.match(resources, /href="\/nuzlocke"/);
   assert.match(sitemap, /\["\/nuzlocke", "weekly", 0\.9\]/);
   assert.doesNotMatch(page, /Build a seeded Run Card/);
