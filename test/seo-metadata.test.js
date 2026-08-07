@@ -65,6 +65,22 @@ test("the Nuzlocke generator is crawlable, internally linked, and uses current p
   assert.doesNotMatch(page, /Build a seeded Run Card/);
 });
 
+test("the bounded Nuzlocke game-guide cohort is indexable and internally connected", () => {
+  const page = source("src/app/nuzlocke/[game]/page.js");
+  const landing = source("src/app/nuzlocke/page.js");
+  const sitemap = source("src/app/sitemap.js");
+  const llms = source("src/app/llms.txt/route.js");
+  assert.match(page, /generateStaticParams/);
+  assert.match(page, /"@type": "Article"/);
+  assert.match(page, /"@type": "BreadcrumbList"/);
+  assert.match(page, /alternates: \{ canonical: `\/nuzlocke\/\$\{guide\.slug\}` \}/);
+  assert.match(page, /What the reviewed catalog covers/);
+  assert.match(page, /guide\.generatorHref/);
+  assert.match(landing, /nuzlockeGameGuides\.games\.map/);
+  assert.match(sitemap, /nuzlockeGameGuides\.games\.map/);
+  for (const slug of ["fire-red", "emerald", "platinum", "scarlet"]) assert.match(llms, new RegExp(`/nuzlocke/${slug}`));
+});
+
 test("Pokémon profiles have crawlable indexes and complete core facts", () => {
   const pokemonHome = source("src/app/pokemon/page.js");
   const profile = source("src/app/pokemon/[name]/page.js");

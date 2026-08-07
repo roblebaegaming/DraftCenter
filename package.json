@@ -24,7 +24,7 @@
     "test:pokemon-catalog": "node scripts/verify-public-pokemon-catalog.mjs",
     "test:manager-removal": "node --test test/manager-removal-claim-cleanup.test.js",
     "test:league-counts": "node --test test/league-count-consistency.test.js",
-    "test:nuzlocke": "node --test test/nuzlocke-generator.test.js test/nuzlocke-catalog-security.test.js",
+    "test:nuzlocke": "node --test test/nuzlocke-generator.test.js test/nuzlocke-catalog-security.test.js test/nuzlocke-game-guides.test.js",
     "test:tournaments": "node --test test/tournament-bracket.test.js test/tournament-security.test.js",
     "catalog:audit": "node scripts/audit-pokemon-game-catalog.mjs",
     "catalog:audit:red": "node scripts/audit-pokemon-gen1-sources.mjs --input data/nuzlocke/pokemon-red.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json --pret-commit cf621a76d4941c93c078eb38e0880fe8db48ef40 --veekun-commit cc483e1877f22b8c19ac27ec0ff5fafd09c5cd5b",
