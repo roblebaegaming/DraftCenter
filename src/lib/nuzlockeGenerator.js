@@ -56,6 +56,17 @@ function shuffled(values, random) {
   return result;
 }
 
+function orderForPlaythrough(entries) {
+  const progressionOrder = (entry) => entry.sort_order == null || entry.sort_order === "" || !Number.isFinite(Number(entry.sort_order))
+    ? Number.MAX_SAFE_INTEGER
+    : Number(entry.sort_order);
+  return [...entries].sort((left, right) => Number(left.min_level ?? Number.MAX_SAFE_INTEGER) - Number(right.min_level ?? Number.MAX_SAFE_INTEGER)
+    || Number(left.max_level ?? Number.MAX_SAFE_INTEGER) - Number(right.max_level ?? Number.MAX_SAFE_INTEGER)
+    || progressionOrder(left) - progressionOrder(right)
+    || String(left.area_name || left.area_key).localeCompare(String(right.area_name || right.area_key))
+    || String(left.pokemon_name).localeCompare(String(right.pokemon_name)));
+}
+
 function applyFinalEvolutions(encounters, options) {
   if (options.finalEvolutionOnly !== true) return encounters;
   const rows = options.evolutionCatalog?.evolutions;
@@ -241,7 +252,8 @@ export function generateNuzlockeTeam(encounters, options = {}) {
     }
   }
   const selected = areaOrder.map((areaKey) => selectedByArea.get(areaKey)).filter(Boolean).slice(0, encounterTeamSize);
-  const team = starter ? [{ ...starter, area_key: "starter-choice", area_name: "Starter choice", method: "starter", chance: 100, conditions: [] }, ...selected] : selected;
+  const ordered = orderForPlaythrough(selected);
+  const team = starter ? [{ ...starter, area_key: "starter-choice", area_name: "Starter choice", method: "starter", chance: 100, conditions: [] }, ...ordered] : ordered;
   return {
     team,
     complete: team.length === requested,

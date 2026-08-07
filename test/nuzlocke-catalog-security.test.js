@@ -87,6 +87,10 @@ const lab = fs.readFileSync(
   new URL("../src/components/NuzlockeLab.jsx", import.meta.url),
   "utf8",
 );
+const generator = fs.readFileSync(
+  new URL("../src/lib/nuzlockeGenerator.js", import.meta.url),
+  "utf8",
+);
 const summaryMigration = fs.readFileSync(
   new URL("../supabase/264-bounded-nuzlocke-game-summary.sql", import.meta.url),
   "utf8",
@@ -893,12 +897,15 @@ test("final evolution requests require source-matched pinned game catalogs", () 
   assert.match(route, /Final evolution data is not verified/);
   assert.match(route, /MAX_CATALOG_ENCOUNTERS = 16000/);
 });
-test("run configuration is shareable and the UI explains seeds, weighting, length, themes, and both random styles", () => {
+test("run configuration is shareable and the UI keeps random keys internal while explaining the player-facing rules", () => {
   assert.match(lab, /params\.get\("evolutions"\) === "final"/);
   assert.match(lab, /url\.searchParams\.set\("evolutions", "final"\)/);
   assert.match(lab, /finalEvolutionOnly/);
   assert.match(lab, /Catch \$\{entry\.encounter_pokemon_name\}/);
-  assert.match(lab, /Randomizer seed/);
+  assert.doesNotMatch(lab, /Randomizer seed/);
+  assert.doesNotMatch(lab, /New seed/);
+  assert.match(lab, /const buildSeed = sharedSeed\.current \|\| newSeed\(\)/);
+  assert.match(lab, /setResultShareUrl\(generatedShareUrl\)/);
   assert.match(lab, /Run name/);
   assert.match(lab, /Save setup/);
   assert.match(lab, /Save team/);
@@ -919,7 +926,8 @@ test("run configuration is shareable and the UI explains seeds, weighting, lengt
   assert.match(lab, /params\.get\("length"\) === "all-areas"/);
   assert.match(lab, /url\.searchParams\.set\("length", "all-areas"\)/);
   assert.doesNotMatch(lab, /Room code/);
-  assert.match(lab, /Build a Nuzlocke Draft/);
+  assert.match(lab, /Build a Nuzlocke Team/);
+  assert.match(lab, /Build Nuzlocke Team/);
   assert.doesNotMatch(lab, /Build a seeded Run Card/);
   assert.doesNotMatch(lab, /Generate Run Card/);
   assert.match(lab, /Route-first random/);
@@ -941,9 +949,9 @@ test("game-specific condition filters are restored and shared without leaking be
 test("starter inclusion is explicit in shared links and old seeded links retain their original output", () => {
   assert.match(
     lab,
-    /!params\.has\("seed"\) \|\| params\.get\("starter"\) === "include"/,
+    /params\.has\("starter"\) \? params\.get\("starter"\) === "include" : !params\.has\("seed"\)/,
   );
-  assert.match(lab, /url\.searchParams\.set\("starter", "include"\)/);
+  assert.match(lab, /url\.searchParams\.set\("starter", includeStarter \? "include" : "exclude"\)/);
   assert.match(lab, /Include a starter Pokémon/);
   assert.match(lab, /entry\.method === "starter" \? "Starter Pokémon"/);
   assert.match(route, /ruby: HOENN_STARTERS, sapphire: HOENN_STARTERS, emerald: HOENN_STARTERS/);
@@ -957,4 +965,9 @@ test("starter inclusion is explicit in shared links and old seeded links retain 
   assert.match(route, /sword: GALAR_STARTERS, shield: GALAR_STARTERS/);
   assert.match(route, /"brilliant-diamond": SINNOH_STARTERS, "shining-pearl": SINNOH_STARTERS, "legends-arceus": HISUI_STARTERS/);
   assert.match(route, /scarlet: PALDEA_STARTERS, violet: PALDEA_STARTERS/);
+});
+test("generated teams use level-informed playthrough order with location tie-breaking", () => {
+  assert.match(generator, /orderForPlaythrough\(selected\)/);
+  assert.match(generator, /entry\.sort_order/);
+  assert.match(generator, /left\.min_level/);
 });

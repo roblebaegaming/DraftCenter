@@ -39,6 +39,17 @@ test("seeded output is deterministic and uses at most one encounter per area", (
   const first=generateNuzlockeTeam(encounters,options); const second=generateNuzlockeTeam(encounters,options);
   assert.deepEqual(first,second); assert.equal(new Set(first.team.map((item)=>item.area_key)).size,first.team.length);
 });
+test("teams use encounter level order with reviewed location order as the tie-breaker", () => {
+  const pool = [
+    { area_key:"late",area_name:"Late Route",sort_order:30,min_level:8,max_level:8,pokemon_id:1,pokemon_name:"Late",species_family:"late",method:"walk",chance:100 },
+    { area_key:"early",area_name:"Early Route",sort_order:2,min_level:18,max_level:18,pokemon_id:2,pokemon_name:"Early",species_family:"early",method:"walk",chance:100 },
+    { area_key:"middle",area_name:"Middle Route",sort_order:12,min_level:4,max_level:4,pokemon_id:3,pokemon_name:"Middle",species_family:"middle",method:"walk",chance:100 },
+  ];
+  const base={seed:"playthrough-order",teamSize:3,allAreas:true,mode:"route-random",weighting:"equal"};
+  assert.deepEqual(generateNuzlockeTeam(pool,base).team.map((entry)=>entry.area_key),["middle","late","early"]);
+  const tied=pool.map((entry)=>({...entry,min_level:5,max_level:5}));
+  assert.deepEqual(generateNuzlockeTeam(tied,base).team.map((entry)=>entry.area_key),["early","middle","late"]);
+});
 test("family clauses, exclusions, and methods are enforced without relaxing rules", () => {
   const result=generateNuzlockeTeam(encounters,{seed:"rules",teamSize:4,mode:"route-random",weighting:"equal",familyClause:true,methods:["walk"],exclusions:["Zubat"]});
   assert.equal(result.complete,false); assert.ok(result.team.every((item)=>item.method==="walk"&&item.pokemon_name!=="Zubat"));
@@ -85,6 +96,7 @@ test("generated teams can be safely saved and exported as readable Run Cards",()
   assert.ok(rules.includes("Draft size: One Pokémon per eligible route/area"));assert.ok(rules.includes("Type theme: Fire"));assert.ok(rules.includes("Evolutionary-family clause: Off"));
   assert.ok(nuzlockeRulesFromShareUrl("https://draftcentral.gg/nuzlocke?size=20").includes("Draft size: 20-Pokémon team"));
   const text=buildNuzlockeRunCardText({runName:"Scarlet Ember",result:generated,rules,shareUrl:url});
+  assert.doesNotMatch(text,/Randomizer seed/);
   assert.match(text,/Scarlet Ember/);assert.match(text,/1\. Fuecoco — Starter choice — Starter Pokémon/);assert.match(text,/Only 1 of 2 requested results/);assert.match(text,/Recreate this run/);assert.match(text,/draftcentral\.gg\/nuzlocke/);
   assert.equal(nuzlockeRunCardFilename("Pokémon Scarlet: Ember Run","Pokémon Scarlet"),"pokemon-scarlet-ember-run.txt");
 });

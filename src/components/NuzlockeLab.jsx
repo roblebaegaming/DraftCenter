@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import styles from "./NuzlockeLab.module.css";
 import { pokemonProfileSlugForName } from "../lib/publicPokemonIndex";
 import { buildNuzlockeRunCardText, normalizeSavedNuzlockeResult, nuzlockeRulesFromShareUrl, nuzlockeRunCardFilename } from "../lib/nuzlockeRunExports";
@@ -56,11 +56,14 @@ export default function NuzlockeLab() {
   const [resultShareUrl, setResultShareUrl] = useState("");
   const [message, setMessage] = useState("Loading verified games…");
   const [loading, setLoading] = useState(false);
+  const sharedSeed = useRef("");
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const storedRuns = readSavedRuns();
-    const seedValue = params.get("seed") || newSeed();
+    const linkedSeed = params.get("seed") || "";
+    const seedValue = linkedSeed || newSeed();
+    sharedSeed.current = linkedSeed;
     setSavedRuns(storedRuns);
     setRunName((params.get("name") || "").slice(0, 80));
     setSeed(seedValue);
@@ -70,7 +73,7 @@ export default function NuzlockeLab() {
     if (["equal", "authentic"].includes(params.get("weighting"))) setWeighting(params.get("weighting"));
     setFamilyClause(params.get("family") !== "off");
     setExcludeLegendaries(params.get("legendaries") !== "include");
-    setIncludeStarter(!params.has("seed") || params.get("starter") === "include");
+    setIncludeStarter(params.has("starter") ? params.get("starter") === "include" : !params.has("seed"));
     setFinalEvolutionOnly(params.get("evolutions") === "final");
     setExclusions((params.get("exclude") || "").slice(0, 500));
 
@@ -98,6 +101,7 @@ export default function NuzlockeLab() {
       setConditionSelections(restoredConditions);
       const savedRun = storedRuns.find((run) => run.id === params.get("saved"));
       if (savedRun?.result?.game?.game_key === selectedGameKey && savedRun.result.seed === seedValue) {
+        sharedSeed.current = "";
         setSavedRunId(savedRun.id);
         setResult(savedRun.result);
         setResultShareUrl(savedRun.url);
@@ -114,11 +118,11 @@ export default function NuzlockeLab() {
   const conditionGroups = activeGame?.condition_groups || [];
   const themeOptions = gameThemes[game] || { types: [], colors: [] };
 
-  const shareUrl = useMemo(() => {
-    if (typeof window === "undefined" || !game || !seed) return "";
+  function shareUrlForSeed(seedValue = "") {
+    if (typeof window === "undefined" || !game) return "";
     const url = new URL("/nuzlocke", window.location.origin);
     url.searchParams.set("game", game);
-    url.searchParams.set("seed", seed);
+    if (seedValue) url.searchParams.set("seed", seedValue);
     if (runName.trim()) url.searchParams.set("name", runName.trim().slice(0, 80));
     if (allAreas) url.searchParams.set("length", "all-areas");
     else url.searchParams.set("size", String(teamSize));
@@ -126,7 +130,7 @@ export default function NuzlockeLab() {
     url.searchParams.set("weighting", weighting);
     if (!familyClause) url.searchParams.set("family", "off");
     if (!excludeLegendaries) url.searchParams.set("legendaries", "include");
-    if (includeStarter) url.searchParams.set("starter", "include");
+    url.searchParams.set("starter", includeStarter ? "include" : "exclude");
     if (finalEvolutionOnly) url.searchParams.set("evolutions", "final");
     if (methods.length) url.searchParams.set("methods", methods.join(","));
     if (themeType !== "any") url.searchParams.set("type", themeType);
@@ -139,6 +143,10 @@ export default function NuzlockeLab() {
     }
     if (exclusions.trim()) url.searchParams.set("exclude", exclusions.trim().slice(0, 500));
     return url.toString();
+  }
+
+  const shareUrl = useMemo(() => {
+    return shareUrlForSeed(seed);
   }, [allAreas, conditionGroups, conditionSelections, evolutionStage, excludeLegendaries, exclusions, familyClause, finalEvolutionOnly, game, includeStarter, methods, mode, runName, seed, teamSize, themeColor, themeType, weighting]);
 
   function changeGame(nextGame) {
@@ -169,10 +177,9 @@ export default function NuzlockeLab() {
     const isTeamSave = teamResult && typeof teamResult === "object";
     const normalizedResult = isTeamSave ? normalizeSavedNuzlockeResult(teamResult) : null;
     if (isTeamSave && !normalizedResult) { setOutputMessage("This generated team could not be saved."); return; }
-    const sourceUrl = isTeamSave ? (resultShareUrl || shareUrl) : shareUrl;
+    const sourceUrl = isTeamSave ? (resultShareUrl || shareUrl) : shareUrlForSeed();
     if (!sourceUrl) { setSaveMessage("Choose a verified game before saving this run."); return; }
-    const seedLabel = seed.replace(/[^a-z0-9]+/gi, "").slice(0, 6) || "run";
-    const suggestedName = `${normalizedResult?.game?.display_name || activeGame?.display_name || "Nuzlocke"} ${seedLabel}`;
+    const suggestedName = `${normalizedResult?.game?.display_name || activeGame?.display_name || "Nuzlocke"} Team`;
     const name = runName.trim() || (isTeamSave ? suggestedName : "");
     if (!name) { setSaveMessage("Give this run a name before saving its setup."); return; }
     let savedUrl;
@@ -239,20 +246,24 @@ export default function NuzlockeLab() {
     setResult(null);
     setResultShareUrl("");
     try {
+      const buildSeed = sharedSeed.current || newSeed();
+      sharedSeed.current = "";
+      const generatedShareUrl = shareUrlForSeed(buildSeed);
       const response = await fetch("/api/nuzlocke", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          game, seed, teamSize, allAreas, mode, weighting, familyClause, excludeLegendaries,
+          game, seed: buildSeed, teamSize, allAreas, mode, weighting, familyClause, excludeLegendaries,
           includeStarter, finalEvolutionOnly, methods, conditionSelections, themeType, themeColor,
           evolutionStage, exclusions: exclusions.split(",").map((item) => item.trim()).filter(Boolean),
         }),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error);
+      setSeed(buildSeed);
       setResult(data);
-      setResultShareUrl(shareUrl);
-      window.history.replaceState({}, "", new URL(shareUrl));
+      setResultShareUrl(generatedShareUrl);
+      window.history.replaceState({}, "", new URL(generatedShareUrl));
     } catch (error) {
       setMessage(error.message || "The Nuzlocke team could not be generated.");
     } finally {
@@ -294,8 +305,8 @@ export default function NuzlockeLab() {
     <header className="nuzlocke-hero">
       <a href="/?view=dashboard" className="quiet-button">← DraftCenter home</a>
       <span className="eyebrow">NUZLOCKE DRAFT</span>
-      <h1>Build a Nuzlocke Draft</h1>
-      <p>Generate a repeatable run from verified, game-specific encounters, including one Pokémon per route or area and themed rules.</p>
+      <h1>Build a Nuzlocke Team</h1>
+      <p>Build a team from verified, game-specific encounters, including one Pokémon per route or area and themed rules.</p>
     </header>
     <div className="nuzlocke-layout">
       <form className="nuzlocke-controls" onSubmit={generate}>
@@ -313,16 +324,6 @@ export default function NuzlockeLab() {
           </label>
           <button type="button" className="quiet-button" onClick={() => saveCurrentRun()}>Save setup</button>
           <small>Save setup stores these rules. After generating, Save team also preserves the exact Run Card in this browser.</small>
-        </div>
-
-        <div className="nuzlocke-run-code-field">
-          <div className="nuzlocke-pair">
-            <label>Randomizer seed
-              <input value={seed} maxLength={80} onChange={(event) => setSeed(event.target.value)} />
-            </label>
-            <button type="button" className="quiet-button" onClick={() => setSeed(newSeed())}>New seed</button>
-          </div>
-          <small>This is the repeatable random value behind the run. Keep it to reproduce the exact encounters.</small>
         </div>
 
         <fieldset className="nuzlocke-saved-runs">
@@ -421,23 +422,23 @@ export default function NuzlockeLab() {
         <label className="check-row"><input type="checkbox" checked={excludeLegendaries} onChange={(event) => setExcludeLegendaries(event.target.checked)} />Exclude legendary Pokémon</label>
         <div className="nuzlocke-rule-option">
           <label className="check-row"><input type="checkbox" checked={includeStarter} onChange={(event) => setIncludeStarter(event.target.checked)} aria-describedby="starter-help" />Include a starter Pokémon</label>
-          <small id="starter-help">Uses the randomizer seed to choose an eligible starter. It counts as a team slot, or as an extra result in one-Pokémon-per-route mode.</small>
+          <small id="starter-help">Adds one eligible starter. It counts as a team slot, or as an extra result in one-Pokémon-per-route mode.</small>
         </div>
         <div className="nuzlocke-rule-option">
           <label className="check-row"><input type="checkbox" checked={finalEvolutionOnly} onChange={(event) => setFinalEvolutionOnly(event.target.checked)} aria-describedby="final-evolution-help" />Show results at their final evolution</label>
           <small id="final-evolution-help">Changes how each catch is displayed without changing its original area or encounter details.</small>
         </div>
-        <button className="primary-button" disabled={loading || !game || !seed}>{loading ? "Building…" : "Build Nuzlocke Run"}</button>
+        <button className="primary-button" disabled={loading || !game}>{loading ? "Building…" : "Build Nuzlocke Team"}</button>
         {message && <p className="hub-message" role="status">{message}</p>}
       </form>
 
       <section className="nuzlocke-output">
         <div className="section-heading">
           <div><span className="eyebrow">RUN CARD</span><h2>{runName.trim() || result?.game?.display_name || "Your encounters"}</h2>{runName.trim() && result?.game?.display_name && <small>{result.game.display_name}</small>}</div>
-          {shareUrl && <div className="nuzlocke-output-actions">
+          {result && resultShareUrl && <div className="nuzlocke-output-actions">
             <button className="quiet-button" type="button" onClick={copyRunLink}>Copy run link</button>
-            {result && <button className="quiet-button" type="button" onClick={() => saveCurrentRun(result)}>Save team</button>}
-            {result && <button className="quiet-button" type="button" onClick={downloadTeam}>Download team</button>}
+            <button className="quiet-button" type="button" onClick={() => saveCurrentRun(result)}>Save team</button>
+            <button className="quiet-button" type="button" onClick={downloadTeam}>Download team</button>
           </div>}
         </div>
         {outputMessage && <p className="nuzlocke-output-status" role="status">{outputMessage}</p>}

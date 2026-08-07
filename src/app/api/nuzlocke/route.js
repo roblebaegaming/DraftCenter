@@ -154,7 +154,7 @@ export async function POST(request) {
     const body = parsed.data;
     if (!GAME_KEY.test(String(body.game || ""))) return Response.json({ error: "Choose a supported game." }, { status: 400 });
     const seed = String(body.seed || "").slice(0, 80);
-    if (!seed) return Response.json({ error: "Enter a randomizer seed." }, { status: 400 });
+    if (!seed) return Response.json({ error: "This team could not be randomized. Try building it again." }, { status: 400 });
     const adminClient = createAdminClient();
     if (!await consumeUserRateLimit(adminClient, "nuzlocke-generate", requestIpAddress(request), 30, 600)) {
       return Response.json({ error: "Too many teams were generated. Try again in a few minutes." }, { status: 429 });
