@@ -1,12 +1,22 @@
 # DraftCenter current status
 
-- Last updated: August 6, 2026
+- Last updated: August 7, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified functional production release: `43a030c`
+- Verified functional production release: `34c3286`
 - Latest production migration: 348
 
 ## Status
+
+The August 7 Nuzlocke product and guide release is live at production commit
+`34c3286`, the squash merge of pull request 63. All protected checks passed,
+Vercel reported the exact `main` deployment Ready, and the signed-out
+production smoke sweep passed. Nuzlocke now supports named and saved local
+runs, exact saved teams, downloadable Run Cards, themed and one-per-area runs,
+and complete route-by-route encounter guides for all 37 reviewed games. Live
+checks confirmed 37 guide choices, all 129 FireRed areas, all 80 Violet areas,
+method-specific encounter disclosures, and no player-facing “encounter rows”
+terminology. No migration or production-data change was required.
 
 DraftCenter production is approved for monitored public use and real drafts.
 The deployed release sequence now includes Nuzlocke Lab, standalone
