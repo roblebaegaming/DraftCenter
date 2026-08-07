@@ -45,6 +45,7 @@ requests.
 - `docs/multi-account-hardening-test-record.md`
 - `docs/data-retention-and-recovery.md`
 - `docs/owner-league-operations.md`
+- `docs/standalone-tournaments.md`
 - `docs/twitch-live-detection-setup.md`
 
 Preserve the local untracked `.vercel/` directory. It contains deployment
