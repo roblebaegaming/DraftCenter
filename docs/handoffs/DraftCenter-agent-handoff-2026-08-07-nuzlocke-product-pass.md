@@ -7,9 +7,10 @@ a green Vercel Preview for pull request 63. Production is intentionally
 untouched until the protected pull request is reviewed and merged.
 
 - Pull request: https://github.com/roblebaegaming/DraftCenter/pull/63
-- Preview: https://draftcenter-1k64c8h84-rob-lebae.vercel.app/nuzlocke
+- Tested application Preview: https://draftcenter-ixu8xmp54-rob-lebae.vercel.app/nuzlocke
 - Branch: `codex/nuzlocke-product-pass`
-- Application commit: `cdc2433`
+- Application commit: `bf1dddf`
+- Core customization commit: `cdc2433`
 - Base production commit: `6c72f6c`
 - Database migrations: none
 
@@ -36,9 +37,18 @@ records can be selected earlier.
 
 The form now has a user-facing **Run name** and a separate **Randomizer seed**.
 The seed retains the deterministic behavior formerly exposed as a Team code.
-Users can save, load, update, and delete as many as 20 named presets in the
-current browser. Shared links contain the run name, seed, and all supported
-rules, so another browser can recreate the same setup and result.
+**Save setup** stores the named rules as a reusable preset. After generation,
+**Save team** also stores the exact generated roster in that preset. Users can
+save, load, update, and delete as many as 20 named records in the current
+browser. Loading a saved team restores its Run Card immediately without
+regenerating it. Older rules-only records remain compatible and ask the user
+to build a team.
+
+Shared links contain the run name, seed, and all supported rules, so another
+browser can recreate the same setup and result. **Download team** creates a
+readable UTF-8 text Run Card containing the game, seed, exact rules, numbered
+roster, areas, catch and display forms, encounter methods, levels, conditions,
+result completeness, and recreation URL.
 
 Saved presets are deliberately browser-local. This avoids a new account-data
 table, migration, RLS policy, retention decision, and production write path in
@@ -102,10 +112,10 @@ one game as nonexistent.
 ## SEO and mobile changes
 
 The Nuzlocke page metadata, WebApplication feature list, static explanatory
-copy, and four game guides now describe named/saved runs, randomizer seeds,
-one-per-area runs, game-specific controls, and themed clauses. The interactive
-controls remain backed by server-rendered explanatory content for crawlers and
-signed-out visitors.
+copy, and four game guides now describe named/saved teams, downloadable Run
+Cards, randomizer seeds, one-per-area runs, game-specific controls, and themed
+clauses. The interactive controls remain backed by server-rendered explanatory
+content for crawlers and signed-out visitors.
 
 The controls have a slightly wider desktop column, compact disclosure panels,
 stacked phone controls, and additional bottom padding so the fixed quick links
@@ -123,18 +133,23 @@ horizontal scrolling.
 - The API fails closed when the selected game's source commit does not match
   the pinned method, theme, or requested final-evolution metadata.
 - Theme inputs are allowlisted against the selected game before generation.
+- Saved team snapshots are normalized before local storage, capped at 251
+  entries, stripped of control characters, and limited to trusted artwork
+  hosts. They never create a database or account write.
+- The downloadable file is created locally as plain text from the normalized
+  generated result. It contains no credentials or hidden browser data.
 - The API retains its bounded request body, catalog row ceiling, method and
   exclusion limits, private no-store result response, and sanitized failures.
 - No secret-scanner exception was added for the new metadata artifact.
 
 ## Validation evidence
 
-Local release checks pass at application commit `cdc2433`:
+Local release checks pass at application commit `bf1dddf`:
 
 - `pnpm audit --prod --audit-level high` — no known vulnerabilities;
 - `npm run test:all`;
 - `npm run test:national-dex` — all 1,027 rows;
-- `npm run test:nuzlocke` — 57 tests;
+- `npm run test:nuzlocke` — 58 tests;
 - `npm run build` — 144 generated routes/pages;
 - `git diff --check`;
 - real-catalog all-area sanity checks across Red, FireRed, Platinum, and
@@ -160,6 +175,11 @@ Hosted Preview verification confirmed:
 - disabling the family clause fills all eligible Fire areas with 31 results,
   including the starter;
 - the named preset saves and appears in the Saved runs chooser;
+- the generated six-Pokémon team saves locally and is marked `team saved`;
+- Download team starts a readable Run Card download while retaining the
+  generated cards;
+- loading the saved record restores all six generated cards without another
+  Build action;
 - Scarlet exposes Tera Raid and not Old Rod;
 - Red exposes Old Rod and not Tera Raid; and
 - the mobile layout and fixed quick links remain usable.
@@ -174,11 +194,14 @@ production. A Preview is not production evidence.
 Review pull request 63 and the Preview on the phones and browsers that matter.
 Recommended spot checks are:
 
-1. save, update, load, and delete one named run;
-2. share the run link into a private/incognito window;
-3. try one classic game and one Switch game;
-4. compare family clause on and off in all-area mode; and
-5. try a deliberately narrow combined theme so the incomplete-result wording
+1. save, update, load, and delete one named setup;
+2. generate a team, use Save team, then reload it without rebuilding;
+3. download the Run Card and open the text file to confirm the rules, roster,
+   encounter details, seed, and recreation URL are readable;
+4. share the run link into a private/incognito window;
+5. try one classic game and one Switch game;
+6. compare family clause on and off in all-area mode; and
+7. try a deliberately narrow combined theme so the incomplete-result wording
    is understandable.
 
 ### 2. Deploy through the protected branch
@@ -190,15 +213,16 @@ production deployment. After merge:
 1. confirm Vercel reports the exact merged commit Ready;
 2. run `npm run smoke:production`;
 3. perform a signed-out production Nuzlocke generation with a fixed seed;
-4. verify one all-area theme with the family clause off;
-5. switch between Scarlet and Red and confirm their methods do not mix;
-6. confirm the production canonical, H1, and structured data; and
-7. update `docs/CURRENT-STATUS.md` with the deployed commit and smoke result.
+4. save, reload, and download that generated team;
+5. verify one all-area theme with the family clause off;
+6. switch between Scarlet and Red and confirm their methods do not mix;
+7. confirm the production canonical, H1, and structured data; and
+8. update `docs/CURRENT-STATUS.md` with the deployed commit and smoke result.
 
 ### 3. Decide whether saved runs should sync across devices
 
-Current saves are intentionally local to one browser. Account sync would need
-an explicit product decision and a forward-only design for:
+Current setup and team saves are intentionally local to one browser. Account
+sync would need an explicit product decision and a forward-only design for:
 
 - an authenticated saved-run table;
 - ownership-only RLS and bounded CRUD RPCs;
