@@ -5,24 +5,12 @@ import { useSearchParams } from "next/navigation";
 import { POKEMON_DATA, POKEMON_DIRECTORY, regulationPokemonStatus } from "./PokemonDraftLeague";
 import { createClient } from "../lib/supabase/client";
 import { pokemonDirectoryFragment } from "../lib/pokemonNavigation";
+import { decodePinnedPokeApiMoves, GAME_MOVE_SOURCES, MOVE_METHOD_LABELS, movesForSource, pokemonMoveShardUrl } from "../lib/pokemonMoveCatalog";
 import CompetitivePokemonProfile from "./CompetitivePokemonProfile";
 import TournamentPokemonProfile from "./TournamentPokemonProfile";
 
 const TYPES = ["bug","dark","dragon","electric","fairy","fighting","fire","flying","ghost","grass","ground","ice","normal","poison","psychic","rock","steel","water"];
 
-// This is deliberately a catalogue, not one blended list. A newer game's
-// move data never replaces an older game's record.
-const GAME_SOURCES = [
-  { key: "pokemon-champions", label: "Pokemon Champions", versionGroups: ["pokemon-champions"], note: "Competitive battle reference", curated: true },
-  { key: "legends-za", label: "Pokemon Legends: Z-A", versionGroups: ["legends-za"], note: "Real-time battle rules", curated: true },
-  { key: "scarlet-violet", label: "Pokemon Scarlet/Violet", versionGroups: ["scarlet-violet"], note: "Main-series turn-based rules", curated: false },
-  { key: "sword-shield", label: "Pokemon Sword/Shield", versionGroups: ["sword-shield"], note: "Main-series turn-based rules", curated: false },
-  { key: "brilliant-diamond-shining-pearl", label: "Brilliant Diamond/Shining Pearl", versionGroups: ["brilliant-diamond-and-shining-pearl"], note: "Main-series turn-based rules", curated: false },
-  { key: "legends-arceus", label: "Pokemon Legends: Arceus", versionGroups: ["legends-arceus"], note: "Game-specific battle rules", curated: false },
-  { key: "sun-moon", label: "Sun/Moon", versionGroups: ["ultra-sun-ultra-moon", "sun-moon"], note: "Main-series turn-based rules", curated: false },
-];
-
-const METHOD_LABELS = { "level-up": "Level up", machine: "TM / Machine", egg: "Egg", tutor: "Tutor", "form-change": "Form change", stadium: "Special" };
 const MOVE_CATEGORY_LABELS = { physical: "Physical attacks", special: "Special attacks", status: "Status moves", unknown: "Category loading" };
 function slug(name) { return String(name || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, ""); }
 function displayName(value) { return String(value || "").replace(/-/g, " "); }
@@ -113,22 +101,16 @@ async function fetchPokemonForm(reference) {
   return response;
 }
 
-function sourceMoves(details, source, importedMoves) {
-  const imported = (importedMoves || []).filter((row) => row.game_key === source.key).map((row) => ({
-    name: row.move_name,
-    method: row.learn_method || "special",
-    level: row.level_learned_at || 0,
-    dataVersion: row.data_version,
-  }));
-  if (imported.length) return imported;
-  if (source.curated) return [];
-  const byName = new Map();
-  (details?.moves || []).forEach(({ move, version_group_details: versionDetails }) => {
-    const detail = (versionDetails || []).find((item) => source.versionGroups.includes(item.version_group?.name));
-    if (!detail) return;
-    byName.set(move.name, { name: move.name, method: detail.move_learn_method?.name || "special", level: detail.level_learned_at || 0 });
-  });
-  return [...byName.values()].sort((a, b) => a.method.localeCompare(b.method) || a.level - b.level || a.name.localeCompare(b.name));
+async function fetchPinnedPokeApiMoves(reference) {
+  const names = [...new Set([reference.apiName, reference.fallbackApiName, reference.speciesName].filter(Boolean))];
+  const shards = new Map();
+  for (const name of names) {
+    const url = pokemonMoveShardUrl(name);
+    if (!shards.has(url)) shards.set(url, fetch(url).then((response) => response.ok ? response.json() : null).catch(() => null));
+    const moves = decodePinnedPokeApiMoves(await shards.get(url), name);
+    if (moves.length) return moves;
+  }
+  return [];
 }
 
 function PokemonPollPlacements({ placements }) {
@@ -169,6 +151,26 @@ function PokemonDraftProfile({ profile }) {
   </div>;
 }
 
+function MoveSourcePicker({ sourceData, activeSource, setMoveSource, setMoveCategory, setSelectedMove }) {
+  const compatibleCount = sourceData.filter((source) => source.moves.length > 0).length;
+  return <div className="move-source-picker">
+    <label>Game move pool
+      <select value={activeSource?.key || ""} onChange={(event) => {
+        setMoveSource(event.target.value);
+        setMoveCategory("all");
+        setSelectedMove(null);
+      }}>
+        {[9, 8, 7, 6, 5, 4, 3, 2, 1].map((generation) => <optgroup key={generation} label={`Generation ${generation}`}>
+          {sourceData.filter((source) => source.generation === generation).map((source) => <option key={source.key} value={source.key} disabled={!source.moves.length}>
+            {source.label}{source.moves.length ? "" : " — not available for this Pokémon"}
+          </option>)}
+        </optgroup>)}
+      </select>
+    </label>
+    <span>{compatibleCount} compatible pool{compatibleCount === 1 ? "" : "s"} from {sourceData.length} catalogued game sources</span>
+  </div>;
+}
+
 function WidePokemonDirectory(props) {
   const statColumns = [["hp", "HP"], ["attack", "Atk"], ["defense", "Def"], ["special-attack", "SpA"], ["special-defense", "SpD"], ["speed", "Spe"], ["bst", "BST"]];
   const sortLabel = (key, label) => <button type="button" className={props.sortBy === key ? "active" : ""} onClick={() => props.toggleSort(key)}>{label}{props.sortBy === key ? (props.sortDirection === "asc" ? " ↑" : " ↓") : ""}</button>;
@@ -195,7 +197,7 @@ function WidePokemonDirectory(props) {
           <section className="pokemon-community-stats"><h3>Competitive format results</h3><CompetitivePokemonProfile observations={props.competitiveProfile} pokemonName={props.selected} /></section>
           <section className="pokemon-community-stats"><h3>Tournament performance</h3><TournamentPokemonProfile formats={props.tournamentProfile} pokemonName={props.selected} /></section>
           <section className="pokedex-history"><h3>Pokedex entries</h3>{props.uniqueEntries.length ? <div className="pokedex-entry-list">{props.uniqueEntries.map((entry) => <article key={entry.version.name}><strong>{displayName(entry.version.name)}</strong><p>{entry.flavor_text.replace(/[\n\f]/g, " ")}</p></article>)}</div> : <p className="muted">No English entries are available.</p>}</section>
-          <section className="pokemon-moves"><div className="moves-heading"><div><h3>Versioned move pools</h3><p className="muted">The newest verified compatible game is selected first. Switch sources without blending their move data.</p></div>{props.recommendedSource && <span className="move-source-badge">Latest: {props.recommendedSource.label}</span>}</div><div className="move-source-tabs">{props.sourceData.map((source) => <button type="button" key={source.key} className={props.activeSource?.key === source.key ? "active" : ""} disabled={!source.moves.length} onClick={() => { props.setMoveSource(source.key); props.setMoveCategory("all"); props.setSelectedMove(null); }} title={source.moves.length ? source.note : `${source.label} move data has not been imported yet`}>{source.label}{!source.moves.length && " (data not imported yet)"}</button>)}</div>{props.activeSource && <><div className="move-source-note"><strong>{props.activeSource.label}</strong><span>{props.activeSource.note}</span>{props.activeSource.key === "legends-za" && <small>This pool is not automatically legal in a standard turn-based league.</small>}</div><div className="move-controls"><input value={props.moveQuery} onChange={(event) => props.setMoveQuery(event.target.value)} placeholder="Search moves..."/><select value={props.moveCategory} onChange={(event) => props.setMoveCategory(event.target.value)}><option value="all">All move categories</option><option value="physical">Physical attacks</option><option value="special">Special attacks</option><option value="status">Status moves</option></select></div>{props.loadingMoveCategories && <p className="muted">Organizing moves into physical, special, and status categories…</p>}{props.visibleMoves.length ? <div className="move-groups">{Object.entries(props.groupedMoves).map(([category, moves]) => <section key={category}><h4>{MOVE_CATEGORY_LABELS[category] || displayName(category)} <small>{moves.length}</small></h4><div className="move-list">{moves.map((move) => <button type="button" key={`${props.activeSource.key}-${move.name}`} className={props.selectedMove === move.name ? "selected" : ""} onClick={() => props.inspectMove(move.name)}>{displayName(move.name)}<small>{METHOD_LABELS[move.method] || displayName(move.method)}{move.method === "level-up" && move.level ? ` · Lv. ${move.level}` : ""}</small></button>)}</div></section>)}</div> : <p className="muted">No moves in that category are available for this Pokémon in {props.activeSource.label}.</p>}</>}
+          <section className="pokemon-moves"><div className="moves-heading"><div><h3>Versioned move pools</h3><p className="muted">The newest compatible game is selected first. All 28 catalogued pools stay separate, including original releases, remakes, side games, and expansion-era revisions.</p></div>{props.recommendedSource && <span className="move-source-badge">Latest: {props.recommendedSource.label}</span>}</div><MoveSourcePicker {...props} />{props.activeSource && <><div className="move-source-note"><strong>{props.activeSource.label}</strong><span>{props.activeSource.note}</span><small>{props.activeSource.sourceRowCount.toLocaleString()} source learnset rows · pinned data version {props.activeSource.dataVersion.slice(0, 8)}</small>{props.activeSource.realTime && <small>This game uses game-specific real-time battle rules; its pool is not automatically legal in a standard turn-based league.</small>}</div><div className="move-controls"><input value={props.moveQuery} onChange={(event) => props.setMoveQuery(event.target.value)} placeholder="Search moves..."/><select value={props.moveCategory} onChange={(event) => props.setMoveCategory(event.target.value)}><option value="all">All move categories</option><option value="physical">Physical attacks</option><option value="special">Special attacks</option><option value="status">Status moves</option></select></div>{props.loadingMoveCategories && <p className="muted">Organizing moves into physical, special, and status categories…</p>}{props.visibleMoves.length ? <div className="move-groups">{Object.entries(props.groupedMoves).map(([category, moves]) => <section key={category}><h4>{MOVE_CATEGORY_LABELS[category] || displayName(category)} <small>{moves.length}</small></h4><div className="move-list">{moves.map((move) => <button type="button" key={`${props.activeSource.key}-${move.name}-${move.method}-${move.level}`} className={props.selectedMove === move.name ? "selected" : ""} onClick={() => props.inspectMove(move.name)}>{displayName(move.name)}<small>{MOVE_METHOD_LABELS[move.method] || displayName(move.method)}{move.method === "level-up" && move.level ? ` · Lv. ${move.level}` : ""}</small></button>)}</div></section>)}</div> : <p className="muted">No moves in that category are available for this Pokémon in {props.activeSource.label}.</p>}</>}
           {props.selectedMove && <aside className="move-detail"><button className="text-button" onClick={() => props.setSelectedMove(null)}>Close move details</button>{props.loadingMove && <p className="muted">Loading {displayName(props.selectedMove)}...</p>}{props.inspectedMove && <><h4>{displayName(props.selectedMove)}</h4><div><span>Type <b>{props.inspectedMove.type?.name}</b></span><span>Class <b>{props.inspectedMove.damage_class?.name}</b></span><span>Power <b>{props.inspectedMove.power ?? "—"}</b></span><span>Accuracy <b>{props.inspectedMove.accuracy ?? "—"}</b></span><span>PP <b>{props.inspectedMove.pp ?? "—"}</b></span></div><p>{props.inspectedMove.flavor_text_entries?.find((entry) => entry.language.name === "en")?.flavor_text?.replace(/[\n\f]/g, " ") || "No English move description is available."}</p></>}</aside>}
           </section>
         </>}
@@ -286,10 +288,11 @@ function PokemonDirectoryContent() {
     setSelected(name); setDetails(null); setSpecies(null); setImportedMoves([]); setPollPlacements(null); setDailyThreeProfile(null); setDraftProfile(null); setCompetitiveProfile([]); setTournamentProfile([]); setMessage(""); setMoveSource(""); setMoveCategory("all"); setMoveQuery(""); setSelectedMove(null); setLoading(true);
     try {
       const reference = pokemonReference(name);
-      const [pokemonResponse, speciesResponse, importedResponse, placementsResponse, dailyThreeResponse, draftProfileResponse, competitiveProfileResponse, tournamentProfileResponse] = await Promise.all([
+      const [pokemonResponse, speciesResponse, pinnedPokeApiMoves, supplementalMoveResponse, placementsResponse, dailyThreeResponse, draftProfileResponse, competitiveProfileResponse, tournamentProfileResponse] = await Promise.all([
         fetchPokemonForm(reference),
         fetch(`https://pokeapi.co/api/v2/pokemon-species/${encodeURIComponent(reference.speciesName)}`),
-        createClient().from("pokemon_move_learnsets").select("game_key, move_name, learn_method, level_learned_at, data_version").eq("pokemon_name", name),
+        fetchPinnedPokeApiMoves(reference),
+        fetch(`/api/pokemon/move-pools?pokemon=${encodeURIComponent(reference.apiName)}&fallback=${encodeURIComponent(reference.speciesName)}`).then((response) => response.ok ? response.json() : { moves: [] }).catch(() => ({ moves: [] })),
         createClient().rpc("get_pokemon_poll_placements", { p_pokemon: name }),
         createClient().rpc("get_pokemon_daily_three_profile", { p_pokemon: name }),
         createClient().rpc("get_public_pokemon_draft_profile", { p_pokemon: name }),
@@ -298,7 +301,7 @@ function PokemonDirectoryContent() {
       ]);
       if (!pokemonResponse.ok || !speciesResponse.ok) throw new Error("This Pokemon's details are unavailable right now.");
       const [pokemon, speciesData] = await Promise.all([pokemonResponse.json(), speciesResponse.json()]);
-      setDetails(pokemon); setSpecies(speciesData); setImportedMoves(importedResponse.data || []); setPollPlacements(placementsResponse.data || { first: { count: 0, polls: [] }, second: { count: 0, polls: [] }, third: { count: 0, polls: [] } }); setDailyThreeProfile(dailyThreeResponse.data || {}); setDraftProfile(draftProfileResponse.data || {}); setCompetitiveProfile(competitiveProfileResponse.data || []); setTournamentProfile(tournamentProfileResponse.data || []);
+      setDetails(pokemon); setSpecies(speciesData); setImportedMoves([...pinnedPokeApiMoves, ...(supplementalMoveResponse.moves || [])]); setPollPlacements(placementsResponse.data || { first: { count: 0, polls: [] }, second: { count: 0, polls: [] }, third: { count: 0, polls: [] } }); setDailyThreeProfile(dailyThreeResponse.data || {}); setDraftProfile(draftProfileResponse.data || {}); setCompetitiveProfile(competitiveProfileResponse.data || []); setTournamentProfile(tournamentProfileResponse.data || []);
     } catch (error) { setMessage(error.message || "Could not load that Pokemon."); }
     setLoading(false);
   }
@@ -332,7 +335,7 @@ function PokemonDirectoryContent() {
     }
   }, [requestedPokemon]);
 
-  const sourceData = useMemo(() => GAME_SOURCES.map((source) => ({ ...source, moves: sourceMoves(details, source, importedMoves) })), [details, importedMoves]);
+  const sourceData = useMemo(() => GAME_MOVE_SOURCES.map((source) => ({ ...source, moves: movesForSource(details, source, importedMoves) })), [details, importedMoves]);
   const recommendedSource = sourceData.find((source) => source.moves.length > 0) || null;
   const activeSource = sourceData.find((source) => source.key === moveSource) || recommendedSource;
   useEffect(() => { if (recommendedSource && !moveSource) setMoveSource(recommendedSource.key); }, [recommendedSource, moveSource]);
