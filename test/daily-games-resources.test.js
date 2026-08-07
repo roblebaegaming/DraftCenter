@@ -12,6 +12,18 @@ test("resources prominently links to the Pokémon daily games hub", () => {
   assert.match(resources, /Pokémon Daily Games/);
 });
 
+test("external resource cards include locally hosted, accessible site artwork", () => {
+  const resources = source("src/components/ResourcesPage.jsx");
+  const artwork = ["pokemon-showdown.png", "damage-calculator.png", "pokepaste.png", "devoncorp.webp", "smogon.ico", "serebii.jpg", "bulbapedia.png", "victory-road.png", "labmaus.png", "munchstats.png"];
+
+  for (const file of artwork) {
+    assert.match(resources, new RegExp(`/resource-sites/${file.replace(".", "\\.")}`));
+    assert.ok(fs.existsSync(new URL(`../public/resource-sites/${file}`, import.meta.url)), `missing resource artwork: ${file}`);
+  }
+  assert.match(resources, /alt=\{imageAlt\}/);
+  assert.match(resources, /loading="lazy"/);
+});
+
 test("daily games hub leads with DraftCenter and uses safe external links", () => {
   const page = source("src/components/DailyGamesResourcesPage.jsx");
   assert.match(page, /href="\/explore"/);
