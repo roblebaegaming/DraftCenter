@@ -39,3 +39,25 @@ export async function getPublicPokemonDraftProfile(pokemon) {
     return null;
   }
 }
+
+export async function getPublicPokemonCompetitiveProfile(pokemonKey) {
+  try {
+    const client = createPublicServerClient();
+    if (!client || !pokemonKey) return [];
+    const { data, error } = await client.rpc("get_public_pokemon_competitive_profile", { p_pokemon_key: pokemonKey });
+    return error ? [] : (data || []);
+  } catch {
+    return [];
+  }
+}
+
+export async function getPublicPokemonTournamentProfile(pokemonKey) {
+  try {
+    const client = createPublicServerClient();
+    if (!client || !pokemonKey) return [];
+    const { data, error } = await client.rpc("get_public_pokemon_tournament_profile", { p_pokemon_key: pokemonKey });
+    return error ? [] : (data || []);
+  } catch {
+    return [];
+  }
+}

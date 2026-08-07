@@ -6,14 +6,16 @@ Nuzlocke catalog.
 
 ## Release status
 
-The implementation and forward-only migration are prepared on the tournament
-feature branch. They are not deployed, and migration
-`260-standalone-single-elimination-tournaments.sql` must not be applied to
-production outside the protected release flow.
+The first release is live in production. Pull request 47 deployed application
+commit `cd90679` and forward-only migration
+`340-standalone-single-elimination-tournaments.sql` on August 6, 2026. The
+production schema, RLS policies, grants, empty public directory, signed-out
+route, and post-deployment smoke sweep were verified without creating a
+production tournament.
 
-Release it after the test-draft feedback rollup and the separately reviewed
-Nuzlocke/catalog work. The tournament migration has no dependency on the
-Nuzlocke tables even when the branches are reviewed as a stacked series.
+The tournament schema remains independent of the Nuzlocke catalog and league
+tables. Any future database change requires a new forward-only migration;
+never rewrite migration 340.
 
 ## First-release lifecycle
 
@@ -54,11 +56,18 @@ Nuzlocke tables even when the branches are reviewed as a stacked series.
 
 ## Required isolated validation
 
-Before release, apply migration 260 to an isolated Preview database and test
-with separate owner, entrant A, entrant B, unrelated signed-in, and signed-out
-sessions. Verify private isolation, public projections, manual and shuffled
-seeds, byes, stale and simultaneous submissions, opponent confirmation,
-idempotent retry, safe correction, archive behavior, and mobile bracket use.
+The transactional isolated-database matrix already covers private best-of-one,
+public best-of-three with byes, idempotent confirmation, correction, blocked
+downstream correction, archived read-only enforcement, and the public
+projection. The remaining stabilization gate is a deployed UI lifecycle using
+an isolated practice tournament and separate owner, entrant A, entrant B,
+unrelated signed-in, and signed-out sessions.
+
+Verify private isolation, public projections, manual and shuffled seeds, byes,
+stale and simultaneous submissions, opponent confirmation, idempotent retry,
+safe correction, archive behavior, refresh/interruption recovery, keyboard and
+screen-reader behavior, and mobile brackets at both small and large field
+sizes. Record the exact disposable fixture and verify its cleanup afterward.
 
 Do not use a real league or production tournament for lifecycle testing. The
 production smoke sweep is only valid after an authorized deployment.

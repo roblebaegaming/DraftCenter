@@ -10,7 +10,10 @@ DraftCenter helps communities configure leagues, run snake and auction drafts, m
 - [Pokémon draft league guides](https://www.draftcentral.gg/guides)
 - [Supported draft formats](https://www.draftcentral.gg/formats)
 - [Public Pokémon catalog](https://www.draftcentral.gg/pokemon)
+- [PokÃ©mon Daily Games](https://www.draftcentral.gg/resources/daily-games)
 - [Public leagues](https://www.draftcentral.gg/leagues)
+- [Pokémon Nuzlocke Draft](https://www.draftcentral.gg/nuzlocke)
+- [Pokémon Nuzlocke Guides](https://www.draftcentral.gg/nuzlocke/guides)
 
 ## Practical guides
 
@@ -27,6 +30,14 @@ DraftCenter helps communities configure leagues, run snake and auction drafts, m
 - [Browse profiles by type](https://www.draftcentral.gg/pokemon/types)
 - [Browse profiles by generation](https://www.draftcentral.gg/pokemon/generations)
 
+## Nuzlocke encounter guides
+
+- [All Pokémon Nuzlocke guides by game](https://www.draftcentral.gg/nuzlocke/guides)
+- [Pokémon FireRed Nuzlocke guide](https://www.draftcentral.gg/nuzlocke/fire-red)
+- [Pokémon Emerald Nuzlocke guide](https://www.draftcentral.gg/nuzlocke/emerald)
+- [Pokémon Platinum Nuzlocke guide](https://www.draftcentral.gg/nuzlocke/platinum)
+- [Pokémon Scarlet Nuzlocke guide](https://www.draftcentral.gg/nuzlocke/scarlet)
+
 ## Data and citation notes
 
 - Core Pokémon facts and artwork references are retrieved from PokéAPI and refreshed daily.
@@ -39,7 +50,7 @@ DraftCenter helps communities configure leagues, run snake and auction drafts, m
 
 DraftCenter is an independent fan project and is not affiliated with or endorsed by Nintendo, Creatures Inc., GAME FREAK inc., or The Pokémon Company. Pokémon names, characters, artwork, and trademarks belong to their respective owners.
 
-Last reviewed: 2026-08-04
+Last reviewed: 2026-08-06
 `;
 
 export function GET() {

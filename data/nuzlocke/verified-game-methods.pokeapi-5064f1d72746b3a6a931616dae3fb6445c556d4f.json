@@ -1,0 +1,700 @@
+{
+  "source_commit": "5064f1d72746b3a6a931616dae3fb6445c556d4f",
+  "games": {
+    "red": {
+      "source_commit": "5064f1d72746b3a6a931616dae3fb6445c556d4f",
+      "methods": [
+        "gift",
+        "good-rod",
+        "npc-trade",
+        "old-rod",
+        "pokeflute",
+        "static",
+        "super-rod",
+        "surf",
+        "walk"
+      ]
+    },
+    "blue": {
+      "source_commit": "5064f1d72746b3a6a931616dae3fb6445c556d4f",
+      "methods": [
+        "gift",
+        "good-rod",
+        "npc-trade",
+        "old-rod",
+        "pokeflute",
+        "static",
+        "super-rod",
+        "surf",
+        "walk"
+      ]
+    },
+    "yellow": {
+      "source_commit": "5064f1d72746b3a6a931616dae3fb6445c556d4f",
+      "methods": [
+        "gift",
+        "good-rod",
+        "npc-trade",
+        "old-rod",
+        "pokeflute",
+        "static",
+        "super-rod",
+        "surf",
+        "walk"
+      ]
+    },
+    "gold": {
+      "source_commit": "5064f1d72746b3a6a931616dae3fb6445c556d4f",
+      "methods": [
+        "bug-catching-contest",
+        "gift",
+        "gift-egg",
+        "good-rod",
+        "headbutt-high",
+        "headbutt-low",
+        "headbutt-normal",
+        "npc-trade",
+        "old-rod",
+        "pokeflute",
+        "roaming-grass",
+        "rock-smash",
+        "squirt-bottle",
+        "static",
+        "super-rod",
+        "surf",
+        "walk"
+      ]
+    },
+    "silver": {
+      "source_commit": "5064f1d72746b3a6a931616dae3fb6445c556d4f",
+      "methods": [
+        "bug-catching-contest",
+        "gift",
+        "gift-egg",
+        "good-rod",
+        "headbutt-high",
+        "headbutt-low",
+        "headbutt-normal",
+        "npc-trade",
+        "old-rod",
+        "pokeflute",
+        "roaming-grass",
+        "rock-smash",
+        "squirt-bottle",
+        "static",
+        "super-rod",
+        "surf",
+        "walk"
+      ]
+    },
+    "crystal": {
+      "source_commit": "5064f1d72746b3a6a931616dae3fb6445c556d4f",
+      "methods": [
+        "bug-catching-contest",
+        "gift",
+        "gift-egg",
+        "good-rod",
+        "headbutt-high",
+        "headbutt-low",
+        "headbutt-normal",
+        "npc-trade",
+        "old-rod",
+        "pokeflute",
+        "roaming-grass",
+        "rock-smash",
+        "squirt-bottle",
+        "static",
+        "super-rod",
+        "surf",
+        "walk"
+      ]
+    },
+    "ruby": {
+      "source_commit": "5064f1d72746b3a6a931616dae3fb6445c556d4f",
+      "methods": [
+        "colosseum-bonus-disc-jpn",
+        "colosseum-bonus-disc-us",
+        "devon-scope",
+        "feebas-tile-fishing",
+        "gift",
+        "gift-egg",
+        "good-rod",
+        "npc-trade",
+        "old-rod",
+        "pokemon-channel-pal",
+        "roaming-grass",
+        "roaming-water",
+        "rock-smash",
+        "seaweed",
+        "static",
+        "super-rod",
+        "surf",
+        "walk"
+      ]
+    },
+    "sapphire": {
+      "source_commit": "5064f1d72746b3a6a931616dae3fb6445c556d4f",
+      "methods": [
+        "colosseum-bonus-disc-jpn",
+        "colosseum-bonus-disc-us",
+        "devon-scope",
+        "feebas-tile-fishing",
+        "gift",
+        "gift-egg",
+        "good-rod",
+        "npc-trade",
+        "old-rod",
+        "pokemon-channel-pal",
+        "roaming-grass",
+        "roaming-water",
+        "rock-smash",
+        "seaweed",
+        "static",
+        "super-rod",
+        "surf",
+        "walk"
+      ]
+    },
+    "emerald": {
+      "source_commit": "5064f1d72746b3a6a931616dae3fb6445c556d4f",
+      "methods": [
+        "colosseum-bonus-disc-jpn",
+        "devon-scope",
+        "feebas-tile-fishing",
+        "gift",
+        "gift-egg",
+        "good-rod",
+        "npc-trade",
+        "old-rod",
+        "roaming-grass",
+        "roaming-water",
+        "rock-smash",
+        "seaweed",
+        "static",
+        "super-rod",
+        "surf",
+        "wailmer-pail",
+        "walk"
+      ]
+    },
+    "firered": {
+      "source_commit": "5064f1d72746b3a6a931616dae3fb6445c556d4f",
+      "methods": [
+        "colosseum-bonus-disc-jpn",
+        "gift",
+        "gift-egg",
+        "good-rod",
+        "old-rod",
+        "pokeflute",
+        "roaming-grass",
+        "rock-smash",
+        "static",
+        "super-rod",
+        "surf",
+        "walk"
+      ]
+    },
+    "leafgreen": {
+      "source_commit": "5064f1d72746b3a6a931616dae3fb6445c556d4f",
+      "methods": [
+        "colosseum-bonus-disc-jpn",
+        "gift",
+        "gift-egg",
+        "good-rod",
+        "old-rod",
+        "pokeflute",
+        "roaming-grass",
+        "rock-smash",
+        "static",
+        "super-rod",
+        "surf",
+        "walk"
+      ]
+    },
+    "diamond": {
+      "source_commit": "5064f1d72746b3a6a931616dae3fb6445c556d4f",
+      "methods": [
+        "feebas-tile-fishing",
+        "gift",
+        "gift-egg",
+        "good-rod",
+        "honey-tree",
+        "old-rod",
+        "pokemon-ranger",
+        "roaming-grass",
+        "roaming-water",
+        "static",
+        "super-rod",
+        "surf",
+        "walk"
+      ]
+    },
+    "pearl": {
+      "source_commit": "5064f1d72746b3a6a931616dae3fb6445c556d4f",
+      "methods": [
+        "feebas-tile-fishing",
+        "gift",
+        "gift-egg",
+        "good-rod",
+        "honey-tree",
+        "old-rod",
+        "pokemon-ranger",
+        "roaming-grass",
+        "roaming-water",
+        "static",
+        "super-rod",
+        "surf",
+        "walk"
+      ]
+    },
+    "platinum": {
+      "source_commit": "5064f1d72746b3a6a931616dae3fb6445c556d4f",
+      "methods": [
+        "feebas-tile-fishing",
+        "gift",
+        "gift-egg",
+        "good-rod",
+        "honey-tree",
+        "old-rod",
+        "pokemon-ranger",
+        "roaming-grass",
+        "roaming-water",
+        "static",
+        "super-rod",
+        "surf",
+        "walk"
+      ]
+    },
+    "heartgold": {
+      "source_commit": "5064f1d72746b3a6a931616dae3fb6445c556d4f",
+      "methods": [
+        "gift",
+        "gift-egg",
+        "good-rod",
+        "headbutt",
+        "old-rod",
+        "pokeflute",
+        "pokemon-ranger",
+        "roaming-grass",
+        "rock-smash",
+        "squirt-bottle",
+        "static",
+        "super-rod",
+        "surf",
+        "walk"
+      ]
+    },
+    "soulsilver": {
+      "source_commit": "5064f1d72746b3a6a931616dae3fb6445c556d4f",
+      "methods": [
+        "gift",
+        "gift-egg",
+        "good-rod",
+        "headbutt",
+        "old-rod",
+        "pokeflute",
+        "pokemon-ranger",
+        "roaming-grass",
+        "rock-smash",
+        "squirt-bottle",
+        "static",
+        "super-rod",
+        "surf",
+        "walk"
+      ]
+    },
+    "black": {
+      "source_commit": "5064f1d72746b3a6a931616dae3fb6445c556d4f",
+      "methods": [
+        "bridge-spots",
+        "cave-spots",
+        "dark-grass",
+        "gift",
+        "gift-egg",
+        "grass-spots",
+        "roaming-grass",
+        "static",
+        "super-rod",
+        "super-rod-spots",
+        "surf",
+        "surf-spots",
+        "swarm",
+        "walk"
+      ]
+    },
+    "white": {
+      "source_commit": "5064f1d72746b3a6a931616dae3fb6445c556d4f",
+      "methods": [
+        "bridge-spots",
+        "cave-spots",
+        "dark-grass",
+        "gift",
+        "gift-egg",
+        "grass-spots",
+        "roaming-grass",
+        "static",
+        "super-rod",
+        "super-rod-spots",
+        "surf",
+        "surf-spots",
+        "swarm",
+        "walk"
+      ]
+    },
+    "black-2": {
+      "source_commit": "5064f1d72746b3a6a931616dae3fb6445c556d4f",
+      "methods": [
+        "bridge-spots",
+        "cave-spots",
+        "dark-grass",
+        "gift",
+        "gift-egg",
+        "grass-spots",
+        "hidden-grotto",
+        "npc-trade",
+        "static",
+        "super-rod",
+        "super-rod-spots",
+        "surf",
+        "surf-spots",
+        "swarm",
+        "walk"
+      ]
+    },
+    "white-2": {
+      "source_commit": "5064f1d72746b3a6a931616dae3fb6445c556d4f",
+      "methods": [
+        "bridge-spots",
+        "cave-spots",
+        "dark-grass",
+        "gift",
+        "gift-egg",
+        "grass-spots",
+        "hidden-grotto",
+        "npc-trade",
+        "static",
+        "super-rod",
+        "super-rod-spots",
+        "surf",
+        "surf-spots",
+        "swarm",
+        "walk"
+      ]
+    },
+    "x": {
+      "source_commit": "5064f1d72746b3a6a931616dae3fb6445c556d4f",
+      "methods": [
+        "berry-trees",
+        "ceiling-ambush",
+        "friend-safari",
+        "gift",
+        "good-rod",
+        "ground-ambush",
+        "horde",
+        "old-rod",
+        "purple-flowers",
+        "red-flowers",
+        "rock-smash",
+        "rough-terrain",
+        "rustling-bush-ambush",
+        "sky-ambush",
+        "static",
+        "super-rod",
+        "surf",
+        "trash-can-ambush",
+        "walk",
+        "yellow-flowers"
+      ]
+    },
+    "y": {
+      "source_commit": "5064f1d72746b3a6a931616dae3fb6445c556d4f",
+      "methods": [
+        "berry-trees",
+        "ceiling-ambush",
+        "friend-safari",
+        "gift",
+        "good-rod",
+        "ground-ambush",
+        "horde",
+        "old-rod",
+        "purple-flowers",
+        "red-flowers",
+        "rock-smash",
+        "rough-terrain",
+        "rustling-bush-ambush",
+        "sky-ambush",
+        "static",
+        "super-rod",
+        "surf",
+        "trash-can-ambush",
+        "walk",
+        "yellow-flowers"
+      ]
+    },
+    "omega-ruby": {
+      "source_commit": "5064f1d72746b3a6a931616dae3fb6445c556d4f",
+      "methods": [
+        "devon-scope",
+        "dexnav",
+        "gift",
+        "gift-egg",
+        "good-rod",
+        "horde",
+        "old-rod",
+        "rock-smash",
+        "soaring",
+        "static",
+        "super-rod",
+        "surf",
+        "tall-grass",
+        "walk"
+      ]
+    },
+    "alpha-sapphire": {
+      "source_commit": "5064f1d72746b3a6a931616dae3fb6445c556d4f",
+      "methods": [
+        "devon-scope",
+        "dexnav",
+        "gift",
+        "gift-egg",
+        "good-rod",
+        "horde",
+        "old-rod",
+        "rock-smash",
+        "soaring",
+        "static",
+        "super-rod",
+        "surf",
+        "tall-grass",
+        "walk"
+      ]
+    },
+    "sun": {
+      "source_commit": "5064f1d72746b3a6a931616dae3fb6445c556d4f",
+      "methods": [
+        "berry-trees",
+        "bubbling-spots",
+        "gift",
+        "island-scan",
+        "npc-trade",
+        "sos",
+        "sos-from-bubbling-spot",
+        "static",
+        "super-rod",
+        "surf",
+        "walk"
+      ]
+    },
+    "moon": {
+      "source_commit": "5064f1d72746b3a6a931616dae3fb6445c556d4f",
+      "methods": [
+        "berry-trees",
+        "bubbling-spots",
+        "gift",
+        "island-scan",
+        "npc-trade",
+        "sos",
+        "sos-from-bubbling-spot",
+        "static",
+        "super-rod",
+        "surf",
+        "walk"
+      ]
+    },
+    "ultra-sun": {
+      "source_commit": "5064f1d72746b3a6a931616dae3fb6445c556d4f",
+      "methods": [
+        "berry-trees",
+        "bubbling-spots",
+        "gift",
+        "island-scan",
+        "npc-trade",
+        "sos",
+        "sos-from-bubbling-spot",
+        "static",
+        "super-rod",
+        "surf",
+        "walk"
+      ]
+    },
+    "ultra-moon": {
+      "source_commit": "5064f1d72746b3a6a931616dae3fb6445c556d4f",
+      "methods": [
+        "berry-trees",
+        "bubbling-spots",
+        "gift",
+        "island-scan",
+        "npc-trade",
+        "sos",
+        "sos-from-bubbling-spot",
+        "static",
+        "super-rod",
+        "surf",
+        "walk"
+      ]
+    },
+    "lets-go-pikachu": {
+      "source_commit": "5064f1d72746b3a6a931616dae3fb6445c556d4f",
+      "methods": [
+        "gift",
+        "npc-trade",
+        "overworld",
+        "overworld-flying",
+        "overworld-flying-special",
+        "overworld-special",
+        "overworld-water",
+        "overworld-water-special",
+        "pokeflute",
+        "static"
+      ]
+    },
+    "lets-go-eevee": {
+      "source_commit": "5064f1d72746b3a6a931616dae3fb6445c556d4f",
+      "methods": [
+        "gift",
+        "npc-trade",
+        "overworld",
+        "overworld-flying",
+        "overworld-flying-special",
+        "overworld-special",
+        "overworld-water",
+        "overworld-water-special",
+        "pokeflute",
+        "static"
+      ]
+    },
+    "sword": {
+      "source_commit": "5064f1d72746b3a6a931616dae3fb6445c556d4f",
+      "methods": [
+        "berry-trees",
+        "bubbling-spots",
+        "dynamax-adventure",
+        "fishing",
+        "gift",
+        "ground",
+        "max-raid",
+        "npc-trade",
+        "overworld",
+        "overworld-dirt",
+        "overworld-flying",
+        "overworld-water",
+        "shaking-tree",
+        "sharpedo",
+        "static",
+        "surfing",
+        "walk",
+        "wanderer",
+        "wanderer-water"
+      ]
+    },
+    "shield": {
+      "source_commit": "5064f1d72746b3a6a931616dae3fb6445c556d4f",
+      "methods": [
+        "berry-trees",
+        "bubbling-spots",
+        "dynamax-adventure",
+        "fishing",
+        "gift",
+        "ground",
+        "max-raid",
+        "npc-trade",
+        "overworld",
+        "overworld-dirt",
+        "overworld-flying",
+        "overworld-water",
+        "shaking-tree",
+        "sharpedo",
+        "static",
+        "surfing",
+        "walk",
+        "wanderer",
+        "wanderer-water"
+      ]
+    },
+    "brilliant-diamond": {
+      "source_commit": "5064f1d72746b3a6a931616dae3fb6445c556d4f",
+      "methods": [
+        "fossil-revival",
+        "gift",
+        "gift-egg",
+        "good-rod",
+        "grand-underground",
+        "honey-tree",
+        "npc-trade",
+        "old-rod",
+        "roaming",
+        "static",
+        "super-rod",
+        "surf",
+        "walk"
+      ]
+    },
+    "shining-pearl": {
+      "source_commit": "5064f1d72746b3a6a931616dae3fb6445c556d4f",
+      "methods": [
+        "fossil-revival",
+        "gift",
+        "gift-egg",
+        "good-rod",
+        "grand-underground",
+        "honey-tree",
+        "npc-trade",
+        "old-rod",
+        "roaming",
+        "static",
+        "super-rod",
+        "surf",
+        "walk"
+      ]
+    },
+    "legends-arceus": {
+      "source_commit": "5064f1d72746b3a6a931616dae3fb6445c556d4f",
+      "methods": [
+        "fixed-unown",
+        "gift",
+        "landmark",
+        "mass-outbreak",
+        "massive-mass-outbreak",
+        "overworld",
+        "space-time-distortion",
+        "static"
+      ]
+    },
+    "scarlet": {
+      "source_commit": "5064f1d72746b3a6a931616dae3fb6445c556d4f",
+      "methods": [
+        "event-tera-raid",
+        "fixed-overworld",
+        "fixed-tera",
+        "former-titan",
+        "gift",
+        "gift-egg",
+        "gimmighoul-chest",
+        "in-game-trade",
+        "league-club-trade",
+        "legendary-snack",
+        "overworld",
+        "static",
+        "tera-raid"
+      ]
+    },
+    "violet": {
+      "source_commit": "5064f1d72746b3a6a931616dae3fb6445c556d4f",
+      "methods": [
+        "event-tera-raid",
+        "fixed-overworld",
+        "fixed-tera",
+        "former-titan",
+        "gift",
+        "gift-egg",
+        "gimmighoul-chest",
+        "in-game-trade",
+        "league-club-trade",
+        "legendary-snack",
+        "overworld",
+        "static",
+        "tera-raid"
+      ]
+    }
+  }
+}

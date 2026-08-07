@@ -1,6 +1,7 @@
 import { getPublicLeagueCards } from "../lib/supabase/publicServer";
 import { FORMATS, GUIDES } from "../lib/seoContent";
 import { getAllPokemonProfiles, POKEMON_GENERATIONS, POKEMON_TYPES } from "../lib/publicPokemonIndex";
+import nuzlockeGameGuides from "../lib/nuzlockeGameGuides.json";
 
 const routes = [
   ["", "daily", 1],
@@ -10,9 +11,11 @@ const routes = [
   ["/pokemon/a-z", "monthly", 0.8],
   ["/pokemon/types", "monthly", 0.8],
   ["/pokemon/generations", "monthly", 0.8],
-  ["/nuzlocke", "monthly", 0.8],
+  ["/nuzlocke", "weekly", 0.9],
+  ["/nuzlocke/guides", "monthly", 0.9],
   ["/tournaments", "daily", 0.8],
   ["/resources", "monthly", 0.7],
+  ["/resources/daily-games", "daily", 1],
   ["/about", "monthly", 0.7],
   ["/manuals", "monthly", 0.8],
   ["/manuals/commissioner", "monthly", 0.8],
@@ -24,6 +27,7 @@ const routes = [
 
 // Update this only when the authored guide or format catalog materially changes.
 const AUTHORED_CONTENT_LAST_MODIFIED = new Date("2026-08-03T00:00:00.000Z");
+const NUZLOCKE_GUIDES_LAST_MODIFIED = new Date("2026-08-07T00:00:00.000Z");
 
 async function pokemonRoutes() {
   const pokemon = await getAllPokemonProfiles();
@@ -68,5 +72,11 @@ export default async function sitemap() {
     changeFrequency: "monthly",
     priority: 0.7,
   }));
-  return [...staticRoutes, ...guideRoutes, ...formatRoutes, ...pokemonIndexRoutes, ...leagueRoutes, ...pokemon];
+  const nuzlockeGuideRoutes = nuzlockeGameGuides.games.map(({ slug }) => ({
+    url: `https://www.draftcentral.gg/nuzlocke/${slug}`,
+    lastModified: NUZLOCKE_GUIDES_LAST_MODIFIED,
+    changeFrequency: "monthly",
+    priority: 0.8,
+  }));
+  return [...staticRoutes, ...nuzlockeGuideRoutes, ...guideRoutes, ...formatRoutes, ...pokemonIndexRoutes, ...leagueRoutes, ...pokemon];
 }

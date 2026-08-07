@@ -12,3 +12,4 @@ coverage/
 *.backup
 exports/
 backups/
+.vercel

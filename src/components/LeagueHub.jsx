@@ -147,7 +147,7 @@ function PollResults({ poll }) {
   const rows = poll.answer_type === "pokemon"
     ? Object.entries(poll.counts || {}).sort(([, a], [, b]) => b - a).map(([key, count]) => ({ key, label: key, count }))
     : poll.options.map((option) => ({ key: option.key, label: option.label, count: poll.counts?.[option.key] || 0 }));
-  return <div className="poll-results">{rows.map(({ key, label, count }) => { const percentage = total ? Math.round((count / total) * 100) : 0; return <div className="poll-result" key={key}><div className="poll-result-label">{poll.answer_type === "pokemon" && <PollPokemonImage name={label} />}<strong>{label}</strong>{poll.selected_key === key && <span className="poll-picked">Your pick</span>}</div><div className="poll-bar"><span style={{ width: `${percentage}%` }} /></div><small>{percentage}% - {count}</small></div>; })}</div>;
+  return <div className="poll-results">{rows.map(({ key, label, count }) => { const percentage = total ? Math.round((count / total) * 100) : 0; return <div className="poll-result" key={key}><div className="poll-result-label">{poll.answer_type === "pokemon" && <PollPokemonImage name={label} />}<span className="poll-result-name"><strong>{label}</strong>{poll.selected_key === key && <span className="poll-picked">Your pick</span>}</span></div><div className="poll-bar"><span style={{ width: `${percentage}%` }} /></div><small>{percentage}% - {count}</small></div>; })}</div>;
 }
 
 function LegacyPollCommentThread({ comment, replies, onReply, onUpvote }) {
@@ -159,7 +159,7 @@ function PollCommentThread({ comment, replies, onReply, onUpvote, onProfile }) {
   return <article className="poll-comment-thread"><div className="poll-comment">{author(comment)}<span>{new Date(comment.created_at).toLocaleString()}</span><p>{comment.body}</p><div className="poll-comment-actions"><button className="text-button" onClick={() => onReply(comment)}>Reply</button><button className={`text-button ${comment.upvoted_by_me ? "comment-upvoted" : ""}`} onClick={() => onUpvote(comment.id)}>▲ {comment.upvotes || 0}</button></div></div>{replies.map((reply) => <div className="poll-comment poll-comment-reply" key={reply.id}>{author(reply)}<span>{new Date(reply.created_at).toLocaleString()}</span><p>{reply.body}</p><div className="poll-comment-actions"><button className={`text-button ${reply.upvoted_by_me ? "comment-upvoted" : ""}`} onClick={() => onUpvote(reply.id)}>▲ {reply.upvotes || 0}</button></div></div>)}</article>;
 }
 
-function PollOfTheDay({ supabase }) {
+export function PollOfTheDay({ supabase }) {
   const [profileIdentity,setProfileIdentity]=useState("");
   const [poll, setPoll] = useState(null); const [history, setHistory] = useState([]); const [pokemon, setPokemon] = useState(""); const [pickerOpen, setPickerOpen] = useState(false); const [message, setMessage] = useState(""); const [busy, setBusy] = useState(false); const [comments, setComments] = useState([]); const [commentCount, setCommentCount] = useState(0); const [commentText, setCommentText] = useState(""); const [commentsOpen, setCommentsOpen] = useState(false); const [replyTo, setReplyTo] = useState(null);
   useEffect(() => {

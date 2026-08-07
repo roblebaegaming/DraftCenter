@@ -71,6 +71,7 @@ function eventIsEnabled(event, settings) {
 }
 
 async function deliverEmail(event, supabase) {
+  if (await draftNotificationIsStale(event, supabase)) return { skipped: true };
   const prefs = await supabase.from("notification_preferences").select("email_draft_reminders").eq("user_id", event.user_id).maybeSingle();
   if (prefs.data && !prefs.data.email_draft_reminders && event.kind === "draft_reminder") return { skipped: true };
   const { data: userResult, error: userError } = await supabase.auth.admin.getUserById(event.user_id);
@@ -91,9 +92,9 @@ async function deliverCommunityDiscord(supabase, now = new Date()) {
     const claimed = await claimCommunityDelivery(supabase, "question_of_the_day", qotdClock.date, qotdChannel);
     if (!claimed) skipped += 1;
     else try {
-      const { data: poll } = await supabase.from("daily_polls").select("question").eq("poll_date", qotdClock.date).maybeSingle();
-      if (!poll?.question) throw new Error("Today's Question of the Day is not ready yet.");
-      await sendDiscordChannelMessage(qotdChannel, `❓ **DraftCenter Question of the Day**\n${poll.question}\n\nVote in today's Daily Three:\nhttps://www.draftcentral.gg/explore`);
+      const { data: question } = await supabase.from("community_questions_of_the_day").select("question").eq("question_date", qotdClock.date).maybeSingle();
+      if (!question?.question) throw new Error("Today's Question of the Day is not ready yet.");
+      await sendDiscordChannelMessage(qotdChannel, `❓ **DraftCenter Question of the Day**\n${question.question}`);
       delivered += 1;
     } catch (error) {
       failed += 1;
@@ -140,7 +141,7 @@ async function deliverCommunityDiscord(supabase, now = new Date()) {
         const bracketSummary = bracketLeader ? `${bracketLeader[0]} led with ${bracketLeader[1]} bracket${bracketLeader[1] === 1 ? "" : "s"}` : "No completed brackets";
         const quizTotal = (quizAnswers || []).length;
         const quizCorrect = (quizAnswers || []).filter((answer) => answer.is_correct).length;
-        await sendDiscordChannelMessage(resultsChannel, `📊 **DraftCenter Daily Three results**\n**Poll:** ${poll.question}\n${pollLeaders}\n**Draft Bracket:** ${bracketSummary}\n**Pokémon Quiz:** ${quizTotal ? Math.round((quizCorrect / quizTotal) * 100) : 0}% correct (${quizCorrect}/${quizTotal})\n\nhttps://www.draftcentral.gg/explore`);
+        await sendDiscordChannelMessage(resultsChannel, `📊 **DraftCenter Daily Three results**\n**Poll:** ${poll.question}\n${pollLeaders}\n**Draft Bracket:** ${bracketSummary}\n**Pokémon Quiz:** ${quizTotal ? Math.round((quizCorrect / quizTotal) * 100) : 0}% correct (${quizCorrect}/${quizTotal})\n\nhttps://www.draftcentral.gg/resources/daily-games`);
         delivered += 1;
       }
     } catch (error) {
@@ -189,7 +190,7 @@ async function deliverDailyThreeResults(supabase) {
     <h2>Poll of the Day</h2><p>${escapeHtml(poll.question)}</p><ul>${rows}</ul><p>Total votes: ${totalVotes}</p>
     <h2>Daily Draft Bracket</h2><p>${(bracketResults || []).length} completed bracket${(bracketResults || []).length === 1 ? "" : "s"}.</p><ul>${championRows}</ul>
     <h2>Daily Pokémon Quiz</h2><p>${escapeHtml(quiz?.prompt || "Yesterday's quiz")}</p><p>${quizTotal ? Math.round((quizCorrect / quizTotal) * 100) : 0}% answered correctly (${quizCorrect} of ${quizTotal}).</p><ul>${quizRows}</ul>
-    <p><a href="https://www.draftcentral.gg/explore">Play today's Daily Three</a></p><p>You can change this email preference in your DraftCenter profile.</p>`;
+    <p><a href="https://www.draftcentral.gg/resources/daily-games">Play today's Daily Three</a></p><p>You can change this email preference in your DraftCenter profile.</p>`;
   let delivered = 0; let skipped = 0; let failed = 0;
   for (const preference of preferences || []) {
     const { error: claimError } = await supabase.from("daily_poll_email_deliveries").insert({ poll_id: poll.id, user_id: preference.user_id });
@@ -217,7 +218,7 @@ async function deliverDailyThreeResults(supabase) {
   const bracketLeader = Object.entries(championTotals).sort(([, a], [, b]) => b - a)[0];
   const bracketSummary = bracketLeader ? `${bracketLeader[0]} led with ${bracketLeader[1]} bracket${bracketLeader[1] === 1 ? "" : "s"}` : "No completed brackets";
   const quizPercent = quizTotal ? Math.round((quizCorrect / quizTotal) * 100) : 0;
-  const discordContent = `📊 **Yesterday's Daily Three results**\n**Poll:** ${poll.question}\n${pollLeaders}\n**Draft Bracket:** ${bracketSummary}\n**Pokémon Quiz:** ${quizPercent}% correct (${quizCorrect}/${quizTotal})\n\n❓ **Today's Question of the Day**\n${todayPoll?.question || "Today's Daily Three is ready."}\nhttps://www.draftcentral.gg/explore`;
+  const discordContent = `📊 **Yesterday's Daily Three results**\n**Poll:** ${poll.question}\n${pollLeaders}\n**Draft Bracket:** ${bracketSummary}\n**Pokémon Quiz:** ${quizPercent}% correct (${quizCorrect}/${quizTotal})\n\n❓ **Today's Question of the Day**\n${todayPoll?.question || "Today's Daily Three is ready."}\nhttps://www.draftcentral.gg/resources/daily-games`;
   for (const league of discordLeagues || []) {
     const { error: claimError } = await supabase.from("daily_three_discord_deliveries").insert({
       league_id: league.league_id,
@@ -295,6 +296,7 @@ async function releaseCommunityDelivery(supabase, deliveryKind, deliveryDate) {
 }
 
 async function deliverDiscord(event, supabase) {
+  if (await draftNotificationIsStale(event, supabase)) return { skipped: true };
   if (event.channel === "discord_dm") return deliverPersonalDiscord(event, supabase);
   const { data: settings } = await supabase.from("league_discord_settings").select("*").eq("league_id", event.league_id).maybeSingle();
   if (!settings?.enabled || !settings.channel_id) return { skipped: true };
@@ -362,6 +364,35 @@ async function deliverPersonalDiscord(event, supabase) {
   });
   if (!response.ok) throw Object.assign(new Error("Discord rejected the personal message."), { status: response.status });
   return { delivered: true };
+}
+
+async function draftNotificationIsStale(event, supabase, now = new Date()) {
+  if (event.kind === "draft_reminder") {
+    const startsAt = Date.parse(event.payload?.draft_starts_at || "");
+    if (!Number.isFinite(startsAt) || startsAt <= now.getTime() || !event.league_id) return true;
+    const [{ data: league, error: leagueError }, { data: activeSession, error: sessionError }] = await Promise.all([
+      supabase.from("leagues").select("draft_starts_at").eq("id", event.league_id).maybeSingle(),
+      supabase.from("draft_sessions").select("id").eq("league_id", event.league_id).eq("status", "active").limit(1).maybeSingle(),
+    ]);
+    if (leagueError) throw leagueError;
+    if (sessionError) throw sessionError;
+    const currentStartsAt = Date.parse(league?.draft_starts_at || "");
+    return Boolean(activeSession)
+      || !Number.isFinite(currentStartsAt)
+      || currentStartsAt <= now.getTime()
+      || currentStartsAt !== startsAt;
+  }
+  if (event.kind !== "draft_turn") return false;
+  const sessionId = event.payload?.draft_session_id;
+  if (!sessionId) return true;
+  const { data: session, error } = await supabase.from("draft_sessions")
+    .select("status,current_pick_number,current_team_id")
+    .eq("id", sessionId)
+    .maybeSingle();
+  if (error) throw error;
+  return !session || session.status !== "active"
+    || Number(session.current_pick_number) !== Number(event.payload?.pick_number)
+    || session.current_team_id !== event.payload?.team_id;
 }
 
 async function dispatchDueEvents(includeDailyThree = false, leagueId = null) {
