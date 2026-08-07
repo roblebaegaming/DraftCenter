@@ -3,10 +3,19 @@
 - Last updated: August 7, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified functional production release: `fe0ca21`
+- Verified functional production release: `a9a3894`
 - Latest production migration: 349
 
 ## Status
+
+The August 7 Nuzlocke Draft mobile and guide release is live at production
+commit `a9a3894`, the squash merge of pull request 67. Vercel reports that
+exact `main` deployment Ready and current, all protected checks passed, and the
+signed-out production smoke sweep passed. The generator now exposes a clear
+one-Pokémon-per-route option without the compact 12-Pokémon limit. All 37
+game-specific guides use one disclosure per route or area, with flat
+method/Pokémon/level rows, and the new indexable `/nuzlocke/guides` directory
+groups every guide across Generations I–IX. No database migration was required.
 
 The August 7 versioned Pokédex move-pool release is live at production commit
 `fe0ca21`, the squash merge of pull request 65. All protected and local release
@@ -19,20 +28,19 @@ Champions, Red/Blue Stadium-gift Surf, BDSP, both Z-A pools, and
 Scarlet/Violet + DLC.
 
 DraftCenter production is approved for monitored public use and real drafts.
-The deployed release sequence now includes Nuzlocke Lab, standalone
+The deployed release sequence now includes Nuzlocke Draft, standalone
 tournaments, Trainer Dex, playable Daily Games, the technical SEO foundation,
-expanded competitive resources and format data, four reviewed game-specific
+expanded competitive resources and format data, 37 reviewed game-specific
 Nuzlocke guides, complete versioned move pools, and source-attributed
 competitive ladder and tournament evidence on Pokémon profiles.
 
-Vercel reports exact functional release `fe0ca21` Ready. The signed-out
-production smoke sweep passes. Earlier live review confirmed the FireRed,
-Emerald, Platinum, and Scarlet
-Nuzlocke guides have the expected title, canonical,
-single H1, structured data, responsive layout, and preconfigured generator
-links. The Scarlet link restores its six-slot clauses and generates six
-encounters. Pokémon profiles also expose bounded, source-attributed ladder and
-anonymous tournament aggregates without making the underlying tables public.
+Vercel reports exact functional release `a9a3894` Ready. The signed-out
+production smoke sweep passes. Live mobile review confirmed the Nuzlocke Draft
+title and full-route option, the canonical 37-guide directory, nine generation
+groups, and the flat Red Route 6 encounter list without nested disclosures or
+page-level overflow. Pokémon profiles also expose bounded, source-attributed
+ladder and anonymous tournament aggregates without making the underlying
+tables public.
 
 Production migrations are collision-free through 349. Migration 343 restores
 the Daily Games bracket champion ranking function with a fixed search path,
@@ -50,7 +58,7 @@ mutations.
 The application-side SEO backlog from the first crawl is substantially
 implemented: meaningful raw-HTML H1 content, fragment-based Pokédex selection,
 shorter guide titles, a documented form-canonical policy, useful related links,
-expanded resource and format content, and the four-page Nuzlocke search cohort
+expanded resource and format content, and the complete Nuzlocke guide library
 are live. External measurement is the remaining hardening gate: a new full
 Semrush crawl, Position Tracking baseline, and Search Console snapshot require
 an authenticated account session and have not been represented as completed.
@@ -58,7 +66,7 @@ an authenticated account session and have not been represented as completed.
 ## Active watch items
 
 - Semrush full crawl and Search Console indexing/canonical results
-- Four-page Nuzlocke cohort impressions, clicks, CTR, and engagement at 14 and
+- Nuzlocke guide-library impressions, clicks, CTR, and engagement at 14 and
   28 days
 - Daily Games ranking RPC errors and anonymous privacy behavior
 - Competitive dataset refresh cadence, source availability, and bounded RPC
@@ -72,6 +80,8 @@ an authenticated account session and have not been represented as completed.
 ## Authoritative records
 
 - Current detailed handoff:
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-07-nuzlocke-product-pass.md`](handoffs/DraftCenter-agent-handoff-2026-08-07-nuzlocke-product-pass.md)
+- Versioned move-pool release record:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-07-versioned-move-pools.md`](handoffs/DraftCenter-agent-handoff-2026-08-07-versioned-move-pools.md)
 - SEO release-hardening record:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-06-seo-release-hardening.md`](handoffs/DraftCenter-agent-handoff-2026-08-06-seo-release-hardening.md)

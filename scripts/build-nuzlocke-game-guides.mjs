@@ -55,7 +55,7 @@ const games = files.map((file) => {
     generation: game.generation,
     releaseOrder: game.release_order,
     family: game.family,
-    description: `A route-by-route ${game.display_name} Nuzlocke encounter guide covering all ${areas.length} reviewed catch areas, with every available Pokémon grouped by encounter method.`,
+    description: `A route-by-route ${game.display_name} Nuzlocke encounter guide covering all ${areas.length} reviewed catch areas, with every available Pokémon labeled by encounter method and level range.`,
     counts: { locations: areas.length, methods: methods.length, pokemon: uniquePokemon },
     starters: starters.map((starter) => ({ pokemonId: starter.pokemon_id, name: starter.pokemon_name, profileSlug: profileSlug(starter.pokemon_name) })),
     conditions: (game.condition_groups || []).map((group) => ({ id: group.id, label: group.label, options: group.options.map((option) => option.label) })),
