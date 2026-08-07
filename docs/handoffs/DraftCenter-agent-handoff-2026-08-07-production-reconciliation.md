@@ -236,9 +236,9 @@ deployment work and should be coordinated with the owner.
 2. Re-run the required release checks before an authorized merge, confirm the
    exact Vercel Production commit afterward, and run the signed-out production
    smoke sweep.
-3. Port the isolated tournament fixture-readiness guard from the historical
-   stabilization branch onto a fresh branch from current `origin/main`; do not
-   merge the historical branch wholesale.
+3. Use the isolated tournament fixture-readiness guard carried by this
+   consolidation before creating disposable lifecycle data; do not merge the
+   historical stabilization branch wholesale.
 4. Keep pull request 39 only until the safe tournament Preview no longer
    depends on it, then close it.
 5. Preserve both dirty worktrees and combine handoffs by facts and final trees
@@ -252,5 +252,6 @@ This task is complete because the full Nuzlocke product-pass tree was proven to
 be on production, the live save/download/load path passed, later agents'
 releases were identified and preserved, no redundant deployment occurred, the
 dirty workspaces were untouched, nine superseded pull requests were closed,
-the isolated tournament Preview anchor was preserved, and the only new active
-product work is clearly separated as pull request 77.
+the isolated tournament Preview anchor was preserved, the fixture-readiness
+guard was selectively ported onto the current mainline, and the only new
+active product work is clearly separated as pull request 77.

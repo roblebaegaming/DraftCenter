@@ -58,17 +58,23 @@ bypasses when concurrent merges made them out of date. This preserved the
 Nuzlocke Draft work and kept the final application merge on the newest
 production baseline.
 
-After pull request 68 merged, additional uncommitted tournament-fixture work
-appeared in the original tournament worktree. It remains untouched and
-uncommitted in these files:
+After pull request 68 merged, additional tournament-fixture readiness work was
+preserved on the historical stabilization branch. Pull request 78 selectively
+carries the reviewed final tree onto the current `main` baseline in these
+files:
 
 - `docs/standalone-tournaments.md`;
 - `package.json`;
 - `scripts/verify-tournament-test-fixture.mjs`; and
 - `test/tournament-fixture-readiness.test.js`.
 
-That work is not part of production commit `d5b1344` or this release record.
-Coordinate with its active owner before editing, committing, or moving it.
+The guard requires an exact disposable project host and explicit confirmation,
+uses only bounded read-only tournament projections, and does not print
+credentials or returned tournament data. Its three focused tests and the full
+application suite pass. The correction component and its regression already
+match `main`, so pull request 78 does not replay them or merge the historical
+branch. This tooling is not part of functional production commit `d5b1344` and
+changes no application behavior or production data.
 
 ## Production boundaries
 
