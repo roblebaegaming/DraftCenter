@@ -83,6 +83,7 @@ test("generated teams can be safely saved and exported as readable Run Cards",()
   const url="https://draftcentral.gg/nuzlocke?game=scarlet&seed=ember-seed&name=Scarlet+Ember&length=all-areas&mode=route-random&weighting=authentic&starter=include&type=fire&family=off";
   const rules=nuzlockeRulesFromShareUrl(url);
   assert.ok(rules.includes("Draft size: One Pokémon per eligible route/area"));assert.ok(rules.includes("Type theme: Fire"));assert.ok(rules.includes("Evolutionary-family clause: Off"));
+  assert.ok(nuzlockeRulesFromShareUrl("https://draftcentral.gg/nuzlocke?size=20").includes("Draft size: 20-Pokémon team"));
   const text=buildNuzlockeRunCardText({runName:"Scarlet Ember",result:generated,rules,shareUrl:url});
   assert.match(text,/Scarlet Ember/);assert.match(text,/1\. Fuecoco — Starter choice — Starter Pokémon/);assert.match(text,/Only 1 of 2 requested results/);assert.match(text,/Recreate this run/);assert.match(text,/draftcentral\.gg\/nuzlocke/);
   assert.equal(nuzlockeRunCardFilename("Pokémon Scarlet: Ember Run","Pokémon Scarlet"),"pokemon-scarlet-ember-run.txt");
@@ -176,10 +177,10 @@ test("final evolution mode fails closed when its game mapping is incomplete",()=
 });
 test("unknown modes and invalid sizes fail closed",()=>{
   assert.throws(()=>generateNuzlockeTeam(encounters,{seed:"x",teamSize:6,mode:"balanced",weighting:"equal"}),/Unknown/);
-  assert.throws(()=>generateNuzlockeTeam(encounters,{seed:"x",teamSize:13,mode:"true-random",weighting:"equal"}),/between 1 and 12/);
+  assert.throws(()=>generateNuzlockeTeam(encounters,{seed:"x",teamSize:21,mode:"true-random",weighting:"equal"}),/between 1 and 20/);
   assert.throws(()=>generateNuzlockeTeam(encounters,{seed:"x",teamSize:6,mode:"true-random",weighting:"equal",conditionGroups:[],conditionSelections:{time:"night"}}),/Unknown/);
 });
-test("reviewed Pokémon Red catalog produces a complete deterministic Run Card",()=>{ const catalog=JSON.parse(fs.readFileSync(new URL("../data/nuzlocke/pokemon-red.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json",import.meta.url),"utf8")); const options={seed:"pallet-town",teamSize:12,mode:"route-random",weighting:"authentic",familyClause:true,excludeLegendaries:true}; const result=generateNuzlockeTeam(catalog.encounters,options); assert.equal(result.complete,true); assert.equal(result.team.length,12); assert.equal(new Set(result.team.map((row)=>row.area_key)).size,12); assert.equal(new Set(result.team.map((row)=>row.species_family)).size,12); assert.deepEqual(result,generateNuzlockeTeam(catalog.encounters,options)); });
+test("reviewed Pokémon Red catalog produces a complete deterministic 20-Pokémon Run Card",()=>{ const catalog=JSON.parse(fs.readFileSync(new URL("../data/nuzlocke/pokemon-red.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json",import.meta.url),"utf8")); const options={seed:"pallet-town",teamSize:20,mode:"route-random",weighting:"authentic",familyClause:true,excludeLegendaries:true}; const result=generateNuzlockeTeam(catalog.encounters,options); assert.equal(result.complete,true); assert.equal(result.team.length,20); assert.equal(new Set(result.team.map((row)=>row.area_key)).size,20); assert.equal(new Set(result.team.map((row)=>row.species_family)).size,20); assert.deepEqual(result,generateNuzlockeTeam(catalog.encounters,options)); });
 test("reviewed Pokémon Red final evolution mode is complete, game-specific, and deterministic",()=>{
   const catalog=JSON.parse(fs.readFileSync(new URL("../data/nuzlocke/pokemon-red.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json",import.meta.url),"utf8"));
   const evolutionCatalog=JSON.parse(fs.readFileSync(new URL("../data/nuzlocke/pokemon-red-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json",import.meta.url),"utf8"));

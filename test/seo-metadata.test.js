@@ -55,7 +55,7 @@ test("the Nuzlocke generator is crawlable, internally linked, and uses current p
   assert.match(page, /"@type": "WebApplication"/);
   assert.match(page, /"@type": "BreadcrumbList"/);
   assert.match(page, /draft one Pokémon from every eligible route or area/);
-  assert.match(page, /more than 12/);
+  assert.match(page, /team size of up to 20/);
   assert.match(page, /download a readable Run Card/);
   assert.match(page, /randomizer seed/);
   assert.match(page, /type, official Pokédex color, or evolution stage/);
