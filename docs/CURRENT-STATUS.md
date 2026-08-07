@@ -3,10 +3,21 @@
 - Last updated: August 7, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified functional production release: `d5b1344`
+- Verified functional production release: `2d583251`
 - Latest production migration: 349
 
 ## Status
+
+The August 7 Nuzlocke team-size follow-up is live at production commit
+`2d583251`, the squash merge of pull request 72. The compact draft option is
+now labeled **Select Team Size**, exposes its slider only while selected, and
+supports teams from 1 through 20. The one-Pokémon-per-route option now uses
+the shorter **Build the full run** description. Share URLs, saved and
+downloaded Run Cards, validation, and SEO copy all accept the expanded limit.
+Vercel reports the exact merged commit Ready and current, the signed-out
+production smoke sweep passed, and a live 390-by-844 production check generated
+all 20 requested Pokémon without horizontal overflow. No migration was
+required.
 
 The August 7 tournament stabilization release is live at production commit
 `d5b1344`, the squash merge of pull request 68. Vercel reports that exact
