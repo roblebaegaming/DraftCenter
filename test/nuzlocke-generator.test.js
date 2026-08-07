@@ -20,6 +20,18 @@ const fixtureEvolutions = {
     { pokemon_id: 129, final_evolutions: [{ pokemon_id: 130, pokemon_name: "Gyarados", form_name: "", artwork_url: "https://example.com/130.png" }] },
   ],
 };
+const fixtureThemes = {
+  types: ["bug", "flying", "grass", "poison", "water"],
+  colors: ["blue", "green", "purple", "red"],
+  can_evolve: [1, 2, 10, 41, 129],
+  profiles: {
+    1: { types: ["grass", "poison"], color: "green", base_stage: true, has_evolution: true },
+    2: { types: ["grass", "poison"], color: "green", base_stage: false, has_evolution: true },
+    10: { types: ["bug"], color: "green", base_stage: true, has_evolution: true },
+    41: { types: ["poison", "flying"], color: "purple", base_stage: true, has_evolution: true },
+    129: { types: ["water"], color: "red", base_stage: true, has_evolution: true },
+  },
+};
 
 test("seeded output is deterministic and uses at most one encounter per area", () => {
   const options={seed:"same",teamSize:4,mode:"true-random",weighting:"authentic"};
@@ -43,6 +55,22 @@ test("family clauses try another eligible encounter in the same area",()=>{
   }
 });
 test("route-random samples distinct areas instead of always taking catalog order",()=>{ const result=generateNuzlockeTeam(encounters,{seed:"route",teamSize:3,mode:"route-random",weighting:"equal"}); assert.equal(new Set(result.team.map((item)=>item.area_key)).size,3); assert.notDeepEqual(result.team.map((item)=>item.area_key),["route-1","route-2","lake"]); });
+test("one-per-area mode is deterministic and is not capped at the compact team limit",()=>{
+  const pool=Array.from({length:20},(_,index)=>({area_key:`area-${index+1}`,pokemon_id:index+1,pokemon_name:`Pokémon ${index+1}`,species_family:`family-${index+1}`,method:"walk",chance:100}));
+  const options={seed:"all-areas",teamSize:6,allAreas:true,mode:"route-random",weighting:"equal"};
+  const result=generateNuzlockeTeam(pool,options);
+  assert.equal(result.complete,true);assert.equal(result.requested,20);assert.equal(result.team.length,20);assert.equal(new Set(result.team.map((entry)=>entry.area_key)).size,20);assert.deepEqual(result,generateNuzlockeTeam(pool,options));
+});
+test("type, color, and evolution-stage themes can be combined without relaxing filters",()=>{
+  const base={seed:"themes",teamSize:4,mode:"route-random",weighting:"equal",themeCatalog:fixtureThemes};
+  const bug=generateNuzlockeTeam(encounters,{...base,themeType:"bug"});
+  assert.deepEqual(bug.team.map((entry)=>entry.pokemon_name),["Caterpie"]);assert.equal(bug.complete,false);
+  const greenBase=generateNuzlockeTeam(encounters,{...base,themeColor:"green",evolutionStage:"base"});
+  assert.deepEqual(new Set(greenBase.team.map((entry)=>entry.pokemon_name)),new Set(["Bulbasaur","Caterpie"]));
+  const naturallyNonEvolving=generateNuzlockeTeam(encounters,{...base,evolutionStage:"non-evolving"});
+  assert.equal(naturallyNonEvolving.available,0);
+  assert.throws(()=>generateNuzlockeTeam(encounters,{...base,themeType:"stellar"}),/Unknown/);
+});
 test("optional starters are deterministic, count as a team slot, and respect exclusions",()=>{
   const starters=[
     {pokemon_id:1,pokemon_name:"Bulbasaur",species_family:"bulbasaur"},

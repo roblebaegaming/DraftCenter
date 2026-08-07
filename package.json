@@ -70,6 +70,7 @@
     "catalog:audit:scarlet": "node scripts/audit-pokemon-gen9-sources.mjs --input data/nuzlocke/pokemon-scarlet.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json --pkhex-commit 18cc30d6416b8fc58320af0f9b9d1b62bee405e1 --pknx-commit d191cd0e5c05f2af81d9a41c1f1d82e6621b351a --bulbapedia-revision 4594820",
     "catalog:audit:violet": "node scripts/audit-pokemon-gen9-sources.mjs --input data/nuzlocke/pokemon-violet.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json --pkhex-commit 18cc30d6416b8fc58320af0f9b9d1b62bee405e1 --pknx-commit d191cd0e5c05f2af81d9a41c1f1d82e6621b351a --bulbapedia-revision 4594820",
     "catalog:build": "node scripts/build-pokeapi-game-catalog.mjs",
+    "catalog:build:themes": "node scripts/build-nuzlocke-theme-metadata.mjs --commit 5064f1d72746b3a6a931616dae3fb6445c556d4f --output data/nuzlocke/nuzlocke-theme-metadata.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json",
     "catalog:build:gen8": "node scripts/build-pokemon-gen8-catalog.mjs",
     "catalog:build:gen9": "node scripts/build-pokemon-gen9-catalog.mjs",
     "catalog:build:migration": "node scripts/build-pokemon-catalog-migration.mjs",

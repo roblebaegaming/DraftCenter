@@ -3,9 +3,9 @@ import nuzlockeGameGuides from "../../lib/nuzlockeGameGuides.json";
 
 export const metadata = {
   title: "Pokémon Nuzlocke Team Generator by Game",
-  description: "Build a repeatable Pokémon Nuzlocke team from verified encounters by game, route, method, level, and encounter odds, then share the same rules and result.",
+  description: "Build and save a repeatable Pokémon Nuzlocke run with one encounter per area, game-specific rules, themed filters, and verified encounter odds.",
   alternates: { canonical: "/nuzlocke" },
-  keywords: ["Pokémon Nuzlocke generator", "Nuzlocke encounter generator", "Pokémon random team generator", "Nuzlocke team code"],
+  keywords: ["Pokémon Nuzlocke generator", "Nuzlocke encounter generator", "one Pokémon per area", "themed Nuzlocke", "Nuzlocke randomizer seed"],
   openGraph: {
     type: "website",
     title: "Pokémon Nuzlocke Team Generator by Game",
@@ -26,7 +26,7 @@ export default function NuzlockePage() {
         operatingSystem: "Any",
         isAccessibleForFree: true,
         description: "A repeatable Nuzlocke team generator using verified, game-specific Pokémon encounters.",
-        featureList: ["Game-specific encounters", "Shareable Team code results", "Route-first and encounter-pool random modes", "Species clause", "Encounter-method filters"],
+        featureList: ["Game-specific encounters", "Saved and shareable runs", "One encounter per eligible area", "Type, color, and evolution-stage themes", "Route-first and encounter-pool random modes", "Species clause"],
       },
       {
         "@type": "BreadcrumbList",
@@ -44,7 +44,7 @@ export default function NuzlockePage() {
     <section className="explore-card nuzlocke-seo-guide" aria-labelledby="nuzlocke-guide-title">
       <span className="eyebrow">HOW IT WORKS</span>
       <h2 id="nuzlocke-guide-title">A repeatable Nuzlocke encounter generator</h2>
-      <p>Choose a verified Pokémon game, a team size, and a Team code. Route-first random gives each eligible location equal priority, while encounter-pool random draws across every eligible encounter entry. Anyone opening a shared team link can use the same setup and reproduce the same team.</p>
+      <p>Choose a verified Pokémon game, name your run, and keep its randomizer seed to reproduce the same encounters. Build a compact team or request one encounter from every eligible area, then save the preset on your device or share its exact rules by link.</p>
       <div className="pokemon-detail-grid">
         <section>
           <h3>Use game-specific encounter data</h3>
@@ -52,7 +52,7 @@ export default function NuzlockePage() {
         </section>
         <section>
           <h3>Set your Nuzlocke clauses</h3>
-          <p>Include a starter, apply an evolutionary-family clause, exclude legendary Pokémon or named species, filter encounter methods, and choose equal selection or authentic encounter-odds weighting. If the rules leave too few choices, the generator says so instead of silently relaxing them.</p>
+          <p>Include a starter, apply an evolutionary-family clause, filter methods and game-specific conditions, or build a themed run by Pokémon type, official Pokédex color, or evolution stage. Equal weighting gives every eligible encounter the same chance; authentic weighting uses the reviewed in-game rates.</p>
         </section>
       </div>
       <aside className="seo-next-step">

@@ -4,6 +4,7 @@ import { consumeUserRateLimit } from "../../../lib/apiRateLimit";
 import { readBoundedJson, requestIpAddress, safeFailure } from "../../../lib/apiSecurity";
 import { generateNuzlockeTeam } from "../../../lib/nuzlockeGenerator";
 import verifiedGameMethodCatalog from "../../../../data/nuzlocke/verified-game-methods.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json";
+import pokemonThemeMetadata from "../../../../data/nuzlocke/nuzlocke-theme-metadata.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json";
 import redEvolutionCatalog from "../../../../data/nuzlocke/pokemon-red-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json";
 import blueEvolutionCatalog from "../../../../data/nuzlocke/pokemon-blue-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json";
 import yellowEvolutionCatalog from "../../../../data/nuzlocke/pokemon-yellow-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json";
@@ -65,6 +66,7 @@ const EVOLUTION_CATALOGS = Object.freeze({
 });
 const MAX_CATALOG_ENCOUNTERS = 16000;
 const VERIFIED_GAME_METHODS = Object.freeze(verifiedGameMethodCatalog.games);
+const VERIFIED_GAME_THEMES = Object.freeze(pokemonThemeMetadata.games);
 const KANTO_STARTERS = Object.freeze([
   { pokemon_id: 1, pokemon_name: "Bulbasaur", form_name: "", species_family: "evolution-chain-1", artwork_url: "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/1.png" },
   { pokemon_id: 4, pokemon_name: "Charmander", form_name: "", species_family: "evolution-chain-2", artwork_url: "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/4.png" },
@@ -127,15 +129,19 @@ export async function GET() {
       .limit(100);
     if (error) throw error;
     const methods = {};
+    const themes = {};
     const games = (data || []).map(({ source_commit: sourceCommit, release_order: releaseOrder, ...game }) => {
       const summary = VERIFIED_GAME_METHODS[game.game_key];
-      if (!summary || summary.source_commit !== sourceCommit || !Array.isArray(summary.methods) || summary.methods.length > 50) {
-        throw new Error("Verified game method metadata does not match the reviewed catalog.");
+      const theme = VERIFIED_GAME_THEMES[game.game_key];
+      if (!summary || summary.source_commit !== sourceCommit || !Array.isArray(summary.methods) || summary.methods.length > 50 ||
+          pokemonThemeMetadata.source_commit !== sourceCommit || !Array.isArray(theme?.types) || !Array.isArray(theme?.colors)) {
+        throw new Error("Verified game control metadata does not match the reviewed catalog.");
       }
       methods[game.game_key] = summary.methods;
+      themes[game.game_key] = { types: theme.types, colors: theme.colors };
       return game;
     });
-    return Response.json({ games, methods }, { headers: { "Cache-Control": "public, max-age=300" } });
+    return Response.json({ games, methods, themes }, { headers: { "Cache-Control": "public, max-age=300" } });
   } catch (error) {
     return safeFailure(error, "Verified game data is temporarily unavailable.", { context: "nuzlocke-games" });
   }
@@ -148,7 +154,7 @@ export async function POST(request) {
     const body = parsed.data;
     if (!GAME_KEY.test(String(body.game || ""))) return Response.json({ error: "Choose a supported game." }, { status: 400 });
     const seed = String(body.seed || "").slice(0, 80);
-    if (!seed) return Response.json({ error: "Enter a team code." }, { status: 400 });
+    if (!seed) return Response.json({ error: "Enter a randomizer seed." }, { status: 400 });
     const adminClient = createAdminClient();
     if (!await consumeUserRateLimit(adminClient, "nuzlocke-generate", requestIpAddress(request), 30, 600)) {
       return Response.json({ error: "Too many teams were generated. Try again in a few minutes." }, { status: 429 });
@@ -158,6 +164,10 @@ export async function POST(request) {
     const { data: game, error: gameError } = await catalogClient.from("pokemon_games").select("game_key,display_name,source_commit,starters,condition_groups").eq("game_key", body.game).eq("encounter_status", "verified").maybeSingle();
     if (gameError) throw gameError;
     if (!game) return Response.json({ error: "That game's encounter catalog is not verified yet." }, { status: 404 });
+    const gameTheme = VERIFIED_GAME_THEMES[body.game];
+    if (pokemonThemeMetadata.source_commit !== game.source_commit || !gameTheme) {
+      return Response.json({ error: "Theme data is not verified for this game yet." }, { status: 422 });
+    }
     const finalEvolutionOnly = body.finalEvolutionOnly === true;
     const evolutionCatalog = EVOLUTION_CATALOGS[body.game];
     if (finalEvolutionOnly && (!evolutionCatalog || evolutionCatalog.source_commit !== game.source_commit)) {
@@ -178,6 +188,7 @@ export async function POST(request) {
     const result = generateNuzlockeTeam(encounters, {
       seed, teamSize: Number(body.teamSize), mode: body.mode,
       weighting: body.weighting, familyClause: body.familyClause === true,
+      allAreas: body.allAreas === true,
       excludeLegendaries: body.excludeLegendaries === true,
       finalEvolutionOnly,
       evolutionCatalog,
@@ -187,6 +198,10 @@ export async function POST(request) {
       conditionSelections: body.conditionSelections && typeof body.conditionSelections === "object" ? body.conditionSelections : {},
       exclusions: Array.isArray(body.exclusions) ? body.exclusions.slice(0, 40) : [],
       methods: Array.isArray(body.methods) ? body.methods.slice(0, 30) : [],
+      themeType: body.themeType,
+      themeColor: body.themeColor,
+      evolutionStage: body.evolutionStage,
+      themeCatalog: { ...gameTheme, profiles: pokemonThemeMetadata.profiles },
     });
     return Response.json({ game: { game_key: game.game_key, display_name: game.display_name }, seed, ...result }, { headers: { "Cache-Control": "private, no-store" } });
   } catch (error) {
