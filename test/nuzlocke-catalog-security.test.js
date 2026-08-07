@@ -112,35 +112,35 @@ const gen4Artifacts=Object.fromEntries(Object.entries(gen4MigrationNumbers).map(
   imported:fs.readFileSync(new URL(`../supabase/${importNumber}-import-pokemon-${game}-encounter-catalog.sql`,import.meta.url),"utf8"),
   verified:fs.readFileSync(new URL(`../supabase/${verifyNumber}-verify-pokemon-${game}-encounter-catalog.sql`,import.meta.url),"utf8"),
 }]));
-const gen5MigrationNumbers={black:[296,297],white:[298,299],"black-2":[300,301],"white-2":[302,303]};
+const gen5MigrationNumbers={black:[297,298],white:[299,300],"black-2":[301,302],"white-2":[303,304]};
 const gen5Artifacts=Object.fromEntries(Object.entries(gen5MigrationNumbers).map(([game,[importNumber,verifyNumber]])=>[game,{
   catalog:JSON.parse(fs.readFileSync(new URL(`../data/nuzlocke/pokemon-${game}.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json`,import.meta.url),"utf8")),
   evolutions:JSON.parse(fs.readFileSync(new URL(`../data/nuzlocke/pokemon-${game}-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json`,import.meta.url),"utf8")),
   imported:fs.readFileSync(new URL(`../supabase/${importNumber}-import-pokemon-${game}-encounter-catalog.sql`,import.meta.url),"utf8"),
   verified:fs.readFileSync(new URL(`../supabase/${verifyNumber}-verify-pokemon-${game}-encounter-catalog.sql`,import.meta.url),"utf8"),
 }]));
-const gen6MigrationNumbers={x:[304,305],y:[306,307],"omega-ruby":[308,309],"alpha-sapphire":[310,311]};
+const gen6MigrationNumbers={x:[305,306],y:[307,308],"omega-ruby":[309,310],"alpha-sapphire":[311,312]};
 const gen6Artifacts=Object.fromEntries(Object.entries(gen6MigrationNumbers).map(([game,[importNumber,verifyNumber]])=>[game,{
   catalog:JSON.parse(fs.readFileSync(new URL(`../data/nuzlocke/pokemon-${game}.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json`,import.meta.url),"utf8")),
   evolutions:JSON.parse(fs.readFileSync(new URL(`../data/nuzlocke/pokemon-${game}-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json`,import.meta.url),"utf8")),
   imported:fs.readFileSync(new URL(`../supabase/${importNumber}-import-pokemon-${game}-encounter-catalog.sql`,import.meta.url),"utf8"),
   verified:fs.readFileSync(new URL(`../supabase/${verifyNumber}-verify-pokemon-${game}-encounter-catalog.sql`,import.meta.url),"utf8"),
 }]));
-const gen7MigrationNumbers={sun:[312,313],moon:[314,315],"ultra-sun":[316,317],"ultra-moon":[318,319],"lets-go-pikachu":[320,321],"lets-go-eevee":[322,323]};
+const gen7MigrationNumbers={sun:[313,314],moon:[315,316],"ultra-sun":[317,318],"ultra-moon":[319,320],"lets-go-pikachu":[321,322],"lets-go-eevee":[323,324]};
 const gen7Artifacts=Object.fromEntries(Object.entries(gen7MigrationNumbers).map(([game,[importNumber,verifyNumber]])=>[game,{
   catalog:JSON.parse(fs.readFileSync(new URL(`../data/nuzlocke/pokemon-${game}.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json`,import.meta.url),"utf8")),
   evolutions:JSON.parse(fs.readFileSync(new URL(`../data/nuzlocke/pokemon-${game}-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json`,import.meta.url),"utf8")),
   imported:fs.readFileSync(new URL(`../supabase/${importNumber}-import-pokemon-${game}-encounter-catalog.sql`,import.meta.url),"utf8"),
   verified:fs.readFileSync(new URL(`../supabase/${verifyNumber}-verify-pokemon-${game}-encounter-catalog.sql`,import.meta.url),"utf8"),
 }]));
-const gen8MigrationNumbers={sword:[324,325],shield:[326,327],"brilliant-diamond":[328,329],"shining-pearl":[330,331],"legends-arceus":[332,333]};
+const gen8MigrationNumbers={sword:[325,326],shield:[327,328],"brilliant-diamond":[329,330],"shining-pearl":[331,332],"legends-arceus":[333,334]};
 const gen8Artifacts=Object.fromEntries(Object.entries(gen8MigrationNumbers).map(([game,[importNumber,verifyNumber]])=>[game,{
   catalog:JSON.parse(fs.readFileSync(new URL(`../data/nuzlocke/pokemon-${game}.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json`,import.meta.url),"utf8")),
   evolutions:JSON.parse(fs.readFileSync(new URL(`../data/nuzlocke/pokemon-${game}-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json`,import.meta.url),"utf8")),
   imported:fs.readFileSync(new URL(`../supabase/${importNumber}-import-pokemon-${game}-encounter-catalog.sql`,import.meta.url),"utf8"),
   verified:fs.readFileSync(new URL(`../supabase/${verifyNumber}-verify-pokemon-${game}-encounter-catalog.sql`,import.meta.url),"utf8"),
 }]));
-const gen9MigrationNumbers={scarlet:[334,335],violet:[336,337]};
+const gen9MigrationNumbers={scarlet:[335,336],violet:[337,338]};
 const gen9Artifacts=Object.fromEntries(Object.entries(gen9MigrationNumbers).map(([game,[importNumber,verifyNumber]])=>[game,{
   catalog:JSON.parse(fs.readFileSync(new URL(`../data/nuzlocke/pokemon-${game}.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json`,import.meta.url),"utf8")),
   evolutions:JSON.parse(fs.readFileSync(new URL(`../data/nuzlocke/pokemon-${game}-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json`,import.meta.url),"utf8")),
@@ -481,27 +481,27 @@ paths = [
   '''^supabase/290-import-pokemon-platinum-encounter-catalog\\.sql$''',
   '''^supabase/292-import-pokemon-heartgold-encounter-catalog\\.sql$''',
   '''^supabase/294-import-pokemon-soulsilver-encounter-catalog\\.sql$''',
-  '''^supabase/296-import-pokemon-black-encounter-catalog\\.sql$''',
-  '''^supabase/298-import-pokemon-white-encounter-catalog\\.sql$''',
-  '''^supabase/300-import-pokemon-black-2-encounter-catalog\\.sql$''',
-  '''^supabase/302-import-pokemon-white-2-encounter-catalog\\.sql$''',
-  '''^supabase/304-import-pokemon-x-encounter-catalog\\.sql$''',
-  '''^supabase/306-import-pokemon-y-encounter-catalog\\.sql$''',
-  '''^supabase/308-import-pokemon-omega-ruby-encounter-catalog\\.sql$''',
-  '''^supabase/310-import-pokemon-alpha-sapphire-encounter-catalog\\.sql$''',
-  '''^supabase/312-import-pokemon-sun-encounter-catalog\\.sql$''',
-  '''^supabase/314-import-pokemon-moon-encounter-catalog\\.sql$''',
-  '''^supabase/316-import-pokemon-ultra-sun-encounter-catalog\\.sql$''',
-  '''^supabase/318-import-pokemon-ultra-moon-encounter-catalog\\.sql$''',
-  '''^supabase/320-import-pokemon-lets-go-pikachu-encounter-catalog\\.sql$''',
-  '''^supabase/322-import-pokemon-lets-go-eevee-encounter-catalog\\.sql$''',
-  '''^supabase/324-import-pokemon-sword-encounter-catalog\\.sql$''',
-  '''^supabase/326-import-pokemon-shield-encounter-catalog\\.sql$''',
-  '''^supabase/328-import-pokemon-brilliant-diamond-encounter-catalog\\.sql$''',
-  '''^supabase/330-import-pokemon-shining-pearl-encounter-catalog\\.sql$''',
-  '''^supabase/332-import-pokemon-legends-arceus-encounter-catalog\\.sql$''',
-  '''^supabase/334-import-pokemon-scarlet-encounter-catalog\\.sql$''',
-  '''^supabase/336-import-pokemon-violet-encounter-catalog\\.sql$''',
+  '''^supabase/297-import-pokemon-black-encounter-catalog\\.sql$''',
+  '''^supabase/299-import-pokemon-white-encounter-catalog\\.sql$''',
+  '''^supabase/301-import-pokemon-black-2-encounter-catalog\\.sql$''',
+  '''^supabase/303-import-pokemon-white-2-encounter-catalog\\.sql$''',
+  '''^supabase/305-import-pokemon-x-encounter-catalog\\.sql$''',
+  '''^supabase/307-import-pokemon-y-encounter-catalog\\.sql$''',
+  '''^supabase/309-import-pokemon-omega-ruby-encounter-catalog\\.sql$''',
+  '''^supabase/311-import-pokemon-alpha-sapphire-encounter-catalog\\.sql$''',
+  '''^supabase/313-import-pokemon-sun-encounter-catalog\\.sql$''',
+  '''^supabase/315-import-pokemon-moon-encounter-catalog\\.sql$''',
+  '''^supabase/317-import-pokemon-ultra-sun-encounter-catalog\\.sql$''',
+  '''^supabase/319-import-pokemon-ultra-moon-encounter-catalog\\.sql$''',
+  '''^supabase/321-import-pokemon-lets-go-pikachu-encounter-catalog\\.sql$''',
+  '''^supabase/323-import-pokemon-lets-go-eevee-encounter-catalog\\.sql$''',
+  '''^supabase/325-import-pokemon-sword-encounter-catalog\\.sql$''',
+  '''^supabase/327-import-pokemon-shield-encounter-catalog\\.sql$''',
+  '''^supabase/329-import-pokemon-brilliant-diamond-encounter-catalog\\.sql$''',
+  '''^supabase/331-import-pokemon-shining-pearl-encounter-catalog\\.sql$''',
+  '''^supabase/333-import-pokemon-legends-arceus-encounter-catalog\\.sql$''',
+  '''^supabase/335-import-pokemon-scarlet-encounter-catalog\\.sql$''',
+  '''^supabase/337-import-pokemon-violet-encounter-catalog\\.sql$''',
 ]
 regexes = [
   '''^(?:area_key|location_key)"\\s*:\\s*"[a-z0-9-]+"$''',
@@ -548,27 +548,27 @@ paths = [
   '''^supabase/291-verify-pokemon-platinum-encounter-catalog\\.sql$''',
   '''^supabase/293-verify-pokemon-heartgold-encounter-catalog\\.sql$''',
   '''^supabase/295-verify-pokemon-soulsilver-encounter-catalog\\.sql$''',
-  '''^supabase/297-verify-pokemon-black-encounter-catalog\\.sql$''',
-  '''^supabase/299-verify-pokemon-white-encounter-catalog\\.sql$''',
-  '''^supabase/301-verify-pokemon-black-2-encounter-catalog\\.sql$''',
-  '''^supabase/303-verify-pokemon-white-2-encounter-catalog\\.sql$''',
-  '''^supabase/305-verify-pokemon-x-encounter-catalog\\.sql$''',
-  '''^supabase/307-verify-pokemon-y-encounter-catalog\\.sql$''',
-  '''^supabase/309-verify-pokemon-omega-ruby-encounter-catalog\\.sql$''',
-  '''^supabase/311-verify-pokemon-alpha-sapphire-encounter-catalog\\.sql$''',
-  '''^supabase/313-verify-pokemon-sun-encounter-catalog\\.sql$''',
-  '''^supabase/315-verify-pokemon-moon-encounter-catalog\\.sql$''',
-  '''^supabase/317-verify-pokemon-ultra-sun-encounter-catalog\\.sql$''',
-  '''^supabase/319-verify-pokemon-ultra-moon-encounter-catalog\\.sql$''',
-  '''^supabase/321-verify-pokemon-lets-go-pikachu-encounter-catalog\\.sql$''',
-  '''^supabase/323-verify-pokemon-lets-go-eevee-encounter-catalog\\.sql$''',
-  '''^supabase/325-verify-pokemon-sword-encounter-catalog\\.sql$''',
-  '''^supabase/327-verify-pokemon-shield-encounter-catalog\\.sql$''',
-  '''^supabase/329-verify-pokemon-brilliant-diamond-encounter-catalog\\.sql$''',
-  '''^supabase/331-verify-pokemon-shining-pearl-encounter-catalog\\.sql$''',
-  '''^supabase/333-verify-pokemon-legends-arceus-encounter-catalog\\.sql$''',
-  '''^supabase/335-verify-pokemon-scarlet-encounter-catalog\\.sql$''',
-  '''^supabase/337-verify-pokemon-violet-encounter-catalog\\.sql$''',
+  '''^supabase/298-verify-pokemon-black-encounter-catalog\\.sql$''',
+  '''^supabase/300-verify-pokemon-white-encounter-catalog\\.sql$''',
+  '''^supabase/302-verify-pokemon-black-2-encounter-catalog\\.sql$''',
+  '''^supabase/304-verify-pokemon-white-2-encounter-catalog\\.sql$''',
+  '''^supabase/306-verify-pokemon-x-encounter-catalog\\.sql$''',
+  '''^supabase/308-verify-pokemon-y-encounter-catalog\\.sql$''',
+  '''^supabase/310-verify-pokemon-omega-ruby-encounter-catalog\\.sql$''',
+  '''^supabase/312-verify-pokemon-alpha-sapphire-encounter-catalog\\.sql$''',
+  '''^supabase/314-verify-pokemon-sun-encounter-catalog\\.sql$''',
+  '''^supabase/316-verify-pokemon-moon-encounter-catalog\\.sql$''',
+  '''^supabase/318-verify-pokemon-ultra-sun-encounter-catalog\\.sql$''',
+  '''^supabase/320-verify-pokemon-ultra-moon-encounter-catalog\\.sql$''',
+  '''^supabase/322-verify-pokemon-lets-go-pikachu-encounter-catalog\\.sql$''',
+  '''^supabase/324-verify-pokemon-lets-go-eevee-encounter-catalog\\.sql$''',
+  '''^supabase/326-verify-pokemon-sword-encounter-catalog\\.sql$''',
+  '''^supabase/328-verify-pokemon-shield-encounter-catalog\\.sql$''',
+  '''^supabase/330-verify-pokemon-brilliant-diamond-encounter-catalog\\.sql$''',
+  '''^supabase/332-verify-pokemon-shining-pearl-encounter-catalog\\.sql$''',
+  '''^supabase/334-verify-pokemon-legends-arceus-encounter-catalog\\.sql$''',
+  '''^supabase/336-verify-pokemon-scarlet-encounter-catalog\\.sql$''',
+  '''^supabase/338-verify-pokemon-violet-encounter-catalog\\.sql$''',
 ]
 regexes = [
   '''^area_key='[a-z0-9-]+'$''',
