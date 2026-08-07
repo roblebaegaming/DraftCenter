@@ -1,9 +1,8 @@
 import NuzlockeLab from "../../components/NuzlockeLab";
-import nuzlockeGameGuides from "../../lib/nuzlockeGameGuides.json";
 
 export const metadata = {
   title: "Pokémon Nuzlocke Team Generator by Game",
-  description: "Build, save, and download a repeatable Pokémon Nuzlocke team with one encounter per area, game-specific rules, themes, and verified encounter odds.",
+  description: "Build, save, and download a repeatable Pokémon Nuzlocke Draft with one Pokémon per route or area, game-specific rules, themes, and verified encounter odds.",
   alternates: { canonical: "/nuzlocke" },
   keywords: ["Pokémon Nuzlocke generator", "Nuzlocke encounter generator", "one Pokémon per area", "themed Nuzlocke", "Nuzlocke randomizer seed"],
   openGraph: {
@@ -26,13 +25,13 @@ export default function NuzlockePage() {
         operatingSystem: "Any",
         isAccessibleForFree: true,
         description: "A repeatable Nuzlocke team generator using verified, game-specific Pokémon encounters.",
-        featureList: ["Game-specific encounters", "Saved teams and downloadable Run Cards", "Shareable repeatable runs", "One encounter per eligible area", "Type, color, and evolution-stage themes", "Route-first and encounter-pool random modes", "Species clause"],
+        featureList: ["Game-specific encounters", "Saved teams and downloadable Run Cards", "Shareable repeatable runs", "One Pokémon per eligible route or area", "Type, color, and evolution-stage themes", "Route-first and encounter-pool random modes", "Species clause"],
       },
       {
         "@type": "BreadcrumbList",
         itemListElement: [
           { "@type": "ListItem", position: 1, name: "DraftCenter", item: "https://www.draftcentral.gg/" },
-          { "@type": "ListItem", position: 2, name: "Nuzlocke Lab", item: "https://www.draftcentral.gg/nuzlocke" },
+          { "@type": "ListItem", position: 2, name: "Nuzlocke Draft", item: "https://www.draftcentral.gg/nuzlocke" },
         ],
       },
     ],
@@ -44,7 +43,7 @@ export default function NuzlockePage() {
     <section className="explore-card nuzlocke-seo-guide" aria-labelledby="nuzlocke-guide-title">
       <span className="eyebrow">HOW IT WORKS</span>
       <h2 id="nuzlocke-guide-title">A repeatable Nuzlocke encounter generator</h2>
-      <p>Choose a verified Pokémon game, name your run, and keep its randomizer seed to reproduce the same encounters. Build a compact team or request one encounter from every eligible area, then save its setup and generated team in your browser, download a readable Run Card, or share its exact rules by link.</p>
+      <p>Choose a verified Pokémon game, name your run, and keep its randomizer seed to reproduce the same encounters. Build a compact team or draft one Pokémon from every eligible route or area—even when that produces more than 12—then save its setup and generated team in your browser, download a readable Run Card, or share its exact rules by link.</p>
       <div className="pokemon-detail-grid">
         <section>
           <h3>Use game-specific encounter data</h3>
@@ -62,9 +61,9 @@ export default function NuzlockePage() {
       </aside>
       <section className="nuzlocke-guide-index" aria-labelledby="nuzlocke-game-guides-title">
         <span className="eyebrow">GAME-SPECIFIC GUIDES</span>
-        <h2 id="nuzlocke-game-guides-title">Start with a reviewed encounter catalog</h2>
-        <p>Choose any supported main-series game for a complete route-by-route guide. Open an area to see every available Pokémon, then open an encounter method to see exactly how each one is found.</p>
-        <div>{nuzlockeGameGuides.games.map((game) => <a key={game.slug} href={`/nuzlocke/${game.slug}`}><strong>{game.displayName} Nuzlocke guide</strong><span>{game.counts.locations} areas · {game.counts.methods} methods</span></a>)}</div>
+        <h2 id="nuzlocke-game-guides-title">Research every route before you draft</h2>
+        <p>Browse the complete Nuzlocke guide library by generation and game. Each guide lists every reviewed route or area, then shows each Pokémon with its encounter method and level range in one compact list.</p>
+        <a className="primary-button inline-link-button" href="/nuzlocke/guides">Browse all Nuzlocke guides</a>
       </section>
     </section>
   </>;

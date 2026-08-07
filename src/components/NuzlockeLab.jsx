@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import styles from "./NuzlockeLab.module.css";
 import { pokemonProfileSlugForName } from "../lib/publicPokemonIndex";
 import { buildNuzlockeRunCardText, normalizeSavedNuzlockeResult, nuzlockeRulesFromShareUrl, nuzlockeRunCardFilename } from "../lib/nuzlockeRunExports";
 
@@ -289,12 +290,12 @@ export default function NuzlockeLab() {
     } catch { setOutputMessage("This browser could not download the team."); }
   }
 
-  return <main className="nuzlocke-shell">
+  return <main className={`nuzlocke-shell ${styles.draftShell}`}>
     <header className="nuzlocke-hero">
       <a href="/?view=dashboard" className="quiet-button">← DraftCenter home</a>
-      <span className="eyebrow">NUZLOCKE LAB</span>
-      <h1>Build a Nuzlocke Team</h1>
-      <p>Generate a repeatable run from verified, game-specific encounters, including one encounter per area and themed rules.</p>
+      <span className="eyebrow">NUZLOCKE DRAFT</span>
+      <h1>Build a Nuzlocke Draft</h1>
+      <p>Generate a repeatable run from verified, game-specific encounters, including one Pokémon per route or area and themed rules.</p>
     </header>
     <div className="nuzlocke-layout">
       <form className="nuzlocke-controls" onSubmit={generate}>
@@ -339,13 +340,14 @@ export default function NuzlockeLab() {
           {saveMessage && <small role="status">{saveMessage}</small>}
         </fieldset>
 
-        <label>Run length
-          <select value={allAreas ? "all-areas" : "team"} onChange={(event) => setAllAreas(event.target.value === "all-areas")}>
-            <option value="team">Choose a team size</option>
-            <option value="all-areas">One encounter per eligible area</option>
-          </select>
-          <small>{allAreas ? "Generates one result for every eligible area under your rules, plus the starter when included." : "Build a compact team of 1–12 encounters."}</small>
-        </label>
+        <fieldset className={styles.draftSize}>
+          <legend>Draft size</legend>
+          <div>
+            <button type="button" className={!allAreas ? styles.selected : ""} aria-pressed={!allAreas} onClick={() => setAllAreas(false)}><strong>Team of 1–12</strong><small>Choose a specific team size</small></button>
+            <button type="button" className={allAreas ? styles.selected : ""} aria-pressed={allAreas} onClick={() => setAllAreas(true)}><strong>One Pokémon per route/area</strong><small>Build the full run, even when it has more than 12</small></button>
+          </div>
+          <small>{allAreas ? "Generates one Pokémon for every eligible route or area under your rules, plus the starter when included." : "Build a compact team of 1–12 encounters."}</small>
+        </fieldset>
         {!allAreas && <label>Team size <strong>{teamSize}</strong>
           <input type="range" min="1" max="12" value={teamSize} onChange={(event) => setTeamSize(Number(event.target.value))} />
         </label>}
@@ -420,7 +422,7 @@ export default function NuzlockeLab() {
         <label className="check-row"><input type="checkbox" checked={excludeLegendaries} onChange={(event) => setExcludeLegendaries(event.target.checked)} />Exclude legendary Pokémon</label>
         <div className="nuzlocke-rule-option">
           <label className="check-row"><input type="checkbox" checked={includeStarter} onChange={(event) => setIncludeStarter(event.target.checked)} aria-describedby="starter-help" />Include a starter Pokémon</label>
-          <small id="starter-help">Uses the randomizer seed to choose an eligible starter. It counts as a team slot, or as an extra result in one-per-area mode.</small>
+          <small id="starter-help">Uses the randomizer seed to choose an eligible starter. It counts as a team slot, or as an extra result in one-Pokémon-per-route mode.</small>
         </div>
         <div className="nuzlocke-rule-option">
           <label className="check-row"><input type="checkbox" checked={finalEvolutionOnly} onChange={(event) => setFinalEvolutionOnly(event.target.checked)} aria-describedby="final-evolution-help" />Show results at their final evolution</label>
@@ -441,7 +443,7 @@ export default function NuzlockeLab() {
         </div>
         {outputMessage && <p className="nuzlocke-output-status" role="status">{outputMessage}</p>}
         {!result && <div className="empty-state">Choose a verified game and your rules, then build a run.</div>}
-        {result?.allAreas && <p className="nuzlocke-run-summary">One encounter was requested from every eligible area under these rules.</p>}
+        {result?.allAreas && <p className="nuzlocke-run-summary">One Pokémon was requested from every eligible route or area under these rules.</p>}
         {result && !result.complete && <p className="nuzlocke-incomplete">Only {result.available} of {result.requested} results could be filled under these rules. No rule was relaxed.</p>}
         <div className="nuzlocke-team">{result?.team?.map((entry, index) => {
           const profileSlug = pokemonProfileSlugForName(entry.pokemon_name);

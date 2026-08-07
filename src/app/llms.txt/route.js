@@ -12,7 +12,8 @@ DraftCenter helps communities configure leagues, run snake and auction drafts, m
 - [Public Pokémon catalog](https://www.draftcentral.gg/pokemon)
 - [PokÃ©mon Daily Games](https://www.draftcentral.gg/resources/daily-games)
 - [Public leagues](https://www.draftcentral.gg/leagues)
-- [Pokémon Nuzlocke Lab](https://www.draftcentral.gg/nuzlocke)
+- [Pokémon Nuzlocke Draft](https://www.draftcentral.gg/nuzlocke)
+- [Pokémon Nuzlocke Guides](https://www.draftcentral.gg/nuzlocke/guides)
 
 ## Practical guides
 
@@ -31,6 +32,7 @@ DraftCenter helps communities configure leagues, run snake and auction drafts, m
 
 ## Nuzlocke encounter guides
 
+- [All Pokémon Nuzlocke guides by game](https://www.draftcentral.gg/nuzlocke/guides)
 - [Pokémon FireRed Nuzlocke guide](https://www.draftcentral.gg/nuzlocke/fire-red)
 - [Pokémon Emerald Nuzlocke guide](https://www.draftcentral.gg/nuzlocke/emerald)
 - [Pokémon Platinum Nuzlocke guide](https://www.draftcentral.gg/nuzlocke/platinum)

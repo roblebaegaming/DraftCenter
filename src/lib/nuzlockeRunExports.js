@@ -75,7 +75,7 @@ export function nuzlockeRulesFromShareUrl(shareUrl) {
   if (!/^https?:$/.test(url.protocol) || url.pathname !== "/nuzlocke") return [];
   const params = url.searchParams;
   const rules = [
-    params.get("length") === "all-areas" ? "Run length: One encounter per eligible area" : `Run length: ${/^(?:[1-9]|1[0-2])$/.test(params.get("size") || "") ? params.get("size") : "6"}-encounter compact team`,
+    params.get("length") === "all-areas" ? "Draft size: One Pokémon per eligible route/area" : `Draft size: ${/^(?:[1-9]|1[0-2])$/.test(params.get("size") || "") ? params.get("size") : "6"}-Pokémon team`,
     `Selection: ${params.get("mode") === "true-random" ? "Encounter-pool random" : "Route-first random"}`,
     `Weighting: ${params.get("weighting") === "authentic" ? "Authentic in-game encounter odds" : "Equal chance per eligible encounter"}`,
     `Evolutionary-family clause: ${params.get("family") === "off" ? "Off" : "On"}`,
