@@ -56,18 +56,63 @@ never rewrite migration 340.
 
 ## Required isolated validation
 
-The transactional isolated-database matrix already covers private best-of-one,
-public best-of-three with byes, idempotent confirmation, correction, blocked
-downstream correction, archived read-only enforcement, and the public
-projection. The remaining stabilization gate is a deployed UI lifecycle using
-an isolated practice tournament and separate owner, entrant A, entrant B,
-unrelated signed-in, and signed-out sessions.
+The transactional isolated-database matrix covers private best-of-one, public
+best-of-three, byes, idempotent confirmation, correction, blocked downstream
+correction, archived read-only enforcement, and the public projection.
 
 Verify private isolation, public projections, manual and shuffled seeds, byes,
 stale and simultaneous submissions, opponent confirmation, idempotent retry,
 safe correction, archive behavior, refresh/interruption recovery, keyboard and
 screen-reader behavior, and mobile brackets at both small and large field
 sizes. Record the exact disposable fixture and verify its cleanup afterward.
+
+Before opening test registration, run `npm run test:tournament-fixture` with
+`TOURNAMENT_TEST_SUPABASE_URL`,
+`TOURNAMENT_TEST_SUPABASE_PUBLISHABLE_KEY`, and the exact
+`TOURNAMENT_TEST_EXPECTED_PROJECT_HOST` for the disposable project. Set
+`TOURNAMENT_TEST_CONFIRM_ISOLATED=yes` only after independently confirming
+that exact project. The readiness check calls only the bounded directory and a
+missing-slug workspace projection; it performs no mutation and does not print
+credentials or returned tournament data.
+
+On August 7, the dedicated PR-39 isolated Preview repeated the lifecycle with
+four disposable identities. It verified private invite isolation, three-person
+bye advancement, manual seed swapping, randomized seeding, invite expiry after
+lock, unauthorized and malformed result rejection, reject/resubmit, stale
+revision rejection, opponent confirmation, idempotent retry, safe correction,
+blocked correction after a downstream report, completed-final correction,
+archive enforcement, public best-of-three projection, and bounded replay
+evidence. Signed-out desktop and 390-by-844 browser reviews showed the public
+archived bracket, kept the private event out of the directory, and produced no
+console warnings or page-level horizontal overflow.
+
+The same Preview was then refreshed from current `main` and exercised through
+normal signed-in application sessions with three new disposable identities.
+The owner created a private best-of-three event, all three users registered,
+the bracket rendered its bye, an incomplete 1-0 report was rejected, a valid
+2-0 report waited for the opponent, and the bracket advanced only after the
+opponent confirmed. An authorized server-side correction followed by the
+page's Refresh control changed the still-open correction fields from 2-0 to
+0-2 without a full reload. The signed-in 390-by-844 view had no page-level
+horizontal overflow and the browser console remained clear.
+
+The automated browser opened the shuffle confirmation but its JavaScript
+dialog adapter could not accept that prompt reliably. Randomized seeding and
+bracket locking were therefore completed through the same authenticated RPCs
+and verified in the rendered owner workspace. Keep commissioner confirmation
+dialogs, keyboard flow, and screen-reader announcements in the manual browser
+release review.
+
+Cleanup verification returned zero tournament, entrant, registration-code,
+match, submission, audit-event, and disposable-profile rows for the exact
+fixtures, zero disposable authentication users, and the empty signed-out
+directory. No production record was created or changed.
+
+The combined release Preview is not a valid tournament fixture because its
+connected database does not expose the tournament RPCs. Use the dedicated
+isolated tournament Preview instead. The Turnstile widget can still show an
+automation-only warning in the in-app browser, but normal Preview sign-in
+completed without changing Cloudflare configuration or authentication policy.
 
 Do not use a real league or production tournament for lifecycle testing. The
 production smoke sweep is only valid after an authorized deployment.

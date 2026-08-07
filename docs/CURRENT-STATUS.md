@@ -126,6 +126,8 @@ an authenticated account session and have not been represented as completed.
 
 ## Authoritative records
 
+- Production reconciliation and cross-agent merge handoff:
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-07-production-reconciliation.md`](handoffs/DraftCenter-agent-handoff-2026-08-07-production-reconciliation.md)
 - Current detailed handoff:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-07-roster-connections.md`](handoffs/DraftCenter-agent-handoff-2026-08-07-roster-connections.md)
 - Mobile-navigation release record:

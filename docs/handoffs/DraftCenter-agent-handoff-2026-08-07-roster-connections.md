@@ -3,16 +3,43 @@
 ## Outcome
 
 Roster Connections is public and live on the Daily Games page through pull
-request 56 at production commit
-`1750f9a5387da72e06d8c44087d5ec3f3aac9225`. Vercel reports that exact
-`main` deployment Ready in Production, the signed-out production smoke sweep
-passes, and the live game works at a phone viewport without horizontal
-overflow or console warnings.
+request 56 at application commit
+`1750f9a5387da72e06d8c44087d5ec3f3aac9225`. Pull request 76 recorded the
+verified release at final `main` commit
+`e64ad3383647ea45ef7da7dd19e197d19d93aaf8`. Vercel reports that exact final
+commit Ready in Production, the signed-out production smoke sweep passes, and
+the live game works at a phone viewport without horizontal overflow or console
+warnings.
 
 The original feature branch had remained open and was 16 commits behind
 production. It was refreshed through the current mobile-navigation release,
 reviewed for overlapping Daily Games styling and tests, hardened, fully
 revalidated, and merged through protected `main` without bypassing checks.
+
+## Integration record
+
+- Feature branch: `codex/roster-connections`.
+- Feature pull request: [#56](https://github.com/roblebaegaming/DraftCenter/pull/56).
+- Feature squash commit: `1750f9a5387da72e06d8c44087d5ec3f3aac9225`.
+- Release-record branch: `codex/roster-connections-release-record`.
+- Release-record pull request:
+  [#76](https://github.com/roblebaegaming/DraftCenter/pull/76).
+- Final documented production commit:
+  `e64ad3383647ea45ef7da7dd19e197d19d93aaf8`.
+
+The feature branch absorbed current `main` twice so concurrent mobile
+navigation work was not lost. The meaningful overlap was limited to Daily
+Games styles, the Daily Games page component, and its regression test. Both
+worktrees were clean after the protected merges.
+
+The released application changes are in:
+
+- `src/app/globals.css`;
+- `src/app/resources/daily-games/page.js`;
+- `src/components/DailyGamesResourcesPage.jsx`;
+- `src/components/RosterConnections.jsx`;
+- `src/lib/rosterConnections.js`; and
+- `test/daily-games-resources.test.js`.
 
 ## Released behavior
 
@@ -58,11 +85,28 @@ Comments. Supabase Preview was correctly skipped because there is no migration.
 
 Post-release validation confirmed:
 
-- Vercel Production is Ready at exact commit `1750f9a`;
-- `npm run smoke:production` passes every public-route 200 and protected-route
-  401 check; and
+- Vercel Production is Ready at exact final commit `e64ad33`, containing the
+  application change introduced by `1750f9a`;
+- `npm run smoke:production` passed every public-route 200 and protected-route
+  401 check after both the feature release and the final documentation deploy;
+  and
 - the live public game solves and restores a group at 390 by 844 pixels with
   no page overflow or console warnings.
+
+## Browser-local QA note and open follow-up
+
+During final production QA, the Guardian Deities group was solved and the page
+was reloaded in the shared review browser to verify persistence. When the page
+was opened again later, that group appeared already solved because the game
+correctly restored the browser-local record for August 7. This was not shipped
+global state, account data, or a pre-solved puzzle, and it does not affect other
+visitors.
+
+No reset or replay control has been released. A possible follow-up is a visible
+`Reset today's puzzle` action that removes only the current Roster Connections
+record after confirmation. It must not clear all DraftCenter site storage,
+Daily Three progress, account data, Nuzlocke saves, or other browser-local
+records.
 
 ## Production boundaries
 
