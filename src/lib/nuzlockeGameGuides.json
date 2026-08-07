@@ -1,0 +1,131 @@
+{
+  "sourceCommit": "5064f1d72746b3a6a931616dae3fb6445c556d4f",
+  "publishedDate": "2026-08-06",
+  "games": [
+    {
+      "slug": "fire-red",
+      "gameKey": "firered",
+      "displayName": "Pokémon FireRed",
+      "generation": 3,
+      "family": "FireRed / LeafGreen",
+      "description": "Plan a Pokémon FireRed Nuzlocke with DraftCenter's reviewed catalog of 2,108 encounter rows across 129 areas and 12 encounter methods.",
+      "counts": { "encounters": 2108, "locations": 129, "methods": 12 },
+      "starters": [
+        { "pokemonId": 1, "name": "Bulbasaur", "profileSlug": "bulbasaur" },
+        { "pokemonId": 4, "name": "Charmander", "profileSlug": "charmander" },
+        { "pokemonId": 7, "name": "Squirtle", "profileSlug": "squirtle" }
+      ],
+      "conditions": [
+        { "id": "story-progress", "label": "Story progress", "options": ["Main story only", "After the Elite Four rematch"] },
+        { "id": "starter-roamer", "label": "Roaming Pokémon", "options": ["Bulbasaur — Entei", "Charmander — Suicune", "Squirtle — Raikou"] },
+        { "id": "altering-cave", "label": "Altering Cave state", "options": ["Standard — Zubat", "Event — Mareep", "Event — Smeargle"] }
+      ],
+      "areas": [
+        { "areaKey": "viridian-forest-main-area", "label": "Viridian Forest" },
+        { "areaKey": "mt-moon-1f", "label": "Mt Moon — Mount Moon (1F)" },
+        { "areaKey": "kanto-safari-zone-middle", "label": "Kanto Safari Zone — Safari Zone (middle)" },
+        { "areaKey": "pokemon-mansion-1f", "label": "Pokemon Mansion — Pokemon Mansion (1F)" },
+        { "areaKey": "sevault-canyon-main-area", "label": "Sevault Canyon" },
+        { "areaKey": "kanto-victory-road-2-1f", "label": "Kanto Victory Road 2 — Victory Road 2 (1F)" }
+      ],
+      "methods": ["colosseum-bonus-disc-jpn", "gift", "gift-egg", "good-rod", "old-rod", "pokeflute", "roaming-grass", "rock-smash", "static", "super-rod", "surf", "walk"],
+      "generatorHref": "/nuzlocke?game=firered&seed=fire-red-guide&size=6&mode=route-random&weighting=equal&starter=include"
+    },
+    {
+      "slug": "emerald",
+      "gameKey": "emerald",
+      "displayName": "Pokémon Emerald",
+      "generation": 3,
+      "family": "Ruby / Sapphire / Emerald",
+      "description": "Plan a Pokémon Emerald Nuzlocke with DraftCenter's reviewed catalog of 1,743 encounter rows across 117 areas and 17 encounter methods.",
+      "counts": { "encounters": 1743, "locations": 117, "methods": 17 },
+      "starters": [
+        { "pokemonId": 252, "name": "Treecko", "profileSlug": "treecko" },
+        { "pokemonId": 255, "name": "Torchic", "profileSlug": "torchic" },
+        { "pokemonId": 258, "name": "Mudkip", "profileSlug": "mudkip" }
+      ],
+      "conditions": [
+        { "id": "fossil-choice", "label": "Fossil choice", "options": ["Root Fossil", "Claw Fossil"] },
+        { "id": "story-progress", "label": "Story progress", "options": ["Main story only", "After the Hall of Fame"] },
+        { "id": "roaming-lati", "label": "TV color choice", "options": ["Red — Latias", "Blue — Latios"] },
+        { "id": "altering-cave", "label": "Altering Cave state", "options": ["Standard — Zubat", "Event — Mareep", "Event — Smeargle"] }
+      ],
+      "areas": [
+        { "areaKey": "hoenn-route-101-main-area", "label": "Hoenn Route 101" },
+        { "areaKey": "petalburg-woods-main-area", "label": "Petalburg Woods" },
+        { "areaKey": "granite-cave-1f", "label": "Granite Cave — Granite Cave (1F)" },
+        { "areaKey": "hoenn-safari-zone-se", "label": "Hoenn Safari Zone — Safari Zone (SE)" },
+        { "areaKey": "hoenn-victory-road-1f", "label": "Hoenn Victory Road — Victory Road (1F)" },
+        { "areaKey": "sky-pillar-1f", "label": "Sky Pillar — Sky Pillar (1F)" }
+      ],
+      "methods": ["colosseum-bonus-disc-jpn", "devon-scope", "feebas-tile-fishing", "gift", "gift-egg", "good-rod", "npc-trade", "old-rod", "roaming-grass", "roaming-water", "rock-smash", "seaweed", "static", "super-rod", "surf", "wailmer-pail", "walk"],
+      "generatorHref": "/nuzlocke?game=emerald&seed=emerald-guide&size=6&mode=route-random&weighting=equal&starter=include"
+    },
+    {
+      "slug": "platinum",
+      "gameKey": "platinum",
+      "displayName": "Pokémon Platinum",
+      "generation": 4,
+      "family": "Diamond / Pearl / Platinum",
+      "description": "Plan a Pokémon Platinum Nuzlocke with DraftCenter's reviewed catalog of 4,227 encounter rows across 159 areas and 13 encounter methods.",
+      "counts": { "encounters": 4227, "locations": 159, "methods": 13 },
+      "starters": [
+        { "pokemonId": 387, "name": "Turtwig", "profileSlug": "turtwig" },
+        { "pokemonId": 390, "name": "Chimchar", "profileSlug": "chimchar" },
+        { "pokemonId": 393, "name": "Piplup", "profileSlug": "piplup" }
+      ],
+      "conditions": [
+        { "id": "time", "label": "Time of day", "options": ["Morning", "Day", "Night"] },
+        { "id": "swarm", "label": "Swarm", "options": ["Active swarm", "No swarm"] },
+        { "id": "poke-radar", "label": "Poké Radar", "options": ["Not in use", "In use"] },
+        { "id": "dual-slot", "label": "Game Boy Advance cartridge", "options": ["None inserted", "Pokémon Ruby", "Pokémon Sapphire", "Pokémon Emerald", "Pokémon FireRed", "Pokémon LeafGreen"] },
+        { "id": "trophy-garden", "label": "Trophy Garden daily Pokémon", "options": ["Not announced", "Announced by Mr. Backlot"] },
+        { "id": "great-marsh", "label": "Great Marsh daily Pokémon", "options": ["No binocular special", "Binocular special active"] },
+        { "id": "honey-tree", "label": "Honey Tree group", "options": ["Common tree", "Rare tree", "Munchlax tree"] }
+      ],
+      "areas": [
+        { "areaKey": "oreburgh-mine-1f", "label": "Oreburgh Mine — Oreburgh mine (1F)" },
+        { "areaKey": "eterna-forest-main-area", "label": "Eterna Forest" },
+        { "areaKey": "great-marsh-area-1", "label": "Great Marsh — Great Marsh Area 1" },
+        { "areaKey": "trophy-garden-main-area", "label": "Trophy Garden" },
+        { "areaKey": "distortion-world-main-area", "label": "Distortion World" },
+        { "areaKey": "sinnoh-victory-road-1f", "label": "Sinnoh Victory Road — Victory Road (1F)" }
+      ],
+      "methods": ["feebas-tile-fishing", "gift", "gift-egg", "good-rod", "honey-tree", "old-rod", "pokemon-ranger", "roaming-grass", "roaming-water", "static", "super-rod", "surf", "walk"],
+      "generatorHref": "/nuzlocke?game=platinum&seed=platinum-guide&size=6&mode=route-random&weighting=equal&starter=include"
+    },
+    {
+      "slug": "scarlet",
+      "gameKey": "scarlet",
+      "displayName": "Pokémon Scarlet",
+      "generation": 9,
+      "family": "Scarlet / Violet",
+      "description": "Plan a Pokémon Scarlet Nuzlocke with DraftCenter's reviewed catalog of 13,005 encounter rows across 80 areas and 13 encounter methods.",
+      "counts": { "encounters": 13005, "locations": 80, "methods": 13 },
+      "starters": [
+        { "pokemonId": 906, "name": "Sprigatito", "profileSlug": "sprigatito" },
+        { "pokemonId": 909, "name": "Fuecoco", "profileSlug": "fuecoco" },
+        { "pokemonId": 912, "name": "Quaxly", "profileSlug": "quaxly" }
+      ],
+      "conditions": [
+        { "id": "content", "label": "Game content", "options": ["Base game only", "Include The Teal Mask", "Include both expansions"] },
+        { "id": "time", "label": "Time of day", "options": ["Day", "Night", "Dusk", "Dawn"] },
+        { "id": "weather", "label": "Weather", "options": ["Normal", "Overcast", "Raining", "Thunderstorm", "Mist", "Snowing", "Snowstorm", "Sandstorm"] },
+        { "id": "tera-raids", "label": "Tera Raid encounters", "options": ["Do not include", "Include stock Tera Raids"] },
+        { "id": "group-quests", "label": "Union Circle group quests", "options": ["Do not include", "Include group-quest snacks"] },
+        { "id": "limited-events", "label": "Limited-time event encounters", "options": ["Do not include", "Include selected historical raids"] },
+        { "id": "league-club-trades", "label": "League Club trades", "options": ["Do not include", "Include coach trades"] }
+      ],
+      "areas": [
+        { "areaKey": "south-province-area-one-main-area", "label": "South Province (Area One)" },
+        { "areaKey": "asado-desert-main-area", "label": "Asado Desert" },
+        { "areaKey": "glaseado-mountain-main-area", "label": "Glaseado Mountain" },
+        { "areaKey": "area-zero-main-area", "label": "Area Zero" },
+        { "areaKey": "kitakami-road-main-area", "label": "Kitakami Road" },
+        { "areaKey": "canyon-biome-main-area", "label": "Canyon Biome" }
+      ],
+      "methods": ["event-tera-raid", "fixed-overworld", "fixed-tera", "former-titan", "gift", "gift-egg", "gimmighoul-chest", "in-game-trade", "league-club-trade", "legendary-snack", "overworld", "static", "tera-raid"],
+      "generatorHref": "/nuzlocke?game=scarlet&seed=scarlet-guide&size=6&mode=route-random&weighting=equal&starter=include"
+    }
+  ]
+}

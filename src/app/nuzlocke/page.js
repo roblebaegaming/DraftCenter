@@ -1,4 +1,5 @@
 import NuzlockeLab from "../../components/NuzlockeLab";
+import nuzlockeGameGuides from "../../lib/nuzlockeGameGuides.json";
 
 export const metadata = {
   title: "Pokémon Nuzlocke Team Generator by Game",
@@ -59,6 +60,12 @@ export default function NuzlockePage() {
         <p>Every generated Pokémon links to its DraftCenter profile for typing, abilities, base stats, forms, measurements, and versioned moves.</p>
         <div className="pokemon-tags"><a href="/pokemon">Explore the Pokédex</a><a href="/pokemon/generations">Browse Pokémon by generation</a><a href="/resources">Open Pokémon resources</a></div>
       </aside>
+      <section className="nuzlocke-guide-index" aria-labelledby="nuzlocke-game-guides-title">
+        <span className="eyebrow">GAME-SPECIFIC GUIDES</span>
+        <h2 id="nuzlocke-game-guides-title">Start with a reviewed encounter catalog</h2>
+        <p>The first four guides publish exact catalog totals, starters, encounter controls, representative areas, and a preconfigured link back into the generator.</p>
+        <div>{nuzlockeGameGuides.games.map((game) => <a key={game.slug} href={`/nuzlocke/${game.slug}`}><strong>{game.displayName} Nuzlocke guide</strong><span>{game.counts.locations} areas · {game.counts.methods} methods</span></a>)}</div>
+      </section>
     </section>
   </>;
 }
