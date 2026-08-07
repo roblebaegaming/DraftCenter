@@ -83,6 +83,8 @@ an authenticated account session and have not been represented as completed.
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-07-nuzlocke-product-pass.md`](handoffs/DraftCenter-agent-handoff-2026-08-07-nuzlocke-product-pass.md)
 - Versioned move-pool release record:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-07-versioned-move-pools.md`](handoffs/DraftCenter-agent-handoff-2026-08-07-versioned-move-pools.md)
+- Tournament Preview validation and cleanup record:
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-07-tournament-preview-validation.md`](handoffs/DraftCenter-agent-handoff-2026-08-07-tournament-preview-validation.md)
 - SEO release-hardening record:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-06-seo-release-hardening.md`](handoffs/DraftCenter-agent-handoff-2026-08-06-seo-release-hardening.md)
 - August 6 feature release record:

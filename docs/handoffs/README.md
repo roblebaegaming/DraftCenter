@@ -19,3 +19,7 @@ them for that release, while the SEO-expansion handoff defines the next work.
 The [`archive/`](archive/) directory contains superseded broad handoffs retained
 for historical context. Specialized security, retention, SEO, audit, incident,
 and roadmap records remain in their subject locations under `docs/`.
+
+The focused August 7 tournament stabilization, isolated Preview lifecycle,
+cleanup proof, automation limitations, and next steps are recorded in
+[`DraftCenter-agent-handoff-2026-08-07-tournament-preview-validation.md`](DraftCenter-agent-handoff-2026-08-07-tournament-preview-validation.md).
