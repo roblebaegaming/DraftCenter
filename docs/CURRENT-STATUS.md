@@ -3,10 +3,20 @@
 - Last updated: August 7, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified functional production release: `1750f9a`
+- Verified functional production release: `20f55ac`
 - Latest production migration: 349
 
 ## Status
+
+The August 7 tournament hardening release is live at production commit
+`20f55ac`, the squash merge of pull request 80. Native browser confirmations
+were replaced with labeled in-page dialogs, result advancement and rejection
+now require explicit confirmation, tournament fields and live feedback have
+screen-reader names, and six-round brackets expose selectable round controls.
+Small screens display one selected round at a time, and focused regression
+coverage verifies a complete 64-entrant bracket. The exact Vercel production
+deployment is Ready, protected checks passed, the signed-out production smoke
+sweep passed, and no migration or production tournament data changed.
 
 The August 7 Roster Connections release is live at production commit
 `1750f9a`, the squash merge of pull request 56. The public Daily Games page now
@@ -76,7 +86,7 @@ the technical SEO foundation, expanded competitive resources and format data,
 source-attributed competitive ladder and tournament evidence on Pokémon
 profiles.
 
-Vercel reports exact functional release `1750f9a` Ready. The signed-out
+Vercel reports exact functional release `20f55ac` Ready. The signed-out
 production smoke sweep passes. Live mobile review confirmed Roster Connections
 is public, usable without an account, persists progress in the current browser,
 and has no horizontal overflow. The reorganized header, five-slot tool bar, and
@@ -119,13 +129,15 @@ an authenticated account session and have not been represented as completed.
 - Supabase memory and Disk IO during normal live-draft days
 - Autonomous-claim reconciliation workload and duplicate live-draft polling
 - Historical versus new Operations events
-- Tournament correction-state refresh behavior and isolated lifecycle-fixture
-  readiness
+- Tournament confirmation and round-navigation feedback, correction-state
+  refresh behavior, and isolated lifecycle-fixture readiness
 - The inactive generic Supabase fallback and its schema drift; do not change
   provider configuration or either project without exact-ID owner approval
 
 ## Authoritative records
 
+- Tournament hardening release record:
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-07-tournament-hardening-release.md`](handoffs/DraftCenter-agent-handoff-2026-08-07-tournament-hardening-release.md)
 - Production reconciliation and cross-agent merge handoff:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-07-production-reconciliation.md`](handoffs/DraftCenter-agent-handoff-2026-08-07-production-reconciliation.md)
 - Current detailed handoff:
