@@ -1,4 +1,5 @@
 import { COMMISSIONER_RULES_LAUNCH_CHECKLIST, POKEMON_DRAFT_LEAGUE_RULES_TEMPLATE } from "./guideTemplates.js";
+import { REGULATION_GROUPS, REGULATION_METADATA } from "./regulation-catalog.js";
 
 export const GUIDE_PUBLISHED_DATE = "2026-08-03";
 export const GUIDE_UPDATED_DATE = "2026-08-04";
@@ -125,7 +126,7 @@ export const GUIDES = {
   },
 };
 
-export const FORMATS = [
+const FEATURED_FORMATS = [
   ["national-dex", "National Dex", "All supported generations, forms, and Mega Evolutions", "A complete DraftCenter pool for cross-generation draft leagues, with commissioner-controlled bans, costs, Restricted Pokémon limits, and Mega limits."],
   ...Array.from({ length: 9 }, (_, index) => 9 - index).map((generation) => [
     `national-gen${generation}`,
@@ -150,6 +151,18 @@ export const FORMATS = [
   ["sm-vgc2018", "VGC 2018", "Ultra Sun & Ultra Moon VGC", "A Generation 7 National Pokédex-style pool without Restricted or Mythical Pokémon."],
   ["custom", "Custom Draft Format", "Commissioner-defined legality and pricing", "Build a legal pool, bans, costs, mechanics, and roster restrictions for a bespoke league."],
 ].map(([slug, name, subtitle, summary]) => ({ slug, name, subtitle, summary }));
+
+const FEATURED_FORMAT_BY_SLUG = Object.fromEntries(FEATURED_FORMATS.map((format) => [format.slug, format]));
+const CATEGORY_LABELS = { official: "official competitive rules", pokedex: "regional Pokédex pool", generation: "historical National Dex pool", custom: "commissioner-defined pool" };
+
+export const FORMATS = [
+  { ...FEATURED_FORMAT_BY_SLUG["national-dex"], gameId: "national-dex", category: "generation", order: 0 },
+  ...Object.values(REGULATION_METADATA).map((metadata) => {
+    const featured = FEATURED_FORMAT_BY_SLUG[metadata.id];
+    const group = REGULATION_GROUPS.find(({ id }) => id === metadata.gameId);
+    return { slug: metadata.id, name: featured?.name || metadata.label, subtitle: featured?.subtitle || `${group?.label || "DraftCenter"} · ${CATEGORY_LABELS[metadata.category]}`, summary: featured?.summary || `${metadata.label} uses DraftCenter's supported ${group?.label || "custom"} legal pool, with league-specific bans, prices, and roster settings controlled by the commissioner.`, ...metadata };
+  }),
+];
 
 export function formatBySlug(slug) {
   return FORMATS.find((format) => format.slug === slug);
