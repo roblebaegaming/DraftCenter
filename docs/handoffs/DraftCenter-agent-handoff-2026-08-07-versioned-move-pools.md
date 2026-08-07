@@ -2,12 +2,13 @@
 
 ## Outcome
 
-The Pokédex versioned move-pool expansion is implemented and fully validated on
-branch `codex/versioned-move-pools`, based on main commit `587d4dc`. Pull request
-[#65](https://github.com/roblebaegaming/DraftCenter/pull/65) is mergeable with
-all six active checks passing. The Supabase Preview check is skipped because no
-Supabase branch is associated with the pull request. Production and Preview
-databases are untouched.
+The Pokédex versioned move-pool expansion is live at production commit
+`fe0ca21`, the squash merge of pull request
+[#65](https://github.com/roblebaegaming/DraftCenter/pull/65). All six active
+protected checks passed; the Supabase Preview check was correctly skipped
+because no Supabase branch was associated with the pull request. Vercel reports
+the exact `main` deployment Ready, migration 349 is applied to the core
+production database, and the signed-out production smoke sweep passes.
 
 The Pokédex now exposes 28 separate move-bearing pools across Generations I–IX
 instead of seven incomplete/misconfigured choices. The import contains all
@@ -85,8 +86,11 @@ the four empty DLC aliases non-selectable, and retires the mistaken
 
 The migration preserves RLS, revokes all mutation privileges from browser
 roles, grants public read-only access, and contains transaction-blocking
-assertions for exact group/status counts, RLS, and grants. It has not been
-applied to Preview or production.
+assertions for exact group/status counts, RLS, and grants. It was applied to the
+exact core production project after the protected merge. The independent
+postflight confirmed 32 canonical groups, 28 ready pools, four retired DLC
+aliases, 19,810 Champions rows, the corrected BDSP key, RLS enabled, anonymous
+read allowed, browser mutations denied, and service-role CRUD retained.
 
 ## Validation
 
@@ -115,24 +119,19 @@ Local browser validation against the production build confirmed:
   selector and move cards usable; and
 - the browser console has no warnings or errors.
 
-The production smoke test was not run because this branch is not deployed.
+The signed-out production smoke passed all public-route 200 and protected-route
+401 checks. The live production Pokédex exposed all 28 Pikachu pools and
+confirmed distinct Champions, Red/Blue, BDSP, base Z-A, Mega Dimension, and
+Scarlet/Violet + DLC data. Red/Blue Surf retained its Stadium-gift method.
 
-## Release steps
+## Release record
 
-1. Review the [Vercel Preview](https://draftcenter-qwstvvmel-rob-lebae.vercel.app)
-   on desktop and mobile with Pikachu, Bulbasaur, Ogerpon, and one Z-A Mega
-   form. Pikachu and its Red/Blue Stadium-gift Surf entry are already verified.
-2. Because Supabase Preview is skipped, apply migration 349 to an isolated
-   non-production database before merge; verify 32 catalog rows, 28 ready
-   pools, four retired DLC aliases, RLS enabled, browser SELECT allowed, and
-   browser mutation denied.
-3. After approval, merge through protected `main`, apply migration 349 to the
-   exact core production project, confirm the deployed commit, and run
-   `npm run smoke:production`.
-4. Perform a signed-out production check of Champions, Red/Blue, BDSP, base
-   Z-A, Mega Dimension, and Scarlet/Violet + DLC before updating
-   `docs/CURRENT-STATUS.md`.
+1. Pull request 65 merged through protected `main` as `fe0ca21`.
+2. Migration 349 applied once to the exact core production project and passed
+   its independent read-only postflight.
+3. Vercel reported the exact `fe0ca21` production deployment Ready.
+4. `npm run smoke:production` and the representative signed-out live Pokédex
+   checks passed.
 
-Do not treat this local build as a deployment, and do not modify a league,
-draft, roster, queue, membership, deadline, tournament, or provider setting to
-test the move catalog.
+No league, draft, roster, queue, membership, deadline, tournament, or provider
+setting was modified to test or release the move catalog.

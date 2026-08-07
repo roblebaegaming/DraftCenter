@@ -3,38 +3,38 @@
 - Last updated: August 7, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified functional production release: `34c3286`
-- Latest production migration: 348
+- Verified functional production release: `fe0ca21`
+- Latest production migration: 349
 
 ## Status
 
-The August 7 Nuzlocke product and guide release is live at production commit
-`34c3286`, the squash merge of pull request 63. All protected checks passed,
-Vercel reported the exact `main` deployment Ready, and the signed-out
-production smoke sweep passed. Nuzlocke now supports named and saved local
-runs, exact saved teams, downloadable Run Cards, themed and one-per-area runs,
-and complete route-by-route encounter guides for all 37 reviewed games. Live
-checks confirmed 37 guide choices, all 129 FireRed areas, all 80 Violet areas,
-method-specific encounter disclosures, and no player-facing “encounter rows”
-terminology. No migration or production-data change was required.
+The August 7 versioned Pokédex move-pool release is live at production commit
+`fe0ca21`, the squash merge of pull request 65. All protected and local release
+checks passed, Vercel reported the exact `main` deployment Ready, migration 349
+was applied to the exact core production project, and the signed-out production
+smoke sweep passed. The Pokédex now exposes 28 distinct move-bearing pools
+across Generations I–IX from 638,321 pinned PokeAPI learnset rows plus separate
+base and Mega Dimension Legends: Z-A snapshots. Live checks confirmed
+Champions, Red/Blue Stadium-gift Surf, BDSP, both Z-A pools, and
+Scarlet/Violet + DLC.
 
 DraftCenter production is approved for monitored public use and real drafts.
 The deployed release sequence now includes Nuzlocke Lab, standalone
 tournaments, Trainer Dex, playable Daily Games, the technical SEO foundation,
 expanded competitive resources and format data, four reviewed game-specific
-Nuzlocke guides, and source-attributed competitive ladder and tournament
-evidence on Pokémon profiles.
+Nuzlocke guides, complete versioned move pools, and source-attributed
+competitive ladder and tournament evidence on Pokémon profiles.
 
-Vercel reports exact functional release `43a030c` Ready; it contains the
-competitive application commit `a5dbb30`. The signed-out production smoke
-sweep passes. Live review confirms the FireRed, Emerald, Platinum, and Scarlet
+Vercel reports exact functional release `fe0ca21` Ready. The signed-out
+production smoke sweep passes. Earlier live review confirmed the FireRed,
+Emerald, Platinum, and Scarlet
 Nuzlocke guides have the expected title, canonical,
 single H1, structured data, responsive layout, and preconfigured generator
 links. The Scarlet link restores its six-slot clauses and generates six
 encounters. Pokémon profiles also expose bounded, source-attributed ladder and
 anonymous tournament aggregates without making the underlying tables public.
 
-Production migrations are collision-free through 348. Migration 343 restores
+Production migrations are collision-free through 349. Migration 343 restores
 the Daily Games bracket champion ranking function with a fixed search path,
 least-privilege grants, and anonymous current-day privacy. Migrations 344–347
 add reviewed competitive datasets behind RLS and bounded aggregate RPCs. The
@@ -42,7 +42,10 @@ production audit verifies 4 formats, 4 datasets, 2,938 ladder snapshots, 10
 tournaments, 737 anonymous teams, and 4,422 roster members, with direct table
 access denied and only the intended RPC execution grants available. Migration
 348 refreshes the production PostgREST schema cache so both RPCs are visible to
-the deployed application.
+the deployed application. Migration 349 catalogues all 32 upstream move
+version groups, publishes 28 move-bearing pools, retires four empty DLC aliases,
+preserves RLS, allows public read-only catalog access, and denies browser
+mutations.
 
 The application-side SEO backlog from the first crawl is substantially
 implemented: meaningful raw-HTML H1 content, fragment-based Pokédex selection,
@@ -69,6 +72,8 @@ an authenticated account session and have not been represented as completed.
 ## Authoritative records
 
 - Current detailed handoff:
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-07-versioned-move-pools.md`](handoffs/DraftCenter-agent-handoff-2026-08-07-versioned-move-pools.md)
+- SEO release-hardening record:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-06-seo-release-hardening.md`](handoffs/DraftCenter-agent-handoff-2026-08-06-seo-release-hardening.md)
 - August 6 feature release record:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-06-release-integration.md`](handoffs/DraftCenter-agent-handoff-2026-08-06-release-integration.md)
