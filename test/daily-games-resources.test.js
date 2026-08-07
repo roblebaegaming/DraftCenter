@@ -17,6 +17,7 @@ test("daily games hub leads with DraftCenter and uses safe external links", () =
   assert.match(page, /href="\/explore"/);
   assert.match(page, /<PollOfTheDay supabase=\{supabase\}\/>/);
   assert.match(page, /<DailyCommunityGames signedIn=\{signedIn\} standalone\/>/);
+  assert.match(page, /<RosterConnections \/>/);
   for (const destination of ["pokedoku.io", "pokedle.io", "squirdle.fireblend.com", "pokedoodle.com", "pokequizz.com", "poketypequiz.com", "pokyfriends.com", "tcgdle.com"]) {
     assert.ok(page.includes(destination), `missing daily-game destination: ${destination}`);
   }
@@ -24,6 +25,17 @@ test("daily games hub leads with DraftCenter and uses safe external links", () =
   assert.equal((page.match(/target="_blank" rel="noreferrer"/g) || []).length, 1);
   assert.equal((page.match(/loading="lazy"/g) || []).length, 1);
   assert.ok(page.indexOf("daily-game-resource-sections") < page.indexOf("daily-games-seo-content"), "resource cards should appear before supporting SEO content");
+});
+
+test("Roster Connections creates a stable daily four-by-four puzzle", () => {
+  const game = source("src/components/RosterConnections.jsx");
+  assert.match(game, /rosterConnectionsPuzzle/);
+  assert.match(game, /slice\(0, 4\)/);
+  assert.match(game, /selected\.length !== 4/);
+  assert.match(game, /mistakes >= 4/);
+  assert.match(game, /localStorage\.setItem/);
+  assert.match(game, /Share result/);
+  assert.match(game, /One away!/);
 });
 
 test("daily games page has metadata and a sitemap entry", () => {
