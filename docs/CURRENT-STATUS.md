@@ -3,10 +3,20 @@
 - Last updated: August 7, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified functional production release: `2d583251`
+- Verified functional production release: `66014646`
 - Latest production migration: 349
 
 ## Status
+
+The August 7 global mobile-navigation release is live at production commit
+`66014646`, the squash merge of pull request 74. The shared header now keeps
+primary discovery links separate from account actions, the fixed mobile tool
+bar uses five equal-width destinations without horizontal scrolling, and the
+site footer groups reference links under Explore, DraftCenter, and Policies.
+Vercel reports the exact merged commit Ready in Production, the signed-out
+production smoke sweep passed, and eight representative live routes had no
+document, header, or tool-bar overflow at a 390-pixel viewport. No migration,
+provider setting, production data, or real league changed.
 
 The August 7 Nuzlocke team-size follow-up is live at production commit
 `2d583251`, the squash merge of pull request 72. The compact draft option is
@@ -56,15 +66,14 @@ expanded competitive resources and format data, 37 reviewed game-specific
 Nuzlocke guides, complete versioned move pools, and source-attributed
 competitive ladder and tournament evidence on Pokémon profiles.
 
-Vercel reports exact functional release `d5b1344` Ready. The signed-out
-production smoke sweep passes. Live tournament review confirmed the public
+Vercel reports exact functional release `6601464` Ready. The signed-out
+production smoke sweep passes. Live mobile review confirmed the reorganized
+header, five-slot tool bar, grouped footer, and no horizontal overflow across
+the home page, Pokédex profile, Nuzlocke, tournaments, Daily Games, format,
+guide, and legal templates. Earlier tournament review confirmed the public
 organizer page, signed-out empty state, sign-in boundary, and clean browser
-console. Earlier live mobile review confirmed the Nuzlocke Draft title and
-full-route option, the canonical 37-guide directory, nine generation groups,
-and the flat Red Route 6 encounter list without nested disclosures or
-page-level overflow. Pokémon profiles also expose bounded, source-attributed
-ladder and anonymous tournament aggregates without making the underlying
-tables public.
+console. Pokémon profiles also expose bounded, source-attributed ladder and
+anonymous tournament aggregates without making the underlying tables public.
 
 Production migrations are collision-free through 349. Migration 343 restores
 the Daily Games bracket champion ranking function with a fixed search path,
@@ -106,6 +115,8 @@ an authenticated account session and have not been represented as completed.
 ## Authoritative records
 
 - Current detailed handoff:
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-07-mobile-navigation.md`](handoffs/DraftCenter-agent-handoff-2026-08-07-mobile-navigation.md)
+- Tournament stabilization release record:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-07-tournament-stabilization.md`](handoffs/DraftCenter-agent-handoff-2026-08-07-tournament-stabilization.md)
 - Nuzlocke product release record:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-07-nuzlocke-product-pass.md`](handoffs/DraftCenter-agent-handoff-2026-08-07-nuzlocke-product-pass.md)
