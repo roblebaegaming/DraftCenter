@@ -57,6 +57,15 @@ a migration that may already have run.
 
 - `main` is protected. Use a short-lived branch and pull request for every
   non-emergency release; do not push directly to `main`.
+- When agents work in parallel, the user-designated integration agent is the
+  only agent allowed to push branches, open or change pull requests, merge,
+  deploy, apply migrations, or update `docs/CURRENT-STATUS.md`. Feature agents
+  may commit in isolated local worktrees and must hand their exact worktree,
+  branch, commit, validation, migration state, and overlap notes to the
+  integration agent.
+- Start integration from the current `origin/main`; never replay a historical
+  feature stack or merge a dirty workspace wholesale. The integration agent
+  owns shared-file reconciliation and the final release record.
 - Require passing repository checks and review the preview before merge.
 - Production is connected to `main`. A passing local build or preview is not a
   production deployment.

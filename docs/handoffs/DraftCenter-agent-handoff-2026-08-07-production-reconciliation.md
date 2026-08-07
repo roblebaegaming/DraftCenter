@@ -146,37 +146,40 @@ feature in the open-pull-request audit. Another agent subsequently refreshed,
 merged, deployed, smoke-tested, and documented it through pull requests 56 and
 76. It is no longer pending.
 
-## Current open pull-request boundary
+## Pull-request cleanup boundary
 
-At this handoff snapshot, pull request 77, **Refresh Nuzlocke team generation**,
-is the only new active product candidate:
+Pull request 77, **Refresh Nuzlocke team generation**, is the only new active
+product candidate:
 
-- head: `68f203e` on `codex/nuzlocke-team-order`;
-- base at inspection: `1750f9a`;
+- head: `2d6c604` on `codex/nuzlocke-team-order`;
+- base: current `main` at `e64ad33`;
 - repository checks: green, with Supabase Preview skipped because there is no
   migration;
 - production: unchanged; and
-- merge state: mergeable but behind the `e64ad33` release-record commit.
+- merge state: clean and mergeable, pending explicit owner Preview approval.
 
 Pull request 77 changes the user-facing name back to **Build a Nuzlocke Team**,
 keeps the repeatable seed internal, generates a fresh team for a normal Build,
 and orders results by encounter level and reviewed location. It affects the
 same Nuzlocke component, generator, exports, metadata, and tests discussed in
-this handoff. Reconcile it against current `main`, review its Preview, and do
-not assume this handoff author approved or deployed it.
+this handoff. Review its Preview and do not assume this handoff author approved
+or deployed it.
 
-The remaining older open pull requests are stale or superseded release stacks,
-not a production queue:
+The following stale or superseded pull requests were closed during the August
+7 integration cleanup and are not a production queue:
 
-- 1, 33, 35, 36, 38, 39, 42, 43, 44, and 45.
+- 1, 33, 35, 36, 38, 42, 43, 44, and 45.
 
 Pull request 33's migration and regression file already match `main` exactly.
 The Nuzlocke, tournament, Daily Games, and Trainer Dex work represented by the
-other old stacks shipped through later integrated pull requests. Confirm final
-repository state before closing them, but do not merge them into current
-`main`.
+other old stacks shipped through later integrated pull requests.
 
-## Dirty primary-workspace boundary
+Pull request 39 is also superseded as application code, but remains open only
+because it anchors the dedicated isolated tournament Preview used for safe
+lifecycle testing. Do not merge it. Close it after a replacement Preview is
+confirmed or the current Preview is no longer required.
+
+## Dirty-workspace boundaries
 
 The primary workspace remains intentionally dirty on branch
 `codex/archive-format-library-details-2026-08-07`. It contained 28 summarized
@@ -196,6 +199,23 @@ Do not push, reset, clean, or wholesale merge that workspace. Start any new
 release from current `origin/main` in an isolated worktree and selectively
 reconcile only demonstrably unique changes.
 
+A second preserved dirty worktree exists at
+`DraftCenter-competitive-resources-seo` on
+`codex/archive-competitive-resources-seo-2026-08-07`. It contains three dirty
+paths. One already matches current `main`; the other two represent an older
+resource-card and SEO-test state that would remove newer images and regression
+coverage if merged wholesale. Preserve it until its owner explicitly archives
+or discards it, but do not treat it as undeployed product work.
+
+## Parallel-agent integration policy
+
+The owner designated one integration agent for future parallel work. Feature
+agents may work and commit locally in isolated worktrees, but only the
+designated integration agent pushes, changes pull-request state, merges,
+deploys, applies migrations, and updates the canonical status. The durable rule
+is recorded in `AGENTS.md`; the handoff and commit fields expected from feature
+agents are recorded in `docs/project-organization.md`.
+
 ## External SEO work still outstanding
 
 The application-side SEO backlog is substantially deployed. The remaining SEO
@@ -211,24 +231,26 @@ deployment work and should be coordinated with the owner.
 
 ## Recommended next-agent sequence
 
-1. Fetch current `origin/main`; do not start from a product-pass or stacked
-   historical branch.
-2. Reconcile pull request 77 with `e64ad33` or later, preserving Roster
-   Connections, mobile navigation, 1–20 team sizing, exact saves/downloads, and
-   the current guide library.
-3. Re-run the required release checks and review the deployed Preview before
-   any merge.
-4. After an authorized merge, confirm the exact Vercel Production commit and
-   run the signed-out production smoke sweep.
-5. Treat the ten older open pull requests as cleanup candidates, not release
-   candidates.
-6. Preserve the dirty primary workspace and combine handoffs by facts and final
-   trees rather than replaying pre-squash commit histories.
+1. Have the owner review pull request 77's Preview and either authorize its
+   merge or close it before starting the tournament feature phase.
+2. Re-run the required release checks before an authorized merge, confirm the
+   exact Vercel Production commit afterward, and run the signed-out production
+   smoke sweep.
+3. Port the isolated tournament fixture-readiness guard from the historical
+   stabilization branch onto a fresh branch from current `origin/main`; do not
+   merge the historical branch wholesale.
+4. Keep pull request 39 only until the safe tournament Preview no longer
+   depends on it, then close it.
+5. Preserve both dirty worktrees and combine handoffs by facts and final trees
+   rather than replaying pre-squash commit histories.
+6. Remove clean obsolete worktrees only after their unique commits and remote
+   status have been inventoried.
 
 ## Definition of reconciled
 
 This task is complete because the full Nuzlocke product-pass tree was proven to
 be on production, the live save/download/load path passed, later agents'
 releases were identified and preserved, no redundant deployment occurred, the
-dirty workspace was untouched, and the only new active product work is clearly
-separated as pull request 77.
+dirty workspaces were untouched, nine superseded pull requests were closed,
+the isolated tournament Preview anchor was preserved, and the only new active
+product work is clearly separated as pull request 77.

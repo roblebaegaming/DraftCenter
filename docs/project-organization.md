@@ -129,6 +129,33 @@ When behavior changes, update the closest stable guide in the same change. A
 dated handoff is a historical snapshot and should not be treated as the lasting
 source of truth.
 
+## Parallel agent workflow
+
+Parallel feature work uses one user-designated integration agent. Supporting
+agents work in isolated local worktrees and may make local commits, but they do
+not push, change pull-request state, merge, deploy, apply migrations, or update
+the canonical status. They hand the integration agent:
+
+- the worktree and branch;
+- the final local commit;
+- focused and full validation completed;
+- migrations created or required;
+- files shared with another active task; and
+- anything intentionally left undeployed.
+
+The integration agent starts from current `origin/main`, reconciles final file
+trees rather than replaying stacked branch histories, and is the sole owner of
+remote changes. Release records must distinguish the feature-branch head, the
+pull-request squash commit on `main`, the currently deployed commit, and the
+latest applied production migration. Only the integration agent updates
+`docs/CURRENT-STATUS.md` after verifying authoritative repository and
+deployment state.
+
+Keep one active release candidate per product area. Once a pull request is
+merged or superseded, close its obsolete stacks and remove clean worktrees only
+after preserving any unique local commit. Never remove or reset a dirty
+worktree as part of routine cleanup.
+
 ## Where new work belongs
 
 | Change | Primary location |
