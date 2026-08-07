@@ -1,12 +1,12 @@
 import DailyGamesResourcesPage from "../../../components/DailyGamesResourcesPage";
 
 export const metadata = {
-  title: "Pokémon Daily Games – Poll, Bracket & Quiz",
-  description: "Play free Pokémon daily games: answer today's community poll, complete an eight-Pokémon draft bracket, and solve the daily Pokémon quiz.",
-  keywords: ["Pokémon dailies", "Pokémon daily games", "daily Pokémon quiz", "Pokémon quiz", "Pokémon bracket", "Pokémon poll of the day"],
+  title: "Pokémon Daily Games – Roster Connections, Poll, Bracket & Quiz",
+  description: "Play free Pokémon daily games: solve Roster Connections, answer today's community poll, complete a draft bracket, and identify the daily Pokémon.",
+  keywords: ["Pokémon dailies", "Pokémon daily games", "Pokémon connections", "Pokémon grouping game", "daily Pokémon quiz", "Pokémon quiz", "Pokémon bracket", "Pokémon poll of the day"],
   alternates: { canonical: "/resources/daily-games" },
-  openGraph: { title: "Pokémon Daily Games – Poll, Bracket & Quiz", description: "Play three fresh Pokémon community games every day on DraftCenter.", url: "/resources/daily-games", type: "website", images: [{ url: "/draftcenter-logo.png", width: 512, height: 512, alt: "DraftCenter Pokémon Daily Games" }] },
-  twitter: { card: "summary", title: "Pokémon Daily Games", description: "A daily Pokémon poll, draft bracket, and quiz in one free challenge.", images: ["/draftcenter-logo.png"] },
+  openGraph: { title: "Pokémon Daily Games – Roster Connections, Poll, Bracket & Quiz", description: "Group Pokémon by their hidden connections, then play three fresh community games every day.", url: "/resources/daily-games", type: "website", images: [{ url: "/draftcenter-logo.png", width: 512, height: 512, alt: "DraftCenter Pokémon Daily Games" }] },
+  twitter: { card: "summary", title: "Pokémon Daily Games", description: "Play Roster Connections, a daily Pokémon poll, draft bracket, and quiz.", images: ["/draftcenter-logo.png"] },
 };
 
 export default function DailyGamesPage() {
