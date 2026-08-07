@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import { generateNuzlockeTeam } from "../src/lib/nuzlockeGenerator.js";
+import { buildNuzlockeRunCardText, normalizeSavedNuzlockeResult, nuzlockeRulesFromShareUrl, nuzlockeRunCardFilename } from "../src/lib/nuzlockeRunExports.js";
 
 const encounters = [
   { area_key:"route-1",pokemon_id:1,pokemon_name:"Bulbasaur",species_family:"bulbasaur",method:"walk",chance:60 },
@@ -70,6 +71,21 @@ test("type, color, and evolution-stage themes can be combined without relaxing f
   const naturallyNonEvolving=generateNuzlockeTeam(encounters,{...base,evolutionStage:"non-evolving"});
   assert.equal(naturallyNonEvolving.available,0);
   assert.throws(()=>generateNuzlockeTeam(encounters,{...base,themeType:"stellar"}),/Unknown/);
+});
+test("generated teams can be safely saved and exported as readable Run Cards",()=>{
+  const generated={
+    game:{game_key:"scarlet",display_name:"Pokémon Scarlet"},seed:"ember-seed",complete:false,requested:2,available:1,allAreas:true,
+    team:[{pokemon_id:909,pokemon_name:"Fuecoco",form_name:"",artwork_url:"javascript:alert(1)",area_key:"starter-choice",area_name:"Starter choice",method:"starter",conditions:[]}],
+  };
+  const saved=normalizeSavedNuzlockeResult(generated);
+  assert.equal(saved.team[0].artwork_url,"");assert.equal(saved.team[0].min_level,null);assert.equal(saved.team.length,1);
+  assert.equal(normalizeSavedNuzlockeResult({...generated,team:Array(252).fill(generated.team[0])}),null);
+  const url="https://draftcentral.gg/nuzlocke?game=scarlet&seed=ember-seed&name=Scarlet+Ember&length=all-areas&mode=route-random&weighting=authentic&starter=include&type=fire&family=off";
+  const rules=nuzlockeRulesFromShareUrl(url);
+  assert.ok(rules.includes("Run length: One encounter per eligible area"));assert.ok(rules.includes("Type theme: Fire"));assert.ok(rules.includes("Evolutionary-family clause: Off"));
+  const text=buildNuzlockeRunCardText({runName:"Scarlet Ember",result:generated,rules,shareUrl:url});
+  assert.match(text,/Scarlet Ember/);assert.match(text,/1\. Fuecoco — Starter choice — Starter Pokémon/);assert.match(text,/Only 1 of 2 requested results/);assert.match(text,/Recreate this run/);assert.match(text,/draftcentral\.gg\/nuzlocke/);
+  assert.equal(nuzlockeRunCardFilename("Pokémon Scarlet: Ember Run","Pokémon Scarlet"),"pokemon-scarlet-ember-run.txt");
 });
 test("optional starters are deterministic, count as a team slot, and respect exclusions",()=>{
   const starters=[

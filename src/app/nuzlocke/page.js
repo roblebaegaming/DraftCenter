@@ -3,7 +3,7 @@ import nuzlockeGameGuides from "../../lib/nuzlockeGameGuides.json";
 
 export const metadata = {
   title: "Pokémon Nuzlocke Team Generator by Game",
-  description: "Build and save a repeatable Pokémon Nuzlocke run with one encounter per area, game-specific rules, themed filters, and verified encounter odds.",
+  description: "Build, save, and download a repeatable Pokémon Nuzlocke team with one encounter per area, game-specific rules, themes, and verified encounter odds.",
   alternates: { canonical: "/nuzlocke" },
   keywords: ["Pokémon Nuzlocke generator", "Nuzlocke encounter generator", "one Pokémon per area", "themed Nuzlocke", "Nuzlocke randomizer seed"],
   openGraph: {
@@ -26,7 +26,7 @@ export default function NuzlockePage() {
         operatingSystem: "Any",
         isAccessibleForFree: true,
         description: "A repeatable Nuzlocke team generator using verified, game-specific Pokémon encounters.",
-        featureList: ["Game-specific encounters", "Saved and shareable runs", "One encounter per eligible area", "Type, color, and evolution-stage themes", "Route-first and encounter-pool random modes", "Species clause"],
+        featureList: ["Game-specific encounters", "Saved teams and downloadable Run Cards", "Shareable repeatable runs", "One encounter per eligible area", "Type, color, and evolution-stage themes", "Route-first and encounter-pool random modes", "Species clause"],
       },
       {
         "@type": "BreadcrumbList",
@@ -44,7 +44,7 @@ export default function NuzlockePage() {
     <section className="explore-card nuzlocke-seo-guide" aria-labelledby="nuzlocke-guide-title">
       <span className="eyebrow">HOW IT WORKS</span>
       <h2 id="nuzlocke-guide-title">A repeatable Nuzlocke encounter generator</h2>
-      <p>Choose a verified Pokémon game, name your run, and keep its randomizer seed to reproduce the same encounters. Build a compact team or request one encounter from every eligible area, then save the preset on your device or share its exact rules by link.</p>
+      <p>Choose a verified Pokémon game, name your run, and keep its randomizer seed to reproduce the same encounters. Build a compact team or request one encounter from every eligible area, then save its setup and generated team in your browser, download a readable Run Card, or share its exact rules by link.</p>
       <div className="pokemon-detail-grid">
         <section>
           <h3>Use game-specific encounter data</h3>

@@ -900,7 +900,12 @@ test("run configuration is shareable and the UI explains seeds, weighting, lengt
   assert.match(lab, /Catch \$\{entry\.encounter_pokemon_name\}/);
   assert.match(lab, /Randomizer seed/);
   assert.match(lab, /Run name/);
-  assert.match(lab, /Save run/);
+  assert.match(lab, /Save setup/);
+  assert.match(lab, /Save team/);
+  assert.match(lab, /Download team/);
+  assert.match(lab, /normalizeSavedNuzlockeResult/);
+  assert.match(lab, /url\.searchParams\.set\("saved", saved\.id\)/);
+  assert.match(lab, /new Blob\(\[text\]/);
   assert.match(lab, /One encounter per eligible area/);
   assert.match(lab, /Equal chance per eligible encounter/);
   assert.match(lab, /Authentic in-game encounter odds/);

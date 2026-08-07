@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { pokemonProfileSlugForName } from "../lib/publicPokemonIndex";
+import { buildNuzlockeRunCardText, normalizeSavedNuzlockeResult, nuzlockeRulesFromShareUrl, nuzlockeRunCardFilename } from "../lib/nuzlockeRunExports";
 
 const SAVED_RUNS_KEY = "draftcenter.nuzlocke.saved-runs.v1";
 const MAX_SAVED_RUNS = 20;
@@ -12,7 +13,14 @@ function readSavedRuns() {
   try {
     const value = JSON.parse(window.localStorage.getItem(SAVED_RUNS_KEY) || "[]");
     if (!Array.isArray(value)) return [];
-    return value.filter((run) => run && typeof run.id === "string" && typeof run.name === "string" && typeof run.url === "string").slice(0, MAX_SAVED_RUNS);
+    return value.map((run) => {
+      if (!run || typeof run.id !== "string" || typeof run.name !== "string" || typeof run.url !== "string") return null;
+      const id = run.id.slice(0, 80);
+      const name = run.name.trim().slice(0, 80);
+      const url = run.url.slice(0, 4000);
+      if (!/^[a-z0-9-]{1,80}$/i.test(id) || !name || !url) return null;
+      return { id, name, url, game_name: String(run.game_name || "Nuzlocke").slice(0, 100), updated_at: String(run.updated_at || "").slice(0, 40), result: normalizeSavedNuzlockeResult(run.result) };
+    }).filter(Boolean).slice(0, MAX_SAVED_RUNS);
   } catch {
     return [];
   }
@@ -42,15 +50,19 @@ export default function NuzlockeLab() {
   const [savedRuns, setSavedRuns] = useState([]);
   const [savedRunId, setSavedRunId] = useState("");
   const [saveMessage, setSaveMessage] = useState("");
+  const [outputMessage, setOutputMessage] = useState("");
   const [result, setResult] = useState(null);
+  const [resultShareUrl, setResultShareUrl] = useState("");
   const [message, setMessage] = useState("Loading verified games…");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    setSavedRuns(readSavedRuns());
+    const storedRuns = readSavedRuns();
+    const seedValue = params.get("seed") || newSeed();
+    setSavedRuns(storedRuns);
     setRunName((params.get("name") || "").slice(0, 80));
-    setSeed(params.get("seed") || newSeed());
+    setSeed(seedValue);
     setAllAreas(params.get("length") === "all-areas");
     if (/^(?:[1-9]|1[0-2])$/.test(params.get("size") || "")) setTeamSize(Number(params.get("size")));
     if (["route-random", "true-random"].includes(params.get("mode"))) setMode(params.get("mode"));
@@ -83,6 +95,16 @@ export default function NuzlockeLab() {
         if (group.options?.some((option) => option.value === value && value !== "any")) restoredConditions[group.id] = value;
       }
       setConditionSelections(restoredConditions);
+      const savedRun = storedRuns.find((run) => run.id === params.get("saved"));
+      if (savedRun?.result?.game?.game_key === selectedGameKey && savedRun.result.seed === seedValue) {
+        setSavedRunId(savedRun.id);
+        setResult(savedRun.result);
+        setResultShareUrl(savedRun.url);
+        setOutputMessage("Saved team loaded from this device.");
+      } else if (savedRun) {
+        setSavedRunId(savedRun.id);
+        setSaveMessage("Saved setup loaded. Build the run to create its team.");
+      }
       setMessage(data.games?.length ? "" : "No game encounter catalog has completed independent verification yet.");
     }).catch((error) => setMessage(error.message || "Verified games could not be loaded."));
   }, []);
@@ -126,28 +148,61 @@ export default function NuzlockeLab() {
     setThemeColor("any");
     setEvolutionStage("any");
     setResult(null);
+    setResultShareUrl("");
+    setOutputMessage("");
   }
 
-  function saveCurrentRun() {
-    const name = runName.trim();
-    if (!name) { setSaveMessage("Give this run a name before saving it."); return; }
-    if (!shareUrl) { setSaveMessage("Choose a verified game before saving this run."); return; }
+  function resultUrlWithName() {
+    const source = resultShareUrl || shareUrl;
+    if (!source) return "";
+    try {
+      const url = new URL(source);
+      if (runName.trim()) url.searchParams.set("name", runName.trim().slice(0, 80));
+      else url.searchParams.delete("name");
+      url.searchParams.delete("saved");
+      return url.toString();
+    } catch { return ""; }
+  }
+
+  function saveCurrentRun(teamResult = null) {
+    const isTeamSave = teamResult && typeof teamResult === "object";
+    const normalizedResult = isTeamSave ? normalizeSavedNuzlockeResult(teamResult) : null;
+    if (isTeamSave && !normalizedResult) { setOutputMessage("This generated team could not be saved."); return; }
+    const sourceUrl = isTeamSave ? (resultShareUrl || shareUrl) : shareUrl;
+    if (!sourceUrl) { setSaveMessage("Choose a verified game before saving this run."); return; }
+    const seedLabel = seed.replace(/[^a-z0-9]+/gi, "").slice(0, 6) || "run";
+    const suggestedName = `${normalizedResult?.game?.display_name || activeGame?.display_name || "Nuzlocke"} ${seedLabel}`;
+    const name = runName.trim() || (isTeamSave ? suggestedName : "");
+    if (!name) { setSaveMessage("Give this run a name before saving its setup."); return; }
+    let savedUrl;
+    try {
+      const url = new URL(sourceUrl);
+      url.searchParams.set("name", name.slice(0, 80));
+      url.searchParams.delete("saved");
+      savedUrl = url.toString();
+    } catch { setSaveMessage("This run does not have a valid share link."); return; }
     const existing = savedRuns.find((run) => run.name.toLowerCase() === name.toLowerCase());
     const saved = {
       id: existing?.id || newSeed(),
       name: name.slice(0, 80),
-      game_name: activeGame?.display_name || game,
-      url: shareUrl,
+      game_name: normalizedResult?.game?.display_name || activeGame?.display_name || game,
+      url: savedUrl,
       updated_at: new Date().toISOString(),
+      result: normalizedResult || (existing?.url === savedUrl ? existing.result : null),
     };
     const next = [saved, ...savedRuns.filter((run) => run.id !== saved.id)].slice(0, MAX_SAVED_RUNS);
     try {
       window.localStorage.setItem(SAVED_RUNS_KEY, JSON.stringify(next));
       setSavedRuns(next);
       setSavedRunId(saved.id);
-      setSaveMessage(existing ? "Saved run updated on this device." : "Run saved on this device.");
+      if (!runName.trim()) setRunName(saved.name);
+      const status = isTeamSave ? (existing ? "Saved team updated on this device." : "Team saved on this device.") : (existing ? "Saved setup updated on this device." : "Run setup saved on this device.");
+      setSaveMessage(status);
+      if (isTeamSave) setOutputMessage(status);
     } catch {
-      setSaveMessage("This browser could not save the run.");
+      const status = "This browser could not save the run.";
+      setSaveMessage(status);
+      if (isTeamSave) setOutputMessage(status);
     }
   }
 
@@ -156,7 +211,10 @@ export default function NuzlockeLab() {
     if (!saved) return;
     try {
       const url = new URL(saved.url, window.location.origin);
-      if (url.origin === window.location.origin && url.pathname === "/nuzlocke") window.location.assign(url);
+      if (url.origin === window.location.origin && url.pathname === "/nuzlocke") {
+        url.searchParams.set("saved", saved.id);
+        window.location.assign(url);
+      }
     } catch {
       setSaveMessage("That saved run is no longer valid.");
     }
@@ -169,13 +227,16 @@ export default function NuzlockeLab() {
     setSavedRuns(next);
     setSavedRunId("");
     setSaveMessage("Saved run removed from this device.");
+    setOutputMessage("");
   }
 
   async function generate(event) {
     event.preventDefault();
     setLoading(true);
     setMessage("");
+    setOutputMessage("");
     setResult(null);
+    setResultShareUrl("");
     try {
       const response = await fetch("/api/nuzlocke", {
         method: "POST",
@@ -189,6 +250,7 @@ export default function NuzlockeLab() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error);
       setResult(data);
+      setResultShareUrl(shareUrl);
       window.history.replaceState({}, "", new URL(shareUrl));
     } catch (error) {
       setMessage(error.message || "The Nuzlocke team could not be generated.");
@@ -199,6 +261,32 @@ export default function NuzlockeLab() {
 
   function toggleMethod(value) {
     setMethods((current) => current.includes(value) ? current.filter((item) => item !== value) : [...current, value]);
+  }
+
+  async function copyRunLink() {
+    const url = result ? resultUrlWithName() : shareUrl;
+    if (!url) return;
+    try {
+      await navigator.clipboard.writeText(url);
+      setOutputMessage("Run link copied.");
+    } catch { setOutputMessage("This browser could not copy the run link."); }
+  }
+
+  function downloadTeam() {
+    if (!result) return;
+    try {
+      const exportUrl = resultUrlWithName();
+      const text = buildNuzlockeRunCardText({ runName, result, rules: nuzlockeRulesFromShareUrl(exportUrl), shareUrl: exportUrl });
+      const blobUrl = URL.createObjectURL(new Blob([text], { type: "text/plain;charset=utf-8" }));
+      const anchor = document.createElement("a");
+      anchor.href = blobUrl;
+      anchor.download = nuzlockeRunCardFilename(runName, result.game?.display_name);
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      globalThis.setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+      setOutputMessage("Team download started.");
+    } catch { setOutputMessage("This browser could not download the team."); }
   }
 
   return <main className="nuzlocke-shell">
@@ -222,8 +310,8 @@ export default function NuzlockeLab() {
           <label>Run name
             <input value={runName} maxLength={80} onChange={(event) => setRunName(event.target.value)} placeholder="My Fire-type run" />
           </label>
-          <button type="button" className="quiet-button" onClick={saveCurrentRun}>Save run</button>
-          <small>Names and presets are saved only in this browser. The shared link recreates the same rules and results.</small>
+          <button type="button" className="quiet-button" onClick={() => saveCurrentRun()}>Save setup</button>
+          <small>Save setup stores these rules. After generating, Save team also preserves the exact Run Card in this browser.</small>
         </div>
 
         <div className="nuzlocke-run-code-field">
@@ -237,11 +325,11 @@ export default function NuzlockeLab() {
         </div>
 
         <fieldset className="nuzlocke-saved-runs">
-          <legend>Saved runs</legend>
+          <legend>Saved runs and teams</legend>
           {savedRuns.length ? <>
             <select aria-label="Saved runs" value={savedRunId} onChange={(event) => setSavedRunId(event.target.value)}>
               <option value="">Choose a saved run</option>
-              {savedRuns.map((run) => <option key={run.id} value={run.id}>{run.name} — {run.game_name}</option>)}
+              {savedRuns.map((run) => <option key={run.id} value={run.id}>{run.name} — {run.game_name}{run.result ? " — team saved" : ""}</option>)}
             </select>
             <div>
               <button type="button" className="quiet-button" disabled={!savedRunId} onClick={loadSavedRun}>Load</button>
@@ -345,8 +433,13 @@ export default function NuzlockeLab() {
       <section className="nuzlocke-output">
         <div className="section-heading">
           <div><span className="eyebrow">RUN CARD</span><h2>{runName.trim() || result?.game?.display_name || "Your encounters"}</h2>{runName.trim() && result?.game?.display_name && <small>{result.game.display_name}</small>}</div>
-          {shareUrl && <button className="quiet-button" type="button" onClick={async () => { await navigator.clipboard.writeText(shareUrl); setSaveMessage("Run link copied."); }}>Copy run link</button>}
+          {shareUrl && <div className="nuzlocke-output-actions">
+            <button className="quiet-button" type="button" onClick={copyRunLink}>Copy run link</button>
+            {result && <button className="quiet-button" type="button" onClick={() => saveCurrentRun(result)}>Save team</button>}
+            {result && <button className="quiet-button" type="button" onClick={downloadTeam}>Download team</button>}
+          </div>}
         </div>
+        {outputMessage && <p className="nuzlocke-output-status" role="status">{outputMessage}</p>}
         {!result && <div className="empty-state">Choose a verified game and your rules, then build a run.</div>}
         {result?.allAreas && <p className="nuzlocke-run-summary">One encounter was requested from every eligible area under these rules.</p>}
         {result && !result.complete && <p className="nuzlocke-incomplete">Only {result.available} of {result.requested} results could be filled under these rules. No rule was relaxed.</p>}
