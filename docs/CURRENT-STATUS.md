@@ -3,28 +3,36 @@
 - Last updated: August 6, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified production release: `7e95ac9`
-- Latest production migration: 343
+- Verified functional production release: `43a030c`
+- Latest production migration: 348
 
 ## Status
 
 DraftCenter production is approved for monitored public use and real drafts.
 The deployed release sequence now includes Nuzlocke Lab, standalone
 tournaments, Trainer Dex, playable Daily Games, the technical SEO foundation,
-expanded competitive resources and format data, and four reviewed
-game-specific Nuzlocke guides.
+expanded competitive resources and format data, four reviewed game-specific
+Nuzlocke guides, and source-attributed competitive ladder and tournament
+evidence on Pokémon profiles.
 
-Vercel reports exact `main` commit `7e95ac9` Ready. The signed-out production
-smoke sweep passes, and live review confirms the FireRed, Emerald, Platinum,
-and Scarlet Nuzlocke guides have the expected title, canonical, single H1,
-structured data, responsive layout, and preconfigured generator links. The
-Scarlet link restores its six-slot clauses and generates six encounters.
+Vercel reports exact functional release `43a030c` Ready; it contains the
+competitive application commit `a5dbb30`. The signed-out production smoke
+sweep passes. Live review confirms the FireRed, Emerald, Platinum, and Scarlet
+Nuzlocke guides have the expected title, canonical,
+single H1, structured data, responsive layout, and preconfigured generator
+links. The Scarlet link restores its six-slot clauses and generates six
+encounters. Pokémon profiles also expose bounded, source-attributed ladder and
+anonymous tournament aggregates without making the underlying tables public.
 
-Production migrations are collision-free through 343. Migration 343 restores
+Production migrations are collision-free through 348. Migration 343 restores
 the Daily Games bracket champion ranking function with a fixed search path,
-least-privilege grants, and anonymous current-day privacy. Direct production
-RPC verification returns successfully without exposing private current-day
-results.
+least-privilege grants, and anonymous current-day privacy. Migrations 344–347
+add reviewed competitive datasets behind RLS and bounded aggregate RPCs. The
+production audit verifies 4 formats, 4 datasets, 2,938 ladder snapshots, 10
+tournaments, 737 anonymous teams, and 4,422 roster members, with direct table
+access denied and only the intended RPC execution grants available. Migration
+348 refreshes the production PostgREST schema cache so both RPCs are visible to
+the deployed application.
 
 The application-side SEO backlog from the first crawl is substantially
 implemented: meaningful raw-HTML H1 content, fragment-based Pokédex selection,
@@ -40,6 +48,8 @@ an authenticated account session and have not been represented as completed.
 - Four-page Nuzlocke cohort impressions, clicks, CTR, and engagement at 14 and
   28 days
 - Daily Games ranking RPC errors and anonymous privacy behavior
+- Competitive dataset refresh cadence, source availability, and bounded RPC
+  performance
 - Supabase memory and Disk IO during normal live-draft days
 - Autonomous-claim reconciliation workload and duplicate live-draft polling
 - Historical versus new Operations events

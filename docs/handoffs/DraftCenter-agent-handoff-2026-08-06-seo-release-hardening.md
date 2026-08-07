@@ -5,17 +5,21 @@
 The authorized release sequence is committed, merged through protected pull
 requests, and deployed to production. Nuzlocke Lab, tournaments, Trainer Dex,
 Daily Games, the technical SEO foundation, competitive resource and format
-expansion, and the first four game-specific Nuzlocke guides are live.
+expansion, the first four game-specific Nuzlocke guides, and source-attributed
+competitive ladder and tournament results on Pokémon profiles are live.
 
 - Production: https://www.draftcentral.gg
 - Protected branch: `main`
-- Verified production commit: `7e95ac96c7533167fc967a6cc23c4cff5356ae98`
-- Latest production migration: 343
-- Current application release pull request: 58
+- Verified functional production commit: `43a030c36ed130523342d3c6ab03250386c3cdf6`
+- Competitive application commit: `a5dbb303a69d8a5a00d1026be0447c53022244bc`
+- Latest production migration: 348
+- Current functional release pull request: 62
 
 Vercel reports the exact commit Ready. The post-deployment signed-out smoke
-sweep passes. No real league, draft, roster, tournament, Trainer Dex event, or
-user record was created or changed for this release verification.
+sweep passes. No real DraftCenter league, draft, roster, tournament, Trainer
+Dex event, or user record was created or changed for this release
+verification. The competitive imports are reviewed external competitive
+datasets stored in their own RLS-protected tables.
 
 The application and database work is hardened for the released scope. SEO
 measurement hardening is not yet complete because the current session did not
@@ -38,10 +42,15 @@ change.
 | 55 | `6f08445` | Daily Games resource polish |
 | 57 | `7f84b56` | Resource card artwork |
 | 58 | `7e95ac9` | FireRed, Emerald, Platinum, and Scarlet Nuzlocke guides |
+| 59 | `a5dbb30` | Competitive ladder and anonymous tournament profile evidence |
+| 61 | `452f89f` | Clearer Nuzlocke navigation labels |
+| 62 | `43a030c` | Production PostgREST schema-cache refresh for competitive RPCs |
 
 The sequence was deployed incrementally so each change had an isolated Preview,
-repository checks, and an exact production commit. Pull request 58 is the
-current production head and includes every release in the table.
+repository checks, and an exact production commit. Pull request 62 is the
+current functional head and includes every release in the table. The final
+handoff pull request is documentation-only and does not change application
+behavior.
 
 ## Product state
 
@@ -97,6 +106,35 @@ result, dispute, correction, archive, and public-projection boundaries. No fake
 public event was created for SEO. Format pages now expose more useful legal-pool
 facts while the regulation catalog remains authoritative for actual drafts.
 
+### Competitive Pokémon evidence
+
+Static and interactive Pokémon profiles now distinguish two evidence sets:
+
+- four pinned June 2026 Smogon ladder datasets for Scarlet/Violet OU,
+  National Dex OU, Doubles OU, and Pokémon Champions Regulation M-B; and
+- anonymous aggregates from 10 completed Regulation M-B Limitless community
+  tournaments collected August 1–6, 2026.
+
+The production import contains 4 formats, 4 datasets, 2,938 Pokémon ladder
+snapshots, 737 anonymous teams, and 4,422 roster members. The reviewed source
+cohort represents 2,719,877 ladder battles and has complete team sheets for the
+included tournament events. Player names, handles, countries, and account
+identifiers are not retained.
+
+Each result preserves its format, regulation, rating or cohort window, sample
+size, methodology, and source link. Ladder usage is not presented as a
+DraftCenter tier, price, legality rule, or tournament win rate. Tournament
+results are explicitly labeled as community evidence rather than official
+Championship Series results.
+
+Migrations 344–347 create and import the data through forward-only changes;
+migration 348 refreshes the PostgREST schema cache after those functions are
+created. All six source tables have RLS enabled and deny direct anonymous and
+authenticated reads. The only browser-facing access is through two bounded
+`SECURITY DEFINER` aggregate functions with fixed search paths; `PUBLIC`
+execution is revoked, and only the intended anonymous and authenticated roles
+can execute them.
+
 ## SEO work completed
 
 The first crawl backlog has been addressed at the application layer:
@@ -109,7 +147,9 @@ The first crawl backlog has been addressed at the application layer:
 - Pokémon form canonical behavior is documented and regression-covered;
 - Pokémon profiles, formats, and guides expose useful contextual links;
 - Nuzlocke, Daily Games, resources, and format pages have deeper crawlable
-  content and cross-navigation; and
+  content and cross-navigation;
+- Pokémon profiles now contain source-attributed, format-specific competitive
+  evidence and useful teammate links where data exists; and
 - the first four Nuzlocke game pages are present in the sitemap and `llms.txt`.
 
 Sitemap splitting was not added because the available 100-page crawl could not
@@ -131,6 +171,12 @@ The release branches passed the applicable checks:
   scan; and
 - Ready Vercel Previews with no unresolved Preview feedback.
 
+The competitive-data regressions also verify source checksums, aggregate
+counts, form-sensitive Pokémon keys, documentation migration numbering, and
+the absence of retained player identity fields. The secret-scanner exceptions
+are limited to the two exact, reviewed generated import artifacts; no broad
+path or rule bypass was added.
+
 The Nuzlocke regression compares every published count, method, starter,
 condition option, area key/name, and generator parameter with the raw pinned
 catalog data. Preview review confirmed all four pages have one H1, the expected
@@ -144,7 +190,8 @@ guide-data file. The rerun passed; no required check was bypassed.
 
 ### Production
 
-- Exact `main` commit `7e95ac9` is Ready on Vercel.
+- Exact functional release `43a030c` is Ready on Vercel and contains
+  competitive application commit `a5dbb30`.
 - `npm run smoke:production` passes all public routes and expected signed-out
   protected API responses.
 - All four live Nuzlocke guides return the expected title, self-canonical,
@@ -157,6 +204,19 @@ guide-data file. The rerun passed; no required check was bypassed.
   horizontal overflow.
 - The Daily Games champion ranking RPC returns successfully after migration
   343 and preserves anonymous current-day privacy.
+- The competitive-data production audit returns exactly 4 formats, 4 datasets,
+  2,938 ladder snapshots, 10 tournaments, 737 anonymous teams, and 4,422
+  roster members.
+- All competitive tables have RLS enabled; direct anonymous and authenticated
+  table reads are denied; both aggregate functions are security-definer with
+  fixed search paths; intended role execution is present; and `PUBLIC`
+  execution is revoked.
+- Live Garchomp and Mega Charizard Y profiles expose the expected ladder and
+  tournament sections, source links, sample context, and teammate navigation.
+- The first live check correctly showed that the production PostgREST cache had
+  not exposed the newly created RPCs. Forward-only migration 348 was committed,
+  reviewed, merged, and applied; the same live routes then returned the expected
+  competitive evidence without an application-code workaround.
 
 ## Remaining work and ordered next steps
 
@@ -201,9 +261,12 @@ rankings in the first days is not a technical failure by itself.
    explicit production approval; it is not an SEO-only page.
 3. Consider indexable tournament event pages only after real public events
    exist and stable public canonicals/privacy behavior are defined.
-4. Add more format, tournament, Daily Three, or Pokémon-profile content only
+4. Refresh the pinned competitive datasets only through the documented import
+   workflow, with new forward-only migrations, checksum/count regression
+   coverage, identity-field review, and the same RLS/grant audit.
+5. Add more format, tournament, Daily Three, or Pokémon-profile content only
    where Search Console and product usage show real demand.
-5. Add route-specific Open Graph images as a sharing improvement, not as a
+6. Add route-specific Open Graph images as a sharing improvement, not as a
    direct ranking claim.
 
 ## Hardening status
@@ -214,7 +277,7 @@ rankings in the first days is not a technical failure by itself.
   release validation for the shipped scope;
 - exact production commit and migration confirmation;
 - no real-data mutations during SEO or release testing; and
-- clean, collision-free migration numbering through 343.
+- clean, collision-free migration numbering through 348.
 
 ### Pending account review
 
