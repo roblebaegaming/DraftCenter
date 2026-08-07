@@ -106,3 +106,13 @@ test("tournament aggregates are RLS-backed, bounded, and separate from ladder us
   assert.match(component, /Match win rate/);
   assert.match(component, /team-sheet coverage/);
 });
+
+test("competitive data documentation matches the forward-only migration sequence", () => {
+  const documentation = read("docs/competitive-pokemon-data.md");
+  assert.match(documentation, /Migration 344 creates the private-by-default competitive catalog/);
+  assert.match(documentation, /Migration 345 imports pinned June 2026 Pokémon/);
+  assert.match(documentation, /Migration 346 adds private event/);
+  assert.match(documentation, /Migration 347 imports 10 completed/);
+  assert.match(documentation, /Never rewrite migrations\s+344 through 347/);
+  assert.doesNotMatch(documentation, /Migration 343 creates the private-by-default competitive catalog/);
+});

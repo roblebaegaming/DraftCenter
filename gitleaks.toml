@@ -16,6 +16,13 @@ paths = [
   '''^test/nuzlocke-catalog-security\.test\.js$''',
 ]
 
+[[allowlists]]
+description = "Reviewed anonymous competitive tournament artifact"
+targetRules = ["generic-api-key"]
+paths = [
+  '''^data/competitive/tournaments/limitless-vgc-2026-08-reg-mb\.json$''',
+]
+
 [[rules]]
 id = "generic-api-key"
 
