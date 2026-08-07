@@ -92,6 +92,8 @@ const summaryMigration = fs.readFileSync(
   "utf8",
 );
 const capabilityMigration = fs.readFileSync(new URL("../supabase/269-nuzlocke-game-capabilities.sql", import.meta.url), "utf8");
+const verifiedGameMethods = JSON.parse(fs.readFileSync(new URL("../data/nuzlocke/verified-game-methods.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json", import.meta.url), "utf8"));
+const methodSummaryBuilder = fs.readFileSync(new URL("../scripts/build-nuzlocke-method-summary.mjs", import.meta.url), "utf8");
 const gen2Artifacts = Object.fromEntries(["gold", "silver", "crystal"].map((game) => [game, {
   catalog: JSON.parse(fs.readFileSync(new URL(`../data/nuzlocke/pokemon-${game}.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json`, import.meta.url), "utf8")),
   evolutions: JSON.parse(fs.readFileSync(new URL(`../data/nuzlocke/pokemon-${game}-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json`, import.meta.url), "utf8")),
@@ -675,6 +677,22 @@ test("game capabilities remain bounded, RLS-backed metadata", () => {
   assert.match(capabilityMigration, /limit 100/);
   assert.match(capabilityMigration, /grant execute[^;]+to anon, authenticated/);
 });
+test("deployed game methods are a bounded pinned summary of all reviewed catalogs", () => {
+  const catalogFiles = fs.readdirSync(new URL("../data/nuzlocke/", import.meta.url))
+    .filter((name) => /^pokemon-(?!.*-evolutions\.).*\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\.json$/.test(name));
+  assert.equal(catalogFiles.length, 37);
+  assert.equal(Object.keys(verifiedGameMethods.games).length, 37);
+  for (const file of catalogFiles) {
+    const catalog = JSON.parse(fs.readFileSync(new URL(`../data/nuzlocke/${file}`, import.meta.url), "utf8"));
+    const methods = [...new Set(catalog.encounters.map((row) => row.method))].sort();
+    assert.deepEqual(verifiedGameMethods.games[catalog.game.game_key], {
+      source_commit: verifiedGameMethods.source_commit,
+      methods,
+    });
+  }
+  assert.match(methodSummaryBuilder, /records\.length !== 37/);
+  assert.match(methodSummaryBuilder, /methods\.length > 50/);
+});
 test("Generation II artifacts and migrations stay exact, pending-first, and version-specific", () => {
   const expected={gold:{locations:125,encounters:2830},silver:{locations:125,encounters:2830},crystal:{locations:127,encounters:3193}};
   for(const [game,records] of Object.entries(gen2Artifacts)){
@@ -804,8 +822,11 @@ test("Generation IX artifacts and migrations stay exact, pending-first, DLC-awar
 });
 test("server route uses public RLS catalog access and privileged rate limiting", () => {
   assert.match(route, /createPublicServerClient/);
-  assert.match(route, /list_verified_nuzlocke_games/);
+  assert.match(route, /from\("pokemon_games"\)/);
   assert.match(route, /eq\("encounter_status", "verified"\)/);
+  assert.match(route, /order\("release_order", \{ ascending: true \}\)/);
+  assert.match(route, /limit\(100\)/);
+  assert.match(route, /summary\.source_commit !== sourceCommit/);
   assert.match(route, /consumeUserRateLimit\(adminClient/);
   assert.match(route, /get_verified_nuzlocke_encounters/);
   assert.doesNotMatch(route, /adminClient\.from\("pokemon_games"/);

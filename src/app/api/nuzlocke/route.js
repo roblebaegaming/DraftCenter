@@ -3,6 +3,7 @@ import { createPublicServerClient } from "../../../lib/supabase/publicServer";
 import { consumeUserRateLimit } from "../../../lib/apiRateLimit";
 import { readBoundedJson, requestIpAddress, safeFailure } from "../../../lib/apiSecurity";
 import { generateNuzlockeTeam } from "../../../lib/nuzlockeGenerator";
+import verifiedGameMethodCatalog from "../../../../data/nuzlocke/verified-game-methods.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json";
 import redEvolutionCatalog from "../../../../data/nuzlocke/pokemon-red-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json";
 import blueEvolutionCatalog from "../../../../data/nuzlocke/pokemon-blue-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json";
 import yellowEvolutionCatalog from "../../../../data/nuzlocke/pokemon-yellow-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json";
@@ -63,6 +64,7 @@ const EVOLUTION_CATALOGS = Object.freeze({
   scarlet: scarletEvolutionCatalog, violet: violetEvolutionCatalog,
 });
 const MAX_CATALOG_ENCOUNTERS = 16000;
+const VERIFIED_GAME_METHODS = Object.freeze(verifiedGameMethodCatalog.games);
 const KANTO_STARTERS = Object.freeze([
   { pokemon_id: 1, pokemon_name: "Bulbasaur", form_name: "", species_family: "evolution-chain-1", artwork_url: "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/1.png" },
   { pokemon_id: 4, pokemon_name: "Charmander", form_name: "", species_family: "evolution-chain-2", artwork_url: "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork/4.png" },
@@ -117,11 +119,20 @@ export async function GET() {
   try {
     const catalogClient = createPublicServerClient();
     if (!catalogClient) throw new Error("DraftCenter public catalog access is not configured.");
-    const { data, error } = await catalogClient.rpc("list_verified_nuzlocke_games");
+    const { data, error } = await catalogClient
+      .from("pokemon_games")
+      .select("game_key,display_name,generation,family,coverage_note,source_commit,condition_groups,release_order")
+      .eq("encounter_status", "verified")
+      .order("release_order", { ascending: true })
+      .limit(100);
     if (error) throw error;
     const methods = {};
-    const games = (data || []).map(({ methods: gameMethods, ...game }) => {
-      methods[game.game_key] = Array.isArray(gameMethods) ? gameMethods : [];
+    const games = (data || []).map(({ source_commit: sourceCommit, release_order: releaseOrder, ...game }) => {
+      const summary = VERIFIED_GAME_METHODS[game.game_key];
+      if (!summary || summary.source_commit !== sourceCommit || !Array.isArray(summary.methods) || summary.methods.length > 50) {
+        throw new Error("Verified game method metadata does not match the reviewed catalog.");
+      }
+      methods[game.game_key] = summary.methods;
       return game;
     });
     return Response.json({ games, methods }, { headers: { "Cache-Control": "public, max-age=300" } });
