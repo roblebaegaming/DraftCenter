@@ -179,6 +179,11 @@ because it anchors the dedicated isolated tournament Preview used for safe
 lifecycle testing. Do not merge it. Close it after a replacement Preview is
 confirmed or the current Preview is no longer required.
 
+Pull request 79 briefly carried the isolated tournament readiness guard as a
+separate current-main change. Its reviewed commit was folded into pull request
+78 and pull request 79 was closed, avoiding a second cleanup release and
+deployment.
+
 ## Dirty-workspace boundaries
 
 The primary workspace remains intentionally dirty on branch
@@ -206,6 +211,17 @@ paths. One already matches current `main`; the other two represent an older
 resource-card and SEO-test state that would remove newer images and regression
 coverage if merged wholesale. Preserve it until its owner explicitly archives
 or discards it, but do not treat it as undeployed product work.
+
+The cleanup deregistered 32 verified clean obsolete worktrees while preserving
+all local branches and commits. Windows removed 28 corresponding directories.
+Four deregistered directory shells remain temporarily locked by other
+processes: `DraftCenter-nuzlocke-game-guides`,
+`DraftCenter-resource-site-images`, `DraftCenter-roster-connections`, and
+`DraftCenter-seo-technical`. They have no `.git` worktree marker and are not
+active repository work; remove them only after the owning processes release
+them. The two dirty worktrees, pull requests 77 and 78, the pull-request-39
+Preview anchor, and three unrelated external audit/performance worktrees were
+not removed.
 
 ## Parallel-agent integration policy
 
@@ -253,5 +269,6 @@ be on production, the live save/download/load path passed, later agents'
 releases were identified and preserved, no redundant deployment occurred, the
 dirty workspaces were untouched, nine superseded pull requests were closed,
 the isolated tournament Preview anchor was preserved, the fixture-readiness
-guard was selectively ported onto the current mainline, and the only new
+guard was selectively ported onto the current mainline, 32 clean obsolete
+worktrees were deregistered without deleting their branches, and the only new
 active product work is clearly separated as pull request 77.
