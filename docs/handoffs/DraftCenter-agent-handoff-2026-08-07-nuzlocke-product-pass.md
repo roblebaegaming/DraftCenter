@@ -2,7 +2,7 @@
 
 ## Outcome
 
-### August 7 guide follow-up (uncommitted)
+### August 7 guide follow-up (released)
 
 Owner feedback identified that the four initial game guides used the technical
 term “encounter rows,” showed only representative areas, and left most
@@ -13,17 +13,21 @@ a game chooser and lists every catch area. Areas expand into encounter methods,
 and methods expand into every available Pokémon/form with its reviewed level
 range. The player-facing page no longer mentions encounter rows.
 
+The complete product and guide release was squash-merged through pull request
+63 as production commit `34c3286`. All protected checks passed, Vercel reported
+the exact deployment Ready, and the signed-out production smoke sweep passed.
+Live FireRed and Violet checks confirmed the game chooser, complete area
+counts, method disclosures, and removal of player-facing “encounter rows.”
+
 The guide contract is generated from the pinned catalogs by
 `npm run build:nuzlocke-guides`; its regression confirms all 37 games, all
 areas, all methods, and every displayed Pokémon against the source artifacts.
 `npm run test:nuzlocke` passes all 58 tests and `git diff --check` passes. The
-application compiled and completed its type check, but the final local static
-render stopped on the existing missing public Supabase URL/key requirement.
-Run the full build with the approved public build values before updating PR 63.
+credentialed Vercel build and all repository release checks passed. No database
+migration, provider configuration, production data, or real league changed.
 
-The Nuzlocke feedback pass is implemented, committed, pushed, and available in
-a green Vercel Preview for pull request 63. Production is intentionally
-untouched until the protected pull request is reviewed and merged.
+The Nuzlocke feedback pass and complete guide library are deployed to
+production through pull request 63.
 
 - Pull request: https://github.com/roblebaegaming/DraftCenter/pull/63
 - Tested application Preview: https://draftcenter-ixu8xmp54-rob-lebae.vercel.app/nuzlocke
