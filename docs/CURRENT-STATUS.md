@@ -3,19 +3,30 @@
 - Last updated: August 7, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified functional production release: `a9a3894`
+- Verified functional production release: `d5b1344`
 - Latest production migration: 349
 
 ## Status
 
-The August 7 Nuzlocke Draft mobile and guide release is live at production
-commit `a9a3894`, the squash merge of pull request 67. Vercel reports that
-exact `main` deployment Ready and current, all protected checks passed, and the
-signed-out production smoke sweep passed. The generator now exposes a clear
-one-Pokémon-per-route option without the compact 12-Pokémon limit. All 37
-game-specific guides use one disclosure per route or area, with flat
-method/Pokémon/level rows, and the new indexable `/nuzlocke/guides` directory
-groups every guide across Generations I–IX. No database migration was required.
+The August 7 tournament stabilization release is live at production commit
+`d5b1344`, the squash merge of pull request 68. Vercel reports that exact
+`main` deployment Ready and current, all protected checks passed, the signed-out
+production smoke sweep passed, and the live `/tournaments` page has the
+expected signed-out state with no browser warnings or errors. Tournament score,
+replay, and MVP correction fields now refresh from the authoritative completed
+match whenever that match changes. No database migration was required.
+
+The repository organization guide was merged immediately before the functional
+release through pull request 69 as `dcb0f5b`. Both pull requests were refreshed
+onto the concurrent Nuzlocke Draft release record before merge, preventing
+overlap with the other active work.
+
+The August 7 Nuzlocke Draft mobile and guide release remains live from
+production commit `a9a3894`, the squash merge of pull request 67. The generator
+exposes a clear one-Pokémon-per-route option without the compact 12-Pokémon
+limit. All 37 game-specific guides use one disclosure per route or area, with
+flat method/Pokémon/level rows, and the indexable `/nuzlocke/guides` directory
+groups every guide across Generations I–IX.
 
 The August 7 versioned Pokédex move-pool release is live at production commit
 `fe0ca21`, the squash merge of pull request 65. All protected and local release
@@ -34,10 +45,12 @@ expanded competitive resources and format data, 37 reviewed game-specific
 Nuzlocke guides, complete versioned move pools, and source-attributed
 competitive ladder and tournament evidence on Pokémon profiles.
 
-Vercel reports exact functional release `a9a3894` Ready. The signed-out
-production smoke sweep passes. Live mobile review confirmed the Nuzlocke Draft
-title and full-route option, the canonical 37-guide directory, nine generation
-groups, and the flat Red Route 6 encounter list without nested disclosures or
+Vercel reports exact functional release `d5b1344` Ready. The signed-out
+production smoke sweep passes. Live tournament review confirmed the public
+organizer page, signed-out empty state, sign-in boundary, and clean browser
+console. Earlier live mobile review confirmed the Nuzlocke Draft title and
+full-route option, the canonical 37-guide directory, nine generation groups,
+and the flat Red Route 6 encounter list without nested disclosures or
 page-level overflow. Pokémon profiles also expose bounded, source-attributed
 ladder and anonymous tournament aggregates without making the underlying
 tables public.
@@ -74,12 +87,16 @@ an authenticated account session and have not been represented as completed.
 - Supabase memory and Disk IO during normal live-draft days
 - Autonomous-claim reconciliation workload and duplicate live-draft polling
 - Historical versus new Operations events
+- Tournament correction-state refresh behavior and isolated lifecycle-fixture
+  readiness
 - The inactive generic Supabase fallback and its schema drift; do not change
   provider configuration or either project without exact-ID owner approval
 
 ## Authoritative records
 
 - Current detailed handoff:
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-07-tournament-stabilization.md`](handoffs/DraftCenter-agent-handoff-2026-08-07-tournament-stabilization.md)
+- Nuzlocke product release record:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-07-nuzlocke-product-pass.md`](handoffs/DraftCenter-agent-handoff-2026-08-07-nuzlocke-product-pass.md)
 - Versioned move-pool release record:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-07-versioned-move-pools.md`](handoffs/DraftCenter-agent-handoff-2026-08-07-versioned-move-pools.md)
