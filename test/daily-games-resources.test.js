@@ -17,11 +17,13 @@ test("daily games hub leads with DraftCenter and uses safe external links", () =
   assert.match(page, /href="\/explore"/);
   assert.match(page, /<PollOfTheDay supabase=\{supabase\}\/>/);
   assert.match(page, /<DailyCommunityGames signedIn=\{signedIn\} standalone\/>/);
-  for (const destination of ["pokedoku.io", "pokedle.io", "squirdle.fireblend.com", "pokedoodle.com", "pokequizz.com", "poketypequiz.com", "pokyfriends.com"]) {
+  for (const destination of ["pokedoku.io", "pokedle.io", "squirdle.fireblend.com", "pokedoodle.com", "pokequizz.com", "poketypequiz.com", "pokyfriends.com", "tcgdle.com"]) {
     assert.ok(page.includes(destination), `missing daily-game destination: ${destination}`);
   }
   assert.doesNotMatch(page, /<iframe/i);
   assert.equal((page.match(/target="_blank" rel="noreferrer"/g) || []).length, 1);
+  assert.equal((page.match(/loading="lazy"/g) || []).length, 1);
+  assert.ok(page.indexOf("daily-game-resource-sections") < page.indexOf("daily-games-seo-content"), "resource cards should appear before supporting SEO content");
 });
 
 test("daily games page has metadata and a sitemap entry", () => {

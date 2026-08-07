@@ -147,7 +147,7 @@ function PollResults({ poll }) {
   const rows = poll.answer_type === "pokemon"
     ? Object.entries(poll.counts || {}).sort(([, a], [, b]) => b - a).map(([key, count]) => ({ key, label: key, count }))
     : poll.options.map((option) => ({ key: option.key, label: option.label, count: poll.counts?.[option.key] || 0 }));
-  return <div className="poll-results">{rows.map(({ key, label, count }) => { const percentage = total ? Math.round((count / total) * 100) : 0; return <div className="poll-result" key={key}><div className="poll-result-label">{poll.answer_type === "pokemon" && <PollPokemonImage name={label} />}<strong>{label}</strong>{poll.selected_key === key && <span className="poll-picked">Your pick</span>}</div><div className="poll-bar"><span style={{ width: `${percentage}%` }} /></div><small>{percentage}% - {count}</small></div>; })}</div>;
+  return <div className="poll-results">{rows.map(({ key, label, count }) => { const percentage = total ? Math.round((count / total) * 100) : 0; return <div className="poll-result" key={key}><div className="poll-result-label">{poll.answer_type === "pokemon" && <PollPokemonImage name={label} />}<span className="poll-result-name"><strong>{label}</strong>{poll.selected_key === key && <span className="poll-picked">Your pick</span>}</span></div><div className="poll-bar"><span style={{ width: `${percentage}%` }} /></div><small>{percentage}% - {count}</small></div>; })}</div>;
 }
 
 function LegacyPollCommentThread({ comment, replies, onReply, onUpvote }) {
