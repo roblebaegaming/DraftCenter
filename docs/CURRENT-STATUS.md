@@ -37,6 +37,12 @@ application suite, all 1,027 National Dex rows, the 111-page production build,
 the full-history secret scan, database catalog/RLS/grant verification, and the
 post-deployment production smoke sweep.
 
+The first post-release SEO crawl reports Site Health 95 with zero errors. The
+next recommended work is measurement correction and technical crawl cleanup,
+followed by a small game-specific Nuzlocke content cohort. These opportunities
+are planned, not yet implemented; use the current detailed handoff for the
+ordered backlog, tests, and hardening gates.
+
 ## Active watch items
 
 - Supabase memory and Disk IO during normal live-draft days
@@ -49,6 +55,8 @@ post-deployment production smoke sweep.
 ## Authoritative records
 
 - Current detailed handoff:
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-06-seo-expansion.md`](handoffs/DraftCenter-agent-handoff-2026-08-06-seo-expansion.md)
+- August 6 production release record:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-06-release-integration.md`](handoffs/DraftCenter-agent-handoff-2026-08-06-release-integration.md)
 - Pallet Town release record:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-04-test-draft-feedback.md`](handoffs/DraftCenter-agent-handoff-2026-08-04-test-draft-feedback.md)
