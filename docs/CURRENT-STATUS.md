@@ -43,12 +43,15 @@ The final stable Preview is Ready. Its authenticated deployed checks return all
 37 games from Red through Violet with method filters and complete Scarlet and
 Violet teams with evolved starters in final-evolution mode. Exact live catalog
 counts remain below the 16,000-row safety bound; Violet is largest at 13,075.
+The deployed application snapshot is `2b862ac`. Its desktop and 390px Nuzlocke
+visual checks, SEO content/links, generated Pokemon profile links, and browser
+console review pass.
 
 ## Remaining release gates
 
 - Open the integration pull request and require its repository checks/review.
-- Complete the narrow mobile visual pass and, if Vercel protection remains,
-  one deployment-origin signed-in confirmation.
+- If Vercel protection remains, complete one deployment-origin signed-in
+  confirmation. The Nuzlocke desktop and 390px mobile visual pass is complete.
 - Rehearse the exact 261-342 production migration sequence against current
   production schema state.
 - Obtain explicit owner approval before any production migration, merge, or

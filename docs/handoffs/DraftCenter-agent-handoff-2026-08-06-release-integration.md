@@ -8,9 +8,16 @@ Trainer Dex. It includes the final Paldea starter-evolution and bounded-selector
 corrections, the completed Nuzlocke search-discovery pass, this handoff, and the
 current-status update on the same branch.
 
+The final deployed application snapshot is commit `2b862ac`. Any later branch
+commit containing only this handoff/current-status finalization does not change
+the deployed application files.
+
 The stable isolated Preview is:
 
 https://draftcenter-git-codex-nuzlocke-tournaments-dai-5c9468-rob-lebae.vercel.app
+
+That stable alias points to the Ready Preview deployment
+`draftcenter-m4exi7erb-rob-lebae.vercel.app` (`dpl_6mgCPcrnv2kGafg2tDjhXPVV9ZAi`).
 
 Production is still at application release `3d67d98` and migration 260. No
 production database, application deployment, provider setting, environment
@@ -167,6 +174,19 @@ Authenticated checks against the final stable Vercel Preview also verified:
 - neither request returns the former encounter-pool safety message or a generic
   generation failure
 
+The final Nuzlocke SEO deployment was also checked through the protected
+in-app Preview session at desktop width and a temporary 390-by-844 mobile
+viewport. The browser verification found:
+
+- the current "Build a Nuzlocke Team" and "Team code" language
+- the crawlable encounter/rule guide plus WebApplication and breadcrumb data
+- working reciprocal links from the Pokedex and Resources pages
+- the weekly priority-0.9 Nuzlocke sitemap entry
+- six live Violet result links to canonical Pokemon profiles
+- Sprigatito retained as the starter source and displayed as Meowscarada
+- responsive guide columns, stacked mobile copy, and clear research-link chips
+- no browser console warnings or errors
+
 A disposable signed-in Preview account and an exact isolated practice league
 were then used to verify:
 
@@ -183,11 +203,12 @@ The exact disposable practice league and account were deleted. A final audit
 reported zero matching leagues, zero matching accounts, and zero orphaned
 Trainer Dex events. No real league or account was changed.
 
-The stable Vercel Preview is protected, so anonymous browser-origin dynamic API
-and signed-in visual testing cannot be completed there without the protection
-session. Authenticated Vercel CLI requests are used for the deployed API checks;
-the local UI was connected to the same isolated Preview database for the
-signed-in flow.
+The stable Vercel Preview is protected. Authenticated Vercel CLI requests were
+used for deployed dynamic API checks, and the existing protected in-app browser
+session was used for the final signed-out responsive review. The earlier
+signed-in Daily/Trainer Dex/draft lifecycle flow used the local UI connected to
+the same isolated Preview database. One deployment-origin signed-in confirmation
+remains a production gate if protection is still enabled.
 
 ## Final repository validation
 
@@ -209,8 +230,8 @@ validation and cannot prove an undeployed local or Preview change.
 1. Keep the final branch-head Preview Ready. The August 6 authenticated deployed
    checks returned 37 games and method filters plus complete Scarlet and Violet
    teams with evolved starters in final-evolution mode.
-2. Open one integration pull request against `main`; require repository checks,
-   review, and the remaining narrow mobile visual pass.
+2. Open one integration pull request against `main`; require repository checks
+   and review. The Nuzlocke desktop and 390px mobile visual pass is complete.
 3. If Vercel protection remains, complete one deployment-origin signed-in check
    before production approval.
 4. Rehearse migrations 261-342 in order against the current production schema,
