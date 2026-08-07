@@ -123,3 +123,34 @@ Round robin, double elimination, and Swiss remain deferred until this release
 has production evidence. League-standings seeding and active-bracket entrant
 substitution, drop, disqualification, and explicit forfeit workflows are also
 outside this first release; do not simulate them with direct database edits.
+
+## Strengthening sequence
+
+Tournament development proceeds in small releases from the current production
+baseline:
+
+1. Finish single-elimination hardening: accessible in-page confirmations,
+   keyboard and screen-reader structure, selectable rounds, 64-entrant mobile
+   behavior, and the isolated-fixture readiness guard.
+2. Add commissioner recovery before another bracket type. Explicit forfeits,
+   disqualifications, drops, and safe entrant replacement require bounded
+   owner-only RPCs, optimistic revision checks, audit events, and a new
+   forward-only migration. Do not overload result correction or edit bracket
+   tables directly to simulate these actions.
+3. Add double elimination as the next standalone format, in its own release,
+   only after recovery behavior is proven. Do not combine it with round robin
+   or Swiss.
+4. Build the planned **Draft Tournament** as a tournament-facing workflow that
+   reuses the existing league draft engine. Its phases are registration,
+   drafting, roster lock, Swiss play, optional single-elimination top cut, and
+   completion. Swiss remains deferred until this phase rather than being added
+   prematurely as an unrelated standalone format.
+5. Freeze broad feature development after the agreed tournament work and shift
+   to monitoring, bug fixes, live-draft performance, organizer feedback, and
+   external Search Console and Semrush measurement.
+
+The Draft Tournament must not duplicate league drafting tables or ask users to
+pretend a short event is a full league. The primary entry point belongs under
+Tournaments, while an existing league may later expose **Create tournament
+from this league** to carry its members and rosters into the same competition
+workflow.
