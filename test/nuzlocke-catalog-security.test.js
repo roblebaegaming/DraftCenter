@@ -378,6 +378,7 @@ description = "Reviewed anonymous competitive tournament artifact"
 targetRules = ["generic-api-key"]
 paths = [
   '''^data/competitive/tournaments/limitless-vgc-2026-08-reg-mb\\.json$''',
+  '''^supabase/347-import-limitless-vgc-tournament-cohort\\.sql$''',
 ]
 
 [[rules]]
