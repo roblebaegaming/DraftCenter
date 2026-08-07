@@ -2,15 +2,14 @@
 
 ## Outcome
 
-Branch `codex/nuzlocke-tournaments-daily-integration` is the release-integration
-branch for Nuzlocke Lab, standalone tournaments, Daily Games resources, and
-Trainer Dex. It includes the final Paldea starter-evolution and bounded-selector
-corrections, the completed Nuzlocke search-discovery pass, this handoff, and the
-current-status update on the same branch.
+Nuzlocke Lab, standalone tournaments, Daily Games resources, Trainer Dex, and
+the completed Nuzlocke search-discovery pass are deployed to production. Pull
+request 47 merged the clean `codex/full-release` branch into protected `main` as
+commit `cd90679`.
 
-The final deployed application snapshot is commit `2b862ac`. Any later branch
-commit containing only this handoff/current-status finalization does not change
-the deployed application files.
+All required repository checks passed before merge. Vercel reports the exact
+`main` commit Ready at https://www.draftcentral.gg, and the signed-out
+post-deployment production smoke sweep passes.
 
 The stable isolated Preview is:
 
@@ -19,9 +18,9 @@ https://draftcenter-git-codex-nuzlocke-tournaments-dai-5c9468-rob-lebae.vercel.a
 That stable alias points to the Ready Preview deployment
 `draftcenter-m4exi7erb-rob-lebae.vercel.app` (`dpl_6mgCPcrnv2kGafg2tDjhXPVV9ZAi`).
 
-Production is still at application release `3d67d98` and migration 260. No
-production database, application deployment, provider setting, environment
-variable, league, draft, roster, or user data was changed by this integration.
+Production migrations 261-342 were applied in order. No Preview fixture repair,
+provider setting, environment variable, league, draft, roster, or user data was
+changed as part of the release.
 
 ## Integrated product scope
 
@@ -78,8 +77,8 @@ corresponding pick is undone.
 
 ## Final migration map
 
-Production currently ends at 260. The integration uses one forward-only number
-for each unpublished migration and has no duplicate numbers:
+Production now ends at 342. The release used one forward-only number for each
+migration and has no duplicate numbers:
 
 - 261-339: versioned Nuzlocke schema, imports, verifications, and game-specific
   capability/evolution data from Red through Violet
@@ -105,10 +104,31 @@ It leaves event identity and shiny state unchanged, backfills the display name
 and normalized key, refreshes badge progress, and retains the insert/delete
 trigger and private execution boundary.
 
+## Production database evidence
+
+The complete migration sequence was applied to the authoritative production
+database in order. Large catalog imports were executed as bounded transactional
+chunks because the dashboard editor limits statement size; the committed
+forward-only migration files were not rewritten.
+
+The final production audit reported:
+
+- 37 verified Nuzlocke catalogs and 0 pending catalogs
+- 13,130 Pokédex rows, 3,747 location rows, and 141,087 encounter rows
+- exact catalog counts matching every reviewed source artifact
+- RLS enabled on all four Nuzlocke catalog tables, with public read access and
+  no anonymous or authenticated direct writes
+- all six tournament tables protected by RLS and no initial tournament,
+  entrant, or match records
+- the private Trainer Dex table, four discovery triggers, repaired display
+  names, and no anonymous RPC execution
+
+No tournament or draft test record was created in production.
+
 ## Isolated Preview database evidence
 
-The integrated migration set was applied only to the isolated Preview database.
-The final catalog audit reported:
+Before production authorization, the integrated migration set was applied to
+the isolated Preview database. Its final catalog audit reported:
 
 - 37 verified catalogs and 0 pending catalogs
 - generation counts of 3, 3, 5, 5, 4, 4, 6, 5, and 2
@@ -207,8 +227,7 @@ The stable Vercel Preview is protected. Authenticated Vercel CLI requests were
 used for deployed dynamic API checks, and the existing protected in-app browser
 session was used for the final signed-out responsive review. The earlier
 signed-in Daily/Trainer Dex/draft lifecycle flow used the local UI connected to
-the same isolated Preview database. One deployment-origin signed-in confirmation
-remains a production gate if protection is still enabled.
+the same isolated Preview database.
 
 ## Final repository validation
 
@@ -220,27 +239,24 @@ The integration branch passes:
   Nuzlocke regressions
 - `npm run test:national-dex` — all 1,027 Pokémon rows
 - `npm run build` — 111 routes/pages generated successfully
+- the full-history secret scan — no leaks
 - `git diff --check`
 
-The production smoke test was intentionally not run: it is post-production
-validation and cannot prove an undeployed local or Preview change.
+After the merge, `npm run smoke:production` passed against the deployed
+production application. Public pages, robots, and sitemap returned successfully;
+protected API checks returned the expected signed-out response.
 
-## Remaining release sequence
+## Completed release sequence
 
-1. Keep the final branch-head Preview Ready. The August 6 authenticated deployed
-   checks returned 37 games and method filters plus complete Scarlet and Violet
-   teams with evolved starters in final-evolution mode.
-2. Open one integration pull request against `main`; require repository checks
-   and review. The Nuzlocke desktop and 390px mobile visual pass is complete.
-3. If Vercel protection remains, complete one deployment-origin signed-in check
-   before production approval.
-4. Rehearse migrations 261-342 in order against the current production schema,
-   including affected RLS policies and grants. Do not use the drifted Preview
-   ledger as production evidence and do not apply its fixture-only repairs.
-5. Obtain explicit owner approval for the exact production migration, merge,
-   and deployment. Until then, do not migrate, merge, or deploy production.
-6. After an authorized production release, confirm the deployed commit and run
-   the signed-out production smoke sweep.
+1. The final Preview was reviewed at desktop and 390px mobile widths, including
+   authenticated Nuzlocke and Trainer Dex lifecycle evidence.
+2. Pull request 47 passed all repository checks and was squash-merged to
+   protected `main`.
+3. Production migrations 261-342 were applied and their RLS policies, grants,
+   catalogs, tournament baseline, and Trainer Dex triggers were verified.
+4. Vercel deployed exact `main` commit `cd90679` and reported it Ready.
+5. The signed-out production smoke sweep and live Nuzlocke, Daily Games,
+   Trainer Dex, and tournament page checks passed.
 
 ## Safety reminders
 
