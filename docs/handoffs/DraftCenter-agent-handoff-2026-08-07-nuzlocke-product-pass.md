@@ -2,7 +2,7 @@
 
 ## Outcome
 
-### August 7 compact guide and directory follow-up (Preview)
+### August 7 compact guide and directory follow-up (released)
 
 Owner mobile feedback prompted a second presentation pass on pull request 67.
 Each game guide now has one disclosure per route or area. Opening it shows the
@@ -24,8 +24,16 @@ the production dependency audit, the 179-page production build, and focused
 Nuzlocke/SEO tests. A 390-by-844 browser review confirmed all 37 directory
 links, nine generation sections, no page-level horizontal overflow, and an
 expanded Pokémon Red Route 6 with eight flat method/Pokémon/level rows and no
-nested disclosures. Production remains unchanged pending owner review and an
-authorized merge of pull request 67.
+nested disclosures.
+
+Pull request 67 was squash-merged through protected `main` as production commit
+`a9a3894`. All seven pull-request checks passed, including CodeQL, security
+analysis, dependency audit, secret scanning, and Vercel. Vercel reported the
+exact merged commit Ready, Production, and Current. The signed-out production
+smoke suite passed, and live 390-by-844 checks confirmed the Nuzlocke Draft
+title, full-route choice, canonical 37-guide directory, nine generation
+groups, and flat Red Route 6 encounter rows. No migration, provider setting,
+production data, or real league changed.
 
 ### August 7 guide follow-up (released)
 
