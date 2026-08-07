@@ -43,7 +43,7 @@ export default function NuzlockePage() {
     <section className="explore-card nuzlocke-seo-guide" aria-labelledby="nuzlocke-guide-title">
       <span className="eyebrow">HOW IT WORKS</span>
       <h2 id="nuzlocke-guide-title">A repeatable Nuzlocke encounter generator</h2>
-      <p>Choose a verified Pokémon game, name your run, and keep its randomizer seed to reproduce the same encounters. Build a compact team or draft one Pokémon from every eligible route or area—even when that produces more than 12—then save its setup and generated team in your browser, download a readable Run Card, or share its exact rules by link.</p>
+      <p>Choose a verified Pokémon game, name your run, and keep its randomizer seed to reproduce the same encounters. Select a team size of up to 20 or draft one Pokémon from every eligible route or area, then save its setup and generated team in your browser, download a readable Run Card, or share its exact rules by link.</p>
       <div className="pokemon-detail-grid">
         <section>
           <h3>Use game-specific encounter data</h3>

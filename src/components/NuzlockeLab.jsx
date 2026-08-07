@@ -65,7 +65,7 @@ export default function NuzlockeLab() {
     setRunName((params.get("name") || "").slice(0, 80));
     setSeed(seedValue);
     setAllAreas(params.get("length") === "all-areas");
-    if (/^(?:[1-9]|1[0-2])$/.test(params.get("size") || "")) setTeamSize(Number(params.get("size")));
+    if (/^(?:[1-9]|1\d|20)$/.test(params.get("size") || "")) setTeamSize(Number(params.get("size")));
     if (["route-random", "true-random"].includes(params.get("mode"))) setMode(params.get("mode"));
     if (["equal", "authentic"].includes(params.get("weighting"))) setWeighting(params.get("weighting"));
     setFamilyClause(params.get("family") !== "off");
@@ -343,13 +343,12 @@ export default function NuzlockeLab() {
         <fieldset className={styles.draftSize}>
           <legend>Draft size</legend>
           <div>
-            <button type="button" className={!allAreas ? styles.selected : ""} aria-pressed={!allAreas} onClick={() => setAllAreas(false)}><strong>Team of 1–12</strong><small>Choose a specific team size</small></button>
-            <button type="button" className={allAreas ? styles.selected : ""} aria-pressed={allAreas} onClick={() => setAllAreas(true)}><strong>One Pokémon per route/area</strong><small>Build the full run, even when it has more than 12</small></button>
+            <button type="button" className={!allAreas ? styles.selected : ""} aria-pressed={!allAreas} onClick={() => setAllAreas(false)}><strong>Select Team Size</strong></button>
+            <button type="button" className={allAreas ? styles.selected : ""} aria-pressed={allAreas} onClick={() => setAllAreas(true)}><strong>One Pokémon per route/area</strong><small>Build the full run</small></button>
           </div>
-          <small>{allAreas ? "Generates one Pokémon for every eligible route or area under your rules, plus the starter when included." : "Build a compact team of 1–12 encounters."}</small>
         </fieldset>
         {!allAreas && <label>Team size <strong>{teamSize}</strong>
-          <input type="range" min="1" max="12" value={teamSize} onChange={(event) => setTeamSize(Number(event.target.value))} />
+          <input type="range" min="1" max="20" value={teamSize} onChange={(event) => setTeamSize(Number(event.target.value))} />
         </label>}
 
         <label>Selection style

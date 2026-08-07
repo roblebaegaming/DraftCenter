@@ -907,7 +907,10 @@ test("run configuration is shareable and the UI explains seeds, weighting, lengt
   assert.match(lab, /url\.searchParams\.set\("saved", saved\.id\)/);
   assert.match(lab, /new Blob\(\[text\]/);
   assert.match(lab, /One Pokémon per route\/area/);
-  assert.match(lab, /more than 12/);
+  assert.match(lab, /Select Team Size/);
+  assert.match(lab, /Build the full run/);
+  assert.match(lab, /max="20"/);
+  assert.doesNotMatch(lab, /more than 12/);
   assert.match(lab, /aria-pressed=\{allAreas\}/);
   assert.match(lab, /Equal chance per eligible encounter/);
   assert.match(lab, /Authentic in-game encounter odds/);

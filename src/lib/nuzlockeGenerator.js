@@ -140,7 +140,7 @@ export function generateNuzlockeTeam(encounters, options = {}) {
   const allAreas = options.allAreas === true;
   if (!MODES.has(mode)) throw new Error("Unknown Nuzlocke selection mode.");
   if (!WEIGHTING.has(weighting)) throw new Error("Unknown Nuzlocke weighting mode.");
-  if (!allAreas && (!Number.isInteger(teamSize) || teamSize < 1 || teamSize > 12)) throw new Error("Team size must be between 1 and 12.");
+  if (!allAreas && (!Number.isInteger(teamSize) || teamSize < 1 || teamSize > 20)) throw new Error("Team size must be between 1 and 20.");
   const theme = themeSettings(options);
   const conditionGroups = Array.isArray(options.conditionGroups) ? options.conditionGroups : [];
   const conditionSelections = options.conditionSelections && typeof options.conditionSelections === "object" ? options.conditionSelections : {};

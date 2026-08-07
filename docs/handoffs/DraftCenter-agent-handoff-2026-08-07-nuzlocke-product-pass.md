@@ -128,7 +128,7 @@ groups.
 
 Run length now offers either:
 
-- the existing compact 1–12 result; or
+- a compact team of 1–20 Pokémon; or
 - **One encounter per eligible area**.
 
 The all-area path is deterministic and requests every area that remains after
