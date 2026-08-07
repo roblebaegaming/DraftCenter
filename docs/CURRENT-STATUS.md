@@ -3,10 +3,19 @@
 - Last updated: August 7, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified functional production release: `66014646`
+- Verified functional production release: `1750f9a`
 - Latest production migration: 349
 
 ## Status
+
+The August 7 Roster Connections release is live at production commit
+`1750f9a`, the squash merge of pull request 56. The public Daily Games page now
+includes a deterministic four-by-four Pokémon grouping puzzle with four
+mistakes, one-away hints, solved-group reveals, browser-local progress, and
+shareable results. Vercel reports the exact merged commit Ready in Production,
+the signed-out production smoke sweep passed, and a live 390-by-844 check
+solved and restored a group without page overflow or browser warnings. No
+migration was required.
 
 The August 7 global mobile-navigation release is live at production commit
 `66014646`, the squash merge of pull request 74. The shared header now keeps
@@ -61,16 +70,17 @@ Scarlet/Violet + DLC.
 
 DraftCenter production is approved for monitored public use and real drafts.
 The deployed release sequence now includes Nuzlocke Draft, standalone
-tournaments, Trainer Dex, playable Daily Games, the technical SEO foundation,
-expanded competitive resources and format data, 37 reviewed game-specific
-Nuzlocke guides, complete versioned move pools, and source-attributed
-competitive ladder and tournament evidence on Pokémon profiles.
+tournaments, Trainer Dex, the Daily Three and public Roster Connections,
+the technical SEO foundation, expanded competitive resources and format data,
+37 reviewed game-specific Nuzlocke guides, complete versioned move pools, and
+source-attributed competitive ladder and tournament evidence on Pokémon
+profiles.
 
-Vercel reports exact functional release `6601464` Ready. The signed-out
-production smoke sweep passes. Live mobile review confirmed the reorganized
-header, five-slot tool bar, grouped footer, and no horizontal overflow across
-the home page, Pokédex profile, Nuzlocke, tournaments, Daily Games, format,
-guide, and legal templates. Earlier tournament review confirmed the public
+Vercel reports exact functional release `1750f9a` Ready. The signed-out
+production smoke sweep passes. Live mobile review confirmed Roster Connections
+is public, usable without an account, persists progress in the current browser,
+and has no horizontal overflow. The reorganized header, five-slot tool bar, and
+grouped footer remain live. Earlier tournament review confirmed the public
 organizer page, signed-out empty state, sign-in boundary, and clean browser
 console. Pokémon profiles also expose bounded, source-attributed ladder and
 anonymous tournament aggregates without making the underlying tables public.
@@ -102,6 +112,8 @@ an authenticated account session and have not been represented as completed.
 - Nuzlocke guide-library impressions, clicks, CTR, and engagement at 14 and
   28 days
 - Daily Games ranking RPC errors and anonymous privacy behavior
+- Roster Connections daily rotation, artwork availability, and browser-local
+  persistence
 - Competitive dataset refresh cadence, source availability, and bounded RPC
   performance
 - Supabase memory and Disk IO during normal live-draft days
@@ -115,6 +127,8 @@ an authenticated account session and have not been represented as completed.
 ## Authoritative records
 
 - Current detailed handoff:
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-07-roster-connections.md`](handoffs/DraftCenter-agent-handoff-2026-08-07-roster-connections.md)
+- Mobile-navigation release record:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-07-mobile-navigation.md`](handoffs/DraftCenter-agent-handoff-2026-08-07-mobile-navigation.md)
 - Tournament stabilization release record:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-07-tournament-stabilization.md`](handoffs/DraftCenter-agent-handoff-2026-08-07-tournament-stabilization.md)
