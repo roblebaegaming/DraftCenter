@@ -2,6 +2,25 @@
 
 ## Outcome
 
+### August 7 guide follow-up (uncommitted)
+
+Owner feedback identified that the four initial game guides used the technical
+term “encounter rows,” showed only representative areas, and left most
+supported games without a guide. The isolated worktree now contains a
+follow-up that replaces that presentation with 37 route-by-route guides—one
+for every reviewed main-series catalog from Red through Violet. Each guide has
+a game chooser and lists every catch area. Areas expand into encounter methods,
+and methods expand into every available Pokémon/form with its reviewed level
+range. The player-facing page no longer mentions encounter rows.
+
+The guide contract is generated from the pinned catalogs by
+`npm run build:nuzlocke-guides`; its regression confirms all 37 games, all
+areas, all methods, and every displayed Pokémon against the source artifacts.
+`npm run test:nuzlocke` passes all 58 tests and `git diff --check` passes. The
+application compiled and completed its type check, but the final local static
+render stopped on the existing missing public Supabase URL/key requirement.
+Run the full build with the approved public build values before updating PR 63.
+
 The Nuzlocke feedback pass is implemented, committed, pushed, and available in
 a green Vercel Preview for pull request 63. Production is intentionally
 untouched until the protected pull request is reviewed and merged.

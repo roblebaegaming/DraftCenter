@@ -67,7 +67,7 @@ test("the Nuzlocke generator is crawlable, internally linked, and uses current p
   assert.doesNotMatch(page, /Build a seeded Run Card/);
 });
 
-test("the bounded Nuzlocke game-guide cohort is indexable and internally connected", () => {
+test("the complete Nuzlocke game-guide library is indexable and internally connected", () => {
   const page = source("src/app/nuzlocke/[game]/page.js");
   const landing = source("src/app/nuzlocke/page.js");
   const sitemap = source("src/app/sitemap.js");
@@ -76,7 +76,8 @@ test("the bounded Nuzlocke game-guide cohort is indexable and internally connect
   assert.match(page, /"@type": "Article"/);
   assert.match(page, /"@type": "BreadcrumbList"/);
   assert.match(page, /alternates: \{ canonical: `\/nuzlocke\/\$\{guide\.slug\}` \}/);
-  assert.match(page, /What the reviewed catalog covers/);
+  assert.match(page, /What you can plan with this guide/);
+  assert.match(page, /All \{guide\.displayName\} encounter areas/);
   assert.match(page, /guide\.generatorHref/);
   assert.match(landing, /nuzlockeGameGuides\.games\.map/);
   assert.match(sitemap, /nuzlockeGameGuides\.games\.map/);

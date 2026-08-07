@@ -63,7 +63,7 @@ export default function NuzlockePage() {
       <section className="nuzlocke-guide-index" aria-labelledby="nuzlocke-game-guides-title">
         <span className="eyebrow">GAME-SPECIFIC GUIDES</span>
         <h2 id="nuzlocke-game-guides-title">Start with a reviewed encounter catalog</h2>
-        <p>The first four guides publish exact catalog totals, starters, encounter controls, representative areas, and a preconfigured link back into the generator.</p>
+        <p>Choose any supported main-series game for a complete route-by-route guide. Open an area to see every available Pokémon, then open an encounter method to see exactly how each one is found.</p>
         <div>{nuzlockeGameGuides.games.map((game) => <a key={game.slug} href={`/nuzlocke/${game.slug}`}><strong>{game.displayName} Nuzlocke guide</strong><span>{game.counts.locations} areas · {game.counts.methods} methods</span></a>)}</div>
       </section>
     </section>
