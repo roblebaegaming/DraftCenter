@@ -906,7 +906,9 @@ test("run configuration is shareable and the UI explains seeds, weighting, lengt
   assert.match(lab, /normalizeSavedNuzlockeResult/);
   assert.match(lab, /url\.searchParams\.set\("saved", saved\.id\)/);
   assert.match(lab, /new Blob\(\[text\]/);
-  assert.match(lab, /One encounter per eligible area/);
+  assert.match(lab, /One Pokémon per route\/area/);
+  assert.match(lab, /more than 12/);
+  assert.match(lab, /aria-pressed=\{allAreas\}/);
   assert.match(lab, /Equal chance per eligible encounter/);
   assert.match(lab, /Authentic in-game encounter odds/);
   assert.match(lab, /Pokémon color/);
@@ -914,7 +916,7 @@ test("run configuration is shareable and the UI explains seeds, weighting, lengt
   assert.match(lab, /params\.get\("length"\) === "all-areas"/);
   assert.match(lab, /url\.searchParams\.set\("length", "all-areas"\)/);
   assert.doesNotMatch(lab, /Room code/);
-  assert.match(lab, /Build a Nuzlocke Team/);
+  assert.match(lab, /Build a Nuzlocke Draft/);
   assert.doesNotMatch(lab, /Build a seeded Run Card/);
   assert.doesNotMatch(lab, /Generate Run Card/);
   assert.match(lab, /Route-first random/);
