@@ -13,7 +13,7 @@ const routes = [
   ["/nuzlocke", "weekly", 0.9],
   ["/tournaments", "daily", 0.8],
   ["/resources", "monthly", 0.7],
-  ["/resources/daily-games", "weekly", 0.7],
+  ["/resources/daily-games", "daily", 1],
   ["/about", "monthly", 0.7],
   ["/manuals", "monthly", 0.8],
   ["/manuals/commissioner", "monthly", 0.8],

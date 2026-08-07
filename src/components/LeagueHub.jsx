@@ -159,7 +159,7 @@ function PollCommentThread({ comment, replies, onReply, onUpvote, onProfile }) {
   return <article className="poll-comment-thread"><div className="poll-comment">{author(comment)}<span>{new Date(comment.created_at).toLocaleString()}</span><p>{comment.body}</p><div className="poll-comment-actions"><button className="text-button" onClick={() => onReply(comment)}>Reply</button><button className={`text-button ${comment.upvoted_by_me ? "comment-upvoted" : ""}`} onClick={() => onUpvote(comment.id)}>▲ {comment.upvotes || 0}</button></div></div>{replies.map((reply) => <div className="poll-comment poll-comment-reply" key={reply.id}>{author(reply)}<span>{new Date(reply.created_at).toLocaleString()}</span><p>{reply.body}</p><div className="poll-comment-actions"><button className={`text-button ${reply.upvoted_by_me ? "comment-upvoted" : ""}`} onClick={() => onUpvote(reply.id)}>▲ {reply.upvotes || 0}</button></div></div>)}</article>;
 }
 
-function PollOfTheDay({ supabase }) {
+export function PollOfTheDay({ supabase }) {
   const [profileIdentity,setProfileIdentity]=useState("");
   const [poll, setPoll] = useState(null); const [history, setHistory] = useState([]); const [pokemon, setPokemon] = useState(""); const [pickerOpen, setPickerOpen] = useState(false); const [message, setMessage] = useState(""); const [busy, setBusy] = useState(false); const [comments, setComments] = useState([]); const [commentCount, setCommentCount] = useState(0); const [commentText, setCommentText] = useState(""); const [commentsOpen, setCommentsOpen] = useState(false); const [replyTo, setReplyTo] = useState(null);
   useEffect(() => {
