@@ -109,10 +109,13 @@ test("tournament aggregates are RLS-backed, bounded, and separate from ladder us
 
 test("competitive data documentation matches the forward-only migration sequence", () => {
   const documentation = read("docs/competitive-pokemon-data.md");
+  const schemaCache = read("supabase/348-reload-competitive-profile-schema-cache.sql");
   assert.match(documentation, /Migration 344 creates the private-by-default competitive catalog/);
   assert.match(documentation, /Migration 345 imports pinned June 2026 Pokémon/);
   assert.match(documentation, /Migration 346 adds private event/);
   assert.match(documentation, /Migration 347 imports 10 completed/);
-  assert.match(documentation, /Never rewrite migrations\s+344 through 347/);
+  assert.match(documentation, /Migration 348 explicitly refreshes the PostgREST schema cache/);
+  assert.match(documentation, /Never rewrite migrations\s+344 through 348/);
+  assert.match(schemaCache, /notify pgrst, 'reload schema';/);
   assert.doesNotMatch(documentation, /Migration 343 creates the private-by-default competitive catalog/);
 });

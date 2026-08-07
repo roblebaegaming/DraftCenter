@@ -30,6 +30,8 @@ conversion, and event win rates are never inferred from ladder usage.
 Migration 346 adds private event, anonymous team, and team-member tables plus a
 bounded Pokédex aggregate. Migration 347 imports 10 completed Regulation M-B
 online community events from the documented Limitless Tournament Platform API.
+Migration 348 explicitly refreshes the PostgREST schema cache so both bounded
+profile functions are available to the deployed application immediately.
 The cohort contains 737 teams and 4,422 roster slots with 100% team-sheet
 coverage. Every event has complete, unique placements and a verifiable
 single-elimination top cut.
@@ -52,11 +54,11 @@ Run the importer with an explicit month, source format, DraftCenter format ID,
 label, battle style, rating cutoff, and output path. Review the resulting JSON,
 particularly form normalization and the recorded sample. Then generate a new
 forward-only migration from the reviewed artifacts. Never rewrite migrations
-344 through 347 after they may have run.
+344 through 348 after they may have run.
 
 ```powershell
 npm run competitive:import:smogon -- --month 2026-07 --source-format gen9ou --format-id sv-ou --format-name "Scarlet/Violet OU" --battle-style singles --cutoff 1825 --output data/competitive/smogon-2026-07-gen9ou-1825.json
-npm run competitive:build:migration -- data/competitive/smogon-2026-07-gen9ou-1825.json --output supabase/348-import-smogon-competitive-snapshots-2026-07.sql
+npm run competitive:build:migration -- data/competitive/smogon-2026-07-gen9ou-1825.json --output supabase/349-import-smogon-competitive-snapshots-2026-07.sql
 ```
 
 Before release, run `npm run test:competitive-data`, the applicable full
