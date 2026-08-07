@@ -1,5 +1,4 @@
 import NuzlockeLab from "../../components/NuzlockeLab";
-import nuzlockeGameGuides from "../../lib/nuzlockeGameGuides.json";
 
 export const metadata = {
   title: "Pokémon Nuzlocke Team Generator by Game",
@@ -62,9 +61,9 @@ export default function NuzlockePage() {
       </aside>
       <section className="nuzlocke-guide-index" aria-labelledby="nuzlocke-game-guides-title">
         <span className="eyebrow">GAME-SPECIFIC GUIDES</span>
-        <h2 id="nuzlocke-game-guides-title">Start with a reviewed encounter catalog</h2>
-        <p>Choose any supported main-series game for a complete route-by-route guide. Open an area to see every available Pokémon, then open an encounter method to see exactly how each one is found.</p>
-        <div>{nuzlockeGameGuides.games.map((game) => <a key={game.slug} href={`/nuzlocke/${game.slug}`}><strong>{game.displayName} Nuzlocke guide</strong><span>{game.counts.locations} areas · {game.counts.methods} methods</span></a>)}</div>
+        <h2 id="nuzlocke-game-guides-title">Research every route before you draft</h2>
+        <p>Browse the complete Nuzlocke guide library by generation and game. Each guide lists every reviewed route or area, then shows each Pokémon with its encounter method and level range in one compact list.</p>
+        <a className="primary-button inline-link-button" href="/nuzlocke/guides">Browse all Nuzlocke guides</a>
       </section>
     </section>
   </>;

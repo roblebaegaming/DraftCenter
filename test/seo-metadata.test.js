@@ -71,6 +71,7 @@ test("the Nuzlocke generator is crawlable, internally linked, and uses current p
 test("the complete Nuzlocke game-guide library is indexable and internally connected", () => {
   const page = source("src/app/nuzlocke/[game]/page.js");
   const landing = source("src/app/nuzlocke/page.js");
+  const directory = source("src/app/nuzlocke/guides/page.js");
   const sitemap = source("src/app/sitemap.js");
   const llms = source("src/app/llms.txt/route.js");
   assert.match(page, /generateStaticParams/);
@@ -79,9 +80,20 @@ test("the complete Nuzlocke game-guide library is indexable and internally conne
   assert.match(page, /alternates: \{ canonical: `\/nuzlocke\/\$\{guide\.slug\}` \}/);
   assert.match(page, /What you can plan with this guide/);
   assert.match(page, /All \{guide\.displayName\} encounter areas/);
+  assert.match(page, /encountersForArea\(area\)/);
+  assert.match(page, /nuzlocke-guide-method-label/);
+  assert.doesNotMatch(page, /nuzlocke-guide-method-list/);
   assert.match(page, /guide\.generatorHref/);
-  assert.match(landing, /nuzlockeGameGuides\.games\.map/);
+  assert.match(landing, /href="\/nuzlocke\/guides"/);
+  assert.match(directory, /title: "Pokémon Nuzlocke Guides by Game"/);
+  assert.match(directory, /canonical: "\/nuzlocke\/guides"/);
+  assert.match(directory, /<h1>Pokémon Nuzlocke Guides<\/h1>/);
+  assert.match(directory, /"@type": "CollectionPage"/);
+  assert.match(directory, /"@type": "ItemList"/);
+  assert.match(directory, /guideCatalog\.games\.map/);
+  assert.match(sitemap, /\["\/nuzlocke\/guides", "monthly", 0\.9\]/);
   assert.match(sitemap, /nuzlockeGameGuides\.games\.map/);
+  assert.match(llms, /\/nuzlocke\/guides/);
   for (const slug of ["fire-red", "emerald", "platinum", "scarlet"]) assert.match(llms, new RegExp(`/nuzlocke/${slug}`));
 });
 

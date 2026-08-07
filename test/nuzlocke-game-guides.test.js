@@ -50,6 +50,7 @@ test("all reviewed Nuzlocke games have complete catalog-derived guides", () => {
 test("game guides are static, canonical, structured, and internally linked", () => {
   const page = source("src/app/nuzlocke/[game]/page.js");
   const landing = source("src/app/nuzlocke/page.js");
+  const directory = source("src/app/nuzlocke/guides/page.js");
   const sitemap = source("src/app/sitemap.js");
   assert.match(page, /generateStaticParams/);
   assert.match(page, /alternates: \{ canonical: `\/nuzlocke\/\$\{guide\.slug\}` \}/);
@@ -60,6 +61,8 @@ test("game guides are static, canonical, structured, and internally linked", () 
   assert.match(page, /guide\.areas\.map/);
   assert.match(page, /method\.pokemon\.map/);
   assert.match(page, /href={`\/pokemon\/\$\{starter\.profileSlug\}`}/);
-  assert.match(landing, /nuzlockeGameGuides\.games\.map/);
+  assert.match(landing, /href="\/nuzlocke\/guides"/);
+  assert.match(directory, /guideCatalog\.games\.map/);
+  assert.match(directory, /"@type": "CollectionPage"/);
   assert.match(sitemap, /nuzlockeGameGuides\.games\.map/);
 });
