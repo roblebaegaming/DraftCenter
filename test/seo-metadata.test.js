@@ -23,6 +23,16 @@ test("page titles rely on the root template for the DraftCenter brand suffix", (
   }
 });
 
+test("resources targets competitive Pokémon resource searches", () => {
+  const page = source("src/app/resources/page.js");
+  const resources = source("src/components/ResourcesPage.jsx");
+
+  assert.match(page, /title: "Competitive Pokémon Resources"/);
+  assert.match(page, /competitive Pokémon resources/);
+  assert.match(page, /canonical: "\/resources"/);
+  assert.match(resources, /<h1>Competitive Pokémon Resources<\/h1>/);
+});
+
 test("sitemap contains only indexable routes and truthful modification dates", () => {
   const sitemap = source("src/app/sitemap.js");
   assert.doesNotMatch(sitemap, /\["\/support"/);
