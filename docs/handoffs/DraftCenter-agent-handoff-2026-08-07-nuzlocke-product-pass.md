@@ -2,6 +2,23 @@
 
 ## Outcome
 
+### August 7 team-size copy and limit follow-up (released)
+
+Owner mobile feedback prompted a final compact-team control pass. The first
+draft-size choice is now labeled **Select Team Size** and shows its slider only
+when selected. Compact teams support 1 through 20 Pokémon across generation,
+shared links, saved teams, and downloaded Run Cards. The full-route choice now
+uses the shorter **Build the full run** description, and the indexable page
+copy reflects the expanded limit.
+
+Pull request 72 was squash-merged through protected `main` as production commit
+`2d583251`. All protected checks passed, with Supabase Preview correctly
+skipped because there was no migration. Vercel reported the exact commit Ready
+and current. The signed-out production smoke sweep passed, and a live
+390-by-844 review confirmed the compact/full-route toggle, a 20-Pokémon slider
+value, no page-level horizontal overflow, and a complete 20-card Pokémon Red
+run. No database, provider setting, production data, or real league changed.
+
 ### August 7 compact guide and directory follow-up (released)
 
 Owner mobile feedback prompted a second presentation pass on pull request 67.
