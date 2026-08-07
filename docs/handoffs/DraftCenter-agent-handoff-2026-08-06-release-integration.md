@@ -4,8 +4,9 @@
 
 Branch `codex/nuzlocke-tournaments-daily-integration` is the release-integration
 branch for Nuzlocke Lab, standalone tournaments, Daily Games resources, and
-Trainer Dex. Application code through `1fc6399`, the final starter-evolution
-correction, this handoff, and the current-status update are on the same branch.
+Trainer Dex. Application code through `cd80fd9`, the final Paldea
+starter-evolution and bounded-selector corrections, this handoff, and the
+current-status update are on the same branch.
 
 The stable isolated Preview is:
 
@@ -37,6 +38,11 @@ code, and makes starter inclusion explicit and shareable. When final-evolution
 mode and starter inclusion are both enabled, the displayed starter now evolves
 through the same pinned game catalogue while retaining its starter route and
 source details. Final-form exclusions apply to starters as well as catches.
+The Scarlet/Violet evolution artifacts explicitly include Sprigatito, Fuecoco,
+and Quaxly even though those starters are not wild encounters. The game selector
+uses a generated 37-game method summary pinned to the same reviewed source
+commit and fails closed on a database/source mismatch, so loading the selector
+does not aggregate over every encounter row.
 
 Standalone tournaments remain independent of league tables and expose bounded
 RPC-driven registration, invitations, seeding, bracket locking, score reports,
@@ -59,6 +65,11 @@ for each unpublished migration and has no duplicate numbers:
 - 342: prefer catalogue display names for draft discoveries and repair numeric
   draft discoveries imported by 341
 
+The Daily Games branch's unpublished migration 261 was renumbered to 341 during
+integration. Nuzlocke retains 261-339, so there is exactly one file for every
+migration number in the production candidate. The selector performance fix is
+application-only and does not add or renumber a database migration.
+
 Two Nuzlocke schema gates are deliberately forward-only:
 
 - 296 permits official zero-based regional Pokédex entries such as Victini #000.
@@ -78,6 +89,8 @@ The final catalog audit reported:
 
 - 37 verified catalogs and 0 pending catalogs
 - generation counts of 3, 3, 5, 5, 4, 4, 6, 5, and 2
+- exact live counts matching every reviewed artifact; Violet is largest at
+  13,075 encounters and Scarlet has 13,005, both below the 16,000-row bound
 - RLS enabled on all four Nuzlocke catalog tables
 - no anonymous or authenticated direct table writes
 
@@ -123,7 +136,20 @@ Local application checks used the isolated Preview database and verified:
   and final-evolution mode, evolves that starter, and restores those choices
   from its shared URL
 - Pokémon Violet generates a complete team and share URL
+- the bounded selector returns all 37 games and method filters without scanning
+  the full encounter table on each page load
 - signed-out tournament and Trainer Dex gates and the Daily Games hub render
+
+Authenticated checks against the final stable Vercel Preview also verified:
+
+- the deployed selector returns exactly 37 games, ordered Red through Violet,
+  and non-empty method filters for every game
+- Scarlet and Violet each generate a complete six-Pokémon team using the two
+  largest encounter pools with starter inclusion and final-evolution mode
+- the selected Paldea starter retains its original starter identity and is
+  displayed as its seeded final evolution
+- neither request returns the former encounter-pool safety message or a generic
+  generation failure
 
 A disposable signed-in Preview account and an exact isolated practice league
 were then used to verify:
@@ -153,7 +179,7 @@ The integration branch passes:
 
 - `pnpm audit --prod --audit-level high` — no known vulnerabilities
 - `npm run test:all` — all application, Nuzlocke, tournament, Trainer Dex, and
-  release-integration suites, including 51 Nuzlocke regressions
+  release-integration suites, including 52 Nuzlocke regressions
 - `npm run test:national-dex` — all 1,027 Pokémon rows
 - `npm run build` — 111 routes/pages generated successfully
 - `git diff --check`
@@ -164,8 +190,8 @@ validation and cannot prove an undeployed local or Preview change.
 ## Remaining release sequence
 
 1. Keep the final branch-head Preview Ready. The August 6 authenticated deployed
-   checks returned 37 games from Red through Violet and a complete Pokémon X
-   team with an evolved starter in final-evolution mode.
+   checks returned 37 games and method filters plus complete Scarlet and Violet
+   teams with evolved starters in final-evolution mode.
 2. Open one integration pull request against `main`; require repository checks,
    review, and the remaining narrow mobile visual pass.
 3. If Vercel protection remains, complete one deployment-origin signed-in check

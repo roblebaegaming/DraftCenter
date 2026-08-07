@@ -15,10 +15,11 @@ Preview-only and has not changed production.
 Branch `codex/nuzlocke-tournaments-daily-integration` combines all 37 audited
 main-series Nuzlocke game catalogs from Red through Violet, standalone
 single-elimination tournaments, Daily Games resources, and the signed-in
-Trainer Dex. The final branch head also evolves an included starter when
-“final evolutions only” is active. Its forward-only production migration map is
-collision-free: Nuzlocke 261-339, tournaments 340, Trainer Dex 341, and the
-Trainer Dex draft-name correction 342.
+Trainer Dex. The final branch head evolves an included starter when “final
+evolutions only” is active, including the non-wild Scarlet/Violet starters, and
+loads the 37-game selector from bounded pinned method metadata. Its forward-only
+production migration map is collision-free: Nuzlocke 261-339, tournaments 340,
+Trainer Dex 341, and the Trainer Dex draft-name correction 342.
 
 The isolated Preview database reports 37 verified catalogs and no pending
 catalogs. Catalog/RLS audits, signed-out UI checks, signed-in Daily discovery
@@ -32,8 +33,9 @@ rows, and the 111-page production build pass. Preview is available at
 https://draftcenter-git-codex-nuzlocke-tournaments-dai-5c9468-rob-lebae.vercel.app.
 
 The final stable Preview is Ready. Its authenticated deployed checks return all
-37 games from Red through Violet and a complete Pokémon X team with an evolved
-starter in final-evolution mode.
+37 games from Red through Violet with method filters and complete Scarlet and
+Violet teams with evolved starters in final-evolution mode. Exact live catalog
+counts remain below the 16,000-row safety bound; Violet is largest at 13,075.
 
 ## Remaining release gates
 
