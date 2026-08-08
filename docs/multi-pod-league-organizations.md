@@ -122,13 +122,15 @@ percentage rule without changing the source leagues.
 
 ## Production boundary
 
-Migrations 350-352 were verified on the retained Supabase Preview branch and
-then released through protected pull request 82. Migration 353 and the
-commissioner workspace remain unreleased in pull request 85, which is ready
-for review. Migration 353 and the expanded database regression pass on the retained Preview branch:
-all nine organization tables use RLS, browser roles have no direct table
-access, owner and invited-administrator actions remain bounded, two reviewed
-practice pods can launch, and every synthetic fixture is removed. Application
-Preview review and protected checks must still be reviewed before explicit
-production approval. No real league should be attached for testing; use only
-isolated practice fixtures.
+Migrations 350-353 and the commissioner workspace are deployed through
+protected pull requests 82 and 85. All nine organization tables use RLS,
+browser roles have no direct table access, owner and invited-administrator
+actions remain bounded, and the isolated regression proved that two reviewed
+practice pods can launch with every synthetic fixture removed. The retained
+`multi-pod-pr-82` Preview branch remains available and must not be deleted as
+routine cleanup.
+
+The qualification and championship mutations remain deliberately absent.
+They require locked standings, deterministic tiebreakers, roster snapshots,
+manager-replacement synchronization, and atomic Tournament promotion. No real
+league should be attached merely to test those future phases.

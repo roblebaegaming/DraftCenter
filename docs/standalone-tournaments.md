@@ -17,6 +17,13 @@ The tournament schema remains independent of the Nuzlocke catalog and league
 tables. Any future database change requires a new forward-only migration;
 never rewrite migration 340.
 
+Commissioner recovery is also live through migration 354. The next standalone
+format, double elimination, is implemented on its own protected release branch
+with forward-only migration 355. Its isolated transaction matrix passes,
+including bounded byes and both Grand Final paths. It is not production
+behavior until pull-request checks, review, merge, migration, exact deployment,
+and the post-deployment smoke sweep complete.
+
 ## First-release lifecycle
 
 1. A signed-in commissioner creates a public or private best-of-one or
@@ -119,10 +126,11 @@ production smoke sweep is only valid after an authorized deployment.
 
 ## Deliberately deferred formats
 
-Round robin, double elimination, and Swiss remain deferred until this release
-has production evidence. League-standings seeding and active-bracket entrant
-substitution, drop, disqualification, and explicit forfeit workflows are also
-outside this first release; do not simulate them with direct database edits.
+Round robin and general-purpose standalone Swiss remain deferred. Swiss is
+reserved for the planned Draft Tournament workflow. Double elimination is the
+current independently reviewed format release. Commissioner forfeits, drops,
+disqualifications, and safe pre-play entrant replacement are already live;
+never simulate them with direct bracket-table edits.
 
 ## Strengthening sequence
 

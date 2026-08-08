@@ -5,6 +5,14 @@ import { createClient } from "../lib/supabase/client";
 import { tournamentError } from "../lib/tournamentErrors";
 
 const statusLabel = (status) => status.replaceAll("-", " ");
+const formatLabel = (format) => format === "double-elimination" ? "Double elimination" : "Single elimination";
+
+function tournamentRoundLabel(stage, round, matchCount, finalRound) {
+  if (stage === "grand-final") return round === 1 ? "Grand Final" : "Bracket Reset";
+  if (stage === "winners") return round === finalRound ? "Winners Final" : `Winners Round ${round}`;
+  if (stage === "losers") return round === finalRound ? "Losers Final" : `Losers Round ${round}`;
+  return matchCount === 1 ? "Final" : `Round ${round}`;
+}
 
 function ConfirmationDialog({ request, onDismiss }) {
   const dialogRef = useRef(null);
@@ -379,13 +387,20 @@ export default function TournamentWorkspace({ slug }) {
   const rounds = useMemo(() => {
     const grouped = new Map();
     for (const match of workspace?.matches || []) {
-      if (!grouped.has(match.round_number)) grouped.set(match.round_number, []);
-      grouped.get(match.round_number).push(match);
+      const stage = match.bracket_stage || "single";
+      const bracketRound = match.bracket_round || match.round_number;
+      const key = `${stage}:${bracketRound}`;
+      if (!grouped.has(key)) grouped.set(key, { key, stage, round: bracketRound, globalRound: match.round_number, matches: [] });
+      grouped.get(key).matches.push(match);
     }
-    return [...grouped.entries()];
+    const finalRounds = new Map();
+    for (const group of grouped.values()) finalRounds.set(group.stage, Math.max(finalRounds.get(group.stage) || 0, group.round));
+    return [...grouped.values()]
+      .sort((a, b) => a.globalRound - b.globalRound || a.round - b.round)
+      .map((group) => ({ ...group, label: tournamentRoundLabel(group.stage, group.round, group.matches.length, finalRounds.get(group.stage)) }));
   }, [workspace]);
-  const defaultRound = useMemo(() => rounds.find(([, matches]) => matches.some((match) => ["ready", "reported"].includes(match.status)))?.[0] ?? rounds.at(-1)?.[0] ?? null, [rounds]);
-  const visibleRound = rounds.some(([round]) => round === selectedRound) ? selectedRound : defaultRound;
+  const defaultRound = useMemo(() => rounds.find((group) => group.matches.some((match) => ["ready", "reported"].includes(match.status)))?.key ?? rounds.at(-1)?.key ?? null, [rounds]);
+  const visibleRound = rounds.some((group) => group.key === selectedRound) ? selectedRound : defaultRound;
 
   async function join(event) {
     event.preventDefault();
@@ -459,7 +474,8 @@ export default function TournamentWorkspace({ slug }) {
   async function lock() {
     setBusy(true);
     setMessage("");
-    const { error } = await supabase.rpc("lock_single_elimination_tournament", { p_tournament_id: workspace.tournament.id });
+    const rpc = workspace.tournament.format === "double-elimination" ? "lock_double_elimination_tournament" : "lock_single_elimination_tournament";
+    const { error } = await supabase.rpc(rpc, { p_tournament_id: workspace.tournament.id });
     setBusy(false);
     if (error) {
       setMessage(tournamentError(error));
@@ -633,9 +649,12 @@ export default function TournamentWorkspace({ slug }) {
   }
 
   function requestLock() {
+    const doubleElimination = workspace.tournament.format === "double-elimination";
     setConfirmation({
       title: "Lock registration and build the bracket?",
-      description: "Entrants cannot join after this point. Current seeds will create the permanent single-elimination bracket.",
+      description: doubleElimination
+        ? "Entrants cannot join after this point. Current seeds will create permanent winners and losers brackets, a Grand Final, and a conditional bracket-reset match."
+        : "Entrants cannot join after this point. Current seeds will create the permanent single-elimination bracket.",
       confirmLabel: "Lock & build bracket",
       workingLabel: "Building bracket...",
       tone: "danger",
@@ -654,10 +673,10 @@ export default function TournamentWorkspace({ slug }) {
     });
   }
 
-  function chooseRound(round) {
-    setSelectedRound(round);
+  function chooseRound(roundKey) {
+    setSelectedRound(roundKey);
     window.requestAnimationFrame(() => {
-      document.getElementById(`tournament-round-panel-${round}`)?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "start" });
+      document.getElementById(`tournament-round-panel-${roundKey.replaceAll(":", "-")}`)?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "start" });
     });
   }
 
@@ -704,7 +723,7 @@ export default function TournamentWorkspace({ slug }) {
         <a className="quiet-button" href="/tournaments">&larr; Tournaments</a>
         <span className="eyebrow">{statusLabel(tournament.status)} &middot; {tournament.visibility}</span>
         <h1>{tournament.name}</h1>
-        <p>{tournament.description || "Standalone single-elimination tournament"}</p>
+        <p>{tournament.description || `Standalone ${formatLabel(tournament.format).toLowerCase()} tournament`}</p>
         <div>
           <span>Best of {tournament.best_of}</span>
           <span>{registeredEntrants.length} / {tournament.entrant_limit} active entrants</span>
@@ -747,7 +766,7 @@ export default function TournamentWorkspace({ slug }) {
         <section className="tournament-panel" aria-labelledby="tournament-entrants-heading">
           <div className="section-heading">
             <div><span className="eyebrow">REGISTRATION</span><h2 id="tournament-entrants-heading">Entrants</h2></div>
-            {tournament.is_owner && registeredEntrants.length >= 2 && (
+            {tournament.is_owner && registeredEntrants.length >= (tournament.format === "double-elimination" ? 4 : 2) && (
               <div className="tournament-owner-actions">
                 <button type="button" className="quiet-button" disabled={busy} onClick={requestShuffle}>Shuffle seeds</button>
                 <button type="button" className="primary-button" disabled={busy} onClick={requestLock}>Lock & build bracket</button>
@@ -838,23 +857,21 @@ export default function TournamentWorkspace({ slug }) {
       {rounds.length > 0 && (
         <section className="tournament-bracket" aria-labelledby="tournament-bracket-heading">
           <div className="section-heading">
-            <div><span className="eyebrow">SINGLE ELIMINATION</span><h2 id="tournament-bracket-heading">Bracket</h2></div>
+            <div><span className="eyebrow">{formatLabel(tournament.format).toUpperCase()}</span><h2 id="tournament-bracket-heading">Bracket</h2></div>
             <button type="button" className="quiet-button" onClick={load}>Refresh</button>
           </div>
           <nav className="tournament-round-picker" aria-label="Choose a bracket round">
-            {rounds.map(([round, matches]) => {
-              const label = matches.length === 1 ? "Final" : `Round ${round}`;
-              return <button key={round} type="button" aria-pressed={visibleRound === round} aria-controls={`tournament-round-panel-${round}`} onClick={() => chooseRound(round)}>{label}<span>{matches.length} {matches.length === 1 ? "match" : "matches"}</span></button>;
-            })}
+            {rounds.map((group) => <button key={group.key} type="button" aria-pressed={visibleRound === group.key} aria-controls={`tournament-round-panel-${group.key.replaceAll(":", "-")}`} onClick={() => chooseRound(group.key)}>{group.label}<span>{group.matches.length} {group.matches.length === 1 ? "match" : "matches"}</span></button>)}
           </nav>
-          <div className="tournament-rounds" aria-label="Single-elimination bracket rounds">
-            {rounds.map(([round, matches]) => {
-              const label = matches.length === 1 ? "Final" : `Round ${round}`;
-              const roundHeadingId = `tournament-round-${round}`;
+          <div className="tournament-rounds" aria-label={`${formatLabel(tournament.format)} bracket rounds`}>
+            {rounds.map((group) => {
+              const roundHeadingId = `tournament-round-${group.key.replaceAll(":", "-")}`;
               return (
-                <section id={`tournament-round-panel-${round}`} key={round} className={visibleRound === round ? "is-selected" : ""} aria-labelledby={roundHeadingId}>
-                  <h3 id={roundHeadingId}>{label}</h3>
-                  {matches.map((match) => {
+                <section id={`tournament-round-panel-${group.key.replaceAll(":", "-")}`} key={group.key} className={visibleRound === group.key ? "is-selected" : ""} aria-labelledby={roundHeadingId} data-bracket-stage={group.stage}>
+                  <h3 id={roundHeadingId}>{group.label}</h3>
+                  {group.stage === "losers" && group.round === 1 && <p className="tournament-stage-note">A second loss eliminates an entrant.</p>}
+                  {group.stage === "grand-final" && group.round === 2 && <p className="tournament-stage-note">Played only if the losers-bracket champion wins the Grand Final.</p>}
+                  {group.matches.map((match) => {
                     const submission = workspace.submissions.find((item) => item.match_id === match.id);
                     const involved = me && [match.entrant_a_id, match.entrant_b_id].includes(me.id);
                     return (

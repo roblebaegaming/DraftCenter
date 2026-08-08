@@ -26,11 +26,11 @@ test("sensitive tournament actions use the accessible in-page confirmation dialo
 
 test("workspace controls and feedback expose names, landmarks, and live status", () => {
   assert.match(ui, /aria-label="Choose a bracket round"/);
-  assert.match(ui, /aria-pressed=\{visibleRound === round\}/);
-  assert.match(ui, /aria-controls=\{`tournament-round-panel-\$\{round\}`\}/);
+  assert.match(ui, /aria-pressed=\{visibleRound === group\.key\}/);
+  assert.match(ui, /aria-controls=\{`tournament-round-panel-\$\{group\.key\.replaceAll\(":", "-"\)\}`\}/);
   assert.match(ui, /scrollIntoView\(\{ behavior: "smooth", block: "nearest", inline: "start" \}\)/);
-  assert.match(ui, /aria-label="Single-elimination bracket rounds"/);
-  assert.match(ui, /className=\{visibleRound === round \? "is-selected" : ""\}/);
+  assert.match(ui, /aria-label=\{`\$\{formatLabel\(tournament\.format\)\} bracket rounds`\}/);
+  assert.match(ui, /className=\{visibleRound === group\.key \? "is-selected" : ""\}/);
   assert.match(ui, /aria-labelledby=\{headingId\}/);
   assert.match(ui, /role="status" aria-live="polite"/);
   assert.match(ui, /<label>Replay URL/);
