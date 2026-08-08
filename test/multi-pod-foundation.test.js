@@ -3,8 +3,11 @@ import fs from "node:fs";
 import test from "node:test";
 import {
   createChampionshipQualifierSnapshot,
+  createMultiPodOrganizationDraft,
   createMultiPodSeasonDraft,
+  multiPodAdministratorInviteUrl,
   multiPodAttachmentRpcArguments,
+  multiPodOrganizationUpdateRpcArguments,
   multiPodSeasonRpcArguments,
   normalizeMultiPodQualificationRules,
 } from "../src/lib/multiPodLeague.js";
@@ -19,6 +22,14 @@ const cleanupSql = fs.readFileSync(
 );
 const hardeningSql = fs.readFileSync(
   new URL("../supabase/352-harden-multi-pod-season-rule-boundaries.sql", import.meta.url),
+  "utf8",
+);
+const workspaceSql = fs.readFileSync(
+  new URL("../supabase/353-multi-pod-commissioner-workspace.sql", import.meta.url),
+  "utf8",
+);
+const workspaceUi = fs.readFileSync(
+  new URL("../src/components/LeagueOrganizationWorkspace.jsx", import.meta.url),
   "utf8",
 );
 
@@ -63,6 +74,36 @@ test("qualification settings are bounded and deterministic", () => {
   });
   assert.throws(() => normalizeMultiPodQualificationRules({ topPerPod: 0 }), /between 1 and 16/);
   assert.throws(() => normalizeMultiPodQualificationRules({ tiebreakers: ["coin-flip"] }), /supported tiebreakers/);
+  assert.throws(() => normalizeMultiPodQualificationRules({ tiebreakers: ["wins", "wins"] }), /only once/);
+});
+
+test("organization branding and administrator invitation arguments are bounded", () => {
+  const draft = createMultiPodOrganizationDraft({
+    name: "  Premier Draft Association  ",
+    description: "Four independent pods.",
+    visibility: "public",
+    imageUrl: "https://example.com/organization.png",
+    brandColor: "#4FD1C5",
+  });
+  assert.deepEqual(draft, {
+    name: "Premier Draft Association",
+    description: "Four independent pods.",
+    visibility: "public",
+    imageUrl: "https://example.com/organization.png",
+    brandColor: "#4fd1c5",
+  });
+  assert.equal(multiPodAdministratorInviteUrl("https://www.draftcentral.gg/", "a".repeat(48)), `https://www.draftcentral.gg/organizations?administrator_invite=${"a".repeat(48)}`);
+  assert.deepEqual(multiPodOrganizationUpdateRpcArguments("organization-id", 4, draft), {
+    p_organization_id: "organization-id",
+    p_expected_revision: 4,
+    p_name: draft.name,
+    p_description: draft.description,
+    p_visibility: draft.visibility,
+    p_image_url: draft.imageUrl,
+    p_brand_color: draft.brandColor,
+  });
+  assert.throws(() => createMultiPodOrganizationDraft({ name: "Org", imageUrl: "http://example.com/image.png" }), /secure HTTPS/);
+  assert.throws(() => multiPodAdministratorInviteUrl("https://www.draftcentral.gg", "visible-token"), /token is invalid/);
 });
 
 test("application service arguments match the bounded database functions", () => {
@@ -164,4 +205,40 @@ test("pod attachment verifies both organization and source-league authority", ()
   assert.match(fn, /for update/);
   assert.match(fn, /seasonNumber/);
   assert.match(fn, /already belongs to another active organization season/i);
+});
+
+test("commissioner workspace migration keeps invitations private and one-time", () => {
+  assert.match(workspaceSql, /create table public\.league_organization_administrator_invites/i);
+  assert.match(workspaceSql, /alter table public\.league_organization_administrator_invites enable row level security/i);
+  assert.match(workspaceSql, /revoke all on public\.league_organization_administrator_invites from public, anon, authenticated/i);
+  assert.match(workspaceSql, /token_hash text not null unique/i);
+  assert.doesNotMatch(workspaceSql.slice(workspaceSql.indexOf("create table public.league_organization_administrator_invites"), workspaceSql.indexOf("create index league_organization_admin_invites_active_idx")), /\btoken text\b/i);
+  assert.match(workspaceSql, /encode\(digest\(v_token, 'sha256'\), 'hex'\)/i);
+  assert.match(workspaceSql, /only the organization owner can invite administrators/i);
+  assert.match(workspaceSql, /for update[\s\S]*accepted_at is not null[\s\S]*invalid or expired/i);
+  assert.match(workspaceSql, /administrator_invite_(created|accepted|revoked)/i);
+  assert.match(workspaceSql, /only the organization owner can remove administrators/i);
+  assert.match(workspaceSql, /and role = 'administrator'/i);
+});
+
+test("shared-rule confirmation and launch remain bounded by both authorities", () => {
+  const confirmStart = workspaceSql.indexOf("create or replace function public.confirm_league_organization_pod_regulations");
+  const launchStart = workspaceSql.indexOf("create or replace function public.launch_league_organization_season");
+  const confirmFunction = workspaceSql.slice(confirmStart, launchStart);
+  const launchFunction = workspaceSql.slice(launchStart, workspaceSql.indexOf("create or replace function public.get_league_organization_workspace"));
+  assert.match(confirmFunction, /is_league_organization_admin/);
+  assert.match(confirmFunction, /is_league_staff/);
+  assert.match(confirmFunction, /p_expected_season_revision/);
+  assert.match(confirmFunction, /attached_state_revision = v_snapshot\.revision/i);
+  assert.match(launchFunction, /v_pod_count < 2/i);
+  assert.match(launchFunction, /regulations_status <> 'confirmed'/i);
+  assert.match(launchFunction, /snapshot\.revision <> pod\.attached_state_revision/i);
+  assert.match(launchFunction, /season_launched/i);
+});
+
+test("the organization hub exposes the planned commissioner workflow without mutating source rosters", () => {
+  for (const rpc of ["createOrganization", "createSeason", "attachPod", "confirmPodRegulations", "launchSeason", "createAdministratorInvite", "removeAdministrator"]) assert.ok(workspaceUi.includes(`MULTI_POD_RPCS.${rpc}`));
+  for (const label of ["League organizations", "Administrators", "Confirm shared rules", "Launch season", "Cross-pod duplicate Pokémon are allowed"]) assert.match(workspaceUi, new RegExp(label));
+  assert.doesNotMatch(workspaceUi, /createChampionshipQualifierSnapshot|league_organization_qualifiers/);
+  assert.match(fs.readFileSync(new URL("../src/components/LeagueHub.jsx", import.meta.url), "utf8"), /href="\/organizations">Open organization hub/);
 });
