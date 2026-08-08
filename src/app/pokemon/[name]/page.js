@@ -2,6 +2,7 @@ import { notFound, permanentRedirect } from "next/navigation";
 import { getPublicPokemonCompetitiveProfile, getPublicPokemonDraftProfile, getPublicPokemonTournamentProfile } from "../../../lib/supabase/publicServer";
 import { getAllPokemonProfiles, pokemonProfileCanonicalPath, pokemonProfileSlugCandidates, pokemonProfileSlugForName, pokemonRouteSlug } from "../../../lib/publicPokemonIndex";
 import { pokemonDirectoryHref } from "../../../lib/pokemonNavigation";
+import { pokemonEggGroupLabel, pokemonShapeDetails } from "../../../lib/pokemonSpeciesTraits";
 import CompetitivePokemonProfile from "../../../components/CompetitivePokemonProfile";
 import TournamentPokemonProfile from "../../../components/TournamentPokemonProfile";
 
@@ -57,7 +58,7 @@ export async function generateMetadata({ params }) {
   const displayName = data.displayName;
   const genus = data.species.genera?.find((entry) => entry.language.name === "en")?.genus || "Pokémon";
   const types = data.pokemon.types.map(({ type }) => titleCase(type.name)).join("/");
-  const description = `${displayName} Pokédex profile: ${types} typing, base stats, abilities, generation, and Pokémon draft-league research on DraftCenter.`;
+  const description = `${displayName} Pokédex profile: ${types} typing, base stats, abilities, shape, Egg Groups, generation, and Pokémon draft-league research on DraftCenter.`;
   const artwork = data.pokemon.sprites?.other?.["official-artwork"]?.front_default;
   return {
     title: `${displayName} Pokédex, Stats and Draft Profile`,
@@ -85,6 +86,8 @@ export default async function PokemonDetailPage({ params }) {
   const genus = species.genera?.find((entry) => entry.language.name === "en")?.genus || "Pokémon";
   const entry = species.flavor_text_entries?.find((item) => item.language.name === "en")?.flavor_text?.replace(/[\n\f]/g, " ");
   const artwork = pokemon.sprites?.other?.["official-artwork"]?.front_default || pokemon.sprites?.front_default;
+  const shape = pokemonShapeDetails(species.shape?.name);
+  const eggGroups = (species.egg_groups || []).map(({ name: eggGroup }) => pokemonEggGroupLabel(eggGroup));
   const structuredData = {
     "@context": "https://schema.org",
     "@graph": [
@@ -92,7 +95,7 @@ export default async function PokemonDetailPage({ params }) {
         "@type": "WebPage",
         name: `${displayName} Pokédex, Stats and Draft Profile`,
         url: `https://www.draftcentral.gg/pokemon/${pokemon.name}`,
-        description: `${displayName} stats, typing, abilities, and Pokémon draft-league profile.`,
+        description: `${displayName} stats, typing, abilities, Pokédex shape, Egg Groups, and Pokémon draft-league profile.`,
         primaryImageOfPage: artwork ? { "@type": "ImageObject", url: artwork } : undefined,
       },
       {
@@ -149,6 +152,14 @@ export default async function PokemonDetailPage({ params }) {
       </div>
     </section>
     <section className="explore-card">
+      <h2>{displayName} shape and Egg Groups</h2>
+      <div className="career-record-grid pokemon-species-traits">
+        <article><strong>{shape?.label || "Unknown"}</strong><span>Pokédex shape</span><small>{shape?.description || "No Pokédex shape is listed."}</small></article>
+        <article><strong>{eggGroups.join(" / ") || "Unknown"}</strong><span>{eggGroups.length === 1 ? "Egg Group" : "Egg Groups"}</span><small>{eggGroups.length > 1 ? `${displayName} belongs to both breeding categories.` : "Species breeding category."}</small></article>
+      </div>
+      <p className="muted">Shape and Egg Groups are species-level Pokédex classifications, so this species&apos; forms share them.</p>
+    </section>
+    <section className="explore-card">
       <h2>{displayName} DraftCenter community statistics</h2>
       <p>Anonymous aggregates include all DraftCenter leagues, public and private. Every percentage is shown with its current sample size.</p>
       <div className="career-record-grid">
@@ -180,7 +191,7 @@ export default async function PokemonDetailPage({ params }) {
     </section>
     <section className="explore-card pokemon-profile-sources">
       <h2>Sources and methodology</h2>
-      <p>Core Pokédex facts, measurements, abilities, and artwork are retrieved from <a href="https://pokeapi.co/" rel="noreferrer">PokéAPI</a> and refreshed daily. DraftCenter community statistics are anonymous aggregates calculated from eligible DraftCenter leagues.</p>
+      <p>Core Pokédex facts, measurements, abilities, species shape, Egg Groups, and artwork are retrieved from <a href="https://pokeapi.co/" rel="noreferrer">PokéAPI</a> and refreshed daily. DraftCenter community statistics are anonymous aggregates calculated from eligible DraftCenter leagues.</p>
       <p>Draft rate and ADP include eligibility and show their current sample sizes. Auction averages use completed auction samples, while team win rate uses confirmed match results. Small samples should be treated as early evidence, not a definitive ranking.</p>
     </section>
   </main>;

@@ -1,0 +1,8623 @@
+{
+  "source_commit": "5064f1d72746b3a6a931616dae3fb6445c556d4f",
+  "source_files": [
+    "pokemon.csv",
+    "pokemon_species.csv",
+    "pokemon_egg_groups.csv",
+    "egg_groups.csv",
+    "egg_group_prose.csv",
+    "pokemon_shapes.csv",
+    "pokemon_shape_prose.csv"
+  ],
+  "species_count": 1025,
+  "pokemon_count": 1351,
+  "shapes": [
+    {
+      "id": "ball",
+      "label": "Ball",
+      "description": "Pokémon consisting of only a head"
+    },
+    {
+      "id": "squiggle",
+      "label": "Squiggle",
+      "description": "Pokémon with serpentine bodies"
+    },
+    {
+      "id": "fish",
+      "label": "Fish",
+      "description": "Pokémon with fins"
+    },
+    {
+      "id": "arms",
+      "label": "Arms",
+      "description": "Pokémon consisting of a head and arms"
+    },
+    {
+      "id": "blob",
+      "label": "Blob",
+      "description": "Pokémon consisting of a head and a base"
+    },
+    {
+      "id": "upright",
+      "label": "Upright",
+      "description": "Pokémon with a bipedal, tailed form"
+    },
+    {
+      "id": "legs",
+      "label": "Legs",
+      "description": "Pokémon consisting of a head and legs"
+    },
+    {
+      "id": "quadruped",
+      "label": "Quadruped",
+      "description": "Pokémon with a quadruped body"
+    },
+    {
+      "id": "wings",
+      "label": "Wings",
+      "description": "Pokémon with a single pair of wings"
+    },
+    {
+      "id": "tentacles",
+      "label": "Tentacles",
+      "description": "Pokémon with tentacles or a multiped body"
+    },
+    {
+      "id": "heads",
+      "label": "Heads",
+      "description": "Pokémon consisting of multiple bodies"
+    },
+    {
+      "id": "humanoid",
+      "label": "Humanoid",
+      "description": "Pokémon with a bipedal, tailless form"
+    },
+    {
+      "id": "bug-wings",
+      "label": "Bug wings",
+      "description": "Pokémon with two or more pairs of wings"
+    },
+    {
+      "id": "armor",
+      "label": "Armor",
+      "description": "Pokémon with an insectoid body"
+    }
+  ],
+  "egg_groups": [
+    {
+      "id": "monster",
+      "label": "Monster"
+    },
+    {
+      "id": "water1",
+      "label": "Water 1"
+    },
+    {
+      "id": "bug",
+      "label": "Bug"
+    },
+    {
+      "id": "flying",
+      "label": "Flying"
+    },
+    {
+      "id": "ground",
+      "label": "Field"
+    },
+    {
+      "id": "fairy",
+      "label": "Fairy"
+    },
+    {
+      "id": "plant",
+      "label": "Grass"
+    },
+    {
+      "id": "humanshape",
+      "label": "Human-Like"
+    },
+    {
+      "id": "water3",
+      "label": "Water 3"
+    },
+    {
+      "id": "mineral",
+      "label": "Mineral"
+    },
+    {
+      "id": "indeterminate",
+      "label": "Amorphous"
+    },
+    {
+      "id": "water2",
+      "label": "Water 2"
+    },
+    {
+      "id": "ditto",
+      "label": "Ditto"
+    },
+    {
+      "id": "dragon",
+      "label": "Dragon"
+    },
+    {
+      "id": "no-eggs",
+      "label": "Undiscovered"
+    }
+  ],
+  "pokemon": {
+    "1": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "monster",
+        "plant"
+      ]
+    },
+    "2": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "monster",
+        "plant"
+      ]
+    },
+    "3": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "monster",
+        "plant"
+      ]
+    },
+    "4": {
+      "shape": "upright",
+      "egg_groups": [
+        "monster",
+        "dragon"
+      ]
+    },
+    "5": {
+      "shape": "upright",
+      "egg_groups": [
+        "monster",
+        "dragon"
+      ]
+    },
+    "6": {
+      "shape": "upright",
+      "egg_groups": [
+        "monster",
+        "dragon"
+      ]
+    },
+    "7": {
+      "shape": "upright",
+      "egg_groups": [
+        "monster",
+        "water1"
+      ]
+    },
+    "8": {
+      "shape": "upright",
+      "egg_groups": [
+        "monster",
+        "water1"
+      ]
+    },
+    "9": {
+      "shape": "upright",
+      "egg_groups": [
+        "monster",
+        "water1"
+      ]
+    },
+    "10": {
+      "shape": "armor",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "11": {
+      "shape": "squiggle",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "12": {
+      "shape": "bug-wings",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "13": {
+      "shape": "armor",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "14": {
+      "shape": "squiggle",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "15": {
+      "shape": "bug-wings",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "16": {
+      "shape": "wings",
+      "egg_groups": [
+        "flying"
+      ]
+    },
+    "17": {
+      "shape": "wings",
+      "egg_groups": [
+        "flying"
+      ]
+    },
+    "18": {
+      "shape": "wings",
+      "egg_groups": [
+        "flying"
+      ]
+    },
+    "19": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "20": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "21": {
+      "shape": "wings",
+      "egg_groups": [
+        "flying"
+      ]
+    },
+    "22": {
+      "shape": "wings",
+      "egg_groups": [
+        "flying"
+      ]
+    },
+    "23": {
+      "shape": "squiggle",
+      "egg_groups": [
+        "ground",
+        "dragon"
+      ]
+    },
+    "24": {
+      "shape": "squiggle",
+      "egg_groups": [
+        "ground",
+        "dragon"
+      ]
+    },
+    "25": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground",
+        "fairy"
+      ]
+    },
+    "26": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground",
+        "fairy"
+      ]
+    },
+    "27": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "28": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "29": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "monster",
+        "ground"
+      ]
+    },
+    "30": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "31": {
+      "shape": "upright",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "32": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "monster",
+        "ground"
+      ]
+    },
+    "33": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "monster",
+        "ground"
+      ]
+    },
+    "34": {
+      "shape": "upright",
+      "egg_groups": [
+        "monster",
+        "ground"
+      ]
+    },
+    "35": {
+      "shape": "upright",
+      "egg_groups": [
+        "fairy"
+      ]
+    },
+    "36": {
+      "shape": "upright",
+      "egg_groups": [
+        "fairy"
+      ]
+    },
+    "37": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "38": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "39": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "fairy"
+      ]
+    },
+    "40": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "fairy"
+      ]
+    },
+    "41": {
+      "shape": "wings",
+      "egg_groups": [
+        "flying"
+      ]
+    },
+    "42": {
+      "shape": "wings",
+      "egg_groups": [
+        "flying"
+      ]
+    },
+    "43": {
+      "shape": "legs",
+      "egg_groups": [
+        "plant"
+      ]
+    },
+    "44": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "plant"
+      ]
+    },
+    "45": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "plant"
+      ]
+    },
+    "46": {
+      "shape": "armor",
+      "egg_groups": [
+        "bug",
+        "plant"
+      ]
+    },
+    "47": {
+      "shape": "armor",
+      "egg_groups": [
+        "bug",
+        "plant"
+      ]
+    },
+    "48": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "49": {
+      "shape": "bug-wings",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "50": {
+      "shape": "blob",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "51": {
+      "shape": "heads",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "52": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "53": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "54": {
+      "shape": "upright",
+      "egg_groups": [
+        "water1",
+        "ground"
+      ]
+    },
+    "55": {
+      "shape": "upright",
+      "egg_groups": [
+        "water1",
+        "ground"
+      ]
+    },
+    "56": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "57": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "58": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "59": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "60": {
+      "shape": "legs",
+      "egg_groups": [
+        "water1"
+      ]
+    },
+    "61": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "water1"
+      ]
+    },
+    "62": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "water1"
+      ]
+    },
+    "63": {
+      "shape": "upright",
+      "egg_groups": [
+        "humanshape"
+      ]
+    },
+    "64": {
+      "shape": "upright",
+      "egg_groups": [
+        "humanshape"
+      ]
+    },
+    "65": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "humanshape"
+      ]
+    },
+    "66": {
+      "shape": "upright",
+      "egg_groups": [
+        "humanshape"
+      ]
+    },
+    "67": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "humanshape"
+      ]
+    },
+    "68": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "humanshape"
+      ]
+    },
+    "69": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "plant"
+      ]
+    },
+    "70": {
+      "shape": "blob",
+      "egg_groups": [
+        "plant"
+      ]
+    },
+    "71": {
+      "shape": "blob",
+      "egg_groups": [
+        "plant"
+      ]
+    },
+    "72": {
+      "shape": "tentacles",
+      "egg_groups": [
+        "water3"
+      ]
+    },
+    "73": {
+      "shape": "tentacles",
+      "egg_groups": [
+        "water3"
+      ]
+    },
+    "74": {
+      "shape": "arms",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "75": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "76": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "77": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "78": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "79": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "monster",
+        "water1"
+      ]
+    },
+    "80": {
+      "shape": "upright",
+      "egg_groups": [
+        "monster",
+        "water1"
+      ]
+    },
+    "81": {
+      "shape": "arms",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "82": {
+      "shape": "heads",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "83": {
+      "shape": "wings",
+      "egg_groups": [
+        "flying",
+        "ground"
+      ]
+    },
+    "84": {
+      "shape": "legs",
+      "egg_groups": [
+        "flying"
+      ]
+    },
+    "85": {
+      "shape": "legs",
+      "egg_groups": [
+        "flying"
+      ]
+    },
+    "86": {
+      "shape": "fish",
+      "egg_groups": [
+        "water1",
+        "ground"
+      ]
+    },
+    "87": {
+      "shape": "fish",
+      "egg_groups": [
+        "water1",
+        "ground"
+      ]
+    },
+    "88": {
+      "shape": "arms",
+      "egg_groups": [
+        "indeterminate"
+      ]
+    },
+    "89": {
+      "shape": "arms",
+      "egg_groups": [
+        "indeterminate"
+      ]
+    },
+    "90": {
+      "shape": "ball",
+      "egg_groups": [
+        "water3"
+      ]
+    },
+    "91": {
+      "shape": "ball",
+      "egg_groups": [
+        "water3"
+      ]
+    },
+    "92": {
+      "shape": "ball",
+      "egg_groups": [
+        "indeterminate"
+      ]
+    },
+    "93": {
+      "shape": "arms",
+      "egg_groups": [
+        "indeterminate"
+      ]
+    },
+    "94": {
+      "shape": "upright",
+      "egg_groups": [
+        "indeterminate"
+      ]
+    },
+    "95": {
+      "shape": "squiggle",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "96": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "humanshape"
+      ]
+    },
+    "97": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "humanshape"
+      ]
+    },
+    "98": {
+      "shape": "armor",
+      "egg_groups": [
+        "water3"
+      ]
+    },
+    "99": {
+      "shape": "armor",
+      "egg_groups": [
+        "water3"
+      ]
+    },
+    "100": {
+      "shape": "ball",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "101": {
+      "shape": "ball",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "102": {
+      "shape": "heads",
+      "egg_groups": [
+        "plant"
+      ]
+    },
+    "103": {
+      "shape": "legs",
+      "egg_groups": [
+        "plant"
+      ]
+    },
+    "104": {
+      "shape": "upright",
+      "egg_groups": [
+        "monster"
+      ]
+    },
+    "105": {
+      "shape": "upright",
+      "egg_groups": [
+        "monster"
+      ]
+    },
+    "106": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "humanshape"
+      ]
+    },
+    "107": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "humanshape"
+      ]
+    },
+    "108": {
+      "shape": "upright",
+      "egg_groups": [
+        "monster"
+      ]
+    },
+    "109": {
+      "shape": "ball",
+      "egg_groups": [
+        "indeterminate"
+      ]
+    },
+    "110": {
+      "shape": "heads",
+      "egg_groups": [
+        "indeterminate"
+      ]
+    },
+    "111": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "monster",
+        "ground"
+      ]
+    },
+    "112": {
+      "shape": "upright",
+      "egg_groups": [
+        "monster",
+        "ground"
+      ]
+    },
+    "113": {
+      "shape": "upright",
+      "egg_groups": [
+        "fairy"
+      ]
+    },
+    "114": {
+      "shape": "legs",
+      "egg_groups": [
+        "plant"
+      ]
+    },
+    "115": {
+      "shape": "upright",
+      "egg_groups": [
+        "monster"
+      ]
+    },
+    "116": {
+      "shape": "blob",
+      "egg_groups": [
+        "water1",
+        "dragon"
+      ]
+    },
+    "117": {
+      "shape": "blob",
+      "egg_groups": [
+        "water1",
+        "dragon"
+      ]
+    },
+    "118": {
+      "shape": "fish",
+      "egg_groups": [
+        "water2"
+      ]
+    },
+    "119": {
+      "shape": "fish",
+      "egg_groups": [
+        "water2"
+      ]
+    },
+    "120": {
+      "shape": "blob",
+      "egg_groups": [
+        "water3"
+      ]
+    },
+    "121": {
+      "shape": "blob",
+      "egg_groups": [
+        "water3"
+      ]
+    },
+    "122": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "humanshape"
+      ]
+    },
+    "123": {
+      "shape": "bug-wings",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "124": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "humanshape"
+      ]
+    },
+    "125": {
+      "shape": "upright",
+      "egg_groups": [
+        "humanshape"
+      ]
+    },
+    "126": {
+      "shape": "upright",
+      "egg_groups": [
+        "humanshape"
+      ]
+    },
+    "127": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "128": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "129": {
+      "shape": "fish",
+      "egg_groups": [
+        "water2",
+        "dragon"
+      ]
+    },
+    "130": {
+      "shape": "squiggle",
+      "egg_groups": [
+        "water2",
+        "dragon"
+      ]
+    },
+    "131": {
+      "shape": "fish",
+      "egg_groups": [
+        "monster",
+        "water1"
+      ]
+    },
+    "132": {
+      "shape": "ball",
+      "egg_groups": [
+        "ditto"
+      ]
+    },
+    "133": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "134": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "135": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "136": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "137": {
+      "shape": "legs",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "138": {
+      "shape": "tentacles",
+      "egg_groups": [
+        "water1",
+        "water3"
+      ]
+    },
+    "139": {
+      "shape": "tentacles",
+      "egg_groups": [
+        "water1",
+        "water3"
+      ]
+    },
+    "140": {
+      "shape": "armor",
+      "egg_groups": [
+        "water1",
+        "water3"
+      ]
+    },
+    "141": {
+      "shape": "upright",
+      "egg_groups": [
+        "water1",
+        "water3"
+      ]
+    },
+    "142": {
+      "shape": "wings",
+      "egg_groups": [
+        "flying"
+      ]
+    },
+    "143": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "monster"
+      ]
+    },
+    "144": {
+      "shape": "wings",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "145": {
+      "shape": "wings",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "146": {
+      "shape": "wings",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "147": {
+      "shape": "squiggle",
+      "egg_groups": [
+        "water1",
+        "dragon"
+      ]
+    },
+    "148": {
+      "shape": "squiggle",
+      "egg_groups": [
+        "water1",
+        "dragon"
+      ]
+    },
+    "149": {
+      "shape": "upright",
+      "egg_groups": [
+        "water1",
+        "dragon"
+      ]
+    },
+    "150": {
+      "shape": "upright",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "151": {
+      "shape": "upright",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "152": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "monster",
+        "plant"
+      ]
+    },
+    "153": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "monster",
+        "plant"
+      ]
+    },
+    "154": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "monster",
+        "plant"
+      ]
+    },
+    "155": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "156": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "157": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "158": {
+      "shape": "upright",
+      "egg_groups": [
+        "monster",
+        "water1"
+      ]
+    },
+    "159": {
+      "shape": "upright",
+      "egg_groups": [
+        "monster",
+        "water1"
+      ]
+    },
+    "160": {
+      "shape": "upright",
+      "egg_groups": [
+        "monster",
+        "water1"
+      ]
+    },
+    "161": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "162": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "163": {
+      "shape": "wings",
+      "egg_groups": [
+        "flying"
+      ]
+    },
+    "164": {
+      "shape": "wings",
+      "egg_groups": [
+        "flying"
+      ]
+    },
+    "165": {
+      "shape": "wings",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "166": {
+      "shape": "wings",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "167": {
+      "shape": "armor",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "168": {
+      "shape": "armor",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "169": {
+      "shape": "bug-wings",
+      "egg_groups": [
+        "flying"
+      ]
+    },
+    "170": {
+      "shape": "fish",
+      "egg_groups": [
+        "water2"
+      ]
+    },
+    "171": {
+      "shape": "fish",
+      "egg_groups": [
+        "water2"
+      ]
+    },
+    "172": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "173": {
+      "shape": "upright",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "174": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "175": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "176": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "flying",
+        "fairy"
+      ]
+    },
+    "177": {
+      "shape": "wings",
+      "egg_groups": [
+        "flying"
+      ]
+    },
+    "178": {
+      "shape": "wings",
+      "egg_groups": [
+        "flying"
+      ]
+    },
+    "179": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "monster",
+        "ground"
+      ]
+    },
+    "180": {
+      "shape": "upright",
+      "egg_groups": [
+        "monster",
+        "ground"
+      ]
+    },
+    "181": {
+      "shape": "upright",
+      "egg_groups": [
+        "monster",
+        "ground"
+      ]
+    },
+    "182": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "plant"
+      ]
+    },
+    "183": {
+      "shape": "upright",
+      "egg_groups": [
+        "water1",
+        "fairy"
+      ]
+    },
+    "184": {
+      "shape": "upright",
+      "egg_groups": [
+        "water1",
+        "fairy"
+      ]
+    },
+    "185": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "186": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "water1"
+      ]
+    },
+    "187": {
+      "shape": "upright",
+      "egg_groups": [
+        "fairy",
+        "plant"
+      ]
+    },
+    "188": {
+      "shape": "upright",
+      "egg_groups": [
+        "fairy",
+        "plant"
+      ]
+    },
+    "189": {
+      "shape": "upright",
+      "egg_groups": [
+        "fairy",
+        "plant"
+      ]
+    },
+    "190": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "191": {
+      "shape": "ball",
+      "egg_groups": [
+        "plant"
+      ]
+    },
+    "192": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "plant"
+      ]
+    },
+    "193": {
+      "shape": "bug-wings",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "194": {
+      "shape": "legs",
+      "egg_groups": [
+        "water1",
+        "ground"
+      ]
+    },
+    "195": {
+      "shape": "upright",
+      "egg_groups": [
+        "water1",
+        "ground"
+      ]
+    },
+    "196": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "197": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "198": {
+      "shape": "wings",
+      "egg_groups": [
+        "flying"
+      ]
+    },
+    "199": {
+      "shape": "upright",
+      "egg_groups": [
+        "monster",
+        "water1"
+      ]
+    },
+    "200": {
+      "shape": "ball",
+      "egg_groups": [
+        "indeterminate"
+      ]
+    },
+    "201": {
+      "shape": "ball",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "202": {
+      "shape": "blob",
+      "egg_groups": [
+        "indeterminate"
+      ]
+    },
+    "203": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "204": {
+      "shape": "ball",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "205": {
+      "shape": "ball",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "206": {
+      "shape": "squiggle",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "207": {
+      "shape": "wings",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "208": {
+      "shape": "squiggle",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "209": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "ground",
+        "fairy"
+      ]
+    },
+    "210": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground",
+        "fairy"
+      ]
+    },
+    "211": {
+      "shape": "fish",
+      "egg_groups": [
+        "water2"
+      ]
+    },
+    "212": {
+      "shape": "bug-wings",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "213": {
+      "shape": "armor",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "214": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "215": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "216": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "217": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "218": {
+      "shape": "squiggle",
+      "egg_groups": [
+        "indeterminate"
+      ]
+    },
+    "219": {
+      "shape": "squiggle",
+      "egg_groups": [
+        "indeterminate"
+      ]
+    },
+    "220": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "221": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "222": {
+      "shape": "armor",
+      "egg_groups": [
+        "water1",
+        "water3"
+      ]
+    },
+    "223": {
+      "shape": "fish",
+      "egg_groups": [
+        "water1",
+        "water2"
+      ]
+    },
+    "224": {
+      "shape": "tentacles",
+      "egg_groups": [
+        "water1",
+        "water2"
+      ]
+    },
+    "225": {
+      "shape": "wings",
+      "egg_groups": [
+        "water1",
+        "ground"
+      ]
+    },
+    "226": {
+      "shape": "wings",
+      "egg_groups": [
+        "water1"
+      ]
+    },
+    "227": {
+      "shape": "wings",
+      "egg_groups": [
+        "flying"
+      ]
+    },
+    "228": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "229": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "230": {
+      "shape": "blob",
+      "egg_groups": [
+        "water1",
+        "dragon"
+      ]
+    },
+    "231": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "232": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "233": {
+      "shape": "legs",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "234": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "235": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "236": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "237": {
+      "shape": "upright",
+      "egg_groups": [
+        "humanshape"
+      ]
+    },
+    "238": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "239": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "240": {
+      "shape": "upright",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "241": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "242": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "fairy"
+      ]
+    },
+    "243": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "244": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "245": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "246": {
+      "shape": "upright",
+      "egg_groups": [
+        "monster"
+      ]
+    },
+    "247": {
+      "shape": "squiggle",
+      "egg_groups": [
+        "monster"
+      ]
+    },
+    "248": {
+      "shape": "upright",
+      "egg_groups": [
+        "monster"
+      ]
+    },
+    "249": {
+      "shape": "wings",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "250": {
+      "shape": "wings",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "251": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "252": {
+      "shape": "upright",
+      "egg_groups": [
+        "monster",
+        "dragon"
+      ]
+    },
+    "253": {
+      "shape": "upright",
+      "egg_groups": [
+        "monster",
+        "dragon"
+      ]
+    },
+    "254": {
+      "shape": "upright",
+      "egg_groups": [
+        "monster",
+        "dragon"
+      ]
+    },
+    "255": {
+      "shape": "legs",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "256": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "257": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "258": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "monster",
+        "water1"
+      ]
+    },
+    "259": {
+      "shape": "upright",
+      "egg_groups": [
+        "monster",
+        "water1"
+      ]
+    },
+    "260": {
+      "shape": "upright",
+      "egg_groups": [
+        "monster",
+        "water1"
+      ]
+    },
+    "261": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "262": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "263": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "264": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "265": {
+      "shape": "armor",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "266": {
+      "shape": "ball",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "267": {
+      "shape": "bug-wings",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "268": {
+      "shape": "ball",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "269": {
+      "shape": "bug-wings",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "270": {
+      "shape": "armor",
+      "egg_groups": [
+        "water1",
+        "plant"
+      ]
+    },
+    "271": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "water1",
+        "plant"
+      ]
+    },
+    "272": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "water1",
+        "plant"
+      ]
+    },
+    "273": {
+      "shape": "legs",
+      "egg_groups": [
+        "ground",
+        "plant"
+      ]
+    },
+    "274": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "ground",
+        "plant"
+      ]
+    },
+    "275": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "ground",
+        "plant"
+      ]
+    },
+    "276": {
+      "shape": "wings",
+      "egg_groups": [
+        "flying"
+      ]
+    },
+    "277": {
+      "shape": "wings",
+      "egg_groups": [
+        "flying"
+      ]
+    },
+    "278": {
+      "shape": "wings",
+      "egg_groups": [
+        "water1",
+        "flying"
+      ]
+    },
+    "279": {
+      "shape": "wings",
+      "egg_groups": [
+        "water1",
+        "flying"
+      ]
+    },
+    "280": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "humanshape",
+        "indeterminate"
+      ]
+    },
+    "281": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "humanshape",
+        "indeterminate"
+      ]
+    },
+    "282": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "humanshape",
+        "indeterminate"
+      ]
+    },
+    "283": {
+      "shape": "armor",
+      "egg_groups": [
+        "water1",
+        "bug"
+      ]
+    },
+    "284": {
+      "shape": "bug-wings",
+      "egg_groups": [
+        "water1",
+        "bug"
+      ]
+    },
+    "285": {
+      "shape": "legs",
+      "egg_groups": [
+        "fairy",
+        "plant"
+      ]
+    },
+    "286": {
+      "shape": "upright",
+      "egg_groups": [
+        "fairy",
+        "plant"
+      ]
+    },
+    "287": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "288": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "289": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "290": {
+      "shape": "armor",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "291": {
+      "shape": "bug-wings",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "292": {
+      "shape": "blob",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "293": {
+      "shape": "upright",
+      "egg_groups": [
+        "monster",
+        "ground"
+      ]
+    },
+    "294": {
+      "shape": "upright",
+      "egg_groups": [
+        "monster",
+        "ground"
+      ]
+    },
+    "295": {
+      "shape": "upright",
+      "egg_groups": [
+        "monster",
+        "ground"
+      ]
+    },
+    "296": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "humanshape"
+      ]
+    },
+    "297": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "humanshape"
+      ]
+    },
+    "298": {
+      "shape": "legs",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "299": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "300": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground",
+        "fairy"
+      ]
+    },
+    "301": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground",
+        "fairy"
+      ]
+    },
+    "302": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "humanshape"
+      ]
+    },
+    "303": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "ground",
+        "fairy"
+      ]
+    },
+    "304": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "monster"
+      ]
+    },
+    "305": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "monster"
+      ]
+    },
+    "306": {
+      "shape": "upright",
+      "egg_groups": [
+        "monster"
+      ]
+    },
+    "307": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "humanshape"
+      ]
+    },
+    "308": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "humanshape"
+      ]
+    },
+    "309": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "310": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "311": {
+      "shape": "upright",
+      "egg_groups": [
+        "fairy"
+      ]
+    },
+    "312": {
+      "shape": "upright",
+      "egg_groups": [
+        "fairy"
+      ]
+    },
+    "313": {
+      "shape": "upright",
+      "egg_groups": [
+        "bug",
+        "humanshape"
+      ]
+    },
+    "314": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "bug",
+        "humanshape"
+      ]
+    },
+    "315": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "fairy",
+        "plant"
+      ]
+    },
+    "316": {
+      "shape": "arms",
+      "egg_groups": [
+        "indeterminate"
+      ]
+    },
+    "317": {
+      "shape": "arms",
+      "egg_groups": [
+        "indeterminate"
+      ]
+    },
+    "318": {
+      "shape": "fish",
+      "egg_groups": [
+        "water2"
+      ]
+    },
+    "319": {
+      "shape": "fish",
+      "egg_groups": [
+        "water2"
+      ]
+    },
+    "320": {
+      "shape": "fish",
+      "egg_groups": [
+        "ground",
+        "water2"
+      ]
+    },
+    "321": {
+      "shape": "fish",
+      "egg_groups": [
+        "ground",
+        "water2"
+      ]
+    },
+    "322": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "323": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "324": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "325": {
+      "shape": "arms",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "326": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "327": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground",
+        "humanshape"
+      ]
+    },
+    "328": {
+      "shape": "armor",
+      "egg_groups": [
+        "bug",
+        "dragon"
+      ]
+    },
+    "329": {
+      "shape": "bug-wings",
+      "egg_groups": [
+        "bug",
+        "dragon"
+      ]
+    },
+    "330": {
+      "shape": "wings",
+      "egg_groups": [
+        "bug",
+        "dragon"
+      ]
+    },
+    "331": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "plant",
+        "humanshape"
+      ]
+    },
+    "332": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "plant",
+        "humanshape"
+      ]
+    },
+    "333": {
+      "shape": "wings",
+      "egg_groups": [
+        "flying",
+        "dragon"
+      ]
+    },
+    "334": {
+      "shape": "wings",
+      "egg_groups": [
+        "flying",
+        "dragon"
+      ]
+    },
+    "335": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "336": {
+      "shape": "squiggle",
+      "egg_groups": [
+        "ground",
+        "dragon"
+      ]
+    },
+    "337": {
+      "shape": "ball",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "338": {
+      "shape": "ball",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "339": {
+      "shape": "fish",
+      "egg_groups": [
+        "water2"
+      ]
+    },
+    "340": {
+      "shape": "fish",
+      "egg_groups": [
+        "water2"
+      ]
+    },
+    "341": {
+      "shape": "armor",
+      "egg_groups": [
+        "water1",
+        "water3"
+      ]
+    },
+    "342": {
+      "shape": "armor",
+      "egg_groups": [
+        "water1",
+        "water3"
+      ]
+    },
+    "343": {
+      "shape": "arms",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "344": {
+      "shape": "arms",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "345": {
+      "shape": "blob",
+      "egg_groups": [
+        "water3"
+      ]
+    },
+    "346": {
+      "shape": "blob",
+      "egg_groups": [
+        "water3"
+      ]
+    },
+    "347": {
+      "shape": "armor",
+      "egg_groups": [
+        "water3"
+      ]
+    },
+    "348": {
+      "shape": "upright",
+      "egg_groups": [
+        "water3"
+      ]
+    },
+    "349": {
+      "shape": "fish",
+      "egg_groups": [
+        "water1",
+        "dragon"
+      ]
+    },
+    "350": {
+      "shape": "squiggle",
+      "egg_groups": [
+        "water1",
+        "dragon"
+      ]
+    },
+    "351": {
+      "shape": "ball",
+      "egg_groups": [
+        "fairy",
+        "indeterminate"
+      ]
+    },
+    "352": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "353": {
+      "shape": "ball",
+      "egg_groups": [
+        "indeterminate"
+      ]
+    },
+    "354": {
+      "shape": "upright",
+      "egg_groups": [
+        "indeterminate"
+      ]
+    },
+    "355": {
+      "shape": "arms",
+      "egg_groups": [
+        "indeterminate"
+      ]
+    },
+    "356": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "indeterminate"
+      ]
+    },
+    "357": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "monster",
+        "plant"
+      ]
+    },
+    "358": {
+      "shape": "arms",
+      "egg_groups": [
+        "indeterminate"
+      ]
+    },
+    "359": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "360": {
+      "shape": "upright",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "361": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "fairy",
+        "mineral"
+      ]
+    },
+    "362": {
+      "shape": "ball",
+      "egg_groups": [
+        "fairy",
+        "mineral"
+      ]
+    },
+    "363": {
+      "shape": "fish",
+      "egg_groups": [
+        "water1",
+        "ground"
+      ]
+    },
+    "364": {
+      "shape": "fish",
+      "egg_groups": [
+        "water1",
+        "ground"
+      ]
+    },
+    "365": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "water1",
+        "ground"
+      ]
+    },
+    "366": {
+      "shape": "ball",
+      "egg_groups": [
+        "water1"
+      ]
+    },
+    "367": {
+      "shape": "squiggle",
+      "egg_groups": [
+        "water1"
+      ]
+    },
+    "368": {
+      "shape": "squiggle",
+      "egg_groups": [
+        "water1"
+      ]
+    },
+    "369": {
+      "shape": "fish",
+      "egg_groups": [
+        "water1",
+        "water2"
+      ]
+    },
+    "370": {
+      "shape": "fish",
+      "egg_groups": [
+        "water2"
+      ]
+    },
+    "371": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "dragon"
+      ]
+    },
+    "372": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "dragon"
+      ]
+    },
+    "373": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "dragon"
+      ]
+    },
+    "374": {
+      "shape": "blob",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "375": {
+      "shape": "arms",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "376": {
+      "shape": "heads",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "377": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "378": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "379": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "380": {
+      "shape": "wings",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "381": {
+      "shape": "wings",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "382": {
+      "shape": "fish",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "383": {
+      "shape": "upright",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "384": {
+      "shape": "squiggle",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "385": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "386": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "387": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "monster",
+        "plant"
+      ]
+    },
+    "388": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "monster",
+        "plant"
+      ]
+    },
+    "389": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "monster",
+        "plant"
+      ]
+    },
+    "390": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground",
+        "humanshape"
+      ]
+    },
+    "391": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground",
+        "humanshape"
+      ]
+    },
+    "392": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground",
+        "humanshape"
+      ]
+    },
+    "393": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "water1",
+        "ground"
+      ]
+    },
+    "394": {
+      "shape": "upright",
+      "egg_groups": [
+        "water1",
+        "ground"
+      ]
+    },
+    "395": {
+      "shape": "upright",
+      "egg_groups": [
+        "water1",
+        "ground"
+      ]
+    },
+    "396": {
+      "shape": "wings",
+      "egg_groups": [
+        "flying"
+      ]
+    },
+    "397": {
+      "shape": "wings",
+      "egg_groups": [
+        "flying"
+      ]
+    },
+    "398": {
+      "shape": "wings",
+      "egg_groups": [
+        "flying"
+      ]
+    },
+    "399": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "water1",
+        "ground"
+      ]
+    },
+    "400": {
+      "shape": "upright",
+      "egg_groups": [
+        "water1",
+        "ground"
+      ]
+    },
+    "401": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "402": {
+      "shape": "bug-wings",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "403": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "404": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "405": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "406": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "407": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "fairy",
+        "plant"
+      ]
+    },
+    "408": {
+      "shape": "upright",
+      "egg_groups": [
+        "monster"
+      ]
+    },
+    "409": {
+      "shape": "upright",
+      "egg_groups": [
+        "monster"
+      ]
+    },
+    "410": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "monster"
+      ]
+    },
+    "411": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "monster"
+      ]
+    },
+    "412": {
+      "shape": "blob",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "413": {
+      "shape": "blob",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "414": {
+      "shape": "bug-wings",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "415": {
+      "shape": "heads",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "416": {
+      "shape": "bug-wings",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "417": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground",
+        "fairy"
+      ]
+    },
+    "418": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "water1",
+        "ground"
+      ]
+    },
+    "419": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "water1",
+        "ground"
+      ]
+    },
+    "420": {
+      "shape": "heads",
+      "egg_groups": [
+        "fairy",
+        "plant"
+      ]
+    },
+    "421": {
+      "shape": "legs",
+      "egg_groups": [
+        "fairy",
+        "plant"
+      ]
+    },
+    "422": {
+      "shape": "squiggle",
+      "egg_groups": [
+        "water1",
+        "indeterminate"
+      ]
+    },
+    "423": {
+      "shape": "squiggle",
+      "egg_groups": [
+        "water1",
+        "indeterminate"
+      ]
+    },
+    "424": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "425": {
+      "shape": "arms",
+      "egg_groups": [
+        "indeterminate"
+      ]
+    },
+    "426": {
+      "shape": "arms",
+      "egg_groups": [
+        "indeterminate"
+      ]
+    },
+    "427": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground",
+        "humanshape"
+      ]
+    },
+    "428": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground",
+        "humanshape"
+      ]
+    },
+    "429": {
+      "shape": "ball",
+      "egg_groups": [
+        "indeterminate"
+      ]
+    },
+    "430": {
+      "shape": "wings",
+      "egg_groups": [
+        "flying"
+      ]
+    },
+    "431": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "432": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "433": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "434": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "435": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "436": {
+      "shape": "ball",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "437": {
+      "shape": "arms",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "438": {
+      "shape": "legs",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "439": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "440": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "441": {
+      "shape": "wings",
+      "egg_groups": [
+        "flying"
+      ]
+    },
+    "442": {
+      "shape": "blob",
+      "egg_groups": [
+        "indeterminate"
+      ]
+    },
+    "443": {
+      "shape": "upright",
+      "egg_groups": [
+        "monster",
+        "dragon"
+      ]
+    },
+    "444": {
+      "shape": "upright",
+      "egg_groups": [
+        "monster",
+        "dragon"
+      ]
+    },
+    "445": {
+      "shape": "upright",
+      "egg_groups": [
+        "monster",
+        "dragon"
+      ]
+    },
+    "446": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "447": {
+      "shape": "upright",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "448": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground",
+        "humanshape"
+      ]
+    },
+    "449": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "450": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "451": {
+      "shape": "armor",
+      "egg_groups": [
+        "bug",
+        "water3"
+      ]
+    },
+    "452": {
+      "shape": "armor",
+      "egg_groups": [
+        "bug",
+        "water3"
+      ]
+    },
+    "453": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "humanshape"
+      ]
+    },
+    "454": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "humanshape"
+      ]
+    },
+    "455": {
+      "shape": "tentacles",
+      "egg_groups": [
+        "plant"
+      ]
+    },
+    "456": {
+      "shape": "fish",
+      "egg_groups": [
+        "water2"
+      ]
+    },
+    "457": {
+      "shape": "fish",
+      "egg_groups": [
+        "water2"
+      ]
+    },
+    "458": {
+      "shape": "wings",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "459": {
+      "shape": "upright",
+      "egg_groups": [
+        "monster",
+        "plant"
+      ]
+    },
+    "460": {
+      "shape": "upright",
+      "egg_groups": [
+        "monster",
+        "plant"
+      ]
+    },
+    "461": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "462": {
+      "shape": "arms",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "463": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "monster"
+      ]
+    },
+    "464": {
+      "shape": "upright",
+      "egg_groups": [
+        "monster",
+        "ground"
+      ]
+    },
+    "465": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "plant"
+      ]
+    },
+    "466": {
+      "shape": "upright",
+      "egg_groups": [
+        "humanshape"
+      ]
+    },
+    "467": {
+      "shape": "upright",
+      "egg_groups": [
+        "humanshape"
+      ]
+    },
+    "468": {
+      "shape": "wings",
+      "egg_groups": [
+        "flying",
+        "fairy"
+      ]
+    },
+    "469": {
+      "shape": "bug-wings",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "470": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "471": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "472": {
+      "shape": "wings",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "473": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "474": {
+      "shape": "arms",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "475": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "humanshape",
+        "indeterminate"
+      ]
+    },
+    "476": {
+      "shape": "heads",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "477": {
+      "shape": "arms",
+      "egg_groups": [
+        "indeterminate"
+      ]
+    },
+    "478": {
+      "shape": "arms",
+      "egg_groups": [
+        "fairy",
+        "mineral"
+      ]
+    },
+    "479": {
+      "shape": "ball",
+      "egg_groups": [
+        "indeterminate"
+      ]
+    },
+    "480": {
+      "shape": "upright",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "481": {
+      "shape": "upright",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "482": {
+      "shape": "upright",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "483": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "484": {
+      "shape": "upright",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "485": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "486": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "487": {
+      "shape": "tentacles",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "488": {
+      "shape": "squiggle",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "489": {
+      "shape": "arms",
+      "egg_groups": [
+        "water1",
+        "fairy"
+      ]
+    },
+    "490": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "water1",
+        "fairy"
+      ]
+    },
+    "491": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "492": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "493": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "494": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "495": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground",
+        "plant"
+      ]
+    },
+    "496": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground",
+        "plant"
+      ]
+    },
+    "497": {
+      "shape": "squiggle",
+      "egg_groups": [
+        "ground",
+        "plant"
+      ]
+    },
+    "498": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "499": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "500": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "501": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "502": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "503": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "504": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "505": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "506": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "507": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "508": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "509": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "510": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "511": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "512": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "513": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "514": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "515": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "516": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "517": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "518": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "519": {
+      "shape": "wings",
+      "egg_groups": [
+        "flying"
+      ]
+    },
+    "520": {
+      "shape": "wings",
+      "egg_groups": [
+        "flying"
+      ]
+    },
+    "521": {
+      "shape": "wings",
+      "egg_groups": [
+        "flying"
+      ]
+    },
+    "522": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "523": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "524": {
+      "shape": "legs",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "525": {
+      "shape": "tentacles",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "526": {
+      "shape": "tentacles",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "527": {
+      "shape": "wings",
+      "egg_groups": [
+        "flying",
+        "ground"
+      ]
+    },
+    "528": {
+      "shape": "wings",
+      "egg_groups": [
+        "flying",
+        "ground"
+      ]
+    },
+    "529": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "530": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "531": {
+      "shape": "upright",
+      "egg_groups": [
+        "fairy"
+      ]
+    },
+    "532": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "humanshape"
+      ]
+    },
+    "533": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "humanshape"
+      ]
+    },
+    "534": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "humanshape"
+      ]
+    },
+    "535": {
+      "shape": "fish",
+      "egg_groups": [
+        "water1"
+      ]
+    },
+    "536": {
+      "shape": "upright",
+      "egg_groups": [
+        "water1"
+      ]
+    },
+    "537": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "water1"
+      ]
+    },
+    "538": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "humanshape"
+      ]
+    },
+    "539": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "humanshape"
+      ]
+    },
+    "540": {
+      "shape": "armor",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "541": {
+      "shape": "arms",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "542": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "543": {
+      "shape": "armor",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "544": {
+      "shape": "ball",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "545": {
+      "shape": "armor",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "546": {
+      "shape": "ball",
+      "egg_groups": [
+        "fairy",
+        "plant"
+      ]
+    },
+    "547": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "fairy",
+        "plant"
+      ]
+    },
+    "548": {
+      "shape": "blob",
+      "egg_groups": [
+        "plant"
+      ]
+    },
+    "549": {
+      "shape": "blob",
+      "egg_groups": [
+        "plant"
+      ]
+    },
+    "550": {
+      "shape": "fish",
+      "egg_groups": [
+        "water2"
+      ]
+    },
+    "551": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "552": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "553": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "554": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "555": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "556": {
+      "shape": "blob",
+      "egg_groups": [
+        "plant"
+      ]
+    },
+    "557": {
+      "shape": "armor",
+      "egg_groups": [
+        "bug",
+        "mineral"
+      ]
+    },
+    "558": {
+      "shape": "armor",
+      "egg_groups": [
+        "bug",
+        "mineral"
+      ]
+    },
+    "559": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground",
+        "dragon"
+      ]
+    },
+    "560": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground",
+        "dragon"
+      ]
+    },
+    "561": {
+      "shape": "wings",
+      "egg_groups": [
+        "flying"
+      ]
+    },
+    "562": {
+      "shape": "arms",
+      "egg_groups": [
+        "mineral",
+        "indeterminate"
+      ]
+    },
+    "563": {
+      "shape": "blob",
+      "egg_groups": [
+        "mineral",
+        "indeterminate"
+      ]
+    },
+    "564": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "water1",
+        "water3"
+      ]
+    },
+    "565": {
+      "shape": "upright",
+      "egg_groups": [
+        "water1",
+        "water3"
+      ]
+    },
+    "566": {
+      "shape": "wings",
+      "egg_groups": [
+        "flying",
+        "water3"
+      ]
+    },
+    "567": {
+      "shape": "wings",
+      "egg_groups": [
+        "flying",
+        "water3"
+      ]
+    },
+    "568": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "569": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "570": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "571": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "572": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "573": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "574": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "humanshape"
+      ]
+    },
+    "575": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "humanshape"
+      ]
+    },
+    "576": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "humanshape"
+      ]
+    },
+    "577": {
+      "shape": "ball",
+      "egg_groups": [
+        "indeterminate"
+      ]
+    },
+    "578": {
+      "shape": "ball",
+      "egg_groups": [
+        "indeterminate"
+      ]
+    },
+    "579": {
+      "shape": "arms",
+      "egg_groups": [
+        "indeterminate"
+      ]
+    },
+    "580": {
+      "shape": "wings",
+      "egg_groups": [
+        "water1",
+        "flying"
+      ]
+    },
+    "581": {
+      "shape": "wings",
+      "egg_groups": [
+        "water1",
+        "flying"
+      ]
+    },
+    "582": {
+      "shape": "blob",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "583": {
+      "shape": "blob",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "584": {
+      "shape": "heads",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "585": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "586": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "587": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "588": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "589": {
+      "shape": "arms",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "590": {
+      "shape": "arms",
+      "egg_groups": [
+        "plant"
+      ]
+    },
+    "591": {
+      "shape": "arms",
+      "egg_groups": [
+        "plant"
+      ]
+    },
+    "592": {
+      "shape": "tentacles",
+      "egg_groups": [
+        "indeterminate"
+      ]
+    },
+    "593": {
+      "shape": "tentacles",
+      "egg_groups": [
+        "indeterminate"
+      ]
+    },
+    "594": {
+      "shape": "fish",
+      "egg_groups": [
+        "water1",
+        "water2"
+      ]
+    },
+    "595": {
+      "shape": "armor",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "596": {
+      "shape": "armor",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "597": {
+      "shape": "ball",
+      "egg_groups": [
+        "plant",
+        "mineral"
+      ]
+    },
+    "598": {
+      "shape": "tentacles",
+      "egg_groups": [
+        "plant",
+        "mineral"
+      ]
+    },
+    "599": {
+      "shape": "heads",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "600": {
+      "shape": "heads",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "601": {
+      "shape": "heads",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "602": {
+      "shape": "fish",
+      "egg_groups": [
+        "indeterminate"
+      ]
+    },
+    "603": {
+      "shape": "fish",
+      "egg_groups": [
+        "indeterminate"
+      ]
+    },
+    "604": {
+      "shape": "fish",
+      "egg_groups": [
+        "indeterminate"
+      ]
+    },
+    "605": {
+      "shape": "upright",
+      "egg_groups": [
+        "humanshape"
+      ]
+    },
+    "606": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "humanshape"
+      ]
+    },
+    "607": {
+      "shape": "blob",
+      "egg_groups": [
+        "indeterminate"
+      ]
+    },
+    "608": {
+      "shape": "arms",
+      "egg_groups": [
+        "indeterminate"
+      ]
+    },
+    "609": {
+      "shape": "arms",
+      "egg_groups": [
+        "indeterminate"
+      ]
+    },
+    "610": {
+      "shape": "upright",
+      "egg_groups": [
+        "monster",
+        "dragon"
+      ]
+    },
+    "611": {
+      "shape": "upright",
+      "egg_groups": [
+        "monster",
+        "dragon"
+      ]
+    },
+    "612": {
+      "shape": "upright",
+      "egg_groups": [
+        "monster",
+        "dragon"
+      ]
+    },
+    "613": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "614": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "615": {
+      "shape": "ball",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "616": {
+      "shape": "ball",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "617": {
+      "shape": "arms",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "618": {
+      "shape": "fish",
+      "egg_groups": [
+        "water1",
+        "indeterminate"
+      ]
+    },
+    "619": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground",
+        "humanshape"
+      ]
+    },
+    "620": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground",
+        "humanshape"
+      ]
+    },
+    "621": {
+      "shape": "upright",
+      "egg_groups": [
+        "monster",
+        "dragon"
+      ]
+    },
+    "622": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "623": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "624": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "humanshape"
+      ]
+    },
+    "625": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "humanshape"
+      ]
+    },
+    "626": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "627": {
+      "shape": "wings",
+      "egg_groups": [
+        "flying"
+      ]
+    },
+    "628": {
+      "shape": "wings",
+      "egg_groups": [
+        "flying"
+      ]
+    },
+    "629": {
+      "shape": "wings",
+      "egg_groups": [
+        "flying"
+      ]
+    },
+    "630": {
+      "shape": "wings",
+      "egg_groups": [
+        "flying"
+      ]
+    },
+    "631": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "632": {
+      "shape": "armor",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "633": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "dragon"
+      ]
+    },
+    "634": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "dragon"
+      ]
+    },
+    "635": {
+      "shape": "upright",
+      "egg_groups": [
+        "dragon"
+      ]
+    },
+    "636": {
+      "shape": "armor",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "637": {
+      "shape": "bug-wings",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "638": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "639": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "640": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "641": {
+      "shape": "arms",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "642": {
+      "shape": "arms",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "643": {
+      "shape": "wings",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "644": {
+      "shape": "upright",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "645": {
+      "shape": "arms",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "646": {
+      "shape": "upright",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "647": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "648": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "649": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "650": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "651": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "652": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "653": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "654": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "655": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "656": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "water1"
+      ]
+    },
+    "657": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "water1"
+      ]
+    },
+    "658": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "water1"
+      ]
+    },
+    "659": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "660": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "661": {
+      "shape": "wings",
+      "egg_groups": [
+        "flying"
+      ]
+    },
+    "662": {
+      "shape": "wings",
+      "egg_groups": [
+        "flying"
+      ]
+    },
+    "663": {
+      "shape": "wings",
+      "egg_groups": [
+        "flying"
+      ]
+    },
+    "664": {
+      "shape": "armor",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "665": {
+      "shape": "blob",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "666": {
+      "shape": "bug-wings",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "667": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "668": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "669": {
+      "shape": "arms",
+      "egg_groups": [
+        "fairy"
+      ]
+    },
+    "670": {
+      "shape": "arms",
+      "egg_groups": [
+        "fairy"
+      ]
+    },
+    "671": {
+      "shape": "arms",
+      "egg_groups": [
+        "fairy"
+      ]
+    },
+    "672": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "673": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "674": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground",
+        "humanshape"
+      ]
+    },
+    "675": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "ground",
+        "humanshape"
+      ]
+    },
+    "676": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "677": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "678": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "679": {
+      "shape": "blob",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "680": {
+      "shape": "heads",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "681": {
+      "shape": "blob",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "682": {
+      "shape": "arms",
+      "egg_groups": [
+        "fairy"
+      ]
+    },
+    "683": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "fairy"
+      ]
+    },
+    "684": {
+      "shape": "legs",
+      "egg_groups": [
+        "fairy"
+      ]
+    },
+    "685": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "fairy"
+      ]
+    },
+    "686": {
+      "shape": "tentacles",
+      "egg_groups": [
+        "water1",
+        "water2"
+      ]
+    },
+    "687": {
+      "shape": "blob",
+      "egg_groups": [
+        "water1",
+        "water2"
+      ]
+    },
+    "688": {
+      "shape": "heads",
+      "egg_groups": [
+        "water3"
+      ]
+    },
+    "689": {
+      "shape": "heads",
+      "egg_groups": [
+        "water3"
+      ]
+    },
+    "690": {
+      "shape": "blob",
+      "egg_groups": [
+        "water1",
+        "dragon"
+      ]
+    },
+    "691": {
+      "shape": "blob",
+      "egg_groups": [
+        "water1",
+        "dragon"
+      ]
+    },
+    "692": {
+      "shape": "armor",
+      "egg_groups": [
+        "water1",
+        "water3"
+      ]
+    },
+    "693": {
+      "shape": "squiggle",
+      "egg_groups": [
+        "water1",
+        "water3"
+      ]
+    },
+    "694": {
+      "shape": "upright",
+      "egg_groups": [
+        "monster",
+        "dragon"
+      ]
+    },
+    "695": {
+      "shape": "upright",
+      "egg_groups": [
+        "monster",
+        "dragon"
+      ]
+    },
+    "696": {
+      "shape": "upright",
+      "egg_groups": [
+        "monster",
+        "dragon"
+      ]
+    },
+    "697": {
+      "shape": "upright",
+      "egg_groups": [
+        "monster",
+        "dragon"
+      ]
+    },
+    "698": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "monster"
+      ]
+    },
+    "699": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "monster"
+      ]
+    },
+    "700": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "701": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "flying",
+        "humanshape"
+      ]
+    },
+    "702": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground",
+        "fairy"
+      ]
+    },
+    "703": {
+      "shape": "ball",
+      "egg_groups": [
+        "fairy",
+        "mineral"
+      ]
+    },
+    "704": {
+      "shape": "squiggle",
+      "egg_groups": [
+        "dragon"
+      ]
+    },
+    "705": {
+      "shape": "squiggle",
+      "egg_groups": [
+        "dragon"
+      ]
+    },
+    "706": {
+      "shape": "upright",
+      "egg_groups": [
+        "dragon"
+      ]
+    },
+    "707": {
+      "shape": "ball",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "708": {
+      "shape": "arms",
+      "egg_groups": [
+        "plant",
+        "indeterminate"
+      ]
+    },
+    "709": {
+      "shape": "tentacles",
+      "egg_groups": [
+        "plant",
+        "indeterminate"
+      ]
+    },
+    "710": {
+      "shape": "ball",
+      "egg_groups": [
+        "indeterminate"
+      ]
+    },
+    "711": {
+      "shape": "blob",
+      "egg_groups": [
+        "indeterminate"
+      ]
+    },
+    "712": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "monster",
+        "mineral"
+      ]
+    },
+    "713": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "monster",
+        "mineral"
+      ]
+    },
+    "714": {
+      "shape": "wings",
+      "egg_groups": [
+        "flying",
+        "dragon"
+      ]
+    },
+    "715": {
+      "shape": "wings",
+      "egg_groups": [
+        "flying",
+        "dragon"
+      ]
+    },
+    "716": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "717": {
+      "shape": "wings",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "718": {
+      "shape": "squiggle",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "719": {
+      "shape": "arms",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "720": {
+      "shape": "arms",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "721": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "722": {
+      "shape": "wings",
+      "egg_groups": [
+        "flying"
+      ]
+    },
+    "723": {
+      "shape": "wings",
+      "egg_groups": [
+        "flying"
+      ]
+    },
+    "724": {
+      "shape": "wings",
+      "egg_groups": [
+        "flying"
+      ]
+    },
+    "725": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "726": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "727": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "728": {
+      "shape": "fish",
+      "egg_groups": [
+        "water1",
+        "ground"
+      ]
+    },
+    "729": {
+      "shape": "fish",
+      "egg_groups": [
+        "water1",
+        "ground"
+      ]
+    },
+    "730": {
+      "shape": "fish",
+      "egg_groups": [
+        "water1",
+        "ground"
+      ]
+    },
+    "731": {
+      "shape": "wings",
+      "egg_groups": [
+        "flying"
+      ]
+    },
+    "732": {
+      "shape": "wings",
+      "egg_groups": [
+        "flying"
+      ]
+    },
+    "733": {
+      "shape": "wings",
+      "egg_groups": [
+        "flying"
+      ]
+    },
+    "734": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "735": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "736": {
+      "shape": "armor",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "737": {
+      "shape": "squiggle",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "738": {
+      "shape": "armor",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "739": {
+      "shape": "armor",
+      "egg_groups": [
+        "water3"
+      ]
+    },
+    "740": {
+      "shape": "armor",
+      "egg_groups": [
+        "water3"
+      ]
+    },
+    "741": {
+      "shape": "wings",
+      "egg_groups": [
+        "flying"
+      ]
+    },
+    "742": {
+      "shape": "armor",
+      "egg_groups": [
+        "bug",
+        "fairy"
+      ]
+    },
+    "743": {
+      "shape": "bug-wings",
+      "egg_groups": [
+        "bug",
+        "fairy"
+      ]
+    },
+    "744": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "745": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "746": {
+      "shape": "fish",
+      "egg_groups": [
+        "water2"
+      ]
+    },
+    "747": {
+      "shape": "blob",
+      "egg_groups": [
+        "water1"
+      ]
+    },
+    "748": {
+      "shape": "tentacles",
+      "egg_groups": [
+        "water1"
+      ]
+    },
+    "749": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "750": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "751": {
+      "shape": "legs",
+      "egg_groups": [
+        "water1",
+        "bug"
+      ]
+    },
+    "752": {
+      "shape": "armor",
+      "egg_groups": [
+        "water1",
+        "bug"
+      ]
+    },
+    "753": {
+      "shape": "upright",
+      "egg_groups": [
+        "plant"
+      ]
+    },
+    "754": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "plant"
+      ]
+    },
+    "755": {
+      "shape": "blob",
+      "egg_groups": [
+        "plant"
+      ]
+    },
+    "756": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "plant"
+      ]
+    },
+    "757": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "monster",
+        "dragon"
+      ]
+    },
+    "758": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "monster",
+        "dragon"
+      ]
+    },
+    "759": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "760": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "761": {
+      "shape": "legs",
+      "egg_groups": [
+        "plant"
+      ]
+    },
+    "762": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "plant"
+      ]
+    },
+    "763": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "plant"
+      ]
+    },
+    "764": {
+      "shape": "ball",
+      "egg_groups": [
+        "plant"
+      ]
+    },
+    "765": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "766": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "767": {
+      "shape": "tentacles",
+      "egg_groups": [
+        "bug",
+        "water3"
+      ]
+    },
+    "768": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "bug",
+        "water3"
+      ]
+    },
+    "769": {
+      "shape": "squiggle",
+      "egg_groups": [
+        "indeterminate"
+      ]
+    },
+    "770": {
+      "shape": "squiggle",
+      "egg_groups": [
+        "indeterminate"
+      ]
+    },
+    "771": {
+      "shape": "squiggle",
+      "egg_groups": [
+        "water1"
+      ]
+    },
+    "772": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "773": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "774": {
+      "shape": "ball",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "775": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "776": {
+      "shape": "upright",
+      "egg_groups": [
+        "monster",
+        "dragon"
+      ]
+    },
+    "777": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground",
+        "fairy"
+      ]
+    },
+    "778": {
+      "shape": "squiggle",
+      "egg_groups": [
+        "indeterminate"
+      ]
+    },
+    "779": {
+      "shape": "fish",
+      "egg_groups": [
+        "water2"
+      ]
+    },
+    "780": {
+      "shape": "squiggle",
+      "egg_groups": [
+        "monster",
+        "dragon"
+      ]
+    },
+    "781": {
+      "shape": "blob",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "782": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "dragon"
+      ]
+    },
+    "783": {
+      "shape": "upright",
+      "egg_groups": [
+        "dragon"
+      ]
+    },
+    "784": {
+      "shape": "upright",
+      "egg_groups": [
+        "dragon"
+      ]
+    },
+    "785": {
+      "shape": "arms",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "786": {
+      "shape": "arms",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "787": {
+      "shape": "arms",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "788": {
+      "shape": "arms",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "789": {
+      "shape": "ball",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "790": {
+      "shape": "ball",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "791": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "792": {
+      "shape": "wings",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "793": {
+      "shape": "tentacles",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "794": {
+      "shape": "tentacles",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "795": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "796": {
+      "shape": "upright",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "797": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "798": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "799": {
+      "shape": "upright",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "800": {
+      "shape": "arms",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "801": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "802": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "803": {
+      "shape": "upright",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "804": {
+      "shape": "wings",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "805": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "806": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "807": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "808": {
+      "shape": "ball",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "809": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "810": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground",
+        "plant"
+      ]
+    },
+    "811": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground",
+        "plant"
+      ]
+    },
+    "812": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "ground",
+        "plant"
+      ]
+    },
+    "813": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground",
+        "humanshape"
+      ]
+    },
+    "814": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground",
+        "humanshape"
+      ]
+    },
+    "815": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground",
+        "humanshape"
+      ]
+    },
+    "816": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "water1",
+        "ground"
+      ]
+    },
+    "817": {
+      "shape": "upright",
+      "egg_groups": [
+        "water1",
+        "ground"
+      ]
+    },
+    "818": {
+      "shape": "upright",
+      "egg_groups": [
+        "water1",
+        "ground"
+      ]
+    },
+    "819": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "820": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "821": {
+      "shape": "wings",
+      "egg_groups": [
+        "flying"
+      ]
+    },
+    "822": {
+      "shape": "wings",
+      "egg_groups": [
+        "flying"
+      ]
+    },
+    "823": {
+      "shape": "wings",
+      "egg_groups": [
+        "flying"
+      ]
+    },
+    "824": {
+      "shape": "armor",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "825": {
+      "shape": "armor",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "826": {
+      "shape": "wings",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "827": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "828": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "829": {
+      "shape": "blob",
+      "egg_groups": [
+        "plant"
+      ]
+    },
+    "830": {
+      "shape": "blob",
+      "egg_groups": [
+        "plant"
+      ]
+    },
+    "831": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "832": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "833": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "monster",
+        "water1"
+      ]
+    },
+    "834": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "monster",
+        "water1"
+      ]
+    },
+    "835": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "836": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "837": {
+      "shape": "ball",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "838": {
+      "shape": "legs",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "839": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "840": {
+      "shape": "squiggle",
+      "egg_groups": [
+        "plant",
+        "dragon"
+      ]
+    },
+    "841": {
+      "shape": "wings",
+      "egg_groups": [
+        "plant",
+        "dragon"
+      ]
+    },
+    "842": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "plant",
+        "dragon"
+      ]
+    },
+    "843": {
+      "shape": "squiggle",
+      "egg_groups": [
+        "ground",
+        "dragon"
+      ]
+    },
+    "844": {
+      "shape": "squiggle",
+      "egg_groups": [
+        "ground",
+        "dragon"
+      ]
+    },
+    "845": {
+      "shape": "wings",
+      "egg_groups": [
+        "water1",
+        "flying"
+      ]
+    },
+    "846": {
+      "shape": "fish",
+      "egg_groups": [
+        "water2"
+      ]
+    },
+    "847": {
+      "shape": "fish",
+      "egg_groups": [
+        "water2"
+      ]
+    },
+    "848": {
+      "shape": "upright",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "849": {
+      "shape": "upright",
+      "egg_groups": [
+        "humanshape"
+      ]
+    },
+    "850": {
+      "shape": "tentacles",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "851": {
+      "shape": "tentacles",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "852": {
+      "shape": "tentacles",
+      "egg_groups": [
+        "water1",
+        "humanshape"
+      ]
+    },
+    "853": {
+      "shape": "tentacles",
+      "egg_groups": [
+        "water1",
+        "humanshape"
+      ]
+    },
+    "854": {
+      "shape": "ball",
+      "egg_groups": [
+        "mineral",
+        "indeterminate"
+      ]
+    },
+    "855": {
+      "shape": "ball",
+      "egg_groups": [
+        "mineral",
+        "indeterminate"
+      ]
+    },
+    "856": {
+      "shape": "legs",
+      "egg_groups": [
+        "fairy"
+      ]
+    },
+    "857": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "fairy"
+      ]
+    },
+    "858": {
+      "shape": "blob",
+      "egg_groups": [
+        "fairy"
+      ]
+    },
+    "859": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "fairy",
+        "humanshape"
+      ]
+    },
+    "860": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "fairy",
+        "humanshape"
+      ]
+    },
+    "861": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "fairy",
+        "humanshape"
+      ]
+    },
+    "862": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "863": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "864": {
+      "shape": "arms",
+      "egg_groups": [
+        "water1",
+        "water3"
+      ]
+    },
+    "865": {
+      "shape": "wings",
+      "egg_groups": [
+        "flying",
+        "ground"
+      ]
+    },
+    "866": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "humanshape"
+      ]
+    },
+    "867": {
+      "shape": "blob",
+      "egg_groups": [
+        "mineral",
+        "indeterminate"
+      ]
+    },
+    "868": {
+      "shape": "ball",
+      "egg_groups": [
+        "fairy",
+        "indeterminate"
+      ]
+    },
+    "869": {
+      "shape": "blob",
+      "egg_groups": [
+        "fairy",
+        "indeterminate"
+      ]
+    },
+    "870": {
+      "shape": "heads",
+      "egg_groups": [
+        "fairy",
+        "mineral"
+      ]
+    },
+    "871": {
+      "shape": "tentacles",
+      "egg_groups": [
+        "water1",
+        "indeterminate"
+      ]
+    },
+    "872": {
+      "shape": "squiggle",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "873": {
+      "shape": "bug-wings",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "874": {
+      "shape": "legs",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "875": {
+      "shape": "upright",
+      "egg_groups": [
+        "water1",
+        "ground"
+      ]
+    },
+    "876": {
+      "shape": "upright",
+      "egg_groups": [
+        "fairy"
+      ]
+    },
+    "877": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "ground",
+        "fairy"
+      ]
+    },
+    "878": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground",
+        "mineral"
+      ]
+    },
+    "879": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground",
+        "mineral"
+      ]
+    },
+    "880": {
+      "shape": "upright",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "881": {
+      "shape": "upright",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "882": {
+      "shape": "legs",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "883": {
+      "shape": "fish",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "884": {
+      "shape": "upright",
+      "egg_groups": [
+        "mineral",
+        "dragon"
+      ]
+    },
+    "885": {
+      "shape": "squiggle",
+      "egg_groups": [
+        "indeterminate",
+        "dragon"
+      ]
+    },
+    "886": {
+      "shape": "arms",
+      "egg_groups": [
+        "indeterminate",
+        "dragon"
+      ]
+    },
+    "887": {
+      "shape": "upright",
+      "egg_groups": [
+        "indeterminate",
+        "dragon"
+      ]
+    },
+    "888": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "889": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "890": {
+      "shape": "wings",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "891": {
+      "shape": "upright",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "892": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "893": {
+      "shape": "upright",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "894": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "895": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "896": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "897": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "898": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "899": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "900": {
+      "shape": "bug-wings",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "901": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "902": {
+      "shape": "fish",
+      "egg_groups": [
+        "water2"
+      ]
+    },
+    "903": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "904": {
+      "shape": "fish",
+      "egg_groups": [
+        "water2"
+      ]
+    },
+    "905": {
+      "shape": "arms",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "906": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground",
+        "plant"
+      ]
+    },
+    "907": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground",
+        "plant"
+      ]
+    },
+    "908": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground",
+        "plant"
+      ]
+    },
+    "909": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "910": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "911": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "912": {
+      "shape": "upright",
+      "egg_groups": [
+        "water1",
+        "flying"
+      ]
+    },
+    "913": {
+      "shape": "upright",
+      "egg_groups": [
+        "water1",
+        "flying"
+      ]
+    },
+    "914": {
+      "shape": "upright",
+      "egg_groups": [
+        "water1",
+        "flying"
+      ]
+    },
+    "915": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "916": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "917": {
+      "shape": "armor",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "918": {
+      "shape": "armor",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "919": {
+      "shape": "armor",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "920": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "921": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "922": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "923": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "924": {
+      "shape": "heads",
+      "egg_groups": [
+        "ground",
+        "fairy"
+      ]
+    },
+    "925": {
+      "shape": "heads",
+      "egg_groups": [
+        "ground",
+        "fairy"
+      ]
+    },
+    "926": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground",
+        "mineral"
+      ]
+    },
+    "927": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground",
+        "mineral"
+      ]
+    },
+    "928": {
+      "shape": "legs",
+      "egg_groups": [
+        "plant"
+      ]
+    },
+    "929": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "plant"
+      ]
+    },
+    "930": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "plant"
+      ]
+    },
+    "931": {
+      "shape": "wings",
+      "egg_groups": [
+        "flying"
+      ]
+    },
+    "932": {
+      "shape": "ball",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "933": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "934": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "935": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "humanshape"
+      ]
+    },
+    "936": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "humanshape"
+      ]
+    },
+    "937": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "humanshape"
+      ]
+    },
+    "938": {
+      "shape": "ball",
+      "egg_groups": [
+        "water1"
+      ]
+    },
+    "939": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "water1"
+      ]
+    },
+    "940": {
+      "shape": "wings",
+      "egg_groups": [
+        "water1",
+        "flying"
+      ]
+    },
+    "941": {
+      "shape": "wings",
+      "egg_groups": [
+        "water1",
+        "flying"
+      ]
+    },
+    "942": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "943": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "944": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "945": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "946": {
+      "shape": "ball",
+      "egg_groups": [
+        "plant"
+      ]
+    },
+    "947": {
+      "shape": "ball",
+      "egg_groups": [
+        "plant"
+      ]
+    },
+    "948": {
+      "shape": "legs",
+      "egg_groups": [
+        "plant"
+      ]
+    },
+    "949": {
+      "shape": "tentacles",
+      "egg_groups": [
+        "plant"
+      ]
+    },
+    "950": {
+      "shape": "armor",
+      "egg_groups": [
+        "water3"
+      ]
+    },
+    "951": {
+      "shape": "upright",
+      "egg_groups": [
+        "plant"
+      ]
+    },
+    "952": {
+      "shape": "upright",
+      "egg_groups": [
+        "plant"
+      ]
+    },
+    "953": {
+      "shape": "armor",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "954": {
+      "shape": "armor",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "955": {
+      "shape": "legs",
+      "egg_groups": [
+        "flying"
+      ]
+    },
+    "956": {
+      "shape": "upright",
+      "egg_groups": [
+        "flying"
+      ]
+    },
+    "957": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "fairy"
+      ]
+    },
+    "958": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "fairy"
+      ]
+    },
+    "959": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "fairy"
+      ]
+    },
+    "960": {
+      "shape": "blob",
+      "egg_groups": [
+        "water3"
+      ]
+    },
+    "961": {
+      "shape": "blob",
+      "egg_groups": [
+        "water3"
+      ]
+    },
+    "962": {
+      "shape": "wings",
+      "egg_groups": [
+        "flying"
+      ]
+    },
+    "963": {
+      "shape": "fish",
+      "egg_groups": [
+        "ground",
+        "water2"
+      ]
+    },
+    "964": {
+      "shape": "fish",
+      "egg_groups": [
+        "ground",
+        "water2"
+      ]
+    },
+    "965": {
+      "shape": "legs",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "966": {
+      "shape": "legs",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "967": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "968": {
+      "shape": "squiggle",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "969": {
+      "shape": "ball",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "970": {
+      "shape": "ball",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "971": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "972": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "973": {
+      "shape": "wings",
+      "egg_groups": [
+        "flying"
+      ]
+    },
+    "974": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "975": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "976": {
+      "shape": "fish",
+      "egg_groups": [
+        "water2"
+      ]
+    },
+    "977": {
+      "shape": "fish",
+      "egg_groups": [
+        "water2"
+      ]
+    },
+    "978": {
+      "shape": "fish",
+      "egg_groups": [
+        "water2"
+      ]
+    },
+    "979": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "980": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "water1",
+        "ground"
+      ]
+    },
+    "981": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "982": {
+      "shape": "squiggle",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "983": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "humanshape"
+      ]
+    },
+    "984": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "985": {
+      "shape": "upright",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "986": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "987": {
+      "shape": "wings",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "988": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "989": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "990": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "991": {
+      "shape": "upright",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "992": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "993": {
+      "shape": "upright",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "994": {
+      "shape": "bug-wings",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "995": {
+      "shape": "upright",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "996": {
+      "shape": "upright",
+      "egg_groups": [
+        "mineral",
+        "dragon"
+      ]
+    },
+    "997": {
+      "shape": "upright",
+      "egg_groups": [
+        "mineral",
+        "dragon"
+      ]
+    },
+    "998": {
+      "shape": "upright",
+      "egg_groups": [
+        "mineral",
+        "dragon"
+      ]
+    },
+    "999": {
+      "shape": "blob",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "1000": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "1001": {
+      "shape": "squiggle",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "1002": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "1003": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "1004": {
+      "shape": "fish",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "1005": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "1006": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "1007": {
+      "shape": "upright",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "1008": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "1009": {
+      "shape": "upright",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "1010": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "1011": {
+      "shape": "heads",
+      "egg_groups": [
+        "plant",
+        "dragon"
+      ]
+    },
+    "1012": {
+      "shape": "ball",
+      "egg_groups": [
+        "mineral",
+        "indeterminate"
+      ]
+    },
+    "1013": {
+      "shape": "ball",
+      "egg_groups": [
+        "mineral",
+        "indeterminate"
+      ]
+    },
+    "1014": {
+      "shape": "upright",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "1015": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "1016": {
+      "shape": "wings",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "1017": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "1018": {
+      "shape": "upright",
+      "egg_groups": [
+        "mineral",
+        "dragon"
+      ]
+    },
+    "1019": {
+      "shape": "heads",
+      "egg_groups": [
+        "plant",
+        "dragon"
+      ]
+    },
+    "1020": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "1021": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "1022": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "1023": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "1024": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "1025": {
+      "shape": "ball",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "10001": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "10002": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "10003": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "10004": {
+      "shape": "blob",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "10005": {
+      "shape": "blob",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "10006": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "10007": {
+      "shape": "tentacles",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "10008": {
+      "shape": "ball",
+      "egg_groups": [
+        "indeterminate"
+      ]
+    },
+    "10009": {
+      "shape": "ball",
+      "egg_groups": [
+        "indeterminate"
+      ]
+    },
+    "10010": {
+      "shape": "ball",
+      "egg_groups": [
+        "indeterminate"
+      ]
+    },
+    "10011": {
+      "shape": "ball",
+      "egg_groups": [
+        "indeterminate"
+      ]
+    },
+    "10012": {
+      "shape": "ball",
+      "egg_groups": [
+        "indeterminate"
+      ]
+    },
+    "10013": {
+      "shape": "ball",
+      "egg_groups": [
+        "fairy",
+        "indeterminate"
+      ]
+    },
+    "10014": {
+      "shape": "ball",
+      "egg_groups": [
+        "fairy",
+        "indeterminate"
+      ]
+    },
+    "10015": {
+      "shape": "ball",
+      "egg_groups": [
+        "fairy",
+        "indeterminate"
+      ]
+    },
+    "10016": {
+      "shape": "fish",
+      "egg_groups": [
+        "water2"
+      ]
+    },
+    "10017": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "10018": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "10019": {
+      "shape": "arms",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "10020": {
+      "shape": "arms",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "10021": {
+      "shape": "arms",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "10022": {
+      "shape": "upright",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "10023": {
+      "shape": "upright",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "10024": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "10025": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "10026": {
+      "shape": "blob",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "10027": {
+      "shape": "ball",
+      "egg_groups": [
+        "indeterminate"
+      ]
+    },
+    "10028": {
+      "shape": "ball",
+      "egg_groups": [
+        "indeterminate"
+      ]
+    },
+    "10029": {
+      "shape": "ball",
+      "egg_groups": [
+        "indeterminate"
+      ]
+    },
+    "10030": {
+      "shape": "blob",
+      "egg_groups": [
+        "indeterminate"
+      ]
+    },
+    "10031": {
+      "shape": "blob",
+      "egg_groups": [
+        "indeterminate"
+      ]
+    },
+    "10032": {
+      "shape": "blob",
+      "egg_groups": [
+        "indeterminate"
+      ]
+    },
+    "10033": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "monster",
+        "plant"
+      ]
+    },
+    "10034": {
+      "shape": "upright",
+      "egg_groups": [
+        "monster",
+        "dragon"
+      ]
+    },
+    "10035": {
+      "shape": "upright",
+      "egg_groups": [
+        "monster",
+        "dragon"
+      ]
+    },
+    "10036": {
+      "shape": "upright",
+      "egg_groups": [
+        "monster",
+        "water1"
+      ]
+    },
+    "10037": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "humanshape"
+      ]
+    },
+    "10038": {
+      "shape": "upright",
+      "egg_groups": [
+        "indeterminate"
+      ]
+    },
+    "10039": {
+      "shape": "upright",
+      "egg_groups": [
+        "monster"
+      ]
+    },
+    "10040": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "10041": {
+      "shape": "squiggle",
+      "egg_groups": [
+        "water2",
+        "dragon"
+      ]
+    },
+    "10042": {
+      "shape": "wings",
+      "egg_groups": [
+        "flying"
+      ]
+    },
+    "10043": {
+      "shape": "upright",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "10044": {
+      "shape": "upright",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "10045": {
+      "shape": "upright",
+      "egg_groups": [
+        "monster",
+        "ground"
+      ]
+    },
+    "10046": {
+      "shape": "bug-wings",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "10047": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "10048": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "10049": {
+      "shape": "upright",
+      "egg_groups": [
+        "monster"
+      ]
+    },
+    "10050": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "10051": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "humanshape",
+        "indeterminate"
+      ]
+    },
+    "10052": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "ground",
+        "fairy"
+      ]
+    },
+    "10053": {
+      "shape": "upright",
+      "egg_groups": [
+        "monster"
+      ]
+    },
+    "10054": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "humanshape"
+      ]
+    },
+    "10055": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "10056": {
+      "shape": "upright",
+      "egg_groups": [
+        "indeterminate"
+      ]
+    },
+    "10057": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "10058": {
+      "shape": "upright",
+      "egg_groups": [
+        "monster",
+        "dragon"
+      ]
+    },
+    "10059": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground",
+        "humanshape"
+      ]
+    },
+    "10060": {
+      "shape": "upright",
+      "egg_groups": [
+        "monster",
+        "plant"
+      ]
+    },
+    "10061": {
+      "shape": "arms",
+      "egg_groups": [
+        "fairy"
+      ]
+    },
+    "10062": {
+      "shape": "wings",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "10063": {
+      "shape": "wings",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "10064": {
+      "shape": "upright",
+      "egg_groups": [
+        "monster",
+        "water1"
+      ]
+    },
+    "10065": {
+      "shape": "upright",
+      "egg_groups": [
+        "monster",
+        "dragon"
+      ]
+    },
+    "10066": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "humanshape"
+      ]
+    },
+    "10067": {
+      "shape": "wings",
+      "egg_groups": [
+        "flying",
+        "dragon"
+      ]
+    },
+    "10068": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "humanshape",
+        "indeterminate"
+      ]
+    },
+    "10069": {
+      "shape": "upright",
+      "egg_groups": [
+        "fairy"
+      ]
+    },
+    "10070": {
+      "shape": "fish",
+      "egg_groups": [
+        "water2"
+      ]
+    },
+    "10071": {
+      "shape": "upright",
+      "egg_groups": [
+        "monster",
+        "water1"
+      ]
+    },
+    "10072": {
+      "shape": "squiggle",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "10073": {
+      "shape": "wings",
+      "egg_groups": [
+        "flying"
+      ]
+    },
+    "10074": {
+      "shape": "ball",
+      "egg_groups": [
+        "fairy",
+        "mineral"
+      ]
+    },
+    "10075": {
+      "shape": "arms",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "10076": {
+      "shape": "heads",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "10077": {
+      "shape": "fish",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "10078": {
+      "shape": "upright",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "10079": {
+      "shape": "squiggle",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "10080": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground",
+        "fairy"
+      ]
+    },
+    "10081": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground",
+        "fairy"
+      ]
+    },
+    "10082": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground",
+        "fairy"
+      ]
+    },
+    "10083": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground",
+        "fairy"
+      ]
+    },
+    "10084": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground",
+        "fairy"
+      ]
+    },
+    "10085": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground",
+        "fairy"
+      ]
+    },
+    "10086": {
+      "shape": "arms",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "10087": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "10088": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground",
+        "humanshape"
+      ]
+    },
+    "10089": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "dragon"
+      ]
+    },
+    "10090": {
+      "shape": "bug-wings",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "10091": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "10092": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "10093": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "10094": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground",
+        "fairy"
+      ]
+    },
+    "10095": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground",
+        "fairy"
+      ]
+    },
+    "10096": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground",
+        "fairy"
+      ]
+    },
+    "10097": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground",
+        "fairy"
+      ]
+    },
+    "10098": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground",
+        "fairy"
+      ]
+    },
+    "10099": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground",
+        "fairy"
+      ]
+    },
+    "10100": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground",
+        "fairy"
+      ]
+    },
+    "10101": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "10102": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "10103": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "10104": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "10105": {
+      "shape": "blob",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "10106": {
+      "shape": "heads",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "10107": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "10108": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "10109": {
+      "shape": "arms",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "10110": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "10111": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "10112": {
+      "shape": "arms",
+      "egg_groups": [
+        "indeterminate"
+      ]
+    },
+    "10113": {
+      "shape": "arms",
+      "egg_groups": [
+        "indeterminate"
+      ]
+    },
+    "10114": {
+      "shape": "legs",
+      "egg_groups": [
+        "plant"
+      ]
+    },
+    "10115": {
+      "shape": "upright",
+      "egg_groups": [
+        "monster"
+      ]
+    },
+    "10116": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "water1"
+      ]
+    },
+    "10117": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "water1"
+      ]
+    },
+    "10118": {
+      "shape": "squiggle",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "10119": {
+      "shape": "squiggle",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "10120": {
+      "shape": "squiggle",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "10121": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "10122": {
+      "shape": "armor",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "10123": {
+      "shape": "wings",
+      "egg_groups": [
+        "flying"
+      ]
+    },
+    "10124": {
+      "shape": "wings",
+      "egg_groups": [
+        "flying"
+      ]
+    },
+    "10125": {
+      "shape": "wings",
+      "egg_groups": [
+        "flying"
+      ]
+    },
+    "10126": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "10127": {
+      "shape": "fish",
+      "egg_groups": [
+        "water2"
+      ]
+    },
+    "10128": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "plant"
+      ]
+    },
+    "10129": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "monster",
+        "dragon"
+      ]
+    },
+    "10130": {
+      "shape": "ball",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "10131": {
+      "shape": "ball",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "10132": {
+      "shape": "ball",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "10133": {
+      "shape": "ball",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "10134": {
+      "shape": "ball",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "10135": {
+      "shape": "ball",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "10136": {
+      "shape": "ball",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "10137": {
+      "shape": "ball",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "10138": {
+      "shape": "ball",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "10139": {
+      "shape": "ball",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "10140": {
+      "shape": "ball",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "10141": {
+      "shape": "ball",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "10142": {
+      "shape": "ball",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "10143": {
+      "shape": "squiggle",
+      "egg_groups": [
+        "indeterminate"
+      ]
+    },
+    "10144": {
+      "shape": "squiggle",
+      "egg_groups": [
+        "indeterminate"
+      ]
+    },
+    "10145": {
+      "shape": "squiggle",
+      "egg_groups": [
+        "indeterminate"
+      ]
+    },
+    "10146": {
+      "shape": "upright",
+      "egg_groups": [
+        "dragon"
+      ]
+    },
+    "10147": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "10148": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground",
+        "fairy"
+      ]
+    },
+    "10149": {
+      "shape": "upright",
+      "egg_groups": [
+        "monster"
+      ]
+    },
+    "10150": {
+      "shape": "bug-wings",
+      "egg_groups": [
+        "bug",
+        "fairy"
+      ]
+    },
+    "10151": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "10152": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "10153": {
+      "shape": "armor",
+      "egg_groups": [
+        "water1",
+        "bug"
+      ]
+    },
+    "10154": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground",
+        "fairy"
+      ]
+    },
+    "10155": {
+      "shape": "arms",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "10156": {
+      "shape": "arms",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "10157": {
+      "shape": "arms",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "10158": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground",
+        "fairy"
+      ]
+    },
+    "10159": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "10160": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground",
+        "fairy"
+      ]
+    },
+    "10161": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "10162": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "10163": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "10164": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "monster",
+        "water1"
+      ]
+    },
+    "10165": {
+      "shape": "upright",
+      "egg_groups": [
+        "monster",
+        "water1"
+      ]
+    },
+    "10166": {
+      "shape": "wings",
+      "egg_groups": [
+        "flying",
+        "ground"
+      ]
+    },
+    "10167": {
+      "shape": "heads",
+      "egg_groups": [
+        "indeterminate"
+      ]
+    },
+    "10168": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "humanshape"
+      ]
+    },
+    "10169": {
+      "shape": "wings",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "10170": {
+      "shape": "wings",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "10171": {
+      "shape": "wings",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "10172": {
+      "shape": "upright",
+      "egg_groups": [
+        "monster",
+        "water1"
+      ]
+    },
+    "10173": {
+      "shape": "armor",
+      "egg_groups": [
+        "water1",
+        "water3"
+      ]
+    },
+    "10174": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "10175": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "10176": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "10177": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "10178": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "10179": {
+      "shape": "arms",
+      "egg_groups": [
+        "mineral",
+        "indeterminate"
+      ]
+    },
+    "10180": {
+      "shape": "fish",
+      "egg_groups": [
+        "water1",
+        "indeterminate"
+      ]
+    },
+    "10181": {
+      "shape": "squiggle",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "10182": {
+      "shape": "wings",
+      "egg_groups": [
+        "water1",
+        "flying"
+      ]
+    },
+    "10183": {
+      "shape": "wings",
+      "egg_groups": [
+        "water1",
+        "flying"
+      ]
+    },
+    "10184": {
+      "shape": "upright",
+      "egg_groups": [
+        "humanshape"
+      ]
+    },
+    "10185": {
+      "shape": "upright",
+      "egg_groups": [
+        "water1",
+        "ground"
+      ]
+    },
+    "10186": {
+      "shape": "upright",
+      "egg_groups": [
+        "fairy"
+      ]
+    },
+    "10187": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "ground",
+        "fairy"
+      ]
+    },
+    "10188": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "10189": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "10190": {
+      "shape": "wings",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "10191": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "10192": {
+      "shape": "upright",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "10193": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "10194": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "10195": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "monster",
+        "plant"
+      ]
+    },
+    "10196": {
+      "shape": "upright",
+      "egg_groups": [
+        "monster",
+        "dragon"
+      ]
+    },
+    "10197": {
+      "shape": "upright",
+      "egg_groups": [
+        "monster",
+        "water1"
+      ]
+    },
+    "10198": {
+      "shape": "bug-wings",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "10199": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground",
+        "fairy"
+      ]
+    },
+    "10200": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "10201": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "humanshape"
+      ]
+    },
+    "10202": {
+      "shape": "upright",
+      "egg_groups": [
+        "indeterminate"
+      ]
+    },
+    "10203": {
+      "shape": "armor",
+      "egg_groups": [
+        "water3"
+      ]
+    },
+    "10204": {
+      "shape": "fish",
+      "egg_groups": [
+        "monster",
+        "water1"
+      ]
+    },
+    "10205": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "10206": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "monster"
+      ]
+    },
+    "10207": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "10208": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "10209": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "ground",
+        "plant"
+      ]
+    },
+    "10210": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground",
+        "humanshape"
+      ]
+    },
+    "10211": {
+      "shape": "upright",
+      "egg_groups": [
+        "water1",
+        "ground"
+      ]
+    },
+    "10212": {
+      "shape": "wings",
+      "egg_groups": [
+        "flying"
+      ]
+    },
+    "10213": {
+      "shape": "wings",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "10214": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "monster",
+        "water1"
+      ]
+    },
+    "10215": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "10216": {
+      "shape": "wings",
+      "egg_groups": [
+        "plant",
+        "dragon"
+      ]
+    },
+    "10217": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "plant",
+        "dragon"
+      ]
+    },
+    "10218": {
+      "shape": "squiggle",
+      "egg_groups": [
+        "ground",
+        "dragon"
+      ]
+    },
+    "10219": {
+      "shape": "upright",
+      "egg_groups": [
+        "humanshape"
+      ]
+    },
+    "10220": {
+      "shape": "tentacles",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "10221": {
+      "shape": "blob",
+      "egg_groups": [
+        "fairy"
+      ]
+    },
+    "10222": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "fairy",
+        "humanshape"
+      ]
+    },
+    "10223": {
+      "shape": "blob",
+      "egg_groups": [
+        "fairy",
+        "indeterminate"
+      ]
+    },
+    "10224": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground",
+        "mineral"
+      ]
+    },
+    "10225": {
+      "shape": "upright",
+      "egg_groups": [
+        "mineral",
+        "dragon"
+      ]
+    },
+    "10226": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "10227": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "10228": {
+      "shape": "upright",
+      "egg_groups": [
+        "humanshape"
+      ]
+    },
+    "10229": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "10230": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "10231": {
+      "shape": "ball",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "10232": {
+      "shape": "ball",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "10233": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "10234": {
+      "shape": "fish",
+      "egg_groups": [
+        "water2"
+      ]
+    },
+    "10235": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "10236": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "10237": {
+      "shape": "blob",
+      "egg_groups": [
+        "plant"
+      ]
+    },
+    "10238": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "10239": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "10240": {
+      "shape": "wings",
+      "egg_groups": [
+        "flying"
+      ]
+    },
+    "10241": {
+      "shape": "squiggle",
+      "egg_groups": [
+        "dragon"
+      ]
+    },
+    "10242": {
+      "shape": "upright",
+      "egg_groups": [
+        "dragon"
+      ]
+    },
+    "10243": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "monster",
+        "mineral"
+      ]
+    },
+    "10244": {
+      "shape": "wings",
+      "egg_groups": [
+        "flying"
+      ]
+    },
+    "10245": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "10246": {
+      "shape": "upright",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "10247": {
+      "shape": "fish",
+      "egg_groups": [
+        "water2"
+      ]
+    },
+    "10248": {
+      "shape": "fish",
+      "egg_groups": [
+        "water2"
+      ]
+    },
+    "10249": {
+      "shape": "arms",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "10250": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "10251": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "10252": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "10253": {
+      "shape": "legs",
+      "egg_groups": [
+        "water1",
+        "ground"
+      ]
+    },
+    "10254": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "10255": {
+      "shape": "squiggle",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "10256": {
+      "shape": "fish",
+      "egg_groups": [
+        "ground",
+        "water2"
+      ]
+    },
+    "10257": {
+      "shape": "heads",
+      "egg_groups": [
+        "ground",
+        "fairy"
+      ]
+    },
+    "10258": {
+      "shape": "fish",
+      "egg_groups": [
+        "water2"
+      ]
+    },
+    "10259": {
+      "shape": "fish",
+      "egg_groups": [
+        "water2"
+      ]
+    },
+    "10260": {
+      "shape": "wings",
+      "egg_groups": [
+        "flying"
+      ]
+    },
+    "10261": {
+      "shape": "wings",
+      "egg_groups": [
+        "flying"
+      ]
+    },
+    "10262": {
+      "shape": "wings",
+      "egg_groups": [
+        "flying"
+      ]
+    },
+    "10263": {
+      "shape": "blob",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "10264": {
+      "shape": "upright",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "10265": {
+      "shape": "upright",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "10266": {
+      "shape": "upright",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "10267": {
+      "shape": "upright",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "10268": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "10269": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "10270": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "10271": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "10272": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "10273": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "10274": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "10275": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "10276": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "10277": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "10278": {
+      "shape": "upright",
+      "egg_groups": [
+        "fairy"
+      ]
+    },
+    "10279": {
+      "shape": "blob",
+      "egg_groups": [
+        "plant"
+      ]
+    },
+    "10280": {
+      "shape": "blob",
+      "egg_groups": [
+        "water3"
+      ]
+    },
+    "10281": {
+      "shape": "upright",
+      "egg_groups": [
+        "water1",
+        "dragon"
+      ]
+    },
+    "10282": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "monster",
+        "plant"
+      ]
+    },
+    "10283": {
+      "shape": "upright",
+      "egg_groups": [
+        "monster",
+        "water1"
+      ]
+    },
+    "10284": {
+      "shape": "wings",
+      "egg_groups": [
+        "flying"
+      ]
+    },
+    "10285": {
+      "shape": "arms",
+      "egg_groups": [
+        "fairy",
+        "mineral"
+      ]
+    },
+    "10286": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "10287": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "10288": {
+      "shape": "armor",
+      "egg_groups": [
+        "bug"
+      ]
+    },
+    "10289": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground",
+        "dragon"
+      ]
+    },
+    "10290": {
+      "shape": "fish",
+      "egg_groups": [
+        "indeterminate"
+      ]
+    },
+    "10291": {
+      "shape": "arms",
+      "egg_groups": [
+        "indeterminate"
+      ]
+    },
+    "10292": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "10293": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "10294": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "water1"
+      ]
+    },
+    "10295": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "10296": {
+      "shape": "arms",
+      "egg_groups": [
+        "fairy"
+      ]
+    },
+    "10297": {
+      "shape": "blob",
+      "egg_groups": [
+        "water1",
+        "water2"
+      ]
+    },
+    "10298": {
+      "shape": "heads",
+      "egg_groups": [
+        "water3"
+      ]
+    },
+    "10299": {
+      "shape": "blob",
+      "egg_groups": [
+        "water1",
+        "dragon"
+      ]
+    },
+    "10300": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "flying",
+        "humanshape"
+      ]
+    },
+    "10301": {
+      "shape": "squiggle",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "10302": {
+      "shape": "squiggle",
+      "egg_groups": [
+        "monster",
+        "dragon"
+      ]
+    },
+    "10303": {
+      "shape": "heads",
+      "egg_groups": [
+        "fairy",
+        "mineral"
+      ]
+    },
+    "10304": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground",
+        "fairy"
+      ]
+    },
+    "10305": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground",
+        "fairy"
+      ]
+    },
+    "10306": {
+      "shape": "arms",
+      "egg_groups": [
+        "indeterminate"
+      ]
+    },
+    "10307": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "10308": {
+      "shape": "wings",
+      "egg_groups": [
+        "flying"
+      ]
+    },
+    "10309": {
+      "shape": "upright",
+      "egg_groups": [
+        "monster",
+        "dragon"
+      ]
+    },
+    "10310": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground",
+        "humanshape"
+      ]
+    },
+    "10311": {
+      "shape": "quadruped",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "10312": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "10313": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "10314": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground"
+      ]
+    },
+    "10315": {
+      "shape": "armor",
+      "egg_groups": [
+        "water3"
+      ]
+    },
+    "10316": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "bug",
+        "water3"
+      ]
+    },
+    "10317": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "10318": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "10319": {
+      "shape": "humanoid",
+      "egg_groups": [
+        "no-eggs"
+      ]
+    },
+    "10320": {
+      "shape": "upright",
+      "egg_groups": [
+        "plant"
+      ]
+    },
+    "10321": {
+      "shape": "ball",
+      "egg_groups": [
+        "mineral"
+      ]
+    },
+    "10322": {
+      "shape": "fish",
+      "egg_groups": [
+        "water2"
+      ]
+    },
+    "10323": {
+      "shape": "fish",
+      "egg_groups": [
+        "water2"
+      ]
+    },
+    "10324": {
+      "shape": "fish",
+      "egg_groups": [
+        "water2"
+      ]
+    },
+    "10325": {
+      "shape": "upright",
+      "egg_groups": [
+        "mineral",
+        "dragon"
+      ]
+    },
+    "10326": {
+      "shape": "upright",
+      "egg_groups": [
+        "ground"
+      ]
+    }
+  }
+}

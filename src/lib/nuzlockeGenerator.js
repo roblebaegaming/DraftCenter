@@ -122,26 +122,40 @@ function matchesConditionSelections(entry, options) {
 function themeSettings(options) {
   const type = String(options.themeType || "any");
   const color = String(options.themeColor || "any");
+  const shape = String(options.themeShape || "any");
+  const eggGroup = String(options.themeEggGroup || "any");
   const evolutionStage = String(options.evolutionStage || "any");
   const catalog = options.themeCatalog;
   if (!EVOLUTION_STAGES.has(evolutionStage)) throw new Error("Unknown Nuzlocke evolution-stage theme.");
   if (type !== "any" && !catalog?.types?.includes(type)) throw new Error("Unknown Nuzlocke type theme.");
   if (color !== "any" && !catalog?.colors?.includes(color)) throw new Error("Unknown Nuzlocke color theme.");
-  return { type, color, evolutionStage, catalog };
+  if (shape !== "any" && !options.availableShapes?.includes(shape)) throw new Error("Unknown Pokédex shape theme.");
+  if (eggGroup !== "any" && !options.availableEggGroups?.includes(eggGroup)) throw new Error("Unknown Pokémon Egg Group theme.");
+  return { type, color, shape, eggGroup, evolutionStage, catalog, pokemonTraits: options.pokemonTraits };
 }
 
-function matchesTheme(entry, theme) {
-  if (theme.type === "any" && theme.color === "any" && theme.evolutionStage === "any") return true;
-  const pokemonId = Number(entry?.encounter_pokemon_id || entry?.pokemon_id);
-  const profile = theme.catalog?.profiles?.[pokemonId];
-  if (!profile) throw new Error("Nuzlocke theme data is incomplete for this game's encounter pool.");
-  if (theme.type !== "any" && !profile.types?.includes(theme.type)) return false;
-  if (theme.color !== "any" && profile.color !== theme.color) return false;
-  const canEvolve = theme.catalog.can_evolve?.includes(pokemonId) === true;
-  if (theme.evolutionStage === "base" && profile.base_stage !== true) return false;
-  if (theme.evolutionStage === "not-final" && !canEvolve) return false;
-  if (theme.evolutionStage === "non-evolving" && (profile.base_stage !== true || profile.has_evolution !== false)) return false;
+function matchesSpeciesTheme(entry, theme) {
+  if (theme.shape === "any" && theme.eggGroup === "any") return true;
+  const traits = theme.pokemonTraits?.[String(entry?.pokemon_id || "")];
+  if (!traits) throw new Error("Pokédex shape and Egg Group data is incomplete for this game's encounter pool.");
+  if (theme.shape !== "any" && traits.shape !== theme.shape) return false;
+  if (theme.eggGroup !== "any" && !traits.egg_groups?.includes(theme.eggGroup)) return false;
   return true;
+}
+
+function matchesTheme(entry, theme, { includeSpecies = true } = {}) {
+  if (theme.type !== "any" || theme.color !== "any" || theme.evolutionStage !== "any") {
+    const pokemonId = Number(entry?.encounter_pokemon_id || entry?.pokemon_id);
+    const profile = theme.catalog?.profiles?.[pokemonId];
+    if (!profile) throw new Error("Nuzlocke theme data is incomplete for this game's encounter pool.");
+    if (theme.type !== "any" && !profile.types?.includes(theme.type)) return false;
+    if (theme.color !== "any" && profile.color !== theme.color) return false;
+    const canEvolve = theme.catalog.can_evolve?.includes(pokemonId) === true;
+    if (theme.evolutionStage === "base" && profile.base_stage !== true) return false;
+    if (theme.evolutionStage === "not-final" && !canEvolve) return false;
+    if (theme.evolutionStage === "non-evolving" && (profile.base_stage !== true || profile.has_evolution !== false)) return false;
+  }
+  return includeSpecies ? matchesSpeciesTheme(entry, theme) : true;
 }
 
 export function generateNuzlockeTeam(encounters, options = {}) {
@@ -163,14 +177,14 @@ export function generateNuzlockeTeam(encounters, options = {}) {
   const excluded = new Set((options.exclusions || []).map((value) => String(value).toLowerCase()));
   const sourceStarterChoices = Array.isArray(options.starters) ? options.starters.filter((entry) => {
     const identities = [entry?.pokemon_name, entry?.pokemon_id].filter((value) => value != null).map((value) => String(value).toLowerCase());
-    return entry?.pokemon_name && !identities.some((value) => excluded.has(value)) && matchesTheme(entry, theme);
+    return entry?.pokemon_name && !identities.some((value) => excluded.has(value)) && matchesTheme(entry, theme, { includeSpecies: false });
   }) : [];
   const starterChoices = options.includeStarter
     ? applyFinalEvolutions(sourceStarterChoices, options).filter((entry) => {
         const identities = [entry?.pokemon_name, entry?.pokemon_id, entry?.encounter_pokemon_name, entry?.encounter_pokemon_id]
           .filter((value) => value != null)
           .map((value) => String(value).toLowerCase());
-        return !identities.some((value) => excluded.has(value));
+        return !identities.some((value) => excluded.has(value)) && matchesSpeciesTheme(entry, theme);
       })
     : sourceStarterChoices;
   const starter = options.includeStarter && starterChoices.length
@@ -263,6 +277,6 @@ export function generateNuzlockeTeam(encounters, options = {}) {
     includeStarter: options.includeStarter === true,
     conditionSelections: effectiveConditionSelections,
     finalEvolutionOnly: options.finalEvolutionOnly === true,
-    theme: { type: theme.type, color: theme.color, evolutionStage: theme.evolutionStage },
+    theme: { type: theme.type, color: theme.color, shape: theme.shape, eggGroup: theme.eggGroup, evolutionStage: theme.evolutionStage },
   };
 }

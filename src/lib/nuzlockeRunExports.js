@@ -85,6 +85,8 @@ export function nuzlockeRulesFromShareUrl(shareUrl) {
   if (params.get("evolutions") === "final") rules.push("Display: Final evolutions available in this game");
   if (params.get("type")) rules.push(`Type theme: ${titleCase(params.get("type"))}`);
   if (params.get("color")) rules.push(`Color theme: ${titleCase(params.get("color"))}`);
+  if (params.get("shape")) rules.push(`Pokédex shape theme: ${titleCase(params.get("shape"))}`);
+  if (params.get("egg_group")) rules.push(`Egg Group theme: ${titleCase(params.get("egg_group"))}`);
   const stage = { base: "Base-stage Pokémon only", "not-final": "Pokémon that can still evolve", "non-evolving": "Naturally non-evolving Pokémon only" }[params.get("stage")];
   if (stage) rules.push(`Evolution theme: ${stage}`);
   const methods = cleanText(params.get("methods"), 1200).split(",").map(titleCase).filter(Boolean).slice(0, 30);
