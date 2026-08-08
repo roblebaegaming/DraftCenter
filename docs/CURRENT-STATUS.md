@@ -3,26 +3,25 @@
 - Last updated: August 8, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified functional production release: `10eef31`
-- Latest production migration: 352
+- Verified functional production release: `b44277a`
+- Latest production migration: 353
 
 ## Status
 
 Production includes the multi-pod organization foundation from pull request
-82 at commit `34069d0`, forward-only migrations 350-352, and the subsequent
-Nuzlocke team-generation refresh at current `main` commit `10eef31`. The
-organization schema remains private by default, the retained Preview branch is
-still available, and no real league has been attached to an organization.
+82, the restored owner Operations navigation from pull request 84, and the
+commissioner workspace from pull request 85. Current `main` commit `b44277a`
+and migration 353 are deployed and verified. The organization schema remains
+private by default, the retained `multi-pod-pr-82` Preview branch is still
+available, and no real league has been attached to an organization for release
+testing.
 
-Owner Operations navigation restoration is ready in pull request 84 with all
-applicable checks passing and no database change. It has not been merged. The
-next multi-pod commissioner-workspace slice is isolated on
-`codex/multi-pod-organization-hub-2026-08-08` in pull request 85, which is
-ready for review with all protected checks passing.
-Migration 353 and the expanded multi-account database regression pass on the
-retained `multi-pod-pr-82` Supabase Preview branch. The Preview fixtures were
-removed and verified absent. Migration 353 and its UI are not applied or
-deployed to production.
+The production release passed the refreshed application suite, dependency
+audit, National Dex verification, production build, CodeQL, security and
+dependency checks, full-history secret scan, exact Vercel deployment check,
+database RLS/grant audit, and signed-out production smoke sweep. Preview
+fixtures were removed and verified absent before release. No merge protection
+was bypassed.
 
 The August 7 tournament hardening release is live at production commit
 `20f55ac`, the squash merge of pull request 80. Native browser confirmations
@@ -102,16 +101,21 @@ the technical SEO foundation, expanded competitive resources and format data,
 source-attributed competitive ladder and tournament evidence on Pokémon
 profiles.
 
-Vercel reports current `main` release `10eef31` Ready. The signed-out
-production smoke sweep passes. Live mobile review confirmed Roster Connections
-is public, usable without an account, persists progress in the current browser,
-and has no horizontal overflow. The reorganized header, five-slot tool bar, and
-grouped footer remain live. Earlier tournament review confirmed the public
-organizer page, signed-out empty state, sign-in boundary, and clean browser
-console. Pokémon profiles also expose bounded, source-attributed ladder and
-anonymous tournament aggregates without making the underlying tables public.
+Vercel reports current `main` release `b44277a` Ready. Pull request 84 restored
+the owner-only Operations navigation in production commit `1b29b8c`; pull
+request 85 then released the multi-pod commissioner workspace in `b44277a`.
+The signed-out production smoke sweep passes, protected Operations and recovery
+APIs still return 401 without a session, and `/organizations` presents the
+expected sign-in boundary. Live mobile review previously confirmed Roster
+Connections is public, usable without an account, persists progress in the
+current browser, and has no horizontal overflow. The reorganized header,
+five-slot tool bar, and grouped footer remain live. Earlier tournament review
+confirmed the public organizer page, signed-out empty state, sign-in boundary,
+and clean browser console. Pokémon profiles also expose bounded,
+source-attributed ladder and anonymous tournament aggregates without making the
+underlying tables public.
 
-Production migrations are collision-free through 352. Migration 343 restores
+Production migrations are collision-free through 353. Migration 343 restores
 the Daily Games bracket champion ranking function with a fixed search path,
 least-privilege grants, and anonymous current-day privacy. Migrations 344–347
 add reviewed competitive datasets behind RLS and bounded aggregate RPCs. The
@@ -128,14 +132,17 @@ Migrations 350-352 provide the private-by-default multi-pod organization
 foundation, the forward-only championship-mapping cleanup correction, and
 hardened season-rule and audit-sequence boundaries.
 
-Migration 353 is Preview-only. It adds the commissioner workspace, one-time
-hashed administrator invitations, shared-regulation confirmation,
-revision-aware season launch, and public organization pages. Its Preview
-regression verifies all nine organization tables have RLS, browser roles have
-no direct table access, owner and delegated-administrator actions remain
-bounded, two reviewed practice pods can launch, and every synthetic fixture is
-removed. Production remains at migration 352 pending protected review and
-explicit approval.
+Migration 353 adds the commissioner workspace, one-time hashed administrator
+invitations, shared-regulation confirmation, revision-aware season launch, and
+public organization pages. It was validated first on the retained isolated
+Preview branch and then applied once to the exact core production project after
+the protected merge. The production audit confirms all nine organization
+tables use RLS, browser roles have no direct table or audit-sequence access,
+service-role access remains intact, RPC grants match the intended public and
+authenticated boundaries, and the new branding constraints, invitation index,
+and security-definer search paths are present. No real league was attached or
+changed during release validation, and the retained Preview branch was not
+deleted.
 
 The application-side SEO backlog from the first crawl is substantially
 implemented: meaningful raw-HTML H1 content, fragment-based Pokédex selection,
