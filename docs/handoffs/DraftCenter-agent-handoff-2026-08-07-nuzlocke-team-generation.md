@@ -2,17 +2,19 @@
 
 ## Current state
 
-- Status: Preview candidate; production is unchanged
+- Status: merged and verified in production
 - Branch: `codex/nuzlocke-team-order`
 - Pull request: [#77](https://github.com/roblebaegaming/DraftCenter/pull/77)
-- Preview: <https://draftcenter-git-codex-nuzlocke-team-order-rob-lebae.vercel.app/nuzlocke>
-- Current base: `e64ad33` (`main` after the Roster Connections release record)
+- Production commit: `10eef31d716665c37ee5b207959fea0f8cfce7ec`
+- Final branch integration commit: `b966da361553bfa2af0b02527cea6c292d9869e9`
 - Database migrations: none
 
-This branch is based on the latest `main` and includes the concurrent global
-mobile-navigation and Roster Connections releases. The existing user work was
-preserved, and no production data, provider configuration, environment
-variable, league, draft, roster, tournament, or account record was changed.
+Before merge, current `main` was integrated into the feature branch so it
+preserved the concurrent global navigation, Roster Connections, tournament
+hardening, and multi-pod foundation work. The exact pull-request delta remained
+limited to the intended Nuzlocke files. No production data, provider
+configuration, environment variable, league, draft, roster, tournament, or
+account record changed.
 
 ## Product outcome
 
@@ -139,17 +141,22 @@ and Preview-comment checks. Supabase Preview was correctly skipped because the
 branch contains no migration. The documentation commit will trigger a fresh
 protected-check run.
 
-## Remaining release steps
+## Release completion
 
-1. Wait for the documentation commit's refreshed PR checks to finish.
-2. Have the owner review the hosted Preview, especially consecutive Builds,
-   exact shared-link replay, and the level-informed order.
-3. Merge PR #77 only after explicit owner approval.
-4. Confirm Vercel reports the exact merged `main` commit Ready and current.
-5. Run `npm run smoke:production` signed out.
-6. Repeat the live 390-by-844 Red and Scarlet checks on production.
-7. Update `docs/CURRENT-STATUS.md` and this handoff with the merged commit and
-   production evidence through a documentation-only protected pull request.
+Completed August 7:
 
-Do not claim this change is live before those steps complete. No Supabase
-migration or production provider change is expected.
+1. Merged current `main` into the feature branch without broadening the
+   intended Nuzlocke delta.
+2. Re-ran the dependency audit, 60 Nuzlocke tests, 12 SEO tests, complete test
+   suite, 1,027-row National Dex verification, and 179-page build.
+3. Repeated the 390-by-844 Preview check for consecutive fresh teams, exact
+   shared-link replay, Red and Scarlet order, and horizontal overflow.
+4. Squash-merged pull request 77 as `10eef31` after protected checks passed.
+5. Confirmed Vercel reported that exact production commit successful and ran
+   the signed-out production smoke sweep.
+6. Repeated the live 390-by-844 checks: consecutive Red teams differed, the
+   first generated link reproduced exactly, Scarlet remained level ordered,
+   and neither game overflowed or logged a browser warning or error.
+
+The release is complete. No Supabase migration or production provider change
+was required.

@@ -5,16 +5,19 @@
 - Branch: `codex/multi-pod-foundation-2026-08-07`
 - Pull request: [#82](https://github.com/roblebaegaming/DraftCenter/pull/82)
 - Implementation commit: `3be575a98e1a5fb99bea2f1ba2e8d3d58f12553e`
+- Main merge commit: `34069d0`
 - Supabase Preview branch: `multi-pod-pr-82`
-- Production status: not merged, not deployed, and migrations 350-352 not applied
+- Production status: merged into `main`; no user interface; migrations 350-352
+  remain documented as not applied to production
 
 ## Outcome
 
-The first infrastructure phase for multi-pod draft-league organizations is in
-a pull request that is ready for review. It adds a private-by-default
+The first infrastructure phase for multi-pod draft-league organizations is
+merged into `main`. It adds a private-by-default
 organization, season, pod, qualifier snapshot, and connected-championship data
-contract without exposing an unfinished user interface or changing any
-existing league.
+contract without exposing an unfinished user interface. The application merge
+does not by itself deploy its database schema; migrations 350-352 still require
+the exact production project identity and separate owner approval.
 
 Each pod remains an ordinary DraftCenter league and keeps the existing draft,
 schedule, standings, roster, transaction, replacement, and commissioner
@@ -142,8 +145,8 @@ The branch remains billable while retained.
 
 ## Recommended next implementation
 
-1. Refresh the complete repository and CI gates for migrations 350-352, review
-   the retained Preview evidence, and move PR #82 through protected review.
+1. Obtain exact-project owner approval and apply migrations 350-352 through the
+   production release procedure before exposing any multi-pod interface.
 2. Add organization branding, administrator invitations, shared-regulation
    review, and pod linking behind the migrated schema.
 3. Add season launch only after every pod confirms the shared regulations.

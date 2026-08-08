@@ -1,9 +1,21 @@
 # Agent handoffs
 
+[`DraftCenter-agent-handoff-2026-08-07-tournament-commissioner-recovery.md`](DraftCenter-agent-handoff-2026-08-07-tournament-commissioner-recovery.md)
+is the current continuation handoff. It records the recovery release candidate,
+migration 353, the identity-safe replacement model, validation, production
+boundaries, and remaining protected-release gates.
+
+[`DraftCenter-agent-handoff-2026-08-07-multi-pod-foundation.md`](DraftCenter-agent-handoff-2026-08-07-multi-pod-foundation.md)
+records the separately owned pod infrastructure and the critical distinction
+between its merged application files and migrations 350-352, which remain
+documented as not production-applied.
+
+[`DraftCenter-agent-handoff-2026-08-07-nuzlocke-team-generation.md`](DraftCenter-agent-handoff-2026-08-07-nuzlocke-team-generation.md)
+records the completed pull request 77 production release.
+
 [`DraftCenter-agent-handoff-2026-08-07-tournament-hardening-release.md`](DraftCenter-agent-handoff-2026-08-07-tournament-hardening-release.md)
-is the current continuation handoff. It records the deployed confirmation,
-accessibility, selectable-round, 64-entrant, dependency, and roadmap hardening
-release plus the next commissioner-recovery boundary.
+remains the deployed confirmation, accessibility, selectable-round,
+64-entrant, dependency, and roadmap hardening record.
 
 [`DraftCenter-agent-handoff-2026-08-06-seo-expansion.md`](DraftCenter-agent-handoff-2026-08-06-seo-expansion.md)
 remains the SEO continuation record. It covers the first post-release crawl,
