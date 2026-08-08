@@ -670,7 +670,12 @@ begin
   where season.id = v_primary_season;
 
   select count(*) >= 5
-    and bool_and(actor_id = v_owner)
+    and bool_and(
+      case
+        when kind = 'administrator_invite_accepted' then actor_id = v_other
+        else actor_id = v_owner
+      end
+    )
     and bool_and(kind = any(array[
       'organization_created',
       'season_created',

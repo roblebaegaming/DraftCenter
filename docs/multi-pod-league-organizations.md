@@ -124,7 +124,11 @@ percentage rule without changing the source leagues.
 
 Migrations 350-352 were verified on the retained Supabase Preview branch and
 then released through protected pull request 82. Migration 353 and the
-commissioner workspace remain unreleased until their own Preview regression,
-RLS/grant review, application Preview review, protected checks, and explicit
-production approval finish. No real league should be attached for testing;
-use an isolated organization and practice leagues.
+commissioner workspace remain unreleased in draft pull request 85. Migration
+353 and the expanded database regression pass on the retained Preview branch:
+all nine organization tables use RLS, browser roles have no direct table
+access, owner and invited-administrator actions remain bounded, two reviewed
+practice pods can launch, and every synthetic fixture is removed. Application
+Preview review and protected checks must still be reviewed before explicit
+production approval. No real league should be attached for testing; use only
+isolated practice fixtures.

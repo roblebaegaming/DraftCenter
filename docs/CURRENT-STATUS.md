@@ -17,8 +17,11 @@ still available, and no real league has been attached to an organization.
 Owner Operations navigation restoration is ready in pull request 84 with all
 applicable checks passing and no database change. It has not been merged. The
 next multi-pod commissioner-workspace slice is isolated on
-`codex/multi-pod-organization-hub-2026-08-08`; migration 353 and its UI are not
-yet applied or deployed.
+`codex/multi-pod-organization-hub-2026-08-08` in draft pull request 85.
+Migration 353 and the expanded multi-account database regression pass on the
+retained `multi-pod-pr-82` Supabase Preview branch. The Preview fixtures were
+removed and verified absent. Migration 353 and its UI are not applied or
+deployed to production.
 
 The August 7 tournament hardening release is live at production commit
 `20f55ac`, the squash merge of pull request 80. Native browser confirmations
@@ -124,6 +127,15 @@ Migrations 350-352 provide the private-by-default multi-pod organization
 foundation, the forward-only championship-mapping cleanup correction, and
 hardened season-rule and audit-sequence boundaries.
 
+Migration 353 is Preview-only. It adds the commissioner workspace, one-time
+hashed administrator invitations, shared-regulation confirmation,
+revision-aware season launch, and public organization pages. Its Preview
+regression verifies all nine organization tables have RLS, browser roles have
+no direct table access, owner and delegated-administrator actions remain
+bounded, two reviewed practice pods can launch, and every synthetic fixture is
+removed. Production remains at migration 352 pending protected review and
+explicit approval.
+
 The application-side SEO backlog from the first crawl is substantially
 implemented: meaningful raw-HTML H1 content, fragment-based Pokédex selection,
 shorter guide titles, a documented form-canonical policy, useful related links,
@@ -152,6 +164,8 @@ an authenticated account session and have not been represented as completed.
 
 ## Authoritative records
 
+- Multi-pod commissioner workspace handoff:
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-08-multi-pod-commissioner-workspace.md`](handoffs/DraftCenter-agent-handoff-2026-08-08-multi-pod-commissioner-workspace.md)
 - Tournament hardening release record:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-07-tournament-hardening-release.md`](handoffs/DraftCenter-agent-handoff-2026-08-07-tournament-hardening-release.md)
 - Production reconciliation and cross-agent merge handoff:
