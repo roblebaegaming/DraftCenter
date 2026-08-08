@@ -15,9 +15,10 @@ Qualification automation is open and ready for review in [pull request
 unmerged and undeployed with migrations 356-358 only on the retained Preview
 branch.
 
-Connected championships are implemented on the stacked branch
-`codex/multi-pod-connected-championships-2026-08-08`. This branch depends on
-pull request 91 and is not merged, applied to production, or deployed.
+Connected championships are open and ready for review in stacked [pull request
+92](https://github.com/roblebaegaming/DraftCenter/pull/92) on branch
+`codex/multi-pod-connected-championships-2026-08-08`. This pull request depends
+on pull request 91 and is not merged, applied to production, or deployed.
 
 ## Connected championship behavior
 
@@ -90,8 +91,8 @@ fixtures remain.
 - The original DraftCenter workspace's 37 pre-existing changed paths remain
   untouched.
 - Do not delete the retained `multi-pod-pr-82` Preview branch.
-- Review and release pull request 91 first. Connected championships must stay
-  stacked until qualification is accepted.
+- Review and release pull request 91 first. Pull request 92 must stay stacked
+  until qualification is accepted.
 - Each production database promotion and merge remains a separate approval.
 - The Draft Tournament concept is still separate and incomplete; it needs one
   event draft, roster lock, Swiss rounds, and optional top cut.

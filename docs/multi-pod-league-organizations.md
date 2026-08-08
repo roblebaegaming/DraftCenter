@@ -182,8 +182,8 @@ routine cleanup.
 Qualification automation is in pull request 91 and is not deployed.
 Migrations 356-358 and the synthetic matrix pass on the retained
 `multi-pod-pr-82` Preview branch; every synthetic league, organization, run,
-candidate, qualifier, and account was removed. Connected championships are on
-the separate stacked review branch with migrations 359-360; their single and
+candidate, qualifier, and account was removed. Connected championships are in
+stacked pull request 92 with migrations 359-360; their single and
 double matrices and independent grants/trigger/residue audit also pass with
 all synthetic fixtures removed. Neither review layer has been applied to
 production. No real league should be attached merely to test them.

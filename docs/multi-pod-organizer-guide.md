@@ -49,7 +49,7 @@ reviewed season, and show a public organization page. These actions do not
 alter the linked leagues.
 
 Qualification automation is in pull request 91, and connected championships
-are implemented on the separate stacked review branch. Both pass on the
+are in stacked pull request 92. Both pass on the
 retained Supabase Preview branch, but neither is merged or deployed. Until
 those releases are approved in order, production does not expose their
 qualification or championship controls.

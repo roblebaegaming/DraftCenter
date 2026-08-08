@@ -80,7 +80,8 @@ synthetic qualification transaction matrix and an independent grants, RLS,
 function-search-path, cascade, and residue audit. It is not merged, applied to
 production, or deployed.
 
-Connected championships are implemented as a stacked review branch,
+Connected championships are implemented in stacked [pull request
+92](https://github.com/roblebaegaming/DraftCenter/pull/92) on branch
 `codex/multi-pod-connected-championships-2026-08-08`, with migrations 359-360.
 The retained Preview branch passes owner-only promotion, single- and
 double-elimination bracket construction, three seeding policies, extra-entrant
