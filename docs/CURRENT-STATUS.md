@@ -3,10 +3,16 @@
 - Last updated: August 8, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified production application commit: `a1bf843`
-- Latest production migration: 354
+- Verified production application commit: `cbec434f00473c190731a35eb25b541d5311e5ca`
+- Latest production migration: 355
 
 ## Deployed state
+
+Standalone double elimination shipped through pull request 90 at production
+commit `cbec434f00473c190731a35eb25b541d5311e5ca`. Migration 355 is applied to
+the exact core production project. The production grant/RLS audit, Vercel
+commit check, signed-out smoke sweep, and live `/tournaments` browser check all
+passed.
 
 DraftCenter production includes the multi-pod organization foundation and
 commissioner workspace, the owner-only Operations navigation, tournament
@@ -27,10 +33,11 @@ species and all 1,351 PokeAPI battle profiles. Shape and Egg Group filters can
 be combined with the existing type, color, and evolution-stage themes, apply to
 every displayed team member, and persist in shared links and Run Card exports.
 
-Production migrations are forward-only and collision-free through 354.
+Production migrations are forward-only and collision-free through 355.
 Migrations 350-353 provide the private multi-pod organization schema,
 championship mapping correction, shared season-rule boundaries, and
-commissioner workspace. Migration 354 adds tournament recovery.
+  commissioner workspace. Migration 354 adds tournament recovery, and
+  migration 355 adds double-elimination tournament graphs and locking.
 
 ## Release verification
 
@@ -65,12 +72,13 @@ No deployment work remains for pull requests 83 or 87. Continue normal
 production monitoring for tournament recovery, organization commissioner
 workflows, Nuzlocke generation, and the new species filters.
 
-Standalone double elimination is implemented on branch
-`codex/standalone-double-elimination-2026-08-08` with forward migration 355.
-The full application checks pass, and migration 355 plus its synthetic
-transaction matrix pass in the isolated `double-elimination-pr-2026-08-08`
-Supabase Preview branch. It is not merged, applied to production, or deployed.
-The Preview branch remains billable until an explicit cleanup decision.
+Multi-pod qualification automation is implemented on branch
+`codex/multi-pod-qualification-2026-08-08` with forward migrations 356-358.
+The retained `multi-pod-pr-82` Supabase Preview branch passes the complete
+synthetic qualification transaction matrix and an independent grants, RLS,
+function-search-path, cascade, and residue audit. It is not merged, applied to
+production, or deployed. Connected championships remain the next multi-pod
+phase after qualification review.
 
 The August 8 external SEO measurement is complete. The 1,544-page Semrush
 crawl, existing Position Tracking baseline, and Search Console performance,
@@ -82,6 +90,8 @@ limit; the existing Australia history was preserved.
 ## Authoritative records
 
 - Current continuation handoff:
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-08-multi-pod-qualification-automation.md`](handoffs/DraftCenter-agent-handoff-2026-08-08-multi-pod-qualification-automation.md)
+- Double-elimination production and SEO checkpoint:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-08-double-elimination-and-seo.md`](handoffs/DraftCenter-agent-handoff-2026-08-08-double-elimination-and-seo.md)
 - Previous production verification:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-08-final-production-verification.md`](handoffs/DraftCenter-agent-handoff-2026-08-08-final-production-verification.md)

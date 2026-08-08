@@ -8,6 +8,7 @@ import {
   multiPodAdministratorInviteUrl,
   multiPodAttachmentRpcArguments,
   multiPodOrganizationUpdateRpcArguments,
+  multiPodQualificationDrawRpcArguments,
   multiPodSeasonRpcArguments,
   normalizeMultiPodQualificationRules,
 } from "../src/lib/multiPodLeague.js";
@@ -26,6 +27,18 @@ const hardeningSql = fs.readFileSync(
 );
 const workspaceSql = fs.readFileSync(
   new URL("../supabase/353-multi-pod-commissioner-workspace.sql", import.meta.url),
+  "utf8",
+);
+const qualificationSql = fs.readFileSync(
+  new URL("../supabase/356-multi-pod-qualification-automation.sql", import.meta.url),
+  "utf8",
+);
+const qualificationDigestFixSql = fs.readFileSync(
+  new URL("../supabase/357-fix-multi-pod-qualification-digest-path.sql", import.meta.url),
+  "utf8",
+);
+const qualificationCleanupFixSql = fs.readFileSync(
+  new URL("../supabase/358-fix-multi-pod-qualification-candidate-cleanup.sql", import.meta.url),
   "utf8",
 );
 const workspaceUi = fs.readFileSync(
@@ -70,11 +83,12 @@ test("qualification settings are bounded and deterministic", () => {
   assert.deepEqual(normalizeMultiPodQualificationRules(), {
     topPerPod: 2,
     wildcardSlots: 0,
-    tiebreakers: ["wins", "differential", "head-to-head"],
+    tiebreakers: ["wins", "differential", "head-to-head", "commissioner-draw"],
   });
   assert.throws(() => normalizeMultiPodQualificationRules({ topPerPod: 0 }), /between 1 and 16/);
   assert.throws(() => normalizeMultiPodQualificationRules({ tiebreakers: ["coin-flip"] }), /supported tiebreakers/);
   assert.throws(() => normalizeMultiPodQualificationRules({ tiebreakers: ["wins", "wins"] }), /only once/);
+  assert.throws(() => normalizeMultiPodQualificationRules({ tiebreakers: ["commissioner-draw", "wins"] }), /final tiebreaker/);
 });
 
 test("organization branding and administrator invitation arguments are bounded", () => {
@@ -117,7 +131,7 @@ test("application service arguments match the bounded database functions", () =>
     p_regulations: { format: "Paldea Dex" },
     p_top_per_pod: 2,
     p_wildcard_slots: 1,
-    p_tiebreakers: ["wins", "differential", "head-to-head"],
+    p_tiebreakers: ["wins", "differential", "head-to-head", "commissioner-draw"],
   });
   assert.deepEqual(multiPodAttachmentRpcArguments({
     seasonId: "season-id",
@@ -133,6 +147,15 @@ test("application service arguments match the bounded database functions", () =>
     p_league_season_number: 3,
     p_qualification_spots: null,
   });
+});
+
+test("qualification draw arguments preserve the recorded order and revision", () => {
+  assert.deepEqual(multiPodQualificationDrawRpcArguments("run-id", 4, [{ id: "candidate-b" }, { id: "candidate-a" }]), {
+    p_run_id: "run-id",
+    p_expected_revision: 4,
+    p_candidate_ids: ["candidate-b", "candidate-a"],
+  });
+  assert.throws(() => multiPodQualificationDrawRpcArguments("run-id", 4, ["candidate-a", "candidate-a"]), /exactly once/);
 });
 
 test("organization tables are private-by-default and browser writes use bounded RPCs", () => {
@@ -241,4 +264,52 @@ test("the organization hub exposes the planned commissioner workflow without mut
   for (const label of ["League organizations", "Administrators", "Confirm shared rules", "Launch season", "Cross-pod duplicate Pokémon are allowed"]) assert.match(workspaceUi, new RegExp(label));
   assert.doesNotMatch(workspaceUi, /createChampionshipQualifierSnapshot|league_organization_qualifiers/);
   assert.match(fs.readFileSync(new URL("../src/components/LeagueHub.jsx", import.meta.url), "utf8"), /href="\/organizations">Open organization hub/);
+});
+
+test("qualification automation keeps locked standings and rosters behind bounded RPCs", () => {
+  for (const table of ["league_organization_qualification_runs", "league_organization_qualification_candidates"]) {
+    assert.match(qualificationSql, new RegExp(`alter table public\\.${table} enable row level security`, "i"));
+  }
+  assert.match(qualificationSql, /revoke all on[\s\S]*league_organization_qualification_runs[\s\S]*from public, anon, authenticated/i);
+  assert.match(qualificationSql, /locking pod standings requires organization and source-league authority/i);
+  assert.match(qualificationSql, /public\.is_league_staff\(v_pod\.league_id\)/i);
+  assert.match(qualificationSql, /source_state_revision[\s\S]*source_state_rev[\s\S]*team_snapshot[\s\S]*roster_snapshot_hash/i);
+  assert.match(qualificationSql, /encode\(digest\(\(v_state #> array\['rosters'/i);
+  assert.doesNotMatch(qualificationSql.slice(qualificationSql.indexOf("create table public.league_organization_qualification_candidates"), qualificationSql.indexOf("create index league_organization_qualification_candidates_run_idx")), /unique[^;]*(pokemon|species)/i);
+});
+
+test("qualification ranking refines configured criteria and records only boundary draws", () => {
+  for (const criterion of ["wins", "differential", "game-win-percentage", "head-to-head", "commissioner-draw"]) {
+    assert.ok(qualificationSql.includes(`v_rule = '${criterion}'`) || qualificationSql.includes(`? '${criterion}'`));
+  }
+  assert.match(qualificationSql, /ranking_path = array_append/i);
+  assert.match(qualificationSql, /boundary\.ranking_path = next_candidate\.ranking_path/i);
+  assert.match(qualificationSql, /where run_id = v_run\.id and unresolved and draw_rank is null/i);
+  assert.match(qualificationSql, /draw order must contain every unresolved candidate exactly once/i);
+});
+
+test("qualification finalization is revision-aware and preserves replacement roster identity", () => {
+  assert.match(qualificationSql, /snapshot\.revision <> candidate\.source_state_revision/i);
+  assert.match(qualificationSql, /source pod changed after its standings were locked/i);
+  assert.match(qualificationSql, /insert into public\.league_organization_qualifiers/i);
+  assert.match(qualificationSql, /selected_kind is not null/i);
+  const syncStart = qualificationSql.indexOf("create or replace function public.sync_league_organization_qualifier_manager");
+  const syncEnd = qualificationSql.indexOf("create or replace function public.get_league_organization_qualification_workspace");
+  const syncFunction = qualificationSql.slice(syncStart, syncEnd);
+  assert.match(syncFunction, /roster_snapshot_hash/i);
+  assert.match(syncFunction, /set manager_user_id = v_manager_id/i);
+  assert.doesNotMatch(syncFunction, /set roster_snapshot/i);
+  assert.match(qualificationDigestFixSql, /lock_league_organization_pod_standings\(uuid, bigint\)[\s\S]*set search_path = public, extensions/i);
+  assert.match(qualificationDigestFixSql, /sync_league_organization_qualifier_manager\(uuid\)[\s\S]*set search_path = public, extensions/i);
+  assert.match(qualificationCleanupFixSql, /foreign key \(pod_id, season_id, source_league_id\)[\s\S]*on delete cascade/i);
+});
+
+test("commissioner UI stages pod locks, draw review, finalization, and replacement sync", () => {
+  for (const rpc of ["beginQualification", "lockPodStandings", "recordQualificationDraw", "finalizeQualification", "cancelQualification", "syncQualifierManager"]) {
+    assert.ok(workspaceUi.includes(`MULTI_POD_RPCS.${rpc}`));
+  }
+  for (const label of ["Begin qualification", "Lock final standings", "Record the commissioner draw", "Finalize qualifiers", "Sync replacement manager"]) {
+    assert.match(workspaceUi, new RegExp(label));
+  }
+  assert.match(workspaceUi, /qualificationResult\.error\.code !== "PGRST202"/);
 });
