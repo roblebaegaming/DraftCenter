@@ -82,6 +82,8 @@ limit; the existing Australia history was preserved.
 ## Authoritative records
 
 - Current continuation handoff:
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-08-double-elimination-and-seo.md`](handoffs/DraftCenter-agent-handoff-2026-08-08-double-elimination-and-seo.md)
+- Previous production verification:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-08-final-production-verification.md`](handoffs/DraftCenter-agent-handoff-2026-08-08-final-production-verification.md)
 - Recovery and species-traits release detail:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-08-recovery-and-species-traits-production.md`](handoffs/DraftCenter-agent-handoff-2026-08-08-recovery-and-species-traits-production.md)
