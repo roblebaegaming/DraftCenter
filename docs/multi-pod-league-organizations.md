@@ -127,6 +127,31 @@ retained Preview branch; the already-applied migration 356 was not rewritten.
 5. **Community layer:** organization history, champions, records,
    announcements, following, and reusable season templates.
 
+### Connected championship review release
+
+Forward migration `359-multi-pod-connected-championships.sql` gives the
+organization owner one atomic promotion action after qualification is final.
+It creates a normal DraftCenter Tournament, maps every qualifier to exactly
+one entrant, assigns deterministic seeds, and immediately locks either a
+single- or double-elimination bracket. There is no open registration window,
+no redraft, and no new roster copy. A database trigger rejects later entrant
+inserts into a connected championship.
+
+The owner chooses public or private playoff coverage, best of 1 or 3, and one
+of three seeding policies: overall record, pod-finish bands, or pod-finish
+bands with best-effort avoidance of same-pod first-round matches. Completion
+of the Tournament automatically updates the connected championship and
+organization season. Public projections expose pod, qualification kind,
+placement, and roster size without exposing private roster snapshots or user
+identifiers.
+
+Forward migration `360-fix-connected-championship-manager-sync.sql` keeps the
+pre-championship synchronization guard intact while giving mapped entrants a
+separate dual-authority recovery path. Before that entrant has begun play, an
+organization administrator who is also source-league staff can synchronize a
+replacement manager only after the exact source team and SHA-256 roster hash
+still match the finalized qualifier.
+
 ## Commissioner workspace boundary
 
 - An organization administrator may edit branding, create seasons, and link a
@@ -154,9 +179,11 @@ practice pods can launch with every synthetic fixture removed. The retained
 `multi-pod-pr-82` Preview branch remains available and must not be deleted as
 routine cleanup.
 
-Qualification automation is at the review checkpoint and is not deployed.
+Qualification automation is in pull request 91 and is not deployed.
 Migrations 356-358 and the synthetic matrix pass on the retained
 `multi-pod-pr-82` Preview branch; every synthetic league, organization, run,
-candidate, qualifier, and account was removed. Connected championship
-creation remains deliberately absent and is the next phase. No real league
-should be attached merely to test either undeployed phase.
+candidate, qualifier, and account was removed. Connected championships are on
+the separate stacked review branch with migrations 359-360; their single and
+double matrices and independent grants/trigger/residue audit also pass with
+all synthetic fixtures removed. Neither review layer has been applied to
+production. No real league should be attached merely to test them.

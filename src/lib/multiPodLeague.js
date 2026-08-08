@@ -7,6 +7,12 @@ export const MULTI_POD_TIEBREAKERS = [
   "game-win-percentage",
   "commissioner-draw",
 ];
+export const MULTI_POD_CHAMPIONSHIP_FORMATS = ["single-elimination", "double-elimination"];
+export const MULTI_POD_CHAMPIONSHIP_SEEDING = [
+  "overall-record",
+  "pod-finish-bands",
+  "pod-finish-avoid-rematches",
+];
 export const MULTI_POD_RPCS = Object.freeze({
   createOrganization: "create_league_organization",
   updateOrganization: "update_league_organization",
@@ -21,6 +27,9 @@ export const MULTI_POD_RPCS = Object.freeze({
   cancelQualification: "cancel_league_organization_qualification",
   syncQualifierManager: "sync_league_organization_qualifier_manager",
   getQualificationWorkspace: "get_league_organization_qualification_workspace",
+  createChampionship: "create_league_organization_championship",
+  syncChampionshipManager: "sync_league_organization_championship_manager",
+  getChampionshipWorkspace: "get_league_organization_championship_workspace",
   createAdministratorInvite: "create_league_organization_administrator_invite",
   previewAdministratorInvite: "preview_league_organization_administrator_invite",
   acceptAdministratorInvite: "accept_league_organization_administrator_invite",
@@ -126,6 +135,27 @@ export function multiPodQualificationDrawRpcArguments(runId, expectedRevision, c
     p_run_id: cleanRunId,
     p_expected_revision: integerInRange(expectedRevision, 0, Number.MAX_SAFE_INTEGER, "Qualification revision"),
     p_candidate_ids: candidateIds,
+  };
+}
+
+export function multiPodChampionshipRpcArguments(seasonId, expectedRevision, draft = {}) {
+  const cleanSeasonId = String(seasonId || "").trim();
+  if (!cleanSeasonId) throw new Error("A finalized organization season is required.");
+  const format = String(draft.format || "single-elimination");
+  const seedingPolicy = String(draft.seedingPolicy || "pod-finish-avoid-rematches");
+  const visibility = String(draft.visibility || "public");
+  if (!MULTI_POD_CHAMPIONSHIP_FORMATS.includes(format)) throw new Error("Choose single or double elimination.");
+  if (!MULTI_POD_CHAMPIONSHIP_SEEDING.includes(seedingPolicy)) throw new Error("Choose a supported championship seeding policy.");
+  if (!["public", "private"].includes(visibility)) throw new Error("Choose public or private championship visibility.");
+  const bestOf = Number(draft.bestOf ?? 3);
+  if (![1, 3].includes(bestOf)) throw new Error("Championship series must be best of 1 or best of 3.");
+  return {
+    p_season_id: cleanSeasonId,
+    p_expected_season_revision: integerInRange(expectedRevision, 0, Number.MAX_SAFE_INTEGER, "Season revision"),
+    p_format: format,
+    p_seeding_policy: seedingPolicy,
+    p_best_of: bestOf,
+    p_visibility: visibility,
   };
 }
 

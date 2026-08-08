@@ -78,8 +78,15 @@ Multi-pod qualification automation is implemented in [pull request
 The retained `multi-pod-pr-82` Supabase Preview branch passes the complete
 synthetic qualification transaction matrix and an independent grants, RLS,
 function-search-path, cascade, and residue audit. It is not merged, applied to
-production, or deployed. Connected championships remain the next multi-pod
-phase after qualification review.
+production, or deployed.
+
+Connected championships are implemented as a stacked review branch,
+`codex/multi-pod-connected-championships-2026-08-08`, with migrations 359-360.
+The retained Preview branch passes owner-only promotion, single- and
+double-elimination bracket construction, three seeding policies, extra-entrant
+denial, public-safe projections, source-roster replacement sync, status
+propagation, and cleanup. This stacked branch is not merged, applied to
+production, or deployed.
 
 The August 8 external SEO measurement is complete. The 1,544-page Semrush
 crawl, existing Position Tracking baseline, and Search Console performance,
@@ -91,6 +98,8 @@ limit; the existing Australia history was preserved.
 ## Authoritative records
 
 - Current continuation handoff:
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-08-multi-pod-connected-championships.md`](handoffs/DraftCenter-agent-handoff-2026-08-08-multi-pod-connected-championships.md)
+- Qualification review checkpoint:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-08-multi-pod-qualification-automation.md`](handoffs/DraftCenter-agent-handoff-2026-08-08-multi-pod-qualification-automation.md)
 - Double-elimination production and SEO checkpoint:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-08-double-elimination-and-seo.md`](handoffs/DraftCenter-agent-handoff-2026-08-08-double-elimination-and-seo.md)

@@ -7,6 +7,7 @@ import {
   createMultiPodSeasonDraft,
   multiPodAdministratorInviteUrl,
   multiPodAttachmentRpcArguments,
+  multiPodChampionshipRpcArguments,
   multiPodOrganizationUpdateRpcArguments,
   multiPodQualificationDrawRpcArguments,
   multiPodSeasonRpcArguments,
@@ -41,8 +42,20 @@ const qualificationCleanupFixSql = fs.readFileSync(
   new URL("../supabase/358-fix-multi-pod-qualification-candidate-cleanup.sql", import.meta.url),
   "utf8",
 );
+const championshipSql = fs.readFileSync(
+  new URL("../supabase/359-multi-pod-connected-championships.sql", import.meta.url),
+  "utf8",
+);
+const championshipSyncFixSql = fs.readFileSync(
+  new URL("../supabase/360-fix-connected-championship-manager-sync.sql", import.meta.url),
+  "utf8",
+);
 const workspaceUi = fs.readFileSync(
   new URL("../src/components/LeagueOrganizationWorkspace.jsx", import.meta.url),
+  "utf8",
+);
+const tournamentWorkspaceUi = fs.readFileSync(
+  new URL("../src/components/TournamentWorkspace.jsx", import.meta.url),
   "utf8",
 );
 
@@ -312,4 +325,55 @@ test("commissioner UI stages pod locks, draw review, finalization, and replaceme
     assert.match(workspaceUi, new RegExp(label));
   }
   assert.match(workspaceUi, /qualificationResult\.error\.code !== "PGRST202"/);
+});
+
+test("connected championship arguments keep format, seeding, and visibility bounded", () => {
+  assert.deepEqual(multiPodChampionshipRpcArguments("season-1", 8, {
+    format: "double-elimination",
+    seedingPolicy: "pod-finish-avoid-rematches",
+    bestOf: 3,
+    visibility: "public",
+  }), {
+    p_season_id: "season-1",
+    p_expected_season_revision: 8,
+    p_format: "double-elimination",
+    p_seeding_policy: "pod-finish-avoid-rematches",
+    p_best_of: 3,
+    p_visibility: "public",
+  });
+  assert.throws(() => multiPodChampionshipRpcArguments("season-1", 8, { format: "round-robin" }), /single or double/i);
+  assert.throws(() => multiPodChampionshipRpcArguments("season-1", 8, { bestOf: 2 }), /best of 1 or best of 3/i);
+});
+
+test("connected championship creation atomically promotes and locks finalized qualifiers", () => {
+  assert.match(championshipSql, /only the organization owner can create its championship/i);
+  assert.match(championshipSql, /where season_id = v_season\.id and status = 'finalized'/i);
+  assert.match(championshipSql, /every qualifier needs a claimed manager/i);
+  assert.match(championshipSql, /one manager cannot control multiple championship entrants/i);
+  assert.match(championshipSql, /insert into public\.league_organization_championship_entrants/i);
+  assert.match(championshipSql, /perform public\.lock_double_elimination_tournament/i);
+  assert.match(championshipSql, /perform public\.lock_single_elimination_tournament/i);
+  assert.match(championshipSql, /connected championship entrants come only from finalized qualifiers/i);
+});
+
+test("championship mapping retains roster identity and exposes only bounded public facts", () => {
+  const projectionStart = championshipSql.indexOf("create or replace function public.get_connected_championship_tournament");
+  const projection = championshipSql.slice(projectionStart, championshipSql.indexOf("revoke all on function", projectionStart));
+  assert.match(projection, /roster_size/i);
+  assert.doesNotMatch(projection, /roster_snapshot['"]/i);
+  assert.doesNotMatch(championshipSyncFixSql, /sync_league_organization_qualifier_manager\(p_qualifier_id\)/i);
+  assert.match(championshipSyncFixSql, /championship play has begun for this entrant/i);
+  assert.match(championshipSyncFixSql, /encode\(digest\(v_roster::text, 'sha256'\), 'hex'\) <> v_qualifier\.roster_snapshot_hash/i);
+  assert.match(championshipSyncFixSql, /set user_id = v_manager_id/i);
+  assert.doesNotMatch(championshipSyncFixSql, /set roster_snapshot/i);
+});
+
+test("organization and Tournament UIs present the connected bracket without open replacement", () => {
+  for (const label of ["Create & lock championship", "Public playoff coverage", "avoid same-pod openers", "Open championship bracket"]) {
+    assert.match(workspaceUi, new RegExp(label, "i"));
+  }
+  assert.match(tournamentWorkspaceUi, /CONNECTED CHAMPIONSHIP/);
+  assert.match(tournamentWorkspaceUi, /Replacement managers must first take over the same source-league team/);
+  assert.match(tournamentWorkspaceUi, /!connectedChampionship && <details className="tournament-replacement-tools">/);
+  assert.match(workspaceUi, /\["active", "qualification", "championship", "complete"\]/);
 });

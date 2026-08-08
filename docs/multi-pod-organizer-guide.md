@@ -48,11 +48,11 @@ link existing leagues as pods, confirm shared-regulation reviews, launch a
 reviewed season, and show a public organization page. These actions do not
 alter the linked leagues.
 
-Qualification automation is implemented and validated on the retained
-Supabase Preview branch, but it is not merged or deployed yet. Until that
-release is approved, production does not expose the lock, draw, wildcard,
-snapshot, or finalization controls. Connected championship promotion is the
-next separate multi-pod release after qualification.
+Qualification automation is in pull request 91, and connected championships
+are implemented on the separate stacked review branch. Both pass on the
+retained Supabase Preview branch, but neither is merged or deployed. Until
+those releases are approved in order, production does not expose their
+qualification or championship controls.
 
 ### Qualification review flow
 
@@ -106,9 +106,8 @@ next separate multi-pod release after qualification.
 - **Bracket format:** standalone single and double elimination are live. The
   connected-championship release can expose either format without creating a
   second draft or roster.
-- **Seeding:** the championship release needs a policy choice between
-  pure overall ranking, pod-finish bands, or pod-finish bands that avoid
-  same-pod first-round matches.
+- **Seeding:** choose pure overall record, pod-finish bands, or pod-finish
+  bands with best-effort avoidance of same-pod first-round matches.
 - **Transactions:** the organization can keep normal source-league transaction
   rules through the championship or freeze transactions at a stated playoff
   deadline. The qualifying roster snapshot must make that choice explicit.
@@ -116,6 +115,23 @@ next separate multi-pod release after qualification.
   and take over the same team, roster, record, and schedule. Qualification can
   synchronize only that manager identity after verifying the unchanged team
   and roster hash.
+
+### Creating the connected championship
+
+After qualification is finalized, the organization owner chooses the bracket,
+seeding, series length, and visibility. DraftCenter then promotes every
+qualifier and locks the bracket in one transaction. There is no public signup
+period, so an unrelated entrant cannot take a championship place. The
+Tournament page shows the organization, season, source pod, qualification
+kind, seed, and retained roster size beside the ordinary bracket and recovery
+tools.
+
+Only the organization owner creates this high-impact mapping. Pod and
+organization administrators still handle qualification. If a manager is
+replaced after promotion, an administrator with authority in both the
+organization and source league synchronizes the same mapped entrant before
+that entrant begins play. Drop, disqualification, forfeit, and result recovery
+continue through the existing Tournament controls.
 
 ### Visibility and administration
 
