@@ -1,9 +1,13 @@
 # Agent handoffs
 
+[`DraftCenter-agent-handoff-2026-08-07-tournament-hardening-release.md`](DraftCenter-agent-handoff-2026-08-07-tournament-hardening-release.md)
+is the current continuation handoff. It records the deployed confirmation,
+accessibility, selectable-round, 64-entrant, dependency, and roadmap hardening
+release plus the next commissioner-recovery boundary.
+
 [`DraftCenter-agent-handoff-2026-08-06-seo-expansion.md`](DraftCenter-agent-handoff-2026-08-06-seo-expansion.md)
-is the current continuation handoff. It records the completed August 6
-production release, the first post-release SEO crawl, the work that remains,
-the recommended implementation sequence, validation plan, and hardening gates.
+remains the SEO continuation record. It covers the first post-release crawl,
+the external measurements that remain, and the SEO hardening gates.
 
 [`DraftCenter-agent-handoff-2026-08-06-release-integration.md`](DraftCenter-agent-handoff-2026-08-06-release-integration.md)
 remains the authoritative detailed record for the released Nuzlocke,

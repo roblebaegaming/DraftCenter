@@ -4,6 +4,42 @@ This roadmap preserves the current feature freeze. Reliability, privacy,
 permissions, recovery, data portability, mobile usability, and the complete
 league lifecycle come before new product areas.
 
+## Final broad feature phase: tournament strengthening
+
+The remaining broad feature work is deliberately narrow and ordered:
+
+1. Complete the existing single-elimination accessibility, confirmation,
+   large-field mobile, and isolated-fixture hardening.
+2. Add commissioner recovery for forfeits, disqualifications, drops, and safe
+   entrant replacement.
+3. Add double elimination as one independently validated format.
+4. Add a Draft Tournament workflow that reuses DraftCenter's existing league
+   draft room and rosters, then transitions into Swiss rounds and an optional
+   single-elimination top cut. The primary user experience belongs under
+   Tournaments; leagues may offer a second entry point for converting existing
+   league rosters into the same competition workflow.
+5. Freeze broad feature development and return to monitoring, bug fixes,
+   live-draft performance, tournament feedback, and external SEO measurement.
+
+## Next flagship expansion: multi-pod league organizations
+
+After the stabilization period, the preferred major league expansion is an
+organization season containing multiple independent league pods and one shared
+championship. Each pod uses the existing draft, roster, schedule, standings,
+transaction, and replacement systems. Qualifying teams retain their exact
+regular-season rosters, and duplicate Pokemon across pods remain legal when
+those teams meet in the championship.
+
+Build this in staged releases: organization and season infrastructure,
+commissioner workspace and shared regulations, qualification review, connected
+championships, then public organization history and community features. The
+detailed product and data contract is in
+[`multi-pod-league-organizations.md`](multi-pod-league-organizations.md).
+
+Round robin and general-purpose standalone Swiss are not parallel workstreams.
+Swiss is revisited as part of the explicitly planned Draft Tournament after the
+current bracket and recovery foundations are proven.
+
 ## Current hardening priorities
 
 1. Test and document database backup and recovery, including who can restore,

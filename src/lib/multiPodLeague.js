@@ -1,0 +1,138 @@
+export const MULTI_POD_ROSTER_POLICY = "retain-regular-season-roster";
+export const MULTI_POD_REPLACEMENT_POLICY = "inherit-source-league";
+export const MULTI_POD_TIEBREAKERS = [
+  "wins",
+  "differential",
+  "head-to-head",
+  "game-win-percentage",
+  "commissioner-draw",
+];
+export const MULTI_POD_RPCS = Object.freeze({
+  createOrganization: "create_league_organization",
+  createSeason: "create_league_organization_season",
+  attachPod: "attach_league_organization_pod",
+  listMine: "list_my_league_organizations",
+  getWorkspace: "get_league_organization_workspace",
+});
+
+const DEFAULT_TIEBREAKERS = ["wins", "differential", "head-to-head"];
+
+function integerInRange(value, minimum, maximum, label) {
+  const number = Number(value);
+  if (!Number.isInteger(number) || number < minimum || number > maximum) {
+    throw new Error(`${label} must be between ${minimum} and ${maximum}.`);
+  }
+  return number;
+}
+
+export function normalizeMultiPodQualificationRules(rules = {}) {
+  const topPerPod = integerInRange(rules.topPerPod ?? 2, 1, 16, "Top qualifiers per pod");
+  const wildcardSlots = integerInRange(rules.wildcardSlots ?? 0, 0, 32, "Wildcard slots");
+  const tiebreakers = Array.isArray(rules.tiebreakers) && rules.tiebreakers.length
+    ? [...new Set(rules.tiebreakers.map((value) => String(value).trim()))]
+    : DEFAULT_TIEBREAKERS;
+
+  if (tiebreakers.length > 5 || tiebreakers.some((value) => !MULTI_POD_TIEBREAKERS.includes(value))) {
+    throw new Error("Choose up to five supported tiebreakers.");
+  }
+
+  return {
+    topPerPod,
+    wildcardSlots,
+    tiebreakers,
+  };
+}
+
+export function createMultiPodSeasonDraft({ name, regulations = {}, qualificationRules = {} }) {
+  const cleanName = String(name || "").trim();
+  if (cleanName.length < 2 || cleanName.length > 120) {
+    throw new Error("Season name must be between 2 and 120 characters.");
+  }
+  if (!regulations || Array.isArray(regulations) || typeof regulations !== "object") {
+    throw new Error("Season regulations must be an object.");
+  }
+
+  return {
+    name: cleanName,
+    regulations: structuredClone(regulations),
+    qualificationRules: normalizeMultiPodQualificationRules(qualificationRules),
+    allowCrossPodSpeciesDuplicates: true,
+    rosterPolicy: MULTI_POD_ROSTER_POLICY,
+    replacementPolicy: MULTI_POD_REPLACEMENT_POLICY,
+  };
+}
+
+export function multiPodSeasonRpcArguments(organizationId, draft) {
+  const cleanOrganizationId = String(organizationId || "").trim();
+  if (!cleanOrganizationId) throw new Error("An organization is required.");
+  const normalized = createMultiPodSeasonDraft(draft);
+  return {
+    p_organization_id: cleanOrganizationId,
+    p_name: normalized.name,
+    p_regulations: normalized.regulations,
+    p_top_per_pod: normalized.qualificationRules.topPerPod,
+    p_wildcard_slots: normalized.qualificationRules.wildcardSlots,
+    p_tiebreakers: normalized.qualificationRules.tiebreakers,
+  };
+}
+
+export function multiPodAttachmentRpcArguments({
+  seasonId,
+  leagueId,
+  label,
+  sortOrder,
+  leagueSeasonNumber,
+  qualificationSpots,
+}) {
+  const cleanSeasonId = String(seasonId || "").trim();
+  const cleanLeagueId = String(leagueId || "").trim();
+  const cleanLabel = String(label || "").trim();
+  if (!cleanSeasonId || !cleanLeagueId) throw new Error("A season and source league are required.");
+  if (!cleanLabel || cleanLabel.length > 80) throw new Error("Pod label must be between 1 and 80 characters.");
+  return {
+    p_season_id: cleanSeasonId,
+    p_league_id: cleanLeagueId,
+    p_label: cleanLabel,
+    p_sort_order: integerInRange(sortOrder, 1, 64, "Pod order"),
+    p_league_season_number: integerInRange(leagueSeasonNumber, 1, 1000, "League season number"),
+    p_qualification_spots: qualificationSpots == null
+      ? null
+      : integerInRange(qualificationSpots, 1, 16, "Qualification spots"),
+  };
+}
+
+export function createChampionshipQualifierSnapshot({
+  podId,
+  leagueId,
+  teamKey,
+  team,
+  roster,
+  sourceStateRevision,
+  sourceStateRev,
+}) {
+  const cleanPodId = String(podId || "").trim();
+  const cleanLeagueId = String(leagueId || "").trim();
+  const numericTeamKey = integerInRange(teamKey, 0, 255, "Source team key");
+  const snapshotRevision = integerInRange(sourceStateRevision, 0, Number.MAX_SAFE_INTEGER, "Source snapshot revision");
+  const stateRev = integerInRange(sourceStateRev, 0, Number.MAX_SAFE_INTEGER, "Source state revision");
+
+  if (!cleanPodId || !cleanLeagueId) throw new Error("A pod and source league are required.");
+  if (!team || Array.isArray(team) || typeof team !== "object") throw new Error("A source team is required.");
+  if (!Array.isArray(roster)) throw new Error("A source roster is required.");
+
+  const displayName = String(team.name || `Team ${numericTeamKey + 1}`).trim();
+  if (!displayName || displayName.length > 120) throw new Error("Team name must be between 1 and 120 characters.");
+
+  return {
+    podId: cleanPodId,
+    sourceLeagueId: cleanLeagueId,
+    sourceTeamKey: numericTeamKey,
+    sourceTeamId: String(team.id ?? numericTeamKey),
+    displayName,
+    managerUserId: String(team.claimedByUserId || "").trim() || null,
+    teamSnapshot: structuredClone(team),
+    rosterSnapshot: structuredClone(roster),
+    sourceStateRevision: snapshotRevision,
+    sourceStateRev: stateRev,
+  };
+}
