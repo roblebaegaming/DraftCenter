@@ -10,10 +10,11 @@ migration 355. Vercel reported that exact commit Ready, the signed-out
 production smoke sweep passed, and the live Tournament page rendered the new
 single/double-elimination language without browser errors.
 
-Multi-pod qualification automation is complete at the review checkpoint on
-branch `codex/multi-pod-qualification-2026-08-08`. It is not merged, applied to
-production, or deployed. Connected championships are intentionally next and
-remain separate from this database boundary.
+Multi-pod qualification automation is complete at the review checkpoint in
+[pull request 91](https://github.com/roblebaegaming/DraftCenter/pull/91) on
+branch `codex/multi-pod-qualification-2026-08-08`. It is not merged, applied
+to production, or deployed. Connected championships are intentionally next
+and remain separate from this database boundary.
 
 ## Qualification behavior
 

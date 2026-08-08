@@ -72,7 +72,8 @@ No deployment work remains for pull requests 83 or 87. Continue normal
 production monitoring for tournament recovery, organization commissioner
 workflows, Nuzlocke generation, and the new species filters.
 
-Multi-pod qualification automation is implemented on branch
+Multi-pod qualification automation is implemented in [pull request
+91](https://github.com/roblebaegaming/DraftCenter/pull/91) on branch
 `codex/multi-pod-qualification-2026-08-08` with forward migrations 356-358.
 The retained `multi-pod-pr-82` Supabase Preview branch passes the complete
 synthetic qualification transaction matrix and an independent grants, RLS,
