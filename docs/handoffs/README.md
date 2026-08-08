@@ -1,10 +1,14 @@
 # Agent handoffs
 
+[`DraftCenter-agent-handoff-2026-08-08-final-production-verification.md`](DraftCenter-agent-handoff-2026-08-08-final-production-verification.md)
+is the current continuation handoff. It resolves the older pre-deployment
+checkpoint item by item and records the final state of Nuzlocke, the 64-entrant
+mobile bracket, multi-pod infrastructure, Operations navigation, commissioner
+recovery, and Pokémon species traits.
+
 [`DraftCenter-agent-handoff-2026-08-08-recovery-and-species-traits-production.md`](DraftCenter-agent-handoff-2026-08-08-recovery-and-species-traits-production.md)
-is the current continuation handoff. It records the completed recovery
-migration and pull request 83 deployment, the pull request 87 Pokémon
-species-traits deployment, production verification, preserved local changes,
-and the remaining monitoring-only work.
+remains the detailed recovery migration and species-traits production release
+record.
 
 [`DraftCenter-agent-handoff-2026-08-08-tournament-recovery-production-checkpoint.md`](DraftCenter-agent-handoff-2026-08-08-tournament-recovery-production-checkpoint.md)
 remains the pre-deployment recovery checkpoint. It is superseded by the current

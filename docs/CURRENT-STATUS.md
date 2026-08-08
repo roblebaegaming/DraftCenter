@@ -73,6 +73,8 @@ represented as complete.
 ## Authoritative records
 
 - Current continuation handoff:
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-08-final-production-verification.md`](handoffs/DraftCenter-agent-handoff-2026-08-08-final-production-verification.md)
+- Recovery and species-traits release detail:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-08-recovery-and-species-traits-production.md`](handoffs/DraftCenter-agent-handoff-2026-08-08-recovery-and-species-traits-production.md)
 - Multi-pod commissioner workspace:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-08-multi-pod-commissioner-workspace.md`](handoffs/DraftCenter-agent-handoff-2026-08-08-multi-pod-commissioner-workspace.md)

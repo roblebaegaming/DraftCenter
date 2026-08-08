@@ -5,7 +5,13 @@
 - Branch: `codex/tournament-recovery-2026-08-07`
 - Integrated base: `9753cbf`
 - Database migration: `354-tournament-commissioner-recovery.sql`
-- Production status: validated release candidate; not migrated or deployed
+- Production status: deployed through pull request 83; migration 354 applied
+  and audited
+
+> Final status notice: this implementation record was written before the
+> production release. Its Preview and implementation evidence remains useful,
+> but its former not-deployed checkpoint is superseded by the
+> [final production verification](DraftCenter-agent-handoff-2026-08-08-final-production-verification.md).
 
 ## Outcome
 
@@ -147,24 +153,24 @@ setting, environment variable, or secret changed during implementation. No
 real tournament was used as a fixture.
 
 The multi-pod foundation from pull request 82 and commissioner workspace from
-pull request 85 were preserved. Migrations 350-353 are applied in production
-and passed their RLS and grant audits. Migration 354 is therefore the next
-forward-only production migration. Its production application still requires
-the exact project identity and explicit owner approval.
+pull request 85 were preserved. Migrations 350-353 were already applied in
+production and passed their RLS and grant audits. Migration 354 was later
+explicitly authorized, applied once to the exact production project, and
+passed its production RLS, grant, function, and no-fixture audit.
 
 The original dirty workspace and the other agent's retained multi-pod Preview
 branch were not modified.
 
-## Remaining release steps
+## Completed release steps
 
-1. Obtain explicit exact-project approval for production migration 354 and the
+1. Exact-project approval was obtained for production migration 354 and the
    connected `main` deployment.
-2. Apply migration 354 once to the exact core production project and repeat the
-   RLS/grant/no-fixture audit without creating a real tournament.
-3. Merge pull request 83 through normal protection, confirm the exact Vercel
-   production commit, and run the signed-out production smoke sweep.
-4. Update this record and `CURRENT-STATUS.md` with the production migration and
-   deployment evidence.
+2. Migration 354 was applied once to the exact core production project; the
+   RLS, grant, function, and no-fixture audit passed without creating a real
+   tournament.
+3. Pull request 83 merged through normal protection as `55a5bec`; Vercel
+   reported the exact deployment Ready and the signed-out smoke sweep passed.
+4. The current status and final handoffs now contain the production evidence.
 
-Double elimination remains the next separate feature. It should reuse this
-recovery contract only after migration 354 is proven in Preview and production.
+Double elimination remains the next separate feature. Migration 354 is now
+proven in Preview and production, but double elimination has not started.
