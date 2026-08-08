@@ -102,7 +102,22 @@ picker showed one match, and document width remained 375 CSS pixels with no
 horizontal overflow. The local-only fixture was removed and its worktree was
 clean before this release branch was created.
 
-The isolated database matrix and hosted Preview review remain release gates.
+A second local-only 390-by-844 fixture rendered the new owner recovery panel
+with active, replaced, and pending-claim entrants plus ready, complete, and
+pending matches. The panel stayed within a 343-pixel card, controls collapsed
+to one column, long organization names wrapped, only one bracket round was
+visible, and the 375-CSS-pixel document had no horizontal overflow or browser
+warning. That fixture was removed and the committed worktree remained clean.
+
+Pull request 83 is open. CodeQL, JavaScript security analysis, security and
+dependency checks, full-history secret scanning, Vercel, and the Preview
+comment check pass. The hosted `/tournaments` route renders at 390 by 844 with
+no overflow or browser warning, but it correctly reports that tournaments are
+not enabled in that environment because the Supabase integration is configured
+to skip automatic per-PR branches. The Supabase Preview check therefore reports
+`skipped`, not `success`; no functional database claim is made.
+
+The isolated database matrix remains the blocking release gate.
 
 ## Production and concurrent-work boundaries
 
@@ -121,17 +136,18 @@ branch were not modified.
 
 ## Remaining release steps
 
-1. Push this short-lived branch and open a protected pull request.
-2. Require the isolated Supabase Preview to apply migration 353, then run
+1. Provision or explicitly select an isolated Supabase Preview without
+   changing the production integration setting, apply migration 353, then run
    `supabase/tests/353-tournament-commissioner-recovery-preview-regression.sql`
    and verify its single all-true result plus zero permanent fixtures.
-3. Review the hosted Preview at desktop and 390-by-844 widths, including
+2. Review the schema-backed hosted Preview at desktop and 390-by-844 widths,
+   including
    commissioner controls and replacement acceptance without using real data.
-4. Reconcile the separate 350-352 production boundary and obtain explicit
+3. Reconcile the separate 350-352 production boundary and obtain explicit
    exact-project approval before any production database application.
-5. Merge only after protected checks and Preview review pass. Confirm the exact
+4. Merge only after protected checks and Preview review pass. Confirm the exact
    Vercel production commit and run the signed-out production smoke sweep.
-6. Update this record and `CURRENT-STATUS.md` with the production migration and
+5. Update this record and `CURRENT-STATUS.md` with the production migration and
    deployment evidence.
 
 Double elimination remains the next separate feature. It should reuse this
