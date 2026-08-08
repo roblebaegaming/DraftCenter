@@ -26,6 +26,9 @@ test("release migrations use one production number each", () => {
   assert.ok(migrations.includes("342-use-pokemon-names-for-trainer-dex-draft-discoveries.sql"));
   assert.ok(migrations.includes("348-reload-competitive-profile-schema-cache.sql"));
   assert.ok(migrations.includes("349-catalog-complete-versioned-pokemon-move-pools.sql"));
+  assert.ok(migrations.includes("350-multi-pod-league-organizations.sql"));
+  assert.ok(migrations.includes("351-fix-multi-pod-championship-qualifier-delete.sql"));
+  assert.ok(migrations.includes("352-harden-multi-pod-season-rule-boundaries.sql"));
 });
 
 test("the Gen 6 schema gate supports the official X and Y game keys", () => {
@@ -58,7 +61,7 @@ test("integrated quick links expose each released feature once", () => {
 
 test("the full suite includes every integrated feature gate", () => {
   const manifest = JSON.parse(source("package.json"));
-  for (const script of ["test:nuzlocke", "test:tournaments", "test:trainer-dex", "test:release-integration"]) {
+  for (const script of ["test:nuzlocke", "test:tournaments", "test:multi-pod", "test:trainer-dex", "test:release-integration"]) {
     assert.match(manifest.scripts["test:all"], new RegExp(`npm run ${script}`));
   }
 });
