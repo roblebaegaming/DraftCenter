@@ -2,16 +2,17 @@
 
 - Date: August 8, 2026 (America/Denver)
 - Repository: `roblebaegaming/DraftCenter`
-- Branch: `codex/multi-pod-organization-hub-2026-08-08`
-- Pull request: [#85](https://github.com/roblebaegaming/DraftCenter/pull/85)
+- Source branch: `codex/multi-pod-organization-hub-2026-08-08`
+- Pull request: [#85](https://github.com/roblebaegaming/DraftCenter/pull/85), merged
 - Initial implementation commit: `c873da9`
+- Production commit: `b44277a`
 - Supabase Preview branch: retained `multi-pod-pr-82`
-- Production status: ready for review, not merged, and migration 353 not applied
+- Production status: deployed; migration 353 applied and audited
 
 ## Outcome
 
-The commissioner-workspace phase is implemented in draft pull request 85. It
-adds an organization hub, a public organization page, bounded branding and
+The commissioner-workspace phase is live from pull request 85. It adds an
+organization hub, a public organization page, bounded branding and
 administrator controls, explicit per-pod regulation review, and a guarded
 organization-season launch without changing the source leagues.
 
@@ -39,7 +40,7 @@ and independently drafted pods may own the same Pokemon.
 ## Preview database validation
 
 Forward-only migration `353-multi-pod-commissioner-workspace.sql` was applied
-only to the retained isolated Supabase Preview branch. The first expanded
+first to the retained isolated Supabase Preview branch. The first expanded
 regression identified a test expectation error: invitation acceptance is
 correctly audited to the accepting administrator, while the assertion expected
 every event actor to be the owner. The assertion was corrected to verify owner
@@ -64,7 +65,8 @@ The corrected regression returned one passing JSON result. It verified:
   organization fixtures were removed and verified absent.
 
 The retained Preview branch was not deleted. No production database, real
-league, provider setting, environment variable, or secret changed.
+league, provider setting, environment variable, or secret changed during this
+Preview phase.
 
 ## Application validation
 
@@ -82,15 +84,39 @@ league, provider setting, environment variable, or secret changed.
   Vercel checks pass. The Supabase Preview CI job is skipped because the
   retained branch was validated manually with the reusable regression.
 
-## Release boundary
+## Production release
 
-Pull request 85 is ready for review after its refreshed protected checks and
-Preview database evidence passed. A later production release requires explicit
-approval to merge the pull request, verification of the deployed commit,
-application of migration 353 to the exact production project, and the
-post-deployment signed-out smoke sweep. Do not attach a real league merely to
-test this phase.
+- Pull request 84 restored the verified-owner Operations navigation and was
+  squash-merged as production commit `1b29b8c`. Vercel reported that exact
+  deployment Ready, the signed-out smoke sweep passed, and the protected
+  Operations APIs remained 401 without a session.
+- Pull request 85 was refreshed onto that commit. The dependency audit, full
+  application suite, National Dex verification, 180-page production build,
+  CodeQL, security and dependency checks, full-history secret scan, and Vercel
+  Preview all passed without a merge-rule bypass.
+- Pull request 85 was squash-merged as production commit `b44277a`, and Vercel
+  reported the exact `main` deployment Ready.
+- A read-only production preflight confirmed migration 352's hardened function
+  and audit-sequence grants were present while migration 353's table and
+  function markers were absent.
+- Migration 353 was then applied once to the documented core production
+  project. The post-apply audit returned true for all nine RLS tables, browser
+  table and sequence denial, service-role table and sequence access, expected
+  RPC grants, branding columns and constraints, the invitation index, and all
+  security-definer search paths.
+- The post-deployment signed-out smoke sweep passed every public and protected
+  route. `/organizations` also rendered its public description and sign-in
+  boundary from the production domain.
+- No real league, draft, schedule, standing, transaction, team, roster,
+  replacement, tournament, provider setting, or environment variable was
+  changed for release validation. The retained Preview branch was not deleted.
 
-Pull request 84 independently restores the visible owner Operations navigation
-without a database change. It is ready but not merged and requires its own
-release approval.
+## Current boundary
+
+Production is current through application commit `b44277a` and migration 353.
+The next phase should be monitored commissioner onboarding with an explicitly
+selected organization and real leagues; do not attach or mutate a real league
+merely to test the feature. The browser used for release verification was
+signed out, so the owner-only Operations tab was not exercised interactively
+in production; its automated owner-identity coverage passed, the exact commit
+is deployed, and the signed-out API boundary remains enforced.
