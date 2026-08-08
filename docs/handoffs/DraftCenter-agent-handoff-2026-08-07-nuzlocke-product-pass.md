@@ -2,6 +2,21 @@
 
 ## Outcome
 
+### August 7 team freshness and playthrough-order follow-up (Preview candidate)
+
+The generator now presents **Build a Nuzlocke Team** and removes the
+player-facing randomizer seed. Each normal Build creates a fresh random team;
+the internal random key remains only so an exact generated team can still be
+saved or shared. Saved setups contain rules without fixing the next team, and
+downloaded Run Cards no longer print the internal key.
+
+Generated cards are sorted into a level-informed playthrough order, with the
+reviewed location order used to break level ties. This avoids presenting the
+selection shuffle as a route sequence and gives open-world games the same
+useful low-to-high progression. The landing-page metadata, structured data,
+guide links, Pokédex link, and crawlable explanatory copy now use the team and
+fresh-build language. No migration is required.
+
 ### August 7 team-size copy and limit follow-up (released)
 
 Owner mobile feedback prompted a final compact-team control pass. The first

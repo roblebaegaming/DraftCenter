@@ -67,7 +67,7 @@ export default function NuzlockeGuidesPage() {
         <span className="eyebrow">HOW TO USE THESE GUIDES</span>
         <h2>Find the route, compare every encounter, then build your run</h2>
         <p>Each guide keeps encounters tied to the correct game, route or area, method, level range, conditions, and form. After researching a game, open the Nuzlocke Draft to generate a compact team or one Pokémon for every eligible route.</p>
-        <a className="primary-button inline-link-button" href="/nuzlocke">Build a Nuzlocke Draft</a>
+        <a className="primary-button inline-link-button" href="/nuzlocke">Build a Nuzlocke Team</a>
       </aside>
 
       {guidesByGeneration.map(([generation, games]) => <section key={generation} aria-labelledby={`nuzlocke-generation-${generation}`}>
@@ -82,7 +82,7 @@ export default function NuzlockeGuidesPage() {
 
       <aside className="seo-next-step">
         <h2>More Nuzlocke planning tools</h2>
-        <p>Generate a repeatable run, research a Pokémon’s typing and moves, or review how DraftCenter sources its encounter catalogs.</p>
+        <p>Build a fresh team, research a Pokémon’s typing and moves, or review how DraftCenter sources its encounter catalogs.</p>
         <div className="pokemon-tags nuzlocke-guide-tags"><a href="/nuzlocke">Open the Nuzlocke Draft</a><a href="/pokemon">Explore the Pokédex</a><a href="/about#data-methodology">Read the data methodology</a></div>
       </aside>
     </article>

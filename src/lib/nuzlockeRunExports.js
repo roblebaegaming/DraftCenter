@@ -102,7 +102,6 @@ export function buildNuzlockeRunCardText({ runName, result, rules = [], shareUrl
   const lines = [
     title,
     `${savedResult.game.display_name} — DraftCenter Nuzlocke Run Card`,
-    `Randomizer seed: ${savedResult.seed}`,
     "",
     "Rules",
     ...rules.map((rule) => `- ${cleanText(rule, 180)}`).filter((rule) => rule !== "- "),
