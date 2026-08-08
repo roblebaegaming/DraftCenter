@@ -31,7 +31,10 @@ Forward-only migration
 Forward-only migration
 `351-fix-multi-pod-championship-qualifier-delete.sql` preserves the composite
 season identity check while allowing organization cleanup to cascade through
-the qualifier-to-championship mapping:
+the qualifier-to-championship mapping. Forward-only migration
+`352-harden-multi-pod-season-rule-boundaries.sql` rejects null, duplicate, and
+multidimensional tiebreaker lists at the authoritative RPC boundary and
+explicitly removes browser-role access to the organization audit sequence:
 
 1. **Organizations** hold identity, visibility, administrators, and audit
    history.
@@ -95,7 +98,7 @@ percentage rule without changing the source leagues.
 
 ## Production boundary
 
-Migrations 350-351 are infrastructure, not permission to apply them to
+Migrations 350-352 are infrastructure, not permission to apply them to
 production. Applying them requires the exact production Supabase project
 identity, explicit owner approval, Preview migration verification, RLS/grant
 review, and a post-deployment audit. No real league should be attached for

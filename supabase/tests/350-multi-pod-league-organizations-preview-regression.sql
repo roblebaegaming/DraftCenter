@@ -1,9 +1,9 @@
--- Preview-only regression for migration 350.
+-- Preview-only regression for multi-pod migrations 350-352.
 --
--- Run after the production baseline, migration 340, and migration 350 exist in
--- an isolated Supabase branch. The script creates only synthetic identities and
--- practice leagues, removes every permanent fixture before commit, and returns
--- one JSON result row. Any failed assertion aborts the transaction.
+-- Run after the production baseline and migrations 340, 350, 351, and 352 exist
+-- in an isolated Supabase branch. The script creates only synthetic identities
+-- and practice leagues, removes every permanent fixture before commit, and
+-- returns one JSON result row. Any failed assertion aborts the transaction.
 
 begin;
 
@@ -41,10 +41,15 @@ declare
   v_non_admin_denied boolean := false;
   v_non_commissioner_denied boolean := false;
   v_invalid_settings_denied boolean := false;
+  v_null_tiebreaker_denied boolean := false;
+  v_duplicate_tiebreaker_denied boolean := false;
+  v_multidimensional_tiebreaker_denied boolean := false;
   v_cross_mapping_denied boolean := false;
   v_rls_ok boolean;
   v_direct_access_denied boolean;
+  v_sequence_access_denied boolean;
   v_service_access_ok boolean;
+  v_service_sequence_access_ok boolean;
   v_rpc_grants_ok boolean;
   v_private_hidden boolean;
   v_public_visible boolean;
@@ -97,6 +102,29 @@ begin
 
   select not exists (
     select 1
+    from unnest(array['anon', 'authenticated']) as roles(role_name)
+    where has_sequence_privilege(
+      role_name,
+      'public.league_organization_audit_events_id_seq',
+      'USAGE'
+    )
+       or has_sequence_privilege(
+         role_name,
+         'public.league_organization_audit_events_id_seq',
+         'SELECT'
+       )
+       or has_sequence_privilege(
+         role_name,
+         'public.league_organization_audit_events_id_seq',
+         'UPDATE'
+       )
+  ) into v_sequence_access_denied;
+  if v_sequence_access_denied is distinct from true then
+    raise exception 'Browser roles unexpectedly have organization audit-sequence privileges.';
+  end if;
+
+  select not exists (
+    select 1
     from unnest(array[
       'league_organizations',
       'league_organization_memberships',
@@ -114,6 +142,22 @@ begin
   ) into v_service_access_ok;
   if v_service_access_ok is distinct from true then
     raise exception 'The service role is missing an organization-table privilege.';
+  end if;
+
+  select
+    has_sequence_privilege(
+      'service_role',
+      'public.league_organization_audit_events_id_seq',
+      'USAGE'
+    )
+    and has_sequence_privilege(
+      'service_role',
+      'public.league_organization_audit_events_id_seq',
+      'SELECT'
+    )
+  into v_service_sequence_access_ok;
+  if v_service_sequence_access_ok is distinct from true then
+    raise exception 'The service role is missing organization audit-sequence privileges.';
   end if;
 
   select
@@ -232,6 +276,60 @@ begin
   exception when others then
     if sqlerrm = 'Season settings are invalid.' then
       v_invalid_settings_denied := true;
+    else
+      raise;
+    end if;
+  end;
+
+  begin
+    perform public.create_league_organization_season(
+      v_private_organization,
+      'Null Tiebreaker Season',
+      '{}'::jsonb,
+      2,
+      0,
+      array['wins', null]::text[]
+    );
+  exception when others then
+    if sqlerrm = 'Season settings are invalid.' then
+      v_null_tiebreaker_denied := true;
+    else
+      raise;
+    end if;
+  end;
+
+  begin
+    perform public.create_league_organization_season(
+      v_private_organization,
+      'Duplicate Tiebreaker Season',
+      '{}'::jsonb,
+      2,
+      0,
+      array['wins', 'wins']
+    );
+  exception when others then
+    if sqlerrm = 'Season settings are invalid.' then
+      v_duplicate_tiebreaker_denied := true;
+    else
+      raise;
+    end if;
+  end;
+
+  begin
+    perform public.create_league_organization_season(
+      v_private_organization,
+      'Multidimensional Tiebreaker Season',
+      '{}'::jsonb,
+      2,
+      0,
+      array[
+        array['wins', 'differential'],
+        array['head-to-head', 'commissioner-draw']
+      ]
+    );
+  exception when others then
+    if sqlerrm = 'Season settings are invalid.' then
+      v_multidimensional_tiebreaker_denied := true;
     else
       raise;
     end if;
@@ -537,6 +635,9 @@ begin
   end if;
 
   if v_invalid_settings_denied is distinct from true
+     or v_null_tiebreaker_denied is distinct from true
+     or v_duplicate_tiebreaker_denied is distinct from true
+     or v_multidimensional_tiebreaker_denied is distinct from true
      or v_private_hidden is distinct from true
      or v_public_visible is distinct from true
      or v_non_admin_denied is distinct from true
@@ -584,13 +685,18 @@ begin
   values (jsonb_build_object(
     'tables_with_rls', 8,
     'browser_direct_table_access_denied', v_direct_access_denied,
+    'browser_audit_sequence_access_denied', v_sequence_access_denied,
     'service_role_table_access', v_service_access_ok,
+    'service_role_audit_sequence_access', v_service_sequence_access_ok,
     'rpc_grants', v_rpc_grants_ok,
     'private_organization_hidden', v_private_hidden,
     'public_organization_visible', v_public_visible,
     'non_admin_pod_attach_denied', v_non_admin_denied,
     'non_commissioner_pod_attach_denied', v_non_commissioner_denied,
     'bounded_settings_denied', v_invalid_settings_denied,
+    'null_tiebreaker_denied', v_null_tiebreaker_denied,
+    'duplicate_tiebreaker_denied', v_duplicate_tiebreaker_denied,
+    'multidimensional_tiebreaker_denied', v_multidimensional_tiebreaker_denied,
     'shared_regulations_and_retained_rosters', v_settings_ok,
     'cross_pod_duplicate_rosters', v_duplicate_rosters_ok,
     'cross_season_championship_mapping_denied', v_cross_mapping_denied,

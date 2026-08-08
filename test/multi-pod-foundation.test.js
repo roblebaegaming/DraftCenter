@@ -17,6 +17,10 @@ const cleanupSql = fs.readFileSync(
   new URL("../supabase/351-fix-multi-pod-championship-qualifier-delete.sql", import.meta.url),
   "utf8",
 );
+const hardeningSql = fs.readFileSync(
+  new URL("../supabase/352-harden-multi-pod-season-rule-boundaries.sql", import.meta.url),
+  "utf8",
+);
 
 test("multi-pod seasons retain regular-season teams and permit cross-pod duplicates", () => {
   const season = createMultiPodSeasonDraft({
@@ -125,6 +129,16 @@ test("organization cleanup cascades championship mappings without weakening seas
   assert.match(cleanupSql, /foreign key \(qualifier_id, season_id\)/i);
   assert.match(cleanupSql, /references public\.league_organization_qualifiers\(id, season_id\)/i);
   assert.match(cleanupSql, /on delete cascade/i);
+});
+
+test("database season rules reject malformed tiebreakers and keep the audit sequence private", () => {
+  assert.match(hardeningSql, /array_ndims\(p_tiebreakers\) is distinct from 1/i);
+  assert.match(hardeningSql, /where value is null[\s\S]*value not in/i);
+  assert.match(hardeningSql, /count\(distinct value\)/i);
+  assert.match(
+    hardeningSql,
+    /revoke all on sequence public\.league_organization_audit_events_id_seq[\s\S]*from public, anon, authenticated/i,
+  );
 });
 
 test("qualifier storage freezes source identity and roster without species uniqueness", () => {

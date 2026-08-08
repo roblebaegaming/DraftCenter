@@ -6,14 +6,15 @@
 - Pull request: [#82](https://github.com/roblebaegaming/DraftCenter/pull/82)
 - Implementation commit: `3be575a98e1a5fb99bea2f1ba2e8d3d58f12553e`
 - Supabase Preview branch: `multi-pod-pr-82`
-- Production status: not merged, not deployed, and migrations 350-351 not applied
+- Production status: not merged, not deployed, and migrations 350-352 not applied
 
 ## Outcome
 
 The first infrastructure phase for multi-pod draft-league organizations is in
-a draft pull request. It adds a private-by-default organization, season, pod,
-qualifier snapshot, and connected-championship data contract without exposing
-an unfinished user interface or changing any existing league.
+a pull request that is ready for review. It adds a private-by-default
+organization, season, pod, qualifier snapshot, and connected-championship data
+contract without exposing an unfinished user interface or changing any
+existing league.
 
 Each pod remains an ordinary DraftCenter league and keeps the existing draft,
 schedule, standings, roster, transaction, replacement, and commissioner
@@ -37,6 +38,10 @@ The product rules confirmed by the owner are enforced in the model:
   forward-only correction found during Preview lifecycle testing. It retains
   the qualifier-and-season composite foreign key while allowing its
   championship mapping to be removed during organization cleanup.
+- `supabase/352-harden-multi-pod-season-rule-boundaries.sql` is the
+  forward-only review correction. It rejects null, duplicate, and
+  multidimensional tiebreaker arrays and explicitly revokes browser-role
+  access to the organization audit identity sequence.
 - Cross-table foreign keys prevent pods, qualifiers, championships, and
   tournament entrants from being connected across organization seasons.
 - Qualifier storage reserves the source league, source team key, authoritative
@@ -101,9 +106,9 @@ database regression then returned one passing result with all controls true:
 - both synthetic identities, both practice leagues, their tournaments, and all
   organization fixtures were removed and verified absent.
 
-Validation after the correction passes:
+Validation after the lifecycle correction passes:
 
-- `npm run test:multi-pod`: 8/8;
+- `npm run test:multi-pod`: 9/9 after the review hardening;
 - `npm run test:release-integration`: 5/5;
 - `npm run test:all`;
 - `npm run test:national-dex`: all 1,027 rows;
@@ -111,19 +116,24 @@ Validation after the correction passes:
 - public-configured `npm run build`: all 179 generated pages.
 
 No local environment file or credential was copied into the feature worktree.
-CI checks must be refreshed for the new migration and regression commit before
-the pull request leaves draft state.
+CI checks must be refreshed after every review correction before merge.
 
 ## Production and data boundaries
 
 No production migration, real league, team, roster, membership, tournament,
-environment variable, or secret changed. Preview migrations 340, 350, and 351
-ran only on the isolated branch. The database regression used synthetic
+environment variable, or secret changed. Preview migrations 340, 350, 351, and
+352 ran only on the isolated branch. The database regression used synthetic
 identities and explicitly marked practice leagues, then removed and verified
 every permanent fixture. The original workspace's 28 changed paths remain
 preserved.
 
-Applying migrations 350-351 requires the exact production Supabase project
+The post-review Preview regression also verified that null, duplicate, and
+multidimensional tiebreaker arrays are rejected, `anon` and `authenticated`
+have no organization audit-sequence privileges, `service_role` retains the
+required sequence access, and every new synthetic fixture is removed. All
+expanded database controls returned true.
+
+Applying migrations 350-352 requires the exact production Supabase project
 identity and separate owner approval through the protected pull-request flow.
 The owner asked that `multi-pod-pr-82` remain available after the eventual
 merge. Do not delete the Supabase branch or its connected Git branch during
@@ -132,7 +142,7 @@ The branch remains billable while retained.
 
 ## Recommended next implementation
 
-1. Refresh the complete repository and CI gates for migrations 350-351, review
+1. Refresh the complete repository and CI gates for migrations 350-352, review
    the retained Preview evidence, and move PR #82 through protected review.
 2. Add organization branding, administrator invitations, shared-regulation
    review, and pod linking behind the migrated schema.
