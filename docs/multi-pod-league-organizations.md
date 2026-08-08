@@ -27,7 +27,11 @@ or rebuilding rosters.
 ## Foundation data model
 
 Forward-only migration
-`350-multi-pod-league-organizations.sql` reserves the following boundaries:
+`350-multi-pod-league-organizations.sql` reserves the following boundaries.
+Forward-only migration
+`351-fix-multi-pod-championship-qualifier-delete.sql` preserves the composite
+season identity check while allowing organization cleanup to cascade through
+the qualifier-to-championship mapping:
 
 1. **Organizations** hold identity, visibility, administrators, and audit
    history.
@@ -91,9 +95,8 @@ percentage rule without changing the source leagues.
 
 ## Production boundary
 
-Migration 350 is infrastructure, not permission to apply it to production.
-Applying it requires the exact production Supabase project identity, explicit
-owner approval, Preview migration verification, RLS/grant review, and a
-post-deployment audit. No real league should be attached for testing; use an
-isolated organization and practice leagues.
-
+Migrations 350-351 are infrastructure, not permission to apply them to
+production. Applying them requires the exact production Supabase project
+identity, explicit owner approval, Preview migration verification, RLS/grant
+review, and a post-deployment audit. No real league should be attached for
+testing; use an isolated organization and practice leagues.

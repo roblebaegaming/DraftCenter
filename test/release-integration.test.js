@@ -27,6 +27,7 @@ test("release migrations use one production number each", () => {
   assert.ok(migrations.includes("348-reload-competitive-profile-schema-cache.sql"));
   assert.ok(migrations.includes("349-catalog-complete-versioned-pokemon-move-pools.sql"));
   assert.ok(migrations.includes("350-multi-pod-league-organizations.sql"));
+  assert.ok(migrations.includes("351-fix-multi-pod-championship-qualifier-delete.sql"));
 });
 
 test("the Gen 6 schema gate supports the official X and Y game keys", () => {

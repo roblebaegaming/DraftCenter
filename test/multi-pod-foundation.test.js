@@ -13,6 +13,10 @@ const sql = fs.readFileSync(
   new URL("../supabase/350-multi-pod-league-organizations.sql", import.meta.url),
   "utf8",
 );
+const cleanupSql = fs.readFileSync(
+  new URL("../supabase/351-fix-multi-pod-championship-qualifier-delete.sql", import.meta.url),
+  "utf8",
+);
 
 test("multi-pod seasons retain regular-season teams and permit cross-pod duplicates", () => {
   const season = createMultiPodSeasonDraft({
@@ -115,6 +119,12 @@ test("pod and championship edges cannot cross organization seasons", () => {
   assert.match(sql, /foreign key \(championship_id, season_id, tournament_id\)[\s\S]*references public\.league_organization_championships\(id, season_id, tournament_id\)/i);
   assert.match(sql, /foreign key \(qualifier_id, season_id\)[\s\S]*references public\.league_organization_qualifiers\(id, season_id\)/i);
   assert.match(sql, /foreign key \(tournament_entrant_id, tournament_id\)[\s\S]*references public\.tournament_entrants\(id, tournament_id\)/i);
+});
+
+test("organization cleanup cascades championship mappings without weakening season identity", () => {
+  assert.match(cleanupSql, /foreign key \(qualifier_id, season_id\)/i);
+  assert.match(cleanupSql, /references public\.league_organization_qualifiers\(id, season_id\)/i);
+  assert.match(cleanupSql, /on delete cascade/i);
 });
 
 test("qualifier storage freezes source identity and roster without species uniqueness", () => {
