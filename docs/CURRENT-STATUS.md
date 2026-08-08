@@ -1,12 +1,28 @@
 # DraftCenter current status
 
-- Last updated: August 7, 2026
+- Last updated: August 8, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified functional production release: `20f55ac`
-- Latest production migration: 349
+- Verified functional production release: `10eef31`
+- Latest production migration: 352
 
 ## Status
+
+Production includes the multi-pod organization foundation from pull request
+82 at commit `34069d0`, forward-only migrations 350-352, and the subsequent
+Nuzlocke team-generation refresh at current `main` commit `10eef31`. The
+organization schema remains private by default, the retained Preview branch is
+still available, and no real league has been attached to an organization.
+
+Owner Operations navigation restoration is ready in pull request 84 with all
+applicable checks passing and no database change. It has not been merged. The
+next multi-pod commissioner-workspace slice is isolated on
+`codex/multi-pod-organization-hub-2026-08-08` in pull request 85, which is
+ready for review with all protected checks passing.
+Migration 353 and the expanded multi-account database regression pass on the
+retained `multi-pod-pr-82` Supabase Preview branch. The Preview fixtures were
+removed and verified absent. Migration 353 and its UI are not applied or
+deployed to production.
 
 The August 7 tournament hardening release is live at production commit
 `20f55ac`, the squash merge of pull request 80. Native browser confirmations
@@ -86,7 +102,7 @@ the technical SEO foundation, expanded competitive resources and format data,
 source-attributed competitive ladder and tournament evidence on Pokémon
 profiles.
 
-Vercel reports exact functional release `20f55ac` Ready. The signed-out
+Vercel reports current `main` release `10eef31` Ready. The signed-out
 production smoke sweep passes. Live mobile review confirmed Roster Connections
 is public, usable without an account, persists progress in the current browser,
 and has no horizontal overflow. The reorganized header, five-slot tool bar, and
@@ -95,7 +111,7 @@ organizer page, signed-out empty state, sign-in boundary, and clean browser
 console. Pokémon profiles also expose bounded, source-attributed ladder and
 anonymous tournament aggregates without making the underlying tables public.
 
-Production migrations are collision-free through 349. Migration 343 restores
+Production migrations are collision-free through 352. Migration 343 restores
 the Daily Games bracket champion ranking function with a fixed search path,
 least-privilege grants, and anonymous current-day privacy. Migrations 344–347
 add reviewed competitive datasets behind RLS and bounded aggregate RPCs. The
@@ -107,6 +123,19 @@ the deployed application. Migration 349 catalogues all 32 upstream move
 version groups, publishes 28 move-bearing pools, retires four empty DLC aliases,
 preserves RLS, allows public read-only catalog access, and denies browser
 mutations.
+
+Migrations 350-352 provide the private-by-default multi-pod organization
+foundation, the forward-only championship-mapping cleanup correction, and
+hardened season-rule and audit-sequence boundaries.
+
+Migration 353 is Preview-only. It adds the commissioner workspace, one-time
+hashed administrator invitations, shared-regulation confirmation,
+revision-aware season launch, and public organization pages. Its Preview
+regression verifies all nine organization tables have RLS, browser roles have
+no direct table access, owner and delegated-administrator actions remain
+bounded, two reviewed practice pods can launch, and every synthetic fixture is
+removed. Production remains at migration 352 pending protected review and
+explicit approval.
 
 The application-side SEO backlog from the first crawl is substantially
 implemented: meaningful raw-HTML H1 content, fragment-based Pokédex selection,
@@ -136,6 +165,8 @@ an authenticated account session and have not been represented as completed.
 
 ## Authoritative records
 
+- Multi-pod commissioner workspace handoff:
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-08-multi-pod-commissioner-workspace.md`](handoffs/DraftCenter-agent-handoff-2026-08-08-multi-pod-commissioner-workspace.md)
 - Tournament hardening release record:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-07-tournament-hardening-release.md`](handoffs/DraftCenter-agent-handoff-2026-08-07-tournament-hardening-release.md)
 - Production reconciliation and cross-agent merge handoff:

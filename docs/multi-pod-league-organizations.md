@@ -36,6 +36,13 @@ the qualifier-to-championship mapping. Forward-only migration
 multidimensional tiebreaker lists at the authoritative RPC boundary and
 explicitly removes browser-role access to the organization audit sequence:
 
+Forward-only migration `353-multi-pod-commissioner-workspace.sql` adds the
+first commissioner workspace controls: HTTPS-only organization artwork,
+bounded branding updates, hashed one-time administrator invitations,
+administrator removal, shared-regulation confirmation, revision-aware season
+launch, and public organization lookup. The invite token is returned once and
+is never stored in plaintext.
+
 1. **Organizations** hold identity, visibility, administrators, and audit
    history.
 2. **Organization seasons** hold an immutable shared regulation snapshot,
@@ -96,10 +103,32 @@ percentage rule without changing the source leagues.
 5. **Community layer:** organization history, champions, records,
    announcements, following, and reusable season templates.
 
+## Commissioner workspace boundary
+
+- An organization administrator may edit branding, create seasons, and link a
+  league only when they also have commissioner authority in that source
+  league.
+- Only the organization owner may create or revoke administrator invitations
+  and remove an accepted administrator. These actions never alter a person's
+  roles in an existing league.
+- A linked pod remains pending until an organization administrator who is also
+  source-league staff explicitly confirms that the league was reviewed against
+  the shared regulations.
+- Launch requires at least two pods, confirmed regulations for every pod, an
+  unchanged source-league season number, and the same source snapshot revision
+  that was reviewed. Any changed pod must be reviewed again.
+- Launch changes only organization and pod status. It does not create or edit a
+  draft, roster, schedule, standing, transaction, or tournament.
+
 ## Production boundary
 
-Migrations 350-352 are infrastructure, not permission to apply them to
-production. Applying them requires the exact production Supabase project
-identity, explicit owner approval, Preview migration verification, RLS/grant
-review, and a post-deployment audit. No real league should be attached for
-testing; use an isolated organization and practice leagues.
+Migrations 350-352 were verified on the retained Supabase Preview branch and
+then released through protected pull request 82. Migration 353 and the
+commissioner workspace remain unreleased in pull request 85, which is ready
+for review. Migration 353 and the expanded database regression pass on the retained Preview branch:
+all nine organization tables use RLS, browser roles have no direct table
+access, owner and invited-administrator actions remain bounded, two reviewed
+practice pods can launch, and every synthetic fixture is removed. Application
+Preview review and protected checks must still be reviewed before explicit
+production approval. No real league should be attached for testing; use only
+isolated practice fixtures.

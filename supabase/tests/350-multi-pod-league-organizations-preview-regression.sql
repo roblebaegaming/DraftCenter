@@ -1,6 +1,6 @@
--- Preview-only regression for multi-pod migrations 350-352.
+-- Preview-only regression for multi-pod migrations 350-353.
 --
--- Run after the production baseline and migrations 340, 350, 351, and 352 exist
+-- Run after the production baseline and migrations 340, 350, 351, 352, and 353 exist
 -- in an isolated Supabase branch. The script creates only synthetic identities
 -- and practice leagues, removes every permanent fixture before commit, and
 -- returns one JSON result row. Any failed assertion aborts the transaction.
@@ -25,6 +25,7 @@ declare
   v_league_b uuid;
   v_pod_a uuid;
   v_pod_b uuid;
+  v_season_revision bigint;
   v_qualifier_a uuid;
   v_qualifier_b uuid;
   v_tournament_a uuid;
@@ -35,6 +36,8 @@ declare
   v_championship_a uuid;
   v_championship_b uuid;
   v_workspace jsonb;
+  v_invite_payload jsonb;
+  v_invite_preview jsonb;
   v_roster jsonb := jsonb_build_array(
     jsonb_build_object('pokemon', 'Garchomp', 'species_id', 445)
   );
@@ -58,8 +61,11 @@ declare
   v_audit_ok boolean;
   v_cleanup_ok boolean;
   v_practice_ok boolean;
+  v_invite_accept_ok boolean := false;
+  v_non_owner_invite_denied boolean := false;
+  v_launch_ok boolean := false;
 begin
-  select count(*) = 8 and bool_and(c.relrowsecurity)
+  select count(*) = 9 and bool_and(c.relrowsecurity)
   into v_rls_ok
   from pg_class c
   join pg_namespace n on n.oid = c.relnamespace
@@ -72,10 +78,11 @@ begin
       'league_organization_qualifiers',
       'league_organization_championships',
       'league_organization_championship_entrants',
-      'league_organization_audit_events'
+      'league_organization_audit_events',
+      'league_organization_administrator_invites'
     ]);
   if v_rls_ok is distinct from true then
-    raise exception 'Expected all eight organization tables to have RLS enabled.';
+    raise exception 'Expected all nine organization tables to have RLS enabled.';
   end if;
 
   select not exists (
@@ -89,7 +96,8 @@ begin
       'league_organization_qualifiers',
       'league_organization_championships',
       'league_organization_championship_entrants',
-      'league_organization_audit_events'
+      'league_organization_audit_events',
+      'league_organization_administrator_invites'
     ]) as tables(table_name)
     where has_table_privilege(role_name, 'public.' || table_name, 'select')
        or has_table_privilege(role_name, 'public.' || table_name, 'insert')
@@ -133,7 +141,8 @@ begin
       'league_organization_qualifiers',
       'league_organization_championships',
       'league_organization_championship_entrants',
-      'league_organization_audit_events'
+      'league_organization_audit_events',
+      'league_organization_administrator_invites'
     ]) as tables(table_name)
     where not has_table_privilege('service_role', 'public.' || table_name, 'select')
        or not has_table_privilege('service_role', 'public.' || table_name, 'insert')
@@ -189,6 +198,26 @@ begin
     and has_function_privilege(
       'authenticated',
       'public.get_league_organization_workspace(uuid)',
+      'execute'
+    )
+    and has_function_privilege(
+      'authenticated',
+      'public.create_league_organization_administrator_invite(uuid)',
+      'execute'
+    )
+    and not has_function_privilege(
+      'anon',
+      'public.create_league_organization_administrator_invite(uuid)',
+      'execute'
+    )
+    and has_function_privilege(
+      'anon',
+      'public.preview_league_organization_administrator_invite(text)',
+      'execute'
+    )
+    and has_function_privilege(
+      'authenticated',
+      'public.launch_league_organization_season(uuid,bigint)',
       'execute'
     )
   into v_rpc_grants_ok;
@@ -250,6 +279,17 @@ begin
     'public'
   ) into v_public_payload;
   v_public_organization := (v_public_payload ->> 'id')::uuid;
+  select public.create_league_organization_administrator_invite(v_private_organization)
+  into v_invite_payload;
+  if coalesce(v_invite_payload ->> 'token', '') !~ '^[0-9a-f]{48}$'
+     or exists (
+       select 1
+       from public.league_organization_administrator_invites invitation
+       where invitation.organization_id = v_private_organization
+         and invitation.token_hash = v_invite_payload ->> 'token'
+     ) then
+    raise exception 'Administrator invitation token storage is not one-time and hashed.';
+  end if;
 
   select public.create_league_organization_season(
     v_private_organization,
@@ -372,15 +412,29 @@ begin
   delete from public.league_memberships
   where league_id = v_league_a and user_id = v_other;
 
-  insert into public.league_organization_memberships(
-    organization_id,
-    user_id,
-    role
-  ) values (
-    v_private_organization,
-    v_other,
-    'administrator'
-  );
+  select public.preview_league_organization_administrator_invite(v_invite_payload ->> 'token')
+  into v_invite_preview;
+  if public.accept_league_organization_administrator_invite(v_invite_payload ->> 'token') <> v_private_organization then
+    raise exception 'Administrator invitation was accepted into the wrong organization.';
+  end if;
+  select exists (
+      select 1
+      from public.league_organization_memberships membership
+      where membership.organization_id = v_private_organization
+        and membership.user_id = v_other
+        and membership.role = 'administrator'
+    ) and v_invite_preview ->> 'organization_id' = v_private_organization::text
+    and public.preview_league_organization_administrator_invite(v_invite_payload ->> 'token') is null
+  into v_invite_accept_ok;
+  begin
+    perform public.create_league_organization_administrator_invite(v_private_organization);
+  exception when others then
+    if sqlerrm = 'Only the organization owner can invite administrators.' then
+      v_non_owner_invite_denied := true;
+    else
+      raise;
+    end if;
+  end;
   begin
     perform public.attach_league_organization_pod(
       v_primary_season,
@@ -420,6 +474,16 @@ begin
     1,
     null
   ) into v_pod_b;
+  select revision into v_season_revision
+  from public.league_organization_seasons where id = v_primary_season;
+  perform public.confirm_league_organization_pod_regulations(v_pod_a, v_season_revision);
+  select revision into v_season_revision
+  from public.league_organization_seasons where id = v_primary_season;
+  perform public.confirm_league_organization_pod_regulations(v_pod_b, v_season_revision);
+  select revision into v_season_revision
+  from public.league_organization_seasons where id = v_primary_season;
+  select public.launch_league_organization_season(v_primary_season, v_season_revision) ->> 'status' = 'active'
+  into v_launch_ok;
 
   insert into public.league_organization_qualifiers(
     season_id,
@@ -592,11 +656,12 @@ begin
     and season.qualified_teams_keep_rosters
     and season.roster_policy = 'retain-regular-season-roster'
     and season.replacement_policy = 'inherit-source-league'
+    and season.status = 'active'
     and season.qualification_rules ->> 'top_per_pod' = '2'
     and season.qualification_rules ->> 'wildcard_slots' = '1'
     and season.regulations ->> 'draft_mode' = 'snake'
     and (
-      select count(*) = 2 and bool_and(pod.regulations_status = 'pending')
+      select count(*) = 2 and bool_and(pod.regulations_status = 'confirmed' and pod.status = 'active')
       from public.league_organization_pods pod
       where pod.season_id = season.id
     )
@@ -605,11 +670,20 @@ begin
   where season.id = v_primary_season;
 
   select count(*) >= 5
-    and bool_and(actor_id = v_owner)
+    and bool_and(
+      case
+        when kind = 'administrator_invite_accepted' then actor_id = v_other
+        else actor_id = v_owner
+      end
+    )
     and bool_and(kind = any(array[
       'organization_created',
       'season_created',
-      'pod_attached'
+      'pod_attached',
+      'administrator_invite_created',
+      'administrator_invite_accepted',
+      'pod_regulations_confirmed',
+      'season_launched'
     ]))
   into v_audit_ok
   from public.league_organization_audit_events
@@ -646,7 +720,10 @@ begin
      or v_duplicate_rosters_ok is distinct from true
      or v_cross_mapping_denied is distinct from true
      or v_audit_ok is distinct from true
-     or v_practice_ok is distinct from true then
+     or v_practice_ok is distinct from true
+     or v_invite_accept_ok is distinct from true
+     or v_non_owner_invite_denied is distinct from true
+     or v_launch_ok is distinct from true then
     raise exception 'One or more multi-pod behavior assertions failed.';
   end if;
 
@@ -683,7 +760,7 @@ begin
 
   insert into dc_multi_pod_preview_results(result)
   values (jsonb_build_object(
-    'tables_with_rls', 8,
+    'tables_with_rls', 9,
     'browser_direct_table_access_denied', v_direct_access_denied,
     'browser_audit_sequence_access_denied', v_sequence_access_denied,
     'service_role_table_access', v_service_access_ok,
@@ -701,6 +778,9 @@ begin
     'cross_pod_duplicate_rosters', v_duplicate_rosters_ok,
     'cross_season_championship_mapping_denied', v_cross_mapping_denied,
     'audit_history', v_audit_ok,
+    'administrator_invite_hashed_and_consumed', v_invite_accept_ok,
+    'non_owner_administrator_invite_denied', v_non_owner_invite_denied,
+    'confirmed_pods_and_season_launch', v_launch_ok,
     'practice_only_fixtures', v_practice_ok,
     'fixtures_removed', v_cleanup_ok
   ));
