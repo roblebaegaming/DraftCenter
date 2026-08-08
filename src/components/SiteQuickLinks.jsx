@@ -80,7 +80,7 @@ export default function SiteQuickLinks() {
           {signedIn ? <>
             {isOwner ? <details className="site-owner-menu">
               <summary>{accountName}</summary>
-              <div><a href="/operations">Operations</a><a href="/operations/daily-three">Daily Three</a></div>
+              <div><a href="/operations/daily-three">Daily Three</a></div>
             </details> : <span className="site-account-name">{accountName}</span>}
             <a href="/?profile=open" onClick={openProfile}>Profile</a>
             <button type="button" onClick={signOut}>Sign out</button>
@@ -88,11 +88,12 @@ export default function SiteQuickLinks() {
         </div>
       </div>
     </header>
-    <nav className="site-quick-links" aria-label="Tools and resources">
+    <nav className={`site-quick-links${isOwner ? " has-owner-link" : ""}`} aria-label="Tools and resources">
       <a href="/resources/daily-games" aria-label="Daily Games" {...navState(pathname, "/resources/daily-games")}><span className="quick-label-wide">Daily Games</span><span className="quick-label-compact">Daily</span></a>
       <a href="/nuzlocke" aria-label="Nuzlockes" {...navState(pathname, "/nuzlocke")}><span className="quick-label-wide">Nuzlockes</span><span className="quick-label-compact">Nuzlocke</span></a>
       <a href="/tournaments" aria-label="Tournaments" {...navState(pathname, "/tournaments")}><span className="quick-label-wide">Tournaments</span><span className="quick-label-compact">Events</span></a>
       {signedIn && <a href="/trainer-dex" aria-label="Trainer Dex" {...navState(pathname, "/trainer-dex")}><span className="quick-label-wide">Trainer Dex</span><span className="quick-label-compact">Dex</span></a>}
+      {isOwner && <a href="/operations" aria-label="Operations" {...navState(pathname, "/operations")}><span className="quick-label-wide">Operations</span><span className="quick-label-compact">Ops</span></a>}
       <a href="/my-teams" aria-label="My Teams" {...navState(pathname, "/my-teams")}><span className="quick-label-wide">My Teams</span><span className="quick-label-compact">Teams</span></a>
       {!signedIn && <a href="/manuals" aria-label="Help" {...navState(pathname, "/manuals")}><span className="quick-label-wide">Help</span><span className="quick-label-compact">Help</span></a>}
     </nav>

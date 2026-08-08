@@ -458,6 +458,11 @@ return (
         {!lifecycleArchived && <button type="button" className="quiet-button dashboard-league-archive" disabled={leagueActionId === league.id} onClick={() => setLeagueArchived(league.id, !archivedAt)}>{leagueActionId === league.id ? "Saving..." : archivedAt ? "Restore" : "Hide for me"}</button>}
       </article>; })}</div>
     </section>
+    <section className="hub-card organization-hub-entry">
+      <div className="section-heading"><div><span className="eyebrow">MULTI-POD LEAGUES</span><h2>League organizations</h2></div><span className="muted">Shared seasons, independent drafts, one championship.</span></div>
+      <p className="muted">Coordinate several existing leagues as pods, confirm one shared rule set, and advance qualifying teams without changing their rosters.</p>
+      <a className="primary-button" href="/organizations">Open organization hub</a>
+    </section>
     <section className="dashboard-daily-three">
       <PollOfTheDay supabase={supabase} />
       <DailyCommunityGames signedIn />

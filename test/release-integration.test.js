@@ -29,6 +29,7 @@ test("release migrations use one production number each", () => {
   assert.ok(migrations.includes("350-multi-pod-league-organizations.sql"));
   assert.ok(migrations.includes("351-fix-multi-pod-championship-qualifier-delete.sql"));
   assert.ok(migrations.includes("352-harden-multi-pod-season-rule-boundaries.sql"));
+  assert.ok(migrations.includes("353-multi-pod-commissioner-workspace.sql"));
 });
 
 test("the Gen 6 schema gate supports the official X and Y game keys", () => {
@@ -50,12 +51,13 @@ test("the Gen 5 schema gate supports official zero-based regional entries", () =
 test("integrated quick links expose each released feature once", () => {
   const links = source("src/components/SiteQuickLinks.jsx");
   const nuzlocke = source("src/components/NuzlockeLab.jsx");
-  for (const path of ["/nuzlocke", "/tournaments", "/trainer-dex"]) {
+  for (const path of ["/nuzlocke", "/tournaments", "/trainer-dex", "/operations"]) {
     assert.equal((links.match(new RegExp(`href=\"${path}\"`, "g")) || []).length, 1);
   }
   assert.match(links, /href="\/nuzlocke"[^>]*>[\s\S]*?quick-label-wide">Nuzlockes<\/span>/);
   assert.match(nuzlocke, />NUZLOCKE DRAFT<\/span>/);
   assert.match(links, /signedIn && <a href="\/trainer-dex"[^>]*>[\s\S]*?quick-label-wide">Trainer Dex<\/span>/);
+  assert.match(links, /isOwner && <a href="\/operations"[^>]*>[\s\S]*?quick-label-wide">Operations<\/span>/);
   assert.doesNotMatch(links, /href="\/(resources|support)"/);
 });
 

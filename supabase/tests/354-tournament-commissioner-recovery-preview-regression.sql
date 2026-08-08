@@ -1,6 +1,6 @@
--- Preview-only transactional matrix for migration 353.
+-- Preview-only transactional matrix for migration 354.
 -- Run only in an isolated Supabase branch after the production baseline and
--- migrations 340 and 350-353 exist. Every synthetic row is removed before
+-- migrations 340 and 350-354 exist. Every synthetic row is removed before
 -- commit; any failed assertion aborts the transaction.
 
 begin;

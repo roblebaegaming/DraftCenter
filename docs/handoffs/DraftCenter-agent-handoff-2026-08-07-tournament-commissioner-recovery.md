@@ -3,8 +3,8 @@
 - Date: August 7, 2026 (America/Denver)
 - Repository: `roblebaegaming/DraftCenter`
 - Branch: `codex/tournament-recovery-2026-08-07`
-- Base: `10eef31`
-- Database migration: `353-tournament-commissioner-recovery.sql`
+- Integrated base: `9753cbf`
+- Database migration: `354-tournament-commissioner-recovery.sql`
 - Production status: release candidate; not migrated or deployed
 
 ## Outcome
@@ -33,8 +33,8 @@ accepted.
 
 ## Database and security model
 
-Migration 353 is forward-only and follows the merged multi-pod migration range
-350-352. It:
+Migration 354 is forward-only and follows the deployed multi-pod migration
+range 350-353. It:
 
 - adds `replaced` to the bounded entrant-status contract;
 - adds private, RLS-enabled `tournament_entrant_replacements` storage with
@@ -125,11 +125,11 @@ No production database, tournament, league, draft, entrant, result, provider
 setting, environment variable, or secret changed during implementation. No
 real tournament was used as a fixture.
 
-The multi-pod foundation from pull request 82 was preserved unchanged. Its
-migrations 350-352 are in `main`, but its handoff records them as Preview-only
-and not production-applied. Migration 353 must not be applied ahead of that
-range. Production application of 350-353 requires the exact project identity
-and explicit owner approval.
+The multi-pod foundation from pull request 82 and commissioner workspace from
+pull request 85 were preserved. Migrations 350-353 are applied in production
+and passed their RLS and grant audits. Migration 354 is therefore the next
+forward-only production migration. Its production application still requires
+the exact project identity and explicit owner approval.
 
 The original dirty workspace and the other agent's retained multi-pod Preview
 branch were not modified.
@@ -137,18 +137,18 @@ branch were not modified.
 ## Remaining release steps
 
 1. Provision or explicitly select an isolated Supabase Preview without
-   changing the production integration setting, apply migration 353, then run
-   `supabase/tests/353-tournament-commissioner-recovery-preview-regression.sql`
+   changing the production integration setting, apply migration 354, then run
+   `supabase/tests/354-tournament-commissioner-recovery-preview-regression.sql`
    and verify its single all-true result plus zero permanent fixtures.
 2. Review the schema-backed hosted Preview at desktop and 390-by-844 widths,
    including
    commissioner controls and replacement acceptance without using real data.
-3. Reconcile the separate 350-352 production boundary and obtain explicit
-   exact-project approval before any production database application.
+3. Obtain explicit exact-project approval before applying production migration
+   354.
 4. Merge only after protected checks and Preview review pass. Confirm the exact
    Vercel production commit and run the signed-out production smoke sweep.
 5. Update this record and `CURRENT-STATUS.md` with the production migration and
    deployment evidence.
 
 Double elimination remains the next separate feature. It should reuse this
-recovery contract only after migration 353 is proven in Preview and production.
+recovery contract only after migration 354 is proven in Preview and production.

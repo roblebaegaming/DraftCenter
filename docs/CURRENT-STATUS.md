@@ -1,34 +1,34 @@
 # DraftCenter current status
 
-- Last updated: August 7, 2026
+- Last updated: August 8, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified functional production release: `10eef31`
-- Latest production migration: 349
+- Verified functional production release: `b44277a`
+- Latest production migration: 353
 
 ## Status
 
-The August 7 Nuzlocke team-generation refresh is live at production commit
-`10eef31`, the squash merge of pull request 77. Player-facing seed controls
-were removed while exact generated links remain reproducible, consecutive
-Builds create fresh teams, and Run Cards use a level-informed display order.
-The protected application checks passed, Vercel reported the exact commit
-Ready, the signed-out production smoke sweep passed, and live Red and Scarlet
-checks at 390 by 844 pixels had no horizontal overflow or browser errors. No
-migration was required.
+Production includes the multi-pod organization foundation from pull request
+82, the restored owner Operations navigation from pull request 84, and the
+commissioner workspace from pull request 85. Current `main` commit `b44277a`
+and migration 353 are deployed and verified. The organization schema remains
+private by default, the retained `multi-pod-pr-82` Preview branch is still
+available, and no real league has been attached to an organization for release
+testing.
 
-The multi-pod foundation files from pull request 82 are present in `main` at
-`34069d0`, but the feature remains intentionally dormant: there is no user
-interface, and its authoritative handoff records migrations 350-352 as
-Preview-only and not applied to production. Applying those migrations remains
-a separate exact-project owner-approval step; do not infer database deployment
-from the merged application commit.
+The production release passed the refreshed application suite, dependency
+audit, National Dex verification, production build, CodeQL, security and
+dependency checks, full-history secret scan, exact Vercel deployment check,
+database RLS/grant audit, and signed-out production smoke sweep. Preview
+fixtures were removed and verified absent before release. No merge protection
+was bypassed.
 
-Commissioner tournament recovery is the active release candidate. It adds
-explicit match forfeits, entrant drops and disqualifications, and identity-safe
-replacement invitations with an explicit roster policy. Migration 353 and its
-isolated transactional matrix are not production-deployed and require
-protected Preview review plus exact-project owner approval.
+Commissioner tournament recovery remains the active release candidate in pull
+request 83. It adds explicit match forfeits, entrant drops and
+disqualifications, and identity-safe replacement invitations with an explicit
+roster policy. Its forward-only migration is now 354 because production
+migration 353 belongs to the multi-pod commissioner workspace. Recovery is not
+deployed and still requires isolated database transaction validation.
 
 The August 7 tournament hardening release is live at production commit
 `20f55ac`, the squash merge of pull request 80. Native browser confirmations
@@ -108,18 +108,21 @@ the technical SEO foundation, expanded competitive resources and format data,
 source-attributed competitive ladder and tournament evidence on Pokémon
 profiles.
 
-Vercel reports exact functional release `10eef31` Ready. The signed-out
-production smoke sweep passes. Live mobile review confirmed Roster Connections
-is public, usable without an account, persists progress in the current browser,
-and has no horizontal overflow. The reorganized header, five-slot tool bar, and
-grouped footer remain live. Earlier tournament review confirmed the public
-organizer page, signed-out empty state, sign-in boundary, and clean browser
-console. Pokémon profiles also expose bounded, source-attributed ladder and
-anonymous tournament aggregates without making the underlying tables public.
+Vercel reports current `main` release `b44277a` Ready. Pull request 84 restored
+the owner-only Operations navigation in production commit `1b29b8c`; pull
+request 85 then released the multi-pod commissioner workspace in `b44277a`.
+The signed-out production smoke sweep passes, protected Operations and recovery
+APIs still return 401 without a session, and `/organizations` presents the
+expected sign-in boundary. Live mobile review previously confirmed Roster
+Connections is public, usable without an account, persists progress in the
+current browser, and has no horizontal overflow. The reorganized header,
+five-slot tool bar, and grouped footer remain live. Earlier tournament review
+confirmed the public organizer page, signed-out empty state, sign-in boundary,
+and clean browser console. Pokémon profiles also expose bounded,
+source-attributed ladder and anonymous tournament aggregates without making the
+underlying tables public.
 
-Verified production migrations remain collision-free through 349. Migrations
-350-352 exist in the repository for the dormant multi-pod foundation but are
-not represented as production-applied. Migration 343 restores
+Production migrations are collision-free through 353. Migration 343 restores
 the Daily Games bracket champion ranking function with a fixed search path,
 least-privilege grants, and anonymous current-day privacy. Migrations 344–347
 add reviewed competitive datasets behind RLS and bounded aggregate RPCs. The
@@ -131,6 +134,22 @@ the deployed application. Migration 349 catalogues all 32 upstream move
 version groups, publishes 28 move-bearing pools, retires four empty DLC aliases,
 preserves RLS, allows public read-only catalog access, and denies browser
 mutations.
+
+Migrations 350-352 provide the private-by-default multi-pod organization
+foundation, the forward-only championship-mapping cleanup correction, and
+hardened season-rule and audit-sequence boundaries.
+
+Migration 353 adds the commissioner workspace, one-time hashed administrator
+invitations, shared-regulation confirmation, revision-aware season launch, and
+public organization pages. It was validated first on the retained isolated
+Preview branch and then applied once to the exact core production project after
+the protected merge. The production audit confirms all nine organization
+tables use RLS, browser roles have no direct table or audit-sequence access,
+service-role access remains intact, RPC grants match the intended public and
+authenticated boundaries, and the new branding constraints, invitation index,
+and security-definer search paths are present. No real league was attached or
+changed during release validation, and the retained Preview branch was not
+deleted.
 
 The application-side SEO backlog from the first crawl is substantially
 implemented: meaningful raw-HTML H1 content, fragment-based Pokédex selection,
@@ -162,11 +181,8 @@ an authenticated account session and have not been represented as completed.
 
 - Commissioner recovery release candidate:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-07-tournament-commissioner-recovery.md`](handoffs/DraftCenter-agent-handoff-2026-08-07-tournament-commissioner-recovery.md)
-- Multi-pod foundation and deployment boundary:
-  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-07-multi-pod-foundation.md`](handoffs/DraftCenter-agent-handoff-2026-08-07-multi-pod-foundation.md)
-- Nuzlocke team-generation release record:
-  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-07-nuzlocke-team-generation.md`](handoffs/DraftCenter-agent-handoff-2026-08-07-nuzlocke-team-generation.md)
-
+- Multi-pod commissioner workspace handoff:
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-08-multi-pod-commissioner-workspace.md`](handoffs/DraftCenter-agent-handoff-2026-08-08-multi-pod-commissioner-workspace.md)
 - Tournament hardening release record:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-07-tournament-hardening-release.md`](handoffs/DraftCenter-agent-handoff-2026-08-07-tournament-hardening-release.md)
 - Production reconciliation and cross-agent merge handoff:

@@ -9,10 +9,19 @@ export const MULTI_POD_TIEBREAKERS = [
 ];
 export const MULTI_POD_RPCS = Object.freeze({
   createOrganization: "create_league_organization",
+  updateOrganization: "update_league_organization",
   createSeason: "create_league_organization_season",
   attachPod: "attach_league_organization_pod",
+  confirmPodRegulations: "confirm_league_organization_pod_regulations",
+  launchSeason: "launch_league_organization_season",
+  createAdministratorInvite: "create_league_organization_administrator_invite",
+  previewAdministratorInvite: "preview_league_organization_administrator_invite",
+  acceptAdministratorInvite: "accept_league_organization_administrator_invite",
+  revokeAdministratorInvite: "revoke_league_organization_administrator_invite",
+  removeAdministrator: "remove_league_organization_administrator",
   listMine: "list_my_league_organizations",
   getWorkspace: "get_league_organization_workspace",
+  getPublicWorkspace: "get_public_league_organization_workspace",
 });
 
 const DEFAULT_TIEBREAKERS = ["wins", "differential", "head-to-head"];
@@ -25,13 +34,64 @@ function integerInRange(value, minimum, maximum, label) {
   return number;
 }
 
+export function createMultiPodOrganizationDraft({
+  name,
+  description = "",
+  visibility = "private",
+  imageUrl = "",
+  brandColor = "#4fd1c5",
+}) {
+  const cleanName = String(name || "").trim();
+  const cleanDescription = String(description || "");
+  const cleanImageUrl = String(imageUrl || "").trim();
+  const cleanBrandColor = String(brandColor || "").trim().toLowerCase();
+  if (cleanName.length < 2 || cleanName.length > 120) throw new Error("Organization name must be between 2 and 120 characters.");
+  if (cleanDescription.length > 4000) throw new Error("Organization description must be 4,000 characters or fewer.");
+  if (!["private", "public"].includes(visibility)) throw new Error("Choose private or public organization visibility.");
+  if (cleanImageUrl && (!cleanImageUrl.startsWith("https://") || cleanImageUrl.length > 2048)) throw new Error("Organization artwork must use a secure HTTPS URL.");
+  if (!/^#[0-9a-f]{6}$/.test(cleanBrandColor)) throw new Error("Brand color must be a six-digit hex color.");
+  return {
+    name: cleanName,
+    description: cleanDescription,
+    visibility,
+    imageUrl: cleanImageUrl || null,
+    brandColor: cleanBrandColor,
+  };
+}
+
+export function multiPodOrganizationUpdateRpcArguments(organizationId, expectedRevision, draft) {
+  const cleanOrganizationId = String(organizationId || "").trim();
+  if (!cleanOrganizationId) throw new Error("An organization is required.");
+  const normalized = createMultiPodOrganizationDraft(draft);
+  return {
+    p_organization_id: cleanOrganizationId,
+    p_expected_revision: integerInRange(expectedRevision, 0, Number.MAX_SAFE_INTEGER, "Organization revision"),
+    p_name: normalized.name,
+    p_description: normalized.description,
+    p_visibility: normalized.visibility,
+    p_image_url: normalized.imageUrl,
+    p_brand_color: normalized.brandColor,
+  };
+}
+
+export function multiPodAdministratorInviteUrl(origin, token) {
+  const cleanOrigin = String(origin || "").replace(/\/$/, "");
+  const cleanToken = String(token || "").trim();
+  if (!/^https?:\/\//.test(cleanOrigin)) throw new Error("A valid site address is required.");
+  if (!/^[0-9a-f]{48}$/.test(cleanToken)) throw new Error("The administrator invitation token is invalid.");
+  return `${cleanOrigin}/organizations?administrator_invite=${cleanToken}`;
+}
+
 export function normalizeMultiPodQualificationRules(rules = {}) {
   const topPerPod = integerInRange(rules.topPerPod ?? 2, 1, 16, "Top qualifiers per pod");
   const wildcardSlots = integerInRange(rules.wildcardSlots ?? 0, 0, 32, "Wildcard slots");
   const tiebreakers = Array.isArray(rules.tiebreakers) && rules.tiebreakers.length
-    ? [...new Set(rules.tiebreakers.map((value) => String(value).trim()))]
+    ? rules.tiebreakers.map((value) => String(value).trim())
     : DEFAULT_TIEBREAKERS;
 
+  if (new Set(tiebreakers).size !== tiebreakers.length) {
+    throw new Error("Choose each tiebreaker only once.");
+  }
   if (tiebreakers.length > 5 || tiebreakers.some((value) => !MULTI_POD_TIEBREAKERS.includes(value))) {
     throw new Error("Choose up to five supported tiebreakers.");
   }

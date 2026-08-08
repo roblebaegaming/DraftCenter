@@ -2,13 +2,13 @@
 
 [`DraftCenter-agent-handoff-2026-08-07-tournament-commissioner-recovery.md`](DraftCenter-agent-handoff-2026-08-07-tournament-commissioner-recovery.md)
 is the current continuation handoff. It records the recovery release candidate,
-migration 353, the identity-safe replacement model, validation, production
+migration 354, the identity-safe replacement model, validation, production
 boundaries, and remaining protected-release gates.
 
-[`DraftCenter-agent-handoff-2026-08-07-multi-pod-foundation.md`](DraftCenter-agent-handoff-2026-08-07-multi-pod-foundation.md)
-records the separately owned pod infrastructure and the critical distinction
-between its merged application files and migrations 350-352, which remain
-documented as not production-applied.
+[`DraftCenter-agent-handoff-2026-08-08-multi-pod-commissioner-workspace.md`](DraftCenter-agent-handoff-2026-08-08-multi-pod-commissioner-workspace.md)
+records the deployed pod infrastructure and commissioner workspace through
+production migration 353. The retained `multi-pod-pr-82` Preview branch remains
+available.
 
 [`DraftCenter-agent-handoff-2026-08-07-nuzlocke-team-generation.md`](DraftCenter-agent-handoff-2026-08-07-nuzlocke-team-generation.md)
 records the completed pull request 77 production release.

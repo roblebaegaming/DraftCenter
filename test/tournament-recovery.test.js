@@ -2,8 +2,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 
-const sql = fs.readFileSync(new URL("../supabase/353-tournament-commissioner-recovery.sql", import.meta.url), "utf8");
-const matrix = fs.readFileSync(new URL("../supabase/tests/353-tournament-commissioner-recovery-preview-regression.sql", import.meta.url), "utf8");
+const sql = fs.readFileSync(new URL("../supabase/354-tournament-commissioner-recovery.sql", import.meta.url), "utf8");
+const matrix = fs.readFileSync(new URL("../supabase/tests/354-tournament-commissioner-recovery-preview-regression.sql", import.meta.url), "utf8");
 const ui = fs.readFileSync(new URL("../src/components/TournamentWorkspace.jsx", import.meta.url), "utf8");
 const errors = fs.readFileSync(new URL("../src/lib/tournamentErrors.js", import.meta.url), "utf8");
 

@@ -1,4 +1,4 @@
--- Commissioner recovery for standalone tournaments. Replacements retain an
+-- Migration 354: commissioner recovery for standalone tournaments. Replacements retain an
 -- explicit identity trail and use one-time, fragment-safe claim codes.
 begin;
 
