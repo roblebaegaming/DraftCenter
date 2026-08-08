@@ -12,8 +12,9 @@ The remaining broad feature work is deliberately narrow and ordered:
    large-field mobile, and isolated-fixture hardening.
 2. Add commissioner recovery for forfeits, disqualifications, drops, and safe
    entrant replacement.
-3. Add double elimination as one independently validated format.
-4. Add a Draft Tournament workflow that reuses DraftCenter's existing league
+3. Complete the in-progress double-elimination release as one independently
+   validated format.
+4. Then add a Draft Tournament workflow that reuses DraftCenter's existing league
    draft room and rosters, then transitions into Swiss rounds and an optional
    single-elimination top cut. The primary user experience belongs under
    Tournaments; leagues may offer a second entry point for converting existing
@@ -34,7 +35,9 @@ Build this in staged releases: organization and season infrastructure,
 commissioner workspace and shared regulations, qualification review, connected
 championships, then public organization history and community features. The
 detailed product and data contract is in
-[`multi-pod-league-organizations.md`](multi-pod-league-organizations.md).
+[`multi-pod-league-organizations.md`](multi-pod-league-organizations.md). The
+organizer-facing flow and configurable choices are summarized in
+[`multi-pod-organizer-guide.md`](multi-pod-organizer-guide.md).
 
 Round robin and general-purpose standalone Swiss are not parallel workstreams.
 Swiss is revisited as part of the explicitly planned Draft Tournament after the
