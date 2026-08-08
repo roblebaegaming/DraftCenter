@@ -183,8 +183,8 @@ an authenticated account session and have not been represented as completed.
 
 ## Authoritative records
 
-- Commissioner recovery release candidate:
-  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-07-tournament-commissioner-recovery.md`](handoffs/DraftCenter-agent-handoff-2026-08-07-tournament-commissioner-recovery.md)
+- Current recovery production-checkpoint handoff:
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-08-tournament-recovery-production-checkpoint.md`](handoffs/DraftCenter-agent-handoff-2026-08-08-tournament-recovery-production-checkpoint.md)
 - Multi-pod commissioner workspace handoff:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-08-multi-pod-commissioner-workspace.md`](handoffs/DraftCenter-agent-handoff-2026-08-08-multi-pod-commissioner-workspace.md)
 - Tournament hardening release record:

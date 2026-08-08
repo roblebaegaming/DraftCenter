@@ -1,9 +1,12 @@
 # Agent handoffs
 
+[`DraftCenter-agent-handoff-2026-08-08-tournament-recovery-production-checkpoint.md`](DraftCenter-agent-handoff-2026-08-08-tournament-recovery-production-checkpoint.md)
+is the current continuation handoff. It separates the deployed Operations and
+multi-pod release from the validated but not-yet-deployed recovery release and
+records the exact production-approval boundary for migration 354.
+
 [`DraftCenter-agent-handoff-2026-08-07-tournament-commissioner-recovery.md`](DraftCenter-agent-handoff-2026-08-07-tournament-commissioner-recovery.md)
-is the current continuation handoff. It records the recovery release candidate,
-migration 354, the identity-safe replacement model, validation, production
-boundaries, and remaining protected-release gates.
+remains the detailed recovery implementation and validation record.
 
 [`DraftCenter-agent-handoff-2026-08-08-multi-pod-commissioner-workspace.md`](DraftCenter-agent-handoff-2026-08-08-multi-pod-commissioner-workspace.md)
 records the deployed pod infrastructure and commissioner workspace through
