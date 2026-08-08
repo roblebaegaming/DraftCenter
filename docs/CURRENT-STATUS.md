@@ -65,14 +65,25 @@ No deployment work remains for pull requests 83 or 87. Continue normal
 production monitoring for tournament recovery, organization commissioner
 workflows, Nuzlocke generation, and the new species filters.
 
-Double elimination remains a separate future feature. External SEO measurement
-also remains outstanding: a fresh authenticated Semrush crawl, Position
-Tracking baseline, and Search Console indexing/canonical snapshot have not been
-represented as complete.
+Standalone double elimination is implemented on branch
+`codex/standalone-double-elimination-2026-08-08` with forward migration 355.
+The full application checks pass, and migration 355 plus its synthetic
+transaction matrix pass in the isolated `double-elimination-pr-2026-08-08`
+Supabase Preview branch. It is not merged, applied to production, or deployed.
+The Preview branch remains billable until an explicit cleanup decision.
+
+The August 8 external SEO measurement is complete. The 1,544-page Semrush
+crawl, existing Position Tracking baseline, and Search Console performance,
+indexing, sitemap, and canonical snapshots are recorded in
+[`seo-measurement-2026-08-08.md`](seo-measurement-2026-08-08.md). Adding US
+desktop/mobile Position Tracking remains blocked by the account's one-target
+limit; the existing Australia history was preserved.
 
 ## Authoritative records
 
 - Current continuation handoff:
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-08-double-elimination-and-seo.md`](handoffs/DraftCenter-agent-handoff-2026-08-08-double-elimination-and-seo.md)
+- Previous production verification:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-08-final-production-verification.md`](handoffs/DraftCenter-agent-handoff-2026-08-08-final-production-verification.md)
 - Recovery and species-traits release detail:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-08-recovery-and-species-traits-production.md`](handoffs/DraftCenter-agent-handoff-2026-08-08-recovery-and-species-traits-production.md)
@@ -82,6 +93,12 @@ represented as complete.
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-07-tournament-commissioner-recovery.md`](handoffs/DraftCenter-agent-handoff-2026-08-07-tournament-commissioner-recovery.md)
 - Species-trait provenance and behavior:
   [`docs/pokemon-catalog/pokemon-species-traits-2026-08-07.md`](pokemon-catalog/pokemon-species-traits-2026-08-07.md)
+- Multi-pod organizer guide:
+  [`docs/multi-pod-organizer-guide.md`](multi-pod-organizer-guide.md)
+- Draft Tournament scope and status:
+  [`docs/draft-tournament-concept.md`](draft-tournament-concept.md)
+- External SEO measurement:
+  [`docs/seo-measurement-2026-08-08.md`](seo-measurement-2026-08-08.md)
 - Permanent repository policy: [`AGENTS.md`](../AGENTS.md)
 
 When this file conflicts with an older handoff, this verified production record
