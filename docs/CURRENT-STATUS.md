@@ -27,8 +27,12 @@ Commissioner tournament recovery remains the active release candidate in pull
 request 83. It adds explicit match forfeits, entrant drops and
 disqualifications, and identity-safe replacement invitations with an explicit
 roster policy. Its forward-only migration is now 354 because production
-migration 353 belongs to the multi-pod commissioner workspace. Recovery is not
-deployed and still requires isolated database transaction validation.
+migration 353 belongs to the multi-pod commissioner workspace. Migration 354
+and its synthetic transaction matrix passed on a separate isolated Preview;
+RLS, grants, revision denials, replacement claims, projection privacy, and
+fixture cleanup all verified. The temporary Preview was deleted after the
+proof, while `multi-pod-pr-82` remains untouched. Recovery is not yet deployed
+and requires separate production approval.
 
 The August 7 tournament hardening release is live at production commit
 `20f55ac`, the squash merge of pull request 80. Native browser confirmations

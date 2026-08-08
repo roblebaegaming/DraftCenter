@@ -1,11 +1,11 @@
 # DraftCenter handoff - tournament commissioner recovery
 
-- Date: August 7, 2026 (America/Denver)
+- Updated: August 8, 2026 (America/Denver)
 - Repository: `roblebaegaming/DraftCenter`
 - Branch: `codex/tournament-recovery-2026-08-07`
 - Integrated base: `9753cbf`
 - Database migration: `354-tournament-commissioner-recovery.sql`
-- Production status: release candidate; not migrated or deployed
+- Production status: validated release candidate; not migrated or deployed
 
 ## Outcome
 
@@ -117,7 +117,28 @@ not enabled in that environment because the Supabase integration is configured
 to skip automatic per-PR branches. The Supabase Preview check therefore reports
 `skipped`, not `success`; no functional database claim is made.
 
-The isolated database matrix remains the blocking release gate.
+The isolated database gate is complete. A separate temporary Supabase Preview
+branch was created from the production baseline, allowed to finish its schema
+clone, and then received migrations 340 and 350-354 in order. Migration 354
+completed successfully. The synthetic transaction matrix returned one row with
+every assertion true: RLS, grants, explicit forfeit resolution, stale-revision
+denial, disqualification, safe one-time replacement claims, waiting-drop
+resolution, bounded projection, and cleanup. An independent post-check also
+confirmed direct browser table denial, service-role access, browser denial for
+the internal helper, authenticated access to the bounded commissioner RPC, and
+zero remaining synthetic tournaments or replacement rows.
+
+The temporary Preview branch was deleted immediately after successful
+validation to stop billing. The retained `multi-pod-pr-82` branch was verified
+present and was not modified or deleted. The automated Supabase Preview job on
+pull request 83 still reports `skipped`; the manual isolated transaction proof
+is the authoritative database evidence.
+
+After integration with current `main`, the production dependency audit, full
+application suite, all 1,027 National Dex rows, 180-page production build,
+CodeQL, JavaScript security analysis, security/dependency checks, full-history
+secret scan, and Vercel Preview all pass. Pull request 83 is mergeable and its
+protected check state is clean.
 
 ## Production and concurrent-work boundaries
 
@@ -136,18 +157,13 @@ branch were not modified.
 
 ## Remaining release steps
 
-1. Provision or explicitly select an isolated Supabase Preview without
-   changing the production integration setting, apply migration 354, then run
-   `supabase/tests/354-tournament-commissioner-recovery-preview-regression.sql`
-   and verify its single all-true result plus zero permanent fixtures.
-2. Review the schema-backed hosted Preview at desktop and 390-by-844 widths,
-   including
-   commissioner controls and replacement acceptance without using real data.
-3. Obtain explicit exact-project approval before applying production migration
-   354.
-4. Merge only after protected checks and Preview review pass. Confirm the exact
-   Vercel production commit and run the signed-out production smoke sweep.
-5. Update this record and `CURRENT-STATUS.md` with the production migration and
+1. Obtain explicit exact-project approval for production migration 354 and the
+   connected `main` deployment.
+2. Apply migration 354 once to the exact core production project and repeat the
+   RLS/grant/no-fixture audit without creating a real tournament.
+3. Merge pull request 83 through normal protection, confirm the exact Vercel
+   production commit, and run the signed-out production smoke sweep.
+4. Update this record and `CURRENT-STATUS.md` with the production migration and
    deployment evidence.
 
 Double elimination remains the next separate feature. It should reuse this
