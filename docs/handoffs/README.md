@@ -1,9 +1,14 @@
 # Agent handoffs
 
+[`DraftCenter-agent-handoff-2026-08-08-recovery-and-species-traits-production.md`](DraftCenter-agent-handoff-2026-08-08-recovery-and-species-traits-production.md)
+is the current continuation handoff. It records the completed recovery
+migration and pull request 83 deployment, the pull request 87 Pokémon
+species-traits deployment, production verification, preserved local changes,
+and the remaining monitoring-only work.
+
 [`DraftCenter-agent-handoff-2026-08-08-tournament-recovery-production-checkpoint.md`](DraftCenter-agent-handoff-2026-08-08-tournament-recovery-production-checkpoint.md)
-is the current continuation handoff. It separates the deployed Operations and
-multi-pod release from the validated but not-yet-deployed recovery release and
-records the exact production-approval boundary for migration 354.
+remains the pre-deployment recovery checkpoint. It is superseded by the current
+continuation handoff for production status.
 
 [`DraftCenter-agent-handoff-2026-08-07-tournament-commissioner-recovery.md`](DraftCenter-agent-handoff-2026-08-07-tournament-commissioner-recovery.md)
 remains the detailed recovery implementation and validation record.
