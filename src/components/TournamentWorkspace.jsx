@@ -76,13 +76,15 @@ function ConfirmationDialog({ request, onDismiss }) {
   );
 }
 
-function MatchCard({ match, entrants, submission, canReport, isOwner, onRefresh, supabase, requestConfirmation }) {
+function MatchCard({ match, entrants, submission, canReport, isOwner, onRefresh, onRequestForfeit, supabase, requestConfirmation }) {
   const [scoreA, setScoreA] = useState(match.games_a ?? "");
   const [scoreB, setScoreB] = useState(match.games_b ?? "");
   const [replay, setReplay] = useState(match.replay_urls?.[0] || "");
   const [mvp, setMvp] = useState(match.mvp || "");
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
+  const [forfeitingEntrant, setForfeitingEntrant] = useState("");
+  const [forfeitReason, setForfeitReason] = useState("");
   const headingId = useId();
   const a = entrants.get(match.entrant_a_id);
   const b = entrants.get(match.entrant_b_id);
@@ -200,6 +202,16 @@ function MatchCard({ match, entrants, submission, canReport, isOwner, onRefresh,
     });
   }
 
+  function requestForfeit(event) {
+    event.preventDefault();
+    const loser = entrants.get(forfeitingEntrant);
+    if (!loser || forfeitReason.trim().length < 2) {
+      setMessage("Choose the forfeiting entrant and enter a short reason.");
+      return;
+    }
+    onRequestForfeit(match, loser, forfeitReason.trim());
+  }
+
   const scoreFields = (
     <>
       <fieldset className="tournament-score-fields">
@@ -266,6 +278,23 @@ function MatchCard({ match, entrants, submission, canReport, isOwner, onRefresh,
           </form>
         </details>
       )}
+      {["ready", "reported"].includes(match.status) && isOwner && (
+        <details className="tournament-correction tournament-recovery-control">
+          <summary>Record a match forfeit</summary>
+          <form className="tournament-report" onSubmit={requestForfeit}>
+            <label>Forfeiting entrant
+              <select required value={forfeitingEntrant} onChange={(event) => setForfeitingEntrant(event.target.value)}>
+                <option value="">Choose entrant</option>
+                {[a, b].filter(Boolean).map((entrant) => <option key={entrant.id} value={entrant.id}>{entrant.display_name}</option>)}
+              </select>
+            </label>
+            <label>Reason
+              <textarea required minLength={2} maxLength={500} value={forfeitReason} onChange={(event) => setForfeitReason(event.target.value)} />
+            </label>
+            <button className="quiet-button" disabled={busy}>Review forfeit</button>
+          </form>
+        </details>
+      )}
       {message && <p className="hub-message" role="status" aria-live="polite">{message}</p>}
     </article>
   );
@@ -284,6 +313,13 @@ export default function TournamentWorkspace({ slug }) {
   const [inviteReady, setInviteReady] = useState(false);
   const [confirmation, setConfirmation] = useState(null);
   const [selectedRound, setSelectedRound] = useState(null);
+  const [replacementInvite, setReplacementInvite] = useState(null);
+  const [replacementClaimTeam, setReplacementClaimTeam] = useState("");
+  const [recoveryEntrantId, setRecoveryEntrantId] = useState("");
+  const [recoveryReason, setRecoveryReason] = useState("");
+  const [replacementName, setReplacementName] = useState("");
+  const [replacementRosterPolicy, setReplacementRosterPolicy] = useState("retain-roster");
+  const [replacementLink, setReplacementLink] = useState("");
 
   async function load() {
     const { data, error } = await supabase.rpc("get_tournament_workspace", { p_slug: slug, p_access_code: inviteCode });
@@ -303,8 +339,22 @@ export default function TournamentWorkspace({ slug }) {
   }
 
   useEffect(() => {
-    const code = new URLSearchParams(window.location.hash.slice(1)).get("code");
+    const hash = new URLSearchParams(window.location.hash.slice(1));
+    const code = hash.get("code");
+    const replacementCode = hash.get("replacement");
+    const replacementEntrantId = hash.get("entrant");
+    const replacementRoster = hash.get("roster");
     setInviteCode(code && /^[0-9a-f]{32}$/.test(code) ? code : null);
+    setReplacementInvite(
+      replacementCode && /^[0-9a-f]{32}$/.test(replacementCode)
+        && replacementEntrantId && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(replacementEntrantId)
+        ? {
+            code: replacementCode,
+            entrantId: replacementEntrantId,
+            rosterPolicy: replacementRoster === "replacement-selects-roster" ? replacementRoster : "retain-roster",
+          }
+        : null,
+    );
     setInviteReady(true);
   }, []);
 
@@ -322,7 +372,10 @@ export default function TournamentWorkspace({ slug }) {
   }, [supabase, slug, inviteCode, inviteReady]);
 
   const entrants = useMemo(() => new Map((workspace?.entrants || []).map((entrant) => [entrant.id, entrant])), [workspace]);
-  const me = workspace?.entrants?.find((entrant) => entrant.is_me);
+  const registeredEntrants = useMemo(() => (workspace?.entrants || []).filter((entrant) => entrant.status === "registered"), [workspace]);
+  const me = workspace?.entrants?.find((entrant) => entrant.is_me && entrant.status === "registered");
+  const hasTournamentIdentity = workspace?.entrants?.some((entrant) => entrant.is_me);
+  const selectedRecoveryEntrant = registeredEntrants.find((entrant) => entrant.id === recoveryEntrantId) || null;
   const rounds = useMemo(() => {
     const grouped = new Map();
     for (const match of workspace?.matches || []) {
@@ -429,6 +482,146 @@ export default function TournamentWorkspace({ slug }) {
     return true;
   }
 
+  async function claimReplacement(event) {
+    event.preventDefault();
+    if (!replacementInvite || !user || busy) return;
+    setBusy(true);
+    setMessage("");
+    const { error } = await supabase.rpc("claim_tournament_replacement", {
+      p_replacement_entrant_id: replacementInvite.entrantId,
+      p_claim_code: replacementInvite.code,
+      p_registered_team_id: replacementInvite.rosterPolicy === "replacement-selects-roster" && replacementClaimTeam ? replacementClaimTeam : null,
+    });
+    setBusy(false);
+    if (error) {
+      setMessage(tournamentError(error));
+      return;
+    }
+    setReplacementInvite(null);
+    setReplacementClaimTeam("");
+    window.history.replaceState(null, "", `/tournaments/${slug}`);
+    await load();
+  }
+
+  async function recordForfeit(match, loser, reason) {
+    setBusy(true);
+    setMessage("");
+    const { error } = await supabase.rpc("forfeit_tournament_match", {
+      p_match_id: match.id,
+      p_expected_tournament_revision: workspace.tournament.revision,
+      p_expected_match_revision: match.revision,
+      p_forfeiting_entrant_id: loser.id,
+      p_reason: reason,
+    });
+    setBusy(false);
+    if (error) {
+      setMessage(tournamentError(error));
+      return false;
+    }
+    await load();
+    return true;
+  }
+
+  function requestMatchForfeit(match, loser, reason) {
+    const opponentId = match.entrant_a_id === loser.id ? match.entrant_b_id : match.entrant_a_id;
+    const opponent = entrants.get(opponentId);
+    setConfirmation({
+      title: `Record a forfeit for ${loser.display_name}?`,
+      description: `${opponent?.display_name || "The opponent"} will receive the match win and advance. Any pending report for this match will be rejected. Reason: ${reason}`,
+      confirmLabel: "Record forfeit",
+      workingLabel: "Recording...",
+      tone: "danger",
+      onConfirm: () => recordForfeit(match, loser, reason),
+    });
+  }
+
+  async function changeEntrantStatus(status) {
+    setBusy(true);
+    setMessage("");
+    const { error } = await supabase.rpc("set_tournament_entrant_status", {
+      p_tournament_id: workspace.tournament.id,
+      p_entrant_id: selectedRecoveryEntrant.id,
+      p_expected_tournament_revision: workspace.tournament.revision,
+      p_status: status,
+      p_reason: recoveryReason.trim(),
+    });
+    setBusy(false);
+    if (error) {
+      setMessage(tournamentError(error));
+      return false;
+    }
+    setRecoveryEntrantId("");
+    setRecoveryReason("");
+    await load();
+    return true;
+  }
+
+  function requestEntrantStatus(status) {
+    if (!selectedRecoveryEntrant || recoveryReason.trim().length < 2) {
+      setMessage("Choose an active entrant and enter a short recovery reason.");
+      return;
+    }
+    const action = status === "dropped" ? "Drop" : "Disqualify";
+    setConfirmation({
+      title: `${action} ${selectedRecoveryEntrant.display_name}?`,
+      description: workspace.tournament.status === "active"
+        ? "If the entrant has a live opponent, that match will be recorded as a forfeit and the opponent will advance. This action remains in the tournament audit history."
+        : "The entrant will be removed from active registration and the action will remain in the tournament audit history.",
+      confirmLabel: action,
+      workingLabel: `${action === "Drop" ? "Dropping" : "Disqualifying"}...`,
+      tone: "danger",
+      onConfirm: () => changeEntrantStatus(status),
+    });
+  }
+
+  async function replaceEntrant() {
+    setBusy(true);
+    setMessage("");
+    const { data, error } = await supabase.rpc("replace_tournament_entrant", {
+      p_tournament_id: workspace.tournament.id,
+      p_outgoing_entrant_id: selectedRecoveryEntrant.id,
+      p_expected_tournament_revision: workspace.tournament.revision,
+      p_replacement_display_name: replacementName.trim(),
+      p_roster_policy: replacementRosterPolicy,
+      p_reason: recoveryReason.trim(),
+    });
+    setBusy(false);
+    if (error) {
+      setMessage(tournamentError(error));
+      return false;
+    }
+    const link = `${window.location.origin}/tournaments/${slug}#replacement=${encodeURIComponent(data.claim_code)}&entrant=${encodeURIComponent(data.replacement_entrant_id)}&roster=${encodeURIComponent(replacementRosterPolicy)}`;
+    setReplacementLink(link);
+    try {
+      await navigator.clipboard.writeText(link);
+      setMessage("Replacement created. The one-time claim link was copied and expires in 14 days.");
+    } catch {
+      setMessage("Replacement created. Copy the one-time claim link below; it expires in 14 days.");
+    }
+    setRecoveryEntrantId("");
+    setRecoveryReason("");
+    setReplacementName("");
+    await load();
+    return true;
+  }
+
+  function requestReplacement() {
+    if (!selectedRecoveryEntrant || recoveryReason.trim().length < 2 || replacementName.trim().length < 1) {
+      setMessage("Choose an active entrant, name the replacement, and enter a short reason.");
+      return;
+    }
+    setConfirmation({
+      title: `Replace ${selectedRecoveryEntrant.display_name} with ${replacementName.trim()}?`,
+      description: replacementRosterPolicy === "retain-roster"
+        ? "The replacement will keep the existing registered roster. The old identity remains in history, and the new participant must accept a one-time claim link."
+        : "The replacement will choose their own saved roster when accepting a one-time claim link. Replacement is blocked if play has already begun.",
+      confirmLabel: "Create replacement",
+      workingLabel: "Creating...",
+      tone: "danger",
+      onConfirm: replaceEntrant,
+    });
+  }
+
   function requestShuffle() {
     setConfirmation({
       title: "Shuffle every seed?",
@@ -472,7 +665,33 @@ export default function TournamentWorkspace({ slug }) {
     return (
       <main className="tournament-shell">
         <a className="quiet-button" href="/tournaments">&larr; Tournaments</a>
-        <section className="tournament-panel"><p role="status" aria-live="polite">{message}</p></section>
+        {replacementInvite ? (
+          <section className="tournament-panel tournament-claim-panel" aria-labelledby="replacement-claim-heading">
+            <span className="eyebrow">REPLACEMENT INVITATION</span>
+            <h1 id="replacement-claim-heading">Accept your tournament place</h1>
+            {!user ? (
+              <p role="status" aria-live="polite">{user === undefined ? "Checking your account..." : "Sign in from the DraftCenter home page, then reopen this one-time link."}</p>
+            ) : (
+              <form className="form-stack" onSubmit={claimReplacement}>
+                <p className="muted">This invitation can be used once. Accepting it attaches your account to the replacement entrant.</p>
+                {replacementInvite.rosterPolicy === "retain-roster" ? (
+                  <p>The commissioner chose to retain the existing registered roster.</p>
+                ) : (
+                  <label>Saved roster <span>(optional)</span>
+                    <select value={replacementClaimTeam} onChange={(event) => setReplacementClaimTeam(event.target.value)}>
+                      <option value="">No saved roster</option>
+                      {personalTeams.map((team) => <option key={team.id} value={team.id}>{team.team_name}</option>)}
+                    </select>
+                  </label>
+                )}
+                <button className="primary-button" disabled={busy}>{busy ? "Accepting..." : "Accept replacement place"}</button>
+              </form>
+            )}
+            {message && message !== "This tournament is private or unavailable." && <p className="hub-message" role="status" aria-live="polite">{message}</p>}
+          </section>
+        ) : (
+          <section className="tournament-panel"><p role="status" aria-live="polite">{message}</p></section>
+        )}
       </main>
     );
   }
@@ -488,7 +707,7 @@ export default function TournamentWorkspace({ slug }) {
         <p>{tournament.description || "Standalone single-elimination tournament"}</p>
         <div>
           <span>Best of {tournament.best_of}</span>
-          <span>{workspace.entrants.length} / {tournament.entrant_limit} entrants</span>
+          <span>{registeredEntrants.length} / {tournament.entrant_limit} active entrants</span>
           {tournament.is_owner && tournament.visibility === "private" && tournament.status === "registration" && (
             <button type="button" className="quiet-button" disabled={busy} onClick={copyInvite}>{inviteCode ? "Copy private registration link" : "Create private registration link"}</button>
           )}
@@ -499,18 +718,43 @@ export default function TournamentWorkspace({ slug }) {
       </header>
       {message && <p className="hub-message" role="status" aria-live="polite">{message}</p>}
 
+      {replacementInvite && (
+        <section className="tournament-panel tournament-claim-panel" aria-labelledby="replacement-claim-heading-public">
+          <span className="eyebrow">REPLACEMENT INVITATION</span>
+          <h2 id="replacement-claim-heading-public">Accept your tournament place</h2>
+          {!user ? (
+            <p>{user === undefined ? "Checking your account..." : "Sign in from the DraftCenter home page, then reopen this one-time link."}</p>
+          ) : (
+            <form className="form-stack" onSubmit={claimReplacement}>
+              <p className="muted">Accepting attaches your account to this replacement entrant. The invitation can be used once.</p>
+              {replacementInvite.rosterPolicy === "retain-roster" ? (
+                <p>The commissioner chose to retain the existing registered roster.</p>
+              ) : (
+                <label>Saved roster <span>(optional)</span>
+                  <select value={replacementClaimTeam} onChange={(event) => setReplacementClaimTeam(event.target.value)}>
+                    <option value="">No saved roster</option>
+                    {personalTeams.map((team) => <option key={team.id} value={team.id}>{team.team_name}</option>)}
+                  </select>
+                </label>
+              )}
+              <button className="primary-button" disabled={busy}>{busy ? "Accepting..." : "Accept replacement place"}</button>
+            </form>
+          )}
+        </section>
+      )}
+
       {tournament.status === "registration" && (
         <section className="tournament-panel" aria-labelledby="tournament-entrants-heading">
           <div className="section-heading">
             <div><span className="eyebrow">REGISTRATION</span><h2 id="tournament-entrants-heading">Entrants</h2></div>
-            {tournament.is_owner && workspace.entrants.length >= 2 && (
+            {tournament.is_owner && registeredEntrants.length >= 2 && (
               <div className="tournament-owner-actions">
                 <button type="button" className="quiet-button" disabled={busy} onClick={requestShuffle}>Shuffle seeds</button>
                 <button type="button" className="primary-button" disabled={busy} onClick={requestLock}>Lock & build bracket</button>
               </div>
             )}
           </div>
-          {!me && (user ? (
+          {!hasTournamentIdentity && (user ? (
             <form className="tournament-join" onSubmit={join}>
               <label>Display name
                 <input required maxLength={100} value={name} onChange={(event) => setName(event.target.value)} />
@@ -530,14 +774,64 @@ export default function TournamentWorkspace({ slug }) {
             {workspace.entrants.map((entrant) => (
               <article key={entrant.id}>
                 <strong>{entrant.display_name}</strong>
-                {tournament.is_owner ? (
+                {tournament.is_owner && entrant.status === "registered" ? (
                   <label>Seed
-                    <input key={`${entrant.id}-${entrant.seed ?? "none"}`} type="number" inputMode="numeric" min="1" max={workspace.entrants.length} defaultValue={entrant.seed || ""} onBlur={(event) => seed(entrant, event.target.value)} />
+                    <input key={`${entrant.id}-${entrant.seed ?? "none"}`} type="number" inputMode="numeric" min="1" max={registeredEntrants.length} defaultValue={entrant.seed || ""} onBlur={(event) => seed(entrant, event.target.value)} />
                   </label>
-                ) : <span>{entrant.seed ? `Seed ${entrant.seed}` : "Awaiting seed"}</span>}
+                ) : <span>{entrant.status === "registered" ? (entrant.seed ? `Seed ${entrant.seed}` : "Awaiting seed") : statusLabel(entrant.status)}</span>}
+                {entrant.replacement_pending && <small>Awaiting replacement claim</small>}
               </article>
             ))}
           </div>
+        </section>
+      )}
+
+      {tournament.is_owner && ["registration", "active"].includes(tournament.status) && (
+        <section className="tournament-panel tournament-recovery-panel" aria-labelledby="tournament-recovery-heading">
+          <div className="section-heading">
+            <div>
+              <span className="eyebrow">COMMISSIONER TOOLS</span>
+              <h2 id="tournament-recovery-heading">Entrant recovery</h2>
+            </div>
+          </div>
+          <p className="muted">Record a drop or disqualification, or create a replacement before play begins. Match-specific forfeits are available inside each ready match.</p>
+          <div className="tournament-recovery-grid">
+            <label>Active entrant
+              <select value={recoveryEntrantId} onChange={(event) => setRecoveryEntrantId(event.target.value)}>
+                <option value="">Choose entrant</option>
+                {registeredEntrants.map((entrant) => <option key={entrant.id} value={entrant.id}>{entrant.display_name}</option>)}
+              </select>
+            </label>
+            <label>Recovery reason
+              <textarea minLength={2} maxLength={500} value={recoveryReason} onChange={(event) => setRecoveryReason(event.target.value)} placeholder="Recorded in the commissioner audit history" />
+            </label>
+            <div className="tournament-recovery-actions">
+              <button type="button" className="quiet-button" disabled={busy || !selectedRecoveryEntrant} onClick={() => requestEntrantStatus("dropped")}>Record drop</button>
+              <button type="button" className="danger-button" disabled={busy || !selectedRecoveryEntrant} onClick={() => requestEntrantStatus("disqualified")}>Disqualify</button>
+            </div>
+          </div>
+          <details className="tournament-replacement-tools">
+            <summary>Replace the selected entrant</summary>
+            <div className="tournament-recovery-grid">
+              <label>Replacement display name
+                <input maxLength={100} value={replacementName} onChange={(event) => setReplacementName(event.target.value)} />
+              </label>
+              <label>Roster handling
+                <select value={replacementRosterPolicy} onChange={(event) => setReplacementRosterPolicy(event.target.value)}>
+                  <option value="retain-roster">Keep the existing registered roster</option>
+                  <option value="replacement-selects-roster">Replacement chooses a saved roster</option>
+                </select>
+              </label>
+              <button type="button" className="primary-button" disabled={busy || !selectedRecoveryEntrant} onClick={requestReplacement}>Review replacement</button>
+            </div>
+          </details>
+          {replacementLink && (
+            <div className="tournament-replacement-link" role="status">
+              <strong>One-time replacement claim link</strong>
+              <p>Share this privately. It expires in 14 days and disappears after use.</p>
+              <input aria-label="One-time replacement claim link" readOnly value={replacementLink} onFocus={(event) => event.currentTarget.select()} />
+            </div>
+          )}
         </section>
       )}
 
@@ -572,6 +866,7 @@ export default function TournamentWorkspace({ slug }) {
                         canReport={Boolean(involved || tournament.is_owner)}
                         isOwner={Boolean(tournament.is_owner && tournament.status !== "archived")}
                         onRefresh={load}
+                        onRequestForfeit={requestMatchForfeit}
                         supabase={supabase}
                         requestConfirmation={setConfirmation}
                       />
