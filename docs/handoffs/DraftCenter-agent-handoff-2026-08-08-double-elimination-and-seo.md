@@ -7,8 +7,11 @@ Date: August 8, 2026
 Standalone double elimination and the requested external SEO measurement are
 complete at the review checkpoint in [pull request
 90](https://github.com/roblebaegaming/DraftCenter/pull/90). The pull request is
-open and ready for review. Nothing in this release has been merged, applied to
-the production database, or deployed.
+open and ready for review. CodeQL, repository security, the full-history secret
+scan, Vercel, and preview feedback are green. The automatic Supabase check was
+skipped, so the isolated manual Preview evidence below remains the database
+proof. Nothing in this release has been merged, applied to the production
+database, or deployed.
 
 The separate Draft Tournament concept is not complete. Its exact scope and
 missing lifecycle are recorded in
@@ -65,6 +68,12 @@ tournaments remained.
 - Production-style build: passed with 180 generated pages.
 - Migration 355 and the expanded Preview transaction matrix: passed.
 - Diff whitespace check: passed.
+- Pull-request CodeQL, security, secret-scanning, Vercel, and preview-feedback
+  checks: passed.
+- The signed-out Vercel `/tournaments` Preview rendered the new format language
+  cleanly. Its tournament RPC remains intentionally unavailable because that
+  application Preview is not connected to the manually migrated database
+  branch.
 - Production smoke was not run because this branch is not deployed.
 
 ## SEO checkpoint
@@ -116,8 +125,9 @@ testing across phase transitions.
 
 ## Next safe order
 
-1. Let pull request 90 finish its required checks and review its Vercel Preview.
-2. Review the code and migration as a separate release.
+1. Review pull request 90, its Vercel Preview, and migration 355 as a separate
+   release. All automated checks are green.
+2. Confirm the production release boundary and database target.
 3. With explicit production approval, merge pull request 90.
 4. Apply migration 355 to the exact production project, verify RLS and grants,
    confirm the deployed commit, and run the signed-out production smoke sweep.
