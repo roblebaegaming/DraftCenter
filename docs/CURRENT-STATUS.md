@@ -17,7 +17,8 @@ still available, and no real league has been attached to an organization.
 Owner Operations navigation restoration is ready in pull request 84 with all
 applicable checks passing and no database change. It has not been merged. The
 next multi-pod commissioner-workspace slice is isolated on
-`codex/multi-pod-organization-hub-2026-08-08` in draft pull request 85.
+`codex/multi-pod-organization-hub-2026-08-08` in pull request 85, which is
+ready for review with all protected checks passing.
 Migration 353 and the expanded multi-account database regression pass on the
 retained `multi-pod-pr-82` Supabase Preview branch. The Preview fixtures were
 removed and verified absent. Migration 353 and its UI are not applied or

@@ -6,7 +6,7 @@
 - Pull request: [#85](https://github.com/roblebaegaming/DraftCenter/pull/85)
 - Initial implementation commit: `c873da9`
 - Supabase Preview branch: retained `multi-pod-pr-82`
-- Production status: draft, not merged, and migration 353 not applied
+- Production status: ready for review, not merged, and migration 353 not applied
 
 ## Outcome
 
@@ -78,14 +78,18 @@ league, provider setting, environment variable, or secret changed.
 - Vercel Preview is Ready. Signed-out desktop and 390-pixel mobile review found
   the correct access boundary, no document overflow, and no browser warnings
   or errors.
+- CodeQL, security and dependency analysis, full-history secret scanning, and
+  Vercel checks pass. The Supabase Preview CI job is skipped because the
+  retained branch was validated manually with the reusable regression.
 
 ## Release boundary
 
-Pull request 85 should stay draft until its refreshed protected checks are
-reviewed. A later production release requires explicit approval to merge the
-pull request, verification of the deployed commit, application of migration
-353 to the exact production project, and the post-deployment signed-out smoke
-sweep. Do not attach a real league merely to test this phase.
+Pull request 85 is ready for review after its refreshed protected checks and
+Preview database evidence passed. A later production release requires explicit
+approval to merge the pull request, verification of the deployed commit,
+application of migration 353 to the exact production project, and the
+post-deployment signed-out smoke sweep. Do not attach a real league merely to
+test this phase.
 
 Pull request 84 independently restores the visible owner Operations navigation
 without a database change. It is ready but not merged and requires its own
