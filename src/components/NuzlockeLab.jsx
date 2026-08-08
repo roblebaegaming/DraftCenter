@@ -31,6 +31,7 @@ export default function NuzlockeLab() {
   const [games, setGames] = useState([]);
   const [gameMethods, setGameMethods] = useState({});
   const [gameThemes, setGameThemes] = useState({});
+  const [speciesThemeOptions, setSpeciesThemeOptions] = useState({ shapes: [], eggGroups: [] });
   const [game, setGame] = useState("");
   const [runName, setRunName] = useState("");
   const [seed, setSeed] = useState("");
@@ -46,6 +47,8 @@ export default function NuzlockeLab() {
   const [conditionSelections, setConditionSelections] = useState({});
   const [themeType, setThemeType] = useState("any");
   const [themeColor, setThemeColor] = useState("any");
+  const [themeShape, setThemeShape] = useState("any");
+  const [themeEggGroup, setThemeEggGroup] = useState("any");
   const [evolutionStage, setEvolutionStage] = useState("any");
   const [exclusions, setExclusions] = useState("");
   const [savedRuns, setSavedRuns] = useState([]);
@@ -83,6 +86,9 @@ export default function NuzlockeLab() {
       setGames(data.games || []);
       setGameMethods(data.methods || {});
       setGameThemes(data.themes || {});
+      const shapes = Array.isArray(data.speciesThemes?.shapes) ? data.speciesThemes.shapes : [];
+      const eggGroups = Array.isArray(data.speciesThemes?.egg_groups) ? data.speciesThemes.egg_groups : [];
+      setSpeciesThemeOptions({ shapes, eggGroups });
       const selected = params.get("game");
       const selectedGame = data.games?.find((item) => item.game_key === selected) || data.games?.[0];
       const selectedGameKey = selectedGame?.game_key || "";
@@ -92,6 +98,8 @@ export default function NuzlockeLab() {
       const theme = data.themes?.[selectedGameKey] || { types: [], colors: [] };
       if (theme.types?.includes(params.get("type"))) setThemeType(params.get("type"));
       if (theme.colors?.includes(params.get("color"))) setThemeColor(params.get("color"));
+      if (shapes.some((item) => item.id === params.get("shape"))) setThemeShape(params.get("shape"));
+      if (eggGroups.some((item) => item.id === params.get("egg_group"))) setThemeEggGroup(params.get("egg_group"));
       if (["base", "not-final", "non-evolving"].includes(params.get("stage"))) setEvolutionStage(params.get("stage"));
       const restoredConditions = {};
       for (const group of selectedGame?.condition_groups || []) {
@@ -135,6 +143,8 @@ export default function NuzlockeLab() {
     if (methods.length) url.searchParams.set("methods", methods.join(","));
     if (themeType !== "any") url.searchParams.set("type", themeType);
     if (themeColor !== "any") url.searchParams.set("color", themeColor);
+    if (themeShape !== "any") url.searchParams.set("shape", themeShape);
+    if (themeEggGroup !== "any") url.searchParams.set("egg_group", themeEggGroup);
     if (evolutionStage !== "any") url.searchParams.set("stage", evolutionStage);
     for (const group of conditionGroups) {
       if (includeStarter && group.match_included_starter) continue;
@@ -147,7 +157,7 @@ export default function NuzlockeLab() {
 
   const shareUrl = useMemo(() => {
     return shareUrlForSeed(seed);
-  }, [allAreas, conditionGroups, conditionSelections, evolutionStage, excludeLegendaries, exclusions, familyClause, finalEvolutionOnly, game, includeStarter, methods, mode, runName, seed, teamSize, themeColor, themeType, weighting]);
+  }, [allAreas, conditionGroups, conditionSelections, evolutionStage, excludeLegendaries, exclusions, familyClause, finalEvolutionOnly, game, includeStarter, methods, mode, runName, seed, teamSize, themeColor, themeEggGroup, themeShape, themeType, weighting]);
 
   function changeGame(nextGame) {
     setGame(nextGame);
@@ -155,6 +165,8 @@ export default function NuzlockeLab() {
     setConditionSelections({});
     setThemeType("any");
     setThemeColor("any");
+    setThemeShape("any");
+    setThemeEggGroup("any");
     setEvolutionStage("any");
     setResult(null);
     setResultShareUrl("");
@@ -255,7 +267,8 @@ export default function NuzlockeLab() {
         body: JSON.stringify({
           game, seed: buildSeed, teamSize, allAreas, mode, weighting, familyClause, excludeLegendaries,
           includeStarter, finalEvolutionOnly, methods, conditionSelections, themeType, themeColor,
-          evolutionStage, exclusions: exclusions.split(",").map((item) => item.trim()).filter(Boolean),
+          themeShape, themeEggGroup, evolutionStage,
+          exclusions: exclusions.split(",").map((item) => item.trim()).filter(Boolean),
         }),
       });
       const data = await response.json();
@@ -403,6 +416,18 @@ export default function NuzlockeLab() {
               {themeOptions.colors.map((color) => <option key={color} value={color}>{pretty(color)}</option>)}
             </select>
           </label>
+          <label>Pokédex shape
+            <select value={themeShape} onChange={(event) => setThemeShape(event.target.value)}>
+              <option value="any">Any shape</option>
+              {speciesThemeOptions.shapes.map((shape) => <option key={shape.id} value={shape.id}>{shape.label}</option>)}
+            </select>
+          </label>
+          <label>Egg Group
+            <select value={themeEggGroup} onChange={(event) => setThemeEggGroup(event.target.value)}>
+              <option value="any">Any Egg Group</option>
+              {speciesThemeOptions.eggGroups.map((eggGroup) => <option key={eggGroup.id} value={eggGroup.id}>{eggGroup.label}</option>)}
+            </select>
+          </label>
           <label>Evolution stage
             <select value={evolutionStage} onChange={(event) => setEvolutionStage(event.target.value)}>
               <option value="any">Any evolution stage</option>
@@ -411,7 +436,8 @@ export default function NuzlockeLab() {
               <option value="non-evolving">Naturally non-evolving Pokémon only</option>
             </select>
           </label>
-          <small>Type, color, and evolution choices are limited to Pokémon available in the selected game and can be combined.</small>
+          {themeShape !== "any" && <small>{speciesThemeOptions.shapes.find((shape) => shape.id === themeShape)?.description}</small>}
+          <small>Type, color, shape, Egg Group, and evolution choices can be combined. Shape and Egg Group apply to every Pokémon shown on the Run Card, including starters and final evolutions.</small>
         </fieldset>
 
         <label>Exclude Pokémon

@@ -33,6 +33,22 @@ const fixtureThemes = {
     129: { types: ["water"], color: "red", base_stage: true, has_evolution: true },
   },
 };
+const fixtureTraits = {
+  1: { shape: "quadruped", egg_groups: ["monster", "plant"] },
+  2: { shape: "quadruped", egg_groups: ["monster", "plant"] },
+  3: { shape: "quadruped", egg_groups: ["monster", "plant"] },
+  10: { shape: "squiggle", egg_groups: ["bug"] },
+  12: { shape: "bug-wings", egg_groups: ["bug"] },
+  41: { shape: "wings", egg_groups: ["flying"] },
+  42: { shape: "wings", egg_groups: ["flying"] },
+  129: { shape: "fish", egg_groups: ["water2", "dragon"] },
+  130: { shape: "squiggle", egg_groups: ["water2", "dragon"] },
+};
+const fixtureSpeciesThemeOptions = {
+  pokemonTraits: fixtureTraits,
+  availableShapes: ["quadruped", "squiggle", "fish", "wings", "bug-wings"],
+  availableEggGroups: ["monster", "plant", "bug", "flying", "water2", "dragon"],
+};
 
 test("seeded output is deterministic and uses at most one encounter per area", () => {
   const options={seed:"same",teamSize:4,mode:"true-random",weighting:"authentic"};
@@ -83,6 +99,27 @@ test("type, color, and evolution-stage themes can be combined without relaxing f
   assert.equal(naturallyNonEvolving.available,0);
   assert.throws(()=>generateNuzlockeTeam(encounters,{...base,themeType:"stellar"}),/Unknown/);
 });
+test("Pokédex shape and Egg Group themes filter every displayed team member",()=>{
+  const base={seed:"species-themes",teamSize:2,mode:"route-random",weighting:"equal",...fixtureSpeciesThemeOptions};
+  const fish=generateNuzlockeTeam(encounters,{...base,themeShape:"fish"});
+  assert.equal(fish.available,1);assert.ok(fish.team.every((row)=>fixtureTraits[row.pokemon_id].shape==="fish"));
+  const bug=generateNuzlockeTeam(encounters,{...base,themeEggGroup:"bug"});
+  assert.equal(bug.available,1);assert.ok(bug.team.every((row)=>fixtureTraits[row.pokemon_id].egg_groups.includes("bug")));
+  const combined=generateNuzlockeTeam(encounters,{...base,teamSize:1,themeShape:"quadruped",themeEggGroup:"plant"});
+  assert.equal(combined.complete,true);assert.ok(fixtureTraits[combined.team[0].pokemon_id].egg_groups.includes("plant"));
+  assert.deepEqual(combined.theme,{type:"any",color:"any",shape:"quadruped",eggGroup:"plant",evolutionStage:"any"});
+  assert.throws(()=>generateNuzlockeTeam(encounters,{...base,themeShape:"not-a-shape"}),/Unknown Pokédex shape theme/);
+  assert.throws(()=>generateNuzlockeTeam(encounters,{...base,themeEggGroup:"not-an-egg-group"}),/Unknown Pokémon Egg Group theme/);
+});
+test("species themes use final displayed Pokémon and never add an off-theme starter",()=>{
+  const base={seed:"final-shape-theme",teamSize:1,mode:"route-random",weighting:"equal",...fixtureSpeciesThemeOptions};
+  const finalBug=generateNuzlockeTeam(encounters.filter((row)=>row.pokemon_id===10),{...base,themeShape:"bug-wings",finalEvolutionOnly:true,evolutionCatalog:fixtureEvolutions});
+  assert.equal(finalBug.complete,true);assert.equal(finalBug.team[0].pokemon_name,"Butterfree");
+  const unevolvedBug=generateNuzlockeTeam(encounters.filter((row)=>row.pokemon_id===10),{...base,themeShape:"bug-wings"});
+  assert.equal(unevolvedBug.available,0);
+  const themedStarter=generateNuzlockeTeam(encounters,{...base,themeShape:"fish",includeStarter:true,starters:[{pokemon_id:1,pokemon_name:"Bulbasaur",species_family:"bulbasaur"}]});
+  assert.equal(themedStarter.complete,true);assert.equal(themedStarter.team[0].pokemon_name,"Magikarp");assert.notEqual(themedStarter.team[0].method,"starter");
+});
 test("generated teams can be safely saved and exported as readable Run Cards",()=>{
   const generated={
     game:{game_key:"scarlet",display_name:"Pokémon Scarlet"},seed:"ember-seed",complete:false,requested:2,available:1,allAreas:true,
@@ -91,9 +128,9 @@ test("generated teams can be safely saved and exported as readable Run Cards",()
   const saved=normalizeSavedNuzlockeResult(generated);
   assert.equal(saved.team[0].artwork_url,"");assert.equal(saved.team[0].min_level,null);assert.equal(saved.team.length,1);
   assert.equal(normalizeSavedNuzlockeResult({...generated,team:Array(252).fill(generated.team[0])}),null);
-  const url="https://draftcentral.gg/nuzlocke?game=scarlet&seed=ember-seed&name=Scarlet+Ember&length=all-areas&mode=route-random&weighting=authentic&starter=include&type=fire&family=off";
+  const url="https://draftcentral.gg/nuzlocke?game=scarlet&seed=ember-seed&name=Scarlet+Ember&length=all-areas&mode=route-random&weighting=authentic&starter=include&type=fire&shape=fish&egg_group=water2&family=off";
   const rules=nuzlockeRulesFromShareUrl(url);
-  assert.ok(rules.includes("Draft size: One Pokémon per eligible route/area"));assert.ok(rules.includes("Type theme: Fire"));assert.ok(rules.includes("Evolutionary-family clause: Off"));
+  assert.ok(rules.includes("Draft size: One Pokémon per eligible route/area"));assert.ok(rules.includes("Type theme: Fire"));assert.ok(rules.includes("Pokédex shape theme: Fish"));assert.ok(rules.includes("Egg Group theme: Water2"));assert.ok(rules.includes("Evolutionary-family clause: Off"));
   assert.ok(nuzlockeRulesFromShareUrl("https://draftcentral.gg/nuzlocke?size=20").includes("Draft size: 20-Pokémon team"));
   const text=buildNuzlockeRunCardText({runName:"Scarlet Ember",result:generated,rules,shareUrl:url});
   assert.doesNotMatch(text,/Randomizer seed/);

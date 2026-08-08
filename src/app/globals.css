@@ -188,8 +188,12 @@ button { cursor: pointer; }
 .pokemon-bst-total { border:1px solid #4fd1c5; }
 .pokemon-bst-total strong { color:#4fd1c5; }
 .pokemon-measurements article strong { font-size:1.15rem; }
+.pokemon-species-traits { grid-template-columns:repeat(2,minmax(0,1fr)); }
+.pokemon-species-traits article strong { font-size:1.2rem; }
+.pokemon-species-traits article small { display:block; margin-top:8px; color:#aeb7dc; line-height:1.45; }
 .pokemon-profile-sources a { color:#82aaff; }
 @media(max-width:760px){.pokemon-profile-link-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.pokemon-index-hub-grid{grid-template-columns:1fr}.pokemon-measurements{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.pokemon-species-traits{grid-template-columns:1fr}}
 
 .seo-article-shell {
   width: min(900px, calc(100% - 32px));

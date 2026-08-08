@@ -3,6 +3,12 @@ import { createPublicServerClient } from "../../../lib/supabase/publicServer";
 import { consumeUserRateLimit } from "../../../lib/apiRateLimit";
 import { readBoundedJson, requestIpAddress, safeFailure } from "../../../lib/apiSecurity";
 import { generateNuzlockeTeam } from "../../../lib/nuzlockeGenerator";
+import {
+  POKEMON_EGG_GROUP_OPTIONS,
+  POKEMON_SHAPE_OPTIONS,
+  POKEMON_SPECIES_TRAITS_BY_PROFILE,
+  POKEMON_SPECIES_TRAIT_SOURCE_COMMIT,
+} from "../../../lib/pokemonSpeciesTraits";
 import verifiedGameMethodCatalog from "../../../../data/nuzlocke/verified-game-methods.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json";
 import pokemonThemeMetadata from "../../../../data/nuzlocke/nuzlocke-theme-metadata.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json";
 import redEvolutionCatalog from "../../../../data/nuzlocke/pokemon-red-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json";
@@ -134,14 +140,20 @@ export async function GET() {
       const summary = VERIFIED_GAME_METHODS[game.game_key];
       const theme = VERIFIED_GAME_THEMES[game.game_key];
       if (!summary || summary.source_commit !== sourceCommit || !Array.isArray(summary.methods) || summary.methods.length > 50 ||
-          pokemonThemeMetadata.source_commit !== sourceCommit || !Array.isArray(theme?.types) || !Array.isArray(theme?.colors)) {
+          pokemonThemeMetadata.source_commit !== sourceCommit || POKEMON_SPECIES_TRAIT_SOURCE_COMMIT !== sourceCommit ||
+          !Array.isArray(theme?.types) || !Array.isArray(theme?.colors)) {
         throw new Error("Verified game control metadata does not match the reviewed catalog.");
       }
       methods[game.game_key] = summary.methods;
       themes[game.game_key] = { types: theme.types, colors: theme.colors };
       return game;
     });
-    return Response.json({ games, methods, themes }, { headers: { "Cache-Control": "public, max-age=300" } });
+    return Response.json({
+      games,
+      methods,
+      themes,
+      speciesThemes: { shapes: POKEMON_SHAPE_OPTIONS, egg_groups: POKEMON_EGG_GROUP_OPTIONS },
+    }, { headers: { "Cache-Control": "public, max-age=300" } });
   } catch (error) {
     return safeFailure(error, "Verified game data is temporarily unavailable.", { context: "nuzlocke-games" });
   }
@@ -165,7 +177,7 @@ export async function POST(request) {
     if (gameError) throw gameError;
     if (!game) return Response.json({ error: "That game's encounter catalog is not verified yet." }, { status: 404 });
     const gameTheme = VERIFIED_GAME_THEMES[body.game];
-    if (pokemonThemeMetadata.source_commit !== game.source_commit || !gameTheme) {
+    if (pokemonThemeMetadata.source_commit !== game.source_commit || POKEMON_SPECIES_TRAIT_SOURCE_COMMIT !== game.source_commit || !gameTheme) {
       return Response.json({ error: "Theme data is not verified for this game yet." }, { status: 422 });
     }
     const finalEvolutionOnly = body.finalEvolutionOnly === true;
@@ -200,8 +212,13 @@ export async function POST(request) {
       methods: Array.isArray(body.methods) ? body.methods.slice(0, 30) : [],
       themeType: body.themeType,
       themeColor: body.themeColor,
+      themeShape: body.themeShape,
+      themeEggGroup: body.themeEggGroup,
       evolutionStage: body.evolutionStage,
       themeCatalog: { ...gameTheme, profiles: pokemonThemeMetadata.profiles },
+      pokemonTraits: POKEMON_SPECIES_TRAITS_BY_PROFILE,
+      availableShapes: POKEMON_SHAPE_OPTIONS.map((item) => item.id),
+      availableEggGroups: POKEMON_EGG_GROUP_OPTIONS.map((item) => item.id),
     });
     return Response.json({ game: { game_key: game.game_key, display_name: game.display_name }, seed, ...result }, { headers: { "Cache-Control": "private, no-store" } });
   } catch (error) {

@@ -115,6 +115,10 @@ test("Pokémon profiles have crawlable indexes and complete core facts", () => {
   assert.match(profile, /Base stat total/);
   assert.match(profile, /formatHeight\(pokemon\.height\)/);
   assert.match(profile, /formatWeight\(pokemon\.weight\)/);
+  assert.match(profile, /pokemonShapeDetails\(species\.shape\?\.name\)/);
+  assert.match(profile, /species\.egg_groups/);
+  assert.match(profile, /shape and Egg Groups/);
+  assert.match(profile, /species-level Pokédex classifications/);
   assert.match(profile, /Sources and methodology/);
   assert.match(profile, /https:\/\/pokeapi\.co\//);
   assert.match(profile, /pokemon\.species\?\.name/);

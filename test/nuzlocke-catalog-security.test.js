@@ -946,6 +946,23 @@ test("game-specific condition filters are restored and shared without leaking be
   assert.match(lab, /includeStarter && group\.match_included_starter/);
   assert.match(lab, /disabled=\{includeStarter && group\.match_included_starter\}/);
 });
+test("species themes are source-matched, bounded, and preserved in shared links", () => {
+  assert.match(route, /POKEMON_SPECIES_TRAIT_SOURCE_COMMIT !== sourceCommit/);
+  assert.match(route, /POKEMON_SPECIES_TRAIT_SOURCE_COMMIT !== game\.source_commit/);
+  assert.match(route, /speciesThemes: \{ shapes: POKEMON_SHAPE_OPTIONS, egg_groups: POKEMON_EGG_GROUP_OPTIONS \}/);
+  assert.match(route, /themeShape: body\.themeShape/);
+  assert.match(route, /themeEggGroup: body\.themeEggGroup/);
+  assert.match(route, /pokemonTraits: POKEMON_SPECIES_TRAITS_BY_PROFILE/);
+  assert.match(route, /availableShapes: POKEMON_SHAPE_OPTIONS\.map/);
+  assert.match(route, /availableEggGroups: POKEMON_EGG_GROUP_OPTIONS\.map/);
+  assert.match(lab, /params\.get\("shape"\)/);
+  assert.match(lab, /params\.get\("egg_group"\)/);
+  assert.match(lab, /url\.searchParams\.set\("shape", themeShape\)/);
+  assert.match(lab, /url\.searchParams\.set\("egg_group", themeEggGroup\)/);
+  assert.match(lab, /Pokédex shape/);
+  assert.match(lab, /Egg Group/);
+  assert.match(lab, /apply to every Pokémon shown on the Run Card/);
+});
 test("starter inclusion is explicit in shared links and old seeded links retain their original output", () => {
   assert.match(
     lab,
