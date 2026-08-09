@@ -1,5 +1,9 @@
 # Agent handoffs
 
+[`DraftCenter-agent-handoff-2026-08-09-draft-home-navigation.md`](DraftCenter-agent-handoff-2026-08-09-draft-home-navigation.md)
+records the clean implementation and release gates for the persistent global
+Draft Home action. It preserves the current header and feature navigation.
+
 [`DraftCenter-agent-handoff-2026-08-08-final-production-verification.md`](DraftCenter-agent-handoff-2026-08-08-final-production-verification.md)
 is the current continuation handoff. It resolves the older pre-deployment
 checkpoint item by item and records the final state of Nuzlocke, the 64-entrant

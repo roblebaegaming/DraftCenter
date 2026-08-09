@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import fs from "node:fs";
 import test from "node:test";
 
 import { browserCanResolveHostedAutoDraft, preserveLoadedPrivateDraftQueue } from "../src/lib/draftQueueSafety.js";
@@ -37,4 +38,17 @@ test("league navigation survives reload without dropping the league key", () => 
 test("invalid navigation values fall back safely", () => {
   assert.deepEqual(readLeagueNavigation("?tab=unknown&section=unknown"), { tab: "home", section: "activity", explicit: false });
   assert.equal(readLeagueNavigation("", { isNew: true }).tab, "setup");
+});
+
+test("the global navigation keeps Draft Home accessible at the top", () => {
+  const navigation = fs.readFileSync(new URL("../src/components/SiteQuickLinks.jsx", import.meta.url), "utf8");
+  const styles = fs.readFileSync(new URL("../src/app/globals.css", import.meta.url), "utf8");
+
+  assert.match(navigation, /className="site-brand-link site-draft-home" href="\/\?view=dashboard"/);
+  assert.match(navigation, /aria-label="Draft Home"/);
+  assert.match(navigation, /<span>Draft Home<\/span>/);
+  assert.match(navigation, /aria-label="Tools and resources"/);
+  assert.match(styles, /\.site-global-header\s*\{[\s\S]*?position:\s*sticky;[\s\S]*?top:\s*0;/);
+  assert.match(styles, /\.site-draft-home\s*\{[\s\S]*?min-height:\s*44px;/);
+  assert.match(styles, /\.site-draft-home:focus-visible\s*\{/);
 });
