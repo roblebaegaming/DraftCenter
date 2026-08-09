@@ -3,7 +3,7 @@
 - Last updated: August 9, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified production application commit: `9d0c8b6779418d7166f665c502d691fd0c7394af`
+- Verified production application commit: `b40717e213d7e71e0ae32cd3226409f082ce780c`
 - Latest production migration: 365
 
 ## Deployed state
@@ -23,6 +23,16 @@ The August 9 release wave is complete. Pull requests
   artwork, and branded PNG exports; and
 - a persistent, accessible Draft Home action in the global sticky header.
 
+The evidence-led product-alignment SEO release also shipped through pull
+request [#101](https://github.com/roblebaegaming/DraftCenter/pull/101). The
+public tournament landing now covers single elimination, double elimination,
+Draft Tournaments, and connected championships with current metadata,
+structured data, server-readable guidance, and internal links. Daily Games FAQ
+content and structured data now cover completion-gated discussions, and the
+sitemap and `llms.txt` reflect the current public products. Tournament and
+organization detail workspaces, My Teams, and saved Nuzlocke Run Cards remain
+non-indexed and outside the sitemap.
+
 Migrations 361-365 are applied to the exact core production project. The
 previous multi-pod organization, qualification, and connected championship
 release remains live through migrations 350-360 and production record pull
@@ -38,10 +48,14 @@ request [#94](https://github.com/roblebaegaming/DraftCenter/pull/94).
 - Protected pull-request security, dependency, secret-scan, CodeQL, and Vercel
   checks passed for the release pull requests.
 - Signed-in Preview walkthroughs covered the new database-backed workflows.
-- Vercel reports the exact current `main` commit Ready in Production.
+- The SEO release passed all protected security, dependency, secret-scan,
+  CodeQL, and Vercel checks. Its exact Preview passed desktop and 390px mobile
+  review without browser errors or horizontal overflow.
+- Vercel reports exact `main` commit `b40717e` Ready, Production, and Current.
 - The signed-out production smoke sweep passes, including protected 401
-  boundaries, and focused live browser checks passed without application
-  errors.
+  boundaries. Focused live checks also pass for tournament metadata and JSON-LD,
+  Daily Games FAQ structured data, sitemap modification dates, `llms.txt`, and
+  private-route `noindex` behavior.
 - No merge protection was bypassed.
 
 ## Preserved boundaries
@@ -59,15 +73,16 @@ request [#94](https://github.com/roblebaegaming/DraftCenter/pull/94).
 
 ## Remaining work
 
-No application release from the August 9 wave remains to be pushed. Continue
-normal monitoring of the new tournament, Daily Games, Nuzlocke, and navigation
-paths.
+No application release from the August 9 wave or the first product-alignment
+SEO pass remains to be pushed. Continue normal monitoring of the tournament,
+Daily Games, Nuzlocke, navigation, metadata, and indexing paths.
 
-The next requested work is an evidence-led SEO pass. Begin with the current
-production crawl and indexing baseline, repair confirmed technical defects,
-and then improve public tournament, organization, Pokémon, Nuzlocke, and Daily
-Games discovery without exposing private workspaces. Do not reuse the older
-pre-release SEO checklist without reconciling it against what is now live.
+The next SEO work begins with the exact URLs behind the August 8 crawl defects:
+invalid structured data, one broken internal link and 4xx, duplicates, and the
+orphaned sitemap page. Reproduce each finding against `b40717e` before changing
+templates because the measurement predates several releases. Repeat the same
+5,000-page crawl scope after technical repairs, with an early search read after
+about 14 days and a normal content decision after about 28 days.
 
 ## Authoritative records
 
@@ -81,6 +96,8 @@ pre-release SEO checklist without reconciling it against what is now live.
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-08-multi-pod-connected-championships.md`](handoffs/DraftCenter-agent-handoff-2026-08-08-multi-pod-connected-championships.md)
 - Pokémon profile canonical policy:
   [`docs/pokemon-profile-canonical-policy.md`](pokemon-profile-canonical-policy.md)
+- Public indexing policy:
+  [`docs/public-indexing-policy.md`](public-indexing-policy.md)
 - Permanent repository policy: [`AGENTS.md`](../AGENTS.md)
 
 When this file conflicts with an older handoff, this verified production record
