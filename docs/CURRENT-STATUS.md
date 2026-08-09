@@ -3,8 +3,8 @@
 - Last updated: August 9, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified production application commit: `b40717e213d7e71e0ae32cd3226409f082ce780c`
-- Latest production migration: 365
+- Verified production application commit: `cdce0f19c62110cff384d204f890be01042735b6`
+- Latest production migration: 368
 
 ## Deployed state
 
@@ -33,7 +33,18 @@ sitemap and `llms.txt` reflect the current public products. Tournament and
 organization detail workspaces, My Teams, and saved Nuzlocke Run Cards remain
 non-indexed and outside the sitemap.
 
-Migrations 361-365 are applied to the exact core production project. The
+The consolidated discovery, pricing, and pod-access release shipped through
+pull request [#103](https://github.com/roblebaegaming/DraftCenter/pull/103).
+The public Pokédex now has combinable color, Egg Group, and shape filters plus
+42 canonical category routes. Draft commissioners can opt into sourced,
+versioned pricing boards with explicit BST estimates and provenance, while
+existing leagues retain their stored pricing. Managers may visit sibling pods
+to follow activity, use the League Board, and predict without receiving team,
+transaction, claim, trade, draft, or direct-message authority; spectators
+remain limited to standings, predictions, the official draft board, and
+playoffs.
+
+Migrations 361-368 are applied to the exact core production project. The
 previous multi-pod organization, qualification, and connected championship
 release remains live through migrations 350-360 and production record pull
 request [#94](https://github.com/roblebaegaming/DraftCenter/pull/94).
@@ -51,11 +62,19 @@ request [#94](https://github.com/roblebaegaming/DraftCenter/pull/94).
 - The SEO release passed all protected security, dependency, secret-scan,
   CodeQL, and Vercel checks. Its exact Preview passed desktop and 390px mobile
   review without browser errors or horizontal overflow.
-- Vercel reports exact `main` commit `b40717e` Ready, Production, and Current.
+- Pull request #103 passed protected security, dependency, full-history secret
+  scan, CodeQL, and Vercel checks. Its exact Preview and production deployment
+  passed desktop and 390px mobile Pokédex review without browser errors or
+  horizontal overflow. The retained Supabase Preview observer-access matrix
+  passed every RLS, grant, allow, denial, full-staff, and cleanup assertion.
+- Vercel reports exact `main` commit `cdce0f1` Ready on the public production
+  domains.
 - The signed-out production smoke sweep passes, including protected 401
   boundaries. Focused live checks also pass for tournament metadata and JSON-LD,
   Daily Games FAQ structured data, sitemap modification dates, `llms.txt`, and
-  private-route `noindex` behavior.
+  private-route `noindex` behavior. The new color, Egg Group, and shape category
+  routes also return their expected canonical metadata and structured data,
+  combine correctly in the directory, and appear in the production sitemap.
 - No merge protection was bypassed.
 
 ## Preserved boundaries
@@ -73,22 +92,14 @@ request [#94](https://github.com/roblebaegaming/DraftCenter/pull/94).
 
 ## Remaining work
 
-No application release from the August 9 wave or the first product-alignment
-SEO pass remains to be pushed. Continue normal monitoring of the tournament,
-Daily Games, Nuzlocke, navigation, metadata, and indexing paths.
-
-The multi-pod observer-access clarification is integrated on
-`codex/consolidated-release-2026-08-09` with forward migrations 366-368. The
-retained isolated Preview branch has applied all three migrations and passes
-the complete access transaction matrix, including safe sibling-manager and
-spectator projections, predictions, transaction/claim/direct-message denial,
-direct-staff access, RLS/grants, and exact fixture cleanup. It is not deployed.
-Complete the signed-in Preview role and responsive review before merging its
-protected release pull request; see the dated handoff.
+No application release from the August 9 wave, the first product-alignment SEO
+pass, or the consolidated discovery/pricing/pod-access release remains to be
+pushed. Continue normal monitoring of the tournament, Daily Games, Nuzlocke,
+navigation, pricing, pod-observer, metadata, and indexing paths.
 
 The next SEO work begins with the exact URLs behind the August 8 crawl defects:
 invalid structured data, one broken internal link and 4xx, duplicates, and the
-orphaned sitemap page. Reproduce each finding against `b40717e` before changing
+orphaned sitemap page. Reproduce each finding against `cdce0f1` before changing
 templates because the measurement predates several releases. Repeat the same
 5,000-page crawl scope after technical repairs, with an early search read after
 about 14 days and a normal content decision after about 28 days.
