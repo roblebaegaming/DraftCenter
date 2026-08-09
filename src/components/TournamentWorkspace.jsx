@@ -8,9 +8,13 @@ const MATCH_PAGE_SIZE = 64;
 const ENTRANT_PAGE_SIZE = 64;
 
 const statusLabel = (status) => status.replaceAll("-", " ");
-const formatLabel = (format) => format === "double-elimination" ? "Double elimination" : "Single elimination";
+const formatLabel = (format) => format === "draft-tournament"
+  ? "Draft Tournament"
+  : format === "double-elimination" ? "Double elimination" : "Single elimination";
 
 function tournamentRoundLabel(stage, round, matchCount, finalRound) {
+  if (stage === "swiss") return `Swiss Round ${round}`;
+  if (stage === "top-cut") return matchCount === 1 ? "Top Cut Final" : `Top Cut Round ${round}`;
   if (stage === "grand-final") return round === 1 ? "Grand Final" : "Bracket Reset";
   if (stage === "winners") return round === finalRound ? "Winners Final" : `Winners Round ${round}`;
   if (stage === "losers") return round === finalRound ? "Losers Final" : `Losers Round ${round}`;
@@ -360,7 +364,19 @@ export default function TournamentWorkspace({ slug }) {
       setWorkspace(null);
       return false;
     }
-    const connectedResult = await supabase.rpc("get_connected_championship_tournament", { p_tournament_id: data.tournament.id });
+    let draftTournament = null;
+    if (data.tournament.format === "draft-tournament") {
+      const draftResult = await supabase.rpc("get_draft_tournament_workspace", { p_tournament_id: data.tournament.id });
+      if (draftResult.error) {
+        setMessage(tournamentError(draftResult.error));
+        setWorkspace(data);
+        return false;
+      }
+      draftTournament = draftResult.data;
+    }
+    const connectedResult = data.tournament.format === "draft-tournament"
+      ? { data: null, error: null }
+      : await supabase.rpc("get_connected_championship_tournament", { p_tournament_id: data.tournament.id });
     if (connectedResult.error && connectedResult.error.code !== "PGRST202") {
       setMessage(tournamentError(connectedResult.error));
       setWorkspace(data);
@@ -369,7 +385,11 @@ export default function TournamentWorkspace({ slug }) {
     const pageStage = data.match_page?.bracket_stage;
     const pageRound = data.match_page?.bracket_round;
     if (pageStage && pageRound) setSelectedRound(`${pageStage}:${pageRound}`);
-    setWorkspace({ ...data, connected_championship: connectedResult.data || null });
+    setWorkspace({
+      ...data,
+      connected_championship: connectedResult.data || null,
+      draft_tournament: draftTournament,
+    });
     setMessage("");
     return true;
   }
@@ -473,7 +493,7 @@ export default function TournamentWorkspace({ slug }) {
     const { error } = await supabase.rpc("join_tournament", {
       p_tournament_id: workspace.tournament.id,
       p_display_name: name,
-      p_registered_team_id: selectedTeam || null,
+      p_registered_team_id: workspace.tournament.format === "draft-tournament" ? null : selectedTeam || null,
       p_access_code: inviteCode,
     });
     setBusy(false);
@@ -548,6 +568,112 @@ export default function TournamentWorkspace({ slug }) {
     }
     await load();
     return true;
+  }
+
+  async function runDraftTournamentAction(rpc, arguments_) {
+    setBusy(true);
+    setMessage("");
+    const { error } = await supabase.rpc(rpc, arguments_);
+    setBusy(false);
+    if (error) {
+      setMessage(tournamentError(error));
+      return false;
+    }
+    await load();
+    return true;
+  }
+
+  function requestOpenDraftCheckIn() {
+    setConfirmation({
+      title: "Open entrant check-in?",
+      description: "Registered entrants will need to confirm they are present. Registration remains open until you lock the checked-in field.",
+      confirmLabel: "Open check-in",
+      workingLabel: "Opening...",
+      onConfirm: () => runDraftTournamentAction("open_draft_tournament_check_in", {
+        p_tournament_id: workspace.tournament.id,
+        p_expected_revision: workspace.draft_tournament.event.revision,
+      }),
+    });
+  }
+
+  async function setDraftCheckIn(checkedIn) {
+    return runDraftTournamentAction("set_draft_tournament_check_in", {
+      p_tournament_id: workspace.tournament.id,
+      p_checked_in: checkedIn,
+    });
+  }
+
+  function requestLockDraftField() {
+    setConfirmation({
+      title: "Lock the checked-in field?",
+      description: "Unchecked entrants become recorded no-shows, late entry closes, and DraftCenter creates the private shared draft room with exact account ownership.",
+      confirmLabel: "Lock field",
+      workingLabel: "Creating draft room...",
+      tone: "danger",
+      onConfirm: () => runDraftTournamentAction("lock_draft_tournament_field", {
+        p_tournament_id: workspace.tournament.id,
+        p_expected_revision: workspace.draft_tournament.event.revision,
+      }),
+    });
+  }
+
+  function requestLockDraftRosters() {
+    setConfirmation({
+      title: "Lock every drafted roster?",
+      description: "DraftCenter will verify every team has the required roster size, save tamper-evident snapshots, make both roster stores immutable, and pair Swiss Round 1 atomically.",
+      confirmLabel: "Lock rosters & pair Round 1",
+      workingLabel: "Locking rosters...",
+      tone: "danger",
+      onConfirm: () => runDraftTournamentAction("lock_draft_tournament_rosters", {
+        p_tournament_id: workspace.tournament.id,
+        p_expected_revision: workspace.draft_tournament.event.revision,
+      }),
+    });
+  }
+
+  function requestNextSwissRound() {
+    const nextRound = Number(workspace.draft_tournament?.event?.current_swiss_round || 0) + 1;
+    setConfirmation({
+      title: `Pair Swiss Round ${nextRound}?`,
+      description: "The server will use the confirmed standings, avoid repeat opponents whenever possible, and assign any bye to the lowest-ranked eligible entrant who has not already received one.",
+      confirmLabel: `Pair Round ${nextRound}`,
+      workingLabel: "Pairing...",
+      onConfirm: () => runDraftTournamentAction("start_next_draft_tournament_swiss_round", {
+        p_tournament_id: workspace.tournament.id,
+        p_expected_revision: workspace.draft_tournament.event.revision,
+      }),
+    });
+  }
+
+  function requestStartTopCut() {
+    const size = Number(workspace.draft_tournament?.event?.top_cut_size || 0);
+    setConfirmation({
+      title: size ? `Start the Top ${size}?` : "Complete the Draft Tournament?",
+      description: size
+        ? `The top ${size} entrants in the final Swiss standings will enter a permanent single-elimination bracket.`
+        : "The final Swiss standings will become the completed event standings.",
+      confirmLabel: size ? `Start Top ${size}` : "Complete event",
+      workingLabel: size ? "Building top cut..." : "Completing...",
+      tone: "danger",
+      onConfirm: () => runDraftTournamentAction("start_draft_tournament_top_cut", {
+        p_tournament_id: workspace.tournament.id,
+        p_expected_revision: workspace.draft_tournament.event.revision,
+      }),
+    });
+  }
+
+  function requestCancelDraftTournament() {
+    setConfirmation({
+      title: "Cancel this Draft Tournament?",
+      description: "This permanently closes the event and removes its private draft room and draft records. It is available only before rosters lock and cannot be undone.",
+      confirmLabel: "Cancel event",
+      workingLabel: "Cancelling...",
+      tone: "danger",
+      onConfirm: () => runDraftTournamentAction("cancel_draft_tournament", {
+        p_tournament_id: workspace.tournament.id,
+        p_expected_revision: workspace.draft_tournament.event.revision,
+      }),
+    });
   }
 
   async function archive() {
@@ -794,20 +920,25 @@ export default function TournamentWorkspace({ slug }) {
   }
 
   const tournament = workspace.tournament;
+  const draftTournament = workspace.draft_tournament;
+  const draftEvent = draftTournament?.event || null;
+  const currentDraftRound = draftTournament?.rounds?.find((round) => round.round_number === draftEvent?.current_swiss_round) || null;
+  const latestDraftStandings = (draftTournament?.standings || []).filter((standing) => standing.round_id === currentDraftRound?.id);
   const connectedChampionship = workspace.connected_championship;
   const connectedEntrants = new Map((connectedChampionship?.entrants || []).map((entrant) => [entrant.tournament_entrant_id, entrant]));
   return (
-    <main className="tournament-shell">
+    <main className={`tournament-shell ${tournament.format === "draft-tournament" ? "is-draft-tournament" : ""}`}>
       <ConfirmationDialog request={confirmation} onDismiss={() => setConfirmation(null)} />
       <header className="tournament-detail-hero">
         <a className="quiet-button" href="/tournaments">&larr; Tournaments</a>
-        <span className="eyebrow">{statusLabel(tournament.status)} &middot; {tournament.visibility}</span>
+        <span className="eyebrow">{draftEvent ? statusLabel(draftEvent.phase) : statusLabel(tournament.status)} &middot; {tournament.visibility}</span>
         <h1>{tournament.name}</h1>
         <p>{tournament.description || `Standalone ${formatLabel(tournament.format).toLowerCase()} tournament`}</p>
         {connectedChampionship && <a className="tournament-connected-link" href={`/organizations/${connectedChampionship.organization_slug}`}>{connectedChampionship.organization_name} · {connectedChampionship.season_name}</a>}
         <div>
           <span>Best of {tournament.best_of}</span>
           <span>{registeredEntrants.length} / {tournament.entrant_limit} active entrants</span>
+          {draftEvent && <span>{draftEvent.roster_size} Pokemon &middot; {draftEvent.pick_time_limit_minutes ? `${draftEvent.pick_time_limit_minutes} min/pick` : "No pick clock"} &middot; {draftEvent.swiss_round_count ? `${draftEvent.swiss_round_count} Swiss rounds` : "Swiss rounds set at field lock"}</span>}
           {tournament.is_owner && tournament.visibility === "private" && tournament.status === "registration" && (
             <button type="button" className="quiet-button" disabled={busy} onClick={copyInvite}>{inviteCode ? "Copy private registration link" : "Create private registration link"}</button>
           )}
@@ -856,7 +987,14 @@ export default function TournamentWorkspace({ slug }) {
         <section className="tournament-panel" aria-labelledby="tournament-entrants-heading">
           <div className="section-heading">
             <div><span className="eyebrow">REGISTRATION</span><h2 id="tournament-entrants-heading">Entrants</h2></div>
-            {tournament.is_owner && registeredEntrants.length >= (tournament.format === "double-elimination" ? 4 : 2) && (
+            {tournament.is_owner && tournament.format === "draft-tournament" && registeredEntrants.length >= 4 && (
+              <div className="tournament-owner-actions">
+                {draftEvent?.phase === "registration" && <button type="button" className="quiet-button" disabled={busy} onClick={requestShuffle}>Shuffle seeds</button>}
+                {draftEvent?.phase === "registration" && <button type="button" className="primary-button" disabled={busy} onClick={requestOpenDraftCheckIn}>Open check-in</button>}
+                {draftEvent?.phase === "check-in" && <button type="button" className="primary-button" disabled={busy || Number(draftTournament?.check_in?.checked_in_count || 0) < 4} onClick={requestLockDraftField}>Lock checked-in field</button>}
+              </div>
+            )}
+            {tournament.is_owner && tournament.format !== "draft-tournament" && registeredEntrants.length >= (tournament.format === "double-elimination" ? 4 : 2) && (
               <div className="tournament-owner-actions">
                 <button type="button" className="quiet-button" disabled={busy} onClick={requestShuffle}>Shuffle seeds</button>
                 <button type="button" className="primary-button" disabled={busy} onClick={requestLock}>Lock & build bracket</button>
@@ -868,7 +1006,7 @@ export default function TournamentWorkspace({ slug }) {
               <label>Display name
                 <input required maxLength={100} value={name} onChange={(event) => setName(event.target.value)} />
               </label>
-              {personalTeams.length > 0 && (
+              {tournament.format !== "draft-tournament" && personalTeams.length > 0 && (
                 <label>Saved team
                   <select value={selectedTeam} onChange={(event) => setSelectedTeam(event.target.value)}>
                     <option value="">No saved team</option>
@@ -892,6 +1030,13 @@ export default function TournamentWorkspace({ slug }) {
               <span>{filteredEntrants.length} {filteredEntrants.length === 1 ? "entrant" : "entrants"}</span>
             </div>
           )}
+          {tournament.format === "draft-tournament" && draftEvent?.phase === "check-in" && me && (
+            <div className="tournament-check-in-card">
+              <div><strong>{draftTournament?.check_in?.my_checked_in_at ? "You are checked in" : "Confirm that you are here"}</strong><p className="muted">Only checked-in entrants receive a seat when the commissioner locks the field.</p></div>
+              <button type="button" className={draftTournament?.check_in?.my_checked_in_at ? "quiet-button" : "primary-button"} disabled={busy} onClick={() => setDraftCheckIn(!draftTournament?.check_in?.my_checked_in_at)}>{draftTournament?.check_in?.my_checked_in_at ? "Withdraw check-in" : "Check in"}</button>
+            </div>
+          )}
+          {tournament.format === "draft-tournament" && draftEvent?.phase === "check-in" && <p className="muted">{draftTournament?.check_in?.checked_in_count || 0} checked in</p>}
           <div className="tournament-entrant-list">
             {visibleEntrants.map((entrant) => (
               <article key={entrant.id}>
@@ -911,6 +1056,62 @@ export default function TournamentWorkspace({ slug }) {
               <span>Page {visibleEntrantPage} of {entrantPageCount}</span>
               <button type="button" className="quiet-button" disabled={visibleEntrantPage >= entrantPageCount} onClick={() => setEntrantPage(visibleEntrantPage + 1)}>Next entrants</button>
             </nav>
+          )}
+        </section>
+      )}
+
+      {draftEvent && draftEvent.phase !== "registration" && draftEvent.phase !== "check-in" && (
+        <section className="tournament-panel tournament-draft-event-panel" aria-labelledby="draft-tournament-event-heading">
+          <div className="section-heading">
+            <div><span className="eyebrow">DRAFT TOURNAMENT</span><h2 id="draft-tournament-event-heading">{statusLabel(draftEvent.phase)}</h2></div>
+            <button type="button" className="quiet-button" onClick={load}>Refresh</button>
+          </div>
+          {draftTournament?.draft_room?.slug && ["draft-setup", "drafting", "roster-review"].includes(draftEvent.phase) && (
+            <div className="tournament-draft-room-callout">
+              <div>
+                <strong>{draftEvent.phase === "draft-setup" ? "The shared draft room is ready" : draftEvent.phase === "drafting" ? "The shared draft is live" : "Review the completed rosters"}</strong>
+                <p className="muted">The room is restricted to the event owner and checked-in entrants. Team control is bound to exact account IDs.</p>
+              </div>
+              <a className="primary-button inline-link-button" href={`/?league=${encodeURIComponent(draftTournament.draft_room.slug)}`}>Open draft room</a>
+            </div>
+          )}
+          {tournament.is_owner && draftEvent.phase === "roster-review" && (
+            <button type="button" className="primary-button" disabled={busy} onClick={requestLockDraftRosters}>Lock rosters & pair Swiss Round 1</button>
+          )}
+          {tournament.is_owner && draftEvent.phase === "swiss" && currentDraftRound?.status === "complete" && draftEvent.current_swiss_round < draftEvent.swiss_round_count && (
+            <button type="button" className="primary-button" disabled={busy} onClick={requestNextSwissRound}>Pair Swiss Round {draftEvent.current_swiss_round + 1}</button>
+          )}
+          {tournament.is_owner && draftEvent.phase === "swiss-complete" && (
+            <button type="button" className="primary-button" disabled={busy} onClick={requestStartTopCut}>{draftEvent.top_cut_size ? `Start Top ${draftEvent.top_cut_size}` : "Complete event"}</button>
+          )}
+          {tournament.is_owner && ["draft-setup", "drafting", "roster-review"].includes(draftEvent.phase) && (
+            <button type="button" className="danger-button" disabled={busy} onClick={requestCancelDraftTournament}>Cancel event</button>
+          )}
+          {draftEvent.phase === "top-cut" && <p className="muted">Swiss standings are final. The remaining matches use the confirmed single-elimination top-cut bracket below.</p>}
+          {["complete", "archived"].includes(draftEvent.phase) && <p className="muted">The event is complete. Its locked rosters, Swiss standings, result history, and top cut remain preserved.</p>}
+          {draftEvent.phase === "cancelled" && <p className="muted">The event was cancelled before roster lock. Its private draft room and draft records were removed.</p>}
+
+          {latestDraftStandings.length > 0 && (
+            <div className="tournament-standings-table" role="region" aria-label={`Standings after Swiss Round ${draftEvent.current_swiss_round}`} tabIndex="0">
+              <table>
+                <thead><tr><th>Rank</th><th>Entrant</th><th>Record</th><th>OMWP</th><th>Games</th><th>OGWP</th></tr></thead>
+                <tbody>{latestDraftStandings.map((standing) => {
+                  const entrant = entrants.get(standing.entrant_id);
+                  return <tr key={standing.entrant_id}><td>#{standing.rank}</td><th scope="row">{entrant?.display_name || "Entrant"}</th><td>{standing.match_wins}-{standing.match_losses}</td><td>{Math.round(Number(standing.opponent_match_win_percentage || 0) * 1000) / 10}%</td><td>{standing.game_wins}-{standing.game_losses}</td><td>{Math.round(Number(standing.opponent_game_win_percentage || 0) * 1000) / 10}%</td></tr>;
+                })}</tbody>
+              </table>
+            </div>
+          )}
+
+          {(draftTournament?.seats || []).some((seat) => Array.isArray(seat.roster)) && (
+            <div className="tournament-roster-grid">
+              {draftTournament.seats.filter((seat) => Array.isArray(seat.roster)).map((seat) => (
+                <article key={seat.id}>
+                  <strong>#{seat.initial_seed} {entrants.get(seat.entrant_id)?.display_name || "Entrant"}</strong>
+                  <div>{seat.roster.map((pokemon) => <span key={pokemon.id || pokemon.name}>{pokemon.name}</span>)}</div>
+                </article>
+              ))}
+            </div>
           )}
         </section>
       )}
