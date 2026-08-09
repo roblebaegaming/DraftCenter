@@ -18,6 +18,15 @@ confirmed the qualification and championship objects, grants, triggers, and
 bounded search paths, with no qualification runs, candidates, championship
 mappings, or championship entrants created by the release.
 
+A post-release acceptance pass reran the foundation, qualification, and
+connected-championship transaction matrices on the retained Preview branch;
+every assertion and cleanup check passed. The exact production commit also
+passed the full application suite, dependency audit, National Dex verification,
+180-page build, and production smoke sweep. Production currently contains no
+organizations, seasons, or pods, so a signed-in commissioner walkthrough with
+isolated practice data remains the only unproved product-level step and
+requires separate production-write approval.
+
 ## Connected championship behavior
 
 - Only the organization owner can create the championship mapping.

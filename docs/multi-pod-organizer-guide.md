@@ -42,17 +42,21 @@ cross-pod duplicates are valid in the championship.
 
 ## What is live now
 
-The organization foundation and commissioner workspace are deployed. Owners
-can create organizations, manage bounded administrator access, create seasons,
-link existing leagues as pods, confirm shared-regulation reviews, launch a
-reviewed season, and show a public organization page. These actions do not
-alter the linked leagues.
+The complete workflow is deployed through pull requests
+[91](https://github.com/roblebaegaming/DraftCenter/pull/91) and
+[92](https://github.com/roblebaegaming/DraftCenter/pull/92), with production
+migrations applied through 360. Owners can create organizations, manage
+bounded administrator access, create seasons, link existing leagues as pods,
+confirm shared-regulation reviews, launch a reviewed season, finalize
+qualifiers, and promote them into a connected championship. Linking and
+coordinating pods does not alter their drafts, schedules, standings, or
+rosters.
 
-Qualification automation is in pull request 91, and connected championships
-are in stacked pull request 92. Both pass on the
-retained Supabase Preview branch, but neither is merged or deployed. Until
-those releases are approved in order, production does not expose their
-qualification or championship controls.
+The retained Supabase Preview branch passes the foundation, qualification,
+single-elimination championship, and double-elimination championship
+transaction matrices. Production object, grant, trigger, search-path, smoke,
+and signed-out page checks also pass without creating organization or
+championship data.
 
 ### Qualification review flow
 
@@ -103,14 +107,15 @@ qualification or championship controls.
   complete rosters and do not redraft.
 - **Duplicate Pokemon:** fixed by the product contract—duplicates across pods
   remain legal.
-- **Bracket format:** standalone single and double elimination are live. The
-  connected-championship release can expose either format without creating a
-  second draft or roster.
+- **Bracket format:** connected championships support both single and double
+  elimination without creating a second draft or roster.
 - **Seeding:** choose pure overall record, pod-finish bands, or pod-finish
   bands with best-effort avoidance of same-pod first-round matches.
-- **Transactions:** the organization can keep normal source-league transaction
-  rules through the championship or freeze transactions at a stated playoff
-  deadline. The qualifying roster snapshot must make that choice explicit.
+- **Transactions:** the finalized qualification roster is the championship
+  roster. Later source-league roster changes do not flow into the championship
+  and prevent replacement-manager synchronization. Write the transaction
+  freeze into the shared rules and enforce it in each source league before
+  qualification is finalized.
 - **Replacement managers:** replacements continue through the source league
   and take over the same team, roster, record, and schedule. Qualification can
   synchronize only that manager identity after verifying the unchanged team
@@ -151,12 +156,13 @@ continue through the existing Tournament controls.
 - Tiebreakers in this order: wins, differential, head-to-head, game-win
   percentage, commissioner draw.
 - Qualifiers keep complete rosters; cross-pod duplicate Pokemon remain legal.
-- Freeze transactions when the championship begins.
+- Write and enforce the source-league transaction freeze before finalizing
+  qualification.
 - Seed by pod finish and avoid same-pod matchups in the first championship
   round where possible.
 - Use single elimination for the simplest first championship, or double
-  elimination when the new format is deployed if the organization accepts the
-  longer schedule and possible bracket-reset final.
+  elimination if the organization accepts the longer schedule and possible
+  bracket-reset final.
 
 The permanent technical and security contract is in
 [`multi-pod-league-organizations.md`](multi-pod-league-organizations.md).

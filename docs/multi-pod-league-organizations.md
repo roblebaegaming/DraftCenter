@@ -171,19 +171,15 @@ still match the finalized qualifier.
 
 ## Production boundary
 
-Migrations 350-353 and the commissioner workspace are deployed through
-protected pull requests 82 and 85. All nine organization tables use RLS,
-browser roles have no direct table access, owner and invited-administrator
-actions remain bounded, and the isolated regression proved that two reviewed
-practice pods can launch with every synthetic fixture removed. The retained
-`multi-pod-pr-82` Preview branch remains available and must not be deleted as
-routine cleanup.
+Migrations 350-360 are deployed through protected pull requests 82, 85, 91,
+and 92. All organization tables use RLS, browser roles have no direct table
+access, owner and invited-administrator actions remain bounded, and production
+grant, trigger, and function-search-path audits pass.
 
-Qualification automation is in pull request 91 and is not deployed.
-Migrations 356-358 and the synthetic matrix pass on the retained
-`multi-pod-pr-82` Preview branch; every synthetic league, organization, run,
-candidate, qualifier, and account was removed. Connected championships are in
-stacked pull request 92 with migrations 359-360; their single and
-double matrices and independent grants/trigger/residue audit also pass with
-all synthetic fixtures removed. Neither review layer has been applied to
-production. No real league should be attached merely to test them.
+The retained `multi-pod-pr-82` Preview branch passes the complete foundation,
+qualification, single-elimination championship, and double-elimination
+championship transaction matrices. Every synthetic league, organization, run,
+candidate, qualifier, championship, Tournament, entrant, and account is
+removed by those checks. The branch remains available and must not be deleted
+as routine cleanup. No real league should be attached merely to test the
+workflow.
