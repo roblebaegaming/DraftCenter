@@ -3,16 +3,41 @@
 - Last updated: August 8, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified production application commit: `cbec434f00473c190731a35eb25b541d5311e5ca`
-- Latest production migration: 355
+- Verified production application commit: `21488bae41838f1d35d9d1e47b0741e120ab05be`
+- Latest production migration: 360
 
 ## Deployed state
 
+Multi-pod qualification automation and connected championships shipped through
+pull requests [91](https://github.com/roblebaegaming/DraftCenter/pull/91) and
+[92](https://github.com/roblebaegaming/DraftCenter/pull/92) at production
+commit `21488bae41838f1d35d9d1e47b0741e120ab05be`. Migrations 356-360 are applied
+to the exact core production project. Qualification finalization, owner-only
+championship promotion, single- and double-elimination seeding, public-safe
+projections, manager synchronization, and completion propagation are live.
+The production privilege and trigger audit, Vercel commit check, signed-out
+smoke sweep, and live `/organizations` and `/tournaments` checks all passed.
+An owner-approved signed-in production acceptance walkthrough also passed the
+complete commissioner flow: private organization creation, two linked practice
+pods, shared-rule confirmation, launch, standings locks, two finalized
+qualifiers with distinct managers and retained rosters, a private best-of-1
+single-elimination championship, and automatic completion propagation. The
+guarded cleanup removed only the recorded disposable fixtures; an independent
+20-scope residue audit returned zero rows and the post-cleanup production smoke
+sweep passed.
+
+A later owner-requested visual walkthrough exercised the same live flow at a
+larger all-bot scale: two four-team Regulation M/B practice pods, six
+automatically assigned Pokemon per team, complete round-robin standings, four
+distinct qualifying managers with retained six-Pokemon rosters, and a private
+best-of-1 single-elimination championship with three confirmed matches. The UI
+and database both reached complete. The screenshots were delivered to the
+owner, exact guarded cleanup removed all eight bot identities and fixtures, a
+separate 22-scope audit returned zero residue, and the production smoke sweep
+passed again.
+
 Standalone double elimination shipped through pull request 90 at production
-commit `cbec434f00473c190731a35eb25b541d5311e5ca`. Migration 355 is applied to
-the exact core production project. The production grant/RLS audit, Vercel
-commit check, signed-out smoke sweep, and live `/tournaments` browser check all
-passed.
+commit `cbec434f00473c190731a35eb25b541d5311e5ca`, with migration 355.
 
 DraftCenter production includes the multi-pod organization foundation and
 commissioner workspace, the owner-only Operations navigation, tournament
@@ -33,11 +58,13 @@ species and all 1,351 PokeAPI battle profiles. Shape and Egg Group filters can
 be combined with the existing type, color, and evolution-stage themes, apply to
 every displayed team member, and persist in shared links and Run Card exports.
 
-Production migrations are forward-only and collision-free through 355.
+Production migrations are forward-only and collision-free through 360.
 Migrations 350-353 provide the private multi-pod organization schema,
 championship mapping correction, shared season-rule boundaries, and
-  commissioner workspace. Migration 354 adds tournament recovery, and
-  migration 355 adds double-elimination tournament graphs and locking.
+commissioner workspace. Migration 354 adds tournament recovery, migration 355
+adds double-elimination tournament graphs and locking, migrations 356-358 add
+qualification automation, and migrations 359-360 connect finalized qualifiers
+to championships with bounded recovery synchronization.
 
 ## Release verification
 
@@ -46,10 +73,20 @@ championship mapping correction, shared season-rule boundaries, and
 - National Dex paging passed across 1,027 rows.
 - The production build passed with 180 generated pages.
 - CodeQL, security checks, dependency checks, full-history secret scanning,
-  Vercel, and preview feedback passed for both releases.
+  Vercel, and preview feedback passed for pull requests 91 and 92.
 - Vercel reports the exact current `main` commit Ready in Production.
 - The signed-out production smoke sweep passes, including protected 401
   boundaries.
+- The signed-in production multi-pod walkthrough passed from organization
+  creation through a completed connected championship, followed by exact-ID
+  cleanup and a 20-scope zero-residue audit.
+- The all-bot visual walkthrough separately passed with eight teams, 48 roster
+  slots, four qualifiers, three confirmed bracket results, completion
+  propagation, exact cleanup, and a 22-scope zero-residue audit.
+- The production record, all-bot walkthrough proof, and Draft Tournament
+  kickoff handoff are pushed to pull request 94. All six applicable checks
+  passed for the handoff payload commit; the pull request remains open and
+  unmerged pending a separate merge instruction.
 - Live production checks confirm all 14 Pokédex shapes, all 15 Egg Groups, and
   Bulbasaur's Quadruped and Monster/Grass facts with no browser errors or
   desktop overflow.
@@ -57,37 +94,29 @@ championship mapping correction, shared season-rule boundaries, and
 
 ## Preserved boundaries
 
-- No real league, draft, pick, roster, schedule, tournament, entrant, or result
-  was changed for release testing.
+- No real league, draft, pick, roster, schedule, tournament, entrant, result,
+  or user account was changed for release testing. The two approved disposable
+  manager identities and all isolated practice fixtures were deleted after the
+  walkthrough.
+- The later visual walkthrough used eight additional disposable bot identities
+  only inside two exact isolated practice leagues. All eight identities and
+  every dependent fixture were deleted after screenshots.
 - The retained `multi-pod-pr-82` Supabase Preview branch remains available and
   must not be deleted as part of routine cleanup.
 - The original DraftCenter workspace still has 37 pre-existing changed paths;
   they were not staged, committed, discarded, hidden, or overwritten.
-- No provider configuration, production environment variable, secret, or user
-  record was changed by these releases.
+- No provider configuration, production environment variable, or secret was
+  changed by these releases.
 
 ## Remaining work
 
-No deployment work remains for pull requests 83 or 87. Continue normal
-production monitoring for tournament recovery, organization commissioner
-workflows, Nuzlocke generation, and the new species filters.
+No deployment work remains for pull requests 83, 87, 91, or 92. Continue
+normal production monitoring for tournament recovery, organization
+commissioner workflows, qualification finalization, connected championship
+promotion, Nuzlocke generation, and the species filters.
 
-Multi-pod qualification automation is implemented in [pull request
-91](https://github.com/roblebaegaming/DraftCenter/pull/91) on branch
-`codex/multi-pod-qualification-2026-08-08` with forward migrations 356-358.
-The retained `multi-pod-pr-82` Supabase Preview branch passes the complete
-synthetic qualification transaction matrix and an independent grants, RLS,
-function-search-path, cascade, and residue audit. It is not merged, applied to
-production, or deployed.
-
-Connected championships are implemented in stacked [pull request
-92](https://github.com/roblebaegaming/DraftCenter/pull/92) on branch
-`codex/multi-pod-connected-championships-2026-08-08`, with migrations 359-360.
-The retained Preview branch passes owner-only promotion, single- and
-double-elimination bracket construction, three seeding policies, extra-entrant
-denial, public-safe projections, source-roster replacement sync, status
-propagation, and cleanup. This stacked branch is not merged, applied to
-production, or deployed.
+The Draft Tournament concept remains separate and incomplete. It still needs
+one event draft, roster locking, Swiss rounds, and an optional top cut.
 
 The August 8 external SEO measurement is complete. The 1,544-page Semrush
 crawl, existing Position Tracking baseline, and Search Console performance,
@@ -99,6 +128,8 @@ limit; the existing Australia history was preserved.
 ## Authoritative records
 
 - Current continuation handoff:
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-08-draft-tournament-kickoff.md`](handoffs/DraftCenter-agent-handoff-2026-08-08-draft-tournament-kickoff.md)
+- Connected multi-pod production handoff:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-08-multi-pod-connected-championships.md`](handoffs/DraftCenter-agent-handoff-2026-08-08-multi-pod-connected-championships.md)
 - Qualification review checkpoint:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-08-multi-pod-qualification-automation.md`](handoffs/DraftCenter-agent-handoff-2026-08-08-multi-pod-qualification-automation.md)

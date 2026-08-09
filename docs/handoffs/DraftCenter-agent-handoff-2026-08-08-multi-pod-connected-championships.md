@@ -4,21 +4,39 @@ Date: August 8, 2026
 
 ## Outcome
 
-The protected production release requested at the start of this work is
-complete: pull request 90 is merged, migration 355 is applied to the exact
-production project, Vercel serves exact commit
-`cbec434f00473c190731a35eb25b541d5311e5ca`, and the signed-out production
-smoke plus live Tournament browser check passed.
+The connected multi-pod release is complete. [Pull request
+91](https://github.com/roblebaegaming/DraftCenter/pull/91) shipped
+qualification automation with migrations 356-358, and [pull request
+92](https://github.com/roblebaegaming/DraftCenter/pull/92) shipped connected
+championships with migrations 359-360. Vercel serves exact application commit
+`21488bae41838f1d35d9d1e47b0741e120ab05be` in Production.
 
-Qualification automation is open and ready for review in [pull request
-91](https://github.com/roblebaegaming/DraftCenter/pull/91). It remains
-unmerged and undeployed with migrations 356-358 only on the retained Preview
-branch.
+The exact-commit signed-out production smoke sweep passed. Live
+`/organizations` and `/tournaments` checks rendered the expected signed-out
+states with no browser warnings or errors. The final production database audit
+confirmed the qualification and championship objects, grants, triggers, and
+bounded search paths, with no qualification runs, candidates, championship
+mappings, or championship entrants created by the release.
 
-Connected championships are open and ready for review in stacked [pull request
-92](https://github.com/roblebaegaming/DraftCenter/pull/92) on branch
-`codex/multi-pod-connected-championships-2026-08-08`. This pull request depends
-on pull request 91 and is not merged, applied to production, or deployed.
+A post-release acceptance pass reran the foundation, qualification, and
+connected-championship transaction matrices on the retained Preview branch;
+every assertion and cleanup check passed. The exact production commit also
+passed the full application suite, dependency audit, National Dex verification,
+180-page build, and production smoke sweep.
+
+With explicit owner approval, the signed-in production acceptance walkthrough
+then completed the entire commissioner lifecycle using one private disposable
+organization, two isolated practice leagues, and two disposable manager
+identities. The live UI created the shared season, linked and confirmed both
+pods, launched the season, locked both final standings, finalized exactly two
+qualifiers with distinct managers and one retained Pokémon each, created a
+private best-of-1 single-elimination championship, and confirmed its 1-0 final.
+The Tournament, connected championship, and organization season all became
+complete. A guarded exact-ID cleanup removed only those fixtures. A separate
+20-scope database audit returned zero residual organization, qualification,
+championship, Tournament, league, membership, snapshot, audit, profile, or
+authentication rows, the signed-in organization workspace returned to empty,
+and the post-cleanup production smoke sweep passed.
 
 ## Connected championship behavior
 
@@ -82,17 +100,20 @@ and authenticated mutation grants are correct, the sync function has the
 bounded `public, extensions` search path, and no synthetic championship
 fixtures remain.
 
-## Safety and release order
+## Production verification and preserved boundaries
 
-- Production remains at migration 355. Migrations 356-360 are not applied
-  there.
+- Production is at application commit
+  `21488bae41838f1d35d9d1e47b0741e120ab05be` and migration 360.
+- Pull requests 91 and 92 passed their required checks and were squash-merged
+  separately after their respective production migrations were approved.
+- The production qualification tables and connected championship mapping
+  tables are empty again after the approved disposable acceptance fixtures were
+  removed; no synthetic release data remains.
 - No real league, roster, qualifier, Tournament, account, provider setting,
-  environment variable, or secret was changed.
+  environment variable, or secret was changed. The two approved disposable
+  manager identities and all isolated practice fixtures were deleted.
 - The original DraftCenter workspace's 37 pre-existing changed paths remain
   untouched.
 - Do not delete the retained `multi-pod-pr-82` Preview branch.
-- Review and release pull request 91 first. Pull request 92 must stay stacked
-  until qualification is accepted.
-- Each production database promotion and merge remains a separate approval.
 - The Draft Tournament concept is still separate and incomplete; it needs one
   event draft, roster lock, Swiss rounds, and optional top cut.
