@@ -1,6 +1,7 @@
 import { getPublicLeagueCards } from "../lib/supabase/publicServer";
 import { FORMATS, GUIDES } from "../lib/seoContent";
 import { getAllPokemonProfiles, POKEMON_GENERATIONS, POKEMON_TYPES } from "../lib/publicPokemonIndex";
+import { POKEMON_COLOR_OPTIONS, POKEMON_EGG_GROUP_OPTIONS, POKEMON_SHAPE_OPTIONS } from "../lib/pokemonSpeciesTraits";
 import nuzlockeGameGuides from "../lib/nuzlockeGameGuides.json";
 
 const PRODUCT_DISCOVERY_LAST_MODIFIED = new Date("2026-08-09T00:00:00.000Z");
@@ -35,6 +36,7 @@ const routes = [
 // Update this only when the authored guide or format catalog materially changes.
 const AUTHORED_CONTENT_LAST_MODIFIED = new Date("2026-08-03T00:00:00.000Z");
 const NUZLOCKE_GUIDES_LAST_MODIFIED = new Date("2026-08-07T00:00:00.000Z");
+const POKEMON_TRAIT_CONTENT_LAST_MODIFIED = new Date("2026-08-09T00:00:00.000Z");
 
 async function pokemonRoutes() {
   const pokemon = await getAllPokemonProfiles();
@@ -80,11 +82,24 @@ export default async function sitemap() {
     changeFrequency: "monthly",
     priority: 0.7,
   }));
+  const pokemonTraitRoutes = [
+    "/pokemon/colors",
+    "/pokemon/egg-groups",
+    "/pokemon/shapes",
+    ...POKEMON_COLOR_OPTIONS.map(({ id }) => `/pokemon/color/${id}`),
+    ...POKEMON_EGG_GROUP_OPTIONS.map(({ id }) => `/pokemon/egg-group/${id}`),
+    ...POKEMON_SHAPE_OPTIONS.map(({ id }) => `/pokemon/shape/${id}`),
+  ].map((path) => ({
+    url: `https://www.draftcentral.gg${path}`,
+    lastModified: POKEMON_TRAIT_CONTENT_LAST_MODIFIED,
+    changeFrequency: "monthly",
+    priority: 0.7,
+  }));
   const nuzlockeGuideRoutes = nuzlockeGameGuides.games.map(({ slug }) => ({
     url: `https://www.draftcentral.gg/nuzlocke/${slug}`,
     lastModified: NUZLOCKE_GUIDES_LAST_MODIFIED,
     changeFrequency: "monthly",
     priority: 0.8,
   }));
-  return [...staticRoutes, ...nuzlockeGuideRoutes, ...guideRoutes, ...formatRoutes, ...pokemonIndexRoutes, ...leagueRoutes, ...pokemon];
+  return [...staticRoutes, ...nuzlockeGuideRoutes, ...guideRoutes, ...formatRoutes, ...pokemonIndexRoutes, ...pokemonTraitRoutes, ...leagueRoutes, ...pokemon];
 }

@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const DEFAULT_POKEAPI_COMMIT = ["5064f1d72746b3a6a931", "616dae3fb6445c556d4f"].join("");
+const DEFAULT_POKEAPI_COMMIT = "5064f1d72746b3a6a931616dae3fb6445c556d4f";
 const commitArgument = process.argv.find((argument) => argument.startsWith("--pokeapi-commit="));
 const sourceCommit = commitArgument?.split("=")[1] || DEFAULT_POKEAPI_COMMIT;
 
@@ -16,6 +16,7 @@ const CSV_FILES = [
   "pokemon_egg_groups.csv",
   "egg_groups.csv",
   "egg_group_prose.csv",
+  "pokemon_colors.csv",
   "pokemon_shapes.csv",
   "pokemon_shape_prose.csv",
 ];
@@ -84,6 +85,7 @@ const englishEggGroupProse = new Map(
     .map((row) => [row.egg_group_id, row.name]),
 );
 const shapesById = new Map(data["pokemon_shapes.csv"].map((row) => [row.id, row.identifier]));
+const colorsById = new Map(data["pokemon_colors.csv"].map((row) => [row.id, row.identifier]));
 const eggGroupsById = new Map(data["egg_groups.csv"].map((row) => [row.id, row.identifier]));
 const speciesById = new Map(data["pokemon_species.csv"].map((row) => [row.id, row]));
 const eggGroupsBySpecies = new Map();
@@ -103,25 +105,44 @@ const eggGroups = data["egg_groups.csv"].map((row) => {
   if (!label) throw new Error(`Egg group ${row.id} is missing an English name.`);
   return { id: row.identifier, label };
 });
+const colors = data["pokemon_colors.csv"].map((row) => ({
+  id: row.identifier,
+  label: row.identifier.replace(/(^|-)([a-z])/g, (_match, separator, letter) => `${separator}${letter.toUpperCase()}`),
+}));
 
 const pokemon = {};
+const profileSpecies = {};
+const speciesCatalog = {};
 for (const row of data["pokemon.csv"].sort((left, right) => Number(left.id) - Number(right.id))) {
   const species = speciesById.get(row.species_id);
   const shape = species && shapesById.get(species.shape_id);
+  const color = species && colorsById.get(species.color_id);
   const speciesEggGroups = (eggGroupsBySpecies.get(row.species_id) || [])
     .sort((left, right) => Number(left) - Number(right))
     .map((id) => eggGroupsById.get(id));
-  if (!species || !shape || !speciesEggGroups.length || speciesEggGroups.some((value) => !value)) {
-    throw new Error(`Pokemon profile ${row.id} is missing species shape or egg-group metadata.`);
+  if (!species || !color || !shape || !speciesEggGroups.length || speciesEggGroups.some((value) => !value)) {
+    throw new Error(`Pokemon profile ${row.id} is missing species color, shape, or egg-group metadata.`);
   }
   pokemon[row.id] = { shape, egg_groups: speciesEggGroups };
+  profileSpecies[row.identifier] = Number(row.species_id);
+  if (!speciesCatalog[row.species_id]) {
+    speciesCatalog[row.species_id] = {
+      name: species.identifier,
+      color,
+      shape,
+      egg_groups: speciesEggGroups,
+    };
+  }
 }
 
-if (shapes.length !== 14 || eggGroups.length !== 15) {
-  throw new Error(`Expected 14 shapes and 15 egg groups; received ${shapes.length} and ${eggGroups.length}.`);
+if (colors.length !== 10 || shapes.length !== 14 || eggGroups.length !== 15) {
+  throw new Error(`Expected 10 colors, 14 shapes, and 15 egg groups; received ${colors.length}, ${shapes.length}, and ${eggGroups.length}.`);
 }
 if (Object.keys(pokemon).length !== data["pokemon.csv"].length) {
   throw new Error("Not every PokeAPI Pokemon profile received species traits.");
+}
+if (Object.keys(speciesCatalog).length !== data["pokemon_species.csv"].length) {
+  throw new Error("Not every PokeAPI Pokemon species received color, shape, and egg-group metadata.");
 }
 
 const artifact = {
@@ -129,9 +150,12 @@ const artifact = {
   source_files: CSV_FILES,
   species_count: data["pokemon_species.csv"].length,
   pokemon_count: data["pokemon.csv"].length,
+  colors,
   shapes,
   egg_groups: eggGroups,
   pokemon,
+  profile_species: profileSpecies,
+  species: speciesCatalog,
 };
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const outputDirectory = path.join(root, "data", "pokemon");

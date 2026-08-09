@@ -1,32 +1,41 @@
-# Pokémon species shape and Egg Group metadata
+# Pokémon species color, shape, and Egg Group metadata
 
 - Date: August 7, 2026
-- PokeAPI source commit: `5064f1d` (the full hash is pinned in the artifact filename and builder)
-- Scope: Pokédex profiles and Nuzlocke team themes
+- Expanded: August 9, 2026
+- PokeAPI source commit: `5064f1d72746b3a6a931616dae3fb6445c556d4f`
+- Scope: Pokédex profiles, taxonomy indexes, interactive filters, and Nuzlocke team themes
 
 ## Data contract
 
-DraftCenter uses the species-level Pokédex shape and Egg Group assignments from
+DraftCenter uses the species-level Pokédex color, shape, and Egg Group assignments from
 the same pinned PokeAPI data commit as the 37 verified Nuzlocke encounter
 catalogs. The generated artifact contains all 1,025 species and maps all 1,351
-PokeAPI battle profiles to one of 14 shapes and one or two of the 15 Egg
-Groups. Alternate forms inherit the classification of their species, matching
-the PokeAPI species contract.
+PokeAPI battle profiles to one of 10 colors, one of 14 shapes, and one or two
+of the 15 Egg Groups. Alternate forms inherit the classification of their
+species, matching the PokeAPI species contract.
 
 The committed artifact is
 `data/pokemon/pokemon-species-traits.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json`.
-It is generated from PokeAPI's Pokémon, species, shape, localized shape prose,
-Egg Group, localized Egg Group prose, and species-to-Egg-Group CSV files. Run
+It is generated from PokeAPI's Pokémon, species, color, shape, localized shape
+prose, Egg Group, localized Egg Group prose, and species-to-Egg-Group CSV files. Run
 `npm run catalog:build:traits` to rebuild it deterministically from the pinned
 commit. A different source commit must be supplied explicitly and reviewed
 with the corresponding encounter-catalog update.
 
 ## Product behavior
 
-Each public Pokémon profile displays the species' Pokédex shape and localized
-English Egg Group names. Forms and battle varieties continue to have distinct
-profile pages where appropriate, but they share species-level shape and Egg
-Group facts.
+Each public Pokémon profile displays and links the species' Pokédex color,
+shape, and localized English Egg Group names. Forms and battle varieties
+continue to have distinct profile pages where appropriate, but they share
+species-level color, shape, and Egg Group facts.
+
+The interactive Pokédex can combine color, shape, and Egg Group selections
+with its existing name, National Dex number, type, generation, ability, and
+sorting controls. The public `/pokemon/colors`, `/pokemon/egg-groups`, and
+`/pokemon/shapes` hubs lead to one indexable page per reviewed category. Every
+category page has a self-canonical, unique metadata, breadcrumb and collection
+structured data, an interactive-filter link, and matching profile links. All
+42 taxonomy routes are included in the sitemap with a fixed reviewed date.
 
 Nuzlocke Draft exposes optional shape and Egg Group themes alongside its
 existing type, color, and evolution-stage themes. Leaving them blank preserves
@@ -48,9 +57,10 @@ configuration.
 
 ## Regression coverage
 
-Focused tests verify all 14 shape labels, all 15 Egg Group labels, every mapped
-PokeAPI profile, and complete trait coverage for the source and final profiles
-in all 37 game-specific evolution catalogs. Generator tests cover shape-only,
-Egg-Group-only, combined, invalid, starter, and final-evolution themes. UI and
-route tests cover source matching, bounded options, profile facts, and shared
-link restoration.
+Focused tests verify all 10 color labels, all 14 shape labels, all 15 Egg Group
+labels, every mapped PokeAPI profile, and complete trait coverage for the
+source and final profiles in all 37 game-specific evolution catalogs.
+Generator tests cover shape-only, Egg-Group-only, combined, invalid, starter,
+and final-evolution themes. UI and route tests cover source matching, bounded
+options, profile facts, interactive filters, index metadata, sitemap coverage,
+and shared-link restoration.
