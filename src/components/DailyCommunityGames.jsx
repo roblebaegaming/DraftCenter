@@ -374,7 +374,7 @@ function DailyBracket({ bracket, previous, signedIn, onSaved }) {
       <CommunityBracketResults bracket={bracket} winners={winners} />
     </div>}
     {message && <p className="hub-message">{message}</p>}
-    <DailyGameDiscussion type="bracket" gameId={bracket.id} signedIn={signedIn} />
+    <DailyGameDiscussion type="bracket" gameId={bracket.id} signedIn={signedIn} unlocked={complete} />
     <PreviousBracket previous={previous} />
   </section>;
 }
@@ -423,12 +423,12 @@ function DailyQuiz({ quiz, previous, signedIn, onSaved }) {
       <ol>{(quiz.top_answers || []).map((row) => <li key={row.answer}><span>{row.answer}</span><b>{row.count}</b></li>)}</ol>
     </div>}
     {message && <p className="hub-message">{message}</p>}
-    <DailyGameDiscussion type="quiz" gameId={quiz.id} signedIn={signedIn} />
+    <DailyGameDiscussion type="quiz" gameId={quiz.id} signedIn={signedIn} unlocked={quiz.answered} />
     <PreviousQuiz previous={previous} />
   </section>;
 }
 
-function DailyGameDiscussion({ type, gameId, signedIn }) {
+export function DailyGameDiscussion({ type, gameId, signedIn, unlocked = true }) {
   const detailsRef = useAutoClosingDetails(`${type}-${gameId}`);
   const [comments, setComments] = useState([]);
   const [body, setBody] = useState("");
@@ -436,12 +436,12 @@ function DailyGameDiscussion({ type, gameId, signedIn }) {
   const [message, setMessage] = useState("");
   const [profileIdentity, setProfileIdentity] = useState("");
   async function load() {
-    if (!signedIn || !gameId) return;
+    if (!unlocked || !signedIn || !gameId) return;
     const supabase = createClient();
     const { data, error } = await supabase.rpc("get_daily_game_comments", { p_game_type: type, p_game_id: gameId, p_limit: 100 });
     if (error) setMessage(error.message); else setComments(data || []);
   }
-  useEffect(() => { load(); }, [type, gameId, signedIn]);
+  useEffect(() => { load(); }, [type, gameId, signedIn, unlocked]);
   async function post(event) {
     event.preventDefault();
     const supabase = createClient();
@@ -458,13 +458,16 @@ function DailyGameDiscussion({ type, gameId, signedIn }) {
   }
   const roots = comments.filter((comment) => !comment.parent_comment_id).sort((a, b) => b.upvotes - a.upvotes || new Date(a.created_at) - new Date(b.created_at));
   const renderProfileComment = (comment) => <article key={comment.id}><CoachProfileButton compact username={comment.username} displayName={comment.display_name} avatarUrl={comment.avatar_url} onOpen={setProfileIdentity}/><p>{comment.body}</p><div><button type="button" className={comment.upvoted_by_me ? "comment-upvote active" : "comment-upvote"} onClick={() => upvote(comment.id, comment.upvoted_by_me)}>▲ Upvote {comment.upvotes}</button><button type="button" className="text-button" onClick={() => setReplyTo(comment.id)}>Reply</button></div>{comments.filter((reply) => reply.parent_comment_id === comment.id).sort((a, b) => b.upvotes - a.upvotes).map((reply) => <aside key={reply.id}><CoachProfileButton compact username={reply.username} displayName={reply.display_name} avatarUrl={reply.avatar_url} onOpen={setProfileIdentity}/><p>{reply.body}</p><button type="button" className={reply.upvoted_by_me ? "comment-upvote active" : "comment-upvote"} onClick={() => upvote(reply.id, reply.upvoted_by_me)}>▲ Upvote {reply.upvotes}</button></aside>)}</article>;
-  const renderComment = (comment) => <article key={comment.id}><strong>{comment.display_name || comment.username || "Coach"}</strong><p>{comment.body}</p><div><button type="button" className={comment.upvoted_by_me ? "comment-upvote active" : "comment-upvote"} onClick={() => upvote(comment.id, comment.upvoted_by_me)}>▲ Upvote {comment.upvotes}</button><button type="button" className="text-button" onClick={() => setReplyTo(comment.id)}>Reply</button></div>{comments.filter((reply) => reply.parent_comment_id === comment.id).sort((a, b) => b.upvotes - a.upvotes).map((reply) => <aside key={reply.id}><strong>{reply.display_name || reply.username || "Coach"}</strong><p>{reply.body}</p><button type="button" className={reply.upvoted_by_me ? "comment-upvote active" : "comment-upvote"} onClick={() => upvote(reply.id, reply.upvoted_by_me)}>▲ Upvote {reply.upvotes}</button></aside>)}</article>;
+  if (!unlocked) return <div className="daily-game-discussion poll-discussion-locked"><strong>Complete this game to unlock the discussion.</strong><p className="muted">Comments stay hidden until you finish, so they cannot spoil today’s answer.</p></div>;
+  if (!signedIn) return <div className="daily-game-discussion poll-discussion-locked"><strong>Sign in to join the discussion.</strong><p className="muted">Your completed board stays saved in this browser.</p><a className="quiet-button" href="/">Sign in</a></div>;
+  if (!gameId) return <div className="daily-game-discussion poll-discussion-locked"><strong>Unlocking today’s discussion…</strong></div>;
   return <details ref={detailsRef} className="daily-game-discussion">
     <summary><span>Community discussion</span><small>{comments.length} comment{comments.length === 1 ? "" : "s"}</small></summary>
     <div className="daily-game-discussion-body">
       <form onSubmit={post}><textarea value={body} onChange={(event) => setBody(event.target.value)} placeholder={replyTo ? "Write a reply…" : "Add a comment…"} maxLength={1000} /><div>{replyTo && <button type="button" className="text-button" onClick={() => setReplyTo(null)}>Cancel reply</button>}<button className="quiet-button" disabled={!body.trim()}>Post</button></div></form>
       {roots.slice(0, 3).map(renderProfileComment)}
       {roots.length > 3 && <details className="daily-discussion-more"><summary>Read {roots.length - 3} more comment{roots.length - 3 === 1 ? "" : "s"}</summary><div>{roots.slice(3).map(renderProfileComment)}</div></details>}
+      {!roots.length && <p className="muted">No comments yet. Start today’s conversation.</p>}
       {message && <p className="hub-message">{message}</p>}
     </div>{profileIdentity && <PublicCoachProfile identity={profileIdentity} onClose={() => setProfileIdentity("")}/>}
   </details>;
@@ -494,15 +497,20 @@ export default function DailyCommunityGames({ signedIn, standalone = false }) {
   useEffect(() => {
     if (!signedIn || (window.location.pathname !== "/explore" && !standalone)) return;
     const supabase = createClient();
-    supabase.rpc("refresh_my_daily_three_badges").then(({ data }) => setBadgeEvents(data?.events || []));
+    supabase.rpc("refresh_my_daily_games_badges").then(({ data }) => setBadgeEvents(data?.events || []));
   }, [signedIn, standalone]);
+  useEffect(() => {
+    const receive = (event) => setBadgeEvents(event.detail || []);
+    window.addEventListener("draftcenter:badge-events", receive);
+    return () => window.removeEventListener("draftcenter:badge-events", receive);
+  }, []);
   if (message) return <section className="explore-card"><p className="hub-message">{message}</p></section>;
   if (!games) return <section className="explore-card"><p className="muted">Loading today’s community games…</p></section>;
-  async function saved(next){const supabase=createClient();setGames(await addChampionRankings(supabase,next));if(!signedIn)return;const [{data,error},{data:dex}]=await Promise.all([supabase.rpc("refresh_my_daily_three_badges"),supabase.rpc("get_my_trainer_dex")]);setShinyEvents(dex?.new_shinies||[]);if(error)setMessage(error.message);else if(window.location.pathname==="/explore"||standalone)setBadgeEvents(data?.events||[]);else window.dispatchEvent(new CustomEvent("draftcenter:badge-events",{detail:data?.events||[]}));}
+  async function saved(next){const supabase=createClient();setGames(await addChampionRankings(supabase,next));if(!signedIn)return;const [{data,error},{data:dex}]=await Promise.all([supabase.rpc("refresh_my_daily_games_badges"),supabase.rpc("get_my_trainer_dex")]);setShinyEvents(dex?.new_shinies||[]);if(error)setMessage(error.message);else if(window.location.pathname==="/explore"||standalone)setBadgeEvents(data?.events||[]);else window.dispatchEvent(new CustomEvent("draftcenter:badge-events",{detail:data?.events||[]}));}
   async function dismissBadge(){const event=badgeEvents[0];const supabase=createClient();await supabase.rpc("mark_badge_events_seen",{p_event_ids:[event.id]});setBadgeEvents((current)=>current.slice(1));}
   async function dismissShiny(){const event=shinyEvents[0];const supabase=createClient();await supabase.rpc("mark_trainer_dex_shinies_seen",{p_event_ids:[event.id]});setShinyEvents((current)=>current.slice(1));}
   return <>
-    {shinyEvents.length>0&&<div className="badge-award-backdrop"><section className="badge-award-popup trainer-shiny-popup"><span className="eyebrow">SHINY DISCOVERY</span><div>✨</div><h2>Shiny {shinyEvents[0].pokemon}!</h2><p>Your Daily Three discovery rolled a rare shiny form. It is permanently unlocked in your Trainer Dex.</p><button className="primary-button" onClick={dismissShiny}>{shinyEvents.length>1?`Next shiny (${shinyEvents.length-1} more)`:"View today’s games"}</button><a className="quiet-button" href="/trainer-dex">Open Trainer Dex</a></section></div>}
+    {shinyEvents.length>0&&<div className="badge-award-backdrop"><section className="badge-award-popup trainer-shiny-popup"><span className="eyebrow">SHINY DISCOVERY</span><div>✨</div><h2>Shiny {shinyEvents[0].pokemon}!</h2><p>Your Daily Games discovery rolled a rare shiny form. It is permanently unlocked in your Trainer Dex.</p><button className="primary-button" onClick={dismissShiny}>{shinyEvents.length>1?`Next shiny (${shinyEvents.length-1} more)`:"View today’s games"}</button><a className="quiet-button" href="/trainer-dex">Open Trainer Dex</a></section></div>}
     {badgeEvents.length>0&&<div className="badge-award-backdrop"><section className="badge-award-popup"><div className="badge-confetti">✦ ★ ✧ ★ ✦</div><span className="eyebrow">BADGE EARNED</span><div className="badge-award-icon">{badgeEvents[0].icon}</div><h2>{badgeEvents[0].subject?`${badgeEvents[0].subject} ${badgeEvents[0].name}`:badgeEvents[0].name}</h2><p>{badgeEvents[0].description}</p><button className="primary-button" onClick={dismissBadge}>{badgeEvents.length>1?`Next badge (${badgeEvents.length-1} more)`:"Awesome!"}</button><small>Your badge now appears in Profile.</small></section></div>}
     <DailyBracket bracket={games.bracket} previous={previous?.bracket} signedIn={signedIn} onSaved={saved} />
     <DailyQuiz quiz={games.quiz} previous={previous?.quiz} signedIn={signedIn} onSaved={saved} />

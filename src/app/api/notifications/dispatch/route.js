@@ -120,7 +120,7 @@ async function deliverCommunityDiscord(supabase, now = new Date()) {
         supabase.from("daily_draft_brackets").select("id").eq("game_date", resultDate).maybeSingle(),
         supabase.from("daily_quizzes").select("id").eq("quiz_date", resultDate).maybeSingle(),
       ]);
-      if (!poll) throw new Error("Yesterday's Daily Three results are not ready yet.");
+      if (!poll) throw new Error("Yesterday's Daily Games results are not ready yet.");
       const [{ data: answers }, { data: bracketResults }, { data: quizAnswers }] = await Promise.all([
         supabase.from("daily_poll_answers").select("answer_key").eq("poll_id", poll.id),
         bracket ? supabase.from("daily_bracket_matchups").select("winner").eq("bracket_id", bracket.id).eq("round_number", 3) : Promise.resolve({ data: [] }),
@@ -141,7 +141,7 @@ async function deliverCommunityDiscord(supabase, now = new Date()) {
         const bracketSummary = bracketLeader ? `${bracketLeader[0]} led with ${bracketLeader[1]} bracket${bracketLeader[1] === 1 ? "" : "s"}` : "No completed brackets";
         const quizTotal = (quizAnswers || []).length;
         const quizCorrect = (quizAnswers || []).filter((answer) => answer.is_correct).length;
-        await sendDiscordChannelMessage(resultsChannel, `📊 **DraftCenter Daily Three results**\n**Poll:** ${poll.question}\n${pollLeaders}\n**Draft Bracket:** ${bracketSummary}\n**Pokémon Quiz:** ${quizTotal ? Math.round((quizCorrect / quizTotal) * 100) : 0}% correct (${quizCorrect}/${quizTotal})\n\nhttps://www.draftcentral.gg/resources/daily-games`);
+        await sendDiscordChannelMessage(resultsChannel, `📊 **DraftCenter Daily Games results**\n**Poll:** ${poll.question}\n${pollLeaders}\n**Draft Bracket:** ${bracketSummary}\n**Pokémon Quiz:** ${quizTotal ? Math.round((quizCorrect / quizTotal) * 100) : 0}% correct (${quizCorrect}/${quizTotal})\n\nhttps://www.draftcentral.gg/resources/daily-games`);
         delivered += 1;
       }
     } catch (error) {
@@ -186,11 +186,11 @@ async function deliverDailyThreeResults(supabase) {
   const quizTotals = {};
   for (const result of quizAnswers || []) quizTotals[result.display_answer] = (quizTotals[result.display_answer] || 0) + 1;
   const quizRows = Object.entries(quizTotals).sort(([, a], [, b]) => b - a).slice(0, 5).map(([answer, count]) => `<li><strong>${escapeHtml(answer)}</strong>: ${count}</li>`).join("") || "<li>No answers were submitted.</li>";
-  const emailHtml = `<h1>Yesterday's DraftCenter Daily Three</h1>
+  const emailHtml = `<h1>Yesterday's DraftCenter Daily Games</h1>
     <h2>Poll of the Day</h2><p>${escapeHtml(poll.question)}</p><ul>${rows}</ul><p>Total votes: ${totalVotes}</p>
     <h2>Daily Draft Bracket</h2><p>${(bracketResults || []).length} completed bracket${(bracketResults || []).length === 1 ? "" : "s"}.</p><ul>${championRows}</ul>
     <h2>Daily Pokémon Quiz</h2><p>${escapeHtml(quiz?.prompt || "Yesterday's quiz")}</p><p>${quizTotal ? Math.round((quizCorrect / quizTotal) * 100) : 0}% answered correctly (${quizCorrect} of ${quizTotal}).</p><ul>${quizRows}</ul>
-    <p><a href="https://www.draftcentral.gg/resources/daily-games">Play today's Daily Three</a></p><p>You can change this email preference in your DraftCenter profile.</p>`;
+    <p><a href="https://www.draftcentral.gg/resources/daily-games">Play today's Daily Games</a></p><p>You can change this email preference in your DraftCenter profile.</p>`;
   let delivered = 0; let skipped = 0; let failed = 0;
   for (const preference of preferences || []) {
     const { error: claimError } = await supabase.from("daily_poll_email_deliveries").insert({ poll_id: poll.id, user_id: preference.user_id });
@@ -198,7 +198,7 @@ async function deliverDailyThreeResults(supabase) {
     try {
       const { data: userResult, error: userError } = await supabase.auth.admin.getUserById(preference.user_id);
       if (userError || !userResult?.user?.email) throw new Error("Recipient email was not found.");
-      await sendResendEmail({ to: userResult.user.email, subject: "Your DraftCenter Daily Three results", html: emailHtml });
+      await sendResendEmail({ to: userResult.user.email, subject: "Your DraftCenter Daily Games results", html: emailHtml });
       delivered += 1;
     } catch (error) {
       failed += 1;
@@ -218,7 +218,7 @@ async function deliverDailyThreeResults(supabase) {
   const bracketLeader = Object.entries(championTotals).sort(([, a], [, b]) => b - a)[0];
   const bracketSummary = bracketLeader ? `${bracketLeader[0]} led with ${bracketLeader[1]} bracket${bracketLeader[1] === 1 ? "" : "s"}` : "No completed brackets";
   const quizPercent = quizTotal ? Math.round((quizCorrect / quizTotal) * 100) : 0;
-  const discordContent = `📊 **Yesterday's Daily Three results**\n**Poll:** ${poll.question}\n${pollLeaders}\n**Draft Bracket:** ${bracketSummary}\n**Pokémon Quiz:** ${quizPercent}% correct (${quizCorrect}/${quizTotal})\n\n❓ **Today's Question of the Day**\n${todayPoll?.question || "Today's Daily Three is ready."}\nhttps://www.draftcentral.gg/resources/daily-games`;
+  const discordContent = `📊 **Yesterday's Daily Games results**\n**Poll:** ${poll.question}\n${pollLeaders}\n**Draft Bracket:** ${bracketSummary}\n**Pokémon Quiz:** ${quizPercent}% correct (${quizCorrect}/${quizTotal})\n\n❓ **Today's Question of the Day**\n${todayPoll?.question || "Today's Daily Games are ready."}\nhttps://www.draftcentral.gg/resources/daily-games`;
   for (const league of discordLeagues || []) {
     const { error: claimError } = await supabase.from("daily_three_discord_deliveries").insert({
       league_id: league.league_id,
@@ -232,7 +232,7 @@ async function deliverDailyThreeResults(supabase) {
         headers: { Authorization: `Bot ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify({ content: discordContent }),
       });
-      if (!response.ok) throw Object.assign(new Error("Discord rejected the Daily Three message."), { status: response.status });
+      if (!response.ok) throw Object.assign(new Error("Discord rejected the Daily Games message."), { status: response.status });
       delivered += 1;
     } catch {
       failed += 1;

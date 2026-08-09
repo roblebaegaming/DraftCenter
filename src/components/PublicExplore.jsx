@@ -216,7 +216,7 @@ export default function PublicExplore() {
       <span className="eyebrow">EXPLORE DRAFTCENTER</span>
       <h1>Pokémon, leagues, and community trends.</h1>
       <p>{signedIn ? "See what DraftCenter coaches are voting for, favoriting, and drafting." : "Explore public leagues and completed community polls. Create an account to vote, comment, and reveal today's results."}</p>
-      <div className="explore-actions"><a className="primary-button" href="/resources/daily-games">Play Daily Games</a><a className="secondary-button" href="/pokemon">Explore Pokémon</a><a className="secondary-button" href="/">{signedIn ? "Your DraftCenter Home" : "Create an account"}</a><ShareButton title="DraftCenter Community" text="Explore the Daily Three, live battles, leagues, and Pokémon trends on DraftCenter." /></div>
+      <div className="explore-actions"><a className="primary-button" href="/resources/daily-games">Play Daily Games</a><a className="secondary-button" href="/pokemon">Explore Pokémon</a><a className="secondary-button" href="/">{signedIn ? "Your DraftCenter Home" : "Create an account"}</a><ShareButton title="DraftCenter Community" text="Explore Daily Games, live battles, leagues, and Pokémon trends on DraftCenter." /></div>
     </header>
     {message && <p className="hub-message">{message}</p>}
     {!data && !message && <p className="muted">Loading public DraftCenter data...</p>}

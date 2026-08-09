@@ -13,7 +13,7 @@ export async function GET(request) {
     supabase.from("daily_quizzes").select("id,quiz_date,prompt,hint,difficulty,accepted_answers").gte("quiz_date", today).lte("quiz_date", futureThrough).order("quiz_date"),
     supabase.from("community_questions_of_the_day").select("question_date,question,topic").gte("question_date", today).lte("question_date", futureThrough).order("question_date"),
   ]);
-  const failure = results.find((result) => result.error); if (failure) return safeFailure(failure.error, "Daily Three operations data could not be loaded.", { context: "operations-daily-three" });
+  const failure = results.find((result) => result.error); if (failure) return safeFailure(failure.error, "Daily Games operations data could not be loaded.", { context: "operations-daily-games" });
   const [profiles, polls, pollAnswers, brackets, bracketAnswers, quizzes, quizAnswers, completions, futurePolls, futureQuizzes, futureQuestions] = results.map((result) => result.data || []);
   const pollDates = new Map(polls.map((row) => [row.id, row.poll_date])); const bracketDates = new Map(brackets.map((row) => [row.id, row.game_date])); const quizDates = new Map(quizzes.map((row) => [row.id, row.quiz_date]));
   const users = new Map(profiles.map((profile) => [profile.id, { user_id: profile.id, username: profile.username, display_name: profile.display_name, last_activity_at: null, last_activity_date: null, last_completed_date: null, completed_days_total: 0, completed_days_30: 0, today: { poll: false, bracket: false, quiz: false, complete: false } }]));

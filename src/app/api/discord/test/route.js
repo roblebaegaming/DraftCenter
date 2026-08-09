@@ -22,7 +22,7 @@ async function dailyThreePreview(supabase) {
     supabase.from("daily_quizzes").select("id").eq("quiz_date", yesterday).maybeSingle(),
     supabase.from("daily_polls").select("question").eq("poll_date", today).maybeSingle(),
   ]);
-  if (!poll) throw new Error("Yesterday's Daily Three results are not ready yet.");
+  if (!poll) throw new Error("Yesterday's Daily Games results are not ready yet.");
   const [{ data: answers }, { data: bracketResults }, { data: quizAnswers }] = await Promise.all([
     supabase.from("daily_poll_answers").select("answer_key").eq("poll_id", poll.id),
     bracket ? supabase.from("daily_bracket_matchups").select("winner").eq("bracket_id", bracket.id).eq("round_number", 3) : Promise.resolve({ data: [] }),
@@ -39,7 +39,7 @@ async function dailyThreePreview(supabase) {
   const bracketSummary = bracketLeader ? `${bracketLeader[0]} led with ${bracketLeader[1]} bracket${bracketLeader[1] === 1 ? "" : "s"}` : "No completed brackets";
   const quizTotal = (quizAnswers || []).length;
   const quizCorrect = (quizAnswers || []).filter((answer) => answer.is_correct).length;
-  return `✅ **DraftCenter Daily Three preview**\n📊 **Yesterday's Daily Three results**\n**Poll:** ${poll.question}\n${pollLeaders}\n**Draft Bracket:** ${bracketSummary}\n**Pokémon Quiz:** ${quizTotal ? Math.round((quizCorrect / quizTotal) * 100) : 0}% correct (${quizCorrect}/${quizTotal})\n\n❓ **Today's Question of the Day**\n${todayPoll?.question || "Today's Daily Three is ready."}\nhttps://www.draftcentral.gg/resources/daily-games`;
+  return `✅ **DraftCenter Daily Games preview**\n📊 **Yesterday's Daily Games results**\n**Poll:** ${poll.question}\n${pollLeaders}\n**Draft Bracket:** ${bracketSummary}\n**Pokémon Quiz:** ${quizTotal ? Math.round((quizCorrect / quizTotal) * 100) : 0}% correct (${quizCorrect}/${quizTotal})\n\n❓ **Today's Question of the Day**\n${todayPoll?.question || "Today's Daily Games are ready."}\nhttps://www.draftcentral.gg/resources/daily-games`;
 }
 
 export async function POST(request) {
@@ -83,7 +83,7 @@ export async function POST(request) {
       return NextResponse.json({ error: "Enable and save this league's Discord connection first." }, { status: 400 });
     }
     if (messageType === "daily_three" && !settings.notify_daily_three) {
-      return NextResponse.json({ error: "Enable and save Daily Three announcements before sending the preview." }, { status: 400 });
+      return NextResponse.json({ error: "Enable and save Daily Games announcements before sending the preview." }, { status: 400 });
     }
 
     const botToken = process.env.DISCORD_BOT_TOKEN;
@@ -110,7 +110,7 @@ export async function POST(request) {
     }
 
     await recordTest(supabase, leagueId, "delivered");
-    return NextResponse.json({ success: true, message: messageType === "daily_three" ? "Daily Three preview delivered to Discord." : "Test message delivered to Discord." });
+    return NextResponse.json({ success: true, message: messageType === "daily_three" ? "Daily Games preview delivered to Discord." : "Test message delivered to Discord." });
   } catch (error) {
     if (supabase && leagueId) await recordTest(supabase, leagueId, "failed", safeStoredFailure("Discord test failed."));
     return safeFailure(error, "Discord test failed.", { context: "discord-league-test" });

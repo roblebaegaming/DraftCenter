@@ -1,16 +1,24 @@
-const CONNECTION_GROUPS = [
-  { title: "Pseudo-legendary Pokémon", note: "Three-stage powerhouses with a 600 base-stat total", pokemon: ["Dragonite", "Tyranitar", "Metagross", "Garchomp"] },
-  { title: "Prankster utility", note: "Draft support Pokémon known for priority status moves", pokemon: ["Grimmsnarl", "Whimsicott", "Klefki", "Sableye"] },
-  { title: "Regenerator pivots", note: "Defensive pivots that heal when switching out", pokemon: ["Slowking", "Tornadus", "Toxapex", "Tangrowth"] },
-  { title: "Automatic weather setters", note: "Abilities summon weather when these Pokémon enter battle", pokemon: ["Pelipper", "Torkoal", "Hippowdon", "Politoed"] },
-  { title: "Intimidate staples", note: "Common draft picks that lower the opponent’s Attack on entry", pokemon: ["Incineroar", "Landorus-Therian", "Gyarados", "Arcanine"] },
-  { title: "Magic Guard users", note: "Ignore indirect damage through Magic Guard", pokemon: ["Clefable", "Reuniclus", "Alakazam", "Sigilyph"] },
-  { title: "Rapid Spin users", note: "Can clear entry hazards while boosting Speed", pokemon: ["Great Tusk", "Excadrill", "Iron Treads", "Starmie"] },
-  { title: "Unaware walls", note: "Can ignore an opponent’s stat boosts", pokemon: ["Dondozo", "Skeledirge", "Clodsire", "Quagsire"] },
-  { title: "Eeveelutions", note: "Evolutions of Eevee", pokemon: ["Vaporeon", "Jolteon", "Flareon", "Umbreon"] },
-  { title: "Guardian deities", note: "The four island guardians of Alola", pokemon: ["Tapu Koko", "Tapu Lele", "Tapu Bulu", "Tapu Fini"] },
-  { title: "Ultra Beasts", note: "Pokémon that arrived through Ultra Wormholes", pokemon: ["Nihilego", "Buzzwole", "Pheromosa", "Celesteela"] },
-  { title: "Trick Room setters", note: "Slow-team staples that commonly establish Trick Room", pokemon: ["Cresselia", "Porygon2", "Hatterene", "Indeedee-Female"] },
+export const CONNECTION_GROUPS = [
+  { category: "draft", title: "Pseudo-legendary Pokémon", note: "Three-stage powerhouses with a 600 base-stat total", pokemon: ["Dragonite", "Tyranitar", "Metagross", "Garchomp"] },
+  { category: "draft", title: "Prankster utility", note: "Draft support Pokémon known for priority status moves", pokemon: ["Grimmsnarl", "Whimsicott", "Klefki", "Sableye"] },
+  { category: "draft", title: "Regenerator pivots", note: "Defensive pivots that heal when switching out", pokemon: ["Slowking", "Tornadus", "Toxapex", "Tangrowth"] },
+  { category: "ability", title: "Automatic weather setters", note: "Abilities summon weather when these Pokémon enter battle", pokemon: ["Pelipper", "Torkoal", "Hippowdon", "Politoed"] },
+  { category: "ability", title: "Intimidate staples", note: "Common draft picks that lower the opponent’s Attack on entry", pokemon: ["Incineroar", "Landorus-Therian", "Gyarados", "Arcanine"] },
+  { category: "ability", title: "Magic Guard users", note: "Ignore indirect damage through Magic Guard", pokemon: ["Clefable", "Reuniclus", "Alakazam", "Sigilyph"] },
+  { category: "move", title: "Rapid Spin users", note: "Can clear entry hazards while boosting Speed", pokemon: ["Great Tusk", "Excadrill", "Iron Treads", "Starmie"] },
+  { category: "ability", title: "Unaware walls", note: "Can ignore an opponent’s stat boosts", pokemon: ["Dondozo", "Skeledirge", "Clodsire", "Quagsire"] },
+  { category: "family", title: "Eeveelutions", note: "Evolutions of Eevee", pokemon: ["Vaporeon", "Jolteon", "Flareon", "Umbreon"] },
+  { category: "family", title: "Guardian deities", note: "The four island guardians of Alola", pokemon: ["Tapu Koko", "Tapu Lele", "Tapu Bulu", "Tapu Fini"] },
+  { category: "family", title: "Ultra Beasts", note: "Pokémon that arrived through Ultra Wormholes", pokemon: ["Nihilego", "Buzzwole", "Pheromosa", "Celesteela"] },
+  { category: "draft", title: "Trick Room setters", note: "Slow-team staples that commonly establish Trick Room", pokemon: ["Cresselia", "Porygon2", "Hatterene", "Indeedee-Female"] },
+  { category: "height", title: "Only 0.1 m tall", note: "Exceptionally short Pokémon listed at ten centimetres tall", pokemon: ["Joltik", "Flabébé", "Cutiefly", "Comfey"] },
+  { category: "height", title: "At least 9 m tall", note: "Exceptionally tall Pokémon whose listed height is nine metres or more", pokemon: ["Steelix", "Celesteela", "Alolan Exeggutor", "Wailord"] },
+  { category: "weight", title: "Only 0.1 kg", note: "Exceptionally light Pokémon listed at one hundred grams", pokemon: ["Gastly", "Haunter", "Flabébé", "Cosmog"] },
+  { category: "weight", title: "At least 950 kg", note: "Exceptionally heavy Pokémon listed at 950 kilograms or more", pokemon: ["Celesteela", "Cosmoem", "Primal Groudon", "Eternatus"] },
+  { category: "shape", title: "Pokédex shape: Squiggle", note: "Share the Squiggle body shape in the Pokédex species data", pokemon: ["Ekans", "Onix", "Gyarados", "Serperior"] },
+  { category: "shape", title: "Pokédex shape: Wings", note: "Share the Wings body shape in the Pokédex species data", pokemon: ["Zubat", "Aerodactyl", "Altaria", "Noivern"] },
+  { category: "egg-group", title: "Dragon Egg Group", note: "Belong to the Dragon Egg Group", pokemon: ["Charizard", "Dragonite", "Altaria", "Garchomp"] },
+  { category: "egg-group", title: "Amorphous Egg Group", note: "Belong to the Amorphous Egg Group", pokemon: ["Gengar", "Wobbuffet", "Gardevoir", "Chandelure"] },
 ];
 
 function localDateKey(date = new Date()) {
@@ -37,8 +45,24 @@ export function seededConnectionsShuffle(items, seed) {
   return shuffled;
 }
 
+function selectDisjointGroups(candidates, count) {
+  function visit(start, selected, usedPokemon) {
+    if (selected.length === count) return selected;
+    for (let index = start; index < candidates.length; index += 1) {
+      const group = candidates[index];
+      if (group.pokemon.some((name) => usedPokemon.has(name))) continue;
+      const next = visit(index + 1, [...selected, group], new Set([...usedPokemon, ...group.pokemon]));
+      if (next) return next;
+    }
+    return null;
+  }
+  return visit(0, [], new Set());
+}
+
 export function rosterConnectionsPuzzle(dateKey = localDateKey()) {
-  const groups = seededConnectionsShuffle(CONNECTION_GROUPS, hash(`groups-${dateKey}`)).slice(0, 4);
+  const candidates = seededConnectionsShuffle(CONNECTION_GROUPS, hash(`groups-${dateKey}`));
+  const groups = selectDisjointGroups(candidates, 4);
+  if (!groups) throw new Error("Pokémon Connections needs four non-overlapping groups.");
   return {
     dateKey,
     groups,
