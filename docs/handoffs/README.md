@@ -1,14 +1,19 @@
 # Agent handoffs
 
+[`DraftCenter-agent-handoff-2026-08-09-seo-production-baseline.md`](DraftCenter-agent-handoff-2026-08-09-seo-production-baseline.md)
+is the current continuation handoff. It starts from the fully deployed August
+9 production baseline through migration 365, reconciles completed SEO work,
+maps public and private routes, and defines the next evidence-led SEO sequence.
+
 [`DraftCenter-agent-handoff-2026-08-09-draft-home-navigation.md`](DraftCenter-agent-handoff-2026-08-09-draft-home-navigation.md)
 records the clean implementation and release gates for the persistent global
 Draft Home action. It preserves the current header and feature navigation.
 
 [`DraftCenter-agent-handoff-2026-08-08-final-production-verification.md`](DraftCenter-agent-handoff-2026-08-08-final-production-verification.md)
-is the current continuation handoff. It resolves the older pre-deployment
-checkpoint item by item and records the final state of Nuzlocke, the 64-entrant
-mobile bracket, multi-pod infrastructure, Operations navigation, commissioner
-recovery, and Pokémon species traits.
+is the pre-August 9 production verification record. It resolves the older
+pre-deployment checkpoint item by item and records the then-current state of
+Nuzlocke, the 64-entrant mobile bracket, multi-pod infrastructure, Operations
+navigation, commissioner recovery, and Pokémon species traits.
 
 [`DraftCenter-agent-handoff-2026-08-08-recovery-and-species-traits-production.md`](DraftCenter-agent-handoff-2026-08-08-recovery-and-species-traits-production.md)
 remains the detailed recovery migration and species-traits production release
@@ -34,8 +39,9 @@ remains the deployed confirmation, accessibility, selectable-round,
 64-entrant, dependency, and roadmap hardening record.
 
 [`DraftCenter-agent-handoff-2026-08-06-seo-expansion.md`](DraftCenter-agent-handoff-2026-08-06-seo-expansion.md)
-remains the SEO continuation record. It covers the first post-release crawl,
-the external measurements that remain, and the SEO hardening gates.
+is the historical SEO expansion record. It covers the first post-release crawl
+and its hardening gates, but the August 9 SEO production-baseline handoff
+supersedes its continuation checklist.
 
 [`DraftCenter-agent-handoff-2026-08-06-release-integration.md`](DraftCenter-agent-handoff-2026-08-06-release-integration.md)
 remains the authoritative detailed record for the released Nuzlocke,
