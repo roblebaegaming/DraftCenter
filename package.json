@@ -11,7 +11,7 @@
     "pokemon-moves:build": "node scripts/build-pokemon-move-catalog.mjs",
     "pokemon-moves:audit": "node scripts/build-pokemon-move-catalog.mjs --check",
     "test:pokemon-moves": "node --test test/pokemon-move-catalog.test.js",
-    "test:regulations": "node --test test/regulation-catalog.test.js",
+    "test:regulations": "node --test test/regulation-catalog.test.js test/draft-pricing-presets.test.js",
     "test:security": "node --test test/security-notification-dispatch.test.js",
     "test:auth-captcha": "node --test test/auth-captcha.test.js",
     "test:profile-defaults": "node --test test/profile-defaults.test.js",

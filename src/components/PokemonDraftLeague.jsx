@@ -12,6 +12,17 @@ import { browserCanResolveHostedAutoDraft, preserveLoadedPrivateDraftQueue } fro
 import { readLeagueNavigation, writeLeagueNavigation } from "../lib/leagueNavigation";
 import { claimedTeamCount, compactLocalTeamsClaimedFirst, openSetupTeams, teamIsClaimed } from "../lib/teamOwnership";
 import { draftManagerLabel, snakeDraftContext } from "../lib/draftBoardContext";
+import {
+  defaultPricingPresetId,
+  legacyPricingPresetId,
+  priceDetailsFor,
+  priceFor,
+  priceTierMaxForPreset,
+  pricingCoverageFor,
+  pricingCoverageLabel,
+  pricingPresetFor,
+  pricingPresetOptionsFor,
+} from "../lib/draft-pricing-presets";
 
 /* ---------------------------------------------------------
    DESIGN TOKENS — stadium-jumbotron-at-night aesthetic.
@@ -854,13 +865,11 @@ function customFilterGen(mon) {
       pool from silently drifting as new species get added elsewhere.
       Use null only for a format that's genuinely "everything is fair
       game" (e.g. Custom).
-   3. defaultCosts: a name → point-value map, same shape as REG_MB_COSTS.
-      Leave it empty ({}) if you don't have curated draft values yet —
-      leagues using that regulation will fall back to the BST formula
-      until someone supplies real values.
-   4. That's it — the Setup "Format" picker, legality checks, and cost
-      lookups all read from this object automatically. No other code
-      changes needed.
+   3. defaultCosts is legacy compatibility for leagues saved before versioned
+      pricing presets. Do not add a new universal default here.
+   4. Add a source-labeled board to draft-pricing-preset-data.js only after
+      validating an exact ruleset match, then opt it in through
+      draft-pricing-presets.js. Formats without a match default to BST.
 --------------------------------------------------------- */
 // Regulation M-A's legal pool derived from M-B by REMOVAL, not built fresh —
 // M-B is purely additive on the Pokémon side (confirmed: "every M-A species
@@ -1345,7 +1354,7 @@ const REGULATION_POOLS = {
     name: "Regulation M-A",
     subtitle: "Pokémon Champions VGC · Apr 8 – Jun 17, 2026",
     legalNames: REG_MB_LEGAL_NAMES.filter((n) => !M_B_ADDITIONS_TO_REMOVE_FOR_M_A.includes(n)),
-    defaultCosts: REG_MB_COSTS, // same curated tier values for whatever overlaps; nothing here has M-A-specific draft pricing yet, so shared mons reuse the M-B sheet and anything uncovered falls back to the BST formula
+    defaultCosts: REG_MB_COSTS, // legacy compatibility only; new M-A leagues explicitly start from BST because there is no exact M-A board
     defaultMegaCap: 1,
   },
   "reg-a": {
@@ -1357,8 +1366,8 @@ const REGULATION_POOLS = {
     // VGC 2023 Series 1 (= Regulation A) usage stats — not guessed. Banding
     // is usage % → point cost: ≥50%→20, 40-50%→18, 30-40%→16, 25-30%→14,
     // 20-25%→12, 15-20%→10, 10-15%→8, 7-10%→6, 5-7%→5. Everything outside
-    // this top-25 list has no usage data available and falls back to the
-    // BST formula, correctly flagged as untiered rather than guessed at.
+    // this top-25 list has no usage data available. These values remain for
+    // legacy leagues; new Regulation A leagues explicitly start from BST.
     defaultCosts: REG_A_COSTS,
     compressedFallback: true,
   },
@@ -1861,7 +1870,7 @@ const REGULATION_POOLS = {
     subtitle: "Build your own legality & point values — starts with nothing legal, include what you want",
     legalNames: null, // no regulation-based restriction at all; legality is driven entirely by bannedMons, which starts full (see applySwitch) so commissioners opt IN rather than ban their way down
     defaultCosts: {}, // no curated values — always falls back to the BST formula
-    noTierData: true, // Custom never has curated data by definition, so treat the BST formula (full 1-20, not compressed) as the accepted real price rather than flagging every included mon as untiered
+    noTierData: true, // Custom has no universal curated data, so its explicit starter preset is the full 1–20 BST estimate
   },
 };
 export const REGULATION_SETS = withRegulationMetadata(REGULATION_POOLS);
@@ -1877,22 +1886,6 @@ export function regulationPokemonStatus(regulationId, pokemonName) {
   if (!regulation) return null;
   if (!regulation.legalNames) return { regulation, legal: null };
   return { regulation, legal: regulation.legalNames.includes(pokemonName) };
-}
-
-// Whether this mon has a real, curated point value — either the current
-// regulation's own draft-sheet data, or a commissioner override/custom-set
-// cost — as opposed to just falling back to the BST formula. Used to flag
-// "untiered" mons that still need a real value assigned.
-function isPriced(mon, settings) {
-  if (mon.custom) return true; // commissioner set an explicit cost when adding it
-  if (settings.costOverrides[mon.name] !== undefined) return true;
-  const reg = regulationFor(settings);
-  // Some regulations (the SV-era rulesets) never had any curated draft
-  // pricing to begin with — every mon there would otherwise show as
-  // "untiered", which isn't a useful signal since there's no real sheet to
-  // compare against. The BST formula is just the accepted default there.
-  if (reg.noTierData) return true;
-  return reg.defaultCosts[mon.name] !== undefined;
 }
 
 // Merges the current regulation's legal pool with any custom pokémon a
@@ -3964,7 +3957,8 @@ function regulationFingerprint(settings) {
   const base = settings.regulationId && settings.regulationId !== "custom"
     ? `reg:${settings.regulationId}`
     : `custom:${[...(settings.bannedMons || [])].sort().join(",")}`;
-  return `${base}|${settings.draftType}|size:${settings.leagueSize}`;
+  const pricing = settings.pricingPresetId || legacyPricingPresetId(settings.regulationId);
+  return `${base}|pricing:${pricing}|${settings.draftType}|size:${settings.leagueSize}`;
 }
 function computeStandings(s, criteria) {
   const c = criteria || s.settings.standingsCriteria || { setWinLoss: true, gameWinLoss: true, differential: true, other: false };
@@ -4499,12 +4493,12 @@ function computeHeadToHead(schedule, matchResults, teamA, teamB) {
 function expectedDraftPrice(state, mon) {
   const settings = state.settings || {};
   if (Number.isFinite(Number(mon.listedCost))) return Number(mon.listedCost);
-  if (settings.costOverrides?.[mon.name] !== undefined) return Number(settings.costOverrides[mon.name]);
   const regulation = regulationFor(settings);
-  if (regulation.defaultCosts[mon.name] !== undefined) return Number(regulation.defaultCosts[mon.name]);
-  const derived = Object.keys(regulation.defaultCosts).length === 0 ? deriveCostsFromADP(state) : null;
-  if (derived?.[mon.name] !== undefined) return Number(derived[mon.name]);
-  return regulation.compressedFallback ? compressedFallbackCost(mon.bst) : defaultCost(mon.bst);
+  const preset = pricingPresetFor(settings, regulation);
+  const derived = preset.kind === "legacy" && Object.keys(regulation.defaultCosts).length === 0
+    ? deriveCostsFromADP(state)
+    : null;
+  return priceFor(mon, settings, regulation, { derivedCosts: derived });
 }
 
 function computeDraftAwards(state) {
@@ -4853,10 +4847,11 @@ function freshState() {
       auctionBidResetSeconds: 10, // every bid AFTER the first resets the countdown to this many fresh seconds
       snakeBudgetEnabled: false, allowMegas: false,
       regulationId: "reg-mb",
+      pricingPresetId: defaultPricingPresetId("reg-mb"),
       restrictedCap: REGULATION_SETS["reg-mb"].defaultRestrictedCap ?? null,
       megaCap: REGULATION_SETS["reg-mb"].defaultMegaCap ?? null,
       bannedMons: [], allowedExtraMons: [], costOverrides: {}, customMons: [], spriteOverrides: {},
-      priceTierMax: 20, // top of the price board's column range (1 to this); commissioners can raise it for a wider price spread
+      priceTierMax: priceTierMaxForPreset(defaultPricingPresetId("reg-mb"), "reg-mb"), // follows the selected board; commissioners can raise it for a wider spread
       manualDraftOrder: null, // null = randomize snake draft order fresh each time it starts; array = commissioner-fixed round-1 order
       customSelectedGens: [], customSelectedTypes: [], // tracks Custom format's gen/type quick-toggle button state, separate from bannedMons itself
       scheduleWeeks: null, // null = auto (one full round robin)
@@ -5094,6 +5089,10 @@ function hydrateState(remote) {
   const arrayOr = (value, fallback = []) => Array.isArray(value) ? value : fallback;
   const objectOr = (value, fallback = {}) => value && typeof value === "object" && !Array.isArray(value) ? value : fallback;
   const remoteSettings = objectOr(remote.settings);
+  const regulationId = remoteSettings.regulationId || "reg-mb";
+  const pricingPresetId = Object.prototype.hasOwnProperty.call(remoteSettings, "pricingPresetId")
+    ? remoteSettings.pricingPresetId
+    : legacyPricingPresetId(regulationId);
   return {
     ...base,
     ...remote,
@@ -5116,7 +5115,8 @@ function hydrateState(remote) {
             .map(Number)
             .filter((teamIndex) => Number.isInteger(teamIndex) && teamIndex >= 0)
         : null,
-      regulationId: remote.settings?.regulationId || "reg-mb",
+      regulationId,
+      pricingPresetId,
       restrictedCap: remote.settings?.restrictedCap ?? null,
       megaCap: remote.settings?.megaCap ?? null,
       customMons: arrayOr(remoteSettings.customMons),
@@ -6015,24 +6015,21 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
 
   currentSpriteOverrides = state.settings.spriteOverrides || {};
 
-  // Only worth computing when the active regulation has no curated cost
-  // sheet of its own — otherwise this league's real draft history isn't
-  // needed at all, the curated numbers already win in costFor below.
   const activeRegForCosts = regulationFor(state.settings);
-  const derivedRegCosts = Object.keys(activeRegForCosts.defaultCosts).length === 0
+  const activePricingPreset = pricingPresetFor(state.settings, activeRegForCosts);
+  // Existing leagues retain their historical automatic ADP behavior. New
+  // versioned presets stay pinned to their named source or explicit BST
+  // fallback until a commissioner deliberately selects something else.
+  const derivedRegCosts = activePricingPreset.kind === "legacy" && Object.keys(activeRegForCosts.defaultCosts).length === 0
     ? deriveCostsFromADP(state)
     : null;
 
+  function priceDetailsForMon(mon, settings) {
+    return priceDetailsFor(mon, settings, regulationFor(settings), { derivedCosts: derivedRegCosts });
+  }
+
   function costFor(mon, settings) {
-    if (settings.costOverrides[mon.name] !== undefined) return settings.costOverrides[mon.name];
-    const reg = regulationFor(settings);
-    if (reg.defaultCosts[mon.name] !== undefined) return reg.defaultCosts[mon.name];
-    // This league's own real draft history, once there's enough of it (see
-    // MIN_SEASONS_FOR_DERIVED_COSTS), stands in for a curated cost sheet —
-    // preferred over the generic BST formula since it reflects how mons
-    // actually got valued in practice, not just their raw stats.
-    if (derivedRegCosts && derivedRegCosts[mon.name] !== undefined) return derivedRegCosts[mon.name];
-    return reg.compressedFallback ? compressedFallbackCost(mon.bst) : mon.cost;
+    return priceDetailsForMon(mon, settings).cost;
   }
 
   const availablePool = fullPool(state.settings).filter((p) => isLegal(p, state.settings));
@@ -9771,7 +9768,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
           <SetupView
             state={state} leagueId={leagueId} leagueName={league?.name || "league"} isCommissioner={isCommissioner} canBeCommissioner={canBeCommissioner}
             claimCommissioner={claimCommissioner} unclaimCommissioner={unclaimCommissioner} claimTeam={claimTeam} renameTeam={renameTeam} myName={myName}
-            updateSettings={updateSettings} resizeTeams={resizeTeams} rerollAllTeamIdentities={rerollAllTeamIdentities} costFor={costFor}
+            updateSettings={updateSettings} resizeTeams={resizeTeams} rerollAllTeamIdentities={rerollAllTeamIdentities} costFor={costFor} priceDetailsForMon={priceDetailsForMon}
             addDivision={addDivision} renameDivision={renameDivision} removeDivision={removeDivision} setTeamDivision={setTeamDivision}
             toggleBanMon={toggleBanMon} toggleAllowExtraMon={toggleAllowExtraMon} rebuildCurrentSeason={rebuildCurrentSeason} addCustomMon={addCustomMon} removeCustomMon={removeCustomMon}
             setSpriteOverride={setSpriteOverride} setTeamLogo={setTeamLogo}
@@ -10943,10 +10940,15 @@ function HomeView({ state, leagueId, leagueName, isCommissioner, isSpectator = f
 function FormatCard({ state, isCommissioner, updateSettings, locked }) {
   const { settings } = state;
   const [confirmSwitchTo, setConfirmSwitchTo] = useState(null);
+  const [confirmPresetTo, setConfirmPresetTo] = useState(null);
   const current = regulationFor(settings);
+  const selectedPreset = pricingPresetFor(settings, current);
+  const pricingOptions = pricingPresetOptionsFor(current.id, selectedPreset.id);
+  const pendingPricingPreset = pricingOptions.find((preset) => preset.id === confirmPresetTo) || null;
 
   function applySwitch(regId) {
     const reg = REGULATION_SETS[regId];
+    const pricingPresetId = defaultPricingPresetId(regId);
     // Custom starts from a genuine blank slate (nothing legal) so the
     // generation/type "include" toggles have something meaningful to add —
     // official regulations keep the old empty-bans behavior since their
@@ -10960,13 +10962,24 @@ function FormatCard({ state, isCommissioner, updateSettings, locked }) {
     const spriteOverrides = { ...settings.spriteOverrides };
     customNames.forEach((n) => delete spriteOverrides[n]);
     updateSettings({
-      regulationId: regId, bannedMons, costOverrides: {},
+      regulationId: regId, pricingPresetId, bannedMons, costOverrides: {},
+      priceTierMax: priceTierMaxForPreset(pricingPresetId, regId),
       restrictedCap: reg?.defaultRestrictedCap ?? null,
       megaCap: reg?.defaultMegaCap ?? null,
       customMons: [], spriteOverrides,
       customSelectedGens: [], customSelectedTypes: [],
     });
     setConfirmSwitchTo(null);
+    setConfirmPresetTo(null);
+  }
+
+  function applyPricingPreset(presetId) {
+    updateSettings({
+      pricingPresetId: presetId,
+      costOverrides: {},
+      priceTierMax: priceTierMaxForPreset(presetId, current.id, settings.priceTierMax),
+    });
+    setConfirmPresetTo(null);
   }
 
   // Re-seeds the ban list to "everything banned" without touching which
@@ -10982,7 +10995,7 @@ function FormatCard({ state, isCommissioner, updateSettings, locked }) {
     <div style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }} className="rounded-lg p-6 mb-6">
       <h2 className="display-font text-2xl mb-1" style={{ color: "#FFD23F" }}>FORMAT</h2>
       <p className="text-sm mb-4" style={{ color: "#9A9FBD" }}>
-        Which legal pool and default point values this league uses. Official regulations get their pool and values from real VGC data; Custom starts from a blank slate you build yourself.
+        Choose the legal pool and a versioned starter price board separately. Exact matching boards are offered where available; otherwise DraftCenter uses visible BST estimates until you import or edit prices.
       </p>
 
       <RegulationPicker
@@ -10994,6 +11007,42 @@ function FormatCard({ state, isCommissioner, updateSettings, locked }) {
         onConfirm={applySwitch}
         onCancel={() => setConfirmSwitchTo(null)}
       />
+
+      <div className="mt-4 rounded-lg p-4" style={{ background: "#101522", border: "1px solid rgba(255,255,255,0.08)" }}>
+        <div className="flex items-start justify-between gap-3 flex-wrap">
+          <div className="flex-1 min-w-[240px]">
+            <p className="mono-font text-[10px] uppercase tracking-widest mb-1" style={{ color: "#4FD1C5" }}>Starter price board</p>
+            <p className="text-sm font-semibold" style={{ color: "#EDEBFA" }}>{selectedPreset.name} <span className="mono-font text-xs" style={{ color: "#9A9FBD" }}>({selectedPreset.version})</span></p>
+            <p className="text-xs mt-1" style={{ color: "#9A9FBD" }}>{selectedPreset.ruleset}</p>
+          </div>
+          <select
+            value={selectedPreset.id}
+            disabled={!isCommissioner || locked}
+            onChange={(event) => setConfirmPresetTo(event.target.value === selectedPreset.id ? null : event.target.value)}
+            className="px-3 py-2 rounded mono-font text-xs min-w-[260px]"
+            style={{ background: "#1F2338", border: "1px solid rgba(255,255,255,0.12)", color: "#EDEBFA" }}
+          >
+            {pricingOptions.map((preset) => (
+              <option key={preset.id} value={preset.id}>
+                {preset.name}{preset.ruleset?.includes("singles") ? " (optional singles preset)" : ""}
+              </option>
+            ))}
+          </select>
+        </div>
+        <p className="text-xs mt-3" style={{ color: "#9A9FBD" }}>
+          Source: {selectedPreset.sourceUrl ? <a href={selectedPreset.sourceUrl} target="_blank" rel="noreferrer" className="underline" style={{ color: "#4FD1C5" }}>{selectedPreset.sourceLabel}</a> : selectedPreset.sourceLabel} · {selectedPreset.sourceDate}
+        </p>
+        <p className="text-xs mt-1" style={{ color: "#5B5F7E" }}>{selectedPreset.note}</p>
+        {confirmPresetTo && (
+          <div className="mt-3 rounded p-3 flex items-center justify-between gap-3 flex-wrap" style={{ background: "#2A2215", border: "1px solid #F4B86055" }}>
+            <span className="text-xs" style={{ color: "#F4B860" }}>Use {pendingPricingPreset?.name || "this board"}? This clears commissioner price edits, but does not change legality.</span>
+            <div className="flex gap-2">
+              <button type="button" onClick={() => applyPricingPreset(confirmPresetTo)} className="px-3 py-1.5 rounded text-xs font-semibold" style={{ background: "#F4B860", color: "#10121C" }}>Use this board</button>
+              <button type="button" onClick={() => setConfirmPresetTo(null)} className="px-3 py-1.5 rounded text-xs" style={{ background: "#1F2338", color: "#9A9FBD" }}>Cancel</button>
+            </div>
+          </div>
+        )}
+      </div>
 
       {settings.regulationId === "custom" && isCommissioner && !locked && (
         <div className="regulation-picker-custom-reset">
@@ -11402,7 +11451,7 @@ function ScheduledStartNotice({ status, scheduledAt, draftType, isCommissioner =
   );
 }
 
-function SetupView({ state, leagueId = null, leagueName = "league", isCommissioner, canBeCommissioner, claimCommissioner, unclaimCommissioner, claimTeam, renameTeam, myName, updateSettings, resizeTeams, rerollAllTeamIdentities, costFor, toggleBanMon, toggleAllowExtraMon, rebuildCurrentSeason, addCustomMon, removeCustomMon, setSpriteOverride, setTeamLogo, onStart, addDivision, renameDivision, removeDivision, setTeamDivision, finalizeManualDraft, finalizeSeason, startNewSeason, updateHomepage, addExpansionTeam, removeSpecificTeam, exportLeagueBackup, exportRecoveryBackup, importLeagueBackup, addCoCommissioner, removeCoCommissioner, onOpenLeagueTools, onOpenBroadcast, copyLeagueInvite, saveNow, saveStatus, draftError = "", teamResizeMessage = "", scheduledStartStatus = null, retryScheduledStart = null, eventMode = false }) {
+function SetupView({ state, leagueId = null, leagueName = "league", isCommissioner, canBeCommissioner, claimCommissioner, unclaimCommissioner, claimTeam, renameTeam, myName, updateSettings, resizeTeams, rerollAllTeamIdentities, costFor, priceDetailsForMon, toggleBanMon, toggleAllowExtraMon, rebuildCurrentSeason, addCustomMon, removeCustomMon, setSpriteOverride, setTeamLogo, onStart, addDivision, renameDivision, removeDivision, setTeamDivision, finalizeManualDraft, finalizeSeason, startNewSeason, updateHomepage, addExpansionTeam, removeSpecificTeam, exportLeagueBackup, exportRecoveryBackup, importLeagueBackup, addCoCommissioner, removeCoCommissioner, onOpenLeagueTools, onOpenBroadcast, copyLeagueInvite, saveNow, saveStatus, draftError = "", teamResizeMessage = "", scheduledStartStatus = null, retryScheduledStart = null, eventMode = false }) {
   // A league may have been created before newer Setup options existed. Keep
   // this screen usable even if one of those older saved values is missing or
   // malformed; the next normal save will preserve the corrected shape.
@@ -11495,6 +11544,7 @@ function SetupView({ state, leagueId = null, leagueName = "league", isCommission
   // than silently vanishing with no way to review what's excluded and why.
   const allMons = [...MASTER_POKEDEX, ...(settings.customMons || [])];
   const availablePool = allMons.filter((p) => isLegal(p, settings));
+  const pricingCoverage = pricingCoverageFor(availablePool, settings, regulationFor(settings), { detailsFor: priceDetailsForMon });
   const ALL_TYPES = Object.keys(TYPE_COLORS);
   const visiblePool = allMons
     .filter((p) => p.name.toLowerCase().includes(search.toLowerCase()))
@@ -11502,7 +11552,7 @@ function SetupView({ state, leagueId = null, leagueName = "league", isCommission
     .filter((p) => !genFilter || (settings.regulationId === "custom" ? customFilterGen(p) : p.gen) === Number(genFilter))
     .filter((p) => showBanned || isLegal(p, settings)) // "banned" here means "not currently usable" — individually banned, not in this regulation, or a disallowed Mega
     .slice()
-    .sort((a, b) => (isPriced(a, settings) ? 1 : 0) - (isPriced(b, settings) ? 1 : 0) || costFor(b, settings) - costFor(a, settings) || a.name.localeCompare(b.name));
+    .sort((a, b) => (priceDetailsForMon(a, settings).kind === "bst" ? 0 : 1) - (priceDetailsForMon(b, settings).kind === "bst" ? 0 : 1) || costFor(b, settings) - costFor(a, settings) || a.name.localeCompare(b.name));
   const hiddenBannedCount = allMons.filter((p) => !isLegal(p, settings)).length;
   const hasStaleRosterCarryover = looksLikeCarriedOverRosterState(state);
   // `locked` is the canonical boundary between setup and a live season.
@@ -12050,8 +12100,8 @@ function SetupView({ state, leagueId = null, leagueName = "league", isCommission
             </div>
           </div>
           <p className="text-sm mb-3" style={{ color: "#9A9FBD" }}>
-            {availablePool.length} of {allMons.length} pokémon legal. {isCommissioner
-              ? (viewMode === "board" ? "Drag a pokémon into another column to reassign its point value." : "Ban individual pokémon, or click a value to set a custom point cost (1–20).")
+            {availablePool.length} of {allMons.length} pokémon legal. {pricingCoverageLabel(pricingCoverage)}. {isCommissioner
+              ? (viewMode === "board" ? "Drag a pokémon into another column to reassign its point value." : `Ban individual pokémon, or click a value to set a custom point cost (1–${settings.priceTierMax || 20}).`)
               : "Only the commissioner can edit values."}
           </p>
           <label className="flex items-center gap-2 text-sm mb-4" style={{ color: "#9A9FBD" }}>
@@ -12153,6 +12203,7 @@ function SetupView({ state, leagueId = null, leagueName = "league", isCommission
               );
               const allowedExtra = (settings.allowedExtraMons || []).includes(p.name);
               const cost = costFor(p, settings);
+              const priceDetails = priceDetailsForMon(p, settings);
               const overridden = settings.costOverrides[p.name] !== undefined;
               return (
                 <div key={p.id} className="px-3 py-2 rounded" style={{ background: "#1B1F33", opacity: legal ? 1 : 0.35, border: "1px solid rgba(255,255,255,0.06)" }}>
@@ -12165,7 +12216,7 @@ function SetupView({ state, leagueId = null, leagueName = "league", isCommission
                           {p.isMega && <span className="mono-font text-[9px] px-1 rounded flex-shrink-0" style={{ background: "#FFD23F22", color: "#FFD23F" }}>MEGA</span>}
                           {p.custom && <span className="mono-font text-[9px] px-1 rounded flex-shrink-0" style={{ background: "#4FD1C522", color: "#4FD1C5" }}>CUSTOM</span>}
                           {p.gen && <span className="mono-font text-[9px] px-1 rounded flex-shrink-0" style={{ background: "#1F233866", color: "#5B5F7E" }}>G{p.gen}</span>}
-                          {!isPriced(p, settings) && <span className="mono-font text-[9px] px-1 rounded flex-shrink-0" style={{ background: "#F0555A22", color: "#F0555A" }}>UNTIERED</span>}
+                          {priceDetails.kind === "bst" && <span className="mono-font text-[9px] px-1 rounded flex-shrink-0" style={{ background: "#F4B86022", color: "#F4B860" }}>BST ESTIMATE</span>}
                         </div>
                         {isCommissioner && (
                           p.custom ? (
@@ -12447,16 +12498,9 @@ function PricingSpreadsheetImport({ pool, settings, costFor, updateSettings, lea
 
 function PriceBoard({ pool, settings, costFor, isCommissioner, setMonCost, isLegal, updateSettings }) {
   const [dragOverCol, setDragOverCol] = useState(null);
-  const tierMax = settings.priceTierMax || 20;
+  const highestAssignedPrice = Math.max(1, ...(pool || []).map((pokemon) => costFor(pokemon, settings)));
+  const tierMax = Math.max(settings.priceTierMax || 20, highestAssignedPrice);
   const columns = Array.from({ length: tierMax }, (_, i) => tierMax - i); // tierMax down to 1
-  // Regulations with a compressed fallback (all SV-era ones) give every mon
-  // a real, intentional price even without curated data — so there's
-  // nothing to segregate into "Untiered" there; every mon just goes in its
-  // actual column. Untiered only means something for regs where an uncosted
-  // mon is a genuine gap to fill (Champions, Custom).
-  const hasCompressedFallback = !!regulationFor(settings).compressedFallback;
-  const pricedPool = hasCompressedFallback ? pool : pool.filter((p) => isPriced(p, settings));
-  const untieredPool = (hasCompressedFallback ? [] : pool.filter((p) => !isPriced(p, settings))).sort((a, b) => a.name.localeCompare(b.name));
 
   function handleDrop(e, cost) {
     e.preventDefault();
@@ -12495,22 +12539,8 @@ function PriceBoard({ pool, settings, costFor, isCommissioner, setMonCost, isLeg
       )}
       <div className="w-full overflow-x-auto pb-2" style={{ maxWidth: "100%" }}>
         <div className="flex gap-2 min-w-max">
-          {!hasCompressedFallback && (
-            <div key="untiered"
-              onDragOver={(e) => { e.preventDefault(); setDragOverCol("untiered"); }}
-              onDragLeave={() => setDragOverCol((c) => (c === "untiered" ? null : c))}
-              onDrop={(e) => { e.preventDefault(); setDragOverCol(null); const name = e.dataTransfer.getData("text/plain"); if (name) setMonCost(name, null); }}
-              className="w-32 flex-shrink-0 rounded-lg p-2 flex flex-col"
-              style={{ background: dragOverCol === "untiered" ? "#F0555A11" : "#171A2C", border: `1px solid ${dragOverCol === "untiered" ? "#F0555A" : "#F0555A55"}`, height: 400 }}>
-              <div className="text-center mono-font text-sm font-semibold mb-2 flex-shrink-0" style={{ color: "#F0555A" }}>Untiered ({untieredPool.length})</div>
-              <div className="flex flex-col gap-1 overflow-y-auto" style={{ flex: "1 1 auto", minHeight: 0 }}>
-                {untieredPool.map(renderMonChip)}
-                {untieredPool.length === 0 && <div className="text-center text-[10px]" style={{ color: "#5B5F7E" }}>All priced!</div>}
-              </div>
-            </div>
-          )}
           {columns.map((cost) => {
-            const inCol = pricedPool.filter((p) => costFor(p, settings) === cost).sort((a, b) => a.name.localeCompare(b.name));
+            const inCol = pool.filter((p) => costFor(p, settings) === cost).sort((a, b) => a.name.localeCompare(b.name));
             return (
               <div key={cost}
                 onDragOver={(e) => { e.preventDefault(); setDragOverCol(cost); }}
@@ -12539,9 +12569,6 @@ function PriceBoard({ pool, settings, costFor, isCommissioner, setMonCost, isLeg
       </div>
       {!isCommissioner && (
         <p className="text-xs mt-2" style={{ color: "#5B5F7E" }}>Only the commissioner can drag pokémon between columns.</p>
-      )}
-      {untieredPool.length > 0 && (
-        <p className="text-xs mt-2" style={{ color: "#F0555A" }}>{untieredPool.length} pokémon still need a real point value — drag them from Untiered (far left) into the right column.</p>
       )}
     </div>
   );
@@ -13419,8 +13446,9 @@ function ADPView({ state }) {
   const { rows, seasonsPooled, isSnake, usingHistoricalRules, hasPositionData } = computeADP(state);
 
   const reg = regulationFor(state.settings);
-  const hasCuratedCosts = Object.keys(reg.defaultCosts).length > 0;
-  const derivedActive = !usingHistoricalRules && hasPositionData && !hasCuratedCosts && seasonsPooled >= MIN_SEASONS_FOR_DERIVED_COSTS;
+  const preset = pricingPresetFor(state.settings, reg);
+  const legacyDerivedEligible = preset.kind === "legacy" && Object.keys(reg.defaultCosts).length === 0;
+  const derivedActive = !usingHistoricalRules && hasPositionData && legacyDerivedEligible && seasonsPooled >= MIN_SEASONS_FOR_DERIVED_COSTS;
 
   if (seasonsPooled === 0) {
     return (
@@ -13441,11 +13469,16 @@ function ADPView({ state }) {
       </p>
       {usingHistoricalRules && <p className="text-xs mb-4 px-3 py-2 rounded" style={{ color: "#FFD23F", background: "#FFD23F12", border: "1px solid #FFD23F44" }}>This early league ADP includes older seasons that used different rules or a different league size, because every draft is valuable while the sample grows. Those older seasons remain excluded from the current regulation's automatic prices.</p>}
       {!hasPositionData && <p className="text-xs mb-4 px-3 py-2 rounded" style={{ color: "#9A9FBD", background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }}>The archived rosters survived, but this older season did not retain exact pick numbers. DraftCenter recovered which Pokémon were drafted and how often without inventing an inaccurate pick order.</p>}
-      {!hasCuratedCosts && !usingHistoricalRules && hasPositionData && (
+      {legacyDerivedEligible && !usingHistoricalRules && hasPositionData && (
         <p className="text-xs mb-4" style={{ color: derivedActive ? "#4FD1C5" : "#5B5F7E" }}>
           {derivedActive
             ? `This regulation has no curated cost sheet, so draft costs are now derived from this data instead of the generic stat-based fallback.`
             : `This regulation has no curated cost sheet — once ${MIN_SEASONS_FOR_DERIVED_COSTS} seasons are pooled (${seasonsPooled}/${MIN_SEASONS_FOR_DERIVED_COSTS} so far), draft costs will switch from the generic stat-based fallback to real numbers derived from this history.`}
+        </p>
+      )}
+      {preset.kind === "bst" && !usingHistoricalRules && (
+        <p className="text-xs mb-4" style={{ color: "#5B5F7E" }}>
+          This format is pinned to the BST starter preset. League history remains informational and will not silently replace those prices.
         </p>
       )}
       <div className="rounded-lg overflow-hidden" style={{ border: "1px solid rgba(255,255,255,0.08)" }}>
