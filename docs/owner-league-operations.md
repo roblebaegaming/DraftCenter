@@ -44,17 +44,18 @@ errors alongside league-health warnings.
 Spreadsheet and recovery JSON downloads now record only the league, staff user,
 backup type, and timestamp. DraftCenter does not upload or inspect the file.
 
-## Daily Three participation
+## Daily Games participation
 
 Allowlisted owners can open `/operations/daily-three` from the global Daily
-Three shortcut. It shows each profile's last Daily Three activity, last full
+Games shortcut. It shows each profile's last Daily Games activity, last full
 completion, today's Poll/Bracket/Quiz status, and completion-day counts. It does
-not return poll choices, bracket selections, quiz answers, or correctness.
+not expose Pokémon Connections completion rows or return puzzle groups, poll
+choices, bracket selections, quiz answers, or correctness.
 
 The same owner-only page includes the upcoming community editorial calendar.
-It previews Daily Three polls and quizzes alongside the separate Question of
+It previews Daily Games polls and quizzes alongside the separate Question of
 the Day schedule. The owner can add or replace content on future dates; live
-and historical activities are intentionally locked. Daily Three polls and
+and historical activities are intentionally locked. Daily Games polls and
 quizzes remain Pokemon-only. Question of the Day is human/community-first with
 occasional Pokemon prompts, and is delivered only to the dedicated community
 channel.

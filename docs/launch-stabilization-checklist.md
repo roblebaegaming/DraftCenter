@@ -27,7 +27,7 @@ Use this before each beta release. Record the date, commit, tester accounts, dev
 - **Latest-pick correction passed:** the production commissioner UI and guarded server function restored roster, pool, budget, turn, and completed-draft state; unauthorized and stale concurrent requests were rejected.
 - **Cleanup passed:** the temporary league and all three temporary Auth accounts were deleted only after zero-ownership guards; all targets verified absent afterward.
 - **Authentication passed in Gmail:** production signup confirmation, recovery email delivery, recovery landing, password replacement, sign out, and sign in with the new password all passed. The recovery flow exposed and fixed a production redirect-session bug; Supabase tokens are now restored and removed from the URL after use.
-- **Discord delivery passed:** personal DM, league-channel test, and the real Daily Three league preview all returned successful delivery. Mega Test keeps Daily Three announcements enabled.
+- **Discord delivery passed:** personal DM, league-channel test, and the real Daily Games league preview all returned successful delivery. Mega Test keeps Daily Games announcements enabled.
 - **Twitch integration passed:** broadcaster lookup and EventSub registration succeeded; a real August 2 broadcast transitioned a fresh offline-registered stream from scheduled to live to ended; the member dashboard banner appeared and cleared; exactly one league-channel event and one eligible non-creator personal DM event were accepted by Discord; and no duplicate or failed delivery record appeared. Stream creators are intentionally excluded from personal live-stream DMs.
 - **Final draft edge cases passed:** an isolated two-manager budgeted snake draft enforced minimum-slot affordability and completed below the roster maximum; an isolated two-manager auction enforced nomination ownership, bid ownership, budgets, roster limits, timed resolution, and final accounting.
 - **External operations passed:** the encrypted recovery archive was uploaded to Google Drive and verified by exact filename, and Google Search Console domain ownership was verified through the production DNS TXT record.
@@ -86,7 +86,7 @@ Use this before each beta release. Record the date, commit, tester accounts, dev
 
 ## Community and account features
 
-- [ ] Complete all Daily Three activities; results, comments, replies, avatars, and profile links work.
+- [ ] Complete all Daily Games activities; results, comments, replies, avatars, and profile links work.
 - [ ] Badges, Favorite Six, and regular-season career record update correctly.
 - [ ] Resources links open their intended external destinations.
 - [ ] Create, edit, archive, reopen, and delete a private My Teams workspace.
@@ -97,7 +97,7 @@ Use this before each beta release. Record the date, commit, tester accounts, dev
 
 ## Layout, resilience, and release
 
-- [ ] Test navigation, drafts, tables, playoffs, Daily Three, and modals at phone widths.
+- [ ] Test navigation, drafts, tables, playoffs, Daily Games, and modals at phone widths.
 - [ ] Test current major desktop browsers where available.
 - [ ] Missing artwork uses a safe fallback.
 - [x] Reloads and reconnects recover the authoritative league state. (two fresh clients, August 2; expired-session breadth remains a future check)
@@ -112,6 +112,6 @@ Use this before each beta release. Record the date, commit, tester accounts, dev
 ## Release decision
 
 - Blocking failures: None found in the validated release scope.
-- Non-blocking follow-ups: a second major email client; Firefox/Safari breadth; the intentionally unchecked bot, reset/rebuild race, claim-race, transaction-reversal, Daily Three interaction, public-profile, and My Teams breadth items above. Google PageSpeed completed mobile slow-4G and desktop throttled audits on August 2 with healthy launch results; see `docs/browser-network-and-search-audit-2026-08-02.md`. The real Twitch online/offline EventSub broadcast passed August 2. The isolated August 2 restore project was verified absent after explicit owner deletion approval.
+- Non-blocking follow-ups: a second major email client; Firefox/Safari breadth; the intentionally unchecked bot, reset/rebuild race, claim-race, transaction-reversal, Daily Games interaction, public-profile, and My Teams breadth items above. Google PageSpeed completed mobile slow-4G and desktop throttled audits on August 2 with healthy launch results; see `docs/browser-network-and-search-audit-2026-08-02.md`. The real Twitch online/offline EventSub broadcast passed August 2. The isolated August 2 restore project was verified absent after explicit owner deletion approval.
 - Approved by:
 - Decision: Ready for owner ship decision; remaining items are coverage gaps, not known regressions.

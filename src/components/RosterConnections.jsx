@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { loadPokemonArtwork } from "./LeagueHub";
 import { normalizeRosterConnectionsSave, rosterConnectionsPuzzle, seededConnectionsShuffle } from "../lib/rosterConnections";
+import { createClient } from "../lib/supabase/client";
+import { DailyGameDiscussion } from "./DailyCommunityGames";
 
 const GROUP_COLORS = ["yellow", "green", "blue", "purple"];
 const GROUP_MARKS = ["🟨", "🟩", "🟦", "🟪"];
@@ -20,7 +22,7 @@ function PokemonTile({ name, selected, disabled, onClick }) {
   </button>;
 }
 
-export default function RosterConnections() {
+export default function RosterConnections({ signedIn = false }) {
   const puzzle = useMemo(() => rosterConnectionsPuzzle(), []);
   const storageKey = `draftcenter-roster-connections-${puzzle.dateKey}`;
   const [selected, setSelected] = useState([]);
@@ -29,6 +31,11 @@ export default function RosterConnections() {
   const [order, setOrder] = useState(puzzle.pokemon);
   const [message, setMessage] = useState("Find four Pokémon that share a connection.");
   const [ready, setReady] = useState(false);
+  const [discussionGameId, setDiscussionGameId] = useState("");
+
+  const complete = solved.length === 4;
+  const failed = mistakes >= 4 && !complete;
+  const finished = complete || failed;
 
   useEffect(() => {
     try {
@@ -50,9 +57,27 @@ export default function RosterConnections() {
     } catch {}
   }, [mistakes, order, ready, solved, storageKey]);
 
-  const complete = solved.length === 4;
-  const failed = mistakes >= 4 && !complete;
-  const finished = complete || failed;
+  useEffect(() => {
+    if (!ready || !finished || !signedIn) {
+      if (!signedIn) setDiscussionGameId("");
+      return;
+    }
+    let alive = true;
+    const supabase = createClient();
+    supabase.rpc("complete_pokemon_connections", {
+      p_local_date: puzzle.dateKey,
+      p_time_zone: Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
+    }).then(({ data, error }) => {
+      if (!alive) return;
+      if (error) setMessage(error.message);
+      else {
+        setDiscussionGameId(data?.game_id || "");
+        window.dispatchEvent(new CustomEvent("draftcenter:badge-events", { detail: data?.badge_profile?.events || [] }));
+      }
+    });
+    return () => { alive = false; };
+  }, [finished, puzzle.dateKey, ready, signedIn]);
+
   const solvedPokemon = new Set(solved.flatMap((index) => puzzle.groups[index].pokemon));
   const remaining = order.filter((name) => !solvedPokemon.has(name));
   const displayedGroups = finished ? puzzle.groups.map((_, index) => index) : solved;
@@ -80,9 +105,9 @@ export default function RosterConnections() {
 
   async function share() {
     const rows = displayedGroups.map((_, index) => GROUP_MARKS[index].repeat(4));
-    const result = `DraftCenter Roster Connections ${puzzle.dateKey}\n${complete ? `Solved with ${mistakes}/4 mistakes` : "Better luck tomorrow"}\n${rows.join("\n")}\nhttps://www.draftcentral.gg/resources/daily-games`;
+    const result = `DraftCenter Pokémon Connections ${puzzle.dateKey}\n${complete ? `Solved with ${mistakes}/4 mistakes` : "Better luck tomorrow"}\n${rows.join("\n")}\nhttps://www.draftcentral.gg/resources/daily-games`;
     try {
-      if (navigator.share) await navigator.share({ title: "Roster Connections", text: result });
+      if (navigator.share) await navigator.share({ title: "Pokémon Connections", text: result });
       else if (navigator.clipboard?.writeText) { await navigator.clipboard.writeText(result); setMessage("Result copied to your clipboard."); }
       else setMessage("Sharing is unavailable in this browser.");
     } catch {
@@ -91,7 +116,7 @@ export default function RosterConnections() {
   }
 
   return <section className="roster-connections" aria-labelledby="roster-connections-title">
-    <div className="connections-heading"><div><span className="eyebrow">NEW DAILY GAME</span><h2 id="roster-connections-title">Roster Connections</h2><p>Sort 16 Pokémon into four groups connected by draft roles, abilities, types, or strategies.</p></div><div className="connections-mistakes" aria-label={`${4 - mistakes} mistakes remaining`}><span>Mistakes remaining</span><b>{[0, 1, 2, 3].map((index) => <i className={index < 4 - mistakes ? "available" : ""} key={index} />)}</b></div></div>
+    <div className="connections-heading"><div><span className="eyebrow">DAILY CONNECTIONS GAME</span><h2 id="roster-connections-title">Pokémon Connections</h2><p>Sort 16 Pokémon into four groups connected by strategy, measurements, Pokédex shape, Egg Group, and more.</p></div><div className="connections-mistakes" aria-label={`${4 - mistakes} mistakes remaining`}><span>Mistakes remaining</span><b>{[0, 1, 2, 3].map((index) => <i className={index < 4 - mistakes ? "available" : ""} key={index} />)}</b></div></div>
     <div className="connections-board">
       {displayedGroups.map((groupIndex, index) => { const group = puzzle.groups[groupIndex]; return <article className={`connection-group ${GROUP_COLORS[index]}`} key={group.title}><strong>{group.title}</strong><span>{group.pokemon.join(", ")}</span><small>{group.note}</small></article>; })}
       {!finished && remaining.map((name) => <PokemonTile key={name} name={name} selected={selected.includes(name)} disabled={false} onClick={() => toggle(name)} />)}
@@ -100,5 +125,6 @@ export default function RosterConnections() {
     <div className="connections-actions">
       {!finished ? <><button type="button" className="quiet-button" disabled={!selected.length} onClick={() => setSelected([])}>Deselect all</button><button type="button" className="quiet-button" onClick={() => { setOrder((current) => seededConnectionsShuffle(current, Date.now())); setSelected([]); }}>Shuffle</button><button type="button" className="primary-button" disabled={selected.length !== 4} onClick={submit}>Submit group</button></> : <button type="button" className="primary-button" onClick={share}>Share result</button>}
     </div>
+    <DailyGameDiscussion type="connections" gameId={discussionGameId} signedIn={signedIn} unlocked={finished} />
   </section>;
 }

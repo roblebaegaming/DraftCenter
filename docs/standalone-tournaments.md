@@ -1,7 +1,7 @@
 # Standalone tournaments
 
 DraftCenter's first standalone tournament release is a single-elimination
-organizer. It is separate from league playoffs, Daily Three brackets, and the
+organizer. It is separate from league playoffs, Daily Games brackets, and the
 Nuzlocke catalog.
 
 ## Release status
