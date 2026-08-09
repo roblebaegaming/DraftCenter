@@ -27,10 +27,9 @@ test("sensitive tournament actions use the accessible in-page confirmation dialo
 test("workspace controls and feedback expose names, landmarks, and live status", () => {
   assert.match(ui, /aria-label="Choose a bracket round"/);
   assert.match(ui, /aria-pressed=\{visibleRound === group\.key\}/);
-  assert.match(ui, /aria-controls=\{`tournament-round-panel-\$\{group\.key\.replaceAll\(":", "-"\)\}`\}/);
   assert.match(ui, /scrollIntoView\(\{ behavior: "smooth", block: "nearest", inline: "start" \}\)/);
-  assert.match(ui, /aria-label=\{`\$\{formatLabel\(tournament\.format\)\} bracket rounds`\}/);
-  assert.match(ui, /className=\{visibleRound === group\.key \? "is-selected" : ""\}/);
+  assert.match(ui, /aria-label=\{`\$\{formatLabel\(tournament\.format\)\} bracket round`\}/);
+  assert.match(ui, /className="is-selected"/);
   assert.match(ui, /aria-labelledby=\{headingId\}/);
   assert.match(ui, /role="status" aria-live="polite"/);
   assert.match(ui, /<label>Replay URL/);
@@ -38,9 +37,11 @@ test("workspace controls and feedback expose names, landmarks, and live status",
   assert.match(ui, /<legend>Series score<\/legend>/);
 });
 
-test("small screens show one selected round while preserving every round on desktop", () => {
-  assert.match(css, /@media\(max-width:700px\)[\s\S]*?\.tournament-rounds>section\{display:none/);
-  assert.match(css, /\.tournament-rounds>section\.is-selected\{display:grid\}/);
+test("large fields mount one selected, paged round at a time", () => {
+  assert.match(ui, /visibleGroup\.matches\.map/);
+  assert.match(ui, /Page \{matchPage\.page\} of \{matchPage\.total_pages\}/);
+  assert.match(ui, /MATCH_PAGE_SIZE = 64/);
+  assert.match(css, /\.tournament-rounds>section\.is-selected\{[^}]*grid-template-columns:repeat\(auto-fill/);
   assert.match(css, /\.tournament-match-side strong\{min-width:0;overflow-wrap:anywhere\}/);
   assert.match(css, /\.tournament-round-picker\{display:flex;[^}]*overflow-x:auto/);
 });

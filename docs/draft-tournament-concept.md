@@ -11,6 +11,13 @@ carries from the draft into Swiss play and, if they qualify, into the top cut.
 It does not create several league pods and it does not ask organizers to
 pretend a short tournament is a full league season.
 
+The shared-draft Draft Tournament has a maximum of **16 entrants** because all
+entrants draft from one limited Pokémon pool. Do not expand this
+infrastructure beyond 16 teams. A future larger draft-based competition would
+be a separate multi-pod product: entrants draft and play inside their pods,
+then pod qualifiers advance to an elimination stage. Raising standalone
+elimination limits does not raise this shared-draft boundary.
+
 ## Current status
 
 The complete Draft Tournament workflow has not been built. DraftCenter has

@@ -4,6 +4,9 @@ import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { createClient } from "../lib/supabase/client";
 import { tournamentError } from "../lib/tournamentErrors";
 
+const MATCH_PAGE_SIZE = 64;
+const ENTRANT_PAGE_SIZE = 64;
+
 const statusLabel = (status) => status.replaceAll("-", " ");
 const formatLabel = (format) => format === "double-elimination" ? "Double elimination" : "Single elimination";
 
@@ -321,6 +324,9 @@ export default function TournamentWorkspace({ slug }) {
   const [inviteReady, setInviteReady] = useState(false);
   const [confirmation, setConfirmation] = useState(null);
   const [selectedRound, setSelectedRound] = useState(null);
+  const [roundBusy, setRoundBusy] = useState(false);
+  const [entrantQuery, setEntrantQuery] = useState("");
+  const [entrantPage, setEntrantPage] = useState(1);
   const [replacementInvite, setReplacementInvite] = useState(null);
   const [replacementClaimTeam, setReplacementClaimTeam] = useState("");
   const [recoveryEntrantId, setRecoveryEntrantId] = useState("");
@@ -329,8 +335,21 @@ export default function TournamentWorkspace({ slug }) {
   const [replacementRosterPolicy, setReplacementRosterPolicy] = useState("retain-roster");
   const [replacementLink, setReplacementLink] = useState("");
 
-  async function load() {
-    const { data, error } = await supabase.rpc("get_tournament_workspace", { p_slug: slug, p_access_code: inviteCode });
+  async function load(options = {}) {
+    const requestedRound = options.roundKey ?? selectedRound;
+    const [requestedStage, requestedRoundValue] = requestedRound?.split(":") || [];
+    const requestedPage = options.matchPage ?? workspace?.match_page?.page ?? null;
+    let { data, error } = await supabase.rpc("get_tournament_workspace_page", {
+      p_slug: slug,
+      p_access_code: inviteCode,
+      p_bracket_stage: requestedStage || null,
+      p_bracket_round: requestedRoundValue ? Number(requestedRoundValue) : null,
+      p_match_page: requestedPage,
+      p_match_page_size: MATCH_PAGE_SIZE,
+    });
+    if (error?.code === "PGRST202") {
+      ({ data, error } = await supabase.rpc("get_tournament_workspace", { p_slug: slug, p_access_code: inviteCode }));
+    }
     if (error) {
       setMessage(tournamentError(error));
       setWorkspace(null);
@@ -347,6 +366,9 @@ export default function TournamentWorkspace({ slug }) {
       setWorkspace(data);
       return false;
     }
+    const pageStage = data.match_page?.bracket_stage;
+    const pageRound = data.match_page?.bracket_round;
+    if (pageStage && pageRound) setSelectedRound(`${pageStage}:${pageRound}`);
     setWorkspace({ ...data, connected_championship: connectedResult.data || null });
     setMessage("");
     return true;
@@ -390,7 +412,34 @@ export default function TournamentWorkspace({ slug }) {
   const me = workspace?.entrants?.find((entrant) => entrant.is_me && entrant.status === "registered");
   const hasTournamentIdentity = workspace?.entrants?.some((entrant) => entrant.is_me);
   const selectedRecoveryEntrant = registeredEntrants.find((entrant) => entrant.id === recoveryEntrantId) || null;
+  const filteredEntrants = useMemo(() => {
+    const query = entrantQuery.trim().toLocaleLowerCase();
+    if (!query) return workspace?.entrants || [];
+    return (workspace?.entrants || []).filter((entrant) => entrant.display_name.toLocaleLowerCase().includes(query));
+  }, [entrantQuery, workspace]);
+  const entrantPageCount = Math.max(1, Math.ceil(filteredEntrants.length / ENTRANT_PAGE_SIZE));
+  const visibleEntrantPage = Math.min(entrantPage, entrantPageCount);
+  const visibleEntrants = filteredEntrants.slice((visibleEntrantPage - 1) * ENTRANT_PAGE_SIZE, visibleEntrantPage * ENTRANT_PAGE_SIZE);
   const rounds = useMemo(() => {
+    if (workspace?.rounds) {
+      const finalRounds = new Map();
+      for (const summary of workspace.rounds) {
+        finalRounds.set(summary.bracket_stage, Math.max(finalRounds.get(summary.bracket_stage) || 0, summary.bracket_round));
+      }
+      const loadedRound = workspace.match_page?.bracket_stage && workspace.match_page?.bracket_round
+        ? `${workspace.match_page.bracket_stage}:${workspace.match_page.bracket_round}`
+        : null;
+      return workspace.rounds.map((summary) => ({
+        key: `${summary.bracket_stage}:${summary.bracket_round}`,
+        stage: summary.bracket_stage,
+        round: summary.bracket_round,
+        globalRound: summary.global_round,
+        matchCount: Number(summary.match_count),
+        liveMatchCount: Number(summary.live_match_count),
+        matches: loadedRound === `${summary.bracket_stage}:${summary.bracket_round}` ? (workspace.matches || []) : [],
+        label: tournamentRoundLabel(summary.bracket_stage, summary.bracket_round, Number(summary.match_count), finalRounds.get(summary.bracket_stage)),
+      }));
+    }
     const grouped = new Map();
     for (const match of workspace?.matches || []) {
       const stage = match.bracket_stage || "single";
@@ -403,10 +452,20 @@ export default function TournamentWorkspace({ slug }) {
     for (const group of grouped.values()) finalRounds.set(group.stage, Math.max(finalRounds.get(group.stage) || 0, group.round));
     return [...grouped.values()]
       .sort((a, b) => a.globalRound - b.globalRound || a.round - b.round)
-      .map((group) => ({ ...group, label: tournamentRoundLabel(group.stage, group.round, group.matches.length, finalRounds.get(group.stage)) }));
+      .map((group) => ({ ...group, matchCount: group.matches.length, liveMatchCount: group.matches.filter((match) => ["ready", "reported"].includes(match.status)).length, label: tournamentRoundLabel(group.stage, group.round, group.matches.length, finalRounds.get(group.stage)) }));
   }, [workspace]);
-  const defaultRound = useMemo(() => rounds.find((group) => group.matches.some((match) => ["ready", "reported"].includes(match.status)))?.key ?? rounds.at(-1)?.key ?? null, [rounds]);
+  const serverRound = workspace?.match_page?.bracket_stage && workspace?.match_page?.bracket_round
+    ? `${workspace.match_page.bracket_stage}:${workspace.match_page.bracket_round}`
+    : null;
+  const defaultRound = useMemo(() => serverRound ?? rounds.find((group) => group.liveMatchCount > 0)?.key ?? rounds.at(-1)?.key ?? null, [rounds, serverRound]);
   const visibleRound = rounds.some((group) => group.key === selectedRound) ? selectedRound : defaultRound;
+  const visibleGroup = rounds.find((group) => group.key === visibleRound) || null;
+  const matchPage = workspace?.match_page || {
+    page: 1,
+    page_size: visibleGroup?.matchCount || 0,
+    total_matches: visibleGroup?.matchCount || 0,
+    total_pages: visibleGroup ? 1 : 0,
+  };
 
   async function join(event) {
     event.preventDefault();
@@ -679,11 +738,24 @@ export default function TournamentWorkspace({ slug }) {
     });
   }
 
-  function chooseRound(roundKey) {
+  async function chooseRound(roundKey) {
+    if (roundBusy || roundKey === visibleRound) return;
     setSelectedRound(roundKey);
-    window.requestAnimationFrame(() => {
-      document.getElementById(`tournament-round-panel-${roundKey.replaceAll(":", "-")}`)?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "start" });
-    });
+    setRoundBusy(true);
+    const loaded = await load({ roundKey, matchPage: 1 });
+    setRoundBusy(false);
+    if (loaded) {
+      window.requestAnimationFrame(() => {
+        document.getElementById(`tournament-round-panel-${roundKey.replaceAll(":", "-")}`)?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "start" });
+      });
+    }
+  }
+
+  async function chooseMatchPage(page) {
+    if (roundBusy || !visibleRound || page < 1 || page > matchPage.total_pages) return;
+    setRoundBusy(true);
+    await load({ roundKey: visibleRound, matchPage: page });
+    setRoundBusy(false);
   }
 
   if (!workspace) {
@@ -807,8 +879,21 @@ export default function TournamentWorkspace({ slug }) {
               <button className="secondary-button" disabled={busy}>Register</button>
             </form>
           ) : <p className="muted">Sign in from the DraftCenter home page to register.</p>)}
+          {workspace.entrants.length > ENTRANT_PAGE_SIZE && (
+            <div className="tournament-list-toolbar">
+              <label>Find entrant
+                <input
+                  type="search"
+                  value={entrantQuery}
+                  onChange={(event) => { setEntrantQuery(event.target.value); setEntrantPage(1); }}
+                  placeholder="Search display names"
+                />
+              </label>
+              <span>{filteredEntrants.length} {filteredEntrants.length === 1 ? "entrant" : "entrants"}</span>
+            </div>
+          )}
           <div className="tournament-entrant-list">
-            {workspace.entrants.map((entrant) => (
+            {visibleEntrants.map((entrant) => (
               <article key={entrant.id}>
                 <strong>{entrant.display_name}</strong>
                 {tournament.is_owner && entrant.status === "registered" ? (
@@ -820,6 +905,13 @@ export default function TournamentWorkspace({ slug }) {
               </article>
             ))}
           </div>
+          {entrantPageCount > 1 && (
+            <nav className="tournament-pagination" aria-label="Entrant pages">
+              <button type="button" className="quiet-button" disabled={visibleEntrantPage <= 1} onClick={() => setEntrantPage(visibleEntrantPage - 1)}>Previous entrants</button>
+              <span>Page {visibleEntrantPage} of {entrantPageCount}</span>
+              <button type="button" className="quiet-button" disabled={visibleEntrantPage >= entrantPageCount} onClick={() => setEntrantPage(visibleEntrantPage + 1)}>Next entrants</button>
+            </nav>
+          )}
         </section>
       )}
 
@@ -876,20 +968,21 @@ export default function TournamentWorkspace({ slug }) {
         <section className="tournament-bracket" aria-labelledby="tournament-bracket-heading">
           <div className="section-heading">
             <div><span className="eyebrow">{formatLabel(tournament.format).toUpperCase()}</span><h2 id="tournament-bracket-heading">Bracket</h2></div>
-            <button type="button" className="quiet-button" onClick={load}>Refresh</button>
+            <button type="button" className="quiet-button" disabled={roundBusy} onClick={() => chooseMatchPage(matchPage.page)}>Refresh</button>
           </div>
           <nav className="tournament-round-picker" aria-label="Choose a bracket round">
-            {rounds.map((group) => <button key={group.key} type="button" aria-pressed={visibleRound === group.key} aria-controls={`tournament-round-panel-${group.key.replaceAll(":", "-")}`} onClick={() => chooseRound(group.key)}>{group.label}<span>{group.matches.length} {group.matches.length === 1 ? "match" : "matches"}</span></button>)}
+            {rounds.map((group) => <button key={group.key} type="button" disabled={roundBusy} aria-pressed={visibleRound === group.key} onClick={() => chooseRound(group.key)}>{group.label}<span>{group.matchCount} {group.matchCount === 1 ? "match" : "matches"}</span></button>)}
           </nav>
-          <div className="tournament-rounds" aria-label={`${formatLabel(tournament.format)} bracket rounds`}>
-            {rounds.map((group) => {
-              const roundHeadingId = `tournament-round-${group.key.replaceAll(":", "-")}`;
-              return (
-                <section id={`tournament-round-panel-${group.key.replaceAll(":", "-")}`} key={group.key} className={visibleRound === group.key ? "is-selected" : ""} aria-labelledby={roundHeadingId} data-bracket-stage={group.stage}>
-                  <h3 id={roundHeadingId}>{group.label}</h3>
-                  {group.stage === "losers" && group.round === 1 && <p className="tournament-stage-note">A second loss eliminates an entrant.</p>}
-                  {group.stage === "grand-final" && group.round === 2 && <p className="tournament-stage-note">Played only if the losers-bracket champion wins the Grand Final.</p>}
-                  {group.matches.map((match) => {
+          {roundBusy && <p className="muted" role="status" aria-live="polite">Loading bracket round...</p>}
+          {visibleGroup && (() => {
+            const roundHeadingId = `tournament-round-${visibleGroup.key.replaceAll(":", "-")}`;
+            return (
+              <div className="tournament-rounds" aria-label={`${formatLabel(tournament.format)} bracket round`}>
+                <section id={`tournament-round-panel-${visibleGroup.key.replaceAll(":", "-")}`} className="is-selected" aria-labelledby={roundHeadingId} data-bracket-stage={visibleGroup.stage}>
+                  <h3 id={roundHeadingId}>{visibleGroup.label}</h3>
+                  {visibleGroup.stage === "losers" && visibleGroup.round === 1 && <p className="tournament-stage-note">A second loss eliminates an entrant.</p>}
+                  {visibleGroup.stage === "grand-final" && visibleGroup.round === 2 && <p className="tournament-stage-note">Played only if the losers-bracket champion wins the Grand Final.</p>}
+                  {visibleGroup.matches.map((match) => {
                     const submission = workspace.submissions.find((item) => item.match_id === match.id);
                     const involved = me && [match.entrant_a_id, match.entrant_b_id].includes(me.id);
                     return (
@@ -900,7 +993,7 @@ export default function TournamentWorkspace({ slug }) {
                         submission={submission}
                         canReport={Boolean(involved || tournament.is_owner)}
                         isOwner={Boolean(tournament.is_owner && tournament.status !== "archived")}
-                        onRefresh={load}
+                        onRefresh={() => load({ roundKey: visibleRound, matchPage: matchPage.page })}
                         onRequestForfeit={requestMatchForfeit}
                         supabase={supabase}
                         requestConfirmation={setConfirmation}
@@ -908,9 +1001,16 @@ export default function TournamentWorkspace({ slug }) {
                     );
                   })}
                 </section>
-              );
-            })}
-          </div>
+              </div>
+            );
+          })()}
+          {matchPage.total_pages > 1 && (
+            <nav className="tournament-pagination" aria-label="Match pages">
+              <button type="button" className="quiet-button" disabled={roundBusy || matchPage.page <= 1} onClick={() => chooseMatchPage(matchPage.page - 1)}>Previous matches</button>
+              <span>Page {matchPage.page} of {matchPage.total_pages}</span>
+              <button type="button" className="quiet-button" disabled={roundBusy || matchPage.page >= matchPage.total_pages} onClick={() => chooseMatchPage(matchPage.page + 1)}>Next matches</button>
+            </nav>
+          )}
         </section>
       )}
 
