@@ -83,6 +83,10 @@ to championships with bounded recovery synchronization.
 - The all-bot visual walkthrough separately passed with eight teams, 48 roster
   slots, four qualifiers, three confirmed bracket results, completion
   propagation, exact cleanup, and a 22-scope zero-residue audit.
+- The production record, all-bot walkthrough proof, and Draft Tournament
+  kickoff handoff are pushed to pull request 94. All six applicable checks
+  passed for the handoff payload commit; the pull request remains open and
+  unmerged pending a separate merge instruction.
 - Live production checks confirm all 14 Pokédex shapes, all 15 Egg Groups, and
   Bulbasaur's Quadruped and Monster/Grass facts with no browser errors or
   desktop overflow.

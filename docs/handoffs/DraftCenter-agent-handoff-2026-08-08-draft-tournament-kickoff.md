@@ -26,6 +26,25 @@ open, unmerged production-record documentation pull request. Review its current
 state before building on it. Do not merge it or any future application release
 without the owner's approval and passing required checks.
 
+## Handoff delivery status
+
+Everything from the completed multi-pod work is pushed to the remote
+`codex/multi-pod-connected-production-record-2026-08-08` branch and included
+in pull request 94: the canonical production-status update, the signed-in
+acceptance record, the later all-bot visual walkthrough and cleanup proof, the
+Draft Tournament concept boundary, and this kickoff handoff. Commit `0c60335`
+introduced the Draft Tournament handoff and its current-status link. All six
+applicable pull-request checks passed for that pushed commit; the documentation
+Preview deployed, CodeQL found no new alerts, the security and dependency
+checks passed, the full-history secret scan passed, and Preview feedback had no
+unresolved items. The Supabase Preview check was correctly skipped because the
+change was documentation-only.
+
+Pull request 94 was intentionally left open rather than merged through branch
+protection without a separate merge instruction. The next agent must confirm
+whether it has since merged before assuming these records are present on
+`main`.
+
 ## Production proof for multi-pod leagues
 
 An owner-requested signed-in visual walkthrough exercised the complete live
