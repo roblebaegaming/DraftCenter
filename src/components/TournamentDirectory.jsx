@@ -102,8 +102,8 @@ export default function TournamentDirectory() {
       <header className="tournament-hero">
         <a className="quiet-button" href="/?view=dashboard">&larr; DraftCenter home</a>
         <span className="eyebrow">TOURNAMENTS</span>
-        <h1>Build the event that fits</h1>
-        <p>Run a standalone bracket or draft every roster together before Swiss competition and an optional top cut.</p>
+        <h1>Pokémon tournament organizer</h1>
+        <p>Run single- or double-elimination brackets, connect a multi-pod championship, or draft every roster together before Swiss competition and an optional top cut.</p>
       </header>
       <div className="tournament-directory-layout">
         <section className="tournament-panel">
@@ -182,6 +182,40 @@ export default function TournamentDirectory() {
           )}
         </section>
       </div>
+      <section className="tournament-panel tournament-format-guide" aria-labelledby="tournament-format-guide-title">
+        <span className="eyebrow">CHOOSE YOUR EVENT</span>
+        <h2 id="tournament-format-guide-title">Four ways to run a Pokémon tournament</h2>
+        <p className="tournament-format-intro">Choose a direct bracket for a standalone event, a shared-draft competition for up to 16 players, or promote qualified league rosters into a connected championship.</p>
+        <div className="tournament-format-grid">
+          <article>
+            <h3>Single elimination</h3>
+            <p>Run a best-of-one or best-of-three bracket for 2–{SINGLE_ELIMINATION_MAX_ENTRANTS} entrants. One match loss eliminates an entrant.</p>
+          </article>
+          <article>
+            <h3>Double elimination</h3>
+            <p>Run a winners bracket, losers bracket, Grand Final, and reset match when required for 4–{DOUBLE_ELIMINATION_MAX_ENTRANTS} entrants.</p>
+          </article>
+          <article>
+            <h3>Draft Tournament</h3>
+            <p>Register and check in 4–16 players, complete one hidden shared snake draft, lock the rosters, play deterministic Swiss rounds, and optionally advance to a Top 2, 4, or 8.</p>
+          </article>
+          <article>
+            <h3>Connected championship</h3>
+            <p>Multi-pod league organizations can finalize qualification, retain each qualifying roster, and promote those teams into a connected single- or double-elimination championship.</p>
+          </article>
+        </div>
+      </section>
+      <section className="tournament-panel tournament-event-guide" aria-labelledby="tournament-event-guide-title">
+        <span className="eyebrow">REGISTRATION TO CHAMPION</span>
+        <h2 id="tournament-event-guide-title">Keep the bracket and result history together</h2>
+        <p>Commissioners seed the field, start the event, confirm reported results, and make bounded corrections when needed. Draft Tournaments add check-in, a shared draft room, roster publication controls, Swiss standings, and an optional elimination top cut.</p>
+        <p>Public events appear in the directory for spectators. Private events and commissioner controls remain available only to the people who have access; DraftCenter does not publish private registrations, rosters, or workspaces for search discovery.</p>
+        <nav className="tournament-learning-links" aria-label="Tournament planning resources">
+          <a href="/formats">Compare Pokémon draft formats</a>
+          <a href="/guides/pokemon-draft-league-rules-template">Start with a rules template</a>
+          <a href="/guides/how-to-run-pokemon-draft-league">Read the commissioner guide</a>
+        </nav>
+      </section>
     </main>
   );
 }
