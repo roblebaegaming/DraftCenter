@@ -17,6 +17,14 @@ championship promotion, single- and double-elimination seeding, public-safe
 projections, manager synchronization, and completion propagation are live.
 The production privilege and trigger audit, Vercel commit check, signed-out
 smoke sweep, and live `/organizations` and `/tournaments` checks all passed.
+An owner-approved signed-in production acceptance walkthrough also passed the
+complete commissioner flow: private organization creation, two linked practice
+pods, shared-rule confirmation, launch, standings locks, two finalized
+qualifiers with distinct managers and retained rosters, a private best-of-1
+single-elimination championship, and automatic completion propagation. The
+guarded cleanup removed only the recorded disposable fixtures; an independent
+20-scope residue audit returned zero rows and the post-cleanup production smoke
+sweep passed.
 
 Standalone double elimination shipped through pull request 90 at production
 commit `cbec434f00473c190731a35eb25b541d5311e5ca`, with migration 355.
@@ -59,6 +67,9 @@ to championships with bounded recovery synchronization.
 - Vercel reports the exact current `main` commit Ready in Production.
 - The signed-out production smoke sweep passes, including protected 401
   boundaries.
+- The signed-in production multi-pod walkthrough passed from organization
+  creation through a completed connected championship, followed by exact-ID
+  cleanup and a 20-scope zero-residue audit.
 - Live production checks confirm all 14 Pokédex shapes, all 15 Egg Groups, and
   Bulbasaur's Quadruped and Monster/Grass facts with no browser errors or
   desktop overflow.
@@ -66,14 +77,16 @@ to championships with bounded recovery synchronization.
 
 ## Preserved boundaries
 
-- No real league, draft, pick, roster, schedule, tournament, entrant, or result
-  was changed for release testing.
+- No real league, draft, pick, roster, schedule, tournament, entrant, result,
+  or user account was changed for release testing. The two approved disposable
+  manager identities and all isolated practice fixtures were deleted after the
+  walkthrough.
 - The retained `multi-pod-pr-82` Supabase Preview branch remains available and
   must not be deleted as part of routine cleanup.
 - The original DraftCenter workspace still has 37 pre-existing changed paths;
   they were not staged, committed, discarded, hidden, or overwritten.
-- No provider configuration, production environment variable, secret, or user
-  record was changed by these releases.
+- No provider configuration, production environment variable, or secret was
+  changed by these releases.
 
 ## Remaining work
 

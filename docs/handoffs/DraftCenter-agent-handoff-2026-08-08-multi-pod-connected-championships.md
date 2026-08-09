@@ -22,10 +22,21 @@ A post-release acceptance pass reran the foundation, qualification, and
 connected-championship transaction matrices on the retained Preview branch;
 every assertion and cleanup check passed. The exact production commit also
 passed the full application suite, dependency audit, National Dex verification,
-180-page build, and production smoke sweep. Production currently contains no
-organizations, seasons, or pods, so a signed-in commissioner walkthrough with
-isolated practice data remains the only unproved product-level step and
-requires separate production-write approval.
+180-page build, and production smoke sweep.
+
+With explicit owner approval, the signed-in production acceptance walkthrough
+then completed the entire commissioner lifecycle using one private disposable
+organization, two isolated practice leagues, and two disposable manager
+identities. The live UI created the shared season, linked and confirmed both
+pods, launched the season, locked both final standings, finalized exactly two
+qualifiers with distinct managers and one retained Pokémon each, created a
+private best-of-1 single-elimination championship, and confirmed its 1-0 final.
+The Tournament, connected championship, and organization season all became
+complete. A guarded exact-ID cleanup removed only those fixtures. A separate
+20-scope database audit returned zero residual organization, qualification,
+championship, Tournament, league, membership, snapshot, audit, profile, or
+authentication rows, the signed-in organization workspace returned to empty,
+and the post-cleanup production smoke sweep passed.
 
 ## Connected championship behavior
 
@@ -96,9 +107,11 @@ fixtures remain.
 - Pull requests 91 and 92 passed their required checks and were squash-merged
   separately after their respective production migrations were approved.
 - The production qualification tables and connected championship mapping
-  tables remain empty; no synthetic release data was created.
+  tables are empty again after the approved disposable acceptance fixtures were
+  removed; no synthetic release data remains.
 - No real league, roster, qualifier, Tournament, account, provider setting,
-  environment variable, or secret was changed.
+  environment variable, or secret was changed. The two approved disposable
+  manager identities and all isolated practice fixtures were deleted.
 - The original DraftCenter workspace's 37 pre-existing changed paths remain
   untouched.
 - Do not delete the retained `multi-pod-pr-82` Preview branch.
