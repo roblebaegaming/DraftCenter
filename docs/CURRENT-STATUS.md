@@ -26,6 +26,16 @@ guarded cleanup removed only the recorded disposable fixtures; an independent
 20-scope residue audit returned zero rows and the post-cleanup production smoke
 sweep passed.
 
+A later owner-requested visual walkthrough exercised the same live flow at a
+larger all-bot scale: two four-team Regulation M/B practice pods, six
+automatically assigned Pokemon per team, complete round-robin standings, four
+distinct qualifying managers with retained six-Pokemon rosters, and a private
+best-of-1 single-elimination championship with three confirmed matches. The UI
+and database both reached complete. The screenshots were delivered to the
+owner, exact guarded cleanup removed all eight bot identities and fixtures, a
+separate 22-scope audit returned zero residue, and the production smoke sweep
+passed again.
+
 Standalone double elimination shipped through pull request 90 at production
 commit `cbec434f00473c190731a35eb25b541d5311e5ca`, with migration 355.
 
@@ -70,6 +80,9 @@ to championships with bounded recovery synchronization.
 - The signed-in production multi-pod walkthrough passed from organization
   creation through a completed connected championship, followed by exact-ID
   cleanup and a 20-scope zero-residue audit.
+- The all-bot visual walkthrough separately passed with eight teams, 48 roster
+  slots, four qualifiers, three confirmed bracket results, completion
+  propagation, exact cleanup, and a 22-scope zero-residue audit.
 - Live production checks confirm all 14 Pokédex shapes, all 15 Egg Groups, and
   Bulbasaur's Quadruped and Monster/Grass facts with no browser errors or
   desktop overflow.
@@ -81,6 +94,9 @@ to championships with bounded recovery synchronization.
   or user account was changed for release testing. The two approved disposable
   manager identities and all isolated practice fixtures were deleted after the
   walkthrough.
+- The later visual walkthrough used eight additional disposable bot identities
+  only inside two exact isolated practice leagues. All eight identities and
+  every dependent fixture were deleted after screenshots.
 - The retained `multi-pod-pr-82` Supabase Preview branch remains available and
   must not be deleted as part of routine cleanup.
 - The original DraftCenter workspace still has 37 pre-existing changed paths;
@@ -108,6 +124,8 @@ limit; the existing Australia history was preserved.
 ## Authoritative records
 
 - Current continuation handoff:
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-08-draft-tournament-kickoff.md`](handoffs/DraftCenter-agent-handoff-2026-08-08-draft-tournament-kickoff.md)
+- Connected multi-pod production handoff:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-08-multi-pod-connected-championships.md`](handoffs/DraftCenter-agent-handoff-2026-08-08-multi-pod-connected-championships.md)
 - Qualification review checkpoint:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-08-multi-pod-qualification-automation.md`](handoffs/DraftCenter-agent-handoff-2026-08-08-multi-pod-qualification-automation.md)
