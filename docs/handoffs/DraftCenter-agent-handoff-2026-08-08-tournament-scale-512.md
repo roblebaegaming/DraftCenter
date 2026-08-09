@@ -6,8 +6,9 @@ Date: August 9, 2026
 
 Branch `codex/tournament-scale-512-2026-08-08` contains the first standalone
 Tournament scale milestone. It is rebased onto the authoritative `origin/main`
-baseline at `1c1afac` and committed locally. It is not yet pushed, merged,
-migrated, previewed, or deployed.
+baseline at `1c1afac`, pushed, and open as PR #95. The database and signed-in
+interface Preview gates passed on the disposable `release-wave-2026-08-09`
+branch. It is not yet merged, migrated in production, or deployed.
 
 The intended post-migration limits are:
 
@@ -61,30 +62,38 @@ At the maximum limits, the expected generated graphs are:
   mobile viewports with no application errors. The development browser
   reported only the existing React/CSP development-mode warning; the
   production build passed.
+- The disposable Supabase Preview branch was advanced through migrations
+  340–361. The migration 361 transaction matrix passed all seven assertions:
+  grants, format caps, bye routing, the 512-player single-elimination graph,
+  bounded workspace paging, the 256-player double-elimination graph, and
+  complete cleanup. Preview generation took 579 ms for the 512-player graph
+  and 454.51 ms for the 256-player graph.
+- Signed-in Preview review passed for a 512-player single-elimination bracket,
+  a 256-player double-elimination bracket, desktop entrant search and paging,
+  round navigation, 64-match paging, and the 390-pixel mobile workspace.
+- Focused concurrent Preview checks passed: 16 simultaneous registration
+  attempts produced one registration and 15 expected duplicate rejections in
+  363 ms; 16 simultaneous result submissions succeeded in 335 ms; and 16
+  simultaneous confirmations succeeded in 260 ms and opened all eight second-
+  round matches.
+- All synthetic Preview tournaments and identities were removed and verified
+  at zero after review.
 
 `npm run smoke:production` was intentionally not run because no local change
 has been deployed. It cannot prove an undeployed change.
 
-## Required Preview gate
+## Release state
 
-`supabase/tests/361-tournament-scale-preview-regression.sql` is prepared but
-has not been run. It must be executed only on a confirmed disposable Supabase
-Preview branch with migrations 340–361. The matrix creates synthetic accounts
-inside a transaction, verifies cap rejection, small bye graphs, exact 512 and
-256 graph counts, grants, paged workspace results, and complete cleanup.
+The disposable Preview database, transaction matrix, signed-in interface
+review, concurrency checks, and synthetic-data cleanup are complete. PR #95
+can leave draft state after its repository checks finish.
 
-Before a protected release:
+Remaining protected-release steps:
 
-1. Apply migration 361 to the exact disposable Preview branch.
-2. Run the Preview matrix and retain its assertion and generation-time
-   evidence.
-3. Inspect signed-in 512-entry single- and 256-entry double-elimination
-   workspaces at desktop and mobile sizes, including entrant search, round
-   changes, match pagination, and the current user's live-match page.
-4. Run focused concurrent registration and result-reporting load tests.
-5. Open the normal short-lived pull request, require repository checks, and
-   review the Preview before merge.
-6. After an authorized production release, confirm the deployed commit and
+1. Require the final PR checks and mark PR #95 ready for review.
+2. Apply forward-only migration 361 to the exact production project.
+3. Merge PR #95 through protected `main` and wait for the exact deployment.
+4. Confirm the deployed commit, verify the production migration marker, and
    run the signed-out production smoke sweep.
 
 For scale beyond 512, do not raise the constant alone. Add server-side entrant
