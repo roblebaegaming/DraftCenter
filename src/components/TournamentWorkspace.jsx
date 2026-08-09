@@ -341,7 +341,13 @@ export default function TournamentWorkspace({ slug }) {
       setWorkspace(null);
       return false;
     }
-    setWorkspace(data);
+    const connectedResult = await supabase.rpc("get_connected_championship_tournament", { p_tournament_id: data.tournament.id });
+    if (connectedResult.error && connectedResult.error.code !== "PGRST202") {
+      setMessage(tournamentError(connectedResult.error));
+      setWorkspace(data);
+      return false;
+    }
+    setWorkspace({ ...data, connected_championship: connectedResult.data || null });
     setMessage("");
     return true;
   }
@@ -716,6 +722,8 @@ export default function TournamentWorkspace({ slug }) {
   }
 
   const tournament = workspace.tournament;
+  const connectedChampionship = workspace.connected_championship;
+  const connectedEntrants = new Map((connectedChampionship?.entrants || []).map((entrant) => [entrant.tournament_entrant_id, entrant]));
   return (
     <main className="tournament-shell">
       <ConfirmationDialog request={confirmation} onDismiss={() => setConfirmation(null)} />
@@ -724,6 +732,7 @@ export default function TournamentWorkspace({ slug }) {
         <span className="eyebrow">{statusLabel(tournament.status)} &middot; {tournament.visibility}</span>
         <h1>{tournament.name}</h1>
         <p>{tournament.description || `Standalone ${formatLabel(tournament.format).toLowerCase()} tournament`}</p>
+        {connectedChampionship && <a className="tournament-connected-link" href={`/organizations/${connectedChampionship.organization_slug}`}>{connectedChampionship.organization_name} · {connectedChampionship.season_name}</a>}
         <div>
           <span>Best of {tournament.best_of}</span>
           <span>{registeredEntrants.length} / {tournament.entrant_limit} active entrants</span>
@@ -736,6 +745,15 @@ export default function TournamentWorkspace({ slug }) {
         </div>
       </header>
       {message && <p className="hub-message" role="status" aria-live="polite">{message}</p>}
+
+      {connectedChampionship && <section className="tournament-panel tournament-connected-panel" aria-labelledby="connected-championship-heading">
+        <div className="section-heading"><div><span className="eyebrow">CONNECTED CHAMPIONSHIP</span><h2 id="connected-championship-heading">Qualified field</h2></div><span>{connectedChampionship.seeding_policy === "overall-record" ? "Overall record seeds" : connectedChampionship.seeding_policy === "pod-finish-bands" ? "Pod-finish seeds" : "Pod-finish seeds · rematches avoided"}</span></div>
+        <p className="muted">These are promoted qualification snapshots. Teams keep their finalized rosters, and duplicate Pokémon drafted in different pods remain legal.</p>
+        <div className="tournament-connected-entrants">{registeredEntrants.map((entrant) => {
+          const source = connectedEntrants.get(entrant.id);
+          return <article key={entrant.id}><strong>#{entrant.seed} {entrant.display_name}</strong><span>{source?.pod_label || "Qualified pod"} · {source?.qualification_kind === "wildcard" ? "Wild card" : `Pod place #${source?.placement || "—"}`}</span><small>{source?.roster_size || 0} retained Pokémon</small></article>;
+        })}</div>
+      </section>}
 
       {replacementInvite && (
         <section className="tournament-panel tournament-claim-panel" aria-labelledby="replacement-claim-heading-public">
@@ -813,7 +831,7 @@ export default function TournamentWorkspace({ slug }) {
               <h2 id="tournament-recovery-heading">Entrant recovery</h2>
             </div>
           </div>
-          <p className="muted">Record a drop or disqualification, or create a replacement before play begins. Match-specific forfeits are available inside each ready match.</p>
+          <p className="muted">{connectedChampionship ? "Record a drop or disqualification here. Replacement managers must first take over the same source-league team, then be synchronized from the organization workspace before play begins." : "Record a drop or disqualification, or create a replacement before play begins. Match-specific forfeits are available inside each ready match."}</p>
           <div className="tournament-recovery-grid">
             <label>Active entrant
               <select value={recoveryEntrantId} onChange={(event) => setRecoveryEntrantId(event.target.value)}>
@@ -829,7 +847,7 @@ export default function TournamentWorkspace({ slug }) {
               <button type="button" className="danger-button" disabled={busy || !selectedRecoveryEntrant} onClick={() => requestEntrantStatus("disqualified")}>Disqualify</button>
             </div>
           </div>
-          <details className="tournament-replacement-tools">
+          {!connectedChampionship && <details className="tournament-replacement-tools">
             <summary>Replace the selected entrant</summary>
             <div className="tournament-recovery-grid">
               <label>Replacement display name
@@ -843,7 +861,7 @@ export default function TournamentWorkspace({ slug }) {
               </label>
               <button type="button" className="primary-button" disabled={busy || !selectedRecoveryEntrant} onClick={requestReplacement}>Review replacement</button>
             </div>
-          </details>
+          </details>}
           {replacementLink && (
             <div className="tournament-replacement-link" role="status">
               <strong>One-time replacement claim link</strong>
