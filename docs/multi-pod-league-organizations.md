@@ -210,10 +210,11 @@ and 92. All organization tables use RLS, browser roles have no direct table
 access, owner and invited-administrator actions remain bounded, and production
 grant, trigger, and function-search-path audits pass.
 
-Migrations 366-368 and their application changes are release-candidate work
-and are not production behavior until they pass application Preview review,
-merge through a protected pull request, and the migrations are applied in
-order to the exact core project.
+Migrations 366-368 and their application changes are deployed through
+protected pull request 103. They were applied in order to the exact core
+production project after isolated Preview database verification and exact
+application Preview review. Production object, policy, grant, and function
+postflight checks pass without changing a real league.
 
 The retained `multi-pod-pr-82` Preview branch passes the complete foundation,
 qualification, single-elimination championship, and double-elimination

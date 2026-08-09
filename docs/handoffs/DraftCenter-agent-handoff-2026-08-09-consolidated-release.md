@@ -3,9 +3,9 @@
 - Date: August 9, 2026 (America/Denver)
 - Branch: `codex/consolidated-release-2026-08-09`
 - Base: `origin/main` at `52ec81c`
-- Production baseline: application `b40717e`, migration 365
-- Release state: isolated Preview database verification and all local release
-  gates pass; protected pull request and application Preview review remain
+- Production application: `cdce0f19c62110cff384d204f890be01042735b6`
+- Latest production migration: 368
+- Release state: deployed through protected pull request 103 and verified
 
 ## Included work
 
@@ -58,20 +58,27 @@ missing matchup object. The detailed role contract and release matrix are in
 - optimized production build: 222 generated pages/routes completed; and
 - retained isolated Preview migrations 366-368 and access transaction matrix:
   passed with every boundary `true` and exact synthetic-fixture cleanup.
+- protected pull request security, dependency, full-history secret scan,
+  CodeQL, and Vercel checks: passed;
+- exact application Preview and production Pokédex review: passed at desktop
+  and 390px mobile without browser errors or horizontal overflow;
+- Vercel production source: exact merged `main` commit `cdce0f1`, Ready on the
+  public production domains;
+- production database postflight: RPCs, observer policies, authenticated and
+  anonymous grants, metadata portability, and first-prediction persistence all
+  verified read-only; and
+- signed-out production smoke: passed every public 200 and protected 401
+  boundary.
 
 No production data or provider configuration was changed. No real league,
 draft, pick, roster, queue, transaction, manager, spectator, or message was
 used for validation. The original dirty workspace remains untouched.
 
-## Remaining release sequence
+## Production completion
 
-1. Push the consolidated branch and open a protected pull request.
-2. Require repository checks and review the exact Vercel Preview at desktop
-   and 390px mobile. Exercise the public Pokédex and available signed-in pod
-   role surfaces without changing a real league.
-3. Merge only after Preview approval.
-4. Apply migrations 366, 367, and 368, in order, to the exact core production
-   project as the authorized release database step.
-5. Confirm Vercel serves the merged commit as Current production, run the
-   signed-out production smoke sweep, and record the final deployed state in a
-   follow-up documentation pull request.
+Pull request [#103](https://github.com/roblebaegaming/DraftCenter/pull/103)
+merged after all protected checks and exact Preview review. Forward migrations
+366, 367, and 368 were then applied in order to the exact core production
+project and verified with read-only object, policy, grant, and function-body
+checks. Vercel serves the exact merged commit from `main`, and the signed-out
+production smoke and focused live Pokédex checks pass. No release step remains.

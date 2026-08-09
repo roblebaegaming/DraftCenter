@@ -3,9 +3,9 @@
 - Date: August 9, 2026 (America/Denver)
 - Branch: `codex/consolidated-release-2026-08-09`
 - Base: `origin/main` at `52ec81c`
-- Production baseline: application `b40717e`, migration 365
-- Release state: migrations 366-368 verified on the retained isolated Preview
-  branch; no production write
+- Production application: `cdce0f19c62110cff384d204f890be01042735b6`
+- Latest production migration: 368
+- Release state: deployed and verified through protected pull request 103
 
 ## Product contract
 
@@ -73,19 +73,17 @@ new RLS policy names and grants, both safe projections, board and prediction
 permissions, direct-message, pending-claim, and transaction denial,
 direct-staff full state, pod navigation, and exact fixture cleanup.
 
-## Required next release steps
+## Production completion
 
-1. Review the Preview signed in as a Pod A manager visiting Pod B, a Pod B
-   manager, and an invited spectator. Check desktop and 390px mobile layouts.
-2. Confirm direct snapshot reads are empty for a viewer, linked managers see no
-   pending/private fields, and existing transaction RPCs reject the virtual
-   role.
-3. Open a protected pull request, require repository and Vercel checks, and
-   merge only after Preview approval.
-4. Apply migrations 366, 367, and 368, in order, to the exact core production
-   project as an authorized release step. Confirm the deployed commit, then run
-   the signed-out production smoke sweep. Do not use that smoke sweep as
-   evidence for the undeployed code.
+Protected pull request [#103](https://github.com/roblebaegaming/DraftCenter/pull/103)
+passed security, dependency, full-history secret scan, CodeQL, and Vercel
+checks. The application Preview passed desktop and 390px mobile public-surface
+review, while the retained isolated database matrix covered every sibling
+manager and spectator boundary without using a real league. Migrations
+366-368 were applied in order to the exact core production project. Read-only
+postflight checks confirm the RPCs, RLS policies, grants, metadata-portability
+fix, and first-prediction persistence fix. The exact merged application commit
+is Ready in production and the signed-out smoke sweep passes.
 
 No real league, pod, manager, draft, pick, roster, queue, transaction, message,
 provider setting, secret, or production database record was changed. Preview
