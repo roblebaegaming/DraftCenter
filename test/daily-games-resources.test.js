@@ -121,6 +121,8 @@ test("daily games page has metadata and a sitemap entry", () => {
   assert.match(source("src/app/resources/daily-games/page.js"), /canonical: "\/resources\/daily-games"/);
   assert.match(source("src/app/sitemap.js"), /\["\/resources\/daily-games", "daily", 1\]/);
   assert.match(source("src/app/resources/daily-games/page.js"), /"@type": "FAQPage"/);
+  assert.match(source("src/app/resources/daily-games/page.js"), /When can I join a Daily Games discussion\?/);
+  assert.match(source("src/components/DailyGamesResourcesPage.jsx"), /Sign in and complete that day’s game first/);
 });
 
 test("daily bracket champion rankings are restored as a bounded read-only RPC", () => {

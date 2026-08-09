@@ -3,6 +3,13 @@ import { FORMATS, GUIDES } from "../lib/seoContent";
 import { getAllPokemonProfiles, POKEMON_GENERATIONS, POKEMON_TYPES } from "../lib/publicPokemonIndex";
 import nuzlockeGameGuides from "../lib/nuzlockeGameGuides.json";
 
+const PRODUCT_DISCOVERY_LAST_MODIFIED = new Date("2026-08-09T00:00:00.000Z");
+const productRouteLastModified = new Map([
+  ["/nuzlocke", PRODUCT_DISCOVERY_LAST_MODIFIED],
+  ["/tournaments", PRODUCT_DISCOVERY_LAST_MODIFIED],
+  ["/resources/daily-games", PRODUCT_DISCOVERY_LAST_MODIFIED],
+]);
+
 const routes = [
   ["", "daily", 1],
   ["/explore", "daily", 0.9],
@@ -42,6 +49,7 @@ export default async function sitemap() {
   const [leagues, pokemon] = await Promise.all([getPublicLeagueCards(), pokemonRoutes()]);
   const staticRoutes = routes.map(([path, changeFrequency, priority]) => ({
     url: `https://www.draftcentral.gg${path}`,
+    ...(productRouteLastModified.has(path) ? { lastModified: productRouteLastModified.get(path) } : {}),
     changeFrequency,
     priority,
   }));

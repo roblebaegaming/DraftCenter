@@ -33,6 +33,37 @@ test("resources targets competitive Pokémon resource searches", () => {
   assert.match(resources, /<h1>Competitive Pokémon Resources<\/h1>/);
 });
 
+test("tournament discovery reflects every released event format without indexing workspaces", () => {
+  const page = source("src/app/tournaments/page.js");
+  const directory = source("src/components/TournamentDirectory.jsx");
+  const tournamentWorkspace = source("src/app/tournaments/[slug]/page.js");
+  const organizations = source("src/app/organizations/page.js");
+  const organizationDetail = source("src/app/organizations/[slug]/page.js");
+  const policy = source("docs/public-indexing-policy.md");
+  const sitemap = source("src/app/sitemap.js");
+
+  assert.match(page, /title: "Pokémon Tournament Organizer & Draft Events"/);
+  assert.match(page, /canonical: "\/tournaments"/);
+  assert.match(page, /"@type": "WebPage"/);
+  assert.match(page, /"@type": "BreadcrumbList"/);
+  assert.match(page, /SINGLE_ELIMINATION_MAX_ENTRANTS/);
+  assert.match(page, /DOUBLE_ELIMINATION_MAX_ENTRANTS/);
+  for (const phrase of ["Single elimination", "Double elimination", "Draft Tournament", "Connected championship"]) {
+    assert.match(directory, new RegExp(phrase));
+  }
+  assert.match(directory, /<h1>Pokémon tournament organizer<\/h1>/);
+  assert.match(directory, /Public events appear in the directory for spectators/);
+  assert.match(directory, /href="\/formats"/);
+  assert.match(directory, /href="\/guides\/pokemon-draft-league-rules-template"/);
+  for (const privatePage of [tournamentWorkspace, organizations, organizationDetail]) {
+    assert.match(privatePage, /robots:\s*\{\s*index:\s*false,\s*follow:\s*false\s*\}/);
+  }
+  assert.doesNotMatch(sitemap, /\["\/organizations"/);
+  assert.doesNotMatch(sitemap, /tournaments\/\$\{/);
+  assert.match(policy, /public share link does not automatically make/);
+  assert.match(policy, /authoritative visibility check/);
+});
+
 test("sitemap contains only indexable routes and truthful modification dates", () => {
   const sitemap = source("src/app/sitemap.js");
   assert.doesNotMatch(sitemap, /\["\/support"/);
@@ -42,6 +73,8 @@ test("sitemap contains only indexable routes and truthful modification dates", (
   assert.match(sitemap, /POKEMON_TYPES\.map/);
   assert.match(sitemap, /POKEMON_GENERATIONS\.map/);
   assert.match(sitemap, /\["\/about", "monthly", 0\.7\]/);
+  assert.match(sitemap, /PRODUCT_DISCOVERY_LAST_MODIFIED/);
+  assert.match(sitemap, /productRouteLastModified\.has\(path\)/);
 });
 
 test("the Nuzlocke generator is crawlable, internally linked, and uses current product language", () => {
@@ -260,6 +293,10 @@ test("AI discovery foundation exposes a trustworthy entity and reference index",
   assert.match(footer, /href="\/about"/);
   assert.match(llms, /Content-Type": "text\/plain; charset=utf-8"/);
   assert.match(llms, /Pokémon Draft League Rules Template/);
+  assert.match(llms, /Pokémon tournament organizer/);
+  assert.match(llms, /single elimination for up to 512 entrants/);
+  assert.match(llms, /saved cards are not public pages/);
+  assert.match(llms, /Last reviewed: 2026-08-09/);
   assert.match(llms, /Private queues/);
   assert.match(content, /national-gen\$\{generation\}/);
 });
