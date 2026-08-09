@@ -348,11 +348,15 @@ button { cursor: pointer; }
    distinct places. The mobile tool bar uses five equal slots instead of a
    horizontally scrolling pill. */
 .site-global-header {
-  position: relative;
+  position: sticky;
+  top: 0;
   z-index: 90;
+  padding-top: env(safe-area-inset-top);
   color: #eef1ff;
   border-bottom: 1px solid rgba(255,255,255,.09);
   background: rgba(10,14,31,.98);
+  box-shadow: 0 6px 24px rgba(0,0,0,.28);
+  backdrop-filter: blur(12px);
 }
 .site-global-header-inner {
   display: grid;
@@ -372,6 +376,15 @@ button { cursor: pointer; }
   text-decoration: none;
 }
 .site-brand-link img { width: 34px; height: 34px; object-fit: cover; border-radius: 8px; }
+.site-draft-home {
+  min-height: 44px;
+  padding: 5px 11px 5px 6px;
+  border: 1px solid #46517c;
+  border-radius: 11px;
+  background: #171d36;
+}
+.site-draft-home:hover { color: #ffd23f; border-color: #ffd23f; }
+.site-draft-home:focus-visible { outline: 3px solid #ffd23f; outline-offset: 3px; }
 .site-primary-links,.site-global-account { display: flex; align-items: center; gap: 7px; }
 .site-global-account { justify-content: flex-end; }
 .site-primary-links a,.site-global-account>a,.site-global-account>button,.site-owner-menu>summary {
@@ -427,7 +440,7 @@ button { cursor: pointer; }
 @media (max-width:760px) {
   .site-global-header-inner { grid-template-columns: minmax(0,1fr) auto; gap: 7px 10px; min-height: 0; padding: 8px 12px 9px; }
   .site-brand-link { grid-column: 1; grid-row: 1; min-width: 0; font-size: 14px; }
-  .site-brand-link img { display: none; }
+  .site-draft-home img { display: block; width: 30px; height: 30px; }
   .site-primary-links { grid-column: 1/-1; grid-row: 2; display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 5px; }
   .site-primary-links a { min-height: 32px; padding: 6px; border-color: #283252; background: #13192e; }
   .site-global-account { grid-column: 2; grid-row: 1; min-width: 0; gap: 4px; }
