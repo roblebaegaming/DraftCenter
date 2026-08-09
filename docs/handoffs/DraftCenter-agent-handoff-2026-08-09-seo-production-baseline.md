@@ -4,17 +4,18 @@
 - Repository: `roblebaegaming/DraftCenter`
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified application commit: `9d0c8b6779418d7166f665c502d691fd0c7394af`
+- Verified application commit: `b40717e213d7e71e0ae32cd3226409f082ce780c`
 - Latest production migration: 365
-- Next mission: improve public discovery from measured evidence without making
-  private product surfaces crawlable
+- Next mission: repair exact current crawl defects, then measure the released
+  discovery changes without making private product surfaces crawlable
 
 ## Start here
 
 Read [`../../AGENTS.md`](../../AGENTS.md),
 [`../CURRENT-STATUS.md`](../CURRENT-STATUS.md),
 [`../seo-measurement-2026-08-08.md`](../seo-measurement-2026-08-08.md), and
-[`../pokemon-profile-canonical-policy.md`](../pokemon-profile-canonical-policy.md)
+[`../pokemon-profile-canonical-policy.md`](../pokemon-profile-canonical-policy.md),
+and [`../public-indexing-policy.md`](../public-indexing-policy.md)
 before changing public metadata, canonicals, structured data, sitemap behavior,
 or indexability.
 
@@ -33,11 +34,29 @@ context, but several of its proposed tasks have already shipped.
 | Daily Games and Pokémon Connections | [#97](https://github.com/roblebaegaming/DraftCenter/pull/97) | `9bf383e` | migration 364 |
 | Private Nuzlocke Run Cards | [#98](https://github.com/roblebaegaming/DraftCenter/pull/98) | `e8fc947` | migration 365 |
 | Persistent Draft Home navigation | [#99](https://github.com/roblebaegaming/DraftCenter/pull/99) | `9d0c8b6` | none |
+| SEO product alignment | [#101](https://github.com/roblebaegaming/DraftCenter/pull/101) | `b40717e` | none |
 
 All application releases above are deployed. Vercel reported the exact final
 commit Ready, the signed-out production smoke sweep passed, and focused live
 browser checks passed. Do not describe a Preview, local build, or pull request
 head as the current production baseline.
+
+### SEO alignment release verification
+
+Pull request #101 updated the tournament landing metadata, social metadata,
+WebPage and Breadcrumb JSON-LD, visible H1, server-readable event-format
+guidance, and internal planning links. It also aligned the Daily Games FAQ and
+structured data with completion-gated discussions, refreshed truthful sitemap
+modification dates, updated the public `llms.txt` index, repaired its malformed
+Pokémon label, and added the stable public indexing policy.
+
+All repository checks passed. The exact Vercel Preview passed desktop and 390px
+mobile review for `/tournaments` and `/resources/daily-games`, and Vercel then
+reported exact commit `b40717e` Ready, Production, and Current. The signed-out
+production smoke sweep and focused live metadata, JSON-LD, sitemap, `llms.txt`,
+link, layout, and `noindex` checks passed. No production row, league, draft,
+roster, event, account, provider setting, environment variable, or secret was
+changed.
 
 ### Product changes that affect discovery work
 
@@ -87,8 +106,11 @@ The repository already contains a substantial public-discovery foundation:
   methods, profile links, Article/Breadcrumb JSON-LD, and self-canonicals.
 - Daily Games has current four-game metadata, Open Graph/Twitter metadata, and
   JSON-LD at `/resources/daily-games`.
-- Private My Teams, Trainer Dex, Operations, support, and tournament workspace
-  routes already carry `noindex` metadata where implemented.
+- The tournament landing now describes every released event family with current
+  metadata, JSON-LD, crawlable guidance, and useful internal links.
+- Private My Teams, Trainer Dex, Operations, support, tournament workspace, and
+  organization routes carry explicit `noindex` metadata under the documented
+  policy.
 
 The main regression file is `test/seo-metadata.test.js`. Extend it when changing
 metadata, canonicals, sitemap membership, structured data, internal links, or
@@ -125,25 +147,20 @@ Do not expose these routes, their data, or their identifiers merely to improve
 a crawler score. A page-level `noindex` is not a defect when the content is
 private, account-specific, or intentionally withheld.
 
-### Indexability decisions that are not yet coherent
+### Explicit indexability decisions
 
-1. `/organizations` is `noindex, nofollow`, while `/organizations/[slug]`
-   currently uses generic metadata and has neither an explicit canonical nor
-   an explicit robots policy. Decide which organizations are truly public and
-   stable before adding them to the sitemap or indexing public slugs.
-2. `/tournaments/[slug]` is always `noindex, nofollow`, including potentially
-   public standalone tournaments, connected championships, and Draft
-   Tournaments. Keep private events private. If public event indexing is
-   approved, the application first needs visibility-aware dynamic metadata,
-   stable canonicals, useful server-rendered public content, and sitemap
-   inclusion limited to public events.
-3. The `/tournaments` title and description still describe only the older
-   single-elimination organizer. They should truthfully cover single
-   elimination, double elimination, Draft Tournaments, public viewing, and the
-   current supported limits without presenting private events as public.
-4. Public organization and tournament pages need a clear policy for event
-   names or descriptions that may be user-controlled. Never interpolate
-   unsanitized user content into JSON-LD, metadata, or scripts.
+1. `/organizations` and `/organizations/[slug]` remain `noindex, nofollow` and
+   outside the sitemap until the owner approves a narrower visibility-aware
+   policy.
+2. `/tournaments/[slug]` remains `noindex, nofollow` for standalone events,
+   connected championships, and Draft Tournaments, regardless of application
+   visibility. Public share access is not automatic search-indexing approval.
+3. The public `/tournaments` landing is the indexable product-controlled source
+   for the released event families. It does not place private names, codes,
+   rosters, entrants, or commissioner controls in metadata or structured data.
+4. Any future detail-page indexing requires authoritative visibility checks,
+   stable canonicals, useful server-rendered public content, safe dynamic
+   metadata, and sitemap queries limited to eligible public records.
 
 ## Measured external baseline
 
@@ -203,20 +220,18 @@ handoff.
 4. Fix the smallest shared templates first, then run a new crawl at the same
    5,000-page scope.
 
-### Phase 2 — align discovery with the newly released products
+### Phase 2 — completed product alignment
 
-1. Rewrite `/tournaments` metadata and useful server content to represent
-   single elimination, double elimination, connected championships, and Draft
-   Tournaments accurately.
-2. Make and document the organization/tournament public-indexing decisions
-   above. Do not combine “public” and “indexable” without a visibility check.
-3. Refresh `llms.txt` review date and public index only after confirming every
-   linked destination and current product name. Add no private workspace links.
-4. Review sitemap membership and `lastModified` values after the new product
-   pages stabilize. Segment the sitemap only if Search Console or crawl
-   allocation benefits from content-type reporting.
-5. Audit the persistent header and feature shortcuts as internal-link sources
-   without turning every private tool link into an indexable destination.
+1. `/tournaments` now represents single elimination, double elimination,
+   connected championships, and Draft Tournaments accurately.
+2. The organization and tournament indexing boundaries are documented in the
+   stable public indexing policy and enforced by focused regression tests.
+3. `llms.txt` has a current review date, verified links and product names, and
+   no private workspace links.
+4. The sitemap retains only approved indexable routes and uses truthful August
+   9 modification dates for the changed product landings.
+5. The persistent header and feature shortcuts remain intact; private tools did
+   not become sitemap destinations or indexable pages.
 
 ### Phase 3 — improve catalog selection and depth
 
