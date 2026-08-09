@@ -171,8 +171,8 @@ test("top cut preserves final Swiss rank as seed", () => {
 });
 
 test("migration keeps Draft Tournament state private and server-authoritative", () => {
-  const sql = [361, 362].map((number) => fs.readFileSync(
-    new URL(number === 361
+  const sql = [362, 363].map((number) => fs.readFileSync(
+    new URL(number === 362
       ? "../supabase/362-draft-tournaments.sql"
       : "../supabase/363-draft-tournament-swiss-and-top-cut.sql", import.meta.url),
     "utf8",
@@ -189,6 +189,9 @@ test("migration keeps Draft Tournament state private and server-authoritative", 
   }
   assert.match(sql, /revoke all on[\s\S]*draft_tournament_events[\s\S]*from public, anon, authenticated/i);
   assert.match(sql, /claimedByUserId/i);
+  assert.match(sql, /'name', left\(entrant\.display_name, 80\)[^\n]+seat\.initial_seed/i);
+  assert.equal((sql.match(/ · Seed /g) || []).length, 2);
+  assert.equal((sql.match(/on delete no action deferrable initially deferred/g) || []).length, 5);
   assert.match(sql, /for update/i);
   assert.match(sql, /expected_revision/i);
   assert.match(sql, /v_event\.revision <> p_expected_revision/i);
@@ -198,7 +201,9 @@ test("migration keeps Draft Tournament state private and server-authoritative", 
   assert.match(sql, /later Swiss round has started/i);
   assert.match(sql, /bracket_stage[^;]+top-cut/is);
   assert.match(sql, /cleanup_draft_tournament_league/i);
+  assert.match(sql, /delete from public\.roster_entries entry[\s\S]+delete from public\.draft_picks pick[\s\S]+delete from public\.transaction_items item/i);
   assert.match(sql, /cancel_draft_tournament/i);
+  assert.match(sql, /format = 'draft-tournament' and entrant_limit between 4 and 16/i);
   assert.doesNotMatch(sql, /grant (insert|update|delete|all)[^;]+to authenticated/i);
 });
 
@@ -219,6 +224,8 @@ test("isolated Preview matrix covers the shared draft, Swiss correction, top cut
   assert.match(matrix, /make_snake_pick/);
   assert.match(matrix, /later Swiss round has started/);
   assert.match(matrix, /delete from public\.tournaments/);
+  assert.match(matrix, /insert into public\.profiles/);
+  assert.match(matrix, /dc-draft-tournament-preview-/);
 });
 
 test("Tournament UI exposes the Draft Tournament lifecycle without leaking its internal league into the dashboard", () => {

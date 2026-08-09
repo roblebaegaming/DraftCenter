@@ -14,6 +14,15 @@ alter table public.tournaments
   add constraint tournaments_format_check
   check (format in ('single-elimination', 'double-elimination', 'draft-tournament'));
 
+alter table public.tournaments
+  drop constraint if exists tournaments_entrant_limit_check;
+alter table public.tournaments
+  add constraint tournaments_entrant_limit_check check (
+    (format = 'single-elimination' and entrant_limit between 2 and 512)
+    or (format = 'double-elimination' and entrant_limit between 4 and 256)
+    or (format = 'draft-tournament' and entrant_limit between 4 and 16)
+  );
+
 alter table public.tournament_entrants
   add column if not exists checked_in_at timestamptz;
 alter table public.tournament_entrants
@@ -91,7 +100,8 @@ create table public.draft_tournament_seats (
   foreign key (event_id, tournament_id)
     references public.draft_tournament_events(id, tournament_id) on delete cascade,
   foreign key (entrant_id, tournament_id)
-    references public.tournament_entrants(id, tournament_id) on delete restrict
+    references public.tournament_entrants(id, tournament_id)
+    on delete no action deferrable initially deferred
 );
 
 create table public.draft_tournament_rounds (
@@ -129,9 +139,11 @@ create table public.draft_tournament_pairings (
   foreign key (tournament_match_id, tournament_id)
     references public.tournament_matches(id, tournament_id) on delete cascade,
   foreign key (entrant_a_id, tournament_id)
-    references public.tournament_entrants(id, tournament_id) on delete restrict,
+    references public.tournament_entrants(id, tournament_id)
+    on delete no action deferrable initially deferred,
   foreign key (entrant_b_id, tournament_id)
-    references public.tournament_entrants(id, tournament_id) on delete restrict
+    references public.tournament_entrants(id, tournament_id)
+    on delete no action deferrable initially deferred
 );
 
 create table public.draft_tournament_standing_snapshots (
@@ -156,7 +168,8 @@ create table public.draft_tournament_standing_snapshots (
   foreign key (round_id, event_id, tournament_id)
     references public.draft_tournament_rounds(id, event_id, tournament_id) on delete cascade,
   foreign key (entrant_id, tournament_id)
-    references public.tournament_entrants(id, tournament_id) on delete restrict
+    references public.tournament_entrants(id, tournament_id)
+    on delete no action deferrable initially deferred
 );
 
 create table public.draft_tournament_top_cut_entries (
@@ -170,7 +183,8 @@ create table public.draft_tournament_top_cut_entries (
   foreign key (event_id, tournament_id)
     references public.draft_tournament_events(id, tournament_id) on delete cascade,
   foreign key (entrant_id, tournament_id)
-    references public.tournament_entrants(id, tournament_id) on delete restrict
+    references public.tournament_entrants(id, tournament_id)
+    on delete no action deferrable initially deferred
 );
 
 create index draft_tournament_events_phase_idx
@@ -513,7 +527,7 @@ begin
 
   select jsonb_agg(jsonb_build_object(
     'id', seat.team_key,
-    'name', entrant.display_name,
+    'name', left(entrant.display_name, 80) || ' · Seed ' || seat.initial_seed,
     'claimedBy', entrant.display_name,
     'claimedByUserId', seat.user_id::text,
     'description', 'Draft Tournament seed ' || seat.initial_seed
@@ -690,7 +704,8 @@ begin
          and seat.initial_seed is not null
          and (
            coalesce(new.state #>> array['teams', seat.team_key::text, 'id'], '') <> seat.team_key::text
-           or coalesce(new.state #>> array['teams', seat.team_key::text, 'name'], '') <> entrant.display_name
+           or coalesce(new.state #>> array['teams', seat.team_key::text, 'name'], '')
+             <> left(entrant.display_name, 80) || ' · Seed ' || seat.initial_seed
            or coalesce(new.state #>> array['teams', seat.team_key::text, 'claimedByUserId'], '') <> seat.user_id::text
          )
      ) then
@@ -968,6 +983,22 @@ set search_path = public
 as $$
 begin
   if old.draft_league_id is not null then
+    delete from public.roster_entries entry
+    using public.teams team
+    where entry.team_id = team.id
+      and team.league_id = old.draft_league_id;
+    delete from public.draft_picks pick
+    where pick.league_pokemon_id in (
+      select league_pokemon.id
+      from public.league_pokemon
+      where league_id = old.draft_league_id
+    );
+    delete from public.transaction_items item
+    where item.league_pokemon_id in (
+      select league_pokemon.id
+      from public.league_pokemon
+      where league_id = old.draft_league_id
+    );
     delete from public.leagues
     where id = old.draft_league_id
       and workspace_kind = 'draft-tournament';

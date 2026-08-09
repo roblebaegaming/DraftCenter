@@ -94,11 +94,12 @@ any later report, confirmation, or forfeit exists, the correction fails
 closed. A timed-out mutation is never replayed automatically: the client
 refreshes authoritative state and requires a new explicit action.
 
-## Local implementation status
+## Release-candidate status
 
-The application and forward-only migrations are implemented locally on the
-Draft Tournament feature branch. They have not been staged, committed,
-pushed, applied to Preview or production, merged, or deployed.
+The application and forward-only migrations are implemented on the Draft
+Tournament feature branch. Migrations 362 and 363 have been applied only to
+the disposable `release-wave-2026-08-09` Supabase Preview branch. They have
+not been pushed, applied to production, merged, or deployed.
 
 - Migration 362: event/seat model, check-in, hidden draft-room adapter, exact
   ownership, privacy, mutation guards, bounded projection, and cleanup.
@@ -113,9 +114,14 @@ pushed, applied to Preview or production, merged, or deployed.
   ownership, shared draft, dual roster lock, Swiss correction boundaries, top
   cut, public projection, cancellation, exact cleanup, RLS, and grants.
 
-Local focused tests and the production build pass. The database transaction
-matrix still requires an isolated Supabase Preview after the migrations are
-available there. Release also requires the repository-wide checks, Preview
-desktop/mobile and multi-account review, protected pull-request review,
-authorized migration/deployment, exact deployed-commit confirmation, and the
-post-deployment signed-out production smoke sweep.
+The focused Draft Tournament tests pass. The isolated Preview transaction
+matrix passes all 12 release assertions, including exact identity, shared
+draft ownership, roster and field locks, Swiss correction rollback, top cut,
+public projection, cancellation, RLS, grants, and complete cleanup. Signed-in
+desktop and 390-by-844 mobile Preview reviews also pass, and their disposable
+tournament and account fixtures were removed and verified.
+
+Release still requires the repository-wide checks, protected pull-request
+review, authorized production migrations in numeric order, exact deployed-
+commit confirmation, and the post-deployment signed-out production smoke
+sweep.

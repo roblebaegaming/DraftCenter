@@ -140,9 +140,11 @@ begin
   insert into auth.users(id, aud, role)
   select identity, 'authenticated', 'authenticated'
   from unnest(array[v_owner] || v_players) identity;
-  update public.profiles
-  set display_name = 'Shared synthetic identity'
-  where id = any(array[v_owner] || v_players);
+  insert into public.profiles(id, display_name)
+  select identity, 'Shared synthetic identity'
+  from unnest(array[v_owner] || v_players) identity
+  on conflict (id) do update
+  set display_name = excluded.display_name;
 
   perform pg_temp.dc_auth(v_owner);
   select public.create_draft_tournament(
@@ -212,6 +214,19 @@ begin
     raise exception 'Field locking did not create four exact private draft seats.';
   end if;
 
+  insert into public.pokemon_catalogue(
+    id, display_name, primary_type, secondary_type, base_stat_total, sprite_url
+  )
+  select
+    format('dc-draft-tournament-preview-%s', seed_number),
+    format('Preview Pokemon %s', seed_number),
+    'Normal',
+    null,
+    300,
+    null
+  from generate_series(1, 20) seed_number
+  on conflict (id) do nothing;
+
   select coalesce(jsonb_agg(jsonb_build_object(
     'id', pokemon.id,
     'name', pokemon.display_name,
@@ -223,7 +238,12 @@ begin
   ) order by pokemon.id), '[]'::jsonb)
   into v_pokemon
   from (
-    select * from public.pokemon_catalogue order by id limit 20
+    select * from public.pokemon_catalogue
+    where id in (
+      select format('dc-draft-tournament-preview-%s', seed_number)
+      from generate_series(1, 20) seed_number
+    )
+    order by id
   ) pokemon;
   if jsonb_array_length(v_pokemon) < 16 then
     raise exception 'The Preview baseline does not contain enough Pokemon for the draft matrix.';
@@ -549,6 +569,11 @@ begin
 
   delete from public.tournaments
   where id in (v_tournament_id, v_cancel_tournament_id);
+  delete from public.pokemon_catalogue
+  where id in (
+    select format('dc-draft-tournament-preview-%s', seed_number)
+    from generate_series(1, 20) seed_number
+  );
   delete from auth.users
   where id = any(array[v_owner] || v_players);
   select
@@ -567,6 +592,13 @@ begin
     and not exists (
       select 1 from auth.users
       where id = any(array[v_owner] || v_players)
+    )
+    and not exists (
+      select 1 from public.pokemon_catalogue
+      where id in (
+        select format('dc-draft-tournament-preview-%s', seed_number)
+        from generate_series(1, 20) seed_number
+      )
     )
   into v_cleanup_ok;
   if v_cleanup_ok is distinct from true then
