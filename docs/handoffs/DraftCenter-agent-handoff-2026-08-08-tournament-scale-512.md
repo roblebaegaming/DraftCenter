@@ -1,12 +1,13 @@
 # DraftCenter handoff — standalone Tournament scale milestone
 
-Date: August 8, 2026
+Date: August 9, 2026
 
 ## Outcome
 
 Branch `codex/tournament-scale-512-2026-08-08` contains the first standalone
-Tournament scale milestone. It is based on `origin/main` at `21488ba` and is
-not committed, pushed, merged, migrated, previewed, or deployed.
+Tournament scale milestone. It is rebased onto the authoritative `origin/main`
+baseline at `1c1afac` and committed locally. It is not yet pushed, merged,
+migrated, previewed, or deployed.
 
 The intended post-migration limits are:
 
