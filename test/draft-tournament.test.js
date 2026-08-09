@@ -1,0 +1,244 @@
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import test from "node:test";
+import {
+  DRAFT_TOURNAMENT_FORMAT,
+  draftTournamentCheckInArguments,
+  draftTournamentCreateRpcArguments,
+  draftTournamentRevisionArguments,
+  draftTournamentTopCutSeeds,
+  normalizeDraftTournamentSettings,
+  pairDraftTournamentSwissRound,
+  rankDraftTournamentStandings,
+} from "../src/lib/draftTournament.js";
+
+test("Draft Tournament creation settings are bounded for the first release", () => {
+  assert.equal(DRAFT_TOURNAMENT_FORMAT, "draft-tournament");
+  assert.deepEqual(normalizeDraftTournamentSettings({ name: "  Saturday Draft  " }), {
+    name: "Saturday Draft",
+    description: "",
+    visibility: "public",
+    bestOf: 3,
+    entrantLimit: 16,
+    rosterSize: 6,
+    pickTimeLimitMinutes: 5,
+    topCutSize: 0,
+    snakeBudgetEnabled: false,
+    draftBudget: null,
+    publishRosters: false,
+    rules: "",
+  });
+  assert.throws(() => normalizeDraftTournamentSettings({ name: "Cup", entrantLimit: 3 }), /between 4 and 16/);
+  assert.throws(() => normalizeDraftTournamentSettings({ name: "Cup", rosterSize: 13 }), /between 4 and 12/);
+  assert.throws(() => normalizeDraftTournamentSettings({ name: "Cup", topCutSize: 6 }), /2, 4, or 8/);
+  assert.throws(() => normalizeDraftTournamentSettings({ name: "Cup", bestOf: 2 }), /best of 1 or best of 3/);
+});
+
+test("private events never request public roster publication", () => {
+  const args = draftTournamentCreateRpcArguments({
+    name: "Private Draft",
+    visibility: "private",
+    publishRosters: true,
+    entrantLimit: 8,
+    rosterSize: 6,
+    pickTimeLimitMinutes: 15,
+    topCutSize: 4,
+    snakeBudgetEnabled: true,
+    draftBudget: 120,
+  });
+  assert.deepEqual(args, {
+    p_name: "Private Draft",
+    p_description: "",
+    p_visibility: "private",
+    p_best_of: 3,
+    p_entrant_limit: 8,
+    p_rules: "",
+    p_roster_size: 6,
+    p_pick_time_limit_minutes: 15,
+    p_top_cut_size: 4,
+    p_snake_budget_enabled: true,
+    p_draft_budget: 120,
+    p_publish_rosters: false,
+  });
+});
+
+test("mutation arguments preserve explicit revisions and check-in intent", () => {
+  assert.deepEqual(draftTournamentRevisionArguments("tournament-id", 7), {
+    p_tournament_id: "tournament-id",
+    p_expected_revision: 7,
+  });
+  assert.deepEqual(draftTournamentCheckInArguments("tournament-id", false), {
+    p_tournament_id: "tournament-id",
+    p_checked_in: false,
+  });
+  assert.throws(() => draftTournamentRevisionArguments("tournament-id", -1), /Revision/);
+});
+
+test("standings count a bye as a match win without adding game or opponent percentages", () => {
+  const standings = rankDraftTournamentStandings({
+    entrants: [
+      { id: "a", displayName: "Alpha", initialSeed: 1, status: "active" },
+      { id: "b", displayName: "Beta", initialSeed: 2, status: "active" },
+      { id: "c", displayName: "Gamma", initialSeed: 3, status: "active" },
+    ],
+    matches: [
+      { status: "complete", entrant_a_id: "a", entrant_b_id: "b", winner_id: "a", loser_id: "b", games_a: 2, games_b: 1 },
+      { status: "bye", entrant_a_id: "c", entrant_b_id: null, winner_id: "c", loser_id: null },
+    ],
+  });
+  const gamma = standings.find((row) => row.entrantId === "c");
+  assert.equal(gamma.matchWins, 1);
+  assert.equal(gamma.byeCount, 1);
+  assert.equal(gamma.gameWins, 0);
+  assert.equal(gamma.opponents.length, 0);
+});
+
+test("head-to-head applies only to an exact two-way match-win tie", () => {
+  const entrants = [
+    { id: "a", initialSeed: 3, status: "active" },
+    { id: "b", initialSeed: 1, status: "active" },
+    { id: "c", initialSeed: 2, status: "active" },
+    { id: "d", initialSeed: 4, status: "active" },
+  ];
+  const matches = [
+    { status: "complete", entrant_a_id: "a", entrant_b_id: "b", winner_id: "a", loser_id: "b", games_a: 2, games_b: 1 },
+    { status: "complete", entrant_a_id: "c", entrant_b_id: "d", winner_id: "c", loser_id: "d", games_a: 2, games_b: 0 },
+    { status: "complete", entrant_a_id: "a", entrant_b_id: "c", winner_id: "c", loser_id: "a", games_a: 0, games_b: 2 },
+    { status: "complete", entrant_a_id: "b", entrant_b_id: "d", winner_id: "b", loser_id: "d", games_a: 2, games_b: 0 },
+  ];
+  const standings = rankDraftTournamentStandings({ entrants, matches });
+  assert.deepEqual(standings.slice(0, 2).map((row) => row.entrantId), ["c", "a"]);
+  assert.equal(standings.find((row) => row.entrantId === "a").headToHead, 1);
+  assert.equal(standings.find((row) => row.entrantId === "b").headToHead, 0);
+  assert.equal(standings.find((row) => row.entrantId === "c").headToHead, 0.5);
+});
+
+test("Swiss pairing avoids rematches through backtracking and gives the lowest eligible entrant the bye", () => {
+  const standings = [
+    { entrantId: "a", rank: 1, status: "active" },
+    { entrantId: "b", rank: 2, status: "active" },
+    { entrantId: "c", rank: 3, status: "active" },
+    { entrantId: "d", rank: 4, status: "active" },
+    { entrantId: "e", rank: 5, status: "active" },
+  ];
+  const priorMatches = [
+    { status: "complete", entrant_a_id: "a", entrant_b_id: "b", winner_id: "a", loser_id: "b" },
+    { status: "complete", entrant_a_id: "c", entrant_b_id: "d", winner_id: "c", loser_id: "d" },
+    { status: "bye", entrant_a_id: "e", entrant_b_id: null, winner_id: "e", loser_id: null },
+  ];
+  const round = pairDraftTournamentSwissRound({ standings, priorMatches });
+  assert.equal(round.bye.entrantId, "d");
+  assert.equal(round.pairings.every((pairing) => pairing.isRematch === false), true);
+  assert.deepEqual(new Set(round.pairings.flatMap((pairing) => [pairing.entrantAId, pairing.entrantBId, round.bye.entrantId])).size, 5);
+});
+
+test("Swiss pairing minimizes rematches before keeping entrants in the closest score group", () => {
+  const standings = [
+    { entrantId: "a", rank: 1, matchWins: 2, status: "active" },
+    { entrantId: "b", rank: 2, matchWins: 2, status: "active" },
+    { entrantId: "c", rank: 3, matchWins: 1, status: "active" },
+    { entrantId: "d", rank: 4, matchWins: 1, status: "active" },
+    { entrantId: "e", rank: 5, matchWins: 0, status: "active" },
+    { entrantId: "f", rank: 6, matchWins: 0, status: "active" },
+  ];
+  const priorMatches = [
+    { status: "complete", entrant_a_id: "a", entrant_b_id: "b", winner_id: "a", loser_id: "b" },
+    { status: "complete", entrant_a_id: "c", entrant_b_id: "d", winner_id: "c", loser_id: "d" },
+  ];
+  const round = pairDraftTournamentSwissRound({ standings, priorMatches });
+  assert.equal(round.pairings.every((pairing) => pairing.isRematch === false), true);
+  assert.deepEqual(round.pairings.map((pairing) => [pairing.entrantAId, pairing.entrantBId]), [
+    ["a", "c"],
+    ["b", "d"],
+    ["e", "f"],
+  ]);
+});
+
+test("top cut preserves final Swiss rank as seed", () => {
+  const seeds = draftTournamentTopCutSeeds([
+    { entrantId: "winner", status: "active" },
+    { entrantId: "second", status: "active" },
+    { entrantId: "dropped", status: "dropped" },
+    { entrantId: "third", status: "active" },
+    { entrantId: "fourth", status: "active" },
+  ], 4);
+  assert.deepEqual(seeds, [
+    { seed: 1, entrantId: "winner" },
+    { seed: 2, entrantId: "second" },
+    { seed: 3, entrantId: "third" },
+    { seed: 4, entrantId: "fourth" },
+  ]);
+});
+
+test("migration keeps Draft Tournament state private and server-authoritative", () => {
+  const sql = [362, 363].map((number) => fs.readFileSync(
+    new URL(number === 362
+      ? "../supabase/362-draft-tournaments.sql"
+      : "../supabase/363-draft-tournament-swiss-and-top-cut.sql", import.meta.url),
+    "utf8",
+  )).join("\n");
+  for (const table of [
+    "draft_tournament_events",
+    "draft_tournament_seats",
+    "draft_tournament_rounds",
+    "draft_tournament_pairings",
+    "draft_tournament_standing_snapshots",
+    "draft_tournament_top_cut_entries",
+  ]) {
+    assert.ok(sql.includes(`alter table public.${table} enable row level security;`));
+  }
+  assert.match(sql, /revoke all on[\s\S]*draft_tournament_events[\s\S]*from public, anon, authenticated/i);
+  assert.match(sql, /claimedByUserId/i);
+  assert.match(sql, /'name', left\(entrant\.display_name, 80\)[^\n]+seat\.initial_seed/i);
+  assert.equal((sql.match(/ · Seed /g) || []).length, 2);
+  assert.equal((sql.match(/on delete no action deferrable initially deferred/g) || []).length, 5);
+  assert.match(sql, /for update/i);
+  assert.match(sql, /expected_revision/i);
+  assert.match(sql, /v_event\.revision <> p_expected_revision/i);
+  assert.match(sql, /roster_locked_at/i);
+  assert.match(sql, /draft_tournament_find_swiss_pairs/i);
+  assert.match(sql, /p_rematches_left/i);
+  assert.match(sql, /later Swiss round has started/i);
+  assert.match(sql, /bracket_stage[^;]+top-cut/is);
+  assert.match(sql, /cleanup_draft_tournament_league/i);
+  assert.match(sql, /delete from public\.roster_entries entry[\s\S]+delete from public\.draft_picks pick[\s\S]+delete from public\.transaction_items item/i);
+  assert.match(sql, /cancel_draft_tournament/i);
+  assert.match(sql, /format = 'draft-tournament' and entrant_limit between 4 and 16/i);
+  assert.doesNotMatch(sql, /grant (insert|update|delete|all)[^;]+to authenticated/i);
+});
+
+test("isolated Preview matrix covers the shared draft, Swiss correction, top cut, cancellation, and cleanup", () => {
+  const matrix = fs.readFileSync(
+    new URL("../supabase/tests/363-draft-tournament-preview-regression.sql", import.meta.url),
+    "utf8",
+  );
+  for (const evidence of [
+    "exact_identity",
+    "roster_lock",
+    "correction_rollback",
+    "public_projection",
+    "cancellation",
+    "cleanup",
+  ]) assert.match(matrix, new RegExp(`'${evidence}'`));
+  assert.match(matrix, /provision_live_snake_draft_v2/);
+  assert.match(matrix, /make_snake_pick/);
+  assert.match(matrix, /later Swiss round has started/);
+  assert.match(matrix, /delete from public\.tournaments/);
+  assert.match(matrix, /insert into public\.profiles/);
+  assert.match(matrix, /dc-draft-tournament-preview-/);
+});
+
+test("Tournament UI exposes the Draft Tournament lifecycle without leaking its internal league into the dashboard", () => {
+  const directory = fs.readFileSync(new URL("../src/components/TournamentDirectory.jsx", import.meta.url), "utf8");
+  const workspace = fs.readFileSync(new URL("../src/components/TournamentWorkspace.jsx", import.meta.url), "utf8");
+  const draftRoom = fs.readFileSync(new URL("../src/components/PokemonDraftLeague.jsx", import.meta.url), "utf8");
+  const leagueHub = fs.readFileSync(new URL("../src/components/LeagueHub.jsx", import.meta.url), "utf8");
+  assert.match(directory, /option value="draft-tournament"/);
+  assert.match(workspace, /Open check-in/);
+  assert.match(workspace, /Lock rosters & pair Swiss Round 1/);
+  assert.match(workspace, /cancel_draft_tournament/);
+  assert.match(workspace, /opponent_match_win_percentage/);
+  assert.match(draftRoom, /DRAFT TOURNAMENT ROOM/);
+  assert.match(draftRoom, /isDraftTournamentMode \? \[/);
+  assert.match(leagueHub, /workspace_kind !== "draft-tournament"/);
+});

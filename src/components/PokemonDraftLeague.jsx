@@ -5345,6 +5345,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   // just has one league's worth of options to choose from for now.
   const [activeTeamIdx, setActiveTeamIdx] = useState(null);
   const [state, setState] = useState(freshState());
+  const isDraftTournamentMode = state.eventMode === "draft-tournament";
   const [privateQueueLoadedTeamIdx, setPrivateQueueLoadedTeamIdx] = useState(null);
   const [synced, setSynced] = useState(false);
   const [saveStatus, setSaveStatus] = useState(leagueId ? "loading" : "local");
@@ -9503,6 +9504,10 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   useEffect(() => {
     if (isSpectator && tab === "messages") setTab("home");
   }, [isSpectator, tab]);
+  useEffect(() => {
+    if (!synced || !isDraftTournamentMode || ["setup", "draft", "myteam"].includes(tab)) return;
+    setTab(state.locked ? "draft" : displayIsCommissioner ? "setup" : "draft");
+  }, [synced, isDraftTournamentMode, tab, state.locked, displayIsCommissioner]);
 
   // Nav badges: unread board posts now live on the League tab (since the
   // board moved there), unread DMs stay on Messages, and pending trade
@@ -9579,7 +9584,11 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
             {saveStatus === "saving" ? "SAVING..." : saveStatus === "error" ? "SAVE FAILED — RETRY" : "SAVED"}
           </button>}
           <nav className="flex flex-wrap gap-1 justify-end">
-            {[
+            {(isDraftTournamentMode ? [
+              ...(displayIsCommissioner ? [["setup", "Setup"]] : []),
+              ["draft", state.locked ? "Draft" : "Draft Room"],
+              ["myteam", displayIsSpectator ? "Rosters" : myTeamIdx >= 0 ? "My Roster" : "Rosters"],
+            ] : [
               ["home", `${league?.name || "League"} Home`],
               ...(displayIsCommissioner ? [["setup", "Setup"]] : displayRole === "manager" ? [["setup", "League Details"]] : []),
               // Pre-lock, there's no live draft yet — just one coming up —
@@ -9598,7 +9607,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
               ...(state.locked ? [["league", "League"]] : []),
               ...(displayIsSpectator && state.locked ? [["predictions", "Predictions"]] : []),
               ...(!displayIsSpectator ? [["messages", "Messages"]] : []),
-            ].map(([key, label]) => {
+            ]).map(([key, label]) => {
               // Pulses on League itself once the draft's underway and it's
               // your turn — the tab holding the actual Draft sub-tab now,
               // rather than a separate top-level Draft tab to pulse on.
@@ -9627,7 +9636,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
                 </button>
               );
             })}
-            {displayIsCommissioner && leagueId && (
+            {displayIsCommissioner && leagueId && !isDraftTournamentMode && (
               <>
               <a href="/manuals/commissioner"
                   className="px-4 py-2 rounded text-sm font-semibold"
@@ -9657,7 +9666,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
             )}
           </nav>
         </div>
-        {isCommissioner && leagueId && (
+        {isCommissioner && leagueId && !isDraftTournamentMode && (
           <div className="max-w-6xl mx-auto px-6 pb-3 flex items-center justify-end gap-2 flex-wrap">
             <span className="mono-font text-[10px]" style={{ color: "#9A9FBD" }}>VIEW AS</span>
             {[["commissioner", "Commissioner"], ["manager", "Manager"], ["spectator", "Spectator"]].map(([role, label]) => (
@@ -9693,7 +9702,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
 
       <div className="max-w-6xl mx-auto px-6 py-8">
         {liveDraftError && <div className="mb-4 rounded p-3 text-sm" style={{ background: "#2A1620", color: "#FFD6D6", border: "1px solid #F0555A66" }}>{liveDraftError}</div>}
-        {tab === "home" && (
+        {tab === "home" && !isDraftTournamentMode && (
           <HomeView state={state} leagueId={leagueId} leagueName={league?.name} isCommissioner={displayIsCommissioner} isSpectator={displayIsSpectator} myTeamIdx={myTeamIdx} standings={standings}
             isMyTurn={isMyTurn} pendingTrades={pendingTradesForMe} unreadDirectMessages={unreadDirectCount} unreadBoardMessages={unreadBoardCount}
             onGetStarted={() => state.locked ? (setTab("league"), setLeagueSubTab("draft")) : displayIsSpectator ? setTab("myteam") : setTab("setup")}
@@ -9720,7 +9729,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
             updateHomepage={updateHomepage} addExpansionTeam={addExpansionTeam} removeSpecificTeam={removeSpecificTeam}
             exportLeagueBackup={exportLeagueBackup} exportRecoveryBackup={exportRecoveryBackup} importLeagueBackup={importLeagueBackup}
             addCoCommissioner={addCoCommissioner} removeCoCommissioner={removeCoCommissioner}
-            onOpenLeagueTools={onOpenLeagueTools} copyLeagueInvite={copyLeagueInvite}
+            onOpenLeagueTools={onOpenLeagueTools} copyLeagueInvite={isDraftTournamentMode ? null : copyLeagueInvite}
             onOpenBroadcast={() => {
               setTab("home");
               window.setTimeout(() => document.getElementById("league-broadcast-center")?.scrollIntoView({ behavior: "smooth", block: "start" }), 0);
@@ -9729,6 +9738,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
             teamResizeMessage={teamResizeMessage}
             scheduledStartStatus={scheduledStartStatus}
             retryScheduledStart={() => prepareScheduledSnakeDraft(state, { force: true })}
+            eventMode={isDraftTournamentMode}
           />
         )}
         {tab === "setup" && displayRole === "manager" && (
@@ -9749,6 +9759,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
             postToBoard={postToBoard} markBoardRead={markBoardRead} canPostChat={!displayIsSpectator && !previewReadOnly}
             scheduledStartStatus={scheduledStartStatus}
             retryScheduledStart={() => prepareScheduledSnakeDraft(state, { force: true })}
+            eventMode={isDraftTournamentMode}
           />
         )}
         {tab === "myteam" && (
@@ -11333,7 +11344,7 @@ function ScheduledStartNotice({ status, scheduledAt, draftType, isCommissioner =
   );
 }
 
-function SetupView({ state, leagueId = null, leagueName = "league", isCommissioner, canBeCommissioner, claimCommissioner, unclaimCommissioner, claimTeam, renameTeam, myName, updateSettings, resizeTeams, rerollAllTeamIdentities, costFor, toggleBanMon, toggleAllowExtraMon, rebuildCurrentSeason, addCustomMon, removeCustomMon, setSpriteOverride, setTeamLogo, onStart, addDivision, renameDivision, removeDivision, setTeamDivision, finalizeManualDraft, finalizeSeason, startNewSeason, updateHomepage, addExpansionTeam, removeSpecificTeam, exportLeagueBackup, exportRecoveryBackup, importLeagueBackup, addCoCommissioner, removeCoCommissioner, onOpenLeagueTools, onOpenBroadcast, copyLeagueInvite, saveNow, saveStatus, draftError = "", teamResizeMessage = "", scheduledStartStatus = null, retryScheduledStart = null }) {
+function SetupView({ state, leagueId = null, leagueName = "league", isCommissioner, canBeCommissioner, claimCommissioner, unclaimCommissioner, claimTeam, renameTeam, myName, updateSettings, resizeTeams, rerollAllTeamIdentities, costFor, toggleBanMon, toggleAllowExtraMon, rebuildCurrentSeason, addCustomMon, removeCustomMon, setSpriteOverride, setTeamLogo, onStart, addDivision, renameDivision, removeDivision, setTeamDivision, finalizeManualDraft, finalizeSeason, startNewSeason, updateHomepage, addExpansionTeam, removeSpecificTeam, exportLeagueBackup, exportRecoveryBackup, importLeagueBackup, addCoCommissioner, removeCoCommissioner, onOpenLeagueTools, onOpenBroadcast, copyLeagueInvite, saveNow, saveStatus, draftError = "", teamResizeMessage = "", scheduledStartStatus = null, retryScheduledStart = null, eventMode = false }) {
   // A league may have been created before newer Setup options existed. Keep
   // this screen usable even if one of those older saved values is missing or
   // malformed; the next normal save will preserve the corrected shape.
@@ -11447,6 +11458,13 @@ function SetupView({ state, leagueId = null, leagueName = "league", isCommission
 
   return (
     <div>
+      {eventMode && (
+        <section className="rounded-lg p-5 mb-6" style={{ background: "#162238", border: "1px solid #4FD1C577" }}>
+          <span className="eyebrow">DRAFT TOURNAMENT ROOM</span>
+          <h2 className="display-font text-2xl" style={{ color: "#4FD1C5" }}>Event-scoped setup</h2>
+          <p className="text-sm" style={{ color: "#BDF7EE" }}>Entrants, team ownership, snake format, roster size, and transaction rules are fixed by the event. Configure the legal Pokemon pool and prices here, then start the shared draft when everyone is ready.</p>
+        </section>
+      )}
       {isCommissioner && (
         <section className="rounded-lg p-5 mb-6 flex items-center justify-between gap-4 flex-wrap" style={{ background: "#102B2B", border: "1px solid #4FD1C577" }}>
           <div className="flex-1 min-w-[260px]">
@@ -11464,7 +11482,7 @@ function SetupView({ state, leagueId = null, leagueName = "league", isCommission
         </section>
       )}
       {isCommissioner && <CommissionerLaunchChecklist leagueId={leagueId} state={{ ...state, settings, teams }} availablePool={availablePool} readinessIssues={readinessIssues} />}
-      {isCommissioner && locked && (
+      {isCommissioner && locked && !eventMode && (
         <section className="rounded-lg p-5 mb-6" style={{ background: hasDraftSelections ? "#261822" : "#102B2B", border: `1px solid ${hasDraftSelections ? "#F0555A55" : "#4FD1C577"}` }}>
           <h2 className="display-font text-2xl mb-2" style={{ color: hasDraftSelections ? "#FF9AA7" : "#4FD1C5" }}>{hasStaleRosterCarryover ? "CARRIED-OVER ROSTERS DETECTED" : hasDraftSelections ? "EDIT MODE — ACTIVE SEASON SAFETY" : "NEED A LAST-MINUTE SETUP CHANGE?"}</h2>
           {hasStaleRosterCarryover ? (
@@ -11482,7 +11500,7 @@ function SetupView({ state, leagueId = null, leagueName = "league", isCommission
           )}
         </section>
       )}
-      <section style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }} className="rounded-lg p-5 mb-6">
+      {!eventMode && <section style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }} className="rounded-lg p-5 mb-6">
         <h2 className="display-font text-2xl mb-2" style={{ color: "#FFD23F" }}>DRAFT DATE & MANAGER INVITES</h2>
         <p className="text-sm mb-4" style={{ color: "#9A9FBD" }}>{draftHasStarted ? "The draft has already started, so its one-time appointment is complete. Use League Clock below to edit recurring match and transaction times." : settings.draftScheduledAt ? `Currently scheduled for ${new Date(settings.draftScheduledAt).toLocaleString()}. You can change it below until the draft actually starts.` : "No draft time has been scheduled yet."}</p>
         {isCommissioner && <div className="flex items-end gap-3 flex-wrap">{!draftHasStarted && <label className="text-xs" style={{ color: "#9A9FBD" }}>Official draft start date and time<input type="datetime-local" value={dateTimeLocalValue(settings.draftScheduledAt)} onChange={(event) => updateSettings({ draftScheduledAt: event.target.value ? new Date(event.target.value).toISOString() : null })} className="block mt-1 px-3 py-2 rounded mono-font text-sm" style={{ background: "#1F2338", border: "1px solid rgba(255,255,255,0.1)", color: "#EDEBFA" }} /></label>}{leagueId && copyLeagueInvite && <><button type="button" onClick={async () => { const result = await copyLeagueInvite("manager"); setInviteMessage(result.error || "Manager invite link copied."); }} className="px-4 py-2 rounded font-semibold text-sm" style={{ background: "#4FD1C5", color: "#10121C" }}>COPY MANAGER INVITE</button><button type="button" onClick={async () => { const result = await copyLeagueInvite("spectator"); setInviteMessage(result.error || "Spectator link copied."); }} className="px-4 py-2 rounded font-semibold text-sm" style={{ background: "#1F2338", color: "#EDEBFA", border: "1px solid #4FD1C555" }}>COPY SPECTATOR LINK</button></>}</div>}
@@ -11498,8 +11516,8 @@ function SetupView({ state, leagueId = null, leagueName = "league", isCommission
             onRetry={retryScheduledStart}
           />
         )}
-      </section>
-      {isCommissioner && leagueId && (
+      </section>}
+      {isCommissioner && leagueId && !eventMode && (
         <section className="rounded-lg p-5 mb-6" style={{ background: "#171A2C", border: "1px solid rgba(88,101,242,0.35)" }}>
           <span className="eyebrow">OPTIONAL LEAGUE CONNECTIONS</span>
           <h2 className="display-font text-2xl mb-2" style={{ color: "#AEB7FF" }}>BROADCASTS & NOTIFICATIONS</h2>
@@ -11541,7 +11559,7 @@ function SetupView({ state, leagueId = null, leagueName = "league", isCommission
           <span className="text-sm" style={{ color: "#9A9FBD" }}>Commissioner: <span style={{ color: "#EDEBFA" }}>{commissioner}</span>{coCommissioners.length > 0 && <> · Co-commissioners: <span style={{ color: "#EDEBFA" }}>{coCommissioners.join(", ")}</span></>}</span>
         </div>
       )}
-      {isCommissioner && leagueId && (
+      {isCommissioner && leagueId && !eventMode && (
         <div className="rounded-lg p-4 mb-6 text-sm" style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)", color: "#9A9FBD" }}>
           Co-commissioners are managed by username in <strong style={{ color: "#EDEBFA" }}>League tools</strong> after they join the league.
         </div>
@@ -11550,7 +11568,7 @@ function SetupView({ state, leagueId = null, leagueName = "league", isCommission
         <CoCommissionerCard coCommissioners={coCommissioners} commissioner={commissioner} addCoCommissioner={addCoCommissioner} removeCoCommissioner={removeCoCommissioner} />
       )}
 
-      <LeagueInfoCard state={state} isCommissioner={isCommissioner} updateHomepage={updateHomepage} />
+      {!eventMode && <LeagueInfoCard state={state} isCommissioner={isCommissioner} updateHomepage={updateHomepage} />}
 
       <div className="mt-6">
         <FormatCard state={state} isCommissioner={isCommissioner} updateSettings={updateSettings} locked={locked} />
@@ -11559,7 +11577,7 @@ function SetupView({ state, leagueId = null, leagueName = "league", isCommission
       <div style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }} className="rounded-lg p-6 mb-6">
         <div className="flex items-center justify-between flex-wrap gap-2 mb-1">
           <h2 className="display-font text-2xl" style={{ color: "#FFD23F" }}>TEAMS</h2>
-          {isCommissioner && !locked && (
+          {isCommissioner && !locked && !eventMode && (
             <div className="flex items-center gap-2">
               {seasonNumber > 1 && (
                 <button onClick={addExpansionTeam} className="text-xs px-3 py-1.5 rounded font-semibold" style={{ background: "#4FD1C522", color: "#4FD1C5", border: "1px solid #4FD1C555" }}>
@@ -11575,7 +11593,7 @@ function SetupView({ state, leagueId = null, leagueName = "league", isCommission
         </p>
         <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-3">
           {teams.map((t, i) => {
-            const canRename = isCommissioner || t.claimedBy === myName;
+            const canRename = !eventMode && (isCommissioner || t.claimedBy === myName);
             const teamDivIdx = settings.divisions.findIndex((d) => d.teamIds.includes(i));
             return (
               <div key={t.id} className="px-3 py-3 rounded flex flex-col gap-2" style={{ background: "#1B1F33", border: "1px solid rgba(255,255,255,0.06)" }}>
@@ -11628,17 +11646,17 @@ function SetupView({ state, leagueId = null, leagueName = "league", isCommission
                     </button>
                   )
                 )}
-                {settings.divisions.length > 0 && (
+                {!eventMode && settings.divisions.length > 0 && (
                   <div className="text-[10px]" style={{ color: teamDivIdx >= 0 ? "#9A9FBD" : "#5B5F7E" }}>
                     Division: {teamDivIdx >= 0 ? settings.divisions[teamDivIdx].name : "none"}
                   </div>
                 )}
-                {!t.claimedBy && (
+                {!eventMode && !t.claimedBy && (
                   <p className="text-[10px]" style={{ color: "#5B5F7E" }}>
                     Bot team — gets a random strategy automatically when the draft starts. Nothing to set up here.
                   </p>
                 )}
-                {isCommissioner && !locked && teams.length > 2 && seasonNumber > 1 && (
+                {isCommissioner && !locked && !eventMode && teams.length > 2 && seasonNumber > 1 && (
                   <RemoveTeamButton team={t} onConfirm={() => removeSpecificTeam(i)} />
                 )}
               </div>
@@ -11647,7 +11665,7 @@ function SetupView({ state, leagueId = null, leagueName = "league", isCommission
         </div>
       </div>
 
-      {isCommissioner && (
+      {isCommissioner && !eventMode && (
         <div style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }} className="rounded-lg p-6 mb-6">
           <h2 className="display-font text-2xl mb-1" style={{ color: "#FFD23F" }}>DIVISIONS</h2>
           {settings.divisions.length === 0 ? (
@@ -11698,7 +11716,7 @@ function SetupView({ state, leagueId = null, leagueName = "league", isCommission
             </p>
           )}
           {locked && <p className="text-xs mb-3" style={{ color: "#5B5F7E" }}>Locked — the draft has already started.</p>}
-          <fieldset disabled={!isCommissioner || locked} className="disabled:opacity-50 mt-3">
+          <fieldset disabled={!isCommissioner || locked || eventMode} className="disabled:opacity-50 mt-3">
             <div className="flex gap-2 mb-6">
               {["snake", "auction"].map((dt) => (
                 <button key={dt} type="button" onClick={() => updateSettings({ draftType: dt })}
@@ -11948,7 +11966,7 @@ function SetupView({ state, leagueId = null, leagueName = "league", isCommission
             </div>
           )}
 
-          {!locked && (
+          {!locked && !eventMode && (
             <div className="mt-4 pt-4" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
               <button onClick={() => setShowManualDraft((v) => !v)} className="text-sm" style={{ color: "#4FD1C5" }}>
                 {showManualDraft ? "▲ Hide manual roster entry" : "▼ Drafted off-platform? Enter final rosters manually instead →"}
@@ -12170,19 +12188,19 @@ function SetupView({ state, leagueId = null, leagueName = "league", isCommission
         </div>
       </div>
 
-      <ScheduleAndPlayoffsCard state={state} isCommissioner={isCommissioner} updateSettings={updateSettings} />
+      {!eventMode && <ScheduleAndPlayoffsCard state={state} isCommissioner={isCommissioner} updateSettings={updateSettings} />}
 
-      <TransactionRulesCard state={state} leagueId={leagueId} isCommissioner={isCommissioner} updateSettings={updateSettings} />
+      {!eventMode && <TransactionRulesCard state={state} leagueId={leagueId} isCommissioner={isCommissioner} updateSettings={updateSettings} />}
 
-      {locked && isCommissioner && (
+      {!eventMode && locked && isCommissioner && (
         <NewSeasonCard state={state} leagueId={leagueId} finalizeSeason={finalizeSeason} startNewSeason={startNewSeason} />
       )}
 
-      {isCommissioner && (
+      {!eventMode && isCommissioner && (
         <BackupRestoreCard exportLeagueBackup={exportLeagueBackup} exportRecoveryBackup={exportRecoveryBackup} importLeagueBackup={importLeagueBackup} />
       )}
 
-      {isCommissioner && (
+      {!eventMode && isCommissioner && (
         <DangerZoneCard
           rebuildCurrentSeason={rebuildCurrentSeason}
           locked={locked}
@@ -13841,7 +13859,7 @@ function DraftChatPanel({ board = [], myName, postToBoard, markBoardRead, canPos
   );
 }
 
-function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTeamIdx, costFor, currentTeamOnClock, draftDone, allTeamsMetMin, snakePick, undoLastSnakePick, nominateForAuction, autoPickForClock, requestDueSnakeTurnResolution = null, finishBudgetSnakeRoster, placeBid, endAuctionEarly, pauseDraft, resumeDraft, skipAuctionNomination, toggleAutoDraft, addToQueue, removeFromQueue, moveQueueItem, onGenerateSchedule, updateSettings, onViewTeam, castDraftHeroVote, restartDraft, rebuildCurrentSeason, onStart, postToBoard, markBoardRead, canPostChat = true, scheduledStartStatus = null, retryScheduledStart = null }) {
+function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTeamIdx, costFor, currentTeamOnClock, draftDone, allTeamsMetMin, snakePick, undoLastSnakePick, nominateForAuction, autoPickForClock, requestDueSnakeTurnResolution = null, finishBudgetSnakeRoster, placeBid, endAuctionEarly, pauseDraft, resumeDraft, skipAuctionNomination, toggleAutoDraft, addToQueue, removeFromQueue, moveQueueItem, onGenerateSchedule, updateSettings, onViewTeam, castDraftHeroVote, restartDraft, rebuildCurrentSeason, onStart, postToBoard, markBoardRead, canPostChat = true, scheduledStartStatus = null, retryScheduledStart = null, eventMode = false }) {
   const {
     locked,
     settings,
@@ -14184,7 +14202,7 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
           </section>
         </div>
       )}
-      {isCommissioner && !hasStaleRosterCarryover && !hasSeasonActivity && (
+      {isCommissioner && !eventMode && !hasStaleRosterCarryover && !hasSeasonActivity && (
         <div className="mb-4 rounded-lg px-4 py-3 text-sm" style={{ background: "#261822", border: "1px solid #F0555A55" }}>
           <div className="flex items-center justify-between gap-3 flex-wrap">
             <span style={{ color: "#C8CDEA" }}>Testing issue or bad start? This clears only this draft's picks and current rosters, then returns to Pre-Draft Setup. Rules, managers, committed keepers, and every archived season remain intact.</span>
@@ -14225,7 +14243,7 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
           </section>
         </div>
       )}
-      {isCommissioner && !hasStaleRosterCarryover && hasSeasonActivity && (
+      {isCommissioner && !eventMode && !hasStaleRosterCarryover && hasSeasonActivity && (
         <div className="mb-4 rounded-lg px-4 py-3 text-sm" style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)", color: "#9A9FBD" }}>
           Draft restart is unavailable after season activity begins. If the active season truly needs to be rebuilt, use <strong style={{ color: "#EDEBFA" }}>Setup → Danger Zone → Rebuild Season {state.seasonNumber}</strong>; archived seasons remain intact.
         </div>
@@ -14391,17 +14409,25 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
       {draftDone ? (
         <div className="text-center py-10">
           <p className="display-font text-3xl mb-4" style={{ color: "#FFD23F" }}>DRAFT COMPLETE</p>
-          <button onClick={onGenerateSchedule} disabled={draftType === "auction" && !allTeamsMetMin}
-            className="px-6 py-3 rounded font-semibold display-font text-xl glow disabled:opacity-40 disabled:cursor-not-allowed" style={{ background: "#4FD1C5", color: "#10121C" }}>
-            GENERATE SCHEDULE →
-          </button>
+          {eventMode ? (
+            <div className="max-w-xl mx-auto rounded-lg p-5" style={{ background: "#102B2B", border: "1px solid #4FD1C577", color: "#BDF7EE" }}>
+              <strong className="block mb-2">Every roster is ready for commissioner review.</strong>
+              <span>Return to the Draft Tournament page to lock the rosters atomically and pair Swiss Round 1.</span>
+              <a href={state.tournamentSlug ? `/tournaments/${encodeURIComponent(state.tournamentSlug)}` : "/tournaments"} className="primary-button inline-link-button mt-4">Return to event</a>
+            </div>
+          ) : (
+            <button onClick={onGenerateSchedule} disabled={draftType === "auction" && !allTeamsMetMin}
+              className="px-6 py-3 rounded font-semibold display-font text-xl glow disabled:opacity-40 disabled:cursor-not-allowed" style={{ background: "#4FD1C5", color: "#10121C" }}>
+              GENERATE SCHEDULE →
+            </button>
+          )}
           {draftType === "auction" && !allTeamsMetMin && (
             <p className="text-sm mt-3" style={{ color: "#F0555A" }}>
               The auction cannot advance until every team reaches the {settings.rosterMin}-Pokémon minimum.
             </p>
           )}
-          <DraftRecapCard state={state} onViewTeam={onViewTeam} />
-          <DraftHeroVoteCard teams={teams} votes={state.draftHeroVotes} myName={myName} castDraftHeroVote={castDraftHeroVote} />
+          {!eventMode && <DraftRecapCard state={state} onViewTeam={onViewTeam} />}
+          {!eventMode && <DraftHeroVoteCard teams={teams} votes={state.draftHeroVotes} myName={myName} castDraftHeroVote={castDraftHeroVote} />}
         </div>
       ) : (
         <>

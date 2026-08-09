@@ -250,14 +250,14 @@ export default function LeagueHub({ user, profile, onOpenLeague }) {
   async function loadLeagues(silent = false) {
     if (!silent) setLoading(true);
     const [{ data, error }, { data: publicData, error: publicError }] = await Promise.all([
-      supabase.from("league_memberships").select("id, role, archived_at, league:leagues(id, name, slug, description, image_url, season_label, status, updated_at, draft_starts_at, league_visibility, draft_start_visibility, is_practice, practice_expires_at, lifecycle_archived_at)").eq("user_id", user.id).order("joined_at", { ascending: false }),
+      supabase.from("league_memberships").select("id, role, archived_at, league:leagues(id, name, slug, description, image_url, season_label, status, updated_at, draft_starts_at, league_visibility, draft_start_visibility, is_practice, practice_expires_at, lifecycle_archived_at, workspace_kind)").eq("user_id", user.id).order("joined_at", { ascending: false }),
       supabase.rpc("get_public_league_cards"),
     ]);
     if (error || publicError) {
       setLoading(false);
       return setMessage((error || publicError).message);
     }
-    const memberships = (data || []).filter((row) => row.league);
+    const memberships = (data || []).filter((row) => row.league && row.league.workspace_kind !== "draft-tournament");
     const leagueIds = memberships.map((row) => row.league.id);
     let snapshots = [];
     if (leagueIds.length) {
