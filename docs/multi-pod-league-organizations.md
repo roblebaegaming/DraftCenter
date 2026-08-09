@@ -57,10 +57,10 @@ is never stored in plaintext.
    tournament. Their entrant mapping prevents a qualifier, tournament entrant,
    or season from being crossed accidentally.
 
-The first migration intentionally exposes no qualifier-promotion or
-championship-creation mutation. Those operations require the commissioner
-recovery rules, standings validation, roster hashing, and transactional
-tournament integration planned for later releases.
+The foundation migration intentionally exposed no qualifier-promotion or
+championship-creation mutation. Forward migrations 356-358 now add the bounded
+qualification workflow described below. Championship creation remains a
+separate release so tournament promotion can be reviewed atomically.
 
 ## Shared regulations
 
@@ -85,6 +85,30 @@ The initial rule model supports:
 Uneven pod sizes therefore do not require a different schema. The organization
 can use equal automatic spots, additional wild cards, or a later configurable
 percentage rule without changing the source leagues.
+
+### Qualification automation review release
+
+Forward migration `356-multi-pod-qualification-automation.sql` adds a staged,
+revision-aware qualification run. An organization administrator begins the
+run, but each pod can be locked only by someone who is also staff in that
+source league. Locking requires a complete, valid schedule and captures the
+source state revision, exact team snapshot, complete roster snapshot, and a
+SHA-256 roster hash.
+
+Configured objective tiebreakers are applied in order. A recorded
+commissioner draw is requested only for a still-tied group that crosses an
+automatic-qualifier or wild-card boundary. Finalization fails if a source pod
+changed after it was locked. It writes the chosen automatic and wild-card
+teams into the existing qualifier table without changing their identity or
+rosters. A later source-league manager replacement can synchronize only the
+manager identifier after proving that the team and roster hash are unchanged.
+
+Forward migration `357-fix-multi-pod-qualification-digest-path.sql` exposes
+the `extensions` schema only to the two roster-hashing functions. Forward
+migration `358-fix-multi-pod-qualification-candidate-cleanup.sql` keeps the
+composite pod identity check while allowing season cleanup to cascade through
+locked candidate rows. Both corrections were discovered and verified on the
+retained Preview branch; the already-applied migration 356 was not rewritten.
 
 ## Delivery phases
 
@@ -130,7 +154,9 @@ practice pods can launch with every synthetic fixture removed. The retained
 `multi-pod-pr-82` Preview branch remains available and must not be deleted as
 routine cleanup.
 
-The qualification and championship mutations remain deliberately absent.
-They require locked standings, deterministic tiebreakers, roster snapshots,
-manager-replacement synchronization, and atomic Tournament promotion. No real
-league should be attached merely to test those future phases.
+Qualification automation is at the review checkpoint and is not deployed.
+Migrations 356-358 and the synthetic matrix pass on the retained
+`multi-pod-pr-82` Preview branch; every synthetic league, organization, run,
+candidate, qualifier, and account was removed. Connected championship
+creation remains deliberately absent and is the next phase. No real league
+should be attached merely to test either undeployed phase.

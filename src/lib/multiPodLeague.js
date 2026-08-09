@@ -14,6 +14,13 @@ export const MULTI_POD_RPCS = Object.freeze({
   attachPod: "attach_league_organization_pod",
   confirmPodRegulations: "confirm_league_organization_pod_regulations",
   launchSeason: "launch_league_organization_season",
+  beginQualification: "begin_league_organization_qualification",
+  lockPodStandings: "lock_league_organization_pod_standings",
+  recordQualificationDraw: "record_league_organization_qualification_draw",
+  finalizeQualification: "finalize_league_organization_qualification",
+  cancelQualification: "cancel_league_organization_qualification",
+  syncQualifierManager: "sync_league_organization_qualifier_manager",
+  getQualificationWorkspace: "get_league_organization_qualification_workspace",
   createAdministratorInvite: "create_league_organization_administrator_invite",
   previewAdministratorInvite: "preview_league_organization_administrator_invite",
   acceptAdministratorInvite: "accept_league_organization_administrator_invite",
@@ -24,7 +31,7 @@ export const MULTI_POD_RPCS = Object.freeze({
   getPublicWorkspace: "get_public_league_organization_workspace",
 });
 
-const DEFAULT_TIEBREAKERS = ["wins", "differential", "head-to-head"];
+const DEFAULT_TIEBREAKERS = ["wins", "differential", "head-to-head", "commissioner-draw"];
 
 function integerInRange(value, minimum, maximum, label) {
   const number = Number(value);
@@ -95,11 +102,30 @@ export function normalizeMultiPodQualificationRules(rules = {}) {
   if (tiebreakers.length > 5 || tiebreakers.some((value) => !MULTI_POD_TIEBREAKERS.includes(value))) {
     throw new Error("Choose up to five supported tiebreakers.");
   }
+  if (tiebreakers.includes("commissioner-draw") && tiebreakers.at(-1) !== "commissioner-draw") {
+    throw new Error("Commissioner draw must be the final tiebreaker.");
+  }
 
   return {
     topPerPod,
     wildcardSlots,
     tiebreakers,
+  };
+}
+
+export function multiPodQualificationDrawRpcArguments(runId, expectedRevision, candidates) {
+  const cleanRunId = String(runId || "").trim();
+  if (!cleanRunId) throw new Error("A qualification review is required.");
+  const candidateIds = (Array.isArray(candidates) ? candidates : [])
+    .map((candidate) => String(candidate?.id || candidate || "").trim())
+    .filter(Boolean);
+  if (!candidateIds.length || new Set(candidateIds).size !== candidateIds.length) {
+    throw new Error("Order every unresolved team exactly once.");
+  }
+  return {
+    p_run_id: cleanRunId,
+    p_expected_revision: integerInRange(expectedRevision, 0, Number.MAX_SAFE_INTEGER, "Qualification revision"),
+    p_candidate_ids: candidateIds,
   };
 }
 

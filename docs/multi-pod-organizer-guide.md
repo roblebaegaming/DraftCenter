@@ -29,9 +29,11 @@ Organization
 6. Every pod then runs as a normal independent league. Its league remains the
    source of truth for the draft, schedule, standings, transactions,
    replacements, teams, and rosters.
-7. At the end of the pod seasons, the qualification phase will lock the chosen
-   standings, apply the shared tiebreakers, and record an auditable list of
-   qualifiers.
+7. At the end of the pod seasons, an administrator begins qualification. Each
+   pod is locked by someone who is also staff in that source league. DraftCenter
+   snapshots the exact standings, teams, rosters, and source revision, applies
+   the shared tiebreakers, and asks for a recorded draw only when a remaining
+   tie crosses a qualification boundary.
 8. Qualifying teams will be promoted into one connected Tournament. They keep
    their exact team identity and roster; there is no playoff redraft.
 
@@ -46,10 +48,24 @@ link existing leagues as pods, confirm shared-regulation reviews, launch a
 reviewed season, and show a public organization page. These actions do not
 alter the linked leagues.
 
-The qualification and championship phases are not automated yet. In
-particular, DraftCenter does not yet lock final pod standings, select wild
-cards, snapshot qualifying rosters, or promote those snapshots into a live
-championship bracket. Those are the next two multi-pod releases.
+Qualification automation is implemented and validated on the retained
+Supabase Preview branch, but it is not merged or deployed yet. Until that
+release is approved, production does not expose the lock, draw, wildcard,
+snapshot, or finalization controls. Connected championship promotion is the
+next separate multi-pod release after qualification.
+
+### Qualification review flow
+
+1. Begin one qualification run for the launched organization season.
+2. Have an authorized source-league commissioner lock each pod's final
+   standings. An organization role alone is not enough.
+3. Review the deterministic automatic and wildcard rankings.
+4. If DraftCenter identifies a boundary tie, record the displayed draw order.
+5. Finalize only after every pod is locked and unchanged. Any later source
+   revision forces a cancel-and-restart instead of silently accepting stale
+   standings.
+6. If a source league replaces a manager afterward, synchronize that manager
+   identity only after DraftCenter confirms the same team and roster hash.
 
 ## Choices the organizer can make
 
@@ -87,19 +103,19 @@ championship bracket. Those are the next two multi-pod releases.
   complete rosters and do not redraft.
 - **Duplicate Pokemon:** fixed by the product contract—duplicates across pods
   remain legal.
-- **Bracket format:** single elimination is already live. Double elimination is
-  the next independently validated Tournament release and can become an option
-  for connected championships after that release is deployed.
-- **Seeding:** the qualification release still needs a policy choice between
+- **Bracket format:** standalone single and double elimination are live. The
+  connected-championship release can expose either format without creating a
+  second draft or roster.
+- **Seeding:** the championship release needs a policy choice between
   pure overall ranking, pod-finish bands, or pod-finish bands that avoid
   same-pod first-round matches.
 - **Transactions:** the organization can keep normal source-league transaction
   rules through the championship or freeze transactions at a stated playoff
   deadline. The qualifying roster snapshot must make that choice explicit.
 - **Replacement managers:** replacements continue through the source league
-  and take over the same team, roster, record, and schedule. The qualification
-  release must synchronize the championship identity without creating a new
-  team.
+  and take over the same team, roster, record, and schedule. Qualification can
+  synchronize only that manager identity after verifying the unchanged team
+  and roster hash.
 
 ### Visibility and administration
 
