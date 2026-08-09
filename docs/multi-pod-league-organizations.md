@@ -78,6 +78,11 @@ pod from the same organization season; it is not written into the target
 league's membership table and therefore does not broaden existing transaction
 RPCs.
 
+Forward migrations `367-fix-pod-access-metadata-portability.sql` and
+`368-create-missing-league-prediction-match.sql` preserve that boundary on
+retained Preview schemas with optional league metadata and ensure a league's
+first prediction creates its missing matchup object.
+
 The migration also replaces direct spectator snapshot reads with an explicit
 server-side allow-list. Both spectator and sibling-manager projections include
 the season data required for standings, predictions, the draft board, and
@@ -205,9 +210,10 @@ and 92. All organization tables use RLS, browser roles have no direct table
 access, owner and invited-administrator actions remain bounded, and production
 grant, trigger, and function-search-path audits pass.
 
-Migration 366 and its application changes are release-candidate work and are
-not production behavior until they pass Preview review, merge through a
-protected pull request, and the migration is applied to the exact core project.
+Migrations 366-368 and their application changes are release-candidate work
+and are not production behavior until they pass application Preview review,
+merge through a protected pull request, and the migrations are applied in
+order to the exact core project.
 
 The retained `multi-pod-pr-82` Preview branch passes the complete foundation,
 qualification, single-elimination championship, and double-elimination
@@ -216,3 +222,9 @@ candidate, qualifier, championship, Tournament, entrant, and account is
 removed by those checks. The branch remains available and must not be deleted
 as routine cleanup. No real league should be attached merely to test the
 workflow.
+
+The same retained branch also passes the migration 366-368 observer-access
+matrix. Its result confirms RLS and grants, safe linked-manager and spectator
+projections, allowed board and prediction actions, denied claims,
+transactions, and direct messages, direct-staff full state, and exact fixture
+cleanup.

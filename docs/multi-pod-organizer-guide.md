@@ -61,6 +61,12 @@ transaction matrices. Production object, grant, trigger, search-path, smoke,
 and signed-out page checks also pass without creating organization or
 championship data.
 
+The sibling-pod manager and spectator access clarification is the next release
+candidate. Forward migrations 366-368 pass the retained Preview branch's full
+observer-access matrix; the change is not production behavior until its
+application Preview is approved, its protected pull request merges, and those
+migrations are applied to the exact core project.
+
 ### Qualification review flow
 
 1. Begin one qualification run for the launched organization season.

@@ -54,6 +54,14 @@ const podAccessSql = fs.readFileSync(
   new URL("../supabase/366-multi-pod-manager-and-spectator-access.sql", import.meta.url),
   "utf8",
 );
+const podAccessPortabilitySql = fs.readFileSync(
+  new URL("../supabase/367-fix-pod-access-metadata-portability.sql", import.meta.url),
+  "utf8",
+);
+const podPredictionMatchSql = fs.readFileSync(
+  new URL("../supabase/368-create-missing-league-prediction-match.sql", import.meta.url),
+  "utf8",
+);
 const workspaceUi = fs.readFileSync(
   new URL("../src/components/LeagueOrganizationWorkspace.jsx", import.meta.url),
   "utf8",
@@ -405,6 +413,22 @@ test("linked pod managers receive a virtual read-only pod role", () => {
   assert.match(podAccessSql, /function public\.get_my_league_access\(p_league_key text\)/i);
   assert.match(podAccessSql, /v_access_role := 'pod_manager'/i);
   assert.match(authUi, /rpc\("get_my_league_access",\{p_league_key:key\}\)/);
+});
+
+test("linked pod access tolerates optional league metadata on retained Preview branches", () => {
+  assert.match(podAccessPortabilitySql, /create or replace function public\.get_my_league_access\(p_league_key text\)/i);
+  assert.match(podAccessPortabilitySql, /to_jsonb\(v_league\) -> 'draft_start_visibility'/i);
+  assert.match(podAccessPortabilitySql, /to_jsonb\(v_league\) -> 'lifecycle_archived_at'/i);
+  assert.match(podAccessPortabilitySql, /to_jsonb\(v_league\) -> 'workspace_kind'/i);
+  assert.match(podAccessPortabilitySql, /grant execute on function public\.get_my_league_access\(text\) to authenticated/i);
+});
+
+test("a league's first prediction creates the missing matchup object", () => {
+  assert.match(podPredictionMatchSql, /create or replace function public\.save_league_prediction\(/i);
+  assert.match(podPredictionMatchSql, /coalesce\(v_state -> 'predictions', '\{\}'::jsonb\)/i);
+  assert.match(podPredictionMatchSql, /jsonb_build_object\(\s*v_key,/i);
+  assert.match(podPredictionMatchSql, /coalesce\(v_state #> array\['predictions', v_key\], '\{\}'::jsonb\)/i);
+  assert.match(podPredictionMatchSql, /grant execute on function public\.save_league_prediction\(uuid, integer, integer, jsonb\) to authenticated/i);
 });
 
 test("spectators and sibling managers receive explicit safe state projections", () => {

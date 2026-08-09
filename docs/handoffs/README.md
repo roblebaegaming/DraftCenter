@@ -1,9 +1,17 @@
 # Agent handoffs
 
+[`DraftCenter-agent-handoff-2026-08-09-consolidated-release.md`](DraftCenter-agent-handoff-2026-08-09-consolidated-release.md)
+is the current continuation handoff. It integrates the public Pokédex trait
+expansion, versioned draft-pricing presets, and multi-pod observer-access
+clarification. Its isolated Preview database matrix and local release gates
+pass; the protected pull request, application Preview review, production
+migrations 366-368, and post-deployment verification remain.
+
 [`DraftCenter-agent-handoff-2026-08-09-multi-pod-access-clarification.md`](DraftCenter-agent-handoff-2026-08-09-multi-pod-access-clarification.md)
 records the local release candidate that separates invited spectators from
-managers visiting sibling pods. Migration 366 is not applied to Preview or
-production; the August 9 SEO production baseline below remains authoritative
+managers visiting sibling pods. Forward migrations 366-368 are applied and
+verified only on the retained isolated Preview branch; none is applied to
+production. The August 9 SEO production baseline below remains authoritative
 for deployed state.
 
 [`DraftCenter-agent-handoff-2026-08-09-seo-production-baseline.md`](DraftCenter-agent-handoff-2026-08-09-seo-production-baseline.md)

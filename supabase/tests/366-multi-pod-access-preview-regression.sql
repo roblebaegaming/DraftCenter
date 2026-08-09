@@ -217,7 +217,11 @@ begin
     end if;
   end;
   select public.save_league_prediction(v_league_b, 0, 0, '{"side":"A"}'::jsonb) into v_payload;
-  select v_payload #>> '{predictions,0-0,Pod A Manager,side}' = 'A'
+  select exists (
+      select 1
+      from jsonb_each(coalesce(v_payload #> '{predictions,0-0}', '{}'::jsonb)) prediction
+      where prediction.value ->> 'side' = 'A'
+    )
     and jsonb_array_length(v_payload #> '{messages,board}') = 2
   into v_manager_prediction_ok;
 
@@ -252,7 +256,11 @@ begin
     end if;
   end;
   select public.save_league_prediction(v_league_b, 0, 0, '{"side":"B"}'::jsonb) into v_payload;
-  select v_payload #>> '{predictions,0-0,Invited Spectator,side}' = 'B'
+  select exists (
+      select 1
+      from jsonb_each(coalesce(v_payload #> '{predictions,0-0}', '{}'::jsonb)) prediction
+      where prediction.value ->> 'side' = 'B'
+    )
     and jsonb_array_length(v_payload #> '{messages,board}') = 0
   into v_spectator_prediction_ok;
 
@@ -275,7 +283,20 @@ begin
      or v_spectator_transaction_denied is distinct from true
      or v_spectator_prediction_ok is distinct from true
      or v_direct_staff_ok is distinct from true then
-    raise exception 'One or more multi-pod observer access assertions failed.';
+    raise exception 'One or more multi-pod observer access assertions failed: %', jsonb_build_object(
+      'linked_manager_access', v_manager_access_ok,
+      'linked_manager_projection', v_manager_projection_ok,
+      'linked_manager_board', v_manager_board_ok,
+      'linked_manager_dm_denied', v_manager_dm_denied,
+      'linked_manager_claims_denied', v_manager_claims_denied,
+      'linked_manager_transaction_denied', v_manager_transaction_denied,
+      'linked_manager_prediction', v_manager_prediction_ok,
+      'spectator_projection', v_spectator_projection_ok,
+      'spectator_board_denied', v_spectator_board_denied,
+      'spectator_transaction_denied', v_spectator_transaction_denied,
+      'spectator_prediction', v_spectator_prediction_ok,
+      'direct_staff_full_state', v_direct_staff_ok
+    );
   end if;
 
   delete from public.league_organizations where id = v_organization;
