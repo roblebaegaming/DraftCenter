@@ -59,6 +59,8 @@ test("game guides are static, canonical, structured, and internally linked", () 
   assert.match(page, /"@type": "Article"/);
   assert.match(page, /"@type": "BreadcrumbList"/);
   assert.match(page, /guide\.generatorHref/);
+  assert.match(page, /rel="nofollow"/);
+  assert.doesNotMatch(page, /"@type": "VideoGame"/);
   assert.doesNotMatch(page, /encounter rows/i);
   assert.match(page, /guide\.areas\.map/);
   assert.match(page, /method\.pokemon\.map/);

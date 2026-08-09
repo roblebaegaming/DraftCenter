@@ -1,3 +1,5 @@
+import { pokemonProfileSlugForName } from "../lib/publicPokemonIndex";
+
 function displayDate(value) {
   if (!value) return "Unknown date";
   return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" }).format(new Date(`${value}T00:00:00Z`));
@@ -24,7 +26,7 @@ export default function TournamentPokemonProfile({ formats = [], pokemonName = "
         <article><strong>{format.wins}</strong><span>Tournament wins</span><small>{Number(format.win_conversion).toFixed(2)}% of team appearances</small></article>
       </div>
       {format.recent_results?.length ? <><h4>Recent top finishes</h4><div className="tournament-pokemon-finishes">{format.recent_results.map((result) => <a key={`${result.source_url}-${result.placement}`} href={result.source_url} target="_blank" rel="noreferrer"><strong>{placementLabel(result.placement)} · {result.event_name}</strong><span>{displayDate(result.event_date)} · {result.player_count} players · {result.team_sheet_coverage}% team-sheet coverage</span></a>)}</div></> : null}
-      {format.teammates?.length ? <><h4>Most common tournament teammates</h4><div className="pokemon-tags">{format.teammates.map((teammate) => <a key={teammate.pokemon_key} href={`/pokemon/${teammate.pokemon_key}`}>{teammate.pokemon_name} · {teammate.teams}</a>)}</div></> : null}
+      {format.teammates?.length ? <><h4>Most common tournament teammates</h4><div className="pokemon-tags">{format.teammates.map((teammate) => <a key={teammate.pokemon_key} href={`/pokemon/${pokemonProfileSlugForName(teammate.pokemon_key)}`}>{teammate.pokemon_name} · {teammate.teams}</a>)}</div></> : null}
     </section>)}
   </div>;
 }

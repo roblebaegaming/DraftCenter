@@ -372,8 +372,10 @@ targetRules = ["generic-api-key"]
 paths = [
   '''^data/nuzlocke/pokemon-[a-z0-9-]+\\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\\.json$''',
   '''^src/lib/nuzlockeGameGuides\\.json$''',
+  '''^docs/pokemon-catalog/pokemon-species-traits-2026-08-07\\.md$''',
   '''^docs/pokemon-catalog/(?:pokemon-[a-z0-9-]+-encounter-audit|generation-[0-9]+-schema-investigation)-2026-08-(?:05|06)\\.md$''',
   '''^scripts/build-pokeapi-game-catalog\\.mjs$''',
+  '''^scripts/build-pokemon-species-traits\\.mjs$''',
   '''^supabase/(?:257|262|265|267|270|272|274|276|278|280|282|284|286|288|290|292|294|297|299|301|303|306|308|310|312|314|316|318|320|322|324|326|328|330|332|334|336|338)-import-pokemon-[a-z0-9-]+-encounter-catalog\\.sql$''',
   '''^supabase/(?:263|266|268|271|273|275|277|279|281|283|285|287|289|291|293|295|298|300|302|304|307|309|311|313|315|317|319|321|323|325|327|329|331|333|335|337|339)-verify-pokemon-[a-z0-9-]+-encounter-catalog\\.sql$''',
   '''^test/nuzlocke-catalog-security\\.test\\.js$''',

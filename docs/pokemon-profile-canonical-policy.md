@@ -16,12 +16,17 @@ but it is not used in internal links or as a canonical route.
 | Form with different typing, stats, abilities, or competitive identity | Separate profile | Self-canonical resolved PokéAPI Pokémon route |
 | Cosmetic appearances attached to one Pokémon record | Grouped on the owning profile as non-link labels | Owning battle profile |
 | Reader-friendly alias | Permanently redirected after successful resolution | Resolved PokéAPI Pokémon route |
+| Distinct records with the same English form label | Keep separate and add a route-specific qualifier such as sex or ability | Each resolved PokéAPI Pokémon route remains self-canonical |
 
 `is_default: false` is not enough evidence to collapse a profile. DraftCenter
 must preserve a form when it has a materially distinct battle identity. A
 future consolidation must compare typing, base stats, abilities, and supported
 competitive identity against the species default and add representative
 regression cases before changing redirects, canonicals, or sitemap inclusion.
+Public metadata must also distinguish separate records when PokéAPI gives
+them the same English display name. The qualifier must describe an
+authoritative difference already present in the record; it must not invent a
+form, rating, or competitive claim.
 
 ## Regression matrix
 

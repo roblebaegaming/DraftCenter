@@ -1,6 +1,6 @@
 import { notFound, permanentRedirect } from "next/navigation";
 import { getPublicPokemonCompetitiveProfile, getPublicPokemonDraftProfile, getPublicPokemonTournamentProfile } from "../../../lib/supabase/publicServer";
-import { getAllPokemonProfiles, pokemonProfileCanonicalPath, pokemonProfileSlugCandidates, pokemonProfileSlugForName, pokemonRouteSlug } from "../../../lib/publicPokemonIndex";
+import { getAllPokemonProfiles, pokemonProfileCanonicalPath, pokemonProfileDisplayName, pokemonProfileSlugCandidates, pokemonProfileSlugForName, pokemonRouteSlug } from "../../../lib/publicPokemonIndex";
 import { pokemonDirectoryHref } from "../../../lib/pokemonNavigation";
 import { pokemonColorLabel, pokemonEggGroupLabel, pokemonShapeDetails } from "../../../lib/pokemonSpeciesTraits";
 import CompetitivePokemonProfile from "../../../components/CompetitivePokemonProfile";
@@ -42,13 +42,14 @@ async function loadPokemon(name) {
     speciesResponse.json(),
     formResponse.ok ? formResponse.json() : null,
   ]);
-  const displayName = form?.names?.find((entry) => entry.language.name === "en")?.name || titleCase(pokemon.name);
+  const directoryName = form?.names?.find((entry) => entry.language.name === "en")?.name || titleCase(pokemon.name);
+  const displayName = pokemonProfileDisplayName(pokemon.name, directoryName);
   const [draftProfile, competitiveProfile, tournamentProfile] = await Promise.all([
-    getPublicPokemonDraftProfile(displayName),
+    getPublicPokemonDraftProfile(directoryName),
     getPublicPokemonCompetitiveProfile(pokemon.name),
     getPublicPokemonTournamentProfile(pokemon.name),
   ]);
-  return { pokemon, species, form, displayName, draftProfile, competitiveProfile, tournamentProfile };
+  return { pokemon, species, form, displayName, directoryName, draftProfile, competitiveProfile, tournamentProfile };
 }
 
 export async function generateMetadata({ params }) {
@@ -61,7 +62,7 @@ export async function generateMetadata({ params }) {
   const description = `${displayName} Pokédex profile: ${types} typing, base stats, abilities, color, shape, Egg Groups, generation, and Pokémon draft-league research on DraftCenter.`;
   const artwork = data.pokemon.sprites?.other?.["official-artwork"]?.front_default;
   return {
-    title: `${displayName} Pokédex, Stats and Draft Profile`,
+    title: `${displayName} Pokédex & Stats`,
     description,
     alternates: { canonical: pokemonProfileCanonicalPath(data.pokemon.name) },
     openGraph: {
@@ -79,7 +80,7 @@ export default async function PokemonDetailPage({ params }) {
   const data = await loadPokemon(name);
   if (!data) notFound();
   if (pokemonRouteSlug(name) !== data.pokemon.name) permanentRedirect(pokemonProfileCanonicalPath(data.pokemon.name));
-  const { pokemon, species, displayName, draftProfile, competitiveProfile, tournamentProfile } = data;
+  const { pokemon, species, displayName, directoryName, draftProfile, competitiveProfile, tournamentProfile } = data;
   const generationNumber = String(species.generation?.url || "").match(/generation\/(\d+)\//)?.[1];
   const availableProfiles = draftProfile?.partners?.length ? new Set(await getAllPokemonProfiles()) : null;
   const baseStatTotal = pokemon.stats.reduce((total, { base_stat }) => total + base_stat, 0);
@@ -94,7 +95,7 @@ export default async function PokemonDetailPage({ params }) {
     "@graph": [
       {
         "@type": "WebPage",
-        name: `${displayName} Pokédex, Stats and Draft Profile`,
+        name: `${displayName} Pokédex & Stats`,
         url: `https://www.draftcentral.gg/pokemon/${pokemon.name}`,
         description: `${displayName} stats, typing, abilities, Pokédex color and shape, Egg Groups, and Pokémon draft-league profile.`,
         primaryImageOfPage: artwork ? { "@type": "ImageObject", url: artwork } : undefined,
@@ -184,7 +185,7 @@ export default async function PokemonDetailPage({ params }) {
     <section className="explore-card">
       <h2>Study {displayName} in DraftCenter</h2>
       <p>Open the interactive Pokédex to review moves by game, format legality, DraftCenter community results, draft rate, ADP, auction prices, win rate, and common teammates as the sample grows.</p>
-      <a className="primary-button inline-link-button" href={pokemonDirectoryHref(displayName)}>Open {displayName} in the interactive Pokédex</a>
+      <a className="primary-button inline-link-button" href={pokemonDirectoryHref(directoryName)}>Open {displayName} in the interactive Pokédex</a>
     </section>
     <section className="explore-card">
       <h2>Related {displayName} research</h2>

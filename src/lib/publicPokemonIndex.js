@@ -46,9 +46,22 @@ const EXPLICIT_PROFILE_ALIASES = {
   "calyrex-ice-rider": "calyrex-ice",
   "primal-groudon": "groudon-primal",
   "primal-kyogre": "kyogre-primal",
-  "paldean-tauros": "tauros-paldea-combat",
-  "paldean-tauros-water": "tauros-paldea-aqua",
-  "paldean-tauros-fire": "tauros-paldea-blaze",
+  "paldean-tauros": "tauros-paldea-combat-breed",
+  "paldean-tauros-water": "tauros-paldea-aqua-breed",
+  "paldean-tauros-fire": "tauros-paldea-blaze-breed",
+  "tauros-paldea": "tauros-paldea-combat-breed",
+  "tauros-paldea-combat": "tauros-paldea-combat-breed",
+  "tauros-paldea-aqua": "tauros-paldea-aqua-breed",
+  "tauros-paldea-blaze": "tauros-paldea-blaze-breed",
+};
+
+// Some distinct PokéAPI battle records share the same English form label.
+// Keep their route identity visible so metadata and page copy stay distinct.
+const PROFILE_DISPLAY_NAME_OVERRIDES = {
+  "meowstic-male-mega": "Mega Meowstic (Male)",
+  "meowstic-female-mega": "Mega Meowstic (Female)",
+  "zygarde-10": "10% Zygarde (Aura Break)",
+  "zygarde-10-power-construct": "10% Zygarde (Power Construct)",
 };
 
 export function pokemonRouteSlug(value) {
@@ -66,6 +79,10 @@ export function pokemonRouteSlug(value) {
 export function pokemonProfileCanonicalPath(resolvedPokemonName) {
   const slug = pokemonRouteSlug(resolvedPokemonName);
   return slug ? `/pokemon/${slug}` : "/pokemon";
+}
+
+export function pokemonProfileDisplayName(resolvedPokemonName, apiDisplayName) {
+  return PROFILE_DISPLAY_NAME_OVERRIDES[pokemonRouteSlug(resolvedPokemonName)] || apiDisplayName;
 }
 
 export function pokemonProfileSlugCandidates(value) {
