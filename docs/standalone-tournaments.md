@@ -17,17 +17,23 @@ The tournament schema remains independent of the Nuzlocke catalog and league
 tables. Any future database change requires a new forward-only migration;
 never rewrite migration 340.
 
-Commissioner recovery is also live through migration 354. The next standalone
-format, double elimination, is implemented on its own protected release branch
-with forward-only migration 355. Its isolated transaction matrix passes,
-including bounded byes and both Grand Final paths. It is not production
-behavior until pull-request checks, review, merge, migration, exact deployment,
-and the post-deployment smoke sweep complete.
+Commissioner recovery is also live through migration 354, and standalone
+double elimination is live through migration 355. Both formats currently have
+a production capacity of 64 entrants.
+
+Forward-only migration 361 is the next scaling milestone. After its protected
+release, single elimination supports 2-512 entrants and double elimination
+supports 4-256 entrants. It replaces row-at-a-time seeding and match creation
+with set-based operations, loads one 64-match bracket page at a time, and keeps
+round summaries available for navigation. Production remains at the existing
+limits until that migration and its matching application release complete all
+review, Preview, deployment, and smoke-test gates.
 
 ## First-release lifecycle
 
 1. A signed-in commissioner creates a public or private best-of-one or
-   best-of-three event with 2–64 entrant slots.
+   best-of-three event. The scaling milestone allows 2-512 single-elimination
+   entrants or 4-256 double-elimination entrants.
 2. Entrants register with a display name and may attach one of their private
    saved teams. Commissioners may also enter their own event.
 3. Commissioners assign manual seeds, swap occupied seeds, or use the
@@ -132,14 +138,34 @@ current independently reviewed format release. Commissioner forfeits, drops,
 disqualifications, and safe pre-play entrant replacement are already live;
 never simulate them with direct bracket-table edits.
 
+Draft Tournament is also a separate product boundary. Its shared-draft
+workflow remains capped at 16 entrants because all teams draft from one limited
+Pokémon pool. Do not scale that infrastructure by raising its cap. A future
+larger draft-based competition would use separate draft-and-play pods whose
+qualifiers feed an elimination stage.
+
+## Capacity validation
+
+Migration 361 has a disposable-Preview transaction matrix for the exact maximum
+fields. A 512-entrant single-elimination bracket must create 511 matches across
+nine rounds. A 256-entrant double-elimination bracket must create 511 stored
+matches: 255 winners-bracket matches, 254 losers-bracket matches, and two Grand
+Final rows. The projection must return round summaries and no more than 64
+matches per page.
+
+The next increase beyond this milestone is not a constant change. Before
+considering 1,024 entrants, add server-side entrant search/pagination,
+resumable bracket jobs, targeted live updates, operational metrics, and a
+simultaneous-registration and result-reporting load test.
+
 ## Strengthening sequence
 
 Tournament development proceeds in small releases from the current production
 baseline:
 
 1. Finish single-elimination hardening: accessible in-page confirmations,
-   keyboard and screen-reader structure, selectable rounds, 64-entrant mobile
-   behavior, and the isolated-fixture readiness guard.
+   keyboard and screen-reader structure, selectable and paged rounds,
+   large-field mobile behavior, and the isolated-fixture readiness guard.
 2. Add commissioner recovery before another bracket type. Explicit forfeits,
    disqualifications, drops, and safe entrant replacement require bounded
    owner-only RPCs, optimistic revision checks, audit events, and a new
