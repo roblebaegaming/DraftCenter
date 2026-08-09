@@ -32,7 +32,7 @@
     "competitive:build:tournament-migration": "node scripts/build-competitive-tournament-migration.mjs",
     "test:manager-removal": "node --test test/manager-removal-claim-cleanup.test.js",
     "test:league-counts": "node --test test/league-count-consistency.test.js",
-    "test:nuzlocke": "node --test test/nuzlocke-generator.test.js test/nuzlocke-catalog-security.test.js test/nuzlocke-game-guides.test.js test/pokemon-species-traits.test.js",
+    "test:nuzlocke": "node --test test/nuzlocke-generator.test.js test/nuzlocke-catalog-security.test.js test/nuzlocke-game-guides.test.js test/pokemon-species-traits.test.js test/nuzlocke-my-teams.test.js",
     "build:nuzlocke-guides": "node scripts/build-nuzlocke-game-guides.mjs",
     "test:tournaments": "node --test test/tournament-bracket.test.js test/tournament-security.test.js test/tournament-accessibility.test.js test/tournament-fixture-readiness.test.js test/tournament-recovery.test.js test/tournament-double-elimination.test.js test/tournament-scale.test.js",
     "test:draft-tournament": "node --test test/draft-tournament.test.js",
