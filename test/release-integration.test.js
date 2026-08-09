@@ -31,6 +31,7 @@ test("release migrations use one production number each", () => {
   assert.ok(migrations.includes("352-harden-multi-pod-season-rule-boundaries.sql"));
   assert.ok(migrations.includes("353-multi-pod-commissioner-workspace.sql"));
   assert.ok(migrations.includes("364-pokemon-connections-daily-games.sql"));
+  assert.ok(migrations.includes("366-multi-pod-manager-and-spectator-access.sql"));
 });
 
 test("the Gen 6 schema gate supports the official X and Y game keys", () => {

@@ -143,6 +143,9 @@ test("Pokémon profiles have crawlable indexes and complete core facts", () => {
   assert.match(pokemonHome, /href="\/pokemon\/a-z"/);
   assert.match(pokemonHome, /href="\/pokemon\/types"/);
   assert.match(pokemonHome, /href="\/pokemon\/generations"/);
+  assert.match(pokemonHome, /href="\/pokemon\/colors"/);
+  assert.match(pokemonHome, /href="\/pokemon\/egg-groups"/);
+  assert.match(pokemonHome, /href="\/pokemon\/shapes"/);
   assert.match(azIndex, /href={`\/pokemon\/\$\{name\}`}/);
   assert.match(typeIndex, /href={`\/pokemon\/\$\{name\}`}/);
   assert.match(generationIndex, /href={`\/pokemon\/\$\{name\}`}/);
@@ -151,7 +154,11 @@ test("Pokémon profiles have crawlable indexes and complete core facts", () => {
   assert.match(profile, /formatWeight\(pokemon\.weight\)/);
   assert.match(profile, /pokemonShapeDetails\(species\.shape\?\.name\)/);
   assert.match(profile, /species\.egg_groups/);
-  assert.match(profile, /shape and Egg Groups/);
+  assert.match(profile, /species\.color/);
+  assert.match(profile, /\/pokemon\/color\/\$\{color\.id\}/);
+  assert.match(profile, /\/pokemon\/shape\/\$\{shape\.id\}/);
+  assert.match(profile, /\/pokemon\/egg-group\/\$\{eggGroup\.id\}/);
+  assert.match(profile, /color, shape, and Egg Groups/);
   assert.match(profile, /species-level Pokédex classifications/);
   assert.match(profile, /Sources and methodology/);
   assert.match(profile, /https:\/\/pokeapi\.co\//);
@@ -167,6 +174,40 @@ test("Pokémon profiles have crawlable indexes and complete core facts", () => {
   assert.match(pokemonIndexData, /pokemonProfileSlugForName/);
   assert.match(profile, /permanentRedirect\(pokemonProfileCanonicalPath\(data\.pokemon\.name\)\)/);
   assert.match(profile, /pokemonProfileSlugForName\(teammate\.pokemon, availableProfiles\)/);
+});
+
+test("Pokédex colors, Egg Groups, and shapes have indexable pages and interactive filters", () => {
+  const directory = source("src/components/PokemonDirectory.jsx");
+  const traitPages = source("src/components/PokemonTraitIndexPage.jsx");
+  const colorsPage = source("src/app/pokemon/colors/page.js");
+  const eggGroupsPage = source("src/app/pokemon/egg-groups/page.js");
+  const shapesPage = source("src/app/pokemon/shapes/page.js");
+  const colorPage = source("src/app/pokemon/color/[color]/page.js");
+  const eggGroupPage = source("src/app/pokemon/egg-group/[eggGroup]/page.js");
+  const shapePage = source("src/app/pokemon/shape/[shape]/page.js");
+  const sitemap = source("src/app/sitemap.js");
+
+  assert.match(directory, /Pokédex traits/);
+  assert.match(directory, /POKEMON_COLOR_OPTIONS\.map/);
+  assert.match(directory, /POKEMON_EGG_GROUP_OPTIONS\.map/);
+  assert.match(directory, /POKEMON_SHAPE_OPTIONS\.map/);
+  assert.match(directory, /traits\?\.color === color/);
+  assert.match(directory, /traits\?\.egg_groups\?\.includes\(eggGroup\)/);
+  assert.match(directory, /traits\?\.shape === shape/);
+  assert.match(traitPages, /"@type": "CollectionPage"/);
+  assert.match(traitPages, /"@type": "BreadcrumbList"/);
+  assert.match(traitPages, /getPokemonProfilesForSpeciesTrait/);
+  assert.match(traitPages, /Search \{label\} Pokémon in the Pokédex/);
+  assert.match(colorsPage, /canonical: "\/pokemon\/colors"/);
+  assert.match(eggGroupsPage, /canonical: "\/pokemon\/egg-groups"/);
+  assert.match(shapesPage, /canonical: "\/pokemon\/shapes"/);
+  assert.match(colorPage, /generateStaticParams/);
+  assert.match(eggGroupPage, /generateStaticParams/);
+  assert.match(shapePage, /generateStaticParams/);
+  assert.match(sitemap, /POKEMON_COLOR_OPTIONS\.map/);
+  assert.match(sitemap, /POKEMON_EGG_GROUP_OPTIONS\.map/);
+  assert.match(sitemap, /POKEMON_SHAPE_OPTIONS\.map/);
+  assert.match(sitemap, /POKEMON_TRAIT_CONTENT_LAST_MODIFIED/);
 });
 
 test("reader-friendly Pokémon names resolve to live canonical profiles", () => {

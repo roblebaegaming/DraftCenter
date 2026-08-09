@@ -50,12 +50,40 @@ const championshipSyncFixSql = fs.readFileSync(
   new URL("../supabase/360-fix-connected-championship-manager-sync.sql", import.meta.url),
   "utf8",
 );
+const podAccessSql = fs.readFileSync(
+  new URL("../supabase/366-multi-pod-manager-and-spectator-access.sql", import.meta.url),
+  "utf8",
+);
+const podAccessPortabilitySql = fs.readFileSync(
+  new URL("../supabase/367-fix-pod-access-metadata-portability.sql", import.meta.url),
+  "utf8",
+);
+const podPredictionMatchSql = fs.readFileSync(
+  new URL("../supabase/368-create-missing-league-prediction-match.sql", import.meta.url),
+  "utf8",
+);
 const workspaceUi = fs.readFileSync(
   new URL("../src/components/LeagueOrganizationWorkspace.jsx", import.meta.url),
   "utf8",
 );
 const tournamentWorkspaceUi = fs.readFileSync(
   new URL("../src/components/TournamentWorkspace.jsx", import.meta.url),
+  "utf8",
+);
+const leagueUi = fs.readFileSync(
+  new URL("../src/components/PokemonDraftLeague.jsx", import.meta.url),
+  "utf8",
+);
+const authUi = fs.readFileSync(
+  new URL("../src/components/AuthGate.jsx", import.meta.url),
+  "utf8",
+);
+const publicLeagueUi = fs.readFileSync(
+  new URL("../src/components/PublicLeaguePage.jsx", import.meta.url),
+  "utf8",
+);
+const leagueHubUi = fs.readFileSync(
+  new URL("../src/components/LeagueHub.jsx", import.meta.url),
   "utf8",
 );
 
@@ -376,4 +404,69 @@ test("organization and Tournament UIs present the connected bracket without open
   assert.match(tournamentWorkspaceUi, /Replacement managers must first take over the same source-league team/);
   assert.match(tournamentWorkspaceUi, /!connectedChampionship && <details className="tournament-replacement-tools">/);
   assert.match(workspaceUi, /\["active", "qualification", "championship", "complete"\]/);
+});
+
+test("linked pod managers receive a virtual read-only pod role", () => {
+  assert.match(podAccessSql, /function public\.is_linked_pod_manager\(p_league_id uuid\)/i);
+  assert.match(podAccessSql, /source_pod\.league_id <> target_pod\.league_id/i);
+  assert.match(podAccessSql, /source_membership\.role::text in \('commissioner', 'co_commissioner', 'coach'\)/i);
+  assert.match(podAccessSql, /function public\.get_my_league_access\(p_league_key text\)/i);
+  assert.match(podAccessSql, /v_access_role := 'pod_manager'/i);
+  assert.match(authUi, /rpc\("get_my_league_access",\{p_league_key:key\}\)/);
+});
+
+test("linked pod access tolerates optional league metadata on retained Preview branches", () => {
+  assert.match(podAccessPortabilitySql, /create or replace function public\.get_my_league_access\(p_league_key text\)/i);
+  assert.match(podAccessPortabilitySql, /to_jsonb\(v_league\) -> 'draft_start_visibility'/i);
+  assert.match(podAccessPortabilitySql, /to_jsonb\(v_league\) -> 'lifecycle_archived_at'/i);
+  assert.match(podAccessPortabilitySql, /to_jsonb\(v_league\) -> 'workspace_kind'/i);
+  assert.match(podAccessPortabilitySql, /grant execute on function public\.get_my_league_access\(text\) to authenticated/i);
+});
+
+test("a league's first prediction creates the missing matchup object", () => {
+  assert.match(podPredictionMatchSql, /create or replace function public\.save_league_prediction\(/i);
+  assert.match(podPredictionMatchSql, /coalesce\(v_state -> 'predictions', '\{\}'::jsonb\)/i);
+  assert.match(podPredictionMatchSql, /jsonb_build_object\(\s*v_key,/i);
+  assert.match(podPredictionMatchSql, /coalesce\(v_state #> array\['predictions', v_key\], '\{\}'::jsonb\)/i);
+  assert.match(podPredictionMatchSql, /grant execute on function public\.save_league_prediction\(uuid, integer, integer, jsonb\) to authenticated/i);
+});
+
+test("spectators and sibling managers receive explicit safe state projections", () => {
+  const projectionStart = podAccessSql.indexOf("create or replace function public.project_league_observer_state");
+  const projectionEnd = podAccessSql.indexOf("create or replace function public.get_my_league_state", projectionStart);
+  const projection = podAccessSql.slice(projectionStart, projectionEnd);
+  for (const allowed of ["'teams'", "'rosters'", "'schedule'", "'matchResults'", "'predictions'", "'playoffs'"]) {
+    assert.ok(projection.includes(allowed));
+  }
+  assert.match(projection, /'direct', '\{\}'::jsonb/i);
+  assert.match(projection, /coalesce\(item\.value ->> 'status', 'pending'\) <> 'pending'/i);
+  assert.doesNotMatch(projection, /pendingClaims|queues|lastClaimResults|waiverPriority/);
+  assert.match(podAccessSql, /create policy "league participants read snapshots"[\s\S]*membership\.role::text in \('commissioner', 'co_commissioner', 'coach'\)/i);
+});
+
+test("sibling pod managers can comment and predict without transaction or DM authority", () => {
+  const communicationStart = podAccessSql.indexOf("create or replace function public.mutate_league_communication");
+  const predictionStart = podAccessSql.indexOf("create or replace function public.save_league_prediction", communicationStart);
+  const communication = podAccessSql.slice(communicationStart, predictionStart);
+  assert.match(communication, /p_action not in \('board_post', 'board_delete', 'board_read'\)/i);
+  assert.match(communication, /cannot send direct messages/i);
+  assert.match(podAccessSql.slice(predictionStart), /v_linked_manager := public\.is_linked_pod_manager\(p_league_id\)/i);
+  assert.match(podAccessSql, /list_private_free_agent_claims[\s\S]*membership\.role::text in \('commissioner', 'co_commissioner', 'coach'\)/i);
+  assert.match(podAccessSql, /function public\.league_actor_can_control_snapshot_team[\s\S]*membership\.role::text in \('commissioner', 'co_commissioner', 'coach'\)/i);
+  assert.match(podAccessSql, /function public\.auction_actor_can_control_team[\s\S]*membership\.role::text in \('commissioner', 'co_commissioner', 'coach'\)/i);
+  assert.match(podAccessSql, /revoke all on function public\.auction_actor_can_control_team\(uuid, jsonb, integer\) from public, anon, authenticated/i);
+});
+
+test("pod links and spectator navigation expose only the clarified surfaces", () => {
+  assert.match(leagueUi, /get_my_league_pod_navigation/);
+  assert.match(leagueUi, /href=\{`\/\?league=\$\{encodeURIComponent\(pod\.league_slug\)\}&tab=league&section=activity`\}/);
+  assert.match(leagueUi, /POD MANAGER ACCESS/);
+  assert.match(leagueUi, /SPECTATOR ACCESS/);
+  assert.match(leagueUi, /displayIsLimitedObserver \? \[[\s\S]*\["draft", "Draft Board"\][\s\S]*\["playoffs", "Playoffs"\][\s\S]*\["standings", "Standings"\]/);
+  assert.match(leagueUi, /displayIsPodManager \? \[\["activity", "League Activity"\]\]/);
+  assert.match(authUi, /Spectators<\/strong> can see standings, predictions, the draft board, and playoffs only/);
+  assert.match(leagueHubUi, /entry\.role !== "viewer"/);
+  assert.match(leagueHubUi, /participantLeagueIds\.map/);
+  assert.doesNotMatch(publicLeagueUi, /LiveNowList|Saved replays|League clock/);
+  for (const heading of ["Standings", "Predictions", "Official draft board", "Playoffs"]) assert.match(publicLeagueUi, new RegExp(`<h2>${heading}</h2>`));
 });

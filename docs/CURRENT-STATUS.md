@@ -77,6 +77,15 @@ No application release from the August 9 wave or the first product-alignment
 SEO pass remains to be pushed. Continue normal monitoring of the tournament,
 Daily Games, Nuzlocke, navigation, metadata, and indexing paths.
 
+The multi-pod observer-access clarification is integrated on
+`codex/consolidated-release-2026-08-09` with forward migrations 366-368. The
+retained isolated Preview branch has applied all three migrations and passes
+the complete access transaction matrix, including safe sibling-manager and
+spectator projections, predictions, transaction/claim/direct-message denial,
+direct-staff access, RLS/grants, and exact fixture cleanup. It is not deployed.
+Complete the signed-in Preview role and responsive review before merging its
+protected release pull request; see the dated handoff.
+
 The next SEO work begins with the exact URLs behind the August 8 crawl defects:
 invalid structured data, one broken internal link and 4xx, duplicates, and the
 orphaned sitemap page. Reproduce each finding against `b40717e` before changing
@@ -87,7 +96,7 @@ about 14 days and a normal content decision after about 28 days.
 ## Authoritative records
 
 - Current continuation handoff:
-  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-09-seo-production-baseline.md`](handoffs/DraftCenter-agent-handoff-2026-08-09-seo-production-baseline.md)
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-09-consolidated-release.md`](handoffs/DraftCenter-agent-handoff-2026-08-09-consolidated-release.md)
 - External SEO measurement:
   [`docs/seo-measurement-2026-08-08.md`](seo-measurement-2026-08-08.md)
 - Draft Tournament architecture and status:

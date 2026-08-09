@@ -246,7 +246,7 @@ function isDraftLive(state) {
 
 export default function LeagueHub({ user, profile, onOpenLeague }) {
   const [supabase] = useState(() => createClient()); const [leagues, setLeagues] = useState([]); const [publicLeagues, setPublicLeagues] = useState([]); const [publicTab, setPublicTab] = useState("join"); const [communityPokemon, setCommunityPokemon] = useState(["Pikachu","Eevee","Charizard"]); const [loading, setLoading] = useState(true); const [turnAlert, setTurnAlert] = useState(""); const [name, setName] = useState(""); const [season, setSeason] = useState(""); const [description, setDescription] = useState(""); const [imageUrl, setImageUrl] = useState(""); const [draftStartsAt, setDraftStartsAt] = useState(""); const [visibility, setVisibility] = useState("private"); const [draftStartVisibility, setDraftStartVisibility] = useState("default"); const [isPractice, setIsPractice] = useState(false); const [message, setMessage] = useState(""); const [busy, setBusy] = useState(false); const [pendingInvite, setPendingInvite] = useState(null); const [pendingTeamClaim, setPendingTeamClaim] = useState(null); const [inviteBusy, setInviteBusy] = useState(false); const [publicDetails, setPublicDetails] = useState(null); const [showArchived, setShowArchived] = useState(false); const [leagueActionId, setLeagueActionId] = useState("");
-  const notificationLeagueKey = useMemo(() => [...new Set(leagues.filter((entry) => !entry.archived_at && entry.league?.status !== "archived").map((entry) => entry.league?.id).filter(Boolean))].slice(0, 10).join(","), [leagues]);
+  const notificationLeagueKey = useMemo(() => [...new Set(leagues.filter((entry) => entry.role !== "viewer" && !entry.archived_at && entry.league?.status !== "archived").map((entry) => entry.league?.id).filter(Boolean))].slice(0, 10).join(","), [leagues]);
   async function loadLeagues(silent = false) {
     if (!silent) setLoading(true);
     const [{ data, error }, { data: publicData, error: publicError }] = await Promise.all([
@@ -259,6 +259,7 @@ export default function LeagueHub({ user, profile, onOpenLeague }) {
     }
     const memberships = (data || []).filter((row) => row.league && row.league.workspace_kind !== "draft-tournament");
     const leagueIds = memberships.map((row) => row.league.id);
+    const participantLeagueIds = memberships.filter((row) => row.role !== "viewer").map((row) => row.league.id);
     let snapshots = [];
     if (leagueIds.length) {
       const { data: snapshotData, error: snapshotError } = await supabase.from("league_state_snapshots").select("league_id, state").in("league_id", leagueIds);
@@ -276,7 +277,7 @@ export default function LeagueHub({ user, profile, onOpenLeague }) {
         const { data: live } = await supabase.rpc("get_live_snake_draft", { p_league_id: snapshot.league_id });
         if (live?.session?.id) liveDrafts.set(snapshot.league_id, live);
       }),
-      ...leagueIds.map(async (leagueId) => {
+      ...participantLeagueIds.map(async (leagueId) => {
         const { data: streams } = await supabase.rpc("get_league_live_streams", { p_league_id: leagueId });
         const active = (streams || []).filter((stream) => stream.status === "live");
         if (active.length) liveMatches.set(leagueId, active);

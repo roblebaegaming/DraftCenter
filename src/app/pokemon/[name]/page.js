@@ -2,7 +2,7 @@ import { notFound, permanentRedirect } from "next/navigation";
 import { getPublicPokemonCompetitiveProfile, getPublicPokemonDraftProfile, getPublicPokemonTournamentProfile } from "../../../lib/supabase/publicServer";
 import { getAllPokemonProfiles, pokemonProfileCanonicalPath, pokemonProfileSlugCandidates, pokemonProfileSlugForName, pokemonRouteSlug } from "../../../lib/publicPokemonIndex";
 import { pokemonDirectoryHref } from "../../../lib/pokemonNavigation";
-import { pokemonEggGroupLabel, pokemonShapeDetails } from "../../../lib/pokemonSpeciesTraits";
+import { pokemonColorLabel, pokemonEggGroupLabel, pokemonShapeDetails } from "../../../lib/pokemonSpeciesTraits";
 import CompetitivePokemonProfile from "../../../components/CompetitivePokemonProfile";
 import TournamentPokemonProfile from "../../../components/TournamentPokemonProfile";
 
@@ -58,7 +58,7 @@ export async function generateMetadata({ params }) {
   const displayName = data.displayName;
   const genus = data.species.genera?.find((entry) => entry.language.name === "en")?.genus || "Pokémon";
   const types = data.pokemon.types.map(({ type }) => titleCase(type.name)).join("/");
-  const description = `${displayName} Pokédex profile: ${types} typing, base stats, abilities, shape, Egg Groups, generation, and Pokémon draft-league research on DraftCenter.`;
+  const description = `${displayName} Pokédex profile: ${types} typing, base stats, abilities, color, shape, Egg Groups, generation, and Pokémon draft-league research on DraftCenter.`;
   const artwork = data.pokemon.sprites?.other?.["official-artwork"]?.front_default;
   return {
     title: `${displayName} Pokédex, Stats and Draft Profile`,
@@ -86,8 +86,9 @@ export default async function PokemonDetailPage({ params }) {
   const genus = species.genera?.find((entry) => entry.language.name === "en")?.genus || "Pokémon";
   const entry = species.flavor_text_entries?.find((item) => item.language.name === "en")?.flavor_text?.replace(/[\n\f]/g, " ");
   const artwork = pokemon.sprites?.other?.["official-artwork"]?.front_default || pokemon.sprites?.front_default;
+  const color = species.color?.name ? { id: species.color.name, label: pokemonColorLabel(species.color.name) } : null;
   const shape = pokemonShapeDetails(species.shape?.name);
-  const eggGroups = (species.egg_groups || []).map(({ name: eggGroup }) => pokemonEggGroupLabel(eggGroup));
+  const eggGroups = (species.egg_groups || []).map(({ name: eggGroup }) => ({ id: eggGroup, label: pokemonEggGroupLabel(eggGroup) }));
   const structuredData = {
     "@context": "https://schema.org",
     "@graph": [
@@ -95,7 +96,7 @@ export default async function PokemonDetailPage({ params }) {
         "@type": "WebPage",
         name: `${displayName} Pokédex, Stats and Draft Profile`,
         url: `https://www.draftcentral.gg/pokemon/${pokemon.name}`,
-        description: `${displayName} stats, typing, abilities, Pokédex shape, Egg Groups, and Pokémon draft-league profile.`,
+        description: `${displayName} stats, typing, abilities, Pokédex color and shape, Egg Groups, and Pokémon draft-league profile.`,
         primaryImageOfPage: artwork ? { "@type": "ImageObject", url: artwork } : undefined,
       },
       {
@@ -152,12 +153,13 @@ export default async function PokemonDetailPage({ params }) {
       </div>
     </section>
     <section className="explore-card">
-      <h2>{displayName} shape and Egg Groups</h2>
+      <h2>{displayName} color, shape, and Egg Groups</h2>
       <div className="career-record-grid pokemon-species-traits">
-        <article><strong>{shape?.label || "Unknown"}</strong><span>Pokédex shape</span><small>{shape?.description || "No Pokédex shape is listed."}</small></article>
-        <article><strong>{eggGroups.join(" / ") || "Unknown"}</strong><span>{eggGroups.length === 1 ? "Egg Group" : "Egg Groups"}</span><small>{eggGroups.length > 1 ? `${displayName} belongs to both breeding categories.` : "Species breeding category."}</small></article>
+        <article><strong>{color ? <a href={`/pokemon/color/${color.id}`}>{color.label}</a> : "Unknown"}</strong><span>Pokédex color</span><small>Broad species color classification.</small></article>
+        <article><strong>{shape ? <a href={`/pokemon/shape/${shape.id}`}>{shape.label}</a> : "Unknown"}</strong><span>Pokédex shape</span><small>{shape?.description || "No Pokédex shape is listed."}</small></article>
+        <article><strong>{eggGroups.length ? eggGroups.map((eggGroup, index) => <span key={eggGroup.id}>{index ? " / " : ""}<a href={`/pokemon/egg-group/${eggGroup.id}`}>{eggGroup.label}</a></span>) : "Unknown"}</strong><span>{eggGroups.length === 1 ? "Egg Group" : "Egg Groups"}</span><small>{eggGroups.length > 1 ? `${displayName} belongs to both breeding categories.` : "Species breeding category."}</small></article>
       </div>
-      <p className="muted">Shape and Egg Groups are species-level Pokédex classifications, so this species&apos; forms share them.</p>
+      <p className="muted">Color, shape, and Egg Groups are species-level Pokédex classifications, so this species&apos; forms share them.</p>
     </section>
     <section className="explore-card">
       <h2>{displayName} DraftCenter community statistics</h2>
@@ -191,7 +193,7 @@ export default async function PokemonDetailPage({ params }) {
     </section>
     <section className="explore-card pokemon-profile-sources">
       <h2>Sources and methodology</h2>
-      <p>Core Pokédex facts, measurements, abilities, species shape, Egg Groups, and artwork are retrieved from <a href="https://pokeapi.co/" rel="noreferrer">PokéAPI</a> and refreshed daily. DraftCenter community statistics are anonymous aggregates calculated from eligible DraftCenter leagues.</p>
+      <p>Core Pokédex facts, measurements, abilities, species color, shape, Egg Groups, and artwork are retrieved from <a href="https://pokeapi.co/" rel="noreferrer">PokéAPI</a> and refreshed daily. DraftCenter community statistics are anonymous aggregates calculated from eligible DraftCenter leagues.</p>
       <p>Draft rate and ADP include eligibility and show their current sample sizes. Auction averages use completed auction samples, while team win rate uses confirmed match results. Small samples should be treated as early evidence, not a definitive ranking.</p>
     </section>
   </main>;
