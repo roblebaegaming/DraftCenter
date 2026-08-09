@@ -18,14 +18,13 @@ export default function NuzlockePage() {
     "@context": "https://schema.org",
     "@graph": [
       {
-        "@type": "WebApplication",
+        "@type": "WebPage",
+        "@id": "https://www.draftcentral.gg/nuzlocke#page",
         name: "DraftCenter Pokémon Nuzlocke Generator",
         url: "https://www.draftcentral.gg/nuzlocke",
-        applicationCategory: "GameApplication",
-        operatingSystem: "Any",
         isAccessibleForFree: true,
         description: "A Nuzlocke team generator using verified, game-specific Pokémon encounters.",
-        featureList: ["Game-specific encounters", "Saved teams and downloadable Run Cards", "Shareable generated teams", "One Pokémon per eligible route or area", "Type, color, and evolution-stage themes", "Route-first and encounter-pool random modes", "Species clause"],
+        isPartOf: { "@id": "https://www.draftcentral.gg/#website" },
       },
       {
         "@type": "BreadcrumbList",

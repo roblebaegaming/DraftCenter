@@ -3,7 +3,7 @@ import fs from "node:fs";
 import test from "node:test";
 import { GUIDES, relatedFormatsBySlug } from "../src/lib/seoContent.js";
 import { pokemonDirectoryFragment, pokemonDirectoryHref } from "../src/lib/pokemonNavigation.js";
-import { pokemonProfileCanonicalPath, pokemonProfileSlugForName } from "../src/lib/publicPokemonIndex.js";
+import { pokemonProfileCanonicalPath, pokemonProfileDisplayName, pokemonProfileSlugForName } from "../src/lib/publicPokemonIndex.js";
 
 function source(path) {
   return fs.readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
@@ -85,7 +85,8 @@ test("the Nuzlocke generator is crawlable, internally linked, and uses current p
   const sitemap = source("src/app/sitemap.js");
 
   assert.match(page, /Pokémon Nuzlocke Team Generator by Game/);
-  assert.match(page, /"@type": "WebApplication"/);
+  assert.match(page, /"@type": "WebPage"/);
+  assert.doesNotMatch(page, /"@type": "WebApplication"/);
   assert.match(page, /"@type": "BreadcrumbList"/);
   assert.match(page, /choose one Pokémon from every eligible route or area/);
   assert.match(page, /team size of up to 20/);
@@ -118,6 +119,8 @@ test("the complete Nuzlocke game-guide library is indexable and internally conne
   assert.match(page, /nuzlocke-guide-method-label/);
   assert.doesNotMatch(page, /nuzlocke-guide-method-list/);
   assert.match(page, /guide\.generatorHref/);
+  assert.match(page, /rel="nofollow"/);
+  assert.doesNotMatch(page, /"@type": "VideoGame"/);
   assert.match(landing, /href="\/nuzlocke\/guides"/);
   assert.match(directory, /title: "Pokémon Nuzlocke Guides by Game"/);
   assert.match(directory, /canonical: "\/nuzlocke\/guides"/);
@@ -174,6 +177,8 @@ test("Pokémon profiles have crawlable indexes and complete core facts", () => {
   assert.match(pokemonIndexData, /pokemonProfileSlugForName/);
   assert.match(profile, /permanentRedirect\(pokemonProfileCanonicalPath\(data\.pokemon\.name\)\)/);
   assert.match(profile, /pokemonProfileSlugForName\(teammate\.pokemon, availableProfiles\)/);
+  assert.match(profile, /pokemonProfileDisplayName\(pokemon\.name, directoryName\)/);
+  assert.match(profile, /Pokédex & Stats/);
 });
 
 test("Pokédex colors, Egg Groups, and shapes have indexable pages and interactive filters", () => {
@@ -211,13 +216,35 @@ test("Pokédex colors, Egg Groups, and shapes have indexable pages and interacti
 });
 
 test("reader-friendly Pokémon names resolve to live canonical profiles", () => {
-  const profiles = new Set(["urshifu-single-strike", "shaymin-land", "landorus-incarnate", "moltres-galar", "charizard-mega-x", "chandelure"]);
+  const profiles = new Set(["urshifu-single-strike", "shaymin-land", "landorus-incarnate", "moltres-galar", "charizard-mega-x", "chandelure", "tauros-paldea-combat-breed"]);
   assert.equal(pokemonProfileSlugForName("Urshifu", profiles), "urshifu-single-strike");
   assert.equal(pokemonProfileSlugForName("Shaymin", profiles), "shaymin-land");
   assert.equal(pokemonProfileSlugForName("Landorus", profiles), "landorus-incarnate");
   assert.equal(pokemonProfileSlugForName("Galarian Moltres", profiles), "moltres-galar");
   assert.equal(pokemonProfileSlugForName("Mega Charizard X", profiles), "charizard-mega-x");
   assert.equal(pokemonProfileSlugForName("Mega Chandelure", profiles), "chandelure");
+  assert.equal(pokemonProfileSlugForName("Paldean Tauros", profiles), "tauros-paldea-combat-breed");
+  assert.equal(pokemonProfileSlugForName("tauros-paldea", profiles), "tauros-paldea-combat-breed");
+});
+
+test("ambiguous PokéAPI form labels stay distinct in public profile metadata", () => {
+  assert.equal(pokemonProfileDisplayName("meowstic-male-mega", "Mega Meowstic"), "Mega Meowstic (Male)");
+  assert.equal(pokemonProfileDisplayName("meowstic-female-mega", "Mega Meowstic"), "Mega Meowstic (Female)");
+  assert.equal(pokemonProfileDisplayName("zygarde-10", "10% Zygarde"), "10% Zygarde (Aura Break)");
+  assert.equal(pokemonProfileDisplayName("zygarde-10-power-construct", "10% Zygarde"), "10% Zygarde (Power Construct)");
+  assert.equal(pokemonProfileDisplayName("pikachu", "Pikachu"), "Pikachu");
+});
+
+test("public league discovery and tournament teammate links render canonical URLs", () => {
+  const leaguesPage = source("src/app/leagues/page.js");
+  const leagues = source("src/components/PublicLeagues.jsx");
+  const tournamentProfile = source("src/components/TournamentPokemonProfile.jsx");
+  assert.match(leaguesPage, /getPublicLeagueCards/);
+  assert.match(leaguesPage, /<PublicLeagues initialLeagues=\{leagues\}/);
+  assert.match(leagues, /useState\(initialLeagues\)/);
+  assert.match(leagues, /aria-label="All current public leagues"/);
+  assert.match(leagues, /href=\{`\/league\/\$\{league\.slug\}`\}/);
+  assert.match(tournamentProfile, /pokemonProfileSlugForName\(teammate\.pokemon_key\)/);
 });
 
 test("interactive Pokédex selection uses fragments and preserves legacy entry points", () => {
@@ -230,7 +257,7 @@ test("interactive Pokédex selection uses fragments and preserves legacy entry p
   assert.match(directory, /window\.location\.hash/);
   assert.match(directory, /url\.searchParams\.delete\("pokemon"\)/);
   assert.match(directory, /window\.history\.replaceState/);
-  assert.match(profile, /pokemonDirectoryHref\(displayName\)/);
+  assert.match(profile, /pokemonDirectoryHref\(directoryName\)/);
   assert.match(trainerDex, /pokemonDirectoryHref\(entry\.pokemon\)/);
   assert.doesNotMatch(`${directory}\n${profile}\n${trainerDex}`, /\/pokemon\?pokemon=/);
 });

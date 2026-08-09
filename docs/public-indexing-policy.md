@@ -18,6 +18,11 @@ format, guide, league-directory, and other routes already listed in
 Private saved Nuzlocke Run Cards are account data even though the Nuzlocke
 generator itself is public.
 
+The public league directory must server-render the same public league-card
+RPC used by its interactive filters and expose a direct crawlable link to
+every returned league. This does not broaden visibility: the public RPC and
+the existing public-league route remain the authority for eligibility.
+
 ## Intentionally non-indexed workspaces
 
 The following surfaces remain `noindex` and excluded from the sitemap:

@@ -1,4 +1,7 @@
 import PublicLeagues from "../../components/PublicLeagues";
+import { getPublicLeagueCards } from "../../lib/supabase/publicServer";
+
+export const dynamic = "force-dynamic";
 
 export const metadata = {
   title: "Public Leagues",
@@ -6,6 +9,7 @@ export const metadata = {
   alternates: { canonical: "/leagues" },
 };
 
-export default function PublicLeaguesPage() {
-  return <PublicLeagues />;
+export default async function PublicLeaguesPage() {
+  const leagues = await getPublicLeagueCards();
+  return <PublicLeagues initialLeagues={leagues} />;
 }

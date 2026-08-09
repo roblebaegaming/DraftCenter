@@ -79,9 +79,9 @@ function PublicLeagueCard({ league, signedIn, busy, onJoin }) {
   </article>;
 }
 
-export default function PublicLeagues() {
+export default function PublicLeagues({ initialLeagues = [] }) {
   const [supabase] = useState(() => createClient());
-  const [leagues, setLeagues] = useState([]);
+  const [leagues, setLeagues] = useState(initialLeagues);
   const [signedIn, setSignedIn] = useState(false);
   const [tab, setTab] = useState("open");
   const [search, setSearch] = useState("");
@@ -131,6 +131,7 @@ export default function PublicLeagues() {
       <div className="league-directory-tabs"><button className={tab === "open" ? "active" : ""} onClick={() => setTab("open")}>Open to Join</button><button className={tab === "watch" ? "active" : ""} onClick={() => setTab("watch")}>Open to Watch</button></div>
       <div className="league-directory-filters"><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search leagues" /><select value={draftType} onChange={(event) => setDraftType(event.target.value)}><option value="">All draft types</option><option value="snake">Snake</option><option value="auction">Auction</option></select><select value={regulation} onChange={(event) => setRegulation(event.target.value)}><option value="">All regulations</option>{regulations.map((value) => <option key={value} value={value}>{REGULATION_LABELS[value] || value}</option>)}</select><select value={size} onChange={(event) => setSize(event.target.value)}><option value="">All league sizes</option>{[2, 4, 6, 8, 10, 12, 14, 16].map((value) => <option key={value} value={value}>{value} teams</option>)}</select><select value={seasonStatus} onChange={(event) => setSeasonStatus(event.target.value)}><option value="">Any season status</option><option value="preseason">Preseason</option><option value="active">Season underway</option></select></div>
     </section>
+    {leagues.length > 0 && <nav className="pokemon-tags league-directory-links" aria-label="All current public leagues"><span>Current public leagues</span>{leagues.map((league) => <a key={league.id} href={`/league/${league.slug}`}>{league.name}</a>)}</nav>}
     {message && <p className="hub-message">{message}</p>}
     {!message && leagues.length === 0 && <p className="muted">Loading public leagues...</p>}
     {leagues.length > 0 && filtered.length === 0 && <section className="league-directory-empty"><h2>No matching leagues yet.</h2><p>Try another filter or check the other public-league tab.</p></section>}

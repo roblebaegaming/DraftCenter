@@ -65,7 +65,7 @@ export default async function NuzlockeGameGuidePage({ params }) {
         author: { "@type": "Organization", name: "DraftCenter Editorial Team", url: "https://www.draftcentral.gg/about#editorial-standards" },
         publisher: { "@id": "https://www.draftcentral.gg/#organization" },
         mainEntityOfPage: `https://www.draftcentral.gg/nuzlocke/${guide.slug}`,
-        about: { "@type": "VideoGame", name: guide.displayName },
+        about: guide.displayName,
       },
       {
         "@type": "BreadcrumbList",
@@ -149,7 +149,7 @@ export default async function NuzlockeGameGuidePage({ params }) {
         <span className="eyebrow">READY TO BUILD</span>
         <h2>Open a preconfigured {guide.displayName} run</h2>
         <p>Start with a repeatable six-slot setup, then adjust any rule using the guide above.</p>
-        <a className="primary-button inline-link-button" href={guide.generatorHref}>Build a {guide.displayName} run</a>
+        <a className="primary-button inline-link-button" href={guide.generatorHref} rel="nofollow">Build a {guide.displayName} run</a>
       </aside>
 
       <aside className="seo-next-step">
