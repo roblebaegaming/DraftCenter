@@ -67,8 +67,10 @@ request [#94](https://github.com/roblebaegaming/DraftCenter/pull/94).
   passed desktop and 390px mobile Pokédex review without browser errors or
   horizontal overflow. The retained Supabase Preview observer-access matrix
   passed every RLS, grant, allow, denial, full-staff, and cleanup assertion.
-- Vercel reports exact `main` commit `cdce0f1` Ready on the public production
-  domains.
+- Vercel reports the current `main` deployment Ready on the public production
+  domains. The last application-changing commit is exact verified commit
+  `cdce0f1`; later documentation-only commits do not change that application or
+  database baseline.
 - The signed-out production smoke sweep passes, including protected 401
   boundaries. Focused live checks also pass for tournament metadata and JSON-LD,
   Daily Games FAQ structured data, sitemap modification dates, `llms.txt`, and
@@ -94,8 +96,9 @@ request [#94](https://github.com/roblebaegaming/DraftCenter/pull/94).
 
 No application release from the August 9 wave, the first product-alignment SEO
 pass, or the consolidated discovery/pricing/pod-access release remains to be
-pushed. Continue normal monitoring of the tournament, Daily Games, Nuzlocke,
-navigation, pricing, pod-observer, metadata, and indexing paths.
+pushed. There are no open pull requests. Continue normal monitoring of the
+tournament, Daily Games, Nuzlocke, navigation, pricing, pod-observer, metadata,
+and indexing paths.
 
 The next SEO work begins with the exact URLs behind the August 8 crawl defects:
 invalid structured data, one broken internal link and 4xx, duplicates, and the
@@ -107,6 +110,8 @@ about 14 days and a normal content decision after about 28 days.
 ## Authoritative records
 
 - Current continuation handoff:
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-09-post-release-continuation.md`](handoffs/DraftCenter-agent-handoff-2026-08-09-post-release-continuation.md)
+- Consolidated application release record:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-09-consolidated-release.md`](handoffs/DraftCenter-agent-handoff-2026-08-09-consolidated-release.md)
 - External SEO measurement:
   [`docs/seo-measurement-2026-08-08.md`](seo-measurement-2026-08-08.md)

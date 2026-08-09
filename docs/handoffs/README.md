@@ -1,8 +1,14 @@
 # Agent handoffs
 
+[`DraftCenter-agent-handoff-2026-08-09-post-release-continuation.md`](DraftCenter-agent-handoff-2026-08-09-post-release-continuation.md)
+is the current continuation handoff. It records the complete release chain
+through pull request 104, the current production deployment and migration 368,
+the absence of pending application/database work, preserved safety boundaries,
+and the ordered stabilization and evidence-led SEO backlog.
+
 [`DraftCenter-agent-handoff-2026-08-09-consolidated-release.md`](DraftCenter-agent-handoff-2026-08-09-consolidated-release.md)
-is the current continuation handoff. It integrates the public Pokédex trait
-expansion, versioned draft-pricing presets, and multi-pod observer-access
+is the detailed application release record. It integrates the public Pokédex
+trait expansion, versioned draft-pricing presets, and multi-pod observer-access
 clarification. Its isolated Preview database matrix and local release gates
 passed. Protected pull request 103, production migrations 366-368, the exact
 application deployment, and post-deployment verification are complete.
