@@ -5000,19 +5000,27 @@ async function loadRemote(leagueId) {
   try {
     if (leagueId) {
       const supabase = createClient();
-      const [{ data, error }, { data: claims, error: claimsError }] = await Promise.all([
-        supabase
+      const stateRequest = supabase.rpc("get_my_league_state", { p_league_id: leagueId });
+      let [{ data, error }, { data: claims, error: claimsError }] = await Promise.all([
+        stateRequest,
+        supabase.rpc("list_private_free_agent_claims", { p_league_id: leagueId }),
+      ]);
+      // Direct members stay usable during a staged application/database
+      // rollout. The fallback cannot grant sibling-pod access because the
+      // existing table policy still requires a direct membership.
+      if (error?.code === "PGRST202") {
+        ({ data, error } = await supabase
           .from("league_state_snapshots")
           .select("state")
           .eq("league_id", leagueId)
-          .maybeSingle(),
-        supabase.rpc("list_private_free_agent_claims", { p_league_id: leagueId }),
-      ]);
+          .maybeSingle());
+        data = data?.state || null;
+      }
       if (error) throw error;
       // Migration 094 may not be installed during a staged deployment. Keep
       // loading the league, but once installed use only its actor-tailored
       // claim view; bid_amount is null for competing managers.
-      const remote = data?.state || null;
+      const remote = data || null;
       if (!remote || claimsError) return remote;
       return {
         ...remote,
@@ -5313,7 +5321,9 @@ function isWithinOvernightPause(date, settings) {
 
 export default function PokemonDraftLeague({ leagueId = null, leagueRole = null, league = null, profile = null, onOpenLeagueTools = null }) {
   const isSpectator = leagueId && leagueRole === "viewer";
+  const isPodManager = leagueId && leagueRole === "pod_manager";
   const [supabase] = useState(() => createClient());
+  const [podNavigation, setPodNavigation] = useState(null);
   const [initialNavigation] = useState(() => readLeagueNavigation(
     typeof window === "undefined" ? "" : window.location.search,
     { isNew: Boolean(league?.isNew) },
@@ -5375,11 +5385,22 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   const isCommissioner = leagueId
     ? ["commissioner", "co_commissioner"].includes(leagueRole)
     : nameConfirmed && (state.commissioner === myName || (state.coCommissioners || []).includes(myName));
-  const displayRole = isCommissioner ? rolePreview : (isSpectator ? "spectator" : "manager");
+  const displayRole = isCommissioner ? rolePreview : (isSpectator ? "spectator" : isPodManager ? "pod_manager" : "manager");
   const displayIsCommissioner = displayRole === "commissioner";
   const displayIsSpectator = displayRole === "spectator";
+  const displayIsPodManager = displayRole === "pod_manager";
+  const displayIsLimitedObserver = displayIsSpectator || displayIsPodManager;
   const previewReadOnly = isCommissioner && rolePreview !== "commissioner";
   const canBeCommissioner = !leagueId && nameConfirmed && !state.commissioner;
+
+  useEffect(() => {
+    if (!leagueId) { setPodNavigation(null); return undefined; }
+    let active = true;
+    supabase.rpc("get_my_league_pod_navigation", { p_league_id: leagueId }).then(({ data }) => {
+      if (active) setPodNavigation(data?.pods?.length > 1 ? data : null);
+    });
+    return () => { active = false; };
+  }, [leagueId, supabase]);
 
   useEffect(() => {
     const timer = setInterval(() => setScheduleClock(Date.now()), 15000);
@@ -9457,6 +9478,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   }, [leagueId, synced, tab, leagueSubTab]);
 
   useEffect(() => {
+    if (displayIsLimitedObserver) return undefined;
     async function dispatchNotifications() {
       const { data } = await supabase.auth.getSession();
       const token = data.session?.access_token;
@@ -9466,7 +9488,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     dispatchNotifications();
     const timer = window.setInterval(dispatchNotifications, 30000);
     return () => window.clearInterval(timer);
-  }, [supabase, leagueId]);
+  }, [supabase, leagueId, displayIsLimitedObserver]);
   useEffect(() => {
     if (!synced
       || !isCommissioner
@@ -9487,8 +9509,8 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     if (tab === "league" && state.locked && !draftDone) setLeagueSubTab("draft");
   }, [tab]);
   useEffect(() => {
-    if (isSpectator && tab === "setup") setTab("home");
-  }, [isSpectator, tab]);
+    if (displayIsLimitedObserver && !["league", "predictions"].includes(tab)) setTab("league");
+  }, [displayIsLimitedObserver, tab]);
   useEffect(() => {
     if (!synced || displayRole !== "manager" || state.locked || myTeamIdx >= 0 || unassignedManagerRoutedRef.current) return;
     unassignedManagerRoutedRef.current = true;
@@ -9502,8 +9524,12 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     if (leagueSubTab === "board") setLeagueSubTab("activity");
   }, [leagueSubTab]);
   useEffect(() => {
-    if (isSpectator && tab === "messages") setTab("home");
-  }, [isSpectator, tab]);
+    if (!displayIsLimitedObserver) return;
+    const allowedSections = displayIsPodManager
+      ? ["activity", "draft", "playoffs", "standings"]
+      : ["draft", "playoffs", "standings"];
+    if (!allowedSections.includes(leagueSubTab)) setLeagueSubTab(displayIsPodManager ? "activity" : "draft");
+  }, [displayIsLimitedObserver, displayIsPodManager, leagueSubTab]);
   useEffect(() => {
     if (!synced || !isDraftTournamentMode || ["setup", "draft", "myteam"].includes(tab)) return;
     setTab(state.locked ? "draft" : displayIsCommissioner ? "setup" : "draft");
@@ -9568,7 +9594,8 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
 
       <div style={{ borderBottom: "1px solid rgba(255,255,255,0.08)", background: "#141729" }} className="sticky top-0 z-10">
         {previewReadOnly && <div className="px-6 py-2 text-center text-xs font-semibold" style={{ background: displayIsSpectator ? "#315887" : "#17443f", color: "#e9f2ff" }}>{displayIsSpectator ? "SPECTATOR PREVIEW" : "MANAGER PREVIEW"} — display only; your commissioner permissions have not changed.</div>}
-        {isSpectator && <div className="px-6 py-2 text-center text-xs font-semibold" style={{ background: "#315887", color: "#e9f2ff" }}>SPECTATOR MODE — You can explore this league, but cannot claim a team, make picks, or change league data.</div>}
+        {isSpectator && <div className="px-6 py-2 text-center text-xs font-semibold" style={{ background: "#315887", color: "#e9f2ff" }}>SPECTATOR ACCESS — Standings, predictions, draft board, and playoffs only. League activity, comments, and manager messages are private.</div>}
+        {isPodManager && <div className="px-6 py-2 text-center text-xs font-semibold" style={{ background: "#17443f", color: "#e9fff9" }}>POD MANAGER ACCESS — You may follow activity, comment, and predict here. Team actions, transactions, and direct messages remain in your own pod.</div>}
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between flex-wrap gap-3">
           <div className="flex items-center gap-3">
             <img src={leagueImageUrl} alt="" style={{ width: 44, height: 44, objectFit: "cover", borderRadius: 10 }} />
@@ -9588,6 +9615,9 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
               ...(displayIsCommissioner ? [["setup", "Setup"]] : []),
               ["draft", state.locked ? "Draft" : "Draft Room"],
               ["myteam", displayIsSpectator ? "Rosters" : myTeamIdx >= 0 ? "My Roster" : "Rosters"],
+            ] : displayIsLimitedObserver ? [
+              ["league", "League"],
+              ["predictions", "Predictions"],
             ] : [
               ["home", `${league?.name || "League"} Home`],
               ...(displayIsCommissioner ? [["setup", "Setup"]] : displayRole === "manager" ? [["setup", "League Details"]] : []),
@@ -9603,10 +9633,9 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
               ...(!state.locked && (displayIsCommissioner || (!displayIsSpectator && hasScheduledDraftTime))
                 ? [["draft", hasScheduledDraftTime ? "Draft Room" : "Schedule"]]
                 : []),
-              ...(displayIsSpectator ? [["myteam", "Teams"]] : myTeamIdx >= 0 ? [["myteam", "My Team"]] : []),
+              ...(myTeamIdx >= 0 ? [["myteam", "My Team"]] : []),
               ...(state.locked ? [["league", "League"]] : []),
-              ...(displayIsSpectator && state.locked ? [["predictions", "Predictions"]] : []),
-              ...(!displayIsSpectator ? [["messages", "Messages"]] : []),
+              ["messages", "Messages"],
             ]).map(([key, label]) => {
               // Pulses on League itself once the draft's underway and it's
               // your turn — the tab holding the actual Draft sub-tab now,
@@ -9666,6 +9695,27 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
             )}
           </nav>
         </div>
+        {podNavigation && (
+          <div className="max-w-6xl mx-auto px-6 pb-3 flex items-center gap-2 flex-wrap" aria-label={`${podNavigation.season?.name || "Organization season"} pods`}>
+            <span className="mono-font text-[10px] mr-1" style={{ color: "#9A9FBD" }}>{podNavigation.organization?.name} · {podNavigation.season?.name} · PODS</span>
+            {podNavigation.pods.map((pod) => (
+              <a
+                key={pod.id}
+                href={`/?league=${encodeURIComponent(pod.league_slug)}&tab=league&section=activity`}
+                className="mono-font text-[10px] px-3 py-1.5 rounded"
+                style={{
+                  background: pod.is_current ? "#FFD23F" : "#1F2338",
+                  color: pod.is_current ? "#10121C" : "#C9CBE0",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  textDecoration: "none",
+                }}
+                aria-current={pod.is_current ? "page" : undefined}
+              >
+                {pod.label || pod.league_name}
+              </a>
+            ))}
+          </div>
+        )}
         {isCommissioner && leagueId && !isDraftTournamentMode && (
           <div className="max-w-6xl mx-auto px-6 pb-3 flex items-center justify-end gap-2 flex-wrap">
             <span className="mono-font text-[10px]" style={{ color: "#9A9FBD" }}>VIEW AS</span>
@@ -9702,7 +9752,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
 
       <div className="max-w-6xl mx-auto px-6 py-8">
         {liveDraftError && <div className="mb-4 rounded p-3 text-sm" style={{ background: "#2A1620", color: "#FFD6D6", border: "1px solid #F0555A66" }}>{liveDraftError}</div>}
-        {tab === "home" && !isDraftTournamentMode && (
+        {tab === "home" && !isDraftTournamentMode && !displayIsLimitedObserver && (
           <HomeView state={state} leagueId={leagueId} leagueName={league?.name} isCommissioner={displayIsCommissioner} isSpectator={displayIsSpectator} myTeamIdx={myTeamIdx} standings={standings}
             isMyTurn={isMyTurn} pendingTrades={pendingTradesForMe} unreadDirectMessages={unreadDirectCount} unreadBoardMessages={unreadBoardCount}
             onGetStarted={() => state.locked ? (setTab("league"), setLeagueSubTab("draft")) : displayIsSpectator ? setTab("myteam") : setTab("setup")}
@@ -9747,7 +9797,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
         )}
         {tab === "draft" && (
           <DraftView
-            state={state} leagueId={leagueId} isCommissioner={isCommissioner} canDraftNow={canDraftNow} myName={myName} myTeamIdx={myTeamIdx}
+            state={state} leagueId={leagueId} isCommissioner={displayIsCommissioner} canDraftNow={canDraftNow && !displayIsLimitedObserver && !previewReadOnly} myName={myName} myTeamIdx={myTeamIdx}
             costFor={costFor}
             currentTeamOnClock={currentTeamOnClock} draftDone={draftDone} allTeamsMetMin={allTeamsMetMin}
             snakePick={snakePick} undoLastSnakePick={undoLastSnakePick} nominateForAuction={nominateForAuction} autoPickForClock={autoPickForClock}
@@ -9756,32 +9806,39 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
             placeBid={placeBid} endAuctionEarly={endAuctionEarly} pauseDraft={pauseDraft} resumeDraft={resumeDraft} skipAuctionNomination={skipAuctionNomination}
             toggleAutoDraft={toggleAutoDraft} addToQueue={addToQueue} removeFromQueue={removeFromQueue} moveQueueItem={moveQueueItem}
             onGenerateSchedule={generateSchedule} updateSettings={updateSettings} onViewTeam={goToTeam} castDraftHeroVote={castDraftHeroVote} restartDraft={restartDraft} rebuildCurrentSeason={rebuildCurrentSeason} onStart={startDraft}
-            postToBoard={postToBoard} markBoardRead={markBoardRead} canPostChat={!displayIsSpectator && !previewReadOnly}
+            postToBoard={postToBoard} markBoardRead={markBoardRead} showChat={!displayIsSpectator} canPostChat={!displayIsSpectator && !previewReadOnly}
+            readOnly={displayIsLimitedObserver || previewReadOnly}
             scheduledStartStatus={scheduledStartStatus}
             retryScheduledStart={() => prepareScheduledSnakeDraft(state, { force: true })}
             eventMode={isDraftTournamentMode}
           />
         )}
-        {tab === "myteam" && (
+        {tab === "myteam" && !displayIsLimitedObserver && (
           <MyTeamView state={state} leagueId={leagueId} myTeamIdx={myTeamIdx} isCommissioner={displayIsCommissioner} myName={myName}
             myTeamIndices={myTeamIndices} activeTeamIdx={activeTeamIdx} setActiveTeamIdx={setActiveTeamIdx}
             renameTeam={renameTeam} setTeamLogo={setTeamLogo} setTeamColor={setTeamColor} setTeamDescription={setTeamDescription}
             viewTeamRequest={viewTeamRequest} clearViewTeamRequest={() => setViewTeamRequest(null)} setKeeperSelection={setKeeperSelection} />
         )}
-        {tab === "predictions" && displayIsSpectator && (
+        {tab === "predictions" && displayIsLimitedObserver && (
           <PredictionsView state={state} myName={myName} submitPrediction={submitPrediction} onViewTeam={goToTeam} readOnly={previewReadOnly} />
         )}
         {tab === "league" && (
           <div className="flex flex-col gap-6">
             <div className="flex gap-1 flex-wrap">
-              {[
-              ["activity", "League Activity"],
+              {(displayIsLimitedObserver ? [
+                ...(displayIsPodManager ? [["activity", "League Activity"]] : []),
+                ["draft", "Draft Board"],
+                ["playoffs", "Playoffs"],
+                ["standings", "Standings"],
+              ] : [
+                ["activity", "League Activity"],
                 ...((!state.locked || draftDone || isCommissioner) ? [["schedule", "Schedule"]] : []),
                 ...((state.playoffs || regularSeasonComplete) ? [["playoffs", "Playoffs"]] : []),
                 ...(hasSchedule && draftDone ? [["standings", "Standings"]] : []),
-                ...(!displayIsSpectator ? [["predictions", "Predictions"], ["trades", "Transactions"]] : []),
+                ["predictions", "Predictions"],
+                ["trades", "Transactions"],
                 ["history-section", "History"],
-              ].map(([key, label]) => {
+              ]).map(([key, label]) => {
                 const subBadge = key === "trades" ? pendingTradesForMe : 0;
                 const isActive = key === "history-section" ? historySectionActive : leagueSubTab === key;
                 const pulseDraft = key === "history-section" && isMyTurn;
@@ -9807,7 +9864,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
                 );
               })}
             </div>
-            {historySectionActive && (
+            {historySectionActive && !displayIsLimitedObserver && (
               <div className="flex gap-1 flex-wrap -mt-3 pl-2" aria-label="History sections">
                 {[
                   ["draft", "Draft & Recap"],
@@ -9826,7 +9883,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
                 ))}
               </div>
             )}
-            {leagueSubTab === "activity" && (
+            {leagueSubTab === "activity" && !displayIsSpectator && (
               <LeagueActivityView state={state} isCommissioner={displayIsCommissioner} isSpectator={displayIsSpectator} reverseFreeAgentMove={reverseFreeAgentMove}
                 myName={myName} postToBoard={postToBoard} deleteBoardPost={deleteBoardPost} markBoardRead={markBoardRead} />
             )}
@@ -9841,12 +9898,13 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
                 placeBid={placeBid} endAuctionEarly={endAuctionEarly} pauseDraft={pauseDraft} resumeDraft={resumeDraft} skipAuctionNomination={skipAuctionNomination}
                 toggleAutoDraft={toggleAutoDraft} addToQueue={addToQueue} removeFromQueue={removeFromQueue} moveQueueItem={moveQueueItem}
                 onGenerateSchedule={generateSchedule} updateSettings={updateSettings} onViewTeam={goToTeam} castDraftHeroVote={castDraftHeroVote} restartDraft={restartDraft} rebuildCurrentSeason={rebuildCurrentSeason} onStart={startDraft}
-                postToBoard={postToBoard} markBoardRead={markBoardRead} canPostChat={!displayIsSpectator && !previewReadOnly}
+                postToBoard={postToBoard} markBoardRead={markBoardRead} showChat={!displayIsSpectator} canPostChat={!displayIsSpectator && !previewReadOnly}
+                readOnly={displayIsLimitedObserver || previewReadOnly}
                 scheduledStartStatus={scheduledStartStatus}
                 retryScheduledStart={() => prepareScheduledSnakeDraft(state, { force: true })}
               />
             )}
-            {leagueSubTab === "schedule" && (
+            {leagueSubTab === "schedule" && !displayIsLimitedObserver && (
               <ScheduleView
                 state={state} isCommissioner={isCommissioner} myName={myName} myTeamIdx={myTeamIdx}
                 setWeek={setWeek} simulateWeek={simulateWeek} onGenerate={generateSchedule} reportMatch={reportMatch}
@@ -9855,12 +9913,12 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
               />
             )}
             {leagueSubTab === "standings" && (
-              <StandingsView standings={standings} settings={state.settings} isCommissioner={isCommissioner} setTeamOtherValue={setTeamOtherValue} rosters={state.rosters}
+              <StandingsView standings={standings} settings={state.settings} isCommissioner={displayIsCommissioner} setTeamOtherValue={setTeamOtherValue} rosters={state.rosters}
                 schedule={state.schedule} matchResults={state.matchResults} seasonNumber={state.seasonNumber} />
             )}
             {leagueSubTab === "playoffs" && (
               <PlayoffsView
-                state={state} isCommissioner={isCommissioner} myName={myName} standings={standings}
+                state={state} isCommissioner={displayIsCommissioner} myName={myName} standings={standings}
                 finalizeSeason={finalizeSeason}
                 generatePlayoffs={generatePlayoffs} resetPlayoffs={resetPlayoffs} reportPlayoffMatch={reportPlayoffMatch}
                 setPlayoffMVP={setPlayoffMVP} setDivisionMVP={setDivisionMVP} setChampionMVP={setChampionMVP}
@@ -9870,13 +9928,13 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
                 onViewTeam={goToTeam}
               />
             )}
-            {leagueSubTab === "awards" && (
+            {leagueSubTab === "awards" && !displayIsLimitedObserver && (
               <SeasonAwardsView state={state} standings={standings} onViewTeam={goToTeam} />
             )}
-            {leagueSubTab === "predictions" && (
+            {leagueSubTab === "predictions" && !displayIsLimitedObserver && (
               <PredictionsView state={state} myName={myName} submitPrediction={submitPrediction} onViewTeam={goToTeam} readOnly={previewReadOnly} />
             )}
-            {leagueSubTab === "trades" && (
+            {leagueSubTab === "trades" && !displayIsLimitedObserver && (
               <TransactionsView
                 state={state} myName={myName} myTeamIdx={myTeamIdx} isCommissioner={isCommissioner}
                 freeAgents={freeAgents} addDropFreeAgent={addDropFreeAgent}
@@ -9885,15 +9943,15 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
                 proposeTrade={proposeTrade} respondTrade={respondTrade} cancelTrade={cancelTrade} reverseTrade={reverseTrade}
               />
             )}
-            {leagueSubTab === "history" && (
+            {leagueSubTab === "history" && !displayIsLimitedObserver && (
               <HistoryView state={state} leagueId={leagueId} onViewTeam={goToTeam} />
             )}
-            {leagueSubTab === "adp" && (
+            {leagueSubTab === "adp" && !displayIsLimitedObserver && (
               <ADPView state={state} />
             )}
           </div>
         )}
-        {tab === "messages" && !displayIsSpectator && (
+        {tab === "messages" && !displayIsLimitedObserver && (
           <MessagesView
             state={state} myName={myName} myTeamIndices={myTeamIndices} isCommissioner={isCommissioner} leagueMembers={leagueMembers}
             sendDirect={sendDirect} markDirectRead={markDirectRead}
@@ -13853,13 +13911,13 @@ function DraftChatPanel({ board = [], myName, postToBoard, markBoardRead, canPos
           </button>
         </div>
       ) : (
-        <p className="text-xs" style={{ color: "#9A9FBD" }}>Read-only while viewing as a spectator.</p>
+        <p className="text-xs" style={{ color: "#9A9FBD" }}>Read-only in this preview.</p>
       )}
     </section>
   );
 }
 
-function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTeamIdx, costFor, currentTeamOnClock, draftDone, allTeamsMetMin, snakePick, undoLastSnakePick, nominateForAuction, autoPickForClock, requestDueSnakeTurnResolution = null, finishBudgetSnakeRoster, placeBid, endAuctionEarly, pauseDraft, resumeDraft, skipAuctionNomination, toggleAutoDraft, addToQueue, removeFromQueue, moveQueueItem, onGenerateSchedule, updateSettings, onViewTeam, castDraftHeroVote, restartDraft, rebuildCurrentSeason, onStart, postToBoard, markBoardRead, canPostChat = true, scheduledStartStatus = null, retryScheduledStart = null, eventMode = false }) {
+function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTeamIdx, costFor, currentTeamOnClock, draftDone, allTeamsMetMin, snakePick, undoLastSnakePick, nominateForAuction, autoPickForClock, requestDueSnakeTurnResolution = null, finishBudgetSnakeRoster, placeBid, endAuctionEarly, pauseDraft, resumeDraft, skipAuctionNomination, toggleAutoDraft, addToQueue, removeFromQueue, moveQueueItem, onGenerateSchedule, updateSettings, onViewTeam, castDraftHeroVote, restartDraft, rebuildCurrentSeason, onStart, postToBoard, markBoardRead, showChat = true, canPostChat = true, readOnly = false, scheduledStartStatus = null, retryScheduledStart = null, eventMode = false }) {
   const {
     locked,
     settings,
@@ -13907,7 +13965,7 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
   const currentRoster = rosters[currentTeamOnClock] || [];
   const currentRestrictedCount = currentRoster.filter((mon) => isRestrictedMon(mon, settings)).length;
   const currentMegaCount = currentRoster.filter((mon) => mon.isMega).length;
-  const canFinishForCurrentTeam = isCommissioner || myTeamIdx === currentTeamOnClock;
+  const canFinishForCurrentTeam = !readOnly && (isCommissioner || myTeamIdx === currentTeamOnClock);
   const canFinishCurrentBudgetRoster = draftType === "snake"
     && settings.snakeBudgetEnabled
     && canFinishForCurrentTeam
@@ -14059,7 +14117,7 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
           <div className="mt-4 flex gap-3 flex-wrap">
             <a href="#pre-draft-board" className="px-4 py-2 rounded font-semibold text-sm"
               style={{ background: "#FFD23F", color: "#10121C", textDecoration: "none" }}>
-              {myTeamIdx >= 0 ? "OPEN BOARD & SET MY QUEUE" : "OPEN DRAFT BOARD"}
+              {!readOnly && myTeamIdx >= 0 ? "OPEN BOARD & SET MY QUEUE" : "OPEN DRAFT BOARD"}
             </a>
             {isCommissioner && <button type="button" onClick={onStart} className="px-4 py-2 rounded font-semibold text-sm" style={{ background: "#4FD1C5", color: "#10121C" }}>START DRAFT NOW</button>}
           </div>
@@ -14093,10 +14151,10 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
         <div id="pre-draft-board" className="mt-6 scroll-mt-28">
           <PreDraftScout
             state={state}
-            isCommissioner={isCommissioner}
+            isCommissioner={isCommissioner && !readOnly}
             costFor={costFor}
             updateHomepage={null}
-            myTeamIdx={myTeamIdx}
+            myTeamIdx={readOnly ? -1 : myTeamIdx}
             addToQueue={addToQueue}
             removeFromQueue={removeFromQueue}
             moveQueueItem={moveQueueItem}
@@ -14107,10 +14165,10 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
     );
   }
 
-  const myQueue = myTeamIdx >= 0 ? (queues[myTeamIdx] || []) : [];
+  const myQueue = !readOnly && myTeamIdx >= 0 ? (queues[myTeamIdx] || []) : [];
   const myQueueMons = myQueue.map((name) => pool.find((m) => m.name === name)).filter(Boolean);
-  const myOwnTurn = draftType === "snake" && myTeamIdx >= 0 && myTeamIdx === currentTeamOnClock;
-  const myNominationTurn = draftType === "auction" && myTeamIdx >= 0 && !nominee
+  const myOwnTurn = !readOnly && draftType === "snake" && myTeamIdx >= 0 && myTeamIdx === currentTeamOnClock;
+  const myNominationTurn = !readOnly && draftType === "auction" && myTeamIdx >= 0 && !nominee
     && auctionNominationOrder.length > 0 && auctionNominationOrder[auctionNominationIdx % auctionNominationOrder.length] === myTeamIdx;
   const hasSeasonActivity = (state.schedule || []).length > 0
     || Object.keys(state.matchResults || {}).length > 0
@@ -14332,15 +14390,15 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
         </div>
       )}
 
-      <DraftChatPanel
+      {showChat && <DraftChatPanel
         board={state.messages?.board || []}
         myName={myName}
         postToBoard={postToBoard}
         markBoardRead={markBoardRead}
         canPost={canPostChat}
-      />
+      />}
 
-      {(draftType === "snake" || draftType === "auction") && myTeamIdx >= 0 && !draftDone && (
+      {!readOnly && (draftType === "snake" || draftType === "auction") && myTeamIdx >= 0 && !draftDone && (
         <div style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }} className="rounded-lg p-4 mb-6">
           <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
             <h3 className="display-font text-xl" style={{ color: "#FFD23F" }}>YOUR QUEUE</h3>
@@ -14415,19 +14473,19 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
               <span>Return to the Draft Tournament page to lock the rosters atomically and pair Swiss Round 1.</span>
               <a href={state.tournamentSlug ? `/tournaments/${encodeURIComponent(state.tournamentSlug)}` : "/tournaments"} className="primary-button inline-link-button mt-4">Return to event</a>
             </div>
-          ) : (
+          ) : !readOnly ? (
             <button onClick={onGenerateSchedule} disabled={draftType === "auction" && !allTeamsMetMin}
               className="px-6 py-3 rounded font-semibold display-font text-xl glow disabled:opacity-40 disabled:cursor-not-allowed" style={{ background: "#4FD1C5", color: "#10121C" }}>
               GENERATE SCHEDULE →
             </button>
-          )}
+          ) : null}
           {draftType === "auction" && !allTeamsMetMin && (
             <p className="text-sm mt-3" style={{ color: "#F0555A" }}>
               The auction cannot advance until every team reaches the {settings.rosterMin}-Pokémon minimum.
             </p>
           )}
           {!eventMode && <DraftRecapCard state={state} onViewTeam={onViewTeam} />}
-          {!eventMode && <DraftHeroVoteCard teams={teams} votes={state.draftHeroVotes} myName={myName} castDraftHeroVote={castDraftHeroVote} />}
+          {!eventMode && !readOnly && <DraftHeroVoteCard teams={teams} votes={state.draftHeroVotes} myName={myName} castDraftHeroVote={castDraftHeroVote} />}
         </div>
       ) : (
         <>
@@ -14447,7 +14505,7 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
                   deadline={pickDeadline}
                   isCommissioner={isCommissioner}
                   onExpireAction={leagueId ? requestDueSnakeTurnResolution : autoPickForClock}
-                  onServerExpireAction={leagueId ? requestDueSnakeTurnResolution : null}
+                  onServerExpireAction={leagueId && !readOnly ? requestDueSnakeTurnResolution : null}
                   paused={paused}
                   pausedAt={pausedAt}
                 />
@@ -14517,17 +14575,17 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
             </div>
           ) : (
             <AuctionPanel teams={teams} budgets={budgets} rosters={rosters} rosterMin={settings.rosterMin} rosterMax={settings.rosterMax} nominee={nominee}
-              placeBid={placeBid} myTeamIdx={myTeamIdx} isCommissioner={isCommissioner}
+              placeBid={placeBid} myTeamIdx={readOnly ? -1 : myTeamIdx} isCommissioner={isCommissioner && !readOnly}
               auctionNominationOrder={auctionNominationOrder} auctionNominationIdx={auctionNominationIdx}
               paused={paused} pausedAt={pausedAt} nominationDeadline={nominationDeadline}
               pendingNominee={pendingNominee} pendingBid={pendingBid} setPendingBid={setPendingBid}
               confirmNomination={() => nominateForAuction(pendingNominee, pendingBid)}
               cancelPendingNomination={() => { setPendingNominee(null); setPendingBid("1"); }}
               skipAuctionNomination={skipAuctionNomination}
-              poolEmpty={pool.length === 0} onDone={onGenerateSchedule} />
+              poolEmpty={pool.length === 0} onDone={readOnly ? null : onGenerateSchedule} />
           )}
 
-          {myTeamIdx >= 0 && (
+          {!readOnly && myTeamIdx >= 0 && (
             <div style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }} className="rounded-lg p-4 mb-6">
               <button onClick={() => setShowMyRoster((v) => !v)} className="w-full flex items-center justify-between gap-2">
                 <span className="display-font text-xl" style={{ color: "#FFD23F" }}>YOUR TEAM</span>
@@ -14574,7 +14632,7 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
               : affordLimit;
             const auctionN = auctionNominationOrder.length;
             const onDeckTeamIdx = auctionN ? auctionNominationOrder[auctionNominationIdx % auctionN] : null;
-            const canNominate = draftType === "auction" && (isCommissioner || myTeamIdx === onDeckTeamIdx);
+            const canNominate = !readOnly && draftType === "auction" && (isCommissioner || myTeamIdx === onDeckTeamIdx);
             const q = poolSearch.trim().toLowerCase();
             const statMinNum = poolStatMin === "" ? null : Number(poolStatMin);
             const dirMul = poolSortDir === "asc" ? -1 : 1;
@@ -14639,7 +14697,7 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
                     <MonAbilities mon={p} className="text-[9px] mono-font mt-1" style={{ color: "#5B5F7E" }} />
                     {unavailableReason && <div className="text-[9px] mono-font mt-2" style={{ color: capReason ? "#9A9FBD" : "#F0555A" }}>{capReason ? "LIMIT REACHED" : unavailableReason}</div>}
                   </button>
-                  {draftType === "snake" && myTeamIdx >= 0 && (
+                  {!readOnly && draftType === "snake" && myTeamIdx >= 0 && (
                     myOwnTurn ? (
                       <button onClick={() => snakePick(p)} disabled={cantAfford || !!capReason}
                         className="mt-2 w-full text-xs py-1 rounded mono-font font-semibold disabled:opacity-40"
@@ -14654,7 +14712,7 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
                       </button>
                     )
                   )}
-                  {draftType === "auction" && myTeamIdx >= 0 && (
+                  {!readOnly && draftType === "auction" && myTeamIdx >= 0 && (
                     <button onClick={() => (queued ? removeFromQueue(myTeamIdx, p.name) : addToQueue(myTeamIdx, p.name))}
                       className="mt-2 w-full text-xs py-1 rounded mono-font"
                       style={{ background: queued ? "#FFD23F22" : "#141729", color: queued ? "#FFD23F" : "#9A9FBD", border: `1px solid ${queued ? "#FFD23F55" : "rgba(255,255,255,0.08)"}` }}>
@@ -14918,7 +14976,7 @@ function AuctionPanel({ teams, budgets, rosters, rosterMin, rosterMax, nominee, 
       return (
         <div className="text-center py-10">
           <p className="display-font text-3xl mb-4" style={{ color: "#FFD23F" }}>DRAFT COMPLETE</p>
-          <button onClick={onDone} className="px-6 py-3 rounded font-semibold display-font text-xl glow" style={{ background: "#4FD1C5", color: "#10121C" }}>GENERATE SCHEDULE →</button>
+          {onDone && <button onClick={onDone} className="px-6 py-3 rounded font-semibold display-font text-xl glow" style={{ background: "#4FD1C5", color: "#10121C" }}>GENERATE SCHEDULE →</button>}
         </div>
       );
     }

@@ -77,6 +77,12 @@ No application release from the August 9 wave or the first product-alignment
 SEO pass remains to be pushed. Continue normal monitoring of the tournament,
 Daily Games, Nuzlocke, navigation, metadata, and indexing paths.
 
+The multi-pod observer-access clarification is implemented on
+`codex/multi-pod-access-clarification` with forward migration 366. Its local
+tests, dependency audit, National Dex check, and build pass, but it is not
+deployed. Run the isolated Preview migration matrix and signed-in role review
+before opening or merging its release pull request; see the dated handoff.
+
 The next SEO work begins with the exact URLs behind the August 8 crawl defects:
 invalid structured data, one broken internal link and 4xx, duplicates, and the
 orphaned sitemap page. Reproduce each finding against `b40717e` before changing

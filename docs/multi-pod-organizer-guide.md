@@ -29,6 +29,9 @@ Organization
 6. Every pod then runs as a normal independent league. Its league remains the
    source of truth for the draft, schedule, standings, transactions,
    replacements, teams, and rosters.
+   Managers can use the pod links in the league header to visit sibling pods.
+   While visiting, they can follow activity, comment on the League Board, and
+   predict, but all team and transaction actions stay in their own pod.
 7. At the end of the pod seasons, an administrator begins qualification. Each
    pod is locked by someone who is also staff in that source league. DraftCenter
    snapshots the exact standings, teams, rosters, and source revision, applies
@@ -142,6 +145,15 @@ continue through the existing Tournament controls.
 
 - **Visibility:** organizations are private by default and may expose a bounded
   public organization page.
+- **Spectator links:** use these for people who should see only standings,
+  predictions, the official draft board, and playoffs. Spectators cannot see
+  league activity or comments and cannot message managers.
+- **Manager links:** these add the person to that specific pod so they can
+  claim a team and use its transaction tools. A manager who already belongs to
+  another pod does not need a second invite merely to visit and comment.
+- **Pod switching:** managers see clickable pod labels inside every linked pod.
+  Opening another label grants the sibling-pod view, not a team or transaction
+  role in that league.
 - **Delegation:** the owner may invite organization administrators, while pod
   permissions continue to come from each source league.
 - **Audit history:** administrator, regulation, pod-review, launch,

@@ -26,8 +26,11 @@ test("draft chat marks visible posts read and only clears after a successful sen
   assert.match(league, /maxLength=\{1000\}/);
 });
 
-test("spectator and role-preview chat stays read-only", () => {
+test("spectators hide draft chat while pod managers can use the shared board", () => {
   const occurrences = league.match(/canPostChat=\{!displayIsSpectator && !previewReadOnly\}/g) || [];
   assert.equal(occurrences.length, 2);
-  assert.match(league, /Read-only while viewing as a spectator/);
+  const visibilityOccurrences = league.match(/showChat=\{!displayIsSpectator\}/g) || [];
+  assert.equal(visibilityOccurrences.length, 2);
+  assert.match(league, /Read-only in this preview/);
+  assert.match(league, /POD MANAGER ACCESS/);
 });

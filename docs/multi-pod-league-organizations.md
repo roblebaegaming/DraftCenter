@@ -13,6 +13,13 @@ or rebuilding rosters.
 - Pod commissioners continue using the existing league roles. Organization
   owners and administrators coordinate the overall season but do not silently
   acquire league authority.
+- A manager or commissioner in one pod may open every other active pod in the
+  same organization season. In a sibling pod they may read completed league
+  activity, use the League Board, and make predictions, but they cannot claim
+  or edit a team, draft, transact, trade, or send direct messages there.
+- An invited spectator may see only standings, predictions, the official draft
+  board, and playoffs. Spectators cannot read league activity or the League
+  Board and cannot comment or contact managers.
 - A manager replacement follows the source league's existing replacement
   rules. The replacement manager takes over the same team, roster, record, and
   schedule.
@@ -61,6 +68,28 @@ The foundation migration intentionally exposed no qualifier-promotion or
 championship-creation mutation. Forward migrations 356-358 now add the bounded
 qualification workflow described below. Championship creation remains a
 separate release so tournament promotion can be reviewed atomically.
+
+## Pod navigation and observer access
+
+Forward-only migration `366-multi-pod-manager-and-spectator-access.sql`
+introduces a virtual `pod_manager` access result. It is derived at request time
+from a manager, co-commissioner, or commissioner membership in another active
+pod from the same organization season; it is not written into the target
+league's membership table and therefore does not broaden existing transaction
+RPCs.
+
+The migration also replaces direct spectator snapshot reads with an explicit
+server-side allow-list. Both spectator and sibling-manager projections include
+the season data required for standings, predictions, the draft board, and
+playoffs. The sibling-manager projection additionally includes the League
+Board, the manager's own board read receipt, free-agent activity, completed
+trade outcomes, and administrative activity. It excludes private queues,
+pending claims, pending trades, direct messages, and every transaction control.
+
+The signed-in league header obtains its pod list from the same organization
+season and links each label back through the authenticated league opener. A
+manager therefore moves between private pods without converting them to public
+leagues or receiving a target-pod membership.
 
 ## Shared regulations
 
@@ -175,6 +204,10 @@ Migrations 350-360 are deployed through protected pull requests 82, 85, 91,
 and 92. All organization tables use RLS, browser roles have no direct table
 access, owner and invited-administrator actions remain bounded, and production
 grant, trigger, and function-search-path audits pass.
+
+Migration 366 and its application changes are release-candidate work and are
+not production behavior until they pass Preview review, merge through a
+protected pull request, and the migration is applied to the exact core project.
 
 The retained `multi-pod-pr-82` Preview branch passes the complete foundation,
 qualification, single-elimination championship, and double-elimination
