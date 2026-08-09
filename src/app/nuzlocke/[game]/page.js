@@ -1,8 +1,10 @@
 import { notFound } from "next/navigation";
 import NuzlockeGuideGameSelect from "../../../components/NuzlockeGuideGameSelect";
 import guideCatalog from "../../../lib/nuzlockeGameGuides.json";
+import { pokemonProfileSlugForName } from "../../../lib/publicPokemonIndex";
 
 const guidesBySlug = Object.fromEntries(guideCatalog.games.map((guide) => [guide.slug, guide]));
+const POKEAPI_ARTWORK_BASE = "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork";
 const METHOD_LABELS = {
   "gift-egg": "Gift Egg",
   "good-rod": "Good Rod",
@@ -25,6 +27,9 @@ const encountersForArea = (area) => area.methods.flatMap((method) => method.poke
   ...pokemon,
   method: method.method,
 })));
+const profileSlugForEncounter = (pokemon) => pokemonProfileSlugForName(
+  String(pokemon.name || "").replace(/\s+\([^)]*\)$/, ""),
+);
 
 export function generateStaticParams() {
   return guideCatalog.games.map(({ slug }) => ({ game: slug }));
@@ -126,8 +131,9 @@ export default async function NuzlockeGameGuidePage({ params }) {
           return <details key={area.areaKey}>
             <summary><strong>{area.label}</strong><span>{encounters.length} {encounters.length === 1 ? "encounter" : "encounters"}</span></summary>
             <div className="nuzlocke-guide-pokemon-list">{encounters.map((pokemon, index) => <div key={`${pokemon.method}-${pokemon.pokemonId}-${pokemon.name}-${index}`}>
+              <img src={`${POKEAPI_ARTWORK_BASE}/${pokemon.pokemonId}.png`} alt={`${pokemon.name} artwork`} width="52" height="52" loading="lazy" />
               <span className="nuzlocke-guide-method-label">{methodLabel(pokemon.method)}</span>
-              <strong>{pokemon.name}</strong>
+              <strong><a href={`/pokemon/${profileSlugForEncounter(pokemon)}`}>{pokemon.name}</a></strong>
               {levelLabel(pokemon) && <small>{levelLabel(pokemon)}</small>}
             </div>)}</div>
           </details>;

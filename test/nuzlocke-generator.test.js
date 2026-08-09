@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import { generateNuzlockeTeam } from "../src/lib/nuzlockeGenerator.js";
 import { buildNuzlockeRunCardText, normalizeSavedNuzlockeResult, nuzlockeRulesFromShareUrl, nuzlockeRunCardFilename } from "../src/lib/nuzlockeRunExports.js";
+import { nuzlockeRunCardImageFilename } from "../src/lib/nuzlockeRunCardImage.js";
 
 const encounters = [
   { area_key:"route-1",pokemon_id:1,pokemon_name:"Bulbasaur",species_family:"bulbasaur",method:"walk",chance:60 },
@@ -136,6 +137,7 @@ test("generated teams can be safely saved and exported as readable Run Cards",()
   assert.doesNotMatch(text,/Randomizer seed/);
   assert.match(text,/Scarlet Ember/);assert.match(text,/1\. Fuecoco — Starter choice — Starter Pokémon/);assert.match(text,/Only 1 of 2 requested results/);assert.match(text,/Recreate this run/);assert.match(text,/draftcentral\.gg\/nuzlocke/);
   assert.equal(nuzlockeRunCardFilename("Pokémon Scarlet: Ember Run","Pokémon Scarlet"),"pokemon-scarlet-ember-run.txt");
+  assert.equal(nuzlockeRunCardImageFilename("Pokémon Scarlet: Ember Run","Pokémon Scarlet"),"pokemon-scarlet-ember-run.png");
 });
 test("optional starters are deterministic, count as a team slot, and respect exclusions",()=>{
   const starters=[

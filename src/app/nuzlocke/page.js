@@ -43,7 +43,7 @@ export default function NuzlockePage() {
     <section className="explore-card nuzlocke-seo-guide" aria-labelledby="nuzlocke-guide-title">
       <span className="eyebrow">HOW IT WORKS</span>
       <h2 id="nuzlocke-guide-title">A game-specific Nuzlocke team generator</h2>
-      <p>Choose a verified Pokémon game and build a fresh team from its reviewed encounters. Select a team size of up to 20 or choose one Pokémon from every eligible route or area, then save the exact team in your browser, download a readable Run Card, or share it by link.</p>
+      <p>Choose a verified Pokémon game and build a fresh team from its reviewed encounters. Select a team size of up to 20 or choose one Pokémon from every eligible route or area, then save the exact Run Card privately in My Teams, download a visual Run Card with Pokémon artwork, or share it by link.</p>
       <div className="pokemon-detail-grid">
         <section>
           <h3>Use game-specific encounter data</h3>

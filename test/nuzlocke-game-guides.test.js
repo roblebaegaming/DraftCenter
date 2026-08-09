@@ -34,7 +34,9 @@ test("all reviewed Nuzlocke games have complete catalog-derived guides", () => {
       assert.ok(catalogArea, `${guide.gameKey} should contain ${area.areaKey}`);
       assert.equal(area.label, catalogArea.display_name);
       assert.ok(catalog.encounters.some(({ area_key }) => area_key === area.areaKey), `${area.areaKey} should have encounter rows`);
-      for (const method of area.methods) for (const pokemon of method.pokemon) assert.ok(catalog.encounters.some((row) => row.area_key === area.areaKey && row.method === method.method && row.pokemon_id === pokemon.pokemonId), `${area.areaKey} ${method.method} should include ${pokemon.name}`);
+      for (const method of area.methods) for (const pokemon of method.pokemon) {
+        assert.ok(catalog.encounters.some((row) => row.area_key === area.areaKey && row.method === method.method && row.pokemon_id === pokemon.pokemonId), `${area.areaKey} ${method.method} should include ${pokemon.name}`);
+      }
     }
     const generatorUrl = new URL(guide.generatorHref, "https://www.draftcentral.gg");
     assert.equal(generatorUrl.pathname, "/nuzlocke");
@@ -61,6 +63,10 @@ test("game guides are static, canonical, structured, and internally linked", () 
   assert.match(page, /guide\.areas\.map/);
   assert.match(page, /method\.pokemon\.map/);
   assert.match(page, /href={`\/pokemon\/\$\{starter\.profileSlug\}`}/);
+  assert.match(page, /POKEAPI_ARTWORK_BASE/);
+  assert.match(page, /alt={`\$\{pokemon\.name\} artwork`}/);
+  assert.match(page, /pokemonProfileSlugForName/);
+  assert.match(page, /href={`\/pokemon\/\$\{profileSlugForEncounter\(pokemon\)\}`}/);
   assert.match(landing, /href="\/nuzlocke\/guides"/);
   assert.match(directory, /guideCatalog\.games\.map/);
   assert.match(directory, /"@type": "CollectionPage"/);
