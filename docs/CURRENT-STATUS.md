@@ -135,6 +135,8 @@ Search Console excludes them.
 ## Authoritative records
 
 - Current continuation handoff:
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-09-conversation-release-confirmation.md`](handoffs/DraftCenter-agent-handoff-2026-08-09-conversation-release-confirmation.md)
+- League-save implementation detail:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-09-league-save-reconciliation.md`](handoffs/DraftCenter-agent-handoff-2026-08-09-league-save-reconciliation.md)
 - Consolidated application release record:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-09-consolidated-release.md`](handoffs/DraftCenter-agent-handoff-2026-08-09-consolidated-release.md)
