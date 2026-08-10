@@ -15,11 +15,18 @@ export default function Worlds2026VgcPage() {
     startDate: "2026-08-28",
     endDate: "2026-08-30",
     eventStatus: "https://schema.org/EventScheduled",
-    location: {
-      "@type": "Place",
-      name: "Moscone Center",
-      address: { "@type": "PostalAddress", addressLocality: "San Francisco", addressRegion: "CA", addressCountry: "US" },
-    },
+    location: [
+      {
+        "@type": "Place",
+        name: "Moscone Center",
+        address: { "@type": "PostalAddress", addressLocality: "San Francisco", addressRegion: "CA", addressCountry: "US" },
+      },
+      {
+        "@type": "Place",
+        name: "Chase Center — Championship Sunday",
+        address: { "@type": "PostalAddress", addressLocality: "San Francisco", addressRegion: "CA", addressCountry: "US" },
+      },
+    ],
     url: "https://worlds.pokemon.com/en-gb",
   };
 

@@ -48,7 +48,7 @@ export default function WorldsPredictionsHub() {
       <aside>
         <span>WORLDS WEEKEND</span>
         <strong>Aug 28–30</strong>
-        <p>Moscone Center · San Francisco</p>
+        <p>Moscone Center · Championship Sunday at Chase Center</p>
       </aside>
     </section>
 

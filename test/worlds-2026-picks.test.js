@@ -150,6 +150,7 @@ test("the Worlds overview separates competition and overall leaderboards", () =>
   const sitemap = source("src/app/sitemap.js");
   for (const label of ["Overall", "VGC", "TCG", "Pokémon GO", "Pokémon UNITE"]) assert.match(hub, new RegExp(`label: "${label}"`));
   assert.match(hub, /Every competition is worth up to 100 points/);
+  assert.match(hub, /Moscone Center · Championship Sunday at Chase Center/);
   assert.match(hub, /Opens after two competitions score/);
   assert.match(hub, /Missing an entry earns zero for that game/);
   assert.match(hub, /get_worlds_pick_hub/);
@@ -158,7 +159,14 @@ test("the Worlds overview separates competition and overall leaderboards", () =>
   assert.match(overviewPage, /WorldsPredictionsHub/);
   assert.match(overviewPage, /canonical: "\/worlds\/2026"/);
   assert.match(vgcPage, /canonical: "\/worlds\/2026\/vgc"/);
+  assert.match(vgcPage, /name: "Chase Center — Championship Sunday"/);
   assert.match(sitemap, /\["\/worlds\/2026\/vgc", "daily", 0\.8\]/);
+});
+
+test("the VGC event card names both 2026 Worlds venues", () => {
+  const component = source("src/components/WorldsPickSixteen.jsx");
+  assert.match(component, /Moscone Center · Championship Sunday at Chase Center/);
+  assert.doesNotMatch(component, /<p>Moscone Center · San Francisco<\/p>/);
 });
 
 test("the TCG setup stays Masters-only and fail-closed while its roster is audited", () => {

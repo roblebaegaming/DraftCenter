@@ -36,8 +36,10 @@ It is not the later elimination-bracket predictor. The bracket experience stays
 closed until official pairings exist; do not manufacture seeds, byes, or
 matchups from the invite list.
 
-The 2026 Pokémon World Championships run August 28-30 in San Francisco. Entries
-currently lock at midnight Pacific on August 28. If Pokémon publishes an exact
+The 2026 Pokémon World Championships run August 28-30 in San Francisco. The
+official event information lists Moscone Center for the weekend and moves all
+finals to Chase Center for Championship Sunday. Entries currently lock at
+midnight Pacific on August 28. If Pokémon publishes an exact
 VGC start time before release, update the deadline before applying migration
 369. After any migration is applied, publish deadline changes in a new
 forward-only migration.

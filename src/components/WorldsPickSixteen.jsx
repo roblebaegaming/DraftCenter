@@ -173,7 +173,7 @@ export default function WorldsPickSixteen({ rosterSource }) {
       <aside className="worlds-event-card">
         <span>2026 WORLD CHAMPIONSHIPS</span>
         <strong>Aug 28–30</strong>
-        <p>Moscone Center · San Francisco</p>
+        <p>Moscone Center · Championship Sunday at Chase Center</p>
         <dl>
           <div><dt>Division</dt><dd>VGC Masters</dd></div>
           <div><dt>Entry lock</dt><dd>{displayPacificDate(event.locks_at, true)}</dd></div>
