@@ -3,7 +3,7 @@
 - Last updated: August 10, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified production application commit: `a36a514ca93aa7c089d9f53822d9a961d385ffd4`
+- Verified production application commit: `3eb4e94ca78bd1074454c59bdaaba43f665eed61`
 - Latest production migration: 370
 
 ## Deployed state
@@ -117,6 +117,13 @@ it, shows the August 10 snapshot date, explains that the tracker combines
 Championship Point standings and qualifying event results, and repeats that an
 invite-earned list is not confirmed attendance or registration.
 
+The Worlds navigation and account-gate refinement shipped through pull request
+[#121](https://github.com/roblebaegaming/DraftCenter/pull/121). The global
+feature link is now named **Worlds Predictions** and lives in the sticky top
+header instead of the bottom tools bar. Signed-out visitors may browse the
+Masters roster, scoring, sources, and leaderboard, but the Pick 16 builder and
+all competitor-selection controls remain locked behind a DraftCenter account.
+
 ## Release verification
 
 - The complete application tests, National Dex verification across 1,027
@@ -135,7 +142,7 @@ invite-earned list is not confirmed attendance or registration.
   passed desktop and 390px mobile Pokédex review without browser errors or
   horizontal overflow. The retained Supabase Preview observer-access matrix
   passed every RLS, grant, allow, denial, full-staff, and cleanup assertion.
-- Vercel reports exact `main` application commit `a36a514` Ready and Current on
+- Vercel reports exact `main` application commit `3eb4e94` Ready and Current on
   the public production domains.
 - The signed-out production smoke sweep passes, including protected 401
   boundaries. Focused live checks also pass for tournament metadata and JSON-LD,
@@ -180,6 +187,13 @@ invite-earned list is not confirmed attendance or registration.
   check. Its exact Preview and production source panel passed desktop and
   390px review with the intended Victory Road link and no horizontal overflow;
   the post-deployment signed-out smoke sweep passed all 19 routes.
+- Pull request #121 passed the dependency audit, complete application suite,
+  1,027-row National Dex verification, optimized production build, and all six
+  protected checks. Its exact Preview and production route passed signed-out
+  desktop and 390px review with Worlds Predictions in the top header, five
+  balanced bottom-tool slots, zero enabled pick buttons, all 438 roster cards,
+  no browser errors, and no horizontal overflow. The post-deployment signed-out
+  smoke sweep passed all 19 routes.
 - No merge protection was bypassed.
 
 ## Preserved boundaries
