@@ -11,6 +11,7 @@ import {
   WORLDS_2026_SCORING,
   worldsEntryIsLocked,
 } from "../lib/worlds2026";
+import WorldsDisciplineNav from "./WorldsDisciplineNav";
 
 const FALLBACK_EVENT = {
   id: WORLDS_2026_EVENT_ID,
@@ -157,20 +158,22 @@ export default function WorldsPickSixteen({ rosterSource }) {
   }
 
   return <main className="worlds-shell">
+    <WorldsDisciplineNav current="vgc" />
     <section className="worlds-hero">
       <div>
         <span className="eyebrow">POKÉMON WORLDS · SAN FRANCISCO</span>
-        <h1>Pick the 16 VGC players you believe in.</h1>
-        <p>Build a roster from every currently known 2026 Masters invitee. When Worlds finishes, the entry with the strongest collective results wins the DraftCenter community leaderboard.</p>
+        <h1>2026 Pokémon Worlds VGC predictions</h1>
+        <p>Pick the 16 VGC players you believe in from every currently known Masters invitee. When Worlds finishes, the entry with the strongest collective results wins the DraftCenter community leaderboard.</p>
         <div className="worlds-hero-actions">
           <a className="primary-button inline-link-button" href={user === null ? "/#member-access" : "#pick-sixteen"}>{user === null ? "Sign in to predict" : "Build my 16"}</a>
+          <a className="quiet-button" href="/worlds/2026">All Worlds competitions</a>
           <a className="quiet-button" href="#qualified-players">See all {competitors.length} invitees</a>
         </div>
       </div>
       <aside className="worlds-event-card">
         <span>2026 WORLD CHAMPIONSHIPS</span>
         <strong>Aug 28–30</strong>
-        <p>Moscone Center · San Francisco</p>
+        <p>Moscone Center · Championship Sunday at Chase Center</p>
         <dl>
           <div><dt>Division</dt><dd>VGC Masters</dd></div>
           <div><dt>Entry lock</dt><dd>{displayPacificDate(event.locks_at, true)}</dd></div>
@@ -233,7 +236,7 @@ export default function WorldsPickSixteen({ rosterSource }) {
     </section>
 
     <section className="worlds-roster-section" id="qualified-players">
-      <header className="section-heading"><div><span className="eyebrow">2026 VGC MASTERS</span><h2>Qualified-player list</h2><p>Search by player, country code, region, or qualification path.</p></div><strong>{filtered.length} shown</strong></header>
+      <header className="section-heading"><div><span className="eyebrow">2026 VGC MASTERS</span><h2>Pokémon Worlds VGC Masters invitee list</h2><p>Browse qualified players by name, country code, region, or qualification path.</p></div><strong>{filtered.length} shown</strong></header>
       <aside className="worlds-roster-source" aria-labelledby="worlds-roster-source-heading">
         <div>
           <span className="eyebrow">ROSTER SOURCE</span>
@@ -264,7 +267,7 @@ export default function WorldsPickSixteen({ rosterSource }) {
 
     <section className="worlds-bottom-grid">
       <article className="worlds-leaderboard-card">
-        <header><div><span className="eyebrow">COMMUNITY LEADERBOARD</span><h2>{hub?.entry_count || 0} entries</h2></div>{hub?.my_entry && <strong>Your rank: {hub.my_entry.rank}</strong>}</header>
+        <header><div><span className="eyebrow">VGC COMMUNITY LEADERBOARD</span><h2>{hub?.entry_count || 0} entries</h2></div>{hub?.my_entry && <strong>Your rank: {hub.my_entry.rank}</strong>}</header>
         {hub?.standings?.length ? <div className="worlds-standings">{hub.standings.map((entry, index) => <details key={`${entry.display_name}-${index}`} className={entry.is_me ? "is-me" : ""}>
           <summary><span>#{entry.rank}</span><strong>{entry.display_name}</strong><b>{entry.score} pts</b></summary>
           {entry.picks ? <p>{entry.picks.map((slug) => `${competitorBySlug.get(slug)?.displayName || slug}${slug === entry.ace_slug ? " (Ace ×2)" : ""}`).join(" · ")}</p> : <p>Lineup stays private until entries lock.</p>}

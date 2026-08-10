@@ -1,11 +1,40 @@
-# 2026 VGC Worlds Pick 16
+# 2026 Worlds Predictions
 
 The global navigation names this feature **Worlds Predictions** and keeps it in
 the sticky top header rather than the bottom tools bar. Visitors may browse the
-Masters invite list, scoring, and public leaderboard, but only signed-in
+competition overview at `/worlds/2026`, then choose a discipline. VGC lives at
+`/worlds/2026/vgc`; TCG build status lives at `/worlds/2026/tcg`. Visitors may
+browse the Masters invite list, scoring, and public leaderboard, but only signed-in
 DraftCenter members can assemble, save, or edit a prediction entry. The page
 uses the same explicit account gate as Daily Games, while the authenticated
 database function remains the authoritative write boundary.
+
+The public Worlds hub and VGC page use the full 2026 Pokémon World
+Championships name in their search metadata and visible answers. They expose
+canonical URLs, social metadata, breadcrumb and event structured data, current
+sitemap timestamps, and a concise `llms.txt` description. The hub directly
+answers the event dates, San Francisco venue split, represented games, and VGC
+prediction format without presenting DraftCenter as the event organizer.
+
+## Competition and leaderboard structure
+
+The overview presents VGC, TCG, Pokémon GO, and Pokémon UNITE as separate
+competition types. Each launched game keeps its own leaderboard and raw scoring
+contract. GO and UNITE remain visibly planned but non-interactive until their
+prediction formats and safe roster units are defined; UNITE must remain
+team-based.
+
+An **Overall leaderboard** opens only after at least two disciplines have scored
+official results. Each discipline contributes at most 100 Overall points:
+
+`Overall points for a discipline = (raw score / maximum possible raw score) × 100`
+
+Missing an entry earns zero for that discipline. Add the normalized discipline
+scores to calculate the overall total. Round each discipline contribution to one
+decimal place. This prevents a game with a larger raw scoring range from
+dominating the combined standings. VGC's current maximum is 164 raw points:
+the champion, runner-up, two semifinalists, four quarterfinalists, eight Top 16
+finishers, and the extra 30 points from choosing the champion as the Ace Pick.
 
 ## Product boundary
 
@@ -14,8 +43,10 @@ It is not the later elimination-bracket predictor. The bracket experience stays
 closed until official pairings exist; do not manufacture seeds, byes, or
 matchups from the invite list.
 
-The 2026 Pokémon World Championships run August 28-30 in San Francisco. Entries
-currently lock at midnight Pacific on August 28. If Pokémon publishes an exact
+The 2026 Pokémon World Championships run August 28-30 in San Francisco. The
+official event information lists Moscone Center for the weekend and moves all
+finals to Chase Center for Championship Sunday. Entries currently lock at
+midnight Pacific on August 28. If Pokémon publishes an exact
 VGC start time before release, update the deadline before applying migration
 369. After any migration is applied, publish deadline changes in a new
 forward-only migration.
@@ -81,11 +112,10 @@ read and authenticated save functions are the browser-facing boundary.
 
 ## Later Worlds competitions
 
-Pokémon TCG Masters, Pokémon GO, and Pokémon UNITE prediction experiences are
-explicitly deferred until this VGC competition is released and reviewed. TCG
-must use Masters only, retain the age caveat above, use 30 points for its
-champion, and support one Ace Pick unless its event structure requires a
-documented adjustment. GO and UNITE need their
+Pokémon TCG Masters has a fail-closed source-audit page but no selectable roster,
+saved entry, or leaderboard yet. It must use Masters only, retain the age caveat
+above, use 30 points for its champion, and support one Ace Pick unless its event
+structure requires a documented adjustment. GO and UNITE need their
 own roster unit and adult-safety decision before implementation; UNITE is
 team-based and should not be forced into an individual-player VGC model.
 
