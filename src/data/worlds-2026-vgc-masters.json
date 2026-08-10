@@ -1,0 +1,3514 @@
+{
+  "eventId": "2026-vgc-masters",
+  "division": "Masters",
+  "ageScope": "official-masters-division-not-age-verified",
+  "sourceUrl": "https://victoryroad.pro/2026-worlds-invites/",
+  "sourceCheckedAt": "2026-08-10",
+  "status": "invite-earned-not-attendance-confirmed",
+  "competitors": [
+    {
+      "slug": "carson-st-denis",
+      "name": "Carson St. Denis",
+      "countryCode": "USA",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "Travel Award / Regional Champion / CP leaderboard Top 12"
+    },
+    {
+      "slug": "dylan-matthews",
+      "name": "Dylan Matthews",
+      "countryCode": "USA",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "Travel Award / Regional Champion / CP leaderboard Top 12"
+    },
+    {
+      "slug": "joshua-lorcy",
+      "name": "Joshua Lorcy",
+      "countryCode": "JAM",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "Travel Award / CP leaderboard Top 12"
+    },
+    {
+      "slug": "justin-tang",
+      "name": "Justin Tang",
+      "countryCode": "USA",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "Travel Award / CP leaderboard Top 12"
+    },
+    {
+      "slug": "kian-campbell",
+      "name": "Kian Campbell",
+      "countryCode": "USA",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "Travel Award / CP leaderboard Top 12"
+    },
+    {
+      "slug": "kylan-van-severen",
+      "name": "Kylan Van Severen",
+      "countryCode": "CAN",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "Travel Award / CP leaderboard Top 12"
+    },
+    {
+      "slug": "marcus-dion",
+      "name": "Marcus Dion",
+      "countryCode": "CAN",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "Travel Award / CP leaderboard Top 12"
+    },
+    {
+      "slug": "nick-navarre",
+      "name": "Nick Navarre",
+      "countryCode": "USA",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "Travel Award / CP leaderboard Top 12"
+    },
+    {
+      "slug": "paul-chua",
+      "name": "Paul Chua",
+      "countryCode": "PHL",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "Travel Award / International Champion / CP leaderboard Top 12"
+    },
+    {
+      "slug": "william-brown",
+      "name": "William Brown",
+      "countryCode": "USA",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "Travel Award / CP leaderboard Top 12"
+    },
+    {
+      "slug": "wolfe-glick",
+      "name": "Wolfe Glick",
+      "countryCode": "USA",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "Travel Award / International Semifinalist / CP leaderboard Top 12"
+    },
+    {
+      "slug": "zachary-weed",
+      "name": "Zachary Weed",
+      "countryCode": "USA",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "Travel Award / International Finalist / CP leaderboard Top 12"
+    },
+    {
+      "slug": "aaron-brok",
+      "name": "Aaron Brok",
+      "countryCode": "USA",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "Travel Stipend / CP leaderboard Top 16"
+    },
+    {
+      "slug": "cary-d-ortona",
+      "name": "Cary D’Ortona",
+      "countryCode": "USA",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "Travel Stipend / Regional Champion / CP leaderboard Top 16"
+    },
+    {
+      "slug": "christopher-han",
+      "name": "Christopher Han",
+      "countryCode": "USA",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "Travel Stipend / CP leaderboard Top 16"
+    },
+    {
+      "slug": "daniel-yu",
+      "name": "Daniel Yu",
+      "countryCode": "USA",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "Travel Stipend / CP leaderboard Top 16"
+    },
+    {
+      "slug": "aaron-grubbs",
+      "name": "Aaron Grubbs",
+      "countryCode": "USA",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "aaron-traylor",
+      "name": "Aaron Traylor",
+      "countryCode": "USA",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "aditya-subramanian",
+      "name": "Aditya Subramanian",
+      "countryCode": "IND",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "adrien-hurley",
+      "name": "Adrien Hurley",
+      "countryCode": "USA",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "alex-arand",
+      "name": "Alex Arand",
+      "countryCode": "USA",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "Regional Champion"
+    },
+    {
+      "slug": "alex-underhill",
+      "name": "Alex Underhill",
+      "countryCode": "USA",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "alexavier-alvarez",
+      "name": "Alexavier Alvarez",
+      "countryCode": "PRI",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "andrew-block",
+      "name": "Andrew Block",
+      "countryCode": "USA",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "apollo-stephens",
+      "name": "Apollo Stephens",
+      "countryCode": "USA",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "arsal-puri",
+      "name": "Arsal Puri",
+      "countryCode": "USA",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "Regional Champion"
+    },
+    {
+      "slug": "austin-le",
+      "name": "Austin Le",
+      "countryCode": "USA",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "behzad-muntazir",
+      "name": "Behzad Muntazir",
+      "countryCode": "USA",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "ben-grissmer",
+      "name": "Ben Grissmer",
+      "countryCode": "USA",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "SC Champion"
+    },
+    {
+      "slug": "benjamin-harlan",
+      "name": "Benjamin Harlan",
+      "countryCode": "USA",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "bhushan-thumsi",
+      "name": "Bhushan Thumsi",
+      "countryCode": "USA",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "Regional Champion"
+    },
+    {
+      "slug": "brandon-davis",
+      "name": "Brandon Davis",
+      "countryCode": "USA",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "brendan-zheng",
+      "name": "Brendan Zheng",
+      "countryCode": "USA",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "brian-collins",
+      "name": "Brian Collins",
+      "countryCode": "IRL",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "caelan-brown",
+      "name": "Caelan Brown",
+      "countryCode": "USA",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "carson-confer",
+      "name": "Carson Confer",
+      "countryCode": "USA",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "cayden-owens",
+      "name": "Cayden Owens",
+      "countryCode": "USA",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "chandler-brtek",
+      "name": "Chandler Brtek",
+      "countryCode": "USA",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "chase-rumpca",
+      "name": "Chase Rumpca",
+      "countryCode": "USA",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "chris-large",
+      "name": "Chris Large",
+      "countryCode": "USA",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "chuppa-cross-iv",
+      "name": "Chuppa Cross IV",
+      "countryCode": "USA",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "Regional Champion"
+    },
+    {
+      "slug": "collin-heier",
+      "name": "Collin Heier",
+      "countryCode": "USA",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "dominic-vogel",
+      "name": "Dominic Vogel",
+      "countryCode": "USA",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "donghun-youm",
+      "name": "Donghun Youm",
+      "countryCode": "KOR",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "dorian-kang",
+      "name": "Dorian Kang",
+      "countryCode": "CAN",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "dylan-salvanera",
+      "name": "Dylan Salvanera",
+      "countryCode": "PHL",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "Regional Champion"
+    },
+    {
+      "slug": "emilio-forbes",
+      "name": "Emilio Forbes",
+      "countryCode": "USA",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "Regional Champion"
+    },
+    {
+      "slug": "enrique-grimaldo",
+      "name": "Enrique Grimaldo",
+      "countryCode": "MEX",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "erich-schrader",
+      "name": "Erich Schrader",
+      "countryCode": "USA",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "ethan-trejo",
+      "name": "Ethan Trejo",
+      "countryCode": "USA",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "giovanni-cischke",
+      "name": "Giovanni Cischke",
+      "countryCode": "USA",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "2025 World Champion"
+    },
+    {
+      "slug": "hoang-ho",
+      "name": "Hoàng Hồ",
+      "countryCode": "VNM",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "james-evans",
+      "name": "James Evans",
+      "countryCode": "USA",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "2025 Worlds Finalist"
+    },
+    {
+      "slug": "jeremy-cote",
+      "name": "Jérémy Côté",
+      "countryCode": "CAN",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "jerry-woods",
+      "name": "Jerry Woods",
+      "countryCode": "USA",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "jonathan-chemburkar",
+      "name": "Jonathan Chemburkar",
+      "countryCode": "USA",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "jonathan-quinones",
+      "name": "Jonathan Quiñones",
+      "countryCode": "PRI",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "jonathan-zuniga",
+      "name": "Jonathan Zuniga",
+      "countryCode": "DOM",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "joseph-ugarte",
+      "name": "Joseph Ugarte",
+      "countryCode": "USA",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "joshua-denk",
+      "name": "Joshua Denk",
+      "countryCode": "USA",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "junxi-zhu",
+      "name": "Junxi Zhu",
+      "countryCode": "USA",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "justin-burns",
+      "name": "Justin Burns",
+      "countryCode": "USA",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "justin-carris",
+      "name": "Justin Carris",
+      "countryCode": "USA",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "keanu-inosanto",
+      "name": "Keanu Inosanto",
+      "countryCode": "USA",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "len-deuel",
+      "name": "Len Deuel",
+      "countryCode": "USA",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "leonard-craft-iii",
+      "name": "Leonard Craft III",
+      "countryCode": "USA",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "louis-milich",
+      "name": "Louis Milich",
+      "countryCode": "USA",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "luca-paz",
+      "name": "Luca Paz",
+      "countryCode": "ESP",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "lucy-fleming",
+      "name": "Lucy Fleming",
+      "countryCode": "USA",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "luke-bowar",
+      "name": "Luke Bowar",
+      "countryCode": "USA",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "matt-bruno",
+      "name": "Matt Bruno",
+      "countryCode": "PRT",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "matt-tidd",
+      "name": "Matt Tidd",
+      "countryCode": "CAN",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "michael-zhang",
+      "name": "Michael Zhang",
+      "countryCode": "USA",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "montana-mott",
+      "name": "Montana Mott",
+      "countryCode": "USA",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "2025 Worlds Semifinalist"
+    },
+    {
+      "slug": "navjit-joshi",
+      "name": "Navjit Joshi",
+      "countryCode": "CAN",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "patrick-cheng",
+      "name": "Patrick Cheng",
+      "countryCode": "HKG",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "peter-chen",
+      "name": "Peter Chen",
+      "countryCode": "USA",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "raghav-malaviya",
+      "name": "Raghav Malaviya",
+      "countryCode": "IND",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "rajan-bal",
+      "name": "Rajan Bal",
+      "countryCode": "IND",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "richard-mogollon",
+      "name": "Richard Mogollon",
+      "countryCode": "USA",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "rohan-muthukumar",
+      "name": "Rohan Muthukumar",
+      "countryCode": "USA",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "rushil-thakkar",
+      "name": "Rushil Thakkar",
+      "countryCode": "USA",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "samuel-thompson",
+      "name": "Samuel Thompson",
+      "countryCode": "USA",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "sebastian-gonzalez",
+      "name": "Sebastian Gonzalez",
+      "countryCode": "USA",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "CP leaderboard 81st*"
+    },
+    {
+      "slug": "seung-lee",
+      "name": "Seung Lee",
+      "countryCode": "KOR",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "shane-gaffney",
+      "name": "Shane Gaffney",
+      "countryCode": "IRL",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "si-dawei",
+      "name": "Si Dawei",
+      "countryCode": "CHN",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "sohaib-mufti",
+      "name": "Sohaib Mufti",
+      "countryCode": "USA",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "stefan-mott",
+      "name": "Stefan Mott",
+      "countryCode": "CHE",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "Regional Champion"
+    },
+    {
+      "slug": "thomas-irwin",
+      "name": "Thomas Irwin",
+      "countryCode": "USA",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "toler-webb",
+      "name": "Toler Webb",
+      "countryCode": "USA",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "tommy-rohlfing",
+      "name": "Tommy Rohlfing",
+      "countryCode": "USA",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "wu-yichun",
+      "name": "Wu Yichun",
+      "countryCode": "CHN",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "yuki-zaninovich",
+      "name": "Yuki Zaninovich",
+      "countryCode": "JPN",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "zach-carlson",
+      "name": "Zach Carlson",
+      "countryCode": "USA",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "zach-holowiak",
+      "name": "Zach Holowiak",
+      "countryCode": "USA",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "zachary-mnich",
+      "name": "Zachary Mnich",
+      "countryCode": "USA",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "zhang-ruizhe",
+      "name": "Zhang Ruizhe",
+      "countryCode": "CHN",
+      "region": "North America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "alex-gomez",
+      "name": "Àlex Gómez",
+      "countryCode": "ESP",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "Travel Award / CP leaderboard Top 16"
+    },
+    {
+      "slug": "davide-fazio",
+      "name": "Davide Fazio",
+      "countryCode": "ITA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "Travel Award / CP leaderboard Top 16"
+    },
+    {
+      "slug": "eduardo-cunha",
+      "name": "Eduardo Cunha",
+      "countryCode": "PRT",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "Travel Award / CP leaderboard Top 16"
+    },
+    {
+      "slug": "eric-rios",
+      "name": "Eric Rios",
+      "countryCode": "ESP",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "Travel Award / International Finalist / CP leaderboard Top 16"
+    },
+    {
+      "slug": "francesco-pio-pero",
+      "name": "Francesco Pio Pero",
+      "countryCode": "ITA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "Travel Award / International Champion / International Semifinalist / CP leaderboard Top 16"
+    },
+    {
+      "slug": "giuseppe-musicco",
+      "name": "Giuseppe Musicco",
+      "countryCode": "ITA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "Travel Award / CP leaderboard Top 16"
+    },
+    {
+      "slug": "louis-fontvieille",
+      "name": "Louis Fontvieille",
+      "countryCode": "FRA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "Travel Award / Regional Champion / CP leaderboard Top 16"
+    },
+    {
+      "slug": "louis-markl",
+      "name": "Louis Markl",
+      "countryCode": "DEU",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "Travel Award / CP leaderboard Top 16"
+    },
+    {
+      "slug": "marco-silva",
+      "name": "Marco Silva",
+      "countryCode": "ITA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "Travel Award / Regional Champion / SC Champion / CP leaderboard Top 16"
+    },
+    {
+      "slug": "michael-kelsch",
+      "name": "Michael Kelsch",
+      "countryCode": "DEU",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "Travel Award / CP leaderboard Top 16"
+    },
+    {
+      "slug": "oliver-eskolin",
+      "name": "Oliver Eskolin",
+      "countryCode": "FIN",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "Travel Award / CP leaderboard Top 16"
+    },
+    {
+      "slug": "roberto-parente",
+      "name": "Roberto Parente",
+      "countryCode": "ITA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "Travel Award / International Semifinalist / CP leaderboard Top 16"
+    },
+    {
+      "slug": "samuel-pereira",
+      "name": "Samuel Pereira",
+      "countryCode": "ESP",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "Travel Award / CP leaderboard Top 16"
+    },
+    {
+      "slug": "stefano-greppi",
+      "name": "Stefano Greppi",
+      "countryCode": "ITA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "Travel Award / Regional Champion / CP leaderboard Top 16"
+    },
+    {
+      "slug": "theotime-massaut",
+      "name": "Théotime Massaut",
+      "countryCode": "FRA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "Travel Award / International Semifinalist / CP leaderboard Top 16"
+    },
+    {
+      "slug": "victor-medina",
+      "name": "Víctor Medina",
+      "countryCode": "ESP",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "Travel Award / CP leaderboard Top 16"
+    },
+    {
+      "slug": "aurelien-soula",
+      "name": "Aurélien Soula",
+      "countryCode": "FRA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "Travel Stipend / Regional Champion / CP leaderboard Top 22"
+    },
+    {
+      "slug": "davide-carrer",
+      "name": "Davide Carrer",
+      "countryCode": "ITA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "Travel Stipend / CP leaderboard Top 22"
+    },
+    {
+      "slug": "emanuele-briganti",
+      "name": "Emanuele Briganti",
+      "countryCode": "ITA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "Travel Stipend / Regional Champion / CP leaderboard Top 22"
+    },
+    {
+      "slug": "federico-camporesi",
+      "name": "Federico Camporesi",
+      "countryCode": "ITA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "Travel Stipend / CP leaderboard Top 22"
+    },
+    {
+      "slug": "livio-sandberg",
+      "name": "Livio Sandberg",
+      "countryCode": "NLD",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "Travel Stipend / CP leaderboard Top 22"
+    },
+    {
+      "slug": "simone-sanvito",
+      "name": "Simone Sanvito",
+      "countryCode": "ITA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "Travel Stipend / Regional Champion / CP leaderboard Top 22"
+    },
+    {
+      "slug": "adam-cherfaoui",
+      "name": "Adam Cherfaoui",
+      "countryCode": "FRA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "adria-rodriguez",
+      "name": "Adrià Rodríguez",
+      "countryCode": "ESP",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "adrian-isidoro",
+      "name": "Adrián Isidoro",
+      "countryCode": "ESP",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "alberto-cano",
+      "name": "Alberto Cano",
+      "countryCode": "ESP",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "alberto-noguerol",
+      "name": "Alberto Noguerol",
+      "countryCode": "ESP",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "amin-lehna",
+      "name": "Amin Lehna",
+      "countryCode": "MAR",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "angel-cervetto",
+      "name": "Ángel Cervetto",
+      "countryCode": "ESP",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "antonio-sanchez",
+      "name": "Antonio Sánchez",
+      "countryCode": "ESP",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "arian-herter",
+      "name": "Arian Herter",
+      "countryCode": "DEU",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "audric-david",
+      "name": "Audric David",
+      "countryCode": "FRA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "daniele-kaygorodova",
+      "name": "Daniele Kaygorodova",
+      "countryCode": "ITA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "davide-cauteruccio",
+      "name": "Davide Cauteruccio",
+      "countryCode": "ITA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "dyl-yeomans",
+      "name": "Dyl Yeomans",
+      "countryCode": "GBR",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "fabian-kuhl",
+      "name": "Fabian Kuhl",
+      "countryCode": "DEU",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "fan-zhang",
+      "name": "Fan Zhang",
+      "countryCode": "GBR",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "femi-jordanovic",
+      "name": "Femi Jordanovic",
+      "countryCode": "GBR",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "filip-wozniak",
+      "name": "Filip Woźniak",
+      "countryCode": "POL",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "flavio-del-pidio",
+      "name": "Flavio Del Pidio",
+      "countryCode": "ITA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "florian-hoffmann",
+      "name": "Florian Hoffmann",
+      "countryCode": "DEU",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "florian-temme",
+      "name": "Florian Temme",
+      "countryCode": "DEU",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "forhad-chodhoury",
+      "name": "Forhad Chodhoury",
+      "countryCode": "ESP",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "francesco-magurno",
+      "name": "Francesco Magurno",
+      "countryCode": "ITA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "frederik-h-j-nielsen",
+      "name": "Frederik Høj Nielsen",
+      "countryCode": "DNK",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "gabriel-llanso",
+      "name": "Gabriel Llansó",
+      "countryCode": "ESP",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "gilberto-goracci",
+      "name": "Gilberto Goracci",
+      "countryCode": "ITA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "giovanni-piscitelli",
+      "name": "Giovanni Piscitelli",
+      "countryCode": "ITA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "giulio-tarlao",
+      "name": "Giulio Tarlao",
+      "countryCode": "ITA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "giuseppe-alario",
+      "name": "Giuseppe Alario",
+      "countryCode": "ITA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "gustav-hedegaard-lund",
+      "name": "Gustav Hedegaard Lund",
+      "countryCode": "DNK",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "hermann-krumrey",
+      "name": "Hermann Krumrey",
+      "countryCode": "DEU",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "SC Champion"
+    },
+    {
+      "slug": "jannik-koch",
+      "name": "Jannik Koch",
+      "countryCode": "DEU",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "javier-corrales",
+      "name": "Javier Corrales",
+      "countryCode": "ESP",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "javier-senorena",
+      "name": "Javier Señorena",
+      "countryCode": "ESP",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "jonas-nienhuser",
+      "name": "Jonas Nienhüser",
+      "countryCode": "DEU",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "jonathan-marston",
+      "name": "Jonathan Marston",
+      "countryCode": "GBR",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "jordan-guy",
+      "name": "Jordan Guy",
+      "countryCode": "GBR",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "jordi-casado",
+      "name": "Jordi Casado",
+      "countryCode": "ESP",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "jorge-tabuyo",
+      "name": "Jorge Tabuyo",
+      "countryCode": "ESP",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "juan-nunez",
+      "name": "Juan Núñez",
+      "countryCode": "ESP",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "SC Champion"
+    },
+    {
+      "slug": "justin-cerioni",
+      "name": "Justin Cerioni",
+      "countryCode": "THA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "leonardo-bonanomi",
+      "name": "Leonardo Bonanomi",
+      "countryCode": "ITA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "lorenzo-sollini",
+      "name": "Lorenzo Sollini",
+      "countryCode": "ITA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "luca-ceribelli",
+      "name": "Luca Ceribelli",
+      "countryCode": "ITA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "Regional Champion"
+    },
+    {
+      "slug": "luca-lussignoli",
+      "name": "Luca Lussignoli",
+      "countryCode": "ITA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "marcus-koh",
+      "name": "Marcus Koh",
+      "countryCode": "SGP",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "mark-mullender",
+      "name": "Mark Mullender",
+      "countryCode": "NLD",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "markus-hamann",
+      "name": "Markus Hamann",
+      "countryCode": "DEU",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "matt-maynard",
+      "name": "Matt Maynard",
+      "countryCode": "GBR",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "matteo-ferrari",
+      "name": "Matteo Ferrari",
+      "countryCode": "ITA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "mattie-morgan",
+      "name": "Mattie Morgan",
+      "countryCode": "IRL",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "micha-kwiatkowski",
+      "name": "Michał Kwiatkowski",
+      "countryCode": "POL",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "nicolo-pollato",
+      "name": "Nicolò Pollato",
+      "countryCode": "ITA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "nikolaj-h-j-nielsen",
+      "name": "Nikolaj Høj Nielsen",
+      "countryCode": "DNK",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "nils-dunlop",
+      "name": "Nils Dunlop",
+      "countryCode": "USA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "oliver-achermann",
+      "name": "Oliver Achermann",
+      "countryCode": "CHE",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "rahim-farzan",
+      "name": "Rahim Farzan",
+      "countryCode": "DEU",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "raj-desai",
+      "name": "Raj Desai",
+      "countryCode": "IRL",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "CP leaderboard 81st*"
+    },
+    {
+      "slug": "rayan-guezi",
+      "name": "Rayan Guezi",
+      "countryCode": "FRA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "roi-gomez",
+      "name": "Roi Gómez",
+      "countryCode": "ESP",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "ruben-gianzini",
+      "name": "Ruben Gianzini",
+      "countryCode": "ITA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "salvatore-rega",
+      "name": "Salvatore Rega",
+      "countryCode": "ITA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "santiago-molina",
+      "name": "Santiago Molina",
+      "countryCode": "ESP",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "selahattin-sturm",
+      "name": "Selahattin Sturm",
+      "countryCode": "DEU",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "sidy-badiane",
+      "name": "Sidy Badiane",
+      "countryCode": "ITA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "simon-bernard",
+      "name": "Simon Bernard",
+      "countryCode": "AUT",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "stefano-de-maria",
+      "name": "Stefano De Maria",
+      "countryCode": "ITA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "taran-birdee",
+      "name": "Taran Birdee",
+      "countryCode": "GBR",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "thomas-gravouille",
+      "name": "Thomas Gravouille",
+      "countryCode": "FRA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "tom-winter",
+      "name": "Tom Winter",
+      "countryCode": "GBR",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "valentijn-visser",
+      "name": "Valentijn Visser",
+      "countryCode": "NLD",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "victor-jimenez",
+      "name": "Víctor Jiménez",
+      "countryCode": "ESP",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 80"
+    },
+    {
+      "slug": "alexander-canseco",
+      "name": "Alexander Canseco",
+      "countryCode": "MEX",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "Travel Award / Regional Champion / CP leaderboard Top 8"
+    },
+    {
+      "slug": "cristhian-andrade",
+      "name": "Cristhian Andrade",
+      "countryCode": "BRA",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "Travel Award / SC Champion / CP leaderboard Top 8"
+    },
+    {
+      "slug": "gabriel-agati",
+      "name": "Gabriel Agati",
+      "countryCode": "BRA",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "Travel Award / CP leaderboard Top 8"
+    },
+    {
+      "slug": "joao-felipe-leite",
+      "name": "João Felipe Leite",
+      "countryCode": "BRA",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "Travel Award / CP leaderboard Top 8"
+    },
+    {
+      "slug": "juan-salerno",
+      "name": "Juan Salerno",
+      "countryCode": "ARG",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "Travel Award / International Finalist / Regional Champion / CP leaderboard Top 8"
+    },
+    {
+      "slug": "kenneth-gamboa",
+      "name": "Kenneth Gamboa",
+      "countryCode": "MEX",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "Travel Award / SC Champion / CP leaderboard Top 8"
+    },
+    {
+      "slug": "renzo-navarro",
+      "name": "Renzo Navarro",
+      "countryCode": "PER",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "Travel Award / Regional Champion / CP leaderboard Top 8"
+    },
+    {
+      "slug": "sebastian-escalante",
+      "name": "Sebastián Escalante",
+      "countryCode": "ARG",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "Travel Award / Regional Champion / CP leaderboard Top 8"
+    },
+    {
+      "slug": "javier-nain",
+      "name": "Javier Nain",
+      "countryCode": "CHL",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "Travel Stipend / CP leaderboard Top 12"
+    },
+    {
+      "slug": "luciano-begot",
+      "name": "Luciano Begot",
+      "countryCode": "BRA",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "Travel Stipend / CP leaderboard Top 12"
+    },
+    {
+      "slug": "victor-vieira",
+      "name": "Victor Vieira",
+      "countryCode": "BRA",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "Travel Stipend / CP leaderboard Top 12"
+    },
+    {
+      "slug": "vinicius-junqueira",
+      "name": "Vinícius Junqueira",
+      "countryCode": "BRA",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "Travel Stipend / CP leaderboard Top 12"
+    },
+    {
+      "slug": "agustin-marinucci",
+      "name": "Agustín Marinucci",
+      "countryCode": "URY",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 60"
+    },
+    {
+      "slug": "alberto-renero",
+      "name": "Alberto Renero",
+      "countryCode": "MEX",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 60"
+    },
+    {
+      "slug": "aldo-loyola",
+      "name": "Aldo Loyola",
+      "countryCode": "MEX",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 60"
+    },
+    {
+      "slug": "alejandro-terrazas",
+      "name": "Alejandro Terrazas",
+      "countryCode": "MEX",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 60"
+    },
+    {
+      "slug": "antonio-marco-rodrigo",
+      "name": "Antonio Marco Rodrigo",
+      "countryCode": "ESP",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 60"
+    },
+    {
+      "slug": "arath-vera",
+      "name": "Arath Vera",
+      "countryCode": "MEX",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 60"
+    },
+    {
+      "slug": "arthur-mosca",
+      "name": "Arthur Mosca",
+      "countryCode": "FRA",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 60"
+    },
+    {
+      "slug": "caio-lattanzi",
+      "name": "Caio Lattanzi",
+      "countryCode": "BRA",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 60"
+    },
+    {
+      "slug": "cesar-reyes",
+      "name": "César Reyes",
+      "countryCode": "MEX",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 60"
+    },
+    {
+      "slug": "christian-rangel",
+      "name": "Christian Rangel",
+      "countryCode": "BRA",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 60"
+    },
+    {
+      "slug": "claudio-kamoda",
+      "name": "Cláudio Kamoda",
+      "countryCode": "BRA",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 60"
+    },
+    {
+      "slug": "daniel-nunez",
+      "name": "Daniel Núñez",
+      "countryCode": "MEX",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 60"
+    },
+    {
+      "slug": "david-rodriguez",
+      "name": "David Rodríguez",
+      "countryCode": "CRI",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 60"
+    },
+    {
+      "slug": "david-soto",
+      "name": "David Soto",
+      "countryCode": "MEX",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 60"
+    },
+    {
+      "slug": "diego-ortiz",
+      "name": "Diego Ortiz",
+      "countryCode": "PER",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 60"
+    },
+    {
+      "slug": "dorian-quinonez",
+      "name": "Dorian Quiñonez",
+      "countryCode": "PER",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 60"
+    },
+    {
+      "slug": "eduardo-ramirez",
+      "name": "Eduardo Ramírez",
+      "countryCode": "DOM",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 60"
+    },
+    {
+      "slug": "fabio-lima",
+      "name": "Fábio Lima",
+      "countryCode": "BRA",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 60"
+    },
+    {
+      "slug": "francisco-alca",
+      "name": "Francisco Alca",
+      "countryCode": "PER",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 60"
+    },
+    {
+      "slug": "gonzalo-barrera",
+      "name": "Gonzalo Barrera",
+      "countryCode": "PER",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 60"
+    },
+    {
+      "slug": "hanns-pizarro",
+      "name": "Hanns Pizarro",
+      "countryCode": "PER",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 60"
+    },
+    {
+      "slug": "hiram-espinosa",
+      "name": "Hiram Espinosa",
+      "countryCode": "MEX",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 60"
+    },
+    {
+      "slug": "ian-tal",
+      "name": "Ian Tal",
+      "countryCode": "BRA",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 60"
+    },
+    {
+      "slug": "jean-lopez",
+      "name": "Jean López",
+      "countryCode": "CRI",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 60"
+    },
+    {
+      "slug": "jeshua-rivera",
+      "name": "Jeshua Rivera",
+      "countryCode": "MEX",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 60"
+    },
+    {
+      "slug": "joaquin-ranauro",
+      "name": "Joaquín Ranauro",
+      "countryCode": "ARG",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 60"
+    },
+    {
+      "slug": "joaquin-salerno",
+      "name": "Joaquín Salerno",
+      "countryCode": "ARG",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 60"
+    },
+    {
+      "slug": "jorge-baca",
+      "name": "Jorge Baca",
+      "countryCode": "PER",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 60"
+    },
+    {
+      "slug": "juan-mejia",
+      "name": "Juan Mejía",
+      "countryCode": "PER",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 60"
+    },
+    {
+      "slug": "julio-eller",
+      "name": "Júlio Eller",
+      "countryCode": "BRA",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 60"
+    },
+    {
+      "slug": "leonardo-ritter",
+      "name": "Leonardo Ritter",
+      "countryCode": "BRA",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "Regional Champion"
+    },
+    {
+      "slug": "luca-alarcon",
+      "name": "Luca Alarcón",
+      "countryCode": "ARG",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 60"
+    },
+    {
+      "slug": "luciano-munoz",
+      "name": "Luciano Muñoz",
+      "countryCode": "CHL",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 60"
+    },
+    {
+      "slug": "luis-perez",
+      "name": "Luis Pérez",
+      "countryCode": "MEX",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 60"
+    },
+    {
+      "slug": "maicon-de-moraes",
+      "name": "Maicon de Moraes",
+      "countryCode": "BRA",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 60"
+    },
+    {
+      "slug": "matheus-carretta",
+      "name": "Matheus Carretta",
+      "countryCode": "BRA",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 60"
+    },
+    {
+      "slug": "matias-diaz",
+      "name": "Matías Díaz",
+      "countryCode": "CHL",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 60"
+    },
+    {
+      "slug": "max-morales",
+      "name": "Max Morales",
+      "countryCode": "CRI",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "Regional Champion"
+    },
+    {
+      "slug": "michael-navas",
+      "name": "Michael Navas",
+      "countryCode": "CHL",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 60"
+    },
+    {
+      "slug": "nader-el-bacha",
+      "name": "Nader El Bacha",
+      "countryCode": "BRA",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 60"
+    },
+    {
+      "slug": "nicolas-del-campo",
+      "name": "Nicolás del Campo",
+      "countryCode": "CHL",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 60"
+    },
+    {
+      "slug": "nicolas-miniero",
+      "name": "Nicolás Miniero",
+      "countryCode": "ARG",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 60"
+    },
+    {
+      "slug": "omar-acuna",
+      "name": "Omar Acuña",
+      "countryCode": "CHL",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 60"
+    },
+    {
+      "slug": "paul-ruiz",
+      "name": "Paul Ruiz",
+      "countryCode": "ECU",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 60"
+    },
+    {
+      "slug": "pedro-feitosa",
+      "name": "Pedro Feitosa",
+      "countryCode": "BRA",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 60"
+    },
+    {
+      "slug": "rafael-cassemiro",
+      "name": "Rafael Cassemiro",
+      "countryCode": "BRA",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 60"
+    },
+    {
+      "slug": "rin-leiba",
+      "name": "Rin Leiba",
+      "countryCode": "MEX",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 60"
+    },
+    {
+      "slug": "rodrigo-tapia",
+      "name": "Rodrigo Tapia",
+      "countryCode": "CHL",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 60"
+    },
+    {
+      "slug": "sebastian-bisbal",
+      "name": "Sebastián Bisbal",
+      "countryCode": "PER",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 60"
+    },
+    {
+      "slug": "sebastian-lobos",
+      "name": "Sebastián Lobos",
+      "countryCode": "CHL",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 60"
+    },
+    {
+      "slug": "sebastian-rodriguez",
+      "name": "Sebastián Rodríguez",
+      "countryCode": "PER",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 60"
+    },
+    {
+      "slug": "steven-stewart",
+      "name": "Steven Stewart",
+      "countryCode": "USA",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 60"
+    },
+    {
+      "slug": "thiago-lattanzi",
+      "name": "Thiago Lattanzi",
+      "countryCode": "BRA",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 60"
+    },
+    {
+      "slug": "thomas-hoy",
+      "name": "Thomas Hoy",
+      "countryCode": "CHL",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 60"
+    },
+    {
+      "slug": "victor-manoath",
+      "name": "Víctor Manoath",
+      "countryCode": "MEX",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 60"
+    },
+    {
+      "slug": "yan-sym",
+      "name": "Yan Sym",
+      "countryCode": "BRA",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 60"
+    },
+    {
+      "slug": "joji-kaieda",
+      "name": "Joji Kaieda",
+      "countryCode": "JPN",
+      "region": "Oceania",
+      "division": "Masters",
+      "qualification": "Travel Award / CP leaderboard Top 4"
+    },
+    {
+      "slug": "kiran-singh",
+      "name": "Kiran Singh",
+      "countryCode": "AUS",
+      "region": "Oceania",
+      "division": "Masters",
+      "qualification": "Travel Award / CP leaderboard Top 4"
+    },
+    {
+      "slug": "nicholas-kan",
+      "name": "Nicholas Kan",
+      "countryCode": "AUS",
+      "region": "Oceania",
+      "division": "Masters",
+      "qualification": "Travel Award / Regional Champion / CP leaderboard Top 4"
+    },
+    {
+      "slug": "yoav-reuven",
+      "name": "Yoav Reuven",
+      "countryCode": "AUS",
+      "region": "Oceania",
+      "division": "Masters",
+      "qualification": "Travel Award / SC Champion / CP leaderboard Top 4"
+    },
+    {
+      "slug": "chloe-bourke",
+      "name": "Chloe Bourke",
+      "countryCode": "AUS",
+      "region": "Oceania",
+      "division": "Masters",
+      "qualification": "Travel Stipend / CP leaderboard Top 8"
+    },
+    {
+      "slug": "christian-mossati",
+      "name": "Christian Mossati",
+      "countryCode": "AUS",
+      "region": "Oceania",
+      "division": "Masters",
+      "qualification": "Travel Stipend / CP leaderboard Top 8"
+    },
+    {
+      "slug": "dimitri-koziaris",
+      "name": "Dimitri Koziaris",
+      "countryCode": "AUS",
+      "region": "Oceania",
+      "division": "Masters",
+      "qualification": "Travel Stipend / CP leaderboard Top 8"
+    },
+    {
+      "slug": "henry-rich",
+      "name": "Henry Rich",
+      "countryCode": "AUS",
+      "region": "Oceania",
+      "division": "Masters",
+      "qualification": "Travel Stipend / CP leaderboard Top 8"
+    },
+    {
+      "slug": "andy-brophy",
+      "name": "Andy Brophy",
+      "countryCode": "AUS",
+      "region": "Oceania",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 20"
+    },
+    {
+      "slug": "ben-madigan",
+      "name": "Ben Madigan",
+      "countryCode": "AUS",
+      "region": "Oceania",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 20"
+    },
+    {
+      "slug": "caleb-wijesinha",
+      "name": "Caleb Wijesinha",
+      "countryCode": "AUS",
+      "region": "Oceania",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 20"
+    },
+    {
+      "slug": "daniel-quek",
+      "name": "Daniel Quek",
+      "countryCode": "AUS",
+      "region": "Oceania",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 20"
+    },
+    {
+      "slug": "diego-ferreira",
+      "name": "Diego Ferreira",
+      "countryCode": "CHL",
+      "region": "Oceania",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 20"
+    },
+    {
+      "slug": "drew-bliss",
+      "name": "Drew Bliss",
+      "countryCode": "AUS",
+      "region": "Oceania",
+      "division": "Masters",
+      "qualification": "Regional Champion"
+    },
+    {
+      "slug": "guilherme-schilling",
+      "name": "Guilherme Schilling",
+      "countryCode": "NZL",
+      "region": "Oceania",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 20"
+    },
+    {
+      "slug": "isaac-haymes-montoya",
+      "name": "Isaac Haymes-Montoya",
+      "countryCode": "AUS",
+      "region": "Oceania",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 20"
+    },
+    {
+      "slug": "jack-roth",
+      "name": "Jack Roth",
+      "countryCode": "AUS",
+      "region": "Oceania",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 20"
+    },
+    {
+      "slug": "lewis-tan",
+      "name": "Lewis Tan",
+      "countryCode": "AUS",
+      "region": "Oceania",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 20"
+    },
+    {
+      "slug": "liam-shorter",
+      "name": "Liam Shorter",
+      "countryCode": "AUS",
+      "region": "Oceania",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 20"
+    },
+    {
+      "slug": "luke-iuele",
+      "name": "Luke Iuele",
+      "countryCode": "AUS",
+      "region": "Oceania",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 20"
+    },
+    {
+      "slug": "matthew-robinson",
+      "name": "Matthew Robinson",
+      "countryCode": "AUS",
+      "region": "Oceania",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 20"
+    },
+    {
+      "slug": "thomas-dervan",
+      "name": "Thomas Dervan",
+      "countryCode": "AUS",
+      "region": "Oceania",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 20"
+    },
+    {
+      "slug": "toby-kongmun",
+      "name": "Toby Kongmun",
+      "countryCode": "AUS",
+      "region": "Oceania",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 20"
+    },
+    {
+      "slug": "chad-hull",
+      "name": "Chad Hull",
+      "countryCode": "ZAF",
+      "region": "Middle East & South Africa",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 5"
+    },
+    {
+      "slug": "mihir-ramsunder",
+      "name": "Mihir Ramsunder",
+      "countryCode": "ZAF",
+      "region": "Middle East & South Africa",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 5"
+    },
+    {
+      "slug": "nir-elgad",
+      "name": "Nir Elgad",
+      "countryCode": "ISR",
+      "region": "Middle East & South Africa",
+      "division": "Masters",
+      "qualification": "CP leaderboard 6th*"
+    },
+    {
+      "slug": "sara-spiller",
+      "name": "Sara Spiller",
+      "countryCode": "ITA",
+      "region": "Middle East & South Africa",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 5"
+    },
+    {
+      "slug": "tal-kashri",
+      "name": "Tal Kashri",
+      "countryCode": "ISR",
+      "region": "Middle East & South Africa",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 5"
+    },
+    {
+      "slug": "walid-souak",
+      "name": "Walid Souak",
+      "countryCode": "DZA",
+      "region": "Middle East & South Africa",
+      "division": "Masters",
+      "qualification": "CP leaderboard Top 5"
+    },
+    {
+      "slug": "hiroshi-onishi",
+      "name": "Hiroshi Onishi",
+      "countryCode": "JPN",
+      "region": "Japan",
+      "division": "Masters",
+      "qualification": "Travel Award / JCS Champion"
+    },
+    {
+      "slug": "rintaro-arai",
+      "name": "Rintaro Arai",
+      "countryCode": "JPN",
+      "region": "Japan",
+      "division": "Masters",
+      "qualification": "Travel Award / JCS Finalist"
+    },
+    {
+      "slug": "rinya-kobayashi",
+      "name": "Rinya Kobayashi",
+      "countryCode": "JPN",
+      "region": "Japan",
+      "division": "Masters",
+      "qualification": "Travel Award / JCS Semifinalist"
+    },
+    {
+      "slug": "shota-hongu",
+      "name": "Shota Hongu",
+      "countryCode": "JPN",
+      "region": "Japan",
+      "division": "Masters",
+      "qualification": "Travel Award / JCS Semifinalist"
+    },
+    {
+      "slug": "aki-shibuya",
+      "name": "Aki Shibuya",
+      "countryCode": "JPN",
+      "region": "Japan",
+      "division": "Masters",
+      "qualification": "JCS 5th to 64th"
+    },
+    {
+      "slug": "akito-muratsubaki",
+      "name": "Akito Muratsubaki",
+      "countryCode": "JPN",
+      "region": "Japan",
+      "division": "Masters",
+      "qualification": "JCS 5th to 64th"
+    },
+    {
+      "slug": "ayumu-iwasaki",
+      "name": "Ayumu Iwasaki",
+      "countryCode": "JPN",
+      "region": "Japan",
+      "division": "Masters",
+      "qualification": "JCS 5th to 64th"
+    },
+    {
+      "slug": "buntaro-komori",
+      "name": "Buntaro Komori",
+      "countryCode": "JPN",
+      "region": "Japan",
+      "division": "Masters",
+      "qualification": "JCS 5th to 64th"
+    },
+    {
+      "slug": "daiki-sudo",
+      "name": "Daiki Sudo",
+      "countryCode": "JPN",
+      "region": "Japan",
+      "division": "Masters",
+      "qualification": "JCS 5th to 64th"
+    },
+    {
+      "slug": "eita-katagiri",
+      "name": "Eita Katagiri",
+      "countryCode": "JPN",
+      "region": "Japan",
+      "division": "Masters",
+      "qualification": "JCS 5th to 64th"
+    },
+    {
+      "slug": "fumiaki-suwa",
+      "name": "Fumiaki Suwa",
+      "countryCode": "JPN",
+      "region": "Japan",
+      "division": "Masters",
+      "qualification": "JCS 5th to 64th"
+    },
+    {
+      "slug": "gakuto-akiyama",
+      "name": "Gakuto Akiyama",
+      "countryCode": "JPN",
+      "region": "Japan",
+      "division": "Masters",
+      "qualification": "JCS 5th to 64th"
+    },
+    {
+      "slug": "hidetsuna-shimizu",
+      "name": "Hidetsuna Shimizu",
+      "countryCode": "JPN",
+      "region": "Japan",
+      "division": "Masters",
+      "qualification": "JCS 5th to 64th"
+    },
+    {
+      "slug": "hirofumi-kimura",
+      "name": "Hirofumi Kimura",
+      "countryCode": "JPN",
+      "region": "Japan",
+      "division": "Masters",
+      "qualification": "2025 Worlds Semifinalist"
+    },
+    {
+      "slug": "hironori-seino",
+      "name": "Hironori Seino",
+      "countryCode": "JPN",
+      "region": "Japan",
+      "division": "Masters",
+      "qualification": "JCS 5th to 64th"
+    },
+    {
+      "slug": "hyuma-hara",
+      "name": "Hyuma Hara",
+      "countryCode": "JPN",
+      "region": "Japan",
+      "division": "Masters",
+      "qualification": "JCS 5th to 64th"
+    },
+    {
+      "slug": "iruto-konno",
+      "name": "Iruto Konno",
+      "countryCode": "JPN",
+      "region": "Japan",
+      "division": "Masters",
+      "qualification": "JCS 5th to 64th"
+    },
+    {
+      "slug": "itoshi-iwadate",
+      "name": "Itoshi Iwadate",
+      "countryCode": "JPN",
+      "region": "Japan",
+      "division": "Masters",
+      "qualification": "JCS 5th to 64th"
+    },
+    {
+      "slug": "kaito-arii",
+      "name": "Kaito Arii",
+      "countryCode": "JPN",
+      "region": "Japan",
+      "division": "Masters",
+      "qualification": "Regional Champion / JCS 5th to 64th"
+    },
+    {
+      "slug": "katsumi-miyake",
+      "name": "Katsumi Miyake",
+      "countryCode": "JPN",
+      "region": "Japan",
+      "division": "Masters",
+      "qualification": "JCS 5th to 64th"
+    },
+    {
+      "slug": "kazuki-kobayashi",
+      "name": "Kazuki Kobayashi",
+      "countryCode": "JPN",
+      "region": "Japan",
+      "division": "Masters",
+      "qualification": "JCS 5th to 64th"
+    },
+    {
+      "slug": "kazuki-ogushi",
+      "name": "Kazuki Ogushi",
+      "countryCode": "JPN",
+      "region": "Japan",
+      "division": "Masters",
+      "qualification": "JCS 5th to 64th"
+    },
+    {
+      "slug": "kazuki-sumiya",
+      "name": "Kazuki Sumiya",
+      "countryCode": "JPN",
+      "region": "Japan",
+      "division": "Masters",
+      "qualification": "JCS 5th to 64th"
+    },
+    {
+      "slug": "kengo-hirata",
+      "name": "Kengo Hirata",
+      "countryCode": "JPN",
+      "region": "Japan",
+      "division": "Masters",
+      "qualification": "JCS 5th to 64th"
+    },
+    {
+      "slug": "kentaro-matsumoto",
+      "name": "Kentaro Matsumoto",
+      "countryCode": "JPN",
+      "region": "Japan",
+      "division": "Masters",
+      "qualification": "JCS 5th to 64th"
+    },
+    {
+      "slug": "ko-tsukide",
+      "name": "Ko Tsukide",
+      "countryCode": "JPN",
+      "region": "Japan",
+      "division": "Masters",
+      "qualification": "JCS 5th to 64th"
+    },
+    {
+      "slug": "kohei-watanabe",
+      "name": "Kohei Watanabe",
+      "countryCode": "JPN",
+      "region": "Japan",
+      "division": "Masters",
+      "qualification": "JCS 5th to 64th"
+    },
+    {
+      "slug": "kota-kawabe",
+      "name": "Kota Kawabe",
+      "countryCode": "JPN",
+      "region": "Japan",
+      "division": "Masters",
+      "qualification": "JCS 5th to 64th"
+    },
+    {
+      "slug": "kota-tomita",
+      "name": "Kota Tomita",
+      "countryCode": "JPN",
+      "region": "Japan",
+      "division": "Masters",
+      "qualification": "JCS 5th to 64th"
+    },
+    {
+      "slug": "kyosuke-kishibe",
+      "name": "Kyosuke Kishibe",
+      "countryCode": "JPN",
+      "region": "Japan",
+      "division": "Masters",
+      "qualification": "JCS 5th to 64th"
+    },
+    {
+      "slug": "masahiro-ito",
+      "name": "Masahiro Ito",
+      "countryCode": "JPN",
+      "region": "Japan",
+      "division": "Masters",
+      "qualification": "JCS 5th to 64th"
+    },
+    {
+      "slug": "masato-fukuda",
+      "name": "Masato Fukuda",
+      "countryCode": "JPN",
+      "region": "Japan",
+      "division": "Masters",
+      "qualification": "JCS 5th to 64th"
+    },
+    {
+      "slug": "masato-ii",
+      "name": "Masato Ii",
+      "countryCode": "JPN",
+      "region": "Japan",
+      "division": "Masters",
+      "qualification": "JCS 5th to 64th"
+    },
+    {
+      "slug": "naoto-mizobuchi",
+      "name": "Naoto Mizobuchi",
+      "countryCode": "JPN",
+      "region": "Japan",
+      "division": "Masters",
+      "qualification": "JCS 5th to 64th"
+    },
+    {
+      "slug": "ryoma-okamoto",
+      "name": "Ryoma Okamoto",
+      "countryCode": "JPN",
+      "region": "Japan",
+      "division": "Masters",
+      "qualification": "JCS 5th to 64th"
+    },
+    {
+      "slug": "ryusei-yamane",
+      "name": "Ryusei Yamane",
+      "countryCode": "JPN",
+      "region": "Japan",
+      "division": "Masters",
+      "qualification": "JCS 5th to 64th"
+    },
+    {
+      "slug": "saiki-kawai",
+      "name": "Saiki Kawai",
+      "countryCode": "JPN",
+      "region": "Japan",
+      "division": "Masters",
+      "qualification": "JCS 5th to 64th"
+    },
+    {
+      "slug": "satoru-mutsuno",
+      "name": "Satoru Mutsuno",
+      "countryCode": "JPN",
+      "region": "Japan",
+      "division": "Masters",
+      "qualification": "JCS 5th to 64th"
+    },
+    {
+      "slug": "shingo-yasuda",
+      "name": "Shingo Yasuda",
+      "countryCode": "JPN",
+      "region": "Japan",
+      "division": "Masters",
+      "qualification": "JCS 5th to 64th"
+    },
+    {
+      "slug": "sho-akiyama",
+      "name": "Sho Akiyama",
+      "countryCode": "JPN",
+      "region": "Japan",
+      "division": "Masters",
+      "qualification": "JCS 5th to 64th"
+    },
+    {
+      "slug": "shohei-asakura",
+      "name": "Shohei Asakura",
+      "countryCode": "JPN",
+      "region": "Japan",
+      "division": "Masters",
+      "qualification": "JCS 5th to 64th"
+    },
+    {
+      "slug": "shohei-kimura",
+      "name": "Shohei Kimura",
+      "countryCode": "JPN",
+      "region": "Japan",
+      "division": "Masters",
+      "qualification": "JCS 5th to 64th"
+    },
+    {
+      "slug": "shoma-honami",
+      "name": "Shoma Honami",
+      "countryCode": "JPN",
+      "region": "Japan",
+      "division": "Masters",
+      "qualification": "International Semifinalist / JCS 5th to 64th"
+    },
+    {
+      "slug": "shota-fukumoto",
+      "name": "Shota Fukumoto",
+      "countryCode": "JPN",
+      "region": "Japan",
+      "division": "Masters",
+      "qualification": "JCS 5th to 64th"
+    },
+    {
+      "slug": "shota-nakamichi",
+      "name": "Shota Nakamichi",
+      "countryCode": "JPN",
+      "region": "Japan",
+      "division": "Masters",
+      "qualification": "JCS 5th to 64th"
+    },
+    {
+      "slug": "shu-inokuchi",
+      "name": "Shu Inokuchi",
+      "countryCode": "JPN",
+      "region": "Japan",
+      "division": "Masters",
+      "qualification": "JCS 5th to 64th"
+    },
+    {
+      "slug": "shuta-endo",
+      "name": "Shuta Endo",
+      "countryCode": "JPN",
+      "region": "Japan",
+      "division": "Masters",
+      "qualification": "JCS 5th to 64th"
+    },
+    {
+      "slug": "sota-shimatani",
+      "name": "Sota Shimatani",
+      "countryCode": "JPN",
+      "region": "Japan",
+      "division": "Masters",
+      "qualification": "JCS 5th to 64th"
+    },
+    {
+      "slug": "taisei-tsukamoto",
+      "name": "Taisei Tsukamoto",
+      "countryCode": "JPN",
+      "region": "Japan",
+      "division": "Masters",
+      "qualification": "JCS 5th to 64th"
+    },
+    {
+      "slug": "takeru-mizumoto",
+      "name": "Takeru Mizumoto",
+      "countryCode": "JPN",
+      "region": "Japan",
+      "division": "Masters",
+      "qualification": "JCS 5th to 64th"
+    },
+    {
+      "slug": "takuma-yamazaki",
+      "name": "Takuma Yamazaki",
+      "countryCode": "JPN",
+      "region": "Japan",
+      "division": "Masters",
+      "qualification": "JCS 5th to 64th"
+    },
+    {
+      "slug": "takumi-miyamoto",
+      "name": "Takumi Miyamoto",
+      "countryCode": "JPN",
+      "region": "Japan",
+      "division": "Masters",
+      "qualification": "JCS 5th to 64th"
+    },
+    {
+      "slug": "takumi-sakurai",
+      "name": "Takumi Sakurai",
+      "countryCode": "JPN",
+      "region": "Japan",
+      "division": "Masters",
+      "qualification": "JCS 5th to 64th"
+    },
+    {
+      "slug": "takumi-soma",
+      "name": "Takumi Soma",
+      "countryCode": "JPN",
+      "region": "Japan",
+      "division": "Masters",
+      "qualification": "JCS 5th to 64th"
+    },
+    {
+      "slug": "takuya-homma",
+      "name": "Takuya Homma",
+      "countryCode": "JPN",
+      "region": "Japan",
+      "division": "Masters",
+      "qualification": "JCS 5th to 64th"
+    },
+    {
+      "slug": "takuya-morii",
+      "name": "Takuya Morii",
+      "countryCode": "JPN",
+      "region": "Japan",
+      "division": "Masters",
+      "qualification": "JCS 5th to 64th"
+    },
+    {
+      "slug": "tomohiro-seki",
+      "name": "Tomohiro Seki",
+      "countryCode": "JPN",
+      "region": "Japan",
+      "division": "Masters",
+      "qualification": "JCS 5th to 64th"
+    },
+    {
+      "slug": "tomohisa-okuno",
+      "name": "Tomohisa Okuno",
+      "countryCode": "JPN",
+      "region": "Japan",
+      "division": "Masters",
+      "qualification": "JCS 5th to 64th"
+    },
+    {
+      "slug": "tomoki-kinoshita",
+      "name": "Tomoki Kinoshita",
+      "countryCode": "JPN",
+      "region": "Japan",
+      "division": "Masters",
+      "qualification": "JCS 5th to 64th"
+    },
+    {
+      "slug": "yuichi-sasaki",
+      "name": "Yuichi Sasaki",
+      "countryCode": "JPN",
+      "region": "Japan",
+      "division": "Masters",
+      "qualification": "JCS 5th to 64th"
+    },
+    {
+      "slug": "yuki-shimizu",
+      "name": "Yuki Shimizu",
+      "countryCode": "JPN",
+      "region": "Japan",
+      "division": "Masters",
+      "qualification": "JCS 5th to 64th"
+    },
+    {
+      "slug": "yuma-kinugawa",
+      "name": "Yuma Kinugawa",
+      "countryCode": "JPN",
+      "region": "Japan",
+      "division": "Masters",
+      "qualification": "International Champion / JCS 5th to 64th"
+    },
+    {
+      "slug": "yuto-kimura",
+      "name": "Yuto Kimura",
+      "countryCode": "JPN",
+      "region": "Japan",
+      "division": "Masters",
+      "qualification": "JCS 5th to 64th"
+    },
+    {
+      "slug": "yuya-tada",
+      "name": "Yuya Tada",
+      "countryCode": "JPN",
+      "region": "Japan",
+      "division": "Masters",
+      "qualification": "International Semifinalist"
+    },
+    {
+      "slug": "yuya-wakasugi",
+      "name": "Yuya Wakasugi",
+      "countryCode": "JPN",
+      "region": "Japan",
+      "division": "Masters",
+      "qualification": "JCS 5th to 64th"
+    },
+    {
+      "slug": "yuya-yamamoto",
+      "name": "Yuya Yamamoto",
+      "countryCode": "JPN",
+      "region": "Japan",
+      "division": "Masters",
+      "qualification": "JCS 5th to 64th"
+    },
+    {
+      "slug": "jongseo-lee",
+      "name": "Jongseo Lee",
+      "countryCode": "KOR",
+      "region": "South Korea",
+      "division": "Masters",
+      "qualification": "Travel Award (F+A) / Trainers Cup Champion"
+    },
+    {
+      "slug": "junhee-lee",
+      "name": "Junhee Lee",
+      "countryCode": "KOR",
+      "region": "South Korea",
+      "division": "Masters",
+      "qualification": "Travel Award (F) / Trainers Cup Finalist"
+    },
+    {
+      "slug": "chanmin-lee",
+      "name": "Chanmin Lee",
+      "countryCode": "KOR",
+      "region": "South Korea",
+      "division": "Masters",
+      "qualification": "Travel Award (A) / Trainers Cup Top 4"
+    },
+    {
+      "slug": "sejun-park",
+      "name": "Sejun Park",
+      "countryCode": "KOR",
+      "region": "South Korea",
+      "division": "Masters",
+      "qualification": "Travel Award (A) / Trainers Cup Top 4"
+    },
+    {
+      "slug": "jeongkyu-choi",
+      "name": "Jeongkyu Choi",
+      "countryCode": "KOR",
+      "region": "South Korea",
+      "division": "Masters",
+      "qualification": "Trainers Cup Top 16"
+    },
+    {
+      "slug": "jinho-park",
+      "name": "Jinho Park",
+      "countryCode": "KOR",
+      "region": "South Korea",
+      "division": "Masters",
+      "qualification": "Trainers Cup Top 16"
+    },
+    {
+      "slug": "jiseok-lee",
+      "name": "Jiseok Lee",
+      "countryCode": "KOR",
+      "region": "South Korea",
+      "division": "Masters",
+      "qualification": "Trainers Cup Top 16"
+    },
+    {
+      "slug": "junhyuk-song",
+      "name": "Junhyuk Song",
+      "countryCode": "KOR",
+      "region": "South Korea",
+      "division": "Masters",
+      "qualification": "Trainers Cup Top 16"
+    },
+    {
+      "slug": "juyoung-hong",
+      "name": "Juyoung Hong",
+      "countryCode": "KOR",
+      "region": "South Korea",
+      "division": "Masters",
+      "qualification": "Trainers Cup Top 16"
+    },
+    {
+      "slug": "minseok-kim",
+      "name": "Minseok Kim",
+      "countryCode": "KOR",
+      "region": "South Korea",
+      "division": "Masters",
+      "qualification": "Trainers Cup Top 16"
+    },
+    {
+      "slug": "sanghyeon-na",
+      "name": "Sanghyeon Na",
+      "countryCode": "KOR",
+      "region": "South Korea",
+      "division": "Masters",
+      "qualification": "Trainers Cup Top 16"
+    },
+    {
+      "slug": "sangwoo-kim",
+      "name": "Sangwoo Kim",
+      "countryCode": "KOR",
+      "region": "South Korea",
+      "division": "Masters",
+      "qualification": "Trainers Cup Top 16"
+    },
+    {
+      "slug": "seongjae-jeong",
+      "name": "Seongjae Jeong",
+      "countryCode": "KOR",
+      "region": "South Korea",
+      "division": "Masters",
+      "qualification": "Trainers Cup Top 16"
+    },
+    {
+      "slug": "seongmo-byeon",
+      "name": "Seongmo Byeon",
+      "countryCode": "KOR",
+      "region": "South Korea",
+      "division": "Masters",
+      "qualification": "Trainers Cup Top 16"
+    },
+    {
+      "slug": "suhyeon-moon",
+      "name": "Suhyeon Moon",
+      "countryCode": "KOR",
+      "region": "South Korea",
+      "division": "Masters",
+      "qualification": "Trainers Cup Top 16"
+    },
+    {
+      "slug": "yoonho-park",
+      "name": "Yoonho Park",
+      "countryCode": "KOR",
+      "region": "South Korea",
+      "division": "Masters",
+      "qualification": "Trainers Cup Top 16"
+    },
+    {
+      "slug": "chen-yu-wei",
+      "name": "Chen Yu-Wei",
+      "countryCode": "TWN",
+      "region": "Asia-Pacific",
+      "division": "Masters",
+      "qualification": "Travel Award / MBL Champion"
+    },
+    {
+      "slug": "chyr-wei",
+      "name": "Chyr Wei",
+      "countryCode": "TWN",
+      "region": "Asia-Pacific",
+      "division": "Masters",
+      "qualification": "Travel Award / Taiwan MBL Semifinalist"
+    },
+    {
+      "slug": "edward-fan",
+      "name": "Edward Fan",
+      "countryCode": "USA",
+      "region": "Asia-Pacific",
+      "division": "Masters",
+      "qualification": "Travel Award / MBL Finalist"
+    },
+    {
+      "slug": "jason-reyes",
+      "name": "Jason Reyes",
+      "countryCode": "PHL",
+      "region": "Asia-Pacific",
+      "division": "Masters",
+      "qualification": "Travel Award / MBL Finalist"
+    },
+    {
+      "slug": "jittarin-rojmahamongkol",
+      "name": "Jittarin Rojmahamongkol",
+      "countryCode": "THA",
+      "region": "Asia-Pacific",
+      "division": "Masters",
+      "qualification": "Travel Award / MBL Champion"
+    },
+    {
+      "slug": "krittapas-augchariyajinda",
+      "name": "Krittapas Augchariyajinda",
+      "countryCode": "THA",
+      "region": "Asia-Pacific",
+      "division": "Masters",
+      "qualification": "Travel Award / MBL Champion"
+    },
+    {
+      "slug": "lee-jin-yang",
+      "name": "Lee Jin Yang",
+      "countryCode": "MYS",
+      "region": "Asia-Pacific",
+      "division": "Masters",
+      "qualification": "Travel Award / MBL Finalist"
+    },
+    {
+      "slug": "lin-chia-han",
+      "name": "Lin Chia-Han",
+      "countryCode": "TWN",
+      "region": "Asia-Pacific",
+      "division": "Masters",
+      "qualification": "Travel Award / Taiwan MBL Semifinalist"
+    },
+    {
+      "slug": "liu-jian-ting",
+      "name": "Liu Jian-Ting",
+      "countryCode": "TWN",
+      "region": "Asia-Pacific",
+      "division": "Masters",
+      "qualification": "Travel Award / MBL Finalist"
+    },
+    {
+      "slug": "ng-chee-woon",
+      "name": "Ng Chee Woon",
+      "countryCode": "MYS",
+      "region": "Asia-Pacific",
+      "division": "Masters",
+      "qualification": "Travel Award / MBL Finalist"
+    },
+    {
+      "slug": "ng-shiu-chung",
+      "name": "Ng Shiu Chung",
+      "countryCode": "HKG",
+      "region": "Asia-Pacific",
+      "division": "Masters",
+      "qualification": "Travel Award / MBL Champion"
+    },
+    {
+      "slug": "phatthrawat-wichiendilok",
+      "name": "Phatthrawat Wichiendilok",
+      "countryCode": "THA",
+      "region": "Asia-Pacific",
+      "division": "Masters",
+      "qualification": "Travel Award / MBL Finalist"
+    },
+    {
+      "slug": "sow-wei-harng",
+      "name": "Sow Wei Harng",
+      "countryCode": "MYS",
+      "region": "Asia-Pacific",
+      "division": "Masters",
+      "qualification": "Travel Award / MBL Champion"
+    },
+    {
+      "slug": "adrian-tang",
+      "name": "Adrian Tang",
+      "countryCode": "HKG",
+      "region": "Asia-Pacific",
+      "division": "Masters",
+      "qualification": "MBL 3rd to 10th"
+    },
+    {
+      "slug": "amorn-mongkhonkaewsakun",
+      "name": "Amorn Mongkhonkaewsakun",
+      "countryCode": "THA",
+      "region": "Asia-Pacific",
+      "division": "Masters",
+      "qualification": "MBL 3rd to 10th"
+    },
+    {
+      "slug": "apiwat-srivilairith",
+      "name": "Apiwat Srivilairith",
+      "countryCode": "THA",
+      "region": "Asia-Pacific",
+      "division": "Masters",
+      "qualification": "MBL 3rd to 10th"
+    },
+    {
+      "slug": "brandon-chia",
+      "name": "Brandon Chia",
+      "countryCode": "MYS",
+      "region": "Asia-Pacific",
+      "division": "Masters",
+      "qualification": "MBL 3rd to 10th"
+    },
+    {
+      "slug": "chan-tsz-hung",
+      "name": "Chan Tsz Hung",
+      "countryCode": "HKG",
+      "region": "Asia-Pacific",
+      "division": "Masters",
+      "qualification": "MBL 3rd to 10th"
+    },
+    {
+      "slug": "chang-hao-wei",
+      "name": "Chang Hao-Wei",
+      "countryCode": "TWN",
+      "region": "Asia-Pacific",
+      "division": "Masters",
+      "qualification": "Taiwan MBL 5th to 22nd"
+    },
+    {
+      "slug": "cheng-chi-hung",
+      "name": "Cheng Chi-Hung",
+      "countryCode": "TWN",
+      "region": "Asia-Pacific",
+      "division": "Masters",
+      "qualification": "Taiwan MBL 5th to 22nd"
+    },
+    {
+      "slug": "choi-pok-yin",
+      "name": "Choi Pok Yin",
+      "countryCode": "HKG",
+      "region": "Asia-Pacific",
+      "division": "Masters",
+      "qualification": "MBL 3rd to 10th"
+    },
+    {
+      "slug": "christian-salmingo",
+      "name": "Christian Salmingo",
+      "countryCode": "PHL",
+      "region": "Asia-Pacific",
+      "division": "Masters",
+      "qualification": "MBL 3rd to 10th"
+    },
+    {
+      "slug": "duh-jenn-chau",
+      "name": "Duh Jenn-Chau",
+      "countryCode": "TWN",
+      "region": "Asia-Pacific",
+      "division": "Masters",
+      "qualification": "Taiwan MBL 5th to 22nd"
+    },
+    {
+      "slug": "elliot-giang",
+      "name": "Elliot Giang",
+      "countryCode": "SGP",
+      "region": "Asia-Pacific",
+      "division": "Masters",
+      "qualification": "MBL 3rd to 10th"
+    },
+    {
+      "slug": "ervin-tan",
+      "name": "Ervin Tan",
+      "countryCode": "SGP",
+      "region": "Asia-Pacific",
+      "division": "Masters",
+      "qualification": "MBL 3rd to 10th"
+    },
+    {
+      "slug": "ethan-yang",
+      "name": "Ethan Yang",
+      "countryCode": "TWN",
+      "region": "Asia-Pacific",
+      "division": "Masters",
+      "qualification": "Taiwan MBL 5th to 22nd"
+    },
+    {
+      "slug": "francis-tai",
+      "name": "Francis Tai",
+      "countryCode": "PHL",
+      "region": "Asia-Pacific",
+      "division": "Masters",
+      "qualification": "MBL 3rd to 10th"
+    },
+    {
+      "slug": "gary-ng",
+      "name": "Gary Ng",
+      "countryCode": "MYS",
+      "region": "Asia-Pacific",
+      "division": "Masters",
+      "qualification": "MBL 3rd to 10th"
+    },
+    {
+      "slug": "hakim-aminullah",
+      "name": "Hakim Aminullah",
+      "countryCode": "MYS",
+      "region": "Asia-Pacific",
+      "division": "Masters",
+      "qualification": "MBL 3rd to 10th"
+    },
+    {
+      "slug": "harrold-khoo",
+      "name": "Harrold Khoo",
+      "countryCode": "SGP",
+      "region": "Asia-Pacific",
+      "division": "Masters",
+      "qualification": "MBL 3rd to 10th"
+    },
+    {
+      "slug": "hayden-sheung",
+      "name": "Hayden Sheung",
+      "countryCode": "HKG",
+      "region": "Asia-Pacific",
+      "division": "Masters",
+      "qualification": "MBL 3rd to 10th"
+    },
+    {
+      "slug": "hsu-chun-yu",
+      "name": "Hsu Chun-Yu",
+      "countryCode": "TWN",
+      "region": "Asia-Pacific",
+      "division": "Masters",
+      "qualification": "Taiwan MBL 5th to 22nd"
+    },
+    {
+      "slug": "huang-yu-cheng",
+      "name": "Huang Yu-Cheng",
+      "countryCode": "TWN",
+      "region": "Asia-Pacific",
+      "division": "Masters",
+      "qualification": "Taiwan MBL 5th to 22nd"
+    },
+    {
+      "slug": "iain-waddingham",
+      "name": "Iain Waddingham",
+      "countryCode": "GBR",
+      "region": "Asia-Pacific",
+      "division": "Masters",
+      "qualification": "MBL 3rd to 10th"
+    },
+    {
+      "slug": "jeremiah-lim",
+      "name": "Jeremiah Lim",
+      "countryCode": "MYS",
+      "region": "Asia-Pacific",
+      "division": "Masters",
+      "qualification": "MBL 3rd to 10th"
+    },
+    {
+      "slug": "jong-dae-jung",
+      "name": "Jong Dae-Jung",
+      "countryCode": "THA",
+      "region": "Asia-Pacific",
+      "division": "Masters",
+      "qualification": "MBL 3rd to 10th"
+    },
+    {
+      "slug": "kevin-lan",
+      "name": "Kevin Lan",
+      "countryCode": "TWN",
+      "region": "Asia-Pacific",
+      "division": "Masters",
+      "qualification": "Taiwan MBL 5th to 22nd"
+    },
+    {
+      "slug": "lai-ming-hsu",
+      "name": "Lai Ming-Hsu",
+      "countryCode": "TWN",
+      "region": "Asia-Pacific",
+      "division": "Masters",
+      "qualification": "Taiwan MBL 5th to 22nd"
+    },
+    {
+      "slug": "lex-tan",
+      "name": "Lex Tan",
+      "countryCode": "PHL",
+      "region": "Asia-Pacific",
+      "division": "Masters",
+      "qualification": "MBL 3rd to 10th"
+    },
+    {
+      "slug": "liang-chih-chun",
+      "name": "Liang Chih-Chun",
+      "countryCode": "TWN",
+      "region": "Asia-Pacific",
+      "division": "Masters",
+      "qualification": "Taiwan MBL 5th to 22nd"
+    },
+    {
+      "slug": "lim-boon-hong",
+      "name": "Lim Boon Hong",
+      "countryCode": "MYS",
+      "region": "Asia-Pacific",
+      "division": "Masters",
+      "qualification": "MBL 3rd to 10th"
+    },
+    {
+      "slug": "lin-chuang-hsuan",
+      "name": "Lin Chuang-Hsuan",
+      "countryCode": "TWN",
+      "region": "Asia-Pacific",
+      "division": "Masters",
+      "qualification": "Taiwan MBL 5th to 22nd"
+    },
+    {
+      "slug": "liu-chen-wei",
+      "name": "Liu Chen-Wei",
+      "countryCode": "TWN",
+      "region": "Asia-Pacific",
+      "division": "Masters",
+      "qualification": "Taiwan MBL 5th to 22nd"
+    },
+    {
+      "slug": "man-chun-wo",
+      "name": "Man Chun Wo",
+      "countryCode": "HKG",
+      "region": "Asia-Pacific",
+      "division": "Masters",
+      "qualification": "MBL 3rd to 10th"
+    },
+    {
+      "slug": "narawitch-naenna",
+      "name": "Narawitch Naenna",
+      "countryCode": "THA",
+      "region": "Asia-Pacific",
+      "division": "Masters",
+      "qualification": "MBL 3rd to 10th"
+    },
+    {
+      "slug": "nashran-mirza",
+      "name": "Nashran Mirza",
+      "countryCode": "MYS",
+      "region": "Asia-Pacific",
+      "division": "Masters",
+      "qualification": "MBL 3rd to 10th"
+    },
+    {
+      "slug": "nattawarn-emasiti",
+      "name": "Nattawarn Emasiti",
+      "countryCode": "THA",
+      "region": "Asia-Pacific",
+      "division": "Masters",
+      "qualification": "MBL 3rd to 10th"
+    },
+    {
+      "slug": "ng-wei-lun",
+      "name": "Ng Wei Lun",
+      "countryCode": "SGP",
+      "region": "Asia-Pacific",
+      "division": "Masters",
+      "qualification": "MBL 3rd to 10th"
+    },
+    {
+      "slug": "panyawut-noijan",
+      "name": "Panyawut Noijan",
+      "countryCode": "THA",
+      "region": "Asia-Pacific",
+      "division": "Masters",
+      "qualification": "MBL 3rd to 10th"
+    },
+    {
+      "slug": "rafi-ahmed-ansari",
+      "name": "Rafi Ahmed Ansari",
+      "countryCode": "HKG",
+      "region": "Asia-Pacific",
+      "division": "Masters",
+      "qualification": "MBL 3rd to 10th"
+    },
+    {
+      "slug": "rap-perez",
+      "name": "Rap Perez",
+      "countryCode": "PHL",
+      "region": "Asia-Pacific",
+      "division": "Masters",
+      "qualification": "MBL 3rd to 10th"
+    },
+    {
+      "slug": "raphael-ang",
+      "name": "Raphael Ang",
+      "countryCode": "PHL",
+      "region": "Asia-Pacific",
+      "division": "Masters",
+      "qualification": "MBL 3rd to 10th"
+    },
+    {
+      "slug": "ryan-chua",
+      "name": "Ryan Chua",
+      "countryCode": "PHL",
+      "region": "Asia-Pacific",
+      "division": "Masters",
+      "qualification": "MBL 3rd to 10th"
+    },
+    {
+      "slug": "ryan-pareja",
+      "name": "Ryan Pareja",
+      "countryCode": "PHL",
+      "region": "Asia-Pacific",
+      "division": "Masters",
+      "qualification": "MBL 3rd to 10th"
+    },
+    {
+      "slug": "sahapol-meechunuke",
+      "name": "Sahapol Meechunuke",
+      "countryCode": "THA",
+      "region": "Asia-Pacific",
+      "division": "Masters",
+      "qualification": "MBL 3rd to 10th"
+    },
+    {
+      "slug": "sam-ng",
+      "name": "Sam Ng",
+      "countryCode": "HKG",
+      "region": "Asia-Pacific",
+      "division": "Masters",
+      "qualification": "MBL 3rd to 10th"
+    },
+    {
+      "slug": "sean-tan",
+      "name": "Sean Tan",
+      "countryCode": "SGP",
+      "region": "Asia-Pacific",
+      "division": "Masters",
+      "qualification": "MBL 3rd to 10th"
+    },
+    {
+      "slug": "sie-meng-ru",
+      "name": "Sie Meng-Ru",
+      "countryCode": "TWN",
+      "region": "Asia-Pacific",
+      "division": "Masters",
+      "qualification": "Taiwan MBL 5th to 22nd"
+    },
+    {
+      "slug": "tang-chun-ho",
+      "name": "Tang Chun Ho",
+      "countryCode": "HKG",
+      "region": "Asia-Pacific",
+      "division": "Masters",
+      "qualification": "MBL 3rd to 10th"
+    },
+    {
+      "slug": "tomoyuki-tanaka",
+      "name": "Tomoyuki Tanaka",
+      "countryCode": "SGP",
+      "region": "Asia-Pacific",
+      "division": "Masters",
+      "qualification": "MBL 3rd to 10th"
+    },
+    {
+      "slug": "tsai-chien-chien",
+      "name": "Tsai Chien-Chien",
+      "countryCode": "TWN",
+      "region": "Asia-Pacific",
+      "division": "Masters",
+      "qualification": "Taiwan MBL 5th to 22nd"
+    },
+    {
+      "slug": "vincent-ignacio",
+      "name": "Vincent Ignacio",
+      "countryCode": "PHL",
+      "region": "Asia-Pacific",
+      "division": "Masters",
+      "qualification": "MBL 3rd to 10th"
+    },
+    {
+      "slug": "wang-yi-liang",
+      "name": "Wang Yi-Liang",
+      "countryCode": "TWN",
+      "region": "Asia-Pacific",
+      "division": "Masters",
+      "qualification": "Taiwan MBL 5th to 22nd"
+    },
+    {
+      "slug": "xu-xichen",
+      "name": "Xu Xichen",
+      "countryCode": "SGP",
+      "region": "Asia-Pacific",
+      "division": "Masters",
+      "qualification": "MBL 3rd to 10th"
+    },
+    {
+      "slug": "yang-cheng-lin",
+      "name": "Yang Cheng-Lin",
+      "countryCode": "TWN",
+      "region": "Asia-Pacific",
+      "division": "Masters",
+      "qualification": "Taiwan MBL 5th to 22nd"
+    },
+    {
+      "slug": "yang-da-wei",
+      "name": "Yang Da-Wei",
+      "countryCode": "TWN",
+      "region": "Asia-Pacific",
+      "division": "Masters",
+      "qualification": "Taiwan MBL 5th to 22nd"
+    },
+    {
+      "slug": "yap-de-kern",
+      "name": "Yap De Kern",
+      "countryCode": "MYS",
+      "region": "Asia-Pacific",
+      "division": "Masters",
+      "qualification": "MBL 3rd to 10th"
+    },
+    {
+      "slug": "zen-soo",
+      "name": "Zen Soo",
+      "countryCode": "MYS",
+      "region": "Asia-Pacific",
+      "division": "Masters",
+      "qualification": "MBL 3rd to 10th"
+    }
+  ]
+}
