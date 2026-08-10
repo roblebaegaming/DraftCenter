@@ -3,7 +3,7 @@
 - Last updated: August 9, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified production application commit: `cdce0f19c62110cff384d204f890be01042735b6`
+- Verified production application commit: `838f8a86f33880fbaa77a89c1cc9af490d65c4b5`
 - Latest production migration: 368
 
 ## Deployed state
@@ -44,6 +44,16 @@ transaction, claim, trade, draft, or direct-message authority; spectators
 remain limited to standings, predictions, the official draft board, and
 playoffs.
 
+The crawl-integrity follow-up shipped through pull request
+[#106](https://github.com/roblebaegaming/DraftCenter/pull/106). It repairs the
+live Paldean Tauros 404 and redirecting tournament links, gives ambiguous
+Meowstic and Zygarde forms unique public metadata, replaces invalid Nuzlocke
+software rich-result markup with accurate page/article data, shortens the
+flagged titles, and server-renders direct links to eligible public leagues.
+The GitHub security-email finding was also confirmed as an already-remediated
+false positive involving public catalog provenance hashes; the regression
+fixture now covers the exact allowlist paths.
+
 Migrations 361-368 are applied to the exact core production project. The
 previous multi-pod organization, qualification, and connected championship
 release remains live through migrations 350-360 and production record pull
@@ -67,16 +77,18 @@ request [#94](https://github.com/roblebaegaming/DraftCenter/pull/94).
   passed desktop and 390px mobile Pokédex review without browser errors or
   horizontal overflow. The retained Supabase Preview observer-access matrix
   passed every RLS, grant, allow, denial, full-staff, and cleanup assertion.
-- Vercel reports the current `main` deployment Ready on the public production
-  domains. The last application-changing commit is exact verified commit
-  `cdce0f1`; later documentation-only commits do not change that application or
-  database baseline.
+- Vercel reports exact `main` application commit `838f8a8` Ready and Current on
+  the public production domains.
 - The signed-out production smoke sweep passes, including protected 401
   boundaries. Focused live checks also pass for tournament metadata and JSON-LD,
   Daily Games FAQ structured data, sitemap modification dates, `llms.txt`, and
   private-route `noindex` behavior. The new color, Egg Group, and shape category
   routes also return their expected canonical metadata and structured data,
   combine correctly in the directory, and appear in the production sitemap.
+- Pull request #106 passed all protected checks. Its exact Preview and live
+  production pages passed focused canonical, title, JSON-LD, redirect,
+  `nofollow`, and direct-link checks. The signed-out production smoke sweep
+  passed after deployment, including every protected 401 boundary.
 - No merge protection was bypassed.
 
 ## Preserved boundaries
@@ -94,23 +106,20 @@ request [#94](https://github.com/roblebaegaming/DraftCenter/pull/94).
 
 ## Remaining work
 
-No application release from the August 9 wave, the first product-alignment SEO
-pass, or the consolidated discovery/pricing/pod-access release remains to be
-pushed. There are no open pull requests. Continue normal monitoring of the
-tournament, Daily Games, Nuzlocke, navigation, pricing, pod-observer, metadata,
-and indexing paths.
+No application or documentation release described above remains to be pushed.
+Continue normal monitoring of the tournament, Daily Games, Nuzlocke,
+navigation, pricing, pod-observer, metadata, and indexing paths.
 
-The next SEO work begins with the exact URLs behind the August 8 crawl defects:
-invalid structured data, one broken internal link and 4xx, duplicates, and the
-orphaned sitemap page. Reproduce each finding against `cdce0f1` before changing
-templates because the measurement predates several releases. Repeat the same
-5,000-page crawl scope after technical repairs, with an early search read after
-about 14 days and a normal content decision after about 28 days.
+Repeat the comparable 5,000-page crawl after production cache replacement.
+Use roughly August 23 for the early Search Console read and September 6 for the
+normal 28-day content/indexing decision. Redirect, alternate-canonical, and
+intentional `noindex` examples should not be treated as defects merely because
+Search Console excludes them.
 
 ## Authoritative records
 
 - Current continuation handoff:
-  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-09-post-release-continuation.md`](handoffs/DraftCenter-agent-handoff-2026-08-09-post-release-continuation.md)
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-09-indexing-improvements.md`](handoffs/DraftCenter-agent-handoff-2026-08-09-indexing-improvements.md)
 - Consolidated application release record:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-09-consolidated-release.md`](handoffs/DraftCenter-agent-handoff-2026-08-09-consolidated-release.md)
 - External SEO measurement:
