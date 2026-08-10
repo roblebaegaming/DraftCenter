@@ -2,7 +2,7 @@
 
 These rules are durable repository policy. Read
 [`docs/CURRENT-STATUS.md`](docs/CURRENT-STATUS.md) and the
-[current detailed handoff](docs/handoffs/DraftCenter-agent-handoff-2026-08-10-league-pulse-and-security-maintenance.md)
+[current detailed handoff](docs/handoffs/DraftCenter-agent-handoff-2026-08-10-seo-ai-answer-resources.md)
 before production-sensitive work.
 
 ## Permanent safety rules

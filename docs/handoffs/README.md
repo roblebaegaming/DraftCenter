@@ -1,10 +1,15 @@
 # Agent handoffs
 
+[`DraftCenter-agent-handoff-2026-08-10-seo-ai-answer-resources.md`](DraftCenter-agent-handoff-2026-08-10-seo-ai-answer-resources.md)
+is the current continuation handoff. It records the deployed security repair,
+five-resource SEO and AI-answer release, exact production commit, Search
+Console sitemap and indexing actions, preserved boundaries, and measurement
+dates.
+
 [`DraftCenter-agent-handoff-2026-08-10-league-pulse-and-security-maintenance.md`](DraftCenter-agent-handoff-2026-08-10-league-pulse-and-security-maintenance.md)
-is the current continuation handoff. It records the deployed Semrush cleanup
-and privacy-safe League Pulse, the current production commit, the pending
-scheduled full-history scan repair, preserved privacy boundaries, and the next
-measurement dates.
+is the prior continuation handoff. It records the deployed Semrush cleanup and
+privacy-safe League Pulse and the then-pending scheduled full-history scan
+repair.
 
 [`DraftCenter-agent-handoff-2026-08-09-conversation-release-confirmation.md`](DraftCenter-agent-handoff-2026-08-09-conversation-release-confirmation.md)
 is the prior continuation handoff. It reconciles every application, database,

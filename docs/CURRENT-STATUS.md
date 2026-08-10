@@ -3,7 +3,7 @@
 - Last updated: August 10, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified production application commit: `32aeb5ba5fa2467587740d318b2bdf2825a6a693`
+- Verified production application commit: `08668350d29a28b07bb8e0a83d301426e5a61121`
 - Latest production migration: 368
 
 ## Deployed state
@@ -80,6 +80,21 @@ system failures for post-draft leagues. It does not expose teams, Pokemon,
 matchups, scores, managers, messages, request text, error text, or transaction
 contents.
 
+The scheduled full-history scan repair shipped through pull request
+[#113](https://github.com/roblebaegaming/DraftCenter/pull/113). It narrowly
+covers reviewed public catalog identifiers under seven obsolete migration paths
+and four exact historical prose fingerprints. It does not change application
+behavior, production data, provider settings, or secrets.
+
+The SEO and AI answer-resource release shipped through pull request
+[#114](https://github.com/roblebaegaming/DraftCenter/pull/114). Five focused
+guides now cover ADP, transactions and free agency, standings/tiebreakers and
+playoffs, Pokemon form/stat/data comparison, and dedicated league management
+versus spreadsheets. They include direct answers, truthful guide dates,
+internal links, guide-collection structured data, sitemap freshness, and
+`llms.txt` coverage. Search Console accepted the refreshed sitemap and all five
+new URLs into its priority crawl queue.
+
 Migrations 361-368 are applied to the exact core production project. The
 previous multi-pod organization, qualification, and connected championship
 release remains live through migrations 350-360 and production record pull
@@ -103,7 +118,7 @@ request [#94](https://github.com/roblebaegaming/DraftCenter/pull/94).
   passed desktop and 390px mobile Pokédex review without browser errors or
   horizontal overflow. The retained Supabase Preview observer-access matrix
   passed every RLS, grant, allow, denial, full-staff, and cleanup assertion.
-- Vercel reports exact `main` application commit `32aeb5b` Ready and Current on
+- Vercel reports exact `main` application commit `0866835` Ready and Current on
   the public production domains.
 - The signed-out production smoke sweep passes, including protected 401
   boundaries. Focused live checks also pass for tournament metadata and JSON-LD,
@@ -128,6 +143,14 @@ request [#94](https://github.com/roblebaegaming/DraftCenter/pull/94).
 - Pull request #112 passed all protected checks, the complete application
   suite, the 1,027-row National Dex verification, the production build, and
   the post-deployment smoke sweep across all 19 public and protected routes.
+- Pull request #113 passed its authoritative full-history scan and every
+  protected check. Pinned Gitleaks 8.30.1 scanned 852 commits and approximately
+  691.80 MB with no leaks.
+- Pull request #114 passed the complete application suite, 1,027-row National
+  Dex verification, dependency audit, 227-page build, protected checks, exact
+  Preview review, and the post-deployment 19-route smoke sweep. All five live
+  guides return 200 with one H1, the expected canonical, and their direct answer;
+  the guide directory, sitemap, and `llms.txt` contain the complete set.
 - No merge protection was bypassed.
 
 ## Preserved boundaries
@@ -145,14 +168,6 @@ request [#94](https://github.com/roblebaegaming/DraftCenter/pull/94).
 
 ## Remaining work
 
-Pull request [#113](https://github.com/roblebaegaming/DraftCenter/pull/113)
-contains the pending scheduled full-history secret-scan repair and current
-handoff. It narrowly covers seven obsolete public catalog migration paths and
-four exact historical prose fingerprints. Pinned Gitleaks 8.30.1 scanned all
-850 commits with no leaks locally; the final pull-request head still requires
-the authoritative manual workflow, protected checks, review, and owner-approved
-merge.
-
 Continue normal monitoring of the tournament, Daily Games, Nuzlocke,
 navigation, pricing, pod-observer, League Pulse, metadata, indexing, and
 commissioner-save paths. Treat historical Operations events by timestamp and
@@ -166,10 +181,17 @@ September 6 for the normal 28-day content/indexing decision. Redirect,
 alternate-canonical, and intentional `noindex` examples should not be treated
 as defects merely because Search Console excludes them.
 
+The five new guide URLs are already in Google's priority crawl queue. Do not
+submit them repeatedly. Semrush Prompt Tracking remains unavailable under the
+current account access; do not buy an upgrade or override the multiple-session
+guard merely to remove that measurement gap.
+
 ## Authoritative records
 
 - Current continuation handoff:
-  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-10-league-pulse-and-security-maintenance.md`](handoffs/DraftCenter-agent-handoff-2026-08-10-league-pulse-and-security-maintenance.md)
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-10-seo-ai-answer-resources.md`](handoffs/DraftCenter-agent-handoff-2026-08-10-seo-ai-answer-resources.md)
+- SEO and AI answer-resource release:
+  [`docs/seo-ai-answer-resources-2026-08-10.md`](seo-ai-answer-resources-2026-08-10.md)
 - League-save implementation detail:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-09-league-save-reconciliation.md`](handoffs/DraftCenter-agent-handoff-2026-08-09-league-save-reconciliation.md)
 - Consolidated application release record:
