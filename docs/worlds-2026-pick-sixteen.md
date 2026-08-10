@@ -1,11 +1,33 @@
-# 2026 VGC Worlds Pick 16
+# 2026 Worlds Predictions
 
 The global navigation names this feature **Worlds Predictions** and keeps it in
 the sticky top header rather than the bottom tools bar. Visitors may browse the
-Masters invite list, scoring, and public leaderboard, but only signed-in
+competition overview at `/worlds/2026`, then choose a discipline. VGC lives at
+`/worlds/2026/vgc`; TCG build status lives at `/worlds/2026/tcg`. Visitors may
+browse the Masters invite list, scoring, and public leaderboard, but only signed-in
 DraftCenter members can assemble, save, or edit a prediction entry. The page
 uses the same explicit account gate as Daily Games, while the authenticated
 database function remains the authoritative write boundary.
+
+## Competition and leaderboard structure
+
+The overview presents VGC, TCG, Pokémon GO, and Pokémon UNITE as separate
+competition types. Each launched game keeps its own leaderboard and raw scoring
+contract. GO and UNITE remain visibly planned but non-interactive until their
+prediction formats and safe roster units are defined; UNITE must remain
+team-based.
+
+An **Overall leaderboard** opens only after at least two disciplines have scored
+official results. Each discipline contributes at most 100 Overall points:
+
+`Overall points for a discipline = (raw score / maximum possible raw score) × 100`
+
+Missing an entry earns zero for that discipline. Add the normalized discipline
+scores to calculate the overall total. Round each discipline contribution to one
+decimal place. This prevents a game with a larger raw scoring range from
+dominating the combined standings. VGC's current maximum is 164 raw points:
+the champion, runner-up, two semifinalists, four quarterfinalists, eight Top 16
+finishers, and the extra 30 points from choosing the champion as the Ace Pick.
 
 ## Product boundary
 
@@ -81,11 +103,10 @@ read and authenticated save functions are the browser-facing boundary.
 
 ## Later Worlds competitions
 
-Pokémon TCG Masters, Pokémon GO, and Pokémon UNITE prediction experiences are
-explicitly deferred until this VGC competition is released and reviewed. TCG
-must use Masters only, retain the age caveat above, use 30 points for its
-champion, and support one Ace Pick unless its event structure requires a
-documented adjustment. GO and UNITE need their
+Pokémon TCG Masters has a fail-closed source-audit page but no selectable roster,
+saved entry, or leaderboard yet. It must use Masters only, retain the age caveat
+above, use 30 points for its champion, and support one Ace Pick unless its event
+structure requires a documented adjustment. GO and UNITE need their
 own roster unit and adult-safety decision before implementation; UNITE is
 team-based and should not be forced into an individual-player VGC model.
 

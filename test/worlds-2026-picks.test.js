@@ -3,9 +3,12 @@ import fs from "node:fs";
 import test from "node:test";
 import {
   filterWorldsCompetitors,
+  normalizeWorldsDisciplineScore,
   toggleWorldsPick,
+  WORLDS_OVERALL_POINTS_PER_DISCIPLINE,
   WORLDS_2026_PICK_COUNT,
   WORLDS_2026_SCORING,
+  WORLDS_VGC_MAX_RAW_SCORE,
   worldsEntryIsLocked,
 } from "../src/lib/worlds2026.js";
 
@@ -52,6 +55,16 @@ test("the scoring curve is progressive, includes Top 64, and caps at 30", () => 
     ["Top 32", 2],
     ["Top 64", 1],
   ]);
+});
+
+test("overall standings give each competition an equal 100-point share", () => {
+  assert.equal(WORLDS_OVERALL_POINTS_PER_DISCIPLINE, 100);
+  assert.equal(WORLDS_VGC_MAX_RAW_SCORE, 164);
+  assert.equal(normalizeWorldsDisciplineScore(164, WORLDS_VGC_MAX_RAW_SCORE), 100);
+  assert.equal(normalizeWorldsDisciplineScore(82, WORLDS_VGC_MAX_RAW_SCORE), 50);
+  assert.equal(normalizeWorldsDisciplineScore(999, WORLDS_VGC_MAX_RAW_SCORE), 100);
+  assert.equal(normalizeWorldsDisciplineScore(0, WORLDS_VGC_MAX_RAW_SCORE), 0);
+  assert.equal(normalizeWorldsDisciplineScore(30, 0), 0);
 });
 
 test("roster search handles names, accents, countries, regions, and qualification paths", () => {
@@ -127,6 +140,41 @@ test("the Worlds page defers bracket predictions until official pairings exist",
   assert.match(page, /if \(!user \|\| locked/);
   assert.match(page, /name="worlds-ace"/);
   assert.match(page, /p_ace_slug: ace/);
+});
+
+test("the Worlds overview separates competition and overall leaderboards", () => {
+  const hub = source("src/components/WorldsPredictionsHub.jsx");
+  const nav = source("src/components/WorldsDisciplineNav.jsx");
+  const overviewPage = source("src/app/worlds/2026/page.js");
+  const vgcPage = source("src/app/worlds/2026/vgc/page.js");
+  const sitemap = source("src/app/sitemap.js");
+  for (const label of ["Overall", "VGC", "TCG", "Pokémon GO", "Pokémon UNITE"]) assert.match(hub, new RegExp(`label: "${label}"`));
+  assert.match(hub, /Every competition is worth up to 100 points/);
+  assert.match(hub, /Opens after two competitions score/);
+  assert.match(hub, /Missing an entry earns zero for that game/);
+  assert.match(hub, /get_worlds_pick_hub/);
+  assert.match(nav, /href: "\/worlds\/2026\/vgc"/);
+  assert.match(nav, /href: "\/worlds\/2026\/tcg"/);
+  assert.match(overviewPage, /WorldsPredictionsHub/);
+  assert.match(overviewPage, /canonical: "\/worlds\/2026"/);
+  assert.match(vgcPage, /canonical: "\/worlds\/2026\/vgc"/);
+  assert.match(sitemap, /\["\/worlds\/2026\/vgc", "daily", 0\.8\]/);
+});
+
+test("the TCG setup stays Masters-only and fail-closed while its roster is audited", () => {
+  const registry = JSON.parse(source("src/data/worlds-2026-tcg-masters-sources.json"));
+  const component = source("src/components/WorldsTcgPickSixteenSetup.jsx");
+  const page = source("src/app/worlds/2026/tcg/page.js");
+  assert.equal(registry.division, "Masters");
+  assert.equal(registry.ageScope, "official-masters-division-not-age-verified");
+  assert.equal(registry.rosterReady, false);
+  assert.equal(registry.qualificationRules.championshipPointSlots.reduce((total, zone) => total + zone.slots, 0), 425);
+  assert.deepEqual(registry.separatePrograms.map((item) => item.program), ["Japan", "South Korea", "Mainland China", "Asia-Pacific"]);
+  assert.match(component, /Champion: 30 points\. Ace Pick: ×2\./);
+  assert.match(component, /Junior and Senior competitors stay out of this pool/);
+  assert.match(component, /no competitor cards, picks, or saved entries will appear/);
+  assert.match(page, /robots: \{ index: false, follow: true \}/);
+  assert.doesNotMatch(component, /save_worlds_pick_entry/);
 });
 
 test("the roster builder fails closed on Junior or Senior source rows", () => {

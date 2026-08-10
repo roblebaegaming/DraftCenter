@@ -11,6 +11,7 @@ import {
   WORLDS_2026_SCORING,
   worldsEntryIsLocked,
 } from "../lib/worlds2026";
+import WorldsDisciplineNav from "./WorldsDisciplineNav";
 
 const FALLBACK_EVENT = {
   id: WORLDS_2026_EVENT_ID,
@@ -157,6 +158,7 @@ export default function WorldsPickSixteen({ rosterSource }) {
   }
 
   return <main className="worlds-shell">
+    <WorldsDisciplineNav current="vgc" />
     <section className="worlds-hero">
       <div>
         <span className="eyebrow">POKÉMON WORLDS · SAN FRANCISCO</span>
@@ -164,6 +166,7 @@ export default function WorldsPickSixteen({ rosterSource }) {
         <p>Build a roster from every currently known 2026 Masters invitee. When Worlds finishes, the entry with the strongest collective results wins the DraftCenter community leaderboard.</p>
         <div className="worlds-hero-actions">
           <a className="primary-button inline-link-button" href={user === null ? "/#member-access" : "#pick-sixteen"}>{user === null ? "Sign in to predict" : "Build my 16"}</a>
+          <a className="quiet-button" href="/worlds/2026">All Worlds competitions</a>
           <a className="quiet-button" href="#qualified-players">See all {competitors.length} invitees</a>
         </div>
       </div>
@@ -264,7 +267,7 @@ export default function WorldsPickSixteen({ rosterSource }) {
 
     <section className="worlds-bottom-grid">
       <article className="worlds-leaderboard-card">
-        <header><div><span className="eyebrow">COMMUNITY LEADERBOARD</span><h2>{hub?.entry_count || 0} entries</h2></div>{hub?.my_entry && <strong>Your rank: {hub.my_entry.rank}</strong>}</header>
+        <header><div><span className="eyebrow">VGC COMMUNITY LEADERBOARD</span><h2>{hub?.entry_count || 0} entries</h2></div>{hub?.my_entry && <strong>Your rank: {hub.my_entry.rank}</strong>}</header>
         {hub?.standings?.length ? <div className="worlds-standings">{hub.standings.map((entry, index) => <details key={`${entry.display_name}-${index}`} className={entry.is_me ? "is-me" : ""}>
           <summary><span>#{entry.rank}</span><strong>{entry.display_name}</strong><b>{entry.score} pts</b></summary>
           {entry.picks ? <p>{entry.picks.map((slug) => `${competitorBySlug.get(slug)?.displayName || slug}${slug === entry.ace_slug ? " (Ace ×2)" : ""}`).join(" · ")}</p> : <p>Lineup stays private until entries lock.</p>}

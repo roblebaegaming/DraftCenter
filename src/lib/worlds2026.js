@@ -1,6 +1,8 @@
 export const WORLDS_2026_EVENT_ID = "2026-vgc-masters";
 export const WORLDS_2026_PICK_COUNT = 16;
 export const WORLDS_2026_LOCKS_AT = "2026-08-28T07:00:00Z";
+export const WORLDS_OVERALL_POINTS_PER_DISCIPLINE = 100;
+export const WORLDS_VGC_MAX_RAW_SCORE = 164;
 
 export const WORLDS_2026_SCORING = [
   ["World Champion", 30],
@@ -43,4 +45,10 @@ export function worldsEntryIsLocked(event, now = new Date()) {
   if (!event) return true;
   if (event.status !== "open") return true;
   return now < new Date(event.opens_at) || now >= new Date(event.locks_at);
+}
+
+export function normalizeWorldsDisciplineScore(score, maximumScore) {
+  if (!Number.isFinite(score) || !Number.isFinite(maximumScore) || maximumScore <= 0 || score <= 0) return 0;
+  const normalized = (score / maximumScore) * WORLDS_OVERALL_POINTS_PER_DISCIPLINE;
+  return Math.round(Math.min(WORLDS_OVERALL_POINTS_PER_DISCIPLINE, normalized) * 10) / 10;
 }
