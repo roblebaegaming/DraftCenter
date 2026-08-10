@@ -3,7 +3,7 @@
 - Last updated: August 10, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified production application commit: `03cca9117b5245c8a66ed7f7a0faa13332e75f45`
+- Verified production application commit: `1ef57ebd4cda6a49eb1a68dfcf94be47a1da0f31`
 - Latest production migration: 370
 
 ## Deployed state
@@ -130,6 +130,17 @@ now uses the complete names of the two latest VGC Masters World Champions,
 Giovanni Cischke and Luca Ceribelli, followed by Wolfe Glick. It no longer
 mixes a partial player name, country code, and qualification path.
 
+The final Worlds Predictions hub shipped through pull request
+[#125](https://github.com/roblebaegaming/DraftCenter/pull/125) as production
+application commit `1ef57ebd4cda6a49eb1a68dfcf94be47a1da0f31`. The public
+hub now separates VGC, TCG, Pokémon GO, and Pokémon UNITE, with discipline
+leaderboards and a normalized overall leaderboard that opens after two games
+score. VGC lives at `/worlds/2026/vgc`. The TCG Masters source audit lives at
+`/worlds/2026/tcg` but stays `noindex` and fail-closed until its roster passes
+review; GO and UNITE remain visibly planned. The release also names the
+Moscone Center and Chase Center venue split and adds full Worlds search
+metadata, structured data, sitemap freshness, and `llms.txt` coverage.
+
 ## Release verification
 
 - The complete application tests, National Dex verification across 1,027
@@ -148,7 +159,7 @@ mixes a partial player name, country code, and qualification path.
   passed desktop and 390px mobile Pokédex review without browser errors or
   horizontal overflow. The retained Supabase Preview observer-access matrix
   passed every RLS, grant, allow, denial, full-staff, and cleanup assertion.
-- Vercel reports exact `main` application commit `03cca91` Ready and Current on
+- Vercel reports exact `main` application commit `1ef57eb` Ready and Current on
   the public production domains.
 - The signed-out production smoke sweep passes, including protected 401
   boundaries. Focused live checks also pass for tournament metadata and JSON-LD,
@@ -205,6 +216,13 @@ mixes a partial player name, country code, and qualification path.
   checks, and exact hosted desktop and 390px review. Production shows the three
   complete player names without horizontal overflow, and the post-deployment
   signed-out smoke sweep passed all 19 routes.
+- Pull request #125 passed the dependency audit, complete application suite,
+  1,027-row National Dex verification, optimized 230-page build, every protected
+  check, and exact hosted desktop and 390px review without browser errors or
+  horizontal overflow. Vercel reports exact `main` commit `1ef57eb` deployed.
+  Live postflight confirmed the hub, VGC, and TCG routes; intended canonical,
+  structured-data, sitemap, `llms.txt`, and TCG `noindex` behavior; and a clean
+  signed-out 19-route production smoke sweep.
 - No merge protection was bypassed.
 
 ## Preserved boundaries
@@ -250,7 +268,7 @@ guard merely to remove that measurement gap.
 ## Authoritative records
 
 - Current continuation handoff:
-  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-10-worlds-pick-sixteen-release.md`](handoffs/DraftCenter-agent-handoff-2026-08-10-worlds-pick-sixteen-release.md)
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-10-worlds-predictions-final.md`](handoffs/DraftCenter-agent-handoff-2026-08-10-worlds-predictions-final.md)
 - Worlds Pick 16 operating record:
   [`docs/worlds-2026-pick-sixteen.md`](worlds-2026-pick-sixteen.md)
 - SEO and AI answer-resource release:
