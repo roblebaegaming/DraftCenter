@@ -8,7 +8,11 @@ The VGC Masters Pick 16 competition is live at
 the original feature release. Pull request
 [#118](https://github.com/roblebaegaming/DraftCenter/pull/118) added the
 prominent roster-provenance panel and merged as production commit
-`a36a514ca93aa7c089d9f53822d9a961d385ffd4`.
+`a36a514ca93aa7c089d9f53822d9a961d385ffd4`. Pull request
+[#121](https://github.com/roblebaegaming/DraftCenter/pull/121) moved the renamed
+**Worlds Predictions** link into the sticky top header and added the explicit
+Daily Games-style signed-out account gate. It merged as current production
+application commit `3eb4e94ca78bd1074454c59bdaaba43f665eed61`.
 Migrations 369 and 370 are applied to the exact core production project.
 
 The August 10 invite-earned snapshot contains 438 Masters competitors. Each
@@ -41,6 +45,14 @@ later bracket predictor remains closed until official pairings exist.
   Victory Road tracker link, August 10 snapshot date, and invite-earned versus
   confirmed-attendance boundary. Desktop and 390px review found no horizontal
   overflow, and pull request #118 passed every protected check.
+- Pull request #121 passed all six protected checks and its exact hosted
+  Preview. The live signed-out page now shows Worlds Predictions in the sticky
+  top header and no Worlds item in the bottom tools bar. The account gate is
+  visible, all 438 roster cards remain browsable, every competitor-selection
+  button is disabled, and desktop plus 390px review found no browser errors or
+  horizontal overflow. Vercel reports exact `main` commit `3eb4e94` Ready in
+  Production, and the post-deployment signed-out smoke sweep passed all 19
+  public and protected routes.
 
 ## Cleanup and preserved boundaries
 
@@ -53,6 +65,9 @@ No real league, draft, roster, tournament, user entry, production account, or
 production provider setting was changed for testing. Synthetic Preview fixtures
 were removed by the committed matrix. The production migration created only
 the intended public event and roster seed.
+
+The navigation/account-gate release included no migration, user entry,
+synthetic account, provider-setting change, or production database write.
 
 ## Next work
 
