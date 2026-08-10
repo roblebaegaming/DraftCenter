@@ -2,12 +2,14 @@
 
 - Date: August 9, 2026 (America/Los_Angeles)
 - Repository: `roblebaegaming/DraftCenter`
-- Branch: `codex/league-save-reconciliation-2026-08-09`
+- Application branch: `codex/league-save-reconciliation-2026-08-09`
+- Application pull request: [#108](https://github.com/roblebaegaming/DraftCenter/pull/108)
 - Base: `origin/main` at `a9b9c24b364e1be54605c0c4b1de6fdb090cea25`
 - Production application before this work: `838f8a86f33880fbaa77a89c1cc9af490d65c4b5`
 - Latest production migration: 368
 - Database or provider change: none
-- Release state: validation complete; protected release pending
+- Application commit: `dc7b8fa631b4433e0725e9d2e1100ed3258b3478`
+- Release state: deployed, smoke-tested, and production-verified
 
 ## Report and cause
 
@@ -54,10 +56,19 @@ Completed locally:
 - a production dependency audit with no known vulnerabilities; and
 - the production build covering 221 generated application routes.
 
-Protected checks, exact Preview review, production deployment, and the
-post-deployment signed-out smoke sweep must be appended before the release is
-called complete. The commissioner-only interaction requires a signed-in test
-session; automated reconciliation tests cover the state machine independently.
+Pull request #108 passed all protected checks: six successful checks and one
+intentional skip, with no conflicts. Its exact Vercel Preview was Ready and the
+signed-out application shell loaded successfully. The commissioner-only
+interaction requires a signed-in session, so the deterministic reconciliation
+tests independently cover the new state machine and the production build
+contains the tested component.
+
+Vercel then deployed exact merge commit
+`dc7b8fa631b4433e0725e9d2e1100ed3258b3478` as Ready in Production. The
+post-deployment signed-out smoke sweep passed every public route and every
+protected 401 boundary. No application, database, provider, environment, or
+secret change was needed beyond the protected code release. This release is
+complete.
 
 ## Safety boundaries
 

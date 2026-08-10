@@ -3,7 +3,7 @@
 - Last updated: August 9, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified production application commit: `838f8a86f33880fbaa77a89c1cc9af490d65c4b5`
+- Verified production application commit: `dc7b8fa631b4433e0725e9d2e1100ed3258b3478`
 - Latest production migration: 368
 
 ## Deployed state
@@ -54,6 +54,15 @@ The GitHub security-email finding was also confirmed as an already-remediated
 false positive involving public catalog provenance hashes; the regression
 fixture now covers the exact allowlist paths.
 
+The league-save reconciliation release shipped through pull request
+[#108](https://github.com/roblebaegaming/DraftCenter/pull/108). Manual
+commissioner checkpoints now advance the snapshot revision instead of falsely
+resubmitting an already-saved revision. Stale conflicts refresh and safely
+reapply the functional edit with bounded retries, genuine failures receive a
+four-second neutral verification grace period, and background polling can no
+longer overwrite unsaved work or relabel a real failure as success. The
+database stale-session guard remains unchanged.
+
 Migrations 361-368 are applied to the exact core production project. The
 previous multi-pod organization, qualification, and connected championship
 release remains live through migrations 350-360 and production record pull
@@ -77,7 +86,7 @@ request [#94](https://github.com/roblebaegaming/DraftCenter/pull/94).
   passed desktop and 390px mobile Pokédex review without browser errors or
   horizontal overflow. The retained Supabase Preview observer-access matrix
   passed every RLS, grant, allow, denial, full-staff, and cleanup assertion.
-- Vercel reports exact `main` application commit `838f8a8` Ready and Current on
+- Vercel reports exact `main` application commit `dc7b8fa` Ready and Current on
   the public production domains.
 - The signed-out production smoke sweep passes, including protected 401
   boundaries. Focused live checks also pass for tournament metadata and JSON-LD,
@@ -89,6 +98,11 @@ request [#94](https://github.com/roblebaegaming/DraftCenter/pull/94).
   production pages passed focused canonical, title, JSON-LD, redirect,
   `nofollow`, and direct-link checks. The signed-out production smoke sweep
   passed after deployment, including every protected 401 boundary.
+- Pull request #108 passed all protected checks, its exact Vercel Preview was
+  Ready, and the post-deployment signed-out smoke sweep passed every public
+  route and protected 401 boundary. Focused tests cover manual checkpoints,
+  two bounded conflict recoveries, non-replay of timeouts, delayed failure,
+  polling ownership, and retained Retry Save behavior.
 - No merge protection was bypassed.
 
 ## Preserved boundaries
@@ -108,7 +122,9 @@ request [#94](https://github.com/roblebaegaming/DraftCenter/pull/94).
 
 No application or documentation release described above remains to be pushed.
 Continue normal monitoring of the tournament, Daily Games, Nuzlocke,
-navigation, pricing, pod-observer, metadata, and indexing paths.
+navigation, pricing, pod-observer, metadata, indexing, and commissioner-save
+paths. Treat the pre-release stale-session Operations entry as historical; use
+timestamps and current state before declaring a recurrence.
 
 Repeat the comparable 5,000-page crawl after production cache replacement.
 Use roughly August 23 for the early Search Console read and September 6 for the
@@ -119,7 +135,7 @@ Search Console excludes them.
 ## Authoritative records
 
 - Current continuation handoff:
-  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-09-indexing-improvements.md`](handoffs/DraftCenter-agent-handoff-2026-08-09-indexing-improvements.md)
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-09-league-save-reconciliation.md`](handoffs/DraftCenter-agent-handoff-2026-08-09-league-save-reconciliation.md)
 - Consolidated application release record:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-09-consolidated-release.md`](handoffs/DraftCenter-agent-handoff-2026-08-09-consolidated-release.md)
 - External SEO measurement:
