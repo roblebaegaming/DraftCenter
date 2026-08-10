@@ -1,0 +1,39 @@
+{
+  "eventId": "2026-tcg-masters",
+  "game": "Pokémon TCG",
+  "division": "Masters",
+  "ageScope": "official-masters-division-not-age-verified",
+  "rosterStatus": "source-reconciliation",
+  "rosterReady": false,
+  "sourceCheckedAt": "2026-08-10",
+  "qualificationRules": {
+    "url": "https://championships.pokemon.com/en-us/about/",
+    "championshipPointSlots": [
+      { "ratingZone": "USA & Canada", "slots": 135, "status": "official-leaderboard-published" },
+      { "ratingZone": "Europe", "slots": 135, "status": "official-leaderboard-published" },
+      { "ratingZone": "Latin America", "slots": 125, "status": "official-leaderboard-published" },
+      { "ratingZone": "Oceania", "slots": 20, "status": "official-leaderboard-published" },
+      { "ratingZone": "Middle East & South Africa", "slots": 10, "status": "official-leaderboard-published" }
+    ],
+    "championshipPointSlotTotal": 425,
+    "directInvitePaths": [
+      "Special Championships winners",
+      "Regional Championships winners",
+      "International Championships Top 4",
+      "2025 World Championships Top 4"
+    ],
+    "directInvitesPassDown": false
+  },
+  "leaderboard": {
+    "url": "https://www.pokemon.com/us/play-pokemon/leaderboards/tcg-masters/",
+    "season": 2026,
+    "officialLastUpdated": "2026-07-06",
+    "status": "published-needs-cutoff-and-direct-invite-deduplication"
+  },
+  "separatePrograms": [
+    { "program": "Japan", "status": "final-invite-roster-required" },
+    { "program": "South Korea", "status": "final-invite-roster-required" },
+    { "program": "Mainland China", "status": "final-invite-roster-required" },
+    { "program": "Asia-Pacific", "status": "final-invite-roster-required" }
+  ]
+}

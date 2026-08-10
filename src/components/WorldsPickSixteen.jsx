@@ -157,6 +157,10 @@ export default function WorldsPickSixteen({ rosterSource }) {
   }
 
   return <main className="worlds-shell">
+    <nav className="worlds-game-switcher" aria-label="2026 Worlds prediction games">
+      <span aria-current="page">VGC Masters <small>Live</small></span>
+      <a href="/worlds/2026/tcg">TCG Masters <small>In build</small></a>
+    </nav>
     <section className="worlds-hero">
       <div>
         <span className="eyebrow">POKÉMON WORLDS · SAN FRANCISCO</span>

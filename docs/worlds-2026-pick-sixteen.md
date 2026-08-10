@@ -72,6 +72,29 @@ names, ranks, and scores but not other users' selections. A signed-in user can
 always retrieve their own entry. Direct table access is revoked; the bounded
 read and authenticated save functions are the browser-facing boundary.
 
+## TCG Masters build
+
+The TCG Masters Pick 16 implementation began on August 10 after the VGC
+release. Its source registry lives in
+`src/data/worlds-2026-tcg-masters-sources.json`, and the work-in-progress page
+is `/worlds/2026/tcg`. Keep that route `noindex` and keep picks and saving
+closed until the complete source audit passes.
+
+The official 2026 qualification rules allocate 425 Championship Point invites
+across USA and Canada (135), Europe (135), Latin America (125), Oceania (20),
+and the Middle East and South Africa (10). The roster must also include and
+deduplicate Regional and Special Championship winners, International
+Championship Top 4 finishers, and the 2025 Worlds Top 4. Japan, South Korea,
+mainland China, and Asia-Pacific use separately managed programs and each needs
+an authoritative final invite list before the field can open.
+
+TCG retains Pick 16, a 30-point champion, the shared placement curve, and one
+Ace Pick whose score counts twice. It also inherits the Masters-only and age
+safeguards above. Do not create a database event or seed migration from an
+incomplete regional subset. The first TCG database change after production
+migration 370 must be a new forward-only migration and must pass the isolated
+Preview RLS, grants, privacy, scoring, validation, and cleanup matrix.
+
 ## Later Worlds competitions
 
 Pokémon TCG Masters, Pokémon GO, and Pokémon UNITE prediction experiences are
