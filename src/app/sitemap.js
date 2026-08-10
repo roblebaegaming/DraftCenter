@@ -1,5 +1,5 @@
 import { getPublicLeagueCards } from "../lib/supabase/publicServer";
-import { FORMATS, GUIDES } from "../lib/seoContent";
+import { FORMATS, GUIDES, GUIDE_UPDATED_DATE } from "../lib/seoContent";
 import { getAllPokemonProfiles, POKEMON_GENERATIONS, POKEMON_TYPES } from "../lib/publicPokemonIndex";
 import { POKEMON_COLOR_OPTIONS, POKEMON_EGG_GROUP_OPTIONS, POKEMON_SHAPE_OPTIONS } from "../lib/pokemonSpeciesTraits";
 import nuzlockeGameGuides from "../lib/nuzlockeGameGuides.json";
@@ -61,9 +61,9 @@ export default async function sitemap() {
     changeFrequency: "daily",
     priority: 0.8,
   }));
-  const guideRoutes = Object.keys(GUIDES).map((slug) => ({
+  const guideRoutes = Object.entries(GUIDES).map(([slug, guide]) => ({
     url: `https://www.draftcentral.gg/guides/${slug}`,
-    lastModified: AUTHORED_CONTENT_LAST_MODIFIED,
+    lastModified: new Date(`${guide.updatedDate || GUIDE_UPDATED_DATE}T00:00:00.000Z`),
     changeFrequency: "monthly",
     priority: 0.8,
   }));

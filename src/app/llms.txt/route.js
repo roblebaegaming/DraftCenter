@@ -31,6 +31,11 @@ DraftCenter helps communities configure leagues, run snake and auction drafts, m
 - [How to Build a Pokémon Draft Tier List](https://www.draftcentral.gg/guides/pokemon-draft-tier-list-guide)
 - [How to Join Your First Pokémon Draft League](https://www.draftcentral.gg/guides/how-to-join-first-pokemon-draft-league)
 - [Pokémon Draft League Rules Template](https://www.draftcentral.gg/guides/pokemon-draft-league-rules-template)
+- [How to Use Pokémon Draft League ADP](https://www.draftcentral.gg/guides/how-to-use-pokemon-draft-adp)
+- [Pokémon Draft League Transactions and Free Agency](https://www.draftcentral.gg/guides/pokemon-draft-league-transactions-free-agency)
+- [Pokémon Draft Standings, Tiebreakers, and Playoffs](https://www.draftcentral.gg/guides/pokemon-draft-standings-tiebreakers-playoffs)
+- [How to Compare Pokémon Forms, Stats, and Draft Data](https://www.draftcentral.gg/guides/compare-pokemon-forms-stats-draft-data)
+- [Pokémon Draft League Manager vs. Spreadsheets](https://www.draftcentral.gg/guides/pokemon-draft-manager-vs-spreadsheets)
 
 ## Pokémon discovery
 
@@ -58,7 +63,7 @@ DraftCenter helps communities configure leagues, run snake and auction drafts, m
 
 DraftCenter is an independent fan project and is not affiliated with or endorsed by Nintendo, Creatures Inc., GAME FREAK inc., or The Pokémon Company. Pokémon names, characters, artwork, and trademarks belong to their respective owners.
 
-Last reviewed: 2026-08-09
+Last reviewed: 2026-08-10
 `;
 
 export function GET() {
