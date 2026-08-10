@@ -11,8 +11,12 @@ prominent roster-provenance panel and merged as production commit
 `a36a514ca93aa7c089d9f53822d9a961d385ffd4`. Pull request
 [#121](https://github.com/roblebaegaming/DraftCenter/pull/121) moved the renamed
 **Worlds Predictions** link into the sticky top header and added the explicit
-Daily Games-style signed-out account gate. It merged as current production
-application commit `3eb4e94ca78bd1074454c59bdaaba43f665eed61`.
+Daily Games-style signed-out account gate. It merged as production application
+commit `3eb4e94ca78bd1074454c59bdaaba43f665eed61` at that release step.
+Pull request [#123](https://github.com/roblebaegaming/DraftCenter/pull/123)
+replaced the mixed search example with Giovanni Cischke, Luca Ceribelli, and
+Wolfe Glick, and merged as current production application commit
+`03cca9117b5245c8a66ed7f7a0faa13332e75f45`.
 Migrations 369 and 370 are applied to the exact core production project.
 
 The August 10 invite-earned snapshot contains 438 Masters competitors. Each
@@ -53,6 +57,11 @@ later bracket predictor remains closed until official pairings exist.
   horizontal overflow. Vercel reports exact `main` commit `3eb4e94` Ready in
   Production, and the post-deployment signed-out smoke sweep passed all 19
   public and protected routes.
+- Pull request #123 passed all six protected checks, the complete local release
+  gates, and exact hosted desktop and 390px review. The production search field
+  contains the three complete names, has no horizontal overflow, and Vercel
+  reports exact `main` commit `03cca91` Ready in Production. The signed-out
+  post-deployment smoke sweep passed all 19 public and protected routes.
 
 ## Cleanup and preserved boundaries
 

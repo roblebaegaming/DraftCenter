@@ -3,7 +3,7 @@
 - Last updated: August 10, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified production application commit: `3eb4e94ca78bd1074454c59bdaaba43f665eed61`
+- Verified production application commit: `03cca9117b5245c8a66ed7f7a0faa13332e75f45`
 - Latest production migration: 370
 
 ## Deployed state
@@ -124,6 +124,12 @@ header instead of the bottom tools bar. Signed-out visitors may browse the
 Masters roster, scoring, sources, and leaderboard, but the Pick 16 builder and
 all competitor-selection controls remain locked behind a DraftCenter account.
 
+The competitor-search clarification shipped through pull request
+[#123](https://github.com/roblebaegaming/DraftCenter/pull/123). Its placeholder
+now uses the complete names of the two latest VGC Masters World Champions,
+Giovanni Cischke and Luca Ceribelli, followed by Wolfe Glick. It no longer
+mixes a partial player name, country code, and qualification path.
+
 ## Release verification
 
 - The complete application tests, National Dex verification across 1,027
@@ -142,7 +148,7 @@ all competitor-selection controls remain locked behind a DraftCenter account.
   passed desktop and 390px mobile Pokédex review without browser errors or
   horizontal overflow. The retained Supabase Preview observer-access matrix
   passed every RLS, grant, allow, denial, full-staff, and cleanup assertion.
-- Vercel reports exact `main` application commit `3eb4e94` Ready and Current on
+- Vercel reports exact `main` application commit `03cca91` Ready and Current on
   the public production domains.
 - The signed-out production smoke sweep passes, including protected 401
   boundaries. Focused live checks also pass for tournament metadata and JSON-LD,
@@ -194,6 +200,11 @@ all competitor-selection controls remain locked behind a DraftCenter account.
   balanced bottom-tool slots, zero enabled pick buttons, all 438 roster cards,
   no browser errors, and no horizontal overflow. The post-deployment signed-out
   smoke sweep passed all 19 routes.
+- Pull request #123 passed the dependency audit, complete application suite,
+  1,027-row National Dex verification, optimized build, all six protected
+  checks, and exact hosted desktop and 390px review. Production shows the three
+  complete player names without horizontal overflow, and the post-deployment
+  signed-out smoke sweep passed all 19 routes.
 - No merge protection was bypassed.
 
 ## Preserved boundaries
