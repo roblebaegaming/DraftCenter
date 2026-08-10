@@ -62,6 +62,7 @@ export default function NuzlockePage() {
         <span className="eyebrow">GAME-SPECIFIC GUIDES</span>
         <h2 id="nuzlocke-game-guides-title">Research every route before you draft</h2>
         <p>Browse the complete Nuzlocke guide library by generation and game. Each guide lists every reviewed route or area, then shows each Pokémon with its encounter method and level range in one compact list.</p>
+        <div className="pokemon-tags"><a href="/nuzlocke/fire-red">Pokémon FireRed guide</a><a href="/nuzlocke/platinum">Pokémon Platinum guide</a><a href="/nuzlocke/legends-arceus">Pokémon Legends: Arceus guide</a><a href="/nuzlocke/scarlet">Pokémon Scarlet guide</a></div>
         <a className="primary-button inline-link-button" href="/nuzlocke/guides">Browse all Nuzlocke guides</a>
       </section>
     </section>

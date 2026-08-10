@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import test from "node:test";
+import { profileSlugForEncounter, summarizeNuzlockeGuideArea } from "../src/lib/nuzlockeGuidePresentation.js";
 
 function source(path) {
   return fs.readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
@@ -30,6 +31,7 @@ test("all reviewed Nuzlocke games have complete catalog-derived guides", () => {
       assert.ok(condition.options.every((label) => optionLabels.has(label)), `${guide.gameKey} ${condition.id} options must come from the catalog`);
     }
     for (const area of guide.areas) {
+      assert.match(area.areaKey, /^[a-z0-9_-]{1,128}$/, `${guide.gameKey} area keys must remain safe API identifiers`);
       const catalogArea = catalog.locations.find(({ area_key }) => area_key === area.areaKey);
       assert.ok(catalogArea, `${guide.gameKey} should contain ${area.areaKey}`);
       assert.equal(area.label, catalogArea.display_name);
@@ -51,6 +53,8 @@ test("all reviewed Nuzlocke games have complete catalog-derived guides", () => {
 
 test("game guides are static, canonical, structured, and internally linked", () => {
   const page = source("src/app/nuzlocke/[game]/page.js");
+  const areaBrowser = source("src/components/NuzlockeGuideAreaBrowser.jsx");
+  const areaRoute = source("src/app/api/nuzlocke/guide-area/route.js");
   const landing = source("src/app/nuzlocke/page.js");
   const directory = source("src/app/nuzlocke/guides/page.js");
   const sitemap = source("src/app/sitemap.js");
@@ -58,19 +62,34 @@ test("game guides are static, canonical, structured, and internally linked", () 
   assert.match(page, /alternates: \{ canonical: `\/nuzlocke\/\$\{guide\.slug\}` \}/);
   assert.match(page, /"@type": "Article"/);
   assert.match(page, /"@type": "BreadcrumbList"/);
-  assert.match(page, /guide\.generatorHref/);
-  assert.match(page, /rel="nofollow"/);
+  assert.match(page, /action="\/nuzlocke" method="get"/);
+  assert.match(page, /name="game" value=\{guide\.gameKey\}/);
+  assert.doesNotMatch(page, /rel="nofollow"/);
   assert.doesNotMatch(page, /"@type": "VideoGame"/);
   assert.doesNotMatch(page, /encounter rows/i);
-  assert.match(page, /guide\.areas\.map/);
-  assert.match(page, /method\.pokemon\.map/);
+  assert.match(page, /summarizeNuzlockeGuideArea/);
+  assert.match(page, /NuzlockeGuideAreaBrowser/);
   assert.match(page, /href={`\/pokemon\/\$\{starter\.profileSlug\}`}/);
-  assert.match(page, /POKEAPI_ARTWORK_BASE/);
-  assert.match(page, /alt={`\$\{pokemon\.name\} artwork`}/);
-  assert.match(page, /pokemonProfileSlugForName/);
-  assert.match(page, /href={`\/pokemon\/\$\{profileSlugForEncounter\(pokemon\)\}`}/);
+  assert.match(areaBrowser, /\/api\/nuzlocke\/guide-area\?game=/);
+  assert.match(areaBrowser, /aria-expanded=\{isExpanded\}/);
+  assert.match(areaBrowser, /profileSlugForEncounter\(pokemon\)/);
+  assert.match(areaRoute, /AREA_KEY/);
+  assert.match(areaRoute, /Cache-Control/);
   assert.match(landing, /href="\/nuzlocke\/guides"/);
   assert.match(directory, /guideCatalog\.games\.map/);
   assert.match(directory, /"@type": "CollectionPage"/);
   assert.match(sitemap, /nuzlockeGameGuides\.games\.map/);
+});
+
+test("Nuzlocke guide summaries stay compact and use live profile slugs", () => {
+  assert.equal(profileSlugForEncounter({ name: "Nidoran♀", pokemonId: 29 }), "nidoran-f");
+  assert.equal(profileSlugForEncounter({ name: "Nidoran♂", pokemonId: 32 }), "nidoran-m");
+  assert.equal(profileSlugForEncounter({ name: "Flabébé", pokemonId: 669 }), "flabebe");
+  const area = contract.games.find(({ slug }) => slug === "scarlet").areas[0];
+  const summary = summarizeNuzlockeGuideArea(area);
+  assert.equal(summary.areaKey, area.areaKey);
+  assert.ok(summary.encounterCount > 0);
+  assert.ok(summary.methodLabels.length > 0);
+  assert.ok(summary.previewPokemon.length > 0 && summary.previewPokemon.length <= 4);
+  assert.ok(summary.previewPokemon.every(({ profileSlug }) => profileSlug));
 });

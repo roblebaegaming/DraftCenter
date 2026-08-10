@@ -37,10 +37,10 @@ function publicPlayoffTeamIndexes(playoffs) {
   return [...indexes];
 }
 
-export default function PublicLeaguePage() {
+export default function PublicLeaguePage({ initialData = null }) {
   const { slug } = useParams();
   const [supabase] = useState(() => createClient());
-  const [data, setData] = useState(null);
+  const [data, setData] = useState(initialData);
   const [message, setMessage] = useState("");
   const [predictionMessage, setPredictionMessage] = useState("");
   useEffect(() => {

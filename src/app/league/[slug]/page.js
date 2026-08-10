@@ -47,5 +47,5 @@ export default async function LeaguePage({ params }) {
       ],
     }],
   } : null;
-  return <>{structuredData && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />}<PublicLeaguePage /></>;
+  return <>{structuredData && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />}<PublicLeaguePage initialData={data} /></>;
 }

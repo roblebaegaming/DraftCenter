@@ -1,10 +1,10 @@
 import { notFound } from "next/navigation";
+import NuzlockeGuideAreaBrowser from "../../../components/NuzlockeGuideAreaBrowser";
 import NuzlockeGuideGameSelect from "../../../components/NuzlockeGuideGameSelect";
 import guideCatalog from "../../../lib/nuzlockeGameGuides.json";
-import { pokemonProfileSlugForName } from "../../../lib/publicPokemonIndex";
+import { summarizeNuzlockeGuideArea } from "../../../lib/nuzlockeGuidePresentation";
 
 const guidesBySlug = Object.fromEntries(guideCatalog.games.map((guide) => [guide.slug, guide]));
-const POKEAPI_ARTWORK_BASE = "https://raw.githubusercontent.com/PokeAPI/sprites/5841d46f1a0d2b8918a29a7376b1424878b86b59/sprites/pokemon/other/official-artwork";
 const METHOD_LABELS = {
   "gift-egg": "Gift Egg",
   "good-rod": "Good Rod",
@@ -18,18 +18,6 @@ const METHOD_LABELS = {
 };
 const titleCase = (value) => String(value).replaceAll("-", " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
 const methodLabel = (method) => METHOD_LABELS[method] || titleCase(method);
-const levelLabel = (pokemon) => pokemon.minLevel == null && pokemon.maxLevel == null
-  ? null
-  : pokemon.maxLevel != null && pokemon.maxLevel !== pokemon.minLevel
-    ? `Lv. ${pokemon.minLevel ?? "?"}–${pokemon.maxLevel}`
-    : `Lv. ${pokemon.minLevel ?? pokemon.maxLevel}`;
-const encountersForArea = (area) => area.methods.flatMap((method) => method.pokemon.map((pokemon) => ({
-  ...pokemon,
-  method: method.method,
-})));
-const profileSlugForEncounter = (pokemon) => pokemonProfileSlugForName(
-  String(pokemon.name || "").replace(/\s+\([^)]*\)$/, ""),
-);
 
 export function generateStaticParams() {
   return guideCatalog.games.map(({ slug }) => ({ game: slug }));
@@ -125,19 +113,8 @@ export default async function NuzlockeGameGuidePage({ params }) {
 
       <section>
         <h2>All {guide.displayName} encounter areas</h2>
-        <p>Each route or area is one possible Nuzlocke catch location. Open it once to compare its complete encounter pool and every available method.</p>
-        <div className="nuzlocke-guide-areas">{guide.areas.map((area) => {
-          const encounters = encountersForArea(area);
-          return <details key={area.areaKey}>
-            <summary><strong>{area.label}</strong><span>{encounters.length} {encounters.length === 1 ? "encounter" : "encounters"}</span></summary>
-            <div className="nuzlocke-guide-pokemon-list">{encounters.map((pokemon, index) => <div key={`${pokemon.method}-${pokemon.pokemonId}-${pokemon.name}-${index}`}>
-              <img src={`${POKEAPI_ARTWORK_BASE}/${pokemon.pokemonId}.png`} alt={`${pokemon.name} artwork`} width="52" height="52" loading="lazy" />
-              <span className="nuzlocke-guide-method-label">{methodLabel(pokemon.method)}</span>
-              <strong><a href={`/pokemon/${profileSlugForEncounter(pokemon)}`}>{pokemon.name}</a></strong>
-              {levelLabel(pokemon) && <small>{levelLabel(pokemon)}</small>}
-            </div>)}</div>
-          </details>;
-        })}</div>
+        <p>Each route or area is one possible Nuzlocke catch location. The page shows representative Pokémon and every available method immediately; open an area to load its complete reviewed encounter pool.</p>
+        <NuzlockeGuideAreaBrowser gameSlug={guide.slug} areas={guide.areas.map((area) => summarizeNuzlockeGuideArea(area))} />
       </section>
 
       <section>
@@ -149,7 +126,15 @@ export default async function NuzlockeGameGuidePage({ params }) {
         <span className="eyebrow">READY TO BUILD</span>
         <h2>Open a preconfigured {guide.displayName} run</h2>
         <p>Start with a repeatable six-slot setup, then adjust any rule using the guide above.</p>
-        <a className="primary-button inline-link-button" href={guide.generatorHref} rel="nofollow">Build a {guide.displayName} run</a>
+        <form className="nuzlocke-guide-launch-form" action="/nuzlocke" method="get">
+          <input type="hidden" name="game" value={guide.gameKey} />
+          <input type="hidden" name="seed" value={`${guide.slug}-guide`} />
+          <input type="hidden" name="size" value="6" />
+          <input type="hidden" name="mode" value="route-random" />
+          <input type="hidden" name="weighting" value="equal" />
+          <input type="hidden" name="starter" value="include" />
+          <button className="primary-button" type="submit">Build a {guide.displayName} run</button>
+        </form>
       </aside>
 
       <aside className="seo-next-step">

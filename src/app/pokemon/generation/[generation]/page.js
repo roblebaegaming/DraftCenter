@@ -32,5 +32,10 @@ export default async function PokemonGenerationPage({ params }) {
     <section className="explore-card">
       <div className="pokemon-profile-link-grid">{pokemon.map((name) => <a href={`/pokemon/${name}`} key={name}>{pokemonDisplayName(name)}</a>)}</div>
     </section>
+    <section className="explore-card pokemon-trait-explainer">
+      <h2>Researching {generation.name}</h2>
+      <p>This index follows debut generation rather than the game in which a Pokémon is currently obtainable. Open a profile to compare base stats, abilities, forms, community draft activity, and competitive results. Regional forms and later evolutions may belong to a newer generation even when their evolutionary family began earlier.</p>
+      <p>For an era-limited league, confirm the commissioner&apos;s exact Pokédex and regulation before drafting. The interactive Pokédex can combine generation with type, ability, color, Egg Group, shape, and stat sorting to narrow a large pool.</p>
+    </section>
   </main>;
 }

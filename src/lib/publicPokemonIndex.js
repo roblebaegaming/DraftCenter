@@ -67,6 +67,10 @@ const PROFILE_DISPLAY_NAME_OVERRIDES = {
 export function pokemonRouteSlug(value) {
   return String(value || "")
     .toLowerCase()
+    .normalize("NFKD")
+    .replace(/\u2640/g, "-f")
+    .replace(/\u2642/g, "-m")
+    .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "");
 }
