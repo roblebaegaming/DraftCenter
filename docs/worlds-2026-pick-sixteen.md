@@ -84,9 +84,11 @@ team-based and should not be forced into an individual-player VGC model.
 
 ## Release boundary
 
-Migrations 369 and 370 are local release candidates and have not been applied
-to Preview or production. Release through a short-lived branch and pull
-request, review an isolated Preview, verify RLS and grants, then apply the
-migrations only to the exact approved project. A local build is not a
-deployment. After an authorized merge, confirm the deployed commit and run the
-signed-out production smoke sweep.
+Migrations 369 and 370 were validated on the isolated
+`worlds-pick-sixteen-pr-116` Preview branch and have not been applied to
+production. Keep Preview credentials scoped to the matching Git branch; a
+Preview that shows the database-migration fallback message is not release
+evidence. Release through a short-lived branch and pull request, verify RLS and
+grants, then apply the migrations only to the exact approved production
+project. A local build is not a deployment. After an authorized merge, confirm
+the deployed commit and run the signed-out production smoke sweep.
