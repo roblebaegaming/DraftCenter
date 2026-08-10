@@ -218,6 +218,11 @@ export default function PublicExplore() {
       <p>{signedIn ? "See what DraftCenter coaches are voting for, favoriting, and drafting." : "Explore public leagues and completed community polls. Create an account to vote, comment, and reveal today's results."}</p>
       <div className="explore-actions"><a className="primary-button" href="/resources/daily-games">Play Daily Games</a><a className="secondary-button" href="/pokemon">Explore Pokémon</a><a className="secondary-button" href="/">{signedIn ? "Your DraftCenter Home" : "Create an account"}</a><ShareButton title="DraftCenter Community" text="Explore Daily Games, live battles, leagues, and Pokémon trends on DraftCenter." /></div>
     </header>
+    <section className="explore-card">
+      <h2>What the community pages show</h2>
+      <p>DraftCenter combines public league activity with opt-in community participation. You can follow active competitions, review completed daily polls, browse shared teams, and compare aggregate draft trends without joining a roster. Public rankings summarize eligible league activity; they do not expose private notes, preparation files, direct messages, or unpublished commissioner settings.</p>
+      <p>Use these signals as research leads rather than universal tier lists. A Pokémon&apos;s value changes with the format, available pool, scoring rules, matchup schedule, and the rest of a team. Open a Pokémon profile for supporting details, or open a public league to see standings, picks, results, and playoffs in their actual season context.</p>
+    </section>
     {message && <p className="hub-message">{message}</p>}
     {!data && !message && <p className="muted">Loading public DraftCenter data...</p>}
     {data && <>

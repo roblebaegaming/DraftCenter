@@ -17,5 +17,10 @@ export default function PokemonTypesPage() {
     <section className="explore-card">
       <div className="pokemon-index-hub-grid">{POKEMON_TYPES.map((type) => <a href={`/pokemon/type/${type}`} key={type}><strong>{pokemonDisplayName(type)}</strong><span>Pokémon profiles</span></a>)}</div>
     </section>
+    <section className="explore-card pokemon-trait-explainer">
+      <h2>Use type indexes for draft research</h2>
+      <p>A Pokémon can have one or two types, so dual-type species appear in both matching lists. Open a type when you need a particular resistance, offensive matchup, or role for a draft roster, then compare base stats, abilities, format eligibility, and community results on each profile.</p>
+      <p>Type alone does not determine how a Pokémon plays. Speed, bulk, movepool, ability, tera rules, and your league&apos;s ban list can change its value. Use the interactive Pokédex to combine type with generation, species traits, abilities, and stat sorting before making a shortlist.</p>
+    </section>
   </main>;
 }

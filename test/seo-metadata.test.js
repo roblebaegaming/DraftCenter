@@ -3,7 +3,7 @@ import fs from "node:fs";
 import test from "node:test";
 import { GUIDES, relatedFormatsBySlug } from "../src/lib/seoContent.js";
 import { pokemonDirectoryFragment, pokemonDirectoryHref } from "../src/lib/pokemonNavigation.js";
-import { pokemonProfileCanonicalPath, pokemonProfileDisplayName, pokemonProfileSlugForName } from "../src/lib/publicPokemonIndex.js";
+import { pokemonProfileCanonicalPath, pokemonProfileDisplayName, pokemonProfileSlugForName, pokemonRouteSlug } from "../src/lib/publicPokemonIndex.js";
 
 function source(path) {
   return fs.readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
@@ -105,6 +105,8 @@ test("the Nuzlocke generator is crawlable, internally linked, and uses current p
 
 test("the complete Nuzlocke game-guide library is indexable and internally connected", () => {
   const page = source("src/app/nuzlocke/[game]/page.js");
+  const areaBrowser = source("src/components/NuzlockeGuideAreaBrowser.jsx");
+  const areaRoute = source("src/app/api/nuzlocke/guide-area/route.js");
   const landing = source("src/app/nuzlocke/page.js");
   const directory = source("src/app/nuzlocke/guides/page.js");
   const sitemap = source("src/app/sitemap.js");
@@ -115,11 +117,16 @@ test("the complete Nuzlocke game-guide library is indexable and internally conne
   assert.match(page, /alternates: \{ canonical: `\/nuzlocke\/\$\{guide\.slug\}` \}/);
   assert.match(page, /What you can plan with this guide/);
   assert.match(page, /All \{guide\.displayName\} encounter areas/);
-  assert.match(page, /encountersForArea\(area\)/);
-  assert.match(page, /nuzlocke-guide-method-label/);
-  assert.doesNotMatch(page, /nuzlocke-guide-method-list/);
-  assert.match(page, /guide\.generatorHref/);
-  assert.match(page, /rel="nofollow"/);
+  assert.match(page, /summarizeNuzlockeGuideArea\(area\)/);
+  assert.match(page, /NuzlockeGuideAreaBrowser/);
+  assert.match(page, /<form className="nuzlocke-guide-launch-form" action="\/nuzlocke" method="get"/);
+  assert.match(page, /<input type="hidden" name="game" value=\{guide\.gameKey\}/);
+  assert.doesNotMatch(page, /rel="nofollow"/);
+  assert.match(areaBrowser, /nuzlocke-guide-method-label/);
+  assert.match(areaBrowser, /\/api\/nuzlocke\/guide-area\?game=/);
+  assert.match(areaBrowser, /aria-expanded=\{isExpanded\}/);
+  assert.match(areaRoute, /guidesBySlug\[game\]\?\.areas\.find/);
+  assert.match(areaRoute, /s-maxage=86400/);
   assert.doesNotMatch(page, /"@type": "VideoGame"/);
   assert.match(landing, /href="\/nuzlocke\/guides"/);
   assert.match(directory, /title: "Pokémon Nuzlocke Guides by Game"/);
@@ -225,6 +232,18 @@ test("reader-friendly Pokémon names resolve to live canonical profiles", () => 
   assert.equal(pokemonProfileSlugForName("Mega Chandelure", profiles), "chandelure");
   assert.equal(pokemonProfileSlugForName("Paldean Tauros", profiles), "tauros-paldea-combat-breed");
   assert.equal(pokemonProfileSlugForName("tauros-paldea", profiles), "tauros-paldea-combat-breed");
+  assert.equal(pokemonRouteSlug("Nidoran♀"), "nidoran-f");
+  assert.equal(pokemonRouteSlug("Nidoran♂"), "nidoran-m");
+  assert.equal(pokemonRouteSlug("Flabébé"), "flabebe");
+});
+
+test("public league pages server-render the public league payload", () => {
+  const page = source("src/app/league/[slug]/page.js");
+  const publicLeague = source("src/components/PublicLeaguePage.jsx");
+  assert.match(page, /<PublicLeaguePage initialData=\{data\}/);
+  assert.match(publicLeague, /function PublicLeaguePage\(\{ initialData = null \}\)/);
+  assert.match(publicLeague, /useState\(initialData\)/);
+  assert.match(publicLeague, /<h1>\{data\.league\.name\}<\/h1>/);
 });
 
 test("ambiguous PokéAPI form labels stay distinct in public profile metadata", () => {
@@ -329,12 +348,33 @@ test("the guide collection explains real DraftCenter workflows in a human voice"
 test("public templates expose useful server-rendered headings and related links", () => {
   const authGate = source("src/components/AuthGate.jsx");
   const directory = source("src/components/PokemonDirectory.jsx");
+  const pokemonHome = source("src/app/pokemon/page.js");
+  const typeHub = source("src/app/pokemon/types/page.js");
+  const generationHub = source("src/app/pokemon/generations/page.js");
+  const traitPages = source("src/components/PokemonTraitIndexPage.jsx");
+  const explore = source("src/components/PublicExplore.jsx");
+  const leagues = source("src/components/PublicLeagues.jsx");
+  const manuals = source("src/app/manuals/page.js");
+  const resources = source("src/components/ResourcesPage.jsx");
+  const nuzlocke = source("src/app/nuzlocke/page.js");
   const profile = source("src/app/pokemon/[name]/page.js");
   const formatPage = source("src/app/formats/[slug]/page.js");
 
   assert.match(authGate, /function PublicLoadingShell/);
+  assert.match(authGate, /function VisitorGuide/);
   assert.match(authGate, /<h1>Your Draft League Headquarters<\/h1>/);
   assert.match(directory, /fallback=.*<h1>Explore the Pokédex<\/h1>/);
+  assert.match(pokemonHome, /urshifu-single-strike/);
+  assert.doesNotMatch(pokemonHome, /"urshifu"/);
+  assert.match(typeHub, /Use type indexes for draft research/);
+  assert.match(generationHub, /Compare Pokémon by their debut generation/);
+  assert.match(traitPages, /Category membership is a discovery aid/);
+  assert.match(explore, /What the community pages show/);
+  assert.match(leagues, /Join a roster or follow from the sideline/);
+  assert.match(manuals, /Where to start/);
+  assert.match(manuals, /\/guides\/how-to-join-first-pokemon-draft-league/);
+  for (const path of ["/formats/national-dex", "/formats/vgc2020", "/formats/custom"]) assert.match(resources, new RegExp(path));
+  assert.match(nuzlocke, /\/nuzlocke\/legends-arceus/);
   assert.match(profile, /Related \{displayName\} research/);
   assert.match(formatPage, /Related Pokémon draft formats/);
   for (const slug of ["national-dex", "reg-mb", "swsh-series9", "custom"]) {

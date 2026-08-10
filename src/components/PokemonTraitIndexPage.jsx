@@ -133,6 +133,7 @@ export function PokemonTraitDetail({ kind, option }) {
       <h2>Research this category</h2>
       <p>These links use species-level Pokédex classifications from the pinned PokéAPI catalog. Open a profile for base stats, abilities, measurements, forms, draft data, and competitive results.</p>
       <p>Use the interactive Pokédex to combine {label} with type, generation, another species trait, or an ability search.</p>
+      <p>Category membership is a discovery aid, not a prediction of battle role or league value. Compare the complete profile and your league&apos;s regulation before choosing between species that share this trait.</p>
     </section>
   </main>;
 }

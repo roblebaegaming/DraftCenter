@@ -32,5 +32,10 @@ export default async function PokemonTypePage({ params }) {
     <section className="explore-card">
       <div className="pokemon-profile-link-grid">{pokemon.map((name) => <a href={`/pokemon/${name}`} key={name}>{pokemonDisplayName(name)}</a>)}</div>
     </section>
+    <section className="explore-card pokemon-trait-explainer">
+      <h2>Researching {displayType}-type options</h2>
+      <p>Use this list to build a shortlist, then open individual profiles to compare base stats, abilities, forms, draft rate, average draft position, auction value, and public team results. Dual typing can give two Pokémon from this index very different weaknesses, resistances, and roster roles.</p>
+      <p>League rules still decide what is legal. Check the selected regulation, custom bans, tera policy, and any move restrictions before treating a profile as available for your draft.</p>
+    </section>
   </main>;
 }

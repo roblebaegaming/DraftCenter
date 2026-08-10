@@ -17,5 +17,10 @@ export default function PokemonGenerationsPage() {
     <section className="explore-card">
       <div className="pokemon-index-hub-grid">{POKEMON_GENERATIONS.map((generation) => <a href={`/pokemon/generation/${generation.id}`} key={generation.id}><strong>{generation.name}</strong><span>{generation.region}</span></a>)}</div>
     </section>
+    <section className="explore-card pokemon-trait-explainer">
+      <h2>Compare Pokémon by their debut generation</h2>
+      <p>These indexes group each species by the generation in which it first appeared, from Kanto through Paldea. Later evolutions are listed with their own debut generation, while regional forms and battle forms remain connected through the detailed profile pages.</p>
+      <p>Generation is useful for era-limited formats, regional themes, and learning how the available roster changed over time. After choosing an era, open a profile to review typing, base stats, abilities, forms, and DraftCenter community data, or return to the interactive Pokédex to combine generation with other filters.</p>
+    </section>
   </main>;
 }
