@@ -3,8 +3,8 @@
 - Last updated: August 10, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified production application commit: `08668350d29a28b07bb8e0a83d301426e5a61121`
-- Latest production migration: 368
+- Verified production application commit: `67d7e82e8b0ba14de8715904ee3bb79f383e6241`
+- Latest production migration: 370
 
 ## Deployed state
 
@@ -100,6 +100,16 @@ previous multi-pod organization, qualification, and connected championship
 release remains live through migrations 350-360 and production record pull
 request [#94](https://github.com/roblebaegaming/DraftCenter/pull/94).
 
+The 2026 VGC Worlds Pick 16 release shipped through pull request
+[#116](https://github.com/roblebaegaming/DraftCenter/pull/116). The public
+competition contains only the VGC Masters invite-earned list: 438 competitors
+in the August 10 snapshot. A signed-in member chooses 16 competitors and one
+Ace Pick whose placement score counts twice. The winner is worth 30 points,
+entries lock at midnight Pacific on August 28, and other users' selections stay
+private until the lock. The sitewide leaderboard is live with zero initial
+entries. The bracket challenge remains closed until official pairings exist.
+Migrations 369-370 are applied to the exact core production project.
+
 ## Release verification
 
 - The complete application tests, National Dex verification across 1,027
@@ -118,7 +128,7 @@ request [#94](https://github.com/roblebaegaming/DraftCenter/pull/94).
   passed desktop and 390px mobile Pokédex review without browser errors or
   horizontal overflow. The retained Supabase Preview observer-access matrix
   passed every RLS, grant, allow, denial, full-staff, and cleanup assertion.
-- Vercel reports exact `main` application commit `0866835` Ready and Current on
+- Vercel reports exact `main` application commit `67d7e82` Ready and Current on
   the public production domains.
 - The signed-out production smoke sweep passes, including protected 401
   boundaries. Focused live checks also pass for tournament metadata and JSON-LD,
@@ -151,6 +161,13 @@ request [#94](https://github.com/roblebaegaming/DraftCenter/pull/94).
   Preview review, and the post-deployment 19-route smoke sweep. All five live
   guides return 200 with one H1, the expected canonical, and their direct answer;
   the guide directory, sitemap, and `llms.txt` contain the complete set.
+- Pull request #116 passed the dependency audit, complete application suite,
+  1,027-row National Dex verification, production build, protected security and
+  deployment checks, and post-deployment 19-route smoke sweep. Its isolated
+  Preview matrix passed roster, RLS, grants, privacy, duplicate-entry, lock,
+  validation, Ace-scoring, and fixture-cleanup assertions. The connected hosted
+  Preview and production route passed desktop and 390px mobile review with all
+  438 competitors, no browser warnings or errors, and no horizontal overflow.
 - No merge protection was bypassed.
 
 ## Preserved boundaries
@@ -159,6 +176,8 @@ request [#94](https://github.com/roblebaegaming/DraftCenter/pull/94).
   team, provider setting, or production account was changed to test the
   releases.
 - Disposable Preview fixtures were removed by exact recorded identifiers.
+- The Worlds production seed created the intended event and 438 public
+  invite-earned competitors; it created no user entry or synthetic account.
 - The release-wave Preview branch remains available for owner-approved
   cleanup. The retained `multi-pod-pr-82` Preview branch must not be deleted.
 - The original DraftCenter workspace's pre-existing changes remain unstaged
@@ -172,6 +191,11 @@ Continue normal monitoring of the tournament, Daily Games, Nuzlocke,
 navigation, pricing, pod-observer, League Pulse, metadata, indexing, and
 commissioner-save paths. Treat historical Operations events by timestamp and
 current authoritative state before declaring a recurrence.
+
+Refresh the VGC Masters invite-earned snapshot only after reviewing current
+source changes, and publish every post-370 database change as a new forward-only
+migration. Do not describe invite-earned competitors as confirmed attendees.
+Keep the Worlds bracket challenge closed until official pairings exist.
 
 Repeat the comparable Semrush crawl after production cache replacement with a
 5,000-page ceiling. It may stop below that ceiling when it exhausts the
@@ -189,7 +213,9 @@ guard merely to remove that measurement gap.
 ## Authoritative records
 
 - Current continuation handoff:
-  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-10-seo-ai-answer-resources.md`](handoffs/DraftCenter-agent-handoff-2026-08-10-seo-ai-answer-resources.md)
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-10-worlds-pick-sixteen-release.md`](handoffs/DraftCenter-agent-handoff-2026-08-10-worlds-pick-sixteen-release.md)
+- Worlds Pick 16 operating record:
+  [`docs/worlds-2026-pick-sixteen.md`](worlds-2026-pick-sixteen.md)
 - SEO and AI answer-resource release:
   [`docs/seo-ai-answer-resources-2026-08-10.md`](seo-ai-answer-resources-2026-08-10.md)
 - League-save implementation detail:
