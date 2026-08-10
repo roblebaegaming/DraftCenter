@@ -1,7 +1,13 @@
 # Agent handoffs
 
+[`DraftCenter-agent-handoff-2026-08-09-conversation-release-confirmation.md`](DraftCenter-agent-handoff-2026-08-09-conversation-release-confirmation.md)
+is the current continuation handoff. It reconciles every application,
+database, documentation, indexing, security, and league-save item discussed in
+the owner's August 9 release conversation against protected `main` and the
+exact Ready Production deployment.
+
 [`DraftCenter-agent-handoff-2026-08-09-post-release-continuation.md`](DraftCenter-agent-handoff-2026-08-09-post-release-continuation.md)
-is the current continuation handoff. It records the complete release chain
+is the earlier continuation handoff. It records the complete release chain
 through pull request 104, the current production deployment and migration 368,
 the absence of pending application/database work, preserved safety boundaries,
 and the ordered stabilization and evidence-led SEO backlog.
