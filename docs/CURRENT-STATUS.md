@@ -159,8 +159,9 @@ metadata, structured data, sitemap freshness, and `llms.txt` coverage.
   passed desktop and 390px mobile Pokédex review without browser errors or
   horizontal overflow. The retained Supabase Preview observer-access matrix
   passed every RLS, grant, allow, denial, full-staff, and cleanup assertion.
-- Vercel reports exact `main` application commit `1ef57eb` Ready and Current on
-  the public production domains.
+- Vercel reports the latest `main` deployment Ready and Current on the public
+  production domains; application behavior remains the verified `1ef57eb`
+  release.
 - The signed-out production smoke sweep passes, including protected 401
   boundaries. Focused live checks also pass for tournament metadata and JSON-LD,
   Daily Games FAQ structured data, sitemap modification dates, `llms.txt`, and
