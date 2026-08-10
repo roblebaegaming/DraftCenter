@@ -42,7 +42,7 @@ export default function WorldsPredictionsHub() {
     <section className="worlds-hub-hero">
       <div>
         <span className="eyebrow">2026 POKÉMON WORLD CHAMPIONSHIPS</span>
-        <h1>Worlds Predictions</h1>
+        <h1>2026 Pokémon Worlds Predictions</h1>
         <p>Choose a competition, make your picks, and climb its community leaderboard. Play more than one game to compete for the overall Worlds title.</p>
       </div>
       <aside>
@@ -50,6 +50,30 @@ export default function WorldsPredictionsHub() {
         <strong>Aug 28–30</strong>
         <p>Moscone Center · Championship Sunday at Chase Center</p>
       </aside>
+    </section>
+
+    <section className="worlds-search-guide" aria-labelledby="worlds-search-guide-heading">
+      <header>
+        <span className="eyebrow">2026 WORLDS AT A GLANCE</span>
+        <h2 id="worlds-search-guide-heading">Pokémon World Championships 2026: dates, games, and predictions</h2>
+        <p>The 2026 Pokémon World Championships take place August 28–30 in San Francisco. DraftCenter&apos;s free community games let fans predict the Masters competitions and compare results on discipline and overall leaderboards.</p>
+      </header>
+      <div>
+        <article>
+          <h3>When and where is Pokémon Worlds 2026?</h3>
+          <p>Competition begins Friday, August 28, at Moscone Center. All finals move to Chase Center for Championship Sunday on August 30.</p>
+          <a href="https://worlds.pokemon.com/en-us" target="_blank" rel="noreferrer">Official Worlds information ↗</a>
+        </article>
+        <article>
+          <h3>Which games are at Pokémon Worlds?</h3>
+          <p>The World Championships feature VGC, the Pokémon TCG, Pokémon GO, and Pokémon UNITE. Each DraftCenter competition will keep its own leaderboard.</p>
+        </article>
+        <article>
+          <h3>How do the VGC predictions work?</h3>
+          <p>Choose 16 VGC Masters invitees and one Ace Pick worth double placement points. Entries lock at midnight Pacific when Worlds begins.</p>
+          <Link href="/worlds/2026/vgc">Browse the VGC invitees →</Link>
+        </article>
+      </div>
     </section>
 
     <section className="worlds-competition-section" aria-labelledby="worlds-competition-heading">

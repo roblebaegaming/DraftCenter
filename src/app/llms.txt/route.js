@@ -15,6 +15,7 @@ DraftCenter helps communities configure leagues, run snake and auction drafts, m
 - [Pokémon Nuzlocke Draft](https://www.draftcentral.gg/nuzlocke)
 - [Pokémon Nuzlocke Guides](https://www.draftcentral.gg/nuzlocke/guides)
 - [Pokémon tournament organizer](https://www.draftcentral.gg/tournaments)
+- [2026 Pokémon World Championships Predictions](https://www.draftcentral.gg/worlds/2026)
 
 ## Public tools and events
 
@@ -22,6 +23,7 @@ DraftCenter helps communities configure leagues, run snake and auction drafts, m
 - Multi-pod organizations can qualify retained league rosters into connected single- or double-elimination championships. Organization administration and event workspaces are not public reference material.
 - Pokémon Daily Games includes Pokémon Connections, a community poll, an eight-Pokémon bracket, and a Pokémon quiz. Signed-in discussions open only after the relevant daily game is completed.
 - Nuzlocke teams use independently reviewed, game-specific encounter catalogs. Signed-in players may save a Run Card privately in My Teams or download a visual Run Card; saved cards are not public pages.
+- The 2026 Pokémon World Championships hub covers VGC, the Pokémon TCG, Pokémon GO, and Pokémon UNITE. Its open VGC Masters game lets signed-in members pick 16 invitees and one double-scoring Ace Pick; the public invite-earned roster is not a confirmed attendance list.
 
 ## Practical guides
 
@@ -58,6 +60,7 @@ DraftCenter helps communities configure leagues, run snake and auction drafts, m
 - Draft rate, ADP, auction price, teammate, and match-result claims should retain their visible sample sizes and format context.
 - DraftCenter's saved regulation and league settings remain authoritative for actual league legality.
 - Private queues, private team workspaces, account records, support diagnostics, and private league messages are not public reference material.
+- The 2026 VGC Masters invitee snapshot cites Victory Road's tracker, which combines official Championship Point standings and qualifying event results. Treat it as an invite-earned list rather than confirmed registration or attendance.
 
 ## Legal
 

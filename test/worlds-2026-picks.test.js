@@ -148,7 +148,13 @@ test("the Worlds overview separates competition and overall leaderboards", () =>
   const overviewPage = source("src/app/worlds/2026/page.js");
   const vgcPage = source("src/app/worlds/2026/vgc/page.js");
   const sitemap = source("src/app/sitemap.js");
+  const llms = source("src/app/llms.txt/route.js");
   for (const label of ["Overall", "VGC", "TCG", "Pokémon GO", "Pokémon UNITE"]) assert.match(hub, new RegExp(`label: "${label}"`));
+  assert.match(hub, /<h1>2026 Pokémon Worlds Predictions<\/h1>/);
+  assert.match(hub, /Pokémon World Championships 2026: dates, games, and predictions/);
+  assert.match(hub, /When and where is Pokémon Worlds 2026\?/);
+  assert.match(hub, /Which games are at Pokémon Worlds\?/);
+  assert.match(hub, /How do the VGC predictions work\?/);
   assert.match(hub, /Every competition is worth up to 100 points/);
   assert.match(hub, /Moscone Center · Championship Sunday at Chase Center/);
   assert.match(hub, /Opens after two competitions score/);
@@ -157,14 +163,30 @@ test("the Worlds overview separates competition and overall leaderboards", () =>
   assert.match(nav, /href: "\/worlds\/2026\/vgc"/);
   assert.match(nav, /href: "\/worlds\/2026\/tcg"/);
   assert.match(overviewPage, /WorldsPredictionsHub/);
+  assert.match(overviewPage, /pageTitle = "2026 Pokémon World Championships Predictions"/);
+  assert.match(overviewPage, /"@type": "CollectionPage"/);
+  assert.match(overviewPage, /"@type": "SportsEvent"/);
+  assert.match(overviewPage, /"@type": "ItemList"/);
+  assert.match(overviewPage, /"@type": "BreadcrumbList"/);
+  assert.match(overviewPage, /openGraph:/);
+  assert.match(overviewPage, /twitter:/);
   assert.match(overviewPage, /canonical: "\/worlds\/2026"/);
+  assert.match(vgcPage, /pageTitle = "2026 Pokémon Worlds VGC Predictions"/);
   assert.match(vgcPage, /canonical: "\/worlds\/2026\/vgc"/);
+  assert.match(vgcPage, /eventAttendanceMode: "https:\/\/schema\.org\/OfflineEventAttendanceMode"/);
+  assert.match(vgcPage, /sport: "Pokémon Video Game Championships \(VGC\)"/);
+  assert.match(vgcPage, /sameAs: "https:\/\/worlds\.pokemon\.com\/en-us"/);
   assert.match(vgcPage, /name: "Chase Center — Championship Sunday"/);
-  assert.match(sitemap, /\["\/worlds\/2026\/vgc", "daily", 0\.8\]/);
+  assert.match(sitemap, /WORLDS_2026_LAST_MODIFIED/);
+  assert.match(sitemap, /\["\/worlds\/2026\/vgc", "daily", 0\.9\]/);
+  assert.match(llms, /2026 Pokémon World Championships Predictions/);
+  assert.match(llms, /invite-earned list rather than confirmed registration or attendance/);
 });
 
 test("the VGC event card names both 2026 Worlds venues", () => {
   const component = source("src/components/WorldsPickSixteen.jsx");
+  assert.match(component, /<h1>2026 Pokémon Worlds VGC predictions<\/h1>/);
+  assert.match(component, /Pokémon Worlds VGC Masters invitee list/);
   assert.match(component, /Moscone Center · Championship Sunday at Chase Center/);
   assert.doesNotMatch(component, /<p>Moscone Center · San Francisco<\/p>/);
 });

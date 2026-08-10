@@ -9,6 +9,13 @@ DraftCenter members can assemble, save, or edit a prediction entry. The page
 uses the same explicit account gate as Daily Games, while the authenticated
 database function remains the authoritative write boundary.
 
+The public Worlds hub and VGC page use the full 2026 Pokémon World
+Championships name in their search metadata and visible answers. They expose
+canonical URLs, social metadata, breadcrumb and event structured data, current
+sitemap timestamps, and a concise `llms.txt` description. The hub directly
+answers the event dates, San Francisco venue split, represented games, and VGC
+prediction format without presenting DraftCenter as the event organizer.
+
 ## Competition and leaderboard structure
 
 The overview presents VGC, TCG, Pokémon GO, and Pokémon UNITE as separate

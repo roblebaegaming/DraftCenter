@@ -162,8 +162,8 @@ export default function WorldsPickSixteen({ rosterSource }) {
     <section className="worlds-hero">
       <div>
         <span className="eyebrow">POKÉMON WORLDS · SAN FRANCISCO</span>
-        <h1>Pick the 16 VGC players you believe in.</h1>
-        <p>Build a roster from every currently known 2026 Masters invitee. When Worlds finishes, the entry with the strongest collective results wins the DraftCenter community leaderboard.</p>
+        <h1>2026 Pokémon Worlds VGC predictions</h1>
+        <p>Pick the 16 VGC players you believe in from every currently known Masters invitee. When Worlds finishes, the entry with the strongest collective results wins the DraftCenter community leaderboard.</p>
         <div className="worlds-hero-actions">
           <a className="primary-button inline-link-button" href={user === null ? "/#member-access" : "#pick-sixteen"}>{user === null ? "Sign in to predict" : "Build my 16"}</a>
           <a className="quiet-button" href="/worlds/2026">All Worlds competitions</a>
@@ -236,7 +236,7 @@ export default function WorldsPickSixteen({ rosterSource }) {
     </section>
 
     <section className="worlds-roster-section" id="qualified-players">
-      <header className="section-heading"><div><span className="eyebrow">2026 VGC MASTERS</span><h2>Qualified-player list</h2><p>Search by player, country code, region, or qualification path.</p></div><strong>{filtered.length} shown</strong></header>
+      <header className="section-heading"><div><span className="eyebrow">2026 VGC MASTERS</span><h2>Pokémon Worlds VGC Masters invitee list</h2><p>Browse qualified players by name, country code, region, or qualification path.</p></div><strong>{filtered.length} shown</strong></header>
       <aside className="worlds-roster-source" aria-labelledby="worlds-roster-source-heading">
         <div>
           <span className="eyebrow">ROSTER SOURCE</span>
