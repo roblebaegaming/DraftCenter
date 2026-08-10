@@ -5,7 +5,10 @@
 The VGC Masters Pick 16 competition is live at
 <https://www.draftcentral.gg/worlds/2026>. Pull request
 [#116](https://github.com/roblebaegaming/DraftCenter/pull/116) merged as
-production commit `67d7e82e8b0ba14de8715904ee3bb79f383e6241`.
+the original feature release. Pull request
+[#118](https://github.com/roblebaegaming/DraftCenter/pull/118) added the
+prominent roster-provenance panel and merged as production commit
+`a36a514ca93aa7c089d9f53822d9a961d385ffd4`.
 Migrations 369 and 370 are applied to the exact core production project.
 
 The August 10 invite-earned snapshot contains 438 Masters competitors. Each
@@ -34,6 +37,10 @@ later bracket predictor remains closed until official pairings exist.
   migration session.
 - The post-deployment signed-out production smoke sweep passed all public 200
   routes and protected 401 boundaries.
+- The source clarification's exact hosted Preview and live page show the
+  Victory Road tracker link, August 10 snapshot date, and invite-earned versus
+  confirmed-attendance boundary. Desktop and 390px review found no horizontal
+  overflow, and pull request #118 passed every protected check.
 
 ## Cleanup and preserved boundaries
 
