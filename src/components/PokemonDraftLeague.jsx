@@ -12,6 +12,7 @@ import { browserCanResolveHostedAutoDraft, preserveLoadedPrivateDraftQueue } fro
 import { readLeagueNavigation, writeLeagueNavigation } from "../lib/leagueNavigation";
 import { claimedTeamCount, compactLocalTeamsClaimedFirst, openSetupTeams, teamIsClaimed } from "../lib/teamOwnership";
 import { draftManagerLabel, snakeDraftContext } from "../lib/draftBoardContext";
+import { saveWithConflictRecovery, waitForSaveFailureGrace } from "../lib/leagueSaveReconciliation";
 import {
   defaultPricingPresetId,
   legacyPricingPresetId,
@@ -5048,6 +5049,16 @@ function isSnapshotSaveConflict(message) {
   return /league changed in another session|refresh before saving again/i.test(String(message || ""));
 }
 
+function reportSnapshotSaveFailure(leagueId, state, message) {
+  if (!leagueId) return;
+  createClient().rpc("report_operational_issue", {
+    p_kind: "league_save_failed",
+    p_message: message,
+    p_league_id: leagueId,
+    p_context: { revision: state?.rev ?? null },
+  }).then(() => {});
+}
+
 async function saveRemote(state, leagueId, { reportConflicts = true } = {}) {
   try {
     if (leagueId) {
@@ -5070,12 +5081,7 @@ async function saveRemote(state, leagueId, { reportConflicts = true } = {}) {
     const message = e.message || "Could not save";
     const conflict = isSnapshotSaveConflict(message);
     if (leagueId && (reportConflicts || !conflict)) {
-      createClient().rpc("report_operational_issue", {
-        p_kind: "league_save_failed",
-        p_message: message,
-        p_league_id: leagueId,
-        p_context: { revision: state?.rev ?? null },
-      }).then(() => {});
+      reportSnapshotSaveFailure(leagueId, state, message);
     }
     return { ok: false, message, conflict };
   }
@@ -5370,6 +5376,8 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   const revRef = useRef(0);
   const saveRequestRef = useRef(0);
   const saveChainRef = useRef(Promise.resolve());
+  const saveProtectionRef = useRef(false);
+  const failedSaveUpdaterRef = useRef(null);
   const leagueScheduleSyncedRef = useRef(undefined);
   const scheduledPreparationKeyRef = useRef("");
   const scheduledPreparationRequestRef = useRef(0);
@@ -5500,7 +5508,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
           remote = initialized;
         }
       }
-      if (remote && remote.rev >= revRef.current) {
+      if (remote && remote.rev >= revRef.current && !saveProtectionRef.current) {
         revRef.current = remote.rev;
         setState((current) => {
           const hydrated = hydrateState(remote);
@@ -5535,7 +5543,10 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
         });
       }
         setSynced(true);
-        if (leagueId) setSaveStatus("saved");
+        // Polling establishes the initial ready state, but must not erase a
+        // genuine pending/failed save. The active save request owns every
+        // later status transition.
+        if (leagueId) setSaveStatus((current) => current === "loading" ? "saved" : current);
       } finally {
         inFlight = false;
       }
@@ -5562,30 +5573,42 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       const withRev = { ...next, rev: (prev.rev || 0) + 1 };
       revRef.current = withRev.rev;
       const request = ++saveRequestRef.current;
+      const startedAt = Date.now();
+      saveProtectionRef.current = Boolean(leagueId);
       if (leagueId) setSaveStatus("saving");
       saveChainRef.current = saveChainRef.current.then(async () => {
-        const firstResult = await saveRemote(withRev, leagueId, { reportConflicts: false });
-        if (!leagueId || !firstResult?.conflict || typeof updater !== "function") return firstResult;
-
-        // A manager action or another commissioner tab saved first. Reload
-        // that newer state, reapply only this functional edit, and retry once.
-        // Draft picks and other live-draft mutations use dedicated RPCs and
-        // never pass through this whole-snapshot recovery path.
-        const latest = await loadRemote(leagueId);
-        if (!latest) return saveRemote(withRev, leagueId);
-        const latestState = hydrateState(latest);
-        const retriedState = updater(latestState);
-        const rebased = { ...retriedState, rev: (latestState.rev || 0) + 1 };
-        const retryResult = await saveRemote(rebased, leagueId);
-        if (retryResult?.ok && request === saveRequestRef.current) {
-          revRef.current = rebased.rev;
-          setState(rebased);
+        const result = await saveWithConflictRecovery({
+          initialState: withRev,
+          leagueId,
+          updater,
+          save: saveRemote,
+          load: loadRemote,
+          hydrate: hydrateState,
+          reportRefreshFailure: (failure, attemptedState) => {
+            reportSnapshotSaveFailure(leagueId, attemptedState, failure?.message || "Could not verify the latest league state.");
+          },
+        });
+        if (result?.ok && result.savedState && request === saveRequestRef.current) {
+          revRef.current = result.savedState.rev;
+          if (result.recoveredConflict) setState(result.savedState);
         }
-        return { ...retryResult, recoveredConflict: Boolean(retryResult?.ok) };
+        return result;
       });
-      saveChainRef.current.then((result) => {
+      saveChainRef.current.then(async (result) => {
         if (request !== saveRequestRef.current) return;
-        if (leagueId) setSaveStatus(result?.ok ? "saved" : "error");
+        if (!leagueId) return;
+        if (result?.ok) {
+          saveProtectionRef.current = false;
+          failedSaveUpdaterRef.current = null;
+          setSaveStatus("saved");
+          return;
+        }
+        setSaveStatus("verifying");
+        await waitForSaveFailureGrace(startedAt);
+        if (request === saveRequestRef.current) {
+          failedSaveUpdaterRef.current = typeof updater === "function" ? updater : null;
+          setSaveStatus("error");
+        }
       });
       return withRev;
     });
@@ -5643,12 +5666,10 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
 
   function saveNow() {
     if (isSpectator) return;
-    const request = ++saveRequestRef.current;
-    if (leagueId) setSaveStatus("saving");
-    saveRemote(state, leagueId).then((result) => {
-      if (request !== saveRequestRef.current) return;
-      if (leagueId) setSaveStatus(result?.ok ? "saved" : "error");
-    });
+    // A manual checkpoint must advance the revision just like an automatic
+    // edit. Re-sending the already-saved revision is correctly rejected by
+    // the database as stale and used to create a false "SAVE FAILED" state.
+    commit(failedSaveUpdaterRef.current || ((current) => current));
   }
 
   function claimCommissioner() {
@@ -9604,8 +9625,8 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
             )}
             <IdentityBadge synced={synced} myName={myName} isCommissioner={isCommissioner} renameMe={renameMe} />
           </div>
-          {leagueId && displayIsCommissioner && <button onClick={saveNow} className="mono-font text-[10px] px-2 py-1 rounded font-semibold" style={{ background: saveStatus === "error" ? "#F0555A22" : "#4FD1C522", color: saveStatus === "error" ? "#F0555A" : "#4FD1C5", border: "1px solid currentColor" }}>
-            {saveStatus === "saving" ? "SAVING..." : saveStatus === "error" ? "SAVE FAILED — RETRY" : "SAVED"}
+          {leagueId && displayIsCommissioner && <button onClick={saveNow} disabled={saveStatus === "saving" || saveStatus === "verifying"} className="mono-font text-[10px] px-2 py-1 rounded font-semibold disabled:opacity-70" style={{ background: saveStatus === "error" ? "#F0555A22" : "#4FD1C522", color: saveStatus === "error" ? "#F0555A" : "#4FD1C5", border: "1px solid currentColor" }}>
+            {saveStatus === "saving" ? "SAVING..." : saveStatus === "verifying" ? "VERIFYING SAVE..." : saveStatus === "error" ? "SAVE FAILED — RETRY" : "SAVED"}
           </button>}
           <nav className="flex flex-wrap gap-1 justify-end">
             {(isDraftTournamentMode ? [
@@ -11580,12 +11601,12 @@ function SetupView({ state, leagueId = null, leagueName = "league", isCommission
             <p className="text-sm" style={{ color: "#BDF7EE" }}>Work at your own pace. Every change saves automatically, so you can leave Setup and return later. Use Save Progress for an immediate checkpoint or to retry a failed save.</p>
           </div>
           {leagueId && (
-            <button type="button" onClick={saveNow} disabled={saveStatus === "saving"} className="px-4 py-2 rounded font-semibold text-sm" style={{ background: saveStatus === "error" ? "#F0555A" : "#4FD1C5", color: "#10121C" }}>
-              {saveStatus === "saving" ? "SAVING..." : saveStatus === "error" ? "RETRY SAVE" : "SAVE PROGRESS"}
+            <button type="button" onClick={saveNow} disabled={saveStatus === "saving" || saveStatus === "verifying"} className="px-4 py-2 rounded font-semibold text-sm" style={{ background: saveStatus === "error" ? "#F0555A" : "#4FD1C5", color: "#10121C" }}>
+              {saveStatus === "saving" ? "SAVING..." : saveStatus === "verifying" ? "VERIFYING..." : saveStatus === "error" ? "RETRY SAVE" : "SAVE PROGRESS"}
             </button>
           )}
           <p className="w-full mono-font text-xs" style={{ color: saveStatus === "error" ? "#FF9AA7" : "#9A9FBD" }}>
-            {saveStatus === "saving" ? "Saving your latest Setup changes..." : saveStatus === "error" ? "The last save failed. Your changes remain on this screen; choose Retry Save." : leagueId ? "All current Setup progress is saved." : "This local practice setup saves in this browser."}
+            {saveStatus === "saving" ? "Saving your latest Setup changes..." : saveStatus === "verifying" ? "DraftCenter is giving the save a moment to settle before reporting a failure..." : saveStatus === "error" ? "The save still failed after waiting. Your changes remain on this screen; choose Retry Save." : leagueId ? "All current Setup progress is saved." : "This local practice setup saves in this browser."}
           </p>
         </section>
       )}
