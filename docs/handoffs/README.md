@@ -1,10 +1,16 @@
 # Agent handoffs
 
+[`DraftCenter-agent-handoff-2026-08-10-league-pulse-and-security-maintenance.md`](DraftCenter-agent-handoff-2026-08-10-league-pulse-and-security-maintenance.md)
+is the current continuation handoff. It records the deployed Semrush cleanup
+and privacy-safe League Pulse, the current production commit, the pending
+scheduled full-history scan repair, preserved privacy boundaries, and the next
+measurement dates.
+
 [`DraftCenter-agent-handoff-2026-08-09-conversation-release-confirmation.md`](DraftCenter-agent-handoff-2026-08-09-conversation-release-confirmation.md)
-is the current continuation handoff. It reconciles every application,
-database, documentation, indexing, security, and league-save item discussed in
-the owner's August 9 release conversation against protected `main` and the
-exact Ready Production deployment.
+is the prior continuation handoff. It reconciles every application, database,
+documentation, indexing, security, and league-save item discussed in the
+owner's August 9 release conversation against protected `main` and the then-
+current Production deployment.
 
 [`DraftCenter-agent-handoff-2026-08-09-post-release-continuation.md`](DraftCenter-agent-handoff-2026-08-09-post-release-continuation.md)
 is the earlier continuation handoff. It records the complete release chain
