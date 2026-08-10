@@ -86,9 +86,11 @@ team-based and should not be forced into an individual-player VGC model.
 
 Migrations 369 and 370 were validated on the isolated
 `worlds-pick-sixteen-pr-116` Preview branch and have not been applied to
-production. Keep Preview credentials scoped to the matching Git branch; a
-Preview that shows the database-migration fallback message is not release
-evidence. Release through a short-lived branch and pull request, verify RLS and
-grants, then apply the migrations only to the exact approved production
-project. A local build is not a deployment. After an authorized merge, confirm
-the deployed commit and run the signed-out production smoke sweep.
+production. Keep the `NEXT_PUBLIC_DRAFTCENTER_SUPABASE_*` Preview credentials
+scoped to the matching Git branch; do not let an all-environments integration
+silently select production. A Preview that shows the database-migration
+fallback message is not release evidence. Release through a short-lived branch
+and pull request, verify RLS and grants, then apply the migrations only to the
+exact approved production project. A local build is not a deployment. After an
+authorized merge, confirm the deployed commit and run the signed-out production
+smoke sweep.
