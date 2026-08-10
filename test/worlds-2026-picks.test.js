@@ -124,4 +124,6 @@ test("the roster builder fails closed on Junior or Senior source rows", () => {
   assert.match(builder, /YOUTH_DIVISION_MARKER/);
   assert.match(builder, /This pool is Masters-only/);
   assert.match(builder, /division: "Masters"/);
+  assert.match(builder, /value\.replace\([\s\S]+#x\[0-9a-f\]\+/);
+  assert.doesNotMatch(builder, /replaceAll\("&amp;"/);
 });

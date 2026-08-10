@@ -18,14 +18,18 @@ const EXPECTED_COUNTS = new Map([
 ]);
 const YOUTH_DIVISION_MARKER = /(?:Junior|Senior) Division|Worlds\s*\((?:JR|SR)\)/i;
 
-const decodeEntities = (value) => value
-  .replaceAll("&amp;", "&")
-  .replaceAll("&quot;", '"')
-  .replaceAll("&#039;", "'")
-  .replaceAll("&apos;", "'")
-  .replaceAll("&nbsp;", " ")
-  .replace(/&#(\d+);/g, (_match, code) => String.fromCodePoint(Number(code)))
-  .replace(/&#x([0-9a-f]+);/gi, (_match, code) => String.fromCodePoint(Number.parseInt(code, 16)));
+const decodeEntities = (value) => value.replace(
+  /&(amp|quot|apos|nbsp|#\d+|#x[0-9a-f]+);/gi,
+  (entity, token) => {
+    const normalized = token.toLowerCase();
+    if (normalized === "amp") return "&";
+    if (normalized === "quot") return '"';
+    if (normalized === "apos") return "'";
+    if (normalized === "nbsp") return " ";
+    if (normalized.startsWith("#x")) return String.fromCodePoint(Number.parseInt(normalized.slice(2), 16));
+    return String.fromCodePoint(Number(normalized.slice(1)));
+  },
+);
 
 const textContent = (value) => decodeEntities(value)
   .replace(/<br\s*\/?>/gi, " / ")
