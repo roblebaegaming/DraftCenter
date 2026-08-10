@@ -50,6 +50,9 @@ const artifact = JSON.parse(artifactSource);
 const leakConfig = fs
   .readFileSync(new URL("../gitleaks.toml", import.meta.url), "utf8")
   .replace(/\r\n/g, "\n");
+const leakIgnore = fs
+  .readFileSync(new URL("../.gitleaksignore", import.meta.url), "utf8")
+  .replace(/\r\n/g, "\n");
 const evolutionArtifact = JSON.parse(
   fs.readFileSync(
     new URL(
@@ -512,10 +515,15 @@ paths = [
   '''^supabase/290-import-pokemon-platinum-encounter-catalog\\.sql$''',
   '''^supabase/292-import-pokemon-heartgold-encounter-catalog\\.sql$''',
   '''^supabase/294-import-pokemon-soulsilver-encounter-catalog\\.sql$''',
+  '''^supabase/296-import-pokemon-black-encounter-catalog\\.sql$''',
   '''^supabase/297-import-pokemon-black-encounter-catalog\\.sql$''',
+  '''^supabase/298-import-pokemon-white-encounter-catalog\\.sql$''',
   '''^supabase/299-import-pokemon-white-encounter-catalog\\.sql$''',
+  '''^supabase/300-import-pokemon-black-2-encounter-catalog\\.sql$''',
   '''^supabase/301-import-pokemon-black-2-encounter-catalog\\.sql$''',
+  '''^supabase/302-import-pokemon-white-2-encounter-catalog\\.sql$''',
   '''^supabase/303-import-pokemon-white-2-encounter-catalog\\.sql$''',
+  '''^supabase/304-import-pokemon-x-encounter-catalog\\.sql$''',
   '''^supabase/306-import-pokemon-x-encounter-catalog\\.sql$''',
   '''^supabase/308-import-pokemon-y-encounter-catalog\\.sql$''',
   '''^supabase/310-import-pokemon-omega-ruby-encounter-catalog\\.sql$''',
@@ -579,7 +587,9 @@ paths = [
   '''^supabase/291-verify-pokemon-platinum-encounter-catalog\\.sql$''',
   '''^supabase/293-verify-pokemon-heartgold-encounter-catalog\\.sql$''',
   '''^supabase/295-verify-pokemon-soulsilver-encounter-catalog\\.sql$''',
+  '''^supabase/297-verify-pokemon-black-encounter-catalog\\.sql$''',
   '''^supabase/298-verify-pokemon-black-encounter-catalog\\.sql$''',
+  '''^supabase/299-verify-pokemon-white-encounter-catalog\\.sql$''',
   '''^supabase/300-verify-pokemon-white-encounter-catalog\\.sql$''',
   '''^supabase/302-verify-pokemon-black-2-encounter-catalog\\.sql$''',
   '''^supabase/304-verify-pokemon-white-2-encounter-catalog\\.sql$''',
@@ -617,6 +627,14 @@ regexes = [
 ]
 `;
   assert.equal(leakConfig, expected);
+  assert.equal(
+    leakIgnore,
+    `b034c6b612f5dcbe20a2943a6ad61ac90d0c439f:docs/DraftCenter-agent-handoff-2026-08-02-post-launch.md:generic-api-key:264
+7302e446641ef47215a77a63ed6abbf775cd4664:docs/DraftCenter-agent-handoff-2026-08-02-final.md:generic-api-key:122
+899214586fbe779519889b92fe15afa85d9d8184:docs/DraftCenter-agent-handoff-2026-08-02.md:generic-api-key:266
+6a546705fa8b0d47356e18bb025f524235b2f731:docs/DraftCenter-agent-handoff-2026-08-01.md:generic-api-key:204
+`,
+  );
   const migrationPayloads = [
     ...imported.matchAll(/\$catalog\$(.+?)\$catalog\$/g),
   ].map((match) => JSON.parse(match[1]));
