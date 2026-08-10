@@ -2,12 +2,14 @@
 
 - Date: August 9, 2026 (America/Denver)
 - Repository: `roblebaegaming/DraftCenter`
-- Branch: `codex/seo-indexing-improvements-2026-08-09`
+- Application branch: `codex/seo-indexing-improvements-2026-08-09`
+- Application pull request: [#106](https://github.com/roblebaegaming/DraftCenter/pull/106)
 - Base: `origin/main` at `ec9b0b35a8c6a38221a8cb621092dc373e87a409`
 - Production application before this work: `cdce0f19c62110cff384d204f890be01042735b6`
 - Latest production migration: 368
 - Database or provider change: none
-- Release state: validation and protected release in progress
+- Application commit: `838f8a86f33880fbaa77a89c1cc9af490d65c4b5`
+- Release state: deployed, smoke-tested, and production-verified
 
 ## Why this work exists
 
@@ -90,9 +92,28 @@ Completed before the protected release:
   formerly duplicate profile titles and canonicals, Nuzlocke JSON-LD types,
   the guide `nofollow` state link, and the shorter Daily Games title.
 
-Protected checks, exact Preview review, production deployment, and
-post-deployment smoke evidence must be appended before this release is called
-complete.
+Pull request #106 passed all protected checks: six successful checks and one
+intentional skip, with no conflicts. Its Vercel Preview was Ready and passed a
+focused signed-out browser review. The review confirmed canonical metadata,
+unique Meowstic and Zygarde titles, accurate Nuzlocke `WebPage`/`Article`
+JSON-LD, the guide `nofollow` query link, the shorter Daily Games title, and
+the canonical Paldean Tauros teammate link.
+
+Vercel then deployed exact merge commit
+`838f8a86f33880fbaa77a89c1cc9af490d65c4b5` as Ready in Production. The
+post-deployment signed-out smoke sweep passed every public route and every
+protected 401 boundary. Focused live verification also confirmed:
+
+- `/pokemon/tauros-paldea` redirects to the live Combat Breed profile;
+- Mega Charizard X links directly to that canonical profile;
+- the four formerly ambiguous Meowstic and Zygarde pages have distinct titles
+  and self-canonicals;
+- Nuzlocke landing and guide structured-data types are valid and intentional;
+- the Daily Games title is within the audit threshold; and
+- `/leagues` exposes a direct server-rendered Pallet Town link.
+
+No browser console error or production regression appeared during these
+focused checks. The release is complete.
 
 ## Safety boundaries
 
@@ -113,6 +134,11 @@ all 1,351 profiles or interpret every `discovered - currently not indexed`
 URL as a technical failure. Prioritize URL groups with search demand and add
 useful differentiated content only where the fixed-window evidence supports
 it.
+
+Google will recrawl and reclassify these URLs on its own schedule, so the old
+email and coverage counts will not disappear immediately. The next review
+should compare URL groups and search demand rather than treating every
+excluded URL as a defect.
 
 ## Authoritative references
 
