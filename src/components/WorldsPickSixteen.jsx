@@ -244,7 +244,7 @@ export default function WorldsPickSixteen({ rosterSource }) {
         <a className="quiet-button" href={rosterSource.sourceUrl} target="_blank" rel="noreferrer">View the Victory Road tracker ↗</a>
       </aside>
       <div className="worlds-roster-filters">
-        <label>Find a competitor<input type="search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Try Wolfe, JPN, Regional Champion…" /></label>
+        <label>Find a competitor<input type="search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Try Giovanni Cischke, Luca Ceribelli, or Wolfe Glick…" /></label>
         <label>Qualification region<select value={region} onChange={(event) => setRegion(event.target.value)}><option value="all">All regions</option>{regions.map((item) => <option key={item} value={item}>{item}</option>)}</select></label>
       </div>
       <div className="worlds-player-grid">
