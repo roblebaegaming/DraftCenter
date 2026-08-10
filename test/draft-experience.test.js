@@ -4,6 +4,14 @@ import test from "node:test";
 
 import { browserCanResolveHostedAutoDraft, preserveLoadedPrivateDraftQueue } from "../src/lib/draftQueueSafety.js";
 import { readLeagueNavigation, writeLeagueNavigation } from "../src/lib/leagueNavigation.js";
+import {
+  MAX_SNAPSHOT_CONFLICT_RETRIES,
+  SAVE_FAILURE_GRACE_MS,
+  saveWithConflictRecovery,
+  waitForSaveFailureGrace,
+} from "../src/lib/leagueSaveReconciliation.js";
+
+const draftLeagueSource = fs.readFileSync(new URL("../src/components/PokemonDraftLeague.jsx", import.meta.url), "utf8");
 
 test("hosted snapshot changes preserve an already loaded private queue", () => {
   const current = { queues: { 2: ["Garchomp", "Rotom-Wash"] } };
@@ -38,6 +46,75 @@ test("league navigation survives reload without dropping the league key", () => 
 test("invalid navigation values fall back safely", () => {
   assert.deepEqual(readLeagueNavigation("?tab=unknown&section=unknown"), { tab: "home", section: "activity", explicit: false });
   assert.equal(readLeagueNavigation("", { isNew: true }).tab, "setup");
+});
+
+test("snapshot saves refresh and reapply an edit before bounded conflict retries", async () => {
+  const attempts = [];
+  const loaded = [{ rev: 8, value: 20 }, { rev: 10, value: 30 }];
+  const responses = [
+    { ok: false, conflict: true, message: "changed" },
+    { ok: false, conflict: true, message: "changed again" },
+    { ok: true },
+  ];
+  const result = await saveWithConflictRecovery({
+    initialState: { rev: 6, value: 10 },
+    leagueId: "league-id",
+    updater: (state) => ({ ...state, value: state.value + 1 }),
+    save: async (state, _leagueId, options) => {
+      attempts.push({ state, options });
+      return responses.shift();
+    },
+    load: async () => loaded.shift(),
+    hydrate: (state) => state,
+  });
+
+  assert.equal(MAX_SNAPSHOT_CONFLICT_RETRIES, 2);
+  assert.deepEqual(attempts.map(({ state }) => state), [
+    { rev: 6, value: 10 },
+    { rev: 9, value: 21 },
+    { rev: 11, value: 31 },
+  ]);
+  assert.deepEqual(attempts.map(({ options }) => options.reportConflicts), [false, false, true]);
+  assert.equal(result.ok, true);
+  assert.equal(result.recoveredConflict, true);
+  assert.deepEqual(result.savedState, { rev: 11, value: 31 });
+});
+
+test("non-conflict failures are not replayed and wait through the trust grace period", async () => {
+  let attempts = 0;
+  const result = await saveWithConflictRecovery({
+    initialState: { rev: 4 },
+    leagueId: "league-id",
+    updater: (state) => state,
+    save: async () => {
+      attempts += 1;
+      return { ok: false, conflict: false, message: "timeout" };
+    },
+    load: async () => assert.fail("a timeout must not be replayed"),
+    hydrate: (state) => state,
+  });
+  assert.equal(attempts, 1);
+  assert.equal(result.ok, false);
+
+  let waited = 0;
+  const remaining = await waitForSaveFailureGrace(1000, {
+    now: () => 2500,
+    wait: async (milliseconds) => { waited = milliseconds; },
+  });
+  assert.equal(SAVE_FAILURE_GRACE_MS, 4000);
+  assert.equal(remaining, 2500);
+  assert.equal(waited, 2500);
+});
+
+test("manual checkpoints advance through commit and expose a verification state", () => {
+  assert.match(draftLeagueSource, /function saveNow\(\) \{[\s\S]*?commit\(failedSaveUpdaterRef\.current \|\| \(\(current\) => current\)\);/u);
+  assert.doesNotMatch(draftLeagueSource, /function saveNow\(\) \{[\s\S]*?saveRemote\(state, leagueId\)/u);
+  assert.match(draftLeagueSource, /setSaveStatus\("verifying"\)[\s\S]*?waitForSaveFailureGrace\(startedAt\)/u);
+  assert.match(draftLeagueSource, /current === "loading" \? "saved" : current/u);
+  assert.match(draftLeagueSource, /remote && remote\.rev >= revRef\.current && !saveProtectionRef\.current/u);
+  assert.match(draftLeagueSource, /failedSaveUpdaterRef\.current = typeof updater === "function" \? updater : null/u);
+  assert.match(draftLeagueSource, /VERIFYING SAVE\.\.\./u);
+  assert.match(draftLeagueSource, /save still failed after waiting/u);
 });
 
 test("the global navigation keeps Draft Home accessible at the top", () => {
