@@ -441,7 +441,7 @@ button { cursor: pointer; }
   .site-global-header-inner { grid-template-columns: minmax(0,1fr) auto; gap: 7px 10px; min-height: 0; padding: 8px 12px 9px; }
   .site-brand-link { grid-column: 1; grid-row: 1; min-width: 0; font-size: 14px; }
   .site-draft-home img { display: block; width: 30px; height: 30px; }
-  .site-primary-links { grid-column: 1/-1; grid-row: 2; display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 5px; }
+  .site-primary-links { grid-column: 1/-1; grid-row: 2; display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 5px; }
   .site-primary-links a { min-height: 32px; padding: 6px; border-color: #283252; background: #13192e; }
   .site-global-account { grid-column: 2; grid-row: 1; min-width: 0; gap: 4px; }
   .site-global-account>a,.site-global-account>button,.site-owner-menu>summary { min-height: 30px; padding: 6px 7px; font-size: 11px; }
@@ -563,12 +563,19 @@ button { cursor: pointer; }
 .worlds-pick-meter { display: flex; align-items: baseline; padding: 12px 16px; border-radius: 13px; background: #1b284b; }
 .worlds-pick-meter strong { color: #ffd23f; font-size: 2.1rem; }
 .worlds-pick-meter span { color: #aab6d9; font-weight: 800; }
+.worlds-account-gate { display: grid; justify-items: center; gap: 10px; margin-top: 24px; padding: clamp(28px, 5vw, 48px); border: 1px solid #40517e; border-radius: 16px; text-align: center; background: linear-gradient(145deg, rgba(35, 47, 83, .82), rgba(14, 20, 40, .96)); }
+.worlds-account-gate.is-loading { min-height: 170px; align-content: center; color: #aeb9d8; }
+.worlds-account-lock { display: grid; width: 52px; height: 52px; place-items: center; border-radius: 50%; background: #202b4d; font-size: 1.5rem; }
+.worlds-account-gate h3 { margin: 2px 0 0; font-size: clamp(1.35rem, 3vw, 2rem); }
+.worlds-account-gate p { max-width: 660px; margin: 0 0 8px; color: #b4bfde; line-height: 1.55; }
+.worlds-account-gate .secondary-button { text-decoration: none; }
 .worlds-selected-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 9px; margin: 24px 0; }
 .worlds-selected-pick,.worlds-empty-pick { min-height: 78px; padding: 10px; border: 1px solid #31416b; border-radius: 11px; text-align: left; background: #121a34; }
 .worlds-selected-pick { display: grid; gap: 8px; }
 .worlds-selected-pick.is-ace { border-color: #ffd23f; box-shadow: inset 0 0 0 1px rgba(255, 210, 63, .3); background: linear-gradient(145deg, rgba(255, 210, 63, .1), #121a34); }
 .worlds-pick-remove { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 2px 8px; align-items: center; min-width: 0; padding: 0; border: 0; color: #edf1ff; text-align: left; background: transparent; cursor: pointer; }
 .worlds-pick-remove:hover strong { color: #ef9a98; }
+.worlds-pick-remove:disabled { cursor: not-allowed; opacity: .58; }
 .worlds-pick-remove span,.worlds-empty-pick>span { grid-row: 1/3; display: grid; width: 27px; height: 27px; place-items: center; border-radius: 50%; color: #101321; background: #ffd23f; font-size: 11px; font-weight: 900; }
 .worlds-pick-remove strong { overflow: hidden; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
 .worlds-pick-remove small,.worlds-empty-pick small { color: #8f9ab9; font-size: 10px; }
@@ -603,6 +610,7 @@ button { cursor: pointer; }
 .worlds-player-grid article { display: flex; min-height: 182px; padding: 15px; flex-direction: column; border: 1px solid #2b375b; border-radius: 13px; background: #10172d; }
 .worlds-player-grid article.is-selected { border-color: #ffd23f; box-shadow: inset 0 0 0 1px rgba(255, 210, 63, .35); background: linear-gradient(145deg, rgba(255, 210, 63, .09), #10172d); }
 .worlds-player-grid article.is-unavailable { opacity: .58; }
+.worlds-player-grid article.is-account-locked { border-color: #303b5d; }
 .worlds-player-grid article header,.worlds-player-grid article footer { display: flex; align-items: center; justify-content: space-between; gap: 9px; }
 .worlds-player-grid article header span { padding: 4px 7px; border-radius: 999px; color: #91ece2; background: #1b3548; font-size: 10px; font-weight: 900; }
 .worlds-player-grid article header small { overflow: hidden; color: #8e99bb; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
@@ -613,6 +621,7 @@ button { cursor: pointer; }
 .worlds-player-grid footer button { padding: 7px 9px; border: 1px solid #40517e; border-radius: 8px; color: #dce4fb; background: #19223f; font-size: 10px; font-weight: 900; }
 .worlds-player-grid footer button[aria-pressed=true] { border-color: #ffd23f; color: #171306; background: #ffd23f; }
 .worlds-player-grid footer button:disabled { cursor: not-allowed; }
+.worlds-player-grid article.is-account-locked footer button { color: #aeb8d7; background: #151d35; }
 .worlds-no-results,.worlds-empty-state { padding: 35px; text-align: center; color: #aab6d5; }
 .worlds-bottom-grid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(300px, .85fr); gap: 20px; margin-top: 22px; }
 .worlds-leaderboard-card,.worlds-bracket-card { padding: clamp(22px, 4vw, 34px); }

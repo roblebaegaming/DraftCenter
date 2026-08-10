@@ -1,5 +1,12 @@
 # 2026 VGC Worlds Pick 16
 
+The global navigation names this feature **Worlds Predictions** and keeps it in
+the sticky top header rather than the bottom tools bar. Visitors may browse the
+Masters invite list, scoring, and public leaderboard, but only signed-in
+DraftCenter members can assemble, save, or edit a prediction entry. The page
+uses the same explicit account gate as Daily Games, while the authenticated
+database function remains the authoritative write boundary.
+
 ## Product boundary
 
 The first Worlds release is a sitewide **VGC Masters Division Pick 16** competition.

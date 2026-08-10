@@ -119,6 +119,10 @@ test("the Worlds page defers bracket predictions until official pairings exist",
   assert.match(page, /This is an invite-earned list, not a confirmed attendance or registration list/);
   assert.match(page, /href=\{rosterSource\.sourceUrl\}/);
   assert.match(page, /Choose one Ace Pick whose placement points count twice/);
+  assert.match(page, /Sign in to build your Worlds prediction/);
+  assert.match(page, /Like DraftCenter&apos;s Daily Games/);
+  assert.match(page, /disabled=\{!user \|\| locked \|\| unavailable\}/);
+  assert.match(page, /if \(!user \|\| locked/);
   assert.match(page, /name="worlds-ace"/);
   assert.match(page, /p_ace_slug: ace/);
 });

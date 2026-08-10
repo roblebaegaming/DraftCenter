@@ -75,6 +75,7 @@ export default function SiteQuickLinks() {
         <nav className="site-primary-links" aria-label="Primary navigation">
           <a href="/pokemon" {...navState(pathname, "/pokemon")}>Pokémon</a>
           <a href="/explore" {...navState(pathname, "/explore")}>Community</a>
+          <a href="/worlds/2026" {...navState(pathname, "/worlds/2026")}>Worlds Predictions</a>
         </nav>
         <div className="site-global-account">
           {signedIn ? <>
@@ -92,7 +93,6 @@ export default function SiteQuickLinks() {
       <a href="/resources/daily-games" aria-label="Daily Games" {...navState(pathname, "/resources/daily-games")}><span className="quick-label-wide">Daily Games</span><span className="quick-label-compact">Daily</span></a>
       <a href="/nuzlocke" aria-label="Nuzlockes" {...navState(pathname, "/nuzlocke")}><span className="quick-label-wide">Nuzlockes</span><span className="quick-label-compact">Nuzlocke</span></a>
       <a href="/tournaments" aria-label="Tournaments" {...navState(pathname, "/tournaments")}><span className="quick-label-wide">Tournaments</span><span className="quick-label-compact">Events</span></a>
-      <a href="/worlds/2026" aria-label="Worlds Pick 16" {...navState(pathname, "/worlds/2026")}><span className="quick-label-wide">Worlds Pick 16</span><span className="quick-label-compact">Worlds</span></a>
       {signedIn && <a href="/trainer-dex" aria-label="Trainer Dex" {...navState(pathname, "/trainer-dex")}><span className="quick-label-wide">Trainer Dex</span><span className="quick-label-compact">Dex</span></a>}
       {isOwner && <a href="/operations" aria-label="Operations" {...navState(pathname, "/operations")}><span className="quick-label-wide">Operations</span><span className="quick-label-compact">Ops</span></a>}
       <a href="/my-teams" aria-label="My Teams" {...navState(pathname, "/my-teams")}><span className="quick-label-wide">My Teams</span><span className="quick-label-compact">Teams</span></a>
