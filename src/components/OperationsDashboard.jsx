@@ -5,6 +5,44 @@ import { createClient } from "../lib/supabase/client";
 const severityOrder = { high: 0, medium: 1, low: 2 };
 function when(value) { return value ? new Date(value).toLocaleString() : "Never"; }
 function supportScope(permission) { return permission === "pricing_edit" ? "Tier/pricing support" : "Read-only support"; }
+function pulseActivity(pulse) {
+  const days = pulse?.days_since_meaningful_activity;
+  if (!pulse?.post_draft_activity && ["awaiting_activity", "inactive"].includes(pulse?.season_state)) {
+    if (days == null) return "None since draft";
+    if (days === 0) return "None since draft · today";
+    return `None since draft · ${days} day${days === 1 ? "" : "s"}`;
+  }
+  if (days == null) return "Not recorded";
+  if (days === 0) return "Today";
+  if (days === 1) return "1 day ago";
+  return `${days} days ago`;
+}
+function pulseSeason(state) {
+  return ({
+    archived: "Archived",
+    complete: "Season complete",
+    drafting: "Draft in progress",
+    paused: "Draft paused",
+    pre_draft: "Pre-draft setup",
+    inactive: "Inactive",
+    underway: "Season underway",
+    awaiting_activity: "Awaiting season activity",
+  })[state] || "Pre-draft setup";
+}
+function LeaguePulse({ pulse, leagueName }) {
+  if (!pulse) return null;
+  return <section className="league-pulse" aria-label="League Pulse">
+    <header><span className="eyebrow">LEAGUE PULSE</span><h3>{leagueName}</h3></header>
+    <div className="league-pulse-grid">
+      <article><span>Results recorded</span><strong>{pulse.results_recorded || 0}</strong></article>
+      <article><span>Transactions completed</span><strong>{pulse.transactions_completed || 0}</strong></article>
+      <article><span>Meaningful activity</span><strong>{pulseActivity(pulse)}</strong></article>
+      <article className={pulse.season_state === "inactive" ? "needs-attention" : ""}><span>Season status</span><strong>{pulseSeason(pulse.season_state)}</strong></article>
+      <article className={pulse.support_requests ? "needs-attention" : ""}><span>Open support requests</span><strong>{pulse.support_requests || 0}</strong></article>
+      <article className={pulse.system_failures ? "needs-attention" : ""}><span>System failures (30 days)</span><strong>{pulse.system_failures || 0}</strong></article>
+    </div>
+  </section>;
+}
 
 export default function OperationsDashboard() {
   const [data, setData] = useState(null); const [error, setError] = useState(""); const [filter, setFilter] = useState("attention"); const [query, setQuery] = useState(""); const [supportLeague, setSupportLeague] = useState(null); const [copyStatus, setCopyStatus] = useState("");
@@ -24,6 +62,10 @@ export default function OperationsDashboard() {
     {(data.support_requests || []).length > 0 && <section className="operations-support-requests"><h2>Open support requests</h2>{data.support_requests.map((request) => <article key={request.id}><div><span className="eyebrow">{request.category} · {request.status.replaceAll("_"," ")}</span><h3>{request.league_name}</h3><p>{request.message}</p><small>{when(request.created_at)} · {request.diagnostics_included ? "safe diagnostics included" : "no diagnostics"}</small><div className="live-stream-actions">{request.status==="open"&&<button className="quiet-button" onClick={()=>updateSupportRequest(request.id,"in_progress")}>Mark in progress</button>}<button className="primary-button" onClick={()=>updateSupportRequest(request.id,"resolved")}>Resolve</button></div></div>{request.diagnostic_context?.last_error && <details><summary>Latest reported error</summary><pre>{request.diagnostic_context.last_error}</pre></details>}</article>)}</section>}
     {(data.operational_failures || []).length > 0 && <details className="operations-error-feed"><summary><strong>System failures</strong> · last 30 days</summary><p>Unexpected failures that may require investigation or a code, configuration, or provider fix.</p>{data.operational_failures.map((event)=><article key={event.id}><span className="eyebrow">{event.kind.replaceAll("_"," ")}</span><h3>{event.league_name}</h3><p>{event.message}</p><small>{when(event.occurred_at)} · {event.actor}</small></article>)}</details>}
     {(data.operational_rejections || []).length > 0 && <details className="operations-rejection-feed"><summary><strong>Expected safety rejections</strong> · last 30 days</summary><p>Permission checks, stale-session protection, duplicate picks, and other server safeguards working as intended.</p>{data.operational_rejections.map((event)=><article key={event.id}><span className="eyebrow">{event.kind.replaceAll("_"," ")}</span><h3>{event.league_name}</h3><p>{event.message}</p><small>{when(event.occurred_at)} · {event.actor}</small></article>)}</details>}
+    <section className="operations-pulse-board" aria-labelledby="league-pulse-title">
+      <header><div><span className="eyebrow">AGGREGATE ONLY</span><h2 id="league-pulse-title">League Pulse</h2></div><p>Follow real post-draft leagues without opening them. Counts never expose teams, Pokemon, matchups, messages, or transaction details.</p></header>
+      <div>{(data.leagues || []).filter((league) => !league.is_practice && ["post_draft", "season", "completed"].includes(league.lifecycle?.phase)).sort((a, b) => new Date(b.pulse?.last_meaningful_activity_at || b.created_at) - new Date(a.pulse?.last_meaningful_activity_at || a.created_at)).map((league) => <LeaguePulse key={league.id} leagueName={league.name} pulse={league.pulse} />)}</div>
+    </section>
     <section className="operations-controls"><div>{[["attention","Needs attention"],["drafts","Drafts"],["real","Real leagues"],["practice","Practice"],["all","All active"],["archived","Archived"]].map(([key,label]) => <button key={key} className={filter === key ? "primary-button" : "quiet-button"} onClick={() => setFilter(key)}>{label}</button>)}</div><input aria-label="Search leagues" placeholder="Search league or commissioner" value={query} onChange={(event) => setQuery(event.target.value)} /></section>
     {filter !== "archived" && <section className="operations-lifecycle-board" aria-label="Draft lifecycle overview">
       <h2>Draft lifecycle</h2><p>See whether each draft is still being set up, live, manually paused, or complete—and whether its teams are controlled by people or bots—without entering the league.</p>

@@ -2,6 +2,7 @@ import { createAdminClient } from "./supabase/admin";
 import { bearerToken } from "./apiSecurity";
 import { summarizeAuthUsers } from "./authUserTotals";
 import { draftParticipantLabel, summarizeDraftParticipants } from "./draftParticipants";
+import { countLeagueResults, summarizeLeaguePulse } from "./leaguePulse";
 
 export function ownerEmails() {
   return String(process.env.DRAFTCENTER_OWNER_EMAILS || process.env.DRAFTCENTER_OWNER_EMAIL || "").split(",").map((email) => email.trim().toLowerCase()).filter(Boolean);
@@ -19,7 +20,7 @@ export async function requireOwner(request) {
 }
 
 function warning(code, severity, text) { return { code, severity, text }; }
-function countResults(state) { return Object.keys(state?.matchResults || {}).length; }
+function countResults(state) { return countLeagueResults(state); }
 function isExpectedOperationalRejection(event) {
   const kind = String(event?.kind || "");
   const message = String(event?.message || "");
@@ -59,6 +60,8 @@ export async function getOperationsOverview(supabase, viewerUserId = null) {
     if (!backups.has(row.league_id)) backups.set(row.league_id, row);
   }
   const failedByLeague = new Map(); for (const row of failedResult.data || []) failedByLeague.set(row.league_id, (failedByLeague.get(row.league_id) || 0) + 1);
+  const supportRequestsByLeague = new Map(); for (const row of requestsResult.data || []) supportRequestsByLeague.set(row.league_id, (supportRequestsByLeague.get(row.league_id) || 0) + 1);
+  const systemFailuresByLeague = new Map(); for (const row of healthResult.data || []) if (!isExpectedOperationalRejection(row) && row.league_id) systemFailuresByLeague.set(row.league_id, (systemFailuresByLeague.get(row.league_id) || 0) + 1);
   const membersByLeague = new Map(); for (const row of membershipsResult.data || []) { const rows = membersByLeague.get(row.league_id) || []; rows.push(row); membersByLeague.set(row.league_id, rows); }
   const latestSessionByLeague = new Map(); for (const row of sessionsResult.data || []) if (!latestSessionByLeague.has(row.league_id)) latestSessionByLeague.set(row.league_id, row);
   const latestLifecycleEventByLeague = new Map(); for (const row of lifecycleEventsResult.data || []) if (!latestLifecycleEventByLeague.has(row.league_id)) latestLifecycleEventByLeague.set(row.league_id, row);
@@ -91,7 +94,8 @@ export async function getOperationsOverview(supabase, viewerUserId = null) {
     else if (Number.isFinite(draftMs) && draftMs > now) lifecycle = { phase: "scheduled", label: "Pre-draft · scheduled", detail: `${claimed}/${leagueSize || 0} teams claimed`, updated_at: lastActivity };
     else if (["active", "season"].includes(String(league.status))) lifecycle = { phase: "season", label: "Season underway", detail: `${countResults(state)} result${countResults(state) === 1 ? "" : "s"} recorded`, updated_at: lastActivity };
     else if (String(league.status) === "completed") lifecycle = { phase: "completed", label: "Season complete", detail: `${countResults(state)} result${countResults(state) === 1 ? "" : "s"} recorded`, updated_at: lastActivity };
-    return { ...league, commissioner: profile?.display_name || profile?.username || "Unknown", owner_has_access: Boolean(viewerUserId && members.some((member) => member.user_id === viewerUserId)), owner_role: viewerUserId ? members.find((member) => member.user_id === viewerUserId)?.role || null : null, support_access: supportGrant ? { id: supportGrant.id, permission: supportGrant.permission, expires_at: supportGrant.expires_at } : null, member_count: members.filter((member) => ["commissioner", "co_commissioner", "coach"].includes(member.role)).length, team_count: participants.teamCount, claimed_team_count: claimed, human_team_count: participants.humanTeamCount, bot_team_count: participants.botTeamCount, human_auto_draft_count: participants.humanAutoDraftCount, draft_participant_label: participantDetail, result_count: countResults(state), last_activity_at: lastActivity, last_backup_at: backup?.created_at || null, draft_job: job || null, discord_connected: Boolean(discord.get(league.id)?.enabled && discord.get(league.id)?.channel_id), lifecycle, warnings };
+    const pulse = summarizeLeaguePulse({ state, leagueStatus: league.status, lifecyclePhase: lifecycle.phase, lifecycleUpdatedAt: lifecycle.updated_at, snapshotUpdatedAt: snapshot?.updated_at, supportRequestCount: supportRequestsByLeague.get(league.id) || 0, systemFailureCount: systemFailuresByLeague.get(league.id) || 0, now });
+    return { ...league, commissioner: profile?.display_name || profile?.username || "Unknown", owner_has_access: Boolean(viewerUserId && members.some((member) => member.user_id === viewerUserId)), owner_role: viewerUserId ? members.find((member) => member.user_id === viewerUserId)?.role || null : null, support_access: supportGrant ? { id: supportGrant.id, permission: supportGrant.permission, expires_at: supportGrant.expires_at } : null, member_count: members.filter((member) => ["commissioner", "co_commissioner", "coach"].includes(member.role)).length, team_count: participants.teamCount, claimed_team_count: claimed, human_team_count: participants.humanTeamCount, bot_team_count: participants.botTeamCount, human_auto_draft_count: participants.humanAutoDraftCount, draft_participant_label: participantDetail, result_count: pulse.results_recorded, last_activity_at: lastActivity, last_backup_at: backup?.created_at || null, draft_job: job || null, discord_connected: Boolean(discord.get(league.id)?.enabled && discord.get(league.id)?.channel_id), lifecycle, pulse, warnings };
   });
   const leagueNames = new Map(leagues.map((league) => [league.id, league.name]));
   const supportRequests = (requestsResult.data || []).map((request) => ({ ...request, league_name: leagueNames.get(request.league_id) || "Unknown league" }));
