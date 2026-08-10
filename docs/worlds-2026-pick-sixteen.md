@@ -85,12 +85,13 @@ team-based and should not be forced into an individual-player VGC model.
 ## Release boundary
 
 Migrations 369 and 370 were validated on the isolated
-`worlds-pick-sixteen-pr-116` Preview branch and have not been applied to
-production. Keep the `NEXT_PUBLIC_DRAFTCENTER_SUPABASE_*` Preview credentials
-scoped to the matching Git branch; do not let an all-environments integration
-silently select production. A Preview that shows the database-migration
-fallback message is not release evidence. Release through a short-lived branch
-and pull request, verify RLS and grants, then apply the migrations only to the
-exact approved production project. A local build is not a deployment. After an
-authorized merge, confirm the deployed commit and run the signed-out production
-smoke sweep.
+`worlds-pick-sixteen-pr-116` Preview branch and applied to production on August
+10 through pull request #116. Production verification found one open Masters
+event, 438 competitors, zero entries, RLS on all three tables, denied direct
+browser table reads, and the intended RPC grants. Keep any future
+`NEXT_PUBLIC_DRAFTCENTER_SUPABASE_*` Preview credentials scoped to the matching
+Git branch; do not let an all-environments integration silently select
+production. A Preview that shows the database-migration fallback message is not
+release evidence. Publish every later schema, roster, deadline, or scoring
+change as a new forward-only migration, confirm the deployed commit, and run
+the signed-out production smoke sweep after each authorized release.
