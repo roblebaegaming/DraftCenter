@@ -3,7 +3,7 @@
 - Last updated: August 10, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified production application commit: `67d7e82e8b0ba14de8715904ee3bb79f383e6241`
+- Verified production application commit: `a36a514ca93aa7c089d9f53822d9a961d385ffd4`
 - Latest production migration: 370
 
 ## Deployed state
@@ -110,6 +110,13 @@ private until the lock. The sitewide leaderboard is live with zero initial
 entries. The bracket challenge remains closed until official pairings exist.
 Migrations 369-370 are applied to the exact core production project.
 
+The VGC roster-provenance clarification shipped through pull request
+[#118](https://github.com/roblebaegaming/DraftCenter/pull/118). The qualified-
+player section now names Victory Road's 2026 invite tracker, links directly to
+it, shows the August 10 snapshot date, explains that the tracker combines
+Championship Point standings and qualifying event results, and repeats that an
+invite-earned list is not confirmed attendance or registration.
+
 ## Release verification
 
 - The complete application tests, National Dex verification across 1,027
@@ -128,7 +135,7 @@ Migrations 369-370 are applied to the exact core production project.
   passed desktop and 390px mobile Pokédex review without browser errors or
   horizontal overflow. The retained Supabase Preview observer-access matrix
   passed every RLS, grant, allow, denial, full-staff, and cleanup assertion.
-- Vercel reports exact `main` application commit `67d7e82` Ready and Current on
+- Vercel reports exact `main` application commit `a36a514` Ready and Current on
   the public production domains.
 - The signed-out production smoke sweep passes, including protected 401
   boundaries. Focused live checks also pass for tournament metadata and JSON-LD,
@@ -168,6 +175,11 @@ Migrations 369-370 are applied to the exact core production project.
   validation, Ace-scoring, and fixture-cleanup assertions. The connected hosted
   Preview and production route passed desktop and 390px mobile review with all
   438 competitors, no browser warnings or errors, and no horizontal overflow.
+- Pull request #118 passed the dependency audit, complete application suite,
+  1,027-row National Dex verification, production build, and every protected
+  check. Its exact Preview and production source panel passed desktop and
+  390px review with the intended Victory Road link and no horizontal overflow;
+  the post-deployment signed-out smoke sweep passed all 19 routes.
 - No merge protection was bypassed.
 
 ## Preserved boundaries
