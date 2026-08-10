@@ -44,6 +44,29 @@ errors alongside league-health warnings.
 Spreadsheet and recovery JSON downloads now record only the league, staff user,
 backup type, and timestamp. DraftCenter does not upload or inspect the file.
 
+## League Pulse
+
+The owner-only Operations page summarizes real post-draft leagues without
+opening them or bypassing membership. Each League Pulse contains only:
+
+- the number of current-season regular-season and playoff results;
+- completed free-agent moves and accepted trades, excluding reversed, pending,
+  rejected, and cancelled transactions;
+- days since the latest meaningful saved activity;
+- a season state of awaiting activity, underway, inactive, or complete;
+- the number of open support requests; and
+- the number of unexpected system failures recorded in the last 30 days.
+
+A completed draft with no result or transaction remains **awaiting season
+activity** for 14 days, then becomes **inactive**. Once a result or transaction
+exists, recent activity is **season underway** and the same 14-day inactivity
+threshold applies. These labels are product-health signals, not commissioner
+deadlines or enforcement actions.
+
+League Pulse never returns team names, Pokemon, matchups, scores, managers,
+messages, support-request text, error text, or transaction contents. It does
+not grant the owner league access and does not notify or alter the league.
+
 ## Daily Games participation
 
 Allowlisted owners can open `/operations/daily-three` from the global Daily

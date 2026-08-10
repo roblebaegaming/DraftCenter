@@ -17,7 +17,7 @@
     "test:profile-defaults": "node --test test/profile-defaults.test.js",
     "test:performance": "node --test test/performance-remediation.test.js",
     "test:help-guides": "node --test test/help-guides.test.js",
-    "test:operations-users": "node --test test/operations-user-count.test.js test/daily-editorial-calendar.test.js",
+    "test:operations-users": "node --test test/operations-user-count.test.js test/league-pulse.test.js test/daily-editorial-calendar.test.js",
     "test:draft-experience": "node --test test/draft-experience.test.js",
     "test:team-ownership": "node --test test/team-ownership.test.js",
     "test:draft-board-ux": "node --test test/draft-board-ux.test.js",
