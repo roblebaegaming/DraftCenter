@@ -300,6 +300,8 @@ test("Pokémon form canonical policy stays conservative and documented", () => {
 test("the guide collection explains real DraftCenter workflows in a human voice", () => {
   const content = source("src/lib/seoContent.js");
   const guidePage = source("src/app/guides/[slug]/page.js");
+  const guideIndex = source("src/app/guides/page.js");
+  const sitemap = source("src/app/sitemap.js");
   const copyBlock = source("src/components/GuideCopyBlock.jsx");
   const templates = source("src/lib/guideTemplates.js");
 
@@ -319,6 +321,14 @@ test("the guide collection explains real DraftCenter workflows in a human voice"
   assert.match(guidePage, /guide\.links\.map/);
   assert.match(content, /how-to-join-first-pokemon-draft-league/);
   assert.match(content, /pokemon-draft-league-rules-template/);
+  for (const slug of [
+    "how-to-use-pokemon-draft-adp",
+    "pokemon-draft-league-transactions-free-agency",
+    "pokemon-draft-standings-tiebreakers-playoffs",
+    "compare-pokemon-forms-stats-draft-data",
+    "pokemon-draft-manager-vs-spreadsheets",
+  ]) assert.ok(GUIDES[slug], `${slug} should be a published guide`);
+  assert.match(content, /one position after that draft's final pick/);
   assert.match(content, /Before you commit to your first team/);
   assert.match(content, /POKEMON_DRAFT_LEAGUE_RULES_TEMPLATE/);
   assert.match(guidePage, /GuideCopyBlock/);
@@ -330,12 +340,21 @@ test("the guide collection explains real DraftCenter workflows in a human voice"
   assert.match(templates, /CONDUCT, RULINGS, AND APPEALS/);
   assert.match(content, /GUIDE_PUBLISHED_DATE/);
   assert.match(content, /GUIDE_UPDATED_DATE/);
-  assert.equal((content.match(/answer:\s*"/g) || []).length, 6);
+  assert.equal((content.match(/answer:\s*"/g) || []).length, 11);
+  assert.equal(Object.keys(GUIDES).length, 11);
   assert.match(guidePage, /SHORT ANSWER/);
   assert.match(guidePage, /Written and reviewed by the/);
-  assert.match(guidePage, /datePublished: GUIDE_PUBLISHED_DATE/);
-  assert.match(guidePage, /dateModified: GUIDE_UPDATED_DATE/);
+  assert.match(guidePage, /guide\.publishedDate \|\| GUIDE_PUBLISHED_DATE/);
+  assert.match(guidePage, /guide\.updatedDate \|\| GUIDE_UPDATED_DATE/);
+  assert.match(guidePage, /datePublished: publishedDate/);
+  assert.match(guidePage, /dateModified: updatedDate/);
+  assert.match(guidePage, /publishedTime:/);
+  assert.match(guidePage, /modifiedTime:/);
   assert.match(guidePage, /about#data-methodology/);
+  assert.match(guideIndex, /"@type": "CollectionPage"/);
+  assert.match(guideIndex, /"@type": "ItemList"/);
+  assert.match(guideIndex, /aria-label="Pokémon draft league guides"/);
+  assert.match(sitemap, /guide\.updatedDate \|\| GUIDE_UPDATED_DATE/);
   assert.equal(GUIDES["how-to-run-pokemon-draft-league"].seoTitle, "How to Run a Pokémon Draft League");
   assert.equal(GUIDES["pokemon-draft-league-rules-template"].seoTitle, "Pokémon Draft League Rules Template");
   assert.match(guidePage, /guide\.seoTitle \|\| guide\.title/);
@@ -376,6 +395,8 @@ test("public templates expose useful server-rendered headings and related links"
   for (const path of ["/formats/national-dex", "/formats/vgc2020", "/formats/custom"]) assert.match(resources, new RegExp(path));
   assert.match(nuzlocke, /\/nuzlocke\/legends-arceus/);
   assert.match(profile, /Related \{displayName\} research/);
+  assert.match(profile, /\/guides\/compare-pokemon-forms-stats-draft-data/);
+  assert.match(profile, /\/guides\/how-to-use-pokemon-draft-adp/);
   assert.match(formatPage, /Related Pokémon draft formats/);
   for (const slug of ["national-dex", "reg-mb", "swsh-series9", "custom"]) {
     const related = relatedFormatsBySlug(slug);
@@ -404,7 +425,9 @@ test("AI discovery foundation exposes a trustworthy entity and reference index",
   assert.match(llms, /Pokémon tournament organizer/);
   assert.match(llms, /single elimination for up to 512 entrants/);
   assert.match(llms, /saved cards are not public pages/);
-  assert.match(llms, /Last reviewed: 2026-08-09/);
+  assert.match(llms, /How to Use Pokémon Draft League ADP/);
+  assert.match(llms, /Pokémon Draft League Manager vs\. Spreadsheets/);
+  assert.match(llms, /Last reviewed: 2026-08-10/);
   assert.match(llms, /Private queues/);
   assert.match(content, /national-gen\$\{generation\}/);
 });

@@ -190,7 +190,7 @@ export default async function PokemonDetailPage({ params }) {
     <section className="explore-card">
       <h2>Related {displayName} research</h2>
       <p>Compare this profile with Pokémon that share its types, generation, and supported draft formats.</p>
-      <div className="pokemon-tags">{pokemon.types.map(({ type }) => <a key={type.name} href={`/pokemon/type/${type.name}`}>{titleCase(type.name)}-type Pokémon</a>)}{generationNumber ? <a href={`/pokemon/generation/${generationNumber}`}>{titleCase(species.generation?.name)} profiles</a> : null}<a href="/pokemon/a-z">All Pokémon A–Z</a><a href="/formats">Compare draft formats</a></div>
+      <div className="pokemon-tags">{pokemon.types.map(({ type }) => <a key={type.name} href={`/pokemon/type/${type.name}`}>{titleCase(type.name)}-type Pokémon</a>)}{generationNumber ? <a href={`/pokemon/generation/${generationNumber}`}>{titleCase(species.generation?.name)} profiles</a> : null}<a href="/pokemon/a-z">All Pokémon A–Z</a><a href="/formats">Compare draft formats</a><a href="/guides/compare-pokemon-forms-stats-draft-data">Compare forms and stats</a><a href="/guides/how-to-use-pokemon-draft-adp">How to use draft ADP</a></div>
     </section>
     <section className="explore-card pokemon-profile-sources">
       <h2>Sources and methodology</h2>

@@ -2,10 +2,12 @@ import { GUIDES } from "../../lib/seoContent";
 
 export const metadata = {
   title: "Pokémon Draft League Guides",
-  description: "Practical Pokémon draft league guides for commissioners and coaches: formats, snake and auction drafts, tier lists, seasons, and playoffs.",
+  description: "Practical Pokémon draft league guides for commissioners and coaches: formats, drafts, ADP, transactions, standings, playoffs, rules, and league management.",
   alternates: { canonical: "/guides" },
 };
 
 export default function GuidesPage() {
-  return <main className="resources-shell"><nav className="public-page-nav"><a className="quiet-button" href="/">DraftCenter</a><a className="quiet-button" href="/formats">Formats</a><a className="quiet-button" href="/resources">Resources</a></nav><header className="resources-hero"><span className="eyebrow">DRAFTCENTER GUIDES</span><h1>Learn Pokémon draft leagues.</h1><p>Original, practical guides built from the same workflows DraftCenter supports for commissioners, coaches, and spectators.</p></header><section className="resource-grid">{Object.entries(GUIDES).map(([slug, guide]) => <a key={slug} href={`/guides/${slug}`}><strong>{guide.title}</strong><p>{guide.description}</p><span>Read guide →</span></a>)}</section></main>;
+  const entries = Object.entries(GUIDES);
+  const schema = { "@context": "https://schema.org", "@graph": [{ "@type": "CollectionPage", "@id": "https://www.draftcentral.gg/guides#collection", url: "https://www.draftcentral.gg/guides", name: metadata.title, description: metadata.description, isPartOf: { "@id": "https://www.draftcentral.gg/#website" } }, { "@type": "ItemList", itemListElement: entries.map(([slug, guide], index) => ({ "@type": "ListItem", position: index + 1, name: guide.title, url: `https://www.draftcentral.gg/guides/${slug}` })) }] };
+  return <main className="resources-shell"><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} /><nav className="public-page-nav"><a className="quiet-button" href="/">DraftCenter</a><a className="quiet-button" href="/formats">Formats</a><a className="quiet-button" href="/resources">Resources</a></nav><header className="resources-hero"><span className="eyebrow">DRAFTCENTER GUIDES</span><h1>Learn Pokémon draft leagues.</h1><p>Original, practical guides built from the same workflows DraftCenter supports for commissioners, coaches, and spectators—from first draft through transactions, standings, and playoffs.</p></header><section className="resource-grid" aria-label="Pokémon draft league guides">{entries.map(([slug, guide]) => <a key={slug} href={`/guides/${slug}`}><strong>{guide.title}</strong><p>{guide.description}</p><span>Read guide →</span></a>)}</section></main>;
 }
