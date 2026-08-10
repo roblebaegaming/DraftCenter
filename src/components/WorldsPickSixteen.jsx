@@ -224,6 +224,15 @@ export default function WorldsPickSixteen({ rosterSource }) {
 
     <section className="worlds-roster-section" id="qualified-players">
       <header className="section-heading"><div><span className="eyebrow">2026 VGC MASTERS</span><h2>Qualified-player list</h2><p>Search by player, country code, region, or qualification path.</p></div><strong>{filtered.length} shown</strong></header>
+      <aside className="worlds-roster-source" aria-labelledby="worlds-roster-source-heading">
+        <div>
+          <span className="eyebrow">ROSTER SOURCE</span>
+          <h3 id="worlds-roster-source-heading">Where this invite list comes from</h3>
+          <p>This {displayPacificDate(`${rosterSource.sourceCheckedAt}T12:00:00Z`)} snapshot was compiled from Victory Road&apos;s 2026 World Championships invite tracker for VGC Masters. The tracker brings together invite earners from official Championship Point standings and qualifying event results.</p>
+          <small>This is an invite-earned list, not a confirmed attendance or registration list.</small>
+        </div>
+        <a className="quiet-button" href={rosterSource.sourceUrl} target="_blank" rel="noreferrer">View the Victory Road tracker ↗</a>
+      </aside>
       <div className="worlds-roster-filters">
         <label>Find a competitor<input type="search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Try Wolfe, JPN, Regional Champion…" /></label>
         <label>Qualification region<select value={region} onChange={(event) => setRegion(event.target.value)}><option value="all">All regions</option>{regions.map((item) => <option key={item} value={item}>{item}</option>)}</select></label>

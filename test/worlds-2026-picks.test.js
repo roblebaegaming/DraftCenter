@@ -114,6 +114,10 @@ test("the Worlds page defers bracket predictions until official pairings exist",
   assert.match(page, /Your choices stay private until entries lock/);
   assert.match(page, /Junior- and Senior-Division qualifiers are excluded/);
   assert.match(page, /does not collect or infer private age data/);
+  assert.match(page, /Where this invite list comes from/);
+  assert.match(page, /compiled from Victory Road&apos;s 2026 World Championships invite tracker for VGC Masters/);
+  assert.match(page, /This is an invite-earned list, not a confirmed attendance or registration list/);
+  assert.match(page, /href=\{rosterSource\.sourceUrl\}/);
   assert.match(page, /Choose one Ace Pick whose placement points count twice/);
   assert.match(page, /name="worlds-ace"/);
   assert.match(page, /p_ace_slug: ace/);
