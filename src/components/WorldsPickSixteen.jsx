@@ -129,7 +129,7 @@ export default function WorldsPickSixteen({ rosterSource }) {
   }, []);
 
   function toggle(competitor) {
-    if (locked || !competitor.isSelectable || ["withdrawn", "declined"].includes(competitor.attendanceStatus)) return;
+    if (!user || locked || !competitor.isSelectable || ["withdrawn", "declined"].includes(competitor.attendanceStatus)) return;
     const removingAce = ace === competitor.slug && selected.includes(competitor.slug);
     const next = toggleWorldsPick(selected, competitor.slug, WORLDS_2026_PICK_COUNT);
     setSelected(next.picks);
@@ -163,7 +163,7 @@ export default function WorldsPickSixteen({ rosterSource }) {
         <h1>Pick the 16 VGC players you believe in.</h1>
         <p>Build a roster from every currently known 2026 Masters invitee. When Worlds finishes, the entry with the strongest collective results wins the DraftCenter community leaderboard.</p>
         <div className="worlds-hero-actions">
-          <a className="primary-button inline-link-button" href="#pick-sixteen">Build my 16</a>
+          <a className="primary-button inline-link-button" href={user === null ? "/#member-access" : "#pick-sixteen"}>{user === null ? "Sign in to predict" : "Build my 16"}</a>
           <a className="quiet-button" href="#qualified-players">See all {competitors.length} invitees</a>
         </div>
       </div>
@@ -192,11 +192,20 @@ export default function WorldsPickSixteen({ rosterSource }) {
           <div className="worlds-pick-meter"><strong>{selected.length}</strong><span>/ {WORLDS_2026_PICK_COUNT}</span></div>
         </header>
 
+        {user === undefined ? <div className="worlds-account-gate is-loading" aria-live="polite">
+          <strong>Checking your DraftCenter account…</strong>
+        </div> : !user ? <div className="worlds-account-gate">
+          <div aria-hidden="true" className="worlds-account-lock">🔒</div>
+          <span className="eyebrow">DRAFTCENTER ACCOUNT REQUIRED</span>
+          <h3>Sign in to build your Worlds prediction.</h3>
+          <p>Like DraftCenter&apos;s Daily Games, submitting a Pick 16 entry requires a free account. Your choices stay private until entries lock, and you can return to edit them before the deadline.</p>
+          <a className="secondary-button" href="/#member-access">Sign in or create an account</a>
+        </div> : <>
         <div className="worlds-selected-grid">
           {Array.from({ length: WORLDS_2026_PICK_COUNT }, (_, index) => {
             const competitor = competitorBySlug.get(selected[index]);
             return competitor ? <div className={`worlds-selected-pick${ace === competitor.slug ? " is-ace" : ""}`} key={competitor.slug}>
-              <button className="worlds-pick-remove" type="button" onClick={() => toggle(competitor)}>
+              <button className="worlds-pick-remove" type="button" disabled={locked} onClick={() => toggle(competitor)}>
                 <span>{index + 1}</span><strong>{competitor.displayName}</strong><small>{competitor.countryCode} · remove</small>
               </button>
               <label className="worlds-ace-choice"><input type="radio" name="worlds-ace" checked={ace === competitor.slug} disabled={locked} onChange={() => setAce(competitor.slug)} /><span>Ace Pick ×2</span></label>
@@ -211,6 +220,7 @@ export default function WorldsPickSixteen({ rosterSource }) {
           </div>
           <button className="primary-button" type="button" disabled={busy || locked || selected.length !== WORLDS_2026_PICK_COUNT || !ace || !hub} onClick={saveEntry}>{busy ? "Saving…" : hub?.my_entry ? "Update entry" : "Save entry"}</button>
         </div>
+        </>}
       </div>
 
       <aside className="worlds-scoring-card">
@@ -241,11 +251,11 @@ export default function WorldsPickSixteen({ rosterSource }) {
         {filtered.map((competitor) => {
           const chosen = selected.includes(competitor.slug);
           const unavailable = !competitor.isSelectable || ["withdrawn", "declined"].includes(competitor.attendanceStatus);
-          return <article className={chosen ? "is-selected" : unavailable ? "is-unavailable" : ""} key={competitor.slug}>
+          return <article className={chosen ? "is-selected" : unavailable ? "is-unavailable" : !user ? "is-account-locked" : ""} key={competitor.slug}>
             <header><span>{competitor.countryCode}</span><small>{competitor.qualificationRegion}</small></header>
             <h3>{competitor.displayName}</h3>
             <p>{competitor.qualificationPath}</p>
-            <footer><small>{statusLabel(competitor.attendanceStatus)}</small><button type="button" aria-pressed={chosen} disabled={locked || unavailable} onClick={() => toggle(competitor)}>{chosen ? "Selected ✓" : unavailable ? "Unavailable" : "Add to 16"}</button></footer>
+            <footer><small>{statusLabel(competitor.attendanceStatus)}</small><button type="button" aria-pressed={chosen} disabled={!user || locked || unavailable} onClick={() => toggle(competitor)}>{chosen ? "Selected ✓" : unavailable ? "Unavailable" : !user ? "Sign in to pick" : "Add to 16"}</button></footer>
           </article>;
         })}
       </div>
