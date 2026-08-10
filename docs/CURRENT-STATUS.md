@@ -1,9 +1,9 @@
 # DraftCenter current status
 
-- Last updated: August 9, 2026
+- Last updated: August 10, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified production application commit: `dc7b8fa631b4433e0725e9d2e1100ed3258b3478`
+- Verified production application commit: `32aeb5ba5fa2467587740d318b2bdf2825a6a693`
 - Latest production migration: 368
 
 ## Deployed state
@@ -63,6 +63,23 @@ four-second neutral verification grace period, and background polling can no
 longer overwrite unsaved work or relabel a real failure as success. The
 database stale-session guard remains unchanged.
 
+The conversation release confirmation shipped through pull request
+[#110](https://github.com/roblebaegaming/DraftCenter/pull/110). The Semrush
+crawl-remediation release then shipped through pull request
+[#111](https://github.com/roblebaegaming/DraftCenter/pull/111). It repairs the
+reproduced broken and redirecting internal targets, reduces Nuzlocke guide HTML
+by loading full area encounters on demand, removes internal `nofollow` query
+links, and strengthens thin or weakly linked public templates without adding
+filler for the low text-to-HTML heuristic.
+
+The privacy-safe League Pulse shipped through pull request
+[#112](https://github.com/roblebaegaming/DraftCenter/pull/112). Owner
+Operations now shows aggregate results, completed transactions, meaningful
+activity age, season state, open support requests, and recent unexpected
+system failures for post-draft leagues. It does not expose teams, Pokemon,
+matchups, scores, managers, messages, request text, error text, or transaction
+contents.
+
 Migrations 361-368 are applied to the exact core production project. The
 previous multi-pod organization, qualification, and connected championship
 release remains live through migrations 350-360 and production record pull
@@ -86,7 +103,7 @@ request [#94](https://github.com/roblebaegaming/DraftCenter/pull/94).
   passed desktop and 390px mobile Pokédex review without browser errors or
   horizontal overflow. The retained Supabase Preview observer-access matrix
   passed every RLS, grant, allow, denial, full-staff, and cleanup assertion.
-- Vercel reports exact `main` application commit `dc7b8fa` Ready and Current on
+- Vercel reports exact `main` application commit `32aeb5b` Ready and Current on
   the public production domains.
 - The signed-out production smoke sweep passes, including protected 401
   boundaries. Focused live checks also pass for tournament metadata and JSON-LD,
@@ -103,6 +120,14 @@ request [#94](https://github.com/roblebaegaming/DraftCenter/pull/94).
   route and protected 401 boundary. Focused tests cover manual checkpoints,
   two bounded conflict recoveries, non-replay of timeouts, delayed failure,
   polling ownership, and retained Retry Save behavior.
+- Pull request #111 passed all protected checks, its production build, and a
+  signed-out built-output crawl covering 1,537 sitemap URLs with zero broken
+  pages or targets, redirects, oversized documents, H1 defects, internal
+  `nofollow` links, sub-200-word pages, orphans, one-link pages, or URLs over
+  three clicks deep.
+- Pull request #112 passed all protected checks, the complete application
+  suite, the 1,027-row National Dex verification, the production build, and
+  the post-deployment smoke sweep across all 19 public and protected routes.
 - No merge protection was bypassed.
 
 ## Preserved boundaries
@@ -120,22 +145,31 @@ request [#94](https://github.com/roblebaegaming/DraftCenter/pull/94).
 
 ## Remaining work
 
-No application or documentation release described above remains to be pushed.
-Continue normal monitoring of the tournament, Daily Games, Nuzlocke,
-navigation, pricing, pod-observer, metadata, indexing, and commissioner-save
-paths. Treat the pre-release stale-session Operations entry as historical; use
-timestamps and current state before declaring a recurrence.
+Pull request [#113](https://github.com/roblebaegaming/DraftCenter/pull/113)
+contains the pending scheduled full-history secret-scan repair and current
+handoff. It narrowly covers seven obsolete public catalog migration paths and
+four exact historical prose fingerprints. Pinned Gitleaks 8.30.1 scanned all
+850 commits with no leaks locally; the final pull-request head still requires
+the authoritative manual workflow, protected checks, review, and owner-approved
+merge.
 
-Repeat the comparable 5,000-page crawl after production cache replacement.
-Use roughly August 23 for the early Search Console read and September 6 for the
-normal 28-day content/indexing decision. Redirect, alternate-canonical, and
-intentional `noindex` examples should not be treated as defects merely because
-Search Console excludes them.
+Continue normal monitoring of the tournament, Daily Games, Nuzlocke,
+navigation, pricing, pod-observer, League Pulse, metadata, indexing, and
+commissioner-save paths. Treat historical Operations events by timestamp and
+current authoritative state before declaring a recurrence.
+
+Repeat the comparable Semrush crawl after production cache replacement with a
+5,000-page ceiling. It may stop below that ceiling when it exhausts the
+discoverable canonical inventory; compare issue URL exports rather than only
+aggregate counts. Use roughly August 23 for the early Search Console read and
+September 6 for the normal 28-day content/indexing decision. Redirect,
+alternate-canonical, and intentional `noindex` examples should not be treated
+as defects merely because Search Console excludes them.
 
 ## Authoritative records
 
 - Current continuation handoff:
-  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-09-conversation-release-confirmation.md`](handoffs/DraftCenter-agent-handoff-2026-08-09-conversation-release-confirmation.md)
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-10-league-pulse-and-security-maintenance.md`](handoffs/DraftCenter-agent-handoff-2026-08-10-league-pulse-and-security-maintenance.md)
 - League-save implementation detail:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-09-league-save-reconciliation.md`](handoffs/DraftCenter-agent-handoff-2026-08-09-league-save-reconciliation.md)
 - Consolidated application release record:
