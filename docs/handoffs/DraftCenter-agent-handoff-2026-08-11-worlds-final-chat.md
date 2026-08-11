@@ -4,7 +4,7 @@
 - Repository: `roblebaegaming/DraftCenter`
 - Production: <https://www.draftcentral.gg/worlds/2026>
 - Production branch: `main`
-- Verified Worlds application commit: `472752bec6214aeb5fd85db12f36ed4ac59ce4ec`
+- Verified Worlds application commit: `36614e727b81201c479622bc5c4a03d05b744baa`
 - Latest production migration: 375
 
 ## Read this first
@@ -39,7 +39,7 @@ preceding detailed Worlds operating record is
   rows and 12 are additional, producing a deduplicated 437-player working
   field before separately managed programs.
 - Pull request [#144](https://github.com/roblebaegaming/DraftCenter/pull/144)
-  replaced the platform-specific social button stack with one natural
+  first replaced the cluttered platform-specific social button stack with one
   **Share your picks** action.
 - Pull request [#146](https://github.com/roblebaegaming/DraftCenter/pull/146)
   removed the redundant scoring-card tagline while preserving the useful
@@ -52,6 +52,12 @@ preceding detailed Worlds operating record is
   replaced every unavailable TCG, Pokémon GO, and Pokémon UNITE navigation,
   competition-card, and leaderboard status with the plain label **Not Live**.
   VGC remains **Picks open**.
+- Pull request [#152](https://github.com/roblebaegaming/DraftCenter/pull/152)
+  applied the owner's sharing clarification. The section keeps the simple
+  **Share your picks** heading and now has three compact buttons in one row:
+  **Download**, **Instagram**, and **Twitter**. Native file sharing carries the
+  PNG on supported devices; other browsers download it and open the selected
+  platform.
 
 No migration, roster, prediction entry, bracket field, result snapshot,
 provider setting, environment variable, or scheduler was changed by the final
@@ -59,11 +65,11 @@ Pick 10 interface release.
 
 ## Verified production state
 
-Vercel reports exact application commit `472752b` Ready in Production. The
+Vercel reports exact application commit `36614e7` Ready in Production. The
 post-deployment signed-out smoke sweep passed all 19 public and protected
 routes. The live Worlds Home contains the three **Not Live** labels without the
 older build, audit, roster-pending, or teams-pending status text. Pull requests
-#148 and #150 passed CodeQL, JavaScript security analysis, the
+#148, #150, and #152 passed CodeQL, JavaScript security analysis, the
 dependency and security suite, the full-history secret scan, and Vercel
 Preview. The complete application suite, 1,027-row National Dex verification,
 production dependency audit, focused Worlds regression suite, and production
@@ -90,10 +96,11 @@ The button is disabled until 10 choices and an included Champion are present,
 and the server rejects incomplete or invalid entries even if a client bypasses
 the button.
 
-A complete lineup also exposes one optional **Share your picks** action. It
-uses the device share menu with a 1080 by 1350 PNG when supported and otherwise
-downloads the image. Sharing does not save or alter an entry and can reveal
-private picks before lock.
+A complete lineup also exposes a compact **Share your picks** panel with
+**Download**, **Instagram**, and **Twitter**. Supported devices use their native
+file share sheet with the 1080 by 1350 PNG. Other browsers download the image
+and open Instagram or a prefilled Twitter composer for attachment. Sharing does
+not save or alter an entry and is public.
 
 ### TCG Masters
 
@@ -196,9 +203,9 @@ not production proof. After merge, verify the exact Production commit and run
 The deployable chat work is complete: the copy is natural, TCG reconciliation
 is published without falsely opening voting, sharing is one straightforward
 action, the redundant scoring tagline is gone, unavailable competitions simply
-say **Not Live**, and an unfinished Pick 10 no longer disappears during the
-periodic refresh. Production and protected-route smoke checks pass on the exact
-application commit above.
+say **Not Live**, compact Instagram and Twitter sharing is restored, and an
+unfinished Pick 10 no longer disappears during the periodic refresh. Production
+and protected-route smoke checks pass on the exact application commit above.
 
 TCG, GO, and UNITE voting are not complete features until their official full
 fields and structures pass review. The fail-closed public state is intentional
