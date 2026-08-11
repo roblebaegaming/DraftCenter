@@ -125,6 +125,7 @@ test("the owner route, public page, and live finalization use the reviewed autom
   assert.match(operations, /Nothing has been published yet/);
   assert.match(page, /Bracket predictions will be live once the official bracket is established\./);
   assert.match(page, /Once the VGC Masters Top Cut field and matchups are official, bracket predictions will open here before play begins\./);
+  assert.doesNotMatch(page, /Owner verifies|DraftCenter validates|Members complete private brackets|Reviewed winners score/);
   assert.doesNotMatch(page, /FAIL-CLOSED BY DESIGN|The prediction room is built\. The bracket is not\./);
   assert.match(page, /no names, seeds, or matchups will appear/i);
   assert.match(page, /everyone else&apos;s choices remain private until lock/i);
