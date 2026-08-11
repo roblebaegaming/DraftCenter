@@ -249,7 +249,6 @@ export default function WorldsPickSixteen({ rosterSource, discipline = "vgc" }) 
 
       <aside className="worlds-scoring-card">
         <span className="eyebrow">HOW SCORING WORKS</span>
-        <h2>Every deep run matters.</h2>
         <p>Each selected {config.entrySingular.toLowerCase()} earns the points for their final placement. Your Champion earns double points, then all 10 scores are added together.</p>
         <ol>{WORLDS_2026_SCORING.map(([label, points]) => <li key={label}><span>{label}</span><strong>{points} pts</strong></li>)}</ol>
         <div className="worlds-tiebreak-rules">

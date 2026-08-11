@@ -176,6 +176,7 @@ test("the Worlds page defers bracket predictions until official pairings exist",
   assert.match(page, /Lower average finish among your six best-finishing picks/);
   assert.match(page, /Lower average finish across all 10 picks/);
   assert.match(page, /If both averages are also equal, the entries share a rank/);
+  assert.doesNotMatch(page, /Every deep run matters/);
   assert.doesNotMatch(page, /Ace Pick/);
 });
 
