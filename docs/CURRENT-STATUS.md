@@ -3,7 +3,7 @@
 - Last updated: August 11, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified production application commit: `4f781e9c081a3771499baab490bf2c28f355e407`
+- Verified production application commit: `c944308742cfff250fd910c8331d71ff0f8e2208`
 - Latest production migration: 375
 
 ## Deployed state
@@ -186,6 +186,12 @@ downloads the image. The interface does not name or prioritize individual
 social platforms. Sharing never saves or changes an entry and clearly warns
 that it makes private picks public before lock.
 
+The one-action sharing interface shipped through pull request
+[#144](https://github.com/roblebaegaming/DraftCenter/pull/144) as production
+application commit `c944308742cfff250fd910c8331d71ff0f8e2208`. It replaces
+the prior download, app, and X/Twitter button stack without changing entries,
+rosters, scoring, or database state.
+
 Forward-only migration 375 is applied in production. It makes final Pick 10
 ties use the lower average finish of the six best-finishing picks, then the
 lower average finish of all 10. Provisional ranks remain points-only; exact
@@ -251,7 +257,7 @@ scheduler changed in this release.
   passed desktop and 390px mobile Pokédex review without browser errors or
   horizontal overflow. The retained Supabase Preview observer-access matrix
   passed every RLS, grant, allow, denial, full-staff, and cleanup assertion.
-- Vercel reports exact `main` commit `4f781e9` Ready in Production on the public
+- Vercel reports exact application commit `c944308` Ready in Production on the public
   production domains.
 - The signed-out production smoke sweep passes, including protected 401
   boundaries. Focused live checks also pass for tournament metadata and JSON-LD,

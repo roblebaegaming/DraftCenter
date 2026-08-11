@@ -4,7 +4,7 @@
 - Repository: `roblebaegaming/DraftCenter`
 - Production: <https://www.draftcentral.gg/worlds/2026>
 - Production branch: `main`
-- Verified Worlds application commit: `4f781e9c081a3771499baab490bf2c28f355e407`
+- Verified Worlds application commit: `c944308742cfff250fd910c8331d71ff0f8e2208`
 - Verified production record commit before this handoff: `f2e2718b445e2656aa105a5441de04c1d0d5748c`
 - Latest production migration: 375
 
@@ -56,9 +56,11 @@ The deployed Worlds sequence is:
 - pull request [#141](https://github.com/roblebaegaming/DraftCenter/pull/141)
   for natural Worlds Home and competition-status navigation copy; and
 - pull request [#142](https://github.com/roblebaegaming/DraftCenter/pull/142)
-  for the published TCG Masters cutoff and direct-invite reconciliation.
+  for the published TCG Masters cutoff and direct-invite reconciliation; and
+- pull request [#144](https://github.com/roblebaegaming/DraftCenter/pull/144)
+  for the one-action **Share your picks** interface.
 
-Vercel reports exact `main` commit `4f781e9` Ready in Production. The signed-out
+Vercel reports exact application commit `c944308` Ready in Production. The signed-out
 production smoke sweep passed all 19 public and protected routes. The live TCG
 page was also checked for the 425 cutoff rows, 45 direct invite earners,
 437-player working total, **Worlds Home** navigation, and retained fail-closed
