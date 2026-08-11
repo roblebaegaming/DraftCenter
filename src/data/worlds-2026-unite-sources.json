@@ -1,0 +1,63 @@
+{
+  "eventId": "2026-pokemon-unite",
+  "game": "Pokémon UNITE",
+  "entryUnit": "team",
+  "competitionScope": "five-on-five-teams",
+  "ageScope": "official-team-eligibility-without-private-age-inference",
+  "rosterStatus": "waiting-for-official-roster",
+  "rosterReady": false,
+  "predictionStatus": "not-open",
+  "sourceCheckedAt": "2026-08-10",
+  "qualificationRules": {
+    "url": "https://championships.pokemon.com/en-us/about/pokemon-unite-championship-series",
+    "qualificationAwards": [
+      { "path": "North America Regional League Top 2", "teams": 2 },
+      { "path": "Europe Regional League Top 2", "teams": 2 },
+      { "path": "Latin America Regional League Top 2", "teams": 2 },
+      { "path": "Aeos Cup champion", "teams": 1 },
+      { "path": "Final Stretch champion", "teams": 1 },
+      { "path": "Pokémon UNITE Asia Champions League champion", "teams": 1 },
+      { "path": "Open Last Chance Qualifier regional champions", "teams": 6 }
+    ],
+    "modeledQualificationAwardTotal": 15,
+    "regionalZones": [
+      "Brazil",
+      "Europe",
+      "Latin America – North",
+      "Latin America – South",
+      "North America",
+      "Oceania"
+    ]
+  },
+  "tournamentRules": {
+    "url": "https://www.pokemon.com/static-assets/content-assets/cms2/pdf/play-pokemon/rules/pokemon-unite-championship-series-handbook-en.pdf",
+    "formatKnown": "5-on-5 team competition",
+    "worldsStructureStatus": "official-final-roster-groups-and-bracket-not-published"
+  },
+  "competitorPage": {
+    "url": "https://worlds.pokemon.com/en-us/competitors/",
+    "status": "registration-by-invitation-roster-coming-soon"
+  },
+  "predictionDesign": {
+    "entryUnit": "team",
+    "status": "complete-team-bracket-after-official-groups-and-pairings",
+    "doNotAssume": [
+      "Do not create separate prediction entries for individual team members.",
+      "Do not infer the final registered field from qualification awards alone.",
+      "Do not invent group assignments, seeds, byes, or elimination pairings."
+    ]
+  },
+  "resultAutomation": {
+    "status": "unconfigured",
+    "requirements": [
+      "Identify an exact official or permitted structured team-results feed.",
+      "Map organizations and roster-name changes through reviewed aliases.",
+      "Require owner review before final scoring and retain the last-known-good snapshot."
+    ]
+  },
+  "sources": [
+    { "label": "2026 UNITE qualification and season format", "url": "https://championships.pokemon.com/en-us/about/pokemon-unite-championship-series" },
+    { "label": "Pokémon UNITE Championship Series handbook", "url": "https://www.pokemon.com/static-assets/content-assets/cms2/pdf/play-pokemon/rules/pokemon-unite-championship-series-handbook-en.pdf" },
+    { "label": "2026 Worlds competitor information", "url": "https://worlds.pokemon.com/en-us/competitors/" }
+  ]
+}

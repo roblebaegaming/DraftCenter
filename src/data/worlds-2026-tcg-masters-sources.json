@@ -6,6 +6,13 @@
   "rosterStatus": "source-reconciliation",
   "rosterReady": false,
   "sourceCheckedAt": "2026-08-10",
+  "predictionDesign": {
+    "entryUnit": "individual",
+    "status": "pick-10-with-your-champion-after-roster-audit",
+    "pickCount": 10,
+    "selectionLabel": "Your Champion",
+    "selectionMultiplier": 2
+  },
   "qualificationRules": {
     "url": "https://championships.pokemon.com/en-us/about/",
     "championshipPointSlots": [

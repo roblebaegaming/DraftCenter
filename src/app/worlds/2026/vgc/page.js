@@ -3,7 +3,7 @@ import roster from "../../../../data/worlds-2026-vgc-masters.json";
 
 const canonicalUrl = "https://www.draftcentral.gg/worlds/2026/vgc";
 const pageTitle = "2026 Pokémon Worlds VGC Predictions";
-const pageDescription = `Browse ${roster.competitors.length} Pokémon Worlds 2026 VGC Masters invitees, pick 16 qualified players and one Ace Pick, and follow the community leaderboard.`;
+const pageDescription = `Browse ${roster.competitors.length} Pokémon Worlds 2026 VGC Masters invitees, pick 10 qualified players, name Your Champion, and follow the community leaderboard.`;
 
 export const metadata = {
   title: pageTitle,

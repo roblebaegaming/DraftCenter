@@ -1,0 +1,75 @@
+{
+  "eventId": "2026-pokemon-go",
+  "game": "Pokémon GO",
+  "entryUnit": "individual",
+  "competitionScope": "single-open-competition",
+  "ageScope": "official-eligible-competitors-without-private-age-inference",
+  "rosterStatus": "waiting-for-official-roster",
+  "rosterReady": false,
+  "predictionStatus": "not-open",
+  "sourceCheckedAt": "2026-08-10",
+  "qualificationRules": {
+    "url": "https://championships.pokemon.com/en-us/about/",
+    "championshipPointSlots": [
+      { "ratingZone": "USA & Canada", "slots": 75 },
+      { "ratingZone": "Europe", "slots": 65 },
+      { "ratingZone": "Latin America", "slots": 65 },
+      { "ratingZone": "Oceania", "slots": 10 },
+      { "ratingZone": "Middle East & South Africa", "slots": 5 }
+    ],
+    "championshipPointSlotTotal": 220,
+    "directInvitePaths": [
+      "Special Championships winners",
+      "Regional Championships winners",
+      "International Championships Top 4",
+      "2025 World Championships Top 4"
+    ],
+    "directInvitesPassDown": false,
+    "separatePrograms": [
+      "Japan",
+      "South Korea",
+      "Mainland China",
+      "Asia-Pacific"
+    ]
+  },
+  "tournamentRules": {
+    "url": "https://www.pokemon.com/static-assets/content-assets/cms2/pdf/play-pokemon/rules/play-pokemon-pokemon-go-tournament-handbook-en.pdf",
+    "formatKnown": "Great League, bring up to six Pokémon and choose three per game",
+    "worldsStructureStatus": "official-worlds-phase-and-pairings-not-published"
+  },
+  "leaderboard": {
+    "url": "https://www.pokemon.com/us/play-pokemon/leaderboards/pokemon-go/",
+    "season": 2026,
+    "status": "published-needs-cutoffs-direct-invites-and-separate-program-deduplication"
+  },
+  "competitorPage": {
+    "url": "https://worlds.pokemon.com/en-us/competitors/",
+    "status": "registration-by-invitation-roster-coming-soon"
+  },
+  "predictionDesign": {
+    "entryUnit": "individual",
+    "status": "pick-10-with-your-champion-after-roster-audit",
+    "pickCount": 10,
+    "selectionLabel": "Your Champion",
+    "selectionMultiplier": 2,
+    "doNotAssume": [
+      "Do not label the Championship Point leaderboard as the final registered field.",
+      "Do not infer private age or treat eligibility as an adult-only guarantee.",
+      "Do not publish a Worlds bracket until the official phase size and pairings exist."
+    ]
+  },
+  "resultAutomation": {
+    "status": "unconfigured",
+    "requirements": [
+      "Confirm an exact structured results feed and permission to poll it.",
+      "Review competitor aliases against the final roster and quarantine every mismatch.",
+      "Keep last-known-good scores and require an owner-reviewed official final source."
+    ]
+  },
+  "sources": [
+    { "label": "2026 qualification rules", "url": "https://championships.pokemon.com/en-us/about/" },
+    { "label": "Pokémon GO tournament handbook", "url": "https://www.pokemon.com/static-assets/content-assets/cms2/pdf/play-pokemon/rules/play-pokemon-pokemon-go-tournament-handbook-en.pdf" },
+    { "label": "Official Pokémon GO leaderboard", "url": "https://www.pokemon.com/us/play-pokemon/leaderboards/pokemon-go/" },
+    { "label": "2026 Worlds competitor information", "url": "https://worlds.pokemon.com/en-us/competitors/" }
+  ]
+}

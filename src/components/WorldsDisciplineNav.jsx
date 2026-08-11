@@ -4,8 +4,8 @@ const items = [
   { id: "overview", label: "Overview", status: "All games", href: "/worlds/2026" },
   { id: "vgc", label: "VGC", status: "Live", href: "/worlds/2026/vgc" },
   { id: "tcg", label: "TCG", status: "In build", href: "/worlds/2026/tcg" },
-  { id: "go", label: "Pokémon GO", status: "Planned" },
-  { id: "unite", label: "Pokémon UNITE", status: "Planned" },
+  { id: "go", label: "Pokémon GO", status: "Source audit", href: "/worlds/2026/go" },
+  { id: "unite", label: "Pokémon UNITE", status: "Source audit", href: "/worlds/2026/unite" },
 ];
 
 export default function WorldsDisciplineNav({ current = "overview" }) {

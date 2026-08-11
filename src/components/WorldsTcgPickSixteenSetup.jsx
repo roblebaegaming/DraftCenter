@@ -27,11 +27,11 @@ export default function WorldsTcgPickSixteenSetup({ sourceRegistry }) {
     <section className="worlds-hero worlds-tcg-hero">
       <div>
         <span className="eyebrow">POKÉMON TCG · MASTERS DIVISION</span>
-        <h1>TCG Pick 16 is being built from the complete invite field.</h1>
-        <p>The scoring and Ace Pick are set. Before selections open, DraftCenter is reconciling every official Championship Point cutoff, direct invite, and separately managed regional program into one Masters-only roster.</p>
+        <h1>TCG Pick 10 is being built from the complete invite field.</h1>
+        <p>The scoring and Your Champion choice are set. Before selections open, DraftCenter is reconciling every official Championship Point cutoff, direct invite, and separately managed regional program into one Masters-only roster.</p>
         <div className="worlds-hero-actions">
           <a className="primary-button inline-link-button" href="#source-audit">See the source audit</a>
-          <Link className="quiet-button" href="/worlds/2026/vgc">Play VGC Pick 16</Link>
+          <Link className="quiet-button" href="/worlds/2026/vgc">Play VGC Pick 10</Link>
         </div>
       </div>
       <aside className="worlds-event-card worlds-tcg-build-card">
@@ -40,7 +40,7 @@ export default function WorldsTcgPickSixteenSetup({ sourceRegistry }) {
         <p>Saving stays closed until the roster audit passes.</p>
         <dl>
           <div><dt>Division</dt><dd>TCG Masters</dd></div>
-          <div><dt>Format</dt><dd>Pick 16 + Ace</dd></div>
+          <div><dt>Format</dt><dd>Pick 10 + Your Champion</dd></div>
           <div><dt>Sources checked</dt><dd>{displayDate(sourceRegistry.sourceCheckedAt)}</dd></div>
         </dl>
       </aside>
@@ -84,8 +84,8 @@ export default function WorldsTcgPickSixteenSetup({ sourceRegistry }) {
 
       <aside className="worlds-scoring-card worlds-tcg-scoring-card">
         <span className="eyebrow">SCORING LOCKED IN</span>
-        <h2>Champion: 30 points. Ace Pick: ×2.</h2>
-        <p>Each entry will choose 16 TCG Masters competitors and designate one Ace Pick whose placement score counts twice.</p>
+        <h2>Champion: 30 points. Your Champion: ×2.</h2>
+        <p>Each entry will choose 10 TCG Masters competitors and designate Your Champion, whose placement score counts twice.</p>
         <ol>{WORLDS_2026_SCORING.map(([label, points]) => <li key={label}><span>{label}</span><strong>{points} pts</strong></li>)}</ol>
       </aside>
     </section>
@@ -93,7 +93,7 @@ export default function WorldsTcgPickSixteenSetup({ sourceRegistry }) {
     <section className="worlds-tcg-readiness">
       <header><span className="eyebrow">RELEASE GATES</span><h2>What remains before TCG picks open</h2></header>
       <ol>
-        <li className="is-complete"><span>1</span><div><strong>Product rules</strong><p>Pick 16, 30-point champion, Ace Pick ×2, Masters only.</p></div></li>
+        <li className="is-complete"><span>1</span><div><strong>Product rules</strong><p>Pick 10, 30-point champion, Your Champion ×2, Masters only.</p></div></li>
         <li className="is-active"><span>2</span><div><strong>Championship Point cutoffs</strong><p>Reconcile the five official zone leaderboards against their exact Masters slot counts.</p></div></li>
         <li><span>3</span><div><strong>Direct and separate-program invites</strong><p>Add official event earners and the Japan, South Korea, mainland China, and Asia-Pacific rosters without duplicates.</p></div></li>
         <li><span>4</span><div><strong>Isolated Preview test</strong><p>Apply a new forward-only migration, then verify saving, privacy, scoring, RLS, grants, and cleanup away from production.</p></div></li>

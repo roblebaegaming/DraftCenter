@@ -34,6 +34,9 @@ test("release migrations use one production number each", () => {
   assert.ok(migrations.includes("366-multi-pod-manager-and-spectator-access.sql"));
   assert.ok(migrations.includes("369-worlds-pick-sixteen.sql"));
   assert.ok(migrations.includes("370-seed-worlds-2026-vgc-masters-roster.sql"));
+  assert.ok(migrations.includes("371-worlds-vgc-live-scoring.sql"));
+  assert.ok(migrations.includes("372-worlds-vgc-top-cut-bracket.sql"));
+  assert.ok(migrations.includes("373-worlds-pick-ten-and-champion-label.sql"));
 });
 
 test("the Gen 6 schema gate supports the official X and Y game keys", () => {

@@ -59,9 +59,9 @@ test("the scoring curve is progressive, includes Top 64, and caps at 30", () => 
 
 test("overall standings give each competition an equal 100-point share", () => {
   assert.equal(WORLDS_OVERALL_POINTS_PER_DISCIPLINE, 100);
-  assert.equal(WORLDS_VGC_MAX_RAW_SCORE, 164);
-  assert.equal(normalizeWorldsDisciplineScore(164, WORLDS_VGC_MAX_RAW_SCORE), 100);
-  assert.equal(normalizeWorldsDisciplineScore(82, WORLDS_VGC_MAX_RAW_SCORE), 50);
+  assert.equal(WORLDS_VGC_MAX_RAW_SCORE, 140);
+  assert.equal(normalizeWorldsDisciplineScore(140, WORLDS_VGC_MAX_RAW_SCORE), 100);
+  assert.equal(normalizeWorldsDisciplineScore(70, WORLDS_VGC_MAX_RAW_SCORE), 50);
   assert.equal(normalizeWorldsDisciplineScore(999, WORLDS_VGC_MAX_RAW_SCORE), 100);
   assert.equal(normalizeWorldsDisciplineScore(0, WORLDS_VGC_MAX_RAW_SCORE), 0);
   assert.equal(normalizeWorldsDisciplineScore(30, 0), 0);
@@ -74,15 +74,15 @@ test("roster search handles names, accents, countries, regions, and qualificatio
   assert.equal(filterWorldsCompetitors(normalizedRoster, "KOR", "Japan").length, 0);
 });
 
-test("Pick 16 selection prevents a seventeenth competitor", () => {
+test("Pick 10 selection prevents an eleventh competitor", () => {
   let picks = [];
   for (let index = 0; index < WORLDS_2026_PICK_COUNT; index += 1) {
     picks = toggleWorldsPick(picks, `player-${index}`).picks;
   }
-  const full = toggleWorldsPick(picks, "player-16");
+  const full = toggleWorldsPick(picks, "player-10");
   assert.equal(full.picks.length, WORLDS_2026_PICK_COUNT);
-  assert.match(full.error, /16 spots are full/);
-  assert.equal(toggleWorldsPick(picks, "player-0").picks.length, 15);
+  assert.match(full.error, /10 spots are full/);
+  assert.equal(toggleWorldsPick(picks, "player-0").picks.length, 9);
 });
 
 test("entry locking respects status, open time, and the published deadline", () => {
@@ -94,8 +94,10 @@ test("entry locking respects status, open time, and the published deadline", () 
 
 test("the database contract keeps entries private before lock and browser writes inside an authenticated RPC", () => {
   const schema = source("supabase/369-worlds-pick-sixteen.sql");
+  const pickTen = source("supabase/373-worlds-pick-ten-and-champion-label.sql");
   const seed = source("supabase/370-seed-worlds-2026-vgc-masters-roster.sql");
   const preview = source("supabase/tests/369-worlds-pick-sixteen-preview-regression.sql");
+  const pickTenPreview = source("supabase/tests/373-worlds-pick-ten-and-champion-preview-regression.sql");
   assert.match(schema, /alter table public\.worlds_pick_entries enable row level security/i);
   assert.match(schema, /revoke all on table public\.worlds_pick_entries from public, anon, authenticated/i);
   assert.match(schema, /create or replace function public\.save_worlds_pick_entry[\s\S]+security definer[\s\S]+set search_path = public/i);
@@ -106,7 +108,16 @@ test("the database contract keeps entries private before lock and browser writes
   assert.match(schema, /score_points between 0 and 30/i);
   assert.match(schema, /ace_slug text not null check \(ace_slug = any\(pick_slugs\)\)/i);
   assert.match(schema, /selected\.slug = entry\.ace_slug then 2 else 1/i);
-  assert.match(schema, /Choose one Ace Pick from your 16 competitors/i);
+  assert.match(pickTen, /lock table public\.worlds_pick_entries in access exclusive mode/i);
+  assert.match(pickTen, /where event_id = '2026-vgc-masters'[\s\S]+Cannot change the 2026 VGC Masters format after an entry has been saved/i);
+  assert.match(pickTen, /Expected the 2026 VGC Masters event to require 16 picks/i);
+  assert.match(pickTen, /v_status <> 'open' or now\(\) >= v_locks_at/i);
+  assert.match(pickTen, /display_name = '2026 VGC Worlds Pick 10'[\s\S]+picks_required = 10/i);
+  assert.match(pickTen, /'maximum_raw_score', 140/i);
+  assert.match(pickTen, /'selection_label', 'Your Champion'/i);
+  assert.match(pickTen, /Choose Your Champion from your % selected competitors/i);
+  assert.match(pickTen, /check \(cardinality\(pick_slugs\) between 1 and 64\)/i);
+  assert.doesNotMatch(pickTen, /delete from public\.worlds_pick_entries/i);
   assert.match(schema, /grant execute on function public\.save_worlds_pick_entry\(text, text\[\], text\) to authenticated/i);
   assert.equal((seed.match(/\('2026-vgc-masters'/g) || []).length, 438);
   for (const [index, competitor] of roster.competitors.entries()) {
@@ -118,12 +129,16 @@ test("the database contract keeps entries private before lock and browser writes
   assert.match(preview, /other_entry_private_before_lock/);
   assert.match(preview, /ace_scoring_doubled/);
   assert.match(preview, /fixtures_removed/);
+  assert.match(pickTenPreview, /picks_required = 10/i);
+  assert.match(pickTenPreview, /invalid_champion_denied/i);
+  assert.match(pickTenPreview, /champion_scoring_doubled/i);
+  assert.match(pickTenPreview, /fixtures_removed/i);
 });
 
 test("the Worlds page defers bracket predictions until official pairings exist", () => {
   const page = source("src/components/WorldsPickSixteen.jsx");
-  assert.match(page, /Waiting for the official Worlds bracket/);
-  assert.match(page, /will not invent seeds or matchups/);
+  assert.match(page, /The Top Cut prediction room is ready/);
+  assert.match(page, /No seeds or matchups are invented in advance/);
   assert.match(page, /Your choices stay private until entries lock/);
   assert.match(page, /Junior- and Senior-Division qualifiers are excluded/);
   assert.match(page, /does not collect or infer private age data/);
@@ -133,13 +148,15 @@ test("the Worlds page defers bracket predictions until official pairings exist",
   assert.match(page, /compiled from Victory Road&apos;s 2026 World Championships invite tracker for VGC Masters/);
   assert.match(page, /This is an invite-earned list, not a confirmed attendance or registration list/);
   assert.match(page, /href=\{rosterSource\.sourceUrl\}/);
-  assert.match(page, /Choose one Ace Pick whose placement points count twice/);
+  assert.match(page, /Choose Your Champion, whose placement points count twice/);
   assert.match(page, /Sign in to build your Worlds prediction/);
   assert.match(page, /Like DraftCenter&apos;s Daily Games/);
   assert.match(page, /disabled=\{!user \|\| locked \|\| unavailable\}/);
   assert.match(page, /if \(!user \|\| locked/);
   assert.match(page, /name="worlds-ace"/);
   assert.match(page, /p_ace_slug: ace/);
+  assert.match(page, /Your Champion ×2/);
+  assert.doesNotMatch(page, /Ace Pick/);
 });
 
 test("the Worlds overview separates competition and overall leaderboards", () => {
@@ -160,6 +177,9 @@ test("the Worlds overview separates competition and overall leaderboards", () =>
   assert.match(hub, /Opens after two competitions score/);
   assert.match(hub, /Missing an entry earns zero for that game/);
   assert.match(hub, /get_worlds_pick_hub/);
+  assert.match(hub, /get_worlds_result_status/);
+  assert.match(hub, /Live — provisional/);
+  assert.match(hub, /Live standings are unofficial/);
   assert.match(nav, /href: "\/worlds\/2026\/vgc"/);
   assert.match(nav, /href: "\/worlds\/2026\/tcg"/);
   assert.match(overviewPage, /WorldsPredictionsHub/);
@@ -173,6 +193,7 @@ test("the Worlds overview separates competition and overall leaderboards", () =>
   assert.match(overviewPage, /canonical: "\/worlds\/2026"/);
   assert.match(vgcPage, /pageTitle = "2026 Pokémon Worlds VGC Predictions"/);
   assert.match(vgcPage, /canonical: "\/worlds\/2026\/vgc"/);
+  assert.match(vgcPage, /pick 10 qualified players, name Your Champion/);
   assert.match(vgcPage, /eventAttendanceMode: "https:\/\/schema\.org\/OfflineEventAttendanceMode"/);
   assert.match(vgcPage, /sport: "Pokémon Video Game Championships \(VGC\)"/);
   assert.match(vgcPage, /sameAs: "https:\/\/worlds\.pokemon\.com\/en-us"/);
@@ -200,7 +221,10 @@ test("the TCG setup stays Masters-only and fail-closed while its roster is audit
   assert.equal(registry.rosterReady, false);
   assert.equal(registry.qualificationRules.championshipPointSlots.reduce((total, zone) => total + zone.slots, 0), 425);
   assert.deepEqual(registry.separatePrograms.map((item) => item.program), ["Japan", "South Korea", "Mainland China", "Asia-Pacific"]);
-  assert.match(component, /Champion: 30 points\. Ace Pick: ×2\./);
+  assert.equal(registry.predictionDesign.pickCount, 10);
+  assert.equal(registry.predictionDesign.selectionLabel, "Your Champion");
+  assert.equal(registry.predictionDesign.selectionMultiplier, 2);
+  assert.match(component, /Champion: 30 points\. Your Champion: ×2\./);
   assert.match(component, /Junior and Senior competitors stay out of this pool/);
   assert.match(component, /no competitor cards, picks, or saved entries will appear/);
   assert.match(page, /robots: \{ index: false, follow: true \}/);

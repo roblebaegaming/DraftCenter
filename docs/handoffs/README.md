@@ -1,7 +1,19 @@
 # Agent handoffs
 
+[`DraftCenter-agent-handoff-2026-08-10-worlds-predictions-final.md`](DraftCenter-agent-handoff-2026-08-10-worlds-predictions-final.md)
+is the current continuation handoff. It records the deployed Worlds Predictions
+release and the isolated, not-yet-released VGC live-scoring implementation. The
+new importer remains disabled pending migration 371 Preview validation, source
+permission, exact feed approval, and separate scheduler authorization.
+It also records the isolated migration 372 Top Cut infrastructure, which is
+seeded without a field and requires its own Preview matrix plus reviewed official
+pairings before any production challenge can open.
+The same branch now includes fail-closed Pokémon GO and Pokémon UNITE source
+audits. GO is modeled around individual Trainers and UNITE around 5-on-5 teams;
+neither route contains a roster, saving, database event, or enabled polling.
+
 [`DraftCenter-agent-handoff-2026-08-10-seo-ai-answer-resources.md`](DraftCenter-agent-handoff-2026-08-10-seo-ai-answer-resources.md)
-is the current continuation handoff. It records the deployed security repair,
+is the prior continuation handoff. It records the deployed security repair,
 five-resource SEO and AI-answer release, exact production commit, Search
 Console sitemap and indexing actions, preserved boundaries, and measurement
 dates.
