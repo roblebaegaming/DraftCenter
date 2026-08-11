@@ -16,8 +16,8 @@ const leaderboardTabs = [
 
 const futureLeaderboardCopy = {
   tcg: ["TCG leaderboard", "Standings will appear after the Masters roster audit passes, entries open, and official results are scored."],
-  go: ["Pokémon GO leaderboard", "The individual entry unit is verified. Standings stay closed while the 220-slot CP base, direct invites, and separate regional programs are reconciled."],
-  unite: ["Pokémon UNITE leaderboard", "The team entry unit and 15 qualification awards are modeled. Standings stay closed until the final registered teams and Worlds groups are published."],
+  go: ["Pokémon GO leaderboard", "The 32-pool-to-double-elimination format is published. Standings stay closed while the final registered Trainers, pool assignments, and pairings remain unavailable."],
+  unite: ["Pokémon UNITE leaderboard", "The round-robin-group-to-single-elimination format is published. Standings stay closed until registered teams, group assignments, advancement details, and pairings are published."],
 };
 
 export default function WorldsPredictionsHub() {
@@ -116,17 +116,17 @@ export default function WorldsPredictionsHub() {
           <strong>See TCG progress →</strong>
         </Link>
         <Link className="worlds-competition-card is-building is-go" href="/worlds/2026/go">
-          <span className="worlds-status-pill">Source audit</span>
+          <span className="worlds-status-pill">Format published</span>
           <small>MOBILE BATTLES</small>
           <h3>Pokémon GO</h3>
-          <p>The individual Pick 10 format is set, and 220 Championship Point slots are verified. Direct invites and regional programs still need a complete roster audit.</p>
+          <p>The organizer shell is set for 32 pools advancing two each into double elimination. The final registered roster and pairings remain unpublished.</p>
           <strong>See GO progress →</strong>
         </Link>
         <Link className="worlds-competition-card is-building is-unite" href="/worlds/2026/unite">
-          <span className="worlds-status-pill">Source audit</span>
+          <span className="worlds-status-pill">Format published</span>
           <small>TEAM COMPETITION</small>
           <h3>Pokémon UNITE</h3>
-          <p>Fifteen qualification awards are modeled around 5-on-5 teams. The final roster and official Worlds groups remain unpublished.</p>
+          <p>Single round-robin groups now officially feed single-elimination playoffs. The registered teams, groups, advancement details, and pairings remain unpublished.</p>
           <strong>See UNITE progress →</strong>
         </Link>
       </div>

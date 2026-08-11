@@ -8,10 +8,11 @@ Pokémon GO and Pokémon UNITE have deployed, fail-closed source-audit routes at
 application commit `e5dca23b9da09d3a557e485443e7dc5a207b4e20`.
 
 The routes intentionally contain no competitor or team names, live prediction
-controls, saved entries, or enabled results polling. The 2026 Worlds competitor
-page still says registration is invitation-only and that competitor information
-is coming soon. A qualification award is not treated as proof of final
-registration or attendance.
+controls, saved entries, or enabled results polling. On August 11, the 2026
+Worlds competitor page began linking discipline-specific official tournament
+structures. Those pages publish formats, not registered rosters. A
+qualification award is still not treated as proof of final registration or
+attendance.
 
 Release validation passed the complete application suite, the 37-test focused
 Worlds suite, the 1,027-row National Dex check, the production dependency audit,
@@ -65,7 +66,7 @@ The GO template reserves 220 reviewed roster slots and requires the exact
 Pick 10 plus Your Champion contract. A future activation migration may publish
 only reviewed Trainer rows from that file.
 
-The UNITE template reserves the 15 published qualification awards. It can hold
+The UNITE template reserves the 15 TPCi-managed qualification awards. It can hold
 reviewed teams, groups, and match dependencies after Pokémon publishes them,
 but requires an official structure URL and review timestamp before accepting
 any group or match data. A blank waiting template is valid; inferred teams,
@@ -88,11 +89,17 @@ the 2025 Worlds Top 4, and the separately managed Japan, South Korea, mainland
 China, and Asia-Pacific programs. Direct invites do not pass down and every
 path must be deduplicated against the CP standings.
 
-The official GO handbook confirms Great League play, teams of up to six
-Pokémon, and three selected per game. It does not provide the final registered
-2026 Worlds roster, exact phase size, or pairings. The prediction product is
-nevertheless set: choose 10 Trainers and name Your Champion for double
-placement points. No names or entries appear until the reviewed field is ready.
+The official competitor page now confirms the Competitors Cup format at 1,500
+CP or less, three days of competition, a Friday Pools Phase, a Saturday Final
+Phase, and a Sunday Grand Final. The officially linked organizer shell is
+configured for 32 pools advancing two Trainers apiece into double elimination.
+Matches are best-of-three except the Winners Final, Losers Final, and Grand
+Final, which are best-of-five. At the August 11 review the shell contained zero
+players, so it is structure evidence rather than a roster source. The final
+registered roster, pool assignments, pairings, and exact match schedule remain
+unpublished. The prediction product remains Pick 10 plus Your Champion for
+double placement points, and no names or entries appear until the reviewed
+field is ready.
 
 GO eligibility is not an adult-only guarantee. Do not collect or infer birth
 dates. Store only the published competitor identity and qualification metadata
@@ -103,7 +110,8 @@ needed for the prediction game.
 UNITE uses 5-on-5 teams. Individual players are supporting roster attribution,
 not separate prediction entries.
 
-The official 2026 circuit describes 15 qualification awards:
+The official TPCi 2026 circuit page describes 15 TPCi-managed qualification
+awards:
 
 - Top 2 from each of the North America, Europe, and Latin America Regional
   Leagues: six teams;
@@ -113,16 +121,22 @@ The official 2026 circuit describes 15 qualification awards:
 - one Open Last Chance Qualifier winner from each of Brazil, Europe, Latin
   America – North, Latin America – South, North America, and Oceania: six teams.
 
-The 15-award model is not a claim that 15 named teams are registered. Slot
-transfers, pass-down rules, withdrawals, organization changes, and final
-registration still require review. Team aliases must be explicit; never fuzzy
-match an organization or player roster into a live score.
+The 15-award model is the TPCi-managed qualification subtotal, not the complete
+global field and not a claim that 15 named teams are registered. Separately
+managed regional programs, slot transfers, pass-down rules, withdrawals,
+organization changes, and final registration still require review. Team
+aliases must be explicit; never fuzzy match an organization or player roster
+into a live score.
 
-The intended product is a complete team bracket after Pokémon publishes the
-Worlds groups, advancing teams, elimination pairings, and deadline. It can
-reuse the privacy, complete-tree validation, match dependency, and correction
-safeguards from the VGC Top Cut infrastructure, but it must not infer Worlds
-seeds from Regional League standings.
+Pokémon now publishes the phase format: Friday single round-robin groups feed a
+Saturday single-elimination bracket, with a Sunday Final. Matches are
+best-of-three except the Top Four and Final, which are best-of-five. The number
+of teams per group and games per Group Stage match will be announced on-site.
+The registered teams, group assignments, advancement count, elimination
+pairings, and deadline remain unpublished. The intended product can reuse the
+privacy, complete-tree validation, match dependency, and correction safeguards
+from the VGC Top Cut infrastructure, but it must not infer Worlds seeds from
+Regional League standings.
 
 ## Automation plan
 
@@ -165,3 +179,9 @@ require an owner-reviewed official source before finalization.
   <https://play.pokemon.com/en-us/resources/documents/>
 - 2026 Worlds competitor information:
   <https://worlds.pokemon.com/en-us/competitors/>
+- 2026 Pokémon GO competitor structure:
+  <https://registration.pokemon.com/flow/pokemon/26sanfrancisco/landing/page/012gocompetitorinfo>
+- 2026 Pokémon GO bracket shell:
+  <https://pokemongochampionshipseries.challonge.com/2026_GO_WCS>
+- 2026 Pokémon UNITE competitor structure:
+  <https://reg.rainfocus.com/flow/pokemon/26sanfrancisco/landing/page/014unitecompetitorinfo>

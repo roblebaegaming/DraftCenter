@@ -1,0 +1,91 @@
+# 2026 Worlds TCG, GO, and UNITE structure audit
+
+- Review date: August 11, 2026 (America/Los_Angeles)
+- Scope: Pokémon TCG Masters, Pokémon GO, and Pokémon UNITE
+- Outcome: tournament formats are now published; final registered rosters are
+  not published
+- Production action: none
+
+## Decision
+
+The newly published competitor pages are sufficient to update DraftCenter's
+public format guidance, but not to activate TCG or GO Pick 10 or create the
+UNITE team bracket. No activation migration, roster row, prediction entry,
+result source, environment variable, scheduler, or provider setting should
+change from this review.
+
+All three routes remain fail-closed. A qualification list or empty bracket
+shell is not a final registered field.
+
+## Pokémon TCG Masters
+
+The official competitor page confirms:
+
+- all divisions begin Friday, August 28, and conclude Sunday, August 30;
+- Swiss rounds are determined by attendance and can span at most two days;
+- Masters has no scheduled meal break; and
+- the Standard format uses regulation mark H and onward.
+
+The page does not publish the final registered Masters roster, the
+attendance-dependent round count, or pairings. DraftCenter must still reconcile
+the Championship Point cutoffs, direct invites, and separately managed regional
+programs without treating invite-earned status as confirmed attendance.
+
+Official source:
+<https://registration.pokemon.com/flow/pokemon/26sanfrancisco/landing/page/011tcgcompetitorinfo>
+
+## Pokémon GO
+
+The official competitor page confirms:
+
+- Friday Pools Phase in double-elimination groups;
+- Saturday Final Phase in double elimination until two Trainers remain;
+- Sunday Grand Final;
+- best-of-three matches by default; and
+- best-of-five Winners Final, Losers Final, and Grand Final.
+
+The competitor page links the Pokémon GO Championships Challonge organizer.
+Its 2026 Worlds shell is configured as **32 groups advancing two Trainers each,
+then double elimination**. At the August 11 review it contained zero players.
+The shell therefore verifies the structure but does not supply a registered
+roster, pool assignments, pairings, or exact match schedule.
+
+Official and officially linked sources:
+
+- <https://registration.pokemon.com/flow/pokemon/26sanfrancisco/landing/page/012gocompetitorinfo>
+- <https://pokemongochampionshipseries.challonge.com/2026_GO_WCS>
+
+## Pokémon UNITE
+
+The official competitor page confirms:
+
+- five-on-five draft pick on Theia Sky Ruins with three bans;
+- Friday single round-robin groups;
+- Saturday single-elimination playoffs;
+- Sunday Final;
+- best-of-three matches by default; and
+- best-of-five Top Four matches and Final.
+
+It explicitly leaves the number of teams per group and the Group Stage match
+length to an on-site announcement. The final registered teams, group
+assignments, advancement count, elimination pairings, and prediction deadline
+remain unpublished. The existing 15-award registry is a TPCi-managed subtotal,
+not a complete global roster.
+
+Official source:
+<https://reg.rainfocus.com/flow/pokemon/26sanfrancisco/landing/page/014unitecompetitorinfo>
+
+## Activation gate
+
+When a final official roster or structure appears:
+
+1. preserve the exact public source and retrieval time;
+2. reconcile stable identities, qualification paths, aliases, withdrawals,
+   replacements, and duplicates;
+3. create a new forward-only migration after 375;
+4. rehearse the affected roster, RLS, grants, privacy, scoring, and cleanup
+   matrices in an isolated Supabase Preview;
+5. review the exact hosted Preview at desktop and narrow mobile widths; and
+6. release through a protected pull request, then confirm the deployed commit
+   and run the signed-out production smoke sweep.
+

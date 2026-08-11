@@ -244,8 +244,13 @@ test("the TCG setup stays Masters-only and fail-closed while its roster is audit
   assert.equal(registry.predictionDesign.pickCount, 10);
   assert.equal(registry.predictionDesign.selectionLabel, "Your Champion");
   assert.equal(registry.predictionDesign.selectionMultiplier, 2);
+  assert.equal(registry.tournamentRules.status, "official-format-published-roster-not-published");
+  assert.equal(registry.tournamentRules.maximumSwissDays, 2);
+  assert.equal(registry.tournamentRules.legalRegulationMarks, "H and onward");
   assert.match(component, /Champion: 30 points\. Your Champion: ×2\./);
   assert.match(component, /Junior and Senior competitors stay out of this pool/);
+  assert.match(component, /Attendance sets the Swiss round count/);
+  assert.match(component, /published structure does not include the final registered roster/);
   assert.match(component, /no competitor cards, picks, or saved entries will appear/);
   assert.match(page, /robots: \{ index: false, follow: true \}/);
   assert.doesNotMatch(component, /save_worlds_pick_entry/);
