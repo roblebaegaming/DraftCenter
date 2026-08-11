@@ -4,7 +4,8 @@
 is the current continuation handoff. It records every deployable Worlds change
 from the August 11 chat, including natural navigation and sharing copy, the
 437-player TCG working-field reconciliation, and the production fix that keeps
-unfinished Pick 10 choices intact during background refreshes. It separates
+unfinished Pick 10 choices intact during background refreshes. Unavailable
+competition statuses use the plain **Not Live** label. The handoff separates
 the verified live state from TCG, GO, UNITE, VGC Top Cut, and feed activation
 work that still requires official inputs or explicit authorization.
 
