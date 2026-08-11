@@ -145,7 +145,7 @@ test("the Worlds page defers bracket predictions until official pairings exist",
   assert.match(page, /Where this invite list comes from/);
   assert.match(page, /Try Giovanni Cischke, Luca Ceribelli, or Wolfe Glick/);
   assert.doesNotMatch(page, /Try Wolfe, JPN, Regional Champion/);
-  assert.match(page, /compiled from Victory Road&apos;s 2026 World Championships invite tracker for VGC Masters/);
+  assert.match(page, /Victory Road&apos;s 2026 World Championships invite tracker for VGC Masters brings together invite earners/);
   assert.match(page, /This is an invite-earned list, not a confirmed attendance or registration list/);
   assert.match(page, /href=\{rosterSource\.sourceUrl\}/);
   assert.match(page, /Choose Your Champion, whose placement points count twice/);
