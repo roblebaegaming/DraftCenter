@@ -103,8 +103,8 @@ test("the Worlds hub links both source audits but keeps unfinished routes out of
   assert.match(nav, /href: "\/worlds\/2026\/unite"/);
   assert.match(hub, /href="\/worlds\/2026\/go"/);
   assert.match(hub, /href="\/worlds\/2026\/unite"/);
-  assert.match(hub, /organizer shell is set for 32 pools advancing two each into double elimination/);
-  assert.match(hub, /Single round-robin groups now officially feed single-elimination playoffs/);
+  assert.match(hub, /Picks will open after the registered Trainers and pool assignments are published and reviewed/);
+  assert.match(hub, /Team predictions still need the registered teams, group assignments, and playoff bracket/);
   assert.doesNotMatch(sitemap, /\/worlds\/2026\/go/);
   assert.doesNotMatch(sitemap, /\/worlds\/2026\/unite/);
   assert.match(llms, /Pokémon GO Worlds prediction source audit/);

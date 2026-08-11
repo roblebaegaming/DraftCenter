@@ -20,6 +20,12 @@ const futureLeaderboardCopy = {
   unite: ["Pokémon UNITE leaderboard", "The round-robin-group-to-single-elimination format is published. Standings stay closed until registered teams, group assignments, advancement details, and pairings are published."],
 };
 
+const futureLeaderboardStatus = {
+  tcg: "ROSTER PENDING",
+  go: "ROSTER PENDING",
+  unite: "TEAMS PENDING",
+};
+
 export default function WorldsPredictionsHub() {
   const [activeLeaderboard, setActiveLeaderboard] = useState("overall");
   const [disciplineHubs, setDisciplineHubs] = useState({});
@@ -98,36 +104,36 @@ export default function WorldsPredictionsHub() {
     <section className="worlds-competition-section" aria-labelledby="worlds-competition-heading">
       <header>
         <span className="eyebrow">CHOOSE A COMPETITION</span>
-        <h2 id="worlds-competition-heading">One Worlds home. A leaderboard for every game.</h2>
+        <h2 id="worlds-competition-heading">Worlds Home</h2>
       </header>
       <div className="worlds-competition-grid">
         <Link className="worlds-competition-card is-live is-vgc" href="/worlds/2026/vgc">
-          <span className="worlds-status-pill">Open now</span>
+          <span className="worlds-status-pill">Picks open</span>
           <small>VIDEO GAME CHAMPIONSHIPS</small>
           <h3>VGC Masters</h3>
-          <p>Play Pick 10 now, then fill a complete Top Cut bracket once the reviewed official pairings are announced.</p>
+          <p>Pick 10 VGC Masters competitors and choose Your Champion. The Top Cut bracket will open after official pairings are published.</p>
           <strong>Make VGC picks →</strong>
         </Link>
         <Link className="worlds-competition-card is-building is-tcg" href="/worlds/2026/tcg">
-          <span className="worlds-status-pill">In build</span>
+          <span className="worlds-status-pill">Roster pending</span>
           <small>POKÉMON TRADING CARD GAME</small>
           <h3>TCG Masters</h3>
-          <p>Scoring is set. The complete Masters invite roster is being reconciled before picks can open.</p>
-          <strong>See TCG progress →</strong>
+          <p>The prediction game is ready. Picks will open after the complete Masters roster is published and reviewed.</p>
+          <strong>View TCG details →</strong>
         </Link>
         <Link className="worlds-competition-card is-building is-go" href="/worlds/2026/go">
-          <span className="worlds-status-pill">Format published</span>
+          <span className="worlds-status-pill">Roster pending</span>
           <small>MOBILE BATTLES</small>
           <h3>Pokémon GO</h3>
-          <p>The organizer shell is set for 32 pools advancing two each into double elimination. The final registered roster and pairings remain unpublished.</p>
-          <strong>See GO progress →</strong>
+          <p>The format is set. Picks will open after the registered Trainers and pool assignments are published and reviewed.</p>
+          <strong>View GO details →</strong>
         </Link>
         <Link className="worlds-competition-card is-building is-unite" href="/worlds/2026/unite">
-          <span className="worlds-status-pill">Format published</span>
+          <span className="worlds-status-pill">Teams pending</span>
           <small>TEAM COMPETITION</small>
           <h3>Pokémon UNITE</h3>
-          <p>Single round-robin groups now officially feed single-elimination playoffs. The registered teams, groups, advancement details, and pairings remain unpublished.</p>
-          <strong>See UNITE progress →</strong>
+          <p>The format is set. Team predictions still need the registered teams, group assignments, and playoff bracket.</p>
+          <strong>View UNITE details →</strong>
         </Link>
       </div>
     </section>
@@ -167,12 +173,12 @@ export default function WorldsPredictionsHub() {
           {activeHub.standings.map((entry, index) => <li key={`${entry.display_name}-${index}`}><span>#{entry.rank}</span><strong>{entry.display_name}</strong><b>{entry.score} pts</b></li>)}
         </ol> : <p className="worlds-empty-state">Be the first DraftCenter member to save a {activeConfig.gameLabel} Pick 10 entry.</p>}
       </div> : <div className="worlds-future-leaderboard" role="tabpanel">
-        <span className="eyebrow">{activeHub?.event?.status === "draft" ? "STAGED · ENTRIES CLOSED" : activeLeaderboard === "tcg" ? "IN BUILD" : "PLANNED"}</span>
+        <span className="eyebrow">{futureLeaderboardStatus[activeLeaderboard]}</span>
         <h3>{futureLeaderboardCopy[activeLeaderboard][0]}</h3>
         <p>{futureLeaderboardCopy[activeLeaderboard][1]}</p>
-        {activeLeaderboard === "tcg" && <Link className="quiet-button" href="/worlds/2026/tcg">See the TCG source audit</Link>}
-        {activeLeaderboard === "go" && <Link className="quiet-button" href="/worlds/2026/go">See the GO source audit</Link>}
-        {activeLeaderboard === "unite" && <Link className="quiet-button" href="/worlds/2026/unite">See the UNITE source audit</Link>}
+        {activeLeaderboard === "tcg" && <Link className="quiet-button" href="/worlds/2026/tcg">View TCG details</Link>}
+        {activeLeaderboard === "go" && <Link className="quiet-button" href="/worlds/2026/go">View GO details</Link>}
+        {activeLeaderboard === "unite" && <Link className="quiet-button" href="/worlds/2026/unite">View UNITE details</Link>}
       </div>}
     </section>
   </main>;

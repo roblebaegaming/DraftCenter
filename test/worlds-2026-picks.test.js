@@ -188,6 +188,13 @@ test("the Worlds overview separates competition and overall leaderboards", () =>
   const llms = source("src/app/llms.txt/route.js");
   for (const label of ["Overall", "VGC", "TCG", "Pokémon GO", "Pokémon UNITE"]) assert.match(hub, new RegExp(`label: "${label}"`));
   assert.match(hub, /<h1>2026 Pokémon Worlds Predictions<\/h1>/);
+  assert.match(hub, /<h2 id="worlds-competition-heading">Worlds Home<\/h2>/);
+  assert.match(hub, /Picks open/);
+  assert.match(hub, /Roster pending/);
+  assert.match(hub, /Teams pending/);
+  assert.match(nav, /label: "Worlds Home"/);
+  assert.doesNotMatch(hub, /One Worlds home\. A leaderboard for every game\./);
+  assert.doesNotMatch(hub, /See (TCG|GO|UNITE) progress/);
   assert.match(hub, /Pokémon World Championships 2026: dates, games, and predictions/);
   assert.match(hub, /When and where is Pokémon Worlds 2026\?/);
   assert.match(hub, /Which games are at Pokémon Worlds\?/);
