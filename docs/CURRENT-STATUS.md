@@ -3,7 +3,7 @@
 - Last updated: August 11, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified production application commit: `472752bec6214aeb5fd85db12f36ed4ac59ce4ec`
+- Verified production application commit: `36614e727b81201c479622bc5c4a03d05b744baa`
 - Latest production migration: 375
 
 ## Deployed state
@@ -179,18 +179,30 @@ preparation contract with no database event. The isolated migration rehearsal
 and 371-374 database matrices passed, and both exact disposable Preview branches
 were permanently deleted.
 
-The reusable VGC, TCG, and GO Pick 10 screen includes one optional **Share your
-picks** action once a lineup and Your Champion are complete. It opens the
-device's normal share menu with a 1080 by 1350 PNG when supported and otherwise
-downloads the image. The interface does not name or prioritize individual
-social platforms. Sharing never saves or changes an entry and clearly warns
-that it makes private picks public before lock.
+The reusable VGC, TCG, and GO Pick 10 screen includes a compact **Share your
+picks** panel once a lineup and Your Champion are complete. It has three short
+actions in one row: **Download**, **Instagram**, and **Twitter**. Supported
+phones pass the 1080 by 1350 PNG to the native file share sheet. Other browsers
+download the image and open Instagram or a prefilled Twitter composer so the
+member can attach it. Sharing never saves or changes an entry and clearly
+states that it is public.
 
 The one-action sharing interface shipped through pull request
 [#144](https://github.com/roblebaegaming/DraftCenter/pull/144) as production
 application commit `c944308742cfff250fd910c8331d71ff0f8e2208`. It replaces
 the prior download, app, and X/Twitter button stack without changing entries,
-rosters, scoring, or database state.
+rosters, scoring, or database state. Pull request #152 later restored concise
+platform choices after the owner clarified that the problem was the cluttered
+layout and writing, not the platforms themselves.
+
+The corrected compact platform-sharing release shipped through pull request
+[#152](https://github.com/roblebaegaming/DraftCenter/pull/152) as production
+application commit `36614e727b81201c479622bc5c4a03d05b744baa`.
+It keeps the simple **Share your picks** heading and uses only **Download**,
+**Instagram**, and **Twitter** buttons. Browsers with native file sharing can
+send the generated PNG through the device share sheet; other browsers download
+the PNG and open the selected platform. No prediction entry or database state
+changes when a member shares.
 
 The scoring-card copy cleanup shipped through pull request
 [#146](https://github.com/roblebaegaming/DraftCenter/pull/146) as production
@@ -283,6 +295,14 @@ scheduler changed in this release.
   exact application commit `472752b` Ready in Production. The live Worlds Home
   returned only **Not Live** for unavailable status labels, and the signed-out
   smoke sweep passed all 19 public and protected routes.
+- Pull request #152 passed CodeQL, JavaScript security analysis, the dependency
+  and security suite, the full-history secret scan, and Vercel Preview. The
+  complete application suite, 1,027-row National Dex check, 49-test Worlds
+  suite, dependency audit, and production build passed locally. Vercel reports
+  exact application commit `36614e7` Ready in Production. The deployed client
+  bundle contains the compact heading, Instagram destination, Twitter intent,
+  and public-sharing warning, and the signed-out smoke sweep passed all 19
+  public and protected routes.
 - Signed-in Preview walkthroughs covered the new database-backed workflows.
 - The SEO release passed all protected security, dependency, secret-scan,
   CodeQL, and Vercel checks. Its exact Preview passed desktop and 390px mobile
@@ -292,7 +312,7 @@ scheduler changed in this release.
   passed desktop and 390px mobile Pokédex review without browser errors or
   horizontal overflow. The retained Supabase Preview observer-access matrix
   passed every RLS, grant, allow, denial, full-staff, and cleanup assertion.
-- Vercel reports exact application commit `472752b` Ready in Production on the public
+- Vercel reports exact application commit `36614e7` Ready in Production on the public
   production domains.
 - The signed-out production smoke sweep passes, including protected 401
   boundaries. Focused live checks also pass for tournament metadata and JSON-LD,
