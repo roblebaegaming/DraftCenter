@@ -253,7 +253,7 @@ export default function WorldsPickSixteen({ rosterSource, discipline = "vgc" }) 
           <span className="eyebrow">ROSTER SOURCE</span>
           {config.key === "vgc" ? <>
             <h3 id="worlds-roster-source-heading">Where this invite list comes from</h3>
-            <p>This {displayPacificDate(`${rosterSource.sourceCheckedAt}T12:00:00Z`)} snapshot was compiled from Victory Road&apos;s 2026 World Championships invite tracker for VGC Masters. The tracker brings together invite earners from official Championship Point standings and qualifying event results.</p>
+            <p>Victory Road&apos;s 2026 World Championships invite tracker for VGC Masters brings together invite earners from official Championship Point standings and qualifying event results.</p>
             <small>This is an invite-earned list, not a confirmed attendance or registration list.</small>
           </> : <>
             <h3 id="worlds-roster-source-heading">Where this roster comes from</h3>
