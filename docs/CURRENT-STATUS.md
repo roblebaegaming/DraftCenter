@@ -3,7 +3,7 @@
 - Last updated: August 10, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified production application commit: `e5dca23b9da09d3a557e485443e7dc5a207b4e20`
+- Verified production application commit: `eb951de33bd4ace0463cb9ea57fab9a0e460b188`
 - Latest production migration: 373
 
 ## Deployed state
@@ -155,6 +155,16 @@ GO and UNITE source-audit routes are live with no names, saving, or polling;
 TCG and GO use Pick 10 plus Your Champion as their post-roster-audit contract,
 while UNITE remains team-bracket based.
 
+The Worlds event-day operations follow-up shipped through pull request
+[#130](https://github.com/roblebaegaming/DraftCenter/pull/130) as production
+application commit `eb951de33bd4ace0463cb9ea57fab9a0e460b188`. After an
+official field size is known, owner Operations can download a blank or partially
+completed Top Cut setup JSON, review it offline, and load it back without
+publishing. The stable guides now reflect the deployed state and include the
+announcement checklist plus a ready-to-send results-feed permission request.
+The request has not been sent, the importer remains disabled, and no database,
+provider, field, entry, or scheduler changed in the follow-up.
+
 ## Release verification
 
 - The complete application tests, National Dex verification across 1,027
@@ -247,6 +257,12 @@ while UNITE remains team-bracket based.
   branch was deleted by its exact identifier after release. Desktop and 390px
   hosted review and the live signed-out route sweep passed with no browser
   errors; the post-deployment 19-route production smoke sweep also passed.
+- Pull request #130 passed the dependency audit, complete application suite,
+  1,027-row National Dex verification, focused 38-test Worlds suite, optimized
+  236-page build, all six protected checks, and Vercel Preview. The hosted
+  signed-out Operations gate remained closed and logged no browser errors. The
+  exact `main` commit `eb951de` reached Ready in Production, and the
+  post-deployment 19-route production smoke sweep passed.
 - No merge protection was bypassed.
 
 ## Preserved boundaries
@@ -269,6 +285,8 @@ while UNITE remains team-bracket based.
   and untouched.
 - No production provider configuration, environment variable, or secret was
   changed.
+- The PokeData permission request is a repository draft only. It has not been
+  sent and does not authorize polling or manual feed use.
 
 ## Remaining work
 

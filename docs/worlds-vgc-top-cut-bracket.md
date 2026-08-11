@@ -9,7 +9,10 @@ roster, or promotional copy.
 
 The challenge is deployed through pull request
 [#128](https://github.com/roblebaegaming/DraftCenter/pull/128) and production
-application commit `e5dca23b9da09d3a557e485443e7dc5a207b4e20`.
+feature commit `e5dca23b9da09d3a557e485443e7dc5a207b4e20`. The safe setup
+draft download and event-day operating package shipped through pull request
+[#130](https://github.com/roblebaegaming/DraftCenter/pull/130) and current
+production application commit `eb951de33bd4ace0463cb9ea57fab9a0e460b188`.
 Forward-only migration 372 is applied to the exact core production project.
 Production remains in `waiting_for_official_bracket` state with no slots or
 entries. No provider, scheduler, fictional field, or environment value was
