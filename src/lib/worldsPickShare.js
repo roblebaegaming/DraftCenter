@@ -51,6 +51,13 @@ export function worldsShareText(gameLabel = "VGC") {
   return `My 2026 Pok\u00e9mon Worlds ${label} picks.`;
 }
 
+export function worldsTwitterShareUrl(discipline, gameLabel = "VGC") {
+  const intent = new URL("https://twitter.com/intent/tweet");
+  intent.searchParams.set("text", worldsShareText(gameLabel));
+  intent.searchParams.set("url", worldsShareUrl(discipline));
+  return intent.toString();
+}
+
 function roundedRect(context, x, y, width, height, radius) {
   context.beginPath();
   context.roundRect(x, y, width, height, radius);
