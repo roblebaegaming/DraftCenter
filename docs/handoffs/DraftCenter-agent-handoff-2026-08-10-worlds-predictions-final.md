@@ -52,6 +52,8 @@ unmatched or ambiguous identities, preserves the last accepted snapshot on
 failure, and requires owner finalization. Manual upload remains the fallback
 when a permitted live feed is unavailable. Stable operating detail is in
 [`../worlds-vgc-live-scoring.md`](../worlds-vgc-live-scoring.md).
+The ready-to-send request and safe approval record are in
+[`../worlds-vgc-results-feed-permission-request.md`](../worlds-vgc-results-feed-permission-request.md).
 
 ### Top Cut bracket
 
@@ -67,6 +69,9 @@ match winners. Provisional Swiss standings cannot populate the bracket;
 automatic placement backfill is allowed only from an owner-finalized result
 snapshot. Stable detail is in
 [`../worlds-vgc-top-cut-bracket.md`](../worlds-vgc-top-cut-bracket.md).
+The owner can download a blank or partially completed setup JSON after the
+official field size is known; the review and publication sequence is in
+[`../worlds-vgc-top-cut-announcement-checklist.md`](../worlds-vgc-top-cut-announcement-checklist.md).
 
 ### TCG, GO, and UNITE
 
@@ -139,7 +144,8 @@ Do not add a feed URL or enable polling merely because the code is deployed.
 
 1. When the official VGC Masters Top Cut is announced, verify the source, exact
    field, seeds, pairings, opening time, and lock deadline before publishing.
-   Publishing the real field is an explicit production data action.
+   Use the announcement checklist and downloadable setup draft. Publishing the
+   real field is an explicit production data action.
 2. Complete the TCG Masters roster audit across Championship Point standings,
    direct invites, deduplication, and the separately managed Japan, South Korea,
    Mainland China, and Asia-Pacific programs.

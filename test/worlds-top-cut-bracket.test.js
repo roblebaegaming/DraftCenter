@@ -3,6 +3,7 @@ import fs from "node:fs";
 import test from "node:test";
 import {
   buildWorldsBracketRounds,
+  buildWorldsBracketSetupTemplate,
   chooseWorldsBracketWinner,
   defaultWorldsBracketRoundPoints,
   normalizeWorldsBracketPublication,
@@ -25,6 +26,17 @@ test("Top Cut sizes and default round weights stay configurable but bounded", ()
   assert.deepEqual([4, 8, 16, 32, 64].map(worldsBracketRoundCount), [2, 3, 4, 5, 6]);
   assert.deepEqual(defaultWorldsBracketRoundPoints(8), { 1: 1, 2: 2, 3: 4 });
   assert.throws(() => worldsBracketRoundCount(12), /4, 8, 16, 32, or 64/);
+});
+
+test("announcement-day setup templates are complete, editable, and make no field claims", () => {
+  const template = buildWorldsBracketSetupTemplate(8);
+  assert.equal(template.bracket_size, 8);
+  assert.deepEqual(template.round_points, { 1: 1, 2: 2, 3: 4 });
+  assert.equal(template.participants.length, 8);
+  assert.deepEqual(template.participants[0], { slot: 1, competitor_slug: "", source_seed: null });
+  assert.equal(template.source_url, "");
+  assert.equal(template.opens_at, "");
+  assert.throws(() => buildWorldsBracketSetupTemplate(12), /4, 8, 16, 32, or 64/);
 });
 
 test("a prediction follows its own winners and clears invalid downstream picks", () => {
@@ -109,6 +121,7 @@ test("the owner route, public page, and live finalization use the reviewed autom
   assert.match(resultRoute, /sync_worlds_bracket_from_final_results/);
   assert.match(operations, /Choose after announcement/);
   assert.match(operations, /Load setup JSON/);
+  assert.match(operations, /Download setup JSON/);
   assert.match(operations, /Nothing has been published yet/);
   assert.match(page, /no names, seeds, or matchups will appear/i);
   assert.match(page, /everyone else&apos;s choices remain private until lock/i);

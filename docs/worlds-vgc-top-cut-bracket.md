@@ -7,10 +7,13 @@ still says more competitor information is coming, so none of those details are
 safe to infer from prior Worlds events, Swiss standings, the invite-earned
 roster, or promotional copy.
 
-This is a local implementation on
-`codex/worlds-live-scoring-2026-08-10`, not a production release. Forward-only
-migration 372 has not been applied to a database. No provider, scheduler,
-production data, prediction entry, or environment value was changed.
+The challenge is deployed through pull request
+[#128](https://github.com/roblebaegaming/DraftCenter/pull/128) and production
+application commit `e5dca23b9da09d3a557e485443e7dc5a207b4e20`.
+Forward-only migration 372 is applied to the exact core production project.
+Production remains in `waiting_for_official_bracket` state with no slots or
+entries. No provider, scheduler, fictional field, or environment value was
+added.
 
 ## Public lifecycle
 
@@ -73,6 +76,15 @@ must include every slot and unique competitor for the chosen size. Loading a
 file changes only the local form. The owner still reviews it and performs the
 explicit publication action.
 
+After choosing the official field size in Operations, **Download setup JSON**
+creates a reviewable blank or partially completed draft with every required
+slot and the default progressive round weights. Empty source, time, competitor,
+and seed fields make no event claims and cannot be published. The owner can
+complete the file offline, load it back, verify every resolved roster name, and
+then use the existing typed publication confirmation. The announcement-day
+procedure is in
+[`worlds-vgc-top-cut-announcement-checklist.md`](worlds-vgc-top-cut-announcement-checklist.md).
+
 Once any member saves an entry, the published field cannot be replaced. That
 prevents a source correction from silently changing the meaning of an existing
 prediction. A real post-publication field correction needs a separately
@@ -102,7 +114,7 @@ If live match-level data becomes available later, add a narrowly validated
 provider adapter that emits exact `(round, match, winner)` records into the
 existing result RPC. Do not reuse Swiss placement order as that adapter.
 
-## Database and release gates
+## Database and release evidence
 
 Migration 372 adds five private RLS tables:
 
@@ -120,7 +132,7 @@ pre-lock result denial, provisional-placement automation denial, advancement,
 automatic scoring, owner finalization, post-final write denial, and exact
 fixture cleanup.
 
-Before release:
+Before the production release:
 
 - apply migrations 371-373 only to an isolated Preview branch;
 - run both Preview regression matrices and confirm migration-ledger alignment;
@@ -132,6 +144,9 @@ Before release:
 - release through a protected pull request, confirm the deployed commit, then
   run the signed-out production smoke sweep.
 
-Applying migration 372 prepares the empty infrastructure. It does not authorize
-publishing the real field, changing production data, or treating an unofficial
-source as official.
+Those gates passed on a disposable isolated Preview branch and protected pull
+request #128. The branch and its fixtures were permanently deleted after
+production verification. Applying migration 372 prepared only the empty
+infrastructure; it did not authorize publishing a real field, changing
+production data, or treating an unofficial source as official. Every future
+database change must use a new forward-only migration after 373.

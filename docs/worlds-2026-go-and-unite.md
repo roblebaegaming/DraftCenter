@@ -2,9 +2,10 @@
 
 ## Status
 
-Pokémon GO and Pokémon UNITE now have local, fail-closed source-audit routes at
-`/worlds/2026/go` and `/worlds/2026/unite`. They are implemented on the
-isolated `codex/worlds-live-scoring-2026-08-10` branch and are not deployed.
+Pokémon GO and Pokémon UNITE have deployed, fail-closed source-audit routes at
+`/worlds/2026/go` and `/worlds/2026/unite`. They shipped through pull request
+[#128](https://github.com/roblebaegaming/DraftCenter/pull/128) and production
+application commit `e5dca23b9da09d3a557e485443e7dc5a207b4e20`.
 
 The routes intentionally contain no competitor or team names, prediction
 controls, saved entries, database events, or enabled results polling. The 2026
@@ -12,12 +13,13 @@ Worlds competitor page still says registration is invitation-only and that
 competitor information is coming soon. A qualification award is not treated as
 proof of final registration or attendance.
 
-Local validation passes the complete application suite, the 37-test focused
+Release validation passed the complete application suite, the 37-test focused
 Worlds suite, the 1,027-row National Dex check, the production dependency audit,
-and an optimized 236-page Preview-scoped build. Signed-out review at 1280px and
-390px found no horizontal overflow on either route. The production build logged
-no browser errors or warnings. This is local evidence only, not a Preview
-database application, hosted Preview, or production deployment.
+an optimized 236-page build, the protected checks, and refreshed Vercel Preview
+and Production builds. Signed-out review at 1280px and 390px found no horizontal
+overflow, browser errors, or warnings. The post-deployment production smoke
+sweep passed all 19 public and protected routes. These source-audit pages did
+not create GO or UNITE database events or enable any provider integration.
 
 ## Shared source-registry boundary
 

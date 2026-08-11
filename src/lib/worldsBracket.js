@@ -14,6 +14,24 @@ export function defaultWorldsBracketRoundPoints(size) {
   return Object.fromEntries(Array.from({ length: rounds }, (_, index) => [String(index + 1), 2 ** index]));
 }
 
+export function buildWorldsBracketSetupTemplate(size) {
+  const bracketSize = Number(size);
+  worldsBracketRoundCount(bracketSize);
+  return {
+    bracket_size: bracketSize,
+    opens_at: "",
+    locks_at: "",
+    source_url: "",
+    source_checked_at: "",
+    round_points: defaultWorldsBracketRoundPoints(bracketSize),
+    participants: Array.from({ length: bracketSize }, (_, index) => ({
+      slot: index + 1,
+      competitor_slug: "",
+      source_seed: null,
+    })),
+  };
+}
+
 function normalizedSlots(slots, size) {
   const bySlot = new Map((slots || []).map((slot) => [Number(slot.slot_number ?? slot.slot), {
     slug: slot.competitor_slug,
