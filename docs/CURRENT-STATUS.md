@@ -3,8 +3,8 @@
 - Last updated: August 10, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified production application commit: `1ef57ebd4cda6a49eb1a68dfcf94be47a1da0f31`
-- Latest production migration: 370
+- Verified production application commit: `e5dca23b9da09d3a557e485443e7dc5a207b4e20`
+- Latest production migration: 373
 
 ## Deployed state
 
@@ -121,7 +121,7 @@ The Worlds navigation and account-gate refinement shipped through pull request
 [#121](https://github.com/roblebaegaming/DraftCenter/pull/121). The global
 feature link is now named **Worlds Predictions** and lives in the sticky top
 header instead of the bottom tools bar. Signed-out visitors may browse the
-Masters roster, scoring, sources, and leaderboard, but the Pick 16 builder and
+Masters roster, scoring, sources, and leaderboard, but the prediction builder and
 all competitor-selection controls remain locked behind a DraftCenter account.
 
 The competitor-search clarification shipped through pull request
@@ -137,9 +137,23 @@ hub now separates VGC, TCG, Pokémon GO, and Pokémon UNITE, with discipline
 leaderboards and a normalized overall leaderboard that opens after two games
 score. VGC lives at `/worlds/2026/vgc`. The TCG Masters source audit lives at
 `/worlds/2026/tcg` but stays `noindex` and fail-closed until its roster passes
-review; GO and UNITE remain visibly planned. The release also names the
+review. The release also names the
 Moscone Center and Chase Center venue split and adds full Worlds search
 metadata, structured data, sitemap freshness, and `llms.txt` coverage.
+
+The Worlds live-scoring and prediction-infrastructure release shipped through
+pull request [#128](https://github.com/roblebaegaming/DraftCenter/pull/128) as
+production application commit
+`e5dca23b9da09d3a557e485443e7dc5a207b4e20`. VGC now uses **Pick 10** with
+**Your Champion** worth double placement points and a maximum raw score of 140.
+Migration 371 adds the fail-closed provisional-results importer, migration 372
+adds the configurable Top Cut challenge, and migration 373 performs the guarded
+Pick 10 change. Production had zero VGC entries immediately before and after
+the change. The importer is disabled with no feed URL or scheduler, and the Top
+Cut challenge is empty and waiting for an official reviewed field. The public
+GO and UNITE source-audit routes are live with no names, saving, or polling;
+TCG and GO use Pick 10 plus Your Champion as their post-roster-audit contract,
+while UNITE remains team-bracket based.
 
 ## Release verification
 
@@ -159,9 +173,8 @@ metadata, structured data, sitemap freshness, and `llms.txt` coverage.
   passed desktop and 390px mobile Pokédex review without browser errors or
   horizontal overflow. The retained Supabase Preview observer-access matrix
   passed every RLS, grant, allow, denial, full-staff, and cleanup assertion.
-- Vercel reports the latest `main` deployment Ready and Current on the public
-  production domains; application behavior remains the verified `1ef57eb`
-  release.
+- Vercel reports exact `main` commit `e5dca23` Ready in Production on the public
+  production domains.
 - The signed-out production smoke sweep passes, including protected 401
   boundaries. Focused live checks also pass for tournament metadata and JSON-LD,
   Daily Games FAQ structured data, sitemap modification dates, `llms.txt`, and
@@ -224,6 +237,16 @@ metadata, structured data, sitemap freshness, and `llms.txt` coverage.
   Live postflight confirmed the hub, VGC, and TCG routes; intended canonical,
   structured-data, sitemap, `llms.txt`, and TCG `noindex` behavior; and a clean
   signed-out 19-route production smoke sweep.
+- Pull request #128 passed the dependency audit, complete application suite,
+  1,027-row National Dex verification, focused 37-test Worlds suite, optimized
+  236-page build, protected security/CodeQL/secret-scan checks, and Vercel
+  Preview. Because automatic Supabase PR branches are disabled, the exact
+  migrations and all three matrices were validated on a manually created
+  disposable Preview branch. Every live-scoring, Top Cut, Pick 10, RLS, grant,
+  privacy, locking, scoring, cleanup, and fail-closed assertion passed. The
+  branch was deleted by its exact identifier after release. Desktop and 390px
+  hosted review and the live signed-out route sweep passed with no browser
+  errors; the post-deployment 19-route production smoke sweep also passed.
 - No merge protection was bypassed.
 
 ## Preserved boundaries
@@ -234,6 +257,12 @@ metadata, structured data, sitemap freshness, and `llms.txt` coverage.
 - Disposable Preview fixtures were removed by exact recorded identifiers.
 - The Worlds production seed created the intended event and 438 public
   invite-earned competitors; it created no user entry or synthetic account.
+- The guarded Pick 10 migration changed only the zero-entry VGC event contract.
+  The result importer remains disabled without a feed URL, permission approval,
+  or scheduler, and the Top Cut seed remains empty and unpublished.
+- The disposable `worlds-live-scoring-pr-128` Preview branch and its fixtures
+  were permanently deleted after production verification, stopping its compute
+  billing.
 - The release-wave Preview branch remains available for owner-approved
   cleanup. The retained `multi-pod-pr-82` Preview branch must not be deleted.
 - The original DraftCenter workspace's pre-existing changes remain unstaged
@@ -249,9 +278,15 @@ commissioner-save paths. Treat historical Operations events by timestamp and
 current authoritative state before declaring a recurrence.
 
 Refresh the VGC Masters invite-earned snapshot only after reviewing current
-source changes, and publish every post-370 database change as a new forward-only
+source changes, and publish every post-373 database change as a new forward-only
 migration. Do not describe invite-earned competitors as confirmed attendees.
 Keep the Worlds bracket challenge closed until official pairings exist.
+
+Do not enable the live importer until the exact structured Masters results feed,
+permission, attribution, and event identifier are reviewed. Scheduler creation
+is a separate production-provider action; keep polling off until that action is
+explicitly authorized. Preserve the last-known-good snapshot and require the
+owner-reviewed official source before final scoring.
 
 Repeat the comparable Semrush crawl after production cache replacement with a
 5,000-page ceiling. It may stop below that ceiling when it exhausts the
@@ -270,8 +305,14 @@ guard merely to remove that measurement gap.
 
 - Current continuation handoff:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-10-worlds-predictions-final.md`](handoffs/DraftCenter-agent-handoff-2026-08-10-worlds-predictions-final.md)
-- Worlds Pick 16 operating record:
+- Historical Worlds Pick 16 operating record:
   [`docs/worlds-2026-pick-sixteen.md`](worlds-2026-pick-sixteen.md)
+- Worlds live-scoring operating record:
+  [`docs/worlds-vgc-live-scoring.md`](worlds-vgc-live-scoring.md)
+- Worlds Top Cut operating record:
+  [`docs/worlds-vgc-top-cut-bracket.md`](worlds-vgc-top-cut-bracket.md)
+- GO and UNITE activation record:
+  [`docs/worlds-2026-go-and-unite.md`](worlds-2026-go-and-unite.md)
 - SEO and AI answer-resource release:
   [`docs/seo-ai-answer-resources-2026-08-10.md`](seo-ai-answer-resources-2026-08-10.md)
 - League-save implementation detail:
