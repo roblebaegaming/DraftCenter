@@ -117,7 +117,6 @@ export default function WorldsBracketChallenge() {
     {!event.revision ? <section className="worlds-bracket-waiting" id="top-cut-bracket">
       <span className="eyebrow">COMING SOON</span><h2>Bracket predictions will be live once the official bracket is established.</h2>
       <p>Once the VGC Masters Top Cut field and matchups are official, bracket predictions will open here before play begins.</p>
-      <div><article><strong>1</strong><span>Owner verifies the official Masters field and source.</span></article><article><strong>2</strong><span>DraftCenter validates every name, slot, seed, and deadline.</span></article><article><strong>3</strong><span>Members complete private brackets before lock.</span></article><article><strong>4</strong><span>Reviewed winners score every entry automatically.</span></article></div>
       <a className="quiet-button" href="https://worlds.pokemon.com/en-us/competitors/" target="_blank" rel="noreferrer">Official competitor information ↗</a>
     </section> : <>
       <section className="worlds-bracket-source-bar"><div><span className="eyebrow">REVIEWED OFFICIAL FIELD</span><strong>Top {event.bracket_size} · revision {event.revision}</strong><small>Source checked {pacificTime(event.source_checked_at)}</small></div><a href={event.official_bracket_url} target="_blank" rel="noreferrer">View official bracket ↗</a></section>
