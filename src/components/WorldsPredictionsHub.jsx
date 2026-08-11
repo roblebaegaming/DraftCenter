@@ -16,8 +16,8 @@ const leaderboardTabs = [
 
 const futureLeaderboardCopy = {
   tcg: ["TCG leaderboard", "Standings will appear after the Masters roster audit passes, entries open, and official results are scored."],
-  go: ["Pokémon GO leaderboard", "This competition is planned. Its prediction format and safe roster unit still need to be defined."],
-  unite: ["Pokémon UNITE leaderboard", "This competition is planned and will use teams rather than forcing players into the individual Pick 16 format."],
+  go: ["Pokémon GO leaderboard", "The individual entry unit is verified. Standings stay closed while the 220-slot CP base, direct invites, and separate regional programs are reconciled."],
+  unite: ["Pokémon UNITE leaderboard", "The team entry unit and 15 qualification awards are modeled. Standings stay closed until the final registered teams and Worlds groups are published."],
 };
 
 export default function WorldsPredictionsHub() {
@@ -28,12 +28,18 @@ export default function WorldsPredictionsHub() {
   useEffect(() => {
     let active = true;
     const supabase = createClient();
-    supabase.rpc("get_worlds_pick_hub", { p_event_id: WORLDS_2026_EVENT_ID }).then(({ data }) => {
+    async function load() {
+      const [hub, results] = await Promise.all([
+        supabase.rpc("get_worlds_pick_hub", { p_event_id: WORLDS_2026_EVENT_ID }),
+        supabase.rpc("get_worlds_result_status", { p_event_id: WORLDS_2026_EVENT_ID }),
+      ]);
       if (!active) return;
-      setVgcHub(data || null);
+      setVgcHub(hub.data ? { ...hub.data, results: results.error ? { status: "waiting", is_stale: false } : results.data } : null);
       setLoading(false);
-    });
-    return () => { active = false; };
+    }
+    load();
+    const refresh = setInterval(load, 120_000);
+    return () => { active = false; clearInterval(refresh); };
   }, []);
 
   return <main className="worlds-shell worlds-hub-shell">
@@ -70,7 +76,7 @@ export default function WorldsPredictionsHub() {
         </article>
         <article>
           <h3>How do the VGC predictions work?</h3>
-          <p>Choose 16 VGC Masters invitees and one Ace Pick worth double placement points. Entries lock at midnight Pacific when Worlds begins.</p>
+          <p>Choose 10 VGC Masters invitees and name Your Champion, whose placement points count twice. Entries lock at midnight Pacific when Worlds begins.</p>
           <Link href="/worlds/2026/vgc">Browse the VGC invitees →</Link>
         </article>
       </div>
@@ -86,7 +92,7 @@ export default function WorldsPredictionsHub() {
           <span className="worlds-status-pill">Open now</span>
           <small>VIDEO GAME CHAMPIONSHIPS</small>
           <h3>VGC Masters</h3>
-          <p>Pick 16 qualified competitors, choose an Ace Pick, and follow the live community field.</p>
+          <p>Play Pick 10 now, then fill a complete Top Cut bracket once the reviewed official pairings are announced.</p>
           <strong>Make VGC picks →</strong>
         </Link>
         <Link className="worlds-competition-card is-building is-tcg" href="/worlds/2026/tcg">
@@ -96,20 +102,20 @@ export default function WorldsPredictionsHub() {
           <p>Scoring is set. The complete Masters invite roster is being reconciled before picks can open.</p>
           <strong>See TCG progress →</strong>
         </Link>
-        <article className="worlds-competition-card is-planned is-go">
-          <span className="worlds-status-pill">Planned</span>
+        <Link className="worlds-competition-card is-building is-go" href="/worlds/2026/go">
+          <span className="worlds-status-pill">Source audit</span>
           <small>MOBILE BATTLES</small>
           <h3>Pokémon GO</h3>
-          <p>The prediction format and safe competitor pool will be designed after VGC and TCG.</p>
-          <strong>Coming later</strong>
-        </article>
-        <article className="worlds-competition-card is-planned is-unite">
-          <span className="worlds-status-pill">Planned</span>
+          <p>The individual Pick 10 format is set, and 220 Championship Point slots are verified. Direct invites and regional programs still need a complete roster audit.</p>
+          <strong>See GO progress →</strong>
+        </Link>
+        <Link className="worlds-competition-card is-building is-unite" href="/worlds/2026/unite">
+          <span className="worlds-status-pill">Source audit</span>
           <small>TEAM COMPETITION</small>
           <h3>Pokémon UNITE</h3>
-          <p>A team-based prediction game will be designed around UNITE&apos;s actual tournament structure.</p>
-          <strong>Coming later</strong>
-        </article>
+          <p>Fifteen qualification awards are modeled around 5-on-5 teams. The final roster and official Worlds groups remain unpublished.</p>
+          <strong>See UNITE progress →</strong>
+        </Link>
       </div>
     </section>
 
@@ -134,15 +140,21 @@ export default function WorldsPredictionsHub() {
           <p>VGC will not be labeled an overall contest by itself. The combined table appears when at least two games have official scored results.</p>
         </aside>
       </div> : activeLeaderboard === "vgc" ? <div className="worlds-discipline-leaderboard" role="tabpanel">
-        <header><div><span className="eyebrow">VGC MASTERS</span><h3>{vgcHub?.entry_count || 0} entries</h3></div><Link href="/worlds/2026/vgc#pick-sixteen">Make my VGC picks →</Link></header>
+        <header><div><span className="eyebrow">VGC MASTERS</span><h3>{vgcHub?.entry_count || 0} entries</h3></div><Link href="/worlds/2026/vgc#pick-ten">Make my VGC picks →</Link></header>
+        <div className={`worlds-live-result-status is-${vgcHub?.results?.status || "waiting"}${vgcHub?.results?.is_stale ? " is-stale" : ""}`} role="status">
+          <div><strong>{vgcHub?.results?.status === "final" ? "Final" : vgcHub?.results?.status === "provisional" ? vgcHub.results.is_stale ? "Live — provisional · updates delayed" : "Live — provisional" : "Waiting for live results"}</strong><span>{vgcHub?.results?.status === "provisional" ? "Live standings are unofficial until the owner verifies an official result." : vgcHub?.results?.status === "final" ? "Official results are verified and locked." : "The VGC leaderboard will score from reviewed Masters standings."}</span></div>
+          {vgcHub?.results?.source_url && <div>{vgcHub.results.last_successful_update && <small>Updated {new Date(vgcHub.results.last_successful_update).toLocaleString()}</small>}<a href={vgcHub.results.source_url} target="_blank" rel="noreferrer">{vgcHub.results.source_name || "Results source"} ↗</a></div>}
+        </div>
         {loading ? <p className="worlds-empty-state">Loading the VGC community field…</p> : vgcHub?.standings?.length ? <ol>
           {vgcHub.standings.map((entry, index) => <li key={`${entry.display_name}-${index}`}><span>#{entry.rank}</span><strong>{entry.display_name}</strong><b>{entry.score} pts</b></li>)}
-        </ol> : <p className="worlds-empty-state">Be the first DraftCenter member to save a VGC Pick 16 entry.</p>}
+        </ol> : <p className="worlds-empty-state">Be the first DraftCenter member to save a VGC Pick 10 entry.</p>}
       </div> : <div className="worlds-future-leaderboard" role="tabpanel">
         <span className="eyebrow">{activeLeaderboard === "tcg" ? "IN BUILD" : "PLANNED"}</span>
         <h3>{futureLeaderboardCopy[activeLeaderboard][0]}</h3>
         <p>{futureLeaderboardCopy[activeLeaderboard][1]}</p>
         {activeLeaderboard === "tcg" && <Link className="quiet-button" href="/worlds/2026/tcg">See the TCG source audit</Link>}
+        {activeLeaderboard === "go" && <Link className="quiet-button" href="/worlds/2026/go">See the GO source audit</Link>}
+        {activeLeaderboard === "unite" && <Link className="quiet-button" href="/worlds/2026/unite">See the UNITE source audit</Link>}
       </div>}
     </section>
   </main>;

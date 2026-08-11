@@ -16,6 +16,9 @@ DraftCenter helps communities configure leagues, run snake and auction drafts, m
 - [Pokémon Nuzlocke Guides](https://www.draftcentral.gg/nuzlocke/guides)
 - [Pokémon tournament organizer](https://www.draftcentral.gg/tournaments)
 - [2026 Pokémon World Championships Predictions](https://www.draftcentral.gg/worlds/2026)
+- [2026 Pokémon Worlds VGC Top Cut Bracket Challenge](https://www.draftcentral.gg/worlds/2026/vgc/bracket)
+- [2026 Pokémon GO Worlds prediction source audit](https://www.draftcentral.gg/worlds/2026/go)
+- [2026 Pokémon UNITE Worlds prediction source audit](https://www.draftcentral.gg/worlds/2026/unite)
 
 ## Public tools and events
 
@@ -23,7 +26,7 @@ DraftCenter helps communities configure leagues, run snake and auction drafts, m
 - Multi-pod organizations can qualify retained league rosters into connected single- or double-elimination championships. Organization administration and event workspaces are not public reference material.
 - Pokémon Daily Games includes Pokémon Connections, a community poll, an eight-Pokémon bracket, and a Pokémon quiz. Signed-in discussions open only after the relevant daily game is completed.
 - Nuzlocke teams use independently reviewed, game-specific encounter catalogs. Signed-in players may save a Run Card privately in My Teams or download a visual Run Card; saved cards are not public pages.
-- The 2026 Pokémon World Championships hub covers VGC, the Pokémon TCG, Pokémon GO, and Pokémon UNITE. Its open VGC Masters game lets signed-in members pick 16 invitees and one double-scoring Ace Pick; the public invite-earned roster is not a confirmed attendance list.
+- The 2026 Pokémon World Championships hub covers VGC, the Pokémon TCG, Pokémon GO, and Pokémon UNITE. Its open VGC Masters game lets signed-in members pick 10 invitees and name Your Champion for double placement points; a separate Top Cut bracket challenge stays closed until reviewed official pairings are published. TCG and GO use the same Pick 10 and Your Champion product default after their roster audits; UNITE remains team-bracket based. The source-audit pages contain no fictional names or saving controls, and the public invite-earned roster is not a confirmed attendance list.
 
 ## Practical guides
 

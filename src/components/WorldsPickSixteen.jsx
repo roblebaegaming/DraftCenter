@@ -15,7 +15,7 @@ import WorldsDisciplineNav from "./WorldsDisciplineNav";
 
 const FALLBACK_EVENT = {
   id: WORLDS_2026_EVENT_ID,
-  display_name: "2026 VGC Worlds Pick 16",
+  display_name: "2026 VGC Worlds Pick 10",
   division: "Masters",
   status: "open",
   opens_at: "2026-08-10T07:00:00Z",
@@ -97,7 +97,10 @@ export default function WorldsPickSixteen({ rosterSource }) {
   const filtered = useMemo(() => filterWorldsCompetitors(competitors, search, region), [competitors, search, region]);
 
   async function loadHub(supabase) {
-    const { data, error } = await supabase.rpc("get_worlds_pick_hub", { p_event_id: WORLDS_2026_EVENT_ID });
+    const [{ data, error }, results] = await Promise.all([
+      supabase.rpc("get_worlds_pick_hub", { p_event_id: WORLDS_2026_EVENT_ID }),
+      supabase.rpc("get_worlds_result_status", { p_event_id: WORLDS_2026_EVENT_ID }),
+    ]);
     if (error || !data) {
       setLoadingHub(false);
       return;
@@ -107,7 +110,7 @@ export default function WorldsPickSixteen({ rosterSource }) {
       setLoadingHub(false);
       return;
     }
-    setHub(data);
+    setHub({ ...data, results: results.error ? { status: "waiting", is_stale: false } : results.data });
     setSelected(data.my_entry?.picks || []);
     setAce(data.my_entry?.ace_slug || null);
     setLoadingHub(false);
@@ -126,7 +129,8 @@ export default function WorldsPickSixteen({ rosterSource }) {
       setUser(session?.user || null);
       queueMicrotask(() => active && loadHub(supabase));
     });
-    return () => { active = false; listener.subscription.unsubscribe(); };
+    const refresh = setInterval(() => { if (active) loadHub(supabase); }, 120_000);
+    return () => { active = false; clearInterval(refresh); listener.subscription.unsubscribe(); };
   }, []);
 
   function toggle(competitor) {
@@ -141,10 +145,10 @@ export default function WorldsPickSixteen({ rosterSource }) {
   async function saveEntry() {
     setMessage("");
     if (!user) return setMessage("Sign in from the DraftCenter home page before saving your entry.");
-    if (!hub) return setMessage("The Pick 16 competition is not connected yet. The invitee list is still available below.");
+    if (!hub) return setMessage("The Pick 10 competition is not connected yet. The invitee list is still available below.");
     if (locked) return setMessage("Entries are locked for Worlds.");
     if (selected.length !== WORLDS_2026_PICK_COUNT) return setMessage(`Choose exactly ${WORLDS_2026_PICK_COUNT} competitors before saving.`);
-    if (!ace || !selected.includes(ace)) return setMessage("Choose one Ace Pick from your 16 competitors before saving.");
+    if (!ace || !selected.includes(ace)) return setMessage("Choose Your Champion from your 10 competitors before saving.");
     setBusy(true);
     const supabase = createClient();
     const { error } = await supabase.rpc("save_worlds_pick_entry", { p_event_id: WORLDS_2026_EVENT_ID, p_pick_slugs: selected, p_ace_slug: ace });
@@ -154,7 +158,7 @@ export default function WorldsPickSixteen({ rosterSource }) {
     }
     await loadHub(supabase);
     setBusy(false);
-    setMessage("Your Pick 16 and Ace Pick are saved. You can revise them until the lock time.");
+    setMessage("Your Pick 10 and Your Champion are saved. You can revise them until the lock time.");
   }
 
   return <main className="worlds-shell">
@@ -163,9 +167,10 @@ export default function WorldsPickSixteen({ rosterSource }) {
       <div>
         <span className="eyebrow">POKÉMON WORLDS · SAN FRANCISCO</span>
         <h1>2026 Pokémon Worlds VGC predictions</h1>
-        <p>Pick the 16 VGC players you believe in from every currently known Masters invitee. When Worlds finishes, the entry with the strongest collective results wins the DraftCenter community leaderboard.</p>
+        <p>Pick the 10 VGC players you believe in from every currently known Masters invitee. When Worlds finishes, the entry with the strongest collective results wins the DraftCenter community leaderboard.</p>
         <div className="worlds-hero-actions">
-          <a className="primary-button inline-link-button" href={user === null ? "/#member-access" : "#pick-sixteen"}>{user === null ? "Sign in to predict" : "Build my 16"}</a>
+          <a className="primary-button inline-link-button" href={user === null ? "/#member-access" : "#pick-ten"}>{user === null ? "Sign in to predict" : "Build my 10"}</a>
+          <a className="quiet-button" href="/worlds/2026/vgc/bracket">Top Cut bracket</a>
           <a className="quiet-button" href="/worlds/2026">All Worlds competitions</a>
           <a className="quiet-button" href="#qualified-players">See all {competitors.length} invitees</a>
         </div>
@@ -188,10 +193,10 @@ export default function WorldsPickSixteen({ rosterSource }) {
       <div className="worlds-source-links"><a href="https://victoryroad.pro/2026-worlds-invites/" target="_blank" rel="noreferrer">Invite tracker ↗</a><a href="https://worlds.pokemon.com/en-gb" target="_blank" rel="noreferrer">Official Worlds site ↗</a></div>
     </section>
 
-    <section className="worlds-pick-layout" id="pick-sixteen">
+    <section className="worlds-pick-layout" id="pick-ten">
       <div className="worlds-pick-main">
         <header className="section-heading">
-          <div><span className="eyebrow">SITEWIDE COMPETITION</span><h2>Your Pick 16</h2><p>Your choices stay private until entries lock. Choose one Ace Pick whose placement points count twice.</p></div>
+          <div><span className="eyebrow">SITEWIDE COMPETITION</span><h2>Your Pick 10</h2><p>Your choices stay private until entries lock. Choose Your Champion, whose placement points count twice.</p></div>
           <div className="worlds-pick-meter"><strong>{selected.length}</strong><span>/ {WORLDS_2026_PICK_COUNT}</span></div>
         </header>
 
@@ -201,7 +206,7 @@ export default function WorldsPickSixteen({ rosterSource }) {
           <div aria-hidden="true" className="worlds-account-lock">🔒</div>
           <span className="eyebrow">DRAFTCENTER ACCOUNT REQUIRED</span>
           <h3>Sign in to build your Worlds prediction.</h3>
-          <p>Like DraftCenter&apos;s Daily Games, submitting a Pick 16 entry requires a free account. Your choices stay private until entries lock, and you can return to edit them before the deadline.</p>
+          <p>Like DraftCenter&apos;s Daily Games, submitting a Pick 10 entry requires a free account. Your choices stay private until entries lock, and you can return to edit them before the deadline.</p>
           <a className="secondary-button" href="/#member-access">Sign in or create an account</a>
         </div> : <>
         <div className="worlds-selected-grid">
@@ -211,14 +216,14 @@ export default function WorldsPickSixteen({ rosterSource }) {
               <button className="worlds-pick-remove" type="button" disabled={locked} onClick={() => toggle(competitor)}>
                 <span>{index + 1}</span><strong>{competitor.displayName}</strong><small>{competitor.countryCode} · remove</small>
               </button>
-              <label className="worlds-ace-choice"><input type="radio" name="worlds-ace" checked={ace === competitor.slug} disabled={locked} onChange={() => setAce(competitor.slug)} /><span>Ace Pick ×2</span></label>
+              <label className="worlds-ace-choice"><input type="radio" name="worlds-ace" checked={ace === competitor.slug} disabled={locked} onChange={() => setAce(competitor.slug)} /><span>Your Champion ×2</span></label>
             </div> : <div className="worlds-empty-pick" key={index}><span>{index + 1}</span><small>Open spot</small></div>;
           })}
         </div>
 
         <div className="worlds-save-row">
           <div>
-            {loadingHub ? <p>Connecting the community competition…</p> : !hub ? <p>The full roster is ready; saving will open when the database migration is released.</p> : locked ? <p>Entries are locked. Saved lineups are now public on the leaderboard.</p> : !user ? <p><a href="/">Sign in</a> to save and edit your entry.</p> : hub.my_entry ? <p>Saved as <strong>{hub.my_entry.display_name}</strong>. Edits remain open until the deadline.</p> : <p>Finish all 16 spots, then save one entry to the sitewide field.</p>}
+            {loadingHub ? <p>Connecting the community competition…</p> : !hub ? <p>The full roster is ready; saving will open when the database migration is released.</p> : locked ? <p>Entries are locked. Saved lineups are now public on the leaderboard.</p> : !user ? <p><a href="/">Sign in</a> to save and edit your entry.</p> : hub.my_entry ? <p>Saved as <strong>{hub.my_entry.display_name}</strong>. Edits remain open until the deadline.</p> : <p>Finish all 10 spots, then save one entry to the sitewide field.</p>}
             {message && <p className="worlds-message" role="status">{message}</p>}
           </div>
           <button className="primary-button" type="button" disabled={busy || locked || selected.length !== WORLDS_2026_PICK_COUNT || !ace || !hub} onClick={saveEntry}>{busy ? "Saving…" : hub?.my_entry ? "Update entry" : "Save entry"}</button>
@@ -229,9 +234,9 @@ export default function WorldsPickSixteen({ rosterSource }) {
       <aside className="worlds-scoring-card">
         <span className="eyebrow">HOW SCORING WORKS</span>
         <h2>Every deep run matters.</h2>
-        <p>Each selected competitor earns the points for their final placement. Your chosen Ace Pick earns double points, then all 16 scores are added together.</p>
+        <p>Each selected competitor earns the points for their final placement. Your Champion earns double points, then all 10 scores are added together.</p>
         <ol>{WORLDS_2026_SCORING.map(([label, points]) => <li key={label}><span>{label}</span><strong>{points} pts</strong></li>)}</ol>
-        <small>The placement curve rewards every Top 64 pick while making the champion meaningfully valuable. Ties share the same rank, and scoring uses official published results.</small>
+        <small>The placement curve rewards every Top 64 pick while making the champion meaningfully valuable. Live standings remain provisional until the owner checks an official published result and finalizes scoring.</small>
       </aside>
     </section>
 
@@ -258,7 +263,7 @@ export default function WorldsPickSixteen({ rosterSource }) {
             <header><span>{competitor.countryCode}</span><small>{competitor.qualificationRegion}</small></header>
             <h3>{competitor.displayName}</h3>
             <p>{competitor.qualificationPath}</p>
-            <footer><small>{statusLabel(competitor.attendanceStatus)}</small><button type="button" aria-pressed={chosen} disabled={!user || locked || unavailable} onClick={() => toggle(competitor)}>{chosen ? "Selected ✓" : unavailable ? "Unavailable" : !user ? "Sign in to pick" : "Add to 16"}</button></footer>
+            <footer><small>{statusLabel(competitor.attendanceStatus)}</small><button type="button" aria-pressed={chosen} disabled={!user || locked || unavailable} onClick={() => toggle(competitor)}>{chosen ? "Selected ✓" : unavailable ? "Unavailable" : !user ? "Sign in to pick" : "Add to 10"}</button></footer>
           </article>;
         })}
       </div>
@@ -268,18 +273,28 @@ export default function WorldsPickSixteen({ rosterSource }) {
     <section className="worlds-bottom-grid">
       <article className="worlds-leaderboard-card">
         <header><div><span className="eyebrow">VGC COMMUNITY LEADERBOARD</span><h2>{hub?.entry_count || 0} entries</h2></div>{hub?.my_entry && <strong>Your rank: {hub.my_entry.rank}</strong>}</header>
+        <div className={`worlds-live-result-status is-${hub?.results?.status || "waiting"}${hub?.results?.is_stale ? " is-stale" : ""}`} role="status">
+          <div>
+            <strong>{hub?.results?.status === "final" ? "Final" : hub?.results?.status === "provisional" ? hub.results.is_stale ? "Live — provisional · updates delayed" : "Live — provisional" : "Waiting for live results"}</strong>
+            <span>{hub?.results?.status === "final" ? "The owner verified and locked the official result." : hub?.results?.status === "provisional" ? "Imported live standings are unofficial. The last accepted scores stay visible if an update fails." : "Saved entries will score when reviewed VGC Masters standings are available."}</span>
+          </div>
+          <div>
+            {hub?.results?.last_successful_update && <small>Updated {displayPacificDate(hub.results.last_successful_update, true)}</small>}
+            {hub?.results?.source_url && <a href={hub.results.source_url} target="_blank" rel="noreferrer">{hub.results.source_name || "Results source"} ↗</a>}
+          </div>
+        </div>
         {hub?.standings?.length ? <div className="worlds-standings">{hub.standings.map((entry, index) => <details key={`${entry.display_name}-${index}`} className={entry.is_me ? "is-me" : ""}>
           <summary><span>#{entry.rank}</span><strong>{entry.display_name}</strong><b>{entry.score} pts</b></summary>
-          {entry.picks ? <p>{entry.picks.map((slug) => `${competitorBySlug.get(slug)?.displayName || slug}${slug === entry.ace_slug ? " (Ace ×2)" : ""}`).join(" · ")}</p> : <p>Lineup stays private until entries lock.</p>}
-        </details>)}</div> : <p className="worlds-empty-state">Be the first DraftCenter player to save a Pick 16 entry.</p>}
+          {entry.picks ? <p>{entry.picks.map((slug) => `${competitorBySlug.get(slug)?.displayName || slug}${slug === entry.ace_slug ? " (Your Champion ×2)" : ""}`).join(" · ")}</p> : <p>Lineup stays private until entries lock.</p>}
+        </details>)}</div> : <p className="worlds-empty-state">Be the first DraftCenter player to save a Pick 10 entry.</p>}
       </article>
 
       <article className="worlds-bracket-card">
         <span className="eyebrow">PHASE TWO</span>
-        <h2>The Worlds bracket challenge comes next.</h2>
-        <p>Once the official elimination bracket exists, this page can unlock a March Madness-style prediction game using the real pairings. We will not invent seeds or matchups before Pokémon publishes them.</p>
+        <h2>The Top Cut prediction room is ready.</h2>
+        <p>DraftCenter can open a full elimination-bracket challenge as soon as the owner verifies the official Masters field, pairings, and first-match deadline. No seeds or matchups are invented in advance.</p>
         <div aria-hidden="true" className="worlds-bracket-preview"><span /><span /><span /><span /><i /></div>
-        <strong>Waiting for the official Worlds bracket</strong>
+        <a className="quiet-button" href="/worlds/2026/vgc/bracket">Open Top Cut bracket status →</a>
       </article>
     </section>
   </main>;

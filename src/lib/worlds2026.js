@@ -1,8 +1,8 @@
 export const WORLDS_2026_EVENT_ID = "2026-vgc-masters";
-export const WORLDS_2026_PICK_COUNT = 16;
+export const WORLDS_2026_PICK_COUNT = 10;
 export const WORLDS_2026_LOCKS_AT = "2026-08-28T07:00:00Z";
 export const WORLDS_OVERALL_POINTS_PER_DISCIPLINE = 100;
-export const WORLDS_VGC_MAX_RAW_SCORE = 164;
+export const WORLDS_VGC_MAX_RAW_SCORE = 140;
 
 export const WORLDS_2026_SCORING = [
   ["World Champion", 30],
