@@ -52,6 +52,8 @@ test("the reusable Pick 10 UI offers compact download, Instagram, and Twitter ac
   assert.match(picker, /<WorldsPickShare/);
   assert.match(picker, /picks=\{selected\.map\(\(slug\) => competitorBySlug\.get\(slug\)\)\.filter\(Boolean\)\}/);
   assert.match(share, /Share your picks/);
+  assert.match(share, /Choose your top \{pickCount\}, then choose your champion\./);
+  assert.doesNotMatch(share, /Finish all \{pickCount\} spots|choose Your Champion first/);
   assert.equal((share.match(/<button/g) || []).length, 3);
   assert.match(share, /busy === "download" \? "Downloading\\u2026" : "Download"/);
   assert.match(share, /busy === "instagram" \? "Opening\\u2026" : "Instagram"/);

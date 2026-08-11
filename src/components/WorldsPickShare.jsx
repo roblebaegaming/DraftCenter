@@ -86,7 +86,7 @@ export default function WorldsPickShare({ discipline, gameLabel, picks, champion
   return <section className={`worlds-pick-share${ready ? " is-ready" : ""}`} aria-labelledby="worlds-pick-share-heading">
     <div>
       <h3 id="worlds-pick-share-heading">Share your picks</h3>
-      {!ready && <p>Finish all {pickCount} spots and choose Your Champion first.</p>}
+      {!ready && <p>Choose your top {pickCount}, then choose your champion.</p>}
       <small>Sharing is public and does not save your entry.</small>
     </div>
     <div className="worlds-pick-share-actions">
