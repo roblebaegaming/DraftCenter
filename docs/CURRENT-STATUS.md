@@ -165,6 +165,19 @@ announcement checklist plus a ready-to-send results-feed permission request.
 The request has not been sent, the importer remains disabled, and no database,
 provider, field, entry, or scheduler changed in the follow-up.
 
+The TCG, GO, and UNITE staged-infrastructure release ships through pull request
+[#132](https://github.com/roblebaegaming/DraftCenter/pull/132). It adds
+owner-only local setup-file preparation for all three games and reusable Pick
+10/Your Champion screens for reviewed TCG and GO rosters. Migration 374 is
+applied to the exact core production project: TCG Masters and GO are `draft`,
+Pick 10, individual events with zero competitors and zero entries; their result
+sources are disabled with no feed URL or external event identifier; VGC still
+has zero entries; browser table reads remain denied; and the privacy-safe
+overall leaderboard is closed. UNITE remains an offline team/group/bracket
+preparation contract with no database event. The isolated migration rehearsal
+and 371-374 database matrices passed, and both exact disposable Preview branches
+were permanently deleted.
+
 ## Release verification
 
 - The complete application tests, National Dex verification across 1,027

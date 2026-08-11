@@ -12,13 +12,15 @@ follow-up shipped through pull request
 production application commit `eb951de33bd4ace0463cb9ea57fab9a0e460b188`.
 Vercel reports that exact commit Ready in Production.
 
-Forward-only migrations 371-373 are applied to the exact core production
+Forward-only migrations 371-374 are applied to the exact core production
 Supabase project:
 
 - 371 adds the fail-closed VGC Masters provisional-results importer;
 - 372 adds the configurable VGC Masters Top Cut prediction challenge; and
 - 373 changes VGC from Pick 16 and Ace Pick to **Pick 10** and
-  **Your Champion**.
+  **Your Champion**; and
+- 374 stages closed, empty TCG and GO events and adds the privacy-safe overall
+  leaderboard RPC.
 
 Production contained zero VGC entries immediately before migration 373 locked
 the entries table, and it still contained zero entries after the migration.
@@ -92,6 +94,38 @@ GO and UNITE expose no competitor names, prediction controls, saved entries, or
 results polling. Their activation boundary is documented in
 [`../worlds-2026-go-and-unite.md`](../worlds-2026-go-and-unite.md).
 
+### TCG, GO, and UNITE staged infrastructure
+
+Pull request [#132](https://github.com/roblebaegaming/DraftCenter/pull/132)
+adds the reusable preparation layer without activating a competition:
+
+- the former VGC-only prediction component accepts reviewed VGC, TCG, or GO
+  discipline configuration while preserving each event's fail-closed gate;
+- owner Operations can download blank TCG, GO, and UNITE setup JSON, validate a
+  reviewed file locally, and download the validated copy without saving or
+  publishing it;
+- migration 374 stages TCG Masters and GO as `draft`, Pick 10, individual events
+  with zero competitors and zero entries;
+- both staged result sources are disabled with no feed URL or external event
+  identifier;
+- the overall leaderboard is aggregated server-side, reveals no account IDs,
+  and remains closed until at least two individual disciplines are final; and
+- UNITE remains a local team/group/bracket preparation contract with no database
+  event because the official 2026 structure is not known.
+
+The final isolated Preview rehearsal applied baseline dependency 232 and
+migrations 369-374, then passed the new 374 staging/overall matrix and the
+existing 371-373 live-scoring, Top Cut, and Pick 10 matrices. The exact final
+disposable branch `worlds-future-infrastructure-v2-2026-08-10` was permanently
+deleted after verification.
+
+Migration 374 is applied to the exact core production project. Read-only
+postflight found the two expected `draft`, Pick 10, individual events; two
+disabled result sources with no feed URL or external event identifier; zero TCG
+or GO competitors; zero TCG, GO, or VGC entries; a closed overall leaderboard;
+denied direct browser table reads; and the intended anonymous/authenticated
+overall RPC grants. No provider, scheduler, roster, name, or entry was enabled.
+
 ## Verified release evidence
 
 GitHub's automatic per-PR Supabase Preview branches are disabled for this
@@ -156,22 +190,23 @@ Do not add a feed URL or enable polling merely because the code is deployed.
    field, seeds, pairings, opening time, and lock deadline before publishing.
    Use the announcement checklist and downloadable setup draft. Publishing the
    real field is an explicit production data action.
-2. Complete the TCG Masters roster audit across Championship Point standings,
-   direct invites, deduplication, and the separately managed Japan, South Korea,
-   Mainland China, and Asia-Pacific programs.
+2. Complete the TCG Masters roster audit in the owner setup file across
+   Championship Point standings, direct invites, deduplication, and the
+   separately managed Japan, South Korea, Mainland China, and Asia-Pacific
+   programs. Publish it only through a new activation migration.
 3. Reconcile the final GO individual roster and UNITE team roster only from
-   official reviewed sources. Keep GO individual and UNITE team-based, and do
-   not infer names from qualification counts.
-4. Publish every future Worlds database or roster change as a new forward-only
-   migration after 373 with focused regression coverage and isolated Preview
-   validation.
+   official reviewed sources. Use the owner setup files, keep GO individual and
+   UNITE team-based, and do not infer names from qualification counts.
+4. Publish every future roster, opening window, result source, or UNITE
+   structure as a new forward-only migration after 374 with focused regression
+   coverage and isolated Preview validation.
 
 ## Preserved boundaries
 
 No real league, draft, roster, tournament, prediction entry, provider setting,
 environment variable, secret, or production account was changed for testing.
-The production changes are limited to the authorized application release and
-migrations 371-373. The importer remains off and the Top Cut field remains
+The production changes are limited to the authorized application releases and
+migrations 371-374. The importer remains off and the Top Cut field remains
 empty. The original dirty DraftCenter workspace and the retained
 `multi-pod-pr-82` Preview branch remain untouched.
 

@@ -1,4 +1,5 @@
 import WorldsFutureCompetitionSetup from "../../../../components/WorldsFutureCompetitionSetup";
+import WorldsPickSixteen from "../../../../components/WorldsPickSixteen";
 import sourceRegistry from "../../../../data/worlds-2026-go-sources.json";
 
 export const metadata = {
@@ -9,5 +10,8 @@ export const metadata = {
 };
 
 export default function Worlds2026GoPage() {
+  if (sourceRegistry.rosterReady && Array.isArray(sourceRegistry.competitors)) {
+    return <WorldsPickSixteen discipline="go" rosterSource={sourceRegistry} />;
+  }
   return <WorldsFutureCompetitionSetup sourceRegistry={sourceRegistry} />;
 }
