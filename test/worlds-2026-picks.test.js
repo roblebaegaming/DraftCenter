@@ -3,6 +3,7 @@ import fs from "node:fs";
 import test from "node:test";
 import {
   filterWorldsCompetitors,
+  formatWorldsAverageFinish,
   normalizeWorldsDisciplineScore,
   toggleWorldsPick,
   WORLDS_OVERALL_POINTS_PER_DISCIPLINE,
@@ -67,6 +68,13 @@ test("overall standings give each competition an equal 100-point share", () => {
   assert.equal(normalizeWorldsDisciplineScore(30, 0), 0);
 });
 
+test("final average finishes use a compact, consistent leaderboard format", () => {
+  assert.equal(formatWorldsAverageFinish(3.5), "3.5");
+  assert.equal(formatWorldsAverageFinish("3.333"), "3.33");
+  assert.equal(formatWorldsAverageFinish(10), "10.0");
+  assert.equal(formatWorldsAverageFinish(null), "");
+});
+
 test("roster search handles names, accents, countries, regions, and qualification paths", () => {
   assert.ok(filterWorldsCompetitors(normalizedRoster, "alex gomez").some(({ displayName }) => displayName === "Àlex Gómez"));
   assert.ok(filterWorldsCompetitors(normalizedRoster, "regional champion").length > 20);
@@ -98,6 +106,8 @@ test("the database contract keeps entries private before lock and browser writes
   const seed = source("supabase/370-seed-worlds-2026-vgc-masters-roster.sql");
   const preview = source("supabase/tests/369-worlds-pick-sixteen-preview-regression.sql");
   const pickTenPreview = source("supabase/tests/373-worlds-pick-ten-and-champion-preview-regression.sql");
+  const finalTiebreakers = source("supabase/375-worlds-pick-ten-final-tiebreakers.sql");
+  const finalTiebreakersPreview = source("supabase/tests/375-worlds-pick-ten-final-tiebreakers-preview-regression.sql");
   assert.match(schema, /alter table public\.worlds_pick_entries enable row level security/i);
   assert.match(schema, /revoke all on table public\.worlds_pick_entries from public, anon, authenticated/i);
   assert.match(schema, /create or replace function public\.save_worlds_pick_entry[\s\S]+security definer[\s\S]+set search_path = public/i);
@@ -133,6 +143,13 @@ test("the database contract keeps entries private before lock and browser writes
   assert.match(pickTenPreview, /invalid_champion_denied/i);
   assert.match(pickTenPreview, /champion_scoring_doubled/i);
   assert.match(pickTenPreview, /fixtures_removed/i);
+  assert.match(finalTiebreakers, /top_six_average_finish asc nulls last[\s\S]+all_ten_average_finish asc nulls last/i);
+  assert.match(finalTiebreakers, /source\.state = 'final'/i);
+  assert.match(finalTiebreakers, /Final results are missing placements for one or more saved Pick 10 selections/i);
+  assert.match(finalTiebreakers, /placement\."placing" = 9999 then snapshot\.row_count \+ 1/i);
+  assert.match(finalTiebreakersPreview, /Provisional standings must not apply final tiebreakers/i);
+  assert.match(finalTiebreakersPreview, /Finalization did not fail closed when a saved pick lacked a placement/i);
+  assert.match(finalTiebreakersPreview, /all_ten_average_finish.*34\.70/s);
 });
 
 test("the Worlds page defers bracket predictions until official pairings exist", () => {
@@ -156,6 +173,9 @@ test("the Worlds page defers bracket predictions until official pairings exist",
   assert.match(page, /name="worlds-ace"/);
   assert.match(page, /p_ace_slug: ace/);
   assert.match(page, /Your Champion ×2/);
+  assert.match(page, /Lower average finish among your six best-finishing picks/);
+  assert.match(page, /Lower average finish across all 10 picks/);
+  assert.match(page, /If both averages are also equal, the entries share a rank/);
   assert.doesNotMatch(page, /Ace Pick/);
 });
 

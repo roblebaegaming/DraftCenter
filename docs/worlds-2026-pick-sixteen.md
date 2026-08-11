@@ -133,6 +133,13 @@ provider schedule. Until permission, attribution, the exact event URL, Preview
 database validation, and a scheduler are approved, the live source remains
 disabled and the public leaderboard remains in its waiting state.
 
+The final Pick 10 rank order is total points, then the lower average finish of
+the entry's six best-finishing picks, then the lower average finish of all 10
+picks. These tiebreakers are derived only from the owner-approved final result
+snapshot; exact ties share a rank. A saved selection without a reviewed
+placement blocks finalization, and a published no-valid-placing result is
+treated as one position after the published field for the average calculations.
+
 ## Later Worlds competitions
 
 Pokémon TCG Masters has a fail-closed source-audit page but no selectable

@@ -134,6 +134,14 @@ addresses in message content, secrets, or raw source rows.
 
 ## Finalization
 
+Final Pick 10 ranking uses total points first, then the lower average finish of
+the entry's six best-finishing picks, then the lower average finish of all 10
+picks. These tiebreakers are derived only from the owner-approved final result
+snapshot; provisional ranks remain points-only and exact final ties share a
+rank. Finalization stops if any competitor in a saved entry lacks a reviewed
+placement. A `9999` no-valid-placing result continues to score zero and counts
+as one position after the published field for the average calculations.
+
 The owner must compare the completed placement set with an official Pokémon
 published result outside DraftCenter. The **Finalize results** action requires
 that official URL and the exact phrase `FINALIZE 2026 VGC MASTERS`. It copies
@@ -158,6 +166,12 @@ isolated database matrix. It verifies seven RLS tables, browser denials,
 service/public function grants, disabled polling, atomic scores, hash
 idempotency, overlap rejection, last-known-good preservation, owner
 finalization, post-final import rejection, and exact fixture cleanup.
+
+`supabase/tests/375-worlds-pick-ten-final-tiebreakers-preview-regression.sql`
+adds a transactional final-ranking matrix. It verifies the finalization
+coverage guard, provisional point-only ranks, both average-finish tiebreakers,
+exact shared ranks, the no-valid-placing fallback, public projections, and the
+unchanged result-table and function-grant boundary.
 
 Before activation or a future importer change, use an isolated Preview branch,
 run the database matrix, configure a permission-safe reviewed sample, exercise

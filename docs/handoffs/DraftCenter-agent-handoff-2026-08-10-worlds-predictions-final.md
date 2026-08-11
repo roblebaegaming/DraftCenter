@@ -43,6 +43,22 @@ official source can finalize them. The legacy `ace_slug`, `p_ace_slug`, and
 `ace_multiplier` database names remain internal compatibility fields and are
 not player-facing copy.
 
+The pending migration 375 adds the owner-approved final tie order requested for
+every individual Pick 10 event: total points, lower average finish among the
+six best-finishing selections, then lower average finish across all 10. The
+averages are absent during provisional scoring and become authoritative only
+from a final or correction snapshot. Exact ties share a rank. Finalization is
+blocked when a saved selection lacks a placement; a `9999` no-valid-placing
+row counts as published field size plus one for the averages and still scores
+zero points.
+
+The isolated migration-375 rehearsal passed the new transactional ranking
+matrix plus the current 371-374 live-scoring, Top Cut, Pick 10, and future-event
+matrices. Postflight confirmed the three individual events, zero remaining
+fixture entries, enabled placement-table RLS, public hub access, and
+service-only finalization. The exact disposable Preview branch
+`worlds-pick-ten-tiebreakers-2026-08-10` was permanently deleted afterward.
+
 After all 10 choices and Your Champion are selected, the reusable Pick 10 UI
 can create a 1080 by 1350 PNG social card. Members may download it, send the
 image through the device share menu to Instagram, X, or another installed app

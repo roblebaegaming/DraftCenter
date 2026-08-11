@@ -186,6 +186,22 @@ Instagram or X when the device exposes them, and provides a prepared X post
 plus downloaded image fallback. Sharing never saves or changes an entry and
 clearly warns that it publicly reveals the card before lock.
 
+The next forward-only Worlds migration is 375. It makes final Pick 10 ties use
+the lower average finish of the six best-finishing picks, then the lower average
+finish of all 10. Provisional ranks remain points-only; exact final ties share a
+rank. Finalization fails closed if any saved selection lacks a reviewed
+placement, and no-valid-placing results count as one position after the
+published field for the two averages. Migration 375 is not production-applied
+until its protected release is complete.
+
+The isolated migration-375 rehearsal applied the same minimal Worlds baseline
+used by the prior release, then passed the new final-ranking matrix and the
+current live-scoring, Top Cut, Pick 10, and future-event compatibility matrices.
+Its read-only postflight confirmed all three individual events carry the new
+rules, zero fixture entries remained, placement-table RLS stayed enabled, and
+the public/service function grants were unchanged. The exact disposable
+Preview branch was permanently deleted after verification.
+
 ## Release verification
 
 - The complete application tests, National Dex verification across 1,027
