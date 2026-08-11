@@ -130,5 +130,7 @@ test("the public hub consumes staged discipline events and the privacy-safe over
   assert.match(hub, /\["vgc", "tcg", "go"\]/);
   assert.match(hub, /get_worlds_overall_leaderboard/);
   assert.match(hub, /activeHub\.event\?\.status !== "draft"/);
-  assert.match(hub, /STAGED · ENTRIES CLOSED/);
+  assert.match(hub, /futureLeaderboardStatus/);
+  assert.match(hub, /ROSTER PENDING/);
+  assert.match(hub, /TEAMS PENDING/);
 });
