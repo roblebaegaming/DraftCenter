@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { createClient } from "../lib/supabase/client";
 import {
   filterWorldsCompetitors,
+  formatWorldsAverageFinish,
   toggleWorldsPick,
   WORLDS_2026_LOCKS_AT,
   WORLDS_2026_SCORING,
@@ -251,6 +252,12 @@ export default function WorldsPickSixteen({ rosterSource, discipline = "vgc" }) 
         <h2>Every deep run matters.</h2>
         <p>Each selected {config.entrySingular.toLowerCase()} earns the points for their final placement. Your Champion earns double points, then all 10 scores are added together.</p>
         <ol>{WORLDS_2026_SCORING.map(([label, points]) => <li key={label}><span>{label}</span><strong>{points} pts</strong></li>)}</ol>
+        <div className="worlds-tiebreak-rules">
+          <strong>If total points are tied</strong>
+          <span>1. Lower average finish among your six best-finishing picks.</span>
+          <span>2. Lower average finish across all 10 picks.</span>
+          <small>These tiebreakers apply after results are finalized. If both averages are also equal, the entries share a rank.</small>
+        </div>
         <small>The placement curve rewards every Top 64 pick while making the champion meaningfully valuable. Live standings remain provisional until the owner checks an official published result and finalizes scoring.</small>
       </aside>
     </section>
@@ -306,6 +313,7 @@ export default function WorldsPickSixteen({ rosterSource, discipline = "vgc" }) 
         </div>
         {hub?.standings?.length ? <div className="worlds-standings">{hub.standings.map((entry, index) => <details key={`${entry.display_name}-${index}`} className={entry.is_me ? "is-me" : ""}>
           <summary><span>#{entry.rank}</span><strong>{entry.display_name}</strong><b>{entry.score} pts</b></summary>
+          {entry.top_six_average_finish != null && entry.all_ten_average_finish != null && <p className="worlds-standings-tiebreakers"><strong>Final tiebreakers:</strong> Top 6 average {formatWorldsAverageFinish(entry.top_six_average_finish)} · All 10 average {formatWorldsAverageFinish(entry.all_ten_average_finish)}</p>}
           {entry.picks ? <p>{entry.picks.map((slug) => `${competitorBySlug.get(slug)?.displayName || slug}${slug === entry.ace_slug ? " (Your Champion ×2)" : ""}`).join(" · ")}</p> : <p>Lineup stays private until entries lock.</p>}
         </details>)}</div> : <p className="worlds-empty-state">Be the first DraftCenter player to save a Pick 10 entry.</p>}
       </article>

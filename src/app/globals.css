@@ -669,6 +669,10 @@ a.worlds-competition-card:hover { border-color: #8ba8e1; transform: translateY(-
 .worlds-scoring-card ol { display: grid; gap: 7px; margin: 20px 0; padding: 0; list-style: none; }
 .worlds-scoring-card li { display: flex; justify-content: space-between; gap: 14px; padding: 9px 0; border-bottom: 1px solid rgba(255, 255, 255, .09); }
 .worlds-scoring-card li strong { color: #ffd23f; }
+.worlds-tiebreak-rules { display: grid; gap: 7px; margin: 0 0 18px; padding: 14px; border: 1px solid rgba(79, 209, 197, .3); border-radius: 12px; background: rgba(79, 209, 197, .07); }
+.worlds-tiebreak-rules>strong { color: #4fd1c5; }
+.worlds-tiebreak-rules>span { color: #dce4fb; font-size: 12px; line-height: 1.45; }
+.worlds-tiebreak-rules>small { color: #97a5c7; line-height: 1.45; }
 .worlds-roster-section { padding: clamp(22px, 4vw, 36px); scroll-margin-top: 20px; }
 .worlds-roster-section>.section-heading>strong { color: #4fd1c5; }
 .worlds-roster-source { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 22px; align-items: center; margin: 22px 0; padding: 20px 22px; border: 1px solid rgba(79, 209, 197, .28); border-radius: 16px; background: linear-gradient(135deg, rgba(24, 64, 72, .64), rgba(18, 26, 48, .92)); }
@@ -720,6 +724,8 @@ a.worlds-competition-card:hover { border-color: #8ba8e1; transform: translateY(-
 .worlds-standings summary span { color: #8491b4; }
 .worlds-standings summary b { color: #ffd23f; }
 .worlds-standings details p { margin: 10px 0 0; padding-top: 10px; border-top: 1px solid #2b3553; color: #aab5d2; font-size: 11px; line-height: 1.55; }
+.worlds-standings details p.worlds-standings-tiebreakers { color: #dce4fb; }
+.worlds-standings-tiebreakers strong { color: #4fd1c5; }
 .worlds-bracket-card { border-color: rgba(239, 83, 80, .38); background: linear-gradient(145deg, rgba(239, 83, 80, .1), rgba(15, 21, 42, .96)); }
 .worlds-bracket-card>p { color: #b2bdd9; line-height: 1.6; }
 .worlds-bracket-card>strong { display: block; margin-top: 16px; color: #ef9a98; }

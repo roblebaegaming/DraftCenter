@@ -52,3 +52,12 @@ export function normalizeWorldsDisciplineScore(score, maximumScore) {
   const normalized = (score / maximumScore) * WORLDS_OVERALL_POINTS_PER_DISCIPLINE;
   return Math.round(Math.min(WORLDS_OVERALL_POINTS_PER_DISCIPLINE, normalized) * 10) / 10;
 }
+
+export function formatWorldsAverageFinish(value) {
+  const finish = Number(value);
+  if (!Number.isFinite(finish) || finish < 1) return "";
+  return new Intl.NumberFormat("en-US", {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 2,
+  }).format(finish);
+}
