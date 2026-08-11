@@ -48,14 +48,7 @@ export function worldsShareFileName(discipline) {
 
 export function worldsShareText(gameLabel = "VGC") {
   const label = safeText(gameLabel, 40) || "VGC";
-  return `My 2026 Pok\u00e9mon Worlds ${label} Pick 10 is set. Who would you choose?`;
-}
-
-export function worldsXShareIntent({ discipline, gameLabel }) {
-  const intent = new URL("https://x.com/intent/post");
-  intent.searchParams.set("text", worldsShareText(gameLabel));
-  intent.searchParams.set("url", worldsShareUrl(discipline));
-  return intent.toString();
+  return `My 2026 Pok\u00e9mon Worlds ${label} picks.`;
 }
 
 function roundedRect(context, x, y, width, height, radius) {

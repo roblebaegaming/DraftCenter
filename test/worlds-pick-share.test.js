@@ -9,7 +9,6 @@ import {
   worldsSharePath,
   worldsShareText,
   worldsShareUrl,
-  worldsXShareIntent,
 } from "../src/lib/worldsPickShare.js";
 
 const source = (path) => fs.readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
@@ -35,29 +34,22 @@ test("Worlds share links and filenames stay on reviewed individual disciplines",
   assert.equal(worldsSharePath("vgc"), "/worlds/2026/vgc");
   assert.equal(worldsShareUrl("go"), "https://www.draftcentral.gg/worlds/2026/go");
   assert.equal(worldsShareFileName("tcg"), "draftcenter-2026-worlds-tcg-pick-10.png");
-  assert.match(worldsShareText("VGC"), /My 2026 Pok\u00e9mon Worlds VGC Pick 10 is set/);
+  assert.equal(worldsShareText("VGC"), "My 2026 Pok\u00e9mon Worlds VGC picks.");
   assert.throws(() => worldsSharePath("unite"), /cannot create an individual Pick 10 card/);
-
-  const intent = new URL(worldsXShareIntent({ discipline: "vgc", gameLabel: "VGC" }));
-  assert.equal(intent.origin, "https://x.com");
-  assert.equal(intent.pathname, "/intent/post");
-  assert.match(intent.searchParams.get("text"), /Who would you choose\?/);
-  assert.equal(intent.searchParams.get("url"), "https://www.draftcentral.gg/worlds/2026/vgc");
 });
 
-test("the reusable Pick 10 UI offers honest image, Instagram, and X sharing", () => {
+test("the reusable Pick 10 UI offers one natural share action", () => {
   const picker = source("src/components/WorldsPickSixteen.jsx");
   const share = source("src/components/WorldsPickShare.jsx");
   const card = source("src/lib/worldsPickShare.js");
   const css = source("src/app/globals.css");
   assert.match(picker, /<WorldsPickShare/);
   assert.match(picker, /picks=\{selected\.map\(\(slug\) => competitorBySlug\.get\(slug\)\)\.filter\(Boolean\)\}/);
-  assert.match(share, /Download social image/);
-  assert.match(share, /Share to Instagram or apps/);
-  assert.match(share, /Download \+ share on X \/ Twitter/);
+  assert.match(share, /Share your picks/);
+  assert.equal((share.match(/<button/g) || []).length, 1);
   assert.match(share, /navigator\.canShare\?\.\(\{ files: \[file\] \}\)/);
-  assert.match(share, /Sharing is optional and publicly reveals the choices on this card/);
-  assert.doesNotMatch(share, /instagram\.com/);
+  assert.match(share, /If your picks are still private, sharing the image makes them public/);
+  assert.doesNotMatch(share, /Instagram|Twitter|X \/|social card|social image/);
   assert.match(card, /canvas\.width = WORLDS_SHARE_CARD_WIDTH/);
   assert.match(card, /canvas\.height = WORLDS_SHARE_CARD_HEIGHT/);
   assert.match(card, /YOUR CHAMPION \\u00d72/);
