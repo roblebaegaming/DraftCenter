@@ -1,4 +1,5 @@
 import WorldsTcgPickSixteenSetup from "../../../../components/WorldsTcgPickSixteenSetup";
+import WorldsPickSixteen from "../../../../components/WorldsPickSixteen";
 import sourceRegistry from "../../../../data/worlds-2026-tcg-masters-sources.json";
 
 export const metadata = {
@@ -9,5 +10,8 @@ export const metadata = {
 };
 
 export default function Worlds2026TcgPage() {
+  if (sourceRegistry.rosterReady && Array.isArray(sourceRegistry.competitors)) {
+    return <WorldsPickSixteen discipline="tcg" rosterSource={sourceRegistry} />;
+  }
   return <WorldsTcgPickSixteenSetup sourceRegistry={sourceRegistry} />;
 }

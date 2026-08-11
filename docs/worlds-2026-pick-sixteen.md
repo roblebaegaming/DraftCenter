@@ -136,35 +136,36 @@ disabled and the public leaderboard remains in its waiting state.
 ## Later Worlds competitions
 
 Pokémon TCG Masters has a fail-closed source-audit page but no selectable
-roster, saved entry, or leaderboard yet. Its owner-approved default is Pick 10
-with one Your Champion choice worth double placement points. It must use
-Masters only and retain the age caveat above.
+roster, saved entry, or public discipline leaderboard yet. Its owner-approved
+default is Pick 10 with one Your Champion choice worth double placement points.
+Migration 374 stages its empty event as `draft` and its result source as
+disabled with no feed URL or external event identifier. Owner Operations can
+download and locally validate a 425-slot roster setup file, but loading that
+file does not publish competitors or open saving. TCG must use Masters only and
+retain the age caveat above.
 
 GO and UNITE also have fail-closed source-audit pages. GO's reviewed 2026 source
 model uses individual Trainers and a 220-slot TPCi Championship Point base,
-plus direct and separately managed regional invite paths. GO will also use Pick
-10 with Your Champion after its roster audit. UNITE's reviewed model uses 5-on-5
-teams and 15 published qualification awards, and its intended product remains a
-team bracket. Neither count is a final registered field. No names, database
-event, saving, or polling may open until the final roster and exact prediction
-contract pass review. See
+plus direct and separately managed regional invite paths. Migration 374 stages
+GO as a closed, empty Pick 10 event with Your Champion and a disabled, feedless
+result source. UNITE's reviewed model uses 5-on-5 teams and 15 published
+qualification awards, and its intended product remains a team group/bracket
+challenge. UNITE does not receive a database event until the official structure
+is known. Owner Operations can prepare and locally validate both setup files,
+but neither count is a final registered field. No names, saving, or polling may
+open until the final roster and exact prediction contract pass review. See
 [`worlds-2026-go-and-unite.md`](worlds-2026-go-and-unite.md).
 
 ## Release boundary
 
-Migrations 369 and 370 were validated on the isolated
-`worlds-pick-sixteen-pr-116` Preview branch and applied to production on August
-10 through pull request #116. Production verification found one open Masters
-event, 438 competitors, zero entries, RLS on all three tables, denied direct
-browser table reads, and the intended RPC grants. A signed-out read-only check
-of the production VGC page on August 10, 2026 still showed zero entries. The
-local migration 373 therefore carries the owner-approved Pick 10 conversion,
-but it has not been applied to Preview or production and will fail if the VGC
-entry count becomes nonzero first. The released site remains Pick 16 until an
-authorized release applies that migration and deploys its matching interface.
-The migration has a dedicated isolated-Preview regression matrix, but neither
-the Supabase CLI nor `psql` is available locally, so that SQL matrix remains a
-required hosted Preview check.
+Migrations 369-373 are applied to production. Migration 374 is the next
+forward-only release: it adds reusable discipline metadata, stages closed and
+empty TCG and GO events, adds a privacy-safe normalized overall leaderboard,
+and keeps every new result source disabled. Its isolated Preview rehearsal
+passed the new staging matrix plus the existing live-scoring, Top Cut, and Pick
+10 matrices. The exact disposable Preview branch was permanently deleted after
+verification.
+
 Keep any future
 `NEXT_PUBLIC_DRAFTCENTER_SUPABASE_*` Preview credentials scoped to the matching
 Git branch; do not let an all-environments integration silently select

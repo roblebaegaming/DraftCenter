@@ -92,6 +92,32 @@ GO and UNITE expose no competitor names, prediction controls, saved entries, or
 results polling. Their activation boundary is documented in
 [`../worlds-2026-go-and-unite.md`](../worlds-2026-go-and-unite.md).
 
+### TCG, GO, and UNITE release candidate
+
+Branch `codex/worlds-tcg-go-unite-infrastructure-2026-08-10` adds the reusable
+preparation layer without activating a competition:
+
+- the former VGC-only prediction component accepts reviewed VGC, TCG, or GO
+  discipline configuration while preserving each event's fail-closed gate;
+- owner Operations can download blank TCG, GO, and UNITE setup JSON, validate a
+  reviewed file locally, and download the validated copy without saving or
+  publishing it;
+- migration 374 stages TCG Masters and GO as `draft`, Pick 10, individual events
+  with zero competitors and zero entries;
+- both staged result sources are disabled with no feed URL or external event
+  identifier;
+- the overall leaderboard is aggregated server-side, reveals no account IDs,
+  and remains closed until at least two individual disciplines are final; and
+- UNITE remains a local team/group/bracket preparation contract with no database
+  event because the official 2026 structure is not known.
+
+The final isolated Preview rehearsal applied baseline dependency 232 and
+migrations 369-374, then passed the new 374 staging/overall matrix and the
+existing 371-373 live-scoring, Top Cut, and Pick 10 matrices. The exact final
+disposable branch `worlds-future-infrastructure-v2-2026-08-10` was permanently
+deleted after verification. No production database or provider setting changed
+during that rehearsal.
+
 ## Verified release evidence
 
 GitHub's automatic per-PR Supabase Preview branches are disabled for this
@@ -156,15 +182,16 @@ Do not add a feed URL or enable polling merely because the code is deployed.
    field, seeds, pairings, opening time, and lock deadline before publishing.
    Use the announcement checklist and downloadable setup draft. Publishing the
    real field is an explicit production data action.
-2. Complete the TCG Masters roster audit across Championship Point standings,
-   direct invites, deduplication, and the separately managed Japan, South Korea,
-   Mainland China, and Asia-Pacific programs.
+2. Complete the TCG Masters roster audit in the owner setup file across
+   Championship Point standings, direct invites, deduplication, and the
+   separately managed Japan, South Korea, Mainland China, and Asia-Pacific
+   programs. Publish it only through a new activation migration.
 3. Reconcile the final GO individual roster and UNITE team roster only from
-   official reviewed sources. Keep GO individual and UNITE team-based, and do
-   not infer names from qualification counts.
-4. Publish every future Worlds database or roster change as a new forward-only
-   migration after 373 with focused regression coverage and isolated Preview
-   validation.
+   official reviewed sources. Use the owner setup files, keep GO individual and
+   UNITE team-based, and do not infer names from qualification counts.
+4. Publish every future roster, opening window, result source, or UNITE
+   structure as a new forward-only migration after 374 with focused regression
+   coverage and isolated Preview validation.
 
 ## Preserved boundaries
 

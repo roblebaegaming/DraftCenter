@@ -7,19 +7,25 @@ Pokémon GO and Pokémon UNITE have deployed, fail-closed source-audit routes at
 [#128](https://github.com/roblebaegaming/DraftCenter/pull/128) and production
 application commit `e5dca23b9da09d3a557e485443e7dc5a207b4e20`.
 
-The routes intentionally contain no competitor or team names, prediction
-controls, saved entries, database events, or enabled results polling. The 2026
-Worlds competitor page still says registration is invitation-only and that
-competitor information is coming soon. A qualification award is not treated as
-proof of final registration or attendance.
+The routes intentionally contain no competitor or team names, live prediction
+controls, saved entries, or enabled results polling. The 2026 Worlds competitor
+page still says registration is invitation-only and that competitor information
+is coming soon. A qualification award is not treated as proof of final
+registration or attendance.
 
 Release validation passed the complete application suite, the 37-test focused
 Worlds suite, the 1,027-row National Dex check, the production dependency audit,
 an optimized 236-page build, the protected checks, and refreshed Vercel Preview
 and Production builds. Signed-out review at 1280px and 390px found no horizontal
 overflow, browser errors, or warnings. The post-deployment production smoke
-sweep passed all 19 public and protected routes. These source-audit pages did
-not create GO or UNITE database events or enable any provider integration.
+sweep passed all 19 public and protected routes. That release did not create GO
+or UNITE database events or enable any provider integration.
+
+The next forward-only release adds migration 374 and owner-only preparation
+tools. Migration 374 stages closed, empty TCG and GO Pick 10 events and
+disabled, feedless result-source rows. It does not add a roster, open entries,
+or configure polling. UNITE remains outside the database until the official
+group and elimination structure is reviewed.
 
 ## Shared source-registry boundary
 
@@ -42,6 +48,27 @@ This validator is a source-audit safeguard, not proof that an external page has
 not changed. The Championship Series qualification page is a rolling season
 page. Preserve and review the exact 2026 source snapshot before publishing a
 roster migration, especially after the site rolls forward to 2027 information.
+
+## Owner preparation tools
+
+Owner Operations can download blank setup JSON for TCG, GO, and UNITE, review a
+completed file locally, and download the validated copy. Validation and
+download happen in the browser; loading a file does not save it to Supabase,
+publish names, open entries, create pairings, or start polling.
+
+The TCG template reserves 425 reviewed Masters slots and requires the exact
+Pick 10 plus Your Champion contract. It retains the Masters-only and age-data
+safeguards from the public source audit.
+
+The GO template reserves 220 reviewed roster slots and requires the exact
+Pick 10 plus Your Champion contract. A future activation migration may publish
+only reviewed Trainer rows from that file.
+
+The UNITE template reserves the 15 published qualification awards. It can hold
+reviewed teams, groups, and match dependencies after Pokémon publishes them,
+but requires an official structure URL and review timestamp before accepting
+any group or match data. A blank waiting template is valid; inferred teams,
+groups, seeds, or pairings are not.
 
 ## Pokémon GO contract
 
@@ -116,11 +143,12 @@ require an owner-reviewed official source before finalization.
    stable slugs and reviewed aliases.
 3. Preserve GO's Pick 10 and Your Champion scoring contract, and document the
    UNITE group/bracket contract from the official Worlds structure.
-4. Create a new forward-only migration after 373. Do not modify migrations
-   369-373.
-5. Apply only to an isolated Supabase Preview and test RLS, grants, private
-   pre-lock entries, invalid rosters, result corrections, scoring, and fixture
-   cleanup.
+4. Build on migration 374 with a new forward-only activation migration. Do not
+   modify migrations 369-374. Migration 374 is infrastructure only: GO remains
+   draft and empty, while UNITE has no database event.
+5. Apply the activation migration only to an isolated Supabase Preview and test
+   RLS, grants, private pre-lock entries, invalid rosters, result corrections,
+   scoring, and fixture cleanup.
 6. Configure a structured result source only after permission and exact URL
    approval. Scheduling is a separate owner-authorized provider change.
 7. Release through a protected pull request, review the Preview at desktop and

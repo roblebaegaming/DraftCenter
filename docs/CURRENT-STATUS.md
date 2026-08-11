@@ -165,6 +165,19 @@ announcement checklist plus a ready-to-send results-feed permission request.
 The request has not been sent, the importer remains disabled, and no database,
 provider, field, entry, or scheduler changed in the follow-up.
 
+The TCG, GO, and UNITE infrastructure release candidate is on branch
+`codex/worlds-tcg-go-unite-infrastructure-2026-08-10`. It adds owner-only local
+setup-file preparation for TCG, GO, and UNITE; reusable Pick 10/Your Champion
+screens for reviewed TCG and GO rosters; and migration 374. That migration
+stages TCG Masters and GO as closed, empty events, keeps their result sources
+disabled and feedless, and adds a privacy-safe overall leaderboard that remains
+closed until two individual disciplines are final. UNITE remains an offline
+team/group/bracket preparation contract with no database event. The isolated
+Preview migration and the 371-374 database matrices passed, and the exact
+disposable Preview branch was permanently deleted. This paragraph describes a
+release candidate, not a production deployment; production remains at
+migrations 371-373 until the protected release completes.
+
 ## Release verification
 
 - The complete application tests, National Dex verification across 1,027
