@@ -3,7 +3,7 @@
 - Last updated: August 11, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified production application commit: `dd36c7152e4b87e63c92be0a4ec4efac16ea457b`
+- Verified production application commit: `472752bec6214aeb5fd85db12f36ed4ac59ce4ec`
 - Latest production migration: 375
 
 ## Deployed state
@@ -206,6 +206,13 @@ after a successful save or an actual account change. Save remains disabled
 until all 10 choices and Your Champion are selected, and the authenticated
 database function independently rejects incomplete entries.
 
+The unavailable-competition copy cleanup shipped through pull request
+[#150](https://github.com/roblebaegaming/DraftCenter/pull/150) as production
+application commit `472752bec6214aeb5fd85db12f36ed4ac59ce4ec`.
+TCG, Pokémon GO, and Pokémon UNITE now use the same plain **Not Live** status
+in the Worlds navigation, competition cards, and unavailable leaderboard
+states. VGC remains **Picks open**.
+
 Forward-only migration 375 is applied in production. It makes final Pick 10
 ties use the lower average finish of the six best-finishing picks, then the
 lower average finish of all 10. Provisional ranks remain points-only; exact
@@ -230,9 +237,10 @@ roster, bracket, result snapshot, or provider setting changed during release.
 
 The Worlds navigation copy follow-up shipped through pull request
 [#141](https://github.com/roblebaegaming/DraftCenter/pull/141). The competition
-navigation now says **Worlds Home**, **Picks open**, **Roster pending**, and
-**Teams pending**, and the hub uses direct, natural calls to action rather than
-internal build terminology.
+navigation introduced **Worlds Home** and **Picks open** and replaced its
+original internal build terminology with direct calls to action. Pull request
+#150 later simplified all three unavailable competition statuses to
+**Not Live**.
 
 The published TCG Masters reconciliation shipped through pull request
 [#142](https://github.com/roblebaegaming/DraftCenter/pull/142) as production
@@ -268,6 +276,13 @@ scheduler changed in this release.
   regression suite, dependency audit, and production build passed locally.
   Vercel reports exact application commit `dd36c71` Ready in Production, and
   the signed-out smoke sweep passed all 19 public and protected routes.
+- Pull request #150 passed CodeQL, JavaScript security analysis, the dependency
+  and security suite, the full-history secret scan, and Vercel Preview. The
+  complete application suite, 1,027-row National Dex check, 49-test Worlds
+  suite, dependency audit, and production build passed locally. Vercel reports
+  exact application commit `472752b` Ready in Production. The live Worlds Home
+  returned only **Not Live** for unavailable status labels, and the signed-out
+  smoke sweep passed all 19 public and protected routes.
 - Signed-in Preview walkthroughs covered the new database-backed workflows.
 - The SEO release passed all protected security, dependency, secret-scan,
   CodeQL, and Vercel checks. Its exact Preview passed desktop and 390px mobile
@@ -277,7 +292,7 @@ scheduler changed in this release.
   passed desktop and 390px mobile Pokédex review without browser errors or
   horizontal overflow. The retained Supabase Preview observer-access matrix
   passed every RLS, grant, allow, denial, full-staff, and cleanup assertion.
-- Vercel reports exact application commit `dd36c71` Ready in Production on the public
+- Vercel reports exact application commit `472752b` Ready in Production on the public
   production domains.
 - The signed-out production smoke sweep passes, including protected 401
   boundaries. Focused live checks also pass for tournament metadata and JSON-LD,

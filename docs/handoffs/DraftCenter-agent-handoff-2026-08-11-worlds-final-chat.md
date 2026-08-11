@@ -4,7 +4,7 @@
 - Repository: `roblebaegaming/DraftCenter`
 - Production: <https://www.draftcentral.gg/worlds/2026>
 - Production branch: `main`
-- Verified Worlds application commit: `dd36c7152e4b87e63c92be0a4ec4efac16ea457b`
+- Verified Worlds application commit: `472752bec6214aeb5fd85db12f36ed4ac59ce4ec`
 - Latest production migration: 375
 
 ## Read this first
@@ -31,8 +31,8 @@ preceding detailed Worlds operating record is
 ## What this chat released
 
 - Pull request [#141](https://github.com/roblebaegaming/DraftCenter/pull/141)
-  changed the public navigation to natural **Worlds Home**, **Picks open**,
-  **Roster pending**, and **Teams pending** language.
+  changed the public navigation to **Worlds Home** and removed its original
+  internal build terminology.
 - Pull request [#142](https://github.com/roblebaegaming/DraftCenter/pull/142)
   captured all 425 official TCG Masters Championship Point cutoff rows and
   reconciled 45 unique direct-invite earners. Thirty-three overlap the cutoff
@@ -48,6 +48,10 @@ preceding detailed Worlds operating record is
   preserves an in-progress Pick 10 across background hub refreshes. It reloads
   saved selections after a successful save or an actual account change, but a
   routine results/leaderboard refresh cannot overwrite a dirty local draft.
+- Pull request [#150](https://github.com/roblebaegaming/DraftCenter/pull/150)
+  replaced every unavailable TCG, Pokémon GO, and Pokémon UNITE navigation,
+  competition-card, and leaderboard status with the plain label **Not Live**.
+  VGC remains **Picks open**.
 
 No migration, roster, prediction entry, bracket field, result snapshot,
 provider setting, environment variable, or scheduler was changed by the final
@@ -55,9 +59,11 @@ Pick 10 interface release.
 
 ## Verified production state
 
-Vercel reports exact application commit `dd36c71` Ready in Production. The
+Vercel reports exact application commit `472752b` Ready in Production. The
 post-deployment signed-out smoke sweep passed all 19 public and protected
-routes. Pull request #148 passed CodeQL, JavaScript security analysis, the
+routes. The live Worlds Home contains the three **Not Live** labels without the
+older build, audit, roster-pending, or teams-pending status text. Pull requests
+#148 and #150 passed CodeQL, JavaScript security analysis, the
 dependency and security suite, the full-history secret scan, and Vercel
 Preview. The complete application suite, 1,027-row National Dex verification,
 production dependency audit, focused Worlds regression suite, and production
@@ -189,9 +195,10 @@ not production proof. After merge, verify the exact Production commit and run
 
 The deployable chat work is complete: the copy is natural, TCG reconciliation
 is published without falsely opening voting, sharing is one straightforward
-action, the redundant scoring tagline is gone, and an unfinished Pick 10 no
-longer disappears during the periodic refresh. Production and protected-route
-smoke checks pass on the exact application commit above.
+action, the redundant scoring tagline is gone, unavailable competitions simply
+say **Not Live**, and an unfinished Pick 10 no longer disappears during the
+periodic refresh. Production and protected-route smoke checks pass on the exact
+application commit above.
 
 TCG, GO, and UNITE voting are not complete features until their official full
 fields and structures pass review. The fail-closed public state is intentional
