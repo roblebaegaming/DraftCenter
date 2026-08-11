@@ -21,11 +21,12 @@ overflow, browser errors, or warnings. The post-deployment production smoke
 sweep passed all 19 public and protected routes. That release did not create GO
 or UNITE database events or enable any provider integration.
 
-The next forward-only release adds migration 374 and owner-only preparation
-tools. Migration 374 stages closed, empty TCG and GO Pick 10 events and
-disabled, feedless result-source rows. It does not add a roster, open entries,
-or configure polling. UNITE remains outside the database until the official
-group and elimination structure is reviewed.
+Pull request [#132](https://github.com/roblebaegaming/DraftCenter/pull/132)
+adds migration 374 and owner-only preparation tools. Migration 374 is applied
+to production and stages closed, empty TCG and GO Pick 10 events with disabled,
+feedless result-source rows. It does not add a roster, open entries, or
+configure polling. UNITE remains outside the database until the official group
+and elimination structure is reviewed.
 
 ## Shared source-registry boundary
 

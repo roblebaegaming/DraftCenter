@@ -158,13 +158,13 @@ open until the final roster and exact prediction contract pass review. See
 
 ## Release boundary
 
-Migrations 369-373 are applied to production. Migration 374 is the next
-forward-only release: it adds reusable discipline metadata, stages closed and
-empty TCG and GO events, adds a privacy-safe normalized overall leaderboard,
-and keeps every new result source disabled. Its isolated Preview rehearsal
-passed the new staging matrix plus the existing live-scoring, Top Cut, and Pick
-10 matrices. The exact disposable Preview branch was permanently deleted after
-verification.
+Migrations 369-374 are applied to production. Migration 374 shipped through
+pull request [#132](https://github.com/roblebaegaming/DraftCenter/pull/132): it
+adds reusable discipline metadata, stages closed and empty TCG and GO events,
+adds a privacy-safe normalized overall leaderboard, and keeps every new result
+source disabled. Its isolated Preview rehearsal passed the new staging matrix
+plus the existing live-scoring, Top Cut, and Pick 10 matrices. Both exact
+disposable Preview branches were permanently deleted after verification.
 
 Keep any future
 `NEXT_PUBLIC_DRAFTCENTER_SUPABASE_*` Preview credentials scoped to the matching
