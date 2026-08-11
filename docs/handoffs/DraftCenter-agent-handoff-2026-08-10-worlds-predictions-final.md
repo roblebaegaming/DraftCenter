@@ -5,9 +5,12 @@
 The Worlds live-scoring and prediction-infrastructure release is live at
 <https://www.draftcentral.gg/worlds/2026>. Pull request
 [#128](https://github.com/roblebaegaming/DraftCenter/pull/128) merged through
-the protected `main` branch as production application commit
-`e5dca23b9da09d3a557e485443e7dc5a207b4e20`. Vercel reports that exact commit
-Ready in Production.
+the protected `main` branch as feature commit
+`e5dca23b9da09d3a557e485443e7dc5a207b4e20`. The event-day Operations
+follow-up shipped through pull request
+[#130](https://github.com/roblebaegaming/DraftCenter/pull/130) as current
+production application commit `eb951de33bd4ace0463cb9ea57fab9a0e460b188`.
+Vercel reports that exact commit Ready in Production.
 
 Forward-only migrations 371-373 are applied to the exact core production
 Supabase project:
@@ -120,6 +123,13 @@ Release verification also passed:
 - the signed-out production smoke sweep across all 19 public and protected
   routes; and
 - focused live Worlds route checks with no browser errors.
+
+The event-day follow-up separately passed the focused 38-test Worlds suite, the
+complete application suite, 1,027-row National Dex verification, dependency
+audit, optimized 236-page build, all six protected checks, and refreshed Vercel
+Preview/Production builds. Its hosted signed-out Operations gate remained
+closed and logged no browser errors, and the post-deployment 19-route smoke
+sweep passed. It added no migration or production data change.
 
 No merge protection was bypassed.
 
