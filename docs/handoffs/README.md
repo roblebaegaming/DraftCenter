@@ -6,8 +6,8 @@ from the August 11 chat, including natural navigation and sharing copy, the
 437-player TCG working-field reconciliation, and the production fix that keeps
 unfinished Pick 10 choices intact during background refreshes. Unavailable
 competition statuses use the plain **Not Live** label, and the final sharing
-panel has compact **Download**, **Instagram**, and **Twitter** actions. The
-VGC bracket waiting state keeps its useful public copy without the numbered
+panel has one honest **Download** action. The VGC bracket waiting state keeps
+its useful public copy without the numbered
 backend-workflow cards, and the incomplete share panel says **Choose your top
 10, then choose your champion.** The handoff separates the verified live state
 from TCG, GO, UNITE, VGC Top Cut, and feed activation work that still requires

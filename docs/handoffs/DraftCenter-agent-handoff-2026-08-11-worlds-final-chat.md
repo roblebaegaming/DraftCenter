@@ -4,7 +4,7 @@
 - Repository: `roblebaegaming/DraftCenter`
 - Production: <https://www.draftcentral.gg/worlds/2026>
 - Production branch: `main`
-- Verified Worlds application commit: `2b4e5bdf11df8b2f11f3a228a89de45a00d86001`
+- Verified Worlds application commit: `b5cecc84d7dcbacf4fe6a78af1c9f8ed4dffe7f1`
 - Latest production migration: 375
 
 ## Read this first
@@ -66,6 +66,9 @@ preceding detailed Worlds operating record is
   replaced the awkward incomplete-share instruction with **Choose your top 10,
   then choose your champion.** The wording is shared by every individual Pick
   10 event.
+- Pull request [#158](https://github.com/roblebaegaming/DraftCenter/pull/158)
+  removed the unreliable Instagram and Twitter actions. The sharing panel now
+  offers one **Download** button that states exactly what the browser does.
 
 No migration, roster, prediction entry, bracket field, result snapshot,
 provider setting, environment variable, or scheduler was changed by these
@@ -73,17 +76,18 @@ interface releases.
 
 ## Verified production state
 
-Vercel reports exact application commit `2b4e5bd` Ready in Production. The
+Vercel reports exact application commit `b5cecc8` Ready in Production. The
 post-deployment signed-out smoke sweep passed all 19 public and protected
 routes. The live Worlds Home contains the three **Not Live** labels without the
 older build, audit, roster-pending, or teams-pending status text. Pull requests
-#148, #150, #152, #154, and #156 passed CodeQL, JavaScript security analysis,
-the dependency and security suite, the full-history secret scan, and Vercel
-Preview. The complete application suite, 1,027-row National Dex verification,
-production dependency audit, focused Worlds regression suite, and production
-build also passed. The live VGC bracket page contains none of the four removed
-backend-workflow descriptions. The deployed client bundle contains the new
-Pick 10 instruction and not the old wording.
+#148, #150, #152, #154, #156, and #158 passed CodeQL, JavaScript security
+analysis, the dependency and security suite, the full-history secret scan, and
+Vercel Preview. The complete application suite, 1,027-row National Dex
+verification, production dependency audit, focused Worlds regression suite,
+and production build also passed. The live VGC bracket page contains none of
+the four removed backend-workflow descriptions. The deployed client bundle
+contains the new Pick 10 instruction, one Download action, and no Instagram or
+Twitter action.
 
 The first local build attempt did not receive the public Supabase settings
 because the local environment-file loader did not accept whitespace around
@@ -106,11 +110,11 @@ The button is disabled until 10 choices and an included Champion are present,
 and the server rejects incomplete or invalid entries even if a client bypasses
 the button.
 
-A complete lineup also exposes a compact **Share your picks** panel with
-**Download**, **Instagram**, and **Twitter**. Supported devices use their native
-file share sheet with the 1080 by 1350 PNG. Other browsers download the image
-and open Instagram or a prefilled Twitter composer for attachment. Sharing does
-not save or alter an entry and is public.
+A complete lineup also exposes a compact **Share your picks** panel with one
+**Download** button for the 1080 by 1350 PNG. Direct platform buttons are not
+shown because browsers cannot reliably attach the generated file to Instagram
+or Twitter web composers. Downloading does not save or alter an entry and the
+image is public.
 
 ### TCG Masters
 
@@ -216,7 +220,7 @@ not production proof. After merge, verify the exact Production commit and run
 The deployable chat work is complete: the copy is natural, TCG reconciliation
 is published without falsely opening voting, sharing is one straightforward
 action, the redundant scoring tagline is gone, unavailable competitions simply
-say **Not Live**, compact Instagram and Twitter sharing is restored, and an
+say **Not Live**, the sharing panel offers one honest Download action, and an
 unfinished Pick 10 no longer disappears during the periodic refresh. The VGC
 bracket waiting screen no longer exposes backend-process cards, and the sharing
 panel now says **Choose your top 10, then choose your champion.** Production
