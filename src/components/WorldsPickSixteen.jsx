@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createClient } from "../lib/supabase/client";
 import {
   filterWorldsCompetitors,
@@ -94,6 +94,8 @@ export default function WorldsPickSixteen({ rosterSource, discipline = "vgc" }) 
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const [loadingHub, setLoadingHub] = useState(true);
+  const draftDirtyRef = useRef(false);
+  const currentUserIdRef = useRef(undefined);
 
   const fallback = useMemo(() => fallbackCompetitors(rosterSource, config), [rosterSource, config]);
   const competitors = useMemo(() => hub ? hubCompetitors(hub) : fallback, [hub, fallback]);
@@ -104,7 +106,7 @@ export default function WorldsPickSixteen({ rosterSource, discipline = "vgc" }) 
   const regions = useMemo(() => [...new Set(competitors.map((competitor) => competitor.qualificationRegion))], [competitors]);
   const filtered = useMemo(() => filterWorldsCompetitors(competitors, search, region), [competitors, search, region]);
 
-  async function loadHub(supabase) {
+  async function loadHub(supabase, { hydrateEntry = false } = {}) {
     const [{ data, error }, results] = await Promise.all([
       supabase.rpc("get_worlds_pick_hub", { p_event_id: eventId }),
       supabase.rpc("get_worlds_result_status", { p_event_id: eventId }),
@@ -119,8 +121,11 @@ export default function WorldsPickSixteen({ rosterSource, discipline = "vgc" }) 
       return;
     }
     setHub({ ...data, results: results.error ? { status: "waiting", is_stale: false } : results.data });
-    setSelected(data.my_entry?.picks || []);
-    setAce(data.my_entry?.ace_slug || null);
+    if (hydrateEntry || !draftDirtyRef.current) {
+      setSelected(data.my_entry?.picks || []);
+      setAce(data.my_entry?.ace_slug || null);
+      draftDirtyRef.current = false;
+    }
     setLoadingHub(false);
   }
 
@@ -129,13 +134,19 @@ export default function WorldsPickSixteen({ rosterSource, discipline = "vgc" }) 
     let active = true;
     supabase.auth.getSession().then(({ data }) => {
       if (!active) return;
-      setUser(data.session?.user || null);
-      loadHub(supabase);
+      const nextUser = data.session?.user || null;
+      currentUserIdRef.current = nextUser?.id || null;
+      setUser(nextUser);
+      loadHub(supabase, { hydrateEntry: true });
     });
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!active) return;
-      setUser(session?.user || null);
-      queueMicrotask(() => active && loadHub(supabase));
+      const nextUser = session?.user || null;
+      const nextUserId = nextUser?.id || null;
+      const identityChanged = currentUserIdRef.current !== nextUserId;
+      currentUserIdRef.current = nextUserId;
+      setUser(nextUser);
+      queueMicrotask(() => active && loadHub(supabase, { hydrateEntry: identityChanged }));
     });
     const refresh = setInterval(() => { if (active) loadHub(supabase); }, 120_000);
     return () => { active = false; clearInterval(refresh); listener.subscription.unsubscribe(); };
@@ -145,9 +156,17 @@ export default function WorldsPickSixteen({ rosterSource, discipline = "vgc" }) 
     if (!user || locked || !competitor.isSelectable || ["withdrawn", "declined"].includes(competitor.attendanceStatus)) return;
     const removingAce = ace === competitor.slug && selected.includes(competitor.slug);
     const next = toggleWorldsPick(selected, competitor.slug, pickCount);
+    if (next.picks !== selected) draftDirtyRef.current = true;
     setSelected(next.picks);
     if (removingAce) setAce(null);
     setMessage(next.error);
+  }
+
+  function chooseChampion(slug) {
+    if (slug === ace) return;
+    draftDirtyRef.current = true;
+    setAce(slug);
+    setMessage("");
   }
 
   async function saveEntry() {
@@ -164,7 +183,7 @@ export default function WorldsPickSixteen({ rosterSource, discipline = "vgc" }) 
       setBusy(false);
       return setMessage(error.message || "Your entry could not be saved.");
     }
-    await loadHub(supabase);
+    await loadHub(supabase, { hydrateEntry: true });
     setBusy(false);
     setMessage("Your Pick 10 and Your Champion are saved. You can revise them until the lock time.");
   }
@@ -224,14 +243,14 @@ export default function WorldsPickSixteen({ rosterSource, discipline = "vgc" }) 
               <button className="worlds-pick-remove" type="button" disabled={locked} onClick={() => toggle(competitor)}>
                 <span>{index + 1}</span><strong>{competitor.displayName}</strong><small>{competitor.countryCode} · remove</small>
               </button>
-              <label className="worlds-ace-choice"><input type="radio" name="worlds-ace" checked={ace === competitor.slug} disabled={locked} onChange={() => setAce(competitor.slug)} /><span>Your Champion ×2</span></label>
+              <label className="worlds-ace-choice"><input type="radio" name="worlds-ace" checked={ace === competitor.slug} disabled={locked} onChange={() => chooseChampion(competitor.slug)} /><span>Your Champion ×2</span></label>
             </div> : <div className="worlds-empty-pick" key={index}><span>{index + 1}</span><small>Open spot</small></div>;
           })}
         </div>
 
         <div className="worlds-save-row">
           <div>
-            {loadingHub ? <p>Connecting the community competition…</p> : !hub || staged ? <p>This competition is staged. Entries remain closed until the reviewed roster and opening window are published together.</p> : locked ? <p>Entries are locked. Saved lineups are now public on the leaderboard.</p> : !user ? <p><a href="/">Sign in</a> to save and edit your entry.</p> : hub.my_entry ? <p>Saved as <strong>{hub.my_entry.display_name}</strong>. Edits remain open until the deadline.</p> : <p>Finish all 10 spots, then save one entry to the sitewide field.</p>}
+            {loadingHub ? <p>Connecting the community competition…</p> : !hub || staged ? <p>This competition is staged. Entries remain closed until the reviewed roster and opening window are published together.</p> : locked ? <p>Entries are locked. Saved lineups are now public on the leaderboard.</p> : !user ? <p><a href="/">Sign in</a> to save and edit your entry.</p> : hub.my_entry ? <p>Saved as <strong>{hub.my_entry.display_name}</strong>. Edits remain open until the deadline.</p> : <p>Choose all 10 and Your Champion to save your entry.</p>}
             {message && <p className="worlds-message" role="status">{message}</p>}
           </div>
           <button className="primary-button" type="button" disabled={busy || locked || selected.length !== pickCount || !ace || !hub} onClick={saveEntry}>{busy ? "Saving…" : hub?.my_entry ? "Update entry" : "Save entry"}</button>

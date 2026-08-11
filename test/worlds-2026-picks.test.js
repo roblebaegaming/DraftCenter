@@ -173,6 +173,13 @@ test("the Worlds page defers bracket predictions until official pairings exist",
   assert.match(page, /name="worlds-ace"/);
   assert.match(page, /p_ace_slug: ace/);
   assert.match(page, /Your Champion ×2/);
+  assert.match(page, /const draftDirtyRef = useRef\(false\)/);
+  assert.match(page, /if \(hydrateEntry \|\| !draftDirtyRef\.current\)/);
+  assert.match(page, /setInterval\(\(\) => \{ if \(active\) loadHub\(supabase\); \}, 120_000\)/);
+  assert.match(page, /loadHub\(supabase, \{ hydrateEntry: true \}\)/);
+  assert.match(page, /if \(next\.picks !== selected\) draftDirtyRef\.current = true/);
+  assert.match(page, /disabled=\{busy \|\| locked \|\| selected\.length !== pickCount \|\| !ace \|\| !hub\}/);
+  assert.match(page, /Choose all 10 and Your Champion to save your entry/);
   assert.match(page, /Lower average finish among your six best-finishing picks/);
   assert.match(page, /Lower average finish across all 10 picks/);
   assert.match(page, /If both averages are also equal, the entries share a rank/);
