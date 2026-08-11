@@ -8,19 +8,24 @@ The Worlds live-scoring and prediction-infrastructure release is live at
 the protected `main` branch as feature commit
 `e5dca23b9da09d3a557e485443e7dc5a207b4e20`. The event-day Operations
 follow-up shipped through pull request
-[#130](https://github.com/roblebaegaming/DraftCenter/pull/130) as current
-production application commit `eb951de33bd4ace0463cb9ea57fab9a0e460b188`.
-Vercel reports that exact commit Ready in Production.
+[#130](https://github.com/roblebaegaming/DraftCenter/pull/130). Pick 10 social
+sharing followed in pull request
+[#135](https://github.com/roblebaegaming/DraftCenter/pull/135), and the final
+tiebreaker release shipped through protected pull request
+[#136](https://github.com/roblebaegaming/DraftCenter/pull/136) as application
+commit `4a664943f88d6e74a5ba534d5d5bf2e4defcdee4`.
 
-Forward-only migrations 371-374 are applied to the exact core production
+Forward-only migrations 371-375 are applied to the exact core production
 Supabase project:
 
 - 371 adds the fail-closed VGC Masters provisional-results importer;
-- 372 adds the configurable VGC Masters Top Cut prediction challenge; and
+- 372 adds the configurable VGC Masters Top Cut prediction challenge;
 - 373 changes VGC from Pick 16 and Ace Pick to **Pick 10** and
-  **Your Champion**; and
+  **Your Champion**;
 - 374 stages closed, empty TCG and GO events and adds the privacy-safe overall
-  leaderboard RPC.
+  leaderboard RPC; and
+- 375 adds final-only Top 6 and all-10 average-finish tiebreakers plus a
+  fail-closed finalization coverage check.
 
 Production contained zero VGC entries immediately before migration 373 locked
 the entries table, and it still contained zero entries after the migration.
@@ -43,7 +48,7 @@ official source can finalize them. The legacy `ace_slug`, `p_ace_slug`, and
 `ace_multiplier` database names remain internal compatibility fields and are
 not player-facing copy.
 
-The pending migration 375 adds the owner-approved final tie order requested for
+Production migration 375 adds the owner-approved final tie order requested for
 every individual Pick 10 event: total points, lower average finish among the
 six best-finishing selections, then lower average finish across all 10. The
 averages are absent during provisional scoring and become authoritative only
@@ -58,6 +63,11 @@ matrices. Postflight confirmed the three individual events, zero remaining
 fixture entries, enabled placement-table RLS, public hub access, and
 service-only finalization. The exact disposable Preview branch
 `worlds-pick-ten-tiebreakers-2026-08-10` was permanently deleted afterward.
+
+The production postflight then confirmed zero entries, the same three event
+statuses, disabled and unconfigured result sources, both tiebreaker keys on
+VGC, TCG, and GO, public hub access, and service-only finalization. No entry,
+score, roster, bracket, result snapshot, or provider setting changed.
 
 After all 10 choices and Your Champion are selected, the reusable Pick 10 UI
 can create a 1080 by 1350 PNG social card. Members may download it, send the

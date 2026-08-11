@@ -142,6 +142,10 @@ rank. Finalization stops if any competitor in a saved entry lacks a reviewed
 placement. A `9999` no-valid-placing result continues to score zero and counts
 as one position after the published field for the average calculations.
 
+Migration 375 applied this contract to production on August 11, 2026. Its
+read-only postflight confirmed zero entries, a disabled and unconfigured result
+source, unchanged public/service function grants, and no result snapshots.
+
 The owner must compare the completed placement set with an official Pokémon
 published result outside DraftCenter. The **Finalize results** action requires
 that official URL and the exact phrase `FINALIZE 2026 VGC MASTERS`. It copies
