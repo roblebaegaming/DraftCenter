@@ -82,6 +82,18 @@ export default function WorldsTcgPickSixteenSetup({ sourceRegistry }) {
         <ul className="worlds-tcg-program-list">{sourceRegistry.separatePrograms.map((item) => <li key={item.program}><strong>{item.program}</strong><span>{sourceStatusLabel(item.status)}</span></li>)}</ul>
       </article>
 
+      <article className="worlds-tcg-source-card">
+        <span className="eyebrow">OFFICIAL TOURNAMENT FORMAT</span>
+        <h2>Attendance sets the Swiss round count</h2>
+        <p>All TCG divisions begin Friday, August 28, and conclude Sunday, August 30. Swiss play can span at most two days, while the exact round count and pairings remain attendance-dependent.</p>
+        <ul>
+          <li>Masters uses the Standard format with regulation mark H and onward.</li>
+          <li>The Masters division has no scheduled meal break.</li>
+          <li>The published structure does not include the final registered roster.</li>
+        </ul>
+        <a className="quiet-button" href={sourceRegistry.tournamentRules.url} target="_blank" rel="noreferrer">Read the official TCG competitor structure ↗</a>
+      </article>
+
       <aside className="worlds-scoring-card worlds-tcg-scoring-card">
         <span className="eyebrow">SCORING LOCKED IN</span>
         <h2>Champion: 30 points. Your Champion: ×2.</h2>
@@ -94,8 +106,8 @@ export default function WorldsTcgPickSixteenSetup({ sourceRegistry }) {
       <header><span className="eyebrow">RELEASE GATES</span><h2>What remains before TCG picks open</h2></header>
       <ol>
         <li className="is-complete"><span>1</span><div><strong>Product rules</strong><p>Pick 10, 30-point champion, Your Champion ×2, Masters only.</p></div></li>
-        <li className="is-active"><span>2</span><div><strong>Championship Point cutoffs</strong><p>Reconcile the five official zone leaderboards against their exact Masters slot counts.</p></div></li>
-        <li><span>3</span><div><strong>Direct and separate-program invites</strong><p>Add official event earners and the Japan, South Korea, mainland China, and Asia-Pacific rosters without duplicates.</p></div></li>
+        <li className="is-complete"><span>2</span><div><strong>Tournament format</strong><p>Attendance-based Swiss across at most two days, Standard format with regulation mark H onward.</p></div></li>
+        <li className="is-active"><span>3</span><div><strong>Complete Masters roster</strong><p>Reconcile CP cutoffs, direct event earners, and separately managed programs without duplicates or assumed attendance.</p></div></li>
         <li><span>4</span><div><strong>Isolated Preview test</strong><p>Apply a new forward-only migration, then verify saving, privacy, scoring, RLS, grants, and cleanup away from production.</p></div></li>
       </ol>
       <p className="worlds-tcg-gate-note"><strong>Fail-closed:</strong> no competitor cards, picks, or saved entries will appear until the complete Masters roster has passed the source audit.</p>

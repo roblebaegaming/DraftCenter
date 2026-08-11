@@ -48,10 +48,15 @@ function GoSetup({ sourceRegistry, qualificationCount }) {
       </article>
 
       <article className="worlds-tcg-source-card">
-        <span className="eyebrow">FORMAT BOUNDARY</span>
-        <h2>Pick 10, Your Champion, no invented Worlds bracket</h2>
-        <p>The individual prediction format is set: choose 10 Trainers and name Your Champion for double placement points. The current handbook confirms Great League play but does not publish the exact 2026 Worlds phase size or pairings.</p>
-        <ul>{sourceRegistry.predictionDesign.doNotAssume.map((item) => <li key={item}>{item}</li>)}</ul>
+        <span className="eyebrow">OFFICIAL TOURNAMENT FORMAT</span>
+        <h2>32 pools feed a double-elimination final stage</h2>
+        <p>The official competitor page and organizer bracket shell now publish the three-day shape. The shell still contained zero players at the August 11 source check, so it is structure evidence—not a final roster.</p>
+        <ul>
+          <li>Friday: 32 double-elimination pools, with two Trainers advancing from each pool.</li>
+          <li>Saturday: the Final Phase stays double elimination until two Trainers remain.</li>
+          <li>Sunday: the Grand Final determines the Champion.</li>
+          <li>Matches are best-of-three except the Winners Final, Losers Final, and Grand Final, which are best-of-five.</li>
+        </ul>
       </article>
 
       <article className="worlds-tcg-source-card worlds-future-automation-card">
@@ -65,7 +70,7 @@ function GoSetup({ sourceRegistry, qualificationCount }) {
     <ReadinessSteps game="GO" steps={[
       ["complete", "Entry unit", "Use individual Pokémon GO Trainers; do not split into age divisions or infer private ages."],
       ["active", "Roster audit", "Reconcile 220 CP slots, direct invites, regional programs, duplicates, and registration changes."],
-      ["complete", "Prediction choice", "Use Pick 10 with one Your Champion choice worth double placement points."],
+      ["complete", "Published format", "Use the reviewed 32-pool, two-advancer, double-elimination structure without inventing entrants or pairings."],
       ["pending", "Preview activation", "Add a forward-only migration, then test privacy, saving, result mapping, and cleanup in an isolated Preview."],
     ]} />
   </>;
@@ -77,8 +82,8 @@ function UniteSetup({ sourceRegistry, qualificationCount }) {
     <section className="worlds-future-grid" id="source-audit">
       <article className="worlds-tcg-source-card">
         <span className="eyebrow">VERIFIED 2026 QUALIFICATION MODEL</span>
-        <h2>{qualificationCount} modeled team awards</h2>
-        <p>This total comes from the published qualification paths. It is not a final registered roster, and DraftCenter will not turn it into one without named, reviewed teams.</p>
+        <h2>{qualificationCount} modeled TPCi team awards</h2>
+        <p>This subtotal comes from TPCi&apos;s published qualification paths. Separately managed regional programs and the final registered roster still require review, so DraftCenter will not turn this subtotal into a field.</p>
         <div className="worlds-tcg-source-table worlds-unite-source-table">
           {rules.qualificationAwards.map((award) => <div key={award.path}>
             <span><strong>{award.path}</strong><small>Qualification award</small></span>
@@ -96,13 +101,14 @@ function UniteSetup({ sourceRegistry, qualificationCount }) {
       </article>
 
       <article className="worlds-tcg-source-card">
-        <span className="eyebrow">TOURNAMENT SHAPE</span>
-        <h2>Groups first, bracket only when published</h2>
-        <p>Pokémon confirms 5-on-5 team play. DraftCenter can reuse the complete-bracket privacy and scoring safeguards after the official Worlds groups, advancing teams, pairings, and deadline are reviewed.</p>
+        <span className="eyebrow">OFFICIAL TOURNAMENT FORMAT</span>
+        <h2>Round-robin groups feed single-elimination playoffs</h2>
+        <p>Pokémon now confirms the three-day phase structure. The registered teams, group sizes, group assignments, advancement count, pairings, and prediction deadline are still unpublished.</p>
         <ul>
-          <li>Never derive Worlds seeds from Regional League standings.</li>
-          <li>Keep every user bracket private before the owner-set lock.</li>
-          <li>Record team results with explicit upstream and downstream match dependencies.</li>
+          <li>Friday: single round-robin groups; the top teams advance.</li>
+          <li>Saturday: a single-elimination bracket, with the Top Four played best-of-five.</li>
+          <li>Sunday: a best-of-five Final determines the Champion.</li>
+          <li>Other matches are best-of-three; group size and group match length will be announced on-site.</li>
         </ul>
       </article>
 
@@ -116,8 +122,8 @@ function UniteSetup({ sourceRegistry, qualificationCount }) {
 
     <ReadinessSteps game="UNITE" steps={[
       ["complete", "Entry unit", "Use qualified 5-on-5 teams; player rosters are supporting attribution, not prediction entries."],
-      ["active", "Final team roster", "Review every qualified and registered team name, source path, region, and organization alias."],
-      ["pending", "Groups and pairings", "Load the official Worlds structure without inventing seeds, byes, or matches."],
+      ["complete", "Published format", "Use round-robin groups followed by single-elimination playoffs; Top Four and Finals are best-of-five."],
+      ["active", "Teams and assignments", "Review every registered team, alias, group assignment, advancement rule, pairing, and deadline."],
       ["pending", "Preview activation", "Add a forward-only migration, then test bracket privacy, progression, corrections, scoring, and cleanup."],
     ]} />
   </>;
@@ -146,8 +152,8 @@ export default function WorldsFutureCompetitionSetup({ sourceRegistry }) {
         <span className="eyebrow">{gameLabel.toUpperCase()} · 2026 WORLD CHAMPIONSHIPS</span>
         <h1>{gameLabel} predictions are staged, not guessed.</h1>
         <p>{isGo
-          ? "The individual qualification rules and Pick 10 format are set. DraftCenter is waiting for a complete, deduplicated Worlds roster before exposing names or opening entries."
-          : "The qualification paths and 5-on-5 team unit are known. DraftCenter is waiting for the final registered teams and official Worlds groups before opening a team bracket."}</p>
+          ? "The individual qualification rules, Pick 10 design, and 32-pool tournament format are set. DraftCenter is waiting for a complete, deduplicated Worlds roster before exposing names or opening entries."
+          : "The 5-on-5 team unit and round-robin-to-single-elimination format are known. DraftCenter is waiting for the registered teams, group assignments, advancement details, and pairings before opening a team bracket."}</p>
         <div className="worlds-hero-actions">
           <a className="primary-button inline-link-button" href="#source-audit">See the source audit</a>
           <Link className="quiet-button" href="/worlds/2026">Back to Worlds Predictions</Link>
@@ -155,11 +161,11 @@ export default function WorldsFutureCompetitionSetup({ sourceRegistry }) {
       </div>
       <aside className="worlds-event-card worlds-tcg-build-card worlds-future-build-card">
         <span>BUILD STATUS</span>
-        <strong>Waiting for official roster</strong>
+        <strong>Format published · roster pending</strong>
         <p>Saving and polling stay closed.</p>
         <dl>
           <div><dt>Entry unit</dt><dd>{isGo ? "Individual Trainer" : "5-on-5 team"}</dd></div>
-          <div><dt>Known base</dt><dd>{validation.qualificationCount} {isGo ? "CP slots" : "awards"}</dd></div>
+          <div><dt>{isGo ? "Known base" : "Known TPCi base"}</dt><dd>{validation.qualificationCount} {isGo ? "CP slots" : "awards"}</dd></div>
           <div><dt>Sources checked</dt><dd>{displayDate(sourceRegistry.sourceCheckedAt)}</dd></div>
         </dl>
       </aside>
