@@ -179,12 +179,12 @@ preparation contract with no database event. The isolated migration rehearsal
 and 371-374 database matrices passed, and both exact disposable Preview branches
 were permanently deleted.
 
-The reusable VGC, TCG, and GO Pick 10 screen now includes an optional social
-card flow once a lineup and Your Champion are complete. It creates a 1080 by
-1350 PNG for download, supports native file sharing to installed apps such as
-Instagram or X when the device exposes them, and provides a prepared X post
-plus downloaded image fallback. Sharing never saves or changes an entry and
-clearly warns that it publicly reveals the card before lock.
+The reusable VGC, TCG, and GO Pick 10 screen includes one optional **Share your
+picks** action once a lineup and Your Champion are complete. It opens the
+device's normal share menu with a 1080 by 1350 PNG when supported and otherwise
+downloads the image. The interface does not name or prioritize individual
+social platforms. Sharing never saves or changes an entry and clearly warns
+that it makes private picks public before lock.
 
 Forward-only migration 375 is applied in production. It makes final Pick 10
 ties use the lower average finish of the six best-finishing picks, then the

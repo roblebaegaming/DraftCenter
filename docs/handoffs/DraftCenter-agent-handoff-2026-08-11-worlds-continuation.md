@@ -93,10 +93,11 @@ averages appear only after owner-approved finalization. Exact final ties share
 a rank. A no-valid-placing result counts as published field size plus one for
 the averages and scores zero points.
 
-Members with a complete lineup and Your Champion can generate a 1080 by 1350
-PNG, download it, use native file sharing when supported, or open a prepared X
-post after downloading the image. Sharing does not save or alter an entry and
-warns that it reveals the lineup publicly before lock.
+Members with a complete lineup and Your Champion see one **Share your picks**
+action. It opens the device's normal share menu with a 1080 by 1350 PNG when
+supported and otherwise downloads the image. The interface does not name
+individual social platforms. Sharing does not save or alter an entry and warns
+that it reveals the lineup publicly before lock.
 
 ### VGC live results
 
