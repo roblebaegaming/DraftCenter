@@ -365,7 +365,7 @@ guard merely to remove that measurement gap.
 ## Authoritative records
 
 - Current continuation handoff:
-  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-10-worlds-predictions-final.md`](handoffs/DraftCenter-agent-handoff-2026-08-10-worlds-predictions-final.md)
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-11-worlds-continuation.md`](handoffs/DraftCenter-agent-handoff-2026-08-11-worlds-continuation.md)
 - Historical Worlds Pick 16 operating record:
   [`docs/worlds-2026-pick-sixteen.md`](worlds-2026-pick-sixteen.md)
 - Worlds live-scoring operating record:
