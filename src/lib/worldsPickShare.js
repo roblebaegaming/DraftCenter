@@ -2,7 +2,6 @@ export const WORLDS_SHARE_CARD_WIDTH = 1080;
 export const WORLDS_SHARE_CARD_HEIGHT = 1350;
 
 const SHARE_DISCIPLINES = new Set(["vgc", "tcg", "go"]);
-const PRODUCTION_ORIGIN = "https://www.draftcentral.gg";
 
 function safeText(value, limit = 100) {
   return String(value ?? "").trim().replace(/\s+/g, " ").slice(0, limit);
@@ -38,24 +37,8 @@ export function worldsSharePath(discipline) {
   return `/worlds/2026/${disciplineKey(discipline)}`;
 }
 
-export function worldsShareUrl(discipline, origin = PRODUCTION_ORIGIN) {
-  return new URL(worldsSharePath(discipline), origin).toString();
-}
-
 export function worldsShareFileName(discipline) {
   return `draftcenter-2026-worlds-${disciplineKey(discipline)}-pick-10.png`;
-}
-
-export function worldsShareText(gameLabel = "VGC") {
-  const label = safeText(gameLabel, 40) || "VGC";
-  return `My 2026 Pok\u00e9mon Worlds ${label} picks.`;
-}
-
-export function worldsTwitterShareUrl(discipline, gameLabel = "VGC") {
-  const intent = new URL("https://twitter.com/intent/tweet");
-  intent.searchParams.set("text", worldsShareText(gameLabel));
-  intent.searchParams.set("url", worldsShareUrl(discipline));
-  return intent.toString();
 }
 
 function roundedRect(context, x, y, width, height, radius) {
