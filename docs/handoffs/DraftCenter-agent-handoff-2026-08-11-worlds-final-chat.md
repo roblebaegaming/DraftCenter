@@ -4,7 +4,7 @@
 - Repository: `roblebaegaming/DraftCenter`
 - Production: <https://www.draftcentral.gg/worlds/2026>
 - Production branch: `main`
-- Verified Worlds application commit: `36614e727b81201c479622bc5c4a03d05b744baa`
+- Verified Worlds application commit: `899e854036c0337efba397ce8af3ebd04cf250c9`
 - Latest production migration: 375
 
 ## Read this first
@@ -58,22 +58,27 @@ preceding detailed Worlds operating record is
   **Download**, **Instagram**, and **Twitter**. Native file sharing carries the
   PNG on supported devices; other browsers download it and open the selected
   platform.
+- Pull request [#154](https://github.com/roblebaegaming/DraftCenter/pull/154)
+  removed the four numbered backend-process cards from the public VGC Top Cut
+  waiting screen. The page keeps only its headline, short explanation, and
+  official competitor-information link.
 
 No migration, roster, prediction entry, bracket field, result snapshot,
-provider setting, environment variable, or scheduler was changed by the final
-Pick 10 interface release.
+provider setting, environment variable, or scheduler was changed by these
+interface releases.
 
 ## Verified production state
 
-Vercel reports exact application commit `36614e7` Ready in Production. The
+Vercel reports exact application commit `899e854` Ready in Production. The
 post-deployment signed-out smoke sweep passed all 19 public and protected
 routes. The live Worlds Home contains the three **Not Live** labels without the
 older build, audit, roster-pending, or teams-pending status text. Pull requests
-#148, #150, and #152 passed CodeQL, JavaScript security analysis, the
+#148, #150, #152, and #154 passed CodeQL, JavaScript security analysis, the
 dependency and security suite, the full-history secret scan, and Vercel
 Preview. The complete application suite, 1,027-row National Dex verification,
 production dependency audit, focused Worlds regression suite, and production
-build also passed.
+build also passed. The live VGC bracket page contains none of the four removed
+backend-workflow descriptions.
 
 The first local build attempt did not receive the public Supabase settings
 because the local environment-file loader did not accept whitespace around
@@ -131,7 +136,10 @@ adapter.
 ### VGC Top Cut and live scoring
 
 The VGC Top Cut room is correctly waiting for official field and first-round
-pairings. Results-import infrastructure remains disabled and unconfigured.
+pairings. Its public waiting screen contains only the headline, short
+explanation, and official competitor-information link; the numbered internal
+workflow is no longer shown. Results-import infrastructure remains disabled
+and unconfigured.
 Feed permission, exact provider terms, event identifier and URL, attribution,
 and separate scheduler authorization are still unresolved.
 
@@ -204,8 +212,9 @@ The deployable chat work is complete: the copy is natural, TCG reconciliation
 is published without falsely opening voting, sharing is one straightforward
 action, the redundant scoring tagline is gone, unavailable competitions simply
 say **Not Live**, compact Instagram and Twitter sharing is restored, and an
-unfinished Pick 10 no longer disappears during the periodic refresh. Production
-and protected-route smoke checks pass on the exact application commit above.
+unfinished Pick 10 no longer disappears during the periodic refresh. The VGC
+bracket waiting screen no longer exposes backend-process cards. Production and
+protected-route smoke checks pass on the exact application commit above.
 
 TCG, GO, and UNITE voting are not complete features until their official full
 fields and structures pass review. The fail-closed public state is intentional

@@ -3,7 +3,7 @@
 - Last updated: August 11, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified production application commit: `36614e727b81201c479622bc5c4a03d05b744baa`
+- Verified production application commit: `899e854036c0337efba397ce8af3ebd04cf250c9`
 - Latest production migration: 375
 
 ## Deployed state
@@ -254,6 +254,13 @@ original internal build terminology with direct calls to action. Pull request
 #150 later simplified all three unavailable competition statuses to
 **Not Live**.
 
+The bracket-waiting copy cleanup shipped through pull request
+[#154](https://github.com/roblebaegaming/DraftCenter/pull/154) as production
+application commit `899e854036c0337efba397ce8af3ebd04cf250c9`. The public
+VGC Top Cut waiting screen now keeps only its headline, short explanation, and
+official competitor-information link. The four numbered backend-process cards
+are removed.
+
 The published TCG Masters reconciliation shipped through pull request
 [#142](https://github.com/roblebaegaming/DraftCenter/pull/142) as production
 application commit `4f781e9c081a3771499baab490bf2c28f355e407`.
@@ -303,6 +310,14 @@ scheduler changed in this release.
   bundle contains the compact heading, Instagram destination, Twitter intent,
   and public-sharing warning, and the signed-out smoke sweep passed all 19
   public and protected routes.
+- Pull request #154 passed CodeQL, JavaScript security analysis, the dependency
+  and security suite, the full-history secret scan, and Vercel Preview. The
+  complete application suite, 1,027-row National Dex check, 49-test Worlds
+  suite, dependency audit, and production build passed locally. Vercel reports
+  exact application commit `899e854` Ready in Production. The live VGC bracket
+  page contains the retained headline and official competitor-information link
+  with none of the four removed workflow descriptions, and the signed-out
+  smoke sweep passed all 19 public and protected routes.
 - Signed-in Preview walkthroughs covered the new database-backed workflows.
 - The SEO release passed all protected security, dependency, secret-scan,
   CodeQL, and Vercel checks. Its exact Preview passed desktop and 390px mobile
@@ -312,7 +327,7 @@ scheduler changed in this release.
   passed desktop and 390px mobile Pokédex review without browser errors or
   horizontal overflow. The retained Supabase Preview observer-access matrix
   passed every RLS, grant, allow, denial, full-staff, and cleanup assertion.
-- Vercel reports exact application commit `36614e7` Ready in Production on the public
+- Vercel reports exact application commit `899e854` Ready in Production on the public
   production domains.
 - The signed-out production smoke sweep passes, including protected 401
   boundaries. Focused live checks also pass for tournament metadata and JSON-LD,
