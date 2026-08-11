@@ -19,6 +19,24 @@ shell is not a final registered field.
 
 ## Pokémon TCG Masters
 
+### Reconciliation completed on August 11
+
+DraftCenter has captured all **425** published Championship Point cutoff rows
+from the five TPCi Masters leaderboards. A separate event-results review found
+45 unique direct-invite earners: 33 already appear in those cutoff rows and 12
+are additional competitors. The current deduplicated working field is therefore
+**437** competitors before the separately managed programs are added.
+
+The two reviewed snapshots are stored in:
+
+- `src/data/worlds-2026-tcg-masters-cp.json`; and
+- `src/data/worlds-2026-tcg-masters-direct-invites.json`.
+
+The direct-invite results are corroborating public event records, not a claim
+that every invite earner registered or will attend. The final activation roster
+must come from an official complete Worlds roster or an owner-supplied official
+registration export.
+
 The official competitor page confirms:
 
 - all divisions begin Friday, August 28, and conclude Sunday, August 30;
@@ -27,12 +45,32 @@ The official competitor page confirms:
 - the Standard format uses regulation mark H and onward.
 
 The page does not publish the final registered Masters roster, the
-attendance-dependent round count, or pairings. DraftCenter must still reconcile
-the Championship Point cutoffs, direct invites, and separately managed regional
-programs without treating invite-earned status as confirmed attendance.
+attendance-dependent round count, or pairings. The TPCi cutoff and direct-invite
+reconciliation is complete, but the following regional identity work remains:
+
+- **Japan:** the official invitation paths are published, including event,
+  Championship Series, and Championship Point awards, but the published player
+  identifiers still require a final identity and duplicate reconciliation;
+- **South Korea:** a final official invite or registration roster is required;
+- **mainland China:** the official notice says qualified players were contacted
+  through private mini-program messages and does not publish their names; and
+- **Asia-Pacific:** final Leaderboard Point standings are exposed through each
+  player's My Page, not as a public complete roster.
+
+Because those identities are not available in a complete public official
+source, opening voting now would knowingly omit valid competitors. TCG remains
+closed until the complete roster is reviewable.
 
 Official source:
 <https://registration.pokemon.com/flow/pokemon/26sanfrancisco/landing/page/011tcgcompetitorinfo>
+
+Qualification and regional sources:
+
+- <https://championships.pokemon.com/en-us/about/>
+- <https://www.pokemon.com/us/play-pokemon/leaderboards/tcg-masters/>
+- <https://www.pokemon-card.com/info/005256.html>
+- <https://www.pokemon.cn/tcg/event/21473.html>
+- <https://pacs.portal-pokemon.com/2025-26/sg/about/>
 
 ## Pokémon GO
 
@@ -88,4 +126,3 @@ When a final official roster or structure appears:
 5. review the exact hosted Preview at desktop and narrow mobile widths; and
 6. release through a protected pull request, then confirm the deployed commit
    and run the signed-out production smoke sweep.
-

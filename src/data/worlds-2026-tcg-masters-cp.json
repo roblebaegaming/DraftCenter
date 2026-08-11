@@ -1,0 +1,4266 @@
+{
+  "eventId": "2026-tcg-masters",
+  "sourceUrl": "https://www.pokemon.com/us/play-pokemon/leaderboards/tcg-masters/",
+  "sourceCheckedAt": "2026-08-11",
+  "officialLastUpdatedAt": "2026-07-06T15:03:00",
+  "status": "championship-point-slots-reconciled-not-complete-field",
+  "expectedRegionCounts": {
+    "USA & Canada": 135,
+    "Europe": 135,
+    "Latin America": 125,
+    "Oceania": 20,
+    "Middle East & South Africa": 10
+  },
+  "competitors": [
+    {
+      "slug": "liam-halliburton",
+      "name": "Liam Halliburton",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 1",
+      "championshipPoints": 1750,
+      "leaderboardRank": 1
+    },
+    {
+      "slug": "jackson-ford",
+      "name": "Jackson Ford",
+      "countryCode": "CAN",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 2",
+      "championshipPoints": 1744,
+      "leaderboardRank": 2
+    },
+    {
+      "slug": "abaan-a",
+      "name": "Abaan A",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 3",
+      "championshipPoints": 1695,
+      "leaderboardRank": 3
+    },
+    {
+      "slug": "henry-chao",
+      "name": "Henry Chao",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 4",
+      "championshipPoints": 1694,
+      "leaderboardRank": 4
+    },
+    {
+      "slug": "rahul-reddy",
+      "name": "Rahul Reddy",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 5",
+      "championshipPoints": 1643,
+      "leaderboardRank": 5
+    },
+    {
+      "slug": "cerys-jones",
+      "name": "Cerys Jones",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 6",
+      "championshipPoints": 1570,
+      "leaderboardRank": 6
+    },
+    {
+      "slug": "makani-tran",
+      "name": "Makani Tran",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 7",
+      "championshipPoints": 1545,
+      "leaderboardRank": 7
+    },
+    {
+      "slug": "drew-hedrick",
+      "name": "Drew Hedrick",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 8",
+      "championshipPoints": 1530,
+      "leaderboardRank": 8
+    },
+    {
+      "slug": "goomy35",
+      "name": "Goomy35",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 9",
+      "championshipPoints": 1480,
+      "leaderboardRank": 9
+    },
+    {
+      "slug": "cal-connor",
+      "name": "Cal Connor",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 10",
+      "championshipPoints": 1420,
+      "leaderboardRank": 10
+    },
+    {
+      "slug": "carter-malnaik",
+      "name": "Carter Malnaik",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 11",
+      "championshipPoints": 1390,
+      "leaderboardRank": 11
+    },
+    {
+      "slug": "justin-templer",
+      "name": "Justin Templer",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 12",
+      "championshipPoints": 1360,
+      "leaderboardRank": 12
+    },
+    {
+      "slug": "joshua-frink",
+      "name": "Joshua Frink",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 13",
+      "championshipPoints": 1360,
+      "leaderboardRank": 13
+    },
+    {
+      "slug": "joseph-b",
+      "name": "Joseph B",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 14",
+      "championshipPoints": 1340,
+      "leaderboardRank": 14
+    },
+    {
+      "slug": "benny-billinger",
+      "name": "Benny Billinger",
+      "countryCode": "CAN",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 15",
+      "championshipPoints": 1337,
+      "leaderboardRank": 15
+    },
+    {
+      "slug": "noah-sakadjian",
+      "name": "Noah Sakadjian",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 16",
+      "championshipPoints": 1313,
+      "leaderboardRank": 16
+    },
+    {
+      "slug": "joseph-mousaed",
+      "name": "Joseph Mousaed",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 17",
+      "championshipPoints": 1300,
+      "leaderboardRank": 17
+    },
+    {
+      "slug": "caleb-rogerson",
+      "name": "Caleb Rogerson",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 18",
+      "championshipPoints": 1300,
+      "leaderboardRank": 18
+    },
+    {
+      "slug": "ciaran-farah",
+      "name": "Ciaran Farah",
+      "countryCode": "CAN",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 19",
+      "championshipPoints": 1295,
+      "leaderboardRank": 19
+    },
+    {
+      "slug": "gabriel-smart",
+      "name": "Gabriel Smart",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 20",
+      "championshipPoints": 1285,
+      "leaderboardRank": 20
+    },
+    {
+      "slug": "jack-moore",
+      "name": "Jack Moore",
+      "countryCode": "CAN",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 21",
+      "championshipPoints": 1280,
+      "leaderboardRank": 21
+    },
+    {
+      "slug": "piper-lepine",
+      "name": "Piper Lepine",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 22",
+      "championshipPoints": 1273,
+      "leaderboardRank": 22
+    },
+    {
+      "slug": "simon-feng",
+      "name": "Simon Feng",
+      "countryCode": "CAN",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 23",
+      "championshipPoints": 1260,
+      "leaderboardRank": 23
+    },
+    {
+      "slug": "ross-cawthon",
+      "name": "Ross Cawthon",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 24",
+      "championshipPoints": 1257,
+      "leaderboardRank": 24
+    },
+    {
+      "slug": "sebastian-l",
+      "name": "Sebastian L",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 25",
+      "championshipPoints": 1247,
+      "leaderboardRank": 25
+    },
+    {
+      "slug": "bodhi-robinson",
+      "name": "Bodhi Robinson",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 26",
+      "championshipPoints": 1212,
+      "leaderboardRank": 26
+    },
+    {
+      "slug": "nicholas-moffitt",
+      "name": "Nicholas Moffitt",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 27",
+      "championshipPoints": 1194,
+      "leaderboardRank": 27
+    },
+    {
+      "slug": "pfs",
+      "name": "PFS_",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 28",
+      "championshipPoints": 1150,
+      "leaderboardRank": 28
+    },
+    {
+      "slug": "ian-r",
+      "name": "Ian R",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 29",
+      "championshipPoints": 1129,
+      "leaderboardRank": 29
+    },
+    {
+      "slug": "matt-chuang",
+      "name": "Matt Chuang",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 30",
+      "championshipPoints": 1100,
+      "leaderboardRank": 30
+    },
+    {
+      "slug": "james-kowalski",
+      "name": "James Kowalski",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 31",
+      "championshipPoints": 1100,
+      "leaderboardRank": 31
+    },
+    {
+      "slug": "hale-obernolte",
+      "name": "Hale Obernolte",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 32",
+      "championshipPoints": 1100,
+      "leaderboardRank": 32
+    },
+    {
+      "slug": "nathan-ginsburg",
+      "name": "Nathan Ginsburg",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 33",
+      "championshipPoints": 1097,
+      "leaderboardRank": 33
+    },
+    {
+      "slug": "neo-erlandsson",
+      "name": "Neo Erlandsson",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 34",
+      "championshipPoints": 1076,
+      "leaderboardRank": 34
+    },
+    {
+      "slug": "alex-schemanske",
+      "name": "Alex Schemanske",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 35",
+      "championshipPoints": 1070,
+      "leaderboardRank": 35
+    },
+    {
+      "slug": "grant-manley",
+      "name": "Grant Manley",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 36",
+      "championshipPoints": 1058,
+      "leaderboardRank": 36
+    },
+    {
+      "slug": "rowan-stavenow",
+      "name": "Rowan Stavenow",
+      "countryCode": "CAN",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 37",
+      "championshipPoints": 1036,
+      "leaderboardRank": 37
+    },
+    {
+      "slug": "benjamin-dobberstein",
+      "name": "Benjamin Dobberstein",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 38",
+      "championshipPoints": 1024,
+      "leaderboardRank": 38
+    },
+    {
+      "slug": "adam-kalamat",
+      "name": "Adam Kalamat",
+      "countryCode": "CAN",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 39",
+      "championshipPoints": 1020,
+      "leaderboardRank": 39
+    },
+    {
+      "slug": "brad-curcio",
+      "name": "Brad Curcio",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 40",
+      "championshipPoints": 1020,
+      "leaderboardRank": 40
+    },
+    {
+      "slug": "truwin-tran",
+      "name": "Truwin Tran",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 41",
+      "championshipPoints": 1010,
+      "leaderboardRank": 41
+    },
+    {
+      "slug": "christian-labella",
+      "name": "Christian LaBella",
+      "countryCode": "CAN",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 42",
+      "championshipPoints": 1010,
+      "leaderboardRank": 42
+    },
+    {
+      "slug": "sunny-singh",
+      "name": "Sunny Singh",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 43",
+      "championshipPoints": 1007,
+      "leaderboardRank": 43
+    },
+    {
+      "slug": "cristiano-castaneda",
+      "name": "Cristiano Castaneda",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 44",
+      "championshipPoints": 1000,
+      "leaderboardRank": 44
+    },
+    {
+      "slug": "aidan-khus",
+      "name": "Aidan Khus",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 45",
+      "championshipPoints": 997,
+      "leaderboardRank": 45
+    },
+    {
+      "slug": "jon-bieligk",
+      "name": "Jon Bieligk",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 46",
+      "championshipPoints": 980,
+      "leaderboardRank": 46
+    },
+    {
+      "slug": "jack-pitcher",
+      "name": "jack Pitcher",
+      "countryCode": "CAN",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 47",
+      "championshipPoints": 977,
+      "leaderboardRank": 47
+    },
+    {
+      "slug": "charlie-lockyer",
+      "name": "Charlie Lockyer",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 48",
+      "championshipPoints": 969,
+      "leaderboardRank": 48
+    },
+    {
+      "slug": "sammy-goldschein",
+      "name": "Sammy Goldschein",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 49",
+      "championshipPoints": 960,
+      "leaderboardRank": 49
+    },
+    {
+      "slug": "caleb-gedemer",
+      "name": "Caleb Gedemer",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 50",
+      "championshipPoints": 960,
+      "leaderboardRank": 50
+    },
+    {
+      "slug": "aurora-v",
+      "name": "Aurora V",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 51",
+      "championshipPoints": 959,
+      "leaderboardRank": 51
+    },
+    {
+      "slug": "snowlemon",
+      "name": "Snowlemon",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 52",
+      "championshipPoints": 951,
+      "leaderboardRank": 52
+    },
+    {
+      "slug": "shun-takemasa",
+      "name": "Shun Takemasa",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 53",
+      "championshipPoints": 940,
+      "leaderboardRank": 53
+    },
+    {
+      "slug": "simon-trottier",
+      "name": "simon trottier",
+      "countryCode": "CAN",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 54",
+      "championshipPoints": 937,
+      "leaderboardRank": 54
+    },
+    {
+      "slug": "takashi-yoneda",
+      "name": "TAKASHI YONEDA",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 55",
+      "championshipPoints": 927,
+      "leaderboardRank": 55
+    },
+    {
+      "slug": "hasan-kunukcu",
+      "name": "Hasan Kunukcu",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 56",
+      "championshipPoints": 925,
+      "leaderboardRank": 56
+    },
+    {
+      "slug": "zach-cohen",
+      "name": "Zach Cohen",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 57",
+      "championshipPoints": 925,
+      "leaderboardRank": 57
+    },
+    {
+      "slug": "ansh-k",
+      "name": "Ansh K",
+      "countryCode": "CAN",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 58",
+      "championshipPoints": 920,
+      "leaderboardRank": 58
+    },
+    {
+      "slug": "stephen888888",
+      "name": "Stephen888888",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 59",
+      "championshipPoints": 920,
+      "leaderboardRank": 59
+    },
+    {
+      "slug": "jack-wong",
+      "name": "Jack Wong",
+      "countryCode": "CAN",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 60",
+      "championshipPoints": 920,
+      "leaderboardRank": 60
+    },
+    {
+      "slug": "kian-amini",
+      "name": "Kian Amini",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 61",
+      "championshipPoints": 920,
+      "leaderboardRank": 61
+    },
+    {
+      "slug": "lucas-xing",
+      "name": "lucas xing",
+      "countryCode": "CAN",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 62",
+      "championshipPoints": 920,
+      "leaderboardRank": 62
+    },
+    {
+      "slug": "frank-luciano",
+      "name": "Frank Luciano",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 63",
+      "championshipPoints": 916,
+      "leaderboardRank": 63
+    },
+    {
+      "slug": "carson-washer",
+      "name": "Carson Washer",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 64",
+      "championshipPoints": 910,
+      "leaderboardRank": 64
+    },
+    {
+      "slug": "benjamin-h",
+      "name": "Benjamin H",
+      "countryCode": "CAN",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 65",
+      "championshipPoints": 909,
+      "leaderboardRank": 65
+    },
+    {
+      "slug": "michael-davidson",
+      "name": "Michael Davidson",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 66",
+      "championshipPoints": 907,
+      "leaderboardRank": 66
+    },
+    {
+      "slug": "cooper-kull",
+      "name": "Cooper Kull",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 67",
+      "championshipPoints": 900,
+      "leaderboardRank": 67
+    },
+    {
+      "slug": "maj48",
+      "name": "maj48",
+      "countryCode": "CAN",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 68",
+      "championshipPoints": 899,
+      "leaderboardRank": 68
+    },
+    {
+      "slug": "ethan-lin",
+      "name": "Ethan Lin",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 69",
+      "championshipPoints": 897,
+      "leaderboardRank": 69
+    },
+    {
+      "slug": "phoenix-white",
+      "name": "Phoenix White",
+      "countryCode": "CAN",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 70",
+      "championshipPoints": 880,
+      "leaderboardRank": 70
+    },
+    {
+      "slug": "alex-hamilton",
+      "name": "Alex Hamilton",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 71",
+      "championshipPoints": 880,
+      "leaderboardRank": 71
+    },
+    {
+      "slug": "jose-ordaz",
+      "name": "Jose Ordaz",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 72",
+      "championshipPoints": 880,
+      "leaderboardRank": 72
+    },
+    {
+      "slug": "lance-bradshaw",
+      "name": "Lance Bradshaw",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 73",
+      "championshipPoints": 875,
+      "leaderboardRank": 73
+    },
+    {
+      "slug": "brandon-salazar",
+      "name": "brandon salazar",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 74",
+      "championshipPoints": 863,
+      "leaderboardRank": 74
+    },
+    {
+      "slug": "anthony-o",
+      "name": "Anthony O",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 75",
+      "championshipPoints": 860,
+      "leaderboardRank": 75
+    },
+    {
+      "slug": "nick-germain",
+      "name": "Nick Germain",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 76",
+      "championshipPoints": 860,
+      "leaderboardRank": 76
+    },
+    {
+      "slug": "matthew-hubbard",
+      "name": "Matthew Hubbard",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 77",
+      "championshipPoints": 860,
+      "leaderboardRank": 77
+    },
+    {
+      "slug": "mustafa-tobah",
+      "name": "Mustafa Tobah",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 78",
+      "championshipPoints": 860,
+      "leaderboardRank": 78
+    },
+    {
+      "slug": "aneil-s",
+      "name": "Aneil S",
+      "countryCode": "CAN",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 79",
+      "championshipPoints": 848,
+      "leaderboardRank": 79
+    },
+    {
+      "slug": "zach-lesage",
+      "name": "zach lesage",
+      "countryCode": "CAN",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 80",
+      "championshipPoints": 845,
+      "leaderboardRank": 80
+    },
+    {
+      "slug": "ryan-antonucci",
+      "name": "ryan Antonucci",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 81",
+      "championshipPoints": 845,
+      "leaderboardRank": 81
+    },
+    {
+      "slug": "cam-c",
+      "name": "Cam C",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 82",
+      "championshipPoints": 842,
+      "leaderboardRank": 82
+    },
+    {
+      "slug": "austin-charles",
+      "name": "Austin Charles",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 83",
+      "championshipPoints": 840,
+      "leaderboardRank": 83
+    },
+    {
+      "slug": "william-hwang",
+      "name": "WILLIAM HWANG",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 84",
+      "championshipPoints": 837,
+      "leaderboardRank": 84
+    },
+    {
+      "slug": "joey-gaffney",
+      "name": "Joey Gaffney",
+      "countryCode": "CAN",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 85",
+      "championshipPoints": 835,
+      "leaderboardRank": 85
+    },
+    {
+      "slug": "brian-kim",
+      "name": "Brian Kim",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 86",
+      "championshipPoints": 834,
+      "leaderboardRank": 86
+    },
+    {
+      "slug": "julian-gort-barry",
+      "name": "Julian Gort-Barry",
+      "countryCode": "CAN",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 87",
+      "championshipPoints": 831,
+      "leaderboardRank": 87
+    },
+    {
+      "slug": "jie-r",
+      "name": "JIE R",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 88",
+      "championshipPoints": 830,
+      "leaderboardRank": 88
+    },
+    {
+      "slug": "dre-alderette",
+      "name": "Dre Alderette",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 89",
+      "championshipPoints": 820,
+      "leaderboardRank": 89
+    },
+    {
+      "slug": "aaron-davis",
+      "name": "Aaron Davis",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 90",
+      "championshipPoints": 820,
+      "leaderboardRank": 90
+    },
+    {
+      "slug": "owen-dalgard",
+      "name": "Owen Dalgard",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 91",
+      "championshipPoints": 820,
+      "leaderboardRank": 91
+    },
+    {
+      "slug": "jon-eng",
+      "name": "Jon Eng",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 92",
+      "championshipPoints": 819,
+      "leaderboardRank": 92
+    },
+    {
+      "slug": "destynn-hatcher",
+      "name": "Destynn Hatcher",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 93",
+      "championshipPoints": 817,
+      "leaderboardRank": 93
+    },
+    {
+      "slug": "jerrick-gumila",
+      "name": "Jerrick Gumila",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 94",
+      "championshipPoints": 810,
+      "leaderboardRank": 94
+    },
+    {
+      "slug": "ballerbgeorge24",
+      "name": "BallerBgeorge24",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 95",
+      "championshipPoints": 807,
+      "leaderboardRank": 95
+    },
+    {
+      "slug": "bulin-z",
+      "name": "Bulin Z",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 96",
+      "championshipPoints": 805,
+      "leaderboardRank": 96
+    },
+    {
+      "slug": "henry-thompson",
+      "name": "Henry Thompson",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 97",
+      "championshipPoints": 804,
+      "leaderboardRank": 97
+    },
+    {
+      "slug": "aaron-friedman",
+      "name": "Aaron Friedman",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 98",
+      "championshipPoints": 800,
+      "leaderboardRank": 98
+    },
+    {
+      "slug": "maddox-corcoran",
+      "name": "Maddox Corcoran",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 99",
+      "championshipPoints": 800,
+      "leaderboardRank": 99
+    },
+    {
+      "slug": "eduardo-melendez",
+      "name": "Eduardo Melendez",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 100",
+      "championshipPoints": 800,
+      "leaderboardRank": 100
+    },
+    {
+      "slug": "samuel-gay",
+      "name": "Samuel Gay",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 101",
+      "championshipPoints": 799,
+      "leaderboardRank": 101
+    },
+    {
+      "slug": "sammy-allen",
+      "name": "Sammy Allen",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 102",
+      "championshipPoints": 797,
+      "leaderboardRank": 102
+    },
+    {
+      "slug": "pearce-blend",
+      "name": "Pearce Blend",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 103",
+      "championshipPoints": 795,
+      "leaderboardRank": 103
+    },
+    {
+      "slug": "arjun-khadse",
+      "name": "Arjun Khadse",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 104",
+      "championshipPoints": 795,
+      "leaderboardRank": 104
+    },
+    {
+      "slug": "jordan-nelle",
+      "name": "Jordan Nelle",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 105",
+      "championshipPoints": 794,
+      "leaderboardRank": 105
+    },
+    {
+      "slug": "zach-elliott",
+      "name": "Zach Elliott",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 106",
+      "championshipPoints": 786,
+      "leaderboardRank": 106
+    },
+    {
+      "slug": "saumit-kukkadapu",
+      "name": "Saumit Kukkadapu",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 107",
+      "championshipPoints": 782,
+      "leaderboardRank": 107
+    },
+    {
+      "slug": "david-zheng",
+      "name": "David Zheng",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 108",
+      "championshipPoints": 780,
+      "leaderboardRank": 108
+    },
+    {
+      "slug": "alexander-c",
+      "name": "Alexander C",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 109",
+      "championshipPoints": 780,
+      "leaderboardRank": 109
+    },
+    {
+      "slug": "evan-aguilar",
+      "name": "Evan Aguilar",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 110",
+      "championshipPoints": 780,
+      "leaderboardRank": 110
+    },
+    {
+      "slug": "hunter-smith",
+      "name": "Hunter Smith",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 111",
+      "championshipPoints": 777,
+      "leaderboardRank": 111
+    },
+    {
+      "slug": "christopher-carillon",
+      "name": "Christopher Carillon",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 112",
+      "championshipPoints": 777,
+      "leaderboardRank": 112
+    },
+    {
+      "slug": "matthew-lu",
+      "name": "Matthew Lu",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 113",
+      "championshipPoints": 770,
+      "leaderboardRank": 113
+    },
+    {
+      "slug": "riley-m",
+      "name": "Riley M",
+      "countryCode": "CAN",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 114",
+      "championshipPoints": 770,
+      "leaderboardRank": 114
+    },
+    {
+      "slug": "christian-franco",
+      "name": "Christian Franco",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 115",
+      "championshipPoints": 768,
+      "leaderboardRank": 115
+    },
+    {
+      "slug": "anthony-geiger",
+      "name": "Anthony Geiger",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 116",
+      "championshipPoints": 767,
+      "leaderboardRank": 116
+    },
+    {
+      "slug": "henry-gao",
+      "name": "Henry Gao",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 117",
+      "championshipPoints": 767,
+      "leaderboardRank": 117
+    },
+    {
+      "slug": "grant-s",
+      "name": "Grant S",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 118",
+      "championshipPoints": 763,
+      "leaderboardRank": 118
+    },
+    {
+      "slug": "maximus-sandoval",
+      "name": "Maximus Sandoval",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 119",
+      "championshipPoints": 760,
+      "leaderboardRank": 119
+    },
+    {
+      "slug": "genessa-benton",
+      "name": "Genessa Benton",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 120",
+      "championshipPoints": 760,
+      "leaderboardRank": 120
+    },
+    {
+      "slug": "matt-bacnis",
+      "name": "Matt Bacnis",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 121",
+      "championshipPoints": 760,
+      "leaderboardRank": 121
+    },
+    {
+      "slug": "richard-yannow",
+      "name": "Richard Yannow",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 122",
+      "championshipPoints": 760,
+      "leaderboardRank": 122
+    },
+    {
+      "slug": "cameron-ware",
+      "name": "Cameron Ware",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 122",
+      "championshipPoints": 760,
+      "leaderboardRank": 122
+    },
+    {
+      "slug": "eric-aubertin",
+      "name": "Eric Aubertin",
+      "countryCode": "CAN",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 122",
+      "championshipPoints": 760,
+      "leaderboardRank": 122
+    },
+    {
+      "slug": "kris-kemp",
+      "name": "Kris Kemp",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 125",
+      "championshipPoints": 760,
+      "leaderboardRank": 125
+    },
+    {
+      "slug": "julio-santos-de-leon",
+      "name": "Julio Santos De Leon",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 126",
+      "championshipPoints": 760,
+      "leaderboardRank": 126
+    },
+    {
+      "slug": "alex-m",
+      "name": "Alex M",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 127",
+      "championshipPoints": 760,
+      "leaderboardRank": 127
+    },
+    {
+      "slug": "daniel-merlo",
+      "name": "Daniel Merlo",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 128",
+      "championshipPoints": 757,
+      "leaderboardRank": 128
+    },
+    {
+      "slug": "preston-rutledge",
+      "name": "PRESTON Rutledge",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 129",
+      "championshipPoints": 750,
+      "leaderboardRank": 129
+    },
+    {
+      "slug": "isaiah-cheville",
+      "name": "Isaiah Cheville",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 130",
+      "championshipPoints": 750,
+      "leaderboardRank": 130
+    },
+    {
+      "slug": "robert-simpson",
+      "name": "Robert Simpson",
+      "countryCode": "CAN",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 131",
+      "championshipPoints": 747,
+      "leaderboardRank": 131
+    },
+    {
+      "slug": "ben-kim",
+      "name": "Ben Kim",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 132",
+      "championshipPoints": 747,
+      "leaderboardRank": 132
+    },
+    {
+      "slug": "ajay-sridhar",
+      "name": "Ajay Sridhar",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 133",
+      "championshipPoints": 740,
+      "leaderboardRank": 133
+    },
+    {
+      "slug": "dennis-peroff",
+      "name": "Dennis Peroff",
+      "countryCode": "CAN",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 134",
+      "championshipPoints": 740,
+      "leaderboardRank": 134
+    },
+    {
+      "slug": "murat-gursoz",
+      "name": "Murat Gursoz",
+      "countryCode": "USA",
+      "region": "USA & Canada",
+      "division": "Masters",
+      "qualification": "2026 USA & Canada Championship Point leaderboard rank 135",
+      "championshipPoints": 740,
+      "leaderboardRank": 135
+    },
+    {
+      "slug": "tord-reklev",
+      "name": "Tord Reklev",
+      "countryCode": "NOR",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 1",
+      "championshipPoints": 1790,
+      "leaderboardRank": 1
+    },
+    {
+      "slug": "drew-stephenson",
+      "name": "Drew Stephenson",
+      "countryCode": "GBR",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 2",
+      "championshipPoints": 1586,
+      "leaderboardRank": 2
+    },
+    {
+      "slug": "emma-hagen",
+      "name": "Emma Hagen",
+      "countryCode": "NOR",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 3",
+      "championshipPoints": 1510,
+      "leaderboardRank": 3
+    },
+    {
+      "slug": "hermanni-hietalahti",
+      "name": "Hermanni Hietalahti",
+      "countryCode": "FIN",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 4",
+      "championshipPoints": 1507,
+      "leaderboardRank": 4
+    },
+    {
+      "slug": "neddy-kosek",
+      "name": "Neddy Kosek",
+      "countryCode": "CZE",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 5",
+      "championshipPoints": 1440,
+      "leaderboardRank": 5
+    },
+    {
+      "slug": "ted-tobyn",
+      "name": "Ted Tobyn",
+      "countryCode": "GBR",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 6",
+      "championshipPoints": 1390,
+      "leaderboardRank": 6
+    },
+    {
+      "slug": "paolo-camus",
+      "name": "Paolo Camus",
+      "countryCode": "FRA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 7",
+      "championshipPoints": 1380,
+      "leaderboardRank": 7
+    },
+    {
+      "slug": "edwyn-mesman",
+      "name": "Edwyn Mesman",
+      "countryCode": "NLD",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 8",
+      "championshipPoints": 1330,
+      "leaderboardRank": 8
+    },
+    {
+      "slug": "kim-pobega",
+      "name": "Kim Pobega",
+      "countryCode": "ITA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 9",
+      "championshipPoints": 1320,
+      "leaderboardRank": 9
+    },
+    {
+      "slug": "christian-fontenot",
+      "name": "Christian Fontenot",
+      "countryCode": "DNK",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 10",
+      "championshipPoints": 1280,
+      "leaderboardRank": 10
+    },
+    {
+      "slug": "julio-sanchez-rodriguez",
+      "name": "Julio Sánchez Rodríguez",
+      "countryCode": "ESP",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 11",
+      "championshipPoints": 1264,
+      "leaderboardRank": 11
+    },
+    {
+      "slug": "alex-rutowicz",
+      "name": "Alex Rutowicz",
+      "countryCode": "POL",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 12",
+      "championshipPoints": 1255,
+      "leaderboardRank": 12
+    },
+    {
+      "slug": "nicolai-stiborg",
+      "name": "Nicolai Stiborg",
+      "countryCode": "DNK",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 13",
+      "championshipPoints": 1230,
+      "leaderboardRank": 13
+    },
+    {
+      "slug": "ojvind-svinhufvud",
+      "name": "Ojvind Svinhufvud",
+      "countryCode": "FIN",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 14",
+      "championshipPoints": 1192,
+      "leaderboardRank": 14
+    },
+    {
+      "slug": "rune-heiremans",
+      "name": "Rune Heiremans",
+      "countryCode": "BEL",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 15",
+      "championshipPoints": 1192,
+      "leaderboardRank": 15
+    },
+    {
+      "slug": "fabien-pujol",
+      "name": "fabien pujol",
+      "countryCode": "FRA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 16",
+      "championshipPoints": 1185,
+      "leaderboardRank": 16
+    },
+    {
+      "slug": "daniel-magda",
+      "name": "Daniel Magda",
+      "countryCode": "CZE",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 17",
+      "championshipPoints": 1182,
+      "leaderboardRank": 17
+    },
+    {
+      "slug": "julius-brunfeldt",
+      "name": "julius brunfeldt",
+      "countryCode": "FIN",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 18",
+      "championshipPoints": 1179,
+      "leaderboardRank": 18
+    },
+    {
+      "slug": "david-walerian-rzepka",
+      "name": "David Walerian Rzepka",
+      "countryCode": "DEU",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 19",
+      "championshipPoints": 1167,
+      "leaderboardRank": 19
+    },
+    {
+      "slug": "alberto-conti",
+      "name": "Alberto Conti",
+      "countryCode": "ITA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 20",
+      "championshipPoints": 1165,
+      "leaderboardRank": 20
+    },
+    {
+      "slug": "brennan-kamerman",
+      "name": "Brennan Kamerman",
+      "countryCode": "NLD",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 21",
+      "championshipPoints": 1145,
+      "leaderboardRank": 21
+    },
+    {
+      "slug": "ethan-wilde",
+      "name": "Ethan Wilde",
+      "countryCode": "GBR",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 22",
+      "championshipPoints": 1142,
+      "leaderboardRank": 22
+    },
+    {
+      "slug": "kai-wainwright",
+      "name": "Kai Wainwright",
+      "countryCode": "GBR",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 23",
+      "championshipPoints": 1140,
+      "leaderboardRank": 23
+    },
+    {
+      "slug": "maciek-chojnacki",
+      "name": "Maciek Chojnacki",
+      "countryCode": "POL",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 24",
+      "championshipPoints": 1120,
+      "leaderboardRank": 24
+    },
+    {
+      "slug": "fabio-battistella",
+      "name": "Fabio Battistella",
+      "countryCode": "ITA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 25",
+      "championshipPoints": 1120,
+      "leaderboardRank": 25
+    },
+    {
+      "slug": "juho-kallama",
+      "name": "Juho Kallama",
+      "countryCode": "FIN",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 26",
+      "championshipPoints": 1090,
+      "leaderboardRank": 26
+    },
+    {
+      "slug": "elmar-tresp",
+      "name": "Elmar Tresp",
+      "countryCode": "DEU",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 27",
+      "championshipPoints": 1087,
+      "leaderboardRank": 27
+    },
+    {
+      "slug": "konsta-kallama",
+      "name": "Konsta Kallama",
+      "countryCode": "FIN",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 28",
+      "championshipPoints": 1080,
+      "leaderboardRank": 28
+    },
+    {
+      "slug": "christian-d-onofrio",
+      "name": "Christian D'Onofrio",
+      "countryCode": "ITA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 29",
+      "championshipPoints": 1060,
+      "leaderboardRank": 29
+    },
+    {
+      "slug": "miloslav-posledni",
+      "name": "Miloslav Poslední",
+      "countryCode": "CZE",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 30",
+      "championshipPoints": 1050,
+      "leaderboardRank": 30
+    },
+    {
+      "slug": "zapdostcg",
+      "name": "ZapdosTCG",
+      "countryCode": "BEL",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 31",
+      "championshipPoints": 1033,
+      "leaderboardRank": 31
+    },
+    {
+      "slug": "mees-brenninkmeijer",
+      "name": "Mees Brenninkmeijer",
+      "countryCode": "NLD",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 32",
+      "championshipPoints": 1030,
+      "leaderboardRank": 32
+    },
+    {
+      "slug": "owyn-kamerman",
+      "name": "Owyn Kamerman",
+      "countryCode": "NLD",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 33",
+      "championshipPoints": 1012,
+      "leaderboardRank": 33
+    },
+    {
+      "slug": "nicolas-d",
+      "name": "Nicolas D",
+      "countryCode": "DEU",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 34",
+      "championshipPoints": 1002,
+      "leaderboardRank": 34
+    },
+    {
+      "slug": "daniel-powell",
+      "name": "Daniel Powell",
+      "countryCode": "GBR",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 35",
+      "championshipPoints": 1000,
+      "leaderboardRank": 35
+    },
+    {
+      "slug": "ilan-louboff",
+      "name": "Ilan Louboff",
+      "countryCode": "FRA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 36",
+      "championshipPoints": 1000,
+      "leaderboardRank": 36
+    },
+    {
+      "slug": "thomas-d",
+      "name": "Thomas D",
+      "countryCode": "FRA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 37",
+      "championshipPoints": 980,
+      "leaderboardRank": 37
+    },
+    {
+      "slug": "aarni-karjala",
+      "name": "Aarni Karjala",
+      "countryCode": "FIN",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 38",
+      "championshipPoints": 980,
+      "leaderboardRank": 38
+    },
+    {
+      "slug": "stephane-ivanoff",
+      "name": "Stéphane Ivanoff",
+      "countryCode": "FRA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 39",
+      "championshipPoints": 960,
+      "leaderboardRank": 39
+    },
+    {
+      "slug": "mateusz-laszkiewicz",
+      "name": "Mateusz Laszkiewicz",
+      "countryCode": "POL",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 40",
+      "championshipPoints": 953,
+      "leaderboardRank": 40
+    },
+    {
+      "slug": "stefano-da-silva-fontinha-coelho",
+      "name": "Stefano Da Silva Fontinha Coelho",
+      "countryCode": "ITA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 41",
+      "championshipPoints": 942,
+      "leaderboardRank": 41
+    },
+    {
+      "slug": "leonardo-lattanzi",
+      "name": "Leonardo Lattanzi",
+      "countryCode": "ITA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 42",
+      "championshipPoints": 920,
+      "leaderboardRank": 42
+    },
+    {
+      "slug": "toby-clark",
+      "name": "Toby Clark",
+      "countryCode": "GBR",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 43",
+      "championshipPoints": 920,
+      "leaderboardRank": 43
+    },
+    {
+      "slug": "riccardo-corino",
+      "name": "Riccardo Corino",
+      "countryCode": "ITA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 44",
+      "championshipPoints": 917,
+      "leaderboardRank": 44
+    },
+    {
+      "slug": "brando-longino",
+      "name": "Brando Longino",
+      "countryCode": "ITA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 45",
+      "championshipPoints": 917,
+      "leaderboardRank": 45
+    },
+    {
+      "slug": "aleksi-jantti",
+      "name": "Aleksi Jäntti",
+      "countryCode": "FIN",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 46",
+      "championshipPoints": 900,
+      "leaderboardRank": 46
+    },
+    {
+      "slug": "pedro-vicencio",
+      "name": "Pedro Vicêncio",
+      "countryCode": "PRT",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 47",
+      "championshipPoints": 900,
+      "leaderboardRank": 47
+    },
+    {
+      "slug": "james-cox",
+      "name": "James Cox",
+      "countryCode": "NLD",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 48",
+      "championshipPoints": 900,
+      "leaderboardRank": 48
+    },
+    {
+      "slug": "vincenzocipo",
+      "name": "vincenzoCIPO",
+      "countryCode": "ITA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 49",
+      "championshipPoints": 880,
+      "leaderboardRank": 49
+    },
+    {
+      "slug": "jonathan-gorgos",
+      "name": "Jonathan Gorgos",
+      "countryCode": "DEU",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 50",
+      "championshipPoints": 880,
+      "leaderboardRank": 50
+    },
+    {
+      "slug": "oscar-madsen",
+      "name": "Oscar Madsen",
+      "countryCode": "DNK",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 51",
+      "championshipPoints": 877,
+      "leaderboardRank": 51
+    },
+    {
+      "slug": "piro4l",
+      "name": "Piro4L",
+      "countryCode": "ITA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 52",
+      "championshipPoints": 860,
+      "leaderboardRank": 52
+    },
+    {
+      "slug": "h4ppydrag0n",
+      "name": "H4ppyDrag0n",
+      "countryCode": "CHE",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 53",
+      "championshipPoints": 860,
+      "leaderboardRank": 53
+    },
+    {
+      "slug": "krzysztof-figas",
+      "name": "Krzysztof Figas",
+      "countryCode": "POL",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 54",
+      "championshipPoints": 860,
+      "leaderboardRank": 54
+    },
+    {
+      "slug": "yoann-barszezak",
+      "name": "Yoann Barszezak",
+      "countryCode": "FRA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 55",
+      "championshipPoints": 857,
+      "leaderboardRank": 55
+    },
+    {
+      "slug": "jamie-hindley",
+      "name": "Jamie Hindley",
+      "countryCode": "GBR",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 56",
+      "championshipPoints": 852,
+      "leaderboardRank": 56
+    },
+    {
+      "slug": "denis-provazek",
+      "name": "Denis Provázek",
+      "countryCode": "CZE",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 57",
+      "championshipPoints": 842,
+      "leaderboardRank": 57
+    },
+    {
+      "slug": "hugo-de-torres-palacios",
+      "name": "Hugo de Torres Palacios",
+      "countryCode": "ESP",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 58",
+      "championshipPoints": 840,
+      "leaderboardRank": 58
+    },
+    {
+      "slug": "nikoline-pedersen",
+      "name": "Nikoline Pedersen",
+      "countryCode": "DNK",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 59",
+      "championshipPoints": 840,
+      "leaderboardRank": 59
+    },
+    {
+      "slug": "alessandro-vezzoni",
+      "name": "Alessandro Vezzoni",
+      "countryCode": "ITA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 60",
+      "championshipPoints": 840,
+      "leaderboardRank": 60
+    },
+    {
+      "slug": "jesper-eriksen",
+      "name": "Jesper Eriksen",
+      "countryCode": "DNK",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 61",
+      "championshipPoints": 839,
+      "leaderboardRank": 61
+    },
+    {
+      "slug": "eliot-duclos",
+      "name": "ELIOT DUCLOS",
+      "countryCode": "FRA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 62",
+      "championshipPoints": 820,
+      "leaderboardRank": 62
+    },
+    {
+      "slug": "daniel-veres",
+      "name": "Daniel Veres",
+      "countryCode": "AUT",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 63",
+      "championshipPoints": 820,
+      "leaderboardRank": 63
+    },
+    {
+      "slug": "enzo-duval",
+      "name": "Enzo DUVAL",
+      "countryCode": "FRA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 64",
+      "championshipPoints": 817,
+      "leaderboardRank": 64
+    },
+    {
+      "slug": "mi-osz-dyrlica",
+      "name": "Miłosz Dyrlica",
+      "countryCode": "POL",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 65",
+      "championshipPoints": 814,
+      "leaderboardRank": 65
+    },
+    {
+      "slug": "benjamin-p",
+      "name": "Benjamin P",
+      "countryCode": "NLD",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 66",
+      "championshipPoints": 795,
+      "leaderboardRank": 66
+    },
+    {
+      "slug": "oscar-rivas",
+      "name": "Oscar Rivas",
+      "countryCode": "ESP",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 67",
+      "championshipPoints": 795,
+      "leaderboardRank": 67
+    },
+    {
+      "slug": "katy-montgomerie",
+      "name": "Katy Montgomerie",
+      "countryCode": "GBR",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 68",
+      "championshipPoints": 787,
+      "leaderboardRank": 68
+    },
+    {
+      "slug": "alejandro-gonzalez-sanchez",
+      "name": "Alejandro González Sánchez",
+      "countryCode": "ESP",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 69",
+      "championshipPoints": 787,
+      "leaderboardRank": 69
+    },
+    {
+      "slug": "tomi-markkula",
+      "name": "Tomi Markkula",
+      "countryCode": "FIN",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 70",
+      "championshipPoints": 784,
+      "leaderboardRank": 70
+    },
+    {
+      "slug": "ciro-savarese",
+      "name": "Ciro Savarese",
+      "countryCode": "ITA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 71",
+      "championshipPoints": 780,
+      "leaderboardRank": 71
+    },
+    {
+      "slug": "joel-nguyen",
+      "name": "joel nguyen",
+      "countryCode": "FRA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 72",
+      "championshipPoints": 780,
+      "leaderboardRank": 72
+    },
+    {
+      "slug": "jaden-berberich",
+      "name": "Jaden Berberich",
+      "countryCode": "DEU",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 73",
+      "championshipPoints": 780,
+      "leaderboardRank": 73
+    },
+    {
+      "slug": "dominik-fink",
+      "name": "Dominik Fink",
+      "countryCode": "DEU",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 74",
+      "championshipPoints": 778,
+      "leaderboardRank": 74
+    },
+    {
+      "slug": "vojtech-k",
+      "name": "Vojtěch K",
+      "countryCode": "CZE",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 75",
+      "championshipPoints": 777,
+      "leaderboardRank": 75
+    },
+    {
+      "slug": "kian-blount",
+      "name": "Kian Blount",
+      "countryCode": "GBR",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 76",
+      "championshipPoints": 774,
+      "leaderboardRank": 76
+    },
+    {
+      "slug": "yasmin-kiss",
+      "name": "Yasmin Kiss",
+      "countryCode": "DEU",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 77",
+      "championshipPoints": 774,
+      "leaderboardRank": 77
+    },
+    {
+      "slug": "mike-ellis",
+      "name": "mike ellis",
+      "countryCode": "GBR",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 78",
+      "championshipPoints": 772,
+      "leaderboardRank": 78
+    },
+    {
+      "slug": "bryan-de-vries",
+      "name": "Bryan de Vries",
+      "countryCode": "NLD",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 79",
+      "championshipPoints": 772,
+      "leaderboardRank": 79
+    },
+    {
+      "slug": "sander-wojcik",
+      "name": "Sander Wojcik",
+      "countryCode": "NLD",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 80",
+      "championshipPoints": 766,
+      "leaderboardRank": 80
+    },
+    {
+      "slug": "luc-gantner",
+      "name": "Luc Gantner",
+      "countryCode": "CHE",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 81",
+      "championshipPoints": 760,
+      "leaderboardRank": 81
+    },
+    {
+      "slug": "victor-de-torres-palacios",
+      "name": "Victor de Torres Palacios",
+      "countryCode": "ESP",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 82",
+      "championshipPoints": 760,
+      "leaderboardRank": 82
+    },
+    {
+      "slug": "filippo-colamorea",
+      "name": "Filippo Colamorea",
+      "countryCode": "ITA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 83",
+      "championshipPoints": 760,
+      "leaderboardRank": 83
+    },
+    {
+      "slug": "dawid-andrzejewski",
+      "name": "Dawid Andrzejewski",
+      "countryCode": "POL",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 84",
+      "championshipPoints": 760,
+      "leaderboardRank": 84
+    },
+    {
+      "slug": "tamao-takeda",
+      "name": "Tamao Takeda",
+      "countryCode": "GBR",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 85",
+      "championshipPoints": 760,
+      "leaderboardRank": 85
+    },
+    {
+      "slug": "goncalo-ferreira",
+      "name": "goncalo ferreira",
+      "countryCode": "PRT",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 86",
+      "championshipPoints": 752,
+      "leaderboardRank": 86
+    },
+    {
+      "slug": "jan-hausmann",
+      "name": "Jan Hausmann",
+      "countryCode": "DEU",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 87",
+      "championshipPoints": 748,
+      "leaderboardRank": 87
+    },
+    {
+      "slug": "alexandre-sole",
+      "name": "Alexandre Solé",
+      "countryCode": "BEL",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 88",
+      "championshipPoints": 745,
+      "leaderboardRank": 88
+    },
+    {
+      "slug": "luke-parkes",
+      "name": "Luke Parkes",
+      "countryCode": "GBR",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 89",
+      "championshipPoints": 743,
+      "leaderboardRank": 89
+    },
+    {
+      "slug": "nicklas-rosu",
+      "name": "Nicklas Rosu",
+      "countryCode": "SWE",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 90",
+      "championshipPoints": 741,
+      "leaderboardRank": 90
+    },
+    {
+      "slug": "matthew-rowberry",
+      "name": "Matthew Rowberry",
+      "countryCode": "IMN",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 91",
+      "championshipPoints": 741,
+      "leaderboardRank": 91
+    },
+    {
+      "slug": "emanuele-conti",
+      "name": "Emanuele Conti",
+      "countryCode": "ITA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 92",
+      "championshipPoints": 740,
+      "leaderboardRank": 92
+    },
+    {
+      "slug": "finn-schleusner",
+      "name": "Finn Schleusner",
+      "countryCode": "DEU",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 93",
+      "championshipPoints": 740,
+      "leaderboardRank": 93
+    },
+    {
+      "slug": "nina-e",
+      "name": "Nina E",
+      "countryCode": "DEU",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 94",
+      "championshipPoints": 740,
+      "leaderboardRank": 94
+    },
+    {
+      "slug": "max-roberts",
+      "name": "Max Roberts",
+      "countryCode": "GBR",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 95",
+      "championshipPoints": 740,
+      "leaderboardRank": 95
+    },
+    {
+      "slug": "viktor-andersson",
+      "name": "Viktor Andersson",
+      "countryCode": "SWE",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 96",
+      "championshipPoints": 739,
+      "leaderboardRank": 96
+    },
+    {
+      "slug": "maxime-launay",
+      "name": "Maxime Launay",
+      "countryCode": "FRA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 97",
+      "championshipPoints": 734,
+      "leaderboardRank": 97
+    },
+    {
+      "slug": "alessandro-frenda",
+      "name": "alessandro frenda",
+      "countryCode": "ITA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 98",
+      "championshipPoints": 734,
+      "leaderboardRank": 98
+    },
+    {
+      "slug": "julius-mo-krag",
+      "name": "Julius Mo Krag",
+      "countryCode": "DNK",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 99",
+      "championshipPoints": 732,
+      "leaderboardRank": 99
+    },
+    {
+      "slug": "psychicclown",
+      "name": "PsychicClown",
+      "countryCode": "GBR",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 100",
+      "championshipPoints": 727,
+      "leaderboardRank": 100
+    },
+    {
+      "slug": "leon-thiemann",
+      "name": "Leon Thiemann",
+      "countryCode": "DEU",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 101",
+      "championshipPoints": 722,
+      "leaderboardRank": 101
+    },
+    {
+      "slug": "dario-scarno",
+      "name": "Dario scarnò",
+      "countryCode": "ITA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 102",
+      "championshipPoints": 720,
+      "leaderboardRank": 102
+    },
+    {
+      "slug": "rebecca-v",
+      "name": "Rebecca v",
+      "countryCode": "GBR",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 103",
+      "championshipPoints": 720,
+      "leaderboardRank": 103
+    },
+    {
+      "slug": "victor-zhao",
+      "name": "Victor ZHAO",
+      "countryCode": "FRA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 104",
+      "championshipPoints": 719,
+      "leaderboardRank": 104
+    },
+    {
+      "slug": "pascal-tillenberg",
+      "name": "Pascal Tillenberg",
+      "countryCode": "DEU",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 105",
+      "championshipPoints": 717,
+      "leaderboardRank": 105
+    },
+    {
+      "slug": "alessandro-cremascoli",
+      "name": "alessandro cremascoli",
+      "countryCode": "ITA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 106",
+      "championshipPoints": 712,
+      "leaderboardRank": 106
+    },
+    {
+      "slug": "arthur-trutzschler",
+      "name": "Arthur Trutzschler",
+      "countryCode": "NLD",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 107",
+      "championshipPoints": 709,
+      "leaderboardRank": 107
+    },
+    {
+      "slug": "malthe-bog",
+      "name": "Malthe Bogø",
+      "countryCode": "DNK",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 108",
+      "championshipPoints": 704,
+      "leaderboardRank": 108
+    },
+    {
+      "slug": "riccardo-coviello",
+      "name": "Riccardo Coviello",
+      "countryCode": "ITA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 109",
+      "championshipPoints": 700,
+      "leaderboardRank": 109
+    },
+    {
+      "slug": "lisa-steinmuller",
+      "name": "Lisa Steinmuller",
+      "countryCode": "DEU",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 110",
+      "championshipPoints": 700,
+      "leaderboardRank": 110
+    },
+    {
+      "slug": "simone-fiorito",
+      "name": "Simone Fiorito",
+      "countryCode": "ITA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 111",
+      "championshipPoints": 700,
+      "leaderboardRank": 111
+    },
+    {
+      "slug": "marcin-ogorek",
+      "name": "Marcin Ogórek",
+      "countryCode": "POL",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 112",
+      "championshipPoints": 700,
+      "leaderboardRank": 112
+    },
+    {
+      "slug": "margherita-caponeri",
+      "name": "Margherita Caponeri",
+      "countryCode": "ITA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 113",
+      "championshipPoints": 700,
+      "leaderboardRank": 113
+    },
+    {
+      "slug": "raifaisen1",
+      "name": "Raifaisen1",
+      "countryCode": "DEU",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 114",
+      "championshipPoints": 700,
+      "leaderboardRank": 114
+    },
+    {
+      "slug": "nersman",
+      "name": "nersman",
+      "countryCode": "DEU",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 115",
+      "championshipPoints": 700,
+      "leaderboardRank": 115
+    },
+    {
+      "slug": "nico-alabas",
+      "name": "Nico Alabas",
+      "countryCode": "DEU",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 116",
+      "championshipPoints": 700,
+      "leaderboardRank": 116
+    },
+    {
+      "slug": "jose-lopez",
+      "name": "Jose López",
+      "countryCode": "ESP",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 117",
+      "championshipPoints": 700,
+      "leaderboardRank": 117
+    },
+    {
+      "slug": "sergio-alcaide-nieto",
+      "name": "Sergio Alcaide Nieto",
+      "countryCode": "ESP",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 118",
+      "championshipPoints": 694,
+      "leaderboardRank": 118
+    },
+    {
+      "slug": "aurelien-ritzler",
+      "name": "Aurélien RITZLER",
+      "countryCode": "FRA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 119",
+      "championshipPoints": 692,
+      "leaderboardRank": 119
+    },
+    {
+      "slug": "yuhao-fu",
+      "name": "Yuhao Fu",
+      "countryCode": "GBR",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 120",
+      "championshipPoints": 687,
+      "leaderboardRank": 120
+    },
+    {
+      "slug": "patrik-bartosovic",
+      "name": "Patrik Bartošovič",
+      "countryCode": "CZE",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 121",
+      "championshipPoints": 680,
+      "leaderboardRank": 121
+    },
+    {
+      "slug": "patrik-holler",
+      "name": "Patrik Holler",
+      "countryCode": "CZE",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 122",
+      "championshipPoints": 680,
+      "leaderboardRank": 122
+    },
+    {
+      "slug": "matteo-fellico",
+      "name": "Matteo Fellico",
+      "countryCode": "ITA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 123",
+      "championshipPoints": 680,
+      "leaderboardRank": 123
+    },
+    {
+      "slug": "alex-bortolini",
+      "name": "Alex Bortolini",
+      "countryCode": "ITA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 124",
+      "championshipPoints": 680,
+      "leaderboardRank": 124
+    },
+    {
+      "slug": "friedrich-illbruck",
+      "name": "Friedrich Illbruck",
+      "countryCode": "DEU",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 125",
+      "championshipPoints": 680,
+      "leaderboardRank": 125
+    },
+    {
+      "slug": "ilya-kornilov",
+      "name": "Ilya Kornilov",
+      "countryCode": "FIN",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 126",
+      "championshipPoints": 678,
+      "leaderboardRank": 126
+    },
+    {
+      "slug": "bert-wolters",
+      "name": "Bert Wolters",
+      "countryCode": "NLD",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 127",
+      "championshipPoints": 670,
+      "leaderboardRank": 127
+    },
+    {
+      "slug": "benjamin-martinsen",
+      "name": "Benjamin Martinsen",
+      "countryCode": "NOR",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 128",
+      "championshipPoints": 666,
+      "leaderboardRank": 128
+    },
+    {
+      "slug": "caleb-barber",
+      "name": "Caleb Barber",
+      "countryCode": "GBR",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 129",
+      "championshipPoints": 662,
+      "leaderboardRank": 129
+    },
+    {
+      "slug": "lorenzozalo",
+      "name": "LorenzoZalo",
+      "countryCode": "ITA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 130",
+      "championshipPoints": 660,
+      "leaderboardRank": 130
+    },
+    {
+      "slug": "joseph-h",
+      "name": "Joseph H",
+      "countryCode": "GBR",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 131",
+      "championshipPoints": 660,
+      "leaderboardRank": 131
+    },
+    {
+      "slug": "samuele-roma",
+      "name": "Samuele Roma",
+      "countryCode": "ITA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 132",
+      "championshipPoints": 660,
+      "leaderboardRank": 132
+    },
+    {
+      "slug": "sebastian-fernandez",
+      "name": "Sebastian Fernandez",
+      "countryCode": "ESP",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 132",
+      "championshipPoints": 660,
+      "leaderboardRank": 132
+    },
+    {
+      "slug": "cristian-sarnataro",
+      "name": "Cristian Sarnataro",
+      "countryCode": "ITA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 134",
+      "championshipPoints": 660,
+      "leaderboardRank": 134
+    },
+    {
+      "slug": "alessio-cefola",
+      "name": "Alessio Cefola",
+      "countryCode": "ITA",
+      "region": "Europe",
+      "division": "Masters",
+      "qualification": "2026 Europe Championship Point leaderboard rank 135",
+      "championshipPoints": 660,
+      "leaderboardRank": 135
+    },
+    {
+      "slug": "yerco-valencia",
+      "name": "Yerco Valencia",
+      "countryCode": "CHL",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 1",
+      "championshipPoints": 1620,
+      "leaderboardRank": 1
+    },
+    {
+      "slug": "william-azevedo",
+      "name": "William Azevedo",
+      "countryCode": "BRA",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 2",
+      "championshipPoints": 1440,
+      "leaderboardRank": 2
+    },
+    {
+      "slug": "pedro-pertusi",
+      "name": "PEDRO PERTUSI",
+      "countryCode": "BRA",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 3",
+      "championshipPoints": 1362,
+      "leaderboardRank": 3
+    },
+    {
+      "slug": "giovanny-sasso-silva",
+      "name": "Giovanny Sasso Silva",
+      "countryCode": "BRA",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 4",
+      "championshipPoints": 1347,
+      "leaderboardRank": 4
+    },
+    {
+      "slug": "fernando-cifuentes",
+      "name": "Fernando Cifuentes",
+      "countryCode": "CHL",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 5",
+      "championshipPoints": 1340,
+      "leaderboardRank": 5
+    },
+    {
+      "slug": "miguel-marin",
+      "name": "miguel marin",
+      "countryCode": "MEX",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 6",
+      "championshipPoints": 1322,
+      "leaderboardRank": 6
+    },
+    {
+      "slug": "matias-matricardi",
+      "name": "Matias Matricardi",
+      "countryCode": "ARG",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 7",
+      "championshipPoints": 1294,
+      "leaderboardRank": 7
+    },
+    {
+      "slug": "jonathan-fabrizio-bellucci-lanciano",
+      "name": "Jonathan Fabrizio Bellucci Lanciano",
+      "countryCode": "ARG",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 8",
+      "championshipPoints": 1280,
+      "leaderboardRank": 8
+    },
+    {
+      "slug": "vinicius-fernandez",
+      "name": "Vinícius Fernandez",
+      "countryCode": "BRA",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 9",
+      "championshipPoints": 1266,
+      "leaderboardRank": 9
+    },
+    {
+      "slug": "cassio-moraes",
+      "name": "Cássio Moraes",
+      "countryCode": "BRA",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 10",
+      "championshipPoints": 1260,
+      "leaderboardRank": 10
+    },
+    {
+      "slug": "paulo-ferraz",
+      "name": "Paulo Ferraz",
+      "countryCode": "BRA",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 11",
+      "championshipPoints": 1257,
+      "leaderboardRank": 11
+    },
+    {
+      "slug": "francisco-osorio",
+      "name": "francisco osorio",
+      "countryCode": "CHL",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 12",
+      "championshipPoints": 1225,
+      "leaderboardRank": 12
+    },
+    {
+      "slug": "andres-e",
+      "name": "andres e",
+      "countryCode": "CHL",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 13",
+      "championshipPoints": 1205,
+      "leaderboardRank": 13
+    },
+    {
+      "slug": "gustavo-wada",
+      "name": "GUSTAVO Wada",
+      "countryCode": "BRA",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 14",
+      "championshipPoints": 1187,
+      "leaderboardRank": 14
+    },
+    {
+      "slug": "juanandree14",
+      "name": "JuanAndree14",
+      "countryCode": "CHL",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 15",
+      "championshipPoints": 1160,
+      "leaderboardRank": 15
+    },
+    {
+      "slug": "angel-aranibar",
+      "name": "Angel Aranibar",
+      "countryCode": "PER",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 16",
+      "championshipPoints": 1160,
+      "leaderboardRank": 16
+    },
+    {
+      "slug": "marco-aurelio-fernandes-garcia",
+      "name": "Marco Aurelio Fernandes Garcia",
+      "countryCode": "BRA",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 17",
+      "championshipPoints": 1160,
+      "leaderboardRank": 17
+    },
+    {
+      "slug": "marco-cifuentes",
+      "name": "Marco Cifuentes",
+      "countryCode": "CHL",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 18",
+      "championshipPoints": 1160,
+      "leaderboardRank": 18
+    },
+    {
+      "slug": "diego-cassiraga",
+      "name": "Diego Cassiraga",
+      "countryCode": "ARG",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 19",
+      "championshipPoints": 1160,
+      "leaderboardRank": 19
+    },
+    {
+      "slug": "victor-freitas",
+      "name": "Victor Freitas",
+      "countryCode": "BRA",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 20",
+      "championshipPoints": 1100,
+      "leaderboardRank": 20
+    },
+    {
+      "slug": "fabrizio-inga-silva",
+      "name": "fabrizio inga silva",
+      "countryCode": "PER",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 21",
+      "championshipPoints": 1040,
+      "leaderboardRank": 21
+    },
+    {
+      "slug": "elnenemalo-tcg",
+      "name": "ElNeneMalo_TCG",
+      "countryCode": "MEX",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 22",
+      "championshipPoints": 1010,
+      "leaderboardRank": 22
+    },
+    {
+      "slug": "diego-varea-barrera",
+      "name": "Diego Varea Barrera",
+      "countryCode": "PER",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 23",
+      "championshipPoints": 990,
+      "leaderboardRank": 23
+    },
+    {
+      "slug": "eder-f",
+      "name": "Eder F",
+      "countryCode": "MEX",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 24",
+      "championshipPoints": 990,
+      "leaderboardRank": 24
+    },
+    {
+      "slug": "bruno-barros",
+      "name": "Bruno Barros",
+      "countryCode": "BRA",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 25",
+      "championshipPoints": 956,
+      "leaderboardRank": 25
+    },
+    {
+      "slug": "caio-pires",
+      "name": "Caio Pires",
+      "countryCode": "BRA",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 26",
+      "championshipPoints": 937,
+      "leaderboardRank": 26
+    },
+    {
+      "slug": "dalton-acchetta",
+      "name": "Dalton Acchetta",
+      "countryCode": "BRA",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 27",
+      "championshipPoints": 927,
+      "leaderboardRank": 27
+    },
+    {
+      "slug": "mtroaaron",
+      "name": "MtroAaron",
+      "countryCode": "MEX",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 28",
+      "championshipPoints": 920,
+      "leaderboardRank": 28
+    },
+    {
+      "slug": "murilo-merc",
+      "name": "Murilo Merc",
+      "countryCode": "BRA",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 29",
+      "championshipPoints": 910,
+      "leaderboardRank": 29
+    },
+    {
+      "slug": "otavio-gouveia",
+      "name": "Otavio Gouveia",
+      "countryCode": "BRA",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 30",
+      "championshipPoints": 908,
+      "leaderboardRank": 30
+    },
+    {
+      "slug": "fernando-lopez-gallardo",
+      "name": "Fernando López Gallardo",
+      "countryCode": "CHL",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 31",
+      "championshipPoints": 900,
+      "leaderboardRank": 31
+    },
+    {
+      "slug": "victor-de-velasco",
+      "name": "Victor De Velasco",
+      "countryCode": "MEX",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 32",
+      "championshipPoints": 880,
+      "leaderboardRank": 32
+    },
+    {
+      "slug": "rafael-yuiti",
+      "name": "rafael yuiti",
+      "countryCode": "BRA",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 33",
+      "championshipPoints": 875,
+      "leaderboardRank": 33
+    },
+    {
+      "slug": "emanuel-jose-diogo-guerreiro",
+      "name": "Emanuel Jose Diogo Guerreiro",
+      "countryCode": "ARG",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 34",
+      "championshipPoints": 820,
+      "leaderboardRank": 34
+    },
+    {
+      "slug": "pauletegouveia",
+      "name": "pauletegouveia",
+      "countryCode": "BRA",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 35",
+      "championshipPoints": 819,
+      "leaderboardRank": 35
+    },
+    {
+      "slug": "raul-merino",
+      "name": "Raúl Merino",
+      "countryCode": "PER",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 36",
+      "championshipPoints": 800,
+      "leaderboardRank": 36
+    },
+    {
+      "slug": "augusto-cesar-beringuer-funari",
+      "name": "Augusto Cesar Beringuer Funari",
+      "countryCode": "BRA",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 37",
+      "championshipPoints": 797,
+      "leaderboardRank": 37
+    },
+    {
+      "slug": "guilherme-toledo",
+      "name": "Guilherme Toledo",
+      "countryCode": "BRA",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 38",
+      "championshipPoints": 797,
+      "leaderboardRank": 38
+    },
+    {
+      "slug": "felipe-luna",
+      "name": "Felipe Luna",
+      "countryCode": "MEX",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 39",
+      "championshipPoints": 780,
+      "leaderboardRank": 39
+    },
+    {
+      "slug": "manuel-urzua",
+      "name": "Manuel Urzúa",
+      "countryCode": "CHL",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 40",
+      "championshipPoints": 780,
+      "leaderboardRank": 40
+    },
+    {
+      "slug": "martin-bech",
+      "name": "Martin Bech",
+      "countryCode": "GTM",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 41",
+      "championshipPoints": 780,
+      "leaderboardRank": 41
+    },
+    {
+      "slug": "y0omii",
+      "name": "Y0omii",
+      "countryCode": "CHL",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 42",
+      "championshipPoints": 770,
+      "leaderboardRank": 42
+    },
+    {
+      "slug": "gaston-kitela",
+      "name": "Gaston Kitela",
+      "countryCode": "ARG",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 43",
+      "championshipPoints": 770,
+      "leaderboardRank": 43
+    },
+    {
+      "slug": "sergio-cesar-augusto-torres-ramirez",
+      "name": "Sergio Cesar Augusto Torres Ramírez",
+      "countryCode": "PER",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 44",
+      "championshipPoints": 760,
+      "leaderboardRank": 44
+    },
+    {
+      "slug": "damian-gabriel-riquel",
+      "name": "Damian Gabriel Riquel",
+      "countryCode": "ARG",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 45",
+      "championshipPoints": 760,
+      "leaderboardRank": 45
+    },
+    {
+      "slug": "eduardo-romanelli",
+      "name": "Eduardo Romanelli",
+      "countryCode": "BRA",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 46",
+      "championshipPoints": 759,
+      "leaderboardRank": 46
+    },
+    {
+      "slug": "marco-antonio-silva-de-macedo-mota",
+      "name": "Marco Antonio Silva de Macedo Mota",
+      "countryCode": "BRA",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 47",
+      "championshipPoints": 757,
+      "leaderboardRank": 47
+    },
+    {
+      "slug": "arath-gomez",
+      "name": "Arath Gomez",
+      "countryCode": "MEX",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 48",
+      "championshipPoints": 756,
+      "leaderboardRank": 48
+    },
+    {
+      "slug": "matias-vera",
+      "name": "Matias Vera",
+      "countryCode": "ARG",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 49",
+      "championshipPoints": 754,
+      "leaderboardRank": 49
+    },
+    {
+      "slug": "pedro-thiesen",
+      "name": "pedro thiesen",
+      "countryCode": "BRA",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 50",
+      "championshipPoints": 752,
+      "leaderboardRank": 50
+    },
+    {
+      "slug": "alberto-cortes",
+      "name": "Alberto Cortes",
+      "countryCode": "MEX",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 51",
+      "championshipPoints": 750,
+      "leaderboardRank": 51
+    },
+    {
+      "slug": "shinji-o",
+      "name": "Shinji O",
+      "countryCode": "MEX",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 52",
+      "championshipPoints": 750,
+      "leaderboardRank": 52
+    },
+    {
+      "slug": "fernando-chaponan",
+      "name": "Fernando Chapoñan",
+      "countryCode": "PER",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 53",
+      "championshipPoints": 749,
+      "leaderboardRank": 53
+    },
+    {
+      "slug": "pedro-side",
+      "name": "Pedro Side",
+      "countryCode": "BRA",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 54",
+      "championshipPoints": 744,
+      "leaderboardRank": 54
+    },
+    {
+      "slug": "alejandro-eijo",
+      "name": "Alejandro Eijo",
+      "countryCode": "BRA",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 55",
+      "championshipPoints": 740,
+      "leaderboardRank": 55
+    },
+    {
+      "slug": "daniel-abramovici",
+      "name": "Daniel Abramovici",
+      "countryCode": "BRA",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 55",
+      "championshipPoints": 740,
+      "leaderboardRank": 55
+    },
+    {
+      "slug": "joao-gabriel-penteado",
+      "name": "Joao Gabriel Penteado",
+      "countryCode": "BRA",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 57",
+      "championshipPoints": 740,
+      "leaderboardRank": 57
+    },
+    {
+      "slug": "andres-torres",
+      "name": "Andres Torres",
+      "countryCode": "COL",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 58",
+      "championshipPoints": 740,
+      "leaderboardRank": 58
+    },
+    {
+      "slug": "fabian-lomeli",
+      "name": "Fabian Lomeli",
+      "countryCode": "MEX",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 59",
+      "championshipPoints": 740,
+      "leaderboardRank": 59
+    },
+    {
+      "slug": "miguel-lopez",
+      "name": "Miguel-Lopez",
+      "countryCode": "MEX",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 60",
+      "championshipPoints": 740,
+      "leaderboardRank": 60
+    },
+    {
+      "slug": "changyu-liu",
+      "name": "Changyu Liu",
+      "countryCode": "PER",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 61",
+      "championshipPoints": 737,
+      "leaderboardRank": 61
+    },
+    {
+      "slug": "andres-lostaunau",
+      "name": "Andres Lostaunau",
+      "countryCode": "PER",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 62",
+      "championshipPoints": 737,
+      "leaderboardRank": 62
+    },
+    {
+      "slug": "adriano-manzini",
+      "name": "Adriano Manzini",
+      "countryCode": "BRA",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 63",
+      "championshipPoints": 720,
+      "leaderboardRank": 63
+    },
+    {
+      "slug": "teo-hazard",
+      "name": "Teo Hazard",
+      "countryCode": "CHL",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 64",
+      "championshipPoints": 720,
+      "leaderboardRank": 64
+    },
+    {
+      "slug": "esteban-ocompley",
+      "name": "Esteban Ocompley",
+      "countryCode": "CHL",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 64",
+      "championshipPoints": 720,
+      "leaderboardRank": 64
+    },
+    {
+      "slug": "sebastian-mora",
+      "name": "Sebastian Mora",
+      "countryCode": "CHL",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 66",
+      "championshipPoints": 720,
+      "leaderboardRank": 66
+    },
+    {
+      "slug": "tomas-traub",
+      "name": "Tomas Traub",
+      "countryCode": "CHL",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 67",
+      "championshipPoints": 714,
+      "leaderboardRank": 67
+    },
+    {
+      "slug": "carlos-medina-astete",
+      "name": "Carlos Medina Astete",
+      "countryCode": "PER",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 68",
+      "championshipPoints": 712,
+      "leaderboardRank": 68
+    },
+    {
+      "slug": "diego-fernando-g",
+      "name": "Diego Fernando G",
+      "countryCode": "PER",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 69",
+      "championshipPoints": 712,
+      "leaderboardRank": 69
+    },
+    {
+      "slug": "federico-nattkemper",
+      "name": "federico nattkemper",
+      "countryCode": "ARG",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 70",
+      "championshipPoints": 709,
+      "leaderboardRank": 70
+    },
+    {
+      "slug": "abelardo-fukasawa-borges",
+      "name": "Abelardo Fukasawa Borges",
+      "countryCode": "BRA",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 71",
+      "championshipPoints": 704,
+      "leaderboardRank": 71
+    },
+    {
+      "slug": "tomas-riquelme",
+      "name": "Tomás Riquelme",
+      "countryCode": "CHL",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 72",
+      "championshipPoints": 700,
+      "leaderboardRank": 72
+    },
+    {
+      "slug": "victor-garcia-montes",
+      "name": "Víctor García Montes",
+      "countryCode": "MEX",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 73",
+      "championshipPoints": 700,
+      "leaderboardRank": 73
+    },
+    {
+      "slug": "vinicius-passos",
+      "name": "Vinicius Passos",
+      "countryCode": "BRA",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 74",
+      "championshipPoints": 700,
+      "leaderboardRank": 74
+    },
+    {
+      "slug": "ignacio-gutierrez-schwerter",
+      "name": "Ignacio Gutierrez Schwerter",
+      "countryCode": "CHL",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 75",
+      "championshipPoints": 700,
+      "leaderboardRank": 75
+    },
+    {
+      "slug": "alexis-hormazabal",
+      "name": "Alexis Hormazábal",
+      "countryCode": "CHL",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 76",
+      "championshipPoints": 700,
+      "leaderboardRank": 76
+    },
+    {
+      "slug": "esteban-f",
+      "name": "Esteban F",
+      "countryCode": "CHL",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 77",
+      "championshipPoints": 690,
+      "leaderboardRank": 77
+    },
+    {
+      "slug": "nicolas-contreras",
+      "name": "Nicolas Contreras",
+      "countryCode": "CHL",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 78",
+      "championshipPoints": 687,
+      "leaderboardRank": 78
+    },
+    {
+      "slug": "guilherme-mrokowski",
+      "name": "Guilherme Mrokowski",
+      "countryCode": "BRA",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 79",
+      "championshipPoints": 687,
+      "leaderboardRank": 79
+    },
+    {
+      "slug": "pedroturra",
+      "name": "PedroTurra",
+      "countryCode": "BRA",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 80",
+      "championshipPoints": 686,
+      "leaderboardRank": 80
+    },
+    {
+      "slug": "alberto-bonsanto",
+      "name": "Alberto Bonsanto",
+      "countryCode": "MEX",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 81",
+      "championshipPoints": 680,
+      "leaderboardRank": 81
+    },
+    {
+      "slug": "mauricio-serrano-ramirez",
+      "name": "Mauricio Serrano Ramirez",
+      "countryCode": "MEX",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 82",
+      "championshipPoints": 680,
+      "leaderboardRank": 82
+    },
+    {
+      "slug": "miguel-rojas",
+      "name": "miguel rojas",
+      "countryCode": "CHL",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 83",
+      "championshipPoints": 680,
+      "leaderboardRank": 83
+    },
+    {
+      "slug": "guillermo-villicana-santillan",
+      "name": "Guillermo Villicaña Santillan",
+      "countryCode": "MEX",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 84",
+      "championshipPoints": 680,
+      "leaderboardRank": 84
+    },
+    {
+      "slug": "christian-cruz",
+      "name": "CHRISTIAN CRUZ",
+      "countryCode": "MEX",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 85",
+      "championshipPoints": 680,
+      "leaderboardRank": 85
+    },
+    {
+      "slug": "rafael-masuko",
+      "name": "Rafael Masuko",
+      "countryCode": "BRA",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 86",
+      "championshipPoints": 680,
+      "leaderboardRank": 86
+    },
+    {
+      "slug": "oliver-rochin",
+      "name": "Oliver Rochin",
+      "countryCode": "MEX",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 87",
+      "championshipPoints": 680,
+      "leaderboardRank": 87
+    },
+    {
+      "slug": "lucas-matheus",
+      "name": "Lucas Matheus",
+      "countryCode": "BRA",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 88",
+      "championshipPoints": 675,
+      "leaderboardRank": 88
+    },
+    {
+      "slug": "manuel-gonzalez",
+      "name": "manuel gonzalez",
+      "countryCode": "CHL",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 89",
+      "championshipPoints": 671,
+      "leaderboardRank": 89
+    },
+    {
+      "slug": "felipe-bastias",
+      "name": "Felipe Bastias",
+      "countryCode": "CHL",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 90",
+      "championshipPoints": 670,
+      "leaderboardRank": 90
+    },
+    {
+      "slug": "guillermo-rosales",
+      "name": "Guillermo Rosales",
+      "countryCode": "MEX",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 91",
+      "championshipPoints": 661,
+      "leaderboardRank": 91
+    },
+    {
+      "slug": "jonathan-ruiz",
+      "name": "Jonathan Ruiz",
+      "countryCode": "ECU",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 92",
+      "championshipPoints": 660,
+      "leaderboardRank": 92
+    },
+    {
+      "slug": "hector-adrian-pio-robles-sanchez",
+      "name": "Hector Adrian Pio Robles Sanchez",
+      "countryCode": "MEX",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 93",
+      "championshipPoints": 660,
+      "leaderboardRank": 93
+    },
+    {
+      "slug": "jose-roberto-cabriales-de-hoyos",
+      "name": "jose roberto cabriales de hoyos",
+      "countryCode": "MEX",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 94",
+      "championshipPoints": 660,
+      "leaderboardRank": 94
+    },
+    {
+      "slug": "jose-blanco",
+      "name": "José Blanco",
+      "countryCode": "CHL",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 95",
+      "championshipPoints": 660,
+      "leaderboardRank": 95
+    },
+    {
+      "slug": "bydaxerick",
+      "name": "BydaxErick",
+      "countryCode": "MEX",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 96",
+      "championshipPoints": 660,
+      "leaderboardRank": 96
+    },
+    {
+      "slug": "emiliano-zapata",
+      "name": "Emiliano Zapata",
+      "countryCode": "MEX",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 97",
+      "championshipPoints": 660,
+      "leaderboardRank": 97
+    },
+    {
+      "slug": "cesar-alberto-salinas-magana",
+      "name": "Cesar Alberto Salinas Magaña",
+      "countryCode": "MEX",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 98",
+      "championshipPoints": 660,
+      "leaderboardRank": 98
+    },
+    {
+      "slug": "diego-omar-campos-velazquez",
+      "name": "diego omar campos velazquez",
+      "countryCode": "MEX",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 99",
+      "championshipPoints": 660,
+      "leaderboardRank": 99
+    },
+    {
+      "slug": "ricardo-felipe-hille",
+      "name": "Ricardo Felipe Hille",
+      "countryCode": "BRA",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 100",
+      "championshipPoints": 657,
+      "leaderboardRank": 100
+    },
+    {
+      "slug": "douglas-castro",
+      "name": "Douglas Castro",
+      "countryCode": "BRA",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 101",
+      "championshipPoints": 656,
+      "leaderboardRank": 101
+    },
+    {
+      "slug": "filipe-passos",
+      "name": "Filipe Passos",
+      "countryCode": "BRA",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 102",
+      "championshipPoints": 654,
+      "leaderboardRank": 102
+    },
+    {
+      "slug": "guillermo-munoz-tejo",
+      "name": "Guillermo Muñoz Tejo",
+      "countryCode": "CHL",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 103",
+      "championshipPoints": 654,
+      "leaderboardRank": 103
+    },
+    {
+      "slug": "nicolas-magliulo",
+      "name": "Nicolas Magliulo",
+      "countryCode": "ARG",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 104",
+      "championshipPoints": 654,
+      "leaderboardRank": 104
+    },
+    {
+      "slug": "bortoni",
+      "name": "Bortoni",
+      "countryCode": "BRA",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 105",
+      "championshipPoints": 652,
+      "leaderboardRank": 105
+    },
+    {
+      "slug": "alejandro-carrillo",
+      "name": "Alejandro Carrillo",
+      "countryCode": "CHL",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 106",
+      "championshipPoints": 652,
+      "leaderboardRank": 106
+    },
+    {
+      "slug": "damian-fernandez-urroz",
+      "name": "damian fernandez urroz",
+      "countryCode": "ARG",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 107",
+      "championshipPoints": 650,
+      "leaderboardRank": 107
+    },
+    {
+      "slug": "genaro-jean-paul-m",
+      "name": "Genaro jean paul M",
+      "countryCode": "PER",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 108",
+      "championshipPoints": 648,
+      "leaderboardRank": 108
+    },
+    {
+      "slug": "jonhathan-vazquez",
+      "name": "Jonhathan Vazquez",
+      "countryCode": "MEX",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 109",
+      "championshipPoints": 645,
+      "leaderboardRank": 109
+    },
+    {
+      "slug": "carlos-sepulveda",
+      "name": "Carlos Sepúlveda",
+      "countryCode": "CHL",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 110",
+      "championshipPoints": 641,
+      "leaderboardRank": 110
+    },
+    {
+      "slug": "irvin-de-los-rios",
+      "name": "Irvin De Los RIos",
+      "countryCode": "MEX",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 111",
+      "championshipPoints": 640,
+      "leaderboardRank": 111
+    },
+    {
+      "slug": "donmomero",
+      "name": "DonMomero",
+      "countryCode": "CHL",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 112",
+      "championshipPoints": 640,
+      "leaderboardRank": 112
+    },
+    {
+      "slug": "sebastian-arias",
+      "name": "sebastian arias",
+      "countryCode": "CHL",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 113",
+      "championshipPoints": 640,
+      "leaderboardRank": 113
+    },
+    {
+      "slug": "alvaro-guerrero",
+      "name": "Alvaro Guerrero",
+      "countryCode": "CHL",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 114",
+      "championshipPoints": 640,
+      "leaderboardRank": 114
+    },
+    {
+      "slug": "ricardo-vega",
+      "name": "Ricardo Vega",
+      "countryCode": "CHL",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 115",
+      "championshipPoints": 640,
+      "leaderboardRank": 115
+    },
+    {
+      "slug": "vicente-rodriguez",
+      "name": "Vicente Rodriguez",
+      "countryCode": "CHL",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 116",
+      "championshipPoints": 640,
+      "leaderboardRank": 116
+    },
+    {
+      "slug": "rodrigo-ortiz",
+      "name": "Rodrigo Ortiz",
+      "countryCode": "MEX",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 117",
+      "championshipPoints": 640,
+      "leaderboardRank": 117
+    },
+    {
+      "slug": "raul-ivan-chan-lanas",
+      "name": "Raúl Iván Chan Lanas",
+      "countryCode": "CHL",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 118",
+      "championshipPoints": 637,
+      "leaderboardRank": 118
+    },
+    {
+      "slug": "javier-fernandez-caro",
+      "name": "Javier Fernández Caro",
+      "countryCode": "CHL",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 119",
+      "championshipPoints": 637,
+      "leaderboardRank": 119
+    },
+    {
+      "slug": "diego-makishi",
+      "name": "Diego Makishi",
+      "countryCode": "PER",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 120",
+      "championshipPoints": 636,
+      "leaderboardRank": 120
+    },
+    {
+      "slug": "gabriel-pino",
+      "name": "Gabriel Pino",
+      "countryCode": "BRA",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 121",
+      "championshipPoints": 634,
+      "leaderboardRank": 121
+    },
+    {
+      "slug": "pedro-librelato",
+      "name": "Pedro Librelato",
+      "countryCode": "BRA",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 122",
+      "championshipPoints": 631,
+      "leaderboardRank": 122
+    },
+    {
+      "slug": "sebastian-leiva-contreras",
+      "name": "Sebastian Leiva Contreras",
+      "countryCode": "CHL",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 123",
+      "championshipPoints": 627,
+      "leaderboardRank": 123
+    },
+    {
+      "slug": "marco-dardis",
+      "name": "Marco Dardis",
+      "countryCode": "ARG",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 124",
+      "championshipPoints": 627,
+      "leaderboardRank": 124
+    },
+    {
+      "slug": "anthony-ribeiro",
+      "name": "ANTHONY RIBEIRO",
+      "countryCode": "BRA",
+      "region": "Latin America",
+      "division": "Masters",
+      "qualification": "2026 Latin America Championship Point leaderboard rank 125",
+      "championshipPoints": 627,
+      "leaderboardRank": 125
+    },
+    {
+      "slug": "brent-tonisson",
+      "name": "Brent Tonisson",
+      "countryCode": "AUS",
+      "region": "Oceania",
+      "division": "Masters",
+      "qualification": "2026 Oceania Championship Point leaderboard rank 1",
+      "championshipPoints": 1580,
+      "leaderboardRank": 1
+    },
+    {
+      "slug": "natalie-millar",
+      "name": "Natalie Millar",
+      "countryCode": "AUS",
+      "region": "Oceania",
+      "division": "Masters",
+      "qualification": "2026 Oceania Championship Point leaderboard rank 2",
+      "championshipPoints": 1280,
+      "leaderboardRank": 2
+    },
+    {
+      "slug": "henry-brand",
+      "name": "Henry Brand",
+      "countryCode": "AUS",
+      "region": "Oceania",
+      "division": "Masters",
+      "qualification": "2026 Oceania Championship Point leaderboard rank 3",
+      "championshipPoints": 1205,
+      "leaderboardRank": 3
+    },
+    {
+      "slug": "andi-cheung",
+      "name": "Andi Cheung",
+      "countryCode": "AUS",
+      "region": "Oceania",
+      "division": "Masters",
+      "qualification": "2026 Oceania Championship Point leaderboard rank 4",
+      "championshipPoints": 1074,
+      "leaderboardRank": 4
+    },
+    {
+      "slug": "lucas-hamilton-foster",
+      "name": "Lucas Hamilton-foster",
+      "countryCode": "AUS",
+      "region": "Oceania",
+      "division": "Masters",
+      "qualification": "2026 Oceania Championship Point leaderboard rank 5",
+      "championshipPoints": 1030,
+      "leaderboardRank": 5
+    },
+    {
+      "slug": "matthew-burris",
+      "name": "Matthew Burris",
+      "countryCode": "AUS",
+      "region": "Oceania",
+      "division": "Masters",
+      "qualification": "2026 Oceania Championship Point leaderboard rank 6",
+      "championshipPoints": 1027,
+      "leaderboardRank": 6
+    },
+    {
+      "slug": "gareth-murphy",
+      "name": "Gareth Murphy",
+      "countryCode": "AUS",
+      "region": "Oceania",
+      "division": "Masters",
+      "qualification": "2026 Oceania Championship Point leaderboard rank 7",
+      "championshipPoints": 1025,
+      "leaderboardRank": 7
+    },
+    {
+      "slug": "angus-johnson",
+      "name": "angus johnson",
+      "countryCode": "AUS",
+      "region": "Oceania",
+      "division": "Masters",
+      "qualification": "2026 Oceania Championship Point leaderboard rank 8",
+      "championshipPoints": 1020,
+      "leaderboardRank": 8
+    },
+    {
+      "slug": "tim-franklin",
+      "name": "Tim Franklin",
+      "countryCode": "AUS",
+      "region": "Oceania",
+      "division": "Masters",
+      "qualification": "2026 Oceania Championship Point leaderboard rank 9",
+      "championshipPoints": 1010,
+      "leaderboardRank": 9
+    },
+    {
+      "slug": "christian-viti",
+      "name": "Christian Viti",
+      "countryCode": "AUS",
+      "region": "Oceania",
+      "division": "Masters",
+      "qualification": "2026 Oceania Championship Point leaderboard rank 10",
+      "championshipPoints": 1000,
+      "leaderboardRank": 10
+    },
+    {
+      "slug": "sh3pathome",
+      "name": "Sh3pathome",
+      "countryCode": "NZL",
+      "region": "Oceania",
+      "division": "Masters",
+      "qualification": "2026 Oceania Championship Point leaderboard rank 11",
+      "championshipPoints": 1000,
+      "leaderboardRank": 11
+    },
+    {
+      "slug": "max-kunde",
+      "name": "Max Kunde",
+      "countryCode": "AUS",
+      "region": "Oceania",
+      "division": "Masters",
+      "qualification": "2026 Oceania Championship Point leaderboard rank 12",
+      "championshipPoints": 950,
+      "leaderboardRank": 12
+    },
+    {
+      "slug": "shuto-kogawa",
+      "name": "Shuto Kogawa",
+      "countryCode": "AUS",
+      "region": "Oceania",
+      "division": "Masters",
+      "qualification": "2026 Oceania Championship Point leaderboard rank 13",
+      "championshipPoints": 937,
+      "leaderboardRank": 13
+    },
+    {
+      "slug": "alexander-thorvaldson",
+      "name": "Alexander Thorvaldson",
+      "countryCode": "AUS",
+      "region": "Oceania",
+      "division": "Masters",
+      "qualification": "2026 Oceania Championship Point leaderboard rank 14",
+      "championshipPoints": 920,
+      "leaderboardRank": 14
+    },
+    {
+      "slug": "justin-hoy",
+      "name": "Justin Hoy",
+      "countryCode": "AUS",
+      "region": "Oceania",
+      "division": "Masters",
+      "qualification": "2026 Oceania Championship Point leaderboard rank 15",
+      "championshipPoints": 820,
+      "leaderboardRank": 15
+    },
+    {
+      "slug": "jordan-palmer",
+      "name": "jordan palmer",
+      "countryCode": "AUS",
+      "region": "Oceania",
+      "division": "Masters",
+      "qualification": "2026 Oceania Championship Point leaderboard rank 16",
+      "championshipPoints": 820,
+      "leaderboardRank": 16
+    },
+    {
+      "slug": "vignesh-krishnan",
+      "name": "Vignesh Krishnan",
+      "countryCode": "AUS",
+      "region": "Oceania",
+      "division": "Masters",
+      "qualification": "2026 Oceania Championship Point leaderboard rank 17",
+      "championshipPoints": 794,
+      "leaderboardRank": 17
+    },
+    {
+      "slug": "jeremy-lim",
+      "name": "Jeremy Lim",
+      "countryCode": "AUS",
+      "region": "Oceania",
+      "division": "Masters",
+      "qualification": "2026 Oceania Championship Point leaderboard rank 18",
+      "championshipPoints": 774,
+      "leaderboardRank": 18
+    },
+    {
+      "slug": "peter-lo",
+      "name": "Peter Lo",
+      "countryCode": "AUS",
+      "region": "Oceania",
+      "division": "Masters",
+      "qualification": "2026 Oceania Championship Point leaderboard rank 19",
+      "championshipPoints": 760,
+      "leaderboardRank": 19
+    },
+    {
+      "slug": "nathan-spry",
+      "name": "Nathan Spry",
+      "countryCode": "AUS",
+      "region": "Oceania",
+      "division": "Masters",
+      "qualification": "2026 Oceania Championship Point leaderboard rank 20",
+      "championshipPoints": 740,
+      "leaderboardRank": 20
+    },
+    {
+      "slug": "sheldon-kuppan",
+      "name": "Sheldon Kuppan",
+      "countryCode": "ZAF",
+      "region": "Middle East & South Africa",
+      "division": "Masters",
+      "qualification": "2026 Middle East & South Africa Championship Point leaderboard rank 1",
+      "championshipPoints": 763,
+      "leaderboardRank": 1
+    },
+    {
+      "slug": "raz-wolpe",
+      "name": "Raz Wolpe",
+      "countryCode": "ISR",
+      "region": "Middle East & South Africa",
+      "division": "Masters",
+      "qualification": "2026 Middle East & South Africa Championship Point leaderboard rank 2",
+      "championshipPoints": 556,
+      "leaderboardRank": 2
+    },
+    {
+      "slug": "postsimone",
+      "name": "PostSimone",
+      "countryCode": "ZAF",
+      "region": "Middle East & South Africa",
+      "division": "Masters",
+      "qualification": "2026 Middle East & South Africa Championship Point leaderboard rank 3",
+      "championshipPoints": 551,
+      "leaderboardRank": 3
+    },
+    {
+      "slug": "frvr",
+      "name": "frvr",
+      "countryCode": "ZAF",
+      "region": "Middle East & South Africa",
+      "division": "Masters",
+      "qualification": "2026 Middle East & South Africa Championship Point leaderboard rank 4",
+      "championshipPoints": 515,
+      "leaderboardRank": 4
+    },
+    {
+      "slug": "calvin-van-der-merwe",
+      "name": "Calvin Van Der Merwe",
+      "countryCode": "ZAF",
+      "region": "Middle East & South Africa",
+      "division": "Masters",
+      "qualification": "2026 Middle East & South Africa Championship Point leaderboard rank 5",
+      "championshipPoints": 488,
+      "leaderboardRank": 5
+    },
+    {
+      "slug": "jonah-alter",
+      "name": "Jonah Alter",
+      "countryCode": "ZAF",
+      "region": "Middle East & South Africa",
+      "division": "Masters",
+      "qualification": "2026 Middle East & South Africa Championship Point leaderboard rank 6",
+      "championshipPoints": 487,
+      "leaderboardRank": 6
+    },
+    {
+      "slug": "romano-pillay",
+      "name": "Romano Pillay",
+      "countryCode": "ZAF",
+      "region": "Middle East & South Africa",
+      "division": "Masters",
+      "qualification": "2026 Middle East & South Africa Championship Point leaderboard rank 7",
+      "championshipPoints": 460,
+      "leaderboardRank": 7
+    },
+    {
+      "slug": "barne-marais",
+      "name": "Barne Marais",
+      "countryCode": "ZAF",
+      "region": "Middle East & South Africa",
+      "division": "Masters",
+      "qualification": "2026 Middle East & South Africa Championship Point leaderboard rank 8",
+      "championshipPoints": 439,
+      "leaderboardRank": 8
+    },
+    {
+      "slug": "ethan-webber",
+      "name": "Ethan Webber",
+      "countryCode": "ZAF",
+      "region": "Middle East & South Africa",
+      "division": "Masters",
+      "qualification": "2026 Middle East & South Africa Championship Point leaderboard rank 9",
+      "championshipPoints": 420,
+      "leaderboardRank": 9
+    },
+    {
+      "slug": "shane-p",
+      "name": "Shane P",
+      "countryCode": "ZAF",
+      "region": "Middle East & South Africa",
+      "division": "Masters",
+      "qualification": "2026 Middle East & South Africa Championship Point leaderboard rank 10",
+      "championshipPoints": 420,
+      "leaderboardRank": 10
+    }
+  ]
+}

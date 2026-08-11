@@ -35,7 +35,19 @@
     "url": "https://www.pokemon.com/us/play-pokemon/leaderboards/tcg-masters/",
     "season": 2026,
     "officialLastUpdated": "2026-07-06",
-    "status": "published-needs-cutoff-and-direct-invite-deduplication"
+    "status": "425-championship-point-slots-captured-and-reviewed",
+    "capturedMastersRows": 425,
+    "snapshot": "worlds-2026-tcg-masters-cp.json"
+  },
+  "directInviteAudit": {
+    "status": "public-results-reconciled-pending-official-final-roster",
+    "placementRecords": 49,
+    "uniqueInviteEarners": 45,
+    "matchedToChampionshipPointRows": 33,
+    "additionalUniqueCompetitors": 12,
+    "knownFieldBeforeSeparatePrograms": 437,
+    "snapshot": "worlds-2026-tcg-masters-direct-invites.json",
+    "corroboratingSource": "https://limitlesstcg.com/tournaments"
   },
   "tournamentRules": {
     "url": "https://registration.pokemon.com/flow/pokemon/26sanfrancisco/landing/page/011tcgcompetitorinfo",
@@ -53,14 +65,29 @@
     ]
   },
   "separatePrograms": [
-    { "program": "Japan", "status": "final-invite-roster-required" },
+    {
+      "program": "Japan",
+      "status": "official-invite-paths-published-final-identity-reconciliation-required",
+      "url": "https://www.pokemon-card.com/info/005256.html"
+    },
     { "program": "South Korea", "status": "final-invite-roster-required" },
-    { "program": "Mainland China", "status": "final-invite-roster-required" },
-    { "program": "Asia-Pacific", "status": "final-invite-roster-required" }
+    {
+      "program": "Mainland China",
+      "status": "qualified-players-notified-privately-public-roster-not-published",
+      "url": "https://www.pokemon.cn/tcg/event/21473.html"
+    },
+    {
+      "program": "Asia-Pacific",
+      "status": "leaderboard-visible-on-player-my-page-public-roster-not-published",
+      "url": "https://pacs.portal-pokemon.com/2025-26/sg/about/"
+    }
   ],
   "sources": [
     { "label": "2026 qualification rules", "url": "https://championships.pokemon.com/en-us/about/" },
     { "label": "Official TCG Masters leaderboard", "url": "https://www.pokemon.com/us/play-pokemon/leaderboards/tcg-masters/" },
-    { "label": "2026 TCG competitor structure", "url": "https://registration.pokemon.com/flow/pokemon/26sanfrancisco/landing/page/011tcgcompetitorinfo" }
+    { "label": "2026 TCG competitor structure", "url": "https://registration.pokemon.com/flow/pokemon/26sanfrancisco/landing/page/011tcgcompetitorinfo" },
+    { "label": "Japan 2026 TCG Worlds invitation paths", "url": "https://www.pokemon-card.com/info/005256.html" },
+    { "label": "Mainland China qualification notice", "url": "https://www.pokemon.cn/tcg/event/21473.html" },
+    { "label": "Asia-Pacific qualification overview", "url": "https://pacs.portal-pokemon.com/2025-26/sg/about/" }
   ]
 }
