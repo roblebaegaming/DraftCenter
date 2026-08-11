@@ -2,10 +2,11 @@
 
 [`DraftCenter-agent-handoff-2026-08-11-worlds-continuation.md`](DraftCenter-agent-handoff-2026-08-11-worlds-continuation.md)
 is the current continuation handoff. It records the fully deployed Worlds
-foundation through migration 375, confirms that the remaining open TCG Pick 16
-draft is obsolete, and separates completed infrastructure from activation work
-that still requires official rosters, official Top Cut pairings, or explicit
-results-feed and scheduler authorization.
+foundation through migration 375, the natural Worlds navigation release, and
+the reconciled 437-player TCG working field. It confirms that the remaining
+open TCG Pick 16 draft is obsolete and separates completed infrastructure from
+activation work that still requires official regional rosters, official Top
+Cut pairings, or explicit results-feed and scheduler authorization.
 
 [`DraftCenter-agent-handoff-2026-08-10-worlds-predictions-final.md`](DraftCenter-agent-handoff-2026-08-10-worlds-predictions-final.md)
 is the prior detailed Worlds release record. It covers the live importer, Top

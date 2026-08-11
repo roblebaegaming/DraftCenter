@@ -3,7 +3,7 @@
 - Last updated: August 11, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified production application commit: `4a664943f88d6e74a5ba534d5d5bf2e4defcdee4`
+- Verified production application commit: `4f781e9c081a3771499baab490bf2c28f355e407`
 - Latest production migration: 375
 
 ## Deployed state
@@ -208,6 +208,24 @@ events and tiebreaker keys, zero entries, disabled and unconfigured result
 sources, public hub access, and service-only finalization. No entry, score,
 roster, bracket, result snapshot, or provider setting changed during release.
 
+The Worlds navigation copy follow-up shipped through pull request
+[#141](https://github.com/roblebaegaming/DraftCenter/pull/141). The competition
+navigation now says **Worlds Home**, **Picks open**, **Roster pending**, and
+**Teams pending**, and the hub uses direct, natural calls to action rather than
+internal build terminology.
+
+The published TCG Masters reconciliation shipped through pull request
+[#142](https://github.com/roblebaegaming/DraftCenter/pull/142) as production
+application commit `4f781e9c081a3771499baab490bf2c28f355e407`.
+DraftCenter captured all 425 official Championship Point cutoff rows and
+reconciled 45 unique direct-invite earners. Thirty-three direct earners are
+already in the cutoff rows and 12 are additional, producing a deduplicated
+437-player working field before Japan, South Korea, mainland China, and
+Asia-Pacific. TCG voting remains closed because those separately managed
+programs do not yet have one complete, publicly reviewable official roster.
+No database migration, production roster, entry, provider, environment, or
+scheduler changed in this release.
+
 ## Release verification
 
 - The complete application tests, National Dex verification across 1,027
@@ -217,6 +235,13 @@ roster, bracket, result snapshot, or provider setting changed during release.
   database matrices passed only in the isolated Supabase Preview environment.
 - Protected pull-request security, dependency, secret-scan, CodeQL, and Vercel
   checks passed for the release pull requests.
+- Pull request #142 passed CodeQL, JavaScript security analysis, the dependency
+  and security suite, the full-history secret scan, and Vercel Preview. The
+  complete application suite, 1,027-row National Dex check, dependency audit,
+  and production build passed locally. Vercel reports exact `main` commit
+  `4f781e9` Ready in Production, the signed-out smoke sweep passed all 19
+  public and protected routes, and the live TCG page exposes the reviewed
+  425 / 45 / 437 reconciliation while keeping voting closed.
 - Signed-in Preview walkthroughs covered the new database-backed workflows.
 - The SEO release passed all protected security, dependency, secret-scan,
   CodeQL, and Vercel checks. Its exact Preview passed desktop and 390px mobile
@@ -226,7 +251,7 @@ roster, bracket, result snapshot, or provider setting changed during release.
   passed desktop and 390px mobile Pokédex review without browser errors or
   horizontal overflow. The retained Supabase Preview observer-access matrix
   passed every RLS, grant, allow, denial, full-staff, and cleanup assertion.
-- Vercel reports exact `main` commit `e5dca23` Ready in Production on the public
+- Vercel reports exact `main` commit `4f781e9` Ready in Production on the public
   production domains.
 - The signed-out production smoke sweep passes, including protected 401
   boundaries. Focused live checks also pass for tournament metadata and JSON-LD,

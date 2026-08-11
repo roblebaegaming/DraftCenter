@@ -4,7 +4,7 @@
 - Repository: `roblebaegaming/DraftCenter`
 - Production: <https://www.draftcentral.gg/worlds/2026>
 - Production branch: `main`
-- Verified Worlds application commit: `4a664943f88d6e74a5ba534d5d5bf2e4defcdee4`
+- Verified Worlds application commit: `4f781e9c081a3771499baab490bf2c28f355e407`
 - Verified production record commit before this handoff: `f2e2718b445e2656aa105a5441de04c1d0d5748c`
 - Latest production migration: 375
 
@@ -52,10 +52,17 @@ The deployed Worlds sequence is:
 - pull request [#136](https://github.com/roblebaegaming/DraftCenter/pull/136)
   for final-only average-finish tiebreakers and migration 375; and
 - pull request [#137](https://github.com/roblebaegaming/DraftCenter/pull/137)
-  for the matching production release record.
+  for the matching production release record;
+- pull request [#141](https://github.com/roblebaegaming/DraftCenter/pull/141)
+  for natural Worlds Home and competition-status navigation copy; and
+- pull request [#142](https://github.com/roblebaegaming/DraftCenter/pull/142)
+  for the published TCG Masters cutoff and direct-invite reconciliation.
 
-Vercel reported exact `main` commit `f2e2718` Ready in Production before this
-handoff update. The production database postflight after migration 375 found:
+Vercel reports exact `main` commit `4f781e9` Ready in Production. The signed-out
+production smoke sweep passed all 19 public and protected routes. The live TCG
+page was also checked for the 425 cutoff rows, 45 direct invite earners,
+437-player working total, **Worlds Home** navigation, and retained fail-closed
+state. The production database postflight after migration 375 found:
 
 - VGC open with 438 reviewed invite-earned competitors and zero entries;
 - TCG Masters and Pokemon GO in `draft` with zero competitors and zero entries;
@@ -121,7 +128,10 @@ saves a bracket, the field is immutable without an audited remediation.
 ### TCG, Pokemon GO, and Pokemon UNITE
 
 - `/worlds/2026/tcg` is a Masters-only, `noindex`, fail-closed source audit.
-  Its intended post-audit product is Pick 10 plus Your Champion.
+  Its intended post-audit product is Pick 10 plus Your Champion. All 425 TPCi
+  Championship Point cutoff rows are captured. Forty-five unique direct-invite
+  earners are reconciled: 33 overlap those rows and 12 are additional, for a
+  deduplicated 437-player working field before separately managed programs.
 - `/worlds/2026/go` is a `noindex` individual-Trainer source audit. The 220
   Championship Point slots are a qualification base, not a complete roster.
   Its intended product is also Pick 10 plus Your Champion.
@@ -144,8 +154,12 @@ known. Stable activation detail is in
 2. **VGC Top Cut publication:** the official field and first-round pairings do
    not yet exist in the reviewed source. The deployed waiting state is the
    correct live behavior.
-3. **TCG activation:** the complete Masters roster still needs official-source
-   reconciliation, direct-invite deduplication, and separate-program review.
+3. **TCG activation:** the TPCi cutoff and direct-invite reconciliation is
+   complete. Activation now requires a complete official or owner-supplied
+   registration export for Japan, South Korea, mainland China, and
+   Asia-Pacific. China says qualified players were contacted privately, and
+   Asia-Pacific exposes final standings through player My Page rather than a
+   public complete roster. Japan still needs identity and duplicate review.
 4. **Pokemon GO activation:** the final individual field must reconcile CP
    standings, event invites, prior Worlds invites, and separately managed
    regions without duplicate Trainers.
@@ -169,13 +183,18 @@ because publishing guesses would create false rosters or unsafe automation.
 4. If feed permission arrives first, record only safe operational terms, test
    the exact URL manually in an isolated Preview, review aliases, and obtain
    separate authorization before creating the scheduler.
-5. For TCG or GO, complete the official roster setup file, create a new
-   forward-only activation migration after 375, add focused RLS/privacy/scoring
-   coverage, and rehearse it in an isolated Supabase Preview.
-6. For UNITE, preserve team-based entries. Do not create its database event or
+5. For TCG, begin with the reviewed snapshots in
+   `src/data/worlds-2026-tcg-masters-cp.json` and
+   `src/data/worlds-2026-tcg-masters-direct-invites.json`. Add only the complete
+   official separate-program export, resolve identities and duplicates, then
+   create a forward-only activation migration after 375 with focused
+   RLS/privacy/scoring coverage and an isolated Supabase Preview rehearsal.
+6. For GO, complete the official roster and pool-assignment setup file before
+   creating its forward-only activation migration.
+7. For UNITE, preserve team-based entries. Do not create its database event or
    results adapter until the official group/bracket structure and stable team
    aliases are reviewed.
-7. Release each discipline separately through a short-lived branch and
+8. Release each discipline separately through a short-lived branch and
    protected pull request. Confirm the exact Vercel Production commit and run
    the signed-out production smoke sweep after every authorized release.
 
