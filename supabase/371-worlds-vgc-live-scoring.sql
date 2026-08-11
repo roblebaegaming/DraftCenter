@@ -129,7 +129,7 @@ create table public.worlds_result_mapping_issues (
   source_name text not null check (char_length(btrim(source_name)) between 2 and 120),
   source_name_key text not null check (char_length(source_name_key) between 2 and 160),
   source_country_code text not null check (source_country_code ~ '^[A-Z]{2,3}$'),
-  placing integer not null check (placing between 1 and 9999),
+  "placing" integer not null check ("placing" between 1 and 9999),
   score_points integer not null check (score_points between 0 and 30),
   issue_code text not null check (issue_code in ('unmatched', 'duplicate_target', 'ambiguous')),
   suggested_competitor_slug text,
@@ -152,7 +152,7 @@ create table public.worlds_result_placements (
   competitor_slug text not null,
   source_name text not null check (char_length(btrim(source_name)) between 2 and 120),
   source_country_code text not null check (source_country_code ~ '^[A-Z]{2,3}$'),
-  placing integer not null check (placing between 1 and 9999),
+  "placing" integer not null check ("placing" between 1 and 9999),
   score_points integer not null check (score_points between 0 and 30),
   match_alias_id uuid not null references public.worlds_result_aliases(id) on delete restrict,
   record jsonb not null default '{}'::jsonb check (
@@ -460,7 +460,7 @@ begin
 
   insert into public.worlds_result_mapping_issues (
     run_id, event_id, source_name, source_name_key, source_country_code,
-    placing, score_points, issue_code, suggested_competitor_slug, suggestion_reason
+    "placing", score_points, issue_code, suggested_competitor_slug, suggestion_reason
   )
   select
     p_run_id,
@@ -468,7 +468,7 @@ begin
     issue.source_name,
     issue.source_name_key,
     issue.source_country_code,
-    issue.placing,
+    issue."placing",
     issue.score_points,
     issue.issue_code,
     nullif(issue.suggested_competitor_slug, ''),
@@ -477,7 +477,7 @@ begin
     source_name text,
     source_name_key text,
     source_country_code text,
-    placing integer,
+    "placing" integer,
     score_points integer,
     issue_code text,
     suggested_competitor_slug text,
@@ -579,15 +579,15 @@ begin
       source_name text,
       source_name_key text,
       source_country_code text,
-      placing integer,
+      "placing" integer,
       score_points integer,
       record jsonb
     )
     where char_length(btrim(source_name)) not between 2 and 120
        or char_length(source_name_key) not between 2 and 160
        or source_country_code !~ '^[A-Z]{2,3}$'
-       or placing not between 1 and 9999
-       or score_points <> public.worlds_score_for_placing(placing)
+       or row_data."placing" not between 1 and 9999
+       or score_points <> public.worlds_score_for_placing(row_data."placing")
        or jsonb_typeof(record) <> 'object'
   ) then
     raise exception 'The Worlds result rows failed database validation.' using errcode = '22023';
@@ -599,7 +599,7 @@ begin
       source_name text,
       source_name_key text,
       source_country_code text,
-      placing integer,
+      "placing" integer,
       score_points integer,
       record jsonb
     )
@@ -609,7 +609,7 @@ begin
       source_name text,
       source_name_key text,
       source_country_code text,
-      placing integer,
+      "placing" integer,
       score_points integer,
       record jsonb
     )
@@ -623,7 +623,7 @@ begin
       source_name text,
       source_name_key text,
       source_country_code text,
-      placing integer,
+      "placing" integer,
       score_points integer,
       record jsonb
     )
@@ -672,7 +672,7 @@ begin
 
     insert into public.worlds_result_placements (
       snapshot_id, event_id, competitor_slug, source_name, source_country_code,
-      placing, score_points, match_alias_id, record
+      "placing", score_points, match_alias_id, record
     )
     select
       v_snapshot_id,
@@ -680,15 +680,15 @@ begin
       alias.competitor_slug,
       row_data.source_name,
       row_data.source_country_code,
-      row_data.placing,
-      public.worlds_score_for_placing(row_data.placing),
+      row_data."placing",
+      public.worlds_score_for_placing(row_data."placing"),
       alias.id,
       row_data.record
     from jsonb_to_recordset(p_rows) as row_data(
       source_name text,
       source_name_key text,
       source_country_code text,
-      placing integer,
+      "placing" integer,
       score_points integer,
       record jsonb
     )
@@ -707,9 +707,9 @@ begin
 
   update public.worlds_pick_competitors competitor
   set score_points = placement.score_points,
-      result_label = case when placement.placing = 9999
+      result_label = case when placement."placing" = 9999
         then 'No valid placing'
-        else '#' || placement.placing || ' · ' || public.worlds_result_label_for_placing(placement.placing)
+        else '#' || placement."placing" || ' · ' || public.worlds_result_label_for_placing(placement."placing")
       end,
       updated_at = now()
   from public.worlds_result_placements placement
@@ -720,7 +720,7 @@ begin
   if jsonb_array_length(p_issues) > 0 then
     insert into public.worlds_result_mapping_issues (
       run_id, event_id, source_name, source_name_key, source_country_code,
-      placing, score_points, issue_code, suggested_competitor_slug, suggestion_reason
+      "placing", score_points, issue_code, suggested_competitor_slug, suggestion_reason
     )
     select
       p_run_id,
@@ -728,7 +728,7 @@ begin
       issue.source_name,
       issue.source_name_key,
       issue.source_country_code,
-      issue.placing,
+      issue."placing",
       issue.score_points,
       issue.issue_code,
       nullif(issue.suggested_competitor_slug, ''),
@@ -737,7 +737,7 @@ begin
       source_name text,
       source_name_key text,
       source_country_code text,
-      placing integer,
+      "placing" integer,
       score_points integer,
       issue_code text,
       suggested_competitor_slug text,
@@ -851,11 +851,11 @@ begin
 
   insert into public.worlds_result_placements (
     snapshot_id, event_id, competitor_slug, source_name, source_country_code,
-    placing, score_points, match_alias_id, record
+    "placing", score_points, match_alias_id, record
   )
   select
     v_final_snapshot_id, event_id, competitor_slug, source_name, source_country_code,
-    placing, score_points, match_alias_id, record
+    "placing", score_points, match_alias_id, record
   from public.worlds_result_placements
   where snapshot_id = v_provisional.id;
 

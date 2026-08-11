@@ -151,7 +151,9 @@ begin
 
   select public.get_worlds_bracket_hub('2026-vgc-masters') into v_hub;
   v_score_ok := (v_hub #>> '{standings,0,score}')::integer = 3;
-  v_public_after_lock := jsonb_object_length(v_hub #> '{standings,0,picks}') = 3;
+  v_public_after_lock := (
+    select count(*) from jsonb_object_keys(v_hub #> '{standings,0,picks}')
+  ) = 3;
   perform public.finalize_worlds_bracket('2026-vgc-masters', 'https://worlds.pokemon.com/en-us/competitors/', 'FINALIZE 2026 VGC TOP CUT', v_owner);
   select status = 'final' and finalized_at is not null into v_final_ok from public.worlds_bracket_events where event_id = '2026-vgc-masters';
   begin

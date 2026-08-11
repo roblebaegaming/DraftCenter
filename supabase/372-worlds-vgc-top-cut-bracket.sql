@@ -233,7 +233,11 @@ begin
     raise exception 'Every Top Cut name must map to the reviewed VGC Masters roster.' using errcode = '22023';
   end if;
 
-  if jsonb_typeof(p_round_points) <> 'object' or jsonb_object_length(p_round_points) <> v_round_count then
+  if (case
+    when jsonb_typeof(p_round_points) = 'object'
+      then (select count(*) from jsonb_object_keys(p_round_points))
+    else -1
+  end) <> v_round_count then
     raise exception 'Set one score for every bracket round.' using errcode = '22023';
   end if;
   for v_round in 1..v_round_count loop
@@ -307,7 +311,11 @@ begin
   if v_bracket.status <> 'open' or now() < v_bracket.opens_at or now() >= v_bracket.locks_at then
     raise exception 'Top Cut bracket entries are locked.' using errcode = '22023';
   end if;
-  if jsonb_typeof(p_picks) <> 'object' or jsonb_object_length(p_picks) <> v_bracket.bracket_size - 1 then
+  if (case
+    when jsonb_typeof(p_picks) = 'object'
+      then (select count(*) from jsonb_object_keys(p_picks))
+    else -1
+  end) <> v_bracket.bracket_size - 1 then
     raise exception 'Complete every Top Cut matchup before saving.' using errcode = '22023';
   end if;
 
@@ -520,9 +528,9 @@ begin
         select winner_slug into v_b from public.worlds_bracket_results
         where event_id = p_event_id and bracket_revision = v_bracket.revision and round_number = v_round - 1 and match_number = (v_match - 1) * 2 + 2;
       end if;
-      select placing into v_a_placing from public.worlds_result_placements
+      select "placing" into v_a_placing from public.worlds_result_placements
       where snapshot_id = v_source.current_snapshot_id and event_id = p_event_id and competitor_slug = v_a;
-      select placing into v_b_placing from public.worlds_result_placements
+      select "placing" into v_b_placing from public.worlds_result_placements
       where snapshot_id = v_source.current_snapshot_id and event_id = p_event_id and competitor_slug = v_b;
       if v_a is null or v_b is null or v_a_placing is null or v_b_placing is null
          or v_a_placing = 9999 or v_b_placing = 9999 or v_a_placing = v_b_placing then
