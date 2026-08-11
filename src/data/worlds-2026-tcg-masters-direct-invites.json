@@ -1,0 +1,691 @@
+{
+  "eventId": "2026-tcg-masters",
+  "sourceCheckedAt": "2026-08-11",
+  "status": "public-event-results-reconciled-pending-official-final-roster",
+  "sourceNote": "Tournament placements are corroborating public results. Activation still requires the complete official Masters field and separately managed programs.",
+  "records": [
+    {
+      "slug": "abaan-ahmed",
+      "name": "Abaan Ahmed",
+      "countryCode": "USA",
+      "division": "Masters",
+      "qualifications": [
+        "Regional Monterrey winner"
+      ],
+      "sourceUrls": [
+        "https://limitlesstcg.com/tournaments/520"
+      ],
+      "limitlessPlayerId": 914,
+      "cpCompetitorSlug": "abaan-a",
+      "identityStatus": "matched-to-official-cp-row"
+    },
+    {
+      "slug": "akira-kurasaki",
+      "name": "Akira Kurasaki",
+      "countryCode": "JPN",
+      "division": "Masters",
+      "qualifications": [
+        "Regional Querétaro winner"
+      ],
+      "sourceUrls": [
+        "https://limitlesstcg.com/tournaments/534"
+      ],
+      "limitlessPlayerId": 6222,
+      "cpCompetitorSlug": null,
+      "identityStatus": "direct-invite-outside-cp-snapshot"
+    },
+    {
+      "slug": "aleksander-rutowicz",
+      "name": "Aleksander Rutowicz",
+      "countryCode": "POL",
+      "division": "Masters",
+      "qualifications": [
+        "Regional Lille winner"
+      ],
+      "sourceUrls": [
+        "https://limitlesstcg.com/tournaments/524"
+      ],
+      "limitlessPlayerId": 3647,
+      "cpCompetitorSlug": "alex-rutowicz",
+      "identityStatus": "matched-to-official-cp-row"
+    },
+    {
+      "slug": "andrew-hedrick",
+      "name": "Andrew Hedrick",
+      "countryCode": "USA",
+      "division": "Masters",
+      "qualifications": [
+        "Regional Los Angeles, CA winner"
+      ],
+      "sourceUrls": [
+        "https://limitlesstcg.com/tournaments/558"
+      ],
+      "limitlessPlayerId": 2875,
+      "cpCompetitorSlug": "drew-hedrick",
+      "identityStatus": "matched-to-official-cp-row"
+    },
+    {
+      "slug": "cerys-jones",
+      "name": "Cerys Jones",
+      "countryCode": "USA",
+      "division": "Masters",
+      "qualifications": [
+        "Regional Indianapolis, IN winner"
+      ],
+      "sourceUrls": [
+        "https://limitlesstcg.com/tournaments/559"
+      ],
+      "limitlessPlayerId": 6821,
+      "cpCompetitorSlug": "cerys-jones",
+      "identityStatus": "matched-to-official-cp-row"
+    },
+    {
+      "slug": "daichi-tamai",
+      "name": "Daichi Tamai",
+      "countryCode": "JPN",
+      "division": "Masters",
+      "qualifications": [
+        "2026 EUIC Top 4"
+      ],
+      "sourceUrls": [
+        "https://limitlesstcg.com/tournaments/517"
+      ],
+      "limitlessPlayerId": 5897,
+      "cpCompetitorSlug": null,
+      "identityStatus": "direct-invite-outside-cp-snapshot"
+    },
+    {
+      "slug": "daniel-magda",
+      "name": "Daniel Magda",
+      "countryCode": "CZE",
+      "division": "Masters",
+      "qualifications": [
+        "Regional Gdańsk winner"
+      ],
+      "sourceUrls": [
+        "https://limitlesstcg.com/tournaments/525"
+      ],
+      "limitlessPlayerId": 6739,
+      "cpCompetitorSlug": "daniel-magda",
+      "identityStatus": "matched-to-official-cp-row"
+    },
+    {
+      "slug": "diego-varea-barrera",
+      "name": "Diego Varea Barrera",
+      "countryCode": "PER",
+      "division": "Masters",
+      "qualifications": [
+        "Special Event Lima winner"
+      ],
+      "sourceUrls": [
+        "https://limitlesstcg.com/tournaments/536"
+      ],
+      "limitlessPlayerId": 3695,
+      "cpCompetitorSlug": "diego-varea-barrera",
+      "identityStatus": "matched-to-official-cp-row"
+    },
+    {
+      "slug": "drew-stephenson",
+      "name": "Drew Stephenson",
+      "countryCode": "GBR",
+      "division": "Masters",
+      "qualifications": [
+        "2026 EUIC Top 4"
+      ],
+      "sourceUrls": [
+        "https://limitlesstcg.com/tournaments/517"
+      ],
+      "limitlessPlayerId": 6874,
+      "cpCompetitorSlug": "drew-stephenson",
+      "identityStatus": "matched-to-official-cp-row"
+    },
+    {
+      "slug": "eduardo-molina",
+      "name": "Eduardo Molina",
+      "countryCode": "CHL",
+      "division": "Masters",
+      "qualifications": [
+        "Special Event Buenos Aires winner"
+      ],
+      "sourceUrls": [
+        "https://limitlesstcg.com/tournaments/527"
+      ],
+      "limitlessPlayerId": 5837,
+      "cpCompetitorSlug": null,
+      "identityStatus": "direct-invite-outside-cp-snapshot"
+    },
+    {
+      "slug": "edwyn-mesman",
+      "name": "Edwyn Mesman",
+      "countryCode": "NLD",
+      "division": "Masters",
+      "qualifications": [
+        "2026 EUIC Top 4"
+      ],
+      "sourceUrls": [
+        "https://limitlesstcg.com/tournaments/517"
+      ],
+      "limitlessPlayerId": 3538,
+      "cpCompetitorSlug": "edwyn-mesman",
+      "identityStatus": "matched-to-official-cp-row"
+    },
+    {
+      "slug": "ethan-wilde",
+      "name": "Ethan Wilde",
+      "countryCode": "GBR",
+      "division": "Masters",
+      "qualifications": [
+        "Regional Birmingham winner"
+      ],
+      "sourceUrls": [
+        "https://limitlesstcg.com/tournaments/529"
+      ],
+      "limitlessPlayerId": 4260,
+      "cpCompetitorSlug": "ethan-wilde",
+      "identityStatus": "matched-to-official-cp-row"
+    },
+    {
+      "slug": "giovanny-sasso",
+      "name": "Giovanny Sasso",
+      "countryCode": "BRA",
+      "division": "Masters",
+      "qualifications": [
+        "Regional Toronto winner"
+      ],
+      "sourceUrls": [
+        "https://limitlesstcg.com/tournaments/538"
+      ],
+      "limitlessPlayerId": 6845,
+      "cpCompetitorSlug": "giovanny-sasso-silva",
+      "identityStatus": "matched-to-official-cp-row"
+    },
+    {
+      "slug": "gustavo-wada",
+      "name": "Gustavo Wada",
+      "countryCode": "BRA",
+      "division": "Masters",
+      "qualifications": [
+        "Regional Belo Horizonte winner"
+      ],
+      "sourceUrls": [
+        "https://limitlesstcg.com/tournaments/522"
+      ],
+      "limitlessPlayerId": 165,
+      "cpCompetitorSlug": "gustavo-wada",
+      "identityStatus": "matched-to-official-cp-row"
+    },
+    {
+      "slug": "hiromu-sasaki",
+      "name": "Hiromu Sasaki",
+      "countryCode": "JPN",
+      "division": "Masters",
+      "qualifications": [
+        "Regional Melbourne winner"
+      ],
+      "sourceUrls": [
+        "https://limitlesstcg.com/tournaments/550"
+      ],
+      "limitlessPlayerId": 3704,
+      "cpCompetitorSlug": null,
+      "identityStatus": "direct-invite-outside-cp-snapshot"
+    },
+    {
+      "slug": "jackson-ford",
+      "name": "Jackson Ford",
+      "countryCode": "CAN",
+      "division": "Masters",
+      "qualifications": [
+        "Regional Milwaukee, WI winner"
+      ],
+      "sourceUrls": [
+        "https://limitlesstcg.com/tournaments/523"
+      ],
+      "limitlessPlayerId": 2623,
+      "cpCompetitorSlug": "jackson-ford",
+      "identityStatus": "matched-to-official-cp-row"
+    },
+    {
+      "slug": "james-kowalski",
+      "name": "James Kowalski",
+      "countryCode": "USA",
+      "division": "Masters",
+      "qualifications": [
+        "2026 NAIC Top 4"
+      ],
+      "sourceUrls": [
+        "https://limitlesstcg.com/tournaments/518"
+      ],
+      "limitlessPlayerId": 5992,
+      "cpCompetitorSlug": "james-kowalski",
+      "identityStatus": "matched-to-official-cp-row"
+    },
+    {
+      "slug": "jose-lopez",
+      "name": "Jose López",
+      "countryCode": "ESP",
+      "division": "Masters",
+      "qualifications": [
+        "Special Event Turin winner"
+      ],
+      "sourceUrls": [
+        "https://limitlesstcg.com/tournaments/540"
+      ],
+      "limitlessPlayerId": 9314,
+      "cpCompetitorSlug": "jose-lopez",
+      "identityStatus": "matched-to-official-cp-row"
+    },
+    {
+      "slug": "junya-tanaka",
+      "name": "Junya Tanaka",
+      "countryCode": "JPN",
+      "division": "Masters",
+      "qualifications": [
+        "2025 World Championships Top 4"
+      ],
+      "sourceUrls": [
+        "https://limitlesstcg.com/tournaments/500"
+      ],
+      "limitlessPlayerId": 10076,
+      "cpCompetitorSlug": null,
+      "identityStatus": "direct-invite-outside-cp-snapshot"
+    },
+    {
+      "slug": "justin-newdorf",
+      "name": "Justin Newdorf",
+      "countryCode": "USA",
+      "division": "Masters",
+      "qualifications": [
+        "2026 NAIC Top 4",
+        "2025 World Championships Top 4"
+      ],
+      "sourceUrls": [
+        "https://limitlesstcg.com/tournaments/518",
+        "https://limitlesstcg.com/tournaments/500"
+      ],
+      "limitlessPlayerId": 2890,
+      "cpCompetitorSlug": null,
+      "identityStatus": "direct-invite-outside-cp-snapshot"
+    },
+    {
+      "slug": "liam-halliburton",
+      "name": "Liam Halliburton",
+      "countryCode": "USA",
+      "division": "Masters",
+      "qualifications": [
+        "Regional Pittsburgh, PA winner",
+        "2026 EUIC Top 4"
+      ],
+      "sourceUrls": [
+        "https://limitlesstcg.com/tournaments/521",
+        "https://limitlesstcg.com/tournaments/517"
+      ],
+      "limitlessPlayerId": 4035,
+      "cpCompetitorSlug": "liam-halliburton",
+      "identityStatus": "matched-to-official-cp-row"
+    },
+    {
+      "slug": "lucas-hamilton-foster",
+      "name": "Lucas Hamilton-Foster",
+      "countryCode": "AUS",
+      "division": "Masters",
+      "qualifications": [
+        "Regional Sydney winner"
+      ],
+      "sourceUrls": [
+        "https://limitlesstcg.com/tournaments/553"
+      ],
+      "limitlessPlayerId": 2820,
+      "cpCompetitorSlug": "lucas-hamilton-foster",
+      "identityStatus": "matched-to-official-cp-row"
+    },
+    {
+      "slug": "mateusz-aszkiewicz",
+      "name": "Mateusz Łaszkiewicz",
+      "countryCode": "POL",
+      "division": "Masters",
+      "qualifications": [
+        "Regional Prague winner"
+      ],
+      "sourceUrls": [
+        "https://limitlesstcg.com/tournaments/539"
+      ],
+      "limitlessPlayerId": 3643,
+      "cpCompetitorSlug": "mateusz-laszkiewicz",
+      "identityStatus": "matched-to-official-cp-row"
+    },
+    {
+      "slug": "matias-matricardi",
+      "name": "Matias Matricardi",
+      "countryCode": "ARG",
+      "division": "Masters",
+      "qualifications": [
+        "Regional Campinas winner",
+        "Regional Curitiba winner"
+      ],
+      "sourceUrls": [
+        "https://limitlesstcg.com/tournaments/544",
+        "https://limitlesstcg.com/tournaments/543"
+      ],
+      "limitlessPlayerId": 1198,
+      "cpCompetitorSlug": "matias-matricardi",
+      "identityStatus": "matched-to-official-cp-row"
+    },
+    {
+      "slug": "miguel-alejandro-hernandez-garcia",
+      "name": "Miguel Alejandro Hernández García",
+      "countryCode": "MEX",
+      "division": "Masters",
+      "qualifications": [
+        "Special Event San Juan winner"
+      ],
+      "sourceUrls": [
+        "https://limitlesstcg.com/tournaments/560"
+      ],
+      "limitlessPlayerId": 8018,
+      "cpCompetitorSlug": null,
+      "identityStatus": "direct-invite-outside-cp-snapshot"
+    },
+    {
+      "slug": "miloslav-posledni",
+      "name": "Miloslav Posledni",
+      "countryCode": "CZE",
+      "division": "Masters",
+      "qualifications": [
+        "Regional Utrecht winner"
+      ],
+      "sourceUrls": [
+        "https://limitlesstcg.com/tournaments/535"
+      ],
+      "limitlessPlayerId": 1188,
+      "cpCompetitorSlug": "miloslav-posledni",
+      "identityStatus": "matched-to-official-cp-row"
+    },
+    {
+      "slug": "murilo-mercadante",
+      "name": "Murilo Mercadante",
+      "countryCode": "BRA",
+      "division": "Masters",
+      "qualifications": [
+        "Regional Santiago winner"
+      ],
+      "sourceUrls": [
+        "https://limitlesstcg.com/tournaments/532"
+      ],
+      "limitlessPlayerId": 3209,
+      "cpCompetitorSlug": "murilo-merc",
+      "identityStatus": "matched-to-official-cp-row"
+    },
+    {
+      "slug": "neddy-kosek",
+      "name": "Neddy Kosek",
+      "countryCode": "CZE",
+      "division": "Masters",
+      "qualifications": [
+        "2026 NAIC Top 4"
+      ],
+      "sourceUrls": [
+        "https://limitlesstcg.com/tournaments/518"
+      ],
+      "limitlessPlayerId": 5165,
+      "cpCompetitorSlug": "neddy-kosek",
+      "identityStatus": "matched-to-official-cp-row"
+    },
+    {
+      "slug": "nicolai-stiborg",
+      "name": "Nicolai Stiborg",
+      "countryCode": "DNK",
+      "division": "Masters",
+      "qualifications": [
+        "Regional Stuttgart winner"
+      ],
+      "sourceUrls": [
+        "https://limitlesstcg.com/tournaments/528"
+      ],
+      "limitlessPlayerId": 7817,
+      "cpCompetitorSlug": "nicolai-stiborg",
+      "identityStatus": "matched-to-official-cp-row"
+    },
+    {
+      "slug": "noah-sakadjian",
+      "name": "Noah Sakadjian",
+      "countryCode": "USA",
+      "division": "Masters",
+      "qualifications": [
+        "Regional Orlando, FL winner"
+      ],
+      "sourceUrls": [
+        "https://limitlesstcg.com/tournaments/552"
+      ],
+      "limitlessPlayerId": 2626,
+      "cpCompetitorSlug": "noah-sakadjian",
+      "identityStatus": "matched-to-official-cp-row"
+    },
+    {
+      "slug": "pedro-pertusi",
+      "name": "Pedro Pertusi",
+      "countryCode": "BRA",
+      "division": "Masters",
+      "qualifications": [
+        "2026 LAIC Top 4"
+      ],
+      "sourceUrls": [
+        "https://limitlesstcg.com/tournaments/516"
+      ],
+      "limitlessPlayerId": 2774,
+      "cpCompetitorSlug": "pedro-pertusi",
+      "identityStatus": "matched-to-official-cp-row"
+    },
+    {
+      "slug": "peter-lo",
+      "name": "Peter Lo",
+      "countryCode": "AUS",
+      "division": "Masters",
+      "qualifications": [
+        "Special Event Auckland winner"
+      ],
+      "sourceUrls": [
+        "https://limitlesstcg.com/tournaments/531"
+      ],
+      "limitlessPlayerId": 2684,
+      "cpCompetitorSlug": "peter-lo",
+      "identityStatus": "matched-to-official-cp-row"
+    },
+    {
+      "slug": "rajveer-singh",
+      "name": "Rajveer Singh",
+      "countryCode": "USA",
+      "division": "Masters",
+      "qualifications": [
+        "Regional Mérida winner"
+      ],
+      "sourceUrls": [
+        "https://limitlesstcg.com/tournaments/530"
+      ],
+      "limitlessPlayerId": 7706,
+      "cpCompetitorSlug": null,
+      "identityStatus": "direct-invite-outside-cp-snapshot"
+    },
+    {
+      "slug": "riley-mckay",
+      "name": "Riley McKay",
+      "countryCode": "CAN",
+      "division": "Masters",
+      "qualifications": [
+        "2025 World Championships Top 4"
+      ],
+      "sourceUrls": [
+        "https://limitlesstcg.com/tournaments/500"
+      ],
+      "limitlessPlayerId": 3995,
+      "cpCompetitorSlug": "riley-m",
+      "identityStatus": "matched-to-official-cp-row"
+    },
+    {
+      "slug": "ross-cawthon",
+      "name": "Ross Cawthon",
+      "countryCode": "USA",
+      "division": "Masters",
+      "qualifications": [
+        "2026 NAIC Top 4"
+      ],
+      "sourceUrls": [
+        "https://limitlesstcg.com/tournaments/518"
+      ],
+      "limitlessPlayerId": 173,
+      "cpCompetitorSlug": "ross-cawthon",
+      "identityStatus": "matched-to-official-cp-row"
+    },
+    {
+      "slug": "rune-heiremans",
+      "name": "Rune Heiremans",
+      "countryCode": "BEL",
+      "division": "Masters",
+      "qualifications": [
+        "Regional Frankfurt winner"
+      ],
+      "sourceUrls": [
+        "https://limitlesstcg.com/tournaments/519"
+      ],
+      "limitlessPlayerId": 2905,
+      "cpCompetitorSlug": "rune-heiremans",
+      "identityStatus": "matched-to-official-cp-row"
+    },
+    {
+      "slug": "ryuki-okada",
+      "name": "Ryuki Okada",
+      "countryCode": "JPN",
+      "division": "Masters",
+      "qualifications": [
+        "Regional Brisbane winner"
+      ],
+      "sourceUrls": [
+        "https://limitlesstcg.com/tournaments/541"
+      ],
+      "limitlessPlayerId": 2207,
+      "cpCompetitorSlug": null,
+      "identityStatus": "direct-invite-outside-cp-snapshot"
+    },
+    {
+      "slug": "sebastian-lashmet",
+      "name": "Sebastian Lashmet",
+      "countryCode": "USA",
+      "division": "Masters",
+      "qualifications": [
+        "2026 LAIC Top 4"
+      ],
+      "sourceUrls": [
+        "https://limitlesstcg.com/tournaments/516"
+      ],
+      "limitlessPlayerId": 5198,
+      "cpCompetitorSlug": "sebastian-l",
+      "identityStatus": "matched-to-official-cp-row"
+    },
+    {
+      "slug": "shizuki-nakagawa",
+      "name": "Shizuki Nakagawa",
+      "countryCode": "JPN",
+      "division": "Masters",
+      "qualifications": [
+        "2025 World Championships Top 4"
+      ],
+      "sourceUrls": [
+        "https://limitlesstcg.com/tournaments/500"
+      ],
+      "limitlessPlayerId": 10075,
+      "cpCompetitorSlug": null,
+      "identityStatus": "direct-invite-outside-cp-snapshot"
+    },
+    {
+      "slug": "simon-otter",
+      "name": "Simon Otter",
+      "countryCode": "ZAF",
+      "division": "Masters",
+      "qualifications": [
+        "Special Event Cape Town winner"
+      ],
+      "sourceUrls": [
+        "https://limitlesstcg.com/tournaments/563"
+      ],
+      "limitlessPlayerId": 9372,
+      "cpCompetitorSlug": null,
+      "identityStatus": "direct-invite-outside-cp-snapshot"
+    },
+    {
+      "slug": "simon-trottier-lacasse",
+      "name": "Simon Trottier-Lacasse",
+      "countryCode": "CAN",
+      "division": "Masters",
+      "qualifications": [
+        "2026 LAIC Top 4"
+      ],
+      "sourceUrls": [
+        "https://limitlesstcg.com/tournaments/516"
+      ],
+      "limitlessPlayerId": 549,
+      "cpCompetitorSlug": "simon-trottier",
+      "identityStatus": "matched-to-official-cp-row"
+    },
+    {
+      "slug": "ted-tobyn",
+      "name": "Ted Tobyn",
+      "countryCode": "GBR",
+      "division": "Masters",
+      "qualifications": [
+        "Special Event Sevilla winner"
+      ],
+      "sourceUrls": [
+        "https://limitlesstcg.com/tournaments/533"
+      ],
+      "limitlessPlayerId": 11177,
+      "cpCompetitorSlug": "ted-tobyn",
+      "identityStatus": "matched-to-official-cp-row"
+    },
+    {
+      "slug": "tord-reklev",
+      "name": "Tord Reklev",
+      "countryCode": "NOR",
+      "division": "Masters",
+      "qualifications": [
+        "Regional Las Vegas, NV winner"
+      ],
+      "sourceUrls": [
+        "https://limitlesstcg.com/tournaments/526"
+      ],
+      "limitlessPlayerId": 86,
+      "cpCompetitorSlug": "tord-reklev",
+      "identityStatus": "matched-to-official-cp-row"
+    },
+    {
+      "slug": "truwin-tran",
+      "name": "Truwin Tran",
+      "countryCode": "USA",
+      "division": "Masters",
+      "qualifications": [
+        "Regional Seattle, WA winner"
+      ],
+      "sourceUrls": [
+        "https://limitlesstcg.com/tournaments/542"
+      ],
+      "limitlessPlayerId": 11262,
+      "cpCompetitorSlug": "truwin-tran",
+      "identityStatus": "matched-to-official-cp-row"
+    },
+    {
+      "slug": "yoshiyuki-yamaguchi",
+      "name": "Yoshiyuki Yamaguchi",
+      "countryCode": "JPN",
+      "division": "Masters",
+      "qualifications": [
+        "Regional Houston, TX winner",
+        "2026 LAIC Top 4"
+      ],
+      "sourceUrls": [
+        "https://limitlesstcg.com/tournaments/551",
+        "https://limitlesstcg.com/tournaments/516"
+      ],
+      "limitlessPlayerId": 1790,
+      "cpCompetitorSlug": null,
+      "identityStatus": "direct-invite-outside-cp-snapshot"
+    }
+  ]
+}

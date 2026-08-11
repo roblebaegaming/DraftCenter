@@ -15,6 +15,9 @@ function sourceStatusLabel(status) {
   return ({
     "official-leaderboard-published": "Official standings published",
     "final-invite-roster-required": "Final invite roster needed",
+    "official-invite-paths-published-final-identity-reconciliation-required": "Invite paths published; identities still being reconciled",
+    "qualified-players-notified-privately-public-roster-not-published": "Qualified players notified privately; no public roster",
+    "leaderboard-visible-on-player-my-page-public-roster-not-published": "Leaderboard is account-only; no public final roster",
   })[status] || status;
 }
 
@@ -55,8 +58,8 @@ export default function WorldsTcgPickSixteenSetup({ sourceRegistry }) {
     <section className="worlds-tcg-grid" id="source-audit">
       <article className="worlds-tcg-source-card">
         <span className="eyebrow">OFFICIAL 2026 QUALIFICATION RULES</span>
-        <h2>425 Championship Point slots</h2>
-        <p>Pokémon publishes a fixed Masters cutoff for each TPCi rating zone. These standings are only the first part of the field.</p>
+        <h2>All 425 Championship Point slots are captured</h2>
+        <p>The five official Masters leaderboards have been recorded through their exact regional cutoffs. These standings are the verified base of the field.</p>
         <div className="worlds-tcg-source-table">
           {cpSlots.map((zone) => <div key={zone.ratingZone}>
             <span><strong>{zone.ratingZone}</strong><small>{sourceStatusLabel(zone.status)}</small></span>
@@ -69,16 +72,16 @@ export default function WorldsTcgPickSixteenSetup({ sourceRegistry }) {
 
       <article className="worlds-tcg-source-card">
         <span className="eyebrow">DIRECT INVITES</span>
-        <h2>Event results must be added and deduplicated</h2>
-        <p>Direct invites do not pass down when a player already qualified, so event winners cannot simply be added without matching them against the standings.</p>
+        <h2>45 direct invite earners are reconciled</h2>
+        <p>Thirty-three already appear in the Championship Point field. The other 12 bring the known, deduplicated field to 437 before Japan, South Korea, mainland China, and Asia-Pacific are added.</p>
         <ul>{sourceRegistry.qualificationRules.directInvitePaths.map((path) => <li key={path}>{path}</li>)}</ul>
-        <a className="quiet-button" href={sourceRegistry.leaderboard.url} target="_blank" rel="noreferrer">Open the official TCG Masters leaderboard ↗</a>
+        <a className="quiet-button" href={sourceRegistry.directInviteAudit.corroboratingSource} target="_blank" rel="noreferrer">Review the corroborating event results ↗</a>
       </article>
 
       <article className="worlds-tcg-source-card">
         <span className="eyebrow">SEPARATE REGIONAL PROGRAMS</span>
-        <h2>Four more invite paths need final rosters</h2>
-        <p>Pokémon states that these regions award invitations through their own organized play programs rather than the Championship Point table above.</p>
+        <h2>The final regional identities are the remaining roster gate</h2>
+        <p>Pokémon states that these regions award invitations through their own organized play programs. Some final names are currently available only through private account messages or player My Page standings, so DraftCenter cannot safely present them as a complete public field yet.</p>
         <ul className="worlds-tcg-program-list">{sourceRegistry.separatePrograms.map((item) => <li key={item.program}><strong>{item.program}</strong><span>{sourceStatusLabel(item.status)}</span></li>)}</ul>
       </article>
 
@@ -107,8 +110,9 @@ export default function WorldsTcgPickSixteenSetup({ sourceRegistry }) {
       <ol>
         <li className="is-complete"><span>1</span><div><strong>Product rules</strong><p>Pick 10, 30-point champion, Your Champion ×2, Masters only.</p></div></li>
         <li className="is-complete"><span>2</span><div><strong>Tournament format</strong><p>Attendance-based Swiss across at most two days, Standard format with regulation mark H onward.</p></div></li>
-        <li className="is-active"><span>3</span><div><strong>Complete Masters roster</strong><p>Reconcile CP cutoffs, direct event earners, and separately managed programs without duplicates or assumed attendance.</p></div></li>
-        <li><span>4</span><div><strong>Isolated Preview test</strong><p>Apply a new forward-only migration, then verify saving, privacy, scoring, RLS, grants, and cleanup away from production.</p></div></li>
+        <li className="is-complete"><span>3</span><div><strong>TPCi Championship Point and direct invites</strong><p>425 regional cutoff rows plus 45 unique direct earners are reconciled into 437 known competitors.</p></div></li>
+        <li className="is-active"><span>4</span><div><strong>Separately managed programs</strong><p>Finish Japan, South Korea, mainland China, and Asia-Pacific identity reconciliation from a complete public or owner-supplied official roster.</p></div></li>
+        <li><span>5</span><div><strong>Isolated Preview test</strong><p>Apply a new forward-only migration, then verify saving, privacy, scoring, RLS, grants, and cleanup away from production.</p></div></li>
       </ol>
       <p className="worlds-tcg-gate-note"><strong>Fail-closed:</strong> no competitor cards, picks, or saved entries will appear until the complete Masters roster has passed the source audit.</p>
     </section>

@@ -241,12 +241,27 @@ test("the VGC event card names both 2026 Worlds venues", () => {
 
 test("the TCG setup stays Masters-only and fail-closed while its roster is audited", () => {
   const registry = JSON.parse(source("src/data/worlds-2026-tcg-masters-sources.json"));
+  const cpSnapshot = JSON.parse(source("src/data/worlds-2026-tcg-masters-cp.json"));
+  const directSnapshot = JSON.parse(source("src/data/worlds-2026-tcg-masters-direct-invites.json"));
   const component = source("src/components/WorldsTcgPickSixteenSetup.jsx");
   const page = source("src/app/worlds/2026/tcg/page.js");
   assert.equal(registry.division, "Masters");
   assert.equal(registry.ageScope, "official-masters-division-not-age-verified");
   assert.equal(registry.rosterReady, false);
   assert.equal(registry.qualificationRules.championshipPointSlots.reduce((total, zone) => total + zone.slots, 0), 425);
+  assert.equal(registry.leaderboard.capturedMastersRows, 425);
+  assert.equal(registry.directInviteAudit.uniqueInviteEarners, 45);
+  assert.equal(registry.directInviteAudit.matchedToChampionshipPointRows, 33);
+  assert.equal(registry.directInviteAudit.additionalUniqueCompetitors, 12);
+  assert.equal(registry.directInviteAudit.knownFieldBeforeSeparatePrograms, 437);
+  assert.equal(cpSnapshot.competitors.length, 425);
+  assert.equal(new Set(cpSnapshot.competitors.map((competitor) => competitor.slug)).size, 425);
+  assert.deepEqual(Object.values(cpSnapshot.expectedRegionCounts), [135, 135, 125, 20, 10]);
+  assert.equal(directSnapshot.records.length, 45);
+  assert.equal(directSnapshot.records.filter((competitor) => competitor.cpCompetitorSlug).length, 33);
+  assert.equal(directSnapshot.records.filter((competitor) => !competitor.cpCompetitorSlug).length, 12);
+  assert.equal(directSnapshot.records.every((competitor) => competitor.division === "Masters"), true);
+  assert.equal(directSnapshot.records.every((competitor) => /^[A-Z]{3}$/.test(competitor.countryCode)), true);
   assert.deepEqual(registry.separatePrograms.map((item) => item.program), ["Japan", "South Korea", "Mainland China", "Asia-Pacific"]);
   assert.equal(registry.predictionDesign.pickCount, 10);
   assert.equal(registry.predictionDesign.selectionLabel, "Your Champion");
@@ -255,6 +270,10 @@ test("the TCG setup stays Masters-only and fail-closed while its roster is audit
   assert.equal(registry.tournamentRules.maximumSwissDays, 2);
   assert.equal(registry.tournamentRules.legalRegulationMarks, "H and onward");
   assert.match(component, /Champion: 30 points\. Your Champion: ×2\./);
+  assert.match(component, /All 425 Championship Point slots are captured/);
+  assert.match(component, /45 direct invite earners are reconciled/);
+  assert.match(component, /known, deduplicated field to 437/);
+  assert.match(component, /private account messages or player My Page standings/);
   assert.match(component, /Junior and Senior competitors stay out of this pool/);
   assert.match(component, /Attendance sets the Swiss round count/);
   assert.match(component, /published structure does not include the final registered roster/);
