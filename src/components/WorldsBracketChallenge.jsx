@@ -115,8 +115,8 @@ export default function WorldsBracketChallenge() {
     </section>
 
     {!event.revision ? <section className="worlds-bracket-waiting" id="top-cut-bracket">
-      <span className="eyebrow">FAIL-CLOSED BY DESIGN</span><h2>The prediction room is built. The bracket is not.</h2>
-      <p>The 2026 competitor information currently does not publish the VGC Masters Top Cut size or pairings. When the official bracket appears, the owner can load the exact names and matchups, set a deadline before play begins, and open entries without a new code release.</p>
+      <span className="eyebrow">COMING SOON</span><h2>Bracket predictions will be live once the official bracket is established.</h2>
+      <p>Once the VGC Masters Top Cut field and matchups are official, bracket predictions will open here before play begins.</p>
       <div><article><strong>1</strong><span>Owner verifies the official Masters field and source.</span></article><article><strong>2</strong><span>DraftCenter validates every name, slot, seed, and deadline.</span></article><article><strong>3</strong><span>Members complete private brackets before lock.</span></article><article><strong>4</strong><span>Reviewed winners score every entry automatically.</span></article></div>
       <a className="quiet-button" href="https://worlds.pokemon.com/en-us/competitors/" target="_blank" rel="noreferrer">Official competitor information ↗</a>
     </section> : <>
