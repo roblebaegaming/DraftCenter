@@ -240,7 +240,7 @@ Do not add a feed URL or enable polling merely because the code is deployed.
 No real league, draft, roster, tournament, prediction entry, provider setting,
 environment variable, secret, or production account was changed for testing.
 The production changes are limited to the authorized application releases and
-migrations 371-374. The importer remains off and the Top Cut field remains
+migrations 371-375. The importer remains off and the Top Cut field remains
 empty. The original dirty DraftCenter workspace and the retained
 `multi-pod-pr-82` Preview branch remain untouched.
 

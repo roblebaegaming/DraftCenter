@@ -1,16 +1,16 @@
 # Agent handoffs
 
+[`DraftCenter-agent-handoff-2026-08-11-worlds-continuation.md`](DraftCenter-agent-handoff-2026-08-11-worlds-continuation.md)
+is the current continuation handoff. It records the fully deployed Worlds
+foundation through migration 375, confirms that the remaining open TCG Pick 16
+draft is obsolete, and separates completed infrastructure from activation work
+that still requires official rosters, official Top Cut pairings, or explicit
+results-feed and scheduler authorization.
+
 [`DraftCenter-agent-handoff-2026-08-10-worlds-predictions-final.md`](DraftCenter-agent-handoff-2026-08-10-worlds-predictions-final.md)
-is the current continuation handoff. It records the deployed Worlds Predictions
-release and the isolated, not-yet-released VGC live-scoring implementation. The
-new importer remains disabled pending migration 371 Preview validation, source
-permission, exact feed approval, and separate scheduler authorization.
-It also records the isolated migration 372 Top Cut infrastructure, which is
-seeded without a field and requires its own Preview matrix plus reviewed official
-pairings before any production challenge can open.
-The same branch now includes fail-closed Pokémon GO and Pokémon UNITE source
-audits. GO is modeled around individual Trainers and UNITE around 5-on-5 teams;
-neither route contains a roster, saving, database event, or enabled polling.
+is the prior detailed Worlds release record. It covers the live importer, Top
+Cut, staged TCG/GO/UNITE preparation, Pick 10 social sharing, final tiebreakers,
+isolated database evidence, and production migrations 371-375.
 
 [`DraftCenter-agent-handoff-2026-08-10-seo-ai-answer-resources.md`](DraftCenter-agent-handoff-2026-08-10-seo-ai-answer-resources.md)
 is the prior continuation handoff. It records the deployed security repair,
