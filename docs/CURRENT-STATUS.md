@@ -3,7 +3,7 @@
 - Last updated: August 11, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified production application commit: `4a664943f88d6e74a5ba534d5d5bf2e4defcdee4`
+- Verified production application commit: `6c55ad6f50f562242c1a2e66dc90ae945624464c`
 - Latest production migration: 375
 
 ## Deployed state
@@ -208,6 +208,20 @@ events and tiebreaker keys, zero entries, disabled and unconfigured result
 sources, public hub access, and service-only finalization. No entry, score,
 roster, bracket, result snapshot, or provider setting changed during release.
 
+The verified TCG, Pokemon GO, and Pokemon UNITE structure guidance shipped
+through pull request [#139](https://github.com/roblebaegaming/DraftCenter/pull/139)
+as production application commit
+`6c55ad6f50f562242c1a2e66dc90ae945624464c`. TCG now explains its
+attendance-dependent Swiss structure, Pokemon GO shows 32 pools advancing two
+Trainers each into double elimination, and Pokemon UNITE shows round-robin
+groups feeding single-elimination playoffs. Final registered rosters, group
+assignments, advancement details, and pairings remain unpublished, so all
+three roster-driven experiences stay fail-closed. No migration, roster,
+prediction entry, result source, provider setting, or scheduler changed. The
+obsolete conflicting Pick 16 pull request
+[#119](https://github.com/roblebaegaming/DraftCenter/pull/119) is closed and
+was not merged.
+
 ## Release verification
 
 - The complete application tests, National Dex verification across 1,027
@@ -306,6 +320,12 @@ roster, bracket, result snapshot, or provider setting changed during release.
   signed-out Operations gate remained closed and logged no browser errors. The
   exact `main` commit `eb951de` reached Ready in Production, and the
   post-deployment 19-route production smoke sweep passed.
+- Pull request #139 passed the dependency audit, complete application suite,
+  1,027-row National Dex verification, focused 49-test Worlds suite, optimized
+  236-page build, all protected security and deployment checks, and desktop
+  plus 390px route review. Vercel reports exact `main` commit `6c55ad6` Ready
+  in Production. The post-deployment public/protected smoke sweep and focused
+  live checks for the Worlds hub, TCG, Pokemon GO, and Pokemon UNITE passed.
 - No merge protection was bypassed.
 
 ## Preserved boundaries
@@ -332,6 +352,12 @@ roster, bracket, result snapshot, or provider setting changed during release.
   sent and does not authorize polling or manual feed use.
 
 ## Remaining work
+
+The Codex heartbeat **Monitor 2026 Worlds official inputs** is active at 9:00
+AM and 5:00 PM Pacific. It checks authoritative sources for TCG, Pokemon GO,
+Pokemon UNITE, and VGC activation inputs and may report actionable changes. It
+does not authorize or perform repository, database, provider, scheduler, or
+deployment mutations.
 
 Continue normal monitoring of the tournament, Daily Games, Nuzlocke,
 navigation, pricing, pod-observer, League Pulse, metadata, indexing, and
@@ -365,7 +391,9 @@ guard merely to remove that measurement gap.
 ## Authoritative records
 
 - Current continuation handoff:
-  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-11-worlds-continuation.md`](handoffs/DraftCenter-agent-handoff-2026-08-11-worlds-continuation.md)
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-11-worlds-release-and-monitoring.md`](handoffs/DraftCenter-agent-handoff-2026-08-11-worlds-release-and-monitoring.md)
+- TCG, Pokemon GO, and Pokemon UNITE structure audit:
+  [`docs/worlds-2026-tcg-go-unite-structure-audit-2026-08-11.md`](worlds-2026-tcg-go-unite-structure-audit-2026-08-11.md)
 - Historical Worlds Pick 16 operating record:
   [`docs/worlds-2026-pick-sixteen.md`](worlds-2026-pick-sixteen.md)
 - Worlds live-scoring operating record:

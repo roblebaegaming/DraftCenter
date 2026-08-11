@@ -1,7 +1,14 @@
 # Agent handoffs
 
+[`DraftCenter-agent-handoff-2026-08-11-worlds-release-and-monitoring.md`](DraftCenter-agent-handoff-2026-08-11-worlds-release-and-monitoring.md)
+is the current continuation handoff. It records the deployed TCG, Pokemon GO,
+and Pokemon UNITE structure guidance, exact production commit, closed obsolete
+Pick 16 pull request, active official-input monitor, preserved safety
+boundaries, and restart sequence for roster, pairing, feed, or scheduler
+activation work.
+
 [`DraftCenter-agent-handoff-2026-08-11-worlds-continuation.md`](DraftCenter-agent-handoff-2026-08-11-worlds-continuation.md)
-is the current continuation handoff. It records the fully deployed Worlds
+is the prior continuation handoff. It records the fully deployed Worlds
 foundation through migration 375, confirms that the remaining open TCG Pick 16
 draft is obsolete, and separates completed infrastructure from activation work
 that still requires official rosters, official Top Cut pairings, or explicit
