@@ -3,7 +3,7 @@
 - Last updated: August 11, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified production application commit: `c72e76f5905526116fe4874f691f7e54043d9e17`
+- Verified production application commit: `dd36c7152e4b87e63c92be0a4ec4efac16ea457b`
 - Latest production migration: 375
 
 ## Deployed state
@@ -197,6 +197,15 @@ The scoring-card copy cleanup shipped through pull request
 application commit `c72e76f5905526116fe4874f691f7e54043d9e17`. It removes
 the redundant scoring tagline while preserving the explanation and point table.
 
+The unfinished Pick 10 preservation release shipped through pull request
+[#148](https://github.com/roblebaegaming/DraftCenter/pull/148) as production
+application commit `dd36c7152e4b87e63c92be0a4ec4efac16ea457b`.
+The two-minute event and leaderboard refresh no longer replaces a member's
+dirty local selections with the last saved entry. A saved entry is reloaded
+after a successful save or an actual account change. Save remains disabled
+until all 10 choices and Your Champion are selected, and the authenticated
+database function independently rejects incomplete entries.
+
 Forward-only migration 375 is applied in production. It makes final Pick 10
 ties use the lower average finish of the six best-finishing picks, then the
 lower average finish of all 10. Provisional ranks remain points-only; exact
@@ -253,6 +262,12 @@ scheduler changed in this release.
   `4f781e9` Ready in Production, the signed-out smoke sweep passed all 19
   public and protected routes, and the live TCG page exposes the reviewed
   425 / 45 / 437 reconciliation while keeping voting closed.
+- Pull request #148 passed CodeQL, JavaScript security analysis, the dependency
+  and security suite, the full-history secret scan, and Vercel Preview. The
+  complete application suite, 1,027-row National Dex check, focused Worlds
+  regression suite, dependency audit, and production build passed locally.
+  Vercel reports exact application commit `dd36c71` Ready in Production, and
+  the signed-out smoke sweep passed all 19 public and protected routes.
 - Signed-in Preview walkthroughs covered the new database-backed workflows.
 - The SEO release passed all protected security, dependency, secret-scan,
   CodeQL, and Vercel checks. Its exact Preview passed desktop and 390px mobile
@@ -262,7 +277,7 @@ scheduler changed in this release.
   passed desktop and 390px mobile Pokédex review without browser errors or
   horizontal overflow. The retained Supabase Preview observer-access matrix
   passed every RLS, grant, allow, denial, full-staff, and cleanup assertion.
-- Vercel reports exact application commit `c72e76f` Ready in Production on the public
+- Vercel reports exact application commit `dd36c71` Ready in Production on the public
   production domains.
 - The signed-out production smoke sweep passes, including protected 401
   boundaries. Focused live checks also pass for tournament metadata and JSON-LD,
@@ -401,7 +416,7 @@ guard merely to remove that measurement gap.
 ## Authoritative records
 
 - Current continuation handoff:
-  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-11-worlds-continuation.md`](handoffs/DraftCenter-agent-handoff-2026-08-11-worlds-continuation.md)
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-11-worlds-final-chat.md`](handoffs/DraftCenter-agent-handoff-2026-08-11-worlds-final-chat.md)
 - Historical Worlds Pick 16 operating record:
   [`docs/worlds-2026-pick-sixteen.md`](worlds-2026-pick-sixteen.md)
 - Worlds live-scoring operating record:
