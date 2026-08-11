@@ -311,6 +311,10 @@ guard merely to remove that measurement gap.
   [`docs/worlds-vgc-live-scoring.md`](worlds-vgc-live-scoring.md)
 - Worlds Top Cut operating record:
   [`docs/worlds-vgc-top-cut-bracket.md`](worlds-vgc-top-cut-bracket.md)
+- Worlds Top Cut announcement checklist:
+  [`docs/worlds-vgc-top-cut-announcement-checklist.md`](worlds-vgc-top-cut-announcement-checklist.md)
+- Worlds results-feed permission request:
+  [`docs/worlds-vgc-results-feed-permission-request.md`](worlds-vgc-results-feed-permission-request.md)
 - GO and UNITE activation record:
   [`docs/worlds-2026-go-and-unite.md`](worlds-2026-go-and-unite.md)
 - SEO and AI answer-resource release:

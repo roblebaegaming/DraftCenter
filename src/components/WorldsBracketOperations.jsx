@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { createClient } from "../lib/supabase/client";
 import {
   buildWorldsBracketRounds,
+  buildWorldsBracketSetupTemplate,
   defaultWorldsBracketRoundPoints,
   WORLDS_BRACKET_SIZES,
   worldsBracketMatchKey,
@@ -120,6 +121,31 @@ export default function WorldsBracketOperations() {
     }));
   }
 
+  function downloadSetup() {
+    const template = buildWorldsBracketSetupTemplate(setup.bracket_size);
+    const payload = {
+      ...template,
+      opens_at: setup.opens_at ? new Date(setup.opens_at).toISOString() : "",
+      locks_at: setup.locks_at ? new Date(setup.locks_at).toISOString() : "",
+      source_url: setup.source_url || "",
+      source_checked_at: setup.source_checked_at ? new Date(setup.source_checked_at).toISOString() : "",
+      round_points: setup.round_points,
+      participants: setup.participants.map((participant) => ({
+        slot: participant.slot,
+        competitor_slug: participant.competitor_slug || "",
+        source_seed: participant.source_seed === "" || participant.source_seed == null ? null : Number(participant.source_seed),
+      })),
+    };
+    const url = URL.createObjectURL(new Blob([`${JSON.stringify(payload, null, 2)}\n`], { type: "application/json" }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `2026-vgc-masters-top-${setup.bracket_size}-setup.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+    setError("");
+    setMessage("The reviewable setup draft was downloaded. Nothing has been published.");
+  }
+
   async function importSetup(event) {
     const file = event.target.files?.[0];
     event.target.value = "";
@@ -134,7 +160,7 @@ export default function WorldsBracketOperations() {
         bracket_size: size,
         opens_at: localDateTime(imported.opens_at),
         locks_at: localDateTime(imported.locks_at),
-        source_checked_at: localDateTime(imported.source_checked_at || new Date().toISOString()),
+        source_checked_at: localDateTime(imported.source_checked_at),
         round_points: imported.round_points || defaultWorldsBracketRoundPoints(size),
         participants: Array.from({ length: size }, (_, index) => {
           const participant = imported.participants.find((item) => Number(item.slot) === index + 1) || {};
@@ -193,7 +219,7 @@ export default function WorldsBracketOperations() {
         {setup.bracket_size && <fieldset className="wide worlds-round-points"><legend>Points for each correct winner</legend>{Array.from({ length: worldsBracketRoundCount(Number(setup.bracket_size)) }, (_, index) => <label key={index}>Round {index + 1}<input required type="number" min="1" max="1000" value={setup.round_points[String(index + 1)] || ""} onChange={(event) => setSetup({ ...setup, round_points: { ...setup.round_points, [String(index + 1)]: Number(event.target.value) } })} /></label>)}</fieldset>}
         {setup.bracket_size && <div className="wide worlds-official-pairings">
           <datalist id="worlds-bracket-competitors">{data.competitors.map((competitor) => <option value={competitor.slug} key={competitor.slug}>{competitor.display_name} · {competitor.country_code}</option>)}</datalist>
-          <header><div><strong>First-round pairings</strong><p>Each row is one official matchup. Use the reviewed roster slug shown by the name search.</p></div><label className="quiet-button file-button">Load setup JSON<input type="file" accept="application/json,.json" onChange={importSetup} /></label></header>
+          <header><div><strong>First-round pairings</strong><p>Each row is one official matchup. Use the reviewed roster slug shown by the name search.</p></div><div className="worlds-bracket-template-actions"><button className="quiet-button" type="button" onClick={downloadSetup}>Download setup JSON</button><label className="quiet-button file-button">Load setup JSON<input type="file" accept="application/json,.json" onChange={importSetup} /></label></div></header>
           {Array.from({ length: Number(setup.bracket_size) / 2 }, (_, matchIndex) => <article key={matchIndex}>
             <strong>Match {matchIndex + 1}</strong>
             {[matchIndex * 2, matchIndex * 2 + 1].map((participantIndex) => <div key={participantIndex}>

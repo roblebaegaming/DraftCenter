@@ -2,10 +2,17 @@
 
 ## Status and release boundary
 
-The VGC Masters live-scoring importer is implemented on the isolated
-`codex/worlds-live-scoring-2026-08-10` branch. It is not deployed, migration
-371 has not been applied to Preview or production, and no provider schedule or
-environment variable was changed.
+The VGC Masters live-scoring importer is deployed through pull request
+[#128](https://github.com/roblebaegaming/DraftCenter/pull/128) and production
+application commit `e5dca23b9da09d3a557e485443e7dc5a207b4e20`. Forward-only
+migration 371 is applied to the exact core production project. Migrations 372
+and 373 subsequently added the empty Top Cut challenge and changed the public
+competition to Pick 10 plus Your Champion.
+
+The production source remains deliberately disabled with permission pending,
+no feed URL, no external event identifier, and no scheduler. No provider
+schedule or environment variable was changed by the release. Deployment of the
+importer does not authorize polling or use of an external results feed.
 
 Migration `371-worlds-vgc-live-scoring.sql` creates the disabled-by-default
 source, import audit, reviewed alias, immutable snapshot, placement, mapping
@@ -152,9 +159,12 @@ service/public function grants, disabled polling, atomic scores, hash
 idempotency, overlap rejection, last-known-good preservation, owner
 finalization, post-final import rejection, and exact fixture cleanup.
 
-Before release, apply migrations 371-373 only to an isolated Preview branch,
-run the
-database matrix, configure a permission-safe reviewed sample, exercise repeated
-imports, and review desktop/mobile public and owner states. Then run the full
-repository gates. Production migration, source configuration, scheduler setup,
-and deployment each require their own explicit authorization and verification.
+Before activation or a future importer change, use an isolated Preview branch,
+run the database matrix, configure a permission-safe reviewed sample, exercise
+repeated imports, and review desktop/mobile public and owner states. The release
+matrix and full repository gates passed before migrations 371-373 reached
+production. Source configuration and scheduler setup remain separate production
+actions that require explicit authorization and verification.
+
+The permission request and approval-record template is
+[`worlds-vgc-results-feed-permission-request.md`](worlds-vgc-results-feed-permission-request.md).
