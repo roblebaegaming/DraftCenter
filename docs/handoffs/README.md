@@ -8,9 +8,10 @@ unfinished Pick 10 choices intact during background refreshes. Unavailable
 competition statuses use the plain **Not Live** label, and the final sharing
 panel has compact **Download**, **Instagram**, and **Twitter** actions. The
 VGC bracket waiting state keeps its useful public copy without the numbered
-backend-workflow cards. The handoff separates the verified live state from TCG,
-GO, UNITE, VGC Top Cut, and feed activation work that still requires official
-inputs or explicit authorization.
+backend-workflow cards, and the incomplete share panel says **Choose your top
+10, then choose your champion.** The handoff separates the verified live state
+from TCG, GO, UNITE, VGC Top Cut, and feed activation work that still requires
+official inputs or explicit authorization.
 
 [`DraftCenter-agent-handoff-2026-08-11-worlds-continuation.md`](DraftCenter-agent-handoff-2026-08-11-worlds-continuation.md)
 is the preceding detailed Worlds operating record through the scoring-card
