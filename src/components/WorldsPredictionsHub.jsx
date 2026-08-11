@@ -21,9 +21,9 @@ const futureLeaderboardCopy = {
 };
 
 const futureLeaderboardStatus = {
-  tcg: "ROSTER PENDING",
-  go: "ROSTER PENDING",
-  unite: "TEAMS PENDING",
+  tcg: "NOT LIVE",
+  go: "NOT LIVE",
+  unite: "NOT LIVE",
 };
 
 export default function WorldsPredictionsHub() {
@@ -115,21 +115,21 @@ export default function WorldsPredictionsHub() {
           <strong>Make VGC picks →</strong>
         </Link>
         <Link className="worlds-competition-card is-building is-tcg" href="/worlds/2026/tcg">
-          <span className="worlds-status-pill">Roster pending</span>
+          <span className="worlds-status-pill">Not Live</span>
           <small>POKÉMON TRADING CARD GAME</small>
           <h3>TCG Masters</h3>
           <p>The prediction game is ready. Picks will open after the complete Masters roster is published and reviewed.</p>
           <strong>View TCG details →</strong>
         </Link>
         <Link className="worlds-competition-card is-building is-go" href="/worlds/2026/go">
-          <span className="worlds-status-pill">Roster pending</span>
+          <span className="worlds-status-pill">Not Live</span>
           <small>MOBILE BATTLES</small>
           <h3>Pokémon GO</h3>
           <p>The format is set. Picks will open after the registered Trainers and pool assignments are published and reviewed.</p>
           <strong>View GO details →</strong>
         </Link>
         <Link className="worlds-competition-card is-building is-unite" href="/worlds/2026/unite">
-          <span className="worlds-status-pill">Teams pending</span>
+          <span className="worlds-status-pill">Not Live</span>
           <small>TEAM COMPETITION</small>
           <h3>Pokémon UNITE</h3>
           <p>The format is set. Team predictions still need the registered teams, group assignments, and playoff bracket.</p>

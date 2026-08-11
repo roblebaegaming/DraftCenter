@@ -198,9 +198,10 @@ test("the Worlds overview separates competition and overall leaderboards", () =>
   assert.match(hub, /<h1>2026 Pokémon Worlds Predictions<\/h1>/);
   assert.match(hub, /<h2 id="worlds-competition-heading">Worlds Home<\/h2>/);
   assert.match(hub, /Picks open/);
-  assert.match(hub, /Roster pending/);
-  assert.match(hub, /Teams pending/);
   assert.match(nav, /label: "Worlds Home"/);
+  assert.equal((nav.match(/status: "Not Live"/g) || []).length, 3);
+  assert.equal((hub.match(/<span className="worlds-status-pill">Not Live<\/span>/g) || []).length, 3);
+  assert.doesNotMatch(`${nav}\n${hub}`, /In build|Source audit|Roster pending|Teams pending/i);
   assert.doesNotMatch(hub, /One Worlds home\. A leaderboard for every game\./);
   assert.doesNotMatch(hub, /See (TCG|GO|UNITE) progress/);
   assert.match(hub, /Pokémon World Championships 2026: dates, games, and predictions/);
