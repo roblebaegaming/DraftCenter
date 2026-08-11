@@ -8,6 +8,7 @@ import {
   worldsShareFileName,
   worldsSharePath,
   worldsShareText,
+  worldsTwitterShareUrl,
   worldsShareUrl,
 } from "../src/lib/worldsPickShare.js";
 
@@ -35,10 +36,15 @@ test("Worlds share links and filenames stay on reviewed individual disciplines",
   assert.equal(worldsShareUrl("go"), "https://www.draftcentral.gg/worlds/2026/go");
   assert.equal(worldsShareFileName("tcg"), "draftcenter-2026-worlds-tcg-pick-10.png");
   assert.equal(worldsShareText("VGC"), "My 2026 Pok\u00e9mon Worlds VGC picks.");
+  const twitterIntent = new URL(worldsTwitterShareUrl("vgc", "VGC"));
+  assert.equal(twitterIntent.origin, "https://twitter.com");
+  assert.equal(twitterIntent.pathname, "/intent/tweet");
+  assert.equal(twitterIntent.searchParams.get("text"), "My 2026 Pok\u00e9mon Worlds VGC picks.");
+  assert.equal(twitterIntent.searchParams.get("url"), "https://www.draftcentral.gg/worlds/2026/vgc");
   assert.throws(() => worldsSharePath("unite"), /cannot create an individual Pick 10 card/);
 });
 
-test("the reusable Pick 10 UI offers one natural share action", () => {
+test("the reusable Pick 10 UI offers compact download, Instagram, and Twitter actions", () => {
   const picker = source("src/components/WorldsPickSixteen.jsx");
   const share = source("src/components/WorldsPickShare.jsx");
   const card = source("src/lib/worldsPickShare.js");
@@ -46,13 +52,19 @@ test("the reusable Pick 10 UI offers one natural share action", () => {
   assert.match(picker, /<WorldsPickShare/);
   assert.match(picker, /picks=\{selected\.map\(\(slug\) => competitorBySlug\.get\(slug\)\)\.filter\(Boolean\)\}/);
   assert.match(share, /Share your picks/);
-  assert.equal((share.match(/<button/g) || []).length, 1);
-  assert.match(share, /navigator\.canShare\?\.\(\{ files: \[file\] \}\)/);
-  assert.match(share, /If your picks are still private, sharing the image makes them public/);
-  assert.doesNotMatch(share, /Instagram|Twitter|X \/|social card|social image/);
+  assert.equal((share.match(/<button/g) || []).length, 3);
+  assert.match(share, /busy === "download" \? "Downloading\\u2026" : "Download"/);
+  assert.match(share, /busy === "instagram" \? "Opening\\u2026" : "Instagram"/);
+  assert.match(share, /busy === "twitter" \? "Opening\\u2026" : "Twitter"/);
+  assert.match(share, /navigator\.canShare\(\{ files:/);
+  assert.match(share, /https:\/\/www\.instagram\.com\//);
+  assert.match(share, /worldsTwitterShareUrl\(discipline, gameLabel\)/);
+  assert.match(share, /Sharing is public and does not save your entry/);
+  assert.doesNotMatch(share, /Share to Instagram or apps|Download \+ share on X \/ Twitter|social card|social image/);
   assert.match(card, /canvas\.width = WORLDS_SHARE_CARD_WIDTH/);
   assert.match(card, /canvas\.height = WORLDS_SHARE_CARD_HEIGHT/);
   assert.match(card, /YOUR CHAMPION \\u00d72/);
   assert.match(card, /Unofficial fan prediction/);
-  assert.match(css, /\.worlds-pick-share-actions/);
+  assert.match(css, /\.worlds-pick-share-actions \{ display: flex/);
+  assert.match(css, /grid-template-columns: repeat\(3, minmax\(0, 1fr\)\)/);
 });
