@@ -3,7 +3,7 @@
 - Last updated: August 11, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified production application commit: `c944308742cfff250fd910c8331d71ff0f8e2208`
+- Verified production application commit: `c72e76f5905526116fe4874f691f7e54043d9e17`
 - Latest production migration: 375
 
 ## Deployed state
@@ -192,6 +192,11 @@ application commit `c944308742cfff250fd910c8331d71ff0f8e2208`. It replaces
 the prior download, app, and X/Twitter button stack without changing entries,
 rosters, scoring, or database state.
 
+The scoring-card copy cleanup shipped through pull request
+[#146](https://github.com/roblebaegaming/DraftCenter/pull/146) as production
+application commit `c72e76f5905526116fe4874f691f7e54043d9e17`. It removes
+the redundant scoring tagline while preserving the explanation and point table.
+
 Forward-only migration 375 is applied in production. It makes final Pick 10
 ties use the lower average finish of the six best-finishing picks, then the
 lower average finish of all 10. Provisional ranks remain points-only; exact
@@ -257,7 +262,7 @@ scheduler changed in this release.
   passed desktop and 390px mobile Pokédex review without browser errors or
   horizontal overflow. The retained Supabase Preview observer-access matrix
   passed every RLS, grant, allow, denial, full-staff, and cleanup assertion.
-- Vercel reports exact application commit `c944308` Ready in Production on the public
+- Vercel reports exact application commit `c72e76f` Ready in Production on the public
   production domains.
 - The signed-out production smoke sweep passes, including protected 401
   boundaries. Focused live checks also pass for tournament metadata and JSON-LD,
