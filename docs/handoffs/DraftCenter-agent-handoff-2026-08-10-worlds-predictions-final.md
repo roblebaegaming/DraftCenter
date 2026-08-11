@@ -43,6 +43,13 @@ official source can finalize them. The legacy `ace_slug`, `p_ace_slug`, and
 `ace_multiplier` database names remain internal compatibility fields and are
 not player-facing copy.
 
+After all 10 choices and Your Champion are selected, the reusable Pick 10 UI
+can create a 1080 by 1350 PNG social card. Members may download it, send the
+image through the device share menu to Instagram, X, or another installed app
+when file sharing is supported, or download the image and open a prepared X
+post. Sharing is explicit, warns that it publicly reveals the card before lock,
+and never saves or changes the private DraftCenter entry.
+
 ### Live-results importer
 
 The importer tables, RPCs, server route, Operations controls, alerts, and
@@ -100,7 +107,8 @@ Pull request [#132](https://github.com/roblebaegaming/DraftCenter/pull/132)
 adds the reusable preparation layer without activating a competition:
 
 - the former VGC-only prediction component accepts reviewed VGC, TCG, or GO
-  discipline configuration while preserving each event's fail-closed gate;
+  discipline configuration while preserving each event's fail-closed gate and
+  automatically enables the same Pick 10 social-card controls after activation;
 - owner Operations can download blank TCG, GO, and UNITE setup JSON, validate a
   reviewed file locally, and download the validated copy without saving or
   publishing it;

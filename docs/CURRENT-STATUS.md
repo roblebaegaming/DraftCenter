@@ -113,9 +113,10 @@ Migrations 369-370 are applied to the exact core production project.
 The VGC roster-provenance clarification shipped through pull request
 [#118](https://github.com/roblebaegaming/DraftCenter/pull/118). The qualified-
 player section now names Victory Road's 2026 invite tracker, links directly to
-it, shows the August 10 snapshot date, explains that the tracker combines
-Championship Point standings and qualifying event results, and repeats that an
-invite-earned list is not confirmed attendance or registration.
+it, explains that the tracker combines Championship Point standings and
+qualifying event results, and repeats that an invite-earned list is not
+confirmed attendance or registration. The source-check date is not presented
+as player-facing roster copy.
 
 The Worlds navigation and account-gate refinement shipped through pull request
 [#121](https://github.com/roblebaegaming/DraftCenter/pull/121). The global
@@ -177,6 +178,13 @@ overall leaderboard is closed. UNITE remains an offline team/group/bracket
 preparation contract with no database event. The isolated migration rehearsal
 and 371-374 database matrices passed, and both exact disposable Preview branches
 were permanently deleted.
+
+The reusable VGC, TCG, and GO Pick 10 screen now includes an optional social
+card flow once a lineup and Your Champion are complete. It creates a 1080 by
+1350 PNG for download, supports native file sharing to installed apps such as
+Instagram or X when the device exposes them, and provides a prepared X post
+plus downloaded image fallback. Sharing never saves or changes an entry and
+clearly warns that it publicly reveals the card before lock.
 
 ## Release verification
 
