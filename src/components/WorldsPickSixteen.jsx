@@ -11,6 +11,7 @@ import {
 } from "../lib/worlds2026";
 import { WORLDS_PICK_DISCIPLINES } from "../lib/worldsFutureSetup";
 import WorldsDisciplineNav from "./WorldsDisciplineNav";
+import WorldsPickShare from "./WorldsPickShare";
 
 function fallbackEvent(config, rosterSource) {
   return {
@@ -234,6 +235,14 @@ export default function WorldsPickSixteen({ rosterSource, discipline = "vgc" }) 
           </div>
           <button className="primary-button" type="button" disabled={busy || locked || selected.length !== pickCount || !ace || !hub} onClick={saveEntry}>{busy ? "Saving…" : hub?.my_entry ? "Update entry" : "Save entry"}</button>
         </div>
+        {!staged && <WorldsPickShare
+          discipline={config.key}
+          gameLabel={config.gameLabel}
+          pickCount={pickCount}
+          picks={selected.map((slug) => competitorBySlug.get(slug)).filter(Boolean)}
+          championSlug={ace}
+          displayName={hub?.my_entry?.display_name || ""}
+        />}
         </>}
       </div>
 
