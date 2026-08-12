@@ -193,7 +193,7 @@ export default function WorldsPickSixteen({ rosterSource, discipline = "vgc" }) 
     <section className="worlds-hero">
       <div>
         <span className="eyebrow">POKÉMON WORLDS · SAN FRANCISCO</span>
-        {config.key === "vgc" ? <h1>2026 Pokémon Worlds VGC predictions</h1> : <h1>2026 Pokémon Worlds {config.gameLabel} predictions</h1>}
+        {config.key === "vgc" ? <h1>2026 Pokémon Worlds VGC predictions</h1> : config.key === "go" ? <h1>2026 Pokémon GO Worlds predictions</h1> : <h1>2026 Pokémon Worlds {config.gameLabel} predictions</h1>}
         <p>Pick the 10 {config.entryPlural} you believe in from the reviewed {config.gameLabel} roster. When Worlds finishes, the entry with the strongest collective results wins the DraftCenter community leaderboard.</p>
         <div className="worlds-hero-actions">
           <a className="primary-button inline-link-button" href={user === null ? "/#member-access" : staged ? "#qualified-players" : "#pick-ten"}>{user === null ? "Sign in to predict" : staged ? "Browse reviewed roster" : "Build my 10"}</a>

@@ -103,6 +103,8 @@ test("GO publishes the reviewed Pick 10 page while UNITE stays fail-closed", () 
   assert.match(goPage, /worlds-2026-go-sources\.json/);
   assert.match(goPage, /discipline="go"/);
   assert.doesNotMatch(goPage, /robots:/);
+  assert.match(source("src/components/WorldsPickSixteen.jsx"), /<h1>2026 Pokémon GO Worlds predictions<\/h1>/);
+  assert.doesNotMatch(source("src/components/WorldsPickSixteen.jsx"), /Pokémon Worlds Pokémon GO/);
   assert.match(unitePage, /canonical: "\/worlds\/2026\/unite"/);
   assert.match(unitePage, /robots: \{ index: false, follow: true \}/);
 });
