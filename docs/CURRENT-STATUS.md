@@ -1,6 +1,6 @@
 # DraftCenter current status
 
-- Last updated: August 11, 2026
+- Last updated: August 12, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
 - Verified production application commit: `bdc8349822e16fadff02dd73b48030c13dbddae5`
@@ -325,10 +325,13 @@ The separate Worlds Meta Picks competition shipped through pull request
 application commit `bdc8349822e16fadff02dd73b48030c13dbddae5`. VGC Meta
 Picks are open: members rank six Pokémon from the reviewed 235-option official
 Regulation M-B pool, with 24 explicitly unofficial community-trend signals.
-TCG has a reviewed 49-archetype taxonomy and 12 trend signals but remains
-`draft` until an official source confirms the exact 2026 Worlds format. GO also
-remains `draft` with no placeholder options until its official eligibility pool
-can be reviewed. Meta Picks have separate discipline and overall leaderboards
+TCG has a reviewed 49-archetype taxonomy and 12 trend signals and remains
+`draft` in production. The official 2026 Worlds competitor packet now confirms
+Standard Format with regulation marks H and onward; forward-only migration 381
+is the reviewed release candidate that records this source and opens only the
+zero-entry TCG event after the application release. GO remains `draft` with no
+placeholder options until its official eligibility pool can be reviewed. Meta
+Picks have separate discipline and overall leaderboards
 from player Pick 10; the Meta overall requires two finalized disciplines.
 Migrations 378-380 are applied to production. Results automation remains
 disabled, and finalization is service-only from an owner-reviewed official
@@ -564,10 +567,12 @@ and its group assignments, advancement rules, and playoff pairings are
 published. Model UNITE predictions by team, not by individual player.
 Keep the Worlds bracket challenge closed until official pairings exist.
 
-Keep TCG Meta Picks closed until the exact official Worlds format is confirmed
-and the frozen taxonomy is rechecked against it. Keep GO Meta Picks closed until
-an official eligibility pool is reviewed and seeded. Do not fill either gate
-with placeholder guesses. VGC Meta Picks may remain open through their
+Keep TCG Meta Picks closed in production until the application release
+containing the scoring disclosure and guarded migration 381 is deployed. Then
+apply migration 381 to the exact production project and verify the 49-option,
+12-trend, zero-entry opening state before calling TCG live. Keep GO Meta Picks
+closed until an official eligibility pool is reviewed and seeded. Do not fill
+that gate with placeholder guesses. VGC Meta Picks may remain open through its
 published lock; preserve private pre-lock selections and the separate player
 Pick 10 competition. Finalize Meta results only from an owner-reviewed official
 source, with no automated result writer.

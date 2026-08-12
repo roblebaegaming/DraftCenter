@@ -26,6 +26,7 @@ export const WORLDS_META_EVENTS = {
     picksRequired: 5,
     predictionType: "deck_archetype",
     requiresFeaturedPick: true,
+    officialFormatUrl: "https://registration.pokemon.com/flow/pokemon/26sanfrancisco/landing/page/011tcgcompetitorinfo",
     reviewLabel: "Worlds archetype review",
     waitingCopy: "Entries stay closed until a reviewed, frozen list of Worlds-legal deck archetypes is ready. This prevents names or categories from changing after picks are saved.",
   },

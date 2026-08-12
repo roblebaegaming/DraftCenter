@@ -43,17 +43,44 @@ function displayPacificDate(value) {
 
 function MetaScoring({ config }) {
   if (config.predictionType === "deck_archetype") {
-    return <div className="worlds-meta-scoring">
-      <strong>Five deck archetypes · one Champion Deck</strong>
-      <p>Each archetype scores its best Masters finish: 30 / 20 / 12 / 7 / 4 / 2 / 1 through Top 64. Your Champion Deck scores double. The final total is normalized to 100.</p>
-      <small>Related variants are combined into stable archetypes. If a true rogue deck outside the frozen pool wins, nobody receives Champion Deck points, but every reviewed Top 64 placement still scores.</small>
-    </div>;
+    return <details className="worlds-meta-scoring">
+      <summary><span>How scoring works</span><strong>Five decks · 100 points max</strong></summary>
+      <div className="worlds-meta-scoring-body">
+        <p>Choose five deck archetypes and mark one as your <strong>Champion Deck</strong>. Each archetype scores only its best Masters finish.</p>
+        <dl className="worlds-meta-score-grid">
+          <div><dt>World Champion</dt><dd>30 pts</dd></div>
+          <div><dt>Runner-up</dt><dd>20 pts</dd></div>
+          <div><dt>Top 4</dt><dd>12 pts</dd></div>
+          <div><dt>Top 8</dt><dd>7 pts</dd></div>
+          <div><dt>Top 16</dt><dd>4 pts</dd></div>
+          <div><dt>Top 32</dt><dd>2 pts</dd></div>
+          <div><dt>Top 64</dt><dd>1 pt</dd></div>
+        </dl>
+        <ul>
+          <li>Your Champion Deck scores double.</li>
+          <li>The 111-point raw maximum is normalized to 100.</li>
+          <li>If an unlisted rogue deck wins, nobody earns Champion Deck points for it; reviewed Top 64 archetypes still score.</li>
+        </ul>
+        <p className="worlds-meta-score-separation"><strong>Separate competition:</strong> Meta scores never mix with player Pick 10. The Meta Overall opens after at least two Meta disciplines have final results.</p>
+        <a href={config.officialFormatUrl} target="_blank" rel="noreferrer">Official Worlds format: Standard · H regulation marks and onward ↗</a>
+      </div>
+    </details>;
   }
-  return <div className="worlds-meta-scoring">
-    <strong>Rank six by confidence</strong>
-    <p>Your matches are worth {WORLDS_META_ROSTER_POINTS.join(" / ")} points from first to sixth. Predict all six members of the champion&apos;s registered team for an 8-point bonus and a perfect 100.</p>
-    {config.discipline === "vgc" && <small>The official pool names registered species and forms. Mega Evolutions are not separate options.</small>}
-  </div>;
+  return <details className="worlds-meta-scoring">
+    <summary><span>How scoring works</span><strong>Rank six · 100 points max</strong></summary>
+    <div className="worlds-meta-scoring-body">
+      <p>Rank six Pokémon from strongest to weakest confidence. A pick earns its position&apos;s points when it appears on the World Champion&apos;s registered team.</p>
+      <dl className="worlds-meta-score-grid is-roster">
+        {WORLDS_META_ROSTER_POINTS.map((points, index) => <div key={points}><dt>Pick {index + 1}</dt><dd>{points} pts</dd></div>)}
+      </dl>
+      <ul>
+        <li>Predict all six team members for an 8-point bonus and a perfect 100.</li>
+        <li>The ranking is your confidence order; it does not need to match a team-sheet order.</li>
+        {config.discipline === "vgc" && <li>The official pool names registered species and forms. Mega Evolutions are not separate options.</li>}
+      </ul>
+      <p className="worlds-meta-score-separation"><strong>Separate competition:</strong> Meta scores never mix with player Pick 10. The Meta Overall opens after at least two Meta disciplines have final results.</p>
+    </div>
+  </details>;
 }
 
 export default function WorldsMetaChallenge({ discipline = "vgc", user }) {
@@ -181,14 +208,14 @@ export default function WorldsMetaChallenge({ discipline = "vgc", user }) {
     {staged ? <div className="worlds-meta-staged">
       <div>
         <span className="eyebrow">INFRASTRUCTURE READY · FAIL-CLOSED</span>
-        <h3>{reviewedPoolReady && config.discipline === "tcg" ? "Exact Worlds format confirmation" : config.reviewLabel}</h3>
-        <p>{reviewedPoolReady && config.discipline === "tcg" ? "The 49-archetype Pitch Black taxonomy is reviewed and frozen. Entries stay closed until an official 2026 Worlds source confirms the exact TCG format." : config.waitingCopy}</p>
+        <h3>{reviewedPoolReady && config.discipline === "tcg" ? "Activation migration pending" : config.reviewLabel}</h3>
+        <p>{reviewedPoolReady && config.discipline === "tcg" ? "The official 2026 Worlds packet confirms Standard Format with H regulation marks and onward. The 49-archetype Pitch Black taxonomy is reviewed and frozen; entries stay closed until the activation migration is applied." : config.waitingCopy}</p>
         <small>No placeholder Pokémon or deck guesses are being treated as reviewed event options.</small>
       </div>
       <ol>
         <li className="is-ready"><span>1</span><div><strong>Game and scoring</strong><small>Ready</small></div></li>
         <li className={reviewedPoolReady ? "is-ready" : ""}><span>2</span><div><strong>Reviewed option pool</strong><small>{reviewedPoolReady ? `${options.length} ready` : "Review required"}</small></div></li>
-        <li><span>3</span><div><strong>{reviewedPoolReady ? "Official opening gate" : "Entries"}</strong><small>Closed by default</small></div></li>
+        <li><span>3</span><div><strong>{reviewedPoolReady && config.discipline === "tcg" ? "Activation migration" : reviewedPoolReady ? "Official opening gate" : "Entries"}</strong><small>{reviewedPoolReady && config.discipline === "tcg" ? "Pending" : "Closed by default"}</small></div></li>
       </ol>
       <a className="quiet-button" href={event.option_source_url} target="_blank" rel="noreferrer">Review source ↗</a>
     </div> : <div className="worlds-meta-workspace">
