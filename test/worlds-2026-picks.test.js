@@ -157,8 +157,8 @@ test("the Worlds page defers bracket predictions until official pairings exist",
   assert.match(page, /The Top Cut prediction room is ready/);
   assert.match(page, /No seeds or matchups are invented in advance/);
   assert.match(page, /Your choices stay private until entries lock/);
-  assert.match(page, /Junior- and Senior-Division qualifiers are excluded/);
-  assert.match(page, /does not collect or infer private age data/);
+  assert.match(page, /Masters Division only — Senior and Junior Division qualifiers are excluded\./);
+  assert.doesNotMatch(page, /Masters is not an adult-only guarantee/);
   assert.match(page, /Where this invite list comes from/);
   assert.match(page, /Try Giovanni Cischke, Luca Ceribelli, or Wolfe Glick/);
   assert.doesNotMatch(page, /Try Wolfe, JPN, Regional Champion/);
