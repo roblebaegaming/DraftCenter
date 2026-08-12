@@ -39,3 +39,12 @@ Web Analytics began collecting meaningful traffic around July 30, so the Last 7 
 ## Follow-up comparison
 
 Record the next comparable snapshot after at least seven complete collection days. Compare visitors, page views, bounce rate, `/manuals/commissioner`, `/manuals/manager`, `/support`, `/leagues`, and `/explore`, plus mobile share and referring domains.
+
+## Owner Operations panel
+
+The owner-only Operations page embeds production visitor and page-view totals from Vercel Web Analytics. It shows today, yesterday, a seven-day daily average, the last 30 days, a 30-day daily chart, and the five most-viewed public pages.
+
+- Vercel filters known bots and reports anonymized visitors without cookies. Visitor identifiers reset daily, so the 30-day visitor figure is the sum of daily visitors rather than a persistent-person count.
+- `/operations`, `/my-teams`, `/organizations`, and `/trainer-dex` are excluded in the server query and again before page rankings are returned.
+- The server caches complete results for five minutes, uses a shorter cache when page rankings are unavailable, and leaves the rest of Operations usable if analytics fails.
+- `DRAFTCENTER_VERCEL_ANALYTICS_TOKEN`, `DRAFTCENTER_VERCEL_TEAM_ID`, and (when the system-provided project ID is unavailable) `DRAFTCENTER_VERCEL_PROJECT_ID` are server-only deployment settings. They must never use the `NEXT_PUBLIC_` prefix.
