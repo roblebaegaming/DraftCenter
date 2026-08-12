@@ -12,6 +12,7 @@ import {
 } from "../lib/worlds2026";
 import { WORLDS_PICK_DISCIPLINES } from "../lib/worldsFutureSetup";
 import WorldsDisciplineNav from "./WorldsDisciplineNav";
+import WorldsMetaChallenge from "./WorldsMetaChallenge";
 import WorldsPickShare from "./WorldsPickShare";
 
 function fallbackEvent(config, rosterSource) {
@@ -197,6 +198,7 @@ export default function WorldsPickSixteen({ rosterSource, discipline = "vgc" }) 
         <p>Pick the 10 {config.entryPlural} you believe in from the reviewed {config.gameLabel} roster. When Worlds finishes, the entry with the strongest collective results wins the DraftCenter community leaderboard.</p>
         <div className="worlds-hero-actions">
           <a className="primary-button inline-link-button" href={user === null ? "/#member-access" : staged ? "#qualified-players" : "#pick-ten"}>{user === null ? "Sign in to predict" : staged ? "Browse reviewed roster" : "Build my 10"}</a>
+          <a className="quiet-button" href="#meta-picks">Predict the winning meta</a>
           {config.key === "vgc" && <a className="quiet-button" href="/worlds/2026/vgc/bracket">Top Cut bracket</a>}
           <a className="quiet-button" href="/worlds/2026">All Worlds competitions</a>
           <a className="quiet-button" href="#qualified-players">See all {competitors.length} {config.entryPlural.toLowerCase()}</a>
@@ -219,6 +221,8 @@ export default function WorldsPickSixteen({ rosterSource, discipline = "vgc" }) 
       <p>{config.division === "Masters" ? "Masters Division only — Senior and Junior Division qualifiers are excluded." : "Only published competitor identity and qualification information needed for the prediction game is used. DraftCenter does not collect or infer private age data."}</p>
       <div className="worlds-source-links">{(rosterSource.sourceUrl || rosterSource.source_url) && <a href={rosterSource.sourceUrl || rosterSource.source_url} target="_blank" rel="noreferrer">Roster source ↗</a>}<a href="https://worlds.pokemon.com/en-us" target="_blank" rel="noreferrer">Official Worlds site ↗</a></div>
     </section>
+
+    <WorldsMetaChallenge discipline={config.key} user={user} />
 
     <section className="worlds-pick-layout" id="pick-ten">
       <div className="worlds-pick-main">
