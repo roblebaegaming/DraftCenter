@@ -121,6 +121,16 @@ worktree intentionally has no public Supabase URL or publishable key. No secret
 was copied into the worktree. The protected Vercel Preview is therefore the
 authoritative optimized-build and visual-review gate for this release.
 
+Pull request #168 is **Ready to merge** with all six active checks successful:
+the full-history secret scan, security tests and dependency audit, CodeQL,
+Vercel, and the Vercel review integration. The repository's automatic Supabase
+Preview check was skipped, as expected for this manually managed migration
+directory; the independent exact database rehearsal below supplies the required
+migration evidence. On the Ready Vercel Preview, the TCG disclosure expanded
+cleanly and exposed the complete placement curve, Champion Deck multiplier,
+111-to-100 normalization, rogue-deck rule, separate-competition explanation,
+and official-format link. Player Pick 10 remained a separate panel.
+
 On the disposable Supabase Preview branch
 `worlds-tcg-meta-open-2026-08-12`, migrations 378-381 and the focused
 [`../../supabase/tests/381-open-worlds-2026-tcg-meta-picks-preview-regression.sql`](../../supabase/tests/381-open-worlds-2026-tcg-meta-picks-preview-regression.sql)
