@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { createClient } from "../lib/supabase/client";
 import { loadPokemonArtwork, pokemonArtworkCandidates } from "./LeagueHub";
 import DailyCommunityGames from "./DailyCommunityGames";
+import RosterConnections from "./RosterConnections";
 import { LiveNowList, ShareButton } from "./SocialSharing";
 import PublicCoachProfile, { CoachProfileButton } from "./PublicCoachProfile";
 import { REGULATION_SETS } from "./PokemonDraftLeague";
@@ -228,14 +229,13 @@ export default function PublicExplore() {
     {data && <>
       <section className="explore-card community-live-now"><div className="section-heading"><div><span className="eyebrow">LIVE NOW</span><h2>Watch DraftCenter battles</h2></div><a className="quiet-button" href="/leagues">Browse public leagues</a></div><p className="muted">League managers can share their own Twitch or YouTube match from their league home—commissioner approval is not required.</p><LiveNowList streams={liveStreams} /></section>
       <div className="daily-trio-grid">
-        <section className="explore-card explore-poll">
-        <span className="eyebrow">POLL OF THE DAY</span>
-        <h2>{data.poll?.question || "Today's poll is on its way."}</h2>
-        {data.poll && signedIn && <><p className="muted">{data.poll.total_votes || 0} community vote{data.poll.total_votes === 1 ? "" : "s"}.{data.poll.selected_key ? " Your vote is included." : " Vote from your DraftCenter home."}</p><PollResults poll={data.poll} onSelectPokemon={setSelectedPokemon} /><PollDiscussion pollId={data.poll.id} signedIn={signedIn}/></>}
-        {data.poll && !signedIn && <div className="locked-current-poll"><div className="locked-poll-preview" aria-hidden="true"><span /><span /><span /></div><strong>Create an account to reveal today’s answers and percentages.</strong><a className="secondary-button" href="/">Create an account</a></div>}
-        {pollHistory.length > 0 && <details className="daily-previous"><summary>View previous polls</summary><div className="completed-poll-list">{pollHistory.map((poll) => <details key={poll.id}><summary><span>{new Date(`${poll.poll_date}T12:00:00`).toLocaleDateString()}</span><strong>{poll.question}</strong></summary><p className="muted">{poll.total_votes} final vote{poll.total_votes === 1 ? "" : "s"}</p><PollResults poll={poll} showPodium onSelectPokemon={setSelectedPokemon} /></details>)}</div></details>}
-        </section>
-        <DailyCommunityGames signedIn={signedIn} />
+        <DailyCommunityGames signedIn={signedIn} betweenGames={<><RosterConnections signedIn={signedIn} /><section className="explore-card explore-poll">
+          <span className="eyebrow">POLL OF THE DAY</span>
+          <h2>{data.poll?.question || "Today's poll is on its way."}</h2>
+          {data.poll && signedIn && <><p className="muted">{data.poll.total_votes || 0} community vote{data.poll.total_votes === 1 ? "" : "s"}.{data.poll.selected_key ? " Your vote is included." : " Vote from your DraftCenter home."}</p><PollResults poll={data.poll} onSelectPokemon={setSelectedPokemon} /><PollDiscussion pollId={data.poll.id} signedIn={signedIn}/></>}
+          {data.poll && !signedIn && <div className="locked-current-poll"><div className="locked-poll-preview" aria-hidden="true"><span /><span /><span /></div><strong>Create an account to reveal today’s answers and percentages.</strong><a className="secondary-button" href="/">Create an account</a></div>}
+          {pollHistory.length > 0 && <details className="daily-previous"><summary>View previous polls</summary><div className="completed-poll-list">{pollHistory.map((poll) => <details key={poll.id}><summary><span>{new Date(`${poll.poll_date}T12:00:00`).toLocaleDateString()}</span><strong>{poll.question}</strong></summary><p className="muted">{poll.total_votes} final vote{poll.total_votes === 1 ? "" : "s"}</p><PollResults poll={poll} showPodium onSelectPokemon={setSelectedPokemon} /></details>)}</div></details>}
+        </section></>} />
       </div>
       <section className="explore-card public-leagues-community-row">
         <span className="eyebrow">PUBLIC LEAGUES</span><h2>Watch or join a league</h2>
