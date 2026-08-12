@@ -1,7 +1,13 @@
 # Agent handoffs
 
+[`DraftCenter-agent-handoff-2026-08-11-worlds-public-launch-final.md`](DraftCenter-agent-handoff-2026-08-11-worlds-public-launch-final.md)
+is the current continuation handoff. It records the verified public launch of
+VGC, TCG, and Pokémon GO Pick 10, the final Masters and overall-leaderboard
+wording, Production commit `29bd86d`, the intentional **Not Live** UNITE state,
+and the remaining official-input and authorization gates.
+
 [`DraftCenter-agent-handoff-2026-08-11-worlds-tcg-go-live.md`](DraftCenter-agent-handoff-2026-08-11-worlds-tcg-go-live.md)
-is the current continuation handoff. It records the released 880-player TCG
+is the preceding continuation handoff. It records the released 880-player TCG
 Masters and 369-Trainer Pokémon GO Pick 10 competitions, production migrations
 376-377, exact release verification, and the audited 31-team UNITE source plus
 the remaining group/bracket gate.
