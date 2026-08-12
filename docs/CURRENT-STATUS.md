@@ -3,7 +3,7 @@
 - Last updated: August 11, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified production application commit: `5b07d274e31d914d7095005d78af878025422851`
+- Verified production application commit: `29bd86d636cf4d70c20f7a9b309104db5e33ca62`
 - Latest production migration: 377
 
 ## Deployed state
@@ -311,6 +311,15 @@ the full-field placement game, so their absence does not prevent Pick 10 from
 opening. Production had zero GO entries at activation. Its result source also
 remains disabled and unconfigured.
 
+The final Worlds public-copy follow-ups shipped through pull requests
+[#163](https://github.com/roblebaegaming/DraftCenter/pull/163) and
+[#164](https://github.com/roblebaegaming/DraftCenter/pull/164). VGC and TCG now
+say **Masters Division only — Senior and Junior Division qualifiers are
+excluded.** The combined leaderboard now says only **The combined table appears
+when at least two games have official scored results.** Vercel reports exact
+`main` commit `29bd86d` Ready in Production, and the post-deployment smoke
+sweep passed all 19 public and protected routes.
+
 Pokémon UNITE remains **Not Live** and has no production database event. The
 same official page currently exposes 185 player rows with team labels. A
 case-and-whitespace-normalized audit resolves them to 31 unique teams: 30
@@ -548,7 +557,7 @@ guard merely to remove that measurement gap.
 ## Authoritative records
 
 - Current continuation handoff:
-  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-11-worlds-tcg-go-live.md`](handoffs/DraftCenter-agent-handoff-2026-08-11-worlds-tcg-go-live.md)
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-11-worlds-public-launch-final.md`](handoffs/DraftCenter-agent-handoff-2026-08-11-worlds-public-launch-final.md)
 - Historical Worlds Pick 16 operating record:
   [`docs/worlds-2026-pick-sixteen.md`](worlds-2026-pick-sixteen.md)
 - Worlds live-scoring operating record:
