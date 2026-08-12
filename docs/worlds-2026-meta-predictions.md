@@ -55,11 +55,15 @@ start with 12 Trending choices for newcomers and retain search across all 49.
 The taxonomy is community evidence, not an official Worlds deck list or a
 prediction of the winner.
 
-Official Pokémon sources establish the H/I/J Standard rotation and Pitch
-Black's July 17 release, but the official Worlds competitor page still says
-more competitor information is forthcoming. TCG therefore remains draft-locked
-until an official 2026 Worlds source confirms the exact format and Pitch Black
-eligibility. Saved entries will retain stable option keys if display wording is
+The [official 2026 Worlds TCG competitor packet](https://registration.pokemon.com/flow/pokemon/26sanfrancisco/landing/page/011tcgcompetitorinfo)
+now confirms Standard Format with regulation marks H and onward. The
+[official product-legality policy](https://community.pokemon.com/en-us/discussion/22216/pokemon-tcg-product-legality-update)
+makes products tournament legal two weeks after release; the
+[Pitch Black release notice](https://www.pokemon.com/us/news/the-pokemon-tcg-mega-evolution-pitch-black-expansion-is-available-now)
+records its July 17 release, making it tournament legal July 31, before Worlds
+begins August 28. The reviewed taxonomy was rechecked unchanged on August 12.
+Forward-only migration 381 records those sources and opens only the zero-entry
+TCG draft. Saved entries retain stable option keys if display wording is
 clarified after the event opens.
 
 ### Pokémon GO — third priority
@@ -90,29 +94,27 @@ Migration 379 requires the untouched VGC draft, inserts the pinned 235-option
 official pool, verifies the pool and provenance, and then opens only VGC.
 Migration 380 requires the untouched TCG draft, inserts the pinned 49-option
 taxonomy, and deliberately leaves TCG in `draft` behind its official-format
-opening gate. All migrations are forward-only and refuse to run over existing
-options, entries, or results.
+opening gate. Migration 381 requires that exact 49-option, zero-entry,
+zero-result draft, records the official Standard/H-and-onward confirmation,
+rechecks every option's provenance date, and opens only TCG. Every migration is
+forward-only and refuses to cross the reviewed discipline or privacy boundary.
 
-As of this implementation handoff, migrations 378-380 exist locally and have
-not been applied to Preview or production. This workspace has no isolated
-Preview connection or local Postgres runtime, so the included transaction
-matrices have not been executed. TCG and Pokémon GO remain fail-closed draft
-events; migration 380 would seed TCG without accepting entries.
+Migrations 378-380 are applied to production. Migration 381 is the release
+candidate for TCG activation and must be applied only after its application
+release is merged and deployed. Pokémon GO remains a fail-closed draft event.
 
 Rollout order:
 
-1. Apply 378 and 379 on an isolated Supabase Preview branch, run both preview
-   regression scripts, and review the signed-in VGC six-pick experience.
-2. Apply migration 380 in the same isolated Preview and verify that the TCG
-   taxonomy is readable but entries remain rejected.
-3. After exact official Worlds format confirmation, re-verify the taxonomy and
-   open TCG with a separate forward-only migration.
+1. Merge and deploy the application release containing the scoring disclosure
+   and migration 381 after all protected checks and Preview review pass.
+2. Apply migration 381 to the exact production project, then verify TCG is
+   `open` with 49 selectable options, 12 trend signals, and zero initial entries
+   and results. Confirm VGC remains `open` and GO remains `draft`.
+3. Run the signed-out production smoke sweep and review the live TCG page at
+   desktop and mobile widths. Confirm the scoring disclosure expands, the
+   five-deck save flow is available to members, and player Pick 10 is unchanged.
 4. Review the official Pokémon GO Worlds meta and eligibility, then open GO
    with a new forward-only migration.
-
-Applying migration 378 alone is safe: it publishes no speculative options,
-accepts no entries, changes no existing player competition, and enables no
-results automation.
 
 ## Reproducible VGC source check
 

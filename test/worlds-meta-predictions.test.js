@@ -214,6 +214,30 @@ test("migration 380 seeds the TCG taxonomy but cannot open entries before offici
   assert.match(preview, /fixtures_removed/i);
 });
 
+test("migration 381 opens only the officially confirmed, unchanged TCG taxonomy", () => {
+  const migration = source("supabase/381-open-worlds-2026-tcg-meta-picks.sql");
+  const preview = source("supabase/tests/381-open-worlds-2026-tcg-meta-picks-preview-regression.sql");
+
+  assert.match(migration, /event-specific competitor packet confirmed Standard Format[\s\S]+marks H and onward/i);
+  assert.match(migration, /requires the exact zero-entry TCG draft created by migrations 378 and 380/i);
+  assert.match(migration, /opens only a zero-entry, zero-result TCG Meta Picks event/i);
+  assert.match(migration, /satisfied-official-worlds-standard-format-confirmed/i);
+  assert.match(migration, /official_minimum_regulation_mark":"H"/i);
+  assert.match(migration, /011tcgcompetitorinfo/i);
+  assert.match(migration, /set status = 'open'/i);
+  assert.match(migration, /private-table or RPC privilege boundary/i);
+  assert.doesNotMatch(migration, /insert into public\.worlds_meta_options/i);
+  assert.doesNotMatch(migration, /on conflict/i);
+
+  assert.match(preview, /tcg_only_open/i);
+  assert.match(preview, /placement_scoring_preserved/i);
+  assert.match(preview, /own_entry_round_trip/i);
+  assert.match(preview, /champion_deck_required/i);
+  assert.match(preview, /unreviewed_pick_rejected/i);
+  assert.match(preview, /other_entry_private_before_lock/i);
+  assert.match(preview, /fixtures_removed/i);
+});
+
 test("the Worlds prediction tabs mount the separate Meta challenge with safe staged copy", () => {
   const parent = source("src/components/WorldsPickSixteen.jsx");
   const component = source("src/components/WorldsMetaChallenge.jsx");
@@ -233,7 +257,15 @@ test("the Worlds prediction tabs mount the separate Meta challenge with safe sta
   assert.match(component, /10 unofficial Limitless community events covering 737 teams/);
   assert.match(component, /21,000 deck classifications from 292 unofficial Limitless community tournaments/);
   assert.match(component, /The 49-archetype Pitch Black taxonomy is reviewed and frozen/);
-  assert.match(component, /If a true rogue deck outside the frozen pool wins/);
+  assert.match(component, /<details className="worlds-meta-scoring">/);
+  assert.match(component, /How scoring works/);
+  assert.match(component, /World Champion<\/dt><dd>30 pts/);
+  assert.match(component, /Champion Deck scores double/);
+  assert.match(component, /111-point raw maximum is normalized to 100/);
+  assert.match(component, /If an unlisted rogue deck wins/);
+  assert.match(component, /Meta scores never mix with player Pick 10/);
+  assert.match(component, /Official Worlds format: Standard/);
+  assert.match(component, /Activation migration pending/);
   assert.match(component, /No Meta entries yet\. Saved entries will appear here\./);
   assert.doesNotMatch(component, /leaderboard will begin when the reviewed pool opens/i);
   assert.match(component, /Reviewed pool required/);

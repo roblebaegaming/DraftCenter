@@ -1,7 +1,19 @@
 # Agent handoffs
 
+[`DraftCenter-agent-handoff-2026-08-12-worlds-tcg-meta-picks-activation.md`](DraftCenter-agent-handoff-2026-08-12-worlds-tcg-meta-picks-activation.md)
+is the current release-candidate handoff. It records the expandable scoring
+guide, official Standard/H-and-onward format confirmation, guarded migration
+381, isolated Preview save/privacy evidence, and the exact production
+activation sequence. Production remains on migration 380 until that release
+sequence is completed.
+
+[`DraftCenter-agent-handoff-2026-08-11-worlds-meta-picks-release.md`](DraftCenter-agent-handoff-2026-08-11-worlds-meta-picks-release.md)
+is the preceding Meta Picks production handoff. It records the reusable
+competition release, live VGC pool, staged 49-archetype TCG taxonomy, and
+fail-closed GO state.
+
 [`DraftCenter-agent-handoff-2026-08-11-worlds-public-launch-final.md`](DraftCenter-agent-handoff-2026-08-11-worlds-public-launch-final.md)
-is the current continuation handoff. It records the verified public launch of
+is the preceding player-competition handoff. It records the verified public launch of
 VGC, TCG, and Pokémon GO Pick 10, the final Masters and overall-leaderboard
 wording, Production commit `29bd86d`, the intentional **Not Live** UNITE state,
 and the remaining official-input and authorization gates.
