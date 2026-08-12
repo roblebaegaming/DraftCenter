@@ -37,6 +37,7 @@ test("release migrations use one production number each", () => {
   assert.ok(migrations.includes("371-worlds-vgc-live-scoring.sql"));
   assert.ok(migrations.includes("372-worlds-vgc-top-cut-bracket.sql"));
   assert.ok(migrations.includes("373-worlds-pick-ten-and-champion-label.sql"));
+  assert.ok(migrations.includes("382-personal-pokemon-calendar.sql"));
 });
 
 test("the Gen 6 schema gate supports the official X and Y game keys", () => {
@@ -58,7 +59,7 @@ test("the Gen 5 schema gate supports official zero-based regional entries", () =
 test("integrated quick links expose each released feature once", () => {
   const links = source("src/components/SiteQuickLinks.jsx");
   const nuzlocke = source("src/components/NuzlockeLab.jsx");
-  for (const path of ["/nuzlocke", "/tournaments", "/worlds/2026", "/trainer-dex", "/operations"]) {
+  for (const path of ["/nuzlocke", "/tournaments", "/calendar", "/worlds/2026", "/trainer-dex", "/operations"]) {
     assert.equal((links.match(new RegExp(`href=\"${path}\"`, "g")) || []).length, 1);
   }
   assert.match(links, /href="\/nuzlocke"[^>]*>[\s\S]*?quick-label-wide">Nuzlockes<\/span>/);
@@ -72,7 +73,7 @@ test("integrated quick links expose each released feature once", () => {
 
 test("the full suite includes every integrated feature gate", () => {
   const manifest = JSON.parse(source("package.json"));
-  for (const script of ["test:nuzlocke", "test:tournaments", "test:multi-pod", "test:trainer-dex", "test:worlds", "test:release-integration"]) {
+  for (const script of ["test:nuzlocke", "test:tournaments", "test:multi-pod", "test:trainer-dex", "test:calendar", "test:worlds", "test:release-integration"]) {
     assert.match(manifest.scripts["test:all"], new RegExp(`npm run ${script}`));
   }
 });
