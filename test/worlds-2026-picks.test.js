@@ -192,6 +192,7 @@ test("the Worlds overview separates competition and overall leaderboards", () =>
   const nav = source("src/components/WorldsDisciplineNav.jsx");
   const overviewPage = source("src/app/worlds/2026/page.js");
   const vgcPage = source("src/app/worlds/2026/vgc/page.js");
+  const tcgPage = source("src/app/worlds/2026/tcg/page.js");
   const sitemap = source("src/app/sitemap.js");
   const llms = source("src/app/llms.txt/route.js");
   for (const label of ["Overall", "VGC", "TCG", "Pokémon GO", "Pokémon UNITE"]) assert.match(hub, new RegExp(`label: "${label}"`));
@@ -199,8 +200,10 @@ test("the Worlds overview separates competition and overall leaderboards", () =>
   assert.match(hub, /<h2 id="worlds-competition-heading">Worlds Home<\/h2>/);
   assert.match(hub, /Picks open/);
   assert.match(nav, /label: "Worlds Home"/);
-  assert.equal((nav.match(/status: "Not Live"/g) || []).length, 3);
-  assert.equal((hub.match(/<span className="worlds-status-pill">Not Live<\/span>/g) || []).length, 3);
+  assert.equal((nav.match(/status: "Not Live"/g) || []).length, 2);
+  assert.equal((nav.match(/status: "Picks open"/g) || []).length, 2);
+  assert.equal((hub.match(/<span className="worlds-status-pill">Not Live<\/span>/g) || []).length, 2);
+  assert.equal((hub.match(/<span className="worlds-status-pill">Picks open<\/span>/g) || []).length, 2);
   assert.doesNotMatch(`${nav}\n${hub}`, /In build|Source audit|Roster pending|Teams pending/i);
   assert.doesNotMatch(hub, /One Worlds home\. A leaderboard for every game\./);
   assert.doesNotMatch(hub, /See (TCG|GO|UNITE) progress/);
@@ -234,8 +237,13 @@ test("the Worlds overview separates competition and overall leaderboards", () =>
   assert.match(vgcPage, /sport: "Pokémon Video Game Championships \(VGC\)"/);
   assert.match(vgcPage, /sameAs: "https:\/\/worlds\.pokemon\.com\/en-us"/);
   assert.match(vgcPage, /name: "Chase Center — Championship Sunday"/);
+  assert.match(tcgPage, /pageTitle = "2026 Pokémon Worlds TCG Predictions"/);
+  assert.match(tcgPage, /canonical: "\/worlds\/2026\/tcg"/);
+  assert.match(tcgPage, /official Pokémon Worlds 2026 TCG Masters qualifiers/);
+  assert.match(tcgPage, /sport: "Pokémon Trading Card Game"/);
   assert.match(sitemap, /WORLDS_2026_LAST_MODIFIED/);
   assert.match(sitemap, /\["\/worlds\/2026\/vgc", "daily", 0\.9\]/);
+  assert.match(sitemap, /\["\/worlds\/2026\/tcg", "daily", 0\.9\]/);
   assert.match(llms, /2026 Pokémon World Championships Predictions/);
   assert.match(llms, /invite-earned list rather than confirmed registration or attendance/);
 });
@@ -248,21 +256,50 @@ test("the VGC event card names both 2026 Worlds venues", () => {
   assert.doesNotMatch(component, /<p>Moscone Center · San Francisco<\/p>/);
 });
 
-test("the TCG setup stays Masters-only and fail-closed while its roster is audited", () => {
+test("the official TCG Masters qualifier pool is complete, unique, and release-ready", () => {
   const registry = JSON.parse(source("src/data/worlds-2026-tcg-masters-sources.json"));
   const cpSnapshot = JSON.parse(source("src/data/worlds-2026-tcg-masters-cp.json"));
   const directSnapshot = JSON.parse(source("src/data/worlds-2026-tcg-masters-direct-invites.json"));
-  const component = source("src/components/WorldsTcgPickSixteenSetup.jsx");
   const page = source("src/app/worlds/2026/tcg/page.js");
+  const migration = source("supabase/376-open-worlds-2026-tcg-masters-pick-ten.sql");
+  const preview = source("supabase/tests/376-open-worlds-2026-tcg-masters-pick-ten-preview-regression.sql");
   assert.equal(registry.division, "Masters");
   assert.equal(registry.ageScope, "official-masters-division-not-age-verified");
-  assert.equal(registry.rosterReady, false);
+  assert.equal(registry.rosterReady, true);
+  assert.equal(registry.status, "invite-earned-not-attendance-confirmed");
+  assert.equal(registry.sourceUrl, "https://worlds.pokemon.com/en-us/about/qualified/");
+  assert.equal(registry.officialQualifiedList.rawMastersRows, 882);
+  assert.equal(registry.officialQualifiedList.duplicateRowsExcluded, 2);
+  assert.equal(registry.officialQualifiedList.deduplicatedMastersCompetitors, 880);
+  assert.equal(registry.competitors.length, 880);
+  assert.equal(new Set(registry.competitors.map((competitor) => competitor.slug)).size, 880);
+  assert.equal(new Set(registry.competitors.map((competitor) => competitor.sourceOrder)).size, 880);
+  assert.equal(registry.competitors.every((competitor) => competitor.division === "Masters"), true);
+  assert.equal(registry.competitors.every((competitor) => competitor.attendanceStatus === "invite_earned"), true);
+  assert.equal(registry.competitors.every((competitor) => /^[A-Z]{3}$/.test(competitor.countryCode)), true);
+  assert.deepEqual(registry.officialQualifiedList.regionCounts, {
+    Japan: 146,
+    "North America": 155,
+    Indonesia: 13,
+    "Middle East & South Africa": 12,
+    "Latin America": 135,
+    Oceania: 23,
+    Europe: 148,
+    Thailand: 12,
+    Taiwan: 44,
+    "Chinese Mainland": 105,
+    "South Korea": 20,
+    Singapore: 14,
+    Philippines: 12,
+    "Hong Kong": 28,
+    Malaysia: 13,
+  });
   assert.equal(registry.qualificationRules.championshipPointSlots.reduce((total, zone) => total + zone.slots, 0), 425);
   assert.equal(registry.leaderboard.capturedMastersRows, 425);
   assert.equal(registry.directInviteAudit.uniqueInviteEarners, 45);
-  assert.equal(registry.directInviteAudit.matchedToChampionshipPointRows, 33);
-  assert.equal(registry.directInviteAudit.additionalUniqueCompetitors, 12);
-  assert.equal(registry.directInviteAudit.knownFieldBeforeSeparatePrograms, 437);
+  assert.equal(registry.directInviteAudit.exactOfficialIdentityMatches, 36);
+  assert.equal(registry.directInviteAudit.reviewedOfficialNameVariants, 7);
+  assert.equal(registry.directInviteAudit.notCorroboratedByOfficialQualifiedList, 2);
   assert.equal(cpSnapshot.competitors.length, 425);
   assert.equal(new Set(cpSnapshot.competitors.map((competitor) => competitor.slug)).size, 425);
   assert.deepEqual(Object.values(cpSnapshot.expectedRegionCounts), [135, 135, 125, 20, 10]);
@@ -271,24 +308,31 @@ test("the TCG setup stays Masters-only and fail-closed while its roster is audit
   assert.equal(directSnapshot.records.filter((competitor) => !competitor.cpCompetitorSlug).length, 12);
   assert.equal(directSnapshot.records.every((competitor) => competitor.division === "Masters"), true);
   assert.equal(directSnapshot.records.every((competitor) => /^[A-Z]{3}$/.test(competitor.countryCode)), true);
-  assert.deepEqual(registry.separatePrograms.map((item) => item.program), ["Japan", "South Korea", "Mainland China", "Asia-Pacific"]);
   assert.equal(registry.predictionDesign.pickCount, 10);
   assert.equal(registry.predictionDesign.selectionLabel, "Your Champion");
   assert.equal(registry.predictionDesign.selectionMultiplier, 2);
-  assert.equal(registry.tournamentRules.status, "official-format-published-roster-not-published");
+  assert.equal(registry.tournamentRules.status, "official-format-and-qualified-list-published-registration-and-pairings-not-published");
   assert.equal(registry.tournamentRules.maximumSwissDays, 2);
   assert.equal(registry.tournamentRules.legalRegulationMarks, "H and onward");
-  assert.match(component, /Champion: 30 points\. Your Champion: ×2\./);
-  assert.match(component, /All 425 Championship Point slots are captured/);
-  assert.match(component, /45 direct invite earners are reconciled/);
-  assert.match(component, /known, deduplicated field to 437/);
-  assert.match(component, /private account messages or player My Page standings/);
-  assert.match(component, /Junior and Senior competitors stay out of this pool/);
-  assert.match(component, /Attendance sets the Swiss round count/);
-  assert.match(component, /published structure does not include the final registered roster/);
-  assert.match(component, /no competitor cards, picks, or saved entries will appear/);
-  assert.match(page, /robots: \{ index: false, follow: true \}/);
-  assert.doesNotMatch(component, /save_worlds_pick_entry/);
+  assert.match(page, /WorldsPickSixteen discipline="tcg" rosterSource=\{roster\}/);
+  assert.match(page, /pageTitle = "2026 Pokémon Worlds TCG Predictions"/);
+  assert.match(page, /openGraph:/);
+  assert.match(page, /twitter:/);
+  assert.doesNotMatch(page, /robots: \{ index: false/);
+  assert.equal((migration.match(/\('2026-tcg-masters'/g) || []).length, 880);
+  for (const competitor of registry.competitors) {
+    const sql = (value) => `'${String(value).replaceAll("'", "''")}'`;
+    const row = `('2026-tcg-masters', ${sql(competitor.slug)}, ${sql(competitor.name)}, ${sql(competitor.countryCode)}, ${sql(competitor.region)}, ${sql(competitor.qualification)}, 'invite_earned', true, ${competitor.sourceOrder},`;
+    assert.ok(migration.includes(row), `migration row must match ${competitor.slug}`);
+  }
+  assert.match(migration, /status = 'open'/);
+  assert.match(migration, /The TCG result source must remain disabled and unconfigured/);
+  assert.match(migration, /Direct Worlds table reads must remain revoked/);
+  assert.match(migration, /Opening the TCG pool must not create prediction entries/);
+  assert.doesNotMatch(migration, /delete from public\.worlds_pick_entries/i);
+  assert.match(preview, /Another member could see a private TCG entry before lock/);
+  assert.match(preview, /Choose exactly 10 competitors/);
+  assert.match(preview, /Temporary TCG Preview entries did not clean up/);
 });
 
 test("the roster builder fails closed on Junior or Senior source rows", () => {

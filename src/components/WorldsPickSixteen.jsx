@@ -98,7 +98,7 @@ export default function WorldsPickSixteen({ rosterSource, discipline = "vgc" }) 
   const currentUserIdRef = useRef(undefined);
 
   const fallback = useMemo(() => fallbackCompetitors(rosterSource, config), [rosterSource, config]);
-  const competitors = useMemo(() => hub ? hubCompetitors(hub) : fallback, [hub, fallback]);
+  const competitors = useMemo(() => hub?.competitors?.length ? hubCompetitors(hub) : fallback, [hub, fallback]);
   const competitorBySlug = useMemo(() => new Map(competitors.map((competitor) => [competitor.slug, competitor])), [competitors]);
   const event = hub?.event || fallbackEvent(config, rosterSource);
   const staged = event.status === "draft";
@@ -289,6 +289,10 @@ export default function WorldsPickSixteen({ rosterSource, discipline = "vgc" }) 
             <h3 id="worlds-roster-source-heading">Where this invite list comes from</h3>
             <p>Victory Road&apos;s 2026 World Championships invite tracker for VGC Masters brings together invite earners from official Championship Point standings and qualifying event results.</p>
             <small>This is an invite-earned list, not a confirmed attendance or registration list.</small>
+          </> : config.key === "tcg" ? <>
+            <h3 id="worlds-roster-source-heading">Official TCG Masters qualifiers</h3>
+            <p>Pokémon&apos;s Qualified Competitors page lists the Masters competitors who earned an invitation to the 2026 World Championships.</p>
+            <small>This is not a confirmed attendance or registration list.</small>
           </> : <>
             <h3 id="worlds-roster-source-heading">Where this roster comes from</h3>
             <p>This {displayPacificDate(`${rosterSource.sourceCheckedAt || rosterSource.source_checked_at}T12:00:00Z`)} snapshot was compiled from the reviewed 2026 {config.gameLabel} qualification and roster sources.</p>

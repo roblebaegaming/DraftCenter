@@ -5,13 +5,14 @@ import { POKEMON_COLOR_OPTIONS, POKEMON_EGG_GROUP_OPTIONS, POKEMON_SHAPE_OPTIONS
 import nuzlockeGameGuides from "../lib/nuzlockeGameGuides.json";
 
 const PRODUCT_DISCOVERY_LAST_MODIFIED = new Date("2026-08-09T00:00:00.000Z");
-const WORLDS_2026_LAST_MODIFIED = new Date("2026-08-10T00:00:00.000Z");
+const WORLDS_2026_LAST_MODIFIED = new Date("2026-08-11T00:00:00.000Z");
 const productRouteLastModified = new Map([
   ["/nuzlocke", PRODUCT_DISCOVERY_LAST_MODIFIED],
   ["/tournaments", PRODUCT_DISCOVERY_LAST_MODIFIED],
   ["/resources/daily-games", PRODUCT_DISCOVERY_LAST_MODIFIED],
   ["/worlds/2026", WORLDS_2026_LAST_MODIFIED],
   ["/worlds/2026/vgc", WORLDS_2026_LAST_MODIFIED],
+  ["/worlds/2026/tcg", WORLDS_2026_LAST_MODIFIED],
   ["/worlds/2026/vgc/bracket", WORLDS_2026_LAST_MODIFIED],
 ]);
 
@@ -28,6 +29,7 @@ const routes = [
   ["/tournaments", "daily", 0.8],
   ["/worlds/2026", "daily", 0.9],
   ["/worlds/2026/vgc", "daily", 0.9],
+  ["/worlds/2026/tcg", "daily", 0.9],
   ["/worlds/2026/vgc/bracket", "daily", 0.8],
   ["/resources", "monthly", 0.7],
   ["/resources/daily-games", "daily", 1],

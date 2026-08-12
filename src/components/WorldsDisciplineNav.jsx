@@ -3,7 +3,7 @@ import Link from "next/link";
 const items = [
   { id: "overview", label: "Worlds Home", status: "All games", href: "/worlds/2026" },
   { id: "vgc", label: "VGC", status: "Picks open", href: "/worlds/2026/vgc" },
-  { id: "tcg", label: "TCG", status: "Not Live", href: "/worlds/2026/tcg" },
+  { id: "tcg", label: "TCG", status: "Picks open", href: "/worlds/2026/tcg" },
   { id: "go", label: "Pokémon GO", status: "Not Live", href: "/worlds/2026/go" },
   { id: "unite", label: "Pokémon UNITE", status: "Not Live", href: "/worlds/2026/unite" },
 ];

@@ -25,7 +25,7 @@ export const WORLDS_PICK_DISCIPLINES = Object.freeze({
     entryUnit: "individual",
     entrySingular: "competitor",
     entryPlural: "competitors",
-    rosterHeading: "TCG Masters roster",
+    rosterHeading: "TCG Masters qualified competitors",
     maximumRawScore: 140,
     pickCount: 10,
     expectedBaseCount: 425,
