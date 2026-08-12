@@ -250,7 +250,7 @@ export default function WorldsMetaChallenge({ discipline = "vgc", user }) {
         {hub?.standings?.length ? <div>{hub.standings.slice(0, 10).map((entry, index) => <details className={entry.is_me ? "is-me" : ""} key={`${entry.display_name}-${index}`}>
           <summary><span>#{entry.rank}</span><strong>{entry.display_name}</strong><b>{entry.score} pts</b></summary>
           <p>{entry.picks ? entry.picks.map((key) => `${optionByKey.get(key)?.display_name || key}${key === entry.featured_key ? " (Champion Deck ×2)" : ""}`).join(" · ") : "Picks stay private until lock."}</p>
-        </details>)}</div> : <p className="worlds-empty-state">The Meta leaderboard will begin when the reviewed pool opens.</p>}
+        </details>)}</div> : <p className="worlds-empty-state">No Meta entries yet. Saved entries will appear here.</p>}
       </aside>
     </div>}
 

@@ -234,6 +234,8 @@ test("the Worlds prediction tabs mount the separate Meta challenge with safe sta
   assert.match(component, /21,000 deck classifications from 292 unofficial Limitless community tournaments/);
   assert.match(component, /The 49-archetype Pitch Black taxonomy is reviewed and frozen/);
   assert.match(component, /If a true rogue deck outside the frozen pool wins/);
+  assert.match(component, /No Meta entries yet\. Saved entries will appear here\./);
+  assert.doesNotMatch(component, /leaderboard will begin when the reviewed pool opens/i);
   assert.match(component, /Reviewed pool required/);
   assert.match(component, /Automation disabled/);
 });
