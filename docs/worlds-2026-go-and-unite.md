@@ -1,33 +1,25 @@
 # 2026 Pokémon GO and UNITE prediction readiness
 
-## Status
+## Current status
 
-Pokémon GO and Pokémon UNITE have deployed, fail-closed source-audit routes at
-`/worlds/2026/go` and `/worlds/2026/unite`. They shipped through pull request
-[#128](https://github.com/roblebaegaming/DraftCenter/pull/128) and production
-application commit `e5dca23b9da09d3a557e485443e7dc5a207b4e20`.
+Pokémon GO Pick 10 is live at `/worlds/2026/go`. Pull request
+[#161](https://github.com/roblebaegaming/DraftCenter/pull/161) shipped as
+production application commit
+`5b07d274e31d914d7095005d78af878025422851`, and forward-only migration 377 is
+applied to the exact Production project.
 
-The routes intentionally contain no competitor or team names, live prediction
-controls, saved entries, or enabled results polling. On August 11, the 2026
-Worlds competitor page began linking discipline-specific official tournament
-structures. Those pages publish formats, not registered rosters. A
-qualification award is still not treated as proof of final registration or
-attendance.
+The reviewed GO pool contains 369 unique Trainers from 370 rows on Pokémon's
+official Qualified Competitors page. One duplicate identity, `YUKI KISHIDA` /
+`Yuki Kishida`, was retained once. The source says the Trainers earned
+invitations; it is not a confirmed attendance, registration, or pool-assignment
+list. Pick 10 scores full-field placement and does not require pool assignments
+to accept entries. The result source remains disabled with no feed URL,
+external event identifier, or scheduler.
 
-Release validation passed the complete application suite, the 37-test focused
-Worlds suite, the 1,027-row National Dex check, the production dependency audit,
-an optimized 236-page build, the protected checks, and refreshed Vercel Preview
-and Production builds. Signed-out review at 1280px and 390px found no horizontal
-overflow, browser errors, or warnings. The post-deployment production smoke
-sweep passed all 19 public and protected routes. That release did not create GO
-or UNITE database events or enable any provider integration.
-
-Pull request [#132](https://github.com/roblebaegaming/DraftCenter/pull/132)
-adds migration 374 and owner-only preparation tools. Migration 374 is applied
-to production and stages closed, empty TCG and GO Pick 10 events with disabled,
-feedless result-source rows. It does not add a roster, open entries, or
-configure polling. UNITE remains outside the database until the official group
-and elimination structure is reviewed.
+Pokémon UNITE remains **Not Live** at `/worlds/2026/unite`. It has no Production
+database event, prediction entry, result source, or scheduler. The official page
+now publishes player and team labels, but final team registration and the full
+group/playoff structure are still not confirmed.
 
 ## Shared source-registry boundary
 
@@ -37,141 +29,109 @@ The reviewable registries are:
 - `src/data/worlds-2026-unite-sources.json`
 
 `src/lib/worldsSourceRegistry.js` validates them during the application build
-and focused tests. It fails when:
+and focused tests. GO's committed official snapshot is also reproduced by
+`scripts/build-worlds-go-qualified-pool.mjs`. The live page began rate-limiting
+automated refreshes, so the builder reads the reviewed browser snapshot and
+fails closed if expected source metadata or counts change.
 
-- GO changes away from individual entries or UNITE changes away from teams;
-- either event is marked roster-ready or open before a reviewed roster exists;
-- an unreviewed competitor/team array is inserted;
-- a source is not HTTPS or is outside the reviewed official Pokémon hosts;
-- the published qualification counts no longer add up; or
-- results automation is represented as configured.
-
-This validator is a source-audit safeguard, not proof that an external page has
-not changed. The Championship Series qualification page is a rolling season
-page. Preserve and review the exact 2026 source snapshot before publishing a
-roster migration, especially after the site rolls forward to 2027 information.
-
-## Owner preparation tools
-
-Owner Operations can download blank setup JSON for TCG, GO, and UNITE, review a
-completed file locally, and download the validated copy. Validation and
-download happen in the browser; loading a file does not save it to Supabase,
-publish names, open entries, create pairings, or start polling.
-
-The TCG template reserves 425 reviewed Masters slots and requires the exact
-Pick 10 plus Your Champion contract. It retains the Masters-only and age-data
-safeguards from the public source audit.
-
-The GO template reserves 220 reviewed roster slots and requires the exact
-Pick 10 plus Your Champion contract. A future activation migration may publish
-only reviewed Trainer rows from that file.
-
-The UNITE template reserves the 15 TPCi-managed qualification awards. It can hold
-reviewed teams, groups, and match dependencies after Pokémon publishes them,
-but requires an official structure URL and review timestamp before accepting
-any group or match data. A blank waiting template is valid; inferred teams,
-groups, seeds, or pairings are not.
+Preserve and review a new exact source snapshot before changing either pool.
+Do not silently refresh a live roster from a rolling page. A qualification or
+invitation-earned list must never be described as proof of attendance.
 
 ## Pokémon GO contract
 
-GO uses individual Trainers. The reviewed 2026 qualification base contains 220
-TPCi-managed Championship Point slots:
+GO uses individual Trainers with Pick 10 plus Your Champion, whose placement
+points count twice. Migration 377 required the exact staged, empty, zero-entry
+GO event before inserting the 369 reviewed Trainers and opening entries. It
+also verified:
 
-- USA & Canada: 75
-- Europe: 65
-- Latin America: 65
-- Oceania: 10
-- Middle East & South Africa: 5
+- unique stable slugs and source order;
+- public table reads remained denied;
+- the authenticated save and public leaderboard RPC grants remained intact;
+- incomplete entries remained rejected;
+- selections remain private before lock; and
+- results polling remained disabled and unconfigured.
 
-That is not the complete field. The roster audit must also reconcile Regional
-and Special Championship winners, International Championship Top 4 finishers,
-the 2025 Worlds Top 4, and the separately managed Japan, South Korea, mainland
-China, and Asia-Pacific programs. Direct invites do not pass down and every
-path must be deduplicated against the CP standings.
+Production had zero GO entries immediately after activation. Any later entries
+belong to real members and must not be changed for testing.
 
-The official competitor page now confirms the Competitors Cup format at 1,500
-CP or less, three days of competition, a Friday Pools Phase, a Saturday Final
-Phase, and a Sunday Grand Final. The officially linked organizer shell is
-configured for 32 pools advancing two Trainers apiece into double elimination.
-Matches are best-of-three except the Winners Final, Losers Final, and Grand
-Final, which are best-of-five. At the August 11 review the shell contained zero
-players, so it is structure evidence rather than a roster source. The final
-registered roster, pool assignments, pairings, and exact match schedule remain
-unpublished. The prediction product remains Pick 10 plus Your Champion for
-double placement points, and no names or entries appear until the reviewed
-field is ready.
+The official organizer shell still supports the published 32-pool structure
+advancing two Trainers per pool into double elimination. Matches are
+best-of-three except the Winners Final, Losers Final, and Grand Final, which are
+best-of-five. At activation the shell contained no players or pairings. This
+does not block Pick 10, but it does block pool-aware presentation or automatic
+results mapping.
 
 GO eligibility is not an adult-only guarantee. Do not collect or infer birth
-dates. Store only the published competitor identity and qualification metadata
-needed for the prediction game.
+dates. Store only published identity and qualification metadata needed for the
+prediction game.
 
 ## Pokémon UNITE contract
 
 UNITE uses 5-on-5 teams. Individual players are supporting roster attribution,
 not separate prediction entries.
 
-The official TPCi 2026 circuit page describes 15 TPCi-managed qualification
-awards:
+The official Qualified Competitors page currently contains 185 player rows
+with nonblank team labels. Normalizing Unicode, case, and whitespace produces:
 
-- Top 2 from each of the North America, Europe, and Latin America Regional
-  Leagues: six teams;
-- Aeos Cup champion: one team;
-- Final Stretch champion: one team;
-- Pokémon UNITE Asia Champions League champion: one team; and
-- one Open Last Chance Qualifier winner from each of Brazil, Europe, Latin
-  America – North, Latin America – South, North America, and Oceania: six teams.
+- 31 unique teams;
+- 30 teams with six listed players;
+- one team, Legends Reappear, with five listed players; and
+- no duplicate player rows within a team.
 
-The 15-award model is the TPCi-managed qualification subtotal, not the complete
-global field and not a claim that 15 named teams are registered. Separately
-managed regional programs, slot transfers, pass-down rules, withdrawals,
-organization changes, and final registration still require review. Team
-aliases must be explicit; never fuzzy match an organization or player roster
-into a live score.
+This is strong team-roster evidence, but the page describes invitation earners,
+not confirmed registration or attendance. The official competitor structure
+confirms Friday single round-robin groups, Saturday single-elimination
+playoffs, Sunday finals, best-of-three matches by default, and best-of-five Top
+Four matches and Final. It does not yet publish the group assignments,
+advancement count/rules, Group Stage match length, playoff pairings, or exact
+prediction lock.
 
-Pokémon now publishes the phase format: Friday single round-robin groups feed a
-Saturday single-elimination bracket, with a Sunday Final. Matches are
-best-of-three except the Top Four and Final, which are best-of-five. The number
-of teams per group and games per Group Stage match will be announced on-site.
-The registered teams, group assignments, advancement count, elimination
-pairings, and deadline remain unpublished. The intended product can reuse the
-privacy, complete-tree validation, match dependency, and correction safeguards
-from the VGC Top Cut infrastructure, but it must not infer Worlds seeds from
-Regional League standings.
+Do not open 185 individual-player picks. The safe product is a team prediction
+experience with stable team aliases, private entries, and a UNITE-specific
+group/bracket scoring adapter. Do not fuzzy match an organization or player
+roster into a live score.
 
-## Automation plan
+## Owner preparation tools
 
-GO may be able to reuse the bounded last-known-good results importer if the
-owner confirms an exact structured feed, permission, attribution, and a final
-roster alias set. That capability is not assumed merely because PokeData or RK9
-can cover other Play! Pokémon events.
+Owner Operations can still download blank setup JSON, review a completed file
+locally, and download the validated copy. Loading a file does not save it to
+Supabase, publish names, open entries, create pairings, or start polling.
 
-UNITE needs a separate team-results adapter unless an exact permitted feed is
-confirmed. Organization and roster-name changes make exact reviewed aliases a
-required boundary. Both adapters must quarantine unmatched identities, retain
-the last accepted snapshot on failures, label live scores provisional, and
-require an owner-reviewed official source before finalization.
+The GO preparation tool is historical now that migration 377 is live. It must
+not be used to replace the Production roster. Any roster correction requires a
+reviewed source change, a new forward-only migration after 377, and a safe plan
+for existing entries.
 
-## Activation sequence
+The UNITE tool remains useful for offline preparation. A blank waiting template
+is valid; inferred teams, groups, seeds, advancement rules, or pairings are not.
 
-1. Preserve the final official roster source and record its retrieval time.
-2. Reconcile GO individuals or UNITE teams and their qualification paths with
-   stable slugs and reviewed aliases.
-3. Preserve GO's Pick 10 and Your Champion scoring contract, and document the
-   UNITE group/bracket contract from the official Worlds structure.
-4. Build on migration 374 with a new forward-only activation migration. Do not
-   modify migrations 369-374. Migration 374 is infrastructure only: GO remains
-   draft and empty, while UNITE has no database event.
-5. Apply the activation migration only to an isolated Supabase Preview and test
-   RLS, grants, private pre-lock entries, invalid rosters, result corrections,
-   scoring, and fixture cleanup.
-6. Configure a structured result source only after permission and exact URL
-   approval. Scheduling is a separate owner-authorized provider change.
-7. Release through a protected pull request, review the Preview at desktop and
-   mobile widths, confirm the deployed commit, and run the signed-out
-   production smoke sweep after an authorized merge.
+## UNITE activation sequence
+
+1. Preserve the official player/team snapshot and retrieval time.
+2. Reconcile whether the 31 named teams are the complete registered field,
+   stable team slugs and aliases, and the five-player roster without inventing
+   a sixth player.
+3. Obtain official group assignments, advancement details, Group Stage match
+   length, playoff pairings, and lock time.
+4. Approve a team prediction and placement-scoring contract. An interim team
+   Pick 10 is reasonable only after the official team field is confirmed
+   complete; do not repurpose the individual GO schema without review.
+5. Add a new forward-only migration after 377 for the team event, aliases,
+   private entries, and scoring. Never rewrite migrations 369-377.
+6. Apply it first to one exact isolated Supabase Preview and test RLS, grants,
+   privacy, aliases, incomplete inputs, corrections, scoring, and fixture
+   cleanup.
+7. Configure a structured result source only after exact permission, URL,
+   attribution, and event identifier approval. Scheduling is a separate
+   owner-authorized provider action.
+8. Release through a protected pull request, review the exact Preview, confirm
+   the deployed commit, and run the signed-out Production smoke sweep.
 
 ## Official references
 
+- Official 2026 Qualified Competitors:
+  <https://worlds.pokemon.com/en-us/about/qualified/>
 - 2026 qualification rules: <https://championships.pokemon.com/en-us/about/>
 - 2026 Pokémon UNITE Championship Series:
   <https://championships.pokemon.com/en-us/about/pokemon-unite-championship-series>

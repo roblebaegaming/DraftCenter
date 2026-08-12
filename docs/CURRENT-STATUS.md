@@ -3,8 +3,8 @@
 - Last updated: August 11, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified production application commit: `b5cecc84d7dcbacf4fe6a78af1c9f8ed4dffe7f1`
-- Latest production migration: 375
+- Verified production application commit: `5b07d274e31d914d7095005d78af878025422851`
+- Latest production migration: 377
 
 ## Deployed state
 
@@ -136,9 +136,9 @@ The final Worlds Predictions hub shipped through pull request
 application commit `1ef57ebd4cda6a49eb1a68dfcf94be47a1da0f31`. The public
 hub now separates VGC, TCG, Pokémon GO, and Pokémon UNITE, with discipline
 leaderboards and a normalized overall leaderboard that opens after two games
-score. VGC lives at `/worlds/2026/vgc`. The TCG Masters source audit lives at
-`/worlds/2026/tcg` but stays `noindex` and fail-closed until its roster passes
-review. The release also names the
+score. VGC lives at `/worlds/2026/vgc`. At that release, TCG remained a
+`noindex` source audit; pull requests #160 and #161 later opened reviewed TCG
+and GO Pick 10 competitions. The release also names the
 Moscone Center and Chase Center venue split and adds full Worlds search
 metadata, structured data, sitemap freshness, and `llms.txt` coverage.
 
@@ -151,8 +151,9 @@ Migration 371 adds the fail-closed provisional-results importer, migration 372
 adds the configurable Top Cut challenge, and migration 373 performs the guarded
 Pick 10 change. Production had zero VGC entries immediately before and after
 the change. The importer is disabled with no feed URL or scheduler, and the Top
-Cut challenge is empty and waiting for an official reviewed field. The public
-GO and UNITE source-audit routes are live with no names, saving, or polling;
+Cut challenge is empty and waiting for an official reviewed field. At that
+release, the public GO and UNITE source-audit routes were live with no names,
+saving, or polling;
 TCG and GO use Pick 10 plus Your Champion as their post-roster-audit contract,
 while UNITE remains team-bracket based.
 
@@ -166,11 +167,12 @@ announcement checklist plus a ready-to-send results-feed permission request.
 The request has not been sent, the importer remains disabled, and no database,
 provider, field, entry, or scheduler changed in the follow-up.
 
-The TCG, GO, and UNITE staged-infrastructure release ships through pull request
+The TCG, GO, and UNITE staged-infrastructure release shipped through pull request
 [#132](https://github.com/roblebaegaming/DraftCenter/pull/132). It adds
 owner-only local setup-file preparation for all three games and reusable Pick
 10/Your Champion screens for reviewed TCG and GO rosters. Migration 374 is
-applied to the exact core production project: TCG Masters and GO are `draft`,
+applied to the exact core production project: at that checkpoint, TCG Masters
+and GO were `draft`,
 Pick 10, individual events with zero competitors and zero entries; their result
 sources are disabled with no feed URL or external event identifier; VGC still
 has zero entries; browser table reads remain denied; and the privacy-safe
@@ -221,9 +223,10 @@ database function independently rejects incomplete entries.
 The unavailable-competition copy cleanup shipped through pull request
 [#150](https://github.com/roblebaegaming/DraftCenter/pull/150) as production
 application commit `472752bec6214aeb5fd85db12f36ed4ac59ce4ec`.
-TCG, Pokémon GO, and Pokémon UNITE now use the same plain **Not Live** status
-in the Worlds navigation, competition cards, and unavailable leaderboard
-states. VGC remains **Picks open**.
+At that release, TCG, Pokémon GO, and Pokémon UNITE used the same plain **Not
+Live** status in the Worlds navigation, competition cards, and unavailable
+leaderboard states. TCG and GO now use **Picks open**; UNITE remains **Not
+Live**.
 
 Forward-only migration 375 is applied in production. It makes final Pick 10
 ties use the lower average finish of the six best-finishing picks, then the
@@ -280,10 +283,42 @@ DraftCenter captured all 425 official Championship Point cutoff rows and
 reconciled 45 unique direct-invite earners. Thirty-three direct earners are
 already in the cutoff rows and 12 are additional, producing a deduplicated
 437-player working field before Japan, South Korea, mainland China, and
-Asia-Pacific. TCG voting remains closed because those separately managed
-programs do not yet have one complete, publicly reviewable official roster.
-No database migration, production roster, entry, provider, environment, or
-scheduler changed in this release.
+Asia-Pacific. TCG voting remained closed at that checkpoint. No database
+migration, production roster, entry, provider, environment, or scheduler
+changed in that release.
+
+The official Qualified Competitors page then supplied a single cross-region
+Masters invitation list. Pull request
+[#160](https://github.com/roblebaegaming/DraftCenter/pull/160) shipped as
+production application commit
+`c0191099d335d3eac5fa799d426a88143296def2`. Migration 376 replaced the empty
+staged TCG event with 880 unique Masters competitors from 882 source rows,
+excluded two duplicate identities, and opened Pick 10 plus Your Champion. The
+public TCG route is indexable and entries stay editable until the published
+lock. The page describes the roster precisely as invitation-earned, not as
+confirmed registration or attendance. Production had zero TCG entries at
+activation. Its result source remains disabled and has no feed URL or external
+event identifier.
+
+Pull request [#161](https://github.com/roblebaegaming/DraftCenter/pull/161)
+shipped the comparable Pokémon GO activation as production application commit
+`5b07d274e31d914d7095005d78af878025422851`. Migration 377 published 369 unique
+Trainers from 370 official source rows after excluding one duplicate identity,
+then opened Pick 10 plus Your Champion. The public GO route is indexable and
+states that the source is an invitation-earned list, not confirmed attendance,
+registration, or pool assignments. Pool assignments are not required to score
+the full-field placement game, so their absence does not prevent Pick 10 from
+opening. Production had zero GO entries at activation. Its result source also
+remains disabled and unconfigured.
+
+Pokémon UNITE remains **Not Live** and has no production database event. The
+same official page currently exposes 185 player rows with team labels. A
+case-and-whitespace-normalized audit resolves them to 31 unique teams: 30
+six-player rosters and one five-player roster, with no blank team labels or
+duplicate player rows within a team. This is still an invitation-earned source,
+not proof of final registration or attendance, and it does not publish group
+assignments, advancement details, or playoff pairings. The safe product remains
+team-based rather than 185 individual-player picks.
 
 ## Release verification
 
@@ -344,6 +379,21 @@ scheduler changed in this release.
   exact application commit `b5cecc8` Ready in Production. Its live client
   bundle contains the Download panel with no Instagram or Twitter action, and
   the signed-out smoke sweep passed all 19 public and protected routes.
+- Pull request #160 passed all six protected checks, the focused Worlds and SEO
+  tests, the complete application suite, the 1,027-row National Dex check,
+  dependency audit, optimized build, isolated migration-376 regression, and
+  exact Preview review. Production postflight confirmed TCG open with 880
+  unique competitors, zero initial entries, official provenance, denied direct
+  table reads, intact RPC grants, and disabled/unconfigured results polling.
+- Pull request #161 passed all six protected checks, the 50-test Worlds suite,
+  SEO tests, complete application suite, 1,027-row National Dex check,
+  dependency audit, optimized 236-page build, isolated migration-377
+  regression, and exact Preview review. Vercel reports exact `main` commit
+  `5b07d27` Ready in Production. Production postflight confirmed GO open with
+  369 unique Trainers and zero initial entries while TCG remained open with
+  880. Both result sources are disabled and unconfigured. The sitemap contains
+  both public routes, and the signed-out production smoke sweep passed all 19
+  public and protected routes.
 - Signed-in Preview walkthroughs covered the new database-backed workflows.
 - The SEO release passed all protected security, dependency, secret-scan,
   CodeQL, and Vercel checks. Its exact Preview passed desktop and 390px mobile
@@ -441,6 +491,9 @@ scheduler changed in this release.
   team, provider setting, or production account was changed to test the
   releases.
 - Disposable Preview fixtures were removed by exact recorded identifiers.
+- The disposable TCG and GO activation Preview branches were permanently
+  deleted by exact project reference after their migration and privacy
+  regressions passed.
 - The Worlds production seed created the intended event and 438 public
   invite-earned competitors; it created no user entry or synthetic account.
 - The guarded Pick 10 migration changed only the zero-entry VGC event contract.
@@ -465,9 +518,12 @@ navigation, pricing, pod-observer, League Pulse, metadata, indexing, and
 commissioner-save paths. Treat historical Operations events by timestamp and
 current authoritative state before declaring a recurrence.
 
-Refresh the VGC Masters invite-earned snapshot only after reviewing current
-source changes, and publish every post-373 database change as a new forward-only
+Refresh any Worlds invite-earned snapshot only after reviewing current source
+changes, and publish every post-377 database change as a new forward-only
 migration. Do not describe invite-earned competitors as confirmed attendees.
+Keep UNITE team predictions closed until the official team field is reconciled
+and its group assignments, advancement rules, and playoff pairings are
+published. Model UNITE predictions by team, not by individual player.
 Keep the Worlds bracket challenge closed until official pairings exist.
 
 Do not enable the live importer until the exact structured Masters results feed,
@@ -492,7 +548,7 @@ guard merely to remove that measurement gap.
 ## Authoritative records
 
 - Current continuation handoff:
-  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-11-worlds-final-chat.md`](handoffs/DraftCenter-agent-handoff-2026-08-11-worlds-final-chat.md)
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-11-worlds-tcg-go-live.md`](handoffs/DraftCenter-agent-handoff-2026-08-11-worlds-tcg-go-live.md)
 - Historical Worlds Pick 16 operating record:
   [`docs/worlds-2026-pick-sixteen.md`](worlds-2026-pick-sixteen.md)
 - Worlds live-scoring operating record:
