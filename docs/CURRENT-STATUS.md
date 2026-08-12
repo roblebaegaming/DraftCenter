@@ -3,8 +3,8 @@
 - Last updated: August 11, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified production application commit: `29bd86d636cf4d70c20f7a9b309104db5e33ca62`
-- Latest production migration: 377
+- Verified production application commit: `bdc8349822e16fadff02dd73b48030c13dbddae5`
+- Latest production migration: 380
 
 ## Deployed state
 
@@ -320,6 +320,20 @@ when at least two games have official scored results.** Vercel reports exact
 `main` commit `29bd86d` Ready in Production, and the post-deployment smoke
 sweep passed all 19 public and protected routes.
 
+The separate Worlds Meta Picks competition shipped through pull request
+[#166](https://github.com/roblebaegaming/DraftCenter/pull/166) as production
+application commit `bdc8349822e16fadff02dd73b48030c13dbddae5`. VGC Meta
+Picks are open: members rank six Pokémon from the reviewed 235-option official
+Regulation M-B pool, with 24 explicitly unofficial community-trend signals.
+TCG has a reviewed 49-archetype taxonomy and 12 trend signals but remains
+`draft` until an official source confirms the exact 2026 Worlds format. GO also
+remains `draft` with no placeholder options until its official eligibility pool
+can be reviewed. Meta Picks have separate discipline and overall leaderboards
+from player Pick 10; the Meta overall requires two finalized disciplines.
+Migrations 378-380 are applied to production. Results automation remains
+disabled, and finalization is service-only from an owner-reviewed official
+source.
+
 Pokémon UNITE remains **Not Live** and has no production database event. The
 same official page currently exposes 185 player rows with team labels. A
 case-and-whitespace-normalized audit resolves them to 31 unique teams: 30
@@ -403,6 +417,17 @@ team-based rather than 185 individual-player picks.
   880. Both result sources are disabled and unconfigured. The sitemap contains
   both public routes, and the signed-out production smoke sweep passed all 19
   public and protected routes.
+- Pull request #166 passed the dependency audit, complete application suite,
+  1,027-row National Dex verification, 61-test Worlds suite, source-integrity
+  checks, optimized production build, CodeQL, protected checks, and Vercel
+  Preview. Migrations 378-380 and their regression matrices passed on an exact
+  disposable Supabase Preview branch, which was deleted after verification.
+  Vercel reports exact `main` commit `bdc8349` Ready in Production. Read-only
+  production postflight confirmed VGC `open` with 235 reviewed options and 24
+  trend signals, TCG `draft` with 49 options and 12 signals, GO `draft` with
+  zero options, and zero Meta entries. Live signed-out checks confirmed the VGC
+  lock, both fail-closed gates, and separate competition wording. The final
+  production smoke sweep passed all 19 public and protected routes.
 - Signed-in Preview walkthroughs covered the new database-backed workflows.
 - The SEO release passed all protected security, dependency, secret-scan,
   CodeQL, and Vercel checks. Its exact Preview passed desktop and 390px mobile
@@ -519,6 +544,10 @@ team-based rather than 185 individual-player picks.
   changed.
 - The PokeData permission request is a repository draft only. It has not been
   sent and does not authorize polling or manual feed use.
+- The Meta Picks production seed created only the three intended event records
+  and reviewed VGC/TCG options. It created no user, entry, score, or synthetic
+  result. The exact Meta Picks Preview branch was deleted after its migration
+  matrices passed; the retained `multi-pod-pr-82` branch was not changed.
 
 ## Remaining work
 
@@ -528,12 +557,20 @@ commissioner-save paths. Treat historical Operations events by timestamp and
 current authoritative state before declaring a recurrence.
 
 Refresh any Worlds invite-earned snapshot only after reviewing current source
-changes, and publish every post-377 database change as a new forward-only
+changes, and publish every post-380 database change as a new forward-only
 migration. Do not describe invite-earned competitors as confirmed attendees.
 Keep UNITE team predictions closed until the official team field is reconciled
 and its group assignments, advancement rules, and playoff pairings are
 published. Model UNITE predictions by team, not by individual player.
 Keep the Worlds bracket challenge closed until official pairings exist.
+
+Keep TCG Meta Picks closed until the exact official Worlds format is confirmed
+and the frozen taxonomy is rechecked against it. Keep GO Meta Picks closed until
+an official eligibility pool is reviewed and seeded. Do not fill either gate
+with placeholder guesses. VGC Meta Picks may remain open through their
+published lock; preserve private pre-lock selections and the separate player
+Pick 10 competition. Finalize Meta results only from an owner-reviewed official
+source, with no automated result writer.
 
 Do not enable the live importer until the exact structured Masters results feed,
 permission, attribution, and event identifier are reviewed. Scheduler creation
@@ -557,6 +594,8 @@ guard merely to remove that measurement gap.
 ## Authoritative records
 
 - Current continuation handoff:
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-11-worlds-meta-picks-release.md`](handoffs/DraftCenter-agent-handoff-2026-08-11-worlds-meta-picks-release.md)
+- Preceding Worlds public-launch handoff:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-11-worlds-public-launch-final.md`](handoffs/DraftCenter-agent-handoff-2026-08-11-worlds-public-launch-final.md)
 - Historical Worlds Pick 16 operating record:
   [`docs/worlds-2026-pick-sixteen.md`](worlds-2026-pick-sixteen.md)
