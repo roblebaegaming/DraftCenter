@@ -213,7 +213,8 @@ test("the Worlds overview separates competition and overall leaderboards", () =>
   assert.match(hub, /How do the VGC predictions work\?/);
   assert.match(hub, /Every competition is worth up to 100 points/);
   assert.match(hub, /Moscone Center · Championship Sunday at Chase Center/);
-  assert.match(hub, /Opens after two competitions score/);
+  assert.match(hub, /The combined table appears when at least two games have official scored results\./);
+  assert.doesNotMatch(hub, /VGC will not be labeled an overall contest by itself/);
   assert.match(hub, /Missing an entry earns zero for that game/);
   assert.match(hub, /get_worlds_pick_hub/);
   assert.match(hub, /get_worlds_result_status/);
