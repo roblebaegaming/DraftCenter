@@ -3,7 +3,7 @@
 - Date: August 12, 2026 (America/Los_Angeles)
 - Repository: `roblebaegaming/DraftCenter`
 - Release branch: `codex/worlds-tcg-meta-picks-activation-2026-08-12`
-- Release pull request: pending
+- Release pull request: [#168](https://github.com/roblebaegaming/DraftCenter/pull/168)
 - Base `main` commit: `959eab9e5bea884986bfa1367e52400e7d116cec`
 - Latest production migration: 380
 - Candidate migration: 381
