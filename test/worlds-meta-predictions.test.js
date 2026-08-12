@@ -12,6 +12,7 @@ import {
   worldsMetaEntryIsLocked,
   worldsMetaPlacementPoints,
 } from "../src/lib/worldsMeta.js";
+import { decodeHtml } from "../scripts/build-worlds-tcg-meta-options.mjs";
 
 const source = (path) => fs.readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 
@@ -128,6 +129,12 @@ test("the TCG taxonomy pins 49 concrete Pitch Black archetypes and stays fail-cl
   assert.equal(trending.length, 12);
   assert.deepEqual(trending.map((option) => option.communityTrendRank), Array.from({ length: 12 }, (_, index) => index + 1));
   assert.match(snapshot.taxonomySource.disclaimer, /does not confirm the official Worlds format/i);
+});
+
+test("the TCG source parser decodes one reviewed HTML entity layer only", () => {
+  assert.equal(decodeHtml("Lost Zone &amp; Tool Box"), "Lost Zone & Tool Box");
+  assert.equal(decodeHtml("Ancient &quot;Box&quot; &#039;Prime&#039; &ndash; control"), "Ancient \"Box\" 'Prime' – control");
+  assert.equal(decodeHtml("Nested &amp;quot;name&amp;quot;"), "Nested &quot;name&quot;");
 });
 
 test("migration 378 stages empty official-source pools and exposes only privacy-safe RPCs", () => {

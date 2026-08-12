@@ -4,7 +4,8 @@ import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const SCRIPT_PATH = fileURLToPath(import.meta.url);
+const ROOT = path.resolve(path.dirname(SCRIPT_PATH), "..");
 const OUTPUT_PATH = path.join(ROOT, "src/data/worlds-2026-tcg-meta-options.json");
 const MIGRATION_PATH = path.join(ROOT, "supabase/380-seed-worlds-2026-tcg-meta-draft.sql");
 
@@ -30,12 +31,15 @@ function sql(value) {
   return `'${String(value).replaceAll("'", "''")}'`;
 }
 
-function decodeHtml(value) {
-  return value
-    .replaceAll("&amp;", "&")
-    .replaceAll("&#039;", "'")
-    .replaceAll("&quot;", '"')
-    .replaceAll("&ndash;", "–");
+const HTML_ENTITIES = Object.freeze({
+  "&amp;": "&",
+  "&#039;": "'",
+  "&quot;": '"',
+  "&ndash;": "\u2013",
+});
+
+export function decodeHtml(value) {
+  return value.replace(/&(?:amp|#039|quot|ndash);/g, (entity) => HTML_ENTITIES[entity]);
 }
 
 function parseSource(html) {
@@ -343,4 +347,6 @@ async function main() {
   console.log(`Wrote ${snapshot.options.length} concrete TCG archetypes and draft migration 380.`);
 }
 
-await main();
+if (process.argv[1] && path.resolve(process.argv[1]) === SCRIPT_PATH) {
+  await main();
+}
