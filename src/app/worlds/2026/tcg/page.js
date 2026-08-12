@@ -1,17 +1,83 @@
-import WorldsTcgPickSixteenSetup from "../../../../components/WorldsTcgPickSixteenSetup";
 import WorldsPickSixteen from "../../../../components/WorldsPickSixteen";
-import sourceRegistry from "../../../../data/worlds-2026-tcg-masters-sources.json";
+import roster from "../../../../data/worlds-2026-tcg-masters-sources.json";
+
+const canonicalUrl = "https://www.draftcentral.gg/worlds/2026/tcg";
+const pageTitle = "2026 Pokémon Worlds TCG Predictions";
+const pageDescription = `Browse ${roster.competitors.length} official Pokémon Worlds 2026 TCG Masters qualifiers, pick 10 competitors, choose Your Champion, and join the community leaderboard.`;
 
 export const metadata = {
-  title: "2026 TCG Worlds Pick 10 — In Development",
-  description: "Follow the source audit and build progress for DraftCenter's 2026 Pokémon TCG Masters Pick 10 competition.",
+  title: pageTitle,
+  description: pageDescription,
   alternates: { canonical: "/worlds/2026/tcg" },
-  robots: { index: false, follow: true },
+  openGraph: {
+    type: "website",
+    siteName: "DraftCenter",
+    title: `${pageTitle} | DraftCenter`,
+    description: pageDescription,
+    url: canonicalUrl,
+    images: [{ url: "/draftcenter-logo.png", width: 512, height: 512, alt: "DraftCenter 2026 Pokémon Worlds TCG Predictions" }],
+  },
+  twitter: {
+    card: "summary",
+    title: `${pageTitle} | DraftCenter`,
+    description: pageDescription,
+    images: ["/draftcenter-logo.png"],
+  },
 };
 
 export default function Worlds2026TcgPage() {
-  if (sourceRegistry.rosterReady && Array.isArray(sourceRegistry.competitors)) {
-    return <WorldsPickSixteen discipline="tcg" rosterSource={sourceRegistry} />;
-  }
-  return <WorldsTcgPickSixteenSetup sourceRegistry={sourceRegistry} />;
+  const eventSchema = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebPage",
+        "@id": `${canonicalUrl}#webpage`,
+        name: pageTitle,
+        description: pageDescription,
+        url: canonicalUrl,
+        inLanguage: "en-US",
+        isPartOf: { "@id": "https://www.draftcentral.gg/#website" },
+        mainEntity: { "@id": `${canonicalUrl}#event` },
+      },
+      {
+        "@type": "SportsEvent",
+        "@id": `${canonicalUrl}#event`,
+        name: "2026 Pokémon World Championships — TCG Masters",
+        description: "The Masters Division Pokémon Trading Card Game competition at the 2026 Pokémon World Championships in San Francisco.",
+        sport: "Pokémon Trading Card Game",
+        startDate: "2026-08-28",
+        endDate: "2026-08-30",
+        eventStatus: "https://schema.org/EventScheduled",
+        eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
+        location: [
+          {
+            "@type": "Place",
+            name: "Moscone Center",
+            address: { "@type": "PostalAddress", addressLocality: "San Francisco", addressRegion: "CA", addressCountry: "US" },
+          },
+          {
+            "@type": "Place",
+            name: "Chase Center — Championship Sunday",
+            address: { "@type": "PostalAddress", addressLocality: "San Francisco", addressRegion: "CA", addressCountry: "US" },
+          },
+        ],
+        url: canonicalUrl,
+        sameAs: roster.sourceUrl,
+      },
+      {
+        "@type": "BreadcrumbList",
+        "@id": `${canonicalUrl}#breadcrumb`,
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "DraftCenter", item: "https://www.draftcentral.gg/" },
+          { "@type": "ListItem", position: 2, name: "2026 Pokémon Worlds Predictions", item: "https://www.draftcentral.gg/worlds/2026" },
+          { "@type": "ListItem", position: 3, name: "TCG Masters Predictions", item: canonicalUrl },
+        ],
+      },
+    ],
+  };
+
+  return <>
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(eventSchema) }} />
+    <WorldsPickSixteen discipline="tcg" rosterSource={roster} />
+  </>;
 }

@@ -15,13 +15,13 @@ const leaderboardTabs = [
 ];
 
 const futureLeaderboardCopy = {
-  tcg: ["TCG leaderboard", "Standings will appear after the Masters roster audit passes, entries open, and official results are scored."],
+  tcg: ["TCG leaderboard", "The qualified competitor pool is ready. Saved entries will appear here as soon as voting is connected."],
   go: ["Pokémon GO leaderboard", "The 32-pool-to-double-elimination format is published. Standings stay closed while the final registered Trainers, pool assignments, and pairings remain unavailable."],
   unite: ["Pokémon UNITE leaderboard", "The round-robin-group-to-single-elimination format is published. Standings stay closed until registered teams, group assignments, advancement details, and pairings are published."],
 };
 
 const futureLeaderboardStatus = {
-  tcg: "NOT LIVE",
+  tcg: "PICKS OPENING",
   go: "NOT LIVE",
   unite: "NOT LIVE",
 };
@@ -114,12 +114,12 @@ export default function WorldsPredictionsHub() {
           <p>Pick 10 VGC Masters competitors and choose Your Champion. The Top Cut bracket will open after official pairings are published.</p>
           <strong>Make VGC picks →</strong>
         </Link>
-        <Link className="worlds-competition-card is-building is-tcg" href="/worlds/2026/tcg">
-          <span className="worlds-status-pill">Not Live</span>
+        <Link className="worlds-competition-card is-live is-tcg" href="/worlds/2026/tcg">
+          <span className="worlds-status-pill">Picks open</span>
           <small>POKÉMON TRADING CARD GAME</small>
           <h3>TCG Masters</h3>
-          <p>The prediction game is ready. Picks will open after the complete Masters roster is published and reviewed.</p>
-          <strong>View TCG details →</strong>
+          <p>Pick 10 qualified TCG Masters competitors and choose Your Champion. Entries stay editable until Worlds begins.</p>
+          <strong>Make TCG picks →</strong>
         </Link>
         <Link className="worlds-competition-card is-building is-go" href="/worlds/2026/go">
           <span className="worlds-status-pill">Not Live</span>
@@ -176,7 +176,6 @@ export default function WorldsPredictionsHub() {
         <span className="eyebrow">{futureLeaderboardStatus[activeLeaderboard]}</span>
         <h3>{futureLeaderboardCopy[activeLeaderboard][0]}</h3>
         <p>{futureLeaderboardCopy[activeLeaderboard][1]}</p>
-        {activeLeaderboard === "tcg" && <Link className="quiet-button" href="/worlds/2026/tcg">View TCG details</Link>}
         {activeLeaderboard === "go" && <Link className="quiet-button" href="/worlds/2026/go">View GO details</Link>}
         {activeLeaderboard === "unite" && <Link className="quiet-button" href="/worlds/2026/unite">View UNITE details</Link>}
       </div>}

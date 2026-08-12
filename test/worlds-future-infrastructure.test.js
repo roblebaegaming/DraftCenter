@@ -91,7 +91,7 @@ test("UNITE setup accepts an official reviewed group and elimination structure w
   }), /invalid participant reference/);
 });
 
-test("future Pick 10 pages are wired to the reusable entry component but remain fail-closed", () => {
+test("TCG is wired to the reviewed roster while GO remains fail-closed", () => {
   const pickComponent = source("src/components/WorldsPickSixteen.jsx");
   const tcgPage = source("src/app/worlds/2026/tcg/page.js");
   const goPage = source("src/app/worlds/2026/go/page.js");
@@ -99,9 +99,12 @@ test("future Pick 10 pages are wired to the reusable entry component but remain 
   assert.match(pickComponent, /WORLDS_PICK_DISCIPLINES\[discipline\]/);
   assert.match(pickComponent, /p_event_id: eventId/);
   assert.match(pickComponent, /event\.status !== "open"/);
-  assert.match(tcgPage, /sourceRegistry\.rosterReady && Array\.isArray\(sourceRegistry\.competitors\)/);
+  assert.match(pickComponent, /hub\?\.competitors\?\.length \? hubCompetitors\(hub\) : fallback/);
+  assert.match(tcgPage, /import roster from .*worlds-2026-tcg-masters-sources\.json/);
   assert.match(tcgPage, /discipline="tcg"/);
+  assert.doesNotMatch(tcgPage, /WorldsTcgPickSixteenSetup/);
   assert.match(goPage, /discipline="go"/);
+  assert.match(goPage, /sourceRegistry\.rosterReady && Array\.isArray\(sourceRegistry\.competitors\)/);
   assert.match(operations, /These tools cannot publish a roster, open entries, create pairings, or enable results polling/);
   assert.doesNotMatch(operations, /fetch\(/);
   assert.doesNotMatch(operations, /createClient/);
@@ -131,6 +134,7 @@ test("the public hub consumes staged discipline events and the privacy-safe over
   assert.match(hub, /get_worlds_overall_leaderboard/);
   assert.match(hub, /activeHub\.event\?\.status !== "draft"/);
   assert.match(hub, /futureLeaderboardStatus/);
-  assert.equal((hub.match(/(?:tcg|go|unite): "NOT LIVE"/g) || []).length, 3);
+  assert.equal((hub.match(/(?:go|unite): "NOT LIVE"/g) || []).length, 2);
+  assert.doesNotMatch(hub, /tcg: "NOT LIVE"/);
   assert.doesNotMatch(hub, /ROSTER PENDING|TEAMS PENDING/);
 });
