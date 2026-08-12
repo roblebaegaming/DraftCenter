@@ -36,22 +36,12 @@ export default function Worlds2026Page() {
         url: canonicalUrl,
         inLanguage: "en-US",
         isPartOf: { "@id": "https://www.draftcentral.gg/#website" },
-        about: { "@id": `${canonicalUrl}#event` },
+        about: {
+          "@type": "Thing",
+          name: "2026 Pokémon World Championships",
+          sameAs: "https://worlds.pokemon.com/en-us",
+        },
         mainEntity: { "@id": `${canonicalUrl}#competitions` },
-      },
-      {
-        "@type": "SportsEvent",
-        "@id": `${canonicalUrl}#event`,
-        name: "2026 Pokémon World Championships",
-        startDate: "2026-08-28",
-        endDate: "2026-08-30",
-        eventStatus: "https://schema.org/EventScheduled",
-        eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
-        location: [
-          { "@type": "Place", name: "Moscone Center", address: { "@type": "PostalAddress", addressLocality: "San Francisco", addressRegion: "CA", addressCountry: "US" } },
-          { "@type": "Place", name: "Chase Center — Championship Sunday", address: { "@type": "PostalAddress", addressLocality: "San Francisco", addressRegion: "CA", addressCountry: "US" } },
-        ],
-        url: "https://worlds.pokemon.com/en-us",
       },
       {
         "@type": "ItemList",

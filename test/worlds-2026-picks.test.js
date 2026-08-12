@@ -193,6 +193,7 @@ test("the Worlds overview separates competition and overall leaderboards", () =>
   const overviewPage = source("src/app/worlds/2026/page.js");
   const vgcPage = source("src/app/worlds/2026/vgc/page.js");
   const tcgPage = source("src/app/worlds/2026/tcg/page.js");
+  const goPage = source("src/app/worlds/2026/go/page.js");
   const sitemap = source("src/app/sitemap.js");
   const llms = source("src/app/llms.txt/route.js");
   for (const label of ["Overall", "VGC", "TCG", "Pokémon GO", "Pokémon UNITE"]) assert.match(hub, new RegExp(`label: "${label}"`));
@@ -225,23 +226,23 @@ test("the Worlds overview separates competition and overall leaderboards", () =>
   assert.match(overviewPage, /WorldsPredictionsHub/);
   assert.match(overviewPage, /pageTitle = "2026 Pokémon World Championships Predictions"/);
   assert.match(overviewPage, /"@type": "CollectionPage"/);
-  assert.match(overviewPage, /"@type": "SportsEvent"/);
   assert.match(overviewPage, /"@type": "ItemList"/);
   assert.match(overviewPage, /"@type": "BreadcrumbList"/);
+  for (const page of [overviewPage, vgcPage, tcgPage, goPage]) {
+    assert.match(page, /"@type": "Thing"/);
+    assert.doesNotMatch(page, /"@type": "(?:Sports)?Event"/);
+    assert.doesNotMatch(page, /#event/);
+  }
   assert.match(overviewPage, /openGraph:/);
   assert.match(overviewPage, /twitter:/);
   assert.match(overviewPage, /canonical: "\/worlds\/2026"/);
   assert.match(vgcPage, /pageTitle = "2026 Pokémon Worlds VGC Predictions"/);
   assert.match(vgcPage, /canonical: "\/worlds\/2026\/vgc"/);
   assert.match(vgcPage, /pick 10 qualified players, name Your Champion/);
-  assert.match(vgcPage, /eventAttendanceMode: "https:\/\/schema\.org\/OfflineEventAttendanceMode"/);
-  assert.match(vgcPage, /sport: "Pokémon Video Game Championships \(VGC\)"/);
   assert.match(vgcPage, /sameAs: "https:\/\/worlds\.pokemon\.com\/en-us"/);
-  assert.match(vgcPage, /name: "Chase Center — Championship Sunday"/);
   assert.match(tcgPage, /pageTitle = "2026 Pokémon Worlds TCG Predictions"/);
   assert.match(tcgPage, /canonical: "\/worlds\/2026\/tcg"/);
   assert.match(tcgPage, /official Pokémon Worlds 2026 TCG Masters qualifiers/);
-  assert.match(tcgPage, /sport: "Pokémon Trading Card Game"/);
   assert.match(sitemap, /WORLDS_2026_LAST_MODIFIED/);
   assert.match(sitemap, /\["\/worlds\/2026\/vgc", "daily", 0\.9\]/);
   assert.match(sitemap, /\["\/worlds\/2026\/tcg", "daily", 0\.9\]/);
