@@ -3,10 +3,22 @@
 - Last updated: August 12, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified production application commit: `bdc8349822e16fadff02dd73b48030c13dbddae5`
-- Latest production migration: 380
+- Verified production application commit: `98f766f4831268a23f8c362eafbd5d95aa872363`
+- Latest production migration: 382
 
 ## Deployed state
+
+The August 12 release wave shipped through pull requests
+[#170](https://github.com/roblebaegaming/DraftCenter/pull/170),
+[#171](https://github.com/roblebaegaming/DraftCenter/pull/171), and
+[#172](https://github.com/roblebaegaming/DraftCenter/pull/172). Pokémon
+Connections is restored across the signed-in home, Community, and Daily Games
+hub; Operations now includes active-league Worlds and format insights plus
+owner-only, aggregate Vercel website traffic; inaccurate Worlds event schema
+was replaced with collection/page schema; and the private Calendar is now a
+standalone global tool combining DraftCenter league dates, personal reminders,
+and a maintained read-only schedule of major VGC events. Production migration
+382 is applied with owner-only calendar policies.
 
 The August 9 release wave is complete. Pull requests
 [#95](https://github.com/roblebaegaming/DraftCenter/pull/95) through
