@@ -1,5 +1,12 @@
 # 2026 Worlds TCG, GO, and UNITE structure audit
 
+> Historical checkpoint: the official Qualified Competitors page later
+> published cross-region invitation-earned lists. TCG and Pokémon GO opened
+> through migrations 376-377 and pull requests #160-161. See
+> [`CURRENT-STATUS.md`](CURRENT-STATUS.md) and the
+> [current handoff](handoffs/DraftCenter-agent-handoff-2026-08-11-worlds-tcg-go-live.md)
+> for the verified live state. UNITE remains closed.
+
 - Review date: August 11, 2026 (America/Los_Angeles)
 - Scope: Pokémon TCG Masters, Pokémon GO, and Pokémon UNITE
 - Outcome: tournament formats are now published; final registered rosters are

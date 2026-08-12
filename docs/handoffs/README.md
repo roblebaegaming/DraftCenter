@@ -1,7 +1,13 @@
 # Agent handoffs
 
+[`DraftCenter-agent-handoff-2026-08-11-worlds-tcg-go-live.md`](DraftCenter-agent-handoff-2026-08-11-worlds-tcg-go-live.md)
+is the current continuation handoff. It records the released 880-player TCG
+Masters and 369-Trainer Pokémon GO Pick 10 competitions, production migrations
+376-377, exact release verification, and the audited 31-team UNITE source plus
+the remaining group/bracket gate.
+
 [`DraftCenter-agent-handoff-2026-08-11-worlds-final-chat.md`](DraftCenter-agent-handoff-2026-08-11-worlds-final-chat.md)
-is the current continuation handoff. It records every deployable Worlds change
+is the preceding continuation handoff. It records every deployable Worlds change
 from the August 11 chat, including natural navigation and sharing copy, the
 437-player TCG working-field reconciliation, and the production fix that keeps
 unfinished Pick 10 choices intact during background refreshes. Unavailable
