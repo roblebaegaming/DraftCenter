@@ -58,6 +58,7 @@ test("all Daily Games surfaces restore Connections in a two-by-two bracket-first
   assert.match(hub, /betweenGames=\{<><RosterConnections signedIn=\{signedIn\} \/><PollOfTheDay supabase=\{supabase\}\/><\/>\}/);
   assert.match(styles, /\.daily-trio-grid \{[^}]*grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
   assert.match(styles, /\.dashboard-daily-three \{[^}]*grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+  assert.match(styles, /\.daily-trio-grid > \.poll-card,\.dashboard-daily-three > \.poll-card \{ order:0; \}/);
 });
 
 test("Pokémon Connections creates stable non-overlapping daily puzzles", () => {
