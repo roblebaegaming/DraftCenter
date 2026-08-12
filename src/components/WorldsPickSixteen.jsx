@@ -216,7 +216,7 @@ export default function WorldsPickSixteen({ rosterSource, discipline = "vgc" }) 
 
     <section className="worlds-trust-note">
       <div><span className="eyebrow">REVIEWED ROSTER ONLY</span><h2>{competitors.length} {config.entryPlural} in the prediction pool</h2></div>
-      <p>{config.division === "Masters" ? "Junior- and Senior-Division qualifiers are excluded. Masters is not an adult-only guarantee, and DraftCenter does not collect or infer private age data." : "Only published competitor identity and qualification information needed for the prediction game is used. DraftCenter does not collect or infer private age data."}</p>
+      <p>{config.division === "Masters" ? "Masters Division only — Senior and Junior Division qualifiers are excluded." : "Only published competitor identity and qualification information needed for the prediction game is used. DraftCenter does not collect or infer private age data."}</p>
       <div className="worlds-source-links">{(rosterSource.sourceUrl || rosterSource.source_url) && <a href={rosterSource.sourceUrl || rosterSource.source_url} target="_blank" rel="noreferrer">Roster source ↗</a>}<a href="https://worlds.pokemon.com/en-us" target="_blank" rel="noreferrer">Official Worlds site ↗</a></div>
     </section>
 
