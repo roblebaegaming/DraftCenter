@@ -18,7 +18,7 @@ DraftCenter helps communities configure leagues, run snake and auction drafts, m
 - [2026 Pokémon World Championships Predictions](https://www.draftcentral.gg/worlds/2026)
 - [2026 Pokémon Worlds TCG Masters Predictions](https://www.draftcentral.gg/worlds/2026/tcg)
 - [2026 Pokémon Worlds VGC Top Cut Bracket Challenge](https://www.draftcentral.gg/worlds/2026/vgc/bracket)
-- [2026 Pokémon GO Worlds prediction source audit](https://www.draftcentral.gg/worlds/2026/go)
+- [2026 Pokémon GO Worlds Predictions](https://www.draftcentral.gg/worlds/2026/go)
 - [2026 Pokémon UNITE Worlds prediction source audit](https://www.draftcentral.gg/worlds/2026/unite)
 
 ## Public tools and events
@@ -27,7 +27,7 @@ DraftCenter helps communities configure leagues, run snake and auction drafts, m
 - Multi-pod organizations can qualify retained league rosters into connected single- or double-elimination championships. Organization administration and event workspaces are not public reference material.
 - Pokémon Daily Games includes Pokémon Connections, a community poll, an eight-Pokémon bracket, and a Pokémon quiz. Signed-in discussions open only after the relevant daily game is completed.
 - Nuzlocke teams use independently reviewed, game-specific encounter catalogs. Signed-in players may save a Run Card privately in My Teams or download a visual Run Card; saved cards are not public pages.
-- The 2026 Pokémon World Championships hub covers VGC, the Pokémon TCG, Pokémon GO, and Pokémon UNITE. The open VGC and TCG Masters games let signed-in members pick 10 qualified competitors and name Your Champion for double placement points. The VGC Top Cut bracket challenge stays closed until reviewed official pairings are published. The official TCG pool contains 880 unique Masters qualifiers from Pokémon's August 2026 qualified-competitors page; it is an invite-earned list, not confirmed registration or attendance. The official GO format uses 32 pools advancing two Trainers each into double elimination, while the official UNITE format uses round-robin groups followed by single-elimination playoffs. GO and UNITE remain closed while their exact competition assignments are reviewed.
+- The 2026 Pokémon World Championships hub covers VGC, the Pokémon TCG, Pokémon GO, and Pokémon UNITE. The open VGC, TCG Masters, and Pokémon GO games let signed-in members pick 10 qualified competitors and name Your Champion for double placement points. The VGC Top Cut bracket challenge stays closed until reviewed official pairings are published. Pokémon's official August 2026 qualified-competitors page supplies 880 unique TCG Masters qualifiers and 369 unique Pokémon GO qualifiers after duplicate source rows are removed. Both are invite-earned lists, not confirmed registration or attendance. The official GO format uses 32 pools advancing two Trainers each into double elimination, but pool assignments and pairings remain unpublished. Pokémon UNITE remains closed while its teams, groups, advancement details, and playoff pairings are reviewed.
 
 ## Practical guides
 
@@ -66,6 +66,7 @@ DraftCenter helps communities configure leagues, run snake and auction drafts, m
 - Private queues, private team workspaces, account records, support diagnostics, and private league messages are not public reference material.
 - The 2026 VGC Masters invitee snapshot cites Victory Road's tracker, which combines official Championship Point standings and qualifying event results. Treat it as an invite-earned list rather than confirmed registration or attendance.
 - The 2026 TCG Masters pool cites Pokémon's official qualified-competitors page and excludes two duplicate source rows. Treat it as an invite-earned list rather than confirmed registration or attendance.
+- The 2026 Pokémon GO pool cites Pokémon's official qualified-competitors page and excludes one duplicate source identity. Treat it as an invite-earned list rather than confirmed registration, attendance, or pool assignment.
 
 ## Legal
 

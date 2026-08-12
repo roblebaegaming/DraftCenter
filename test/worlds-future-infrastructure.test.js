@@ -91,7 +91,7 @@ test("UNITE setup accepts an official reviewed group and elimination structure w
   }), /invalid participant reference/);
 });
 
-test("TCG is wired to the reviewed roster while GO remains fail-closed", () => {
+test("TCG and GO are wired to reviewed rosters while operations tools stay draft-only", () => {
   const pickComponent = source("src/components/WorldsPickSixteen.jsx");
   const tcgPage = source("src/app/worlds/2026/tcg/page.js");
   const goPage = source("src/app/worlds/2026/go/page.js");
@@ -104,10 +104,23 @@ test("TCG is wired to the reviewed roster while GO remains fail-closed", () => {
   assert.match(tcgPage, /discipline="tcg"/);
   assert.doesNotMatch(tcgPage, /WorldsTcgPickSixteenSetup/);
   assert.match(goPage, /discipline="go"/);
-  assert.match(goPage, /sourceRegistry\.rosterReady && Array\.isArray\(sourceRegistry\.competitors\)/);
+  assert.match(goPage, /worlds-2026-go-sources\.json/);
   assert.match(operations, /These tools cannot publish a roster, open entries, create pairings, or enable results polling/);
   assert.doesNotMatch(operations, /fetch\(/);
   assert.doesNotMatch(operations, /createClient/);
+});
+
+test("migration 377 opens only the reviewed GO qualifier pool", () => {
+  const migration = source("supabase/377-open-worlds-2026-pokemon-go-pick-ten.sql");
+  const previewRegression = source("supabase/tests/377-open-worlds-2026-pokemon-go-pick-ten-preview-regression.sql");
+  assert.match(migration, /status <> 'draft'[\s\S]+discipline <> 'go'[\s\S]+division <> 'Open'/i);
+  assert.match(migration, /migration 377 only opens a zero-entry event/i);
+  assert.match(migration, /https:\/\/worlds\.pokemon\.com\/en-us\/about\/qualified\//i);
+  assert.equal((migration.match(/\('2026-pokemon-go'/g) || []).length, 369);
+  assert.match(migration, /must contain 369 unique competitors and source orders/i);
+  assert.match(migration, /must not enable results polling/i);
+  assert.match(previewRegression, /Expected the 369-person official Pokémon GO qualifier pool/i);
+  assert.match(previewRegression, /Another member could see a private Pokémon GO entry before lock/i);
 });
 
 test("migration 374 stages closed events and keeps combined standings server-side", () => {
@@ -134,7 +147,9 @@ test("the public hub consumes staged discipline events and the privacy-safe over
   assert.match(hub, /get_worlds_overall_leaderboard/);
   assert.match(hub, /activeHub\.event\?\.status !== "draft"/);
   assert.match(hub, /futureLeaderboardStatus/);
-  assert.equal((hub.match(/(?:go|unite): "NOT LIVE"/g) || []).length, 2);
+  assert.equal((hub.match(/(?:go|unite): "NOT LIVE"/g) || []).length, 1);
+  assert.match(hub, /go: "PICKS OPENING"/);
   assert.doesNotMatch(hub, /tcg: "NOT LIVE"/);
+  assert.doesNotMatch(hub, /go: "NOT LIVE"/);
   assert.doesNotMatch(hub, /ROSTER PENDING|TEAMS PENDING/);
 });

@@ -30,6 +30,7 @@
     "competitive:build:migration": "node scripts/build-competitive-data-migration.mjs",
     "competitive:import:tournaments": "node scripts/import-limitless-vgc-tournaments.mjs",
     "competitive:build:tournament-migration": "node scripts/build-competitive-tournament-migration.mjs",
+    "worlds:build:go-qualified": "node scripts/build-worlds-go-qualified-pool.mjs",
     "test:manager-removal": "node --test test/manager-removal-claim-cleanup.test.js",
     "test:league-counts": "node --test test/league-count-consistency.test.js",
     "test:nuzlocke": "node --test test/nuzlocke-generator.test.js test/nuzlocke-catalog-security.test.js test/nuzlocke-game-guides.test.js test/pokemon-species-traits.test.js test/nuzlocke-my-teams.test.js",

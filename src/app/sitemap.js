@@ -13,6 +13,7 @@ const productRouteLastModified = new Map([
   ["/worlds/2026", WORLDS_2026_LAST_MODIFIED],
   ["/worlds/2026/vgc", WORLDS_2026_LAST_MODIFIED],
   ["/worlds/2026/tcg", WORLDS_2026_LAST_MODIFIED],
+  ["/worlds/2026/go", WORLDS_2026_LAST_MODIFIED],
   ["/worlds/2026/vgc/bracket", WORLDS_2026_LAST_MODIFIED],
 ]);
 
@@ -30,6 +31,7 @@ const routes = [
   ["/worlds/2026", "daily", 0.9],
   ["/worlds/2026/vgc", "daily", 0.9],
   ["/worlds/2026/tcg", "daily", 0.9],
+  ["/worlds/2026/go", "daily", 0.9],
   ["/worlds/2026/vgc/bracket", "daily", 0.8],
   ["/resources", "monthly", 0.7],
   ["/resources/daily-games", "daily", 1],

@@ -16,13 +16,13 @@ const leaderboardTabs = [
 
 const futureLeaderboardCopy = {
   tcg: ["TCG leaderboard", "The qualified competitor pool is ready. Saved entries will appear here as soon as voting is connected."],
-  go: ["Pokémon GO leaderboard", "The 32-pool-to-double-elimination format is published. Standings stay closed while the final registered Trainers, pool assignments, and pairings remain unavailable."],
+  go: ["Pokémon GO leaderboard", "The qualified Trainer pool is ready. Saved entries will appear here as soon as voting is connected."],
   unite: ["Pokémon UNITE leaderboard", "The round-robin-group-to-single-elimination format is published. Standings stay closed until registered teams, group assignments, advancement details, and pairings are published."],
 };
 
 const futureLeaderboardStatus = {
   tcg: "PICKS OPENING",
-  go: "NOT LIVE",
+  go: "PICKS OPENING",
   unite: "NOT LIVE",
 };
 
@@ -121,12 +121,12 @@ export default function WorldsPredictionsHub() {
           <p>Pick 10 qualified TCG Masters competitors and choose Your Champion. Entries stay editable until Worlds begins.</p>
           <strong>Make TCG picks →</strong>
         </Link>
-        <Link className="worlds-competition-card is-building is-go" href="/worlds/2026/go">
-          <span className="worlds-status-pill">Not Live</span>
+        <Link className="worlds-competition-card is-live is-go" href="/worlds/2026/go">
+          <span className="worlds-status-pill">Picks open</span>
           <small>MOBILE BATTLES</small>
           <h3>Pokémon GO</h3>
-          <p>The format is set. Picks will open after the registered Trainers and pool assignments are published and reviewed.</p>
-          <strong>View GO details →</strong>
+          <p>Pick 10 qualified Pokémon GO Trainers and choose Your Champion. Entries stay editable until Worlds begins.</p>
+          <strong>Make GO picks →</strong>
         </Link>
         <Link className="worlds-competition-card is-building is-unite" href="/worlds/2026/unite">
           <span className="worlds-status-pill">Not Live</span>
