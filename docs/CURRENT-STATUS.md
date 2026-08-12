@@ -3,10 +3,22 @@
 - Last updated: August 12, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified production application commit: `bdc8349822e16fadff02dd73b48030c13dbddae5`
-- Latest production migration: 380
+- Verified production application commit: `49ef9975d04f86d169c589580575a00220c2dfa5`
+- Latest production migration: 381
 
 ## Deployed state
+
+The TCG Meta Picks activation shipped through pull request
+[#168](https://github.com/roblebaegaming/DraftCenter/pull/168) as production
+application commit `49ef9975d04f86d169c589580575a00220c2dfa5`. Vercel
+reported the exact commit Ready on the production domains before forward-only
+migration 381 was applied to project `eukexfqpiuidwygllaye`. The production
+postflight passed all 20 event, option, result, discipline, and privilege
+checks: TCG is `open` with 49 selectable archetypes, 12 trend labels, Standard
+format with regulation mark H onward, and zero initial Meta entries or result
+snapshots. VGC remains `open`, GO remains `draft`, result automation remains
+disabled, the signed-out live TCG page passed review without browser errors,
+and all 19 production smoke checks passed.
 
 The August 9 release wave is complete. Pull requests
 [#95](https://github.com/roblebaegaming/DraftCenter/pull/95) through
@@ -325,15 +337,14 @@ The separate Worlds Meta Picks competition shipped through pull request
 application commit `bdc8349822e16fadff02dd73b48030c13dbddae5`. VGC Meta
 Picks are open: members rank six Pokémon from the reviewed 235-option official
 Regulation M-B pool, with 24 explicitly unofficial community-trend signals.
-TCG has a reviewed 49-archetype taxonomy and 12 trend signals and remains
-`draft` in production. The official 2026 Worlds competitor packet now confirms
-Standard Format with regulation marks H and onward; forward-only migration 381
-is the reviewed release candidate that records this source and opens only the
-zero-entry TCG event after the application release. GO remains `draft` with no
-placeholder options until its official eligibility pool can be reviewed. Meta
+TCG Meta Picks are now `open` with the reviewed 49-archetype taxonomy and 12
+trend signals. The official 2026 Worlds competitor packet confirms Standard
+Format with regulation marks H and onward; forward-only migration 381 records
+this source and opened only the zero-entry TCG event. GO remains `draft` with
+no placeholder options until its official eligibility pool can be reviewed. Meta
 Picks have separate discipline and overall leaderboards
 from player Pick 10; the Meta overall requires two finalized disciplines.
-Migrations 378-380 are applied to production. Results automation remains
+Migrations 378-381 are applied to production. Results automation remains
 disabled, and finalization is service-only from an owner-reviewed official
 source.
 
@@ -567,15 +578,13 @@ and its group assignments, advancement rules, and playoff pairings are
 published. Model UNITE predictions by team, not by individual player.
 Keep the Worlds bracket challenge closed until official pairings exist.
 
-Keep TCG Meta Picks closed in production until the application release
-containing the scoring disclosure and guarded migration 381 is deployed. Then
-apply migration 381 to the exact production project and verify the 49-option,
-12-trend, zero-entry opening state before calling TCG live. Keep GO Meta Picks
-closed until an official eligibility pool is reviewed and seeded. Do not fill
-that gate with placeholder guesses. VGC Meta Picks may remain open through its
-published lock; preserve private pre-lock selections and the separate player
-Pick 10 competition. Finalize Meta results only from an owner-reviewed official
-source, with no automated result writer.
+TCG Meta Picks is live with its reviewed 49-archetype pool. Preserve private
+pre-lock selections, the separate player Pick 10 competition, and the disabled
+result automation boundary. Keep GO Meta Picks closed until an official
+eligibility pool is reviewed and seeded; do not fill that gate with placeholder
+guesses. VGC Meta Picks may remain open through its published lock. Finalize
+Meta results only from an owner-reviewed official source, with no automated
+result writer.
 
 Do not enable the live importer until the exact structured Masters results feed,
 permission, attribution, and event identifier are reviewed. Scheduler creation

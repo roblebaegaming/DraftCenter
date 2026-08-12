@@ -5,15 +5,16 @@
 - Release branch: `codex/worlds-tcg-meta-picks-activation-2026-08-12`
 - Release pull request: [#168](https://github.com/roblebaegaming/DraftCenter/pull/168)
 - Base `main` commit: `959eab9e5bea884986bfa1367e52400e7d116cec`
-- Latest production migration: 380
-- Candidate migration: 381
+- Production application commit: `49ef9975d04f86d169c589580575a00220c2dfa5`
+- Latest production migration: 381
+- Applied migration: 381
 
 ## Outcome
 
-The TCG Meta Picks activation candidate is ready for protected release review.
-It adds a native expandable **How scoring works** guide to every VGC, TCG, and
-Pokémon GO Meta Picks panel and prepares the reviewed 49-archetype TCG event to
-open through forward-only migration 381.
+The TCG Meta Picks activation is complete in production. It adds a native
+expandable **How scoring works** guide to every VGC, TCG, and Pokémon GO Meta
+Picks panel and opens the reviewed 49-archetype TCG event through forward-only
+migration 381.
 
 The TCG opening gate is now satisfied by an event-specific official source.
 The application and database validation are complete, including a real
@@ -21,15 +22,46 @@ authenticated five-deck save, mandatory Champion Deck enforcement, rejection
 of an unreviewed archetype, pre-lock privacy, privilege boundaries, and fixture
 rollback on an isolated Supabase Preview.
 
-This handoff describes a release candidate, not a completed production change.
-Production remains on migration 380 with TCG in `draft` until the application
-release is merged and deployed and migration 381 is deliberately applied to
-the exact production project.
+Production is on application commit `49ef9975d04f86d169c589580575a00220c2dfa5`
+and migration 381 with TCG `open`.
 
 Read this with [`../CURRENT-STATUS.md`](../CURRENT-STATUS.md),
 [`../worlds-2026-meta-predictions.md`](../worlds-2026-meta-predictions.md),
 [`DraftCenter-agent-handoff-2026-08-11-worlds-meta-picks-release.md`](DraftCenter-agent-handoff-2026-08-11-worlds-meta-picks-release.md),
 and [`../../AGENTS.md`](../../AGENTS.md) before production-sensitive work.
+
+## Production release record
+
+Pull request #168 was squash-merged after all six active checks passed. Vercel
+then reported the exact merged commit Ready on both production domains. Only
+after that confirmation, the migration-381 production preflight was run against
+project `eukexfqpiuidwygllaye`; it matched every migration-380 prerequisite.
+The exact committed migration blob
+`817e9907b770f14a27e6eb818c119b5adfb41ea8` was applied in one guarded
+transaction.
+
+The read-only production postflight passed all 20 checks:
+
+- TCG is `open` with 49 options, 49 selectable options, 12 trend labels, zero
+  Meta entries, and zero result snapshots;
+- the event records Standard format, regulation mark H onward, the satisfied
+  official-format gate, and the August 12 review date;
+- VGC remains `open` and Pokémon GO remains `draft`;
+- direct browser reads of the private option and entry tables remain denied;
+- public hub access and authenticated saves remain granted; and
+- authenticated finalization remains denied while service-role finalization
+  remains granted.
+
+The signed-out live TCG page showed **Picks open**, the five-deck and Champion
+Deck contract, zero Meta entries, the separate player Pick 10 competition, and
+the complete placement, normalization, rogue-deck, and Standard/H scoring
+guide. No browser warnings or errors were recorded. The post-activation
+production smoke sweep passed 14 public routes and five protected routes.
+
+No production test entry was created. The authorized five-deck save and privacy
+round trip remain covered by the exact disposable Preview rehearsal, preserving
+the production event's verified zero-entry opening state. No result source,
+scheduler, provider setting, environment variable, or secret changed.
 
 ## Public scoring guide
 
@@ -121,7 +153,8 @@ worktree intentionally has no public Supabase URL or publishable key. No secret
 was copied into the worktree. The protected Vercel Preview is therefore the
 authoritative optimized-build and visual-review gate for this release.
 
-Pull request #168 is **Ready to merge** with all six active checks successful:
+Before merge, pull request #168 was **Ready to merge** with all six active
+checks successful:
 the full-history secret scan, security tests and dependency audit, CodeQL,
 Vercel, and the Vercel review integration. The repository's automatic Supabase
 Preview check was skipped, as expected for this manually managed migration
@@ -148,26 +181,22 @@ disposable Preview was permanently deleted after validation. The retained
 `multi-pod-pr-82` branch and every real user, league, pick, entry, result,
 provider setting, and production record were untouched.
 
-## Safe release and activation sequence
+## Completed release and activation sequence
 
-1. Require all protected pull-request checks and review the Vercel Preview at
-   desktop and mobile widths. Expand the scoring guide on TCG and VGC and verify
-   the existing player Pick 10 panel is unchanged.
-2. Merge the protected pull request and confirm Vercel reports the exact merged
-   `main` commit **Ready** on the production domains.
-3. Apply only migration 381 to the exact production Supabase project. Do not
-   replay migrations 378-380 and do not run the transactional regression in
-   production.
-4. Run a read-only database postflight. Require TCG `open`, 49 selectable
-   options, 12 trend signals, zero initial entries/results, Standard/H metadata,
-   VGC `open`, GO `draft`, direct table reads denied, authenticated saves
-   granted, authenticated finalization denied, and service finalization granted.
-5. Review the live signed-out TCG page and an authorized member save. Confirm
-   the disclosure, five-deck picker, Champion Deck choice, published August 28
-   lock, separate Meta leaderboard, and unchanged player Pick 10 competition.
-6. Run `npm run smoke:production` only after deployment and record the exact
-   deployed commit, migration 381 postflight, live UI evidence, and smoke result
-   in this handoff or a dated production follow-up.
+1. All protected pull-request checks and the Vercel Preview passed.
+2. Pull request #168 was squash-merged, and Vercel reported exact `main` commit
+   `49ef9975d04f86d169c589580575a00220c2dfa5` Ready in Production.
+3. Only migration 381 was applied to the exact production Supabase project;
+   migrations 378-380 and the transactional Preview regression were not replayed.
+4. The read-only database postflight passed all 20 required state and privilege
+   checks.
+5. The signed-out TCG page showed the expected open competition, scoring guide,
+   privacy gate, separate Meta leaderboard, and unchanged player Pick 10.
+6. `npm run smoke:production` passed all 19 public and protected route checks.
+
+The production event was deliberately left at zero Meta entries. The real
+authenticated save was not repeated in production because the exact Preview
+round trip already proved saving and privacy without mutating a live account.
 
 ## Preserved boundaries and next work
 
