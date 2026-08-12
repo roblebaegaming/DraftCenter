@@ -75,6 +75,40 @@ function LeaguePulse({ pulse, leagueName, regulationLabel, draftStyleLabel }) {
   </section>;
 }
 
+function trafficMetric(value, maximumFractionDigits = 0) {
+  return new Intl.NumberFormat(undefined, { maximumFractionDigits }).format(Number(value) || 0);
+}
+function trafficDate(value, includeYear = false) {
+  if (!value) return "Unknown";
+  return new Date(`${value}T12:00:00Z`).toLocaleDateString(undefined, { month: "short", day: "numeric", year: includeYear ? "numeric" : undefined, timeZone: "UTC" });
+}
+function TrafficChart({ daily }) {
+  const rows = daily || [];
+  const maximum = Math.max(1, ...rows.map((row) => Number(row.visitors) || 0));
+  return <div className="website-traffic-chart" role="img" aria-label="Daily visitors over the last 30 days">
+    {rows.map((row, index) => <span key={row.date} aria-label={`${trafficDate(row.date, true)}: ${trafficMetric(row.visitors)} visitors`}><i style={{ height: `${Math.max(4, ((Number(row.visitors) || 0) / maximum) * 100)}%` }} /><small>{index === 0 || index === rows.length - 1 ? trafficDate(row.date) : ""}</small></span>)}
+  </div>;
+}
+function WebsiteTraffic({ traffic }) {
+  const unavailable = !traffic || traffic.unavailable;
+  return <section className="website-traffic-summary" aria-labelledby="website-traffic-title">
+    <header><div><span className="eyebrow">VERCEL WEB ANALYTICS</span><h2 id="website-traffic-title">Website traffic</h2><p>Anonymized human production traffic. Known bots and private Operations or workspace paths are excluded. Visitors include signed-in and signed-out visits, and visitor identifiers reset daily.</p></div>{!unavailable && <small>Updated {when(traffic.generated_at)}</small>}</header>
+    {unavailable ? <p className="website-traffic-unavailable" role="status">Website traffic is temporarily unavailable. The rest of Operations remains current.</p> : <>
+      <div className="website-traffic-metrics">
+        <article><strong>{trafficMetric(traffic.today?.visitors)}</strong><span>Visitors today</span><small>{trafficMetric(traffic.today?.pageviews)} page views</small></article>
+        <article><strong>{trafficMetric(traffic.yesterday?.visitors)}</strong><span>Visitors yesterday</span><small>{trafficMetric(traffic.yesterday?.pageviews)} page views</small></article>
+        <article><strong>{trafficMetric(traffic.seven_day_average_visitors, 1)}</strong><span>7-day daily average</span><small>visitors per day</small></article>
+        <article><strong>{trafficMetric(traffic.last_30_days?.visitors)}</strong><span>30-day visitors</span><small>sum of daily visitors</small></article>
+        <article><strong>{trafficMetric(traffic.last_30_days?.pageviews)}</strong><span>30-day page views</span><small>{trafficDate(traffic.last_30_days?.start)} to {trafficDate(traffic.last_30_days?.end)}</small></article>
+      </div>
+      <div className="website-traffic-details">
+        <article><h3>Visitors by day</h3><TrafficChart daily={traffic.daily} /></article>
+        <article><h3>Most visited pages</h3>{traffic.top_pages_unavailable ? <p className="website-traffic-note">Page rankings are temporarily unavailable.</p> : traffic.top_pages?.length ? <ol>{traffic.top_pages.map((page) => <li key={page.path}><span title={page.path}>{page.path}</span><strong>{trafficMetric(page.pageviews)}</strong><small>views</small></li>)}</ol> : <p className="website-traffic-note">No public page visits in this period.</p>}</article>
+      </div>
+    </>}
+  </section>;
+}
+
 export default function OperationsDashboard() {
   const [data, setData] = useState(null); const [error, setError] = useState(""); const [filter, setFilter] = useState("attention"); const [query, setQuery] = useState(""); const [regulationFilter, setRegulationFilter] = useState("all"); const [draftTypeFilter, setDraftTypeFilter] = useState("all"); const [stageFilter, setStageFilter] = useState("all"); const [supportLeague, setSupportLeague] = useState(null); const [copyStatus, setCopyStatus] = useState("");
   async function load() { setError(""); const supabase = createClient(); const { data: sessionData } = await supabase.auth.getSession(); if (!sessionData.session) return setError("Sign in with an owner account to open League Operations."); const response = await fetch("/api/operations/overview", { headers: { Authorization: `Bearer ${sessionData.session.access_token}` } }); const result = await response.json(); if (!response.ok) return setError(result.error || "League Operations could not load."); setData(result); }
@@ -89,6 +123,7 @@ export default function OperationsDashboard() {
     <nav className="public-page-nav"><a className="quiet-button" href="/">DraftCenter</a><a className="quiet-button" href="/operations/daily-three">Daily Games activity</a><button className="quiet-button" onClick={load}>Refresh</button></nav>
     <header className="operations-hero"><span className="eyebrow">OWNER ONLY</span><h1>League Operations</h1><p>Monitor league health without bypassing private-league membership. Configuration support requires commissioner-approved access.</p><small>Updated {when(data.generated_at)}</small></header>
     <section className="operations-user-summary" aria-labelledby="registered-users-title"><div><span className="eyebrow">AUTHENTICATION</span><h2 id="registered-users-title">Registered users</h2><p>Every DraftCenter account is counted, including people who joined through Discord. These totals show sign-in identities only; no emails or Discord usernames are exposed here.</p></div><div className="operations-metrics"><article><strong>{data.users?.total || 0}</strong><span>Total accounts</span></article><article><strong>{data.users?.discord || 0}</strong><span>Discord identity</span></article><article><strong>{data.users?.email || 0}</strong><span>Email identity</span></article><article><strong>{data.users?.both || 0}</strong><span>Email + Discord linked</span></article></div></section>
+    <WebsiteTraffic traffic={data.website_traffic} />
     <WorldsEntrySummary summary={data.worlds_entries} />
     <WorldsResultsOperations />
     <WorldsBracketOperations />
