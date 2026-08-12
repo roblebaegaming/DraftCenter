@@ -22,25 +22,38 @@ export function validateWorldsSourceRegistry(registry) {
   const contract = REGISTRY_CONTRACTS[registry.eventId];
   requireValue(contract, `unsupported event ${registry.eventId || "(missing)"}`);
   requireValue(registry.entryUnit === contract.entryUnit, `${registry.eventId} must use ${contract.entryUnit} entries`);
-  requireValue(registry.rosterReady === false, `${registry.eventId} cannot open without a reviewed roster`);
-  requireValue(registry.rosterStatus === "waiting-for-official-roster", `${registry.eventId} roster status must fail closed`);
-  requireValue(registry.predictionStatus === "not-open", `${registry.eventId} prediction saving must remain closed`);
-  requireValue(!Array.isArray(registry.competitors), `${registry.eventId} cannot contain an unreviewed competitor list`);
-  requireValue(!Array.isArray(registry.teams), `${registry.eventId} cannot contain an unreviewed team list`);
   requireValue(registry.resultAutomation?.status === "unconfigured", `${registry.eventId} results automation cannot be implied`);
   requireValue(Array.isArray(registry.sources) && registry.sources.length >= 2, `${registry.eventId} needs reviewable sources`);
   if (registry.eventId === "2026-pokemon-go") {
+    requireValue(registry.rosterReady === true, `${registry.eventId} requires the reviewed official qualified list`);
+    requireValue(registry.rosterStatus === "official-qualified-list-reviewed", `${registry.eventId} qualified-list status is invalid`);
+    requireValue(registry.predictionStatus === "open", `${registry.eventId} Pick 10 status must match the reviewed roster`);
+    requireValue(registry.status === "invite-earned-not-attendance-confirmed", `${registry.eventId} cannot imply confirmed attendance`);
+    requireValue(registry.sourceUrl === "https://worlds.pokemon.com/en-us/about/qualified/", `${registry.eventId} must use Pokémon's official qualified list`);
+    requireValue(Array.isArray(registry.competitors) && registry.competitors.length === 369, `${registry.eventId} must contain 369 reviewed qualifiers`);
+    requireValue(!Array.isArray(registry.teams), `${registry.eventId} cannot contain a team list`);
+    requireValue(new Set(registry.competitors.map(({ slug }) => slug)).size === 369, `${registry.eventId} competitor slugs must be unique`);
+    requireValue(new Set(registry.competitors.map(({ sourceOrder }) => sourceOrder)).size === 369, `${registry.eventId} source orders must be unique`);
+    requireValue(registry.competitors.every((competitor) => competitor.division === "Open"
+      && competitor.attendanceStatus === "invite_earned"
+      && /^[A-Z]{3}$/.test(competitor.countryCode)
+      && Boolean(competitor.name && competitor.region && competitor.qualification)), `${registry.eventId} contains an invalid qualifier row`);
     requireValue(registry.predictionDesign?.pickCount === 10, `${registry.eventId} must keep the owner-approved Pick 10 format`);
     requireValue(registry.predictionDesign?.selectionLabel === "Your Champion", `${registry.eventId} must use the Your Champion label`);
     requireValue(registry.predictionDesign?.selectionMultiplier === 2, `${registry.eventId} must double Your Champion's placement points`);
     requireValue(
-      registry.tournamentRules?.worldsStructureStatus === "official-phase-structure-published-roster-and-pairings-pending",
+      registry.tournamentRules?.worldsStructureStatus === "official-phase-structure-and-qualified-list-published-registration-pools-and-pairings-pending",
       `${registry.eventId} must preserve the reviewed Worlds phase status`,
     );
     requireValue(registry.tournamentRules?.bracket?.groupCount === 32, `${registry.eventId} must preserve the reviewed 32-pool shell`);
     requireValue(registry.tournamentRules?.bracket?.advancersPerGroup === 2, `${registry.eventId} must preserve two advancers per pool`);
     requireValue(registry.tournamentRules?.bracket?.finalStage === "double-elimination", `${registry.eventId} must preserve the reviewed final stage`);
   } else {
+    requireValue(registry.rosterReady === false, `${registry.eventId} cannot open without a reviewed roster`);
+    requireValue(registry.rosterStatus === "waiting-for-official-roster", `${registry.eventId} roster status must fail closed`);
+    requireValue(registry.predictionStatus === "not-open", `${registry.eventId} prediction saving must remain closed`);
+    requireValue(!Array.isArray(registry.competitors), `${registry.eventId} cannot contain an individual competitor list`);
+    requireValue(!Array.isArray(registry.teams), `${registry.eventId} cannot contain an unreviewed team list`);
     requireValue(
       registry.tournamentRules?.worldsStructureStatus === "official-phase-format-published-roster-groups-and-pairings-pending",
       `${registry.eventId} must preserve the reviewed Worlds phase status`,

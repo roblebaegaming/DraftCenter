@@ -8,7 +8,7 @@ const registry = (name) => JSON.parse(source(`src/data/${name}`));
 const go = registry("worlds-2026-go-sources.json");
 const unite = registry("worlds-2026-unite-sources.json");
 
-test("GO uses a verified individual source contract and 220 CP-slot base", () => {
+test("GO uses the reviewed official qualifier list and 220 CP-slot qualification base", () => {
   assert.deepEqual(validateWorldsSourceRegistry(go), {
     eventId: "2026-pokemon-go",
     entryUnit: "individual",
@@ -17,17 +17,27 @@ test("GO uses a verified individual source contract and 220 CP-slot base", () =>
   assert.equal(go.qualificationRules.championshipPointSlots.reduce((sum, zone) => sum + zone.slots, 0), 220);
   assert.deepEqual(go.qualificationRules.separatePrograms, ["Japan", "South Korea", "Mainland China", "Asia-Pacific"]);
   assert.equal(go.qualificationRules.directInvitesPassDown, false);
-  assert.equal(go.tournamentRules.worldsStructureStatus, "official-phase-structure-published-roster-and-pairings-pending");
+  assert.equal(go.tournamentRules.worldsStructureStatus, "official-phase-structure-and-qualified-list-published-registration-pools-and-pairings-pending");
   assert.equal(go.tournamentRules.bracket.groupCount, 32);
   assert.equal(go.tournamentRules.bracket.advancersPerGroup, 2);
   assert.equal(go.tournamentRules.bracket.finalStage, "double-elimination");
   assert.equal(go.tournamentRules.bracket.participantCount, 0);
-  assert.equal(go.competitorPage.status, "discipline-structure-published-roster-not-published");
+  assert.equal(go.competitorPage.status, "official-qualified-identities-published-registration-and-pools-pending");
+  assert.equal(go.rosterReady, true);
+  assert.equal(go.rosterStatus, "official-qualified-list-reviewed");
+  assert.equal(go.predictionStatus, "open");
+  assert.equal(go.status, "invite-earned-not-attendance-confirmed");
+  assert.equal(go.officialQualifiedList.rawGoRows, 370);
+  assert.equal(go.officialQualifiedList.duplicateRowsExcluded, 1);
+  assert.equal(go.officialQualifiedList.deduplicatedGoCompetitors, 369);
+  assert.equal(go.competitors.length, 369);
+  assert.equal(new Set(go.competitors.map(({ slug }) => slug)).size, 369);
+  assert.ok(go.competitors.every(({ division, attendanceStatus }) => division === "Open" && attendanceStatus === "invite_earned"));
   assert.equal(go.predictionDesign.pickCount, 10);
   assert.equal(go.predictionDesign.selectionLabel, "Your Champion");
   assert.equal(go.predictionDesign.selectionMultiplier, 2);
   assert.equal(go.resultAutomation.status, "unconfigured");
-  assert.equal("competitors" in go, false);
+  assert.equal(go.sourceUrl, "https://worlds.pokemon.com/en-us/about/qualified/");
 });
 
 test("UNITE uses teams and models the 15 TPCi-managed qualification awards", () => {
@@ -50,6 +60,7 @@ test("UNITE uses teams and models the 15 TPCi-managed qualification awards", () 
 
 test("the source registry validator fails closed on unsafe identity or source changes", () => {
   assert.throws(() => validateWorldsSourceRegistry({ ...go, entryUnit: "team" }), /must use individual entries/);
+  assert.throws(() => validateWorldsSourceRegistry({ ...go, rosterReady: false }), /requires the reviewed official qualified list/);
   assert.throws(() => validateWorldsSourceRegistry({ ...unite, rosterReady: true }), /cannot open without a reviewed roster/);
   assert.throws(() => validateWorldsSourceRegistry({ ...unite, teams: [{ name: "Unreviewed" }] }), /unreviewed team list/);
   assert.throws(() => validateWorldsSourceRegistry({
@@ -65,35 +76,40 @@ test("the source registry validator fails closed on unsafe identity or source ch
     tournamentRules: { ...go.tournamentRules, bracket: { ...go.tournamentRules.bracket, groupCount: 31 } },
   }), /32-pool shell/);
   assert.throws(() => validateWorldsSourceRegistry({
+    ...go,
+    competitors: go.competitors.map((competitor, index) => index === go.competitors.length - 1 ? { ...competitor, slug: go.competitors[0].slug } : competitor),
+  }), /competitor slugs must be unique/);
+  assert.throws(() => validateWorldsSourceRegistry({
     ...unite,
     tournamentRules: { ...unite.tournamentRules, bracketStage: { ...unite.tournamentRules.bracketStage, format: "double-elimination" } },
   }), /single-elimination playoffs/);
 });
 
-test("GO and UNITE pages expose readiness without picks, names, or implied automation", () => {
+test("GO publishes the reviewed Pick 10 page while UNITE stays fail-closed", () => {
   const component = source("src/components/WorldsFutureCompetitionSetup.jsx");
   const goPage = source("src/app/worlds/2026/go/page.js");
   const unitePage = source("src/app/worlds/2026/unite/page.js");
 
   assert.match(component, /<h1>\{gameLabel\} predictions are staged, not guessed\.<\/h1>/);
-  assert.match(component, /const gameLabel = isGo \? "Pokémon GO" : "Pokémon UNITE"/);
   assert.match(component, /Predictions belong to teams, not five player picks/);
   assert.match(component, /no names, prediction controls, saved entries, or results polling will appear/);
   assert.match(component, /not permission to collect or infer private age data/);
   assert.match(component, /Polling remains off until a structured feed and permission are confirmed/);
-  assert.match(component, /32 pools feed a double-elimination final stage/);
   assert.match(component, /Round-robin groups feed single-elimination playoffs/);
-  assert.match(component, /The shell still contained zero players at the August 11 source check/);
   assert.match(component, /group size and group match length will be announced on-site/);
   assert.doesNotMatch(component, /save_worlds_pick_entry/);
   assert.doesNotMatch(component, /createClient/);
   assert.match(goPage, /canonical: "\/worlds\/2026\/go"/);
+  assert.match(goPage, /worlds-2026-go-sources\.json/);
+  assert.match(goPage, /discipline="go"/);
+  assert.doesNotMatch(goPage, /robots:/);
+  assert.match(source("src/components/WorldsPickSixteen.jsx"), /<h1>2026 Pokémon GO Worlds predictions<\/h1>/);
+  assert.doesNotMatch(source("src/components/WorldsPickSixteen.jsx"), /Pokémon Worlds Pokémon GO/);
   assert.match(unitePage, /canonical: "\/worlds\/2026\/unite"/);
-  assert.match(goPage, /robots: \{ index: false, follow: true \}/);
   assert.match(unitePage, /robots: \{ index: false, follow: true \}/);
 });
 
-test("the Worlds hub links both source audits but keeps unfinished routes out of the sitemap", () => {
+test("the Worlds hub opens GO while keeping unfinished UNITE out of the sitemap", () => {
   const hub = source("src/components/WorldsPredictionsHub.jsx");
   const nav = source("src/components/WorldsDisciplineNav.jsx");
   const sitemap = source("src/app/sitemap.js");
@@ -103,12 +119,13 @@ test("the Worlds hub links both source audits but keeps unfinished routes out of
   assert.match(nav, /href: "\/worlds\/2026\/unite"/);
   assert.match(hub, /href="\/worlds\/2026\/go"/);
   assert.match(hub, /href="\/worlds\/2026\/unite"/);
-  assert.match(hub, /Picks will open after the registered Trainers and pool assignments are published and reviewed/);
+  assert.match(hub, /Pick 10 qualified Pokémon GO Trainers and choose Your Champion/);
+  assert.match(hub, /Make GO picks/);
   assert.match(hub, /Team predictions still need the registered teams, group assignments, and playoff bracket/);
-  assert.doesNotMatch(sitemap, /\/worlds\/2026\/go/);
+  assert.match(sitemap, /\/worlds\/2026\/go/);
   assert.doesNotMatch(sitemap, /\/worlds\/2026\/unite/);
-  assert.match(llms, /Pokémon GO Worlds prediction source audit/);
+  assert.match(llms, /Pokémon GO Worlds Predictions/);
   assert.match(llms, /Pokémon UNITE Worlds prediction source audit/);
-  assert.match(llms, /official GO format uses 32 pools advancing two Trainers each into double elimination/);
-  assert.match(llms, /official UNITE format uses round-robin groups followed by single-elimination playoffs/);
+  assert.match(llms, /369 unique Pokémon GO qualifiers/);
+  assert.match(llms, /Pokémon UNITE remains closed while its teams, groups, advancement details, and playoff pairings are reviewed/);
 });

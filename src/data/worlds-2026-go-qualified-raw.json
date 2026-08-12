@@ -1,0 +1,1861 @@
+{
+  "sourceUrl": "https://worlds.pokemon.com/en-us/about/qualified/",
+  "sourceDataUrl": "https://worlds.pokemon.com/api/1/site/content_store/item.json?url=/site/website/en-us/about/qualified/index.xml&flatten=true",
+  "sourceCheckedAt": "2026-08-11",
+  "componentLastModifiedAt": "2026-08-04T22:48:33.838Z",
+  "pageDescription": "Discover which competitors earned an invitation to compete at the 2026 Pokémon World Championships.",
+  "game": "GO",
+  "rawRowCount": 370,
+  "rows": [
+    {
+      "displayName": "Makoto Abe",
+      "countryCode": "JP",
+      "region": "Japan"
+    },
+    {
+      "displayName": "Blair Abril",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "Audrey Acker",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "Rasyid Adam",
+      "countryCode": "ID",
+      "region": "Indonesia"
+    },
+    {
+      "displayName": "RIFQI ADITYA",
+      "countryCode": "ID",
+      "region": "Indonesia"
+    },
+    {
+      "displayName": "MUGDHESH AGALAVE",
+      "countryCode": "IN",
+      "region": "India"
+    },
+    {
+      "displayName": "SUVANSH AJMANI",
+      "countryCode": "IN",
+      "region": "India"
+    },
+    {
+      "displayName": "MUHAMMAD AKBAR",
+      "countryCode": "ID",
+      "region": "Indonesia"
+    },
+    {
+      "displayName": "Pranav Akhand",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "Nader Almaskeen",
+      "countryCode": "SA",
+      "region": "Middle East & South Africa"
+    },
+    {
+      "displayName": "Marcos Alvarez",
+      "countryCode": "MX",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "Alex Anderson",
+      "countryCode": "AU",
+      "region": "Oceania"
+    },
+    {
+      "displayName": "Pablo Andina",
+      "countryCode": "ES",
+      "region": "Europe"
+    },
+    {
+      "displayName": "Arianna Andrews",
+      "countryCode": "CA",
+      "region": "North America"
+    },
+    {
+      "displayName": "Fareed Anees",
+      "countryCode": "GB",
+      "region": "Europe"
+    },
+    {
+      "displayName": "Takumi Aoyagi",
+      "countryCode": "JP",
+      "region": "Japan"
+    },
+    {
+      "displayName": "METHASIT APIORANROJ",
+      "countryCode": "TH",
+      "region": "Thailand"
+    },
+    {
+      "displayName": "Dilson Ivan Arevalo Pachon",
+      "countryCode": "CO",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "JAVIER ARREGUI",
+      "countryCode": "ES",
+      "region": "Europe"
+    },
+    {
+      "displayName": "Ryojin Ayers",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "Shane Bailey",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "Vinod Ved Bamb",
+      "countryCode": "IN",
+      "region": "India"
+    },
+    {
+      "displayName": "Adriel Barboza Bentos",
+      "countryCode": "BR",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "Josh Bartram",
+      "countryCode": "GB",
+      "region": "Europe"
+    },
+    {
+      "displayName": "Rommel Basora",
+      "countryCode": "MX",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "Andres Bechis",
+      "countryCode": "AR",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "Leonardo Beltrán",
+      "countryCode": "MX",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "Mauro Benítez",
+      "countryCode": "AR",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "Gordon Bill",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "SIDDHARTH BINDAL",
+      "countryCode": "IN",
+      "region": "India"
+    },
+    {
+      "displayName": "Payden Bingham",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "Connor Bogenn",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "Tatch Bollard",
+      "countryCode": "AU",
+      "region": "Oceania"
+    },
+    {
+      "displayName": "Marcus Borger",
+      "countryCode": "NO",
+      "region": "Europe"
+    },
+    {
+      "displayName": "Corey Bowman",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "Romain Brehon",
+      "countryCode": "FR",
+      "region": "Europe"
+    },
+    {
+      "displayName": "Gabriel Bromley",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "Lucas Henrique Bucci de Landa",
+      "countryCode": "BR",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "David Bustos Nordgren",
+      "countryCode": "SE",
+      "region": "Europe"
+    },
+    {
+      "displayName": "Daniel Caballero",
+      "countryCode": "PE",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "Ricardo Esteban Cáceres Prada",
+      "countryCode": "CL",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "Javier Calihua",
+      "countryCode": "MX",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "Alexis Calles",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "Federico Cammarota",
+      "countryCode": "AR",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "Egon Cardenas",
+      "countryCode": "AU",
+      "region": "Oceania"
+    },
+    {
+      "displayName": "Pedro Carrizo",
+      "countryCode": "CL",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "Joshua Carter",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "Victor Carvalho",
+      "countryCode": "BR",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "Aureo Luis Cerezer",
+      "countryCode": "BR",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "Vitor Chagas",
+      "countryCode": "BR",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "CHU-WEN CHANG",
+      "countryCode": "TW",
+      "region": "Taiwan"
+    },
+    {
+      "displayName": "TANUJ CHAUDHURI",
+      "countryCode": "IN",
+      "region": "India"
+    },
+    {
+      "displayName": "Mike Chen",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "HENG YI CHEN",
+      "countryCode": "TW",
+      "region": "Taiwan"
+    },
+    {
+      "displayName": "WEI YU CHEN",
+      "countryCode": "TW",
+      "region": "Taiwan"
+    },
+    {
+      "displayName": "YIP KAI CHENG",
+      "countryCode": "CN",
+      "region": "Chinese Mainland"
+    },
+    {
+      "displayName": "YU-CHEN CHIU",
+      "countryCode": "TW",
+      "region": "Taiwan"
+    },
+    {
+      "displayName": "HOSEONG CHOE",
+      "countryCode": "KR",
+      "region": "South Korea"
+    },
+    {
+      "displayName": "SIWOO CHOI",
+      "countryCode": "KR",
+      "region": "South Korea"
+    },
+    {
+      "displayName": "DENI CHRISTOPER",
+      "countryCode": "ID",
+      "region": "Indonesia"
+    },
+    {
+      "displayName": "Alfonso Collado",
+      "countryCode": "ES",
+      "region": "Europe"
+    },
+    {
+      "displayName": "Leonardo Contreas",
+      "countryCode": "GB",
+      "region": "Europe"
+    },
+    {
+      "displayName": "Josh Cooper",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "João Correia",
+      "countryCode": "PT",
+      "region": "Europe"
+    },
+    {
+      "displayName": "Esteban Coser",
+      "countryCode": "AR",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "Arnaldo Costa",
+      "countryCode": "BR",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "Bernardo Coutinho",
+      "countryCode": "BR",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "Sean Curran",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "Anton Dahlgren",
+      "countryCode": "SE",
+      "region": "Europe"
+    },
+    {
+      "displayName": "Kobayashi Daigo",
+      "countryCode": "JP",
+      "region": "Japan"
+    },
+    {
+      "displayName": "EKAGRA DAS",
+      "countryCode": "IN",
+      "region": "India"
+    },
+    {
+      "displayName": "James Davidson",
+      "countryCode": "ZA",
+      "region": "Middle East & South Africa"
+    },
+    {
+      "displayName": "Rufino De Bondt",
+      "countryCode": "BE",
+      "region": "Europe"
+    },
+    {
+      "displayName": "Billy DE LA CRUZ",
+      "countryCode": "FR",
+      "region": "Europe"
+    },
+    {
+      "displayName": "Inias De Meyer",
+      "countryCode": "BE",
+      "region": "Europe"
+    },
+    {
+      "displayName": "Carlos Eduardo de Oliveira Lacerda",
+      "countryCode": "BR",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "Laurens de Ruiter",
+      "countryCode": "NL",
+      "region": "Europe"
+    },
+    {
+      "displayName": "Bruno de Souza Godoi Fred",
+      "countryCode": "BR",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "Aleandro Di Loreto",
+      "countryCode": "IT",
+      "region": "Europe"
+    },
+    {
+      "displayName": "Emilio Diaz",
+      "countryCode": "CL",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "Wouter Didden",
+      "countryCode": "BE",
+      "region": "Europe"
+    },
+    {
+      "displayName": "Henrique Diesel Dietrich",
+      "countryCode": "BR",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "Adrián Díez",
+      "countryCode": "ES",
+      "region": "Europe"
+    },
+    {
+      "displayName": "Alex Doone",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "Bruce dos Santos",
+      "countryCode": "BR",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "Baptiste Drieu La Rochelle",
+      "countryCode": "AU",
+      "region": "Oceania"
+    },
+    {
+      "displayName": "Cordell Dujardin",
+      "countryCode": "FR",
+      "region": "Europe"
+    },
+    {
+      "displayName": "Abhinav Dutt",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "Benjamin Dweck",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "William Dwyer",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "Bechir ayoub Elkebir",
+      "countryCode": "DE",
+      "region": "Europe"
+    },
+    {
+      "displayName": "Maxwell Ember",
+      "countryCode": "CH",
+      "region": "Europe"
+    },
+    {
+      "displayName": "Matt Farrell",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "Emmanuel Fasil",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "Aaron Faulkner",
+      "countryCode": "GB",
+      "region": "Europe"
+    },
+    {
+      "displayName": "Jack Fearn",
+      "countryCode": "GB",
+      "region": "Europe"
+    },
+    {
+      "displayName": "Bartłomiej Filipczak",
+      "countryCode": "PL",
+      "region": "Europe"
+    },
+    {
+      "displayName": "Alessandro Fissore",
+      "countryCode": "IT",
+      "region": "Europe"
+    },
+    {
+      "displayName": "David Fitzgerald",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "Paige Fitzgerald",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "Jack Fitzpatrick",
+      "countryCode": "AU",
+      "region": "Oceania"
+    },
+    {
+      "displayName": "Luis Fernando Flores Ruiz",
+      "countryCode": "MX",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "Gabriel Fonseca",
+      "countryCode": "BR",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "Greg Fortier",
+      "countryCode": "AU",
+      "region": "Oceania"
+    },
+    {
+      "displayName": "Hernán Franchino",
+      "countryCode": "CL",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "Sean Gadasy",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "Martin Galderisi",
+      "countryCode": "AR",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "Luis Eduardo Galicia Pérez",
+      "countryCode": "MX",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "Jamie Gallagher",
+      "countryCode": "GB",
+      "region": "Europe"
+    },
+    {
+      "displayName": "Tomas Ezequiel Gallardo",
+      "countryCode": "AR",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "André Garavello",
+      "countryCode": "BR",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "Christian Paul Garcia Aguilar",
+      "countryCode": "MX",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "Francisco Manuel García Menchaca",
+      "countryCode": "MX",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "Ricardo Gonzalez",
+      "countryCode": "MX",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "Bastian Gonzalez",
+      "countryCode": "CL",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "Yamato Goto",
+      "countryCode": "JP",
+      "region": "Japan"
+    },
+    {
+      "displayName": "Sameep Grover",
+      "countryCode": "CA",
+      "region": "North America"
+    },
+    {
+      "displayName": "Eddy Guan",
+      "countryCode": "CA",
+      "region": "North America"
+    },
+    {
+      "displayName": "Samy Guglielmino",
+      "countryCode": "PE",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "Joshua Guzman",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "Valérian Hanny",
+      "countryCode": "FR",
+      "region": "Europe"
+    },
+    {
+      "displayName": "Kentaro Harada",
+      "countryCode": "JP",
+      "region": "Japan"
+    },
+    {
+      "displayName": "Samuel Hardy",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "Moegsien Harris",
+      "countryCode": "ZA",
+      "region": "Middle East & South Africa"
+    },
+    {
+      "displayName": "Teddy Harvey",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "Jy Heath",
+      "countryCode": "AU",
+      "region": "Oceania"
+    },
+    {
+      "displayName": "Aiden Hedderly",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "Gabriel Hernández",
+      "countryCode": "MX",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "MUHAMMAD HIDAYAT",
+      "countryCode": "ID",
+      "region": "Indonesia"
+    },
+    {
+      "displayName": "Kaito Higa",
+      "countryCode": "JP",
+      "region": "Japan"
+    },
+    {
+      "displayName": "Hunter Hintz",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "Oshima Hiroyuki",
+      "countryCode": "JP",
+      "region": "Japan"
+    },
+    {
+      "displayName": "Philip Ho",
+      "countryCode": "GB",
+      "region": "Europe"
+    },
+    {
+      "displayName": "Ana Hoffman",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "Liam Högberg",
+      "countryCode": "SE",
+      "region": "Europe"
+    },
+    {
+      "displayName": "Pascal Hohlfeld",
+      "countryCode": "DE",
+      "region": "Europe"
+    },
+    {
+      "displayName": "Carlos Holguín",
+      "countryCode": "MX",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "Hiroto Homma",
+      "countryCode": "JP",
+      "region": "Japan"
+    },
+    {
+      "displayName": "Mao Hotta",
+      "countryCode": "JP",
+      "region": "Japan"
+    },
+    {
+      "displayName": "Jim Huang",
+      "countryCode": "AU",
+      "region": "Oceania"
+    },
+    {
+      "displayName": "PO-JUI HUANG",
+      "countryCode": "TW",
+      "region": "Taiwan"
+    },
+    {
+      "displayName": "Brandon Hubbard",
+      "countryCode": "GB",
+      "region": "Europe"
+    },
+    {
+      "displayName": "Ayasa Ideriha",
+      "countryCode": "JP",
+      "region": "Japan"
+    },
+    {
+      "displayName": "Daniel Imaizumi",
+      "countryCode": "BR",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "SM GHAZANFAR IMAM",
+      "countryCode": "IN",
+      "region": "India"
+    },
+    {
+      "displayName": "Alessio Innocenti",
+      "countryCode": "IT",
+      "region": "Europe"
+    },
+    {
+      "displayName": "Daisuke Itani",
+      "countryCode": "JP",
+      "region": "Japan"
+    },
+    {
+      "displayName": "Sei Iwata",
+      "countryCode": "JP",
+      "region": "Japan"
+    },
+    {
+      "displayName": "John Jackman",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "Matthew Jackson",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "Justin Janssen",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "Andy Jaquez",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "Angel Jaramillo",
+      "countryCode": "MX",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "jacob jean",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "Kyle Jeffs",
+      "countryCode": "CA",
+      "region": "North America"
+    },
+    {
+      "displayName": "JUYEONG JEONG",
+      "countryCode": "KR",
+      "region": "South Korea"
+    },
+    {
+      "displayName": "Luke Jonkers",
+      "countryCode": "ZA",
+      "region": "Middle East & South Africa"
+    },
+    {
+      "displayName": "JUSTIN JOSEPH",
+      "countryCode": "IN",
+      "region": "India"
+    },
+    {
+      "displayName": "MIHIR JOSHI",
+      "countryCode": "IN",
+      "region": "India"
+    },
+    {
+      "displayName": "Filipe Junqueira Pedras Passos",
+      "countryCode": "BR",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "Masatoshi Kai",
+      "countryCode": "JP",
+      "region": "Japan"
+    },
+    {
+      "displayName": "Yusuke Kakara",
+      "countryCode": "JP",
+      "region": "Japan"
+    },
+    {
+      "displayName": "Lucas Kanan",
+      "countryCode": "BR",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "Kelsey Kaplan",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "Aaron Kaplan",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "ELSAN KARUNIAWAN",
+      "countryCode": "ID",
+      "region": "Indonesia"
+    },
+    {
+      "displayName": "Andrew Kazenas",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "MD ASAD KAZMI",
+      "countryCode": "IN",
+      "region": "India"
+    },
+    {
+      "displayName": "Enomoto Keita",
+      "countryCode": "JP",
+      "region": "Japan"
+    },
+    {
+      "displayName": "Asim-Ali Khan",
+      "countryCode": "GB",
+      "region": "Europe"
+    },
+    {
+      "displayName": "JONGSU KIM",
+      "countryCode": "KR",
+      "region": "South Korea"
+    },
+    {
+      "displayName": "Jonghyun Kim",
+      "countryCode": "JP",
+      "region": "Japan"
+    },
+    {
+      "displayName": "Aathman Kirubaharan",
+      "countryCode": "CA",
+      "region": "North America"
+    },
+    {
+      "displayName": "YUKI KISHIDA",
+      "countryCode": "JP",
+      "region": "Japan"
+    },
+    {
+      "displayName": "Yuki Kishida",
+      "countryCode": "JP",
+      "region": "Japan"
+    },
+    {
+      "displayName": "Naoto Kishida",
+      "countryCode": "JP",
+      "region": "Japan"
+    },
+    {
+      "displayName": "Kento Kishita",
+      "countryCode": "JP",
+      "region": "Japan"
+    },
+    {
+      "displayName": "Tetsuya Koga",
+      "countryCode": "JP",
+      "region": "Japan"
+    },
+    {
+      "displayName": "Hongo Koki",
+      "countryCode": "JP",
+      "region": "Japan"
+    },
+    {
+      "displayName": "Inoue Koki",
+      "countryCode": "JP",
+      "region": "Japan"
+    },
+    {
+      "displayName": "Alexander König",
+      "countryCode": "DE",
+      "region": "Europe"
+    },
+    {
+      "displayName": "Leonard König",
+      "countryCode": "DE",
+      "region": "Europe"
+    },
+    {
+      "displayName": "Takuya Kono",
+      "countryCode": "JP",
+      "region": "Japan"
+    },
+    {
+      "displayName": "KANCH KRUASUWAN",
+      "countryCode": "TH",
+      "region": "Thailand"
+    },
+    {
+      "displayName": "Naoya Kurihara",
+      "countryCode": "JP",
+      "region": "Japan"
+    },
+    {
+      "displayName": "Tatsuki Kuromori",
+      "countryCode": "CA",
+      "region": "North America"
+    },
+    {
+      "displayName": "Adam Kury",
+      "countryCode": "AU",
+      "region": "Oceania"
+    },
+    {
+      "displayName": "Jerald La Madrid",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "Cristian Lago",
+      "countryCode": "ES",
+      "region": "Europe"
+    },
+    {
+      "displayName": "Ali Lahrime",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "AARON LAI",
+      "countryCode": "CN",
+      "region": "Chinese Mainland"
+    },
+    {
+      "displayName": "WEI-KAI LAI",
+      "countryCode": "TW",
+      "region": "Taiwan"
+    },
+    {
+      "displayName": "Andre Lancini",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "bo langmaack",
+      "countryCode": "DE",
+      "region": "Europe"
+    },
+    {
+      "displayName": "Cody Lawson",
+      "countryCode": "CA",
+      "region": "North America"
+    },
+    {
+      "displayName": "JOOYEON LEE",
+      "countryCode": "KR",
+      "region": "South Korea"
+    },
+    {
+      "displayName": "Pawat Lewnaparoj",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "Zhenghao Lin",
+      "countryCode": "NL",
+      "region": "Europe"
+    },
+    {
+      "displayName": "Jonathan Lo",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "Jesus Eduardo Lomas Basto",
+      "countryCode": "MX",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "Nils Lundström",
+      "countryCode": "SE",
+      "region": "Europe"
+    },
+    {
+      "displayName": "obed macedo",
+      "countryCode": "MX",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "Borja Macias nuñez",
+      "countryCode": "ES",
+      "region": "Europe"
+    },
+    {
+      "displayName": "Art Justin Maloco",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "Ewerton Malvezzi",
+      "countryCode": "BR",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "Emanuele Manco",
+      "countryCode": "IT",
+      "region": "Europe"
+    },
+    {
+      "displayName": "Elijah Marburger",
+      "countryCode": "JP",
+      "region": "Japan"
+    },
+    {
+      "displayName": "Leo Marín Torres",
+      "countryCode": "ES",
+      "region": "Europe"
+    },
+    {
+      "displayName": "Thomas MARTIN",
+      "countryCode": "FR",
+      "region": "Europe"
+    },
+    {
+      "displayName": "Alec Martin",
+      "countryCode": "FR",
+      "region": "Europe"
+    },
+    {
+      "displayName": "Hayden Martinez",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "Anan Masuda",
+      "countryCode": "JP",
+      "region": "Japan"
+    },
+    {
+      "displayName": "Ryan Matson",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "Ayumu Matsuda",
+      "countryCode": "JP",
+      "region": "Japan"
+    },
+    {
+      "displayName": "Jasper McAvity",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "Andrew Medhurst",
+      "countryCode": "GB",
+      "region": "Europe"
+    },
+    {
+      "displayName": "Oswaldo Medina Rodríguez",
+      "countryCode": "MX",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "Adan Mejia",
+      "countryCode": "MX",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "Gilmar Mejía",
+      "countryCode": "SV",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "sergio merino escutia",
+      "countryCode": "MX",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "Joseph Middleton",
+      "countryCode": "GB",
+      "region": "Europe"
+    },
+    {
+      "displayName": "Miłosz Misiołek",
+      "countryCode": "PL",
+      "region": "Europe"
+    },
+    {
+      "displayName": "Yuga Mita",
+      "countryCode": "JP",
+      "region": "Japan"
+    },
+    {
+      "displayName": "Kazuhiro Mitsuta",
+      "countryCode": "JP",
+      "region": "Japan"
+    },
+    {
+      "displayName": "Alexander Montalvo",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "Cristóbal Morales Pavat",
+      "countryCode": "CL",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "ramses morales velasquez",
+      "countryCode": "MX",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "Keito Morita",
+      "countryCode": "JP",
+      "region": "Japan"
+    },
+    {
+      "displayName": "Nathan Mortensen",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "Paulo Mosquera",
+      "countryCode": "BR",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "Petr Müller",
+      "countryCode": "CZ",
+      "region": "Europe"
+    },
+    {
+      "displayName": "Julia Muniz",
+      "countryCode": "BR",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "Amit Nahmias",
+      "countryCode": "IL",
+      "region": "Middle East & South Africa"
+    },
+    {
+      "displayName": "Satomi Nakashima",
+      "countryCode": "JP",
+      "region": "Japan"
+    },
+    {
+      "displayName": "Jose Alberto Nava Rojas",
+      "countryCode": "MX",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "KAI RUI ALDRIC NG",
+      "countryCode": "SG",
+      "region": "Singapore"
+    },
+    {
+      "displayName": "Hieu Nguyen",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "Haruki Nishimura",
+      "countryCode": "JP",
+      "region": "Japan"
+    },
+    {
+      "displayName": "Seto Nobuhiko",
+      "countryCode": "JP",
+      "region": "Japan"
+    },
+    {
+      "displayName": "David Norris",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "Katsunari Oda",
+      "countryCode": "JP",
+      "region": "Japan"
+    },
+    {
+      "displayName": "Yuki Ohama",
+      "countryCode": "JP",
+      "region": "Japan"
+    },
+    {
+      "displayName": "Jonasz Oleś",
+      "countryCode": "PL",
+      "region": "Europe"
+    },
+    {
+      "displayName": "Tateyama Osamu",
+      "countryCode": "JP",
+      "region": "Japan"
+    },
+    {
+      "displayName": "Derek Oudie",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "HYUNWOO PARK",
+      "countryCode": "KR",
+      "region": "South Korea"
+    },
+    {
+      "displayName": "Jacob Parra",
+      "countryCode": "CA",
+      "region": "North America"
+    },
+    {
+      "displayName": "Sean Pawlowski",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "Michelle Payne",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "Sebastián Pazos",
+      "countryCode": "CL",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "HO PEI-CHIN",
+      "countryCode": "TW",
+      "region": "Taiwan"
+    },
+    {
+      "displayName": "Caleb Peng",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "Luis Pérez capistran",
+      "countryCode": "MX",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "Rikus Pilat",
+      "countryCode": "NL",
+      "region": "Europe"
+    },
+    {
+      "displayName": "Szymon Płotka",
+      "countryCode": "PL",
+      "region": "Europe"
+    },
+    {
+      "displayName": "Kurt Potgieter",
+      "countryCode": "ZA",
+      "region": "Middle East & South Africa"
+    },
+    {
+      "displayName": "Max Prasad",
+      "countryCode": "GB",
+      "region": "Europe"
+    },
+    {
+      "displayName": "NAVANEETH Praveen",
+      "countryCode": "IN",
+      "region": "India"
+    },
+    {
+      "displayName": "Brian Prendergast",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "Patryk Przybysz",
+      "countryCode": "PL",
+      "region": "Europe"
+    },
+    {
+      "displayName": "Aurélien Pugin",
+      "countryCode": "CH",
+      "region": "Europe"
+    },
+    {
+      "displayName": "Carlos Rangel",
+      "countryCode": "MX",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "Jeff Reimer",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "Chris Reisner",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "Jorge Gustavo Ribeiro",
+      "countryCode": "BR",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "Gustav Ripperger",
+      "countryCode": "DE",
+      "region": "Europe"
+    },
+    {
+      "displayName": "Garcia Rivera",
+      "countryCode": "MX",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "Carlos Abraham Rocha Hernandez",
+      "countryCode": "MX",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "Marcus Rock",
+      "countryCode": "AU",
+      "region": "Oceania"
+    },
+    {
+      "displayName": "Marcos Rodriguez",
+      "countryCode": "ES",
+      "region": "Europe"
+    },
+    {
+      "displayName": "Gonzalo Rojas",
+      "countryCode": "CL",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "Ilam Rojas Guerrero",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "Jacob Rosenberg",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "AUSTIN PRINCE SAKAYARAJ",
+      "countryCode": "IN",
+      "region": "India"
+    },
+    {
+      "displayName": "Yoshito Sakurabara",
+      "countryCode": "JP",
+      "region": "Japan"
+    },
+    {
+      "displayName": "Santiago Sánchez Lozano",
+      "countryCode": "ES",
+      "region": "Europe"
+    },
+    {
+      "displayName": "Michel Andrew Sánchez Manjarrez",
+      "countryCode": "MX",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "Nicolas Santillan",
+      "countryCode": "AR",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "Neo Sasaki",
+      "countryCode": "JP",
+      "region": "Japan"
+    },
+    {
+      "displayName": "Satoshi Sasaki",
+      "countryCode": "JP",
+      "region": "Japan"
+    },
+    {
+      "displayName": "Yamato Sasaki",
+      "countryCode": "JP",
+      "region": "Japan"
+    },
+    {
+      "displayName": "federico scafidi",
+      "countryCode": "IT",
+      "region": "Europe"
+    },
+    {
+      "displayName": "Andrea Scala",
+      "countryCode": "IT",
+      "region": "Europe"
+    },
+    {
+      "displayName": "Diederik Schiet",
+      "countryCode": "NL",
+      "region": "Europe"
+    },
+    {
+      "displayName": "Heather Schirra",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "Karim Sedaoui",
+      "countryCode": "GB",
+      "region": "Europe"
+    },
+    {
+      "displayName": "TIWAT SEEARAMROONGRUANG",
+      "countryCode": "TH",
+      "region": "Thailand"
+    },
+    {
+      "displayName": "TIMOTHY SETIAWAN",
+      "countryCode": "ID",
+      "region": "Indonesia"
+    },
+    {
+      "displayName": "PRITHVI SHARMA",
+      "countryCode": "IN",
+      "region": "India"
+    },
+    {
+      "displayName": "YOGESH SHARMA",
+      "countryCode": "IN",
+      "region": "India"
+    },
+    {
+      "displayName": "Taichi Shimokawa",
+      "countryCode": "JP",
+      "region": "Japan"
+    },
+    {
+      "displayName": "Masashi Shimura",
+      "countryCode": "JP",
+      "region": "Japan"
+    },
+    {
+      "displayName": "ryan shoushi",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "Jan Sikorski",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "ABHIGYAN SINGH",
+      "countryCode": "IN",
+      "region": "India"
+    },
+    {
+      "displayName": "RICA SMOLINSKI",
+      "countryCode": "PH",
+      "region": "Philippines"
+    },
+    {
+      "displayName": "Felipe Solis",
+      "countryCode": "CL",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "DAANISH SONI",
+      "countryCode": "IN",
+      "region": "India"
+    },
+    {
+      "displayName": "Sergio Hernan Soria",
+      "countryCode": "AR",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "Paula Sosa",
+      "countryCode": "ES",
+      "region": "Europe"
+    },
+    {
+      "displayName": "Colin Spa",
+      "countryCode": "NL",
+      "region": "Europe"
+    },
+    {
+      "displayName": "Kelvin Spa",
+      "countryCode": "NL",
+      "region": "Europe"
+    },
+    {
+      "displayName": "Damian Sromek",
+      "countryCode": "PL",
+      "region": "Europe"
+    },
+    {
+      "displayName": "Jessica Stella",
+      "countryCode": "AU",
+      "region": "Oceania"
+    },
+    {
+      "displayName": "SARADISUK SUKSAWAT",
+      "countryCode": "TH",
+      "region": "Thailand"
+    },
+    {
+      "displayName": "Yuxing Sun",
+      "countryCode": "CA",
+      "region": "North America"
+    },
+    {
+      "displayName": "William Suryajaya",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "Kazuma Suwa",
+      "countryCode": "JP",
+      "region": "Japan"
+    },
+    {
+      "displayName": "Skyler Sy",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "Paweł Szczur",
+      "countryCode": "PL",
+      "region": "Europe"
+    },
+    {
+      "displayName": "Maeda Taiki",
+      "countryCode": "JP",
+      "region": "Japan"
+    },
+    {
+      "displayName": "Kibino Takeru",
+      "countryCode": "JP",
+      "region": "Japan"
+    },
+    {
+      "displayName": "Okuyama Takuro",
+      "countryCode": "JP",
+      "region": "Japan"
+    },
+    {
+      "displayName": "KIN CHUNG TAM",
+      "countryCode": "HK",
+      "region": "Hong Kong"
+    },
+    {
+      "displayName": "Takuto Tanaka",
+      "countryCode": "JP",
+      "region": "Japan"
+    },
+    {
+      "displayName": "Hiroki Tanaka",
+      "countryCode": "JP",
+      "region": "Japan"
+    },
+    {
+      "displayName": "Frank Tantillo",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "Robin te Laar",
+      "countryCode": "DE",
+      "region": "Europe"
+    },
+    {
+      "displayName": "Laurent Thoeny",
+      "countryCode": "CH",
+      "region": "Europe"
+    },
+    {
+      "displayName": "Carlos Ivan Tinajar Bernabe",
+      "countryCode": "MX",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "Takamatsu Tomoki",
+      "countryCode": "JP",
+      "region": "Japan"
+    },
+    {
+      "displayName": "Joeddy Torres Loyola",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "Kurita Toshiki",
+      "countryCode": "JP",
+      "region": "Japan"
+    },
+    {
+      "displayName": "Gerardo Treviño",
+      "countryCode": "MX",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "Shota Uchikawa",
+      "countryCode": "JP",
+      "region": "Japan"
+    },
+    {
+      "displayName": "Tomoya Uda",
+      "countryCode": "JP",
+      "region": "Japan"
+    },
+    {
+      "displayName": "Keitaro Ukitsu",
+      "countryCode": "JP",
+      "region": "Japan"
+    },
+    {
+      "displayName": "Manuel Valenzuela",
+      "countryCode": "CL",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "Angello Valer",
+      "countryCode": "PE",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "Vicente Verdeguer",
+      "countryCode": "ES",
+      "region": "Europe"
+    },
+    {
+      "displayName": "David Vergara",
+      "countryCode": "CL",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "Martijn Versteeg",
+      "countryCode": "NL",
+      "region": "Europe"
+    },
+    {
+      "displayName": "Victor Javier Vidal Guerrero",
+      "countryCode": "PE",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "Cedric Voigt",
+      "countryCode": "DE",
+      "region": "Europe"
+    },
+    {
+      "displayName": "John Waggoner",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "Stratten Waldt",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "Alice Walker",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "Eric Wang",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "Harry Wang",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "Michał Waszak",
+      "countryCode": "PL",
+      "region": "Europe"
+    },
+    {
+      "displayName": "Junya Watanabe",
+      "countryCode": "JP",
+      "region": "Japan"
+    },
+    {
+      "displayName": "Daniel Wegener",
+      "countryCode": "ZA",
+      "region": "Middle East & South Africa"
+    },
+    {
+      "displayName": "Dominik Wieber",
+      "countryCode": "DE",
+      "region": "Europe"
+    },
+    {
+      "displayName": "Daniel Wigert",
+      "countryCode": "SE",
+      "region": "Europe"
+    },
+    {
+      "displayName": "Tj Williams",
+      "countryCode": "NZ",
+      "region": "Oceania"
+    },
+    {
+      "displayName": "Alan Wong",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "HEI TONG WONG",
+      "countryCode": "HK",
+      "region": "Hong Kong"
+    },
+    {
+      "displayName": "HO KWAN WONG",
+      "countryCode": "HK",
+      "region": "Hong Kong"
+    },
+    {
+      "displayName": "Kevin Wood",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "Dean Woodhouse",
+      "countryCode": "GB",
+      "region": "Europe"
+    },
+    {
+      "displayName": "SHENGDA WU",
+      "countryCode": "TW",
+      "region": "Taiwan"
+    },
+    {
+      "displayName": "Shuhan Xia",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "Shion Yachimori",
+      "countryCode": "JP",
+      "region": "Japan"
+    },
+    {
+      "displayName": "Ren Yamada",
+      "countryCode": "JP",
+      "region": "Japan"
+    },
+    {
+      "displayName": "Takeho Yamagata",
+      "countryCode": "JP",
+      "region": "Japan"
+    },
+    {
+      "displayName": "Kakeru Yamaguchi",
+      "countryCode": "JP",
+      "region": "Japan"
+    },
+    {
+      "displayName": "Hiroki Yamauchi",
+      "countryCode": "JP",
+      "region": "Japan"
+    },
+    {
+      "displayName": "Douglas Yang",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "HSUAN-JUI YANG",
+      "countryCode": "TW",
+      "region": "Taiwan"
+    },
+    {
+      "displayName": "Umeda Yoshihiro",
+      "countryCode": "JP",
+      "region": "Japan"
+    },
+    {
+      "displayName": "SONG YOUNGJUNE",
+      "countryCode": "KR",
+      "region": "South Korea"
+    },
+    {
+      "displayName": "HYEONGJUN YU",
+      "countryCode": "KR",
+      "region": "South Korea"
+    },
+    {
+      "displayName": "Hamada Yu",
+      "countryCode": "JP",
+      "region": "Japan"
+    },
+    {
+      "displayName": "Brandon Yuan",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "Ikegami Yuki",
+      "countryCode": "JP",
+      "region": "Japan"
+    },
+    {
+      "displayName": "David Zavala",
+      "countryCode": "MX",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "Ernesto Zazueta",
+      "countryCode": "MX",
+      "region": "Latin America"
+    },
+    {
+      "displayName": "Bob Zhang",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "Matt Zimmerman",
+      "countryCode": "US",
+      "region": "North America"
+    },
+    {
+      "displayName": "Carlos Zuñiga",
+      "countryCode": "MX",
+      "region": "Latin America"
+    }
+  ]
+}

@@ -61,7 +61,7 @@ export default function Worlds2026Page() {
         itemListElement: [
           { "@type": "ListItem", position: 1, name: "VGC Masters predictions", url: `${canonicalUrl}/vgc` },
           { "@type": "ListItem", position: 2, name: "Pokémon TCG Masters predictions", url: `${canonicalUrl}/tcg` },
-          { "@type": "ListItem", position: 3, name: "Pokémon GO predictions" },
+          { "@type": "ListItem", position: 3, name: "Pokémon GO predictions", url: `${canonicalUrl}/go` },
           { "@type": "ListItem", position: 4, name: "Pokémon UNITE predictions" },
         ],
       },

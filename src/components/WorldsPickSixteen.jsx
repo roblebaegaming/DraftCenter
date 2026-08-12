@@ -193,7 +193,7 @@ export default function WorldsPickSixteen({ rosterSource, discipline = "vgc" }) 
     <section className="worlds-hero">
       <div>
         <span className="eyebrow">POKÉMON WORLDS · SAN FRANCISCO</span>
-        {config.key === "vgc" ? <h1>2026 Pokémon Worlds VGC predictions</h1> : <h1>2026 Pokémon Worlds {config.gameLabel} predictions</h1>}
+        {config.key === "vgc" ? <h1>2026 Pokémon Worlds VGC predictions</h1> : config.key === "go" ? <h1>2026 Pokémon GO Worlds predictions</h1> : <h1>2026 Pokémon Worlds {config.gameLabel} predictions</h1>}
         <p>Pick the 10 {config.entryPlural} you believe in from the reviewed {config.gameLabel} roster. When Worlds finishes, the entry with the strongest collective results wins the DraftCenter community leaderboard.</p>
         <div className="worlds-hero-actions">
           <a className="primary-button inline-link-button" href={user === null ? "/#member-access" : staged ? "#qualified-players" : "#pick-ten"}>{user === null ? "Sign in to predict" : staged ? "Browse reviewed roster" : "Build my 10"}</a>
@@ -207,7 +207,7 @@ export default function WorldsPickSixteen({ rosterSource, discipline = "vgc" }) 
         <strong>Aug 28–30</strong>
         <p>Moscone Center · Championship Sunday at Chase Center</p>
         <dl>
-          <div><dt>Competition</dt><dd>{config.key === "vgc" ? "VGC Masters" : `${config.gameLabel} ${config.division}`}</dd></div>
+          <div><dt>Competition</dt><dd>{config.key === "vgc" ? "VGC Masters" : config.key === "go" ? "Pokémon GO" : `${config.gameLabel} ${config.division}`}</dd></div>
           <div><dt>Entry lock</dt><dd>{displayPacificDate(event.locks_at, true)}</dd></div>
           <div><dt>Roster checked</dt><dd>{displayPacificDate(`${event.roster_checked_at}T12:00:00Z`)}</dd></div>
         </dl>
@@ -281,7 +281,7 @@ export default function WorldsPickSixteen({ rosterSource, discipline = "vgc" }) 
     </section>
 
     <section className="worlds-roster-section" id="qualified-players">
-      <header className="section-heading"><div><span className="eyebrow">2026 {config.gameLabel.toUpperCase()} {config.division.toUpperCase()}</span>{config.key === "vgc" ? <h2>Pokémon Worlds VGC Masters invitee list</h2> : <h2>{config.rosterHeading}</h2>}<p>Browse reviewed {config.entryPlural.toLowerCase()} by name, country code, region, or qualification path.</p></div><strong>{filtered.length} shown</strong></header>
+      <header className="section-heading"><div><span className="eyebrow">2026 {config.gameLabel.toUpperCase()}{config.key === "go" ? "" : ` ${config.division.toUpperCase()}`}</span>{config.key === "vgc" ? <h2>Pokémon Worlds VGC Masters invitee list</h2> : <h2>{config.rosterHeading}</h2>}<p>Browse reviewed {config.entryPlural.toLowerCase()} by name, country code, region, or qualification path.</p></div><strong>{filtered.length} shown</strong></header>
       <aside className="worlds-roster-source" aria-labelledby="worlds-roster-source-heading">
         <div>
           <span className="eyebrow">ROSTER SOURCE</span>
@@ -293,6 +293,10 @@ export default function WorldsPickSixteen({ rosterSource, discipline = "vgc" }) 
             <h3 id="worlds-roster-source-heading">Official TCG Masters qualifiers</h3>
             <p>Pokémon&apos;s Qualified Competitors page lists the Masters competitors who earned an invitation to the 2026 World Championships.</p>
             <small>This is not a confirmed attendance or registration list.</small>
+          </> : config.key === "go" ? <>
+            <h3 id="worlds-roster-source-heading">Official Pokémon GO qualifiers</h3>
+            <p>Pokémon&apos;s Qualified Competitors page lists the Trainers who earned an invitation to the 2026 World Championships.</p>
+            <small>This is not a confirmed attendance, registration, or pool-assignment list.</small>
           </> : <>
             <h3 id="worlds-roster-source-heading">Where this roster comes from</h3>
             <p>This {displayPacificDate(`${rosterSource.sourceCheckedAt || rosterSource.source_checked_at}T12:00:00Z`)} snapshot was compiled from the reviewed 2026 {config.gameLabel} qualification and roster sources.</p>

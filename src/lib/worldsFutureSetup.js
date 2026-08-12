@@ -39,7 +39,7 @@ export const WORLDS_PICK_DISCIPLINES = Object.freeze({
     entryUnit: "individual",
     entrySingular: "Trainer",
     entryPlural: "Trainers",
-    rosterHeading: "Pokémon GO registered Trainer roster",
+    rosterHeading: "Pokémon GO qualified Trainers",
     maximumRawScore: 140,
     pickCount: 10,
     expectedBaseCount: 220,
