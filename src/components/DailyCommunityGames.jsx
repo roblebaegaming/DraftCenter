@@ -473,7 +473,7 @@ export function DailyGameDiscussion({ type, gameId, signedIn, unlocked = true })
   </details>;
 }
 
-export default function DailyCommunityGames({ signedIn, standalone = false }) {
+export default function DailyCommunityGames({ signedIn, standalone = false, betweenGames = null }) {
   const [games, setGames] = useState(null);
   const [previous, setPrevious] = useState(null);
   const [badgeEvents, setBadgeEvents] = useState([]);
@@ -504,8 +504,8 @@ export default function DailyCommunityGames({ signedIn, standalone = false }) {
     window.addEventListener("draftcenter:badge-events", receive);
     return () => window.removeEventListener("draftcenter:badge-events", receive);
   }, []);
-  if (message) return <section className="explore-card"><p className="hub-message">{message}</p></section>;
-  if (!games) return <section className="explore-card"><p className="muted">Loading today’s community games…</p></section>;
+  if (message) return <><section className="explore-card"><p className="hub-message">{message}</p></section>{betweenGames}</>;
+  if (!games) return <><section className="explore-card"><p className="muted">Loading today’s community games…</p></section>{betweenGames}</>;
   async function saved(next){const supabase=createClient();setGames(await addChampionRankings(supabase,next));if(!signedIn)return;const [{data,error},{data:dex}]=await Promise.all([supabase.rpc("refresh_my_daily_games_badges"),supabase.rpc("get_my_trainer_dex")]);setShinyEvents(dex?.new_shinies||[]);if(error)setMessage(error.message);else if(window.location.pathname==="/explore"||standalone)setBadgeEvents(data?.events||[]);else window.dispatchEvent(new CustomEvent("draftcenter:badge-events",{detail:data?.events||[]}));}
   async function dismissBadge(){const event=badgeEvents[0];const supabase=createClient();await supabase.rpc("mark_badge_events_seen",{p_event_ids:[event.id]});setBadgeEvents((current)=>current.slice(1));}
   async function dismissShiny(){const event=shinyEvents[0];const supabase=createClient();await supabase.rpc("mark_trainer_dex_shinies_seen",{p_event_ids:[event.id]});setShinyEvents((current)=>current.slice(1));}
@@ -513,6 +513,7 @@ export default function DailyCommunityGames({ signedIn, standalone = false }) {
     {shinyEvents.length>0&&<div className="badge-award-backdrop"><section className="badge-award-popup trainer-shiny-popup"><span className="eyebrow">SHINY DISCOVERY</span><div>✨</div><h2>Shiny {shinyEvents[0].pokemon}!</h2><p>Your Daily Games discovery rolled a rare shiny form. It is permanently unlocked in your Trainer Dex.</p><button className="primary-button" onClick={dismissShiny}>{shinyEvents.length>1?`Next shiny (${shinyEvents.length-1} more)`:"View today’s games"}</button><a className="quiet-button" href="/trainer-dex">Open Trainer Dex</a></section></div>}
     {badgeEvents.length>0&&<div className="badge-award-backdrop"><section className="badge-award-popup"><div className="badge-confetti">✦ ★ ✧ ★ ✦</div><span className="eyebrow">BADGE EARNED</span><div className="badge-award-icon">{badgeEvents[0].icon}</div><h2>{badgeEvents[0].subject?`${badgeEvents[0].subject} ${badgeEvents[0].name}`:badgeEvents[0].name}</h2><p>{badgeEvents[0].description}</p><button className="primary-button" onClick={dismissBadge}>{badgeEvents.length>1?`Next badge (${badgeEvents.length-1} more)`:"Awesome!"}</button><small>Your badge now appears in Profile.</small></section></div>}
     <DailyBracket bracket={games.bracket} previous={previous?.bracket} signedIn={signedIn} onSaved={saved} />
+    {betweenGames}
     <DailyQuiz quiz={games.quiz} previous={previous?.quiz} signedIn={signedIn} onSaved={saved} />
   </>;
 }

@@ -29,7 +29,7 @@ test("daily games hub leads with DraftCenter and uses safe external links", () =
   const page = source("src/components/DailyGamesResourcesPage.jsx");
   assert.match(page, /href="\/explore"/);
   assert.match(page, /<PollOfTheDay supabase=\{supabase\}\/>/);
-  assert.match(page, /<DailyCommunityGames signedIn=\{signedIn\} standalone\/>/);
+  assert.match(page, /<DailyCommunityGames signedIn=\{signedIn\} standalone betweenGames=/);
   assert.match(page, /<RosterConnections signedIn=\{signedIn\} \/>/);
   assert.match(page, /TODAY’S DAILY GAMES/);
   assert.match(page, /Four fresh Pokémon challenges/);
@@ -41,6 +41,24 @@ test("daily games hub leads with DraftCenter and uses safe external links", () =
   assert.equal((page.match(/target="_blank" rel="noreferrer"/g) || []).length, 1);
   assert.equal((page.match(/loading="lazy"/g) || []).length, 1);
   assert.ok(page.indexOf("daily-game-resource-sections") < page.indexOf("daily-games-seo-content"), "resource cards should appear before supporting SEO content");
+});
+
+test("all Daily Games surfaces restore Connections in a two-by-two bracket-first layout", () => {
+  const games = source("src/components/DailyCommunityGames.jsx");
+  const home = source("src/components/LeagueHub.jsx");
+  const community = source("src/components/PublicExplore.jsx");
+  const hub = source("src/components/DailyGamesResourcesPage.jsx");
+  const styles = source("src/app/globals.css");
+
+  assert.match(games, /if \(message\) return <>[\s\S]*\{betweenGames\}<\/>/);
+  assert.match(games, /if \(!games\) return <>[\s\S]*\{betweenGames\}<\/>/);
+  assert.match(games, /<DailyBracket[\s\S]*\{betweenGames\}[\s\S]*<DailyQuiz/);
+  assert.match(home, /betweenGames=\{<><RosterConnections signedIn \/><PollOfTheDay supabase=\{supabase\} \/><\/>\}/);
+  assert.match(community, /betweenGames=\{<><RosterConnections signedIn=\{signedIn\} \/><section className="explore-card explore-poll">/);
+  assert.match(hub, /betweenGames=\{<><RosterConnections signedIn=\{signedIn\} \/><PollOfTheDay supabase=\{supabase\}\/><\/>\}/);
+  assert.match(styles, /\.daily-trio-grid \{[^}]*grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+  assert.match(styles, /\.dashboard-daily-three \{[^}]*grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+  assert.match(styles, /\.daily-trio-grid > \.poll-card,\.dashboard-daily-three > \.poll-card \{ order:0; \}/);
 });
 
 test("Pokémon Connections creates stable non-overlapping daily puzzles", () => {

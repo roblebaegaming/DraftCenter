@@ -26,7 +26,7 @@ export const metadata = {
 };
 
 export default function Worlds2026TcgPage() {
-  const eventSchema = {
+  const pageSchema = {
     "@context": "https://schema.org",
     "@graph": [
       {
@@ -37,32 +37,11 @@ export default function Worlds2026TcgPage() {
         url: canonicalUrl,
         inLanguage: "en-US",
         isPartOf: { "@id": "https://www.draftcentral.gg/#website" },
-        mainEntity: { "@id": `${canonicalUrl}#event` },
-      },
-      {
-        "@type": "SportsEvent",
-        "@id": `${canonicalUrl}#event`,
-        name: "2026 Pokémon World Championships — TCG Masters",
-        description: "The Masters Division Pokémon Trading Card Game competition at the 2026 Pokémon World Championships in San Francisco.",
-        sport: "Pokémon Trading Card Game",
-        startDate: "2026-08-28",
-        endDate: "2026-08-30",
-        eventStatus: "https://schema.org/EventScheduled",
-        eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
-        location: [
-          {
-            "@type": "Place",
-            name: "Moscone Center",
-            address: { "@type": "PostalAddress", addressLocality: "San Francisco", addressRegion: "CA", addressCountry: "US" },
-          },
-          {
-            "@type": "Place",
-            name: "Chase Center — Championship Sunday",
-            address: { "@type": "PostalAddress", addressLocality: "San Francisco", addressRegion: "CA", addressCountry: "US" },
-          },
-        ],
-        url: canonicalUrl,
-        sameAs: roster.sourceUrl,
+        about: {
+          "@type": "Thing",
+          name: "2026 Pokémon World Championships — TCG Masters",
+          sameAs: roster.sourceUrl,
+        },
       },
       {
         "@type": "BreadcrumbList",
@@ -77,7 +56,7 @@ export default function Worlds2026TcgPage() {
   };
 
   return <>
-    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(eventSchema) }} />
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(pageSchema) }} />
     <WorldsPickSixteen discipline="tcg" rosterSource={roster} />
   </>;
 }
