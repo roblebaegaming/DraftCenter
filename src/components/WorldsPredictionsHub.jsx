@@ -160,8 +160,7 @@ export default function WorldsPredictionsHub() {
           <code>Overall points = (your game score ÷ maximum game score) × 100</code>
         </div>
         <aside>
-          <strong>Opens after two competitions score</strong>
-          <p>VGC will not be labeled an overall contest by itself. The combined table appears when at least two games have official scored results.</p>
+          <p>The combined table appears when at least two games have official scored results.</p>
         </aside>
       </div> : activeHub && activeHub.event?.status !== "draft" ? <div className="worlds-discipline-leaderboard" role="tabpanel">
         <header><div><span className="eyebrow">{activeConfig.gameLabel.toUpperCase()} {activeConfig.division.toUpperCase()}</span><h3>{activeHub.entry_count || 0} entries</h3></div><Link href={`/worlds/2026/${activeLeaderboard}#pick-ten`}>Make my {activeConfig.gameLabel} picks →</Link></header>
