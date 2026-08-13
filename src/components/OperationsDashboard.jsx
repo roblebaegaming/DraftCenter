@@ -4,6 +4,7 @@ import { createClient } from "../lib/supabase/client";
 import WorldsBracketOperations from "./WorldsBracketOperations";
 import WorldsFutureOperations from "./WorldsFutureOperations";
 import WorldsResultsOperations from "./WorldsResultsOperations";
+import { connectionsAdoptionPercent } from "../lib/operationsEngagement";
 
 const severityOrder = { high: 0, medium: 1, low: 2 };
 function when(value) { return value ? new Date(value).toLocaleString() : "Never"; }
@@ -89,10 +90,35 @@ function TrafficChart({ daily }) {
     {rows.map((row, index) => <span key={row.date} aria-label={`${trafficDate(row.date, true)}: ${trafficMetric(row.visitors)} visitors`}><i style={{ height: `${Math.max(4, ((Number(row.visitors) || 0) / maximum) * 100)}%` }} /><small>{index === 0 || index === rows.length - 1 ? trafficDate(row.date) : ""}</small></span>)}
   </div>;
 }
+function ConnectionsChart({ daily }) {
+  const rows = daily || [];
+  const maximum = Math.max(1, ...rows.map((row) => Number(row.completions) || 0));
+  return <div className="connections-usage-chart" role="img" aria-label="Signed-in Pokemon Connections completions over the last 30 days">
+    {rows.map((row, index) => <span key={row.date} aria-label={`${trafficDate(row.date, true)}: ${trafficMetric(row.completions)} completions from ${trafficMetric(row.players)} players`}><i style={{ height: `${Math.max(4, ((Number(row.completions) || 0) / maximum) * 100)}%` }} /><small>{index === 0 || index === rows.length - 1 ? trafficDate(row.date) : ""}</small></span>)}
+  </div>;
+}
+function ConnectionsUsage({ usage, registeredUsers }) {
+  const unavailable = !usage || usage.unavailable;
+  const adoption = connectionsAdoptionPercent(usage, registeredUsers);
+  return <section className="connections-usage-summary" aria-labelledby="connections-usage-title">
+    <header><div><span className="eyebrow">POKEMON CONNECTIONS · AGGREGATE ONLY</span><h2 id="connections-usage-title">Connections usage</h2><p>Account-backed completions without player names, puzzle groups, guesses, or answers. Signed-out play, unfinished boards, and failed attempts are not recorded, so these numbers measure confirmed signed-in completions only.</p></div>{!unavailable && <small>Updated {when(usage.generated_at)}</small>}</header>
+    {unavailable ? <p className="connections-usage-unavailable" role="status">Connections usage is temporarily unavailable. The rest of Operations remains current.</p> : <>
+      <div className="connections-usage-metrics">
+        <article><strong>{trafficMetric(usage.all_time?.players)}</strong><span>Players all time</span><small>{adoption}% of registered accounts</small></article>
+        <article><strong>{trafficMetric(usage.all_time?.completions)}</strong><span>Completions all time</span><small>one saved completion per player per day</small></article>
+        <article><strong>{trafficMetric(usage.today?.completions)}</strong><span>Completions today</span><small>{trafficMetric(usage.today?.players)} unique players</small></article>
+        <article><strong>{trafficMetric(usage.last_7_days?.players)}</strong><span>7-day players</span><small>{trafficMetric(usage.last_7_days?.completions)} completions</small></article>
+        <article><strong>{trafficMetric(usage.last_30_days?.players)}</strong><span>30-day players</span><small>{trafficMetric(usage.last_30_days?.completions)} completions</small></article>
+      </div>
+      <article className="connections-usage-trend"><h3>Completions by day</h3><ConnectionsChart daily={usage.daily} /></article>
+    </>}
+  </section>;
+}
 function WebsiteTraffic({ traffic }) {
   const unavailable = !traffic || traffic.unavailable;
+  const activeNow = traffic?.active_now;
   return <section className="website-traffic-summary" aria-labelledby="website-traffic-title">
-    <header><div><span className="eyebrow">VERCEL WEB ANALYTICS</span><h2 id="website-traffic-title">Website traffic</h2><p>Anonymized human production traffic. Known bots and private Operations or workspace paths are excluded. Visitors include signed-in and signed-out visits, and visitor identifiers reset daily.</p></div>{!unavailable && <small>Updated {when(traffic.generated_at)}</small>}</header>
+    <header><div><span className="eyebrow">VERCEL WEB ANALYTICS</span><h2 id="website-traffic-title">Website traffic</h2><p>Anonymized human production traffic. Known bots and private Operations or workspace paths are excluded. Visitors include signed-in and signed-out visits, and visitor identifiers reset daily.</p></div><div className="website-active-now" aria-label="Active now estimate"><i aria-hidden="true" /><strong>{activeNow?.unavailable === false ? trafficMetric(activeNow.visitors) : "—"}</strong><span>Active now estimate</span><small>visitors seen in the last {activeNow?.window_minutes || 5} minutes</small></div></header>
     {unavailable ? <p className="website-traffic-unavailable" role="status">Website traffic is temporarily unavailable. The rest of Operations remains current.</p> : <>
       <div className="website-traffic-metrics">
         <article><strong>{trafficMetric(traffic.today?.visitors)}</strong><span>Visitors today</span><small>{trafficMetric(traffic.today?.pageviews)} page views</small></article>
@@ -124,6 +150,7 @@ export default function OperationsDashboard() {
     <header className="operations-hero"><span className="eyebrow">OWNER ONLY</span><h1>League Operations</h1><p>Monitor league health without bypassing private-league membership. Configuration support requires commissioner-approved access.</p><small>Updated {when(data.generated_at)}</small></header>
     <section className="operations-user-summary" aria-labelledby="registered-users-title"><div><span className="eyebrow">AUTHENTICATION</span><h2 id="registered-users-title">Registered users</h2><p>Every DraftCenter account is counted, including people who joined through Discord. These totals show sign-in identities only; no emails or Discord usernames are exposed here.</p></div><div className="operations-metrics"><article><strong>{data.users?.total || 0}</strong><span>Total accounts</span></article><article><strong>{data.users?.discord || 0}</strong><span>Discord identity</span></article><article><strong>{data.users?.email || 0}</strong><span>Email identity</span></article><article><strong>{data.users?.both || 0}</strong><span>Email + Discord linked</span></article></div></section>
     <WebsiteTraffic traffic={data.website_traffic} />
+    <ConnectionsUsage usage={data.connections_usage} registeredUsers={data.users?.total} />
     <WorldsEntrySummary summary={data.worlds_entries} />
     <WorldsResultsOperations />
     <WorldsBracketOperations />

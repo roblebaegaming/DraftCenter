@@ -22,6 +22,7 @@ function analyticsFetch(calls) {
   return async (input, options) => {
     const url = new URL(input);
     calls.push({ url, options });
+    if (url.pathname.endsWith("/visits/count")) return response({ data: { visitors: 4, pageviews: 7 } });
     if (url.searchParams.get("by") === "day") {
       return response({ data: [
         { timestamp: "2026-07-14T00:00:00.000Z", visitors: 10, pageviews: 20 },
@@ -56,12 +57,13 @@ test("website traffic summarizes 30 days and excludes private paths", async () =
   assert.deepEqual(result.yesterday, { date: "2026-08-11", visitors: 6, pageviews: 12 });
   assert.equal(result.seven_day_average_visitors, 4);
   assert.deepEqual(result.last_30_days, { start: "2026-07-14", end: "2026-08-12", visitors: 38, pageviews: 76 });
+  assert.deepEqual(result.active_now, { unavailable: false, visitors: 4, window_minutes: 5, generated_at: "2026-08-12T19:00:00.000Z" });
   assert.equal(result.daily.length, 30);
   assert.deepEqual(result.top_pages.map((page) => page.path), ["/", "/explore", "/worlds/2026", "/resources", "/leagues"]);
   assert.equal(JSON.stringify(result).includes(env.DRAFTCENTER_VERCEL_ANALYTICS_TOKEN), false);
 
-  assert.equal(calls.length, 2);
-  for (const call of calls) {
+  assert.equal(calls.length, 3);
+  for (const call of calls.filter((item) => item.url.pathname.endsWith("/visits/aggregate"))) {
     assert.equal(call.url.origin + call.url.pathname, "https://api.vercel.com/v1/query/web-analytics/visits/aggregate");
     assert.equal(call.url.searchParams.get("projectId"), "test-project");
     assert.equal(call.url.searchParams.get("teamId"), "test-team");
@@ -75,6 +77,11 @@ test("website traffic summarizes 30 days and excludes private paths", async () =
     assert.equal(call.options.headers.Authorization, `Bearer ${env.DRAFTCENTER_VERCEL_ANALYTICS_TOKEN}`);
     assert.equal(call.options.cache, "no-store");
   }
+  const activeCall = calls.find((call) => call.url.pathname.endsWith("/visits/count"));
+  assert.equal(activeCall.url.searchParams.get("since"), "2026-08-12T18:55:00.000Z");
+  assert.equal(activeCall.url.searchParams.get("until"), "2026-08-12T19:00:00.000Z");
+  assert.match(activeCall.url.searchParams.get("filter"), /not startswith\(requestPath, '\/operations'\)/);
+  assert.equal(activeCall.options.headers.Authorization, `Bearer ${env.DRAFTCENTER_VERCEL_ANALYTICS_TOKEN}`);
 });
 
 test("website traffic fails softly when configuration or daily analytics is unavailable", async () => {
@@ -85,20 +92,25 @@ test("website traffic fails softly when configuration or daily analytics is unav
   assert.equal(fetchCount, 0);
 
   const failedDaily = await getWebsiteTraffic({
-    fetchImpl: async (input) => response({ data: [] }, new URL(input).searchParams.get("by") === "day" ? 503 : 200),
+    fetchImpl: async (input) => new URL(input).pathname.endsWith("/visits/count")
+      ? response({ data: { visitors: 2, pageviews: 3 } })
+      : response({ data: [] }, new URL(input).searchParams.get("by") === "day" ? 503 : 200),
     env,
     now,
     bypassCache: true,
   });
-  assert.deepEqual(failedDaily, { unavailable: true });
+  assert.equal(failedDaily.unavailable, true);
+  assert.equal(failedDaily.active_now.visitors, 2);
 });
 
 test("website traffic keeps totals available when page rankings fail", async () => {
   resetWebsiteTrafficCache();
   const result = await getWebsiteTraffic({
-    fetchImpl: async (input) => new URL(input).searchParams.get("by") === "day"
-      ? response({ data: [{ timestamp: "2026-08-12T00:00:00.000Z", visitors: 3, pageviews: 8 }] })
-      : response({ data: [] }, 503),
+    fetchImpl: async (input) => new URL(input).pathname.endsWith("/visits/count")
+      ? response({ data: { visitors: 1, pageviews: 1 } })
+      : new URL(input).searchParams.get("by") === "day"
+        ? response({ data: [{ timestamp: "2026-08-12T00:00:00.000Z", visitors: 3, pageviews: 8 }] })
+        : response({ data: [] }, 503),
     env,
     now,
     bypassCache: true,
@@ -114,9 +126,9 @@ test("website traffic uses its short-lived server cache", async () => {
   const calls = [];
   const fetchImpl = analyticsFetch(calls);
   const first = await getWebsiteTraffic({ fetchImpl, env, now });
-  const second = await getWebsiteTraffic({ fetchImpl, env, now: new Date("2026-08-12T19:01:00.000Z") });
-  assert.equal(calls.length, 2);
-  assert.strictEqual(second, first);
+  const second = await getWebsiteTraffic({ fetchImpl, env, now: new Date("2026-08-12T19:00:30.000Z") });
+  assert.equal(calls.length, 3);
+  assert.deepEqual(second, first);
 });
 
 test("owner-only Operations wires traffic without exposing server credentials", () => {
@@ -133,9 +145,13 @@ test("owner-only Operations wires traffic without exposing server credentials", 
   assert.match(dashboard, /Known bots and private Operations or workspace paths are excluded/);
   assert.match(dashboard, /Visitors by day/);
   assert.match(dashboard, /Most visited pages/);
+  assert.match(dashboard, /Active now estimate/);
+  assert.match(dashboard, /visitors seen in the last/);
   assert.match(dashboard, /The rest of Operations remains current/);
   assert.match(css, /website-traffic-chart/);
   assert.match(server, /DRAFTCENTER_VERCEL_ANALYTICS_TOKEN/);
+  assert.match(server, /web-analytics\/visits\/count/);
+  assert.match(server, /ACTIVE_WINDOW_MINUTES = 5/);
   assert.doesNotMatch(server, /NEXT_PUBLIC/);
   assert.match(packageJson, /test\/website-traffic-operations\.test\.js/);
 });
