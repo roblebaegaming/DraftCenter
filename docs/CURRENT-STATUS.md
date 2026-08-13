@@ -3,8 +3,8 @@
 - Last updated: August 13, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified production application commit: `f1aae4b5a9a6574b7134a311391718d7d5d9f440`
-- Latest production migration: 388
+- Verified production application commit: `0c3742efb6cbc79db6dd26e2a6d17145f26ffdad`
+- Latest production migration: 389
 
 ## Deployed state
 
@@ -121,6 +121,17 @@ repeat on consecutive days, while all earlier boards remain stable. Migration
 finalization, a pending-submission gate, and explicit browser table denials.
 The isolated Preview matrix, protected checks, 243-page build, exact Production
 deployment, live Daily Games review, and 19-check signed-out smoke sweep passed.
+
+Pull request [#197](https://github.com/roblebaegaming/DraftCenter/pull/197)
+shipped the public **Full Dex Mega Bracket** at `/tools/mega-bracket`. Each
+private account attempt freezes a randomized 1,162-Pokémon/form field into
+exactly 1,161 choices, with one-matchup play, undo, milestones, local recovery,
+revision-safe cross-device saving, a four-region Top 64, completed history, and
+high-resolution Top 64 and champion-card downloads. Migration 389 adds the
+RLS-protected attempt store and owner-scoped RPC boundary. The isolated Preview
+matrix, catalogue checksum, protected checks, 244-page build, exact Production
+deployment at commit `0c3742e`, signed-in read-only hub review, and 19-check
+signed-out production smoke sweep passed without creating a real attempt.
 
 The August 9 release wave is complete. Pull requests
 [#95](https://github.com/roblebaegaming/DraftCenter/pull/95) through
@@ -758,7 +769,9 @@ guard merely to remove that measurement gap.
 ## Authoritative records
 
 - Current continuation handoff:
-  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-13-sunday-super-bracket-connections-variety.md`](handoffs/DraftCenter-agent-handoff-2026-08-13-sunday-super-bracket-connections-variety.md)
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-13-mega-bracket-production.md`](handoffs/DraftCenter-agent-handoff-2026-08-13-mega-bracket-production.md)
+- Mega Bracket product and data contract:
+  [`docs/mega-bracket.md`](mega-bracket.md)
 - Daily Games product and safety contract:
   [`docs/daily-games.md`](daily-games.md)
 - Nuzlocke Run Tracker product and safety contract:

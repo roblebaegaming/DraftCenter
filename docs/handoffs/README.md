@@ -1,7 +1,15 @@
 # Agent handoffs
 
+[`DraftCenter-agent-handoff-2026-08-13-mega-bracket-production.md`](DraftCenter-agent-handoff-2026-08-13-mega-bracket-production.md)
+is the current continuation handoff. It records the deployed Full Dex Mega
+Bracket through pull request #197 and migration 389, including the frozen
+1,162-entry catalogue, private revision-safe saving, Top 64 and image-export
+contracts, isolated Preview evidence, exact Production application commit,
+authenticated read-only review, and post-deployment smoke sweep. Start from
+fresh `origin/main`; do not replay migration 389.
+
 [`DraftCenter-agent-handoff-2026-08-13-sunday-super-bracket-connections-variety.md`](DraftCenter-agent-handoff-2026-08-13-sunday-super-bracket-connections-variety.md)
-is the current continuation handoff. It records the deployed Sunday Super
+is the preceding continuation handoff. It records the deployed Sunday Super
 Bracket and history-aware Pokémon Connections rotation through pull request
 #195 and migration 388, including qualifier and seeding rules, retained-board
 compatibility, isolated database evidence, the exact Production application
