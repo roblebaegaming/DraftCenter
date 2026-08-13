@@ -134,7 +134,7 @@ test("the public Draft Lab is indexable, discoverable, and read-only", () => {
   assert.doesNotMatch(component, /from "\.\/PokemonDraftLeague"/);
   assert.match(component, /href="\/my-teams"/);
   assert.doesNotMatch(component, /\.from\(|\.rpc\(|createClient/);
-  assert.match(navigation, /href="\/tools\/team-builder"/);
+  assert.doesNotMatch(navigation, /href="\/tools\/team-builder"/);
   assert.match(resources, /href="\/tools\/team-builder"/);
   assert.match(llms, /Draft Lab Pokémon team builder/);
   assert.match(sitemap, /\["\/tools\/team-builder", "weekly", 0\.9\]/);
