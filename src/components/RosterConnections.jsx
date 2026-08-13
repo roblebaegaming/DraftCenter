@@ -2,12 +2,12 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { loadPokemonArtwork } from "./LeagueHub";
-import { normalizeRosterConnectionsSave, rosterConnectionsPuzzle, seededConnectionsShuffle } from "../lib/rosterConnections";
+import { CONNECTIONS_URL, normalizeRosterConnectionsSave, pokemonConnectionsShareText, rosterConnectionsPuzzle, seededConnectionsShuffle } from "../lib/rosterConnections";
 import { createClient } from "../lib/supabase/client";
 import { DailyGameDiscussion } from "./DailyCommunityGames";
+import { ShareButton } from "./SocialSharing";
 
 const GROUP_COLORS = ["yellow", "green", "blue", "purple"];
-const GROUP_MARKS = ["🟨", "🟩", "🟦", "🟪"];
 
 function PokemonTile({ name, selected, disabled, onClick }) {
   const [artwork, setArtwork] = useState("");
@@ -28,6 +28,7 @@ export default function RosterConnections({ signedIn = false }) {
   const [selected, setSelected] = useState([]);
   const [solved, setSolved] = useState([]);
   const [mistakes, setMistakes] = useState(0);
+  const [guesses, setGuesses] = useState([]);
   const [order, setOrder] = useState(puzzle.pokemon);
   const [message, setMessage] = useState("Find four Pokémon that share a connection.");
   const [ready, setReady] = useState(false);
@@ -44,6 +45,7 @@ export default function RosterConnections({ signedIn = false }) {
         const normalized = normalizeRosterConnectionsSave(saved, puzzle);
         setSolved(normalized.solved);
         setMistakes(normalized.mistakes);
+        setGuesses(normalized.guesses);
         setOrder(normalized.order);
       }
     } catch {}
@@ -53,9 +55,9 @@ export default function RosterConnections({ signedIn = false }) {
   useEffect(() => {
     if (!ready) return;
     try {
-      localStorage.setItem(storageKey, JSON.stringify({ solved, mistakes, order }));
+      localStorage.setItem(storageKey, JSON.stringify({ solved, mistakes, guesses, order }));
     } catch {}
-  }, [mistakes, order, ready, solved, storageKey]);
+  }, [guesses, mistakes, order, ready, solved, storageKey]);
 
   useEffect(() => {
     if (!ready || !finished || !signedIn) {
@@ -89,6 +91,7 @@ export default function RosterConnections({ signedIn = false }) {
 
   function submit() {
     if (selected.length !== 4) return setMessage("Select exactly four Pokémon before submitting.");
+    setGuesses((current) => [...current, [...selected]].slice(-8));
     const match = puzzle.groups.findIndex((group) => group.pokemon.every((name) => selected.includes(name)));
     if (match >= 0 && !solved.includes(match)) {
       const next = [...solved, match];
@@ -103,27 +106,17 @@ export default function RosterConnections({ signedIn = false }) {
     setMessage(nextMistakes >= 4 ? "That was the final mistake. Here are today’s connections." : closest === 3 ? "One away! Three of these Pokémon belong together." : "Not a group—try a different roster combination.");
   }
 
-  async function share() {
-    const rows = displayedGroups.map((_, index) => GROUP_MARKS[index].repeat(4));
-    const result = `DraftCenter Pokémon Connections ${puzzle.dateKey}\n${complete ? `Solved with ${mistakes}/4 mistakes` : "Better luck tomorrow"}\n${rows.join("\n")}\nhttps://www.draftcentral.gg/resources/daily-games`;
-    try {
-      if (navigator.share) await navigator.share({ title: "Pokémon Connections", text: result });
-      else if (navigator.clipboard?.writeText) { await navigator.clipboard.writeText(result); setMessage("Result copied to your clipboard."); }
-      else setMessage("Sharing is unavailable in this browser.");
-    } catch {
-      setMessage("Sharing was cancelled or is unavailable in this browser.");
-    }
-  }
+  const shareText = pokemonConnectionsShareText({ puzzle, guesses, complete, mistakes });
 
   return <section className="roster-connections" aria-labelledby="roster-connections-title">
     <div className="connections-heading"><div><span className="eyebrow">DAILY CONNECTIONS GAME</span><h2 id="roster-connections-title">Pokémon Connections</h2><p>Sort 16 Pokémon into four groups connected by strategy, measurements, Pokédex shape, Egg Group, and more.</p></div><div className="connections-mistakes" aria-label={`${4 - mistakes} mistakes remaining`}><span>Mistakes remaining</span><b>{[0, 1, 2, 3].map((index) => <i className={index < 4 - mistakes ? "available" : ""} key={index} />)}</b></div></div>
     <div className="connections-board">
-      {displayedGroups.map((groupIndex, index) => { const group = puzzle.groups[groupIndex]; return <article className={`connection-group ${GROUP_COLORS[index]}`} key={group.title}><strong>{group.title}</strong><span>{group.pokemon.join(", ")}</span><small>{group.note}</small></article>; })}
+      {displayedGroups.map((groupIndex) => { const group = puzzle.groups[groupIndex]; return <article className={`connection-group ${GROUP_COLORS[groupIndex]}`} key={group.title}><strong>{group.title}</strong><span>{group.pokemon.join(", ")}</span><small>{group.note}</small></article>; })}
       {!finished && remaining.map((name) => <PokemonTile key={name} name={name} selected={selected.includes(name)} disabled={false} onClick={() => toggle(name)} />)}
     </div>
     <p className="connections-message" role="status">{message}</p>
     <div className="connections-actions">
-      {!finished ? <><button type="button" className="quiet-button" disabled={!selected.length} onClick={() => setSelected([])}>Deselect all</button><button type="button" className="quiet-button" onClick={() => { setOrder((current) => seededConnectionsShuffle(current, Date.now())); setSelected([]); }}>Shuffle</button><button type="button" className="primary-button" disabled={selected.length !== 4} onClick={submit}>Submit group</button></> : <button type="button" className="primary-button" onClick={share}>Share result</button>}
+      {!finished ? <><button type="button" className="quiet-button" disabled={!selected.length} onClick={() => setSelected([])}>Deselect all</button><button type="button" className="quiet-button" onClick={() => { setOrder((current) => seededConnectionsShuffle(current, Date.now())); setSelected([]); }}>Shuffle</button><button type="button" className="primary-button" disabled={selected.length !== 4} onClick={submit}>Submit group</button></> : <ShareButton className="primary-button" label="Share result" copiedLabel="Result copied!" title="Pokémon Connections" text={shareText} url={CONNECTIONS_URL} />}
     </div>
     <DailyGameDiscussion type="connections" gameId={discussionGameId} signedIn={signedIn} unlocked={finished} />
   </section>;

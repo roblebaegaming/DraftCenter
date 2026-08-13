@@ -3,27 +3,31 @@
 import { useEffect, useState } from "react";
 import { createClient } from "../lib/supabase/client";
 
-export function ShareButton({ title = "DraftCenter", text = "Check this out on DraftCenter.", url, className = "quiet-button" }) {
-  const [label, setLabel] = useState("Share");
+export function ShareButton({ title = "DraftCenter", text = "Check this out on DraftCenter.", url, className = "quiet-button", label = "Share", copiedLabel = "Copied!" }) {
+  const [buttonLabel, setButtonLabel] = useState(label);
   async function share() {
     const target = url || window.location.href;
+    const clipboardText = `${text.trim()}\n${target}`;
+    const copy = async () => {
+      if (!navigator.clipboard?.writeText) return false;
+      await navigator.clipboard.writeText(clipboardText);
+      setButtonLabel(copiedLabel);
+      window.setTimeout(() => setButtonLabel(label), 1800);
+      return true;
+    };
     try {
       if (navigator.share) {
         await navigator.share({ title, text, url: target });
         return;
       }
-      await navigator.clipboard.writeText(target);
-      setLabel("Link copied!");
-      window.setTimeout(() => setLabel("Share"), 1800);
+      await copy();
     } catch (error) {
       if (error?.name !== "AbortError") {
-        await navigator.clipboard?.writeText(target);
-        setLabel("Link copied!");
-        window.setTimeout(() => setLabel("Share"), 1800);
+        await copy();
       }
     }
   }
-  return <button type="button" className={`share-button ${className}`} onClick={share}>↗ {label}</button>;
+  return <button type="button" className={`share-button ${className}`} onClick={share} aria-live="polite">↗ {buttonLabel}</button>;
 }
 
 function streamTime(stream) {

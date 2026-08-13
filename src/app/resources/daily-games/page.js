@@ -5,8 +5,8 @@ export const metadata = {
   description: "Play free Pokémon daily games: solve Pokémon Connections, answer today's community poll, complete a draft bracket, and identify the daily Pokémon.",
   keywords: ["Pokémon dailies", "Pokémon daily games", "Pokémon connections", "Pokémon grouping game", "daily Pokémon quiz", "Pokémon quiz", "Pokémon bracket", "Pokémon poll of the day"],
   alternates: { canonical: "/resources/daily-games" },
-  openGraph: { title: "Pokémon Daily Games, Polls & Quizzes", description: "Play four fresh Pokémon games every day, including Pokémon Connections.", url: "/resources/daily-games", type: "website", images: [{ url: "/draftcenter-logo.png", width: 512, height: 512, alt: "DraftCenter Pokémon Daily Games" }] },
-  twitter: { card: "summary", title: "Pokémon Daily Games", description: "Play Pokémon Connections, a daily Pokémon poll, draft bracket, and quiz.", images: ["/draftcenter-logo.png"] },
+  openGraph: { title: "Pokémon Daily Games, Polls & Quizzes", description: "Play four fresh Pokémon games every day, including Pokémon Connections.", url: "/resources/daily-games", type: "website" },
+  twitter: { card: "summary_large_image", title: "Pokémon Daily Games", description: "Play Pokémon Connections, a daily Pokémon poll, draft bracket, and quiz." },
 };
 
 export default function DailyGamesPage() {

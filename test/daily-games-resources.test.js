@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import test from "node:test";
-import { CONNECTION_GROUPS, normalizeRosterConnectionsSave, rosterConnectionsPuzzle } from "../src/lib/rosterConnections.js";
+import { CONNECTION_GROUPS, normalizeRosterConnectionsSave, pokemonConnectionsShareText, rosterConnectionsPuzzle } from "../src/lib/rosterConnections.js";
 
 function source(path) {
   return fs.readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
@@ -68,6 +68,7 @@ test("Pokémon Connections creates stable non-overlapping daily puzzles", () => 
   assert.match(game, /mistakes >= 4/);
   assert.match(game, /localStorage\.setItem/);
   assert.match(game, /Share result/);
+  assert.match(game, /pokemonConnectionsShareText/);
   assert.match(game, /One away!/);
   assert.match(game, />Pokémon Connections</);
   assert.match(game, /complete_pokemon_connections/);
@@ -80,9 +81,11 @@ test("Pokémon Connections creates stable non-overlapping daily puzzles", () => 
   assert.equal(first.pokemon.length, 16);
   assert.equal(new Set(first.pokemon).size, 16);
 
-  const normalized = normalizeRosterConnectionsSave({ solved: [0, 0, 2, 7, "1"], mistakes: 99, order: ["tampered"] }, first);
+  const validGuess = first.groups[0].pokemon;
+  const normalized = normalizeRosterConnectionsSave({ solved: [0, 0, 2, 7, "1"], mistakes: 99, guesses: [validGuess, [validGuess[0], validGuess[0], "tampered", validGuess[1]]], order: ["tampered"] }, first);
   assert.deepEqual(normalized.solved, [0, 2]);
   assert.equal(normalized.mistakes, 4);
+  assert.deepEqual(normalized.guesses, [validGuess]);
   assert.deepEqual(normalized.order, first.pokemon);
 
   const seenCategories = new Set();
@@ -94,6 +97,44 @@ test("Pokémon Connections creates stable non-overlapping daily puzzles", () => 
     for (const group of puzzle.groups) seenCategories.add(group.category);
   }
   for (const category of ["height", "weight", "shape", "egg-group"]) assert.ok(seenCategories.has(category), `${category} never rotates into a puzzle`);
+});
+
+test("Pokémon Connections shares the guess pattern without spoiling answers", () => {
+  const puzzle = rosterConnectionsPuzzle("2026-08-12");
+  const guesses = [
+    [puzzle.groups[0].pokemon[0], puzzle.groups[1].pokemon[0], puzzle.groups[0].pokemon[1], puzzle.groups[3].pokemon[0]],
+    puzzle.groups[2].pokemon,
+  ];
+  const result = pokemonConnectionsShareText({ puzzle, guesses, complete: true, mistakes: 1 });
+  assert.match(result, /^DraftCenter Pokémon Connections\n2026-08-12 · 1 mistake\n🟨🟩🟨🟪\n🟦🟦🟦🟦$/);
+  for (const group of puzzle.groups) {
+    assert.doesNotMatch(result, new RegExp(group.title));
+    for (const pokemon of group.pokemon) assert.doesNotMatch(result, new RegExp(pokemon.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  }
+});
+
+test("sharing uses rich text fallbacks and large branded preview images", () => {
+  const sharing = source("src/components/SocialSharing.jsx");
+  const layout = source("src/app/layout.js");
+  const dailyPage = source("src/app/resources/daily-games/page.js");
+  for (const path of ["src/app/opengraph-image.js", "src/app/twitter-image.js", "src/app/resources/daily-games/opengraph-image.js", "src/app/resources/daily-games/twitter-image.js"]) {
+    assert.ok(fs.existsSync(new URL(`../${path}`, import.meta.url)), `missing social image route: ${path}`);
+  }
+  assert.match(sharing, /clipboardText = `\$\{text\.trim\(\)\}\\n\$\{target\}`/);
+  assert.match(sharing, /navigator\.share\(\{ title, text, url: target \}\)/);
+  assert.match(layout, /card: "summary_large_image"/);
+  assert.match(dailyPage, /card: "summary_large_image"/);
+  assert.match(source("src/app/resources/daily-games/opengraph-image.js"), /width: 1200, height: 630/);
+  assert.match(source("src/app/resources/daily-games/opengraph-image.js"), /connections/);
+});
+
+test("downloaded brackets keep champion copy and connectors inside the winner card", () => {
+  const games = source("src/components/DailyCommunityGames.jsx");
+  assert.match(games, /MY BRACKET CHAMPION/);
+  assert.doesNotMatch(games, /TODAY'S COMMUNITY FAVORITE/);
+  assert.match(games, /context\.measureText\(name\)\.width > availableNameWidth/);
+  assert.match(games, /context\.moveTo\(championCenterX, championCard\.y \+ championCard\.height\)/);
+  assert.doesNotMatch(games, /fillRect\(987, 355, 2, 72\)/);
 });
 
 test("Pokémon Connections includes extreme measurements, shapes, and Egg Groups", () => {

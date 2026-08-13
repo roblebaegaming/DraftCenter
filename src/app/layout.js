@@ -16,13 +16,11 @@ export const metadata = {
     title: "DraftCenter — Pokémon Draft League Platform",
     description: "Run drafts, manage leagues, explore community data, and share Pokémon teams.",
     url: "https://www.draftcentral.gg",
-    images: [{ url: "/draftcenter-logo.png", width: 512, height: 512, alt: "DraftCenter logo" }],
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: "DraftCenter — Pokémon Draft League Platform",
     description: "Run drafts, manage leagues, explore community data, and share Pokémon teams.",
-    images: ["/draftcenter-logo.png"],
   },
 };
 

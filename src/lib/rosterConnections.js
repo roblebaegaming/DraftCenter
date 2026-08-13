@@ -21,6 +21,9 @@ export const CONNECTION_GROUPS = [
   { category: "egg-group", title: "Amorphous Egg Group", note: "Belong to the Amorphous Egg Group", pokemon: ["Gengar", "Wobbuffet", "Gardevoir", "Chandelure"] },
 ];
 
+export const CONNECTION_GROUP_MARKS = ["🟨", "🟩", "🟦", "🟪"];
+export const CONNECTIONS_URL = "https://www.draftcentral.gg/resources/daily-games";
+
 function localDateKey(date = new Date()) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 }
@@ -81,5 +84,25 @@ export function normalizeRosterConnectionsSave(saved, puzzle) {
   const orderIsValid = savedOrder.length === expected.size
     && new Set(savedOrder).size === expected.size
     && savedOrder.every((name) => expected.has(name));
-  return { solved, mistakes, order: orderIsValid ? [...savedOrder] : [...puzzle.pokemon] };
+  const savedGuesses = Array.isArray(saved?.guesses) ? saved.guesses : [];
+  const guesses = savedGuesses.slice(0, 8).filter((guess) => Array.isArray(guess)
+    && guess.length === 4
+    && new Set(guess).size === 4
+    && guess.every((name) => expected.has(name)))
+    .map((guess) => [...guess]);
+  // Saves created before guess history existed still get useful, spoiler-free
+  // rows for every group the player had already solved.
+  if (!guesses.length && solved.length) {
+    guesses.push(...solved.map((groupIndex) => [...puzzle.groups[groupIndex].pokemon]));
+  }
+  return { solved, mistakes, guesses, order: orderIsValid ? [...savedOrder] : [...puzzle.pokemon] };
+}
+
+export function pokemonConnectionsShareText({ puzzle, guesses = [], complete = false, mistakes = 0 }) {
+  const groupByPokemon = new Map(puzzle.groups.flatMap((group, groupIndex) => group.pokemon.map((name) => [name, groupIndex])));
+  const rows = guesses.slice(0, 8).map((guess) => guess
+    .map((name) => CONNECTION_GROUP_MARKS[groupByPokemon.get(name)] || "⬜")
+    .join(""));
+  const score = complete ? `${mistakes} mistake${mistakes === 1 ? "" : "s"}` : "Not solved";
+  return `DraftCenter Pokémon Connections\n${puzzle.dateKey} · ${score}\n${rows.join("\n")}`.trim();
 }
