@@ -7,6 +7,13 @@ alter table public.daily_draft_brackets
   add column if not exists bracket_kind text not null default 'daily',
   add column if not exists qualification jsonb not null default '{}'::jsonb;
 
+-- Daily bracket access stays behind security-definer RPCs and the service-role
+-- notification worker. Make that boundary explicit for both existing tables.
+revoke all on table public.daily_draft_brackets from public, anon, authenticated;
+revoke all on table public.daily_bracket_matchups from public, anon, authenticated;
+grant all on table public.daily_draft_brackets to service_role;
+grant all on table public.daily_bracket_matchups to service_role;
+
 alter table public.daily_draft_brackets
   drop constraint if exists daily_draft_brackets_bracket_kind_check,
   add constraint daily_draft_brackets_bracket_kind_check

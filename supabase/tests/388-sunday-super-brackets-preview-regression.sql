@@ -67,8 +67,8 @@ begin
       (v_source_id, v_user_one, 1, 2, 'Lucario', 'Tyranitar'),
       (v_source_id, v_user_one, 1, 3, 'Scizor', 'Umbreon'),
       (v_source_id, v_user_one, 1, 4, 'Garchomp', 'Metagross'),
-      (v_source_id, v_user_one, 2, 1, v_champions[v_day], 'Lucario'),
-      (v_source_id, v_user_one, 2, 2, 'Lucario', 'Scizor'),
+      (v_source_id, v_user_one, 2, 1, v_champions[v_day], 'Scizor'),
+      (v_source_id, v_user_one, 2, 2, 'Lucario', 'Umbreon'),
       (v_source_id, v_user_one, 3, 1, v_champions[v_day], 'Lucario');
 
     insert into public.daily_bracket_matchups(bracket_id, user_id, round_number, match_number, winner, loser) values
