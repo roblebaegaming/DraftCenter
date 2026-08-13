@@ -3,7 +3,7 @@
 - Last updated: August 13, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified production application commit: `7a0c1a6c33ee50019575007b293f5ed263ac3e00`
+- Verified production application commit: `2fa03305a929a70b4dce9ceb03524a8af50d7e8c`
 - Latest production migration: 386
 
 ## Deployed state
@@ -56,6 +56,15 @@ guesses, or answers. Active now uses anonymized production Web Analytics and
 excludes Operations and private workspace paths; it is a recent-visitor
 estimate, not an exact connected-user count. Migration 386 exposes only the
 service-role aggregate and preserves completion-table RLS and client denials.
+
+Pull request [#185](https://github.com/roblebaegaming/DraftCenter/pull/185)
+made the Worlds Home cards distinguish player Pick 10 from the separate
+Pokemon team or deck prediction game before a visitor enters a discipline.
+Each choice links directly to its page section and shows its current public
+saved-entry count, while each card also shows the combined total. At production
+verification, VGC showed 14 player entries and 13 team entries, TCG showed two
+player entries and zero deck entries, and GO showed zero entries with its team
+game explicitly marked not open. No database or migration changed.
 
 The August 9 release wave is complete. Pull requests
 [#95](https://github.com/roblebaegaming/DraftCenter/pull/95) through
