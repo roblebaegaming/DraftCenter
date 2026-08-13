@@ -203,7 +203,7 @@ function roundedRect(context, x, y, width, height, radius) {
   context.roundRect(x, y, width, height, radius);
 }
 
-async function downloadBracket(bracket, winners) {
+export async function renderBracketCanvas(bracket, winners) {
   const canvas = document.createElement("canvas");
   canvas.width = 1200;
   canvas.height = 675;
@@ -254,9 +254,10 @@ async function downloadBracket(bracket, winners) {
     context.fillText(labels[index], x, 132);
   });
 
+  const championCard = { x: 818, y: 390, width: 326, height: 116 };
   const drawPokemon = (name, x, y, winner = false, champion = false) => {
-    const width = champion ? 326 : 286;
-    const height = champion ? 116 : 54;
+    const width = champion ? championCard.width : 286;
+    const height = champion ? championCard.height : 54;
     roundedRect(context, x, y, width, height, champion ? 20 : 12);
     context.fillStyle = champion ? "rgba(255, 210, 63, 0.13)" : winner ? "rgba(79, 209, 197, 0.12)" : "rgba(25, 32, 62, 0.96)";
     context.fill();
@@ -266,13 +267,23 @@ async function downloadBracket(bracket, winners) {
     const image = artwork[name];
     const imageSize = champion ? 92 : 46;
     if (image) context.drawImage(image, x + (champion ? 13 : 7), y + (height - imageSize) / 2, imageSize, imageSize);
-    context.fillStyle = champion ? "#FFD23F" : winner ? "#FFFFFF" : "#D7DCF3";
-    context.font = `${champion ? "800 27px" : "700 17px"} Arial, sans-serif`;
-    context.fillText(name, x + (champion ? 119 : 61), y + (champion ? 52 : 33));
     if (champion) {
       context.fillStyle = "#AEB6D8";
-      context.font = "15px Arial, sans-serif";
-      context.fillText("TODAY'S COMMUNITY FAVORITE", x + 119, y + 79);
+      context.font = "700 13px Arial, sans-serif";
+      context.fillText("MY BRACKET CHAMPION", x + 119, y + 39);
+      const availableNameWidth = width - 137;
+      let nameSize = 28;
+      context.font = `800 ${nameSize}px Arial, sans-serif`;
+      while (nameSize > 18 && context.measureText(name).width > availableNameWidth) {
+        nameSize -= 1;
+        context.font = `800 ${nameSize}px Arial, sans-serif`;
+      }
+      context.fillStyle = "#FFD23F";
+      context.fillText(name, x + 119, y + 78);
+    } else {
+      context.fillStyle = winner ? "#FFFFFF" : "#D7DCF3";
+      context.font = "700 17px Arial, sans-serif";
+      context.fillText(name, x + 61, y + 33);
     }
   };
 
@@ -306,15 +317,32 @@ async function downloadBracket(bracket, winners) {
   winners.slice(0, 4).forEach((name, index) => drawPokemon(name, sfX, sfY[index], winners[4 + (index >> 1)] === name));
   winners.slice(4, 6).forEach((name, index) => drawPokemon(name, finalX, finalY[index], winners[6] === name));
 
-  context.fillStyle = "#52618D";
-  context.fillRect(987, 355, 2, 72);
-  drawPokemon(winners[6], 818, 390, true, true);
+  const finalistCenterX = finalX + 143;
+  const championCenterX = championCard.x + championCard.width / 2;
+  context.strokeStyle = "#52618D";
+  context.lineWidth = 2;
+  context.beginPath();
+  context.moveTo(finalistCenterX, finalY[0] + 54);
+  context.lineTo(finalistCenterX, championCard.y - 24);
+  context.lineTo(championCenterX, championCard.y - 24);
+  context.lineTo(championCenterX, championCard.y);
+  context.moveTo(championCenterX, championCard.y + championCard.height);
+  context.lineTo(championCenterX, finalY[1] - 14);
+  context.lineTo(finalistCenterX, finalY[1] - 14);
+  context.lineTo(finalistCenterX, finalY[1]);
+  context.stroke();
+  drawPokemon(winners[6], championCard.x, championCard.y, true, true);
   context.fillStyle = "#7F89AC";
   context.font = "14px Arial, sans-serif";
   context.textAlign = "center";
   context.fillText("draftcentral.gg • Share your bracket", 982, 650);
   context.textAlign = "left";
 
+  return canvas;
+}
+
+async function downloadBracket(bracket, winners) {
+  const canvas = await renderBracketCanvas(bracket, winners);
   const link = document.createElement("a");
   link.download = `draftcenter-daily-bracket-${bracket.game_date}.png`;
   link.href = canvas.toDataURL("image/png");
