@@ -102,18 +102,40 @@ test("versioned Draft Lab links round-trip valid unique names and reject unknown
   });
 });
 
+test("share links fail closed for unknown versions and honor the selected mode limit", () => {
+  const validNames = Array.from({ length: 30 }, (_, index) => `Pokémon ${index + 1}`);
+  assert.deepEqual(parseDraftLabQuery("v=2&format=national-gen9&mode=roster&team=Pok%C3%A9mon+1", validNames), {
+    version: "1",
+    format: "reg-mb",
+    mode: "team",
+    names: [],
+  });
+  const team = parseDraftLabQuery(`v=1&team=${validNames.slice(0, 10).join("~")}`, validNames);
+  assert.equal(team.names.length, 6);
+  const rosterQuery = buildDraftLabQuery({ mode: "roster", names: validNames });
+  assert.equal(parseDraftLabQuery(rosterQuery, validNames).names.length, 24);
+  const teamQuery = buildDraftLabQuery({ mode: "team", names: validNames });
+  assert.equal(new URLSearchParams(teamQuery).get("team").split("~").length, 6);
+});
+
 test("the public Draft Lab is indexable, discoverable, and read-only", () => {
   const route = fs.readFileSync(new URL("../src/app/tools/team-builder/page.js", import.meta.url), "utf8");
   const component = fs.readFileSync(new URL("../src/components/DraftLab.jsx", import.meta.url), "utf8");
   const navigation = fs.readFileSync(new URL("../src/components/SiteQuickLinks.jsx", import.meta.url), "utf8");
+  const resources = fs.readFileSync(new URL("../src/components/ResourcesPage.jsx", import.meta.url), "utf8");
+  const llms = fs.readFileSync(new URL("../src/app/llms.txt/route.js", import.meta.url), "utf8");
   const sitemap = fs.readFileSync(new URL("../src/app/sitemap.js", import.meta.url), "utf8");
   assert.match(route, /alternates:\s*\{ canonical: "\/tools\/team-builder" \}/);
   assert.match(route, /"@type": "WebApplication"/);
   assert.match(component, /teamDefenseSummary\(roster\)/);
   assert.match(component, /teamLegalitySummary\(roster, regulation\)/);
   assert.match(component, /buildDraftLabQuery/);
+  assert.match(component, /draft-lab-catalog\.json/);
+  assert.doesNotMatch(component, /from "\.\/PokemonDraftLeague"/);
   assert.match(component, /href="\/my-teams"/);
   assert.doesNotMatch(component, /\.from\(|\.rpc\(|createClient/);
   assert.match(navigation, /href="\/tools\/team-builder"/);
+  assert.match(resources, /href="\/tools\/team-builder"/);
+  assert.match(llms, /Draft Lab Pokémon team builder/);
   assert.match(sitemap, /\["\/tools\/team-builder", "weekly", 0\.9\]/);
 });

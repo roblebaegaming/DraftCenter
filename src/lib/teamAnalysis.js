@@ -182,27 +182,36 @@ function asSearchParams(value) {
 
 export function parseDraftLabQuery(value, validNames = []) {
   const params = asSearchParams(value);
+  const version = params.get("v");
+  if (version && version !== SHARE_VERSION) {
+    return { version: SHARE_VERSION, format: "reg-mb", mode: "team", names: [] };
+  }
+
   const allowed = new Set(validNames);
-  const names = String(params.get("team") || "")
+  const mode = params.get("mode") === "roster" ? "roster" : "team";
+  const limit = mode === "roster" ? DRAFT_LAB_MAX_ROSTER_SIZE : 6;
+  const names = [...new Set(String(params.get("team") || "")
     .split("~")
     .map((name) => name.trim())
-    .filter((name) => name && allowed.has(name))
-    .slice(0, DRAFT_LAB_MAX_ROSTER_SIZE);
+    .filter((name) => name && allowed.has(name)))]
+    .slice(0, limit);
   return {
-    version: params.get("v") || SHARE_VERSION,
+    version: SHARE_VERSION,
     format: params.get("format") || "reg-mb",
-    mode: params.get("mode") === "roster" ? "roster" : "team",
-    names: [...new Set(names)],
+    mode,
+    names,
   };
 }
 
 export function buildDraftLabQuery({ format = "reg-mb", mode = "team", names = [] } = {}) {
   const params = new URLSearchParams();
+  const normalizedMode = mode === "roster" ? "roster" : "team";
+  const limit = normalizedMode === "roster" ? DRAFT_LAB_MAX_ROSTER_SIZE : 6;
   params.set("v", SHARE_VERSION);
   params.set("format", String(format || "reg-mb"));
-  if (mode === "roster") params.set("mode", "roster");
+  if (normalizedMode === "roster") params.set("mode", "roster");
   const normalizedNames = [...new Set(names.map((name) => String(name || "").trim()).filter(Boolean))]
-    .slice(0, DRAFT_LAB_MAX_ROSTER_SIZE);
+    .slice(0, limit);
   if (normalizedNames.length) params.set("team", normalizedNames.join("~"));
   return params.toString();
 }

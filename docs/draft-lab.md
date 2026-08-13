@@ -7,7 +7,7 @@ route is deployed.
 
 ## Initial contract
 
-Visitors can build either a six-PokÃ©mon battle team or a 24-PokÃ©mon draft
+Visitors can build either a six-Pokémon battle team or a 24-Pokémon draft
 roster and choose from the same regulation catalog used by hosted leagues. The
 analysis shows:
 
@@ -21,16 +21,23 @@ analysis shows:
 The team summary deliberately does not assume abilities, held items, moves,
 EVs, natures, boosts, field effects, or a league's commissioner overrides. STAB
 coverage means only that a roster type is super effective against a single
-defending type; it does not claim that the PokÃ©mon learns a suitable move.
+defending type; it does not claim that the Pokémon learns a suitable move.
 
 ## Shared analysis layer
 
 `src/lib/teamAnalysis.js` is the reusable product boundary. It owns the modern
-18-type chart, the bounded ability modifiers used on individual PokÃ©mon cards,
+18-type chart, the bounded ability modifiers used on individual Pokémon cards,
 team defensive and STAB summaries, base-stat summaries, format checks, and the
 versioned share-link parser. The existing hosted-league and My Teams defensive
 views consume this same layer instead of keeping a second type chart in the
 large league component.
+
+The public page consumes `src/data/draft-lab-catalog.json`, a generated,
+client-sized snapshot of that same league catalogue, regulation data, and
+reviewed base stats. `npm run test:draft-lab` fails when the snapshot drifts
+from `PokemonDraftLeague.jsx`; regenerate it intentionally with
+`npm run draft-lab:build-catalog`. This keeps the public tool aligned without
+shipping the full hosted-league application in its browser bundle.
 
 Share links use a bounded, versioned query contract:
 
@@ -66,7 +73,7 @@ timed-out draft mutation.
    and regulation are refreshed.
 4. Add a branded image export generated from the same analysis result.
 5. Reuse the catalog, legality, comparison, and share-state contracts for the
-   planned PokÃ©mon comparison and tier-list tools.
+   planned Pokémon comparison and tier-list tools.
 
 Do not begin a damage calculator by treating this type engine as a complete
 battle engine. Damage requires a separately reviewed contract for moves,

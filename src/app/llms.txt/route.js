@@ -9,6 +9,7 @@ DraftCenter helps communities configure leagues, run snake and auction drafts, m
 - [About DraftCenter and our data](https://www.draftcentral.gg/about)
 - [Pokémon draft league guides](https://www.draftcentral.gg/guides)
 - [Supported draft formats](https://www.draftcentral.gg/formats)
+- [Draft Lab Pokémon team builder](https://www.draftcentral.gg/tools/team-builder)
 - [Public Pokémon catalog](https://www.draftcentral.gg/pokemon)
 - [Pokémon Daily Games](https://www.draftcentral.gg/resources/daily-games)
 - [Public leagues](https://www.draftcentral.gg/leagues)
@@ -23,6 +24,7 @@ DraftCenter helps communities configure leagues, run snake and auction drafts, m
 
 ## Public tools and events
 
+- Draft Lab is a public, read-only team builder for six-Pokémon battle teams and 24-Pokémon draft rosters. It checks typing, STAB gaps, Speed tiers, base-stat balance, and base regulation legality without claiming to model moves, abilities, items, EVs, or league-specific rules. Versioned links can reopen an analysis without storing a private team or changing a league.
 - The tournament organizer supports standalone single elimination for up to 512 entrants and double elimination for up to 256 entrants. For 4–16 managers, Draft teams first adds a shared snake draft before single elimination, double elimination, or Swiss play. Swiss currently requires that shared draft and uses three rounds for 4–8 managers or four rounds for 9–16.
 - Multi-pod organizations can qualify retained league rosters into connected single- or double-elimination championships. Organization administration and event workspaces are not public reference material.
 - Pokémon Daily Games includes Pokémon Connections, a community poll, an eight-Pokémon bracket, and a Pokémon quiz. Signed-in discussions open only after the relevant daily game is completed.
@@ -72,7 +74,7 @@ DraftCenter helps communities configure leagues, run snake and auction drafts, m
 
 DraftCenter is an independent fan project and is not affiliated with or endorsed by Nintendo, Creatures Inc., GAME FREAK inc., or The Pokémon Company. Pokémon names, characters, artwork, and trademarks belong to their respective owners.
 
-Last reviewed: 2026-08-11
+Last reviewed: 2026-08-13
 `;
 
 export function GET() {

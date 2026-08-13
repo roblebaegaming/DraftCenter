@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { POKEMON_DATA, POKEMON_DIRECTORY, REGULATION_SETS } from "./PokemonDraftLeague";
+import draftLabCatalog from "../data/draft-lab-catalog.json";
 import { REGULATION_GROUPS } from "../lib/regulation-catalog";
 import {
   buildDraftLabQuery,
@@ -12,9 +12,10 @@ import {
   teamStatSummary,
 } from "../lib/teamAnalysis";
 
-const CATALOG = [...POKEMON_DIRECTORY].sort((left, right) => left.name.localeCompare(right.name));
+const CATALOG = draftLabCatalog.pokemon;
 const CATALOG_BY_NAME = new Map(CATALOG.map((pokemon) => [pokemon.name, pokemon]));
 const CATALOG_NAMES = CATALOG.map((pokemon) => pokemon.name);
+const REGULATION_SETS = draftLabCatalog.regulations;
 const FORMAT_GROUPS = REGULATION_GROUPS
   .filter((group) => group.id !== "custom")
   .map((group) => ({
@@ -40,10 +41,7 @@ function displayType(type) {
 }
 
 function buildRoster(names) {
-  return names.map((name) => {
-    const pokemon = CATALOG_BY_NAME.get(name);
-    return pokemon ? { ...pokemon, stats: POKEMON_DATA[name]?.stats || null } : null;
-  }).filter(Boolean);
+  return names.map((name) => CATALOG_BY_NAME.get(name)).filter(Boolean);
 }
 
 function TypeBadge({ type }) {
@@ -130,6 +128,12 @@ export default function DraftLab() {
     setMessage("");
   }
 
+  function clearRoster() {
+    setNames([]);
+    setQuery("");
+    setMessage("Roster cleared. The share link now opens an empty Draft Lab.");
+  }
+
   function changeMode(nextMode) {
     setMode(nextMode);
     if (nextMode === "team") setNames((current) => current.slice(0, 6));
@@ -160,13 +164,13 @@ export default function DraftLab() {
         <div><span className="eyebrow">BUILD</span><h2 id="draft-lab-builder-title">Choose your roster</h2></div>
         <div className="draft-lab-mode" role="group" aria-label="Roster size"><button type="button" aria-pressed={mode === "team"} onClick={() => changeMode("team")}>Battle team · 6</button><button type="button" aria-pressed={mode === "roster"} onClick={() => changeMode("roster")}>Draft roster · 24</button></div>
         <label>Format<select value={formatId} onChange={(event) => setFormatId(event.target.value)}>{FORMAT_GROUPS.map((group) => <optgroup key={group.id} label={group.label}>{group.options.map((option) => <option key={option.id} value={option.id}>{option.name}</option>)}</optgroup>)}</select></label>
-        <div className="draft-lab-search"><label htmlFor="draft-lab-pokemon">Add Pokémon</label><div><input id="draft-lab-pokemon" value={query} onChange={(event) => setQuery(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter" && matches[0]) { event.preventDefault(); addPokemon(matches[0].name); } }} placeholder="Garchomp, Rotom-Wash..." autoComplete="off"/><span>{names.length} / {limit}</span></div>{matches.length > 0 && <div className="draft-lab-search-results">{matches.map((pokemon) => <button type="button" key={pokemon.name} onClick={() => addPokemon(pokemon.name)}><strong>{pokemon.name}</strong><span>{displayType(pokemon.t1)}{pokemon.t2 ? ` / ${displayType(pokemon.t2)}` : ""} · BST {pokemon.bst}</span></button>)}</div>}</div>
+        <div className="draft-lab-search"><label htmlFor="draft-lab-pokemon">Add Pokémon</label><div><input id="draft-lab-pokemon" value={query} onChange={(event) => { setQuery(event.target.value); setMessage(""); }} onKeyDown={(event) => { if (event.key === "Escape") { setQuery(""); setMessage(""); } else if (event.key === "Enter") { event.preventDefault(); if (matches[0]) addPokemon(matches[0].name); else if (query.trim()) setMessage(`No DraftCenter catalogue match found for “${query.trim()}”.`); } }} placeholder="Garchomp, Rotom-Wash..." autoComplete="off" aria-describedby="draft-lab-roster-count" aria-controls={matches.length ? "draft-lab-search-results" : undefined}/><span id="draft-lab-roster-count" aria-live="polite">{names.length} / {limit}</span></div>{matches.length > 0 && <ul id="draft-lab-search-results" className="draft-lab-search-results" aria-label="Matching Pokémon">{matches.map((pokemon) => <li key={pokemon.name}><button type="button" onClick={() => addPokemon(pokemon.name)}><strong>{pokemon.name}</strong><span>{displayType(pokemon.t1)}{pokemon.t2 ? ` / ${displayType(pokemon.t2)}` : ""} · BST {pokemon.bst}</span></button></li>)}</ul>}</div>
       </div>
 
       {message && <p className="hub-message" role="status">{message}</p>}
-      {roster.length ? <ol className="draft-lab-roster">{roster.map((pokemon, index) => <li key={pokemon.name}>
+      {roster.length ? <><div className="draft-lab-roster-heading"><strong>{mode === "team" ? "Battle team" : "Draft roster"}</strong><button className="quiet-button" type="button" onClick={clearRoster}>Clear roster</button></div><ol className="draft-lab-roster">{roster.map((pokemon, index) => <li key={pokemon.name}>
         <span>{index + 1}</span><div><strong>{pokemon.name}</strong><small>BST {pokemon.bst}{pokemon.stats?.spe != null ? ` · Speed ${pokemon.stats.spe}` : ""}</small></div><div className="draft-lab-types"><TypeBadge type={pokemon.t1} />{pokemon.t2 && <TypeBadge type={pokemon.t2} />}</div><button type="button" aria-label={`Remove ${pokemon.name}`} onClick={() => setNames((current) => current.filter((name) => name !== pokemon.name))}>Remove</button>
-      </li>)}</ol> : <div className="draft-lab-empty"><strong>Your analysis is ready to start.</strong><p>Add a Pokémon above. The shared URL updates as you build.</p></div>}
+      </li>)}</ol></> : <div className="draft-lab-empty"><strong>Your analysis is ready to start.</strong><p>Add a Pokémon above. The shared URL updates as you build.</p></div>}
     </section>
 
     {roster.length > 0 && <>
@@ -179,6 +183,6 @@ export default function DraftLab() {
       </section>
     </>}
 
-    <section className="draft-lab-next"><div><span className="eyebrow">FOUNDATION RELEASE</span><h2>One analysis core, more DraftCenter workflows next</h2><p>The Draft Lab already uses the same Pokémon catalogue, regulation pools, stats, and defensive rules as league rosters. Direct My Teams saves, draft-queue imports, competitive overlays, and image exports can build on this share-link contract without changing a real league.</p></div><div><a className="primary-button inline-link-button" href="/my-teams">Continue in My Teams</a><a className="quiet-button inline-link-button" href="/formats">Browse formats</a></div></section>
+    <section className="draft-lab-next"><div><span className="eyebrow">NEXT STEPS</span><h2>Share the analysis or keep planning</h2><p>Copy the current link to reopen this exact roster and base format. My Teams is a separate private workspace; opening it does not automatically save or transfer this Draft Lab roster.</p></div><div><a className="primary-button inline-link-button" href="/my-teams">Open My Teams</a><a className="quiet-button inline-link-button" href="/formats">Browse formats</a></div></section>
   </main>;
 }

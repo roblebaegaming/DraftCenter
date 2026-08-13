@@ -2,19 +2,19 @@
 
 - Date: August 13, 2026 (America/Los_Angeles)
 - Branch: `codex/draft-lab-foundation-2026-08-13`
-- Base: `572a494` (`origin/main` at the final rebase; application commit
-  `5005663` plus its protected release record)
+- Base: `cffb610` (`origin/main` after the League Operations application release
+  and its protected production handoff)
 - Route: `/tools/team-builder`
-- State: local application foundation; not committed, pushed, previewed, or
-  deployed
+- State: validated application release candidate; deployment must be confirmed
+  in a newer production handoff
 - Database changes: none
 
 ## Outcome
 
 The attached search research recommended a public Draft Lab as the strongest
 next product. The first implementation now provides a public, indexable team
-builder for a six-PokÃ©mon battle team or a 24-PokÃ©mon draft roster. It reuses
-DraftCenter's PokÃ©mon catalogue, stats, regulation pools, Restricted/Mega caps,
+builder for a six-Pokémon battle team or a 24-Pokémon draft roster. It reuses
+DraftCenter's Pokémon catalogue, stats, regulation pools, Restricted/Mega caps,
 and existing roster analysis behavior.
 
 The page includes shared defensive weaknesses, resistances, immunities, 4x
@@ -30,9 +30,15 @@ league component now imports its individual defensive chart and full-roster
 summary from that library, so the hosted roster view and Draft Lab no longer
 carry separate copies of the modern type chart.
 
+Draft Lab loads a generated client snapshot from
+`src/data/draft-lab-catalog.json` instead of importing the full hosted-league
+application. The focused check regenerates the source data in memory and fails
+on drift, preserving one authoritative catalogue and regulation definition
+while keeping the standalone tool's browser bundle bounded.
+
 The module also owns the bounded `v=1` share-link contract. It accepts only
 catalog names, removes duplicates, caps the list at 24, and carries only the
-format, mode, and PokÃ©mon names. It does not carry a user ID, league ID, team
+format, mode, and Pokémon names. It does not carry a user ID, league ID, team
 notes, queue, or other private state.
 
 The stable product and safety contract is in [`../draft-lab.md`](../draft-lab.md).
@@ -53,26 +59,26 @@ The stable product and safety contract is in [`../draft-lab.md`](../draft-lab.md
 
 ## Validation evidence
 
-Passed on the final branch base:
+Passed on the final `cffb610` branch base:
 
-- `npm run test:draft-lab`: 7/7;
+- `npm run test:draft-lab`: 8/8, including generated-catalog drift detection;
+- `npm run test:regulations`: 6/6;
+- `npm run test:seo`: 17/17;
+- `npm run test:help-guides`: 4/4;
 - `npm run test:release-integration`: 5/5;
+- `npm run test:all`: complete pass, including the synchronized migration-379
+  source gate and all 63 Worlds tests;
+- `npm run test:national-dex`: all 1,027 rows;
+- `pnpm audit --prod --audit-level high`: no known vulnerabilities;
 - the optimized Webpack production build, including static generation of all
-  243 pages and `/tools/team-builder`;
-- earlier focused regulation and SEO suites;
-- `git diff --check`; and
-- local browser verification at desktop and 390px mobile.
+  243 pages and `/tools/team-builder`; and
+- `git diff --check`.
 
-The browser pass added Garchomp, Rotom-Wash, and Corviknight, verified all 18
-defensive rows and three Speed rows, copied the versioned share URL, reloaded it
-to restore the roster, changed to a Gen I legal pool to verify the illegal-
-PokÃ©mon warning, and found no console errors or mobile horizontal overflow.
-
-`npm run test:all` passed every suite through the inherited Worlds gate, then
-stopped because migration 379 is not synchronized with the committed VGC Meta
-option snapshot. The generator, migration, and competitive source inputs are
-byte-for-byte unchanged from `origin/main`; this branch does not attempt to
-repair unrelated Worlds release data.
+The local desktop render verified the canonical title, current-page navigation,
+44px primary controls, and no horizontal overflow. The repository's development
+CSP prevents client hydration over plain localhost, so interactive desktop and
+390px verification remains an HTTPS Preview gate and is not claimed by this
+record.
 
 The worktree uses a dependency junction to the primary workspace. Turbopack
 rejects that external junction, so the successful isolated-worktree build used
@@ -81,10 +87,12 @@ artwork URL warning after successful static generation but exited zero.
 
 ## Next steps
 
-1. Review the isolated worktree and commit the focused foundation when ready.
-2. Rebase again if `origin/main` advances before review.
-3. Repair or reconcile the inherited migration-379 Worlds source check in its
-   owning workstream; do not rewrite a deployed migration.
-4. Run the complete release checks after that baseline is green, create a
-   protected pull request, and review a Preview before any merge.
-5. Do not run the production smoke test until an authorized deployment exists.
+1. Commit and push the validated candidate, then open a protected pull request.
+2. Review the exact HTTPS Preview at desktop and approximately 390px mobile,
+   including search, share restoration, legality changes, clear/remove actions,
+   console output, control sizes, and horizontal overflow.
+3. Wait for every protected repository check before merge.
+4. Confirm the exact merged commit reaches Ready in Production, then run the
+   signed-out production smoke sweep.
+5. Publish a final production handoff without rewriting this implementation
+   record.
