@@ -3,8 +3,8 @@
 - Last updated: August 12, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified production application commit: `98f766f4831268a23f8c362eafbd5d95aa872363`
-- Latest production migration: 382
+- Verified production application commit: `813b3b6d578b2b5d434e8a1fd3464e890b31a471`
+- Latest production migration: 383
 
 ## Deployed state
 
@@ -19,6 +19,14 @@ was replaced with collection/page schema; and the private Calendar is now a
 standalone global tool combining DraftCenter league dates, personal reminders,
 and a maintained read-only schedule of major VGC events. Production migration
 382 is applied with owner-only calendar policies.
+
+Pull request [#174](https://github.com/roblebaegaming/DraftCenter/pull/174)
+added revocable private calendar subscriptions. Signed-in users can create a
+read-only URL for Google Calendar that automatically includes league dates,
+personal reminders, and the maintained VGC schedule without granting
+DraftCenter access to a Google account. Only a SHA-256 token hash is stored;
+the link can be rotated or revoked. Production migration 383 is applied with
+forced RLS and no client-role table access.
 
 The August 9 release wave is complete. Pull requests
 [#95](https://github.com/roblebaegaming/DraftCenter/pull/95) through
@@ -360,6 +368,14 @@ team-based rather than 185 individual-player picks.
 
 ## Release verification
 
+- Pull request #174 passed all six protected checks and its hosted Preview.
+  Vercel reports exact merged commit `813b3b6` Ready in Production. Migration
+  383 returned success on the verified production project; its postflight
+  confirmed forced RLS, denied anon/authenticated reads, service-only CRUD,
+  zero client policies, and zero pre-launch tokens. The live private feed
+  returns a valid non-indexed 31-event iCalendar response, Google Calendar is
+  privately subscribed, unknown tokens fail with 404, and the 19-route
+  production smoke sweep passes.
 - The complete application tests, National Dex verification across 1,027
   rows, production dependency audit, and production builds passed for the
   applicable releases.
