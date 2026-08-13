@@ -1,10 +1,14 @@
 const ANALYTICS_ENDPOINT = "https://api.vercel.com/v1/query/web-analytics/visits/aggregate";
+const ANALYTICS_COUNT_ENDPOINT = "https://api.vercel.com/v1/query/web-analytics/visits/count";
 const ANALYTICS_TIME_ZONE = "America/Los_Angeles";
 const PRIVATE_PATH_PREFIXES = ["/operations", "/my-teams", "/organizations", "/trainer-dex"];
 const CACHE_TTL_MS = 5 * 60 * 1000;
 const PARTIAL_CACHE_TTL_MS = 60 * 1000;
+const ACTIVE_CACHE_TTL_MS = 60 * 1000;
+const ACTIVE_WINDOW_MINUTES = 5;
 
 let cachedTraffic = null;
+let cachedActiveVisitors = null;
 
 function nonNegativeNumber(value) {
   const number = Number(value);
@@ -44,6 +48,16 @@ function buildAnalyticsUrl({ projectId, teamId, since, until, by, limit }) {
   return url;
 }
 
+function buildActiveVisitorsUrl({ projectId, teamId, since, until }) {
+  const url = new URL(ANALYTICS_COUNT_ENDPOINT);
+  url.searchParams.set("projectId", projectId);
+  url.searchParams.set("teamId", teamId);
+  url.searchParams.set("since", since);
+  url.searchParams.set("until", until);
+  url.searchParams.set("filter", privatePathFilter());
+  return url;
+}
+
 async function queryAnalytics(fetchImpl, url, token) {
   const options = {
     headers: {
@@ -59,6 +73,23 @@ async function queryAnalytics(fetchImpl, url, token) {
   const payload = await response.json();
   if (!Array.isArray(payload?.data)) throw new Error("Vercel Web Analytics returned an unexpected response.");
   return payload.data;
+}
+
+async function queryActiveVisitors(fetchImpl, url, token) {
+  const options = {
+    headers: {
+      Accept: "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    cache: "no-store",
+  };
+  const signal = globalThis.AbortSignal?.timeout?.(8000);
+  if (signal) options.signal = signal;
+  const response = await fetchImpl(url, options);
+  if (!response.ok) throw new Error(`Vercel Web Analytics request failed (${response.status}).`);
+  const payload = await response.json();
+  if (!payload?.data || typeof payload.data !== "object") throw new Error("Vercel Web Analytics returned an unexpected count response.");
+  return nonNegativeNumber(payload.data.visitors);
 }
 
 function isPrivatePath(path) {
@@ -102,6 +133,23 @@ function unavailableTraffic() {
 
 export function resetWebsiteTrafficCache() {
   cachedTraffic = null;
+  cachedActiveVisitors = null;
+}
+
+async function getActiveVisitors({ fetchImpl, token, projectId, teamId, currentDate, bypassCache }) {
+  const nowMs = currentDate.getTime();
+  const cacheKey = `${projectId}:${teamId}`;
+  if (!bypassCache && cachedActiveVisitors?.key === cacheKey && cachedActiveVisitors.expiresAt > nowMs) return cachedActiveVisitors.value;
+  const since = new Date(nowMs - ACTIVE_WINDOW_MINUTES * 60 * 1000).toISOString();
+  const until = currentDate.toISOString();
+  try {
+    const visitors = await queryActiveVisitors(fetchImpl, buildActiveVisitorsUrl({ projectId, teamId, since, until }), token);
+    const value = { unavailable: false, visitors, window_minutes: ACTIVE_WINDOW_MINUTES, generated_at: until };
+    cachedActiveVisitors = { key: cacheKey, expiresAt: nowMs + ACTIVE_CACHE_TTL_MS, value };
+    return value;
+  } catch {
+    return { unavailable: true, window_minutes: ACTIVE_WINDOW_MINUTES };
+  }
 }
 
 export async function getWebsiteTraffic({ fetchImpl = fetch, env = process.env, now = new Date(), bypassCache = false } = {}) {
@@ -113,7 +161,10 @@ export async function getWebsiteTraffic({ fetchImpl = fetch, env = process.env, 
 
   const nowMs = currentDate.getTime();
   const cacheKey = `${projectId}:${teamId}`;
-  if (!bypassCache && cachedTraffic?.key === cacheKey && cachedTraffic.expiresAt > nowMs) return cachedTraffic.value;
+  const activeNowPromise = getActiveVisitors({ fetchImpl, token, projectId, teamId, currentDate, bypassCache });
+  if (!bypassCache && cachedTraffic?.key === cacheKey && cachedTraffic.expiresAt > nowMs) {
+    return { ...cachedTraffic.value, active_now: await activeNowPromise };
+  }
 
   const todayDate = dateKeyInTimeZone(currentDate);
   const yesterdayDate = shiftDateKey(todayDate, -1);
@@ -125,7 +176,7 @@ export async function getWebsiteTraffic({ fetchImpl = fetch, env = process.env, 
     queryAnalytics(fetchImpl, dailyUrl, token),
     queryAnalytics(fetchImpl, topPagesUrl, token),
   ]);
-  if (dailyResult.status !== "fulfilled") return unavailableTraffic();
+  if (dailyResult.status !== "fulfilled") return { ...unavailableTraffic(), active_now: await activeNowPromise };
 
   const daily = fillDailyRows(dailyResult.value, startDate, todayDate);
   const today = daily.find((row) => row.date === todayDate) || { date: todayDate, visitors: 0, pageviews: 0 };
@@ -154,11 +205,13 @@ export async function getWebsiteTraffic({ fetchImpl = fetch, env = process.env, 
     expiresAt: nowMs + (topPagesUnavailable ? PARTIAL_CACHE_TTL_MS : CACHE_TTL_MS),
     value,
   };
-  return value;
+  return { ...value, active_now: await activeNowPromise };
 }
 
 export const websiteTrafficConfig = {
   endpoint: ANALYTICS_ENDPOINT,
+  countEndpoint: ANALYTICS_COUNT_ENDPOINT,
+  activeWindowMinutes: ACTIVE_WINDOW_MINUTES,
   privatePathPrefixes: PRIVATE_PATH_PREFIXES,
   timeZone: ANALYTICS_TIME_ZONE,
 };

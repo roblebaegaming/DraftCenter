@@ -71,9 +71,12 @@ not grant the owner league access and does not notify or alter the league.
 
 Allowlisted owners can open `/operations/daily-three` from the global Daily
 Games shortcut. It shows each profile's last Daily Games activity, last full
-completion, today's Poll/Bracket/Quiz status, and completion-day counts. It does
-not expose Pokémon Connections completion rows or return puzzle groups, poll
-choices, bracket selections, quiz answers, or correctness.
+completion, today's Poll/Bracket/Quiz status, and completion-day counts. The
+main `/operations` page separately shows aggregate Pokémon Connections usage:
+all-time players and completions, today, trailing 7- and 30-day totals, account
+adoption, and a 30-day completion trend. It does not expose Pokémon Connections
+completion rows, player names, puzzle groups, guesses, answers, failed boards,
+or signed-out play.
 
 The same owner-only page includes the upcoming community editorial calendar.
 It previews Daily Games polls and quizzes alongside the separate Question of
@@ -82,6 +85,19 @@ and historical activities are intentionally locked. Daily Games polls and
 quizzes remain Pokemon-only. Question of the Day is human/community-first with
 occasional Pokemon prompts, and is delivered only to the dedicated community
 channel.
+
+## Current site activity
+
+Operations shows an **Active now estimate** from the existing Vercel Web
+Analytics integration. It counts anonymized visitors who loaded or navigated a
+public DraftCenter page during the previous five minutes. It is not a precise
+connected-user census: someone who leaves can remain in the window briefly,
+and someone who keeps one page open for more than five minutes without
+navigating can fall out of it. Known bots, `/operations`, and private workspace
+paths are excluded. The count uses Vercel's daily-reset visitor hashes and does
+not add cookies, heartbeats, account linkage, or page-level identity to
+Operations. The live estimate is cached for one minute; historical traffic
+retains its five-minute cache.
 
 ## Configuration support access
 
