@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "../lib/supabase/client";
-import { draftTournamentCreateRpcArguments } from "../lib/draftTournament";
+import { draftFirstTournamentCreateRpcArguments } from "../lib/draftTournament";
 import { tournamentError } from "../lib/tournamentErrors";
 import {
   DOUBLE_ELIMINATION_MAX_ENTRANTS,
@@ -10,15 +10,23 @@ import {
   tournamentEntrantBounds,
 } from "../lib/tournamentLimits";
 
-function formatLabel(format) {
+function formatLabel(format, competitionFormat = null) {
+  if (format === "draft-tournament" && competitionFormat === "double-elimination") return "Draft + double elimination";
+  if (format === "draft-tournament" && competitionFormat === "single-elimination") return "Draft + single elimination";
+  if (format === "draft-tournament" && competitionFormat === "swiss") return "Draft + Swiss";
   if (format === "draft-tournament") return "Draft Tournament";
   if (format === "double-elimination") return "Double elimination";
+  if (format === "swiss") return "Swiss";
   return "Single elimination";
 }
 
-function formatDescription(format) {
-  if (format === "draft-tournament") return "One shared draft, Swiss rounds, and an optional top cut. Up to 16 entrants.";
+function formatDescription(format, competitionFormat = null) {
+  if (format === "draft-tournament" && competitionFormat === "double-elimination") return "One shared draft followed by a winners bracket, losers bracket, Grand Final, and conditional reset.";
+  if (format === "draft-tournament" && competitionFormat === "single-elimination") return "One shared draft followed by a single-elimination bracket.";
+  if (format === "draft-tournament" && competitionFormat === "swiss") return "One shared draft followed by score-grouped Swiss rounds with standings and rematch-aware pairings.";
+  if (format === "draft-tournament") return "One shared draft followed by tournament play. Up to 16 entrants.";
   if (format === "double-elimination") return `A first loss moves an entrant to the losers bracket. A second loss eliminates them. Up to ${DOUBLE_ELIMINATION_MAX_ENTRANTS} entrants.`;
+  if (format === "swiss") return "Managers draft first, then play every Swiss round instead of being eliminated after a loss. Up to 16 entrants.";
   return `One loss eliminates an entrant. Up to ${SINGLE_ELIMINATION_MAX_ENTRANTS} entrants.`;
 }
 
@@ -33,12 +41,12 @@ export default function TournamentDirectory() {
     description: "",
     visibility: "public",
     format: "single-elimination",
+    draftRostersFirst: false,
     bestOf: 3,
     entrantLimit: 16,
     rules: "",
     rosterSize: 6,
     pickTimeLimitMinutes: 5,
-    topCutSize: 0,
     snakeBudgetEnabled: false,
     draftBudget: 120,
     publishRosters: false,
@@ -56,12 +64,24 @@ export default function TournamentDirectory() {
   }, [supabase]);
 
   function chooseFormat(format) {
-    const bounds = format === "draft-tournament" ? { min: 4, max: 16 } : tournamentEntrantBounds(format);
     setForm((current) => ({
       ...current,
       format,
+      draftRostersFirst: format === "swiss" ? true : current.draftRostersFirst,
+      entrantLimit: Math.min(
+        (format === "swiss" || current.draftRostersFirst) ? 16 : tournamentEntrantBounds(format).max,
+        Math.max((format === "swiss" || current.draftRostersFirst) ? 4 : tournamentEntrantBounds(format).min, current.entrantLimit),
+      ),
+    }));
+  }
+
+  function chooseDraftRostersFirst(draftRostersFirst) {
+    if (!draftRostersFirst && form.format === "swiss") return;
+    const bounds = draftRostersFirst ? { min: 4, max: 16 } : tournamentEntrantBounds(form.format);
+    setForm((current) => ({
+      ...current,
+      draftRostersFirst,
       entrantLimit: Math.min(bounds.max, Math.max(bounds.min, current.entrantLimit)),
-      topCutSize: format === "draft-tournament" ? current.topCutSize : 0,
     }));
   }
 
@@ -71,8 +91,8 @@ export default function TournamentDirectory() {
     setMessage("");
     let result;
     try {
-      result = form.format === "draft-tournament"
-        ? await supabase.rpc("create_draft_tournament", draftTournamentCreateRpcArguments(form))
+      result = form.draftRostersFirst
+        ? await supabase.rpc("create_draft_first_tournament", draftFirstTournamentCreateRpcArguments(form))
         : await supabase.rpc("create_tournament", {
           p_name: form.name,
           p_description: form.description,
@@ -94,8 +114,7 @@ export default function TournamentDirectory() {
     window.location.assign(`/tournaments/${result.data.slug}${code}`);
   }
 
-  const draftTournament = form.format === "draft-tournament";
-  const entrantBounds = draftTournament ? { min: 4, max: 16 } : tournamentEntrantBounds(form.format);
+  const entrantBounds = form.draftRostersFirst ? { min: 4, max: 16 } : tournamentEntrantBounds(form.format);
 
   return (
     <main className="tournament-shell">
@@ -103,7 +122,7 @@ export default function TournamentDirectory() {
         <a className="quiet-button" href="/?view=dashboard">&larr; DraftCenter home</a>
         <span className="eyebrow">TOURNAMENTS</span>
         <h1>Pokémon tournament organizer</h1>
-        <p>Run single- or double-elimination brackets, connect a multi-pod championship, or draft every roster together before Swiss competition and an optional top cut.</p>
+        <p>Choose single elimination, double elimination, or Swiss, then decide whether everyone brings a team or drafts their rosters together first.</p>
       </header>
       <div className="tournament-directory-layout">
         <section className="tournament-panel">
@@ -112,8 +131,8 @@ export default function TournamentDirectory() {
           <div className="tournament-list">
             {tournaments.map((tournament) => (
               <a href={`/tournaments/${tournament.slug}`} key={tournament.id}>
-                <div><strong>{tournament.name}</strong><p>{tournament.description || formatDescription(tournament.format)}</p></div>
-                <span>{formatLabel(tournament.format)} &middot; {tournament.status} &middot; Best of {tournament.best_of}</span>
+                <div><strong>{tournament.name}</strong><p>{tournament.description || formatDescription(tournament.format, tournament.competition_format)}</p></div>
+                <span>{formatLabel(tournament.format, tournament.competition_format)} &middot; {tournament.status} &middot; Best of {tournament.best_of}</span>
               </a>
             ))}
             {!tournaments.length && !message && <div className="empty-state">No tournaments are visible yet.</div>}
@@ -133,10 +152,20 @@ export default function TournamentDirectory() {
                 <select value={form.format} onChange={(event) => chooseFormat(event.target.value)}>
                   <option value="single-elimination">Single elimination</option>
                   <option value="double-elimination">Double elimination</option>
-                  <option value="draft-tournament">Draft Tournament</option>
+                  <option value="swiss">Swiss</option>
                 </select>
-                <small>{formatDescription(form.format)}</small>
+                <small>{formatDescription(form.draftRostersFirst ? "draft-tournament" : form.format, form.draftRostersFirst ? form.format : null)}</small>
               </label>
+              <button
+                type="button"
+                className={`tournament-draft-toggle ${form.draftRostersFirst ? "is-selected" : ""}`}
+                aria-pressed={form.draftRostersFirst}
+                disabled={form.format === "swiss"}
+                onClick={() => chooseDraftRostersFirst(!form.draftRostersFirst)}
+              >
+                <strong>Draft teams first</strong>
+                <span>{form.format === "swiss" ? "On — Swiss currently uses the shared draft before Round 1." : form.draftRostersFirst ? "On — every checked-in manager drafts a roster before tournament play." : "Off — entrants bring their own teams directly to the bracket."}</span>
+              </button>
               <div className="tournament-form-pair">
                 <label>Visibility
                   <select value={form.visibility} onChange={(event) => setForm({ ...form, visibility: event.target.value, publishRosters: event.target.value === "public" && form.publishRosters })}>
@@ -151,7 +180,7 @@ export default function TournamentDirectory() {
               </div>
               <label>Entrant limit<input type="number" min={entrantBounds.min} max={entrantBounds.max} value={form.entrantLimit} onChange={(event) => setForm({ ...form, entrantLimit: Number(event.target.value) })} /></label>
 
-              {draftTournament && (
+              {form.draftRostersFirst && (
                 <fieldset className="form-stack tournament-draft-settings">
                   <legend>Shared draft</legend>
                   <div className="tournament-form-pair">
@@ -162,17 +191,12 @@ export default function TournamentDirectory() {
                       </select>
                     </label>
                   </div>
-                  <div className="tournament-form-pair">
-                    <label>Top cut
-                      <select value={form.topCutSize} onChange={(event) => setForm({ ...form, topCutSize: Number(event.target.value) })}>
-                        <option value="0">No top cut</option><option value="2">Top 2</option><option value="4">Top 4</option><option value="8">Top 8</option>
-                      </select>
-                    </label>
-                  </div>
                   <label className="tournament-checkbox"><input type="checkbox" checked={form.snakeBudgetEnabled} onChange={(event) => setForm({ ...form, snakeBudgetEnabled: event.target.checked })} /> Use a point budget during the snake draft</label>
                   {form.snakeBudgetEnabled && <label>Draft budget<input type="number" min="60" max="1000" value={form.draftBudget} onChange={(event) => setForm({ ...form, draftBudget: Number(event.target.value) })} /></label>}
                   {form.visibility === "public" && <label className="tournament-checkbox"><input type="checkbox" checked={form.publishRosters} onChange={(event) => setForm({ ...form, publishRosters: event.target.checked })} /> Publish locked rosters on the public event page</label>}
-                  <small>Swiss rounds are automatic: three rounds for 4–8 checked-in entrants and four rounds for 9–16.</small>
+                  <small>{form.format === "swiss"
+                    ? "After the snake draft, roster lock will pair Swiss Round 1 automatically. Events use 3 rounds for 4–8 managers or 4 rounds for 9–16."
+                    : `After the snake draft, roster lock will build the ${form.format === "double-elimination" ? "double-elimination winners and losers brackets" : "single-elimination bracket"} automatically.`}</small>
                 </fieldset>
               )}
 
@@ -184,8 +208,8 @@ export default function TournamentDirectory() {
       </div>
       <section className="tournament-panel tournament-format-guide" aria-labelledby="tournament-format-guide-title">
         <span className="eyebrow">CHOOSE YOUR EVENT</span>
-        <h2 id="tournament-format-guide-title">Four ways to run a Pokémon tournament</h2>
-        <p className="tournament-format-intro">Choose a direct bracket for a standalone event, a shared-draft competition for up to 16 players, or promote qualified league rosters into a connected championship.</p>
+        <h2 id="tournament-format-guide-title">Choose tournament play, then choose how teams enter</h2>
+        <p className="tournament-format-intro">Single or double elimination controls how losses eliminate entrants. Swiss pairs managers by record across every round. Draft teams first controls whether 4–16 managers build their rosters together before play begins; it is currently required for Swiss.</p>
         <div className="tournament-format-grid">
           <article>
             <h3>Single elimination</h3>
@@ -196,8 +220,12 @@ export default function TournamentDirectory() {
             <p>Run a winners bracket, losers bracket, Grand Final, and reset match when required for 4–{DOUBLE_ELIMINATION_MAX_ENTRANTS} entrants.</p>
           </article>
           <article>
-            <h3>Draft Tournament</h3>
-            <p>Register and check in 4–16 players, complete one hidden shared snake draft, lock the rosters, play deterministic Swiss rounds, and optionally advance to a Top 2, 4, or 8.</p>
+            <h3>Swiss</h3>
+            <p>Draft together, then play three rounds with 4–8 managers or four rounds with 9–16. Pairings follow the standings and avoid rematches when possible.</p>
+          </article>
+          <article>
+            <h3>Draft teams first</h3>
+            <p>Add check-in and one shared snake draft before elimination or Swiss play. Locked drafted rosters carry directly into the selected tournament format.</p>
           </article>
           <article>
             <h3>Connected championship</h3>
@@ -207,8 +235,8 @@ export default function TournamentDirectory() {
       </section>
       <section className="tournament-panel tournament-event-guide" aria-labelledby="tournament-event-guide-title">
         <span className="eyebrow">REGISTRATION TO CHAMPION</span>
-        <h2 id="tournament-event-guide-title">Keep the bracket and result history together</h2>
-        <p>Commissioners seed the field, start the event, confirm reported results, and make bounded corrections when needed. Draft Tournaments add check-in, a shared draft room, roster publication controls, Swiss standings, and an optional elimination top cut.</p>
+        <h2 id="tournament-event-guide-title">Keep tournament play and result history together</h2>
+        <p>Commissioners seed the field, start the event, confirm reported results, and make bounded corrections when needed. Turning on Draft teams first adds check-in, a shared draft room, immutable roster snapshots, and optional public roster publication before tournament play.</p>
         <p>Public events appear in the directory for spectators. Private events and commissioner controls remain available only to the people who have access; DraftCenter does not publish private registrations, rosters, or workspaces for search discovery.</p>
         <nav className="tournament-learning-links" aria-label="Tournament planning resources">
           <a href="/formats">Compare Pokémon draft formats</a>

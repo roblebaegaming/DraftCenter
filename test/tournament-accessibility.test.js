@@ -28,7 +28,7 @@ test("workspace controls and feedback expose names, landmarks, and live status",
   assert.match(ui, /aria-label="Choose a bracket round"/);
   assert.match(ui, /aria-pressed=\{visibleRound === group\.key\}/);
   assert.match(ui, /scrollIntoView\(\{ behavior: "smooth", block: "nearest", inline: "start" \}\)/);
-  assert.match(ui, /aria-label=\{`\$\{formatLabel\(tournament\.format\)\} bracket round`\}/);
+  assert.match(ui, /aria-label=\{`\$\{displayFormat\} bracket round`\}/);
   assert.match(ui, /className="is-selected"/);
   assert.match(ui, /aria-labelledby=\{headingId\}/);
   assert.match(ui, /role="status" aria-live="polite"/);

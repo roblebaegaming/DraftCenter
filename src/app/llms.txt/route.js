@@ -2,7 +2,7 @@ const CONTENT = `# DraftCenter
 
 > DraftCenter is an independent Pokémon draft-league platform and public reference library for commissioners, coaches, and spectators.
 
-DraftCenter helps communities configure leagues, run snake and auction drafts, manage rosters and transactions, report matches, calculate standings, run playoffs, and preserve season archives. It also supports standalone single- and double-elimination tournaments, shared-draft Swiss events, multi-pod connected championships, Pokémon Daily Games, and game-specific Nuzlocke teams. Public visitors can explore practical guides, supported formats, public leagues, and Pokémon profiles with clearly labeled community aggregates.
+DraftCenter helps communities configure leagues, run snake and auction drafts, manage rosters and transactions, report matches, calculate standings, run playoffs, and preserve season archives. It also supports standalone single- and double-elimination tournaments, shared-draft Swiss or elimination events, multi-pod connected championships, Pokémon Daily Games, and game-specific Nuzlocke teams. Public visitors can explore practical guides, supported formats, public leagues, and Pokémon profiles with clearly labeled community aggregates.
 
 ## Start here
 
@@ -23,7 +23,7 @@ DraftCenter helps communities configure leagues, run snake and auction drafts, m
 
 ## Public tools and events
 
-- The tournament organizer supports standalone single elimination for up to 512 entrants, double elimination for up to 256 entrants, and Draft Tournaments for 4–16 entrants with a shared draft, Swiss rounds, and an optional top cut.
+- The tournament organizer supports standalone single elimination for up to 512 entrants and double elimination for up to 256 entrants. For 4–16 managers, Draft teams first adds a shared snake draft before single elimination, double elimination, or Swiss play. Swiss currently requires that shared draft and uses three rounds for 4–8 managers or four rounds for 9–16.
 - Multi-pod organizations can qualify retained league rosters into connected single- or double-elimination championships. Organization administration and event workspaces are not public reference material.
 - Pokémon Daily Games includes Pokémon Connections, a community poll, an eight-Pokémon bracket, and a Pokémon quiz. Signed-in discussions open only after the relevant daily game is completed.
 - Nuzlocke teams use independently reviewed, game-specific encounter catalogs. Signed-in players may save a Run Card privately in My Teams or download a visual Run Card; saved cards are not public pages.

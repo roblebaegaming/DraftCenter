@@ -14587,7 +14587,7 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
           {eventMode ? (
             <div className="max-w-xl mx-auto rounded-lg p-5" style={{ background: "#102B2B", border: "1px solid #4FD1C577", color: "#BDF7EE" }}>
               <strong className="block mb-2">Every roster is ready for commissioner review.</strong>
-              <span>Return to the Draft Tournament page to lock the rosters atomically and pair Swiss Round 1.</span>
+              <span>Return to the Draft Tournament page to lock the rosters atomically and start tournament play.</span>
               <a href={state.tournamentSlug ? `/tournaments/${encodeURIComponent(state.tournamentSlug)}` : "/tournaments"} className="primary-button inline-link-button mt-4">Return to event</a>
             </div>
           ) : !readOnly ? (

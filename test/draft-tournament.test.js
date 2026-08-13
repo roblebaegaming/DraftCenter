@@ -3,8 +3,10 @@ import fs from "node:fs";
 import test from "node:test";
 import {
   DRAFT_TOURNAMENT_FORMAT,
+  DRAFT_FIRST_COMPETITION_FORMATS,
   draftTournamentCheckInArguments,
   draftTournamentCreateRpcArguments,
+  draftFirstTournamentCreateRpcArguments,
   draftTournamentRevisionArguments,
   draftTournamentTopCutSeeds,
   normalizeDraftTournamentSettings,
@@ -60,6 +62,33 @@ test("private events never request public roster publication", () => {
     p_draft_budget: 120,
     p_publish_rosters: false,
   });
+});
+
+test("draft-first creation keeps tournament format independent from the shared draft", () => {
+  assert.deepEqual(DRAFT_FIRST_COMPETITION_FORMATS, ["single-elimination", "double-elimination", "swiss"]);
+  const args = draftFirstTournamentCreateRpcArguments({
+    name: "Eight Manager Double Elimination",
+    format: "double-elimination",
+    entrantLimit: 8,
+    rosterSize: 6,
+    pickTimeLimitMinutes: 5,
+    topCutSize: 8,
+  });
+  assert.equal(args.p_competition_format, "double-elimination");
+  assert.equal(args.p_entrant_limit, 8);
+  assert.equal(args.p_roster_size, 6);
+  assert.equal("p_top_cut_size" in args, false);
+  const swissArgs = draftFirstTournamentCreateRpcArguments({
+    name: "Swiss Cup",
+    format: "swiss",
+    entrantLimit: 8,
+  });
+  assert.equal(swissArgs.p_competition_format, "swiss");
+  assert.equal(swissArgs.p_entrant_limit, 8);
+  assert.throws(
+    () => draftFirstTournamentCreateRpcArguments({ name: "Round Robin Cup", format: "round-robin" }),
+    /single elimination, double elimination, or Swiss/,
+  );
 });
 
 test("mutation arguments preserve explicit revisions and check-in intent", () => {
@@ -171,10 +200,12 @@ test("top cut preserves final Swiss rank as seed", () => {
 });
 
 test("migration keeps Draft Tournament state private and server-authoritative", () => {
-  const sql = [362, 363].map((number) => fs.readFileSync(
+  const sql = [362, 363, 385].map((number) => fs.readFileSync(
     new URL(number === 362
       ? "../supabase/362-draft-tournaments.sql"
-      : "../supabase/363-draft-tournament-swiss-and-top-cut.sql", import.meta.url),
+      : number === 363
+        ? "../supabase/363-draft-tournament-swiss-and-top-cut.sql"
+        : "../supabase/385-draft-first-elimination-tournaments.sql", import.meta.url),
     "utf8",
   )).join("\n");
   for (const table of [
@@ -204,7 +235,30 @@ test("migration keeps Draft Tournament state private and server-authoritative", 
   assert.match(sql, /delete from public\.roster_entries entry[\s\S]+delete from public\.draft_picks pick[\s\S]+delete from public\.transaction_items item/i);
   assert.match(sql, /cancel_draft_tournament/i);
   assert.match(sql, /format = 'draft-tournament' and entrant_limit between 4 and 16/i);
+  assert.match(sql, /competition_format in \('swiss', 'single-elimination', 'double-elimination'\)/i);
+  assert.match(sql, /perform public\.lock_double_elimination_tournament/i);
+  assert.match(sql, /phase = 'bracket'/i);
+  assert.match(sql, /new\.payload := \(coalesce\(new\.payload, '\{\}'::jsonb\) - 'swiss_round_count'\)/i);
   assert.doesNotMatch(sql, /grant (insert|update|delete|all)[^;]+to authenticated/i);
+});
+
+test("isolated Preview matrix covers 8-manager draft-first double elimination", () => {
+  const matrix = fs.readFileSync(
+    new URL("../supabase/tests/385-draft-first-elimination-preview-regression.sql", import.meta.url),
+    "utf8",
+  );
+  for (const evidence of [
+    "grants",
+    "rls",
+    "double_elimination_graph",
+    "single_elimination_graph",
+    "swiss_creation",
+    "completion",
+    "cleanup",
+  ]) assert.match(matrix, new RegExp(`'${evidence}'`));
+  assert.match(matrix, /array_length\(v_double_players, 1\) <> 8/i);
+  assert.match(matrix, /v_double_match_count <> 15/i);
+  assert.match(matrix, /rollback;/i);
 });
 
 test("isolated Preview matrix covers the shared draft, Swiss correction, top cut, cancellation, and cleanup", () => {
@@ -233,9 +287,14 @@ test("Tournament UI exposes the Draft Tournament lifecycle without leaking its i
   const workspace = fs.readFileSync(new URL("../src/components/TournamentWorkspace.jsx", import.meta.url), "utf8");
   const draftRoom = fs.readFileSync(new URL("../src/components/PokemonDraftLeague.jsx", import.meta.url), "utf8");
   const leagueHub = fs.readFileSync(new URL("../src/components/LeagueHub.jsx", import.meta.url), "utf8");
-  assert.match(directory, /option value="draft-tournament"/);
+  assert.doesNotMatch(directory, /option value="draft-tournament"/);
+  assert.match(directory, /option value="swiss"/);
+  assert.match(directory, /Draft teams first/);
+  assert.match(directory, /Swiss currently uses the shared draft/);
+  assert.match(directory, /create_draft_first_tournament/);
   assert.match(workspace, /Open check-in/);
-  assert.match(workspace, /Lock rosters & pair Swiss Round 1/);
+  assert.match(workspace, /Lock rosters & build bracket/);
+  assert.match(workspace, /draftEvent\.phase === "bracket"/);
   assert.match(workspace, /cancel_draft_tournament/);
   assert.match(workspace, /opponent_match_win_percentage/);
   assert.match(draftRoom, /DRAFT TOURNAMENT ROOM/);

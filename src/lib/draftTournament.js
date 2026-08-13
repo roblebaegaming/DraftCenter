@@ -1,4 +1,9 @@
 export const DRAFT_TOURNAMENT_FORMAT = "draft-tournament";
+export const DRAFT_FIRST_COMPETITION_FORMATS = Object.freeze([
+  "single-elimination",
+  "double-elimination",
+  "swiss",
+]);
 
 export const DRAFT_TOURNAMENT_PHASES = Object.freeze([
   "registration",
@@ -6,6 +11,7 @@ export const DRAFT_TOURNAMENT_PHASES = Object.freeze([
   "draft-setup",
   "drafting",
   "roster-review",
+  "bracket",
   "swiss",
   "swiss-complete",
   "top-cut",
@@ -83,6 +89,28 @@ export function draftTournamentCreateRpcArguments(input) {
     p_snake_budget_enabled: settings.snakeBudgetEnabled,
     p_draft_budget: settings.draftBudget,
     p_publish_rosters: settings.publishRosters,
+  };
+}
+
+export function draftFirstTournamentCreateRpcArguments(input) {
+  const competitionFormat = String(input?.format ?? "");
+  if (!DRAFT_FIRST_COMPETITION_FORMATS.includes(competitionFormat)) {
+    throw new Error("Draft-first tournaments must use single elimination, double elimination, or Swiss.");
+  }
+  const settings = normalizeDraftTournamentSettings({ ...input, topCutSize: 0 });
+  return {
+    p_name: settings.name,
+    p_description: settings.description,
+    p_visibility: settings.visibility,
+    p_best_of: settings.bestOf,
+    p_entrant_limit: settings.entrantLimit,
+    p_rules: settings.rules,
+    p_roster_size: settings.rosterSize,
+    p_pick_time_limit_minutes: settings.pickTimeLimitMinutes,
+    p_snake_budget_enabled: settings.snakeBudgetEnabled,
+    p_draft_budget: settings.draftBudget,
+    p_publish_rosters: settings.publishRosters,
+    p_competition_format: competitionFormat,
   };
 }
 
