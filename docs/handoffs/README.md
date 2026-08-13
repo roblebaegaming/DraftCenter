@@ -1,11 +1,18 @@
 # Agent handoffs
 
+[`DraftCenter-agent-handoff-2026-08-13-global-release-final.md`](DraftCenter-agent-handoff-2026-08-13-global-release-final.md)
+is the current continuation handoff. It records the exact production state
+through pull request #187 and migration 386, the final August 12-13 release
+chain, global **DraftCenter Home** contract, Operations and Calendar privacy
+boundaries, current Worlds gates, known migration-379 test baseline, and the
+next protected release procedure. Start from fresh `origin/main`; do not replay
+migrations 381-386.
+
 [`DraftCenter-agent-handoff-2026-08-12-worlds-tcg-meta-picks-activation.md`](DraftCenter-agent-handoff-2026-08-12-worlds-tcg-meta-picks-activation.md)
-is the current release-candidate handoff. It records the expandable scoring
-guide, official Standard/H-and-onward format confirmation, guarded migration
-381, isolated Preview save/privacy evidence, and the exact production
-activation sequence. Production remains on migration 380 until that release
-sequence is completed.
+is the historical pre-activation record for the expandable scoring guide,
+official Standard/H-and-onward format confirmation, guarded migration 381, and
+isolated Preview save/privacy evidence. Its production-pending language is
+superseded: pull request #168 shipped and migration 381 is applied.
 
 [`DraftCenter-agent-handoff-2026-08-11-worlds-meta-picks-release.md`](DraftCenter-agent-handoff-2026-08-11-worlds-meta-picks-release.md)
 is the preceding Meta Picks production handoff. It records the reusable
