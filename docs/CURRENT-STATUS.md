@@ -3,7 +3,7 @@
 - Last updated: August 13, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified production application commit: `077f582cf006b414cc603dfbcf6bd53846416663`
+- Verified production application commit: `38d5e33b7112f45f97666c8b5ac614912555c661`
 - Latest production migration: 387
 
 ## Deployed state
@@ -84,6 +84,18 @@ Migration 387 adds the private RLS-protected planning layer and authenticated
 RPC workflow; direct browser table access remains denied. The isolated Preview
 matrix, protected checks, exact Production deployment, live workspace review,
 and signed-out production smoke sweep passed without changing a real league.
+
+Pull request [#191](https://github.com/roblebaegaming/DraftCenter/pull/191)
+shipped the first public **Draft Lab** at `/tools/team-builder`. Visitors can
+build a six-Pokémon battle team or 24-Pokémon draft roster and review defensive
+coverage, STAB gaps, stat balance, Speed tiers, and base regulation legality.
+Versioned share links restore the selected roster and format without storing
+private state. The page uses a generated, drift-checked public catalogue
+snapshot and the same type-analysis engine as hosted roster views. All
+protected checks, the 243-page build, HTTPS Preview acceptance, exact
+Production deployment, live interaction review, and signed-out production
+smoke sweep passed. No database, production data, provider setting,
+environment variable, or secret changed.
 
 The August 9 release wave is complete. Pull requests
 [#95](https://github.com/roblebaegaming/DraftCenter/pull/95) through
@@ -682,7 +694,7 @@ commissioner-save paths. Treat historical Operations events by timestamp and
 current authoritative state before declaring a recurrence.
 
 Refresh any Worlds invite-earned snapshot only after reviewing current source
-changes, and publish every post-386 database change as a new forward-only
+changes, and publish every post-387 database change as a new forward-only
 migration. Do not describe invite-earned competitors as confirmed attendees.
 Keep UNITE team predictions closed until the official team field is reconciled
 and its group assignments, advancement rules, and playoff pairings are
@@ -718,7 +730,9 @@ guard merely to remove that measurement gap.
 ## Authoritative records
 
 - Current continuation handoff:
-  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-13-global-release-final.md`](handoffs/DraftCenter-agent-handoff-2026-08-13-global-release-final.md)
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-13-draft-lab-production.md`](handoffs/DraftCenter-agent-handoff-2026-08-13-draft-lab-production.md)
+- Draft Lab product and safety contract:
+  [`docs/draft-lab.md`](draft-lab.md)
 - Preceding Worlds public-launch handoff:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-11-worlds-public-launch-final.md`](handoffs/DraftCenter-agent-handoff-2026-08-11-worlds-public-launch-final.md)
 - Historical Worlds Pick 16 operating record:

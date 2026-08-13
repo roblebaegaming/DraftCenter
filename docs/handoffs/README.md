@@ -1,7 +1,14 @@
 # Agent handoffs
 
+[`DraftCenter-agent-handoff-2026-08-13-draft-lab-production.md`](DraftCenter-agent-handoff-2026-08-13-draft-lab-production.md)
+is the current continuation handoff. It records the first public Draft Lab
+release through pull request #191, the exact Production application commit,
+generated-catalog and shared-analysis contracts, HTTPS Preview acceptance,
+live Production interaction review, the post-deployment smoke sweep, and the
+absence of database or production-data changes. Start from fresh `origin/main`.
+
 [`DraftCenter-agent-handoff-2026-08-13-league-operations.md`](DraftCenter-agent-handoff-2026-08-13-league-operations.md)
-is the current continuation handoff. It records the deployed concurrent-
+is the preceding continuation handoff. It records the deployed concurrent-
 division League Operations release through pull request #189 and migration
 387, including per-division draft times, availability-first manager placement,
 authority and lifecycle boundaries, isolated Preview evidence, the exact
