@@ -50,6 +50,15 @@ administrator removal, shared-regulation confirmation, revision-aware season
 launch, and public organization lookup. The invite token is returned once and
 is never stored in plaintext.
 
+Forward-only migration `387-organization-division-and-draft-planning.sql`
+adds the large-season planning layer. An administrator can choose 2-32
+concurrent pods when creating a season; DraftCenter atomically provisions each
+pod as a private, ordinary league. Each pod may have its own draft time. The
+organization workspace also stores private manager availability notes and an
+optional pod placement. Placing or moving a manager grants the normal coach
+membership only in the selected pod and requires both organization authority
+and commissioner authority in every affected source pod.
+
 1. **Organizations** hold identity, visibility, administrators, and audit
    history.
 2. **Organization seasons** hold an immutable shared regulation snapshot,
@@ -191,13 +200,24 @@ still match the finalized qualifier.
 - An organization administrator may edit branding, create seasons, and link a
   league only when they also have commissioner authority in that source
   league.
+- A newly planned season may provision 2-32 independent pod leagues in one
+  transaction. The creator is commissioner of every generated pod; other
+  organization administrators do not silently receive source-pod authority.
+- Draft times are pod-specific. Saving a time in League Operations does not
+  schedule an automatic start; a pod commissioner must still open Draft Setup,
+  prepare the draft, and confirm automatic-start readiness. A scheduled start
+  must be cancelled in Draft Setup before its time is changed centrally.
+- Manager availability can be recorded before a pod is chosen. Assigning,
+  moving, or removing the manager requires source-pod authority, stops after a
+  draft begins, and refuses to detach a manager who still owns or is assigned
+  to a team.
 - Only the organization owner may create or revoke administrator invitations
   and remove an accepted administrator. These actions never alter a person's
   roles in an existing league.
 - A linked pod remains pending until an organization administrator who is also
   source-league staff explicitly confirms that the league was reviewed against
   the shared regulations.
-- Launch requires at least two pods, confirmed regulations for every pod, an
+- Launch requires every planned pod (and at least two), confirmed regulations for every pod, an
   unchanged source-league season number, and the same source snapshot revision
   that was reviewed. Any changed pod must be reviewed again.
 - Launch changes only organization and pod status. It does not create or edit a

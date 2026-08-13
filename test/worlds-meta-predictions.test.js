@@ -241,8 +241,14 @@ test("migration 381 opens only the officially confirmed, unchanged TCG taxonomy"
 test("the Worlds prediction tabs mount the separate Meta challenge with safe staged copy", () => {
   const parent = source("src/components/WorldsPickSixteen.jsx");
   const component = source("src/components/WorldsMetaChallenge.jsx");
-  assert.match(parent, /<WorldsMetaChallenge discipline=\{config\.key\} user=\{user\} \/>/);
-  assert.match(parent, /href="#meta-picks">Predict the winning meta/);
+  assert.match(
+    parent,
+    /<WorldsMetaChallenge discipline=\{config\.key\} user=\{user\} locale=\{locale\} \/>/,
+  );
+  assert.match(
+    parent,
+    /href="#meta-picks">\{isItalian \? copy\.hero\.meta : "Predict the winning meta"\}/,
+  );
   assert.match(component, /SEPARATE META COMPETITION/);
   assert.match(component, /This is separate from predicting the players/);
   assert.match(component, /No placeholder Pokémon or deck guesses are being treated as reviewed event options/);
@@ -252,7 +258,10 @@ test("the Worlds prediction tabs mount the separate Meta challenge with safe sta
   assert.match(component, /Move \$\{option\.display_name\} up/);
   assert.match(component, /Champion Deck ×2/);
   assert.match(component, /Trending is a starting point, not a prediction/);
-  assert.match(component, /All reviewed \{options\.length\}/);
+  assert.match(
+    component,
+    /\{isItalian \? copy\.allReviewed : "All reviewed"\} \{options\.length\}/,
+  );
   assert.match(component, /Mega Evolutions are not separate options/);
   assert.match(component, /10 unofficial Limitless community events covering 737 teams/);
   assert.match(component, /21,000 deck classifications from 292 unofficial Limitless community tournaments/);

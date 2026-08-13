@@ -461,9 +461,9 @@ return (
       </article>; })}</div>
     </section>
     <section className="hub-card organization-hub-entry">
-      <div className="section-heading"><div><span className="eyebrow">MULTI-POD LEAGUES</span><h2>League organizations</h2></div><span className="muted">Shared seasons, independent drafts, one championship.</span></div>
+      <div className="section-heading"><div><span className="eyebrow">LEAGUE OPERATIONS</span><h2>Organizations and concurrent divisions</h2></div><span className="muted">Shared seasons, independent drafts, flexible pod times.</span></div>
       <p className="muted">Coordinate several existing leagues as pods, confirm one shared rule set, and advance qualifying teams without changing their rosters.</p>
-      <a className="primary-button" href="/organizations">Open organization hub</a>
+      <a className="primary-button" href="/organizations">Open League Operations</a>
     </section>
     <section className="dashboard-daily-three">
       <DailyCommunityGames signedIn betweenGames={<><RosterConnections signedIn /><PollOfTheDay supabase={supabase} /></>} />
