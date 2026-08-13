@@ -1,7 +1,21 @@
 # Agent handoffs
 
+[`DraftCenter-agent-handoff-2026-08-13-sunday-super-bracket-connections-variety.md`](DraftCenter-agent-handoff-2026-08-13-sunday-super-bracket-connections-variety.md)
+is the current continuation handoff. It records the deployed Sunday Super
+Bracket and history-aware Pokémon Connections rotation through pull request
+#195 and migration 388, including qualifier and seeding rules, retained-board
+compatibility, isolated database evidence, the exact Production application
+commit, and the post-deployment smoke sweep. Start from fresh `origin/main`;
+do not replay migration 388.
+
+[`DraftCenter-agent-handoff-2026-08-13-nuzlocke-run-tracker.md`](DraftCenter-agent-handoff-2026-08-13-nuzlocke-run-tracker.md)
+is the preceding continuation handoff. It records the deployed private,
+route-by-route Nuzlocke run tracker through pull request #193, including local
+and My Teams persistence, encounter and milestone contracts, protected release
+evidence, and the exact Production application commit.
+
 [`DraftCenter-agent-handoff-2026-08-13-draft-lab-production.md`](DraftCenter-agent-handoff-2026-08-13-draft-lab-production.md)
-is the current continuation handoff. It records the first public Draft Lab
+is the earlier continuation handoff. It records the first public Draft Lab
 release through pull request #191, the exact Production application commit,
 generated-catalog and shared-analysis contracts, HTTPS Preview acceptance,
 live Production interaction review, the post-deployment smoke sweep, and the
