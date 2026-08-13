@@ -317,7 +317,7 @@ function validateExisting() {
     throw new Error("The committed TCG taxonomy snapshot is not synchronized with its pinned source.");
   }
   const expectedMigration = buildMigration(snapshot);
-  const actualMigration = fs.readFileSync(MIGRATION_PATH, "utf8");
+  const actualMigration = fs.readFileSync(MIGRATION_PATH, "utf8").replace(/\r\n/g, "\n");
   if (actualMigration !== expectedMigration) throw new Error("Migration 380 is not synchronized with the committed TCG taxonomy snapshot.");
   console.log(`Verified ${snapshot.options.length} concrete TCG archetypes and draft migration 380.`);
 }

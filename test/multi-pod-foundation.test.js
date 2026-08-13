@@ -5,13 +5,17 @@ import {
   createChampionshipQualifierSnapshot,
   createMultiPodOrganizationDraft,
   createMultiPodSeasonDraft,
+  defaultMultiPodDivisionLabel,
   multiPodAdministratorInviteUrl,
   multiPodAttachmentRpcArguments,
   multiPodChampionshipRpcArguments,
+  multiPodManagerAssignmentRpcArguments,
   multiPodOrganizationUpdateRpcArguments,
+  multiPodPlannedSeasonRpcArguments,
   multiPodQualificationDrawRpcArguments,
   multiPodSeasonRpcArguments,
   normalizeMultiPodQualificationRules,
+  resizeMultiPodDivisionPlan,
 } from "../src/lib/multiPodLeague.js";
 
 const sql = fs.readFileSync(
@@ -60,6 +64,10 @@ const podAccessPortabilitySql = fs.readFileSync(
 );
 const podPredictionMatchSql = fs.readFileSync(
   new URL("../supabase/368-create-missing-league-prediction-match.sql", import.meta.url),
+  "utf8",
+);
+const planningSql = fs.readFileSync(
+  new URL("../supabase/387-organization-division-and-draft-planning.sql", import.meta.url),
   "utf8",
 );
 const workspaceUi = fs.readFileSync(
@@ -190,6 +198,57 @@ test("application service arguments match the bounded database functions", () =>
   });
 });
 
+test("concurrent pod plans are bounded, named, and preserve independent draft times", () => {
+  assert.equal(defaultMultiPodDivisionLabel(0), "Pod A");
+  assert.equal(defaultMultiPodDivisionLabel(26), "Pod AA");
+  assert.equal(resizeMultiPodDivisionPlan([], 40).length, 32);
+  const divisions = resizeMultiPodDivisionPlan([{ label: "Morning", draftStartsAt: "2027-01-09T10:00" }], 3);
+  const args = multiPodPlannedSeasonRpcArguments("organization-id", {
+    name: "Public Open 2027",
+    regulations: { format: "National Dex", roster_size: 12 },
+    qualificationRules: { topPerPod: 2, wildcardSlots: 1 },
+    divisions,
+  });
+  assert.equal(args.p_divisions.length, 3);
+  assert.equal(args.p_divisions[0].label, "Morning");
+  assert.match(args.p_divisions[0].draft_starts_at, /^2027-01-09T/);
+  assert.equal(args.p_divisions[1].label, "Pod B");
+  assert.throws(() => multiPodPlannedSeasonRpcArguments("organization-id", {
+    name: "Duplicate pods",
+    divisions: [{ label: "Pod A" }, { label: "pod a" }],
+  }), /unique label/i);
+});
+
+test("manager placement arguments support availability-first matching", () => {
+  assert.deepEqual(multiPodManagerAssignmentRpcArguments("season-id", "  manager_one ", "pod-id", " Fridays after 7 PT "), {
+    p_season_id: "season-id",
+    p_username: "manager_one",
+    p_pod_id: "pod-id",
+    p_availability_note: "Fridays after 7 PT",
+  });
+  assert.equal(multiPodManagerAssignmentRpcArguments("season-id", "manager_one", "", "Any time").p_pod_id, null);
+  assert.throws(() => multiPodManagerAssignmentRpcArguments("season-id", "", null, ""), /username/i);
+});
+
+test("division planning migration is private, atomic, and keeps pod authority bounded", () => {
+  assert.match(planningSql, /planned_pod_count smallint not null default 2/i);
+  assert.match(planningSql, /check \(planned_pod_count between 2 and 32\)/i);
+  assert.match(planningSql, /create table public\.league_organization_manager_assignments/i);
+  assert.match(planningSql, /league_organization_pods_id_season_key unique \(id, season_id\)/i);
+  assert.match(planningSql, /alter table public\.league_organization_manager_assignments enable row level security/i);
+  assert.match(planningSql, /revoke all on public\.league_organization_manager_assignments from public, anon, authenticated/i);
+  assert.match(planningSql, /create_planned_league_organization_season/i);
+  assert.match(planningSql, /public\.create_league\(/i);
+  assert.match(planningSql, /public\.attach_league_organization_pod\(/i);
+  assert.match(planningSql, /v_division_count not between 2 and 32/i);
+  assert.match(planningSql, /Changing a pod plan requires organization and source-league authority/i);
+  assert.match(planningSql, /is_league_organization_admin\(v_season\.organization_id\)[\s\S]*is_league_staff\(v_pod\.league_id\)/i);
+  assert.match(planningSql, /You must also be a commissioner of the destination pod/i);
+  assert.match(planningSql, /Unclaim that manager''s team before moving/i);
+  assert.match(planningSql, /scheduled_snake_draft_jobs[\s\S]*scheduled_auction_draft_jobs/i);
+  assert.match(planningSql, /v_pod_count < v_season\.planned_pod_count/i);
+});
+
 test("qualification draw arguments preserve the recorded order and revision", () => {
   assert.deepEqual(multiPodQualificationDrawRpcArguments("run-id", 4, [{ id: "candidate-b" }, { id: "candidate-a" }]), {
     p_run_id: "run-id",
@@ -301,10 +360,10 @@ test("shared-rule confirmation and launch remain bounded by both authorities", (
 });
 
 test("the organization hub exposes the planned commissioner workflow without mutating source rosters", () => {
-  for (const rpc of ["createOrganization", "createSeason", "attachPod", "confirmPodRegulations", "launchSeason", "createAdministratorInvite", "removeAdministrator"]) assert.ok(workspaceUi.includes(`MULTI_POD_RPCS.${rpc}`));
-  for (const label of ["League organizations", "Administrators", "Confirm shared rules", "Launch season", "Cross-pod duplicate Pokémon are allowed"]) assert.match(workspaceUi, new RegExp(label));
+  for (const rpc of ["createOrganization", "createPlannedSeason", "attachPod", "updatePodPlan", "upsertManagerAssignment", "removeManagerAssignment", "confirmPodRegulations", "launchSeason", "createAdministratorInvite", "removeAdministrator"]) assert.ok(workspaceUi.includes(`MULTI_POD_RPCS.${rpc}`));
+  for (const label of ["League Operations", "Administrators", "Concurrent divisions", "draft-time matching", "Confirm shared rules", "Launch season", "Cross-pod duplicate Pokémon are allowed"]) assert.match(workspaceUi, new RegExp(label, "i"));
   assert.doesNotMatch(workspaceUi, /createChampionshipQualifierSnapshot|league_organization_qualifiers/);
-  assert.match(fs.readFileSync(new URL("../src/components/LeagueHub.jsx", import.meta.url), "utf8"), /href="\/organizations">Open organization hub/);
+  assert.match(fs.readFileSync(new URL("../src/components/LeagueHub.jsx", import.meta.url), "utf8"), /href="\/organizations">Open League Operations/);
 });
 
 test("qualification automation keeps locked standings and rosters behind bounded RPCs", () => {

@@ -19,25 +19,36 @@ Organization
 1. The organization owner creates an organization and adds trusted
    organization administrators.
 2. An administrator creates a season with one shared regulation snapshot,
-   qualification rules, and an ordered tiebreaker list.
-3. Existing DraftCenter leagues are linked as pods. The person linking a pod
-   must be both an organization administrator and staff in that source league.
-4. Each pod commissioner reviews the source league against the shared
+   qualification rules, an ordered tiebreaker list, and 2-32 concurrent pods.
+   DraftCenter creates every pod as an independent private league in the same
+   transaction. The organizer may give the pods different draft times.
+3. The administrator opens each pod's Draft Setup to finish draft format,
+   order, clock, queues, and automatic-start preparation. Saving a draft time
+   in League Operations does not by itself arm the automatic start.
+4. Managers may be added to an unassigned availability list, then placed into
+   the pod whose draft time works for them. Pod placement creates their normal
+   coach membership in that pod. Moving them later requires commissioner
+   authority in both affected pods and is blocked once they claim a team or the
+   draft begins.
+5. Existing DraftCenter leagues may still be linked as additional pods. The
+   person linking a pod must be both an organization administrator and staff in
+   that source league.
+6. Each pod commissioner reviews the source league against the shared
    regulations. A pod stays pending until that review is explicitly confirmed.
-5. The organization season can launch only after at least two pods are
+7. The organization season can launch only after every planned pod is
    confirmed and none of the reviewed source leagues has changed.
-6. Every pod then runs as a normal independent league. Its league remains the
+8. Every pod then runs as a normal independent league. Its league remains the
    source of truth for the draft, schedule, standings, transactions,
    replacements, teams, and rosters.
    Managers can use the pod links in the league header to visit sibling pods.
    While visiting, they can follow activity, comment on the League Board, and
    predict, but all team and transaction actions stay in their own pod.
-7. At the end of the pod seasons, an administrator begins qualification. Each
+9. At the end of the pod seasons, an administrator begins qualification. Each
    pod is locked by someone who is also staff in that source league. DraftCenter
    snapshots the exact standings, teams, rosters, and source revision, applies
    the shared tiebreakers, and asks for a recorded draw only when a remaining
    tie crosses a qualification boundary.
-8. Qualifying teams will be promoted into one connected Tournament. They keep
+10. Qualifying teams will be promoted into one connected Tournament. They keep
    their exact team identity and roster; there is no playoff redraft.
 
 Pods draft independently, so two qualifiers may own the same Pokemon. Those
@@ -84,11 +95,15 @@ branch's full observer-access matrix and production read-only postflight.
 
 ### Pod structure
 
-- **Number of pods:** two or more. Four pods is a clean first-season shape.
+- **Number of pods:** choose 2-32 while creating the season. Four pods is a
+  clean first-season shape.
 - **Pod size:** pods may be even or uneven. Similar sizes are easier to explain,
   but uneven sizes do not break the model.
 - **Pod names and source leagues:** each pod links one existing league and its
   exact season number.
+- **Draft times:** each pod may use a different time. Use the organization
+  availability planner to match managers, then finish automatic-start setup
+  inside each source league.
 - **Pod staff:** league commissioners keep their normal league authority.
   Organization administrators do not silently gain control of a pod.
 

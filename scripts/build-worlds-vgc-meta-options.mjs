@@ -309,7 +309,7 @@ function validateExisting() {
     throw new Error("The committed VGC option snapshot is not synchronized with its pinned sources.");
   }
   const expectedMigration = buildMigration(snapshot);
-  const actualMigration = fs.readFileSync(MIGRATION_PATH, "utf8");
+  const actualMigration = fs.readFileSync(MIGRATION_PATH, "utf8").replace(/\r\n/g, "\n");
   if (actualMigration !== expectedMigration) throw new Error("Migration 379 is not synchronized with the committed VGC option snapshot.");
   console.log(`Verified ${snapshot.options.length} official VGC Meta Picks options and migration 379.`);
 }

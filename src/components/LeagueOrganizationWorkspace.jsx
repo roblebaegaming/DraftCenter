@@ -7,13 +7,16 @@ import {
   MULTI_POD_CHAMPIONSHIP_FORMATS,
   MULTI_POD_CHAMPIONSHIP_SEEDING,
   MULTI_POD_TIEBREAKERS,
+  MAX_MULTI_POD_DIVISIONS,
   createMultiPodOrganizationDraft,
+  multiPodManagerAssignmentRpcArguments,
   multiPodAdministratorInviteUrl,
   multiPodAttachmentRpcArguments,
   multiPodOrganizationUpdateRpcArguments,
   multiPodChampionshipRpcArguments,
+  multiPodPlannedSeasonRpcArguments,
   multiPodQualificationDrawRpcArguments,
-  multiPodSeasonRpcArguments,
+  resizeMultiPodDivisionPlan,
 } from "../lib/multiPodLeague";
 
 const TIEBREAKER_LABELS = {
@@ -34,6 +37,19 @@ function messageFrom(error, fallback) {
   return error?.message || fallback;
 }
 
+function localDateTime(value) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+}
+
+function displayDraftTime(value) {
+  if (!value) return "Draft time not set";
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? "Draft time not set" : date.toLocaleString([], { dateStyle: "medium", timeStyle: "short" });
+}
+
 function OrganizationMark({ organization }) {
   return <div className="organization-mark" style={{ "--organization-color": organization.brand_color || "#4fd1c5" }}>
     {organization.image_url ? <img src={organization.image_url} alt="" /> : <span>{organization.name.slice(0, 2).toUpperCase()}</span>}
@@ -52,7 +68,24 @@ function RulesSummary({ season }) {
   </div>;
 }
 
-function PodList({ season, canManage, busy, onConfirm }) {
+function PodPlanningFields({ pod, busy, onSavePlan }) {
+  const [label, setLabel] = useState(pod.label);
+  const [draftStartsAt, setDraftStartsAt] = useState(() => localDateTime(pod.draft_starts_at));
+  useEffect(() => {
+    setLabel(pod.label);
+    setDraftStartsAt(localDateTime(pod.draft_starts_at));
+  }, [pod.label, pod.draft_starts_at]);
+  const automaticStatus = pod.snake_start_status === "scheduled" || pod.auction_start_status === "scheduled";
+  if (!pod.can_manage_plan) return <p className="organization-plan-authority">A source-league commissioner must change this pod&apos;s draft plan.</p>;
+  return <div className="organization-pod-plan">
+    <label>Pod label<input maxLength={80} value={label} onChange={(event) => setLabel(event.target.value)} /></label>
+    <label>Draft date and time<input type="datetime-local" value={draftStartsAt} onChange={(event) => setDraftStartsAt(event.target.value)} /></label>
+    <span className={automaticStatus ? "ready" : "pending"}><strong>{displayDraftTime(pod.draft_starts_at)}</strong>{automaticStatus ? "Automatic start ready" : "Confirm automatic start later in Draft Setup"}</span>
+    <button type="button" className="quiet-button" disabled={busy} onClick={() => onSavePlan(pod, label, draftStartsAt)}>Save plan</button>
+  </div>;
+}
+
+function PodList({ season, canManage, busy, onConfirm, onSavePlan }) {
   if (!season.pods?.length) return <div className="organization-empty"><strong>No pods linked yet.</strong><span>Link at least two existing leagues before launching this season.</span></div>;
   return <div className="organization-pod-list">{season.pods.map((pod) => <article key={pod.id}>
     <div>
@@ -61,10 +94,42 @@ function PodList({ season, canManage, busy, onConfirm }) {
       <p>{pod.league_name} · League season {pod.league_season_number} · {pod.qualification_spots} qualifier{pod.qualification_spots === 1 ? "" : "s"}</p>
     </div>
     <div className="organization-pod-actions">
-      <a className="quiet-button" href={`/league/${pod.league_slug}`}>Open league</a>
+      {canManage && season.status === "planning" && onSavePlan && <PodPlanningFields pod={pod} busy={busy} onSavePlan={onSavePlan} />}
+      <a className="quiet-button" href={`/league/${pod.league_slug}`}>{canManage ? "Configure draft" : "Open league"}</a>
       {canManage && season.status === "planning" && <button className="secondary-button" disabled={busy} onClick={() => onConfirm(season, pod)}>{pod.regulations_status === "confirmed" ? "Review again" : "Confirm shared rules"}</button>}
     </div>
   </article>)}</div>;
+}
+
+function ManagerPlanningRow({ season, manager, busy, onSave, onRemove }) {
+  const [podId, setPodId] = useState(manager.pod_id || "");
+  const [availability, setAvailability] = useState(manager.availability_note || "");
+  useEffect(() => {
+    setPodId(manager.pod_id || "");
+    setAvailability(manager.availability_note || "");
+  }, [manager.pod_id, manager.availability_note]);
+  return <div className="organization-manager-row">
+    <span><strong>{manager.display_name || `@${manager.username}`}</strong><small>@{manager.username}</small></span>
+    <input aria-label={`Availability for ${manager.username}`} maxLength={500} value={availability} onChange={(event) => setAvailability(event.target.value)} placeholder="Availability and time zone" />
+    <select aria-label={`Pod for ${manager.username}`} value={podId} onChange={(event) => setPodId(event.target.value)}><option value="">Unassigned</option>{season.pods.map((pod) => <option key={pod.id} value={pod.id}>{pod.label} · {displayDraftTime(pod.draft_starts_at)}</option>)}</select>
+    <span className="organization-manager-actions"><button type="button" className="quiet-button" disabled={busy} onClick={() => onSave(season, manager.username, podId || null, availability)}>Save</button><button type="button" className="quiet-button danger" disabled={busy} onClick={() => onRemove(season, manager)}>Remove</button></span>
+  </div>;
+}
+
+function ManagerPlanningPanel({ season, busy, onSave, onRemove }) {
+  const [username, setUsername] = useState("");
+  const [availability, setAvailability] = useState("");
+  const [podId, setPodId] = useState("");
+  async function submit(event) {
+    event.preventDefault();
+    const saved = await onSave(season, username, podId || null, availability);
+    if (saved) { setUsername(""); setAvailability(""); setPodId(""); }
+  }
+  return <section className="organization-manager-planner">
+    <div><span className="eyebrow">MANAGER AND DRAFT-TIME MATCHING</span><h4>Place managers where they can draft</h4><p>Record availability first, then assign each DraftCenter account to a pod whose saved draft time works.</p></div>
+    <form onSubmit={submit}><input required value={username} onChange={(event) => setUsername(event.target.value)} placeholder="DraftCenter username" aria-label="DraftCenter username" /><input maxLength={500} value={availability} onChange={(event) => setAvailability(event.target.value)} placeholder="Availability and time zone" aria-label="Manager availability" /><select value={podId} onChange={(event) => setPodId(event.target.value)} aria-label="Manager pod"><option value="">Keep unassigned</option>{season.pods.map((pod) => <option key={pod.id} value={pod.id}>{pod.label} · {displayDraftTime(pod.draft_starts_at)}</option>)}</select><button className="primary-button" disabled={busy}>Add manager</button></form>
+    {!!season.managers?.length && <div className="organization-manager-list">{season.managers.map((manager) => <ManagerPlanningRow key={manager.user_id} season={season} manager={manager} busy={busy} onSave={onSave} onRemove={onRemove} />)}</div>}
+  </section>;
 }
 
 function QualificationPanel({ season, run, canManage, busy, staffLeagueIds, drawOrder, onBegin, onLock, onMoveDraw, onRecordDraw, onFinalize, onCancel, onSyncManager }) {
@@ -194,7 +259,7 @@ export default function LeagueOrganizationWorkspace() {
   const [administratorInviteUrl, setAdministratorInviteUrl] = useState("");
   const [newOrganizationDraft, setNewOrganizationDraft] = useState({ name: "", description: "", visibility: "private", imageUrl: "", brandColor: "#4fd1c5" });
   const [organizationDraft, setOrganizationDraft] = useState({ name: "", description: "", visibility: "private", imageUrl: "", brandColor: "#4fd1c5" });
-  const [seasonDraft, setSeasonDraft] = useState({ name: "", format: "National Dex", rosterSize: 12, notes: "", topPerPod: 2, wildcardSlots: 0, tiebreakers: ["wins", "differential", "head-to-head", "commissioner-draw"] });
+  const [seasonDraft, setSeasonDraft] = useState({ name: "", format: "National Dex", rosterSize: 12, notes: "", topPerPod: 2, wildcardSlots: 0, tiebreakers: ["wins", "differential", "head-to-head", "commissioner-draw"], divisions: resizeMultiPodDivisionPlan([], 2) });
   const [podDraft, setPodDraft] = useState({ seasonId: "", leagueId: "", label: "", sortOrder: 1, leagueSeasonNumber: 1, qualificationSpots: 2 });
 
   const selectedOrganization = workspace?.organization || null;
@@ -215,25 +280,35 @@ export default function LeagueOrganizationWorkspace() {
 
   const loadWorkspace = useCallback(async (organizationId) => {
     if (!organizationId) return setWorkspace(null);
-    const [{ data, error }, qualificationResult, championshipResult] = await Promise.all([
+    const [{ data, error }, qualificationResult, championshipResult, planningResult] = await Promise.all([
       supabase.rpc(MULTI_POD_RPCS.getWorkspace, { p_organization_id: organizationId }),
       supabase.rpc(MULTI_POD_RPCS.getQualificationWorkspace, { p_organization_id: organizationId }),
       supabase.rpc(MULTI_POD_RPCS.getChampionshipWorkspace, { p_organization_id: organizationId }),
+      supabase.rpc(MULTI_POD_RPCS.getPlanningWorkspace, { p_organization_id: organizationId }),
     ]);
     if (error) throw error;
     // Keep the existing organization workspace usable while the forward-only
     // qualification migration is promoted after the application preview.
     if (qualificationResult.error && qualificationResult.error.code !== "PGRST202") throw qualificationResult.error;
     if (championshipResult.error && championshipResult.error.code !== "PGRST202") throw championshipResult.error;
+    if (planningResult.error && planningResult.error.code !== "PGRST202") throw planningResult.error;
     const qualificationRuns = new Map((qualificationResult.data?.runs || []).map((run) => [run.season_id, run]));
     const championships = new Map((championshipResult.data?.championships || []).map((championship) => [championship.season_id, championship]));
+    const planningSeasons = new Map((planningResult.data?.seasons || []).map((season) => [season.id, season]));
     const nextWorkspace = data ? {
       ...data,
-      seasons: (data.seasons || []).map((season) => ({
-        ...season,
-        qualification: qualificationRuns.get(season.id) || null,
-        championship: championships.get(season.id) || null,
-      })),
+      seasons: (data.seasons || []).map((season) => {
+        const planning = planningSeasons.get(season.id) || {};
+        const planningPods = new Map((planning.pods || []).map((pod) => [pod.id, pod]));
+        return {
+          ...season,
+          planned_pod_count: planning.planned_pod_count || Math.max(2, season.pods?.length || 0),
+          pods: (season.pods || []).map((pod) => ({ ...pod, ...(planningPods.get(pod.id) || {}) })),
+          managers: planning.managers || [],
+          qualification: qualificationRuns.get(season.id) || null,
+          championship: championships.get(season.id) || null,
+        };
+      }),
     } : null;
     setWorkspace(nextWorkspace);
     if (data?.organization) setOrganizationDraft({
@@ -282,8 +357,8 @@ export default function LeagueOrganizationWorkspace() {
 
   async function run(action, success) {
     setBusy(true); setMessage("");
-    try { await action(); if (success) setMessage(success); }
-    catch (error) { setMessage(messageFrom(error, "That organization action could not be completed.")); }
+    try { await action(); if (success) setMessage(success); return true; }
+    catch (error) { setMessage(messageFrom(error, "That organization action could not be completed.")); return false; }
     finally { setBusy(false); }
   }
 
@@ -315,12 +390,45 @@ export default function LeagueOrganizationWorkspace() {
     event.preventDefault();
     await run(async () => {
       const regulations = { format: seasonDraft.format.trim(), roster_size: Number(seasonDraft.rosterSize), notes: seasonDraft.notes.trim() };
-      const args = multiPodSeasonRpcArguments(selectedOrganization.id, { name: seasonDraft.name, regulations, qualificationRules: seasonDraft });
-      const { error } = await supabase.rpc(MULTI_POD_RPCS.createSeason, args);
+      const args = multiPodPlannedSeasonRpcArguments(selectedOrganization.id, { name: seasonDraft.name, regulations, qualificationRules: seasonDraft, divisions: seasonDraft.divisions });
+      const { error } = await supabase.rpc(MULTI_POD_RPCS.createPlannedSeason, args);
       if (error) throw error;
-      setSeasonDraft((current) => ({ ...current, name: "", notes: "" }));
+      setSeasonDraft((current) => ({ ...current, name: "", notes: "", divisions: resizeMultiPodDivisionPlan([], 2) }));
       await loadOrganizations(selectedOrganization.id);
-    }, "Shared season created. Link the source leagues that will become pods.");
+    }, "Shared season and its independent pods are ready. Configure each pod's draft next.");
+  }
+
+  async function savePodPlan(pod, label, draftStartsAt) {
+    return run(async () => {
+      const startsAt = draftStartsAt ? new Date(draftStartsAt) : null;
+      if (startsAt && Number.isNaN(startsAt.getTime())) throw new Error("Choose a valid draft date and time.");
+      const { error } = await supabase.rpc(MULTI_POD_RPCS.updatePodPlan, {
+        p_pod_id: pod.id,
+        p_label: label.trim(),
+        p_draft_starts_at: startsAt ? startsAt.toISOString() : null,
+      });
+      if (error) throw error;
+      await loadWorkspace(selectedOrganization.id);
+    }, `${label.trim() || pod.label} draft plan saved.`);
+  }
+
+  async function saveManagerAssignment(season, username, podId, availability) {
+    return run(async () => {
+      const args = multiPodManagerAssignmentRpcArguments(season.id, username, podId, availability);
+      const { error } = await supabase.rpc(MULTI_POD_RPCS.upsertManagerAssignment, args);
+      if (error) throw error;
+      await loadWorkspace(selectedOrganization.id);
+    }, podId ? "Manager placed in the selected pod." : "Manager availability saved for later placement.");
+  }
+
+  async function removeManagerAssignment(season, manager) {
+    const label = manager.display_name || `@${manager.username}`;
+    if (!window.confirm(`Remove ${label} from this season's placement plan?`)) return false;
+    return run(async () => {
+      const { error } = await supabase.rpc(MULTI_POD_RPCS.removeManagerAssignment, { p_season_id: season.id, p_user_id: manager.user_id });
+      if (error) throw error;
+      await loadWorkspace(selectedOrganization.id);
+    }, `${label} removed from the placement plan.`);
   }
 
   function choosePodLeague(leagueId) {
@@ -482,7 +590,7 @@ export default function LeagueOrganizationWorkspace() {
 
   if (loading || session === undefined) return <main className="organization-shell"><p className="hub-message">Loading organization workspace…</p></main>;
   return <main className="organization-shell">
-    <section className="organization-workspace-hero"><div><span className="eyebrow">MULTI-POD LEAGUES</span><h1>League organizations</h1><p>Coordinate independent league pods under shared rules, then advance complete teams and rosters into one championship.</p></div><a className="quiet-button" href="/">Back to your leagues</a></section>
+    <section className="organization-workspace-hero"><div><span className="eyebrow">LEAGUE OPERATIONS</span><h1>Organizations and concurrent divisions</h1><p>Create large seasons as independent pods, coordinate different draft times, and place managers where their availability works.</p></div><a className="quiet-button" href="/">Back to your leagues</a></section>
     {message && <p className="hub-message">{message}</p>}
     {invitePreview && <section className="organization-invite-card">
       <span className="eyebrow">ADMINISTRATOR INVITATION</span>
@@ -502,9 +610,10 @@ export default function LeagueOrganizationWorkspace() {
           {selectedOrganization.is_admin && <details className="organization-panel"><summary>Administrators</summary><div className="organization-administrators">{workspace.administrators?.map((administrator) => <p key={administrator.user_id}><span>{administrator.display_name || (administrator.username ? `@${administrator.username}` : "Administrator")}</span><span className="organization-administrator-role"><strong>{administrator.role}</strong>{selectedOrganization.is_owner && administrator.role === "administrator" && <button className="quiet-button" disabled={busy} onClick={() => removeAdministrator(administrator)}>Remove</button>}</span></p>)}</div>{selectedOrganization.is_owner && <><button className="secondary-button" disabled={busy} onClick={createAdministratorInvite}>Create secure invitation</button>{administratorInviteUrl && <div className="organization-invite-link"><label>Share this one-time link<input readOnly value={administratorInviteUrl} onFocus={(event) => event.target.select()} /></label><button className="quiet-button" onClick={() => navigator.clipboard?.writeText(administratorInviteUrl)}>Copy link</button></div>}{workspace.pending_invitations?.map((invitation) => <p className="organization-pending-invite" key={invitation.id}><span>Unused invitation · expires {new Date(invitation.expires_at).toLocaleDateString()}</span><button className="quiet-button" disabled={busy} onClick={() => revokeAdministratorInvite(invitation.id)}>Revoke</button></p>)}</>}</details>}
           <div className="organization-season-stack">
             {workspace.seasons?.map((season) => <article className="organization-season-card" key={season.id}>
-              <header><div><span className="eyebrow">{season.status.toUpperCase()}</span><h3>{season.name}</h3></div><span>{season.pods?.length || 0} pods</span></header>
+              <header><div><span className="eyebrow">{season.status.toUpperCase()}</span><h3>{season.name}</h3></div><span>{season.pods?.length || 0}/{season.planned_pod_count || 2} pods</span></header>
               <RulesSummary season={season} />
-              <PodList season={season} canManage={selectedOrganization.is_admin} busy={busy} onConfirm={confirmRegulations} />
+              <PodList season={season} canManage={selectedOrganization.is_admin} busy={busy} onConfirm={confirmRegulations} onSavePlan={savePodPlan} />
+              {selectedOrganization.is_admin && season.status === "planning" && <ManagerPlanningPanel season={season} busy={busy} onSave={saveManagerAssignment} onRemove={removeManagerAssignment} />}
               <QualificationPanel
                 season={season}
                 run={season.qualification}
@@ -528,12 +637,12 @@ export default function LeagueOrganizationWorkspace() {
                 busy={busy}
                 onCreate={createChampionship}
               />
-              {selectedOrganization.is_admin && season.status === "planning" && <div className="organization-season-actions"><button className="secondary-button" disabled={busy || !availableLeagues.length} onClick={() => beginPod(season)}>Link existing league as pod</button><button className="primary-button" disabled={busy || season.pods?.length < 2 || season.pods?.some((pod) => pod.regulations_status !== "confirmed")} onClick={() => launchSeason(season)}>Launch season</button></div>}
+              {selectedOrganization.is_admin && season.status === "planning" && <div className="organization-season-actions"><button className="secondary-button" disabled={busy || !availableLeagues.length} onClick={() => beginPod(season)}>Link existing league as another pod</button><button className="primary-button" disabled={busy || season.pods?.length < (season.planned_pod_count || 2) || season.pods?.some((pod) => pod.regulations_status !== "confirmed")} onClick={() => launchSeason(season)}>Launch season</button></div>}
               {podDraft.seasonId === season.id && <form className="organization-pod-form" onSubmit={attachPod}><label>Source league<select required value={podDraft.leagueId} onChange={(event) => choosePodLeague(event.target.value)}>{availableLeagues.map((league) => <option key={league.id} value={league.id}>{league.name} · season {league.season_number}</option>)}</select></label><label>Pod label<input required value={podDraft.label} onChange={(event) => setPodDraft({ ...podDraft, label: event.target.value })} placeholder="Pod A" /></label><label>Qualification spots<input type="number" min="1" max="16" value={podDraft.qualificationSpots} onChange={(event) => setPodDraft({ ...podDraft, qualificationSpots: event.target.value })} /></label><button className="primary-button" disabled={busy}>Link pod</button><button type="button" className="quiet-button" onClick={() => setPodDraft({ ...podDraft, seasonId: "" })}>Cancel</button></form>}
               <p className="organization-policy-note">Teams retain their exact identities and rosters if they qualify. Cross-pod duplicate Pokémon are allowed.</p>
             </article>)}
           </div>
-          {selectedOrganization.is_admin && <details className="organization-panel organization-new-season" open={!workspace.seasons?.length}><summary>Create shared season</summary><form className="organization-form-grid" onSubmit={createSeason}><label>Season name<input required value={seasonDraft.name} onChange={(event) => setSeasonDraft({ ...seasonDraft, name: event.target.value })} placeholder="2027 Championship Series" /></label><label>Battle format<input required value={seasonDraft.format} onChange={(event) => setSeasonDraft({ ...seasonDraft, format: event.target.value })} /></label><label>Roster size<input type="number" min="1" max="30" value={seasonDraft.rosterSize} onChange={(event) => setSeasonDraft({ ...seasonDraft, rosterSize: event.target.value })} /></label><label>Automatic qualifiers per pod<input type="number" min="1" max="16" value={seasonDraft.topPerPod} onChange={(event) => setSeasonDraft({ ...seasonDraft, topPerPod: event.target.value })} /></label><label>Wild-card slots<input type="number" min="0" max="32" value={seasonDraft.wildcardSlots} onChange={(event) => setSeasonDraft({ ...seasonDraft, wildcardSlots: event.target.value })} /></label><label className="organization-form-wide">Shared rule notes<textarea rows={4} value={seasonDraft.notes} onChange={(event) => setSeasonDraft({ ...seasonDraft, notes: event.target.value })} placeholder="Transaction windows, playoff freeze, battle rules, and other shared requirements." /></label><fieldset className="organization-form-wide organization-tiebreakers"><legend>Tiebreaker order</legend>{seasonDraft.tiebreakers.map((value, index) => <label key={index}>#{index + 1}<select value={value} onChange={(event) => { const next = [...seasonDraft.tiebreakers]; next[index] = event.target.value; setSeasonDraft({ ...seasonDraft, tiebreakers: next }); }}>{MULTI_POD_TIEBREAKERS.map((option) => <option key={option} value={option}>{TIEBREAKER_LABELS[option]}</option>)}</select></label>)}<div><button type="button" className="quiet-button" disabled={seasonDraft.tiebreakers.length >= 5} onClick={() => setSeasonDraft({ ...seasonDraft, tiebreakers: [...seasonDraft.tiebreakers, MULTI_POD_TIEBREAKERS.find((item) => !seasonDraft.tiebreakers.includes(item)) || "commissioner-draw"] })}>Add tiebreaker</button><button type="button" className="quiet-button" disabled={seasonDraft.tiebreakers.length <= 1} onClick={() => setSeasonDraft({ ...seasonDraft, tiebreakers: seasonDraft.tiebreakers.slice(0, -1) })}>Remove last</button></div></fieldset><button className="primary-button" disabled={busy}>Create shared season</button></form></details>}
+          {selectedOrganization.is_admin && <details className="organization-panel organization-new-season" open={!workspace.seasons?.length}><summary>Create concurrent-division season</summary><form className="organization-form-grid" onSubmit={createSeason}><label>Season name<input required value={seasonDraft.name} onChange={(event) => setSeasonDraft({ ...seasonDraft, name: event.target.value })} placeholder="2027 Championship Series" /></label><label>Concurrent divisions<select value={seasonDraft.divisions.length} onChange={(event) => setSeasonDraft({ ...seasonDraft, divisions: resizeMultiPodDivisionPlan(seasonDraft.divisions, event.target.value) })}>{Array.from({ length: MAX_MULTI_POD_DIVISIONS - 1 }, (_, index) => index + 2).map((count) => <option key={count} value={count}>{count} pods</option>)}</select></label><label>Battle format<input required value={seasonDraft.format} onChange={(event) => setSeasonDraft({ ...seasonDraft, format: event.target.value })} /></label><label>Roster size<input type="number" min="1" max="30" value={seasonDraft.rosterSize} onChange={(event) => setSeasonDraft({ ...seasonDraft, rosterSize: event.target.value })} /></label><label>Automatic qualifiers per pod<input type="number" min="1" max="16" value={seasonDraft.topPerPod} onChange={(event) => setSeasonDraft({ ...seasonDraft, topPerPod: event.target.value })} /></label><label>Wild-card slots<input type="number" min="0" max="32" value={seasonDraft.wildcardSlots} onChange={(event) => setSeasonDraft({ ...seasonDraft, wildcardSlots: event.target.value })} /></label><div className="organization-form-wide organization-division-plan"><h4>Pod names and draft times</h4><p>Each pod becomes an independent league. Times may differ and can be finalized after creation.</p>{seasonDraft.divisions.map((division, index) => <div key={index}><span>{index + 1}</span><input required maxLength={80} aria-label={`Pod ${index + 1} label`} value={division.label} onChange={(event) => { const divisions = seasonDraft.divisions.map((item, itemIndex) => itemIndex === index ? { ...item, label: event.target.value } : item); setSeasonDraft({ ...seasonDraft, divisions }); }} /><input type="datetime-local" aria-label={`${division.label} draft time`} value={division.draftStartsAt} onChange={(event) => { const divisions = seasonDraft.divisions.map((item, itemIndex) => itemIndex === index ? { ...item, draftStartsAt: event.target.value } : item); setSeasonDraft({ ...seasonDraft, divisions }); }} /></div>)}</div><label className="organization-form-wide">Shared rule notes<textarea rows={4} value={seasonDraft.notes} onChange={(event) => setSeasonDraft({ ...seasonDraft, notes: event.target.value })} placeholder="Transaction windows, playoff freeze, battle rules, and other shared requirements." /></label><fieldset className="organization-form-wide organization-tiebreakers"><legend>Tiebreaker order</legend>{seasonDraft.tiebreakers.map((value, index) => <label key={index}>#{index + 1}<select value={value} onChange={(event) => { const next = [...seasonDraft.tiebreakers]; next[index] = event.target.value; setSeasonDraft({ ...seasonDraft, tiebreakers: next }); }}>{MULTI_POD_TIEBREAKERS.map((option) => <option key={option} value={option}>{TIEBREAKER_LABELS[option]}</option>)}</select></label>)}<div><button type="button" className="quiet-button" disabled={seasonDraft.tiebreakers.length >= 5} onClick={() => setSeasonDraft({ ...seasonDraft, tiebreakers: [...seasonDraft.tiebreakers, MULTI_POD_TIEBREAKERS.find((item) => !seasonDraft.tiebreakers.includes(item)) || "commissioner-draw"] })}>Add tiebreaker</button><button type="button" className="quiet-button" disabled={seasonDraft.tiebreakers.length <= 1} onClick={() => setSeasonDraft({ ...seasonDraft, tiebreakers: seasonDraft.tiebreakers.slice(0, -1) })}>Remove last</button></div></fieldset><button className="primary-button" disabled={busy}>Create {seasonDraft.divisions.length}-pod season</button></form></details>}
         </>}
       </section>
     </div>}

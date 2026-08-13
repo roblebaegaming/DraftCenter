@@ -17,7 +17,12 @@ export const MULTI_POD_RPCS = Object.freeze({
   createOrganization: "create_league_organization",
   updateOrganization: "update_league_organization",
   createSeason: "create_league_organization_season",
+  createPlannedSeason: "create_planned_league_organization_season",
   attachPod: "attach_league_organization_pod",
+  updatePodPlan: "update_league_organization_pod_plan",
+  upsertManagerAssignment: "upsert_league_organization_manager_assignment",
+  removeManagerAssignment: "remove_league_organization_manager_assignment",
+  getPlanningWorkspace: "get_league_organization_planning_workspace",
   confirmPodRegulations: "confirm_league_organization_pod_regulations",
   launchSeason: "launch_league_organization_season",
   beginQualification: "begin_league_organization_qualification",
@@ -41,6 +46,8 @@ export const MULTI_POD_RPCS = Object.freeze({
 });
 
 const DEFAULT_TIEBREAKERS = ["wins", "differential", "head-to-head", "commissioner-draw"];
+export const MIN_MULTI_POD_DIVISIONS = 2;
+export const MAX_MULTI_POD_DIVISIONS = 32;
 
 function integerInRange(value, minimum, maximum, label) {
   const number = Number(value);
@@ -189,6 +196,63 @@ export function multiPodSeasonRpcArguments(organizationId, draft) {
     p_top_per_pod: normalized.qualificationRules.topPerPod,
     p_wildcard_slots: normalized.qualificationRules.wildcardSlots,
     p_tiebreakers: normalized.qualificationRules.tiebreakers,
+  };
+}
+
+export function defaultMultiPodDivisionLabel(index) {
+  let value = Math.max(0, Math.trunc(Number(index) || 0));
+  let suffix = "";
+  do {
+    suffix = String.fromCharCode(65 + (value % 26)) + suffix;
+    value = Math.floor(value / 26) - 1;
+  } while (value >= 0);
+  return `Pod ${suffix}`;
+}
+
+export function resizeMultiPodDivisionPlan(current, requestedCount) {
+  const numericCount = Math.trunc(Number(requestedCount));
+  const count = Number.isFinite(numericCount)
+    ? Math.min(MAX_MULTI_POD_DIVISIONS, Math.max(MIN_MULTI_POD_DIVISIONS, numericCount))
+    : MIN_MULTI_POD_DIVISIONS;
+  const existing = Array.isArray(current) ? current : [];
+  return Array.from({ length: count }, (_, index) => ({
+    label: String(existing[index]?.label || defaultMultiPodDivisionLabel(index)).trim() || defaultMultiPodDivisionLabel(index),
+    draftStartsAt: String(existing[index]?.draftStartsAt || ""),
+  }));
+}
+
+export function multiPodPlannedSeasonRpcArguments(organizationId, draft) {
+  const base = multiPodSeasonRpcArguments(organizationId, draft);
+  const divisions = resizeMultiPodDivisionPlan(draft?.divisions, draft?.divisions?.length);
+  const normalizedLabels = divisions.map((division) => division.label.toLowerCase());
+  if (new Set(normalizedLabels).size !== normalizedLabels.length) {
+    throw new Error("Give every pod a unique label.");
+  }
+  return {
+    ...base,
+    p_divisions: divisions.map((division) => {
+      const date = division.draftStartsAt ? new Date(division.draftStartsAt) : null;
+      if (date && Number.isNaN(date.getTime())) throw new Error(`${division.label} has an invalid draft time.`);
+      return {
+        label: division.label,
+        draft_starts_at: date ? date.toISOString() : null,
+      };
+    }),
+  };
+}
+
+export function multiPodManagerAssignmentRpcArguments(seasonId, username, podId, availabilityNote = "") {
+  const cleanSeasonId = String(seasonId || "").trim();
+  const cleanUsername = String(username || "").trim();
+  const cleanNote = String(availabilityNote || "").trim();
+  if (!cleanSeasonId) throw new Error("A shared season is required.");
+  if (!cleanUsername) throw new Error("Enter a DraftCenter username.");
+  if (cleanNote.length > 500) throw new Error("Availability notes must be 500 characters or fewer.");
+  return {
+    p_season_id: cleanSeasonId,
+    p_username: cleanUsername,
+    p_pod_id: String(podId || "").trim() || null,
+    p_availability_note: cleanNote,
   };
 }
 
