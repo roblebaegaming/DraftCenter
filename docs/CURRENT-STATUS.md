@@ -3,7 +3,7 @@
 - Last updated: August 13, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified production application commit: `788b79ec579ac06fa051da9a0207c6cbd8895a6d`
+- Verified production application commit: `652f24d887fcf006a6ad5a7a903435c7d71621bc`
 - Latest production migration: 389
 
 ## Deployed state
@@ -141,6 +141,16 @@ Bracket, Pokémon, Community, and Worlds Predictions on desktop and mobile.
 The protected checks, 244-page build, 390px no-overflow review, exact
 Production deployment at commit `788b79e`, and 19-check production smoke sweep
 passed. No database, provider, secret, or production data changed.
+
+Pull request [#201](https://github.com/roblebaegaming/DraftCenter/pull/201)
+removed the arbitrary per-session choice goal from Mega Bracket progress. The
+signed-in workspace now reports only the actual completed-choice count,
+survivors, choices remaining, and named bracket milestones; private saving,
+resuming, undo, history, and bracket structure are unchanged. The protected
+checks, 244-page build, exact Production deployment at commit `652f24d`, live
+signed-in read-only review, and 19-check production smoke sweep passed without
+changing a saved attempt, database, provider setting, environment variable, or
+secret.
 
 The August 9 release wave is complete. Pull requests
 [#95](https://github.com/roblebaegaming/DraftCenter/pull/95) through
