@@ -1,5 +1,9 @@
 # DraftCenter handoff - Mega Bracket foundation (2026-08-13)
 
+> Historical implementation checkpoint. The production-pending statements
+> below are superseded by the
+> [final production handoff](DraftCenter-agent-handoff-2026-08-13-mega-bracket-production.md).
+
 ## Scope and ownership
 
 This feature is isolated in worktree
