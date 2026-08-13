@@ -3,8 +3,8 @@
 - Last updated: August 13, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified production application commit: `72d79883246df37792563e9cde2865f839e4143c`
-- Latest production migration: 385
+- Verified production application commit: `7a0c1a6c33ee50019575007b293f5ed263ac3e00`
+- Latest production migration: 386
 
 ## Deployed state
 
@@ -47,6 +47,15 @@ shared draft. New Swiss events use three rounds for 4-8 managers and four for
 9-16, then finish on standings without a top cut. Migration 385 preserves
 historical Draft Tournaments as Swiss and reuses the existing elimination and
 Swiss engines while retaining RLS and client-role write denials.
+
+Pull request [#183](https://github.com/roblebaegaming/DraftCenter/pull/183)
+added aggregate Pokemon Connections usage and a five-minute active-visitor
+estimate to owner Operations. Connections reports signed-in players,
+completions, account adoption, and a 30-day trend without names, puzzles,
+guesses, or answers. Active now uses anonymized production Web Analytics and
+excludes Operations and private workspace paths; it is a recent-visitor
+estimate, not an exact connected-user count. Migration 386 exposes only the
+service-role aggregate and preserves completion-table RLS and client denials.
 
 The August 9 release wave is complete. Pull requests
 [#95](https://github.com/roblebaegaming/DraftCenter/pull/95) through
@@ -388,6 +397,17 @@ team-based rather than 185 individual-player picks.
 
 ## Release verification
 
+- Pull request #183 passed all six protected checks and its hosted Preview.
+  Vercel reports exact merged commit `7a0c1a6` Ready in Production. The
+  isolated Preview passed all five migration assertions with no retained
+  fixtures. Production migration 386 returned success; postflight confirmed a
+  30-day aggregate, service-only execution, denied client roles, completion
+  RLS, and intact migration 385. The signed-in live dashboard passed desktop
+  and 390px review without browser warnings or horizontal overflow, and the
+  signed-out 19-route production smoke sweep passes. Focused Operations tests
+  passed 27/27, release integration passed 5/5, the 1,027-row National Dex
+  check and 242-route build passed, and the complete suite stopped only at the
+  unchanged current-main migration-379 snapshot mismatch after Calendar.
 - Pull request #181 passed all six protected checks and its hosted Preview.
   Vercel reports exact merged commit `72d7988` Ready in Production. Migration
   385 returned success on the verified production project; postflight confirmed
@@ -590,6 +610,8 @@ team-based rather than 185 individual-player picks.
 - No real league, draft, roster, tournament, Daily Games discussion, saved
   team, provider setting, or production account was changed to test the
   releases.
+- No Pokemon Connections completion row or player identity was created,
+  changed, or exposed while verifying the Operations aggregates.
 - Disposable Preview fixtures were removed by exact recorded identifiers.
 - The disposable TCG and GO activation Preview branches were permanently
   deleted by exact project reference after their migration and privacy
@@ -623,7 +645,7 @@ commissioner-save paths. Treat historical Operations events by timestamp and
 current authoritative state before declaring a recurrence.
 
 Refresh any Worlds invite-earned snapshot only after reviewing current source
-changes, and publish every post-380 database change as a new forward-only
+changes, and publish every post-386 database change as a new forward-only
 migration. Do not describe invite-earned competitors as confirmed attendees.
 Keep UNITE team predictions closed until the official team field is reconciled
 and its group assignments, advancement rules, and playoff pairings are
