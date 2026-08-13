@@ -3,7 +3,7 @@
 - Last updated: August 13, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified production application commit: `2fa03305a929a70b4dce9ceb03524a8af50d7e8c`
+- Verified production application commit: `500566392d7d1bde1df2db1f9cdc0df3ba10ca8e`
 - Latest production migration: 386
 
 ## Deployed state
@@ -65,6 +65,15 @@ saved-entry count, while each card also shows the combined total. At production
 verification, VGC showed 14 player entries and 13 team entries, TCG showed two
 player entries and zero deck entries, and GO showed zero entries with its team
 game explicitly marked not open. No database or migration changed.
+
+Pull request [#187](https://github.com/roblebaegaming/DraftCenter/pull/187)
+renamed the persistent global action to **DraftCenter Home**, uses the concise
+**Home** label in the mobile/tablet header while retaining the full accessible
+name, and exposes a selected/current-page state on the root route. The 44px
+target and visible focus treatment remain intact. The release also advanced the
+transitive `nanoid` override to patched version 3.3.18 after a new audit
+advisory; no database, provider setting, environment variable, or secret
+changed.
 
 The August 9 release wave is complete. Pull requests
 [#95](https://github.com/roblebaegaming/DraftCenter/pull/95) through
@@ -383,15 +392,16 @@ The separate Worlds Meta Picks competition shipped through pull request
 application commit `bdc8349822e16fadff02dd73b48030c13dbddae5`. VGC Meta
 Picks are open: members rank six Pokémon from the reviewed 235-option official
 Regulation M-B pool, with 24 explicitly unofficial community-trend signals.
-TCG has a reviewed 49-archetype taxonomy and 12 trend signals and remains
-`draft` in production. The official 2026 Worlds competitor packet now confirms
-Standard Format with regulation marks H and onward; forward-only migration 381
-is the reviewed release candidate that records this source and opens only the
-zero-entry TCG event after the application release. GO remains `draft` with no
-placeholder options until its official eligibility pool can be reviewed. Meta
+Pull request [#168](https://github.com/roblebaegaming/DraftCenter/pull/168)
+then opened TCG Meta Picks with a reviewed 49-archetype taxonomy, 12 trend
+signals, five deck choices, and one Champion Deck. The official 2026 Worlds
+competitor packet confirms Standard Format with regulation marks H and onward;
+forward-only migration 381 records that source and is already applied. GO
+remains `draft` until its official eligibility pool can be reviewed; do not
+seed placeholder options. Meta
 Picks have separate discipline and overall leaderboards
 from player Pick 10; the Meta overall requires two finalized disciplines.
-Migrations 378-380 are applied to production. Results automation remains
+Migrations 378-381 are applied to production. Results automation remains
 disabled, and finalization is service-only from an owner-reviewed official
 source.
 
@@ -406,6 +416,14 @@ team-based rather than 185 individual-player picks.
 
 ## Release verification
 
+- Pull request #187 passed the protected secret scan, security/audit, CodeQL,
+  Vercel, and review checks. Vercel reports exact merged commit `5005663` Ready
+  in Production. Focused navigation/help/release tests passed 17/17, the
+  dependency audit is clean, the 1,027-row National Dex verification and
+  242-page optimized build passed, and live desktop accessibility/visual review
+  confirmed the current-page treatment. The post-deployment signed-out
+  19-route smoke sweep passed. The complete suite reached only the unchanged
+  current-main migration-379 snapshot mismatch after all preceding suites.
 - Pull request #183 passed all six protected checks and its hosted Preview.
   Vercel reports exact merged commit `7a0c1a6` Ready in Production. The
   isolated Preview passed all five migration assertions with no retained
@@ -661,15 +679,12 @@ and its group assignments, advancement rules, and playoff pairings are
 published. Model UNITE predictions by team, not by individual player.
 Keep the Worlds bracket challenge closed until official pairings exist.
 
-Keep TCG Meta Picks closed in production until the application release
-containing the scoring disclosure and guarded migration 381 is deployed. Then
-apply migration 381 to the exact production project and verify the 49-option,
-12-trend, zero-entry opening state before calling TCG live. Keep GO Meta Picks
-closed until an official eligibility pool is reviewed and seeded. Do not fill
-that gate with placeholder guesses. VGC Meta Picks may remain open through its
-published lock; preserve private pre-lock selections and the separate player
-Pick 10 competition. Finalize Meta results only from an owner-reviewed official
-source, with no automated result writer.
+Keep VGC and TCG Meta Picks open through their published locks and preserve
+private pre-lock selections plus the separate player Pick 10 competitions.
+Migration 381 is already applied and must not be replayed. Keep GO Meta Picks
+closed until an official eligibility pool is reviewed and seeded; do not fill
+that gate with placeholder guesses. Finalize Meta results only from an
+owner-reviewed official source, with no automated result writer.
 
 Do not enable the live importer until the exact structured Masters results feed,
 permission, attribution, and event identifier are reviewed. Scheduler creation
@@ -693,7 +708,7 @@ guard merely to remove that measurement gap.
 ## Authoritative records
 
 - Current continuation handoff:
-  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-11-worlds-meta-picks-release.md`](handoffs/DraftCenter-agent-handoff-2026-08-11-worlds-meta-picks-release.md)
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-13-global-release-final.md`](handoffs/DraftCenter-agent-handoff-2026-08-13-global-release-final.md)
 - Preceding Worlds public-launch handoff:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-11-worlds-public-launch-final.md`](handoffs/DraftCenter-agent-handoff-2026-08-11-worlds-public-launch-final.md)
 - Historical Worlds Pick 16 operating record:
