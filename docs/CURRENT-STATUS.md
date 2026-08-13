@@ -1,10 +1,10 @@
 # DraftCenter current status
 
-- Last updated: August 12, 2026
+- Last updated: August 13, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified production application commit: `813b3b6d578b2b5d434e8a1fd3464e890b31a471`
-- Latest production migration: 383
+- Verified production application commit: `727f1ed017df1e36d54ea2b2941f55a33d87c9bb`
+- Latest production migration: 384
 
 ## Deployed state
 
@@ -27,6 +27,17 @@ personal reminders, and the maintained VGC schedule without granting
 DraftCenter access to a Google account. Only a SHA-256 token hash is stored;
 the link can be rotated or revoked. Production migration 383 is applied with
 forced RLS and no client-role table access.
+
+The August 13 follow-up wave shipped through pull requests
+[#176](https://github.com/roblebaegaming/DraftCenter/pull/176) through
+[#179](https://github.com/roblebaegaming/DraftCenter/pull/179). The public
+Pokedex filter panel is readable and responsive; Daily Games sharing and
+bracket-image exports are simplified and corrected; Italian Worlds predictions
+are available at `/it/worlds/2026`; and commissioners can explicitly expand a
+league from the 16-team default to 32 teams or use validated multi-pod play up
+to 128 teams. Migration 384 enforces the same limits for snapshots, initial
+setup, hosted snake drafts, and scheduled auctions while preserving RLS and
+client-role denials.
 
 The August 9 release wave is complete. Pull requests
 [#95](https://github.com/roblebaegaming/DraftCenter/pull/95) through
@@ -368,6 +379,13 @@ team-based rather than 185 individual-player picks.
 
 ## Release verification
 
+- Pull requests #176-#179 passed their protected checks and hosted Previews.
+  Vercel reports exact merged commit `727f1ed` Ready in Production. Migration
+  384 returned success on the verified production project; postflight confirmed
+  the 16/32/128 limits, snapshot trigger, RLS, hosted snake/setup/auction guards,
+  expanded pick cap, and intended function privileges. Its exact disposable
+  Preview branch was deleted after the rollback-only regression matrix passed.
+  The signed-out 19-route production smoke sweep passes.
 - Pull request #174 passed all six protected checks and its hosted Preview.
   Vercel reports exact merged commit `813b3b6` Ready in Production. Migration
   383 returned success on the verified production project; its postflight
