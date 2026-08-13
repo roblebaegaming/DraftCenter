@@ -146,11 +146,3 @@ export function top64BracketFromRounds(rounds = []) {
     champion: round2?.winners[0] || null,
   };
 }
-
-export function nextMegaBracketSessionTarget(choicesCompleted, sessionSize = 25) {
-  if (choicesCompleted >= MEGA_BRACKET_TOTAL_CHOICES) return MEGA_BRACKET_TOTAL_CHOICES;
-  const normalTarget = Math.min(MEGA_BRACKET_TOTAL_CHOICES, (Math.floor(choicesCompleted / sessionSize) + 1) * sessionSize);
-  const milestone = [138, 650, 906, 1034, MEGA_BRACKET_TOP_64_CHOICE, 1130, 1146, 1154, 1158, 1160, 1161]
-    .find((choice) => choice > choicesCompleted);
-  return Math.min(normalTarget, milestone || MEGA_BRACKET_TOTAL_CHOICES);
-}

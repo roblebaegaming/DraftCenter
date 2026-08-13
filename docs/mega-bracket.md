@@ -14,8 +14,8 @@ needs.
   1,024. Choice 1,098 reveals the final 64.
 - The final 64 are divided into four regions of 16 and continue through a
   familiar tournament bracket to the player's champion.
-- Players see one matchup at a time, can undo their latest choice, and get
-  useful short-session goals and round milestones.
+- Players see one matchup at a time, can undo their latest choice, and follow
+  the bracket through named round milestones.
 - Progress is saved privately to the player's account and also retained in the
   browser while a cross-device save is pending.
 - Completed attempts remain in private history. Launch has unlimited attempts.

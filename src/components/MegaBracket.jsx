@@ -8,7 +8,6 @@ import {
   evaluateMegaBracket,
   MEGA_BRACKET_CATALOG_VERSION,
   MEGA_BRACKET_TOP_64_CHOICE,
-  nextMegaBracketSessionTarget,
   top64BracketFromRounds,
 } from "../lib/megaBracket";
 import {
@@ -288,7 +287,6 @@ export default function MegaBracket() {
     } catch (error) { setMessage(error.message); }
   }
 
-  const sessionTarget = progress ? nextMegaBracketSessionTarget(progress.choicesCompleted) : 25;
   const canStartAnother = progress?.complete && attempt?.status === "completed";
 
   return <main className="mega-bracket-shell">
@@ -315,7 +313,7 @@ export default function MegaBracket() {
           <div className="mega-save-state"><strong>{progress.choicesCompleted.toLocaleString()} / 1,161</strong><span>{viewingHistory ? formatDate(attempt.completed_at) : saveLabel || "Ready"}</span></div>
         </div>
         <div className="mega-progress"><span style={{ width: `${progress.percent}%` }} /></div>
-        <div className="mega-progress-summary"><span><b>{progress.survivors.toLocaleString()}</b> still alive</span><span><b>{progress.choicesRemaining.toLocaleString()}</b> choices left</span>{!progress.complete && <span><b>{Math.max(0, sessionTarget - progress.choicesCompleted)}</b> to this session goal</span>}</div>
+        <div className="mega-progress-summary"><span><b>{progress.survivors.toLocaleString()}</b> still alive</span><span><b>{progress.choicesRemaining.toLocaleString()}</b> choices left</span></div>
 
         {!progress.complete && <>
           <div className="mega-matchup" aria-live="polite">
