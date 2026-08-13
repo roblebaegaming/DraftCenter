@@ -120,7 +120,8 @@ test("the Worlds hub opens GO while keeping unfinished UNITE out of the sitemap"
   assert.match(hub, /href="\/worlds\/2026\/go"/);
   assert.match(hub, /href="\/worlds\/2026\/unite"/);
   assert.match(hub, /Pick 10 qualified Pokémon GO Trainers and choose Your Champion/);
-  assert.match(hub, /Make GO picks/);
+  assert.match(hub, /href="\/worlds\/2026\/go#pick-ten" label="Trainer Pick 10"/);
+  assert.match(hub, /href="\/worlds\/2026\/go#meta-picks" label="Pokémon Team Picks"/);
   assert.match(hub, /Team predictions still need the registered teams, group assignments, and playoff bracket/);
   assert.match(sitemap, /\/worlds\/2026\/go/);
   assert.doesNotMatch(sitemap, /\/worlds\/2026\/unite/);

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { createClient } from "../lib/supabase/client";
 import { WORLDS_PICK_DISCIPLINES } from "../lib/worldsFutureSetup";
+import { WORLDS_META_EVENTS } from "../lib/worldsMeta";
 import WorldsDisciplineNav from "./WorldsDisciplineNav";
 
 const leaderboardTabs = [
@@ -26,9 +27,38 @@ const futureLeaderboardStatus = {
   unite: "NOT LIVE",
 };
 
+function savedEntryCount(hub) {
+  const count = Number(hub?.entry_count);
+  return Number.isFinite(count) && count >= 0 ? count : null;
+}
+
+function entryCountLabel(hub, loading, singular, plural) {
+  if (loading) return "Loading entries…";
+  const count = savedEntryCount(hub);
+  if (count === null) return "Entries unavailable";
+  const unavailable = hub?.event?.status === "draft" ? " · Not open yet" : "";
+  return `${count.toLocaleString()} ${count === 1 ? singular : plural}${unavailable}`;
+}
+
+function totalEntryLabel(hubs, loading) {
+  if (loading) return "Loading entry counts…";
+  const counts = hubs.map(savedEntryCount);
+  if (counts.some((count) => count === null)) return "Some counts unavailable";
+  const total = counts.reduce((sum, count) => sum + count, 0);
+  return `${total.toLocaleString()} saved ${total === 1 ? "entry" : "entries"} total`;
+}
+
+function CompetitionChoice({ href, label, detail, entryLabel }) {
+  return <Link className="worlds-competition-choice" href={href}>
+    <span><b>{label}</b><strong>{entryLabel}</strong></span>
+    <small>{detail}</small>
+  </Link>;
+}
+
 export default function WorldsPredictionsHub() {
   const [activeLeaderboard, setActiveLeaderboard] = useState("overall");
   const [disciplineHubs, setDisciplineHubs] = useState({});
+  const [metaHubs, setMetaHubs] = useState({});
   const [overall, setOverall] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -40,16 +70,21 @@ export default function WorldsPredictionsHub() {
       const [disciplineResults, overallResult] = await Promise.all([
         Promise.all(disciplineKeys.map(async (key) => {
           const eventId = WORLDS_PICK_DISCIPLINES[key].eventId;
-          const [hub, results] = await Promise.all([
+          const [hub, results, meta] = await Promise.all([
             supabase.rpc("get_worlds_pick_hub", { p_event_id: eventId }),
             supabase.rpc("get_worlds_result_status", { p_event_id: eventId }),
+            supabase.rpc("get_worlds_meta_hub", { p_event_id: WORLDS_META_EVENTS[key].eventId }),
           ]);
-          return [key, hub.data ? { ...hub.data, results: results.error ? { status: "waiting", is_stale: false } : results.data } : null];
+          return [key, {
+            hub: hub.data ? { ...hub.data, results: results.error ? { status: "waiting", is_stale: false } : results.data } : null,
+            meta: meta.error ? null : meta.data,
+          }];
         })),
         supabase.rpc("get_worlds_overall_leaderboard"),
       ]);
       if (!active) return;
-      setDisciplineHubs(Object.fromEntries(disciplineResults));
+      setDisciplineHubs(Object.fromEntries(disciplineResults.map(([key, value]) => [key, value.hub])));
+      setMetaHubs(Object.fromEntries(disciplineResults.map(([key, value]) => [key, value.meta])));
       setOverall(overallResult.error ? null : overallResult.data);
       setLoading(false);
     }
@@ -107,34 +142,43 @@ export default function WorldsPredictionsHub() {
         <h2 id="worlds-competition-heading">Worlds Home</h2>
       </header>
       <div className="worlds-competition-grid">
-        <Link className="worlds-competition-card is-live is-vgc" href="/worlds/2026/vgc">
-          <span className="worlds-status-pill">Picks open</span>
+        <article className="worlds-competition-card is-live is-vgc">
+          <div className="worlds-card-topline"><span className="worlds-status-pill">Picks open</span><span>{totalEntryLabel([disciplineHubs.vgc, metaHubs.vgc], loading)}</span></div>
           <small>VIDEO GAME CHAMPIONSHIPS</small>
           <h3>VGC Masters</h3>
-          <p>Pick 10 VGC Masters competitors and choose Your Champion. The Top Cut bracket will open after official pairings are published.</p>
-          <strong>Make VGC picks →</strong>
-        </Link>
-        <Link className="worlds-competition-card is-live is-tcg" href="/worlds/2026/tcg">
-          <span className="worlds-status-pill">Picks open</span>
+          <p>Two separate games live here: predict the Masters players, or build the World Champion&apos;s Pokémon team.</p>
+          <div className="worlds-competition-choices">
+            <CompetitionChoice href="/worlds/2026/vgc#pick-ten" label="Player Pick 10" detail="Pick 10 Masters competitors and Your Champion" entryLabel={entryCountLabel(disciplineHubs.vgc, loading, "player entry", "player entries")} />
+            <CompetitionChoice href="/worlds/2026/vgc#meta-picks" label="Pokémon Team Picks" detail="Rank six Pokémon for the Champion&apos;s team" entryLabel={entryCountLabel(metaHubs.vgc, loading, "team entry", "team entries")} />
+          </div>
+        </article>
+        <article className="worlds-competition-card is-live is-tcg">
+          <div className="worlds-card-topline"><span className="worlds-status-pill">Picks open</span><span>{totalEntryLabel([disciplineHubs.tcg, metaHubs.tcg], loading)}</span></div>
           <small>POKÉMON TRADING CARD GAME</small>
           <h3>TCG Masters</h3>
-          <p>Pick 10 qualified TCG Masters competitors and choose Your Champion. Entries stay editable until Worlds begins.</p>
-          <strong>Make TCG picks →</strong>
-        </Link>
-        <Link className="worlds-competition-card is-live is-go" href="/worlds/2026/go">
-          <span className="worlds-status-pill">Picks open</span>
+          <p>Two separate games live here: predict the Masters players, or choose the deck archetypes you expect to go deepest.</p>
+          <div className="worlds-competition-choices">
+            <CompetitionChoice href="/worlds/2026/tcg#pick-ten" label="Player Pick 10" detail="Pick 10 Masters competitors and Your Champion" entryLabel={entryCountLabel(disciplineHubs.tcg, loading, "player entry", "player entries")} />
+            <CompetitionChoice href="/worlds/2026/tcg#meta-picks" label="Deck Picks" detail="Choose five deck archetypes and a Champion Deck" entryLabel={entryCountLabel(metaHubs.tcg, loading, "deck entry", "deck entries")} />
+          </div>
+        </article>
+        <article className="worlds-competition-card is-live is-go">
+          <div className="worlds-card-topline"><span className="worlds-status-pill">Picks open</span><span>{totalEntryLabel([disciplineHubs.go, metaHubs.go], loading)}</span></div>
           <small>MOBILE BATTLES</small>
           <h3>Pokémon GO</h3>
-          <p>Pick 10 qualified Pokémon GO Trainers and choose Your Champion. Entries stay editable until Worlds begins.</p>
-          <strong>Make GO picks →</strong>
-        </Link>
-        <Link className="worlds-competition-card is-building is-unite" href="/worlds/2026/unite">
-          <span className="worlds-status-pill">Not Live</span>
+          <p>The Trainer Pick 10 is open. A separate game for predicting the World Champion&apos;s Pokémon team is still being prepared.</p>
+          <div className="worlds-competition-choices">
+            <CompetitionChoice href="/worlds/2026/go#pick-ten" label="Trainer Pick 10" detail="Pick 10 qualified Pokémon GO Trainers and choose Your Champion" entryLabel={entryCountLabel(disciplineHubs.go, loading, "Trainer entry", "Trainer entries")} />
+            <CompetitionChoice href="/worlds/2026/go#meta-picks" label="Pokémon Team Picks" detail="Build the Champion&apos;s six-Pokémon team" entryLabel={entryCountLabel(metaHubs.go, loading, "team entry", "team entries")} />
+          </div>
+        </article>
+        <article className="worlds-competition-card is-building is-unite">
+          <div className="worlds-card-topline"><span className="worlds-status-pill">Not Live</span><span>Entries not open</span></div>
           <small>TEAM COMPETITION</small>
           <h3>Pokémon UNITE</h3>
           <p>The format is set. Team predictions still need the registered teams, group assignments, and playoff bracket.</p>
-          <strong>View UNITE details →</strong>
-        </Link>
+          <div className="worlds-competition-choices"><CompetitionChoice href="/worlds/2026/unite" label="Team predictions" detail="Review the published format and remaining requirements" entryLabel="Not open yet" /></div>
+        </article>
       </div>
     </section>
 
