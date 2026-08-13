@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import CalendarSubscription from "./CalendarSubscription";
 import { createClient } from "../lib/supabase/client";
 import { VGC_CALENDAR_EVENTS, VGC_CALENDAR_REGIONS, VGC_CALENDAR_UPDATED_AT } from "../data/vgcCalendarEvents";
+import { calendarToIcs, dateKey, deriveLeagueEvents } from "../lib/pokemonCalendar";
 
 const EMPTY_EVENT = {
   title: "",
@@ -41,12 +43,6 @@ const VGC_CATEGORIES = [
   ["online", "Online"],
 ];
 const DAY_MS = 24 * 60 * 60 * 1000;
-
-function dateKey(value) {
-  const date = value instanceof Date ? value : new Date(value);
-  if (Number.isNaN(date.getTime())) return "";
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-}
 
 function localInputValue(value, allDay = false) {
   if (!value) return "";
@@ -88,108 +84,16 @@ function formatEventDateRange(event) {
   return `${start.toLocaleDateString(undefined, { month: "short", day: "numeric" })}–${end.toLocaleDateString(undefined, options)}`;
 }
 
-function matchDateForWeek(settings, weekIndex) {
-  const base = new Date(settings?.seasonStartsAt || "");
-  if (Number.isNaN(base.getTime())) return null;
-  const targetDay = Number(settings?.matchDayOfWeek);
-  const dayOffset = Number.isInteger(targetDay) ? (targetDay - base.getDay() + 7) % 7 : 0;
-  const result = new Date(base.getTime() + (weekIndex * 7 + dayOffset) * DAY_MS);
-  const [hours, minutes] = String(settings?.matchTime || "19:00").split(":").map(Number);
-  result.setHours(Number.isFinite(hours) ? hours : 19, Number.isFinite(minutes) ? minutes : 0, 0, 0);
-  return result;
-}
-
-function escapeICS(value) {
-  return String(value || "").replace(/\\/g, "\\\\").replace(/\n/g, "\\n").replace(/,/g, "\\,").replace(/;/g, "\\;");
-}
-
-function icsStamp(value, allDay, end = false) {
-  const date = new Date(value);
-  if (allDay && end) date.setDate(date.getDate() + 1);
-  if (allDay) return dateKey(date).replaceAll("-", "");
-  return date.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}Z$/, "Z");
-}
-
 function downloadCalendar(events) {
-  const body = events.map((event) => {
-    const startKey = event.all_day ? "DTSTART;VALUE=DATE" : "DTSTART";
-    const lines = [
-      "BEGIN:VEVENT",
-      `UID:${escapeICS(event.id)}@draftcentral.gg`,
-      `${startKey}:${icsStamp(event.starts_at, event.all_day)}`,
-      `SUMMARY:${escapeICS(event.title)}`,
-      `DESCRIPTION:${escapeICS([event.league_name, event.notes].filter(Boolean).join("\n"))}`,
-    ];
-    if (event.ends_at) lines.push(`${event.all_day ? "DTEND;VALUE=DATE" : "DTEND"}:${icsStamp(event.ends_at, event.all_day, event.all_day)}`);
-    if (event.location) lines.push(`LOCATION:${escapeICS(event.location)}`);
-    if (event.source_url) lines.push(`URL:${escapeICS(event.source_url)}`);
-    lines.push("END:VEVENT");
-    return lines.join("\r\n");
-  }).join("\r\n");
-  const file = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//DraftCenter//Pokemon Calendar//EN", "CALSCALE:GREGORIAN", body, "END:VCALENDAR"].join("\r\n");
+  const file = calendarToIcs(events, {
+    timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
+  });
   const url = URL.createObjectURL(new Blob([file], { type: "text/calendar;charset=utf-8" }));
   const link = document.createElement("a");
   link.href = url;
   link.download = `draftcenter-pokemon-calendar-${dateKey(new Date())}.ics`;
   link.click();
   URL.revokeObjectURL(url);
-}
-
-function deriveLeagueEvents(memberships, snapshots, user, profile) {
-  const states = new Map((snapshots || []).map((row) => [row.league_id, row.state || {}]));
-  const identity = String(profile?.display_name || profile?.username || "").trim().toLowerCase();
-  const events = [];
-  (memberships || []).forEach((membership) => {
-    const league = membership.league;
-    if (!league) return;
-    const state = states.get(league.id) || {};
-    const seasonNumber = Number(state.seasonNumber) || 1;
-    if (league.draft_starts_at) {
-      events.push({
-        id: `draft-${league.id}-${seasonNumber}`,
-        source: "league",
-        event_type: "draft",
-        title: `${league.name} draft`,
-        starts_at: league.draft_starts_at,
-        ends_at: null,
-        all_day: false,
-        league_name: league.name,
-        location: "",
-        source_url: `/?league=${encodeURIComponent(league.slug || league.id)}`,
-        notes: `${state.settings?.draftType === "auction" ? "Auction" : "Snake"} draft · Season ${seasonNumber}`,
-      });
-    }
-    const teams = Array.isArray(state.teams) ? state.teams : [];
-    const myTeamIndices = teams.map((team, index) => ({ team, index })).filter(({ team }) =>
-      team?.claimedByUserId ? team.claimedByUserId === user.id : identity && String(team?.claimedBy || "").trim().toLowerCase() === identity
-    ).map(({ index }) => index);
-    if (!myTeamIndices.length || !Array.isArray(state.schedule)) return;
-    state.schedule.forEach((week, weekIndex) => {
-      const startsAt = matchDateForWeek(state.settings, weekIndex);
-      if (!startsAt || !Array.isArray(week)) return;
-      week.forEach((pair, matchIndex) => {
-        if (!Array.isArray(pair) || pair.length < 2) return;
-        const myTeamIndex = myTeamIndices.find((index) => pair.includes(index));
-        if (myTeamIndex == null) return;
-        const opponentIndex = pair[0] === myTeamIndex ? pair[1] : pair[0];
-        const opponent = teams[opponentIndex]?.name || "Opponent TBD";
-        events.push({
-          id: `match-${league.id}-${seasonNumber}-${weekIndex}-${matchIndex}-${myTeamIndex}`,
-          source: "league",
-          event_type: "match",
-          title: `${teams[myTeamIndex]?.name || "Your team"} vs. ${opponent}`,
-          starts_at: startsAt.toISOString(),
-          ends_at: null,
-          all_day: false,
-          league_name: league.name,
-          location: "",
-          source_url: `/?league=${encodeURIComponent(league.slug || league.id)}`,
-          notes: `Week ${weekIndex + 1} · ${state.settings?.leagueTimeZone || "League time zone"}`,
-        });
-      });
-    });
-  });
-  return events;
 }
 
 export default function PokemonCalendar() {
@@ -324,6 +228,7 @@ export default function PokemonCalendar() {
       <div className="pokemon-calendar-actions"><button className="primary-button" onClick={startNew}>Add event</button><button className="secondary-button" disabled={!events.length} onClick={() => downloadCalendar(events)}>Download calendar</button></div>
     </header>
     {message && !editing && <p className="hub-message">{message}</p>}
+    <CalendarSubscription supabase={supabase} />
     <section className="vgc-calendar-panel" aria-labelledby="vgc-calendar-heading">
       <div className="vgc-calendar-panel-copy">
         <span className="eyebrow">POPULAR VGC EVENTS</span>

@@ -910,6 +910,17 @@ a.worlds-competition-card:hover { border-color: #8ba8e1; transform: translateY(-
 .pokemon-calendar-hero h1 { margin: 7px 0; font-size: clamp(2.5rem,6vw,4.7rem); line-height: 1; }
 .pokemon-calendar-hero p { margin: 0; color: #b9c2e8; line-height: 1.55; }
 .pokemon-calendar-actions,.pokemon-calendar-toolbar>div,.calendar-event-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.calendar-subscription-panel { display: grid; grid-template-columns: minmax(0,1.15fr) minmax(320px,.85fr); gap: 22px; margin: 0 0 20px; padding: 22px; border: 1px solid rgba(130,170,255,.46); border-radius: 16px; background: linear-gradient(135deg,rgba(130,170,255,.14),rgba(17,22,43,.96) 50%); }
+.calendar-subscription-copy h2 { margin: 5px 0 8px; }
+.calendar-subscription-copy p { margin: 0 0 10px; color: #c8d0ed; line-height: 1.5; }
+.calendar-subscription-copy small,.calendar-subscription-controls>small { color: #929ec6; line-height: 1.45; }
+.calendar-subscription-controls { display: grid; align-content: start; gap: 12px; }
+.calendar-subscription-controls label { display: grid; gap: 6px; color: #cbd3f4; font-size: 12px; font-weight: 800; }
+.calendar-subscription-controls input { min-width: 0; width: 100%; padding: 10px; color: #eef1ff; border: 1px solid #46517c; border-radius: 8px; background: #080c1c; }
+.calendar-subscription-controls ol { display: grid; gap: 5px; margin: 0; padding-left: 22px; color: #c8d0ed; font-size: 13px; line-height: 1.45; }
+.calendar-subscription-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.calendar-subscription-status { display: grid; gap: 3px; margin: 0; padding: 12px; border: 1px solid rgba(79,209,197,.35); border-radius: 9px; background: rgba(79,209,197,.08); }
+.calendar-subscription-status span { color: #aeb7dc; font-size: 12px; line-height: 1.4; }
 .vgc-calendar-panel { display: grid; grid-template-columns: minmax(0,1.35fr) minmax(250px,.65fr); gap: 18px; margin: 0 0 20px; padding: 22px; border: 1px solid rgba(79,209,197,.42); border-radius: 16px; background: linear-gradient(135deg,rgba(79,209,197,.12),rgba(17,22,43,.96) 48%); }
 .vgc-calendar-panel-copy h2 { margin: 5px 0 8px; }
 .vgc-calendar-panel-copy p { margin: 0 0 10px; color: #c8d0ed; line-height: 1.5; }
@@ -974,6 +985,8 @@ a.worlds-competition-card:hover { border-color: #8ba8e1; transform: translateY(-
   .pokemon-calendar-hero { align-items: flex-start; flex-direction: column; }
   .pokemon-calendar-actions { width: 100%; }
   .pokemon-calendar-actions button { flex: 1; }
+  .calendar-subscription-panel { grid-template-columns: 1fr; padding: 17px; }
+  .calendar-subscription-actions>* { flex: 1 1 auto; justify-content: center; text-align: center; }
   .vgc-calendar-panel { grid-template-columns: 1fr; padding: 17px; }
   .vgc-calendar-featured { grid-column: auto; grid-template-columns: 1fr; }
   .pokemon-calendar-toolbar { grid-template-columns: 1fr; }

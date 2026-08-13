@@ -38,6 +38,7 @@ test("release migrations use one production number each", () => {
   assert.ok(migrations.includes("372-worlds-vgc-top-cut-bracket.sql"));
   assert.ok(migrations.includes("373-worlds-pick-ten-and-champion-label.sql"));
   assert.ok(migrations.includes("382-personal-pokemon-calendar.sql"));
+  assert.ok(migrations.includes("383-private-calendar-subscriptions.sql"));
 });
 
 test("the Gen 6 schema gate supports the official X and Y game keys", () => {
