@@ -1,9 +1,9 @@
 # Draft Lab
 
-Draft Lab is DraftCenter's public, read-only team builder and type-coverage
-workspace at `/tools/team-builder`. The initial implementation is on
-`codex/draft-lab-foundation-2026-08-13`; this document does not claim that the
-route is deployed.
+Draft Lab is DraftCenter's deployed public, read-only team builder and
+type-coverage workspace at `/tools/team-builder`. It remains discoverable from
+Resources and related tools, but it is intentionally not a primary-header
+destination alongside Pokémon, Community, and Worlds Predictions.
 
 ## Initial contract
 
