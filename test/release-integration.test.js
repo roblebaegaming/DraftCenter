@@ -41,6 +41,7 @@ test("release migrations use one production number each", () => {
   assert.ok(migrations.includes("383-private-calendar-subscriptions.sql"));
   assert.ok(migrations.includes("386-operations-connections-usage.sql"));
   assert.ok(migrations.includes("388-sunday-super-brackets.sql"));
+  assert.ok(migrations.includes("389-full-dex-mega-brackets.sql"));
 });
 
 test("the Gen 6 schema gate supports the official X and Y game keys", () => {
@@ -76,7 +77,7 @@ test("integrated quick links expose each released feature once", () => {
 
 test("the full suite includes every integrated feature gate", () => {
   const manifest = JSON.parse(source("package.json"));
-  for (const script of ["test:nuzlocke", "test:tournaments", "test:multi-pod", "test:trainer-dex", "test:calendar", "test:worlds", "test:release-integration"]) {
+  for (const script of ["test:nuzlocke", "test:tournaments", "test:mega-bracket", "test:multi-pod", "test:trainer-dex", "test:calendar", "test:worlds", "test:release-integration"]) {
     assert.match(manifest.scripts["test:all"], new RegExp(`npm run ${script}`));
   }
 });
