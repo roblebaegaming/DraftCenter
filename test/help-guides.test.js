@@ -50,8 +50,8 @@ test("global navigation separates account actions, tools, and reference links", 
   assert.match(quickLinks, /signedIn && <a href="\/trainer-dex"/);
   assert.match(quickLinks, /isOwner && <a href="\/operations"/);
   assert.match(quickLinks, /!signedIn && <a href="\/manuals"/);
-  assert.match(css, /grid-template-columns:\s*repeat\(5,minmax\(0,1fr\)\)/);
+  assert.match(css, /grid-template-columns:\s*repeat\(6,minmax\(0,1fr\)\)/);
   assert.match(css, /\.site-primary-links\s*\{[^}]*grid-template-columns:\s*repeat\(3,minmax\(0,1fr\)\)/);
-  assert.match(css, /\.site-quick-links\.has-owner-link\s*\{\s*grid-template-columns:\s*repeat\(6,minmax\(0,1fr\)\)/);
+  assert.match(css, /\.site-quick-links\.has-owner-link\s*\{\s*grid-template-columns:\s*repeat\(7,minmax\(0,1fr\)\)/);
   for (const group of ["Explore", "DraftCenter", "Policies"]) assert.match(footer, new RegExp(`<h2>${group}</h2>`));
 });

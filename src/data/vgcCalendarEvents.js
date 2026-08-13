@@ -10,6 +10,8 @@ function scheduledEvent({ id, title, category, start, end = start, location, reg
     event_type: `vgc_${category}`,
     category,
     title,
+    calendar_start_date: start,
+    calendar_end_date: end,
     starts_at: `${start}T12:00:00`,
     ends_at: `${end}T12:00:00`,
     all_day: true,
