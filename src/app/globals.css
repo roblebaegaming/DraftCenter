@@ -389,7 +389,9 @@ button { cursor: pointer; }
   background: #171d36;
 }
 .site-draft-home:hover { color: #ffd23f; border-color: #ffd23f; }
+.site-draft-home.is-active { color: #10121c; border-color: #ffd23f; background: #ffd23f; }
 .site-draft-home:focus-visible { outline: 3px solid #ffd23f; outline-offset: 3px; }
+.draft-home-label-compact { display: none; }
 .site-primary-links,.site-global-account { display: flex; align-items: center; gap: 7px; }
 .site-global-account { justify-content: flex-end; }
 .site-primary-links a,.site-global-account>a,.site-global-account>button,.site-owner-menu>summary {
@@ -446,6 +448,8 @@ button { cursor: pointer; }
   .site-global-header-inner { grid-template-columns: minmax(0,1fr) auto; gap: 7px 10px; min-height: 0; padding: 8px 12px 9px; }
   .site-brand-link { grid-column: 1; grid-row: 1; min-width: 0; font-size: 14px; }
   .site-draft-home img { display: block; width: 30px; height: 30px; }
+  .draft-home-label-wide { display: none; }
+  .draft-home-label-compact { display: inline; }
   .site-primary-links { grid-column: 1/-1; grid-row: 2; display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 5px; }
   .site-primary-links a { min-height: 32px; padding: 6px; border-color: #283252; background: #13192e; }
   .site-global-account { grid-column: 2; grid-row: 1; min-width: 0; gap: 4px; }
