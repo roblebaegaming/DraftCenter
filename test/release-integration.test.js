@@ -63,10 +63,11 @@ test("the Gen 5 schema gate supports official zero-based regional entries", () =
 test("integrated quick links expose each released feature once", () => {
   const links = source("src/components/SiteQuickLinks.jsx");
   const nuzlocke = source("src/components/NuzlockeLab.jsx");
-  for (const path of ["/nuzlocke", "/tournaments", "/calendar", "/worlds/2026", "/trainer-dex", "/operations"]) {
+  for (const path of ["/tools/team-builder", "/nuzlocke", "/tournaments", "/calendar", "/worlds/2026", "/trainer-dex", "/operations"]) {
     assert.equal((links.match(new RegExp(`href=\"${path}\"`, "g")) || []).length, 1);
   }
   assert.match(links, /href="\/nuzlocke"[^>]*>[\s\S]*?quick-label-wide">Nuzlockes<\/span>/);
+  assert.match(links, /href="\/tools\/team-builder"[^>]*>[\s\S]*?quick-label-wide">Draft Lab<\/span>/);
   assert.match(links, /className="site-primary-links"[\s\S]*?href="\/worlds\/2026"[^>]*>Worlds Predictions<\/a>/);
   assert.doesNotMatch(links.slice(links.indexOf('<nav className={`site-quick-links')), /href="\/worlds\/2026"/);
   assert.match(nuzlocke, />NUZLOCKE RUN TRACKER<\/span>/);

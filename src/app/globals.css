@@ -468,7 +468,7 @@ button { cursor: pointer; }
     right: 8px;
     bottom: max(8px,env(safe-area-inset-bottom));
     display: grid;
-    grid-template-columns: repeat(6,minmax(0,1fr));
+    grid-template-columns: repeat(7,minmax(0,1fr));
     gap: 2px;
     width: auto;
     max-width: none;
@@ -476,7 +476,7 @@ button { cursor: pointer; }
     overflow: visible;
     border-radius: 14px;
   }
-  .site-quick-links.has-owner-link { grid-template-columns: repeat(7,minmax(0,1fr)); }
+  .site-quick-links.has-owner-link { grid-template-columns: repeat(8,minmax(0,1fr)); }
   .site-quick-links a {
     min-width: 0;
     min-height: 44px;
@@ -1027,6 +1027,16 @@ button { cursor: pointer; }
   .pokemon-calendar-legend { border-top: 1px solid #30395f; }
   .calendar-date-fields { grid-template-columns: 1fr; }
   .calendar-agenda-row { grid-template-columns: 105px 9px minmax(0,1fr); }
+}
+
+.hub-home-destinations { order:7; }
+.hub-home-tools { order:6; display:flex; align-items:center; justify-content:space-between; gap:22px; margin-top:20px; padding:17px 19px; border:1px solid #34406a; border-radius:13px; background:linear-gradient(145deg,#171f3c,#10152b); }
+.hub-home-tools h2 { margin:4px 0 5px; font-size:20px; }
+.hub-home-tools p { max-width:720px; margin:0; color:#aeb7dc; font-size:13px; line-height:1.5; }
+.hub-home-tools a { flex:0 0 auto; }
+@media (max-width:760px) {
+  .hub-home-tools { align-items:flex-start; flex-direction:column; gap:14px; }
+  .hub-home-tools a { width:100%; }
 }
 
 /* Public Draft Lab team builder and coverage analysis. */
