@@ -42,7 +42,7 @@ test("global navigation separates account actions, tools, and reference links", 
   const header = navigation.slice(navigation.indexOf('<header className="site-global-header">'), navigation.indexOf("</header>"));
   const quickLinks = navigation.slice(navigation.indexOf('<nav className={`site-quick-links'));
 
-  for (const label of ["Pokémon", "Community", "Worlds Predictions", "Profile", "Sign out"]) assert.match(header, new RegExp(`>${label}<`));
+  for (const label of ["Draft Lab", "Pokémon", "Community", "Worlds Predictions", "Profile", "Sign out"]) assert.match(header, new RegExp(`>${label}<`));
   assert.match(header, /accountName/);
   assert.match(header, /href="\/worlds\/2026"/);
   assert.doesNotMatch(quickLinks, /href="\/worlds\/2026"/);
@@ -51,7 +51,7 @@ test("global navigation separates account actions, tools, and reference links", 
   assert.match(quickLinks, /isOwner && <a href="\/operations"/);
   assert.match(quickLinks, /!signedIn && <a href="\/manuals"/);
   assert.match(css, /grid-template-columns:\s*repeat\(6,minmax\(0,1fr\)\)/);
-  assert.match(css, /\.site-primary-links\s*\{[^}]*grid-template-columns:\s*repeat\(3,minmax\(0,1fr\)\)/);
+  assert.match(css, /\.site-primary-links\s*\{[^}]*grid-template-columns:\s*repeat\(4,minmax\(0,1fr\)\)/);
   assert.match(css, /\.site-quick-links\.has-owner-link\s*\{\s*grid-template-columns:\s*repeat\(7,minmax\(0,1fr\)\)/);
   for (const group of ["Explore", "DraftCenter", "Policies"]) assert.match(footer, new RegExp(`<h2>${group}</h2>`));
 });

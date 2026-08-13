@@ -74,6 +74,7 @@ export default function SiteQuickLinks() {
           <span className="draft-home-label-compact" aria-hidden="true">Home</span>
         </a>
         <nav className="site-primary-links" aria-label="Primary navigation">
+          <a href="/tools/team-builder" {...navState(pathname, "/tools/team-builder")}>Draft Lab</a>
           <a href="/pokemon" {...navState(pathname, "/pokemon")}>Pokémon</a>
           <a href="/explore" {...navState(pathname, "/explore")}>Community</a>
           <a href="/worlds/2026" {...navState(pathname, "/worlds/2026")}>Worlds Predictions</a>

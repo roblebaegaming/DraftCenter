@@ -40,6 +40,7 @@ requests.
 
 ## Operational documentation
 
+- [`docs/draft-lab.md`](docs/draft-lab.md)
 - [`docs/project-organization.md`](docs/project-organization.md)
 - [`docs/handoffs/README.md`](docs/handoffs/README.md)
 - `docs/launch-stabilization-checklist.md`

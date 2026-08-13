@@ -427,7 +427,8 @@ test("AI discovery foundation exposes a trustworthy entity and reference index",
   assert.match(llms, /saved cards are not public pages/);
   assert.match(llms, /How to Use Pokémon Draft League ADP/);
   assert.match(llms, /Pokémon Draft League Manager vs\. Spreadsheets/);
-  assert.match(llms, /Last reviewed: 2026-08-11/);
+  assert.match(llms, /Draft Lab Pokémon team builder/);
+  assert.match(llms, /Last reviewed: 2026-08-13/);
   assert.match(llms, /Private queues/);
   assert.match(content, /national-gen\$\{generation\}/);
 });

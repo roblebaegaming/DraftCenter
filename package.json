@@ -19,6 +19,8 @@
     "test:help-guides": "node --test test/help-guides.test.js",
     "test:operations-users": "node --test test/operations-user-count.test.js test/operations-league-insights.test.js test/league-pulse.test.js test/daily-editorial-calendar.test.js test/worlds-operations-entry-counts.test.js test/website-traffic-operations.test.js test/operations-engagement.test.js",
     "test:draft-experience": "node --test test/draft-experience.test.js",
+    "draft-lab:build-catalog": "node scripts/build-draft-lab-catalog.mjs",
+    "test:draft-lab": "node scripts/build-draft-lab-catalog.mjs --check && node --test test/team-analysis.test.js",
     "test:team-ownership": "node --test test/team-ownership.test.js",
     "test:draft-board-ux": "node --test test/draft-board-ux.test.js",
     "test:seo": "node --test test/seo-metadata.test.js",
@@ -95,7 +97,7 @@
     "test:trainer-dex": "node --test test/daily-games-resources.test.js test/trainer-dex.test.js",
     "test:calendar": "node --test test/pokemon-calendar.test.js",
     "test:release-integration": "node --test test/release-integration.test.js",
-    "test:all": "npm run test:security && npm run test:regulations && npm run test:auth-captcha && npm run test:profile-defaults && npm run test:performance && npm run test:help-guides && npm run test:operations-users && npm run test:draft-experience && npm run test:team-ownership && npm run test:draft-board-ux && npm run test:seo && npm run test:draft-chat-routing && npm run test:transaction-takeover && npm run test:manager-removal && npm run test:league-counts && npm run test:league-scale && npm run test:nuzlocke && npm run test:tournaments && npm run test:draft-tournament && npm run test:multi-pod && npm run test:trainer-dex && npm run test:calendar && npm run test:pokemon-moves && npm run test:competitive-data && npm run test:worlds && npm run test:release-integration"
+    "test:all": "npm run test:security && npm run test:regulations && npm run test:auth-captcha && npm run test:profile-defaults && npm run test:performance && npm run test:help-guides && npm run test:operations-users && npm run test:draft-experience && npm run test:draft-lab && npm run test:team-ownership && npm run test:draft-board-ux && npm run test:seo && npm run test:draft-chat-routing && npm run test:transaction-takeover && npm run test:manager-removal && npm run test:league-counts && npm run test:league-scale && npm run test:nuzlocke && npm run test:tournaments && npm run test:draft-tournament && npm run test:multi-pod && npm run test:trainer-dex && npm run test:calendar && npm run test:pokemon-moves && npm run test:competitive-data && npm run test:worlds && npm run test:release-integration"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.3",
