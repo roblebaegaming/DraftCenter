@@ -3,8 +3,8 @@
 - Last updated: August 13, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified production application commit: `500566392d7d1bde1df2db1f9cdc0df3ba10ca8e`
-- Latest production migration: 386
+- Verified production application commit: `077f582cf006b414cc603dfbcf6bd53846416663`
+- Latest production migration: 387
 
 ## Deployed state
 
@@ -74,6 +74,16 @@ target and visible focus treatment remain intact. The release also advanced the
 transitive `nanoid` override to patched version 3.3.18 after a new audit
 advisory; no database, provider setting, environment variable, or secret
 changed.
+
+Pull request [#189](https://github.com/roblebaegaming/DraftCenter/pull/189)
+turned the organization workspace into **League Operations** for large seasons.
+Administrators can atomically create 2-32 independent divisions, coordinate a
+different draft time for each division, and place managers from private draft-
+availability notes while preserving each division commissioner's authority.
+Migration 387 adds the private RLS-protected planning layer and authenticated
+RPC workflow; direct browser table access remains denied. The isolated Preview
+matrix, protected checks, exact Production deployment, live workspace review,
+and signed-out production smoke sweep passed without changing a real league.
 
 The August 9 release wave is complete. Pull requests
 [#95](https://github.com/roblebaegaming/DraftCenter/pull/95) through
