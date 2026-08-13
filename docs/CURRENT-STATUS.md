@@ -3,7 +3,7 @@
 - Last updated: August 13, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified production application commit: `0c3742efb6cbc79db6dd26e2a6d17145f26ffdad`
+- Verified production application commit: `788b79ec579ac06fa051da9a0207c6cbd8895a6d`
 - Latest production migration: 389
 
 ## Deployed state
@@ -132,6 +132,15 @@ RLS-protected attempt store and owner-scoped RPC boundary. The isolated Preview
 matrix, catalogue checksum, protected checks, 244-page build, exact Production
 deployment at commit `0c3742e`, signed-in read-only hub review, and 19-check
 signed-out production smoke sweep passed without creating a real attempt.
+
+Pull request [#199](https://github.com/roblebaegaming/DraftCenter/pull/199)
+refined the global navigation hierarchy. Draft Lab remains live, indexable,
+and discoverable through Resources and related tools, but no longer occupies a
+large primary-header target. The four primary destinations are now Mega
+Bracket, Pokémon, Community, and Worlds Predictions on desktop and mobile.
+The protected checks, 244-page build, 390px no-overflow review, exact
+Production deployment at commit `788b79e`, and 19-check production smoke sweep
+passed. No database, provider, secret, or production data changed.
 
 The August 9 release wave is complete. Pull requests
 [#95](https://github.com/roblebaegaming/DraftCenter/pull/95) through
