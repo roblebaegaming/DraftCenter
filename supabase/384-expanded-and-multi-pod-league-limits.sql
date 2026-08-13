@@ -166,7 +166,7 @@ begin
   v_updated := replace(
     v_updated,
     'A league must start with 2 to 16 teams.',
-    'The initial team count exceeds this league''s active size mode.'
+    $replacement$The initial team count exceeds this league''s active size mode.$replacement$
   );
   execute v_updated;
 
