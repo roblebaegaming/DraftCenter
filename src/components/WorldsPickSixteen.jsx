@@ -11,6 +11,12 @@ import {
   worldsEntryIsLocked,
 } from "../lib/worlds2026";
 import { WORLDS_PICK_DISCIPLINES } from "../lib/worldsFutureSetup";
+import {
+  worldsCopy,
+  worldsQualificationLabel,
+  worldsRegionLabel,
+  worldsServerError,
+} from "../lib/worlds2026I18n";
 import WorldsDisciplineNav from "./WorldsDisciplineNav";
 import WorldsMetaChallenge from "./WorldsMetaChallenge";
 import WorldsPickShare from "./WorldsPickShare";
@@ -31,10 +37,10 @@ function fallbackEvent(config, rosterSource) {
   };
 }
 
-function fallbackCompetitors(rosterSource, config) {
+function fallbackCompetitors(rosterSource, config, locale = "en") {
   if (!Array.isArray(rosterSource.competitors)) return [];
   if (config.division === "Masters" && (rosterSource.division !== "Masters" || rosterSource.competitors.some((competitor) => competitor.division && competitor.division !== "Masters"))) {
-    throw new Error("The Worlds prediction pool must contain only Masters Division competitors.");
+    throw new Error(locale === "it" ? worldsCopy("it").errors.mastersOnly : "The Worlds prediction pool must contain only Masters Division competitors.");
   }
   return rosterSource.competitors.map((competitor) => ({
     slug: competitor.slug,
@@ -63,8 +69,8 @@ function hubCompetitors(hub) {
   }));
 }
 
-function displayPacificDate(value, includeTime = false) {
-  return new Intl.DateTimeFormat("en-US", {
+function displayPacificDate(value, includeTime = false, locale = "en-US") {
+  return new Intl.DateTimeFormat(locale, {
     timeZone: "America/Los_Angeles",
     month: "short",
     day: "numeric",
@@ -73,7 +79,8 @@ function displayPacificDate(value, includeTime = false) {
   }).format(new Date(value));
 }
 
-function statusLabel(status) {
+function statusLabel(status, locale = "en") {
+  if (locale === "it") return worldsCopy("it").status[status] || status;
   return ({
     invite_earned: "Invite earned",
     confirmed: "Attendance confirmed",
@@ -82,8 +89,10 @@ function statusLabel(status) {
   })[status] || status;
 }
 
-export default function WorldsPickSixteen({ rosterSource, discipline = "vgc" }) {
+export default function WorldsPickSixteen({ rosterSource, discipline = "vgc", locale = "en" }) {
   const config = WORLDS_PICK_DISCIPLINES[discipline] || WORLDS_PICK_DISCIPLINES.vgc;
+  const copy = worldsCopy(locale);
+  const isItalian = locale === "it";
   const eventId = config.eventId;
   const pickCount = config.pickCount;
   const [hub, setHub] = useState(null);
@@ -95,11 +104,16 @@ export default function WorldsPickSixteen({ rosterSource, discipline = "vgc" }) 
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const [loadingHub, setLoadingHub] = useState(true);
+  const [showItalianOffer, setShowItalianOffer] = useState(false);
   const draftDirtyRef = useRef(false);
   const currentUserIdRef = useRef(undefined);
 
-  const fallback = useMemo(() => fallbackCompetitors(rosterSource, config), [rosterSource, config]);
-  const competitors = useMemo(() => hub?.competitors?.length ? hubCompetitors(hub) : fallback, [hub, fallback]);
+  const fallback = useMemo(() => fallbackCompetitors(rosterSource, config, locale), [rosterSource, config, locale]);
+  const competitors = useMemo(() => (hub?.competitors?.length ? hubCompetitors(hub) : fallback).map((competitor) => ({
+    ...competitor,
+    qualificationRegion: worldsRegionLabel(competitor.qualificationRegion, locale),
+    qualificationPath: worldsQualificationLabel(competitor.qualificationPath, locale),
+  })), [hub, fallback, locale]);
   const competitorBySlug = useMemo(() => new Map(competitors.map((competitor) => [competitor.slug, competitor])), [competitors]);
   const event = hub?.event || fallbackEvent(config, rosterSource);
   const staged = event.status === "draft";
@@ -117,7 +131,7 @@ export default function WorldsPickSixteen({ rosterSource, discipline = "vgc" }) 
       return;
     }
     if (data.event?.division !== config.division) {
-      setMessage(`This competition is unavailable because its roster is not in the reviewed ${config.division} division.`);
+      setMessage(isItalian ? copy.errors.unavailableDivision : `This competition is unavailable because its roster is not in the reviewed ${config.division} division.`);
       setLoadingHub(false);
       return;
     }
@@ -153,6 +167,20 @@ export default function WorldsPickSixteen({ rosterSource, discipline = "vgc" }) 
     return () => { active = false; clearInterval(refresh); listener.subscription.unsubscribe(); };
   }, [eventId, config.division]);
 
+  useEffect(() => {
+    if (isItalian || config.key !== "vgc") return;
+    const languages = navigator.languages?.length ? navigator.languages : [navigator.language];
+    const prefersItalian = languages.some((language) => /^it(?:-|$)/i.test(language || ""));
+    let dismissed = false;
+    try { dismissed = localStorage.getItem("draftcenter-worlds-italian-offer-dismissed") === "1"; } catch {}
+    setShowItalianOffer(prefersItalian && !dismissed);
+  }, [config.key, isItalian]);
+
+  function dismissItalianOffer() {
+    try { localStorage.setItem("draftcenter-worlds-italian-offer-dismissed", "1"); } catch {}
+    setShowItalianOffer(false);
+  }
+
   function toggle(competitor) {
     if (!user || locked || !competitor.isSelectable || ["withdrawn", "declined"].includes(competitor.attendanceStatus)) return;
     const removingAce = ace === competitor.slug && selected.includes(competitor.slug);
@@ -160,7 +188,7 @@ export default function WorldsPickSixteen({ rosterSource, discipline = "vgc" }) 
     if (next.picks !== selected) draftDirtyRef.current = true;
     setSelected(next.picks);
     if (removingAce) setAce(null);
-    setMessage(next.error);
+    setMessage(isItalian && next.error ? copy.errors.spotsFull(pickCount) : next.error);
   }
 
   function chooseChampion(slug) {
@@ -172,92 +200,97 @@ export default function WorldsPickSixteen({ rosterSource, discipline = "vgc" }) 
 
   async function saveEntry() {
     setMessage("");
-    if (!user) return setMessage("Sign in from the DraftCenter home page before saving your entry.");
-    if (!hub) return setMessage("The Pick 10 competition is not connected yet. The reviewed roster is still available below.");
-    if (locked) return setMessage("Entries are locked for Worlds.");
-    if (selected.length !== pickCount) return setMessage(`Choose exactly ${pickCount} ${config.entryPlural.toLowerCase()} before saving.`);
-    if (!ace || !selected.includes(ace)) return setMessage(`Choose Your Champion from your ${pickCount} ${config.entryPlural.toLowerCase()} before saving.`);
+    if (!user) return setMessage(isItalian ? copy.errors.signIn : "Sign in from the DraftCenter home page before saving your entry.");
+    if (!hub) return setMessage(isItalian ? copy.errors.notConnected : "The Pick 10 competition is not connected yet. The reviewed roster is still available below.");
+    if (locked) return setMessage(isItalian ? copy.errors.locked : "Entries are locked for Worlds.");
+    if (selected.length !== pickCount) return setMessage(isItalian ? copy.errors.chooseExactly(pickCount) : `Choose exactly ${pickCount} ${config.entryPlural.toLowerCase()} before saving.`);
+    if (!ace || !selected.includes(ace)) return setMessage(isItalian ? copy.errors.chooseChampion(pickCount) : `Choose Your Champion from your ${pickCount} ${config.entryPlural.toLowerCase()} before saving.`);
     setBusy(true);
     const supabase = createClient();
     const { error } = await supabase.rpc("save_worlds_pick_entry", { p_event_id: eventId, p_pick_slugs: selected, p_ace_slug: ace });
     if (error) {
       setBusy(false);
-      return setMessage(error.message || "Your entry could not be saved.");
+      return setMessage(isItalian ? worldsServerError(error.message, locale, pickCount) : error.message || "Your entry could not be saved.");
     }
     await loadHub(supabase, { hydrateEntry: true });
     setBusy(false);
-    setMessage("Your Pick 10 and Your Champion are saved. You can revise them until the lock time.");
+    setMessage(isItalian ? copy.saved : "Your Pick 10 and Your Champion are saved. You can revise them until the lock time.");
   }
 
-  return <main className="worlds-shell">
-    <WorldsDisciplineNav current={config.key} />
+  return <main className="worlds-shell" lang={copy.documentLanguage}>
+    {showItalianOffer && <section className="worlds-language-offer" aria-label={copy.languageOffer.label}>
+      <div><strong>{copy.languageOffer.label}</strong><span>{copy.languageOffer.body}</span></div>
+      <div><a href="/it/worlds/2026" hrefLang="it">{copy.languageOffer.action}</a><button type="button" onClick={dismissItalianOffer}>{copy.languageOffer.dismiss}</button></div>
+    </section>}
+    {isItalian && <nav className="worlds-language-switch" aria-label={copy.languageSwitch.label}><strong>{copy.languageSwitch.current}</strong><a href="/worlds/2026/vgc" hrefLang="en">{copy.languageSwitch.action}</a></nav>}
+    <WorldsDisciplineNav current={config.key} locale={locale} />
     <section className="worlds-hero">
       <div>
-        <span className="eyebrow">POKÉMON WORLDS · SAN FRANCISCO</span>
-        {config.key === "vgc" ? <h1>2026 Pokémon Worlds VGC predictions</h1> : config.key === "go" ? <h1>2026 Pokémon GO Worlds predictions</h1> : <h1>2026 Pokémon Worlds {config.gameLabel} predictions</h1>}
-        <p>Pick the 10 {config.entryPlural} you believe in from the reviewed {config.gameLabel} roster. When Worlds finishes, the entry with the strongest collective results wins the DraftCenter community leaderboard.</p>
+        <span className="eyebrow">{isItalian ? copy.hero.eyebrow : "POKÉMON WORLDS · SAN FRANCISCO"}</span>
+        {isItalian ? <h1>{copy.hero.title}</h1> : config.key === "vgc" ? <h1>2026 Pokémon Worlds VGC predictions</h1> : config.key === "go" ? <h1>2026 Pokémon GO Worlds predictions</h1> : <h1>2026 Pokémon Worlds {config.gameLabel} predictions</h1>}
+        <p>{isItalian ? copy.hero.body : <>Pick the 10 {config.entryPlural} you believe in from the reviewed {config.gameLabel} roster. When Worlds finishes, the entry with the strongest collective results wins the DraftCenter community leaderboard.</>}</p>
         <div className="worlds-hero-actions">
-          <a className="primary-button inline-link-button" href={user === null ? "/#member-access" : staged ? "#qualified-players" : "#pick-ten"}>{user === null ? "Sign in to predict" : staged ? "Browse reviewed roster" : "Build my 10"}</a>
-          <a className="quiet-button" href="#meta-picks">Predict the winning meta</a>
-          {config.key === "vgc" && <a className="quiet-button" href="/worlds/2026/vgc/bracket">Top Cut bracket</a>}
-          <a className="quiet-button" href="/worlds/2026">All Worlds competitions</a>
-          <a className="quiet-button" href="#qualified-players">See all {competitors.length} {config.entryPlural.toLowerCase()}</a>
+          <a className="primary-button inline-link-button" href={user === null ? "/#member-access" : staged ? "#qualified-players" : "#pick-ten"}>{isItalian ? user === null ? copy.hero.signIn : staged ? copy.hero.browse : copy.hero.build : user === null ? "Sign in to predict" : staged ? "Browse reviewed roster" : "Build my 10"}</a>
+          <a className="quiet-button" href="#meta-picks">{isItalian ? copy.hero.meta : "Predict the winning meta"}</a>
+          {config.key === "vgc" && <a className="quiet-button" href="/worlds/2026/vgc/bracket">{isItalian ? copy.hero.bracket : "Top Cut bracket"}</a>}
+          <a className="quiet-button" href="/worlds/2026">{isItalian ? copy.hero.all : "All Worlds competitions"}</a>
+          <a className="quiet-button" href="#qualified-players">{isItalian ? copy.hero.invitees(competitors.length) : <>See all {competitors.length} {config.entryPlural.toLowerCase()}</>}</a>
         </div>
       </div>
       <aside className="worlds-event-card">
-        <span>2026 WORLD CHAMPIONSHIPS</span>
-        <strong>Aug 28–30</strong>
-        <p>Moscone Center · Championship Sunday at Chase Center</p>
+        <span>{isItalian ? copy.event.title : "2026 WORLD CHAMPIONSHIPS"}</span>
+        <strong>{isItalian ? copy.event.dates : "Aug 28–30"}</strong>
+        <p>{isItalian ? copy.event.location : "Moscone Center · Championship Sunday at Chase Center"}</p>
         <dl>
-          <div><dt>Competition</dt><dd>{config.key === "vgc" ? "VGC Masters" : config.key === "go" ? "Pokémon GO" : `${config.gameLabel} ${config.division}`}</dd></div>
-          <div><dt>Entry lock</dt><dd>{displayPacificDate(event.locks_at, true)}</dd></div>
-          <div><dt>Roster checked</dt><dd>{displayPacificDate(`${event.roster_checked_at}T12:00:00Z`)}</dd></div>
+          <div><dt>{isItalian ? copy.event.competitionLabel : "Competition"}</dt><dd>{isItalian ? copy.event.competition : config.key === "vgc" ? "VGC Masters" : config.key === "go" ? "Pokémon GO" : `${config.gameLabel} ${config.division}`}</dd></div>
+          <div><dt>{isItalian ? copy.event.lock : "Entry lock"}</dt><dd>{displayPacificDate(event.locks_at, true, copy.locale)}</dd></div>
+          <div><dt>{isItalian ? copy.event.checked : "Roster checked"}</dt><dd>{displayPacificDate(`${event.roster_checked_at}T12:00:00Z`, false, copy.locale)}</dd></div>
         </dl>
       </aside>
     </section>
 
     <section className="worlds-trust-note">
-      <div><span className="eyebrow">REVIEWED ROSTER ONLY</span><h2>{competitors.length} {config.entryPlural} in the prediction pool</h2></div>
-      <p>{config.division === "Masters" ? "Masters Division only — Senior and Junior Division qualifiers are excluded." : "Only published competitor identity and qualification information needed for the prediction game is used. DraftCenter does not collect or infer private age data."}</p>
-      <div className="worlds-source-links">{(rosterSource.sourceUrl || rosterSource.source_url) && <a href={rosterSource.sourceUrl || rosterSource.source_url} target="_blank" rel="noreferrer">Roster source ↗</a>}<a href="https://worlds.pokemon.com/en-us" target="_blank" rel="noreferrer">Official Worlds site ↗</a></div>
+      <div><span className="eyebrow">{isItalian ? copy.trust.eyebrow : "REVIEWED ROSTER ONLY"}</span><h2>{isItalian ? copy.trust.title(competitors.length) : <>{competitors.length} {config.entryPlural} in the prediction pool</>}</h2></div>
+      <p>{isItalian ? copy.trust.body : config.division === "Masters" ? "Masters Division only — Senior and Junior Division qualifiers are excluded." : "Only published competitor identity and qualification information needed for the prediction game is used. DraftCenter does not collect or infer private age data."}</p>
+      <div className="worlds-source-links">{(rosterSource.sourceUrl || rosterSource.source_url) && <a href={rosterSource.sourceUrl || rosterSource.source_url} target="_blank" rel="noreferrer">{isItalian ? copy.trust.source : "Roster source ↗"}</a>}<a href="https://worlds.pokemon.com/en-us" target="_blank" rel="noreferrer">{isItalian ? copy.trust.official : "Official Worlds site ↗"}</a></div>
     </section>
 
-    <WorldsMetaChallenge discipline={config.key} user={user} />
+    <WorldsMetaChallenge discipline={config.key} user={user} locale={locale} />
 
     <section className="worlds-pick-layout" id="pick-ten">
       <div className="worlds-pick-main">
         <header className="section-heading">
-          <div><span className="eyebrow">SITEWIDE COMPETITION</span><h2>Your Pick 10</h2><p>Your choices stay private until entries lock. Choose Your Champion, whose placement points count twice.</p></div>
+          <div><span className="eyebrow">{isItalian ? copy.pick.eyebrow : "SITEWIDE COMPETITION"}</span><h2>{isItalian ? copy.pick.title : "Your Pick 10"}</h2><p>{isItalian ? copy.pick.body : "Your choices stay private until entries lock. Choose Your Champion, whose placement points count twice."}</p></div>
           <div className="worlds-pick-meter"><strong>{selected.length}</strong><span>/ {pickCount}</span></div>
         </header>
 
         {user === undefined ? <div className="worlds-account-gate is-loading" aria-live="polite">
-          <strong>Checking your DraftCenter account…</strong>
+          <strong>{isItalian ? copy.pick.checking : "Checking your DraftCenter account…"}</strong>
         </div> : !user ? <div className="worlds-account-gate">
           <div aria-hidden="true" className="worlds-account-lock">🔒</div>
-          <span className="eyebrow">DRAFTCENTER ACCOUNT REQUIRED</span>
-          <h3>Sign in to build your Worlds prediction.</h3>
-          <p>Like DraftCenter&apos;s Daily Games, submitting a Pick 10 entry requires a free account. Your choices stay private until entries lock, and you can return to edit them before the deadline.</p>
-          <a className="secondary-button" href="/#member-access">Sign in or create an account</a>
+          <span className="eyebrow">{isItalian ? copy.pick.accountRequired : "DRAFTCENTER ACCOUNT REQUIRED"}</span>
+          <h3>{isItalian ? copy.pick.signInTitle : "Sign in to build your Worlds prediction."}</h3>
+          <p>{isItalian ? copy.pick.signInBody : <>Like DraftCenter&apos;s Daily Games, submitting a Pick 10 entry requires a free account. Your choices stay private until entries lock, and you can return to edit them before the deadline.</>}</p>
+          <a className="secondary-button" href="/#member-access">{isItalian ? copy.pick.signInAction : "Sign in or create an account"}</a>
         </div> : <>
         <div className="worlds-selected-grid">
           {Array.from({ length: pickCount }, (_, index) => {
             const competitor = competitorBySlug.get(selected[index]);
             return competitor ? <div className={`worlds-selected-pick${ace === competitor.slug ? " is-ace" : ""}`} key={competitor.slug}>
               <button className="worlds-pick-remove" type="button" disabled={locked} onClick={() => toggle(competitor)}>
-                <span>{index + 1}</span><strong>{competitor.displayName}</strong><small>{competitor.countryCode} · remove</small>
+                <span>{index + 1}</span><strong>{competitor.displayName}</strong><small>{isItalian ? copy.pick.remove(competitor.countryCode) : <>{competitor.countryCode} · remove</>}</small>
               </button>
-              <label className="worlds-ace-choice"><input type="radio" name="worlds-ace" checked={ace === competitor.slug} disabled={locked} onChange={() => chooseChampion(competitor.slug)} /><span>Your Champion ×2</span></label>
-            </div> : <div className="worlds-empty-pick" key={index}><span>{index + 1}</span><small>Open spot</small></div>;
+              <label className="worlds-ace-choice"><input type="radio" name="worlds-ace" checked={ace === competitor.slug} disabled={locked} onChange={() => chooseChampion(competitor.slug)} /><span>{isItalian ? copy.pick.champion : "Your Champion ×2"}</span></label>
+            </div> : <div className="worlds-empty-pick" key={index}><span>{index + 1}</span><small>{isItalian ? copy.pick.open : "Open spot"}</small></div>;
           })}
         </div>
 
         <div className="worlds-save-row">
           <div>
-            {loadingHub ? <p>Connecting the community competition…</p> : !hub || staged ? <p>This competition is staged. Entries remain closed until the reviewed roster and opening window are published together.</p> : locked ? <p>Entries are locked. Saved lineups are now public on the leaderboard.</p> : !user ? <p><a href="/">Sign in</a> to save and edit your entry.</p> : hub.my_entry ? <p>Saved as <strong>{hub.my_entry.display_name}</strong>. Edits remain open until the deadline.</p> : <p>Choose all 10 and Your Champion to save your entry.</p>}
+            {loadingHub ? <p>{isItalian ? copy.save.connecting : "Connecting the community competition…"}</p> : !hub || staged ? <p>{isItalian ? copy.save.staged : "This competition is staged. Entries remain closed until the reviewed roster and opening window are published together."}</p> : locked ? <p>{isItalian ? copy.save.locked : "Entries are locked. Saved lineups are now public on the leaderboard."}</p> : !user ? <p><a href="/">{isItalian ? copy.save.signInLink : "Sign in"}</a> {isItalian ? copy.save.signInSuffix : "to save and edit your entry."}</p> : hub.my_entry ? <p>{isItalian ? copy.save.savedAsPrefix : "Saved as"} <strong>{hub.my_entry.display_name}</strong>. {isItalian ? copy.save.savedAsSuffix : "Edits remain open until the deadline."}</p> : <p>{isItalian ? copy.save.finish : "Choose all 10 and Your Champion to save your entry."}</p>}
             {message && <p className="worlds-message" role="status">{message}</p>}
           </div>
-          <button className="primary-button" type="button" disabled={busy || locked || selected.length !== pickCount || !ace || !hub} onClick={saveEntry}>{busy ? "Saving…" : hub?.my_entry ? "Update entry" : "Save entry"}</button>
+          <button className="primary-button" type="button" disabled={busy || locked || selected.length !== pickCount || !ace || !hub} onClick={saveEntry}>{isItalian ? busy ? copy.save.saving : hub?.my_entry ? copy.save.update : copy.save.create : busy ? "Saving…" : hub?.my_entry ? "Update entry" : "Save entry"}</button>
         </div>
         {!staged && <WorldsPickShare
           discipline={config.key}
@@ -266,30 +299,35 @@ export default function WorldsPickSixteen({ rosterSource, discipline = "vgc" }) 
           picks={selected.map((slug) => competitorBySlug.get(slug)).filter(Boolean)}
           championSlug={ace}
           displayName={hub?.my_entry?.display_name || ""}
+          locale={locale}
         />}
         </>}
       </div>
 
       <aside className="worlds-scoring-card">
-        <span className="eyebrow">HOW SCORING WORKS</span>
-        <p>Each selected {config.entrySingular.toLowerCase()} earns the points for their final placement. Your Champion earns double points, then all 10 scores are added together.</p>
-        <ol>{WORLDS_2026_SCORING.map(([label, points]) => <li key={label}><span>{label}</span><strong>{points} pts</strong></li>)}</ol>
+        <span className="eyebrow">{isItalian ? copy.scoring.eyebrow : "HOW SCORING WORKS"}</span>
+        <p>{isItalian ? copy.scoring.body : <>Each selected {config.entrySingular.toLowerCase()} earns the points for their final placement. Your Champion earns double points, then all 10 scores are added together.</>}</p>
+        <ol>{WORLDS_2026_SCORING.map(([label, points], index) => <li key={label}><span>{isItalian ? copy.scoring.placements[index] : label}</span><strong>{isItalian ? copy.scoring.points(points) : `${points} pts`}</strong></li>)}</ol>
         <div className="worlds-tiebreak-rules">
-          <strong>If total points are tied</strong>
-          <span>1. Lower average finish among your six best-finishing picks.</span>
-          <span>2. Lower average finish across all 10 picks.</span>
-          <small>These tiebreakers apply after results are finalized. If both averages are also equal, the entries share a rank.</small>
+          <strong>{isItalian ? copy.scoring.tieTitle : "If total points are tied"}</strong>
+          <span>{isItalian ? copy.scoring.tieOne : "1. Lower average finish among your six best-finishing picks."}</span>
+          <span>{isItalian ? copy.scoring.tieTwo : "2. Lower average finish across all 10 picks."}</span>
+          <small>{isItalian ? copy.scoring.tieNote : "These tiebreakers apply after results are finalized. If both averages are also equal, the entries share a rank."}</small>
         </div>
-        <small>The placement curve rewards every Top 64 pick while making the champion meaningfully valuable. Live standings remain provisional until the owner checks an official published result and finalizes scoring.</small>
+        <small>{isItalian ? copy.scoring.note : "The placement curve rewards every Top 64 pick while making the champion meaningfully valuable. Live standings remain provisional until the owner checks an official published result and finalizes scoring."}</small>
       </aside>
     </section>
 
     <section className="worlds-roster-section" id="qualified-players">
-      <header className="section-heading"><div><span className="eyebrow">2026 {config.gameLabel.toUpperCase()}{config.key === "go" ? "" : ` ${config.division.toUpperCase()}`}</span>{config.key === "vgc" ? <h2>Pokémon Worlds VGC Masters invitee list</h2> : <h2>{config.rosterHeading}</h2>}<p>Browse reviewed {config.entryPlural.toLowerCase()} by name, country code, region, or qualification path.</p></div><strong>{filtered.length} shown</strong></header>
+      <header className="section-heading"><div><span className="eyebrow">{isItalian ? copy.roster.eyebrow : <>2026 {config.gameLabel.toUpperCase()}{config.key === "go" ? "" : ` ${config.division.toUpperCase()}`}</>}</span>{isItalian ? <h2>{copy.roster.title}</h2> : config.key === "vgc" ? <h2>Pokémon Worlds VGC Masters invitee list</h2> : <h2>{config.rosterHeading}</h2>}<p>{isItalian ? copy.roster.body : <>Browse reviewed {config.entryPlural.toLowerCase()} by name, country code, region, or qualification path.</>}</p></div><strong>{isItalian ? copy.roster.shown(filtered.length) : `${filtered.length} shown`}</strong></header>
       <aside className="worlds-roster-source" aria-labelledby="worlds-roster-source-heading">
         <div>
-          <span className="eyebrow">ROSTER SOURCE</span>
-          {config.key === "vgc" ? <>
+          <span className="eyebrow">{isItalian ? copy.roster.sourceEyebrow : "ROSTER SOURCE"}</span>
+          {isItalian ? <>
+            <h3 id="worlds-roster-source-heading">{copy.roster.sourceTitle}</h3>
+            <p>{copy.roster.sourceBody}</p>
+            <small>{copy.roster.sourceNote}</small>
+          </> : config.key === "vgc" ? <>
             <h3 id="worlds-roster-source-heading">Where this invite list comes from</h3>
             <p>Victory Road&apos;s 2026 World Championships invite tracker for VGC Masters brings together invite earners from official Championship Point standings and qualifying event results.</p>
             <small>This is an invite-earned list, not a confirmed attendance or registration list.</small>
@@ -307,11 +345,11 @@ export default function WorldsPickSixteen({ rosterSource, discipline = "vgc" }) 
             <small>Qualification is not treated as proof of final registration or attendance unless the source explicitly confirms it.</small>
           </>}
         </div>
-        {config.key === "vgc" ? <a className="quiet-button" href={rosterSource.sourceUrl} target="_blank" rel="noreferrer">View the Victory Road tracker ↗</a> : (rosterSource.sourceUrl || rosterSource.source_url) && <a className="quiet-button" href={rosterSource.sourceUrl || rosterSource.source_url} target="_blank" rel="noreferrer">View the reviewed roster source ↗</a>}
+        {config.key === "vgc" ? <a className="quiet-button" href={rosterSource.sourceUrl} target="_blank" rel="noreferrer">{isItalian ? copy.roster.sourceAction : "View the Victory Road tracker ↗"}</a> : (rosterSource.sourceUrl || rosterSource.source_url) && <a className="quiet-button" href={rosterSource.sourceUrl || rosterSource.source_url} target="_blank" rel="noreferrer">View the reviewed roster source ↗</a>}
       </aside>
       <div className="worlds-roster-filters">
-        <label>Find a {config.entrySingular.toLowerCase()}<input type="search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder={config.key === "vgc" ? "Try Giovanni Cischke, Luca Ceribelli, or Wolfe Glick…" : `Search ${config.entryPlural.toLowerCase()}…`} /></label>
-        <label>Qualification region<select value={region} onChange={(event) => setRegion(event.target.value)}><option value="all">All regions</option>{regions.map((item) => <option key={item} value={item}>{item}</option>)}</select></label>
+        <label>{isItalian ? copy.roster.find : <>Find a {config.entrySingular.toLowerCase()}</>}<input type="search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder={isItalian ? copy.roster.placeholder : config.key === "vgc" ? "Try Giovanni Cischke, Luca Ceribelli, or Wolfe Glick…" : `Search ${config.entryPlural.toLowerCase()}…`} /></label>
+        <label>{isItalian ? copy.roster.region : "Qualification region"}<select value={region} onChange={(event) => setRegion(event.target.value)}><option value="all">{isItalian ? copy.roster.all : "All regions"}</option>{regions.map((item) => <option key={item} value={item}>{item}</option>)}</select></label>
       </div>
       <div className="worlds-player-grid">
         {filtered.map((competitor) => {
@@ -321,39 +359,39 @@ export default function WorldsPickSixteen({ rosterSource, discipline = "vgc" }) 
             <header><span>{competitor.countryCode}</span><small>{competitor.qualificationRegion}</small></header>
             <h3>{competitor.displayName}</h3>
             <p>{competitor.qualificationPath}</p>
-            <footer><small>{statusLabel(competitor.attendanceStatus)}</small><button type="button" aria-pressed={chosen} disabled={!user || locked || unavailable} onClick={() => toggle(competitor)}>{chosen ? "Selected ✓" : unavailable ? "Unavailable" : !user ? "Sign in to pick" : locked ? "Entries closed" : "Add to 10"}</button></footer>
+            <footer><small>{statusLabel(competitor.attendanceStatus, locale)}</small><button type="button" aria-pressed={chosen} disabled={!user || locked || unavailable} onClick={() => toggle(competitor)}>{isItalian ? chosen ? copy.roster.selected : unavailable ? copy.roster.unavailable : !user ? copy.roster.signIn : locked ? copy.roster.closed : copy.roster.add : chosen ? "Selected ✓" : unavailable ? "Unavailable" : !user ? "Sign in to pick" : locked ? "Entries closed" : "Add to 10"}</button></footer>
           </article>;
         })}
       </div>
-      {!filtered.length && <div className="worlds-no-results"><h3>No {config.entryPlural.toLowerCase()} match those filters.</h3><button type="button" className="quiet-button" onClick={() => { setSearch(""); setRegion("all"); }}>Clear filters</button></div>}
+      {!filtered.length && <div className="worlds-no-results"><h3>{isItalian ? copy.roster.noResults : <>No {config.entryPlural.toLowerCase()} match those filters.</>}</h3><button type="button" className="quiet-button" onClick={() => { setSearch(""); setRegion("all"); }}>{isItalian ? copy.roster.clear : "Clear filters"}</button></div>}
     </section>
 
     <section className="worlds-bottom-grid">
       <article className="worlds-leaderboard-card">
-        <header><div><span className="eyebrow">{config.gameLabel.toUpperCase()} COMMUNITY LEADERBOARD</span><h2>{hub?.entry_count || 0} entries</h2></div>{hub?.my_entry && <strong>Your rank: {hub.my_entry.rank}</strong>}</header>
+        <header><div><span className="eyebrow">{isItalian ? copy.leaderboard.eyebrow : `${config.gameLabel.toUpperCase()} COMMUNITY LEADERBOARD`}</span><h2>{isItalian ? copy.leaderboard.entries(hub?.entry_count || 0) : `${hub?.entry_count || 0} entries`}</h2></div>{hub?.my_entry && <strong>{isItalian ? copy.leaderboard.rank(hub.my_entry.rank) : `Your rank: ${hub.my_entry.rank}`}</strong>}</header>
         <div className={`worlds-live-result-status is-${hub?.results?.status || "waiting"}${hub?.results?.is_stale ? " is-stale" : ""}`} role="status">
           <div>
-            <strong>{hub?.results?.status === "final" ? "Final" : hub?.results?.status === "provisional" ? hub.results.is_stale ? "Live — provisional · updates delayed" : "Live — provisional" : "Waiting for live results"}</strong>
-            <span>{hub?.results?.status === "final" ? "The owner verified and locked the official result." : hub?.results?.status === "provisional" ? "Imported live standings are unofficial. The last accepted scores stay visible if an update fails." : `Saved entries will score when reviewed ${config.gameLabel} standings are available.`}</span>
+            <strong>{isItalian ? hub?.results?.status === "final" ? copy.leaderboard.final : hub?.results?.status === "provisional" ? hub.results.is_stale ? copy.leaderboard.delayed : copy.leaderboard.provisional : copy.leaderboard.waiting : hub?.results?.status === "final" ? "Final" : hub?.results?.status === "provisional" ? hub.results.is_stale ? "Live — provisional · updates delayed" : "Live — provisional" : "Waiting for live results"}</strong>
+            <span>{isItalian ? hub?.results?.status === "final" ? copy.leaderboard.finalBody : hub?.results?.status === "provisional" ? copy.leaderboard.provisionalBody : copy.leaderboard.waitingBody : hub?.results?.status === "final" ? "The owner verified and locked the official result." : hub?.results?.status === "provisional" ? "Imported live standings are unofficial. The last accepted scores stay visible if an update fails." : `Saved entries will score when reviewed ${config.gameLabel} standings are available.`}</span>
           </div>
           <div>
-            {hub?.results?.last_successful_update && <small>Updated {displayPacificDate(hub.results.last_successful_update, true)}</small>}
-            {hub?.results?.source_url && <a href={hub.results.source_url} target="_blank" rel="noreferrer">{hub.results.source_name || "Results source"} ↗</a>}
+            {hub?.results?.last_successful_update && <small>{isItalian ? copy.leaderboard.updated : "Updated"} {displayPacificDate(hub.results.last_successful_update, true, copy.locale)}</small>}
+            {hub?.results?.source_url && <a href={hub.results.source_url} target="_blank" rel="noreferrer">{hub.results.source_name || (isItalian ? copy.leaderboard.resultSource : "Results source")} ↗</a>}
           </div>
         </div>
         {hub?.standings?.length ? <div className="worlds-standings">{hub.standings.map((entry, index) => <details key={`${entry.display_name}-${index}`} className={entry.is_me ? "is-me" : ""}>
-          <summary><span>#{entry.rank}</span><strong>{entry.display_name}</strong><b>{entry.score} pts</b></summary>
-          {entry.top_six_average_finish != null && entry.all_ten_average_finish != null && <p className="worlds-standings-tiebreakers"><strong>Final tiebreakers:</strong> Top 6 average {formatWorldsAverageFinish(entry.top_six_average_finish)} · All 10 average {formatWorldsAverageFinish(entry.all_ten_average_finish)}</p>}
-          {entry.picks ? <p>{entry.picks.map((slug) => `${competitorBySlug.get(slug)?.displayName || slug}${slug === entry.ace_slug ? " (Your Champion ×2)" : ""}`).join(" · ")}</p> : <p>Lineup stays private until entries lock.</p>}
-        </details>)}</div> : <p className="worlds-empty-state">Be the first DraftCenter player to save a Pick 10 entry.</p>}
+          <summary><span>#{entry.rank}</span><strong>{entry.display_name}</strong><b>{isItalian ? copy.leaderboard.points(entry.score) : `${entry.score} pts`}</b></summary>
+          {entry.top_six_average_finish != null && entry.all_ten_average_finish != null && <p className="worlds-standings-tiebreakers"><strong>{isItalian ? copy.leaderboard.tiebreakers : "Final tiebreakers:"}</strong> {isItalian ? copy.leaderboard.topSix : "Top 6 average"} {formatWorldsAverageFinish(entry.top_six_average_finish)} · {isItalian ? copy.leaderboard.allTen : "All 10 average"} {formatWorldsAverageFinish(entry.all_ten_average_finish)}</p>}
+          {entry.picks ? <p>{entry.picks.map((slug) => `${competitorBySlug.get(slug)?.displayName || slug}${slug === entry.ace_slug ? ` (${isItalian ? copy.leaderboard.champion : "Your Champion ×2"})` : ""}`).join(" · ")}</p> : <p>{isItalian ? copy.leaderboard.private : "Lineup stays private until entries lock."}</p>}
+        </details>)}</div> : <p className="worlds-empty-state">{isItalian ? copy.leaderboard.empty : "Be the first DraftCenter player to save a Pick 10 entry."}</p>}
       </article>
 
       {config.key === "vgc" && <article className="worlds-bracket-card">
-        <span className="eyebrow">PHASE TWO</span>
-        <h2>The Top Cut prediction room is ready.</h2>
-        <p>DraftCenter can open a full elimination-bracket challenge as soon as the owner verifies the official Masters field, pairings, and first-match deadline. No seeds or matchups are invented in advance.</p>
+        <span className="eyebrow">{isItalian ? copy.bracket.eyebrow : "PHASE TWO"}</span>
+        <h2>{isItalian ? copy.bracket.title : "The Top Cut prediction room is ready."}</h2>
+        <p>{isItalian ? copy.bracket.body : "DraftCenter can open a full elimination-bracket challenge as soon as the owner verifies the official Masters field, pairings, and first-match deadline. No seeds or matchups are invented in advance."}</p>
         <div aria-hidden="true" className="worlds-bracket-preview"><span /><span /><span /><span /><i /></div>
-        <a className="quiet-button" href="/worlds/2026/vgc/bracket">Open Top Cut bracket status →</a>
+        <a className="quiet-button" href="/worlds/2026/vgc/bracket">{isItalian ? copy.bracket.action : "Open Top Cut bracket status →"}</a>
       </article>}
     </section>
   </main>;

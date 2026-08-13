@@ -1,36 +1,35 @@
 import WorldsPickSixteen from "../../../../components/WorldsPickSixteen";
 import roster from "../../../../data/worlds-2026-vgc-masters.json";
 
-const canonicalUrl = "https://www.draftcentral.gg/worlds/2026/vgc";
-const pageTitle = "2026 Pokémon Worlds VGC Predictions";
-const pageDescription = `Browse ${roster.competitors.length} Pokémon Worlds 2026 VGC Masters invitees, pick 10 qualified players, name Your Champion, and follow the community leaderboard.`;
+const canonicalUrl = "https://www.draftcentral.gg/it/worlds/2026";
+const englishUrl = "https://www.draftcentral.gg/worlds/2026/vgc";
+const pageTitle = "Pronostici Mondiali Pokémon VGC 2026: Pick 10";
+const pageDescription = `Consulta ${roster.competitors.length} invitati VGC Master ai Mondiali Pokémon 2026, scegli 10 giocatori, indica il tuo Campione e segui la classifica della community.`;
 
 export const metadata = {
   title: pageTitle,
   description: pageDescription,
   alternates: {
-    canonical: "/worlds/2026/vgc",
+    canonical: "/it/worlds/2026",
     languages: { en: "/worlds/2026/vgc", it: "/it/worlds/2026", "x-default": "/worlds/2026/vgc" },
   },
   openGraph: {
     type: "website",
     siteName: "DraftCenter",
-    locale: "en_US",
-    alternateLocale: ["it_IT"],
+    locale: "it_IT",
+    alternateLocale: ["en_US"],
     title: `${pageTitle} | DraftCenter`,
     description: pageDescription,
     url: canonicalUrl,
-    images: [{ url: "/draftcenter-logo.png", width: 512, height: 512, alt: "DraftCenter 2026 Pokémon Worlds VGC Predictions" }],
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: `${pageTitle} | DraftCenter`,
     description: pageDescription,
-    images: ["/draftcenter-logo.png"],
   },
 };
 
-export default function Worlds2026VgcPage() {
+export default function ItalianWorlds2026Page() {
   const pageSchema = {
     "@context": "https://schema.org",
     "@graph": [
@@ -40,11 +39,12 @@ export default function Worlds2026VgcPage() {
         name: pageTitle,
         description: pageDescription,
         url: canonicalUrl,
-        inLanguage: "en-US",
+        inLanguage: "it-IT",
+        translationOfWork: { "@id": `${englishUrl}#webpage` },
         isPartOf: { "@id": "https://www.draftcentral.gg/#website" },
         about: {
           "@type": "Thing",
-          name: "2026 Pokémon World Championships — VGC Masters",
+          name: "Campionati Mondiali Pokémon 2026 — VGC Master",
           sameAs: "https://worlds.pokemon.com/en-us",
         },
       },
@@ -53,15 +53,15 @@ export default function Worlds2026VgcPage() {
         "@id": `${canonicalUrl}#breadcrumb`,
         itemListElement: [
           { "@type": "ListItem", position: 1, name: "DraftCenter", item: "https://www.draftcentral.gg/" },
-          { "@type": "ListItem", position: 2, name: "2026 Pokémon Worlds Predictions", item: "https://www.draftcentral.gg/worlds/2026" },
-          { "@type": "ListItem", position: 3, name: "VGC Masters Predictions", item: canonicalUrl },
+          { "@type": "ListItem", position: 2, name: "Pronostici Mondiali Pokémon 2026", item: "https://www.draftcentral.gg/worlds/2026" },
+          { "@type": "ListItem", position: 3, name: "Pronostici VGC Master", item: canonicalUrl },
         ],
       },
     ],
   };
 
-  return <>
+  return <div lang="it">
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(pageSchema) }} />
-    <WorldsPickSixteen rosterSource={roster} />
-  </>;
+    <WorldsPickSixteen rosterSource={roster} locale="it" />
+  </div>;
 }
