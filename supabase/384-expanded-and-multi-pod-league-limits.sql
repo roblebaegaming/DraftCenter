@@ -140,7 +140,7 @@ begin
   v_updated := replace(
     v_updated,
     'A live draft needs between 2 and 16 teams.',
-    'The live draft team count exceeds this league''s active size mode.'
+    $replacement$The live draft team count exceeds this league''s active size mode.$replacement$
   );
   v_updated := replace(
     v_updated,

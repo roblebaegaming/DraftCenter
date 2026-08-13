@@ -48,6 +48,7 @@ test("hosted draft guards enforce the same explicit scale modes", () => {
   assert.match(migration, /public\.league_team_limit\(p_state -> ''settings''\)/);
   assert.match(migration, /create trigger enforce_league_team_limit/);
   assert.match(migration, /public\.league_team_limit\(p_started_state -> ''settings''\)/);
+  assert.match(migration, /\$replacement\$The live draft team count exceeds this league''s active size mode\.\$replacement\$/);
   assert.match(migration, /from public, anon, authenticated;/);
   assert.match(migration, /to service_role;/);
   assert.doesNotMatch(migration, /grant execute[\s\S]*to authenticated;/i);
