@@ -3,8 +3,8 @@
 - Last updated: August 13, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified production application commit: `1510819104e9cfcca75ff32a56bfd804aae22a1e`
-- Latest production migration: 387
+- Verified production application commit: `f1aae4b5a9a6574b7134a311391718d7d5d9f440`
+- Latest production migration: 388
 
 ## Deployed state
 
@@ -109,6 +109,18 @@ All protected checks, the 243-page build, isolated desktop/mobile Preview
 review, exact Production deployment, and the 19-check signed-out production
 smoke sweep passed. No migration, real league data, provider setting,
 environment variable, or secret changed.
+
+Pull request [#195](https://github.com/roblebaegaming/DraftCenter/pull/195)
+shipped the **Sunday Super Bracket** and a history-aware Pokémon Connections
+rotation. Monday-Saturday community champions now qualify for an eight-entry
+Sunday final with the strongest non-winners filling the remaining places;
+duplicate champions open additional wildcard places. Starting August 14,
+Connections exact themes have a seven-day cooldown and categories cannot
+repeat on consecutive days, while all earlier boards remain stable. Migration
+388 adds auditable weekly-final qualification, service-only idempotent
+finalization, a pending-submission gate, and explicit browser table denials.
+The isolated Preview matrix, protected checks, 243-page build, exact Production
+deployment, live Daily Games review, and 19-check signed-out smoke sweep passed.
 
 The August 9 release wave is complete. Pull requests
 [#95](https://github.com/roblebaegaming/DraftCenter/pull/95) through
@@ -688,6 +700,9 @@ team-based rather than 185 individual-player picks.
   billing.
 - The release-wave Preview branch remains available for owner-approved
   cleanup. The retained `multi-pod-pr-82` Preview branch must not be deleted.
+- The retained `multi-pod-pr-82` Preview branch is advanced through migration
+  388 after the Sunday Super Bracket matrix passed; retain it for future
+  owner-approved rehearsals.
 - The original DraftCenter workspace's pre-existing changes remain unstaged
   and untouched.
 - No production provider configuration, environment variable, or secret was
@@ -743,7 +758,9 @@ guard merely to remove that measurement gap.
 ## Authoritative records
 
 - Current continuation handoff:
-  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-13-nuzlocke-run-tracker.md`](handoffs/DraftCenter-agent-handoff-2026-08-13-nuzlocke-run-tracker.md)
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-13-sunday-super-bracket-connections-variety.md`](handoffs/DraftCenter-agent-handoff-2026-08-13-sunday-super-bracket-connections-variety.md)
+- Daily Games product and safety contract:
+  [`docs/daily-games.md`](daily-games.md)
 - Nuzlocke Run Tracker product and safety contract:
   [`docs/nuzlocke-run-tracker.md`](nuzlocke-run-tracker.md)
 - Draft Lab product and safety contract:
