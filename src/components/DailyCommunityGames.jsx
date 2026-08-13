@@ -36,14 +36,21 @@ function useAutoClosingDetails(resetKey) {
 
 async function addChampionRankings(supabase, data) {
   if (!data?.bracket?.id) return data;
-  const { data: champions, error } = await supabase.rpc("get_daily_bracket_champion_rankings", {
-    p_bracket_id: data.bracket.id,
-  });
-  if (error) return data;
-  return { ...data, bracket: { ...data.bracket, champions: champions || [] } };
+  const [rankingResult, contextResult] = await Promise.all([
+    supabase.rpc("get_daily_bracket_champion_rankings", { p_bracket_id: data.bracket.id }),
+    supabase.rpc("get_daily_bracket_context", { p_bracket_id: data.bracket.id }),
+  ]);
+  return {
+    ...data,
+    bracket: {
+      ...data.bracket,
+      ...(!rankingResult.error ? { champions: rankingResult.data || [] } : {}),
+      ...(!contextResult.error ? { context: contextResult.data || {} } : {}),
+    },
+  };
 }
 
-function BracketPokemon({ name, onChoose, disabled }) {
+function BracketPokemon({ name, onChoose, disabled, qualifier = null }) {
   const [image, setImage] = useState("");
   useEffect(() => {
     let alive = true;
@@ -53,6 +60,7 @@ function BracketPokemon({ name, onChoose, disabled }) {
   return <button type="button" className="daily-bracket-pokemon" disabled={disabled} onClick={() => onChoose(name)}>
     {image ? <img src={image} alt="" onError={() => setImage("")} /> : <span className="daily-game-art-placeholder" />}
     <strong>{name}</strong>
+    {qualifier && <small className={`super-bracket-source ${qualifier.source}`}>{qualifier.source === "daily_winner" ? `${(qualifier.source_dates || []).map((date) => new Date(`${date}T12:00:00`).toLocaleDateString(undefined, { weekday: "short" })).join("/")} winner` : "Weekly wildcard"}</small>}
   </button>;
 }
 
@@ -104,7 +112,8 @@ function matchupFor(pokemon, winners, index) {
 function PreviousBracket({ previous }) {
   const detailsRef = useAutoClosingDetails(previous?.id);
   if (!previous) return null;
-  return <details ref={detailsRef} className="daily-previous"><summary>View yesterday’s bracket results</summary>
+  const wasSuperBracket = previous.context?.kind === "weekly_final";
+  return <details ref={detailsRef} className="daily-previous"><summary>View yesterday’s {wasSuperBracket ? "Sunday Super Bracket" : "bracket"} results</summary>
     {previous.champions?.length ? <div className="daily-previous-content daily-bracket-previous-content"><div className="daily-previous-winner"><span>Community champion</span><strong>{previous.champions[0].pokemon}</strong><small>{previous.champions[0].wins} bracket win{previous.champions[0].wins === 1 ? "" : "s"} · SF {previous.champions[0].semifinal_percent ?? 0}% · QF {previous.champions[0].quarterfinal_percent ?? 0}%</small></div><div className="daily-previous-columns"><section><h4>Top champions</h4><ol>{previous.champions.slice(0, 5).map((row) => <li key={row.pokemon}><span>{row.pokemon}<small>SF {row.semifinal_percent ?? 0}% · QF {row.quarterfinal_percent ?? 0}%</small></span><b>{row.wins}</b></li>)}</ol></section><section><h4>Head-to-head</h4><ol>{(previous.matchup_results || []).slice().sort((a, b) => b.round - a.round || b.votes - a.votes).slice(0, 8).map((row, index) => <li key={`${row.round}-${row.winner}-${row.loser}-${index}`}><span>{row.winner} over {row.loser} <small>R{row.round}</small></span><b>{row.votes}</b></li>)}</ol></section></div><p className="daily-tiebreak-note">Ties use semifinal percentage, then quarterfinal percentage.</p></div> : <p className="muted">No completed brackets yesterday.</p>}
   </details>;
 }
@@ -239,7 +248,7 @@ export async function renderBracketCanvas(bracket, winners) {
   context.fillText("DRAFTCENTER", draftCenterLogo ? 145 : 72, 61);
   context.fillStyle = "#F6F7FF";
   context.font = "700 25px Arial, sans-serif";
-  context.fillText("DAILY DRAFT BRACKET", draftCenterLogo ? 145 : 72, 91);
+  context.fillText(bracket.context?.kind === "weekly_final" ? "SUNDAY SUPER BRACKET" : "DAILY DRAFT BRACKET", draftCenterLogo ? 145 : 72, 91);
   context.fillStyle = "#9FA8CD";
   context.font = "18px Arial, sans-serif";
   context.textAlign = "right";
@@ -344,7 +353,7 @@ export async function renderBracketCanvas(bracket, winners) {
 async function downloadBracket(bracket, winners) {
   const canvas = await renderBracketCanvas(bracket, winners);
   const link = document.createElement("a");
-  link.download = `draftcenter-daily-bracket-${bracket.game_date}.png`;
+  link.download = `draftcenter-${bracket.context?.kind === "weekly_final" ? "sunday-super" : "daily"}-bracket-${bracket.game_date}.png`;
   link.href = canvas.toDataURL("image/png");
   link.click();
 }
@@ -356,7 +365,13 @@ function DailyBracket({ bracket, previous, signedIn, onSaved }) {
   const [message, setMessage] = useState("");
   useEffect(() => setWinners(saved), [bracket?.id, bracket?.selected_winners?.join("|")]);
   if (!bracket) return null;
-  if (!signedIn) return <section className="explore-card daily-game-card"><span className="eyebrow">DAILY DRAFT BRACKET</span><h2>Eight Pokémon. One community favorite.</h2><div className="daily-game-locked"><div className="locked-poll-preview" aria-hidden="true"><span /><span /><span /></div><strong>Sign in to complete today’s bracket and reveal community results.</strong><a className="secondary-button" href="/">Sign in</a></div><PreviousBracket previous={previous} /></section>;
+  const isSuperBracket = bracket.context?.kind === "weekly_final";
+  const superBracketReady = !isSuperBracket || bracket.context?.ready;
+  const qualifiers = bracket.context?.qualification?.qualifiers || [];
+  const qualifierFor = (name) => qualifiers.find((qualifier) => qualifier.pokemon === name);
+  const bracketLabel = isSuperBracket ? "SUNDAY SUPER BRACKET" : "DAILY DRAFT BRACKET";
+  if (!superBracketReady) return <section className="explore-card daily-game-card daily-bracket-card super-bracket-card pending"><span className="eyebrow">{bracketLabel}</span><h2>This week’s qualifiers are finalizing</h2><div className="super-bracket-pending"><strong>Six daily champions. Two performance wildcards. One Sunday winner.</strong><p>The lineup locks after Saturday closes at midnight Pacific and publishes automatically when all six community champions are ready.</p></div><PreviousBracket previous={previous} /></section>;
+  if (!signedIn) return <section className={`explore-card daily-game-card${isSuperBracket ? " super-bracket-card" : ""}`}><span className="eyebrow">{bracketLabel}</span><h2>{isSuperBracket ? "The week’s best meet in one bracket." : "Eight Pokémon. One community favorite."}</h2><div className="daily-game-locked"><div className="locked-poll-preview" aria-hidden="true"><span /><span /><span /></div><strong>Sign in to complete today’s bracket and reveal community results.</strong><a className="secondary-button" href="/">Sign in</a></div><PreviousBracket previous={previous} /></section>;
   const complete = winners.length === 7;
   const matchup = !complete ? matchupFor(bracket.pokemon, winners, winners.length) : null;
   const roundLabel = winners.length < 4 ? `Quarterfinal ${winners.length + 1} of 4` : winners.length < 6 ? `Semifinal ${winners.length - 3} of 2` : "Championship";
@@ -376,26 +391,27 @@ function DailyBracket({ bracket, previous, signedIn, onSaved }) {
     if (error) setMessage(error.message);
     else onSaved(data);
   }
-  return <section className="explore-card daily-game-card daily-bracket-card">
-    <span className="eyebrow">DAILY DRAFT BRACKET</span>
-    <h2>Choose today’s community favorite</h2>
-    <p className="muted">Make seven head-to-head choices through an eight-Pokémon bracket. Each matchup helps build community preference records for future Pokédex entries.</p>
+  return <section className={`explore-card daily-game-card daily-bracket-card${isSuperBracket ? " super-bracket-card" : ""}`}>
+    <span className="eyebrow">{bracketLabel}</span>
+    <h2>{isSuperBracket ? "Crown this week’s champion" : "Choose today’s community favorite"}</h2>
+    <p className="muted">{isSuperBracket ? "Monday through Saturday’s community champions join the week’s best-performing non-winners. Repeated daily winners take one slot, with the next non-winner filling the opening." : "Make seven head-to-head choices through an eight-Pokémon bracket. Each matchup helps build community preference records for future Pokédex entries."}</p>
+    {isSuperBracket && <div className="super-bracket-qualifiers" aria-label="Sunday Super Bracket qualifiers">{qualifiers.map((qualifier) => <span key={qualifier.pokemon}><b>#{qualifier.seed} {qualifier.pokemon}</b><small>{qualifier.source === "daily_winner" ? `${(qualifier.source_dates || []).map((date) => new Date(`${date}T12:00:00`).toLocaleDateString(undefined, { weekday: "long" })).join(" and ")} winner` : "Performance wildcard"}</small></span>)}</div>}
     {!complete && matchup?.every(Boolean) && <>
       <strong className="daily-round-label">{roundLabel}</strong>
       <div className="daily-bracket-matchup">
-        <BracketPokemon name={matchup[0]} onChoose={choose} disabled={busy} />
+        <BracketPokemon name={matchup[0]} onChoose={choose} disabled={busy} qualifier={qualifierFor(matchup[0])} />
         <b>VS</b>
-        <BracketPokemon name={matchup[1]} onChoose={choose} disabled={busy} />
+        <BracketPokemon name={matchup[1]} onChoose={choose} disabled={busy} qualifier={qualifierFor(matchup[1])} />
       </div>
       {winners.length > 0 && <button type="button" className="quiet-button" onClick={() => setWinners((current) => current.slice(0, -1))}>Undo last choice</button>}
     </>}
     {complete && <div className="daily-bracket-complete">
       <span>Today’s champion</span>
-      <BracketPokemon name={winners[6]} onChoose={() => {}} disabled />
+      <BracketPokemon name={winners[6]} onChoose={() => {}} disabled qualifier={qualifierFor(winners[6])} />
       <p>{bracket.completed_brackets || 0} completed community bracket{bracket.completed_brackets === 1 ? "" : "s"}</p>
       <div className="daily-game-actions">
         <button type="button" className="primary-button" onClick={() => downloadBracket(bracket, winners)}>Download my bracket</button>
-        <ShareButton title="My DraftCenter Daily Draft Bracket" text={`My ${bracket.game_date} Daily Draft Bracket champion is ${winners[6]}.`} url="https://www.draftcentral.gg/resources/daily-games" />
+        <ShareButton title={`My DraftCenter ${isSuperBracket ? "Sunday Super" : "Daily Draft"} Bracket`} text={`My ${bracket.game_date} ${isSuperBracket ? "Sunday Super Bracket" : "Daily Draft Bracket"} champion is ${winners[6]}.`} url="https://www.draftcentral.gg/resources/daily-games" />
         <button type="button" className="quiet-button" onClick={() => setWinners([])}>Redo my bracket</button>
       </div>
       <small className="muted">Redoing lets you revise today’s choices. Your saved bracket remains recorded until you complete the replacement, and only your latest completed bracket counts toward community preference data.</small>

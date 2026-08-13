@@ -398,6 +398,12 @@ async function draftNotificationIsStale(event, supabase, now = new Date()) {
 async function dispatchDueEvents(includeDailyThree = false, leagueId = null) {
   try {
     const supabase = createAdminClient();
+    let sundaySuperBracket = { status: "not_checked" };
+    if (includeDailyThree) {
+      const { data, error } = await supabase.rpc("finalize_sunday_super_bracket");
+      if (error) throw error;
+      sundaySuperBracket = data || { status: "pending" };
+    }
     const dailyThree = includeDailyThree ? await deliverDailyThreeResults(supabase) : { delivered: 0, skipped: 0, failed: 0 };
     const communityDiscord = includeDailyThree ? await deliverCommunityDiscord(supabase) : { delivered: 0, skipped: 0, failed: 0 };
     const claimToken = crypto.randomUUID();
@@ -445,7 +451,7 @@ async function dispatchDueEvents(includeDailyThree = false, leagueId = null) {
         if (failError) throw failError;
       }
     }
-    return NextResponse.json({ delivered: delivered + dailyThree.delivered + communityDiscord.delivered, skipped: skipped + dailyThree.skipped + communityDiscord.skipped, failed: failed + dailyThree.failed + communityDiscord.failed });
+    return NextResponse.json({ delivered: delivered + dailyThree.delivered + communityDiscord.delivered, skipped: skipped + dailyThree.skipped + communityDiscord.skipped, failed: failed + dailyThree.failed + communityDiscord.failed, sunday_super_bracket: sundaySuperBracket.status });
   } catch (error) {
     return safeFailure(error, "Notification dispatch failed.", { context: "notification-dispatch" });
   }
