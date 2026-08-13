@@ -3,7 +3,7 @@
 - Last updated: August 13, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified production application commit: `38d5e33b7112f45f97666c8b5ac614912555c661`
+- Verified production application commit: `1510819104e9cfcca75ff32a56bfd804aae22a1e`
 - Latest production migration: 387
 
 ## Deployed state
@@ -95,6 +95,19 @@ snapshot and the same type-analysis engine as hosted roster views. All
 protected checks, the 243-page build, HTTPS Preview acceptance, exact
 Production deployment, live interaction review, and signed-out production
 smoke sweep passed. No database, production data, provider setting,
+environment variable, or secret changed.
+
+Pull request [#193](https://github.com/roblebaegaming/DraftCenter/pull/193)
+expanded the public **Nuzlocke Run Generator** at `/nuzlocke` into a private,
+route-by-route run tracker. Players can record encounter outcomes, nicknames,
+notes, living and deceased team members, run state, and custom badges or boss
+milestones with optional level caps. Evolutionary-family conflicts are warned
+automatically. Progress autosaves locally for recent builds, can be stored
+cross-device in the existing owner-only My Teams workspace, and exports as
+text or a progress image; private progress is excluded from recreation links.
+All protected checks, the 243-page build, isolated desktop/mobile Preview
+review, exact Production deployment, and the 19-check signed-out production
+smoke sweep passed. No migration, real league data, provider setting,
 environment variable, or secret changed.
 
 The August 9 release wave is complete. Pull requests
@@ -730,7 +743,9 @@ guard merely to remove that measurement gap.
 ## Authoritative records
 
 - Current continuation handoff:
-  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-13-draft-lab-production.md`](handoffs/DraftCenter-agent-handoff-2026-08-13-draft-lab-production.md)
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-13-nuzlocke-run-tracker.md`](handoffs/DraftCenter-agent-handoff-2026-08-13-nuzlocke-run-tracker.md)
+- Nuzlocke Run Tracker product and safety contract:
+  [`docs/nuzlocke-run-tracker.md`](nuzlocke-run-tracker.md)
 - Draft Lab product and safety contract:
   [`docs/draft-lab.md`](draft-lab.md)
 - Preceding Worlds public-launch handoff:
