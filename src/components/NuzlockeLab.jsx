@@ -2,13 +2,44 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import styles from "./NuzlockeLab.module.css";
-import { pokemonProfileSlugForName } from "../lib/publicPokemonIndex";
 import { createClient } from "../lib/supabase/client";
 import { normalizeSavedNuzlockeResult, nuzlockeRulesFromShareUrl } from "../lib/nuzlockeRunExports";
 import { downloadNuzlockeRunCardImage } from "../lib/nuzlockeRunCardImage";
+import { normalizeNuzlockeTracker } from "../lib/nuzlockeRunTracker";
+import NuzlockeRunTracker from "./NuzlockeRunTracker";
 
 const pretty = (value) => String(value || "").replaceAll("-", " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
 const newSeed = () => globalThis.crypto?.randomUUID?.().slice(0, 12) || Math.random().toString(36).slice(2, 14);
+const TRACKER_STORAGE_KEY = "draftcenter:nuzlocke-trackers:v1";
+const SAVED_RUN_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+function browserTrackerId(seed, team) {
+  const source = `${seed}|${(Array.isArray(team) ? team : []).map((entry) => `${entry?.area_key || ""}:${entry?.pokemon_id || ""}`).join("|")}`;
+  let hash = 2166136261;
+  for (let index = 0; index < source.length; index += 1) hash = Math.imul(hash ^ source.charCodeAt(index), 16777619);
+  return `${seed}:${(hash >>> 0).toString(36)}`;
+}
+
+function loadBrowserTracker(seed, team) {
+  if (!seed || typeof window === "undefined") return normalizeNuzlockeTracker(null, team);
+  try {
+    const records = JSON.parse(window.localStorage.getItem(TRACKER_STORAGE_KEY) || "{}");
+    return normalizeNuzlockeTracker(records?.[browserTrackerId(seed, team)]?.tracker, team);
+  } catch {
+    return normalizeNuzlockeTracker(null, team);
+  }
+}
+
+function saveBrowserTracker(seed, tracker, team) {
+  if (!seed || typeof window === "undefined") return;
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(TRACKER_STORAGE_KEY) || "{}");
+    const records = parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
+    records[browserTrackerId(seed, team)] = { updated_at: new Date().toISOString(), tracker: normalizeNuzlockeTracker(tracker, team) };
+    const bounded = Object.fromEntries(Object.entries(records).sort((left, right) => String(right[1]?.updated_at || "").localeCompare(String(left[1]?.updated_at || ""))).slice(0, 10));
+    window.localStorage.setItem(TRACKER_STORAGE_KEY, JSON.stringify(bounded));
+  } catch { /* Account saves and exports remain available when browser storage is blocked. */ }
+}
 
 export default function NuzlockeLab() {
   const [supabase] = useState(() => createClient());
@@ -39,6 +70,7 @@ export default function NuzlockeLab() {
   const [outputMessage, setOutputMessage] = useState("");
   const [savedToMyTeams, setSavedToMyTeams] = useState(false);
   const [savedProfileTeamId, setSavedProfileTeamId] = useState("");
+  const [trackerDirty, setTrackerDirty] = useState(false);
   const [result, setResult] = useState(null);
   const [resultShareUrl, setResultShareUrl] = useState("");
   const [message, setMessage] = useState("Loading verified games…");
@@ -46,9 +78,12 @@ export default function NuzlockeLab() {
   const [savingTeam, setSavingTeam] = useState(false);
   const [downloadingTeam, setDownloadingTeam] = useState(false);
   const sharedSeed = useRef("");
+  const requestedSavedRun = useRef("");
+  const loadedSavedRun = useRef("");
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
+    requestedSavedRun.current = SAVED_RUN_ID.test(params.get("run") || "") ? params.get("run") : "";
     const linkedSeed = params.get("seed") || "";
     const seedValue = linkedSeed || newSeed();
     sharedSeed.current = linkedSeed;
@@ -102,6 +137,44 @@ export default function NuzlockeLab() {
     return () => { active = false; data.subscription.unsubscribe(); };
   }, [supabase]);
 
+  useEffect(() => {
+    const runId = requestedSavedRun.current;
+    if (!runId || profileUser === undefined || !games.length || loadedSavedRun.current === runId) return;
+    if (!profileUser) {
+      loadedSavedRun.current = runId;
+      setOutputMessage("Sign in to open this private Nuzlocke tracker.");
+      return;
+    }
+    let active = true;
+    loadedSavedRun.current = runId;
+    setOutputMessage("Loading your private Nuzlocke tracker…");
+    supabase.from("personal_teams")
+      .select("id,team_name,team_report_url,nuzlocke_run")
+      .eq("id", runId)
+      .eq("owner_id", profileUser.id)
+      .eq("workspace_type", "nuzlocke")
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (!active) return;
+        const savedResult = normalizeSavedNuzlockeResult(data?.nuzlocke_run);
+        if (error || !data || !savedResult) {
+          setOutputMessage(error?.message || "That private Nuzlocke tracker could not be opened.");
+          return;
+        }
+        setSavedProfileTeamId(data.id);
+        setRunName((data.team_name || savedResult.run_name || `${savedResult.game.display_name} Run`).slice(0, 80));
+        setGame(savedResult.game.game_key);
+        setSeed(savedResult.seed);
+        setResult(savedResult);
+        setResultShareUrl(savedResult.share_url || data.team_report_url || "");
+        saveBrowserTracker(savedResult.seed, savedResult.tracker, savedResult.team);
+        setTrackerDirty(false);
+        setSavedToMyTeams(true);
+        setOutputMessage("Private run progress loaded from My Teams.");
+      });
+    return () => { active = false; };
+  }, [games.length, profileUser, supabase]);
+
   const activeGame = games.find((item) => item.game_key === game);
   const conditionGroups = activeGame?.condition_groups || [];
   const themeOptions = gameThemes[game] || { types: [], colors: [] };
@@ -153,6 +226,7 @@ export default function NuzlockeLab() {
     setOutputMessage("");
     setSavedToMyTeams(false);
     setSavedProfileTeamId("");
+    setTrackerDirty(false);
   }
 
   function resultUrlWithName() {
@@ -171,7 +245,7 @@ export default function NuzlockeLab() {
     const normalizedResult = normalizeSavedNuzlockeResult(result);
     const savedUrl = resultUrlWithName();
     if (!normalizedResult?.team.length || !savedUrl) { setOutputMessage("This generated team could not be saved."); return; }
-    const name = (runName.trim() || `${normalizedResult.game.display_name} Team`).slice(0, 80);
+    const name = (runName.trim() || `${normalizedResult.game.display_name} Run`).slice(0, 80);
     const rules = nuzlockeRulesFromShareUrl(savedUrl);
     const payload = {
       owner_id: profileUser.id,
@@ -180,7 +254,7 @@ export default function NuzlockeLab() {
       format_name: normalizedResult.game.display_name,
       workspace_type: "nuzlocke",
       planning_entries: [],
-      notes: `Saved from the DraftCenter Nuzlocke builder. This private Run Card includes ${normalizedResult.team.length} encounter${normalizedResult.team.length === 1 ? "" : "s"}.`,
+      notes: `Saved from the DraftCenter Nuzlocke Run Tracker. This private run includes ${normalizedResult.team.length} encounter${normalizedResult.team.length === 1 ? "" : "s"}.`,
       weekly_notes: "",
       pokepaste_url: null,
       replica_code: "",
@@ -208,7 +282,9 @@ export default function NuzlockeLab() {
     setSavedProfileTeamId(data.id);
     if (!runName.trim()) setRunName(name);
     setSavedToMyTeams(true);
-    setOutputMessage("Team saved privately to your My Teams binder.");
+    setTrackerDirty(false);
+    window.history.replaceState({}, "", new URL(`/nuzlocke?run=${data.id}`, window.location.origin));
+    setOutputMessage("Run progress saved privately to My Teams.");
   }
 
   async function generate(event) {
@@ -237,14 +313,27 @@ export default function NuzlockeLab() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error);
       setSeed(buildSeed);
-      setResult(data);
+      const tracker = loadBrowserTracker(buildSeed, data.team || []);
+      setResult({ ...data, tracker });
       setResultShareUrl(generatedShareUrl);
+      setTrackerDirty(false);
       window.history.replaceState({}, "", new URL(generatedShareUrl));
     } catch (error) {
       setMessage(error.message || "The Nuzlocke team could not be generated.");
     } finally {
       setLoading(false);
     }
+  }
+
+  function updateTracker(tracker) {
+    setResult((current) => {
+      if (!current) return current;
+      const normalizedTracker = normalizeNuzlockeTracker(tracker, current.team);
+      saveBrowserTracker(current.seed, normalizedTracker, current.team);
+      return { ...current, tracker: normalizedTracker };
+    });
+    setTrackerDirty(true);
+    setSavedToMyTeams(false);
   }
 
   function toggleMethod(value) {
@@ -256,28 +345,28 @@ export default function NuzlockeLab() {
     if (!url) return;
     try {
       await navigator.clipboard.writeText(url);
-      setOutputMessage("Run link copied.");
+      setOutputMessage("Recreation link copied. Private tracker progress is not included.");
     } catch { setOutputMessage("This browser could not copy the run link."); }
   }
 
   async function downloadTeam() {
     if (!result || downloadingTeam) return;
     setDownloadingTeam(true);
-    setOutputMessage("Creating your visual Run Card…");
+    setOutputMessage("Creating your visual progress card…");
     try {
       const exportUrl = resultUrlWithName();
       await downloadNuzlockeRunCardImage({ runName, result, rules: nuzlockeRulesFromShareUrl(exportUrl), shareUrl: exportUrl });
-      setOutputMessage("Visual Run Card downloaded.");
-    } catch (error) { setOutputMessage(error.message || "This browser could not download the visual Run Card."); }
+      setOutputMessage("Visual progress card downloaded.");
+    } catch (error) { setOutputMessage(error.message || "This browser could not download the visual progress card."); }
     finally { setDownloadingTeam(false); }
   }
 
   return <main className={`nuzlocke-shell ${styles.draftShell}`}>
     <header className="nuzlocke-hero">
       <a href="/?view=dashboard" className="quiet-button">← DraftCenter home</a>
-      <span className="eyebrow">NUZLOCKE DRAFT</span>
-      <h1>Build a Nuzlocke Team</h1>
-      <p>Build a team from verified, game-specific encounters, including one Pokémon per route or area and themed rules.</p>
+      <span className="eyebrow">NUZLOCKE RUN TRACKER</span>
+      <h1>Build and Track a Nuzlocke Run</h1>
+      <p>Plan a run from verified, game-specific encounters, then record catches, misses, your active team, the box, deaths, milestones, level caps, and notes.</p>
     </header>
     <div className="nuzlocke-layout">
       <form className="nuzlocke-controls" onSubmit={generate}>
@@ -394,7 +483,7 @@ export default function NuzlockeLab() {
           <label className="check-row"><input type="checkbox" checked={finalEvolutionOnly} onChange={(event) => setFinalEvolutionOnly(event.target.checked)} aria-describedby="final-evolution-help" />Show results at their final evolution</label>
           <small id="final-evolution-help">Changes how each catch is displayed without changing its original area or encounter details.</small>
         </div>
-        <button className="primary-button" disabled={loading || !game}>{loading ? "Building…" : "Build Nuzlocke Team"}</button>
+        <button className="primary-button" disabled={loading || !game}>{loading ? "Building…" : "Build Run Tracker"}</button>
         {message && <p className="hub-message" role="status">{message}</p>}
       </form>
 
@@ -402,28 +491,17 @@ export default function NuzlockeLab() {
         <div className="section-heading">
           <div><span className="eyebrow">RUN CARD</span><h2>{runName.trim() || result?.game?.display_name || "Your encounters"}</h2>{runName.trim() && result?.game?.display_name && <small>{result.game.display_name}</small>}</div>
           {result && resultShareUrl && <div className="nuzlocke-output-actions">
-            <button className="quiet-button" type="button" onClick={copyRunLink}>Copy run link</button>
-            {profileUser ? <button className="quiet-button" type="button" disabled={savingTeam} onClick={saveTeamToProfile}>{savingTeam ? "Saving…" : "Save to My Teams"}</button> : profileUser === null ? <a className="quiet-button inline-link-button" href="/">Sign in to save</a> : <button className="quiet-button" type="button" disabled>Checking sign-in…</button>}
-            <button className="quiet-button" type="button" disabled={downloadingTeam} onClick={downloadTeam}>{downloadingTeam ? "Creating image…" : "Download visual Run Card"}</button>
+            <button className="quiet-button" type="button" onClick={copyRunLink}>Copy recreation link</button>
+            {profileUser ? <button className="quiet-button" type="button" disabled={savingTeam} onClick={saveTeamToProfile}>{savingTeam ? "Saving…" : savedProfileTeamId ? trackerDirty ? "Save progress" : "Progress saved" : "Save tracker to My Teams"}</button> : profileUser === null ? <a className="quiet-button inline-link-button" href="/">Sign in to sync</a> : <button className="quiet-button" type="button" disabled>Checking sign-in…</button>}
+            <button className="quiet-button" type="button" disabled={downloadingTeam} onClick={downloadTeam}>{downloadingTeam ? "Creating image…" : "Download progress card"}</button>
           </div>}
         </div>
         {outputMessage && <p className="nuzlocke-output-status" role="status">{outputMessage}{savedToMyTeams && <> <a href="/my-teams">Open My Teams →</a></>}</p>}
         {!result && <div className="empty-state">Choose a verified game and your rules, then build a run.</div>}
+        {result && <p className="nuzlocke-browser-save">Tracker changes are saved in this browser automatically. Sign in and save to My Teams for private cross-device access.</p>}
         {result?.allAreas && <p className="nuzlocke-run-summary">One Pokémon was requested from every eligible route or area under these rules.</p>}
         {result && !result.complete && <p className="nuzlocke-incomplete">Only {result.available} of {result.requested} results could be filled under these rules. No rule was relaxed.</p>}
-        <div className="nuzlocke-team">{result?.team?.map((entry, index) => {
-          const profileSlug = pokemonProfileSlugForName(entry.pokemon_name);
-          return <article key={`${entry.area_key}-${entry.pokemon_id}`}>
-            <span className="nuzlocke-number">{index + 1}</span>
-            {entry.artwork_url && <img src={entry.artwork_url} alt="" />}
-            <div>
-              <h3><a href={`/pokemon/${profileSlug}`}>{entry.pokemon_name}{entry.form_name ? ` (${entry.form_name})` : ""}</a></h3>
-              <strong>{entry.area_name}</strong>
-              <p>{entry.method === "starter" ? "Starter Pokémon" : <>{entry.encounter_pokemon_name ? `Catch ${entry.encounter_pokemon_name}${entry.encounter_form_name ? ` (${entry.encounter_form_name})` : ""} · ` : ""}{pretty(entry.method)} · Lv. {entry.min_level ?? "?"}{entry.max_level && entry.max_level !== entry.min_level ? `–${entry.max_level}` : ""}</>}</p>
-              {entry.conditions?.length ? <small>{entry.conditions.map(pretty).join(", ")}</small> : <small>No special conditions</small>}
-            </div>
-          </article>;
-        })}</div>
+        {result && <NuzlockeRunTracker result={result} onChange={updateTracker} />}
       </section>
     </div>
   </main>;

@@ -90,6 +90,10 @@ const lab = fs.readFileSync(
   new URL("../src/components/NuzlockeLab.jsx", import.meta.url),
   "utf8",
 );
+const tracker = fs.readFileSync(
+  new URL("../src/components/NuzlockeRunTracker.jsx", import.meta.url),
+  "utf8",
+);
 const generator = fs.readFileSync(
   new URL("../src/lib/nuzlockeGenerator.js", import.meta.url),
   "utf8",
@@ -921,7 +925,7 @@ test("run configuration is shareable and the UI keeps random keys internal while
   assert.match(lab, /params\.get\("evolutions"\) === "final"/);
   assert.match(lab, /url\.searchParams\.set\("evolutions", "final"\)/);
   assert.match(lab, /finalEvolutionOnly/);
-  assert.match(lab, /Catch \$\{entry\.encounter_pokemon_name\}/);
+  assert.match(tracker, /Catch \$\{entry\.encounter_pokemon_name\}/);
   assert.doesNotMatch(lab, /Randomizer seed/);
   assert.doesNotMatch(lab, /New seed/);
   assert.match(lab, /const buildSeed = sharedSeed\.current \|\| newSeed\(\)/);
@@ -929,9 +933,9 @@ test("run configuration is shareable and the UI keeps random keys internal while
   assert.match(lab, /Run name/);
   assert.doesNotMatch(lab, /Save setup/);
   assert.doesNotMatch(lab, /Saved runs and teams/);
-  assert.doesNotMatch(lab, /localStorage/);
-  assert.match(lab, /Save to My Teams/);
-  assert.match(lab, /Download visual Run Card/);
+  assert.match(lab, /window\.localStorage/);
+  assert.match(lab, /Save tracker to My Teams/);
+  assert.match(lab, /Download progress card/);
   assert.match(lab, /from\("personal_teams"\)/);
   assert.match(lab, /workspace_type: "nuzlocke"/);
   assert.match(lab, /nuzlocke_run:/);
@@ -950,8 +954,8 @@ test("run configuration is shareable and the UI keeps random keys internal while
   assert.match(lab, /params\.get\("length"\) === "all-areas"/);
   assert.match(lab, /url\.searchParams\.set\("length", "all-areas"\)/);
   assert.doesNotMatch(lab, /Room code/);
-  assert.match(lab, /Build a Nuzlocke Team/);
-  assert.match(lab, /Build Nuzlocke Team/);
+  assert.match(lab, /Build and Track a Nuzlocke Run/);
+  assert.match(lab, /Build Run Tracker/);
   assert.doesNotMatch(lab, /Build a seeded Run Card/);
   assert.doesNotMatch(lab, /Generate Run Card/);
   assert.match(lab, /Route-first random/);
@@ -994,7 +998,7 @@ test("starter inclusion is explicit in shared links and old seeded links retain 
   );
   assert.match(lab, /url\.searchParams\.set\("starter", includeStarter \? "include" : "exclude"\)/);
   assert.match(lab, /Include a starter Pokémon/);
-  assert.match(lab, /entry\.method === "starter" \? "Starter Pokémon"/);
+  assert.match(tracker, /entry\.method === "starter" \? "Starter Pokémon"/);
   assert.match(route, /ruby: HOENN_STARTERS, sapphire: HOENN_STARTERS, emerald: HOENN_STARTERS/);
   assert.match(route, /firered: KANTO_STARTERS, leafgreen: KANTO_STARTERS/);
   assert.match(route, /diamond: SINNOH_STARTERS, pearl: SINNOH_STARTERS, platinum: SINNOH_STARTERS/);

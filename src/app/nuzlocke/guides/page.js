@@ -51,7 +51,7 @@ export default function NuzlockeGuidesPage() {
   return <main className="seo-article-shell nuzlocke-guides-directory">
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />
     <nav className="public-page-nav">
-      <a className="quiet-button" href="/nuzlocke">← Nuzlocke Draft</a>
+      <a className="quiet-button" href="/nuzlocke">← Nuzlocke Run Tracker</a>
       <a className="quiet-button" href="/pokemon">Pokédex</a>
       <a className="quiet-button" href="/resources">Resources</a>
     </nav>
@@ -66,8 +66,8 @@ export default function NuzlockeGuidesPage() {
       <aside className="guide-direct-answer">
         <span className="eyebrow">HOW TO USE THESE GUIDES</span>
         <h2>Find the route, compare every encounter, then build your run</h2>
-        <p>Each guide keeps encounters tied to the correct game, route or area, method, level range, conditions, and form. After researching a game, open the Nuzlocke Draft to generate a compact team or one Pokémon for every eligible route.</p>
-        <a className="primary-button inline-link-button" href="/nuzlocke">Build a Nuzlocke Team</a>
+        <p>Each guide keeps encounters tied to the correct game, route or area, method, level range, conditions, and form. After researching a game, open the Nuzlocke Run Tracker to build and follow a compact team or one Pokémon for every eligible route.</p>
+        <a className="primary-button inline-link-button" href="/nuzlocke">Track a Nuzlocke Run</a>
       </aside>
 
       {guidesByGeneration.map(([generation, games]) => <section key={generation} aria-labelledby={`nuzlocke-generation-${generation}`}>
@@ -83,7 +83,7 @@ export default function NuzlockeGuidesPage() {
       <aside className="seo-next-step">
         <h2>More Nuzlocke planning tools</h2>
         <p>Build a fresh team, research a Pokémon’s typing and moves, or review how DraftCenter sources its encounter catalogs.</p>
-        <div className="pokemon-tags nuzlocke-guide-tags"><a href="/nuzlocke">Open the Nuzlocke Draft</a><a href="/pokemon">Explore the Pokédex</a><a href="/about#data-methodology">Read the data methodology</a></div>
+        <div className="pokemon-tags nuzlocke-guide-tags"><a href="/nuzlocke">Open the Nuzlocke Run Tracker</a><a href="/pokemon">Explore the Pokédex</a><a href="/about#data-methodology">Read the data methodology</a></div>
       </aside>
     </article>
   </main>;

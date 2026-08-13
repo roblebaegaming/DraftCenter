@@ -70,7 +70,7 @@ export default async function NuzlockeGameGuidePage({ params }) {
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />
     <nav className="public-page-nav">
       <a className="quiet-button" href="/nuzlocke/guides">← Nuzlocke Guides</a>
-      <a className="quiet-button" href="/nuzlocke">Nuzlocke Draft</a>
+      <a className="quiet-button" href="/nuzlocke">Nuzlocke Run Tracker</a>
       <a className="quiet-button" href="/pokemon">Pokédex</a>
     </nav>
     <article>
@@ -141,7 +141,7 @@ export default async function NuzlockeGameGuidePage({ params }) {
         <h2>Continue your Nuzlocke research</h2>
         <div className="pokemon-tags nuzlocke-guide-tags">
           <a href="/nuzlocke/guides">Browse all Nuzlocke guides</a>
-          <a href="/nuzlocke">Open the Nuzlocke Draft</a>
+          <a href="/nuzlocke">Open the Nuzlocke Run Tracker</a>
           <a href="/pokemon">Research Pokémon profiles</a>
           {relatedGuides.map((item) => <a key={item.slug} href={`/nuzlocke/${item.slug}`}>{item.displayName} guide</a>)}
         </div>

@@ -1108,3 +1108,75 @@ button { cursor: pointer; }
 @media(max-width:1080px) { .draft-lab-controls { grid-template-columns: repeat(2,minmax(0,1fr)); } .draft-lab-hero,.draft-lab-next { grid-template-columns: 1fr; align-items: start; } }
 @media(max-width:780px) { .draft-lab-hero { padding: 27px 21px; } .draft-lab-hero-actions>* { flex: 1; justify-content: center; text-align: center; } .draft-lab-controls,.draft-lab-legality,.draft-lab-analysis-grid { grid-template-columns: 1fr; } .draft-lab-roster { grid-template-columns: 1fr; } .draft-lab-legality { gap: 12px; } }
 @media(max-width:520px) { .draft-lab-shell { padding-inline: 12px; } .draft-lab-hero h1 { font-size: 3.6rem; } .draft-lab-builder,.draft-lab-card,.draft-lab-next { padding: 17px; } .draft-lab-mode { grid-template-columns: 1fr; } .draft-lab-roster li { grid-template-columns: 26px minmax(0,1fr) auto; } .draft-lab-roster .draft-lab-types { grid-column: 2; } .draft-lab-roster button { grid-column: 3; grid-row: 1; } .draft-lab-stab-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } .draft-lab-stat-grid { grid-template-columns: repeat(3,minmax(0,1fr)); } .draft-lab-damage-profile { grid-template-columns: 1fr; } }
+
+/* Nuzlocke Run Tracker */
+.nuzlocke-browser-save { margin: 0; padding: 10px 12px; border-left: 3px solid #4fd1c5; border-radius: 7px; background: #4fd1c510; color: #baf3ed; font-size: .78rem; line-height: 1.5; }
+.nuzlocke-tracker,.nuzlocke-milestones,.nuzlocke-run-notes,.nuzlocke-run-history { margin-top: 18px; padding: 18px; border: 1px solid #303958; border-radius: 14px; background: #11162b; }
+.nuzlocke-tracker .section-heading,.nuzlocke-milestones .section-heading { align-items: end; margin-bottom: 14px; }
+.nuzlocke-tracker h2,.nuzlocke-milestones h2 { margin: 4px 0 0; }
+.nuzlocke-run-state,.nuzlocke-run-notes label,.nuzlocke-milestone-form label,.nuzlocke-encounter-controls label { display: grid; gap: 6px; color: #aeb9df; font-size: .72rem; font-weight: 800; text-transform: uppercase; }
+.nuzlocke-run-state select,.nuzlocke-milestone-form input,.nuzlocke-milestone-form select,.nuzlocke-milestone-list textarea,.nuzlocke-run-notes textarea,.nuzlocke-encounter-controls input,.nuzlocke-encounter-controls select,.nuzlocke-encounter-controls textarea { width: 100%; min-height: 44px; padding: 10px 11px; border: 1px solid #46517c; border-radius: 8px; background: #080c1c; color: #fff; font: inherit; text-transform: none; }
+.nuzlocke-tracker-progress { overflow: hidden; height: 10px; border-radius: 999px; background: #080c1c; }
+.nuzlocke-tracker-progress span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg,#4fd1c5,#ffd23f); transition: width .2s ease; }
+.nuzlocke-tracker-metrics { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 8px; margin-top: 11px; }
+.nuzlocke-tracker-metrics article { display: grid; gap: 3px; min-height: 76px; padding: 12px; border: 1px solid #2d385e; border-radius: 10px; background: #0e1429; }
+.nuzlocke-tracker-metrics strong { color: #ffd23f; font-size: 1.25rem; }
+.nuzlocke-tracker-metrics span { color: #9da8cb; font-size: .67rem; font-weight: 800; text-transform: uppercase; }
+.nuzlocke-species-check { margin-top: 12px; padding: 12px; border-left: 4px solid #4fd1c5; border-radius: 8px; background: #4fd1c510; }
+.nuzlocke-species-check.conflict { border-color: #ff7474; background: #ff747410; }
+.nuzlocke-species-check strong { color: #baf3ed; }
+.nuzlocke-species-check.conflict strong { color: #ffadad; }
+.nuzlocke-species-check p,.nuzlocke-milestones>p { margin: 5px 0 0; color: #aeb9df; font-size: .78rem; line-height: 1.5; }
+.nuzlocke-milestone-form { display: grid; grid-template-columns: 120px minmax(160px,1fr) 105px auto; gap: 9px; align-items: end; margin-top: 14px; }
+.nuzlocke-milestone-form button { min-height: 44px; }
+.nuzlocke-milestone-list { display: grid; gap: 9px; margin-top: 13px; }
+.nuzlocke-milestone-list article { display: grid; grid-template-columns: minmax(150px,1fr) auto minmax(180px,1fr) auto; align-items: center; gap: 10px; padding: 11px; border: 1px solid #2d385e; border-radius: 10px; background: #0e1429; }
+.nuzlocke-milestone-list article.completed { border-color: #4fd1c577; }
+.nuzlocke-milestone-list article>span { color: #9da8cb; font-size: .72rem; }
+.nuzlocke-run-notes textarea { margin-top: 2px; resize: vertical; }
+.nuzlocke-team .nuzlocke-tracker-card { grid-column: 1/-1; grid-template-columns: 90px minmax(170px,.75fr) minmax(250px,1fr); gap: 13px; align-items: start; }
+.nuzlocke-team .nuzlocke-tracker-card.status-caught,.nuzlocke-team .nuzlocke-tracker-card.status-active,.nuzlocke-team .nuzlocke-tracker-card.status-boxed { border-left: 4px solid #4fd1c5; }
+.nuzlocke-team .nuzlocke-tracker-card.status-missed { border-left: 4px solid #ffb457; }
+.nuzlocke-team .nuzlocke-tracker-card.status-deceased { border-left: 4px solid #ff7474; background: #27192a; }
+.nuzlocke-tracker-card-main { min-width: 0; padding-top: 5px; }
+.nuzlocke-tracker-card-main h3 small { color: #9da8cb; font-size: .7rem; font-weight: 600; }
+.nuzlocke-encounter-controls { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 9px; }
+.nuzlocke-encounter-controls label:last-child { grid-column: 1/-1; }
+.nuzlocke-encounter-controls textarea { resize: vertical; }
+.nuzlocke-run-history summary { color: #fff; cursor: pointer; font-weight: 800; }
+.nuzlocke-run-history ol { display: grid; gap: 8px; margin: 14px 0 0; padding-left: 22px; }
+.nuzlocke-run-history li { padding-left: 5px; color: #dce3ff; }
+.nuzlocke-run-history time { display: block; color: #8f9bc2; font-size: .68rem; }
+.personal-nuzlocke-card-progress { display: grid; gap: 3px; margin: 10px 0; padding: 9px 11px; border-radius: 8px; background: #4fd1c510; }
+.personal-nuzlocke-card-progress strong { color: #4fd1c5; font-size: .78rem; }
+.personal-nuzlocke-card-progress span { color: #9fa9cf; font-size: .7rem; }
+.personal-nuzlocke-status { position: static!important; display: inline-block!important; width: auto!important; height: auto!important; margin-top: 5px; padding: 4px 7px; border-radius: 999px!important; background: #263152!important; color: #dce3ff!important; font-size: .62rem!important; font-weight: 800; }
+.personal-nuzlocke-grid article.nuzlocke-status-caught,.personal-nuzlocke-grid article.nuzlocke-status-active,.personal-nuzlocke-grid article.nuzlocke-status-boxed { border-left: 4px solid #4fd1c5; }
+.personal-nuzlocke-grid article.nuzlocke-status-missed { border-left: 4px solid #ffb457; }
+.personal-nuzlocke-grid article.nuzlocke-status-deceased { border-left: 4px solid #ff7474; background: #241724; }
+.personal-nuzlocke-milestones,.personal-nuzlocke-run-notes { margin: 13px 0; padding: 13px; border: 1px solid #303958; border-radius: 10px; background: #111625; }
+.personal-nuzlocke-milestones h3,.personal-nuzlocke-run-notes h3 { margin: 0 0 9px; }
+.personal-nuzlocke-milestones>div { display: flex; align-items: center; gap: 8px; padding: 5px 0; color: #dce3ff; }
+.personal-nuzlocke-milestones small { margin-left: auto; color: #9fa9cf; }
+.personal-nuzlocke-run-notes p { margin: 0; color: #c5cbea; white-space: pre-wrap; }
+
+@media(max-width:850px) {
+  .nuzlocke-milestone-form { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .nuzlocke-milestone-form button { align-self: end; }
+  .nuzlocke-milestone-list article { grid-template-columns: minmax(0,1fr) auto; }
+  .nuzlocke-milestone-list textarea { grid-column: 1/-1; }
+  .nuzlocke-team .nuzlocke-tracker-card { grid-template-columns: 76px minmax(0,1fr); }
+  .nuzlocke-tracker-card-main { padding-top: 0; }
+  .nuzlocke-encounter-controls { grid-column: 1/-1; }
+}
+@media(max-width:560px) {
+  .nuzlocke-tracker,.nuzlocke-milestones,.nuzlocke-run-notes,.nuzlocke-run-history { padding: 14px; }
+  .nuzlocke-tracker .section-heading,.nuzlocke-milestones .section-heading { align-items: stretch; flex-direction: column; }
+  .nuzlocke-tracker-metrics { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .nuzlocke-milestone-form,.nuzlocke-encounter-controls { grid-template-columns: 1fr; }
+  .nuzlocke-milestone-form button,.nuzlocke-encounter-controls label:last-child { grid-column: auto; }
+  .nuzlocke-milestone-list article { grid-template-columns: 1fr; }
+  .nuzlocke-milestone-list textarea { grid-column: auto; }
+  .nuzlocke-team .nuzlocke-tracker-card { grid-template-columns: 66px minmax(0,1fr); padding: 12px; }
+  .nuzlocke-team .nuzlocke-tracker-card img { width: 62px; height: 62px; }
+}
