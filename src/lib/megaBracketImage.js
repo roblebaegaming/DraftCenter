@@ -1,4 +1,4 @@
-import { evaluateMegaBracket, top64BracketFromRounds } from "./megaBracket";
+import { evaluateMegaBracket, top64BracketFromRounds } from "./megaBracket.js";
 
 const REGION_NAMES = ["Region One", "Region Two", "Region Three", "Region Four"];
 

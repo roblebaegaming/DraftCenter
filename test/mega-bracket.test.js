@@ -11,6 +11,11 @@ import {
   nextMegaBracketSessionTarget,
   top64BracketFromRounds,
 } from "../src/lib/megaBracket.js";
+import {
+  downloadMegaBracketCanvas,
+  renderMegaBracketCanvas,
+  renderMegaChampionCanvas,
+} from "../src/lib/megaBracketImage.js";
 
 const entrants = Array.from({ length: MEGA_BRACKET_ENTRANT_COUNT }, (_, index) => `Pokémon ${index + 1}`);
 
@@ -60,6 +65,56 @@ test("a completed bracket produces one champion and Final Four", () => {
   assert.equal(progress.choicesCompleted, MEGA_BRACKET_TOTAL_CHOICES);
   assert.equal(progress.finalFour.length, 4);
   assert.equal(progress.champion, progress.top64[0]);
+});
+
+test("the Top 64 and champion exports render at their promised resolutions", () => {
+  const clickedDownloads = [];
+  const context = {
+    beginPath() {},
+    roundRect() {},
+    fill() {},
+    stroke() {},
+    fillRect() {},
+    fillText() {},
+    measureText(value) { return { width: String(value).length * 8 }; },
+    createLinearGradient() { return { addColorStop() {} }; },
+  };
+  const originalDocument = globalThis.document;
+  globalThis.document = {
+    createElement(tagName) {
+      if (tagName === "canvas") {
+        return {
+          width: 0,
+          height: 0,
+          getContext: () => context,
+          toDataURL: () => "data:image/png;base64,preview",
+        };
+      }
+      if (tagName === "a") {
+        return {
+          download: "",
+          href: "",
+          click() { clickedDownloads.push({ download: this.download, href: this.href }); },
+        };
+      }
+      throw new Error(`Unexpected element: ${tagName}`);
+    },
+  };
+
+  try {
+    const attempt = { entrants, winners: chooseLeftThrough() };
+    const bracketCanvas = renderMegaBracketCanvas(attempt);
+    const championCanvas = renderMegaChampionCanvas(attempt);
+    assert.deepEqual([bracketCanvas.width, bracketCanvas.height], [3200, 2050]);
+    assert.deepEqual([championCanvas.width, championCanvas.height], [1080, 1350]);
+    downloadMegaBracketCanvas(championCanvas, "mega-bracket-champion.png");
+    assert.deepEqual(clickedDownloads, [{
+      download: "mega-bracket-champion.png",
+      href: "data:image/png;base64,preview",
+    }]);
+  } finally {
+    globalThis.document = originalDocument;
+  }
 });
 
 test("a winner outside its current matchup is rejected", () => {
