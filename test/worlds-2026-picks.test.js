@@ -12,6 +12,12 @@ import {
   WORLDS_VGC_MAX_RAW_SCORE,
   worldsEntryIsLocked,
 } from "../src/lib/worlds2026.js";
+import {
+  worldsCopy,
+  worldsQualificationLabel,
+  worldsRegionLabel,
+  worldsServerError,
+} from "../src/lib/worlds2026I18n.js";
 
 const source = (path) => fs.readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 const roster = JSON.parse(source("src/data/worlds-2026-vgc-masters.json"));
@@ -256,6 +262,60 @@ test("the VGC event card names both 2026 Worlds venues", () => {
   assert.match(component, /Pokémon Worlds VGC Masters invitee list/);
   assert.match(component, /Moscone Center · Championship Sunday at Chase Center/);
   assert.doesNotMatch(component, /<p>Moscone Center · San Francisco<\/p>/);
+});
+
+test("the Italian Worlds route localizes the current Pick 10 experience without splitting competition data", () => {
+  const italianPage = source("src/app/it/worlds/2026/page.js");
+  const englishPage = source("src/app/worlds/2026/vgc/page.js");
+  const component = source("src/components/WorldsPickSixteen.jsx");
+  const meta = source("src/components/WorldsMetaChallenge.jsx");
+  const translations = source("src/lib/worlds2026I18n.js");
+  const sitemap = source("src/app/sitemap.js");
+
+  assert.match(italianPage, /locale="it"/);
+  assert.match(italianPage, /canonical: "\/it\/worlds\/2026"/);
+  assert.match(italianPage, /inLanguage: "it-IT"/);
+  assert.match(italianPage, /translationOfWork/);
+  assert.match(italianPage, /WorldsPickSixteen rosterSource=\{roster\}/);
+  assert.match(englishPage, /languages: \{ en: "\/worlds\/2026\/vgc", it: "\/it\/worlds\/2026"/);
+  assert.match(sitemap, /\["\/it\/worlds\/2026", "daily", 0\.8\]/);
+  assert.match(component, /navigator\.languages/);
+  assert.match(component, /draftcenter-worlds-italian-offer-dismissed/);
+  assert.doesNotMatch(component, /location\.(?:assign|replace)|window\.location\s*=/);
+  assert.match(component, /WorldsMetaChallenge discipline=\{config\.key\} user=\{user\} locale=\{locale\}/);
+  assert.match(meta, /locale = "en"/);
+  assert.match(translations, /Italiano disponibile/);
+
+  const copy = worldsCopy("it");
+  assert.equal(copy.documentLanguage, "it");
+  assert.match(copy.hero.title, /Pronostici VGC/);
+  assert.match(copy.pick.title, /Pick 10/);
+  assert.match(copy.pick.champion, /Campione ×2/);
+  assert.match(copy.save.finish, /tutti e 10/);
+  assert.equal(copy.status.withdrawn, "Ritirato");
+  assert.equal(copy.scoring.placements[0], "Campione del mondo");
+  assert.match(copy.errors.spotsFull(10), /tutti i 10 posti/);
+  assert.match(worldsServerError("Sign in to save a Worlds entry.", "it"), /Accedi/);
+  assert.match(worldsServerError("Choose exactly 10 competitors.", "it"), /esattamente 10 giocatori/);
+  assert.match(worldsServerError("Each competitor can be chosen only once.", "it"), /una sola volta/);
+  assert.match(worldsServerError("Choose Your Champion from your 10 selected competitors.", "it"), /Campione/);
+  assert.match(worldsServerError("unexpected provider detail", "it"), /Non è stato possibile salvare/);
+
+  const regions = [...new Set(roster.competitors.map(({ region }) => region))];
+  const qualifications = [...new Set(roster.competitors.map(({ qualification }) => qualification))];
+  assert.equal(qualifications.length, 52);
+  assert.deepEqual(regions.map((region) => worldsRegionLabel(region, "it")).sort(), [
+    "America Latina", "Asia-Pacifico", "Corea del Sud", "Europa", "Giappone", "Medio Oriente e Sudafrica", "Nord America", "Oceania",
+  ]);
+  assert.ok(qualifications.every((qualification) => worldsQualificationLabel(qualification, "it") !== qualification));
+
+  const localizedRoster = normalizedRoster.map((competitor) => ({
+    ...competitor,
+    qualificationRegion: worldsRegionLabel(competitor.qualificationRegion, "it"),
+    qualificationPath: worldsQualificationLabel(competitor.qualificationPath, "it"),
+  }));
+  assert.ok(filterWorldsCompetitors(localizedRoster, "campione regionale").length > 20);
+  assert.ok(filterWorldsCompetitors(localizedRoster, "KOR", "Corea del Sud").length > 0);
 });
 
 test("the official TCG Masters qualifier pool is complete, unique, and release-ready", () => {

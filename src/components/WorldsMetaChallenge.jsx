@@ -9,6 +9,7 @@ import {
   WORLDS_META_ROSTER_POINTS,
   worldsMetaEntryIsLocked,
 } from "../lib/worldsMeta";
+import { worldsCopy } from "../lib/worlds2026I18n";
 
 const META_PRIORITY = { vgc: "Priority 1", tcg: "Priority 2", go: "Priority 3" };
 
@@ -30,8 +31,8 @@ function fallbackEvent(config) {
   };
 }
 
-function displayPacificDate(value) {
-  return new Intl.DateTimeFormat("en-US", {
+function displayPacificDate(value, locale = "en-US") {
+  return new Intl.DateTimeFormat(locale, {
     timeZone: "America/Los_Angeles",
     month: "short",
     day: "numeric",
@@ -41,7 +42,9 @@ function displayPacificDate(value) {
   }).format(new Date(value));
 }
 
-function MetaScoring({ config }) {
+function MetaScoring({ config, locale = "en" }) {
+  const isItalian = locale === "it" && config.discipline === "vgc";
+  const copy = isItalian ? worldsCopy("it").meta : null;
   if (config.predictionType === "deck_archetype") {
     return <details className="worlds-meta-scoring">
       <summary><span>How scoring works</span><strong>Five decks · 100 points max</strong></summary>
@@ -67,24 +70,26 @@ function MetaScoring({ config }) {
     </details>;
   }
   return <details className="worlds-meta-scoring">
-    <summary><span>How scoring works</span><strong>Rank six · 100 points max</strong></summary>
+    <summary><span>{isItalian ? copy.scoring : "How scoring works"}</span><strong>{isItalian ? copy.scoringSummary : "Rank six · 100 points max"}</strong></summary>
     <div className="worlds-meta-scoring-body">
-      <p>Rank six Pokémon from strongest to weakest confidence. A pick earns its position&apos;s points when it appears on the World Champion&apos;s registered team.</p>
+      <p>{isItalian ? copy.scoringBody : <>Rank six Pokémon from strongest to weakest confidence. A pick earns its position&apos;s points when it appears on the World Champion&apos;s registered team.</>}</p>
       <dl className="worlds-meta-score-grid is-roster">
-        {WORLDS_META_ROSTER_POINTS.map((points, index) => <div key={points}><dt>Pick {index + 1}</dt><dd>{points} pts</dd></div>)}
+        {WORLDS_META_ROSTER_POINTS.map((points, index) => <div key={points}><dt>{isItalian ? copy.pick(index + 1) : <>Pick {index + 1}</>}</dt><dd>{points} {isItalian ? "pt" : "pts"}</dd></div>)}
       </dl>
       <ul>
-        <li>Predict all six team members for an 8-point bonus and a perfect 100.</li>
-        <li>The ranking is your confidence order; it does not need to match a team-sheet order.</li>
-        {config.discipline === "vgc" && <li>The official pool names registered species and forms. Mega Evolutions are not separate options.</li>}
+        <li>{isItalian ? copy.perfect : "Predict all six team members for an 8-point bonus and a perfect 100."}</li>
+        <li>{isItalian ? copy.order : "The ranking is your confidence order; it does not need to match a team-sheet order."}</li>
+        {config.discipline === "vgc" && <li>{isItalian ? copy.forms : "The official pool names registered species and forms. Mega Evolutions are not separate options."}</li>}
       </ul>
-      <p className="worlds-meta-score-separation"><strong>Separate competition:</strong> Meta scores never mix with player Pick 10. The Meta Overall opens after at least two Meta disciplines have final results.</p>
+      <p className="worlds-meta-score-separation"><strong>{isItalian ? copy.separate : "Separate competition:"}</strong> {isItalian ? copy.separateBody : "Meta scores never mix with player Pick 10. The Meta Overall opens after at least two Meta disciplines have final results."}</p>
     </div>
   </details>;
 }
 
-export default function WorldsMetaChallenge({ discipline = "vgc", user }) {
+export default function WorldsMetaChallenge({ discipline = "vgc", user, locale = "en" }) {
   const config = WORLDS_META_EVENTS[discipline] || WORLDS_META_EVENTS.vgc;
+  const isItalian = locale === "it" && config.discipline === "vgc";
+  const copy = isItalian ? worldsCopy("it").meta : null;
   const [hub, setHub] = useState(null);
   const [selected, setSelected] = useState([]);
   const [featured, setFeatured] = useState(null);
@@ -111,7 +116,7 @@ export default function WorldsMetaChallenge({ discipline = "vgc", user }) {
   const staged = event.status === "draft" || options.length === 0;
   const locked = staged || Boolean(event.is_locked || worldsMetaEntryIsLocked(event));
   const reviewedPoolReady = options.length > 0;
-  const trendingCopy = config.discipline === "vgc"
+  const trendingCopy = isItalian ? copy.trendBody : config.discipline === "vgc"
     ? "It reflects anonymous team sheets from 10 unofficial Limitless community events covering 737 teams. It never determines eligibility or official Worlds odds."
     : "It reflects 21,000 deck classifications from 292 unofficial Limitless community tournaments in the Pitch Black format. It supports browsing only and does not confirm the official Worlds format or predict the winner.";
 
@@ -148,7 +153,7 @@ export default function WorldsMetaChallenge({ discipline = "vgc", user }) {
     if (next.picks !== selected) draftDirtyRef.current = true;
     setSelected(next.picks);
     if (wasFeatured) setFeatured(null);
-    setMessage(next.error);
+    setMessage(isItalian && next.error ? copy.errors.spotsFull(event.picks_required) : next.error);
   }
 
   function movePick(index, direction) {
@@ -168,10 +173,10 @@ export default function WorldsMetaChallenge({ discipline = "vgc", user }) {
 
   async function saveEntry() {
     setMessage("");
-    if (!user) return setMessage("Sign in from the DraftCenter home page before saving your entry.");
-    if (!hub || staged) return setMessage("This option pool is still being reviewed. Entries are not open yet.");
-    if (locked) return setMessage("Entries for this Meta Picks competition are locked.");
-    if (selected.length !== event.picks_required) return setMessage(`Choose exactly ${event.picks_required} ${config.optionPlural}.`);
+    if (!user) return setMessage(isItalian ? copy.errors.signIn : "Sign in from the DraftCenter home page before saving your entry.");
+    if (!hub || staged) return setMessage(isItalian ? copy.errors.reviewing : "This option pool is still being reviewed. Entries are not open yet.");
+    if (locked) return setMessage(isItalian ? copy.errors.locked : "Entries for this Meta Picks competition are locked.");
+    if (selected.length !== event.picks_required) return setMessage(isItalian ? copy.errors.chooseExactly(event.picks_required) : `Choose exactly ${event.picks_required} ${config.optionPlural}.`);
     if (event.requires_featured_pick && (!featured || !selected.includes(featured))) return setMessage("Choose your Champion Deck from the five selected archetypes.");
 
     setBusy(true);
@@ -183,53 +188,53 @@ export default function WorldsMetaChallenge({ discipline = "vgc", user }) {
     });
     if (error) {
       setBusy(false);
-      return setMessage(error.message || "Your Meta Picks entry could not be saved.");
+      return setMessage(isItalian ? copy.errors.save : error.message || "Your Meta Picks entry could not be saved.");
     }
     await loadHub({ hydrateEntry: true });
     setBusy(false);
-    setMessage("Your Meta Picks entry is saved. You can revise it until the lock time.");
+    setMessage(isItalian ? copy.saved : "Your Meta Picks entry is saved. You can revise it until the lock time.");
   }
 
   return <section className="worlds-meta-section" id="meta-picks" aria-labelledby="worlds-meta-heading">
     <header className="worlds-meta-header">
       <div>
-        <div className="worlds-meta-kickers"><span className="eyebrow">SEPARATE META COMPETITION</span><b>{META_PRIORITY[config.discipline]}</b></div>
-        <h2 id="worlds-meta-heading">{config.title}</h2>
-        <p>This is separate from predicting the players. Your player Pick 10 and your Meta Picks have their own leaderboards, so either kind of Pokémon knowledge can win.</p>
+        <div className="worlds-meta-kickers"><span className="eyebrow">{isItalian ? copy.eyebrow : "SEPARATE META COMPETITION"}</span><b>{isItalian ? copy.priority : META_PRIORITY[config.discipline]}</b></div>
+        <h2 id="worlds-meta-heading">{isItalian ? copy.title : config.title}</h2>
+        <p>{isItalian ? copy.intro : "This is separate from predicting the players. Your player Pick 10 and your Meta Picks have their own leaderboards, so either kind of Pokémon knowledge can win."}</p>
       </div>
       <div className={`worlds-meta-status is-${staged ? "review" : locked ? "locked" : "open"}`}>
-        <span>{staged ? "Pool review" : locked ? "Entries locked" : "Entries open"}</span>
-        <strong>{staged ? "Not open yet" : displayPacificDate(event.locks_at)}</strong>
+        <span>{isItalian ? staged ? copy.poolReview : locked ? copy.locked : copy.open : staged ? "Pool review" : locked ? "Entries locked" : "Entries open"}</span>
+        <strong>{isItalian && staged ? copy.notOpen : staged ? "Not open yet" : displayPacificDate(event.locks_at, isItalian ? "it-IT" : "en-US")}</strong>
       </div>
     </header>
 
-    <MetaScoring config={config} />
+    <MetaScoring config={config} locale={locale} />
 
     {staged ? <div className="worlds-meta-staged">
       <div>
-        <span className="eyebrow">INFRASTRUCTURE READY · FAIL-CLOSED</span>
-        <h3>{reviewedPoolReady && config.discipline === "tcg" ? "Activation migration pending" : config.reviewLabel}</h3>
-        <p>{reviewedPoolReady && config.discipline === "tcg" ? "The official 2026 Worlds packet confirms Standard Format with H regulation marks and onward. The 49-archetype Pitch Black taxonomy is reviewed and frozen; entries stay closed until the activation migration is applied." : config.waitingCopy}</p>
-        <small>No placeholder Pokémon or deck guesses are being treated as reviewed event options.</small>
+        <span className="eyebrow">{isItalian ? copy.stagedEyebrow : "INFRASTRUCTURE READY · FAIL-CLOSED"}</span>
+        <h3>{isItalian ? copy.reviewTitle : reviewedPoolReady && config.discipline === "tcg" ? "Activation migration pending" : config.reviewLabel}</h3>
+        <p>{isItalian ? copy.waitingCopy : reviewedPoolReady && config.discipline === "tcg" ? "The official 2026 Worlds packet confirms Standard Format with H regulation marks and onward. The 49-archetype Pitch Black taxonomy is reviewed and frozen; entries stay closed until the activation migration is applied." : config.waitingCopy}</p>
+        <small>{isItalian ? copy.noPlaceholders : "No placeholder Pokémon or deck guesses are being treated as reviewed event options."}</small>
       </div>
       <ol>
-        <li className="is-ready"><span>1</span><div><strong>Game and scoring</strong><small>Ready</small></div></li>
-        <li className={reviewedPoolReady ? "is-ready" : ""}><span>2</span><div><strong>Reviewed option pool</strong><small>{reviewedPoolReady ? `${options.length} ready` : "Review required"}</small></div></li>
-        <li><span>3</span><div><strong>{reviewedPoolReady && config.discipline === "tcg" ? "Activation migration" : reviewedPoolReady ? "Official opening gate" : "Entries"}</strong><small>{reviewedPoolReady && config.discipline === "tcg" ? "Pending" : "Closed by default"}</small></div></li>
+        <li className="is-ready"><span>1</span><div><strong>{isItalian ? copy.gameScoring : "Game and scoring"}</strong><small>{isItalian ? copy.ready : "Ready"}</small></div></li>
+        <li className={reviewedPoolReady ? "is-ready" : ""}><span>2</span><div><strong>{isItalian ? copy.reviewedPool : "Reviewed option pool"}</strong><small>{reviewedPoolReady ? `${options.length} ${isItalian ? copy.ready.toLowerCase() : "ready"}` : isItalian ? copy.reviewRequired : "Review required"}</small></div></li>
+        <li><span>3</span><div><strong>{isItalian ? copy.entries : reviewedPoolReady && config.discipline === "tcg" ? "Activation migration" : reviewedPoolReady ? "Official opening gate" : "Entries"}</strong><small>{isItalian ? copy.closedDefault : reviewedPoolReady && config.discipline === "tcg" ? "Pending" : "Closed by default"}</small></div></li>
       </ol>
-      <a className="quiet-button" href={event.option_source_url} target="_blank" rel="noreferrer">Review source ↗</a>
+      <a className="quiet-button" href={event.option_source_url} target="_blank" rel="noreferrer">{isItalian ? copy.reviewSource : "Review source ↗"}</a>
     </div> : <div className="worlds-meta-workspace">
       <div className="worlds-meta-builder">
         <header>
-          <div><span className="eyebrow">YOUR META PICKS</span><h3>{selected.length} / {event.picks_required} selected</h3></div>
-          <small>{config.predictionType === "champion_roster" ? "Order matters · strongest confidence first" : "Choose one Champion Deck after selecting five"}</small>
+          <div><span className="eyebrow">{isItalian ? copy.picksEyebrow : "YOUR META PICKS"}</span><h3>{isItalian ? copy.selected(selected.length, event.picks_required) : `${selected.length} / ${event.picks_required} selected`}</h3></div>
+          <small>{isItalian ? copy.confidence : config.predictionType === "champion_roster" ? "Order matters · strongest confidence first" : "Choose one Champion Deck after selecting five"}</small>
         </header>
 
-        {user === undefined ? <div className="worlds-account-gate is-loading"><strong>Checking your DraftCenter account…</strong></div> : !user ? <div className="worlds-account-gate">
+        {user === undefined ? <div className="worlds-account-gate is-loading"><strong>{isItalian ? copy.checking : "Checking your DraftCenter account…"}</strong></div> : !user ? <div className="worlds-account-gate">
           <div aria-hidden="true" className="worlds-account-lock">🔒</div>
-          <h3>Sign in to build your Meta Picks.</h3>
-          <p>Your choices stay private until entries lock.</p>
-          <a className="secondary-button" href="/#member-access">Sign in or create an account</a>
+          <h3>{isItalian ? copy.signInTitle : "Sign in to build your Meta Picks."}</h3>
+          <p>{isItalian ? copy.signInBody : "Your choices stay private until entries lock."}</p>
+          <a className="secondary-button" href="/#member-access">{isItalian ? copy.signInAction : "Sign in or create an account"}</a>
         </div> : <>
           <div className="worlds-meta-selected">
             {Array.from({ length: event.picks_required }, (_, index) => {
@@ -238,51 +243,51 @@ export default function WorldsMetaChallenge({ discipline = "vgc", user }) {
                 <span className="worlds-meta-rank">{index + 1}</span>
                 <div><strong>{option.display_name}</strong>{option.group_label && <small>{option.group_label}</small>}</div>
                 {config.predictionType === "champion_roster" && <div className="worlds-meta-order-controls">
-                  <button type="button" disabled={locked || index === 0} onClick={() => movePick(index, -1)} aria-label={`Move ${option.display_name} up`}>↑</button>
-                  <button type="button" disabled={locked || index === selected.length - 1} onClick={() => movePick(index, 1)} aria-label={`Move ${option.display_name} down`}>↓</button>
+                  <button type="button" disabled={locked || index === 0} onClick={() => movePick(index, -1)} aria-label={isItalian ? copy.moveUp(option.display_name) : `Move ${option.display_name} up`}>↑</button>
+                  <button type="button" disabled={locked || index === selected.length - 1} onClick={() => movePick(index, 1)} aria-label={isItalian ? copy.moveDown(option.display_name) : `Move ${option.display_name} down`}>↓</button>
                 </div>}
                 {event.requires_featured_pick && <label><input type="radio" name={`worlds-meta-featured-${config.discipline}`} checked={featured === option.option_key} disabled={locked} onChange={() => chooseFeatured(option.option_key)} /><span>Champion Deck ×2</span></label>}
-                <button className="worlds-meta-remove" type="button" disabled={locked} onClick={() => toggle(option)} aria-label={`Remove ${option.display_name}`}>Remove</button>
-              </article> : <article className="is-empty" key={index}><span className="worlds-meta-rank">{index + 1}</span><small>Open spot</small></article>;
+                <button className="worlds-meta-remove" type="button" disabled={locked} onClick={() => toggle(option)} aria-label={isItalian ? copy.remove(option.display_name) : `Remove ${option.display_name}`}>{isItalian ? copy.removeLabel : "Remove"}</button>
+              </article> : <article className="is-empty" key={index}><span className="worlds-meta-rank">{index + 1}</span><small>{isItalian ? copy.openSpot : "Open spot"}</small></article>;
             })}
           </div>
 
           {trendingOptions.length > 0 && <div className="worlds-meta-option-views">
-            <div role="tablist" aria-label={`Browse reviewed ${config.optionPlural}`}>
-              <button type="button" role="tab" aria-selected={optionView === "trending"} onClick={() => setOptionView("trending")}>Trending {trendingOptions.length}</button>
-              <button type="button" role="tab" aria-selected={optionView === "all"} onClick={() => setOptionView("all")}>All reviewed {options.length}</button>
+            <div role="tablist" aria-label={isItalian ? copy.browseLabel : `Browse reviewed ${config.optionPlural}`}>
+              <button type="button" role="tab" aria-selected={optionView === "trending"} onClick={() => setOptionView("trending")}>{isItalian ? copy.trending : "Trending"} {trendingOptions.length}</button>
+              <button type="button" role="tab" aria-selected={optionView === "all"} onClick={() => setOptionView("all")}>{isItalian ? copy.allReviewed : "All reviewed"} {options.length}</button>
             </div>
-            <p><strong>Trending is a starting point, not a prediction.</strong> {trendingCopy}</p>
+            <p><strong>{isItalian ? copy.trendLead : "Trending is a starting point, not a prediction."}</strong> {trendingCopy}</p>
           </div>}
-          <label className="worlds-meta-search">Find {config.optionPlural}<input type="search" value={search} onChange={(changeEvent) => setSearch(changeEvent.target.value)} placeholder={`Search all ${options.length} reviewed ${config.gameLabel} options…`} /></label>
+          <label className="worlds-meta-search">{isItalian ? copy.find : <>Find {config.optionPlural}</>}<input type="search" value={search} onChange={(changeEvent) => setSearch(changeEvent.target.value)} placeholder={isItalian ? copy.search(options.length) : `Search all ${options.length} reviewed ${config.gameLabel} options…`} /></label>
           <div className="worlds-meta-option-grid">
             {filteredOptions.map((option) => {
               const chosen = selected.includes(option.option_key);
               return <button type="button" key={option.option_key} aria-pressed={chosen} disabled={locked || !option.is_selectable} onClick={() => toggle(option)}>
-                <strong>{option.display_name}</strong>{option.group_label && <small>{option.group_label}</small>}<span>{chosen ? "Selected ✓" : `Add ${config.optionLabel}`}</span>
+                <strong>{option.display_name}</strong>{option.group_label && <small>{option.group_label}</small>}<span>{isItalian ? chosen ? copy.selectedLabel : copy.add : chosen ? "Selected ✓" : `Add ${config.optionLabel}`}</span>
               </button>;
             })}
           </div>
-          {!filteredOptions.length && <p className="worlds-empty-state">No reviewed options match that search.</p>}
+          {!filteredOptions.length && <p className="worlds-empty-state">{isItalian ? copy.noResults : "No reviewed options match that search."}</p>}
           <div className="worlds-save-row">
-            <div>{hub?.my_entry ? <p>Saved as <strong>{hub.my_entry.display_name}</strong>. Edits remain open until lock.</p> : <p>Complete every spot{event.requires_featured_pick ? " and choose the Champion Deck" : " in confidence order"} to save.</p>}{message && <p className="worlds-message" role="status">{message}</p>}</div>
-            <button className="primary-button" type="button" disabled={busy || locked || selected.length !== event.picks_required || (event.requires_featured_pick && !featured)} onClick={saveEntry}>{busy ? "Saving…" : hub?.my_entry ? "Update Meta Picks" : "Save Meta Picks"}</button>
+            <div>{hub?.my_entry ? <p>{isItalian ? copy.savedAs : "Saved as"} <strong>{hub.my_entry.display_name}</strong>. {isItalian ? copy.edits : "Edits remain open until lock."}</p> : <p>{isItalian ? copy.complete : <>Complete every spot{event.requires_featured_pick ? " and choose the Champion Deck" : " in confidence order"} to save.</>}</p>}{message && <p className="worlds-message" role="status">{message}</p>}</div>
+            <button className="primary-button" type="button" disabled={busy || locked || selected.length !== event.picks_required || (event.requires_featured_pick && !featured)} onClick={saveEntry}>{isItalian ? busy ? copy.saving : hub?.my_entry ? copy.update : copy.save : busy ? "Saving…" : hub?.my_entry ? "Update Meta Picks" : "Save Meta Picks"}</button>
           </div>
         </>}
       </div>
 
       <aside className="worlds-meta-leaderboard">
-        <span className="eyebrow">{config.gameLabel.toUpperCase()} META LEADERBOARD</span>
-        <h3>{hub?.entry_count || 0} entries</h3>
+        <span className="eyebrow">{isItalian ? copy.leaderboard : `${config.gameLabel.toUpperCase()} META LEADERBOARD`}</span>
+        <h3>{isItalian ? copy.entriesCount(hub?.entry_count || 0) : `${hub?.entry_count || 0} entries`}</h3>
         {hub?.standings?.length ? <div>{hub.standings.slice(0, 10).map((entry, index) => <details className={entry.is_me ? "is-me" : ""} key={`${entry.display_name}-${index}`}>
           <summary><span>#{entry.rank}</span><strong>{entry.display_name}</strong><b>{entry.score} pts</b></summary>
-          <p>{entry.picks ? entry.picks.map((key) => `${optionByKey.get(key)?.display_name || key}${key === entry.featured_key ? " (Champion Deck ×2)" : ""}`).join(" · ") : "Picks stay private until lock."}</p>
-        </details>)}</div> : <p className="worlds-empty-state">No Meta entries yet. Saved entries will appear here.</p>}
+          <p>{entry.picks ? entry.picks.map((key) => `${optionByKey.get(key)?.display_name || key}${key === entry.featured_key ? " (Champion Deck ×2)" : ""}`).join(" · ") : isItalian ? copy.private : "Picks stay private until lock."}</p>
+        </details>)}</div> : <p className="worlds-empty-state">{isItalian ? copy.empty : "No Meta entries yet. Saved entries will appear here."}</p>}
       </aside>
     </div>}
 
     <footer className="worlds-meta-safety">
-      <span>🔒 Picks private until lock</span><span>✓ Reviewed pool required</span><span>✓ Final results reviewed by owner</span><span>Automation disabled</span>
+      {(isItalian ? copy.safety : ["🔒 Picks private until lock", "✓ Reviewed pool required", "✓ Final results reviewed by owner", "Automation disabled"]).map((label) => <span key={label}>{label}</span>)}
     </footer>
   </section>;
 }
