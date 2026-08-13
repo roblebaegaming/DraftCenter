@@ -1,127 +1,110 @@
-# Draft Tournament architecture and development status
+# Draft-first tournament architecture
 
-A Draft Tournament is one compact event, not a multi-pod season:
+“Draft teams first” is a roster-building setting, not a tournament format. A
+commissioner chooses single elimination, double elimination, or Swiss. The
+elimination formats can use brought teams or one shared snake draft; Swiss
+currently uses the shared draft:
 
 ```text
 Registration -> check-in -> one shared draft -> roster lock
--> Swiss rounds -> optional top cut -> champion
+-> selected elimination bracket or Swiss rounds -> champion
 ```
 
-Every checked-in entrant receives one seat in the same draft. That roster is
-locked for Swiss play and, when configured, the single-elimination top cut.
-There are no source pods, qualification runs, cross-pod duplicates, trades,
-free agency, keepers, or redraft between phases.
+Existing Draft Tournaments created before migration 385 retain their released
+Swiss-round and optional single-elimination top-cut lifecycle. New Swiss events
+use the same proven round and standings engine with no top cut by default. There
+is no automatic conversion of historical events.
 
-The shared-draft Draft Tournament has a maximum of **16 entrants** because all
-entrants draft from one limited Pokémon pool. Do not expand this
-infrastructure beyond 16 teams. A future larger draft-based competition would
-be a separate multi-pod product: entrants draft and play inside their pods,
-then pod qualifiers advance to an elimination stage. Raising standalone
-elimination limits does not raise this shared-draft boundary.
+## Product contract
 
-## Approved first-release contract
-
-- 4-16 registered entrants, with no waitlist or late entry after field lock.
+- 4–16 registered entrants for every shared-draft event, with no waitlist or
+  late entry after field lock.
 - Explicit check-in; unchecked entrants become recorded no-shows.
 - Snake draft only, using the final registration seed as the fixed first-round
   draft order.
-- 4-12 Pokemon per roster, default 6.
-- Optional 60-1,000 point snake budget and a 0-1,440 minute pick clock.
+- 4–12 Pokémon per roster, default 6.
+- Optional 60–1,000 point snake budget and a 0–1,440 minute pick clock.
 - Existing private queues, server clock, pause/resume, and auto-pick behavior.
-- Three Swiss rounds for 4-8 checked-in entrants and four for 9-16.
 - Best-of-1 or best-of-3 matches with no draws.
-- Optional single-elimination top cut of 2, 4, or 8.
+- The drafted rosters enter the selected single- or double-elimination bracket,
+  or Swiss Round 1, immediately after atomic roster lock.
 - Public roster publication is opt-in and begins only after roster lock.
-- Entrant identity is immutable after field lock. Drops and
-  disqualifications remain available, but replacement entry does not.
+- Entrant identity is immutable after field lock. Drops and disqualifications
+  remain available, but replacement entry does not.
 - An owner may irreversibly cancel during draft setup, drafting, or roster
   review. Cancellation removes the private draft room. Roster lock closes the
   cancellation boundary.
+
+The shared draft has a maximum of **16 entrants** because all managers draft from one
+limited Pokémon pool. A larger draft-based competition requires a separate
+multi-pod design where entrants draft and play inside their pods before
+pod qualifiers advance to an elimination stage. Raising standalone bracket
+limits does not raise the shared
+draft boundary. Do not expand this infrastructure beyond 16 teams.
 
 ## Architecture
 
 The event remains rooted in `tournaments` with
 `format = 'draft-tournament'`. A one-to-one `draft_tournament_events` adapter
-owns a private `workspace_kind = 'draft-tournament'` league used only by the
-existing hosted draft engine. That room is excluded from the ordinary League
-Hub and is deleted with the event.
+stores `competition_format` as `single-elimination`, `double-elimination`, or
+the backward-compatible `swiss` value. It owns a private
+`workspace_kind = 'draft-tournament'` league used only by the hosted draft
+engine. That room is excluded from the ordinary League Hub and is deleted with
+the event.
 
-The event tables are private-by-default and browser access is through bounded
+The event tables are private by default and browser access is through bounded
 security-definer functions:
 
-- `draft_tournament_events` owns phase, revision, fixed draft settings, the
-  internal league/session references, and lifecycle timestamps.
-- `draft_tournament_seats` maps each Tournament entrant and exact account ID to
-  one draft team, initial seed, and immutable roster snapshot/hash.
-- `draft_tournament_rounds` and `draft_tournament_pairings` record one
-  server-created Swiss round at a time.
-- `draft_tournament_standing_snapshots` preserves recalculated standings for
-  every created round.
-- `draft_tournament_top_cut_entries` freezes final Swiss rank as top-cut seed.
-- Existing `tournament_matches`, result submissions, confirmations, forfeits,
-  corrections, audit events, and single-elimination graph remain authoritative
-  for match play.
+- `draft_tournament_events` owns phase, revision, competition choice, fixed
+  draft settings, internal league/session references, and lifecycle times.
+- `draft_tournament_seats` maps each entrant and exact account ID to one draft
+  team, initial seed, and immutable roster snapshot/hash.
+- Existing `tournament_matches`, submissions, confirmations, forfeits,
+  corrections, audit events, and bracket graph remain authoritative for match
+  play.
+- The Swiss round, pairing, standings, and top-cut tables remain authoritative
+  for all events using `competition_format = 'swiss'`.
 
 Team ownership uses the seat's exact user UUID. Display names are never an
 authorization source. Both `league_state_snapshots.state.rosters` and
-relational `roster_entries` are guarded after the atomic roster lock.
+relational `roster_entries` are guarded after atomic roster lock.
 
-## Swiss and standings contract
+## Tournament-play handoff
 
-Pairing is deterministic and server-authoritative. The bounded backtracking
-search first proves the minimum required number of rematches, then keeps the
-highest-ranked entrant in the closest match-win group, using standings order
-and initial seed as stable fallbacks. An odd field gives the bye to the
-lowest-ranked active entrant without a prior bye.
+At roster lock, the server verifies that the hosted snake draft is complete
+and that every active seat has exactly the required roster size. It writes the
+roster snapshots and hashes in the same transaction that creates the bracket.
 
-Standings order is:
+The adapter invokes the existing authoritative single- or double-elimination
+builder. That preserves seeded placement, automatic bye propagation, winners
+and losers routing, the Grand Final, the conditional reset match, result
+corrections, forfeits, and completion behavior. For eight managers, double
+elimination reserves 15 matches: seven winners-bracket matches, six
+losers-bracket matches, the Grand Final, and the conditional reset.
 
-1. match wins;
-2. head-to-head for an exact two-entrant match-win tie;
-3. opponent match-win percentage;
-4. game-win percentage;
-5. opponent game-win percentage;
-6. initial seed; and
-7. entrant ID as the final deterministic database fallback.
-
-A bye is one match win with no opponent or game percentage contribution.
-Opponent percentages use the standard one-third floor and count each played
-opponent occurrence, including an unavoidable rematch.
-
-An earlier Swiss result may be corrected while every later-round match is
-untouched; those later pairings are explicitly removed and regenerated. Once
-any later report, confirmation, or forfeit exists, the correction fails
-closed. A timed-out mutation is never replayed automatically: the client
+If any roster or bracket validation fails, the entire roster-lock transaction
+rolls back. A timed-out mutation is never replayed automatically; the client
 refreshes authoritative state and requires a new explicit action.
 
-## Release-candidate status
+For Swiss, atomic roster lock immediately pairs Round 1 through the existing
+authoritative Swiss engine. It uses deterministic score-grouped pairings,
+avoids rematches when possible, assigns a bye to the lowest eligible manager,
+and recalculates the published standings after confirmed results.
 
-The application and forward-only migrations are implemented on the Draft
-Tournament feature branch. Migrations 362 and 363 have been applied only to
-the disposable `release-wave-2026-08-09` Supabase Preview branch. They have
-not been pushed, applied to production, merged, or deployed.
+## Swiss contract
 
-- Migration 362: event/seat model, check-in, hidden draft-room adapter, exact
-  ownership, privacy, mutation guards, bounded projection, and cleanup.
-- Migration 363: atomic roster lock, deterministic Swiss rounds, standings,
-  correction rollback, cancellation, top cut, and completion propagation.
-- Tournament pages: creation settings and a phase-specific commissioner,
-  entrant, standings, roster, and match workspace.
-- Draft room: event-only Setup, Draft, and Rosters navigation. Normal league
-  season, schedule, transaction, playoff, backup, and danger controls remain
-  unavailable.
-- Isolated regression matrix: full synthetic create, exact multi-account
-  ownership, shared draft, dual roster lock, Swiss correction boundaries, top
-  cut, public projection, cancellation, exact cleanup, RLS, and grants.
+`competition_format = 'swiss'` events use three rounds for 4–8 entrants or four
+for 9–16. New Swiss events created through the simplified format control have
+no top cut by default; historical events may retain their optional Top 2, 4, or
+8. Standings, correction rollback, and completion rules are unchanged by
+migration 385.
 
-The focused Draft Tournament tests pass. The isolated Preview transaction
-matrix passes all 12 release assertions, including exact identity, shared
-draft ownership, roster and field locks, Swiss correction rollback, top cut,
-public projection, cancellation, RLS, grants, and complete cleanup. Signed-in
-desktop and 390-by-844 mobile Preview reviews also pass, and their disposable
-tournament and account fixtures were removed and verified.
+## Validation boundary
 
-Release still requires the repository-wide checks, protected pull-request
-review, authorized production migrations in numeric order, exact deployed-
-commit confirmation, and the post-deployment signed-out production smoke
-sweep.
+Migration 385 is forward only. Its Preview regression uses disposable
+identities and events inside a transaction that rolls back. It checks the RPC
+grant boundary, an eight-manager double-elimination graph, a four-manager
+single-elimination graph, Swiss creation through the new control, directory
+projection, completion propagation, and fixture cleanup. A real league, draft,
+roster, tournament, or provider setting must never be changed merely to test
+this lifecycle.

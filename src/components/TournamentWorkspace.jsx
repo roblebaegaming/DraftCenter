@@ -8,9 +8,15 @@ const MATCH_PAGE_SIZE = 64;
 const ENTRANT_PAGE_SIZE = 64;
 
 const statusLabel = (status) => status.replaceAll("-", " ");
-const formatLabel = (format) => format === "draft-tournament"
-  ? "Draft Tournament"
-  : format === "double-elimination" ? "Double elimination" : "Single elimination";
+const formatLabel = (format, competitionFormat = null) => format === "draft-tournament"
+  ? competitionFormat === "double-elimination"
+    ? "Draft + double elimination"
+    : competitionFormat === "single-elimination"
+      ? "Draft + single elimination"
+      : competitionFormat === "swiss"
+        ? "Draft + Swiss"
+        : "Draft Tournament"
+  : format === "double-elimination" ? "Double elimination" : format === "swiss" ? "Swiss" : "Single elimination";
 
 function tournamentRoundLabel(stage, round, matchCount, finalRound) {
   if (stage === "swiss") return `Swiss Round ${round}`;
@@ -618,10 +624,15 @@ export default function TournamentWorkspace({ slug }) {
   }
 
   function requestLockDraftRosters() {
+    const competitionFormat = workspace.draft_tournament?.event?.competition_format;
+    const bracketLabel = competitionFormat === "double-elimination" ? "double-elimination" : "single-elimination";
+    const usesEliminationBracket = ["single-elimination", "double-elimination"].includes(competitionFormat);
     setConfirmation({
       title: "Lock every drafted roster?",
-      description: "DraftCenter will verify every team has the required roster size, save tamper-evident snapshots, make both roster stores immutable, and pair Swiss Round 1 atomically.",
-      confirmLabel: "Lock rosters & pair Round 1",
+      description: usesEliminationBracket
+        ? `DraftCenter will verify every team has the required roster size, save tamper-evident snapshots, make both roster stores immutable, and build the ${bracketLabel} bracket atomically.`
+        : "DraftCenter will verify every team has the required roster size, save tamper-evident snapshots, make both roster stores immutable, and pair Swiss Round 1 atomically.",
+      confirmLabel: usesEliminationBracket ? "Lock rosters & build bracket" : "Lock rosters & pair Round 1",
       workingLabel: "Locking rosters...",
       tone: "danger",
       onConfirm: () => runDraftTournamentAction("lock_draft_tournament_rosters", {
@@ -922,6 +933,9 @@ export default function TournamentWorkspace({ slug }) {
   const tournament = workspace.tournament;
   const draftTournament = workspace.draft_tournament;
   const draftEvent = draftTournament?.event || null;
+  const competitionFormat = draftEvent?.competition_format || null;
+  const displayFormat = formatLabel(tournament.format, competitionFormat);
+  const usesDraftFirstBracket = ["single-elimination", "double-elimination"].includes(competitionFormat);
   const currentDraftRound = draftTournament?.rounds?.find((round) => round.round_number === draftEvent?.current_swiss_round) || null;
   const latestDraftStandings = (draftTournament?.standings || []).filter((standing) => standing.round_id === currentDraftRound?.id);
   const connectedChampionship = workspace.connected_championship;
@@ -933,12 +947,12 @@ export default function TournamentWorkspace({ slug }) {
         <a className="quiet-button" href="/tournaments">&larr; Tournaments</a>
         <span className="eyebrow">{draftEvent ? statusLabel(draftEvent.phase) : statusLabel(tournament.status)} &middot; {tournament.visibility}</span>
         <h1>{tournament.name}</h1>
-        <p>{tournament.description || `Standalone ${formatLabel(tournament.format).toLowerCase()} tournament`}</p>
+        <p>{tournament.description || `${displayFormat} tournament`}</p>
         {connectedChampionship && <a className="tournament-connected-link" href={`/organizations/${connectedChampionship.organization_slug}`}>{connectedChampionship.organization_name} · {connectedChampionship.season_name}</a>}
         <div>
           <span>Best of {tournament.best_of}</span>
           <span>{registeredEntrants.length} / {tournament.entrant_limit} active entrants</span>
-          {draftEvent && <span>{draftEvent.roster_size} Pokemon &middot; {draftEvent.pick_time_limit_minutes ? `${draftEvent.pick_time_limit_minutes} min/pick` : "No pick clock"} &middot; {draftEvent.swiss_round_count ? `${draftEvent.swiss_round_count} Swiss rounds` : "Swiss rounds set at field lock"}</span>}
+          {draftEvent && <span>{draftEvent.roster_size} Pokemon &middot; {draftEvent.pick_time_limit_minutes ? `${draftEvent.pick_time_limit_minutes} min/pick` : "No pick clock"} &middot; {usesDraftFirstBracket ? `${formatLabel(competitionFormat)} bracket` : draftEvent.swiss_round_count ? `${draftEvent.swiss_round_count} Swiss rounds` : "Swiss rounds set at field lock"}</span>}
           {tournament.is_owner && tournament.visibility === "private" && tournament.status === "registration" && (
             <button type="button" className="quiet-button" disabled={busy} onClick={copyInvite}>{inviteCode ? "Copy private registration link" : "Create private registration link"}</button>
           )}
@@ -1063,7 +1077,7 @@ export default function TournamentWorkspace({ slug }) {
       {draftEvent && draftEvent.phase !== "registration" && draftEvent.phase !== "check-in" && (
         <section className="tournament-panel tournament-draft-event-panel" aria-labelledby="draft-tournament-event-heading">
           <div className="section-heading">
-            <div><span className="eyebrow">DRAFT TOURNAMENT</span><h2 id="draft-tournament-event-heading">{statusLabel(draftEvent.phase)}</h2></div>
+            <div><span className="eyebrow">{displayFormat.toUpperCase()}</span><h2 id="draft-tournament-event-heading">{statusLabel(draftEvent.phase)}</h2></div>
             <button type="button" className="quiet-button" onClick={load}>Refresh</button>
           </div>
           {draftTournament?.draft_room?.slug && ["draft-setup", "drafting", "roster-review"].includes(draftEvent.phase) && (
@@ -1076,7 +1090,7 @@ export default function TournamentWorkspace({ slug }) {
             </div>
           )}
           {tournament.is_owner && draftEvent.phase === "roster-review" && (
-            <button type="button" className="primary-button" disabled={busy} onClick={requestLockDraftRosters}>Lock rosters & pair Swiss Round 1</button>
+            <button type="button" className="primary-button" disabled={busy} onClick={requestLockDraftRosters}>{usesDraftFirstBracket ? `Lock rosters & build ${formatLabel(competitionFormat).toLowerCase()} bracket` : "Lock rosters & pair Swiss Round 1"}</button>
           )}
           {tournament.is_owner && draftEvent.phase === "swiss" && currentDraftRound?.status === "complete" && draftEvent.current_swiss_round < draftEvent.swiss_round_count && (
             <button type="button" className="primary-button" disabled={busy} onClick={requestNextSwissRound}>Pair Swiss Round {draftEvent.current_swiss_round + 1}</button>
@@ -1088,7 +1102,8 @@ export default function TournamentWorkspace({ slug }) {
             <button type="button" className="danger-button" disabled={busy} onClick={requestCancelDraftTournament}>Cancel event</button>
           )}
           {draftEvent.phase === "top-cut" && <p className="muted">Swiss standings are final. The remaining matches use the confirmed single-elimination top-cut bracket below.</p>}
-          {["complete", "archived"].includes(draftEvent.phase) && <p className="muted">The event is complete. Its locked rosters, Swiss standings, result history, and top cut remain preserved.</p>}
+          {draftEvent.phase === "bracket" && <p className="muted">The drafted rosters are locked. The {formatLabel(competitionFormat).toLowerCase()} bracket is live below.</p>}
+          {["complete", "archived"].includes(draftEvent.phase) && <p className="muted">The event is complete. Its locked rosters, {usesDraftFirstBracket ? "bracket" : "Swiss standings and top cut"}, and result history remain preserved.</p>}
           {draftEvent.phase === "cancelled" && <p className="muted">The event was cancelled before roster lock. Its private draft room and draft records were removed.</p>}
 
           {latestDraftStandings.length > 0 && (
@@ -1168,7 +1183,7 @@ export default function TournamentWorkspace({ slug }) {
       {rounds.length > 0 && (
         <section className="tournament-bracket" aria-labelledby="tournament-bracket-heading">
           <div className="section-heading">
-            <div><span className="eyebrow">{formatLabel(tournament.format).toUpperCase()}</span><h2 id="tournament-bracket-heading">Bracket</h2></div>
+            <div><span className="eyebrow">{displayFormat.toUpperCase()}</span><h2 id="tournament-bracket-heading">Bracket</h2></div>
             <button type="button" className="quiet-button" disabled={roundBusy} onClick={() => chooseMatchPage(matchPage.page)}>Refresh</button>
           </div>
           <nav className="tournament-round-picker" aria-label="Choose a bracket round">
@@ -1178,7 +1193,7 @@ export default function TournamentWorkspace({ slug }) {
           {visibleGroup && (() => {
             const roundHeadingId = `tournament-round-${visibleGroup.key.replaceAll(":", "-")}`;
             return (
-              <div className="tournament-rounds" aria-label={`${formatLabel(tournament.format)} bracket round`}>
+              <div className="tournament-rounds" aria-label={`${displayFormat} bracket round`}>
                 <section id={`tournament-round-panel-${visibleGroup.key.replaceAll(":", "-")}`} className="is-selected" aria-labelledby={roundHeadingId} data-bracket-stage={visibleGroup.stage}>
                   <h3 id={roundHeadingId}>{visibleGroup.label}</h3>
                   {visibleGroup.stage === "losers" && visibleGroup.round === 1 && <p className="tournament-stage-note">A second loss eliminates an entrant.</p>}
