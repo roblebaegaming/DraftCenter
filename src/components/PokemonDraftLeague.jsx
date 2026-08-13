@@ -14,6 +14,20 @@ import { claimedTeamCount, compactLocalTeamsClaimedFirst, openSetupTeams, teamIs
 import { draftManagerLabel, snakeDraftContext } from "../lib/draftBoardContext";
 import { saveWithConflictRecovery, waitForSaveFailureGrace } from "../lib/leagueSaveReconciliation";
 import {
+  DEFAULT_LEAGUE_TEAM_CAP,
+  EXPANDED_LEAGUE_TEAM_CAP,
+  LEAGUE_SCALE_MODES,
+  MIN_LEAGUE_TEAMS,
+  MULTI_POD_LEAGUE_TEAM_CAP,
+  defaultPlayoffRoundNames,
+  divisionPlayoffTeamLimit,
+  leagueTeamLimit,
+  nextPowerOfTwo,
+  normalizedLeagueScaleMode,
+  roundRobinWeeks,
+  scheduledRoundRobinTeamCount,
+} from "../lib/leagueScale.mjs";
+import {
   defaultPricingPresetId,
   legacyPricingPresetId,
   priceDetailsFor,
@@ -2231,8 +2245,14 @@ function pickRandomTrainerTeam(usedNames, usedColors) {
   const nameAvailable = TRAINER_TEAMS.filter((t) => !usedNames.includes(t.name));
   const colors = usedColors || [];
   const both = nameAvailable.filter((t) => !colors.includes(t.color));
-  const pool = both.length > 0 ? both : nameAvailable.length > 0 ? nameAvailable : TRAINER_TEAMS;
-  return pool[secureRandomIndex(pool.length)];
+  if (both.length > 0 || nameAvailable.length > 0) {
+    const pool = both.length > 0 ? both : nameAvailable;
+    return pool[secureRandomIndex(pool.length)];
+  }
+  const base = TRAINER_TEAMS[secureRandomIndex(TRAINER_TEAMS.length)];
+  let copyNumber = 2;
+  while (usedNames.includes(`${base.name} ${copyNumber}`)) copyNumber += 1;
+  return { ...base, name: `${base.name} ${copyNumber}` };
 }
 
 /* ---------------------------------------------------------
@@ -4643,19 +4663,6 @@ function buildDivisionRoundRobin(divisions, desiredWeeks) {
 --------------------------------------------------------- */
 const STORAGE_KEY = "draft-league-state-v1";
 
-function defaultPlayoffRoundNames(bracketSize) {
-  const totalRounds = Math.max(1, Math.round(Math.log2(Math.max(2, bracketSize))));
-  const names = [];
-  for (let i = 0; i < totalRounds; i++) {
-    const roundsFromEnd = totalRounds - i;
-    if (roundsFromEnd === 1) names.push("Final");
-    else if (roundsFromEnd === 2) names.push("Semifinals");
-    else if (roundsFromEnd === 3) names.push("Quarterfinals");
-    else names.push(`Top ${Math.pow(2, roundsFromEnd)}`);
-  }
-  return names;
-}
-
 function normalizedPlayoffRoundNames(names, bracketSize) {
   const defaults = defaultPlayoffRoundNames(bracketSize);
   if (!Array.isArray(names) || names.length === 0) return defaults;
@@ -4682,7 +4689,13 @@ function draftReadinessIssues(state, resolveCost) {
   const targetPerTeam = usesBudget ? rosterMin : rosterSize;
   const budget = Number(settings.budget);
 
-  if (teamCount < 2 || teamCount > 16) issues.push("Choose between 2 and 16 teams.");
+  const activeTeamLimit = leagueTeamLimit(settings);
+  if (teamCount < MIN_LEAGUE_TEAMS || teamCount > activeTeamLimit) {
+    issues.push(`Choose between ${MIN_LEAGUE_TEAMS} and ${activeTeamLimit} teams for the active league-size mode.`);
+  }
+  if (teamCount > EXPANDED_LEAGUE_TEAM_CAP && (!Array.isArray(settings.divisions) || settings.divisions.length < 2)) {
+    issues.push("Leagues above 32 teams need at least two pods or divisions.");
+  }
   if (Number(settings.leagueSize) !== teamCount) issues.push("The saved league size does not match the number of teams.");
 
   const normalizedTeamNames = teams.map((team) => String(team?.name || "").trim().toLowerCase());
@@ -4797,14 +4810,6 @@ function scheduledDraftPreparationKey(state) {
   return `v1-${(hash >>> 0).toString(16).padStart(8, "0")}-${serialized.length}`;
 }
 
-// Standard seeding order for a single-elimination bracket (1v8, 4v5, 3v6, 2v7
-// for 8 teams, etc.) so the top seed doesn't meet the 2-seed until the final.
-function nextPowerOfTwo(n) {
-  let p = 1;
-  while (p < n) p *= 2;
-  return Math.max(2, p);
-}
-
 function seedPairOrder(bracketSize) {
   let order = [1, 2];
   while (order.length < bracketSize) {
@@ -4825,7 +4830,7 @@ function freshState() {
     coCommissioners: [], // additional names with the same commissioner powers, alongside the primary above
     auditLog: [], // notable admin actions — see auditEntry() for the shape
     settings: {
-      draftType: "snake", leagueSize: 6, budget: 100, rosterSize: 6,
+      draftType: "snake", leagueSize: 6, leagueScaleMode: LEAGUE_SCALE_MODES.standard, budget: 100, rosterSize: 6,
       rosterMin: 9, rosterMax: 11, pickTimeLimitMinutes: 0,
       auctionNominationSeconds: 30, // how long whoever's turn it is has to actually nominate someone before it's done for them
       // Stored as UTC hours (0-23) rather than whatever the commissioner sees
@@ -5147,6 +5152,7 @@ function hydrateState(remote) {
       divisions: remote.settings?.divisions || [],
       divisionRoundRobin: remote.settings?.divisionRoundRobin ?? false,
       divisionPlayoffTeams: remote.settings?.divisionPlayoffTeams ?? 4,
+      leagueScaleMode: normalizedLeagueScaleMode(remote.settings?.leagueScaleMode),
       playoffTeams: remote.settings?.playoffTeams ?? 4,
       doubleElimination: remote.settings?.doubleElimination ?? false,
       playoffRoundNames: normalizedPlayoffRoundNames(
@@ -6325,9 +6331,15 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   }
 
   async function resizeTeams(size) {
-    const targetSize = Math.max(2, Math.min(16, Number(size) || 2));
+    const activeTeamLimit = leagueTeamLimit(state.settings);
+    const requestedSize = Number(size) || MIN_LEAGUE_TEAMS;
+    const targetSize = Math.max(MIN_LEAGUE_TEAMS, Math.min(activeTeamLimit, requestedSize));
     const humanTeams = claimedTeamCount(state.teams);
     setTeamResizeMessage("");
+    if (requestedSize > activeTeamLimit) {
+      setTeamResizeMessage(`This league-size mode is capped at ${activeTeamLimit} teams.`);
+      return false;
+    }
     if (state.locked) {
       setTeamResizeMessage("The team count cannot change after the draft starts.");
       return false;
@@ -6409,6 +6421,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   function addExpansionTeam() {
     commit((s) => {
       if (s.locked || s.seasonNumber <= 1) return s;
+      if (s.teams.length >= leagueTeamLimit(s.settings)) return s;
       const usedNames = s.teams.map((t) => t.name);
       const usedColors = s.teams.map((t) => t.color).filter(Boolean);
       const pick = pickRandomTrainerTeam(usedNames, usedColors);
@@ -6459,6 +6472,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   }
   function addDivision() {
     commit((s) => {
+      if (s.settings.divisions.length >= s.teams.length) return s;
       const newDivisions = [...s.settings.divisions, { name: `Division ${s.settings.divisions.length + 1}`, teamIds: [] }];
       return { ...s, settings: { ...s.settings, divisions: redistributeEvenly(newDivisions, s.teams.length) } };
     });
@@ -6473,6 +6487,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   }
   function removeDivision(divIdx) {
     commit((s) => {
+      if (s.teams.length > EXPANDED_LEAGUE_TEAM_CAP && s.settings.divisions.length <= 2) return s;
       const remaining = s.settings.divisions.filter((_, i) => i !== divIdx);
       return { ...s, settings: { ...s.settings, divisions: redistributeEvenly(remaining, s.teams.length) } };
     });
@@ -11211,6 +11226,7 @@ function DivisionDragBoard({ teams, settings, setTeamDivision, renameDivision, r
   const [dragged, setDragged] = useState(null); // team index currently being dragged, or null
   const [dragPos, setDragPos] = useState({ x: 0, y: 0 });
   const [overDiv, setOverDiv] = useState(null);
+  const mustKeepMultiplePods = teams.length > EXPANDED_LEAGUE_TEAM_CAP && settings.divisions.length <= 2;
 
   useEffect(() => {
     if (dragged === null) return;
@@ -11273,7 +11289,9 @@ function DivisionDragBoard({ teams, settings, setTeamDivision, renameDivision, r
               <input defaultValue={d.name} onBlur={(e) => renameDivision(di, e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && e.target.blur()}
                 className="flex-1 min-w-0 px-1.5 py-1 rounded mono-font text-xs" style={{ background: "#141729", border: "1px solid rgba(255,255,255,0.1)", color: "#EDEBFA" }} />
-              <button onClick={() => removeDivision(di)} className="w-6 h-6 rounded text-xs flex-shrink-0" style={{ background: "#2A1620", color: "#F0555A" }}>✕</button>
+              <button onClick={() => removeDivision(di)} disabled={mustKeepMultiplePods}
+                title={mustKeepMultiplePods ? "A league above 32 teams must keep at least two pods." : "Remove division"}
+                className="w-6 h-6 rounded text-xs flex-shrink-0 disabled:opacity-30" style={{ background: "#2A1620", color: "#F0555A" }}>✕</button>
             </div>
             <div className="flex flex-col gap-1.5">
               {d.teamIds.map(teamChip)}
@@ -11281,7 +11299,8 @@ function DivisionDragBoard({ teams, settings, setTeamDivision, renameDivision, r
             </div>
           </div>
         ))}
-        <button onClick={addDivision} className="flex-shrink-0 rounded-lg flex items-center justify-center text-sm font-semibold px-4"
+        <button onClick={addDivision} disabled={settings.divisions.length >= teams.length}
+          className="flex-shrink-0 rounded-lg flex items-center justify-center text-sm font-semibold px-4 disabled:opacity-40"
           style={{ width: 130, background: "#1F2338", color: "#4FD1C5", border: "1px dashed rgba(255,255,255,0.15)" }}>
           + Add division
         </button>
@@ -11493,8 +11512,13 @@ function SetupView({ state, leagueId = null, leagueName = "league", isCommission
     costOverrides: savedSettings.costOverrides && typeof savedSettings.costOverrides === "object" ? savedSettings.costOverrides : {},
     spriteOverrides: savedSettings.spriteOverrides && typeof savedSettings.spriteOverrides === "object" ? savedSettings.spriteOverrides : {},
     manualDraftOrder: Array.isArray(savedSettings.manualDraftOrder) ? savedSettings.manualDraftOrder : null,
+    leagueScaleMode: normalizedLeagueScaleMode(savedSettings.leagueScaleMode),
   };
   const teams = Array.isArray(state.teams) ? state.teams : [];
+  const activeLeagueTeamLimit = leagueTeamLimit(settings);
+  const canUnlockMultiPodScale = settings.divisions.filter((division) => Array.isArray(division?.teamIds) && division.teamIds.length > 0).length >= 2;
+  const divisionPlayoffMax = divisionPlayoffTeamLimit(settings.divisions);
+  const effectiveDivisionPlayoffTeams = Math.max(1, Math.min(Number(settings.divisionPlayoffTeams) || 1, divisionPlayoffMax));
   const { commissioner, locked, seasonNumber } = state;
   const coCommissioners = state.coCommissioners || [];
   const [editingCost, setEditingCost] = useState(null);
@@ -11709,7 +11733,9 @@ function SetupView({ state, leagueId = null, leagueName = "league", isCommission
           {isCommissioner && !locked && !eventMode && (
             <div className="flex items-center gap-2">
               {seasonNumber > 1 && (
-                <button onClick={addExpansionTeam} className="text-xs px-3 py-1.5 rounded font-semibold" style={{ background: "#4FD1C522", color: "#4FD1C5", border: "1px solid #4FD1C555" }}>
+                <button onClick={addExpansionTeam} disabled={teams.length >= activeLeagueTeamLimit}
+                  title={teams.length >= activeLeagueTeamLimit ? "Unlock a larger league-size mode before adding another team." : "Add expansion team"}
+                  className="text-xs px-3 py-1.5 rounded font-semibold disabled:opacity-40" style={{ background: "#4FD1C522", color: "#4FD1C5", border: "1px solid #4FD1C555" }}>
                   + Add expansion team
                 </button>
               )}
@@ -11796,11 +11822,11 @@ function SetupView({ state, leagueId = null, leagueName = "league", isCommission
 
       {isCommissioner && !eventMode && (
         <div style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }} className="rounded-lg p-6 mb-6">
-          <h2 className="display-font text-2xl mb-1" style={{ color: "#FFD23F" }}>DIVISIONS</h2>
+          <h2 className="display-font text-2xl mb-1" style={{ color: "#FFD23F" }}>PODS &amp; DIVISIONS</h2>
           {settings.divisions.length === 0 ? (
             <>
               <p className="text-sm mb-4" style={{ color: "#9A9FBD" }}>
-                Optional — split the league into groups (like conferences), each running its own bracket that feeds a Grand Final. Most leagues don't need this.
+                Optional — split the league into pods or conferences, each running its own bracket that feeds a league championship bracket. Most leagues don't need this.
               </p>
               <button onClick={addDivision} className="px-4 py-2 rounded text-sm font-semibold" style={{ background: "#1F2338", color: "#4FD1C5", border: "1px solid rgba(255,255,255,0.08)" }}>
                 + Set up divisions
@@ -11809,7 +11835,7 @@ function SetupView({ state, leagueId = null, leagueName = "league", isCommission
           ) : (
             <>
               <p className="text-sm mb-4" style={{ color: "#9A9FBD" }}>
-                Drag a team into a division to move it there.
+                Drag a team into a pod or division to move it there. Two or more pods can unlock the massive 33–{MULTI_POD_LEAGUE_TEAM_CAP}-team mode.
               </p>
               <DivisionDragBoard teams={teams} settings={settings} setTeamDivision={setTeamDivision}
                 renameDivision={renameDivision} removeDivision={removeDivision} addDivision={addDivision} />
@@ -11822,14 +11848,14 @@ function SetupView({ state, leagueId = null, leagueName = "league", isCommission
                 <span style={{ color: "#9A9FBD" }}>Regular season round robin plays out within each division only</span>
               </label>
               <label className="block text-sm mb-2" style={{ color: "#9A9FBD" }}>
-                Teams advancing per division to playoffs — <span style={{ color: "#EDEBFA" }}>{settings.divisionPlayoffTeams}</span>
+                Teams advancing per pod to playoffs — <span style={{ color: "#EDEBFA" }}>{effectiveDivisionPlayoffTeams}</span>
               </label>
-              <input type="range" min={1} max={8} value={settings.divisionPlayoffTeams}
+              <input type="range" min={1} max={divisionPlayoffMax} value={effectiveDivisionPlayoffTeams}
                 onChange={(e) => updateSettings({ divisionPlayoffTeams: Number(e.target.value) })} className="w-full" />
               <p className="text-xs mt-2" style={{ color: "#5B5F7E" }}>
-                {settings.divisionPlayoffTeams === 1
-                  ? "Only the first-place team from each division advances. Those division winners go directly into the league championship bracket."
-                  : "Each division runs its own bracket among its top teams; the division champions then meet in the league championship bracket."}
+                {effectiveDivisionPlayoffTeams === 1
+                  ? "Only the first-place team from each pod advances. Those pod winners go directly into the league championship bracket."
+                  : `Each pod can send up to ${effectiveDivisionPlayoffTeams} teams into its own bracket; the pod champions then meet in the league championship bracket.`}
               </p>
             </div>
           )}
@@ -11895,10 +11921,34 @@ function SetupView({ state, leagueId = null, leagueName = "league", isCommission
             <label className="block text-sm mb-2" style={{ color: "#9A9FBD" }}>League size — <span style={{ color: "#EDEBFA" }}>{settings.leagueSize} teams</span></label>
             <select value={settings.leagueSize} disabled={saveStatus === "saving"} onChange={(e) => resizeTeams(Number(e.target.value))}
               className="w-full px-3 py-2 rounded mono-font text-sm" style={{ background: "#1F2338", border: "1px solid rgba(255,255,255,0.1)", color: "#EDEBFA" }}>
-              {Array.from({ length: 15 }, (_, index) => index + 2).map((size) => <option key={size} value={size}>{size} teams</option>)}
+              <optgroup label="Standard league">
+                {Array.from({ length: DEFAULT_LEAGUE_TEAM_CAP - MIN_LEAGUE_TEAMS + 1 }, (_, index) => index + MIN_LEAGUE_TEAMS).map((size) => <option key={size} value={size}>{size} teams</option>)}
+              </optgroup>
+              {activeLeagueTeamLimit > DEFAULT_LEAGUE_TEAM_CAP && (
+                <optgroup label="Expanded league">
+                  {Array.from({ length: EXPANDED_LEAGUE_TEAM_CAP - DEFAULT_LEAGUE_TEAM_CAP }, (_, index) => index + DEFAULT_LEAGUE_TEAM_CAP + 1).map((size) => <option key={size} value={size}>{size} teams</option>)}
+                </optgroup>
+              )}
+              {activeLeagueTeamLimit > EXPANDED_LEAGUE_TEAM_CAP && (
+                <optgroup label="Massive multi-pod league">
+                  {Array.from({ length: MULTI_POD_LEAGUE_TEAM_CAP - EXPANDED_LEAGUE_TEAM_CAP }, (_, index) => index + EXPANDED_LEAGUE_TEAM_CAP + 1).map((size) => <option key={size} value={size}>{size} teams</option>)}
+                </optgroup>
+              )}
             </select>
+            {settings.leagueScaleMode === LEAGUE_SCALE_MODES.standard && (
+              <button type="button" onClick={() => updateSettings({ leagueScaleMode: LEAGUE_SCALE_MODES.expanded })}
+                className="w-full mt-2 px-3 py-2 rounded text-xs font-semibold" style={{ background: "#1F2338", color: "#4FD1C5", border: "1px solid #4FD1C555" }}>
+                Need more teams? Unlock 17–{EXPANDED_LEAGUE_TEAM_CAP}
+              </button>
+            )}
+            {settings.leagueScaleMode !== LEAGUE_SCALE_MODES.multiPod && canUnlockMultiPodScale && (
+              <button type="button" onClick={() => updateSettings({ leagueScaleMode: LEAGUE_SCALE_MODES.multiPod })}
+                className="w-full mt-2 px-3 py-2 rounded text-xs font-semibold" style={{ background: "#201D2B", color: "#FFD23F", border: "1px solid #FFD23F55" }}>
+                Massive multi-pod league: unlock 33–{MULTI_POD_LEAGUE_TEAM_CAP}
+              </button>
+            )}
             <p className="text-xs mt-2 mb-6" style={{ color: teamResizeMessage && !teamResizeMessage.startsWith("League ") ? "#F4B860" : "#5B5F7E" }}>
-              {teamResizeMessage || `${claimedTeamCount(state.teams)} human-controlled team${claimedTeamCount(state.teams) === 1 ? "" : "s"}. Lowering the size keeps every claimed team and removes open bot slots first.`}
+              {teamResizeMessage || `${claimedTeamCount(state.teams)} human-controlled team${claimedTeamCount(state.teams) === 1 ? "" : "s"}. This mode allows up to ${activeLeagueTeamLimit}; lowering the size keeps every claimed team and removes open bot slots first.`}
             </p>
 
             <label className="flex items-center gap-2 text-sm mb-2" style={{ color: "#9A9FBD" }}>
@@ -12850,10 +12900,12 @@ function ScheduleAndPlayoffsCard({ state, isCommissioner, updateSettings }) {
       nextPowerOfTwo(playoffTeams),
     ),
   };
-  const baseWeeks = (() => {
-    const n = settings.leagueSize % 2 === 0 ? settings.leagueSize - 1 : settings.leagueSize;
-    return n;
-  })();
+  const usesMultiPodPlayoffs = Array.isArray(settings.divisions) && settings.divisions.length >= 2;
+  const perPodPlayoffTeams = Math.max(1, Math.min(Number(settings.divisionPlayoffTeams) || 1, divisionPlayoffTeamLimit(settings.divisions)));
+  const multiPodPlayoffField = usesMultiPodPlayoffs
+    ? settings.divisions.reduce((total, division) => total + Math.min(division.teamIds?.length || 0, perPodPlayoffTeams), 0)
+    : 0;
+  const baseWeeks = roundRobinWeeks(scheduledRoundRobinTeamCount(settings, state.teams?.length || settings.leagueSize));
   const effectiveWeeks = settings.scheduleWeeks || baseWeeks;
 
   function setPlayoffTeams(n) {
@@ -12875,7 +12927,7 @@ function ScheduleAndPlayoffsCard({ state, isCommissioner, updateSettings }) {
           {!settings.scheduleWeeks && <span style={{ color: "#5B5F7E" }}> (auto — one full round robin)</span>}
         </label>
         <div className="flex items-center gap-2 mb-1">
-          <input type="number" min={1} max={30} value={settings.scheduleWeeks ?? baseWeeks}
+          <input type="number" min={1} max={Math.max(30, baseWeeks)} value={settings.scheduleWeeks ?? baseWeeks}
             onChange={(e) => updateSettings({ scheduleWeeks: e.target.value === "" ? "" : Number(e.target.value) })}
             onBlur={(e) => updateSettings({ scheduleWeeks: Number(e.target.value) || baseWeeks })}
             className="w-24 px-3 py-2 rounded mono-font text-sm" style={{ background: "#1F2338", border: "1px solid rgba(255,255,255,0.1)", color: "#EDEBFA" }} />
@@ -12938,28 +12990,39 @@ function ScheduleAndPlayoffsCard({ state, isCommissioner, updateSettings }) {
           </div>
         )}
 
-        <label className="block text-sm mb-2" style={{ color: "#9A9FBD" }}>
-          Playoff bracket size — <span style={{ color: "#EDEBFA" }}>Top {settings.playoffTeams}</span>
-        </label>
-        <input type="range" min={2} max={playoffMax} value={playoffTeams}
-          onChange={(e) => setPlayoffTeams(Number(e.target.value))} className="w-full mb-2" />
-        <p className="text-xs mb-3" style={{ color: "#5B5F7E" }}>
-          {(() => {
-            const bs = nextPowerOfTwo(playoffTeams);
-            const byes = bs - playoffTeams;
-            return byes > 0
-              ? `Rounds up to a ${bs}-team bracket — the top ${byes} seed${byes === 1 ? "" : "s"} get a bye straight through round 1.`
-              : `An even ${bs}-team bracket — no byes needed.`;
-          })()}
-        </p>
-        <label className="block text-sm mb-2" style={{ color: "#9A9FBD" }}>Round names (customize freely)</label>
-        <div className="flex flex-col gap-2 mb-6">
-          {settings.playoffRoundNames.map((name, i) => (
-            <input key={i} type="text" value={name} onChange={(e) => setRoundName(i, e.target.value)}
-              className="w-full px-3 py-2 rounded mono-font text-sm"
-              style={{ background: "#1F2338", border: "1px solid rgba(255,255,255,0.1)", color: "#EDEBFA" }} />
-          ))}
-        </div>
+        {usesMultiPodPlayoffs ? (
+          <div className="rounded p-4 mb-6" style={{ background: "#101C25", border: "1px solid #4FD1C544" }}>
+            <strong className="block text-sm" style={{ color: "#4FD1C5" }}>Multi-pod playoff field: up to {multiPodPlayoffField} teams</strong>
+            <p className="text-xs mt-1" style={{ color: "#9A9FBD" }}>
+              Up to {perPodPlayoffTeams} from each of {settings.divisions.length} pods enter pod brackets, then the pod champions advance into the league championship bracket. Change the per-pod number in Pods &amp; Divisions.
+            </p>
+          </div>
+        ) : (
+          <>
+            <label className="block text-sm mb-2" style={{ color: "#9A9FBD" }}>
+              Playoff bracket size — <span style={{ color: "#EDEBFA" }}>Top {settings.playoffTeams}</span>
+            </label>
+            <input type="range" min={2} max={playoffMax} value={playoffTeams}
+              onChange={(e) => setPlayoffTeams(Number(e.target.value))} className="w-full mb-2" />
+            <p className="text-xs mb-3" style={{ color: "#5B5F7E" }}>
+              {(() => {
+                const bs = nextPowerOfTwo(playoffTeams);
+                const byes = bs - playoffTeams;
+                return byes > 0
+                  ? `Rounds up to a ${bs}-team bracket — the top ${byes} seed${byes === 1 ? "" : "s"} get a bye straight through round 1.`
+                  : `An even ${bs}-team bracket — no byes needed.`;
+              })()}
+            </p>
+            <label className="block text-sm mb-2" style={{ color: "#9A9FBD" }}>Round names (customize freely)</label>
+            <div className="flex flex-col gap-2 mb-6">
+              {settings.playoffRoundNames.map((name, i) => (
+                <input key={i} type="text" value={name} onChange={(e) => setRoundName(i, e.target.value)}
+                  className="w-full px-3 py-2 rounded mono-font text-sm"
+                  style={{ background: "#1F2338", border: "1px solid rgba(255,255,255,0.1)", color: "#EDEBFA" }} />
+              ))}
+            </div>
+          </>
+        )}
 
         <label className="flex items-center gap-2 text-sm mb-2" style={{ color: settings.divisions.length >= 2 ? "#5B5F7E" : "#9A9FBD" }}>
           <input type="checkbox" checked={settings.doubleElimination} disabled={settings.divisions.length >= 2}
@@ -16120,6 +16183,7 @@ function StandingsView({ standings, settings, isCommissioner, setTeamOtherValue,
 // (byes, round naming, BracketTree) — the only thing that's different is
 // who the commissioner puts in each starting slot.
 function CustomBracketSeeder({ teams, standings, onGenerate, onCancel }) {
+  const maxSlots = nextPowerOfTwo(teams.length);
   const [slots, setSlots] = useState(() => {
     const n = Math.max(2, Math.min(teams.length, standings.length || teams.length));
     const initial = standings.slice(0, n).map((row) => row.id);
@@ -16131,7 +16195,7 @@ function CustomBracketSeeder({ teams, standings, onGenerate, onCancel }) {
     setSlots((arr) => arr.map((s, j) => (j === i ? val : s)));
   }
   function addSlot() {
-    setSlots((arr) => [...arr, null]);
+    setSlots((arr) => arr.length < maxSlots ? [...arr, null] : arr);
   }
   function removeSlot(i) {
     setSlots((arr) => arr.filter((_, j) => j !== i));
@@ -16161,7 +16225,7 @@ function CustomBracketSeeder({ teams, standings, onGenerate, onCancel }) {
         ))}
       </div>
       <div className="flex gap-2 justify-center mb-4">
-        <button onClick={addSlot} className="px-3 py-1.5 rounded text-xs font-semibold" style={{ background: "#1F2338", color: "#4FD1C5", border: "1px solid rgba(255,255,255,0.08)" }}>
+        <button onClick={addSlot} disabled={slots.length >= maxSlots} className="px-3 py-1.5 rounded text-xs font-semibold disabled:opacity-40" style={{ background: "#1F2338", color: "#4FD1C5", border: "1px solid rgba(255,255,255,0.08)" }}>
           + Add slot
         </button>
       </div>
@@ -16724,7 +16788,13 @@ function DivisionPlayoffsView({ playoffs, teams, rosters, settings, isCommission
   // name from, not any single division's own (usually much smaller) size.
   const divisionRoundCount = Math.max(...divisionResults.map((d) => d.rounds.length), 1);
   const totalRounds = divisionRoundCount + championRounds.length;
-  const combinedRoundNames = defaultPlayoffRoundNames(Math.pow(2, totalRounds));
+  const seededTeamCount = divisionResults.reduce((total, division) => total + division.seeds.filter((teamId) => teamId != null).length, 0);
+  const fieldRoundNames = defaultPlayoffRoundNames(nextPowerOfTwo(Math.max(2, seededTeamCount)));
+  const extraPodRounds = Math.max(0, totalRounds - fieldRoundNames.length);
+  const combinedRoundNames = [
+    ...Array.from({ length: extraPodRounds }, (_, index) => `Pod Round ${index + 1}`),
+    ...fieldRoundNames,
+  ];
   const divisionRoundNames = combinedRoundNames.slice(0, divisionRoundCount);
   const roundNamesList = combinedRoundNames.slice(divisionRoundCount).map((n, i, arr) => (i === arr.length - 1 ? "Grand Final" : n));
 
