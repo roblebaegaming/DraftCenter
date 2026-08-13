@@ -8,7 +8,6 @@ import {
   MEGA_BRACKET_ENTRANT_COUNT,
   MEGA_BRACKET_TOP_64_CHOICE,
   MEGA_BRACKET_TOTAL_CHOICES,
-  nextMegaBracketSessionTarget,
   top64BracketFromRounds,
 } from "../src/lib/megaBracket.js";
 import {
@@ -121,13 +120,6 @@ test("a winner outside its current matchup is rejected", () => {
   assert.throws(() => evaluateMegaBracket(entrants, ["Pokémon 3"]), /does not belong/);
 });
 
-test("short sessions stop at the closest meaningful milestone", () => {
-  assert.equal(nextMegaBracketSessionTarget(0), 25);
-  assert.equal(nextMegaBracketSessionTarget(125), 138);
-  assert.equal(nextMegaBracketSessionTarget(1090), 1098);
-  assert.equal(nextMegaBracketSessionTarget(1160), 1161);
-});
-
 test("the migration keeps attempts private and validates the frozen catalogue", () => {
   const sql = fs.readFileSync(new URL("../supabase/389-full-dex-mega-brackets.sql", import.meta.url), "utf8");
   const previewRegression = fs.readFileSync(new URL("../supabase/tests/389-full-dex-mega-bracket-preview-regression.sql", import.meta.url), "utf8");
@@ -155,6 +147,7 @@ test("Mega Bracket is an indexable product with honest catalogue and saving copy
   assert.match(component, /1,162 Pokémon and forms/);
   assert.match(component, /Purely cosmetic appearances are not treated as separate competitors/);
   assert.match(component, /unlimited attempts/);
+  assert.doesNotMatch(component, /session goal/i);
   assert.match(component, /savedKey: winnersKey\(payload\.winners\)/);
   assert.match(component, /winnersKey\(snapshot\) === saveRef\.current\.savedKey/);
   assert.match(sitemap, /\["\/tools\/mega-bracket", "weekly", 0\.9\]/);
