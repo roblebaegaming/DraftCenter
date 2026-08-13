@@ -10,6 +10,7 @@ DraftCenter helps communities configure leagues, run snake and auction drafts, m
 - [Pokémon draft league guides](https://www.draftcentral.gg/guides)
 - [Supported draft formats](https://www.draftcentral.gg/formats)
 - [Draft Lab Pokémon team builder](https://www.draftcentral.gg/tools/team-builder)
+- [Mega Bracket Full Dex Challenge](https://www.draftcentral.gg/tools/mega-bracket)
 - [Public Pokémon catalog](https://www.draftcentral.gg/pokemon)
 - [Pokémon Daily Games](https://www.draftcentral.gg/resources/daily-games)
 - [Public leagues](https://www.draftcentral.gg/leagues)
@@ -25,6 +26,7 @@ DraftCenter helps communities configure leagues, run snake and auction drafts, m
 ## Public tools and events
 
 - Draft Lab is a public, read-only team builder for six-Pokémon battle teams and 24-Pokémon draft rosters. It checks typing, STAB gaps, Speed tiers, base-stat balance, and base regulation legality without claiming to model moves, abilities, items, EVs, or league-specific rules. Versioned links can reopen an analysis without storing a private team or changing a league.
+- Mega Bracket is a free, private, resumable preference challenge across DraftCenter's 1,162 supported Pokémon and battle-relevant forms. Its 1,161 head-to-head choices produce a shareable Top 64 bracket and one personal champion. Purely cosmetic appearances are not separate entrants.
 - The tournament organizer supports standalone single elimination for up to 512 entrants and double elimination for up to 256 entrants. For 4–16 managers, Draft teams first adds a shared snake draft before single elimination, double elimination, or Swiss play. Swiss currently requires that shared draft and uses three rounds for 4–8 managers or four rounds for 9–16.
 - Multi-pod organizations can qualify retained league rosters into connected single- or double-elimination championships. Organization administration and event workspaces are not public reference material.
 - Pokémon Daily Games includes Pokémon Connections, a community poll, an eight-Pokémon bracket, and a Pokémon quiz. Signed-in discussions open only after the relevant daily game is completed.

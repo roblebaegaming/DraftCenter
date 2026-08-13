@@ -8,6 +8,7 @@ const PRODUCT_DISCOVERY_LAST_MODIFIED = new Date("2026-08-13T00:00:00.000Z");
 const WORLDS_2026_LAST_MODIFIED = new Date("2026-08-11T00:00:00.000Z");
 const productRouteLastModified = new Map([
   ["/tools/team-builder", PRODUCT_DISCOVERY_LAST_MODIFIED],
+  ["/tools/mega-bracket", PRODUCT_DISCOVERY_LAST_MODIFIED],
   ["/nuzlocke", PRODUCT_DISCOVERY_LAST_MODIFIED],
   ["/tournaments", PRODUCT_DISCOVERY_LAST_MODIFIED],
   ["/resources/daily-games", PRODUCT_DISCOVERY_LAST_MODIFIED],
@@ -28,6 +29,7 @@ const routes = [
   ["/pokemon/types", "monthly", 0.8],
   ["/pokemon/generations", "monthly", 0.8],
   ["/tools/team-builder", "weekly", 0.9],
+  ["/tools/mega-bracket", "weekly", 0.9],
   ["/nuzlocke", "weekly", 0.9],
   ["/nuzlocke/guides", "monthly", 0.9],
   ["/tournaments", "daily", 0.8],
