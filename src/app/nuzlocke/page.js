@@ -1,14 +1,14 @@
 import NuzlockeLab from "../../components/NuzlockeLab";
 
 export const metadata = {
-  title: "Pokémon Nuzlocke Team Generator by Game",
-  description: "Build, save, and download a fresh Pokémon Nuzlocke team with one Pokémon per route or area, game-specific rules, themes, and verified encounter odds.",
+  title: "Pokémon Nuzlocke Run Tracker and Team Generator",
+  description: "Build and track a Pokémon Nuzlocke run with verified encounters by game, route statuses, species-clause warnings, milestones, level caps, notes, and private saves.",
   alternates: { canonical: "/nuzlocke" },
-  keywords: ["Pokémon Nuzlocke generator", "Nuzlocke encounter generator", "one Pokémon per area", "themed Nuzlocke", "Nuzlocke team builder"],
+  keywords: ["Pokémon Nuzlocke tracker", "Nuzlocke run tracker", "Pokémon Nuzlocke generator", "Nuzlocke encounter tracker", "Nuzlocke team builder"],
   openGraph: {
     type: "website",
-    title: "Pokémon Nuzlocke Team Generator by Game",
-    description: "Build a fresh Nuzlocke team from verified, game-specific encounter data.",
+    title: "Pokémon Nuzlocke Run Tracker and Team Generator",
+    description: "Build a route-by-route Nuzlocke run, then track catches, losses, milestones, and notes.",
     url: "/nuzlocke",
   },
 };
@@ -20,17 +20,17 @@ export default function NuzlockePage() {
       {
         "@type": "WebPage",
         "@id": "https://www.draftcentral.gg/nuzlocke#page",
-        name: "DraftCenter Pokémon Nuzlocke Generator",
+        name: "DraftCenter Pokémon Nuzlocke Run Tracker",
         url: "https://www.draftcentral.gg/nuzlocke",
         isAccessibleForFree: true,
-        description: "A Nuzlocke team generator using verified, game-specific Pokémon encounters.",
+        description: "A Nuzlocke run tracker and team generator using verified, game-specific Pokémon encounters.",
         isPartOf: { "@id": "https://www.draftcentral.gg/#website" },
       },
       {
         "@type": "BreadcrumbList",
         itemListElement: [
           { "@type": "ListItem", position: 1, name: "DraftCenter", item: "https://www.draftcentral.gg/" },
-          { "@type": "ListItem", position: 2, name: "Nuzlocke Draft", item: "https://www.draftcentral.gg/nuzlocke" },
+          { "@type": "ListItem", position: 2, name: "Nuzlocke Run Tracker", item: "https://www.draftcentral.gg/nuzlocke" },
         ],
       },
     ],
@@ -41,21 +41,21 @@ export default function NuzlockePage() {
     <NuzlockeLab />
     <section className="explore-card nuzlocke-seo-guide" aria-labelledby="nuzlocke-guide-title">
       <span className="eyebrow">HOW IT WORKS</span>
-      <h2 id="nuzlocke-guide-title">A game-specific Nuzlocke team generator</h2>
-      <p>Choose a verified Pokémon game and build a fresh team from its reviewed encounters. Select a team size of up to 20 or choose one Pokémon from every eligible route or area, then save the exact Run Card privately in My Teams, download a visual Run Card with Pokémon artwork, or share it by link.</p>
+      <h2 id="nuzlocke-guide-title">A game-specific Nuzlocke run tracker</h2>
+      <p>Choose a verified Pokémon game and build a run from its reviewed encounters. Track each route as caught, active, boxed, missed, or deceased; add nicknames, notes, badges, bosses, and optional level caps; then save the full tracker privately in My Teams or download a progress card.</p>
       <div className="pokemon-detail-grid">
         <section>
           <h3>Use game-specific encounter data</h3>
           <p>Nuzlocke teams are built only from catalogs that DraftCenter has independently reviewed. Results keep the encounter area, method, level range, conditions, and form together instead of treating every Pokémon in a regional Pokédex as a route encounter.</p>
         </section>
         <section>
-          <h3>Set your Nuzlocke clauses</h3>
-          <p>Include a starter, apply an evolutionary-family clause, filter methods and game-specific conditions, or build a themed run by Pokémon type, official Pokédex color, or evolution stage. Equal weighting gives every eligible encounter the same chance; authentic weighting uses the reviewed in-game rates.</p>
+          <h3>Track your rules and progress</h3>
+          <p>Automatic species-family checks flag duplicate caught families while missed encounters remain available under common dupes-clause play. Add only the milestones and level caps your rules use. Browser autosave keeps recent progress on this device, while signed-in saves remain private and available across devices.</p>
         </section>
       </div>
       <aside className="seo-next-step">
-        <h2>Research your Nuzlocke team</h2>
-        <p>Every generated Pokémon links to its DraftCenter profile for typing, abilities, base stats, forms, measurements, and versioned moves.</p>
+        <h2>Research and recreate your run</h2>
+        <p>Every generated Pokémon links to its DraftCenter profile for typing, abilities, base stats, forms, measurements, and versioned moves. Recreation links repeat the generated route plan without exposing private tracker progress.</p>
         <div className="pokemon-tags"><a href="/pokemon">Explore the Pokédex</a><a href="/pokemon/generations">Browse Pokémon by generation</a><a href="/resources">Open Pokémon resources</a></div>
       </aside>
       <section className="nuzlocke-guide-index" aria-labelledby="nuzlocke-game-guides-title">

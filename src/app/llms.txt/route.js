@@ -13,7 +13,7 @@ DraftCenter helps communities configure leagues, run snake and auction drafts, m
 - [Public Pokémon catalog](https://www.draftcentral.gg/pokemon)
 - [Pokémon Daily Games](https://www.draftcentral.gg/resources/daily-games)
 - [Public leagues](https://www.draftcentral.gg/leagues)
-- [Pokémon Nuzlocke Draft](https://www.draftcentral.gg/nuzlocke)
+- [Pokémon Nuzlocke Run Tracker](https://www.draftcentral.gg/nuzlocke)
 - [Pokémon Nuzlocke Guides](https://www.draftcentral.gg/nuzlocke/guides)
 - [Pokémon tournament organizer](https://www.draftcentral.gg/tournaments)
 - [2026 Pokémon World Championships Predictions](https://www.draftcentral.gg/worlds/2026)

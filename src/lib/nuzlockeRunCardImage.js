@@ -1,4 +1,5 @@
 import { normalizeSavedNuzlockeResult } from "./nuzlockeRunExports.js";
+import { nuzlockeEncounterStatusLabel, summarizeNuzlockeTracker } from "./nuzlockeRunTracker.js";
 
 const WIDTH = 1200;
 const PAGE_PADDING = 54;
@@ -83,10 +84,10 @@ function encounterDetails(entry) {
   const levels = entry.min_level == null
     ? ""
     : `Lv. ${entry.min_level}${entry.max_level != null && entry.max_level !== entry.min_level ? `–${entry.max_level}` : ""}`;
-  return [titleCase(entry.method) || "Encounter", levels].filter(Boolean).join(" · ");
+  return [titleCase(entry.method) || "Encounter", levels, entry.chance != null ? `${entry.chance}% rate` : ""].filter(Boolean).join(" · ");
 }
 
-function drawCard(context, entry, artwork, index, x, y, width) {
+function drawCard(context, entry, progress, artwork, index, x, y, width) {
   roundedRect(context, x, y, width, CARD_HEIGHT, 15);
   context.fillStyle = "#171d36";
   context.fill();
@@ -120,7 +121,8 @@ function drawCard(context, entry, artwork, index, x, y, width) {
 
   const textX = x + 120;
   const textWidth = width - 138;
-  const displayedName = `${entry.pokemon_name}${entry.form_name ? ` (${entry.form_name})` : ""}`;
+  const speciesName = `${entry.pokemon_name}${entry.form_name ? ` (${entry.form_name})` : ""}`;
+  const displayedName = progress?.nickname ? `${progress.nickname} · ${speciesName}` : speciesName;
   context.fillStyle = "#ffffff";
   context.font = "800 20px Inter, Arial, sans-serif";
   context.fillText(fitText(context, displayedName, textWidth), textX, y + 34);
@@ -136,7 +138,7 @@ function drawCard(context, entry, artwork, index, x, y, width) {
   const catchName = entry.encounter_pokemon_name && entry.encounter_pokemon_name !== entry.pokemon_name
     ? `Catch ${entry.encounter_pokemon_name}${entry.encounter_form_name ? ` (${entry.encounter_form_name})` : ""}`
     : "";
-  const note = catchName || (entry.conditions.length ? entry.conditions.map(titleCase).join(", ") : "No special conditions");
+  const note = [nuzlockeEncounterStatusLabel(progress?.status), progress?.notes || catchName || (entry.conditions.length ? entry.conditions.map(titleCase).join(", ") : "No special conditions")].filter(Boolean).join(" · ");
   context.fillStyle = "#8f9ac4";
   context.font = "500 11px Inter, Arial, sans-serif";
   wrapText(context, note, textWidth, 2).forEach((line, lineIndex) => context.fillText(line, textX, y + 125 + lineIndex * 14));
@@ -150,6 +152,7 @@ export async function downloadNuzlockeRunCardImage({ runName, result, rules = []
   if (typeof document === "undefined") throw new Error("The visual Run Card is only available in a browser.");
   const savedResult = normalizeSavedNuzlockeResult(result);
   if (!savedResult || !savedResult.team.length) throw new Error("A generated Nuzlocke team is required.");
+  const trackerSummary = summarizeNuzlockeTracker(savedResult.tracker, savedResult.team);
 
   const safeRules = rules.map((rule) => cleanText(rule, 180)).filter(Boolean).slice(0, 18);
   const ruleRows = Math.ceil(safeRules.length / 2);
@@ -177,7 +180,7 @@ export async function downloadNuzlockeRunCardImage({ runName, result, rules = []
   context.fillText(fitText(context, cleanText(runName, 80) || `${savedResult.game.display_name} Nuzlocke Run`, WIDTH - PAGE_PADDING * 2), PAGE_PADDING, 108);
   context.fillStyle = "#4fd1c5";
   context.font = "700 21px Inter, Arial, sans-serif";
-  context.fillText(`${savedResult.game.display_name} · ${savedResult.team.length} encounter${savedResult.team.length === 1 ? "" : "s"}`, PAGE_PADDING, 145);
+  context.fillText(`${savedResult.game.display_name} · ${trackerSummary.recorded}/${trackerSummary.total} routes · ${trackerSummary.living} living · ${trackerSummary.deceased} deceased`, PAGE_PADDING, 145);
   context.fillStyle = "#9fa9cf";
   context.font = "500 14px Inter, Arial, sans-serif";
   context.fillText(fitText(context, shareUrl ? "Share this image or use the saved run link in My Teams to recreate it." : "Generated from verified, game-specific encounters.", WIDTH - PAGE_PADDING * 2), PAGE_PADDING, 174);
@@ -206,7 +209,7 @@ export async function downloadNuzlockeRunCardImage({ runName, result, rules = []
   savedResult.team.forEach((entry, index) => {
     const column = index % COLUMN_COUNT;
     const row = Math.floor(index / COLUMN_COUNT);
-    drawCard(context, entry, artwork[index], index, PAGE_PADDING + column * (cardWidth + CARD_GAP), gridTop + row * (CARD_HEIGHT + CARD_GAP), cardWidth);
+    drawCard(context, entry, savedResult.tracker.encounters[index], artwork[index], index, PAGE_PADDING + column * (cardWidth + CARD_GAP), gridTop + row * (CARD_HEIGHT + CARD_GAP), cardWidth);
   });
 
   const footerY = height - 38;
@@ -214,7 +217,7 @@ export async function downloadNuzlockeRunCardImage({ runName, result, rules = []
   context.font = "600 13px Inter, Arial, sans-serif";
   context.fillText("draftcentral.gg/nuzlocke", PAGE_PADDING, footerY);
   context.textAlign = "right";
-  context.fillText(`Team code: ${cleanText(savedResult.seed, 80)}`, WIDTH - PAGE_PADDING, footerY);
+  context.fillText(`${titleCase(savedResult.tracker.run_state)} · ${trackerSummary.milestonesCompleted}/${trackerSummary.milestonesTotal} milestones`, WIDTH - PAGE_PADDING, footerY);
   context.textAlign = "left";
 
   const blob = await canvasBlob(canvas);

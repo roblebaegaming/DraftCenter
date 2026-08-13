@@ -1,3 +1,9 @@
+import {
+  normalizeNuzlockeTracker,
+  nuzlockeEncounterStatusLabel,
+  summarizeNuzlockeTracker,
+} from "./nuzlockeRunTracker.js";
+
 const MAX_SAVED_TEAM_SIZE = 251;
 
 const cleanText = (value, maxLength) => String(value ?? "").replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim().slice(0, maxLength);
@@ -6,12 +12,26 @@ const cleanInteger = (value, minimum = 0, maximum = 100000) => {
   const number = Number(value);
   return Number.isInteger(number) && number >= minimum && number <= maximum ? number : null;
 };
+const cleanNumber = (value, minimum = 0, maximum = 100000) => {
+  if (value == null || value === "") return null;
+  const number = Number(value);
+  return Number.isFinite(number) && number >= minimum && number <= maximum ? Math.round(number * 1000) / 1000 : null;
+};
 const titleCase = (value) => cleanText(value, 80).replaceAll("-", " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
 
 function safeArtworkUrl(value) {
   try {
     const url = new URL(String(value || ""));
     return url.protocol === "https:" && url.hostname === "raw.githubusercontent.com" ? url.toString() : "";
+  } catch {
+    return "";
+  }
+}
+
+function safeRunUrl(value) {
+  try {
+    const url = new URL(String(value || ""));
+    return ["http:", "https:"].includes(url.protocol) && url.pathname === "/nuzlocke" ? url.toString() : "";
   } catch {
     return "";
   }
@@ -28,14 +48,19 @@ function normalizeTeamEntry(entry) {
     pokemon_id: pokemonId,
     pokemon_name: pokemonName,
     form_name: cleanText(entry.form_name, 100),
+    species_family: cleanText(entry.species_family, 120),
     artwork_url: safeArtworkUrl(entry.artwork_url),
     area_key: areaKey,
     area_name: areaName,
     method: cleanText(entry.method, 80),
+    chance: cleanNumber(entry.chance, 0, 100),
     min_level: cleanInteger(entry.min_level, 0, 1000),
     max_level: cleanInteger(entry.max_level, 0, 1000),
+    encounter_pokemon_id: cleanInteger(entry.encounter_pokemon_id, 1, 100000),
     encounter_pokemon_name: cleanText(entry.encounter_pokemon_name, 100),
     encounter_form_name: cleanText(entry.encounter_form_name, 100),
+    encounter_artwork_url: safeArtworkUrl(entry.encounter_artwork_url),
+    is_final_evolution: entry.is_final_evolution === true,
     conditions: Array.isArray(entry.conditions) ? entry.conditions.map((condition) => cleanText(condition, 100)).filter(Boolean).slice(0, 20) : [],
   };
 }
@@ -52,6 +77,7 @@ export function normalizeSavedNuzlockeResult(value) {
   const available = cleanInteger(value.available, 0, MAX_SAVED_TEAM_SIZE);
   const normalizedAvailable = Math.min(available ?? team.length, team.length);
   const normalizedRequested = Math.max(requested ?? team.length, normalizedAvailable);
+  const tracker = normalizeNuzlockeTracker(value.tracker, team);
   return {
     game: { game_key: gameKey, display_name: gameName },
     seed,
@@ -60,6 +86,10 @@ export function normalizeSavedNuzlockeResult(value) {
     requested: normalizedRequested,
     available: normalizedAvailable,
     allAreas: value.allAreas === true,
+    run_name: cleanText(value.run_name, 80),
+    share_url: safeRunUrl(value.share_url),
+    rules: Array.isArray(value.rules) ? value.rules.map((rule) => cleanText(rule, 180)).filter(Boolean).slice(0, 30) : [],
+    tracker,
   };
 }
 
@@ -101,6 +131,7 @@ export function buildNuzlockeRunCardText({ runName, result, rules = [], shareUrl
   const savedResult = normalizeSavedNuzlockeResult(result);
   if (!savedResult) throw new Error("A generated Nuzlocke team is required.");
   const title = cleanText(runName, 80) || `${savedResult.game.display_name} Nuzlocke Run`;
+  const trackerSummary = summarizeNuzlockeTracker(savedResult.tracker, savedResult.team);
   const lines = [
     title,
     `${savedResult.game.display_name} — DraftCenter Nuzlocke Run Card`,
@@ -108,20 +139,38 @@ export function buildNuzlockeRunCardText({ runName, result, rules = [], shareUrl
     "Rules",
     ...rules.map((rule) => `- ${cleanText(rule, 180)}`).filter((rule) => rule !== "- "),
     "",
-    `Team (${savedResult.team.length})`,
+    `Progress (${trackerSummary.recorded}/${trackerSummary.total} routes recorded)`,
+    `- Living catches: ${trackerSummary.living}`,
+    `- Missed encounters: ${trackerSummary.missed}`,
+    `- Deceased: ${trackerSummary.deceased}`,
+    `- Milestones: ${trackerSummary.milestonesCompleted}/${trackerSummary.milestonesTotal}`,
+    `- Run state: ${titleCase(savedResult.tracker.run_state)}`,
+    "",
+    `Encounters (${savedResult.team.length})`,
   ];
   savedResult.team.forEach((entry, index) => {
+    const progress = savedResult.tracker.encounters[index];
     const displayedName = `${entry.pokemon_name}${entry.form_name ? ` (${entry.form_name})` : ""}`;
+    const trackedName = progress?.nickname ? `${progress.nickname} (${displayedName})` : displayedName;
     const catchName = entry.encounter_pokemon_name
       ? `${entry.encounter_pokemon_name}${entry.encounter_form_name ? ` (${entry.encounter_form_name})` : ""}`
       : "";
-    const encounter = catchName && catchName !== displayedName ? `Catch ${catchName} → ${displayedName}` : displayedName;
+    const encounter = catchName && catchName !== displayedName ? `Catch ${catchName} → ${trackedName}` : trackedName;
     const details = entry.method === "starter"
       ? "Starter Pokémon"
-      : [titleCase(entry.method) || "Encounter", entry.min_level != null ? `Lv. ${entry.min_level}${entry.max_level != null && entry.max_level !== entry.min_level ? `–${entry.max_level}` : ""}` : ""].filter(Boolean).join(" · ");
-    lines.push(`${index + 1}. ${encounter} — ${entry.area_name} — ${details}`);
+      : [titleCase(entry.method) || "Encounter", entry.min_level != null ? `Lv. ${entry.min_level}${entry.max_level != null && entry.max_level !== entry.min_level ? `–${entry.max_level}` : ""}` : "", entry.chance != null ? `${entry.chance}% rate` : ""].filter(Boolean).join(" · ");
+    lines.push(`${index + 1}. ${encounter} — ${entry.area_name} — ${details} — ${nuzlockeEncounterStatusLabel(progress?.status)}`);
     if (entry.conditions.length) lines.push(`   Conditions: ${entry.conditions.map(titleCase).join(", ")}`);
+    if (progress?.notes) lines.push(`   Notes: ${progress.notes}`);
   });
+  if (savedResult.tracker.milestones.length) {
+    lines.push("", "Milestones");
+    savedResult.tracker.milestones.forEach((milestone) => {
+      lines.push(`- [${milestone.completed ? "x" : " "}] ${milestone.name}${milestone.level_cap ? ` — Level cap ${milestone.level_cap}` : ""}`);
+      if (milestone.notes) lines.push(`  ${milestone.notes}`);
+    });
+  }
+  if (savedResult.tracker.notes) lines.push("", "Run notes", savedResult.tracker.notes);
   if (!savedResult.complete) lines.push("", `Only ${savedResult.available} of ${savedResult.requested} requested results could be filled; no rule was relaxed.`);
   try {
     const url = new URL(String(shareUrl || ""));

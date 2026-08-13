@@ -80,24 +80,23 @@ test("sitemap contains only indexable routes and truthful modification dates", (
 test("the Nuzlocke generator is crawlable, internally linked, and uses current product language", () => {
   const page = source("src/app/nuzlocke/page.js");
   const lab = source("src/components/NuzlockeLab.jsx");
+  const tracker = source("src/components/NuzlockeRunTracker.jsx");
   const pokemonHome = source("src/app/pokemon/page.js");
   const resources = source("src/components/ResourcesPage.jsx");
   const sitemap = source("src/app/sitemap.js");
 
-  assert.match(page, /Pokémon Nuzlocke Team Generator by Game/);
+  assert.match(page, /Pokémon Nuzlocke Run Tracker and Team Generator/);
   assert.match(page, /"@type": "WebPage"/);
   assert.doesNotMatch(page, /"@type": "WebApplication"/);
   assert.match(page, /"@type": "BreadcrumbList"/);
-  assert.match(page, /choose one Pokémon from every eligible route or area/);
-  assert.match(page, /team size of up to 20/);
-  assert.match(page, /save the exact Run Card privately in My Teams/);
-  assert.match(page, /download a visual Run Card with Pokémon artwork/);
+  assert.match(page, /Track each route as caught, active, boxed, missed, or deceased/);
+  assert.match(page, /save the full tracker privately in My Teams/);
+  assert.match(page, /Browser autosave keeps recent progress/);
+  assert.match(page, /Recreation links repeat the generated route plan without exposing private tracker progress/);
   assert.doesNotMatch(page, /randomizer seed/);
-  assert.match(page, /type, official Pokédex color, or evolution stage/);
-  assert.match(page, /Equal weighting gives every eligible encounter the same chance/);
-  assert.match(lab, /pokemonProfileSlugForName\(entry\.pokemon_name\)/);
-  assert.match(lab, /href={`\/pokemon\/\$\{profileSlug\}`}/);
-  assert.match(pokemonHome, /href="\/nuzlocke">Build a Nuzlocke Team/);
+  assert.match(tracker, /pokemonProfileSlugForName\(entry\.pokemon_name\)/);
+  assert.match(tracker, /href={`\/pokemon\/\$\{profileSlug\}`}/);
+  assert.match(pokemonHome, /href="\/nuzlocke">Track a Nuzlocke Run/);
   assert.match(resources, /href="\/nuzlocke"/);
   assert.match(sitemap, /\["\/nuzlocke", "weekly", 0\.9\]/);
   assert.doesNotMatch(page, /Build a seeded Run Card/);

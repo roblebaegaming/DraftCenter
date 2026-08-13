@@ -7,6 +7,7 @@ const migration = source("supabase/365-private-nuzlocke-my-teams-runs.sql");
 const lab = source("src/components/NuzlockeLab.jsx");
 const myTeams = source("src/components/PersonalTeams.jsx");
 const imageExport = source("src/lib/nuzlockeRunCardImage.js");
+const tracker = source("src/components/NuzlockeRunTracker.jsx");
 
 test("Nuzlocke Run Cards extend owner-only My Teams storage without widening access", () => {
   assert.match(migration, /add column if not exists nuzlocke_run jsonb/);
@@ -31,7 +32,10 @@ test("the public builder saves normalized private Run Cards through the signed-i
   assert.match(lab, /is_public: false/);
   assert.match(lab, /nuzlocke_run: \{ \.\.\.normalizedResult/);
   assert.match(lab, /from\("personal_teams"\)\.insert\(payload\)/);
-  assert.match(lab, /Save to My Teams/);
+  assert.match(lab, /Save tracker to My Teams/);
+  assert.match(lab, /\.update\(payload\)\.eq\("id", savedProfileTeamId\)\.eq\("owner_id", profileUser\.id\)/);
+  assert.match(lab, /\/nuzlocke\?run=\$\{data\.id\}/);
+  assert.match(lab, /browserTrackerId\(seed, team\)/);
   assert.doesNotMatch(lab, /service_role/);
 });
 
@@ -39,17 +43,29 @@ test("My Teams restores and presents Nuzlocke encounters as a distinct private R
   assert.match(myTeams, /workspace_type === "nuzlocke"/);
   assert.match(myTeams, /nuzlocke_run:team\.workspace_type==="nuzlocke"\?team\.nuzlocke_run:null/);
   assert.match(myTeams, /personal-nuzlocke-grid/);
-  assert.match(myTeams, /Open run/);
-  assert.match(myTeams, /Generated encounter roster/);
+  assert.match(myTeams, /Open tracker/);
+  assert.match(myTeams, /Tracked encounter roster/);
+  assert.match(myTeams, /routes recorded/);
   assert.match(myTeams, /nuzlocke\?false:Boolean\(form\.is_public\)/);
 });
 
-test("the team download is a visual PNG Run Card with bounded trusted artwork", () => {
+test("the progress download is a visual PNG Run Card with bounded trusted artwork", () => {
   assert.match(imageExport, /canvas\.toBlob/);
   assert.match(imageExport, /"image\/png"/);
   assert.match(imageExport, /raw\.githubusercontent\.com/);
   assert.match(imageExport, /COLUMN_COUNT = 3/);
   assert.match(imageExport, /drawCard/);
   assert.match(imageExport, /artwork_url/);
-  assert.match(imageExport, /Team code:/);
+  assert.match(imageExport, /trackerSummary\.recorded/);
+  assert.match(imageExport, /trackerSummary\.deceased/);
+  assert.doesNotMatch(imageExport, /Team code:/);
+});
+
+test("the tracker covers route state, species clause, milestones, and bounded notes", () => {
+  assert.match(tracker, /NUZLOCKE_ENCOUNTER_STATUSES/);
+  assert.match(tracker, /findNuzlockeSpeciesConflicts/);
+  assert.match(tracker, /Run milestones/);
+  assert.match(tracker, /Level caps are planning notes/);
+  assert.match(tracker, /maxLength=\{5000\}/);
+  assert.match(tracker, /appendNuzlockeHistory/);
 });
