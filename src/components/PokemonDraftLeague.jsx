@@ -38,6 +38,7 @@ import {
   pricingPresetFor,
   pricingPresetOptionsFor,
 } from "../lib/draft-pricing-presets";
+import { ABILITY_TYPE_MODIFIERS, defensiveTypeChart, teamDefenseSummary } from "../lib/teamAnalysis";
 
 /* ---------------------------------------------------------
    DESIGN TOKENS — stadium-jumbotron-at-night aesthetic.
@@ -50,105 +51,11 @@ const TYPE_COLORS = {
   steel: "#B8B8D0", fairy: "#EE99AC",
 };
 
-// The standard Gen 6+ type chart (Fairy included), expressed defensively —
-// for each type, which attacking types it's weak to, resists, or is immune
-// to. Deliberately doesn't factor in abilities (Levitate, Flash Fire, Thick
-// Fat, Filter, etc.) or held items — this is pure typing, same starting
-// point Marriland's own tool uses before you layer an ability on top. That
-// keeps this both accurate and something we can actually maintain; ability
-// interactions are numerous enough (and inconsistent enough — some grant
-// immunity, some just halve damage, some only apply to certain move
-// categories) that folding them in would need to be its own pass.
-const TYPE_DEFENSE = {
-  normal: { weak: ["fighting"], resist: [], immune: ["ghost"] },
-  fire: { weak: ["water", "ground", "rock"], resist: ["fire", "grass", "ice", "bug", "steel", "fairy"], immune: [] },
-  water: { weak: ["electric", "grass"], resist: ["fire", "water", "ice", "steel"], immune: [] },
-  electric: { weak: ["ground"], resist: ["electric", "flying", "steel"], immune: [] },
-  grass: { weak: ["fire", "ice", "poison", "flying", "bug"], resist: ["water", "electric", "grass", "ground"], immune: [] },
-  ice: { weak: ["fire", "fighting", "rock", "steel"], resist: ["ice"], immune: [] },
-  fighting: { weak: ["flying", "psychic", "fairy"], resist: ["bug", "rock", "dark"], immune: [] },
-  poison: { weak: ["ground", "psychic"], resist: ["grass", "fighting", "poison", "bug", "fairy"], immune: [] },
-  ground: { weak: ["water", "grass", "ice"], resist: ["poison", "rock"], immune: ["electric"] },
-  flying: { weak: ["electric", "ice", "rock"], resist: ["grass", "fighting", "bug"], immune: ["ground"] },
-  psychic: { weak: ["bug", "ghost", "dark"], resist: ["fighting", "psychic"], immune: [] },
-  bug: { weak: ["fire", "flying", "rock"], resist: ["grass", "fighting", "ground"], immune: [] },
-  rock: { weak: ["water", "grass", "fighting", "ground", "steel"], resist: ["normal", "fire", "poison", "flying"], immune: [] },
-  ghost: { weak: ["ghost", "dark"], resist: ["poison", "bug"], immune: ["normal", "fighting"] },
-  dragon: { weak: ["ice", "dragon", "fairy"], resist: ["fire", "water", "electric", "grass"], immune: [] },
-  dark: { weak: ["fighting", "bug", "fairy"], resist: ["ghost", "dark"], immune: ["psychic"] },
-  steel: { weak: ["fire", "fighting", "ground"], resist: ["normal", "grass", "ice", "flying", "psychic", "bug", "rock", "dragon", "steel", "fairy"], immune: ["poison"] },
-  fairy: { weak: ["poison", "steel"], resist: ["fighting", "bug", "dark"], immune: ["dragon"] },
-};
-const ALL_TYPES = Object.keys(TYPE_DEFENSE);
-
 function friendlySaveFailure(prefix, error) {
   const detail = String(error?.message || error || "An unexpected error occurred.").trim();
   if (/networkerror|failed to fetch|network request failed|load failed/i.test(detail)) return `${prefix} because the connection was interrupted. Refresh first to confirm the latest league state, then try the change again.`;
   if (/upstream request timeout|statement timeout|timed? out|timeout/i.test(detail)) return `${prefix} because DraftCenter took too long to respond. Refresh first to confirm whether the change saved, then try it once more.`;
   return `${prefix}: ${detail}`;
-}
-
-function singleTypeMultiplier(attackType, defendType) {
-  const d = TYPE_DEFENSE[defendType];
-  if (!d) return 1;
-  if (d.immune.includes(attackType)) return 0;
-  if (d.weak.includes(attackType)) return 2;
-  if (d.resist.includes(attackType)) return 0.5;
-  return 1;
-}
-
-// Abilities that change type effectiveness itself — not every ability that
-// exists, just the ones that actually alter what damage multiplier a type
-// chart produces. Three shapes: full immunity to specific attacking types
-// (Levitate, Flash Fire, the various "Absorb"/"Drain" abilities, etc.),
-// flat halving of specific types regardless of the chart (Thick Fat,
-// Heatproof), and a flat reduction applied only when the chart already says
-// something's super effective (Filter/Solid Rock/Prism Armor). Wonder Guard
-// is its own special case — everything that isn't already super effective
-// just doesn't connect at all, Shedinja being the one Pokémon this applies
-// to. This deliberately leaves out anything move-category-specific (Fluffy
-// halving contact but doubling Fire, Dry Skin's extra Fire damage being a
-// non-standard 1.25x) since those don't fit a clean type-chart multiplier.
-const ABILITY_TYPE_MODIFIERS = {
-  "Levitate": { immune: ["ground"] },
-  "Flash Fire": { immune: ["fire"] },
-  "Water Absorb": { immune: ["water"] },
-  "Volt Absorb": { immune: ["electric"] },
-  "Lightning Rod": { immune: ["electric"] },
-  "Storm Drain": { immune: ["water"] },
-  "Sap Sipper": { immune: ["grass"] },
-  "Motor Drive": { immune: ["electric"] },
-  "Dry Skin": { immune: ["water"] },
-  "Well-Baked Body": { immune: ["fire"] },
-  "Earth Eater": { immune: ["ground"] },
-  "Purifying Salt": { halve: ["ghost"] },
-  "Thick Fat": { halve: ["fire", "ice"] },
-  "Heatproof": { halve: ["fire"] },
-  "Filter": { superEffectiveReduction: 0.75 },
-  "Solid Rock": { superEffectiveReduction: 0.75 },
-  "Prism Armor": { superEffectiveReduction: 0.75 },
-  "Wonder Guard": { onlySuperEffective: true },
-};
-// Every attacking type's multiplier against a mon's actual typing (1 or 2
-// types) — dual types multiply together, which is what produces 4x
-// double-weaknesses and 0.25x double-resistances (and why a single 0x
-// immunity always wins outright, same as in-game). An optional ability
-// name layers its adjustment on top of the base chart.
-function defensiveChart(t1, t2, ability) {
-  const mod = ability ? ABILITY_TYPE_MODIFIERS[ability] : null;
-  return ALL_TYPES.map((atk) => {
-    let mult = singleTypeMultiplier(atk, t1) * (t2 ? singleTypeMultiplier(atk, t2) : 1);
-    if (mod) {
-      if (mod.onlySuperEffective) {
-        mult = mult > 1 ? mult : 0;
-      } else {
-        if (mod.immune?.includes(atk)) mult = 0;
-        else if (mod.halve?.includes(atk)) mult = mult / 2;
-        if (mod.superEffectiveReduction && mult > 1) mult *= mod.superEffectiveReduction;
-      }
-    }
-    return { type: atk, mult };
-  });
 }
 
 /* ---------------------------------------------------------
@@ -3842,7 +3749,7 @@ export function MonDefenseChart({ mon, compact }) {
   const data = useMonData(mon);
   const [ability, setAbility] = useState("");
   const abilityOptions = (data?.abilities || []).filter((a) => ABILITY_TYPE_MODIFIERS[a.name]);
-  const chart = defensiveChart(mon.t1, mon.t2, ability || null).filter((c) => c.mult !== 1).sort((a, b) => b.mult - a.mult);
+  const chart = defensiveTypeChart(mon, ability || null).filter((c) => c.mult !== 1).sort((a, b) => b.mult - a.mult);
   return (
     <div>
       {abilityOptions.length > 0 && (
@@ -3875,20 +3782,7 @@ export function MonDefenseChart({ mon, compact }) {
 // same idea as Marriland's team builder.
 export function TeamDefenseSummary({ roster }) {
   if (!roster || roster.length === 0) return null;
-  const rows = ALL_TYPES.map((atk) => {
-    let weak4 = 0, weak2 = 0, resist2 = 0, resist4 = 0, immune = 0;
-    roster.forEach((mon) => {
-      const mult = singleTypeMultiplier(atk, mon.t1) * (mon.t2 ? singleTypeMultiplier(atk, mon.t2) : 1);
-      if (mult === 0) immune++;
-      else if (mult === 4) weak4++;
-      else if (mult === 2) weak2++;
-      else if (mult === 0.25) resist4++;
-      else if (mult === 0.5) resist2++;
-    });
-    const weak = weak4 + weak2;
-    const resist = resist2 + resist4;
-    return { type: atk, weak, weak4, resist, resist4, immune, net: resist + immune - weak };
-  }).sort((a, b) => a.net - b.net);
+  const rows = teamDefenseSummary(roster);
 
   return (
     <div style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }} className="rounded-lg p-4">

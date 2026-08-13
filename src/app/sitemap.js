@@ -4,9 +4,10 @@ import { getAllPokemonProfiles, POKEMON_GENERATIONS, POKEMON_TYPES } from "../li
 import { POKEMON_COLOR_OPTIONS, POKEMON_EGG_GROUP_OPTIONS, POKEMON_SHAPE_OPTIONS } from "../lib/pokemonSpeciesTraits";
 import nuzlockeGameGuides from "../lib/nuzlockeGameGuides.json";
 
-const PRODUCT_DISCOVERY_LAST_MODIFIED = new Date("2026-08-09T00:00:00.000Z");
+const PRODUCT_DISCOVERY_LAST_MODIFIED = new Date("2026-08-13T00:00:00.000Z");
 const WORLDS_2026_LAST_MODIFIED = new Date("2026-08-11T00:00:00.000Z");
 const productRouteLastModified = new Map([
+  ["/tools/team-builder", PRODUCT_DISCOVERY_LAST_MODIFIED],
   ["/nuzlocke", PRODUCT_DISCOVERY_LAST_MODIFIED],
   ["/tournaments", PRODUCT_DISCOVERY_LAST_MODIFIED],
   ["/resources/daily-games", PRODUCT_DISCOVERY_LAST_MODIFIED],
@@ -26,6 +27,7 @@ const routes = [
   ["/pokemon/a-z", "monthly", 0.8],
   ["/pokemon/types", "monthly", 0.8],
   ["/pokemon/generations", "monthly", 0.8],
+  ["/tools/team-builder", "weekly", 0.9],
   ["/nuzlocke", "weekly", 0.9],
   ["/nuzlocke/guides", "monthly", 0.9],
   ["/tournaments", "daily", 0.8],
