@@ -2,11 +2,17 @@
 
 Date: 2026-08-13
 
-Status: release candidate
+Status: deployed
 
 Base: `origin/main` at `0a5766ab2676737cfa2ea03d90532b9cd657a3b7`
 
 Branch: `codex/nuzlocke-run-tracker-2026-08-13`
+
+Application pull request: [#193](https://github.com/roblebaegaming/DraftCenter/pull/193)
+
+Application commit: `1b39a8ebea511fe6442e8b715706dc5df0a220e9`
+
+Verified Production commit: `1510819104e9cfcca75ff32a56bfd804aae22a1e`
 
 ## Delivered scope
 
@@ -35,8 +41,15 @@ Branch: `codex/nuzlocke-run-tracker-2026-08-13`
 - `npm run test:national-dex`: all 1,027 rows verified.
 - `npm run build -- --webpack`: optimized 243-page build passed.
 - `npm run test:all`: all checks before the unchanged Draft Lab catalog gate passed; the command stops because the `origin/main` Draft Lab snapshot is already stale. This branch does not touch its catalog, builder, or tests. Every suite after that gate was also run explicitly and passed.
+- All six protected GitHub checks passed. The Supabase Preview check skipped as expected because this release has no migration.
+- The isolated Vercel Preview passed desktop and 390-by-844 mobile interaction review, persistence-after-reload checks, recreation-link privacy review, export review, and a live evolutionary-family conflict/clear-state exercise.
+- Vercel Production deployment `2vrSrHxTEtonBoLu8fPtKA7u2ocv` reached Ready and Current from the exact squash commit above.
+- The live route loaded its 37-game catalog at `https://www.draftcentral.gg/nuzlocke`; no run was generated or saved against Production.
+- `npm run smoke:production`: all 19 signed-out checks passed after the exact deployment reached Ready.
 
-Protected checks, isolated Preview interaction review, Production deployment, and the signed-out smoke sweep remain pending.
+The final optimized build also printed a Windows junction-specific post-build `TypeError` while loading the championship-artwork route. Next.js completed successfully with exit code zero and generated all 243 pages; this is unchanged platform behavior rather than a failure in the tracker release.
+
+The original dirty workspace still has its pre-existing 81 changes and remains untouched.
 
 ## Key files
 
