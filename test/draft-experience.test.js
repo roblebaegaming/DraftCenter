@@ -117,15 +117,19 @@ test("manual checkpoints advance through commit and expose a verification state"
   assert.match(draftLeagueSource, /save still failed after waiting/u);
 });
 
-test("the global navigation keeps Draft Home accessible at the top", () => {
+test("the global navigation keeps DraftCenter Home clear and accessible at the top", () => {
   const navigation = fs.readFileSync(new URL("../src/components/SiteQuickLinks.jsx", import.meta.url), "utf8");
   const styles = fs.readFileSync(new URL("../src/app/globals.css", import.meta.url), "utf8");
 
-  assert.match(navigation, /className="site-brand-link site-draft-home" href="\/\?view=dashboard"/);
-  assert.match(navigation, /aria-label="Draft Home"/);
-  assert.match(navigation, /<span>Draft Home<\/span>/);
+  assert.match(navigation, /className=\{`site-brand-link site-draft-home\$\{pathname === "\/" \? " is-active" : ""\}`\} href="\/\?view=dashboard"/);
+  assert.match(navigation, /aria-label="DraftCenter Home"/);
+  assert.match(navigation, /aria-current=\{pathname === "\/" \? "page" : undefined\}/);
+  assert.match(navigation, /className="draft-home-label-wide">DraftCenter Home<\/span>/);
+  assert.match(navigation, /className="draft-home-label-compact" aria-hidden="true">Home<\/span>/);
   assert.match(navigation, /aria-label="Tools and resources"/);
   assert.match(styles, /\.site-global-header\s*\{[\s\S]*?position:\s*sticky;[\s\S]*?top:\s*0;/);
   assert.match(styles, /\.site-draft-home\s*\{[\s\S]*?min-height:\s*44px;/);
+  assert.match(styles, /\.site-draft-home\.is-active\s*\{/);
   assert.match(styles, /\.site-draft-home:focus-visible\s*\{/);
+  assert.match(styles, /@media \(max-width:760px\)\s*\{[\s\S]*?\.draft-home-label-wide\s*\{\s*display:\s*none;\s*\}[\s\S]*?\.draft-home-label-compact\s*\{\s*display:\s*inline;\s*\}/);
 });

@@ -68,9 +68,10 @@ export default function SiteQuickLinks() {
   return <>
     <header className="site-global-header">
       <div className="site-global-header-inner">
-        <a className="site-brand-link site-draft-home" href="/?view=dashboard" aria-label="Draft Home">
+        <a className={`site-brand-link site-draft-home${pathname === "/" ? " is-active" : ""}`} href="/?view=dashboard" aria-label="DraftCenter Home" aria-current={pathname === "/" ? "page" : undefined}>
           <img src="/draftcenter-logo.png" alt="" />
-          <span>Draft Home</span>
+          <span className="draft-home-label-wide">DraftCenter Home</span>
+          <span className="draft-home-label-compact" aria-hidden="true">Home</span>
         </a>
         <nav className="site-primary-links" aria-label="Primary navigation">
           <a href="/pokemon" {...navState(pathname, "/pokemon")}>Pokémon</a>
