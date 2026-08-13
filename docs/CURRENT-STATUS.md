@@ -3,8 +3,8 @@
 - Last updated: August 13, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified production application commit: `727f1ed017df1e36d54ea2b2941f55a33d87c9bb`
-- Latest production migration: 384
+- Verified production application commit: `72d79883246df37792563e9cde2865f839e4143c`
+- Latest production migration: 385
 
 ## Deployed state
 
@@ -38,6 +38,15 @@ league from the 16-team default to 32 teams or use validated multi-pod play up
 to 128 teams. Migration 384 enforces the same limits for snapshots, initial
 setup, hosted snake drafts, and scheduled auctions while preserving RLS and
 client-role denials.
+
+Pull request [#181](https://github.com/roblebaegaming/DraftCenter/pull/181)
+made tournament format and roster building independent choices. Commissioners
+can run single elimination, double elimination, or Swiss; elimination events
+may use brought teams or a shared draft, while Swiss currently requires the
+shared draft. New Swiss events use three rounds for 4-8 managers and four for
+9-16, then finish on standings without a top cut. Migration 385 preserves
+historical Draft Tournaments as Swiss and reuses the existing elimination and
+Swiss engines while retaining RLS and client-role write denials.
 
 The August 9 release wave is complete. Pull requests
 [#95](https://github.com/roblebaegaming/DraftCenter/pull/95) through
@@ -379,6 +388,14 @@ team-based rather than 185 individual-player picks.
 
 ## Release verification
 
+- Pull request #181 passed all six protected checks and its hosted Preview.
+  Vercel reports exact merged commit `72d7988` Ready in Production. Migration
+  385 returned success on the verified production project; postflight confirmed
+  the format and draft-first routes, existing tournament engines, triggers,
+  RLS, grants, and migration 384. The isolated Preview passed the seven-part
+  migration matrix and all 12 backward-compatibility assertions without
+  retained fixtures. The live selector behavior and signed-out 19-route
+  production smoke sweep pass.
 - Pull requests #176-#179 passed their protected checks and hosted Previews.
   Vercel reports exact merged commit `727f1ed` Ready in Production. Migration
   384 returned success on the verified production project; postflight confirmed
