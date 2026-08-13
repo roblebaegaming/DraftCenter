@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import test from "node:test";
-import { CONNECTION_GROUPS, normalizeRosterConnectionsSave, pokemonConnectionsShareText, rosterConnectionsPuzzle } from "../src/lib/rosterConnections.js";
+import { CONNECTION_DIVERSITY_START_DATE, CONNECTION_GROUP_COOLDOWN_DAYS, CONNECTION_GROUPS, normalizeRosterConnectionsSave, pokemonConnectionsShareText, rosterConnectionsPuzzle } from "../src/lib/rosterConnections.js";
 
 function source(path) {
   return fs.readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
@@ -89,14 +89,36 @@ test("Pokémon Connections creates stable non-overlapping daily puzzles", () => 
   assert.deepEqual(normalized.order, first.pokemon);
 
   const seenCategories = new Set();
+  const recentGroups = [];
+  let previousCategories = null;
   for (let offset = 0; offset < 730; offset += 1) {
-    const date = new Date(Date.UTC(2026, 0, 1 + offset)).toISOString().slice(0, 10);
+    const date = new Date(Date.parse(`${CONNECTION_DIVERSITY_START_DATE}T00:00:00Z`) + offset * 86400000).toISOString().slice(0, 10);
     const puzzle = rosterConnectionsPuzzle(date);
     assert.equal(puzzle.groups.length, 4, `wrong group count on ${date}`);
     assert.equal(new Set(puzzle.pokemon).size, 16, `overlapping groups on ${date}`);
+    const categories = puzzle.groups.map((group) => group.category);
+    assert.equal(new Set(categories).size, 4, `repeated category within ${date}`);
+    if (previousCategories) {
+      for (const category of categories) assert.ok(!previousCategories.has(category), `${category} repeated on consecutive days ending ${date}`);
+    }
+    const keys = puzzle.groups.map((group) => `${group.category}:${group.title}`);
+    for (const previous of recentGroups) {
+      for (const key of keys) assert.ok(!previous.keys.has(key), `${key} repeated within cooldown on ${date}`);
+    }
+    recentGroups.push({ date, keys: new Set(keys) });
+    if (recentGroups.length > CONNECTION_GROUP_COOLDOWN_DAYS) recentGroups.shift();
+    previousCategories = new Set(categories);
     for (const group of puzzle.groups) seenCategories.add(group.category);
   }
-  for (const category of ["height", "weight", "shape", "egg-group"]) assert.ok(seenCategories.has(category), `${category} never rotates into a puzzle`);
+  for (const category of ["ability", "move", "family", "height", "weight", "shape", "egg-group", "color", "generation", "type", "evolution"]) assert.ok(seenCategories.has(category), `${category} never rotates into a puzzle`);
+  const squiggleDates = [];
+  for (let offset = 0; offset < 60; offset += 1) {
+    const date = new Date(Date.parse(`${CONNECTION_DIVERSITY_START_DATE}T00:00:00Z`) + offset * 86400000).toISOString().slice(0, 10);
+    if (rosterConnectionsPuzzle(date).groups.some((group) => group.title === "Pokédex shape: Squiggle")) squiggleDates.push(date);
+  }
+  for (let index = 1; index < squiggleDates.length; index += 1) {
+    assert.ok((Date.parse(squiggleDates[index]) - Date.parse(squiggleDates[index - 1])) / 86400000 > CONNECTION_GROUP_COOLDOWN_DAYS);
+  }
 });
 
 test("Pokémon Connections shares the guess pattern without spoiling answers", () => {
@@ -150,6 +172,52 @@ test("Pokémon Connections includes extreme measurements, shapes, and Egg Groups
   for (const id of [41, 142, 334, 715]) assert.equal(catalog.pokemon[id].shape, "wings");
   for (const id of [6, 149, 334, 445]) assert.ok(catalog.pokemon[id].egg_groups.includes("dragon"));
   for (const id of [94, 202, 282, 609]) assert.ok(catalog.pokemon[id].egg_groups.includes("indeterminate"));
+  const pokemonIds = new Map(Object.entries(catalog.species).map(([id, species]) => [species.name, Number(id)]));
+  const catalogCategories = {
+    shape: { field: "shape", normalize: (title) => title.replace("Pokédex shape: ", "").toLowerCase().replace("bug wings", "bug-wings") },
+    "egg-group": { field: "egg_groups", normalize: (title) => title.replace(" Egg Group", "").toLowerCase().replace("water 1", "water1").replace("water 2", "water2").replace("water 3", "water3").replace("amorphous", "indeterminate").replace("field", "ground").replace("grass", "plant").replace("human-like", "humanshape") },
+    color: { field: "color", normalize: (title) => title.replace(" Pokédex color", "").toLowerCase() },
+  };
+  for (const group of CONNECTION_GROUPS.filter((candidate) => catalogCategories[candidate.category])) {
+    const rule = catalogCategories[group.category];
+    const expected = rule.normalize(group.title);
+    for (const pokemon of group.pokemon) {
+      const id = pokemonIds.get(pokemon.toLowerCase());
+      assert.ok(id, `missing species-trait record for ${pokemon}`);
+      const actual = catalog.species[id][rule.field];
+      assert.ok(Array.isArray(actual) ? actual.includes(expected) : actual === expected, `${pokemon} does not match ${group.title}`);
+    }
+  }
+});
+
+test("Sunday Super Bracket is service-finalized, auditable, and submission-gated", () => {
+  const migration = source("supabase/388-sunday-super-brackets.sql");
+  const preview = source("supabase/tests/388-sunday-super-brackets-preview-regression.sql");
+  const games = source("src/components/DailyCommunityGames.jsx");
+  const dispatch = source("src/app/api/notifications/dispatch/route.js");
+  const resources = source("src/components/DailyGamesResourcesPage.jsx");
+  const page = source("src/app/resources/daily-games/page.js");
+  assert.match(migration, /bracket_kind in \('daily', 'weekly_final'\)/);
+  assert.match(migration, /create or replace function public\.finalize_sunday_super_bracket/);
+  assert.match(migration, /America\/Los_Angeles/);
+  assert.match(migration, /source_days_required', 6/);
+  assert.match(migration, /performance_wildcard/);
+  assert.match(migration, /final_wins desc,[\s\S]*semifinal_wins[\s\S]*quarterfinal_wins/);
+  assert.match(migration, /when 1 then 1 when 8 then 2 when 4 then 3 when 5 then 4 when 2 then 5 when 7 then 6 when 3 then 7 when 6 then 8/);
+  assert.match(migration, /create trigger require_ready_sunday_super_bracket/);
+  assert.match(migration, /grant execute on function public\.finalize_sunday_super_bracket\(date\) to service_role/);
+  assert.match(migration, /grant execute on function public\.get_daily_bracket_context\(uuid\) to anon, authenticated/);
+  assert.match(preview, /v_champions <@ v_pokemon/);
+  assert.match(preview, /array\['Gengar','Lucario'\] <@ v_pokemon/);
+  assert.match(preview, /qualifiers are still being finalized/);
+  assert.match(preview, /rollback;/);
+  assert.match(games, /SUNDAY SUPER BRACKET/);
+  assert.match(games, /Performance wildcard/);
+  assert.match(games, /This week’s qualifiers are finalizing/);
+  assert.match(dispatch, /supabase\.rpc\("finalize_sunday_super_bracket"\)/);
+  assert.match(resources, /How does the Sunday Super Bracket work\?/);
+  assert.match(page, /How does the Sunday Super Bracket work\?/);
+  assert.ok(fs.existsSync(new URL("../docs/daily-games.md", import.meta.url)));
 });
 
 test("Daily Games migration grandfathers badges and gates every game discussion", () => {

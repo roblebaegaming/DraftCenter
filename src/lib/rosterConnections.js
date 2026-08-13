@@ -1,4 +1,4 @@
-export const CONNECTION_GROUPS = [
+const LEGACY_CONNECTION_GROUPS = [
   { category: "draft", title: "Pseudo-legendary Pokémon", note: "Three-stage powerhouses with a 600 base-stat total", pokemon: ["Dragonite", "Tyranitar", "Metagross", "Garchomp"] },
   { category: "draft", title: "Prankster utility", note: "Draft support Pokémon known for priority status moves", pokemon: ["Grimmsnarl", "Whimsicott", "Klefki", "Sableye"] },
   { category: "draft", title: "Regenerator pivots", note: "Defensive pivots that heal when switching out", pokemon: ["Slowking", "Tornadus", "Toxapex", "Tangrowth"] },
@@ -20,6 +20,77 @@ export const CONNECTION_GROUPS = [
   { category: "egg-group", title: "Dragon Egg Group", note: "Belong to the Dragon Egg Group", pokemon: ["Charizard", "Dragonite", "Altaria", "Garchomp"] },
   { category: "egg-group", title: "Amorphous Egg Group", note: "Belong to the Amorphous Egg Group", pokemon: ["Gengar", "Wobbuffet", "Gardevoir", "Chandelure"] },
 ];
+
+export const CONNECTION_GROUPS = [
+  ...LEGACY_CONNECTION_GROUPS,
+  { category: "ability", title: "Levitate users", note: "Avoid Ground-type attacks through Levitate", pokemon: ["Rotom", "Hydreigon", "Cresselia", "Weezing"] },
+  { category: "ability", title: "Flash Fire users", note: "Become stronger after absorbing a Fire-type attack", pokemon: ["Arcanine", "Chandelure", "Heatran", "Houndoom"] },
+  { category: "ability", title: "Technician users", note: "Power up weaker attacks through Technician", pokemon: ["Scizor", "Breloom", "Ambipom", "Cinccino"] },
+  { category: "ability", title: "Defiant users", note: "Raise Attack when an opponent lowers one of their stats", pokemon: ["Bisharp", "Braviary", "Empoleon", "Thundurus"] },
+  { category: "ability", title: "Water Absorb users", note: "Heal instead of taking damage from Water-type attacks", pokemon: ["Vaporeon", "Quagsire", "Mantine", "Clodsire"] },
+  { category: "ability", title: "Mold Breaker users", note: "Can use attacks without being stopped by many opposing abilities", pokemon: ["Haxorus", "Excadrill", "Pinsir", "Tinkaton"] },
+  { category: "ability", title: "Guts attackers", note: "Raise Attack while affected by a status condition", pokemon: ["Machamp", "Heracross", "Ursaring", "Conkeldurr"] },
+  { category: "ability", title: "Speed Boost users", note: "Can raise Speed at the end of every turn", pokemon: ["Blaziken", "Yanmega", "Scolipede", "Espathra"] },
+  { category: "ability", title: "Sturdy users", note: "Can survive a knockout from full health through Sturdy", pokemon: ["Skarmory", "Donphan", "Magnezone", "Garganacl"] },
+  { category: "ability", title: "Chlorophyll sweepers", note: "Double their Speed in harsh sunlight through Chlorophyll", pokemon: ["Venusaur", "Victreebel", "Lilligant", "Shiftry"] },
+  { category: "move", title: "Defog users", note: "Can remove hazards and terrain with Defog", pokemon: ["Corviknight", "Zapdos", "Mandibuzz", "Talonflame"] },
+  { category: "move", title: "Spore users", note: "Can put a target to sleep with the perfectly accurate Spore", pokemon: ["Amoonguss", "Breloom", "Shiinotic", "Toedscruel"] },
+  { category: "move", title: "Shell Smash users", note: "Can trade defenses for a sweeping boost with Shell Smash", pokemon: ["Cloyster", "Polteageist", "Omastar", "Minior"] },
+  { category: "move", title: "Parting Shot users", note: "Can weaken a target and pivot out with Parting Shot", pokemon: ["Incineroar", "Grimmsnarl", "Silvally", "Grafaiai"] },
+  { category: "move", title: "Wish passers", note: "Can restore a teammate's health by passing Wish", pokemon: ["Clefable", "Vaporeon", "Jirachi", "Alomomola"] },
+  { category: "family", title: "Treasures of Ruin", note: "The four ruinous legendary Pokémon of Paldea", pokemon: ["Wo-Chien", "Chien-Pao", "Ting-Lu", "Chi-Yu"] },
+  { category: "family", title: "Forces of Nature", note: "The four legendary Pokémon known as the Forces of Nature", pokemon: ["Tornadus", "Thundurus", "Landorus", "Enamorus"] },
+  { category: "family", title: "Swords of Justice", note: "The four legendary Pokémon inspired by the Three Musketeers", pokemon: ["Cobalion", "Terrakion", "Virizion", "Keldeo"] },
+  { category: "family", title: "Kanto legendary Pokémon", note: "Legendary Pokémon first discovered in Kanto", pokemon: ["Articuno", "Zapdos", "Moltres", "Mewtwo"] },
+  { category: "family", title: "Loyal Three and Pecharunt", note: "Kitakami's legendary trio and the Mythical Pokémon tied to them", pokemon: ["Okidogi", "Munkidori", "Fezandipiti", "Pecharunt"] },
+  { category: "family", title: "Light trio", note: "Alola's legendary light trio and its restored form", pokemon: ["Solgaleo", "Lunala", "Necrozma", "Ultra Necrozma"] },
+  { category: "shape", title: "Pokédex shape: Ball", note: "Share the Ball body shape in Pokédex species data", pokemon: ["Voltorb", "Electrode", "Ditto", "Solrock"] },
+  { category: "shape", title: "Pokédex shape: Fish", note: "Share the Fish body shape in Pokédex species data", pokemon: ["Magikarp", "Feebas", "Wishiwashi", "Luvdisc"] },
+  { category: "shape", title: "Pokédex shape: Arms", note: "Share the Arms body shape in Pokédex species data", pokemon: ["Geodude", "Magnemite", "Claydol", "Grimer"] },
+  { category: "shape", title: "Pokédex shape: Quadruped", note: "Share the Quadruped body shape in Pokédex species data", pokemon: ["Tauros", "Arcanine", "Luxray", "Mudsdale"] },
+  { category: "shape", title: "Pokédex shape: Heads", note: "Share the Heads body shape in Pokédex species data", pokemon: ["Dugtrio", "Exeggcute", "Weezing", "Combee"] },
+  { category: "shape", title: "Pokédex shape: Bug wings", note: "Share the Bug Wings body shape in Pokédex species data", pokemon: ["Beautifly", "Yanmega", "Ribombee", "Scizor"] },
+  { category: "egg-group", title: "Monster Egg Group", note: "Belong to the Monster Egg Group", pokemon: ["Venusaur", "Charizard", "Blastoise", "Tyranitar"] },
+  { category: "egg-group", title: "Water 1 Egg Group", note: "Belong to the Water 1 Egg Group", pokemon: ["Psyduck", "Politoed", "Azumarill", "Swampert"] },
+  { category: "egg-group", title: "Bug Egg Group", note: "Belong to the Bug Egg Group", pokemon: ["Butterfree", "Scizor", "Volcarona", "Ribombee"] },
+  { category: "egg-group", title: "Flying Egg Group", note: "Belong to the Flying Egg Group", pokemon: ["Pidgeot", "Crobat", "Corviknight", "Kilowattrel"] },
+  { category: "egg-group", title: "Field Egg Group", note: "Belong to the Field Egg Group", pokemon: ["Pikachu", "Eevee", "Arcanine", "Zoroark"] },
+  { category: "egg-group", title: "Fairy Egg Group", note: "Belong to the Fairy Egg Group", pokemon: ["Pikachu", "Clefable", "Togekiss", "Whimsicott"] },
+  { category: "egg-group", title: "Grass Egg Group", note: "Belong to the Grass Egg Group", pokemon: ["Venusaur", "Vileplume", "Roserade", "Amoonguss"] },
+  { category: "egg-group", title: "Human-Like Egg Group", note: "Belong to the Human-Like Egg Group", pokemon: ["Alakazam", "Machamp", "Lucario", "Grimmsnarl"] },
+  { category: "egg-group", title: "Mineral Egg Group", note: "Belong to the Mineral Egg Group", pokemon: ["Golem", "Magnezone", "Klefki", "Garganacl"] },
+  { category: "egg-group", title: "Water 2 Egg Group", note: "Belong to the Water 2 Egg Group", pokemon: ["Goldeen", "Gyarados", "Lanturn", "Basculegion"] },
+  { category: "egg-group", title: "Water 3 Egg Group", note: "Belong to the Water 3 Egg Group", pokemon: ["Cloyster", "Kabutops", "Crawdaunt", "Barbaracle"] },
+  { category: "color", title: "Yellow Pokédex color", note: "Are classified as yellow in Pokédex species data", pokemon: ["Pikachu", "Ampharos", "Jolteon", "Drowzee"] },
+  { category: "color", title: "Black Pokédex color", note: "Are classified as black in Pokédex species data", pokemon: ["Umbreon", "Houndoom", "Honchkrow", "Zekrom"] },
+  { category: "color", title: "Pink Pokédex color", note: "Are classified as pink in Pokédex species data", pokemon: ["Clefairy", "Jigglypuff", "Slowpoke", "Blissey"] },
+  { category: "color", title: "Green Pokédex color", note: "Are classified as green in Pokédex species data", pokemon: ["Bulbasaur", "Scyther", "Larvitar", "Rayquaza"] },
+  { category: "generation", title: "Kanto final starters and ace", note: "Three final starter evolutions and a Kanto pseudo-legendary", pokemon: ["Venusaur", "Charizard", "Blastoise", "Dragonite"] },
+  { category: "generation", title: "Johto final starters and ace", note: "Three final starter evolutions and a Johto pseudo-legendary", pokemon: ["Meganium", "Typhlosion", "Feraligatr", "Tyranitar"] },
+  { category: "generation", title: "Hoenn final starters and ace", note: "Three final starter evolutions and a Hoenn pseudo-legendary", pokemon: ["Sceptile", "Blaziken", "Swampert", "Metagross"] },
+  { category: "generation", title: "Sinnoh final starters and ace", note: "Three final starter evolutions and a Sinnoh pseudo-legendary", pokemon: ["Torterra", "Infernape", "Empoleon", "Garchomp"] },
+  { category: "generation", title: "Unova final starters and ace", note: "Three final starter evolutions and a Unova pseudo-legendary", pokemon: ["Serperior", "Emboar", "Samurott", "Hydreigon"] },
+  { category: "generation", title: "Kalos final starters and ace", note: "Three final starter evolutions and a Kalos pseudo-legendary", pokemon: ["Chesnaught", "Delphox", "Greninja", "Goodra"] },
+  { category: "generation", title: "Alola final starters and ace", note: "Three final starter evolutions and an Alola pseudo-legendary", pokemon: ["Decidueye", "Incineroar", "Primarina", "Kommo-o"] },
+  { category: "generation", title: "Galar final starters and ace", note: "Three final starter evolutions and a Galar pseudo-legendary", pokemon: ["Rillaboom", "Cinderace", "Inteleon", "Dragapult"] },
+  { category: "generation", title: "Paldea final starters and ace", note: "Three final starter evolutions and a Paldea pseudo-legendary", pokemon: ["Meowscarada", "Skeledirge", "Quaquaval", "Baxcalibur"] },
+  { category: "type", title: "Water and Ground type", note: "Share the Water/Ground type combination", pokemon: ["Quagsire", "Swampert", "Whiscash", "Gastrodon"] },
+  { category: "type", title: "Dragon and Flying type", note: "Share the Dragon/Flying type combination", pokemon: ["Dragonite", "Salamence", "Rayquaza", "Noivern"] },
+  { category: "type", title: "Steel and Psychic type", note: "Share the Steel/Psychic type combination", pokemon: ["Metagross", "Jirachi", "Bronzong", "Solgaleo"] },
+  { category: "type", title: "Grass and Poison type", note: "Share the Grass/Poison type combination", pokemon: ["Venusaur", "Vileplume", "Victreebel", "Amoonguss"] },
+  { category: "type", title: "Fire and Ghost type", note: "Share the Fire/Ghost type combination", pokemon: ["Chandelure", "Skeledirge", "Ceruledge", "Blacephalon"] },
+  { category: "type", title: "Electric and Flying type", note: "Share the Electric/Flying type combination", pokemon: ["Zapdos", "Emolga", "Thundurus", "Kilowattrel"] },
+  { category: "type", title: "Bug and Steel type", note: "Share the Bug/Steel type combination", pokemon: ["Scizor", "Forretress", "Durant", "Genesect"] },
+  { category: "type", title: "Fairy and Steel type", note: "Share the Fairy/Steel type combination", pokemon: ["Mawile", "Klefki", "Magearna", "Tinkaton"] },
+  { category: "type", title: "Water and Fairy type", note: "Share the Water/Fairy type combination", pokemon: ["Azumarill", "Primarina", "Tapu Fini", "Marill"] },
+  { category: "evolution", title: "Trade evolutions", note: "Traditionally evolve when traded", pokemon: ["Alakazam", "Machamp", "Gengar", "Golem"] },
+  { category: "evolution", title: "High-friendship evolutions", note: "Can evolve after reaching high friendship", pokemon: ["Crobat", "Blissey", "Lucario", "Sylveon"] },
+  { category: "evolution", title: "Leaf Stone evolutions", note: "Use a Leaf Stone to reach this evolutionary stage", pokemon: ["Vileplume", "Victreebel", "Exeggutor", "Shiftry"] },
+  { category: "evolution", title: "Moon Stone evolutions", note: "Use a Moon Stone to reach this evolutionary stage", pokemon: ["Nidoqueen", "Nidoking", "Clefable", "Wigglytuff"] },
+];
+
+export const CONNECTION_DIVERSITY_START_DATE = "2026-08-14";
+export const CONNECTION_GROUP_COOLDOWN_DAYS = 7;
 
 export const CONNECTION_GROUP_MARKS = ["🟨", "🟩", "🟦", "🟪"];
 export const CONNECTIONS_URL = "https://www.draftcentral.gg/resources/daily-games";
@@ -48,28 +119,80 @@ export function seededConnectionsShuffle(items, seed) {
   return shuffled;
 }
 
-function selectDisjointGroups(candidates, count) {
-  function visit(start, selected, usedPokemon) {
+function selectDisjointGroups(candidates, count, { blockedCategories = new Set(), distinctCategories = false } = {}) {
+  function visit(start, selected, usedPokemon, usedCategories) {
     if (selected.length === count) return selected;
     for (let index = start; index < candidates.length; index += 1) {
       const group = candidates[index];
+      if (blockedCategories.has(group.category) || (distinctCategories && usedCategories.has(group.category))) continue;
       if (group.pokemon.some((name) => usedPokemon.has(name))) continue;
-      const next = visit(index + 1, [...selected, group], new Set([...usedPokemon, ...group.pokemon]));
+      const next = visit(
+        index + 1,
+        [...selected, group],
+        new Set([...usedPokemon, ...group.pokemon]),
+        new Set([...usedCategories, group.category]),
+      );
       if (next) return next;
     }
     return null;
   }
-  return visit(0, [], new Set());
+  return visit(0, [], new Set(), new Set());
+}
+
+function dateOrdinal(dateKey) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateKey)) throw new Error("Pokémon Connections requires a YYYY-MM-DD date.");
+  const ordinal = Math.floor(Date.parse(`${dateKey}T00:00:00Z`) / 86400000);
+  if (!Number.isFinite(ordinal) || new Date(ordinal * 86400000).toISOString().slice(0, 10) !== dateKey) {
+    throw new Error("Pokémon Connections received an invalid calendar date.");
+  }
+  return ordinal;
+}
+
+function dateKeyFromOrdinal(ordinal) {
+  return new Date(ordinal * 86400000).toISOString().slice(0, 10);
+}
+
+function connectionGroupKey(group) {
+  return `${group.category}:${group.title}`;
+}
+
+const diversityStartOrdinal = dateOrdinal(CONNECTION_DIVERSITY_START_DATE);
+const diverseSchedule = new Map();
+let scheduledThroughOrdinal = diversityStartOrdinal - 1;
+
+function scheduledConnectionsGroups(dateKey) {
+  const targetOrdinal = dateOrdinal(dateKey);
+  for (let ordinal = scheduledThroughOrdinal + 1; ordinal <= targetOrdinal; ordinal += 1) {
+    const currentDateKey = dateKeyFromOrdinal(ordinal);
+    const recentGroupKeys = new Set();
+    for (let lookback = 1; lookback <= CONNECTION_GROUP_COOLDOWN_DAYS; lookback += 1) {
+      for (const group of diverseSchedule.get(dateKeyFromOrdinal(ordinal - lookback)) || []) {
+        recentGroupKeys.add(connectionGroupKey(group));
+      }
+    }
+    const yesterdayGroups = diverseSchedule.get(dateKeyFromOrdinal(ordinal - 1)) || [];
+    const blockedCategories = new Set(yesterdayGroups.map((group) => group.category));
+    const candidates = seededConnectionsShuffle(
+      CONNECTION_GROUPS.filter((group) => !recentGroupKeys.has(connectionGroupKey(group))),
+      hash(`groups-v2-${currentDateKey}`),
+    );
+    const groups = selectDisjointGroups(candidates, 4, { blockedCategories, distinctCategories: true });
+    if (!groups) throw new Error(`Pokémon Connections could not schedule four diverse groups for ${currentDateKey}.`);
+    diverseSchedule.set(currentDateKey, groups);
+    scheduledThroughOrdinal = ordinal;
+  }
+  return diverseSchedule.get(dateKey);
 }
 
 export function rosterConnectionsPuzzle(dateKey = localDateKey()) {
-  const candidates = seededConnectionsShuffle(CONNECTION_GROUPS, hash(`groups-${dateKey}`));
-  const groups = selectDisjointGroups(candidates, 4);
+  const legacy = dateOrdinal(dateKey) < diversityStartOrdinal;
+  const candidates = legacy ? seededConnectionsShuffle(LEGACY_CONNECTION_GROUPS, hash(`groups-${dateKey}`)) : null;
+  const groups = legacy ? selectDisjointGroups(candidates, 4) : scheduledConnectionsGroups(dateKey);
   if (!groups) throw new Error("Pokémon Connections needs four non-overlapping groups.");
   return {
     dateKey,
     groups,
-    pokemon: seededConnectionsShuffle(groups.flatMap((group) => group.pokemon), hash(`pokemon-${dateKey}`)),
+    pokemon: seededConnectionsShuffle(groups.flatMap((group) => group.pokemon), hash(`${legacy ? "pokemon" : "pokemon-v2"}-${dateKey}`)),
   };
 }
 
