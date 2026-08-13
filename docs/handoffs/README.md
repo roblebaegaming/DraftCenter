@@ -1,12 +1,19 @@
 # Agent handoffs
 
+[`DraftCenter-agent-handoff-2026-08-13-league-operations.md`](DraftCenter-agent-handoff-2026-08-13-league-operations.md)
+is the current continuation handoff. It records the deployed concurrent-
+division League Operations release through pull request #189 and migration
+387, including per-division draft times, availability-first manager placement,
+authority and lifecycle boundaries, isolated Preview evidence, the exact
+Production application commit, and the post-deployment smoke sweep. Start from
+fresh `origin/main`; do not replay migration 387.
+
 [`DraftCenter-agent-handoff-2026-08-13-global-release-final.md`](DraftCenter-agent-handoff-2026-08-13-global-release-final.md)
-is the current continuation handoff. It records the exact production state
+is the preceding broad continuation handoff. It records the production state
 through pull request #187 and migration 386, the final August 12-13 release
 chain, global **DraftCenter Home** contract, Operations and Calendar privacy
 boundaries, current Worlds gates, known migration-379 test baseline, and the
-next protected release procedure. Start from fresh `origin/main`; do not replay
-migrations 381-386.
+protected release procedure before the League Operations release.
 
 [`DraftCenter-agent-handoff-2026-08-12-worlds-tcg-meta-picks-activation.md`](DraftCenter-agent-handoff-2026-08-12-worlds-tcg-meta-picks-activation.md)
 is the historical pre-activation record for the expandable scoring guide,
