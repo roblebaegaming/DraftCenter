@@ -14,8 +14,13 @@ needs.
   1,024. Choice 1,098 reveals the final 64.
 - The final 64 are divided into four regions of 16 and continue through a
   familiar tournament bracket to the player's champion.
-- Players see one matchup at a time, can undo their latest choice, and follow
-  the bracket through named round milestones.
+- Before the Top 64, players see one matchup at a time. From the Top 64 onward,
+  they make each choice directly in a four-region visual bracket that preserves
+  completed matchups and leads into a separate Final Four board.
+- Named round milestones open a dismissible celebration after the field reaches
+  1,024, 512, 256, 128, 64, 32, 16, 8, 4, the championship match, and the final
+  champion. The Top 64 celebration opens the new bracket directly.
+- Players can undo their latest choice throughout an active attempt.
 - Progress is saved privately to the player's account and also retained in the
   browser while a cross-device save is pending.
 - Completed attempts remain in private history. Launch has unlimited attempts.
@@ -23,8 +28,12 @@ needs.
   members with at least one completed attempt and total completed attempts. It
   never receives member identities, champions, Top 64 results, bracket choices,
   active attempts, or abandoned attempts.
-- Completion unlocks a high-resolution Top 64 bracket image and a portrait
-  champion card for sharing.
+- Completion unlocks a private recap with the player's most-picked winning
+  type, leading Top 64 generation, lowest-BST Top 64 qualifier, champion's final
+  path, and an illustrated Final Four.
+- The high-resolution Top 64 bracket image now includes Final Four and champion
+  artwork. The portrait champion card includes the champion and all four
+  regional winners.
 
 Purely cosmetic appearances are not separate entrants. Mega Evolutions and
 other distinct battle-relevant forms present in the DraftCenter catalogue are
@@ -44,6 +53,24 @@ completed brackets should remain readable regardless of future entitlement.
 Mega Bracket attempts are not public profiles or community rankings. Do not
 expose an attempt, its full choice history, or its exports through a public URL
 without a separate explicit sharing design and consent model.
+
+## Pokemon artwork
+
+The shared resolver in `src/lib/pokemonArtwork.js` uses PokeAPI Home artwork,
+then official artwork or a front sprite. Reviewed aliases cover special names
+whose DraftCenter and PokeAPI forms differ, including Calyrex riders, Paldean
+Tauros breeds, Primal Groudon, Primal Kyogre, and Flabebe's accented display
+name. Generic species names such as Deoxys or Giratina use the species' official
+default variety. If an exact new form is not yet available, the UI may use that
+species' base artwork and keeps the Pokemon name visible.
+
+The frozen 1,162-entry catalogue must be checked end to end when this resolver
+changes. The August 14, 2026 verification resolved artwork for all 1,162
+entries; 34 generic or not-yet-published form names intentionally used a
+reviewed default-variety or base-species fallback.
+
+Artwork and recap data are derived in the browser. They add no public bracket
+records and do not change the account-private attempt or Operations contracts.
 
 ## Data and synchronization contract
 

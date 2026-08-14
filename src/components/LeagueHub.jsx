@@ -7,6 +7,9 @@ import DailyCommunityGames from "./DailyCommunityGames";
 import RosterConnections from "./RosterConnections";
 import PublicCoachProfile, { CoachProfileButton } from "./PublicCoachProfile";
 import { openSetupTeams } from "../lib/teamOwnership";
+import { loadPokemonArtwork } from "../lib/pokemonArtwork";
+
+export { loadPokemonArtwork, pokemonArtworkCandidates } from "../lib/pokemonArtwork";
 
 const LEAGUE_HUB_FALLBACK_REFRESH_MS = 60000;
 
@@ -37,10 +40,6 @@ function PublicDraftDetails({ league, compact = false }) {
   return <div className={`public-draft-details ${compact ? "is-compact" : ""}`}>{details.map((detail) => <span key={detail}>{detail}</span>)}</div>;
 }
 
-function pokemonSlug(name) {
-  return String(name || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
-}
-
 export const WORLD_CHAMPION_POKEMON = [
   "Ludicolo","Toxicroak","Metagross","Snorlax","Salamence","Empoleon","Kyogre","Dialga","Groudon","Cresselia",
   "Hariyama","Thundurus","Gothitelle","Conkeldurr","Terrakion","Hydreigon","Escavalier","Garchomp","Rotom",
@@ -50,59 +49,6 @@ export const WORLD_CHAMPION_POKEMON = [
   "Zacian","Calyrex","Rillaboom","Flutter Mane","Chien-Pao","Iron Hands","Urshifu","Miraidon","Ogerpon",
   "Farigiraf","Koraidon","Chi-Yu","Brute Bonnet","Ursaluna",
 ];
-
-export function pokemonArtworkCandidates(name) {
-  const key = pokemonSlug(name);
-  const candidates = [key];
-  if (key === "aegislash") candidates.unshift("aegislash-shield");
-  if (key === "mimikyu") candidates.unshift("mimikyu-disguised");
-  if (key === "basculegion") candidates.unshift("basculegion-male");
-  const regional = key.match(/^(alolan|galarian|hisuian|paldean)-(.+)$/);
-  if (regional) candidates.unshift(`${regional[2]}-${{ alolan:"alola", galarian:"galar", hisuian:"hisui", paldean:"paldea" }[regional[1]]}`);
-  const mega = key.match(/^mega-(.+?)(?:-(x|y))?$/);
-  if (mega) candidates.unshift(`${mega[1]}-mega${mega[2] ? `-${mega[2]}` : ""}`);
-  if (key === "paldean-tauros-fire") candidates.unshift("tauros-paldea-blaze");
-  if (key === "paldean-tauros-water") candidates.unshift("tauros-paldea-aqua");
-  if (key === "paldean-tauros") candidates.unshift("tauros-paldea-combat");
-  if (key === "white-striped-basculin") candidates.unshift("basculin-white-striped");
-  if (key === "farfetch-d") candidates.unshift("farfetchd");
-  if (key === "sirfetch-d") candidates.unshift("sirfetchd");
-  return [...new Set(candidates.filter(Boolean))];
-}
-
-export async function loadPokemonArtwork(name) {
-  for (const apiName of pokemonArtworkCandidates(name)) {
-    try {
-      const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${encodeURIComponent(apiName)}`);
-      if (!response.ok) continue;
-      const data = await response.json();
-      const image = data?.sprites?.other?.home?.front_default || data?.sprites?.other?.["official-artwork"]?.front_default || data?.sprites?.front_default;
-      if (image) return image;
-    } catch {}
-  }
-  try {
-    const speciesName = pokemonSlug(name)
-      .replace(/^(alolan|galarian|hisuian|paldean)-/, "")
-      .replace(/^mega-/, "");
-    const speciesResponse = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${encodeURIComponent(speciesName)}`);
-    if (speciesResponse.ok) {
-      const species = await speciesResponse.json();
-      const defaultVariety = species?.varieties?.find((variety) => variety.is_default) || species?.varieties?.[0];
-      if (defaultVariety?.pokemon?.url) {
-        const varietyResponse = await fetch(defaultVariety.pokemon.url);
-        if (varietyResponse.ok) {
-          const variety = await varietyResponse.json();
-          const image = variety?.sprites?.other?.home?.front_default || variety?.sprites?.other?.["official-artwork"]?.front_default || variety?.sprites?.front_default;
-          if (image) return image;
-        }
-      }
-    }
-  } catch {}
-  if (pokemonSlug(name) === "floette-eternal") {
-    return "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10061.png";
-  }
-  return "";
-}
 
 export function RotatingPokemonArtwork({ names, interval = 5000, className = "hub-feature-pokemon" }) {
   const choices = [...new Set([...(names || []).filter(Boolean), "Pikachu"])];

@@ -125,12 +125,28 @@ export function evaluateMegaBracket(entrants, winners = []) {
 export function top64BracketFromRounds(rounds = []) {
   const bySize = new Map(rounds.map((round) => [round.size, round]));
   const round64 = bySize.get(64);
-  if (!round64) return { regions: [], finalFour: [], semifinalWinners: [], champion: null };
+  if (!round64) return {
+    regions: [],
+    finalFour: [],
+    semifinalWinners: [],
+    finalFourMatches: [],
+    championshipMatch: null,
+    champion: null,
+  };
   const round32 = bySize.get(32);
   const round16 = bySize.get(16);
   const round8 = bySize.get(8);
   const round4 = bySize.get(4);
   const round2 = bySize.get(2);
+  const matchesForRound = (round) => Array.from({ length: (round?.participants.length || 0) / 2 }, (_, index) => ({
+    left: round.participants[index * 2],
+    right: round.participants[index * 2 + 1],
+    winner: round.winners[index] || null,
+  }));
+  const round64Matches = matchesForRound(round64);
+  const round32Matches = matchesForRound(round32);
+  const round16Matches = matchesForRound(round16);
+  const round8Matches = matchesForRound(round8);
   const regions = Array.from({ length: 4 }, (_, index) => ({
     id: index + 1,
     entrants: round64.participants.slice(index * 16, index * 16 + 16),
@@ -138,11 +154,54 @@ export function top64BracketFromRounds(rounds = []) {
     round32Winners: round32?.winners.slice(index * 4, index * 4 + 4) || [],
     sweet16Winners: round16?.winners.slice(index * 2, index * 2 + 2) || [],
     champion: round8?.winners[index] || null,
+    rounds: [
+      { key: "top64", label: "Top 64", matches: round64Matches.slice(index * 8, index * 8 + 8) },
+      { key: "top32", label: "Top 32", matches: round32Matches.slice(index * 4, index * 4 + 4) },
+      { key: "sweet16", label: "Sweet 16", matches: round16Matches.slice(index * 2, index * 2 + 2) },
+      { key: "elite8", label: "Elite Eight", matches: round8Matches.slice(index, index + 1) },
+    ],
   }));
   return {
     regions,
     finalFour: round4?.participants || round8?.winners || [],
     semifinalWinners: round4?.winners || [],
+    finalFourMatches: matchesForRound(round4),
+    championshipMatch: matchesForRound(round2)[0] || null,
     champion: round2?.winners[0] || null,
+  };
+}
+
+export function buildMegaBracketRecap(progress, catalogEntries = []) {
+  if (!progress?.complete || !progress.top64?.length) return null;
+  const catalog = new Map(catalogEntries.map((entry) => [entry.name, entry]));
+  const countBy = (values) => {
+    const counts = new Map();
+    values.filter(Boolean).forEach((value) => counts.set(value, (counts.get(value) || 0) + 1));
+    return [...counts.entries()].sort((left, right) => right[1] - left[1] || String(left[0]).localeCompare(String(right[0])))[0] || null;
+  };
+  const winningPokemon = progress.rounds.flatMap((round) => round.winners || []);
+  const favoriteTypeEntry = countBy(winningPokemon.flatMap((name) => {
+    const entry = catalog.get(name);
+    return entry ? [entry.t1, entry.t2].filter(Boolean) : [];
+  }));
+  const generationEntry = countBy(progress.top64.map((name) => catalog.get(name)?.gen).filter(Number.isFinite));
+  const lowestBstTop64 = progress.top64
+    .map((name) => ({ name, bst: Number(catalog.get(name)?.bst) }))
+    .filter((entry) => Number.isFinite(entry.bst))
+    .sort((left, right) => left.bst - right.bst || left.name.localeCompare(right.name))[0] || null;
+  const championPath = progress.rounds
+    .filter((round) => round.size <= 64)
+    .flatMap((round) => round.matches || [])
+    .filter((match) => match.winner === progress.champion)
+    .map((match) => match.left === progress.champion ? match.right : match.left)
+    .filter(Boolean);
+  const bracket = top64BracketFromRounds(progress.rounds);
+  return {
+    favoriteType: favoriteTypeEntry ? { type: favoriteTypeEntry[0], count: favoriteTypeEntry[1] } : null,
+    topGeneration: generationEntry ? { generation: generationEntry[0], count: generationEntry[1] } : null,
+    lowestBstTop64,
+    championPath,
+    finalFour: bracket.finalFour,
+    regionChampions: bracket.regions.map((region) => region.champion).filter(Boolean),
   };
 }
