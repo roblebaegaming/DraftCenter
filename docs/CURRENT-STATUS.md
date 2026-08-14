@@ -1,9 +1,9 @@
 # DraftCenter current status
 
-- Last updated: August 13, 2026
+- Last updated: August 14, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified production application commit: `9ffff2d45e2bca6737f71d0872ba69656439e593`
+- Verified production application commit: `3bcc222584e697a25ddfdbbf2e7dc8dcbc02fd4e`
 - Latest production migration: 392
 
 ## Deployed state
@@ -214,6 +214,20 @@ stall/control. The tracker canonical, social preview, structured data, sitemap,
 two-account privacy matrix, full suite, 255-page build, exact Production
 deployment at commit `9ffff2d4`, and 20-check production smoke sweep passed.
 No real production tracker or synthetic production account was created.
+
+Pull request [#215](https://github.com/roblebaegaming/DraftCenter/pull/215)
+upgraded the Full Dex Mega Bracket after the field reaches 64. The Top 64 is
+now a playable four-region visual bracket with completed matchups retained in
+place, followed by an illustrated Final Four and champion. Round milestone
+dialogs, illustrated bracket and champion exports, and a private completed-
+attempt recap were added. A shared artwork resolver also covers all 1,162
+frozen catalogue entries, with reviewed default-variety or base-species
+fallbacks where an exact form image is unavailable. Protected checks, the
+255-page build, hosted Preview review, exact Production deployment at commit
+`3bcc2225`, live desktop, 390px, and 320px read-only review, the social-image
+endpoint, and the 20-check signed-out production smoke sweep passed. No
+migration, saved attempt, production data, provider setting, environment
+variable, or secret changed.
 
 The August 9 release wave is complete. Pull requests
 [#95](https://github.com/roblebaegaming/DraftCenter/pull/95) through
