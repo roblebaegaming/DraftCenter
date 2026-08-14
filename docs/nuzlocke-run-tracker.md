@@ -1,12 +1,12 @@
 # Nuzlocke Run Tracker
 
-The public `/nuzlocke` experience combines DraftCenter's verified encounter generator with a route-by-route run tracker. It supports all games already present in the reviewed Nuzlocke catalog without changing encounter sourcing or making unsupported claims about game-specific boss rules.
+The public `/nuzlocke` experience combines DraftCenter's verified encounter generator with a location-by-location run tracker. It supports all games already present in the reviewed Nuzlocke catalog without changing encounter sourcing or making unsupported claims about game-specific boss rules.
 
 ## Player workflow
 
 1. Choose a verified game and the generator rules.
-2. Build a compact run or one encounter for every eligible route or area.
-3. Record each route as not encountered, caught, active, boxed, missed, or deceased.
+2. Build a compact run or one encounter for every eligible named location. Floors and subareas of the same location share one encounter slot.
+3. Record each location as not encountered, caught, active, boxed, missed, or deceased.
 4. Add optional nicknames, encounter notes, run notes, badges, bosses, other milestones, and user-defined level caps.
 5. Save privately to My Teams for cross-device access or download a progress image.
 
@@ -28,7 +28,7 @@ No new database migration, public sharing permission, or production-data write i
 
 - `version`: current tracker schema version.
 - `run_state`: `active`, `completed`, or `failed`.
-- `encounters`: route-keyed status, nickname, and notes for the generated team.
+- `encounters`: parent-location-keyed status, nickname, and notes for the generated team.
 - `milestones`: up to 32 user-defined badge, boss, or other entries with an optional level cap from 1–100.
 - `notes`: up to 5,000 characters of run notes.
 - `history`: the newest 100 status, milestone, and run-state events.
@@ -38,11 +38,11 @@ The full Nuzlocke JSON remains subject to the existing 500 KB database constrain
 
 ## Product boundaries
 
-- Encounter catalogs remain the authoritative source for route, method, level, condition, form, evolution-family, and encounter-rate data. The tracker retains and displays the reviewed rate for each generated encounter.
+- Encounter catalogs remain the authoritative source for location, subarea, method, level, condition, form, evolution-family, and encounter-rate data. The tracker groups eligible areas by the catalog's reviewed parent-location key, while retaining and displaying the exact floor or subarea that supplied the generated encounter.
 - Level caps and milestone names are entered by the player. DraftCenter does not present them as verified boss data.
 - The tracker records player decisions; it does not mutate a hosted league, draft, roster, queue, membership, provider, or production configuration.
 - Progress-image and text exports are snapshots. The private My Teams tracker is the editable cross-device record.
 
 ## Validation expectations
 
-Changes to this feature should run `npm run test:nuzlocke`, `npm run test:seo`, and the standard release gates. Browser review should cover a generated full-route run, encounter status and nickname edits, a species-family warning, milestone completion, mobile layout, browser reload, signed-in My Teams save/reopen, recreation-link privacy, and the progress-image download.
+Changes to this feature should run `npm run test:nuzlocke`, `npm run test:seo`, and the standard release gates. Browser review should cover a generated full-location run, encounter status and nickname edits, a species-family warning, milestone completion, mobile layout, browser reload, signed-in My Teams save/reopen, recreation-link privacy, and the progress-image download.

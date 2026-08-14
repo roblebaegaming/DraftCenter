@@ -3,6 +3,33 @@ const WEIGHTING = new Set(["equal", "authentic"]);
 const EVOLUTION_STAGES = new Set(["any", "base", "not-final", "non-evolving"]);
 const MAX_ALL_AREA_SIZE = 250;
 
+export function attachNuzlockeLocationGroups(encounters, locations) {
+  const locationByArea = new Map();
+  const areaCountByLocation = new Map();
+  for (const location of Array.isArray(locations) ? locations : []) {
+    const areaKey = String(location?.area_key || "");
+    const locationKey = String(location?.location_key || "");
+    const displayName = String(location?.display_name || "");
+    if (!/^[a-z0-9-]{1,160}$/.test(areaKey) || !/^[a-z0-9-]{1,160}$/.test(locationKey) || !displayName || displayName.length > 160 || locationByArea.has(areaKey)) {
+      throw new Error("Verified Nuzlocke location data is incomplete.");
+    }
+    locationByArea.set(areaKey, location);
+    areaCountByLocation.set(locationKey, (areaCountByLocation.get(locationKey) || 0) + 1);
+  }
+  return (Array.isArray(encounters) ? encounters : []).map((entry) => {
+    const location = locationByArea.get(String(entry?.area_key || ""));
+    if (!location) throw new Error("Verified Nuzlocke location data is incomplete.");
+    const locationName = String(location.display_name).split(/\s+—\s+/u)[0].trim();
+    return {
+      ...entry,
+      area_name: String(entry.area_name || location.display_name),
+      location_key: location.location_key,
+      location_name: locationName || location.display_name,
+      location_area_count: areaCountByLocation.get(location.location_key) || 1,
+    };
+  });
+}
+
 function seedHash(value) {
   let hash = 2166136261;
   for (const character of String(value || "")) {
@@ -65,6 +92,33 @@ function orderForPlaythrough(entries) {
     || progressionOrder(left) - progressionOrder(right)
     || String(left.area_name || left.area_key).localeCompare(String(right.area_name || right.area_key))
     || String(left.pokemon_name).localeCompare(String(right.pokemon_name)));
+}
+
+function locationKeyForEncounter(entry) {
+  return String(entry?.location_key || entry?.area_key || "");
+}
+
+function locationNameForEncounter(entry) {
+  return String(entry?.location_name || entry?.area_name || entry?.location_key || entry?.area_key || "");
+}
+
+function normalizeSelectedLocation(entry, locationKey, location) {
+  const {
+    location_key: _locationKey,
+    location_name: _locationName,
+    location_area_count: locationAreaCount,
+    ...encounter
+  } = entry;
+  const sourceAreaKey = String(entry?.area_key || "");
+  const sourceAreaName = String(entry?.area_name || sourceAreaKey);
+  const hasSubAreas = Number(locationAreaCount) > 1 || location.sourceAreas.size > 1;
+  return {
+    ...encounter,
+    ...(hasSubAreas ? { source_area_key: sourceAreaKey, source_area_name: sourceAreaName } : {}),
+    area_key: locationKey,
+    area_name: location.name,
+    sort_order: location.sortOrder,
+  };
 }
 
 function applyFinalEvolutions(encounters, options) {
@@ -214,11 +268,27 @@ export function generateNuzlockeTeam(encounters, options = {}) {
     return true;
   });
   const byArea = new Map();
+  const locationDetails = new Map();
   for (const entry of eligible) {
-    if (!byArea.has(entry.area_key)) byArea.set(entry.area_key, []);
-    byArea.get(entry.area_key).push(entry);
+    const locationKey = locationKeyForEncounter(entry);
+    if (!byArea.has(locationKey)) byArea.set(locationKey, []);
+    byArea.get(locationKey).push(entry);
+    const existing = locationDetails.get(locationKey);
+    const sortOrder = entry.sort_order == null || entry.sort_order === "" || !Number.isFinite(Number(entry.sort_order))
+      ? Number.MAX_SAFE_INTEGER
+      : Number(entry.sort_order);
+    if (!existing) {
+      locationDetails.set(locationKey, {
+        name: locationNameForEncounter(entry),
+        sortOrder,
+        sourceAreas: new Set([String(entry.area_key)]),
+      });
+    } else {
+      existing.sortOrder = Math.min(existing.sortOrder, sortOrder);
+      existing.sourceAreas.add(String(entry.area_key));
+    }
   }
-  if (allAreas && byArea.size > MAX_ALL_AREA_SIZE) throw new Error("This game has too many eligible areas to generate safely.");
+  if (allAreas && byArea.size > MAX_ALL_AREA_SIZE) throw new Error("This game has too many eligible locations to generate safely.");
   const encounterTeamSize = allAreas ? byArea.size : Math.max(0, teamSize - (starter ? 1 : 0));
   const requested = encounterTeamSize + (starter ? 1 : 0);
 
@@ -230,8 +300,9 @@ export function generateNuzlockeTeam(encounters, options = {}) {
     let pool = [...eligible];
     while (pool.length) {
       const entry = pick(pool, random, weighting);
-      areaOrder.push(entry.area_key);
-      pool = pool.filter((candidate) => candidate.area_key !== entry.area_key);
+      const locationKey = locationKeyForEncounter(entry);
+      areaOrder.push(locationKey);
+      pool = pool.filter((candidate) => locationKeyForEncounter(candidate) !== locationKey);
     }
   }
 
@@ -265,7 +336,13 @@ export function generateNuzlockeTeam(encounters, options = {}) {
       if (selectedByArea.size === encounterTeamSize) break;
     }
   }
-  const selected = areaOrder.map((areaKey) => selectedByArea.get(areaKey)).filter(Boolean).slice(0, encounterTeamSize);
+  const selected = areaOrder
+    .map((areaKey) => {
+      const entry = selectedByArea.get(areaKey);
+      return entry ? normalizeSelectedLocation(entry, areaKey, locationDetails.get(areaKey)) : null;
+    })
+    .filter(Boolean)
+    .slice(0, encounterTeamSize);
   const ordered = orderForPlaythrough(selected);
   const team = starter ? [{ ...starter, area_key: "starter-choice", area_name: "Starter choice", method: "starter", chance: 100, conditions: [] }, ...ordered] : ordered;
   return {

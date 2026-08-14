@@ -387,7 +387,7 @@ export default function NuzlockeLab() {
           <legend>Draft size</legend>
           <div>
             <button type="button" className={!allAreas ? styles.selected : ""} aria-pressed={!allAreas} onClick={() => setAllAreas(false)}><strong>Select Team Size</strong></button>
-            <button type="button" className={allAreas ? styles.selected : ""} aria-pressed={allAreas} onClick={() => setAllAreas(true)}><strong>One Pokémon per route/area</strong><small>Build the full run</small></button>
+            <button type="button" className={allAreas ? styles.selected : ""} aria-pressed={allAreas} onClick={() => setAllAreas(true)}><strong>One Pokémon per location</strong><small>Floors share one slot</small></button>
           </div>
         </fieldset>
         {!allAreas && <label>Team size <strong>{teamSize}</strong>
@@ -396,10 +396,10 @@ export default function NuzlockeLab() {
 
         <label>Selection style
           <select value={mode} onChange={(event) => setMode(event.target.value)}>
-            <option value="route-random">Route-first random</option>
+            <option value="route-random">Location-first random</option>
             <option value="true-random">Encounter-pool random</option>
           </select>
-          <small>{mode === "route-random" ? "Shuffles eligible locations evenly, then rolls one encounter from each selected location." : "Rolls across the full encounter catalog, so locations with more eligible entries can be selected earlier."}</small>
+          <small>{mode === "route-random" ? "Shuffles eligible named locations evenly, then rolls one encounter from each selected location. Floors and subareas share one slot." : "Rolls across the full encounter catalog, so named locations with more eligible entries can be selected earlier. Floors and subareas still share one slot."}</small>
         </label>
 
         <label>Encounter weighting
@@ -477,7 +477,7 @@ export default function NuzlockeLab() {
         <label className="check-row"><input type="checkbox" checked={excludeLegendaries} onChange={(event) => setExcludeLegendaries(event.target.checked)} />Exclude legendary Pokémon</label>
         <div className="nuzlocke-rule-option">
           <label className="check-row"><input type="checkbox" checked={includeStarter} onChange={(event) => setIncludeStarter(event.target.checked)} aria-describedby="starter-help" />Include a starter Pokémon</label>
-          <small id="starter-help">Adds one eligible starter. It counts as a team slot, or as an extra result in one-Pokémon-per-route mode.</small>
+          <small id="starter-help">Adds one eligible starter. It counts as a team slot, or as an extra result in one-Pokémon-per-location mode.</small>
         </div>
         <div className="nuzlocke-rule-option">
           <label className="check-row"><input type="checkbox" checked={finalEvolutionOnly} onChange={(event) => setFinalEvolutionOnly(event.target.checked)} aria-describedby="final-evolution-help" />Show results at their final evolution</label>
@@ -499,7 +499,7 @@ export default function NuzlockeLab() {
         {outputMessage && <p className="nuzlocke-output-status" role="status">{outputMessage}{savedToMyTeams && <> <a href="/my-teams">Open My Teams →</a></>}</p>}
         {!result && <div className="empty-state">Choose a verified game and your rules, then build a run.</div>}
         {result && <p className="nuzlocke-browser-save">Tracker changes are saved in this browser automatically. Sign in and save to My Teams for private cross-device access.</p>}
-        {result?.allAreas && <p className="nuzlocke-run-summary">One Pokémon was requested from every eligible route or area under these rules.</p>}
+        {result?.allAreas && <p className="nuzlocke-run-summary">One Pokémon was requested from every eligible named location under these rules. Floors and subareas share one encounter slot.</p>}
         {result && !result.complete && <p className="nuzlocke-incomplete">Only {result.available} of {result.requested} results could be filled under these rules. No rule was relaxed.</p>}
         {result && <NuzlockeRunTracker result={result} onChange={updateTracker} />}
       </section>

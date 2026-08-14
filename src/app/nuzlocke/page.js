@@ -2,13 +2,13 @@ import NuzlockeLab from "../../components/NuzlockeLab";
 
 export const metadata = {
   title: "Pokémon Nuzlocke Run Tracker and Team Generator",
-  description: "Build and track a Pokémon Nuzlocke run with verified encounters by game, route statuses, species-clause warnings, milestones, level caps, notes, and private saves.",
+  description: "Build and track a Pokémon Nuzlocke run with verified encounters by game, named-location statuses, species-clause warnings, milestones, level caps, notes, and private saves.",
   alternates: { canonical: "/nuzlocke" },
   keywords: ["Pokémon Nuzlocke tracker", "Nuzlocke run tracker", "Pokémon Nuzlocke generator", "Nuzlocke encounter tracker", "Nuzlocke team builder"],
   openGraph: {
     type: "website",
     title: "Pokémon Nuzlocke Run Tracker and Team Generator",
-    description: "Build a route-by-route Nuzlocke run, then track catches, losses, milestones, and notes.",
+    description: "Build a location-by-location Nuzlocke run, then track catches, losses, milestones, and notes.",
     url: "/nuzlocke",
   },
 };
@@ -42,7 +42,7 @@ export default function NuzlockePage() {
     <section className="explore-card nuzlocke-seo-guide" aria-labelledby="nuzlocke-guide-title">
       <span className="eyebrow">HOW IT WORKS</span>
       <h2 id="nuzlocke-guide-title">A game-specific Nuzlocke run tracker</h2>
-      <p>Choose a verified Pokémon game and build a run from its reviewed encounters. Track each route as caught, active, boxed, missed, or deceased; add nicknames, notes, badges, bosses, and optional level caps; then save the full tracker privately in My Teams or download a progress card.</p>
+      <p>Choose a verified Pokémon game and build a run from its reviewed encounters. Track each named location as caught, active, boxed, missed, or deceased; floors and subareas share one slot while keeping their exact encounter details. Add nicknames, notes, badges, bosses, and optional level caps, then save the full tracker privately in My Teams or download a progress card.</p>
       <div className="pokemon-detail-grid">
         <section>
           <h3>Use game-specific encounter data</h3>
@@ -55,7 +55,7 @@ export default function NuzlockePage() {
       </div>
       <aside className="seo-next-step">
         <h2>Research and recreate your run</h2>
-        <p>Every generated Pokémon links to its DraftCenter profile for typing, abilities, base stats, forms, measurements, and versioned moves. Recreation links repeat the generated route plan without exposing private tracker progress.</p>
+        <p>Every generated Pokémon links to its DraftCenter profile for typing, abilities, base stats, forms, measurements, and versioned moves. Recreation links repeat the generated location plan without exposing private tracker progress.</p>
         <div className="pokemon-tags"><a href="/pokemon">Explore the Pokédex</a><a href="/pokemon/generations">Browse Pokémon by generation</a><a href="/resources">Open Pokémon resources</a></div>
       </aside>
       <section className="nuzlocke-guide-index" aria-labelledby="nuzlocke-game-guides-title">

@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import { generateNuzlockeTeam } from "../src/lib/nuzlockeGenerator.js";
+import { attachNuzlockeLocationGroups, generateNuzlockeTeam } from "../src/lib/nuzlockeGenerator.js";
 import { buildNuzlockeRunCardText, normalizeSavedNuzlockeResult, nuzlockeRulesFromShareUrl, nuzlockeRunCardFilename } from "../src/lib/nuzlockeRunExports.js";
 import { nuzlockeRunCardImageFilename } from "../src/lib/nuzlockeRunCardImage.js";
 
@@ -55,6 +55,53 @@ test("seeded output is deterministic and uses at most one encounter per area", (
   const options={seed:"same",teamSize:4,mode:"true-random",weighting:"authentic"};
   const first=generateNuzlockeTeam(encounters,options); const second=generateNuzlockeTeam(encounters,options);
   assert.deepEqual(first,second); assert.equal(new Set(first.team.map((item)=>item.area_key)).size,first.team.length);
+});
+test("floors and subareas share one parent-location encounter slot", () => {
+  const locations = [
+    { location_key: "mt-moon", area_key: "mt-moon-1f", display_name: "Mt Moon — Mount Moon (1F)", sort_order: 1 },
+    { location_key: "mt-moon", area_key: "mt-moon-b1f", display_name: "Mt Moon — Mount Moon (B1F)", sort_order: 2 },
+    { location_key: "mt-moon", area_key: "mt-moon-b2f", display_name: "Mt Moon — Mount Moon (B2F)", sort_order: 3 },
+    { location_key: "kanto-route-4", area_key: "kanto-route-4-main-area", display_name: "Kanto Route 4", sort_order: 4 },
+  ];
+  const pool = attachNuzlockeLocationGroups([
+    { area_key: "mt-moon-1f", pokemon_id: 41, pokemon_name: "Zubat", species_family: "zubat", method: "walk", chance: 100, min_level: 7 },
+    { area_key: "mt-moon-b1f", pokemon_id: 74, pokemon_name: "Geodude", species_family: "geodude", method: "walk", chance: 100, min_level: 8 },
+    { area_key: "mt-moon-b2f", pokemon_id: 35, pokemon_name: "Clefairy", species_family: "clefairy", method: "walk", chance: 100, min_level: 10 },
+    { area_key: "kanto-route-4-main-area", pokemon_id: 19, pokemon_name: "Rattata", species_family: "rattata", method: "walk", chance: 100, min_level: 6 },
+  ], locations);
+  for (const mode of ["route-random", "true-random"]) {
+    const result = generateNuzlockeTeam(pool, { seed: `grouped-${mode}`, teamSize: 4, allAreas: true, mode, weighting: "equal" });
+    assert.equal(result.requested, 2);
+    assert.deepEqual(new Set(result.team.map((entry) => entry.area_key)), new Set(["mt-moon", "kanto-route-4"]));
+    const cave = result.team.find((entry) => entry.area_key === "mt-moon");
+    assert.equal(cave.area_name, "Mt Moon");
+    assert.match(cave.source_area_key, /^mt-moon-(?:1f|b1f|b2f)$/);
+    assert.match(cave.source_area_name, /^Mt Moon — Mount Moon/);
+  }
+  assert.throws(() => attachNuzlockeLocationGroups([{ area_key: "missing" }], locations), /location data is incomplete/);
+});
+test("every reviewed game catalog produces one encounter per parent location", () => {
+  const directory = new URL("../data/nuzlocke/", import.meta.url);
+  const catalogFiles = fs.readdirSync(directory)
+    .filter((name) => /^pokemon-(?!.*-evolutions\.)[a-z0-9-]+\.pokeapi-[0-9a-f]{40}\.json$/.test(name));
+  assert.equal(catalogFiles.length, 37);
+  for (const file of catalogFiles) {
+    const catalog = JSON.parse(fs.readFileSync(new URL(file, directory), "utf8"));
+    const locationByArea = new Map(catalog.locations.map((location) => [location.area_key, location.location_key]));
+    const expectedLocations = new Set(catalog.encounters.map((entry) => locationByArea.get(entry.area_key)));
+    assert.ok(!expectedLocations.has(undefined), `${catalog.game.game_key} has an encounter without a parent location`);
+    const grouped = attachNuzlockeLocationGroups(catalog.encounters, catalog.locations);
+    const result = generateNuzlockeTeam(grouped, {
+      seed: `${catalog.game.game_key}-all-locations`,
+      teamSize: 6,
+      allAreas: true,
+      mode: "route-random",
+      weighting: "equal",
+    });
+    assert.equal(result.complete, true, catalog.game.game_key);
+    assert.equal(result.requested, expectedLocations.size, catalog.game.game_key);
+    assert.equal(new Set(result.team.map((entry) => entry.area_key)).size, result.team.length, catalog.game.game_key);
+  }
 });
 test("teams use encounter level order with reviewed location order as the tie-breaker", () => {
   const pool = [
@@ -124,14 +171,14 @@ test("species themes use final displayed Pokémon and never add an off-theme sta
 test("generated teams can be safely saved and exported as readable Run Cards",()=>{
   const generated={
     game:{game_key:"scarlet",display_name:"Pokémon Scarlet"},seed:"ember-seed",complete:false,requested:2,available:1,allAreas:true,
-    team:[{pokemon_id:909,pokemon_name:"Fuecoco",form_name:"",artwork_url:"javascript:alert(1)",area_key:"starter-choice",area_name:"Starter choice",method:"starter",conditions:[]}],
+    team:[{pokemon_id:909,pokemon_name:"Fuecoco",form_name:"",artwork_url:"javascript:alert(1)",area_key:"starter-choice",area_name:"Starter choice",source_area_key:"starter-room",source_area_name:"Starter Room",method:"starter",conditions:[]}],
   };
   const saved=normalizeSavedNuzlockeResult(generated);
-  assert.equal(saved.team[0].artwork_url,"");assert.equal(saved.team[0].min_level,null);assert.equal(saved.team.length,1);
+  assert.equal(saved.team[0].artwork_url,"");assert.equal(saved.team[0].min_level,null);assert.equal(saved.team[0].source_area_name,"Starter Room");assert.equal(saved.team.length,1);
   assert.equal(normalizeSavedNuzlockeResult({...generated,team:Array(252).fill(generated.team[0])}),null);
   const url="https://draftcentral.gg/nuzlocke?game=scarlet&seed=ember-seed&name=Scarlet+Ember&length=all-areas&mode=route-random&weighting=authentic&starter=include&type=fire&shape=fish&egg_group=water2&family=off";
   const rules=nuzlockeRulesFromShareUrl(url);
-  assert.ok(rules.includes("Draft size: One Pokémon per eligible route/area"));assert.ok(rules.includes("Type theme: Fire"));assert.ok(rules.includes("Pokédex shape theme: Fish"));assert.ok(rules.includes("Egg Group theme: Water2"));assert.ok(rules.includes("Evolutionary-family clause: Off"));
+  assert.ok(rules.includes("Draft size: One Pokémon per eligible named location"));assert.ok(rules.includes("Type theme: Fire"));assert.ok(rules.includes("Pokédex shape theme: Fish"));assert.ok(rules.includes("Egg Group theme: Water2"));assert.ok(rules.includes("Evolutionary-family clause: Off"));
   assert.ok(nuzlockeRulesFromShareUrl("https://draftcentral.gg/nuzlocke?size=20").includes("Draft size: 20-Pokémon team"));
   const text=buildNuzlockeRunCardText({runName:"Scarlet Ember",result:generated,rules,shareUrl:url});
   assert.doesNotMatch(text,/Randomizer seed/);
@@ -231,7 +278,7 @@ test("unknown modes and invalid sizes fail closed",()=>{
   assert.throws(()=>generateNuzlockeTeam(encounters,{seed:"x",teamSize:21,mode:"true-random",weighting:"equal"}),/between 1 and 20/);
   assert.throws(()=>generateNuzlockeTeam(encounters,{seed:"x",teamSize:6,mode:"true-random",weighting:"equal",conditionGroups:[],conditionSelections:{time:"night"}}),/Unknown/);
 });
-test("reviewed Pokémon Red catalog produces a complete deterministic 20-Pokémon Run Card",()=>{ const catalog=JSON.parse(fs.readFileSync(new URL("../data/nuzlocke/pokemon-red.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json",import.meta.url),"utf8")); const options={seed:"pallet-town",teamSize:20,mode:"route-random",weighting:"authentic",familyClause:true,excludeLegendaries:true}; const result=generateNuzlockeTeam(catalog.encounters,options); assert.equal(result.complete,true); assert.equal(result.team.length,20); assert.equal(new Set(result.team.map((row)=>row.area_key)).size,20); assert.equal(new Set(result.team.map((row)=>row.species_family)).size,20); assert.deepEqual(result,generateNuzlockeTeam(catalog.encounters,options)); });
+test("reviewed Pokémon Red catalog produces a complete deterministic 20-Pokémon Run Card",()=>{ const catalog=JSON.parse(fs.readFileSync(new URL("../data/nuzlocke/pokemon-red.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json",import.meta.url),"utf8")); const options={seed:"pallet-town",teamSize:20,mode:"route-random",weighting:"authentic",familyClause:true,excludeLegendaries:true}; const result=generateNuzlockeTeam(catalog.encounters,options); assert.equal(result.complete,true); assert.equal(result.team.length,20); assert.equal(new Set(result.team.map((row)=>row.area_key)).size,20); assert.equal(new Set(result.team.map((row)=>row.species_family)).size,20); assert.deepEqual(result,generateNuzlockeTeam(catalog.encounters,options)); const grouped=attachNuzlockeLocationGroups(catalog.encounters,catalog.locations); const fullRun=generateNuzlockeTeam(grouped,{seed:"red-full-run",teamSize:6,allAreas:true,mode:"route-random",weighting:"equal"}); assert.equal(fullRun.requested,new Set(catalog.locations.map((row)=>row.location_key)).size); assert.equal(fullRun.team.filter((row)=>row.area_key==="mt-moon").length,1); });
 test("reviewed Pokémon Red final evolution mode is complete, game-specific, and deterministic",()=>{
   const catalog=JSON.parse(fs.readFileSync(new URL("../data/nuzlocke/pokemon-red.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json",import.meta.url),"utf8"));
   const evolutionCatalog=JSON.parse(fs.readFileSync(new URL("../data/nuzlocke/pokemon-red-evolutions.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json",import.meta.url),"utf8"));

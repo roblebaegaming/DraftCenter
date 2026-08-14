@@ -2,7 +2,7 @@ import { createAdminClient } from "../../../lib/supabase/admin";
 import { createPublicServerClient } from "../../../lib/supabase/publicServer";
 import { consumeUserRateLimit } from "../../../lib/apiRateLimit";
 import { readBoundedJson, requestIpAddress, safeFailure } from "../../../lib/apiSecurity";
-import { generateNuzlockeTeam } from "../../../lib/nuzlockeGenerator";
+import { attachNuzlockeLocationGroups, generateNuzlockeTeam } from "../../../lib/nuzlockeGenerator";
 import {
   POKEMON_EGG_GROUP_OPTIONS,
   POKEMON_SHAPE_OPTIONS,
@@ -71,6 +71,7 @@ const EVOLUTION_CATALOGS = Object.freeze({
   scarlet: scarletEvolutionCatalog, violet: violetEvolutionCatalog,
 });
 const MAX_CATALOG_ENCOUNTERS = 16000;
+const MAX_CATALOG_LOCATIONS = 500;
 const VERIFIED_GAME_METHODS = Object.freeze(verifiedGameMethodCatalog.games);
 const VERIFIED_GAME_THEMES = Object.freeze(pokemonThemeMetadata.games);
 const KANTO_STARTERS = Object.freeze([
@@ -186,6 +187,15 @@ export async function POST(request) {
       return Response.json({ error: "Final evolution data is not verified for this game yet." }, { status: 422 });
     }
 
+    const { data: locations, error: locationsError } = await catalogClient
+      .from("pokemon_game_locations")
+      .select("location_key,area_key,display_name,sort_order")
+      .eq("game_key", body.game)
+      .order("sort_order", { ascending: true })
+      .limit(MAX_CATALOG_LOCATIONS);
+    if (locationsError) throw locationsError;
+    if (!locations?.length || locations.length >= MAX_CATALOG_LOCATIONS) throw new Error("Verified Nuzlocke location data is incomplete.");
+
     const encounters = [];
     let after = 0;
     for (let page = 0; page < MAX_CATALOG_ENCOUNTERS / 500; page += 1) {
@@ -197,7 +207,8 @@ export async function POST(request) {
     }
     if (encounters.length >= MAX_CATALOG_ENCOUNTERS) return Response.json({ error: "This game's encounter pool is too large to generate safely." }, { status: 422 });
     encounters.sort((left, right) => Number(left.sort_order) - Number(right.sort_order) || Number(left.id) - Number(right.id));
-    const result = generateNuzlockeTeam(encounters, {
+    const groupedEncounters = attachNuzlockeLocationGroups(encounters, locations);
+    const result = generateNuzlockeTeam(groupedEncounters, {
       seed, teamSize: Number(body.teamSize), mode: body.mode,
       weighting: body.weighting, familyClause: body.familyClause === true,
       allAreas: body.allAreas === true,

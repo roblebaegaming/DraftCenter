@@ -902,6 +902,8 @@ test("server route uses public RLS catalog access and privileged rate limiting",
   assert.match(route, /themes\[game\.game_key\]/);
   assert.match(route, /consumeUserRateLimit\(adminClient/);
   assert.match(route, /get_verified_nuzlocke_encounters/);
+  assert.match(route, /from\("pokemon_game_locations"\)/);
+  assert.match(route, /attachNuzlockeLocationGroups\(encounters, locations\)/);
   assert.doesNotMatch(route, /adminClient\.from\("pokemon_games"/);
   assert.match(route, /allAreas: body\.allAreas === true/);
   assert.match(route, /themeCatalog: \{ \.\.\.gameTheme, profiles: pokemonThemeMetadata\.profiles \}/);
@@ -941,9 +943,10 @@ test("run configuration is shareable and the UI keeps random keys internal while
   assert.match(lab, /nuzlocke_run:/);
   assert.match(lab, /normalizeSavedNuzlockeResult/);
   assert.match(lab, /downloadNuzlockeRunCardImage/);
-  assert.match(lab, /One Pokémon per route\/area/);
+  assert.match(lab, /One Pokémon per location/);
+  assert.match(lab, /Floors share one slot/);
   assert.match(lab, /Select Team Size/);
-  assert.match(lab, /Build the full run/);
+  assert.match(lab, /Floors share one slot/);
   assert.match(lab, /max="20"/);
   assert.doesNotMatch(lab, /more than 12/);
   assert.match(lab, /aria-pressed=\{allAreas\}/);
@@ -958,7 +961,7 @@ test("run configuration is shareable and the UI keeps random keys internal while
   assert.match(lab, /Build Run Tracker/);
   assert.doesNotMatch(lab, /Build a seeded Run Card/);
   assert.doesNotMatch(lab, /Generate Run Card/);
-  assert.match(lab, /Route-first random/);
+  assert.match(lab, /Location-first random/);
   assert.match(lab, /Encounter-pool random/);
   assert.match(
     lab,
