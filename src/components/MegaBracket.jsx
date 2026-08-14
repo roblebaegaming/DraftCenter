@@ -2,9 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import draftLabCatalog from "../data/draft-lab-catalog.json";
-import { loadPokemonArtwork } from "./LeagueHub";
+import { loadPokemonArtwork } from "../lib/pokemonArtwork";
 import { createClient } from "../lib/supabase/client";
 import {
+  buildMegaBracketRecap,
   evaluateMegaBracket,
   MEGA_BRACKET_CATALOG_VERSION,
   MEGA_BRACKET_TOP_64_CHOICE,
@@ -18,6 +19,13 @@ import {
 
 const CATALOG_NAMES = draftLabCatalog.pokemon.map((pokemon) => pokemon.name);
 const LOCAL_PREFIX = "draftcenter:mega-bracket:";
+const MILESTONES = [
+  [138, "Top 1,024"], [650, "Top 512"], [906, "Top 256"], [1034, "Top 128"],
+  [1098, "Top 64"], [1130, "Top 32"], [1146, "Sweet 16"], [1154, "Elite Eight"],
+  [1158, "Final Four"], [1160, "Championship Match"], [1161, "Champion"],
+].map(([choice, label]) => ({ choice, label }));
+const REGION_COLORS = ["#4fd1c5", "#82aaff", "#f4b860", "#c792ea"];
+const ROUND_MATCH_COUNTS = { top64: 8, top32: 4, sweet16: 2, elite8: 1 };
 
 function winnersKey(values) {
   return (values || []).join("\u001f");
@@ -29,7 +37,7 @@ function formatDate(value) {
   return Number.isNaN(date.getTime()) ? "" : date.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
 }
 
-function MegaPokemon({ name, onChoose, disabled }) {
+function PokemonArtwork({ name, className = "", showFallbackLabel = false }) {
   const [image, setImage] = useState("");
   useEffect(() => {
     let active = true;
@@ -37,37 +45,142 @@ function MegaPokemon({ name, onChoose, disabled }) {
     loadPokemonArtwork(name).then((next) => { if (active) setImage(next); });
     return () => { active = false; };
   }, [name]);
+  return <span className={`mega-pokemon-artwork ${className}`.trim()}>{image
+    ? <img src={image} alt="" onError={() => setImage("")} />
+    : <i aria-hidden="true">{String(name || "?").slice(0, 1)}</i>}{showFallbackLabel && !image ? <small>Artwork unavailable</small> : null}</span>;
+}
+
+function MegaPokemon({ name, onChoose, disabled }) {
   return <button type="button" className="mega-bracket-pokemon" disabled={disabled} onClick={() => onChoose(name)}>
-    <span className="mega-bracket-art">{image ? <img src={image} alt="" onError={() => setImage("")} /> : <i aria-hidden="true">?</i>}</span>
+    <PokemonArtwork name={name} className="mega-bracket-art" showFallbackLabel />
     <strong>{name}</strong>
     <small>Advance {name}</small>
   </button>;
 }
 
 function ProgressRail({ progress }) {
-  const milestones = [
-    [138, "Top 1,024"], [650, "Top 512"], [906, "Top 256"], [1034, "Top 128"],
-    [1098, "Top 64"], [1130, "Top 32"], [1146, "Sweet 16"], [1154, "Elite Eight"],
-    [1158, "Final Four"], [1161, "Champion"],
-  ];
   return <div className="mega-progress-rail" aria-label="Mega Bracket milestones">
-    {milestones.map(([choice, label]) => <span key={choice} className={progress.choicesCompleted >= choice ? "reached" : ""}>
+    {MILESTONES.map(({ choice, label }) => <span key={choice} className={progress.choicesCompleted >= choice ? "reached" : ""}>
       <i /> <b>{label}</b><small>{choice.toLocaleString()}</small>
     </span>)}
   </div>;
 }
 
-function Top64Reveal({ progress }) {
-  const bracket = top64BracketFromRounds(progress.rounds);
-  if (!bracket.regions.length) return null;
-  return <section className="mega-top64" aria-labelledby="mega-top64-title">
-    <div className="mega-section-heading"><div><span className="eyebrow">CHAMPIONSHIP BRACKET</span><h2 id="mega-top64-title">Your Top 64</h2></div><p>The Road to 64 is complete. These four regions now decide your champion.</p></div>
-    <div className="mega-region-grid">{bracket.regions.map((region) => <article key={region.id}>
-      <header><span>REGION {region.id}</span><strong>{region.champion || `${region.entrants.length} contenders`}</strong></header>
-      <ol>{region.entrants.map((name, index) => <li key={name} className={region.champion === name ? "region-champion" : ""}><b>{index + 1}</b><span>{name}</span></li>)}</ol>
-    </article>)}</div>
-    {bracket.finalFour.length > 0 && <div className="mega-final-four"><span>FINAL FOUR</span>{bracket.finalFour.map((name) => <strong key={name}>{name}</strong>)}</div>}
+function sameMatch(match, nextMatch) {
+  return Boolean(match?.left && match?.right && nextMatch
+    && ((match.left === nextMatch.left && match.right === nextMatch.right)
+      || (match.left === nextMatch.right && match.right === nextMatch.left)));
+}
+
+function BracketSlot({ name, match, active, onChoose, showArtwork }) {
+  const winner = match?.winner === name;
+  const loser = Boolean(match?.winner && match.winner !== name);
+  const content = <>{showArtwork && name ? <PokemonArtwork name={name} className="mega-bracket-slot-art" /> : null}<span className="mega-bracket-slot-name">{name || "Awaiting winner"}</span>{winner ? <b>ADV</b> : null}</>;
+  if (active && name) return <button type="button" className="mega-bracket-slot is-pick" onClick={() => onChoose(name)}>{content}</button>;
+  return <div className={`mega-bracket-slot ${winner ? "is-winner" : ""} ${loser ? "is-out" : ""} ${!name ? "is-empty" : ""}`.trim()}>{content}</div>;
+}
+
+function BracketMatch({ match, nextMatch, onChoose, showArtwork = false }) {
+  const active = sameMatch(match, nextMatch);
+  return <article className={`mega-visual-match ${active ? "is-active" : ""} ${match?.winner ? "is-decided" : ""}`.trim()}>
+    <BracketSlot name={match?.left} match={match} active={active} onChoose={onChoose} showArtwork={showArtwork || active} />
+    <BracketSlot name={match?.right} match={match} active={active} onChoose={onChoose} showArtwork={showArtwork || active} />
+  </article>;
+}
+
+function RegionBracket({ region, progress, onChoose }) {
+  return <div className="mega-visual-bracket" style={{ "--region-accent": REGION_COLORS[region.id - 1] }}>
+    {region.rounds.map((round, roundIndex) => {
+      const expected = ROUND_MATCH_COUNTS[round.key];
+      const matches = Array.from({ length: expected }, (_, index) => round.matches[index] || null);
+      const span = 2 ** (roundIndex + 1);
+      return <section className={`mega-visual-round round-${roundIndex}`} key={round.key}>
+        <header><span>{round.label}</span><small>{expected} match{expected === 1 ? "" : "es"}</small></header>
+        <div>{matches.map((match, index) => <div className="mega-visual-match-cell" style={{ gridRow: `${index * span + 1} / span ${span}` }} key={`${round.key}-${index}`}><BracketMatch match={match} nextMatch={progress.nextMatch} onChoose={onChoose} /></div>)}</div>
+      </section>;
+    })}
+  </div>;
+}
+
+function regionSurvivorCount(region) {
+  let survivors = region.entrants.length;
+  for (const round of region.rounds) {
+    if (!round.matches.length) break;
+    survivors = round.matches.reduce((total, match) => total + (match.winner ? 1 : 2), 0);
+    if (round.matches.some((match) => !match.winner)) break;
+  }
+  return Math.max(region.champion ? 1 : 0, survivors);
+}
+
+function FinalFourBracket({ bracket, progress, onChoose }) {
+  if (bracket.finalFour.length < 4) return null;
+  return <section className="mega-finals" aria-labelledby="mega-finals-title">
+    <div><span className="eyebrow">FINAL FOUR</span><h3 id="mega-finals-title">The last two rounds</h3></div>
+    <div className="mega-finals-board">
+      <section><span>SEMIFINALS</span>{Array.from({ length: 2 }, (_, index) => <BracketMatch key={index} match={bracket.finalFourMatches[index] || null} nextMatch={progress.nextMatch} onChoose={onChoose} showArtwork />)}</section>
+      <i aria-hidden="true">›</i>
+      <section><span>CHAMPIONSHIP</span><BracketMatch match={bracket.championshipMatch} nextMatch={progress.nextMatch} onChoose={onChoose} showArtwork /></section>
+      <i aria-hidden="true">›</i>
+      <section className="mega-finals-winner"><span>CHAMPION</span>{bracket.champion ? <><PokemonArtwork name={bracket.champion} /><strong>{bracket.champion}</strong></> : <small>One more winner</small>}</section>
+    </div>
   </section>;
+}
+
+function Top64Reveal({ progress, onChoose, sectionRef }) {
+  const bracket = top64BracketFromRounds(progress.rounds);
+  const currentRegion = bracket.regions.find((region) => [progress.nextMatch?.left, progress.nextMatch?.right].some((name) => region.entrants.includes(name)))?.id || 1;
+  const [regionId, setRegionId] = useState(currentRegion);
+  useEffect(() => { if (currentRegion) setRegionId(currentRegion); }, [currentRegion]);
+  if (!bracket.regions.length) return null;
+  const selected = bracket.regions.find((region) => region.id === regionId) || bracket.regions[0];
+  return <section ref={sectionRef} className="mega-top64" aria-labelledby="mega-top64-title">
+    <div className="mega-section-heading"><div><span className="eyebrow">CHAMPIONSHIP BRACKET</span><h2 id="mega-top64-title">Your Top 64</h2></div><p>Pick directly in the live bracket. Completed matchups stay in place as every region moves toward the Final Four.</p></div>
+    <div className="mega-region-tabs" aria-label="Top 64 regions">{bracket.regions.map((region) => <button type="button" aria-pressed={region.id === selected.id} key={region.id} onClick={() => setRegionId(region.id)} style={{ "--region-accent": REGION_COLORS[region.id - 1] }}><span>Region {region.id}</span><strong>{region.champion || `${regionSurvivorCount(region)} left`}</strong></button>)}</div>
+    <p className="mega-bracket-swipe-note">Swipe sideways to see every round.</p>
+    <RegionBracket region={selected} progress={progress} onChoose={onChoose} />
+    <FinalFourBracket bracket={bracket} progress={progress} onChoose={onChoose} />
+  </section>;
+}
+
+function BracketRecap({ progress, recap, onCopy }) {
+  if (!recap) return null;
+  const favoriteType = recap.favoriteType?.type ? `${recap.favoriteType.type[0].toUpperCase()}${recap.favoriteType.type.slice(1)}` : "—";
+  return <section className="mega-recap" aria-labelledby="mega-recap-title">
+    <div className="mega-section-heading"><div><span className="eyebrow">YOUR RESULTS</span><h2 id="mega-recap-title">Your bracket by the numbers</h2></div><button type="button" className="secondary-button" onClick={onCopy}>Copy my result</button></div>
+    <div className="mega-recap-grid">
+      <article><span>WINNING TYPE</span><strong>{favoriteType}</strong><p>{recap.favoriteType ? `${recap.favoriteType.count.toLocaleString()} of your winning picks had this type.` : "Type data was unavailable."}</p></article>
+      <article><span>BIGGEST GENERATION</span><strong>{recap.topGeneration ? `Generation ${recap.topGeneration.generation}` : "—"}</strong><p>{recap.topGeneration ? `${recap.topGeneration.count} of your Top 64 came from this generation.` : "Generation data was unavailable."}</p></article>
+      <article><span>TOP 64 UNDERDOG</span><strong>{recap.lowestBstTop64?.name || "—"}</strong><p>{recap.lowestBstTop64 ? `${recap.lowestBstTop64.bst} base-stat total and still made your Top 64.` : "Base-stat data was unavailable."}</p></article>
+      <article><span>CHAMPION'S ROAD</span><strong>{recap.championPath.length} wins</strong><p>{recap.championPath.length ? `Beat ${recap.championPath.join(" → ")}.` : "The final path was unavailable."}</p></article>
+    </div>
+    <div className="mega-recap-final-four"><span>YOUR FINAL FOUR</span><div>{recap.finalFour.map((name) => <article key={name} className={name === progress.champion ? "is-champion" : ""}><PokemonArtwork name={name} /><strong>{name}</strong></article>)}</div></div>
+  </section>;
+}
+
+function MilestoneDialog({ milestone, onClose, onOpenBracket }) {
+  const actionRef = useRef(null);
+  useEffect(() => {
+    if (!milestone) return undefined;
+    actionRef.current?.focus();
+    const onKeyDown = (event) => {
+      if (event.key === "Escape") onClose();
+      if (event.key === "Tab") { event.preventDefault(); actionRef.current?.focus(); }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [milestone, onClose]);
+  if (!milestone) return null;
+  const isTop64 = milestone.choice === MEGA_BRACKET_TOP_64_CHOICE;
+  const isChampion = milestone.choice === 1161;
+  return <div className="mega-milestone-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
+    <section className="mega-milestone-dialog" role="dialog" aria-modal="true" aria-labelledby="mega-milestone-title" aria-describedby="mega-milestone-description">
+      <span className="eyebrow">{isChampion ? "BRACKET COMPLETE" : "ROUND COMPLETE"}</span>
+      {isChampion && milestone.champion ? <PokemonArtwork name={milestone.champion} /> : <div className="mega-milestone-number">{milestone.survivors.toLocaleString()}</div>}
+      <h2 id="mega-milestone-title">{isChampion ? `${milestone.champion} wins` : `You made the ${milestone.label}`}</h2>
+      <p id="mega-milestone-description">{isTop64 ? "Your four-region bracket is ready. From here, you can make every pick directly in the bracket." : isChampion ? "Your recap, Final Four, champion artwork, and share downloads are ready." : `${milestone.survivors.toLocaleString()} Pokémon remain.`}</p>
+      <div>{isTop64 ? <button ref={actionRef} type="button" className="primary-button" onClick={onOpenBracket}>Open my Top 64</button> : <button ref={actionRef} type="button" className="primary-button" onClick={onClose}>{isChampion ? "See my results" : "Continue"}</button>}</div>
+    </section>
+  </div>;
 }
 
 function AttemptHistory({ history, onOpen }) {
@@ -90,9 +203,12 @@ export default function MegaBracket() {
   const [message, setMessage] = useState("");
   const [saveLabel, setSaveLabel] = useState("");
   const [viewingHistory, setViewingHistory] = useState(false);
+  const [milestone, setMilestone] = useState(null);
+  const [exporting, setExporting] = useState(false);
   const latestWinnersRef = useRef([]);
   const attemptRef = useRef(null);
   const viewingHistoryRef = useRef(false);
+  const top64Ref = useRef(null);
   const saveRef = useRef({ inFlight: false, queued: false, blocked: false, revision: 0, savedKey: "" });
 
   const progress = useMemo(() => {
@@ -100,6 +216,7 @@ export default function MegaBracket() {
     try { return evaluateMegaBracket(attempt.entrants, winners); }
     catch { return null; }
   }, [attempt?.entrants, winners]);
+  const recap = useMemo(() => progress?.complete ? buildMegaBracketRecap(progress, draftLabCatalog.pokemon) : null, [progress]);
 
   const storeLocal = useCallback((id, nextWinners, revision) => {
     try {
@@ -217,18 +334,24 @@ export default function MegaBracket() {
   }
 
   function choose(name) {
-    if (!progress?.nextMatch || viewingHistory) return;
-    setWinners((current) => {
-      const currentProgress = evaluateMegaBracket(attempt.entrants, current);
-      if (![currentProgress.nextMatch.left, currentProgress.nextMatch.right].includes(name)) return current;
-      return [...current, name];
-    });
+    if (!attempt?.entrants || viewingHistory) return;
+    const currentWinners = [...latestWinnersRef.current];
+    const currentProgress = evaluateMegaBracket(attempt.entrants, currentWinners);
+    if (!currentProgress.nextMatch || ![currentProgress.nextMatch.left, currentProgress.nextMatch.right].includes(name)) return;
+    const nextWinners = [...currentWinners, name];
+    const nextProgress = evaluateMegaBracket(attempt.entrants, nextWinners);
+    latestWinnersRef.current = nextWinners;
+    setWinners(nextWinners);
+    const reached = MILESTONES.find((item) => item.choice === nextProgress.choicesCompleted);
+    if (reached) setMilestone({ ...reached, survivors: nextProgress.survivors, champion: nextProgress.champion });
     setSaveLabel("Saved in this browser");
   }
 
   function undo() {
-    if (!winners.length || viewingHistory) return;
-    setWinners((current) => current.slice(0, -1));
+    if (!latestWinnersRef.current.length || viewingHistory) return;
+    const nextWinners = latestWinnersRef.current.slice(0, -1);
+    latestWinnersRef.current = nextWinners;
+    setWinners(nextWinners);
     setSaveLabel("Saved in this browser");
   }
 
@@ -273,18 +396,41 @@ export default function MegaBracket() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  function downloadFullBracket() {
+  async function downloadFullBracket() {
+    if (exporting) return;
+    setExporting(true);
     try {
-      const canvas = renderMegaBracketCanvas({ ...attempt, winners });
+      const canvas = await renderMegaBracketCanvas({ ...attempt, winners });
       downloadMegaBracketCanvas(canvas, `draftcenter-mega-bracket-top-64-${attempt.id.slice(0, 8)}.png`);
     } catch (error) { setMessage(error.message); }
+    finally { setExporting(false); }
   }
 
-  function downloadChampion() {
+  async function downloadChampion() {
+    if (exporting) return;
+    setExporting(true);
     try {
-      const canvas = renderMegaChampionCanvas({ ...attempt, winners });
+      const canvas = await renderMegaChampionCanvas({ ...attempt, winners });
       downloadMegaBracketCanvas(canvas, `draftcenter-mega-bracket-champion-${attempt.champion || progress.champion}.png`);
     } catch (error) { setMessage(error.message); }
+    finally { setExporting(false); }
+  }
+
+  async function copyBracketResult() {
+    if (!progress?.complete || !recap) return;
+    const favorite = recap.favoriteType?.type ? `${recap.favoriteType.type[0].toUpperCase()}${recap.favoriteType.type.slice(1)}` : "unknown";
+    const text = `My Full Dex Mega Bracket champion is ${progress.champion}. My most-picked type was ${favorite}, and my Final Four were ${recap.finalFour.join(", ")}.`;
+    try {
+      await navigator.clipboard.writeText(text);
+      setMessage("Your Mega Bracket result was copied.");
+    } catch {
+      setMessage("Copy was blocked by the browser. Your bracket downloads are still available below.");
+    }
+  }
+
+  function openTop64FromMilestone() {
+    setMilestone(null);
+    window.setTimeout(() => top64Ref.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
   }
 
   const canStartAnother = progress?.complete && attempt?.status === "completed";
@@ -315,7 +461,9 @@ export default function MegaBracket() {
         <div className="mega-progress"><span style={{ width: `${progress.percent}%` }} /></div>
         <div className="mega-progress-summary"><span><b>{progress.survivors.toLocaleString()}</b> still alive</span><span><b>{progress.choicesRemaining.toLocaleString()}</b> choices left</span></div>
 
-        {!progress.complete && <>
+        {progress.phase === "top_64" && <Top64Reveal progress={progress} onChoose={choose} sectionRef={top64Ref} />}
+
+        {!progress.complete && progress.phase !== "top_64" && <>
           <div className="mega-matchup" aria-live="polite">
             <MegaPokemon name={progress.nextMatch.left} onChoose={choose} disabled={viewingHistory} />
             <div><span>{progress.roundLabel}</span><b>VS</b><small>Choose who advances</small></div>
@@ -324,15 +472,19 @@ export default function MegaBracket() {
           {!viewingHistory && <div className="mega-actions"><button className="quiet-button" type="button" disabled={!winners.length} onClick={undo}>Undo last choice</button>{saveRef.current.blocked && <button className="secondary-button" type="button" onClick={refreshAndRetry}>Refresh & retry save</button>}<button className="quiet-button danger" type="button" onClick={abandonAttempt}>Restart bracket</button></div>}
         </>}
 
-        {progress.complete && <div className="mega-champion"><span>MY MEGA BRACKET CHAMPION</span><strong>{progress.champion}</strong><p>Chosen from 1,162 Pokémon and forms.</p><div><button className="primary-button" type="button" onClick={downloadChampion}>Download champion card</button><button className="secondary-button" type="button" onClick={downloadFullBracket}>Download full Top 64</button>{canStartAnother && <button className="quiet-button" type="button" onClick={() => { viewingHistoryRef.current = false; setAttempt(null); setWinners([]); setViewingHistory(false); }}>Start another attempt</button>}</div></div>}
+        {!progress.complete && progress.phase === "top_64" && !viewingHistory && <div className="mega-actions"><button className="quiet-button" type="button" disabled={!winners.length} onClick={undo}>Undo last choice</button>{saveRef.current.blocked && <button className="secondary-button" type="button" onClick={refreshAndRetry}>Refresh & retry save</button>}<button className="quiet-button danger" type="button" onClick={abandonAttempt}>Restart bracket</button></div>}
+
+        {progress.complete && <div className="mega-champion"><span>MY MEGA BRACKET CHAMPION</span><PokemonArtwork name={progress.champion} className="mega-champion-art" showFallbackLabel /><strong>{progress.champion}</strong><p>Chosen from 1,162 Pokémon and forms.</p><div><button className="primary-button" type="button" disabled={exporting} onClick={downloadChampion}>{exporting ? "Preparing artwork…" : "Download champion card"}</button><button className="secondary-button" type="button" disabled={exporting} onClick={downloadFullBracket}>Download full Top 64</button>{canStartAnother && <button className="quiet-button" type="button" onClick={() => { viewingHistoryRef.current = false; setAttempt(null); setWinners([]); setViewingHistory(false); }}>Start another attempt</button>}</div></div>}
         {message && <p className="hub-message" role="status">{message}</p>}
       </section>
       <ProgressRail progress={progress} />
-      {progress.choicesCompleted >= MEGA_BRACKET_TOP_64_CHOICE && <><Top64Reveal progress={progress} /><div className="mega-download-row"><div><strong>Your full bracket is ready to share.</strong><span>The high-resolution image includes all 64 qualifiers and their paths toward your champion.</span></div><button className="secondary-button" type="button" onClick={downloadFullBracket}>Download Top 64 bracket</button></div></>}
+      {progress.complete && <BracketRecap progress={progress} recap={recap} onCopy={copyBracketResult} />}
+      {progress.choicesCompleted >= MEGA_BRACKET_TOP_64_CHOICE && <div className="mega-download-row"><div><strong>{progress.complete ? "Your full bracket is ready to share." : "Your Top 64 bracket is ready."}</strong><span>{progress.complete ? "The high-resolution image includes all 64 qualifiers, Final Four artwork, and the path to your champion." : "Download the current bracket now, or finish the challenge to add Final Four artwork and your champion."}</span></div><button className="secondary-button" type="button" disabled={exporting} onClick={downloadFullBracket}>{exporting ? "Preparing artwork…" : "Download Top 64 bracket"}</button></div>}
       {viewingHistory && <div className="mega-return"><button className="quiet-button" type="button" onClick={() => { viewingHistoryRef.current = false; setAttempt(null); setWinners([]); setViewingHistory(false); loadHub(); }}>Back to current challenge</button></div>}
       <AttemptHistory history={history.filter((item) => item.id !== attempt.id)} onOpen={openHistory} />
     </>}
 
     <section className="mega-about"><span className="eyebrow">WHY 1,161 CHOICES?</span><h2>Every elimination belongs to you</h2><p>A single-elimination bracket with 1,162 entrants needs exactly 1,161 decisions. The opening 138 play-ins create a clean field of 1,024; the remaining rounds narrow it to a recognizable Top 64 and, eventually, one personal champion.</p><p>Mega Bracket uses DraftCenter’s supported full-dex catalogue, including distinct battle-relevant forms and Mega Evolutions. Purely cosmetic appearances are not treated as separate competitors.</p></section>
+    <MilestoneDialog milestone={milestone} onClose={() => setMilestone(null)} onOpenBracket={openTop64FromMilestone} />
   </main>;
 }
