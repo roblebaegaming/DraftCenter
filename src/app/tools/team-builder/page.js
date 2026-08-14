@@ -11,6 +11,11 @@ export const metadata = {
     description: "Build a team, find shared weaknesses and STAB gaps, and check DraftCenter format legality.",
     url: "/tools/team-builder",
   },
+  twitter: {
+    card: "summary_large_image",
+    title: "Pokémon Team Builder and Type Coverage Draft Lab",
+    description: "Build a team, find shared weaknesses and STAB gaps, and check DraftCenter format legality.",
+  },
 };
 
 export default function TeamBuilderPage() {
@@ -27,6 +32,7 @@ export default function TeamBuilderPage() {
         isAccessibleForFree: true,
         url: "https://www.draftcentral.gg/tools/team-builder",
         description: "A Pokémon team builder for type coverage, shared weaknesses, STAB gaps, speed tiers, stat balance, and format legality.",
+        featureList: ["Six-Pokémon battle teams", "24-Pokémon draft rosters", "Type and STAB analysis", "Speed and base-stat review", "Versioned share links"],
       },
       {
         "@type": "BreadcrumbList",

@@ -75,6 +75,47 @@ test("sitemap contains only indexable routes and truthful modification dates", (
   assert.match(sitemap, /\["\/about", "monthly", 0\.7\]/);
   assert.match(sitemap, /PRODUCT_DISCOVERY_LAST_MODIFIED/);
   assert.match(sitemap, /productRouteLastModified\.has\(path\)/);
+  assert.match(sitemap, /ITALIAN_WORLDS_LAST_MODIFIED/);
+  assert.match(sitemap, /localizedRouteAlternates\.has\(path\)/);
+  assert.match(sitemap, /"x-default": "https:\/\/www\.draftcentral\.gg\/worlds\/2026\/vgc"/);
+});
+
+test("recent public products expose current social previews and discovery copy", () => {
+  const mega = source("src/app/tools/mega-bracket/page.js");
+  const lab = source("src/app/tools/team-builder/page.js");
+  const nuzlocke = source("src/app/nuzlocke/page.js");
+  const daily = source("src/app/resources/daily-games/page.js");
+  const resources = source("src/components/ResourcesPage.jsx");
+  const italian = source("src/app/it/worlds/2026/page.js");
+  const englishWorlds = source("src/app/worlds/2026/vgc/page.js");
+  const llms = source("src/app/llms.txt/route.js");
+  const nextConfig = source("next.config.mjs");
+
+  for (const page of [mega, lab, nuzlocke, daily, italian]) {
+    assert.match(page, /openGraph:/);
+    assert.match(page, /twitter:/);
+  }
+  for (const image of [
+    "src/app/tools/mega-bracket/opengraph-image.js",
+    "src/app/tools/team-builder/opengraph-image.js",
+    "src/app/nuzlocke/opengraph-image.js",
+    "src/app/resources/daily-games/opengraph-image.js",
+    "src/app/it/worlds/2026/opengraph-image.js",
+  ]) {
+    assert.match(source(image), /SocialPreviewImage/);
+    assert.match(source(image), /width: 1200, height: 630/);
+  }
+  assert.match(mega, /featureList:/);
+  assert.match(lab, /featureList:/);
+  assert.match(daily, /"@type": "BreadcrumbList"/);
+  assert.match(resources, /return Sunday for the weekly Super Bracket/);
+  assert.match(resources, /cave floors and subareas sharing their parent location’s slot/);
+  assert.match(englishWorlds, /workTranslation/);
+  assert.match(nextConfig, /Content-Language", value: "it-IT"/);
+  assert.match(llms, /Sunday's eight-entry Super Bracket/);
+  assert.match(llms, /Exact Connections themes stay out of rotation for at least seven days/);
+  assert.match(llms, /Floors and subareas share their reviewed parent location's encounter slot/);
+  assert.match(llms, /Pronostici VGC dei Mondiali Pokémon 2026 in italiano/);
 });
 
 test("the Nuzlocke generator is crawlable, internally linked, and uses current product language", () => {
@@ -428,6 +469,8 @@ test("AI discovery foundation exposes a trustworthy entity and reference index",
   assert.match(llms, /How to Use Pokémon Draft League ADP/);
   assert.match(llms, /Pokémon Draft League Manager vs\. Spreadsheets/);
   assert.match(llms, /Draft Lab Pokémon team builder/);
+  assert.match(llms, /Sunday's eight-entry Super Bracket/);
+  assert.match(llms, /it\/worlds\/2026/);
   assert.match(llms, /Last reviewed: 2026-08-13/);
   assert.match(llms, /Private queues/);
   assert.match(content, /national-gen\$\{generation\}/);

@@ -6,5 +6,5 @@ export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
 export default function Image() {
-  return new ImageResponse(<SocialPreviewImage connections eyebrow="FOUR FRESH CHALLENGES EVERY DAY" title="Pokémon Daily Games" description="Solve Connections, vote in the poll, crown a bracket champion, and identify the daily Pokémon." />, size);
+  return new ImageResponse(<SocialPreviewImage connections eyebrow="FOUR FRESH CHALLENGES EVERY DAY" title="Pokémon Daily Games" description="Solve Connections, vote, play the bracket and quiz, then meet the weekly finalists on Sunday." />, size);
 }

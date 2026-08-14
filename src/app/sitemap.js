@@ -6,6 +6,16 @@ import nuzlockeGameGuides from "../lib/nuzlockeGameGuides.json";
 
 const PRODUCT_DISCOVERY_LAST_MODIFIED = new Date("2026-08-13T00:00:00.000Z");
 const WORLDS_2026_LAST_MODIFIED = new Date("2026-08-11T00:00:00.000Z");
+const ITALIAN_WORLDS_LAST_MODIFIED = new Date("2026-08-12T00:00:00.000Z");
+const WORLDS_LANGUAGE_ALTERNATES = {
+  en: "https://www.draftcentral.gg/worlds/2026/vgc",
+  it: "https://www.draftcentral.gg/it/worlds/2026",
+  "x-default": "https://www.draftcentral.gg/worlds/2026/vgc",
+};
+const localizedRouteAlternates = new Map([
+  ["/worlds/2026/vgc", WORLDS_LANGUAGE_ALTERNATES],
+  ["/it/worlds/2026", WORLDS_LANGUAGE_ALTERNATES],
+]);
 const productRouteLastModified = new Map([
   ["/tools/team-builder", PRODUCT_DISCOVERY_LAST_MODIFIED],
   ["/tools/mega-bracket", PRODUCT_DISCOVERY_LAST_MODIFIED],
@@ -14,7 +24,7 @@ const productRouteLastModified = new Map([
   ["/resources/daily-games", PRODUCT_DISCOVERY_LAST_MODIFIED],
   ["/worlds/2026", WORLDS_2026_LAST_MODIFIED],
   ["/worlds/2026/vgc", WORLDS_2026_LAST_MODIFIED],
-  ["/it/worlds/2026", WORLDS_2026_LAST_MODIFIED],
+  ["/it/worlds/2026", ITALIAN_WORLDS_LAST_MODIFIED],
   ["/worlds/2026/tcg", WORLDS_2026_LAST_MODIFIED],
   ["/worlds/2026/go", WORLDS_2026_LAST_MODIFIED],
   ["/worlds/2026/vgc/bracket", WORLDS_2026_LAST_MODIFIED],
@@ -69,6 +79,7 @@ export default async function sitemap() {
   const staticRoutes = routes.map(([path, changeFrequency, priority]) => ({
     url: `https://www.draftcentral.gg${path}`,
     ...(productRouteLastModified.has(path) ? { lastModified: productRouteLastModified.get(path) } : {}),
+    ...(localizedRouteAlternates.has(path) ? { alternates: { languages: localizedRouteAlternates.get(path) } } : {}),
     changeFrequency,
     priority,
   }));
