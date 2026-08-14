@@ -3,19 +3,19 @@ import "./pokedex-tracker.css";
 
 export const metadata = {
   title: "Pokédex Tracker for Every Pokémon Game and HOME",
-  description: "Create private Pokédex checklists for every supported Pokémon game and Pokémon HOME, with separate standard and shiny progress saved to your account.",
+  description: "Create private Pokédex checklists for every supported Pokémon game and Pokémon HOME, with standard and shiny progress, Poké Balls, ribbons, and notes.",
   alternates: { canonical: "/pokedex-tracker" },
   keywords: ["Pokédex tracker", "Pokémon checklist", "shiny Pokédex tracker", "Pokémon HOME Pokédex tracker", "living dex tracker"],
   openGraph: {
     type: "website",
     title: "Pokédex Tracker for Every Pokémon Game and HOME",
-    description: "Track standard and shiny Pokédex progress across every supported game and Pokémon HOME.",
+    description: "Track catches, shinies, Poké Balls, ribbons, and private notes across every supported game and Pokémon HOME.",
     url: "/pokedex-tracker",
   },
   twitter: {
     card: "summary_large_image",
     title: "Pokédex Tracker for Every Pokémon Game and HOME",
-    description: "Track standard and shiny Pokédex progress across every supported game and Pokémon HOME.",
+    description: "Track catches, shinies, Poké Balls, ribbons, and private notes across every supported game and Pokémon HOME.",
   },
 };
 
@@ -29,8 +29,12 @@ const questions = [
     answer: "Yes. Every collection has an independent standard checklist, and you can add a shiny checklist at creation or later without changing standard progress.",
   },
   {
+    question: "Can I save a Pokémon’s ball, ribbons, or notes?",
+    answer: "Yes. Each standard or shiny entry can optionally record a supported Poké Ball, game-appropriate ribbons, and a private note. These details remain saved even if you later uncheck the catch.",
+  },
+  {
     question: "Is my Pokédex progress public?",
-    answer: "No. Tracker names and entries are private account data. They are loaded and changed only through account-scoped database functions and are deleted with the account.",
+    answer: "No. Tracker names, entries, Poké Balls, ribbons, and notes are private account data. They are loaded and changed only through account-scoped database functions and are deleted with the account.",
   },
 ];
 
@@ -53,6 +57,7 @@ export default function PokedexTrackerRoute() {
           "Every verified main-series game catalog",
           "Pokémon HOME National Pokédex",
           "Independent standard and shiny checklists",
+          "Optional Poké Ball, ribbon, and note details for every entry",
           "Search, completion filters, progress rings, and responsive galleries",
           "Private cross-device account saving",
         ],
@@ -81,7 +86,7 @@ export default function PokedexTrackerRoute() {
     <section className="dex-tracker-seo" aria-labelledby="dex-tracker-guide-title">
       <span className="dex-kicker">HOW THE TRACKER WORKS</span>
       <h2 id="dex-tracker-guide-title">One private checklist for every Pokédex journey</h2>
-      <p>Choose any supported game or build a Pokémon HOME National Pokédex, then mark each species as registered. Create separate collections for different saves or living-dex projects, search by name or Pokédex number, and filter the gallery to registered or missing Pokémon.</p>
+      <p>Choose any supported game or build a Pokémon HOME National Pokédex, then mark each species as registered. Create separate collections for different saves or living-dex projects, record optional Poké Balls, ribbons, and private notes, then search or filter the gallery whenever you return.</p>
       <div className="dex-tracker-seo-grid">
         <article>
           <h3>Game-specific Pokédex checklists</h3>
@@ -92,8 +97,8 @@ export default function PokedexTrackerRoute() {
           <p>Add a shiny checklist when you create a tracker or whenever a hunt begins. Standard and shiny catches are stored separately, so neither checklist can overwrite the other.</p>
         </article>
         <article>
-          <h3>Private account persistence</h3>
-          <p>Progress saves automatically to your DraftCenter account and stays separate from leagues, drafts, Trainer Dex discoveries, and Nuzlocke runs. No personal tracker is published as a search page.</p>
+          <h3>Details for collectors</h3>
+          <p>Each standard or shiny entry can remember its Poké Ball, ribbons available for that game, and a private note. Details are optional and stay saved even when a catch is unchecked.</p>
         </article>
       </div>
       <section className="dex-tracker-faq" aria-labelledby="dex-tracker-faq-title">
