@@ -17,6 +17,7 @@ export function publicSupabaseConfig() {
   const preferredKey = process.env.NEXT_PUBLIC_DRAFTCENTER_SUPABASE_PUBLISHABLE_KEY;
   const fallbackKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   const isPreview = process.env.VERCEL_ENV === "preview" || process.env.VERCEL_TARGET_ENV === "preview";
+  const hasPreferredConfig = validUrl(preferredUrl) && validPublicKey(preferredKey);
   const hasPreviewConfig = validUrl(fallbackUrl) && validPublicKey(fallbackKey);
 
   // Vercel's Supabase integration injects the isolated branch through the
@@ -26,9 +27,11 @@ export function publicSupabaseConfig() {
     return { url: fallbackUrl, key: fallbackKey, source: "preview" };
   }
 
-  return {
-    url: validUrl(preferredUrl) ? preferredUrl : validUrl(fallbackUrl) ? fallbackUrl : "",
-    key: validPublicKey(preferredKey) ? preferredKey : validPublicKey(fallbackKey) ? fallbackKey : "",
-    source: validUrl(preferredUrl) && validPublicKey(preferredKey) ? "draftcenter" : "fallback",
-  };
+  if (hasPreferredConfig) {
+    return { url: preferredUrl, key: preferredKey, source: "draftcenter" };
+  }
+  if (hasPreviewConfig) {
+    return { url: fallbackUrl, key: fallbackKey, source: "fallback" };
+  }
+  return { url: "", key: "", source: "missing" };
 }

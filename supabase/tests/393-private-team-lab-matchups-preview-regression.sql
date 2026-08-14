@@ -16,6 +16,7 @@ declare
   v_restored integer;
   v_cross_update_denied boolean := false;
   v_cross_delete_denied boolean := false;
+  v_cross_restore_denied boolean := false;
   v_cross_parent_denied boolean := false;
 begin
   if exists (
@@ -128,7 +129,16 @@ begin
     v_cross_parent_denied := sqlerrm = 'Choose one of your own saved teams.';
   end;
 
-  if not v_cross_update_denied or not v_cross_delete_denied or not v_cross_parent_denied then
+  begin
+    perform public.restore_my_team_lab_matchups(v_export);
+  exception when others then
+    v_cross_restore_denied := sqlerrm = 'A restored matchup references a team outside this account.';
+  end;
+
+  if not v_cross_update_denied
+     or not v_cross_delete_denied
+     or not v_cross_restore_denied
+     or not v_cross_parent_denied then
     raise exception 'The two-account Team Lab denial matrix failed.';
   end if;
 
@@ -146,6 +156,11 @@ begin
   if v_restored <> 1
      or jsonb_array_length(public.list_my_team_lab_matchups(v_team)) <> 1 then
     raise exception 'Team Lab recovery did not restore the private matchup.';
+  end if;
+  delete from public.personal_teams
+  where id = v_team and owner_id = auth.uid();
+  if jsonb_array_length(public.list_my_team_lab_matchups(null)) <> 0 then
+    raise exception 'Deleting a saved team did not cascade to its private matchup plans.';
   end if;
 end;
 $validation$;
