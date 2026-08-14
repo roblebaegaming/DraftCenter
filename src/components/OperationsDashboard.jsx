@@ -114,6 +114,16 @@ function ConnectionsUsage({ usage, registeredUsers }) {
     </>}
   </section>;
 }
+function MegaBracketCompletions({ summary }) {
+  const unavailable = !summary || summary.unavailable;
+  return <section className="mega-bracket-completion-summary" aria-labelledby="mega-bracket-completion-title">
+    <header><div><span className="eyebrow">FULL DEX MEGA BRACKET · AGGREGATE ONLY</span><h2 id="mega-bracket-completion-title">Mega Bracket completions</h2><p>Completed signed-in attempts only. These totals never expose member names, champions, Top 64 results, or private bracket choices.</p></div>{!unavailable && <small>Updated {when(summary.generated_at)}</small>}</header>
+    {unavailable ? <p className="mega-bracket-completion-unavailable" role="status">Mega Bracket completion totals are temporarily unavailable. The rest of Operations remains current.</p> : <div className="mega-bracket-completion-metrics">
+      <article><strong>{trafficMetric(summary.completed_members)}</strong><span>Members completed</span><small>distinct members with at least one finish</small></article>
+      <article><strong>{trafficMetric(summary.completed_brackets)}</strong><span>Completed brackets</span><small>all finished Full Dex attempts</small></article>
+    </div>}
+  </section>;
+}
 function WebsiteTraffic({ traffic }) {
   const unavailable = !traffic || traffic.unavailable;
   const activeNow = traffic?.active_now;
@@ -151,6 +161,7 @@ export default function OperationsDashboard() {
     <section className="operations-user-summary" aria-labelledby="registered-users-title"><div><span className="eyebrow">AUTHENTICATION</span><h2 id="registered-users-title">Registered users</h2><p>Every DraftCenter account is counted, including people who joined through Discord. These totals show sign-in identities only; no emails or Discord usernames are exposed here.</p></div><div className="operations-metrics"><article><strong>{data.users?.total || 0}</strong><span>Total accounts</span></article><article><strong>{data.users?.discord || 0}</strong><span>Discord identity</span></article><article><strong>{data.users?.email || 0}</strong><span>Email identity</span></article><article><strong>{data.users?.both || 0}</strong><span>Email + Discord linked</span></article></div></section>
     <WebsiteTraffic traffic={data.website_traffic} />
     <ConnectionsUsage usage={data.connections_usage} registeredUsers={data.users?.total} />
+    <MegaBracketCompletions summary={data.mega_bracket_completions} />
     <WorldsEntrySummary summary={data.worlds_entries} />
     <WorldsResultsOperations />
     <WorldsBracketOperations />

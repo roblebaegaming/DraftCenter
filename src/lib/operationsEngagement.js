@@ -39,3 +39,19 @@ export async function getConnectionsUsage(supabase) {
   if (error) throw error;
   return normalizeConnectionsUsage(data);
 }
+
+export function normalizeMegaBracketCompletions(value) {
+  if (!value || typeof value !== "object") return { unavailable: true };
+  return {
+    unavailable: false,
+    generated_at: typeof value.generated_at === "string" ? value.generated_at : null,
+    completed_members: nonNegativeInteger(value.completed_members),
+    completed_brackets: nonNegativeInteger(value.completed_brackets),
+  };
+}
+
+export async function getMegaBracketCompletions(supabase) {
+  const { data, error } = await supabase.rpc("get_operations_mega_bracket_completions");
+  if (error) throw error;
+  return normalizeMegaBracketCompletions(data);
+}
