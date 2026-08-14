@@ -3,8 +3,8 @@
 - Last updated: August 13, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified production application commit: `340162b7d555d4ba27f6abc6fd2640cef09f19a6`
-- Latest production migration: 389
+- Verified production application commit: `727155b4316017d985af67a22b143634f8fabc73`
+- Latest production migration: 390
 
 ## Deployed state
 
@@ -172,6 +172,17 @@ audit, 244-page build, protected checks, hosted Preview, exact Production
 deployment at commit `340162b`, live 45-location PokÃ©mon Red verification,
 and 19-check production smoke sweep passed. No migration, saved run, provider
 setting, environment variable, or secret changed.
+
+Pull request [#207](https://github.com/roblebaegaming/DraftCenter/pull/207)
+added privacy-safe Full Dex Mega Bracket completion totals to owner Operations.
+The page shows distinct signed-in members with at least one completed bracket
+and total completed brackets, without member identities, champions, Top 64
+results, private choices, active attempts, or abandoned attempts. Migration
+390 exposes only a service-role aggregate while retaining attempt-table RLS
+and direct client-role denials. The exact retained Preview matrix, protected
+checks, 244-page build, Production deployment at commit `727155b`, live owner
+review, and 19-check signed-out smoke sweep passed. At production verification,
+the aggregate showed one completed member and one completed bracket.
 
 The August 9 release wave is complete. Pull requests
 [#95](https://github.com/roblebaegaming/DraftCenter/pull/95) through
@@ -809,7 +820,7 @@ guard merely to remove that measurement gap.
 ## Authoritative records
 
 - Current continuation handoff:
-  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-13-nuzlocke-location-grouping.md`](handoffs/DraftCenter-agent-handoff-2026-08-13-nuzlocke-location-grouping.md)
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-13-operations-mega-bracket-completions.md`](handoffs/DraftCenter-agent-handoff-2026-08-13-operations-mega-bracket-completions.md)
 - Mega Bracket product and data contract:
   [`docs/mega-bracket.md`](mega-bracket.md)
 - Daily Games product and safety contract:
