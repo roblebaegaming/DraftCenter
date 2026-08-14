@@ -91,6 +91,8 @@ test("the account page offers multiple game, HOME, shiny, filter, pagination, re
   assert.match(page, /Pokémon HOME/);
   assert.match(page, /Add a shiny dex/);
   assert.match(page, /Your progress saves automatically/);
+  assert.match(page, /<h1>Every Pokédex<\/h1>/);
+  assert.doesNotMatch(page, /One home/);
   assert.match(page, /Search by name or number/);
   assert.match(page, /HOME box/);
   assert.match(page, /pokedexHomePlacement/);

@@ -60,6 +60,8 @@
 
 - The phrases `progress layers per Pokémon` and `separate tracker collections`
   were removed from the Pokédex Tracker feature cards.
+- The hero headline now uses the plain label `Every Pokédex`; the stylized
+  `One home` line was removed.
 - Team Lab metadata, social-card copy, schema, FAQ structured data, resources,
   navigation labels, sitemap-adjacent language, and `llms.txt` now describe the
   team builder, private notes, account connections, and matchup planner.

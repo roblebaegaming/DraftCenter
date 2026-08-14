@@ -296,7 +296,7 @@ export default function PokedexTrackerPage() {
     <header className="dex-tracker-hero">
       <div>
         <span className="dex-kicker">LIVING COLLECTIONS</span>
-        <h1>Every Pokédex.<br /><em>One home.</em></h1>
+        <h1>Every Pokédex</h1>
         <p>Track your catches game by game, build a complete HOME collection, and turn any list into a sparkling shiny hunt. Your progress saves automatically.</p>
       </div>
       <div className="dex-tracker-hero-card" aria-label="Tracker benefits">
