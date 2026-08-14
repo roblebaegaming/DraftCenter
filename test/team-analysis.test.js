@@ -122,6 +122,7 @@ test("the public Draft Lab is indexable, discoverable, and read-only", () => {
   const route = fs.readFileSync(new URL("../src/app/tools/team-builder/page.js", import.meta.url), "utf8");
   const component = fs.readFileSync(new URL("../src/components/DraftLab.jsx", import.meta.url), "utf8");
   const navigation = fs.readFileSync(new URL("../src/components/SiteQuickLinks.jsx", import.meta.url), "utf8");
+  const home = fs.readFileSync(new URL("../src/components/LeagueHub.jsx", import.meta.url), "utf8");
   const resources = fs.readFileSync(new URL("../src/components/ResourcesPage.jsx", import.meta.url), "utf8");
   const llms = fs.readFileSync(new URL("../src/app/llms.txt/route.js", import.meta.url), "utf8");
   const sitemap = fs.readFileSync(new URL("../src/app/sitemap.js", import.meta.url), "utf8");
@@ -134,7 +135,11 @@ test("the public Draft Lab is indexable, discoverable, and read-only", () => {
   assert.doesNotMatch(component, /from "\.\/PokemonDraftLeague"/);
   assert.match(component, /href="\/my-teams"/);
   assert.doesNotMatch(component, /\.from\(|\.rpc\(|createClient/);
-  assert.doesNotMatch(navigation, /href="\/tools\/team-builder"/);
+  const primaryHeaderStart = navigation.indexOf('<nav className="site-primary-links"');
+  const primaryHeader = navigation.slice(primaryHeaderStart, navigation.indexOf("</nav>", primaryHeaderStart));
+  assert.doesNotMatch(primaryHeader, /href="\/tools\/team-builder"/);
+  assert.match(navigation, /href="\/tools\/team-builder"[^>]*aria-label="Draft Lab"/);
+  assert.match(home, /className="hub-home-tools"[\s\S]*?href="\/tools\/team-builder"/);
   assert.match(resources, /href="\/tools\/team-builder"/);
   assert.match(llms, /Draft Lab Pokémon team builder/);
   assert.match(sitemap, /\["\/tools\/team-builder", "weekly", 0\.9\]/);
