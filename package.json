@@ -96,9 +96,10 @@
     "catalog:build:migration": "node scripts/build-pokemon-catalog-migration.mjs",
     "catalog:import": "node scripts/import-pokemon-game-catalog.mjs",
     "test:trainer-dex": "node --test test/daily-games-resources.test.js test/trainer-dex.test.js",
+    "test:pokedex-tracker": "node --test test/pokedex-tracker.test.js",
     "test:calendar": "node --test test/pokemon-calendar.test.js",
     "test:release-integration": "node --test test/release-integration.test.js",
-    "test:all": "npm run test:security && npm run test:regulations && npm run test:auth-captcha && npm run test:profile-defaults && npm run test:performance && npm run test:help-guides && npm run test:operations-users && npm run test:draft-experience && npm run test:draft-lab && npm run test:mega-bracket && npm run test:team-ownership && npm run test:draft-board-ux && npm run test:seo && npm run test:draft-chat-routing && npm run test:transaction-takeover && npm run test:manager-removal && npm run test:league-counts && npm run test:league-scale && npm run test:nuzlocke && npm run test:tournaments && npm run test:draft-tournament && npm run test:multi-pod && npm run test:trainer-dex && npm run test:calendar && npm run test:pokemon-moves && npm run test:competitive-data && npm run test:worlds && npm run test:release-integration"
+    "test:all": "npm run test:security && npm run test:regulations && npm run test:auth-captcha && npm run test:profile-defaults && npm run test:performance && npm run test:help-guides && npm run test:operations-users && npm run test:draft-experience && npm run test:draft-lab && npm run test:mega-bracket && npm run test:team-ownership && npm run test:draft-board-ux && npm run test:seo && npm run test:draft-chat-routing && npm run test:transaction-takeover && npm run test:manager-removal && npm run test:league-counts && npm run test:league-scale && npm run test:nuzlocke && npm run test:tournaments && npm run test:draft-tournament && npm run test:multi-pod && npm run test:trainer-dex && npm run test:pokedex-tracker && npm run test:calendar && npm run test:pokemon-moves && npm run test:competitive-data && npm run test:worlds && npm run test:release-integration"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.3",

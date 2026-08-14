@@ -43,8 +43,8 @@ export default function SiteQuickLinks() {
       setIsOwner(Boolean(accessResponse?.ok));
     }
 
-    supabase.auth.getSession().then(({ data }) => updateSession(data.session));
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => updateSession(session));
+    supabase.auth.getSession().then(({ data }) => { void updateSession(data.session); });
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => { void updateSession(session); });
     return () => {
       active = false;
       listener.subscription.unsubscribe();
@@ -91,13 +91,14 @@ export default function SiteQuickLinks() {
         </div>
       </div>
     </header>
-    <nav className={`site-quick-links${isOwner ? " has-owner-link" : ""}`} aria-label="Tools and resources">
+    <nav className={`site-quick-links${signedIn ? " has-tracker-link" : ""}${isOwner ? " has-owner-link" : ""}`} aria-label="Tools and resources">
       <a href="/resources/daily-games" aria-label="Daily Games" {...navState(pathname, "/resources/daily-games")}><span className="quick-label-wide">Daily Games</span><span className="quick-label-compact">Daily</span></a>
       <a href="/tools/team-builder" aria-label="Draft Lab" {...navState(pathname, "/tools/team-builder")}><span className="quick-label-wide">Draft Lab</span><span className="quick-label-compact">Lab</span></a>
-      <a href="/nuzlocke" aria-label="Nuzlockes" {...navState(pathname, "/nuzlocke")}><span className="quick-label-wide">Nuzlockes</span><span className="quick-label-compact">Nuzlocke</span></a>
-      <a href="/tournaments" aria-label="Tournaments" {...navState(pathname, "/tournaments")}><span className="quick-label-wide">Tournaments</span><span className="quick-label-compact">Events</span></a>
-      <a href="/calendar" aria-label="Calendar" {...navState(pathname, "/calendar")}><span className="quick-label-wide">Calendar</span><span className="quick-label-compact">Calendar</span></a>
+      <a href="/nuzlocke" aria-label="Nuzlockes" {...navState(pathname, "/nuzlocke")}><span className="quick-label-wide">Nuzlockes</span><span className="quick-label-compact">Nuz</span></a>
+      <a href="/tournaments" aria-label="Tournaments" {...navState(pathname, "/tournaments")}><span className="quick-label-wide">Tournaments</span><span className="quick-label-compact">Cups</span></a>
+      <a href="/calendar" aria-label="Calendar" {...navState(pathname, "/calendar")}><span className="quick-label-wide">Calendar</span><span className="quick-label-compact">Cal</span></a>
       {signedIn && <a href="/trainer-dex" aria-label="Trainer Dex" {...navState(pathname, "/trainer-dex")}><span className="quick-label-wide">Trainer Dex</span><span className="quick-label-compact">Dex</span></a>}
+      {signedIn && <a href="/pokedex-tracker" aria-label="Pokédex Tracker" {...navState(pathname, "/pokedex-tracker")}><span className="quick-label-wide">Dex Tracker</span><span className="quick-label-compact">Track</span></a>}
       {isOwner && <a href="/operations" aria-label="Operations" {...navState(pathname, "/operations")}><span className="quick-label-wide">Operations</span><span className="quick-label-compact">Ops</span></a>}
       <a href="/my-teams" aria-label="My Teams" {...navState(pathname, "/my-teams")}><span className="quick-label-wide">My Teams</span><span className="quick-label-compact">Teams</span></a>
       {!signedIn && <a href="/manuals" aria-label="Help" {...navState(pathname, "/manuals")}><span className="quick-label-wide">Help</span><span className="quick-label-compact">Help</span></a>}

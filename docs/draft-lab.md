@@ -5,9 +5,9 @@ type-coverage workspace at `/tools/team-builder`. It remains discoverable from
 Resources and related tools, but it is intentionally not a primary-header
 destination alongside Pokémon, Community, and Worlds Predictions.
 
-## Initial contract
+## Current contract
 
-Visitors can build either a six-Pokémon battle team or a 24-Pokémon draft
+Visitors can build either a six-Pokémon battle team or a 10-Pokémon draft
 roster and choose from the same regulation catalog used by hosted leagues. The
 analysis shows:
 
@@ -16,12 +16,18 @@ analysis shows:
   one of its own types;
 - base-stat averages, physical/special/mixed balance, and raw Speed tiers; and
 - base regulation legality, duplicate species, Restricted limits, and Mega
-  limits.
+  limits;
+- directional prompts for balance or bulky offense, hyper offense, hazard or
+  pivot offense, weather or terrain offense, Trick Room or other speed control,
+  and stall or control structures.
 
 The team summary deliberately does not assume abilities, held items, moves,
 EVs, natures, boosts, field effects, or a league's commissioner overrides. STAB
 coverage means only that a roster type is super effective against a single
-defending type; it does not claim that the Pokémon learns a suitable move.
+defending type; it does not claim that the Pokémon learns a suitable move. The
+archetype panel follows the same boundary: it may identify a type or base-stat
+shell, but setters, abusers, hazards, removal, recovery, pivot moves, items, and
+other roles remain explicit checks for the player.
 
 ## Shared analysis layer
 
@@ -37,7 +43,9 @@ client-sized snapshot of that same league catalogue, regulation data, and
 reviewed base stats. `npm run test:draft-lab` fails when the snapshot drifts
 from `PokemonDraftLeague.jsx`; regenerate it intentionally with
 `npm run draft-lab:build-catalog`. This keeps the public tool aligned without
-shipping the full hosted-league application in its browser bundle.
+shipping the full hosted-league application in its browser bundle. The check
+normalizes Windows and Unix line endings before comparison, so local Git
+formatting cannot masquerade as catalog data drift.
 
 Share links use a bounded, versioned query contract:
 
@@ -45,11 +53,15 @@ Share links use a bounded, versioned query contract:
 /tools/team-builder?v=1&format=reg-mb&team=Garchomp~Rotom-Wash
 ```
 
-`mode=roster` opts into the 24-member view. Unknown names, duplicate names,
+`mode=roster` opts into the 10-member view. Unknown names, duplicate names,
 unsupported formats, and names beyond the mode limit fail closed or fall back
 to the current Regulation M-B view. Query state is public by design and must
 never include team notes, private league identifiers, user details, or hidden
-draft information.
+draft information. Older 24-member share links open the first 10 valid unique
+names and display a clear migration message instead of implying that the extra
+picks remain in the active roster. Switching a roster with more than six picks
+to battle-team mode is blocked until the visitor removes the excess, so the UI
+never deletes picks silently.
 
 ## Persistence and production boundaries
 

@@ -8,6 +8,7 @@ const publicRoutes = [
   "/formats",
   "/resources",
   "/pokemon",
+  "/pokedex-tracker",
   "/manuals",
   "/manuals/commissioner",
   "/manuals/manager",

@@ -5,7 +5,9 @@ import draftLabCatalog from "../data/draft-lab-catalog.json";
 import { REGULATION_GROUPS } from "../lib/regulation-catalog";
 import {
   buildDraftLabQuery,
+  DRAFT_LAB_MODE_LIMITS,
   parseDraftLabQuery,
+  teamArchetypeConsiderations,
   teamDefenseSummary,
   teamLegalitySummary,
   teamStabSummary,
@@ -96,7 +98,10 @@ export default function DraftLab() {
     const shared = parseDraftLabQuery(window.location.search, CATALOG_NAMES);
     setFormatId(REGULATION_SETS[shared.format] && shared.format !== "custom" ? shared.format : "reg-mb");
     setMode(shared.mode);
-    setNames(shared.names.slice(0, shared.mode === "roster" ? 24 : 6));
+    setNames(shared.names);
+    if (shared.truncatedCount > 0) {
+      setMessage(`Draft Lab now supports up to ${DRAFT_LAB_MODE_LIMITS[shared.mode]} Pokémon. This older link had ${shared.truncatedCount} extra pick${shared.truncatedCount === 1 ? "" : "s"}, so only the first ${DRAFT_LAB_MODE_LIMITS[shared.mode]} were opened.`);
+    }
     setHydrated(true);
   }, []);
 
@@ -111,8 +116,9 @@ export default function DraftLab() {
   const defense = useMemo(() => teamDefenseSummary(roster), [roster]);
   const stab = useMemo(() => teamStabSummary(roster), [roster]);
   const stats = useMemo(() => teamStatSummary(roster), [roster]);
+  const archetypes = useMemo(() => teamArchetypeConsiderations(roster), [roster]);
   const legality = useMemo(() => teamLegalitySummary(roster, regulation), [regulation, roster]);
-  const limit = mode === "roster" ? 24 : 6;
+  const limit = DRAFT_LAB_MODE_LIMITS[mode];
   const matches = useMemo(() => {
     const needle = query.trim().toLowerCase();
     if (!needle) return [];
@@ -135,8 +141,13 @@ export default function DraftLab() {
   }
 
   function changeMode(nextMode) {
+    const nextLimit = DRAFT_LAB_MODE_LIMITS[nextMode];
+    if (names.length > nextLimit) {
+      const removeCount = names.length - nextLimit;
+      setMessage(`Remove ${removeCount} Pokémon before switching to the ${nextLimit}-Pokémon version. No picks were removed.`);
+      return;
+    }
     setMode(nextMode);
-    if (nextMode === "team") setNames((current) => current.slice(0, 6));
     setMessage("");
   }
 
@@ -155,26 +166,34 @@ export default function DraftLab() {
   return <main className="draft-lab-shell">
     <nav className="public-page-nav"><a className="quiet-button" href="/?view=dashboard">DraftCenter home</a><a className="quiet-button" href="/pokemon">Pokédex</a><a className="quiet-button" href="/my-teams">My Teams</a></nav>
     <header className="draft-lab-hero">
-      <div><span className="eyebrow">PUBLIC TEAM BUILDER</span><h1>Draft Lab</h1><p>Build a six-Pokémon battle team or a full draft roster, then inspect type coverage, shared weaknesses, STAB gaps, speed tiers, stat balance, and base format legality.</p></div>
+      <div><span className="eyebrow">PUBLIC TEAM BUILDER</span><h1>Draft Lab</h1><p>Build a six-Pokémon battle team or a focused 10-Pokémon draft roster, then inspect type coverage, shared weaknesses, STAB gaps, speed tiers, stat balance, format legality, and common competitive archetypes.</p></div>
       <div className="draft-lab-hero-actions"><button className="primary-button" type="button" onClick={copyLink}>Copy share link</button><a className="quiet-button" href="/my-teams">Open My Teams</a></div>
     </header>
 
     <section className="draft-lab-builder" aria-labelledby="draft-lab-builder-title">
       <div className="draft-lab-controls">
         <div><span className="eyebrow">BUILD</span><h2 id="draft-lab-builder-title">Choose your roster</h2></div>
-        <div className="draft-lab-mode" role="group" aria-label="Roster size"><button type="button" aria-pressed={mode === "team"} onClick={() => changeMode("team")}>Battle team · 6</button><button type="button" aria-pressed={mode === "roster"} onClick={() => changeMode("roster")}>Draft roster · 24</button></div>
+        <div className="draft-lab-mode" role="group" aria-label="Roster size"><button type="button" aria-pressed={mode === "team"} onClick={() => changeMode("team")}>Battle team · 6</button><button type="button" aria-pressed={mode === "roster"} onClick={() => changeMode("roster")}>Draft roster · 10</button></div>
         <label>Format<select value={formatId} onChange={(event) => setFormatId(event.target.value)}>{FORMAT_GROUPS.map((group) => <optgroup key={group.id} label={group.label}>{group.options.map((option) => <option key={option.id} value={option.id}>{option.name}</option>)}</optgroup>)}</select></label>
         <div className="draft-lab-search"><label htmlFor="draft-lab-pokemon">Add Pokémon</label><div><input id="draft-lab-pokemon" value={query} onChange={(event) => { setQuery(event.target.value); setMessage(""); }} onKeyDown={(event) => { if (event.key === "Escape") { setQuery(""); setMessage(""); } else if (event.key === "Enter") { event.preventDefault(); if (matches[0]) addPokemon(matches[0].name); else if (query.trim()) setMessage(`No DraftCenter catalogue match found for “${query.trim()}”.`); } }} placeholder="Garchomp, Rotom-Wash..." autoComplete="off" aria-describedby="draft-lab-roster-count" aria-controls={matches.length ? "draft-lab-search-results" : undefined}/><span id="draft-lab-roster-count" aria-live="polite">{names.length} / {limit}</span></div>{matches.length > 0 && <ul id="draft-lab-search-results" className="draft-lab-search-results" aria-label="Matching Pokémon">{matches.map((pokemon) => <li key={pokemon.name}><button type="button" onClick={() => addPokemon(pokemon.name)}><strong>{pokemon.name}</strong><span>{displayType(pokemon.t1)}{pokemon.t2 ? ` / ${displayType(pokemon.t2)}` : ""} · BST {pokemon.bst}</span></button></li>)}</ul>}</div>
       </div>
 
       {message && <p className="hub-message" role="status">{message}</p>}
-      {roster.length ? <><div className="draft-lab-roster-heading"><strong>{mode === "team" ? "Battle team" : "Draft roster"}</strong><button className="quiet-button" type="button" onClick={clearRoster}>Clear roster</button></div><ol className="draft-lab-roster">{roster.map((pokemon, index) => <li key={pokemon.name}>
+      {roster.length ? <><div className="draft-lab-roster-heading"><strong>{mode === "team" ? "6-Pokémon battle team" : "10-Pokémon draft roster"}</strong><button className="quiet-button" type="button" onClick={clearRoster}>Clear roster</button></div><ol className="draft-lab-roster">{roster.map((pokemon, index) => <li key={pokemon.name}>
         <span>{index + 1}</span><div><strong>{pokemon.name}</strong><small>BST {pokemon.bst}{pokemon.stats?.spe != null ? ` · Speed ${pokemon.stats.spe}` : ""}</small></div><div className="draft-lab-types"><TypeBadge type={pokemon.t1} />{pokemon.t2 && <TypeBadge type={pokemon.t2} />}</div><button type="button" aria-label={`Remove ${pokemon.name}`} onClick={() => setNames((current) => current.filter((name) => name !== pokemon.name))}>Remove</button>
       </li>)}</ol></> : <div className="draft-lab-empty"><strong>Your analysis is ready to start.</strong><p>Add a Pokémon above. The shared URL updates as you build.</p></div>}
     </section>
 
     {roster.length > 0 && <>
       <LegalityPanel summary={legality} regulation={regulation} />
+      <section className="draft-lab-archetypes" aria-labelledby="draft-lab-archetypes-title">
+        <div className="draft-lab-archetypes-heading"><div><span className="eyebrow">META ARCHETYPES</span><h2 id="draft-lab-archetypes-title">Strategic directions to consider</h2></div><p>These are planning prompts, not pass/fail grades. Draft Lab uses typing and base stats for the roster signals below; confirm moves, abilities, items, Tera rules, and league clauses separately.</p></div>
+        <div className="draft-lab-archetype-grid">{archetypes.map((archetype) => <article key={archetype.id}>
+          <div><h3>{archetype.name}</h3><span>{archetype.fit}</span></div>
+          <p>{archetype.signal}</p>
+          <small><strong>Consider:</strong> {archetype.consider}</small>
+        </article>)}</div>
+      </section>
       <section className="draft-lab-analysis-grid">
         <article className="draft-lab-card draft-lab-defense"><span className="eyebrow">DEFENSIVE COVERAGE</span><h2>{sharedWeaknesses.length ? `${sharedWeaknesses.length} pressure points to review` : "No shared type weakness"}</h2><p>Worst-covered attacking types appear first. This uses the current 18-type chart and typing only; abilities, held items, and generation-specific mechanics are not assumed.</p><CoverageTable rows={defense} /></article>
         <article className="draft-lab-card"><span className="eyebrow">STAB COVERAGE</span><h2>{uncoveredStab.length ? `${uncoveredStab.length} defending types lack a super-effective STAB` : "Every single type is covered by STAB"}</h2><p>This checks offensive types, not learned moves. Confirm the actual move pool before treating a matchup as covered.</p><div className="draft-lab-stab-grid">{stab.map((row) => <div key={row.type} className={row.covered ? "is-covered" : "is-gap"}><TypeBadge type={row.type} /><strong>{row.covered ? row.count : "Gap"}</strong><small>{row.attackers.join(", ") || "No roster STAB"}</small></div>)}</div></article>
