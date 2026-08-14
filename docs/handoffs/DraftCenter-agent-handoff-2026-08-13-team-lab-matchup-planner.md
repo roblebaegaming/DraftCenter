@@ -3,7 +3,9 @@
 ## Release state
 
 - Branch: `codex/team-lab-matchup-planner-2026-08-13`
+- Draft pull request: [#214](https://github.com/roblebaegaming/DraftCenter/pull/214)
 - Base: deployed `main` commit `06d9fa42`
+- Feature commit: `0a476d73`
 - Application and migration changes are implemented locally and are not
   deployed.
 - Migration 393 is the next forward-only migration. It must reach an isolated
