@@ -1,11 +1,12 @@
-# Draft Lab
+# Team Lab
 
-Draft Lab is DraftCenter's deployed public, read-only team builder and
-type-coverage workspace at `/tools/team-builder`. It remains discoverable from
-Resources and related tools, but it is intentionally not a primary-header
-destination alongside Pokémon, Community, and Worlds Predictions.
+Team Lab is DraftCenter's public team builder and optional private preparation
+workspace at `/tools/team-builder`. The route is unchanged from the earlier
+Draft Lab release so existing links and search history remain valid. The
+product name shown in navigation, metadata, structured data, social previews,
+and current documentation is **Team Lab**.
 
-## Current contract
+## Public builder contract
 
 Visitors can build either a six-Pokémon battle team or a 10-Pokémon draft
 roster and choose from the same regulation catalog used by hosted leagues. The
@@ -14,9 +15,9 @@ analysis shows:
 - shared defensive weaknesses, resistances, immunities, and 4x weaknesses;
 - single-type targets that the roster can or cannot hit super effectively with
   one of its own types;
-- base-stat averages, physical/special/mixed balance, and raw Speed tiers; and
+- base-stat averages, physical/special/mixed balance, and raw Speed tiers;
 - base regulation legality, duplicate species, Restricted limits, and Mega
-  limits;
+  limits; and
 - directional prompts for balance or bulky offense, hyper offense, hazard or
   pivot offense, weather or terrain offense, Trick Room or other speed control,
   and stall or control structures.
@@ -25,29 +26,64 @@ The team summary deliberately does not assume abilities, held items, moves,
 EVs, natures, boosts, field effects, or a league's commissioner overrides. STAB
 coverage means only that a roster type is super effective against a single
 defending type; it does not claim that the Pokémon learns a suitable move. The
-archetype panel follows the same boundary: it may identify a type or base-stat
-shell, but setters, abusers, hazards, removal, recovery, pivot moves, items, and
-other roles remain explicit checks for the player.
+archetype panel follows the same boundary.
 
-## Shared analysis layer
+## My Teams and league connections
 
-`src/lib/teamAnalysis.js` is the reusable product boundary. It owns the modern
-18-type chart, the bounded ability modifiers used on individual Pokémon cards,
-team defensive and STAB summaries, base-stat summaries, format checks, and the
-versioned share-link parser. The existing hosted-league and My Teams defensive
-views consume this same layer instead of keeping a second type chart in the
-large league component.
+A signed-in coach can load:
 
-The public page consumes `src/data/draft-lab-catalog.json`, a generated,
-client-sized snapshot of that same league catalogue, regulation data, and
-reviewed base stats. `npm run test:draft-lab` fails when the snapshot drifts
-from `PokemonDraftLeague.jsx`; regenerate it intentionally with
-`npm run draft-lab:build-catalog`. This keeps the public tool aligned without
-shipping the full hosted-league application in its browser bundle. The check
-normalizes Windows and Unix line endings before comparison, so local Git
-formatting cannot masquerade as catalog data drift.
+- an active, non-Nuzlocke private workspace from My Teams; or
+- a current or historical DraftCenter league roster that belongs to the
+  signed-in account.
 
-Share links use a bounded, versioned query contract:
+The browser-to-browser handoff from My Teams uses temporary same-tab session
+storage. It does not put a private team ID, league ID, team name, note, or
+account detail in the URL. The receiving page still verifies every write
+against the authenticated account.
+
+Opening a My Teams workspace connects Team Lab to that private row. An explicit
+**Save team & notes** action updates only the account-owned My Teams copy.
+Opening a hosted league roster always creates an unlinked planning copy; the
+coach must explicitly save it as a new My Teams workspace. Team Lab has no
+mutation path for a league, draft, pick, roster, queue, transaction, or
+tournament.
+
+My Teams exposes **Open Team Lab** from both private team cards and owned league
+team cards. This is the reverse connection back into Team Lab. Nuzlocke Run
+Cards keep their dedicated tracker action and are not converted into ordinary
+Team Lab rosters.
+
+## Private notes and matchup plans
+
+Team notes are stored in the existing owner-scoped `personal_teams.notes`
+field. Opponent matchup plans are stored in `team_lab_matchups`, introduced by
+forward-only migration 393. Every matchup belongs to both the authenticated
+account and one of that account's personal-team rows. A plan contains:
+
+- an opponent name and optional opponent team name;
+- a six-Pokémon battle team or 10-Pokémon draft roster;
+- the selected base format; and
+- private preparation notes.
+
+The matchup table uses forced RLS, has no browser table grants or client
+policies, and is accessible only through authenticated owner-scoped functions
+for list, save, delete, export, and recovery. Cross-account reads, updates,
+deletes, re-parenting, and recovery are rejected. Account deletion cascades to
+the matchup rows. Private account export, My Teams JSON recovery, and the
+readable My Teams workbook include the matchup section.
+
+There is no product-count quota in this release. Migration 393 removes the old
+10-external-team trigger and count checks from My Teams recovery. A future
+site-wide entitlement release may give free accounts five saved items within
+each bounded product and paid accounts expanded access. That future policy is
+roadmap only: it must define what counts as an item, cover existing data and
+grace behavior, preserve exports, and ship with separately reviewed database,
+privacy, billing, and interface changes. Team Lab does not mention a quota or
+paid plan today.
+
+## Share-link and search boundary
+
+Public share links keep the existing bounded, versioned contract:
 
 ```text
 /tools/team-builder?v=1&format=reg-mb&team=Garchomp~Rotom-Wash
@@ -55,46 +91,31 @@ Share links use a bounded, versioned query contract:
 
 `mode=roster` opts into the 10-member view. Unknown names, duplicate names,
 unsupported formats, and names beyond the mode limit fail closed or fall back
-to the current Regulation M-B view. Query state is public by design and must
-never include team notes, private league identifiers, user details, or hidden
-draft information. Older 24-member share links open the first 10 valid unique
-names and display a clear migration message instead of implying that the extra
-picks remain in the active roster. Switching a roster with more than six picks
-to battle-team mode is blocked until the visitor removes the excess, so the UI
-never deletes picks silently.
+to the current Regulation M-B view. Older 24-member links open only the first
+10 valid unique names and explain the truncation.
 
-## Persistence and production boundaries
+The public query contains only Pokémon names, mode, and base format. It never
+contains private team IDs, league IDs, team names, account identity, notes, or
+opponent plans. SEO metadata, FAQ and application structured data, social
+previews, sitemap entries, and `llms.txt` describe only product-controlled
+behavior. User data never enters those surfaces.
 
-The foundation performs no Supabase reads or writes and cannot change a league,
-draft, roster, queue, tournament, or My Teams record. **Open My Teams** is a
-normal navigation link, not an implied save. A future save action must require
-an authenticated user, an explicit confirmation, the existing personal-team
-ownership boundary, and focused RLS/grant tests.
+## Shared analysis layer
 
-A future queue import must remain a separate, explicit manager action. It must
-refresh the authoritative league and draft state first and must never replay a
-timed-out draft mutation.
+`src/lib/teamAnalysis.js` remains the reusable analysis boundary. It owns the
+modern 18-type chart, bounded ability modifiers used on individual Pokémon
+cards, defensive and STAB summaries, base-stat summaries, format checks,
+archetype signals, and the versioned share-link parser.
 
-## Next implementation increments
-
-1. Add an explicit authenticated **Save to My Teams** conversion that preserves
-   the source share URL and never edits an existing team silently.
-2. Add sufficiently sampled DraftCenter and reviewed competitive overlays with
-   the format, period, source, and sample size beside every observation.
-3. Add an explicit private draft-queue import after the authoritative league
-   and regulation are refreshed.
-4. Add a branded image export generated from the same analysis result.
-5. Reuse the catalog, legality, comparison, and share-state contracts for the
-   planned Pokémon comparison and tier-list tools.
-
-Do not begin a damage calculator by treating this type engine as a complete
-battle engine. Damage requires a separately reviewed contract for moves,
-abilities, items, stats, field state, generation mechanics, and regulation
-updates.
+The public page consumes `src/data/draft-lab-catalog.json`, a generated,
+client-sized snapshot of the hosted-league catalog, regulation data, and
+reviewed base stats. `npm run test:draft-lab` fails when the snapshot drifts
+from `PokemonDraftLeague.jsx`; regenerate it intentionally with
+`npm run draft-lab:build-catalog`.
 
 ## Validation
 
-Run the focused foundation checks with:
+Run the focused checks with:
 
 ```powershell
 npm run test:draft-lab
@@ -103,6 +124,9 @@ npm run test:seo
 npm run test:release-integration
 ```
 
-Before proposing a release, also run the repository's complete required checks
-and review the page on desktop and approximately 390px mobile. The production
-smoke sweep is post-deployment evidence only.
+Migration 393 also requires an isolated two-account Preview matrix proving the
+owner allow cases, every cross-account denial, direct-table denial, complete
+export and recovery, removal of the old count trigger, and fixture cleanup.
+Before release, run the repository's complete required checks and review Team
+Lab and My Teams on desktop, 390px, and 320px widths. Production smoke testing
+is post-deployment evidence only.

@@ -110,9 +110,11 @@ test("recent public products expose current social previews and discovery copy",
   }
   assert.match(mega, /featureList:/);
   assert.match(lab, /featureList:/);
+  assert.match(lab, /"@type": "FAQPage"/);
   assert.match(lab, /10-Pokémon draft rosters/);
   assert.match(lab, /Common meta archetype prompts/);
-  assert.match(source("src/app/tools/team-builder/opengraph-image.js"), /10-Pokémon rosters/);
+  assert.match(source("src/app/tools/team-builder/opengraph-image.js"), /Team Lab/);
+  assert.match(source("src/app/tools/team-builder/opengraph-image.js"), /opponent matchup/);
   assert.match(pokedexTracker, /"@type": "WebApplication"/);
   assert.match(pokedexTracker, /"@type": "FAQPage"/);
   assert.match(pokedexTracker, /canonical: "\/pokedex-tracker"/);
@@ -477,7 +479,7 @@ test("AI discovery foundation exposes a trustworthy entity and reference index",
   assert.match(llms, /saved cards are not public pages/);
   assert.match(llms, /How to Use Pokémon Draft League ADP/);
   assert.match(llms, /Pokémon Draft League Manager vs\. Spreadsheets/);
-  assert.match(llms, /Draft Lab Pokémon team builder/);
+  assert.match(llms, /Team Lab Pokémon team builder and matchup planner/);
   assert.match(llms, /Sunday's eight-entry Super Bracket/);
   assert.match(llms, /it\/worlds\/2026/);
   assert.match(llms, /Last reviewed: 2026-08-13/);

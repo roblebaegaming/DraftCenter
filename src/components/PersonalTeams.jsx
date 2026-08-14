@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createClient } from "../lib/supabase/client";
 import { nuzlockeEncounterStatusLabel, normalizeNuzlockeTracker, summarizeNuzlockeTracker } from "../lib/nuzlockeRunTracker";
+import { createTeamLabHandoff, TEAM_LAB_HANDOFF_KEY } from "../lib/teamLab";
 import { MonAbilities, MonDefenseChart, MonSprite, MonStats, POLL_POKEMON_NAMES, POKEMON_DIRECTORY, REGULATION_SETS, TeamDefenseSummary } from "./PokemonDraftLeague";
 
 const EMPTY = { team_name:"", league_name:"", format_name:"", workspace_type:"weekly", planning_entries:[], notes:"", weekly_notes:"", pokepaste_url:"", replica_code:"", spreadsheet_url:"", team_report_url:"", pokemon:[], nuzlocke_run:null, archived:false, is_public:false, regulation_id:"", public_summary:"", share_pokepaste:false, share_replica_code:false, share_team_report:false };
@@ -23,6 +24,7 @@ export default function PersonalTeams() {
   const [user, setUser] = useState(undefined);
   const [teams, setTeams] = useState([]);
   const [leagueTeams, setLeagueTeams] = useState([]);
+  const [teamLabMatchups, setTeamLabMatchups] = useState([]);
   const [editing, setEditing] = useState(null);
   const [viewing, setViewing] = useState(null);
   const [form, setForm] = useState(EMPTY);
@@ -34,12 +36,14 @@ export default function PersonalTeams() {
   const importInputRef = useRef(null);
 
   async function load(owner) {
-    const [personalResult, leagueResult] = await Promise.all([
+    const [personalResult, leagueResult, matchupResult] = await Promise.all([
       supabase.from("personal_teams").select("*").eq("owner_id", owner.id).order("updated_at", { ascending:false }),
       supabase.rpc("get_my_league_team_history"),
+      supabase.rpc("list_my_team_lab_matchups", { p_personal_team_id:null }),
     ]);
     if (personalResult.error) setMessage(personalResult.error.message); else setTeams(personalResult.data || []);
     if (leagueResult.error) setMessage(leagueResult.error.message); else setLeagueTeams(leagueResult.data?.teams || []);
+    if (matchupResult.error) setMessage(matchupResult.error.message); else setTeamLabMatchups(matchupResult.data || []);
   }
   useEffect(() => { supabase.auth.getUser().then(({ data }) => { const next=data.user || null; setUser(next); if(next) load(next); }); }, [supabase]);
   function start(team = null) {
@@ -129,8 +133,14 @@ export default function PersonalTeams() {
     setViewing(null);
     await load(user);
   }
+  function openInTeamLab(team, source, event) {
+    event?.stopPropagation();
+    const transferable = source === "league" ? { ...team, format_name:`Season ${team.season_number}` } : team;
+    window.sessionStorage.setItem(TEAM_LAB_HANDOFF_KEY, createTeamLabHandoff(transferable, source));
+    window.location.assign("/tools/team-builder");
+  }
   function downloadPrivateBackup() {
-    const payload={format:"draftcenter-my-teams",version:1,exported_at:new Date().toISOString(),personal_teams:teams};
+    const payload={format:"draftcenter-my-teams",version:2,exported_at:new Date().toISOString(),personal_teams:teams,team_lab_matchups:teamLabMatchups};
     const url=URL.createObjectURL(new Blob([JSON.stringify(payload,null,2)],{type:"application/json"}));
     const link=document.createElement("a"); link.href=url; link.download=`draftcenter-my-teams-${new Date().toISOString().slice(0,10)}.json`; link.click(); URL.revokeObjectURL(url);
   }
@@ -149,6 +159,12 @@ export default function PersonalTeams() {
     ]);
     plans["!cols"]=[24,12,28,50,100].map((wch)=>({wch}));
     XLSX.utils.book_append_sheet(workbook,plans,"Planning");
+    const matchups=XLSX.utils.aoa_to_sheet([
+      ["Your team","Opponent","Opponent team","Roster","Notes","Format"],
+      ...teamLabMatchups.map((matchup)=>[teams.find((team)=>team.id===matchup.personal_team_id)?.team_name||"",matchup.opponent_name,matchup.opponent_team_name||"",(matchup.pokemon||[]).join(", "),matchup.notes||"",matchup.format_id||""]),
+    ]);
+    matchups["!cols"]=[24,24,24,60,100,20].map((wch)=>({wch}));
+    XLSX.utils.book_append_sheet(workbook,matchups,"Team Lab matchups");
     XLSX.writeFile(workbook,`draftcenter-my-teams-${new Date().toISOString().slice(0,10)}.xlsx`);
   }
   async function restorePrivateBackup(event) {
@@ -156,8 +172,7 @@ export default function PersonalTeams() {
     setBusy(true); setMessage("");
     try {
       const parsed=JSON.parse(await file.text());
-      if(parsed?.format!=="draftcenter-my-teams"||parsed?.version!==1||!Array.isArray(parsed.personal_teams))throw new Error("Choose a DraftCenter My Teams recovery file.");
-      if(parsed.personal_teams.length>10)throw new Error("A My Teams recovery file cannot contain more than 10 external teams.");
+      if(parsed?.format!=="draftcenter-my-teams"||![1,2].includes(parsed?.version)||!Array.isArray(parsed.personal_teams))throw new Error("Choose a DraftCenter My Teams recovery file.");
       if(!window.confirm(`Restore ${parsed.personal_teams.length} private team workspace${parsed.personal_teams.length===1?"":"s"}? Matching teams will be updated and new teams will be added.`))return;
       const rows=parsed.personal_teams.map((team)=>({
         id:team.id,owner_id:user.id,team_name:String(team.team_name||"").trim(),league_name:nullable(team.league_name),format_name:nullable(team.format_name),
@@ -169,6 +184,10 @@ export default function PersonalTeams() {
       if(rows.some((team)=>!team.id||!team.team_name))throw new Error("The recovery file contains an invalid team.");
       const {error}=await supabase.rpc("restore_my_personal_teams",{p_teams:rows});
       if(error)throw error;
+      if(parsed.version===2&&Array.isArray(parsed.team_lab_matchups)&&parsed.team_lab_matchups.length){
+        const {error:matchupError}=await supabase.rpc("restore_my_team_lab_matchups",{p_matchups:parsed.team_lab_matchups});
+        if(matchupError)throw matchupError;
+      }
       await load(user); setMessage("My Teams recovery file restored.");
     } catch(error) { setMessage(error.message||"The My Teams recovery file could not be restored."); }
     finally { setBusy(false); if(importInputRef.current)importInputRef.current.value=""; }
@@ -181,20 +200,20 @@ export default function PersonalTeams() {
   const viewingNuzlockeProgress=isNuzlockeTeam(viewing)?nuzlockeProgressFor(viewing):null;
   return <main className="personal-teams-shell">
     <nav className="public-page-nav"><a className="quiet-button" href="/">Dashboard</a><a className="quiet-button" href="/calendar">Calendar</a><a className="quiet-button" href="/resources">Resources</a><a className="quiet-button" href="/explore">Community</a></nav>
-    <header className="personal-teams-hero"><div><span className="eyebrow">YOUR TEAM BINDER</span><h1>My Teams</h1><p>Your DraftCenter league teams and private external team workspaces, all in one place. League history remains read-only and external teams never alter a hosted league.</p></div><div className="personal-team-actions"><button className="primary-button" disabled={teams.length>=10} onClick={()=>start()}>{teams.length>=10?"10-team limit reached":"Add external team"}</button><button className="secondary-button" disabled={busy} onClick={downloadReadableExport}>Download spreadsheet</button><button className="quiet-button" disabled={busy} onClick={downloadPrivateBackup}>Download recovery file</button><button className="quiet-button" disabled={busy} onClick={()=>importInputRef.current?.click()}>Restore recovery file</button><input ref={importInputRef} type="file" accept="application/json" onChange={restorePrivateBackup} hidden/></div></header>
+    <header className="personal-teams-hero"><div><span className="eyebrow">YOUR TEAM BINDER</span><h1>My Teams</h1><p>Your DraftCenter league teams and private external team workspaces, all in one place. League history remains read-only and external teams never alter a hosted league.</p></div><div className="personal-team-actions"><button className="primary-button" onClick={()=>start()}>Add external team</button><button className="secondary-button" disabled={busy} onClick={downloadReadableExport}>Download spreadsheet</button><button className="quiet-button" disabled={busy} onClick={downloadPrivateBackup}>Download recovery file</button><button className="quiet-button" disabled={busy} onClick={()=>importInputRef.current?.click()}>Restore recovery file</button><input ref={importInputRef} type="file" accept="application/json" onChange={restorePrivateBackup} hidden/></div></header>
     <section className="my-league-teams-section"><div className="section-heading"><div><span className="eyebrow">DRAFTCENTER LEAGUES</span><h2>Your league teams</h2></div><span className="muted">Archiving only cleans up your personal view</span></div>
       <div className="personal-team-tabs"><button className={!showArchivedLeagueTeams?"secondary-button":"quiet-button"} onClick={()=>setShowArchivedLeagueTeams(false)}>Active ({leagueTeams.filter((team)=>!team.user_archived).length})</button><button className={showArchivedLeagueTeams?"secondary-button":"quiet-button"} onClick={()=>setShowArchivedLeagueTeams(true)}>Archived ({leagueTeams.filter((team)=>team.user_archived).length})</button></div>
       {!leagueTeams.length&&<p className="muted">Teams you manage in DraftCenter leagues will appear here.</p>}
       {!visibleLeagueTeams.length&&leagueTeams.length>0&&<p className="muted">{showArchivedLeagueTeams?"No archived league teams.":"All of your league teams are archived."}</p>}
-      <div className="personal-team-grid">{visibleLeagueTeams.map((team)=><article className="personal-team-card league-team-card" key={`${team.league_id}-${team.season_number}-${team.team_index}-${team.archived}`} onClick={()=>setViewing({...team,format_name:`Season ${team.season_number}`,league_source:true})}><span className="eyebrow">{team.league_name}</span><h2>{team.team_name}</h2><p className="personal-team-format">Season {team.season_number} · {team.archived?"Completed":"Current"}</p><div className="personal-team-pokemon">{(team.pokemon||[]).map((name)=><span key={name}>{name}</span>)}{!team.pokemon?.length&&<span className="muted">No Pokémon saved for this roster</span>}</div><div className="personal-team-actions"><button className="secondary-button">View roster</button>{!team.archived&&<a className="text-button" href={`/?league=${encodeURIComponent(team.slug||team.league_id)}`} onClick={(event)=>event.stopPropagation()}>Open league →</a>}<button className="text-button" disabled={busy} onClick={(event)=>{event.stopPropagation();setLeagueTeamArchived(team,!team.user_archived);}}>{team.user_archived?"Restore":"Archive"}</button></div></article>)}</div>
+      <div className="personal-team-grid">{visibleLeagueTeams.map((team)=><article className="personal-team-card league-team-card" key={`${team.league_id}-${team.season_number}-${team.team_index}-${team.archived}`} onClick={()=>setViewing({...team,format_name:`Season ${team.season_number}`,league_source:true})}><span className="eyebrow">{team.league_name}</span><h2>{team.team_name}</h2><p className="personal-team-format">Season {team.season_number} · {team.archived?"Completed":"Current"}</p><div className="personal-team-pokemon">{(team.pokemon||[]).map((name)=><span key={name}>{name}</span>)}{!team.pokemon?.length&&<span className="muted">No Pokémon saved for this roster</span>}</div><div className="personal-team-actions"><button className="secondary-button">View roster</button><button className="text-button" onClick={(event)=>openInTeamLab(team,"league",event)}>Open Team Lab →</button>{!team.archived&&<a className="text-button" href={`/?league=${encodeURIComponent(team.slug||team.league_id)}`} onClick={(event)=>event.stopPropagation()}>Open league →</a>}<button className="text-button" disabled={busy} onClick={(event)=>{event.stopPropagation();setLeagueTeamArchived(team,!team.user_archived);}}>{team.user_archived?"Restore":"Archive"}</button></div></article>)}</div>
     </section>
-    <section className="external-teams-section"><div className="section-heading"><div><span className="eyebrow">PRIVATE EXTERNAL TEAMS</span><h2>Your workspaces</h2></div><span className="muted">{teams.length} / 10 used</span></div>
+    <section className="external-teams-section"><div className="section-heading"><div><span className="eyebrow">PRIVATE EXTERNAL TEAMS</span><h2>Your workspaces</h2></div><span className="muted">{teams.length} workspace{teams.length===1?"":"s"}</span></div>
     <div className="personal-team-tabs"><button className={!showArchived?"secondary-button":"quiet-button"} onClick={()=>setShowArchived(false)}>Active ({teams.filter((team)=>!team.archived).length})</button><button className={showArchived?"secondary-button":"quiet-button"} onClick={()=>setShowArchived(true)}>Archived ({teams.filter((team)=>team.archived).length})</button></div>
     {message&&!editing&&<p className="hub-message">{message}</p>}
     {!visible.length&&<section className="personal-team-empty"><h2>{showArchived?"No archived teams":"Your team binder is ready."}</h2><p>{showArchived?"Teams you archive will remain available here.":"Add a private workspace for any team, whether or not its league is hosted on DraftCenter."}</p></section>}
-    <div className="personal-team-grid">{visible.map((team)=>{const pokemon=cardPokemon(team);const progress=isNuzlockeTeam(team)?nuzlockeProgressFor(team):null;return <article className="personal-team-card" key={team.id} onClick={()=>setViewing(team)}><span className="eyebrow">{team.league_name||"PERSONAL TEAM"}</span><h2>{team.team_name}</h2>{team.format_name&&<p className="personal-team-format">{team.format_name}</p>}<span className="personal-team-use-badge">{workspaceLabel(team)}</span>{progress&&<div className="personal-nuzlocke-card-progress"><strong>{progress.recorded} / {progress.total} locations recorded</strong><span>{progress.living} living · {progress.deceased} deceased</span></div>}<div className="personal-team-pokemon">{pokemon.slice(0,12).map((name,index)=><span key={`${name}-${index}`}>{name}</span>)}{pokemon.length>12&&<span>+{pokemon.length-12} more</span>}{!pokemon.length&&<span className="muted">No Pokémon added</span>}</div><div className="personal-team-links">{team.pokepaste_url&&<a href={team.pokepaste_url} target="_blank" rel="noreferrer" onClick={(event)=>event.stopPropagation()}>PokéPaste ↗</a>}{team.spreadsheet_url&&<a href={team.spreadsheet_url} target="_blank" rel="noreferrer" onClick={(event)=>event.stopPropagation()}>Spreadsheet ↗</a>}{team.team_report_url&&<a href={team.team_report_url} target="_blank" rel="noreferrer" onClick={(event)=>event.stopPropagation()}>{isNuzlockeTeam(team)?"Recreate build":"Team report"} ↗</a>}</div><div className="personal-team-actions"><button className="secondary-button" onClick={(event)=>{event.stopPropagation();setViewing(team);}}>{isNuzlockeTeam(team)?"View progress":"View roster"}</button>{isNuzlockeTeam(team)&&<a className="text-button" href={`/nuzlocke?run=${team.id}`} onClick={(event)=>event.stopPropagation()}>Open tracker →</a>}<button className="text-button danger-text" disabled={busy} onClick={(event)=>{event.stopPropagation();remove(team);}}>Delete</button></div></article>})}</div>
+    <div className="personal-team-grid">{visible.map((team)=>{const pokemon=cardPokemon(team);const progress=isNuzlockeTeam(team)?nuzlockeProgressFor(team):null;return <article className="personal-team-card" key={team.id} onClick={()=>setViewing(team)}><span className="eyebrow">{team.league_name||"PERSONAL TEAM"}</span><h2>{team.team_name}</h2>{team.format_name&&<p className="personal-team-format">{team.format_name}</p>}<span className="personal-team-use-badge">{workspaceLabel(team)}</span>{progress&&<div className="personal-nuzlocke-card-progress"><strong>{progress.recorded} / {progress.total} locations recorded</strong><span>{progress.living} living · {progress.deceased} deceased</span></div>}<div className="personal-team-pokemon">{pokemon.slice(0,12).map((name,index)=><span key={`${name}-${index}`}>{name}</span>)}{pokemon.length>12&&<span>+{pokemon.length-12} more</span>}{!pokemon.length&&<span className="muted">No Pokémon added</span>}</div><div className="personal-team-links">{team.pokepaste_url&&<a href={team.pokepaste_url} target="_blank" rel="noreferrer" onClick={(event)=>event.stopPropagation()}>PokéPaste ↗</a>}{team.spreadsheet_url&&<a href={team.spreadsheet_url} target="_blank" rel="noreferrer" onClick={(event)=>event.stopPropagation()}>Spreadsheet ↗</a>}{team.team_report_url&&<a href={team.team_report_url} target="_blank" rel="noreferrer" onClick={(event)=>event.stopPropagation()}>{isNuzlockeTeam(team)?"Recreate build":"Team report"} ↗</a>}</div><div className="personal-team-actions"><button className="secondary-button" onClick={(event)=>{event.stopPropagation();setViewing(team);}}>{isNuzlockeTeam(team)?"View progress":"View roster"}</button>{isNuzlockeTeam(team)?<a className="text-button" href={`/nuzlocke?run=${team.id}`} onClick={(event)=>event.stopPropagation()}>Open tracker →</a>:<button className="text-button" onClick={(event)=>openInTeamLab(team,"personal",event)}>Open Team Lab →</button>}<button className="text-button danger-text" disabled={busy} onClick={(event)=>{event.stopPropagation();remove(team);}}>Delete</button></div></article>})}</div>
     </section>
-    {viewing&&<div className="modal-backdrop" onMouseDown={(event)=>{if(event.target===event.currentTarget)setViewing(null);}}><section className="tools-modal personal-team-viewer"><button className="modal-close" onClick={()=>setViewing(null)}>x</button><span className="eyebrow">{viewing.league_name||"PRIVATE TEAM WORKSPACE"}</span><div className="personal-team-viewer-heading"><div><h2>{viewing.team_name}</h2>{viewing.format_name&&<p className="personal-team-format">{viewing.format_name}</p>}</div>{viewing.league_source?<a className="secondary-button inline-link-button" href={`/?league=${encodeURIComponent(viewing.slug||viewing.league_id)}`}>{viewing.archived?"Open league history":"Open league"}</a>:<div className="personal-team-actions">{isNuzlockeTeam(viewing)&&<a className="primary-button inline-link-button" href={`/nuzlocke?run=${viewing.id}`}>Open tracker</a>}<button className="secondary-button" onClick={()=>start(viewing)}>Edit workspace</button></div>}</div>
+    {viewing&&<div className="modal-backdrop" onMouseDown={(event)=>{if(event.target===event.currentTarget)setViewing(null);}}><section className="tools-modal personal-team-viewer"><button className="modal-close" onClick={()=>setViewing(null)}>x</button><span className="eyebrow">{viewing.league_name||"PRIVATE TEAM WORKSPACE"}</span><div className="personal-team-viewer-heading"><div><h2>{viewing.team_name}</h2>{viewing.format_name&&<p className="personal-team-format">{viewing.format_name}</p>}</div>{viewing.league_source?<div className="personal-team-actions"><button className="primary-button" onClick={(event)=>openInTeamLab(viewing,"league",event)}>Open Team Lab</button><a className="secondary-button inline-link-button" href={`/?league=${encodeURIComponent(viewing.slug||viewing.league_id)}`}>{viewing.archived?"Open league history":"Open league"}</a></div>:<div className="personal-team-actions">{isNuzlockeTeam(viewing)?<a className="primary-button inline-link-button" href={`/nuzlocke?run=${viewing.id}`}>Open tracker</a>:<button className="primary-button" onClick={(event)=>openInTeamLab(viewing,"personal",event)}>Open Team Lab</button>}<button className="secondary-button" onClick={()=>start(viewing)}>Edit workspace</button></div>}</div>
       {isNuzlockeTeam(viewing)?<>
         <section className="personal-nuzlocke-summary">
           <strong>{viewingNuzlockeProgress.recorded} / {viewingNuzlockeProgress.total} locations recorded</strong>

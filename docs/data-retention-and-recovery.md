@@ -10,6 +10,8 @@ users.
   league JSON recovery file.
 - Users can download a private account export from Profile.
 - Users can download readable and restorable My Teams exports from My Teams.
+  These exports include account-private Team Lab matchup plans linked to each
+  saved team, and restore the plans only after their owning teams exist.
 - Private exports may contain emails, notes, Discord identifiers, team plans,
   and other personal information. Store and transmit them accordingly.
 
@@ -105,6 +107,10 @@ league and isolated account state after the provider restore drill:
 - The owner-only My Teams recovery operation passed insert and update restores,
   preserved all 19 supported fields, rejected signed-out callers, and prevented
   one user from restoring over another user's workspace.
+- Team Lab matchup plans join the same account export and My Teams recovery
+  path in migration 393. Their dedicated two-account Preview regression must
+  pass before that migration is released; this August 2 historical drill does
+  not count as validation of the newer data type.
 - The full regular season, playoff, champion, archive, and clean-new-season
   lifecycle passed before cleanup, confirming that the restored data remained
   usable rather than merely parseable.

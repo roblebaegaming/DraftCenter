@@ -14,6 +14,12 @@ import {
   teamStabSummary,
   teamStatSummary,
 } from "../src/lib/teamAnalysis.js";
+import {
+  createTeamLabHandoff,
+  normalizeTeamLabRoster,
+  parseTeamLabHandoff,
+  TEAM_LAB_HANDOFF_KEY,
+} from "../src/lib/teamLab.js";
 
 const roster = [
   { name: "Garchomp", t1: "dragon", t2: "ground", stats: { hp: 108, atk: 130, def: 95, spa: 80, spd: 85, spe: 102 } },
@@ -109,7 +115,7 @@ test("legality summary is format-aware and enforces duplicate and special-catego
   assert.deepEqual(invalid.illegalNames, ["Mega Charizard X", "MissingNo"]);
 });
 
-test("versioned Draft Lab links round-trip valid unique names and reject unknown entries", () => {
+test("versioned Team Lab links round-trip valid unique names and reject unknown entries", () => {
   const query = buildDraftLabQuery({ format: "national-gen9", mode: "roster", names: ["Garchomp", "Rotom-Wash", "Garchomp"] });
   const params = new URLSearchParams(query);
   params.set("team", "Garchomp~Rotom-Wash~MissingNo");
@@ -144,9 +150,38 @@ test("share links fail closed for unknown versions and honor the selected mode l
   assert.deepEqual(DRAFT_LAB_MODE_LIMITS, { team: 6, roster: 10 });
 });
 
-test("the public Draft Lab is indexable, discoverable, and read-only", () => {
+test("private Team Lab handoffs preserve safe account fields without entering share queries", () => {
+  const catalog = new Set(["Garchomp", "Rotom-Wash", "Corviknight"]);
+  const raw = createTeamLabHandoff({
+    id: "10c80c7e-f905-4d6d-b107-7dbf8cb5c17a",
+    team_name: "Rain checks",
+    league_name: "Preview League",
+    format_name: "National Dex",
+    notes: "Keep this private",
+    pokemon: ["Garchomp", "Rotom-Wash", "MissingNo", "Garchomp"],
+  }, "personal");
+  assert.deepEqual(parseTeamLabHandoff(raw, catalog), {
+    source: "personal",
+    savedTeamId: "10c80c7e-f905-4d6d-b107-7dbf8cb5c17a",
+    teamName: "Rain checks",
+    leagueName: "Preview League",
+    formatName: "National Dex",
+    notes: "Keep this private",
+    pokemon: ["Garchomp", "Rotom-Wash"],
+  });
+  assert.deepEqual(normalizeTeamLabRoster(["Garchomp", "Garchomp", "MissingNo"], catalog), ["Garchomp"]);
+  assert.equal(parseTeamLabHandoff("not json", catalog), null);
+  const publicQuery = buildDraftLabQuery({ format: "national-gen9", mode: "team", names: ["Garchomp"] });
+  assert.doesNotMatch(publicQuery, /Rain|Preview|private|10c80c7e/);
+  assert.equal(TEAM_LAB_HANDOFF_KEY, "draftcenter-team-lab-handoff-v1");
+});
+
+test("Team Lab is indexable while account notes and matchups stay private", () => {
   const route = fs.readFileSync(new URL("../src/app/tools/team-builder/page.js", import.meta.url), "utf8");
   const component = fs.readFileSync(new URL("../src/components/DraftLab.jsx", import.meta.url), "utf8");
+  const personalTeams = fs.readFileSync(new URL("../src/components/PersonalTeams.jsx", import.meta.url), "utf8");
+  const auth = fs.readFileSync(new URL("../src/components/AuthGate.jsx", import.meta.url), "utf8");
+  const migration = fs.readFileSync(new URL("../supabase/393-private-team-lab-matchups.sql", import.meta.url), "utf8");
   const navigation = fs.readFileSync(new URL("../src/components/SiteQuickLinks.jsx", import.meta.url), "utf8");
   const home = fs.readFileSync(new URL("../src/components/LeagueHub.jsx", import.meta.url), "utf8");
   const resources = fs.readFileSync(new URL("../src/components/ResourcesPage.jsx", import.meta.url), "utf8");
@@ -156,6 +191,8 @@ test("the public Draft Lab is indexable, discoverable, and read-only", () => {
   const sitemap = fs.readFileSync(new URL("../src/app/sitemap.js", import.meta.url), "utf8");
   assert.match(route, /alternates:\s*\{ canonical: "\/tools\/team-builder" \}/);
   assert.match(route, /"@type": "WebApplication"/);
+  assert.match(route, /"@type": "FAQPage"/);
+  assert.match(route, /name: "DraftCenter Team Lab"/);
   assert.match(component, /teamDefenseSummary\(roster\)/);
   assert.match(component, /teamArchetypeConsiderations\(roster\)/);
   assert.match(component, /teamLegalitySummary\(roster, regulation\)/);
@@ -165,17 +202,37 @@ test("the public Draft Lab is indexable, discoverable, and read-only", () => {
   assert.match(component, /href="\/my-teams"/);
   assert.match(component, /Draft roster · 10/);
   assert.doesNotMatch(component, /Draft roster · 24/);
-  assert.doesNotMatch(component, /\.from\(|\.rpc\(|createClient/);
+  assert.match(component, /createClient/);
+  assert.match(component, /\.rpc\("list_my_team_lab_matchups"/);
+  assert.match(component, /\.rpc\("save_my_team_lab_matchup"/);
+  assert.match(component, /\.rpc\("delete_my_team_lab_matchup"/);
+  assert.match(component, /not account details, team notes, or matchup plans/);
+  assert.match(component, /League roster opened as a private planning copy/);
+  assert.match(personalTeams, /Open Team Lab/);
+  assert.match(personalTeams, /window\.sessionStorage\.setItem\(TEAM_LAB_HANDOFF_KEY/);
+  assert.doesNotMatch(personalTeams, /10-team limit reached|\/ 10 used|teams\.length>=10/);
+  assert.match(auth, /team_lab_matchups/);
+  assert.match(migration, /create table public\.team_lab_matchups/);
+  assert.match(migration, /force row level security/);
+  assert.match(migration, /revoke all on table public\.team_lab_matchups from public, anon, authenticated/);
+  assert.match(migration, /drop trigger if exists personal_teams_enforce_free_limit/);
+  assert.match(migration, /jsonb_array_length\(p_pokemon\) > \(case when p_mode = 'team' then 6 else 10 end\)/);
+  assert.match(migration, /jsonb_array_length\(v_pokemon\) > \(case when v_mode = 'team' then 6 else 10 end\)/);
+  assert.doesNotMatch(migration, />\s*case when/);
+  assert.match(migration, /where team\.id = p_personal_team_id and team\.owner_id = auth\.uid\(\)/);
+  assert.match(migration, /where id = p_matchup_id and owner_id = auth\.uid\(\)/);
   const primaryHeaderStart = navigation.indexOf('<nav className="site-primary-links"');
   const primaryHeader = navigation.slice(primaryHeaderStart, navigation.indexOf("</nav>", primaryHeaderStart));
   assert.doesNotMatch(primaryHeader, /href="\/tools\/team-builder"/);
-  assert.match(navigation, /href="\/tools\/team-builder"[^>]*aria-label="Draft Lab"/);
+  assert.match(navigation, /href="\/tools\/team-builder"[^>]*aria-label="Team Lab"/);
   assert.match(home, /className="hub-home-tools"[\s\S]*?href="\/tools\/team-builder"/);
   assert.match(resources, /href="\/tools\/team-builder"/);
   assert.match(styles, /@media\(max-width:780px\)[^}]*[\s\S]*?\.draft-lab-archetype-grid[^}]*grid-template-columns:\s*1fr/);
-  assert.match(styles, /@media\(max-width:520px\)[^}]*[\s\S]*?\.draft-lab-mode\s*\{\s*grid-template-columns:\s*1fr/);
-  assert.match(styles, /\.draft-lab-roster li\s*\{\s*grid-template-columns:\s*26px minmax\(0,1fr\) auto/);
+  assert.match(styles, /@media\(max-width:520px\)[^}]*[\s\S]*?\.draft-lab-mode[^}]*grid-template-columns:\s*1fr/);
+  assert.match(styles, /\.draft-lab-roster li\s*\{\s*display:\s*grid;\s*grid-template-columns:\s*29px minmax\(130px,1fr\) auto auto/);
+  assert.match(styles, /@media\(max-width:520px\)[^}]*[\s\S]*?\.team-lab-account-load[^}]*grid-template-columns:\s*1fr/);
+  assert.match(styles, /\.team-lab-account input[^}]*min-height:\s*44px/);
   assert.match(catalogBuilder, /readFileSync\(OUTPUT_PATH, "utf8"\)\.replace\(\/\\r\\n\/g, "\\n"\)/);
-  assert.match(llms, /Draft Lab Pokémon team builder/);
+  assert.match(llms, /Team Lab Pokémon team builder and matchup planner/);
   assert.match(sitemap, /\["\/tools\/team-builder", "weekly", 0\.9\]/);
 });

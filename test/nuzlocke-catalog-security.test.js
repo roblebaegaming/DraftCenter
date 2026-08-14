@@ -707,6 +707,20 @@ test("Vercel Preview uses its isolated Supabase integration while production kee
       key: "d".repeat(40),
       source: "draftcenter",
     });
+    delete process.env.NEXT_PUBLIC_DRAFTCENTER_SUPABASE_URL;
+    assert.deepEqual(publicSupabaseConfig(), {
+      url: "https://preview.example.test",
+      key: "p".repeat(40),
+      source: "fallback",
+    });
+    process.env.NEXT_PUBLIC_DRAFTCENTER_SUPABASE_URL =
+      "https://draftcenter.example.test";
+    delete process.env.NEXT_PUBLIC_DRAFTCENTER_SUPABASE_PUBLISHABLE_KEY;
+    assert.deepEqual(publicSupabaseConfig(), {
+      url: "https://preview.example.test",
+      key: "p".repeat(40),
+      source: "fallback",
+    });
   } finally {
     for (const name of names)
       previous[name] === undefined

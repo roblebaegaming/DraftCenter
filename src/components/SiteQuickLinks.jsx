@@ -93,7 +93,7 @@ export default function SiteQuickLinks() {
     </header>
     <nav className={`site-quick-links${signedIn ? " has-tracker-link" : ""}${isOwner ? " has-owner-link" : ""}`} aria-label="Tools and resources">
       <a href="/resources/daily-games" aria-label="Daily Games" {...navState(pathname, "/resources/daily-games")}><span className="quick-label-wide">Daily Games</span><span className="quick-label-compact">Daily</span></a>
-      <a href="/tools/team-builder" aria-label="Draft Lab" {...navState(pathname, "/tools/team-builder")}><span className="quick-label-wide">Draft Lab</span><span className="quick-label-compact">Lab</span></a>
+      <a href="/tools/team-builder" aria-label="Team Lab" {...navState(pathname, "/tools/team-builder")}><span className="quick-label-wide">Team Lab</span><span className="quick-label-compact">Lab</span></a>
       <a href="/nuzlocke" aria-label="Nuzlockes" {...navState(pathname, "/nuzlocke")}><span className="quick-label-wide">Nuzlockes</span><span className="quick-label-compact">Nuz</span></a>
       <a href="/tournaments" aria-label="Tournaments" {...navState(pathname, "/tournaments")}><span className="quick-label-wide">Tournaments</span><span className="quick-label-compact">Cups</span></a>
       <a href="/calendar" aria-label="Calendar" {...navState(pathname, "/calendar")}><span className="quick-label-wide">Calendar</span><span className="quick-label-compact">Cal</span></a>
