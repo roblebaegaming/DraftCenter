@@ -12,6 +12,7 @@ import { browserCanResolveHostedAutoDraft, preserveLoadedPrivateDraftQueue } fro
 import { readLeagueNavigation, writeLeagueNavigation } from "../lib/leagueNavigation";
 import { claimedTeamCount, compactLocalTeamsClaimedFirst, openSetupTeams, teamIsClaimed } from "../lib/teamOwnership";
 import { draftManagerLabel, snakeDraftContext } from "../lib/draftBoardContext";
+import { createTeamLabLeagueMatchupHandoff, TEAM_LAB_LEAGUE_MATCHUP_HANDOFF_KEY } from "../lib/teamLab";
 import { saveWithConflictRecovery, waitForSaveFailureGrace } from "../lib/leagueSaveReconciliation";
 import {
   DEFAULT_LEAGUE_TEAM_CAP,
@@ -10480,12 +10481,26 @@ function MyTeamView({ state, leagueId, myTeamIdx, isCommissioner, myName, myTeam
           const oppIdx = match[0] === myTeamIdx ? match[1] : match[0];
           if (oppIdx == null || oppIdx < 0 || !teams[oppIdx]) return null;
           return (
-            <button onClick={() => setViewedTeam(oppIdx)}
-              className="flex items-center gap-2 mt-3 px-3 py-2 rounded text-sm font-medium w-full justify-center"
-              style={{ background: "#FFD23F14", border: "1px solid #FFD23F55", color: "#FFD23F" }}>
-              <TeamLogo team={teams[oppIdx]} size={20} />
-              Week {currentWeekIndex + 1} opponent: {teams[oppIdx].name} →
-            </button>
+            <div className="flex flex-wrap gap-2 mt-3">
+              <button onClick={() => setViewedTeam(oppIdx)}
+                className="flex items-center gap-2 px-3 py-2 rounded text-sm font-medium flex-1 justify-center"
+                style={{ background: "#FFD23F14", border: "1px solid #FFD23F55", color: "#FFD23F" }}>
+                <TeamLogo team={teams[oppIdx]} size={20} />
+                Week {currentWeekIndex + 1} opponent: {teams[oppIdx].name} →
+              </button>
+              <button onClick={() => {
+                window.sessionStorage.setItem(TEAM_LAB_LEAGUE_MATCHUP_HANDOFF_KEY, createTeamLabLeagueMatchupHandoff({
+                  league_id: leagueId,
+                  week_index: currentWeekIndex,
+                  my_team_index: myTeamIdx,
+                  opponent_team_index: oppIdx,
+                }));
+                window.location.assign("/tools/team-builder");
+              }} className="px-3 py-2 rounded text-sm font-medium"
+                style={{ background: "#4FD1C522", border: "1px solid #4FD1C566", color: "#4FD1C5" }}>
+                Plan in Team Lab
+              </button>
+            </div>
           );
         })()}
       </div>

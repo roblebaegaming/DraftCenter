@@ -3,8 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 import { createClient } from "../lib/supabase/client";
 import { nuzlockeEncounterStatusLabel, normalizeNuzlockeTracker, summarizeNuzlockeTracker } from "../lib/nuzlockeRunTracker";
-import { createTeamLabHandoff, TEAM_LAB_HANDOFF_KEY } from "../lib/teamLab";
+import { createTeamLabHandoff, createTeamLabMatchupHandoff, TEAM_LAB_HANDOFF_KEY, TEAM_LAB_MATCHUP_HANDOFF_KEY } from "../lib/teamLab";
 import { MonAbilities, MonDefenseChart, MonSprite, MonStats, POLL_POKEMON_NAMES, POKEMON_DIRECTORY, REGULATION_SETS, TeamDefenseSummary } from "./PokemonDraftLeague";
+import TeamLabOpponentEditor, { createEmptyTeamLabMatchup, normalizeTeamLabMatchupForm } from "./TeamLabOpponentEditor";
 
 const EMPTY = { team_name:"", league_name:"", format_name:"", workspace_type:"weekly", planning_entries:[], notes:"", weekly_notes:"", pokepaste_url:"", replica_code:"", spreadsheet_url:"", team_report_url:"", pokemon:[], nuzlocke_run:null, archived:false, is_public:false, regulation_id:"", public_summary:"", share_pokepaste:false, share_replica_code:false, share_team_report:false };
 const nullable = (value) => value?.trim() || null;
@@ -27,6 +28,7 @@ export default function PersonalTeams() {
   const [teamLabMatchups, setTeamLabMatchups] = useState([]);
   const [editing, setEditing] = useState(null);
   const [viewing, setViewing] = useState(null);
+  const [matchupForm, setMatchupForm] = useState(null);
   const [form, setForm] = useState(EMPTY);
   const [pokemonChoice, setPokemonChoice] = useState("");
   const [showArchived, setShowArchived] = useState(false);
@@ -46,6 +48,7 @@ export default function PersonalTeams() {
     if (matchupResult.error) setMessage(matchupResult.error.message); else setTeamLabMatchups(matchupResult.data || []);
   }
   useEffect(() => { supabase.auth.getUser().then(({ data }) => { const next=data.user || null; setUser(next); if(next) load(next); }); }, [supabase]);
+  useEffect(() => { setMatchupForm(null); }, [viewing?.id, viewing?.league_source]);
   function start(team = null) {
     setViewing(null);
     setEditing(team?.id || "new");
@@ -133,14 +136,55 @@ export default function PersonalTeams() {
     setViewing(null);
     await load(user);
   }
-  function openInTeamLab(team, source, event) {
+  function openInTeamLab(team, source, event, matchupId = null) {
     event?.stopPropagation();
     const transferable = source === "league" ? { ...team, format_name:`Season ${team.season_number}` } : team;
     window.sessionStorage.setItem(TEAM_LAB_HANDOFF_KEY, createTeamLabHandoff(transferable, source));
+    if (matchupId) window.sessionStorage.setItem(TEAM_LAB_MATCHUP_HANDOFF_KEY, createTeamLabMatchupHandoff(matchupId));
     window.location.assign("/tools/team-builder");
   }
+  function editMatchup(matchup = null) {
+    if (!viewing?.id || viewing.league_source || isNuzlockeTeam(viewing)) return;
+    setMatchupForm(matchup
+      ? normalizeTeamLabMatchupForm(matchup)
+      : createEmptyTeamLabMatchup({ format_id:viewing.regulation_id || "reg-mb" }));
+    setMessage("");
+  }
+  async function saveMatchup(event) {
+    event.preventDefault();
+    if (!viewing?.id || !matchupForm) return;
+    setBusy(true); setMessage("");
+    const normalizedMatchup=normalizeTeamLabMatchupForm(matchupForm);
+    const { data, error } = await supabase.rpc("save_my_team_lab_matchup_details", {
+      p_matchup_id:normalizedMatchup.id,
+      p_personal_team_id:viewing.id,
+      p_opponent_name:normalizedMatchup.opponent_name.trim(),
+      p_opponent_team_name:normalizedMatchup.opponent_team_name.trim(),
+      p_mode:normalizedMatchup.mode,
+      p_format_id:normalizedMatchup.format_id,
+      p_pokemon:normalizedMatchup.pokemon,
+      p_opponent_sets:normalizedMatchup.opponent_sets,
+      p_notes:normalizedMatchup.notes.trim(),
+      p_week_label:normalizedMatchup.week_label || "",
+    });
+    setBusy(false);
+    if (error) return setMessage(error.message);
+    setTeamLabMatchups((current) => [data, ...current.filter((matchup) => matchup.id !== data.id)]);
+    setMatchupForm(null);
+    setMessage("Opponent plan saved privately. It is available here and in Team Lab.");
+  }
+  async function deleteMatchup(matchup) {
+    if (!window.confirm(`Delete the opponent plan for ${matchup.opponent_name}?`)) return;
+    setBusy(true); setMessage("");
+    const { error } = await supabase.rpc("delete_my_team_lab_matchup", { p_matchup_id:matchup.id });
+    setBusy(false);
+    if (error) return setMessage(error.message);
+    setTeamLabMatchups((current) => current.filter((item) => item.id !== matchup.id));
+    if (matchupForm?.id === matchup.id) setMatchupForm(null);
+    setMessage("Opponent plan deleted.");
+  }
   function downloadPrivateBackup() {
-    const payload={format:"draftcenter-my-teams",version:3,exported_at:new Date().toISOString(),personal_teams:teams,team_lab_matchups:teamLabMatchups};
+    const payload={format:"draftcenter-my-teams",version:4,exported_at:new Date().toISOString(),personal_teams:teams,team_lab_matchups:teamLabMatchups};
     const url=URL.createObjectURL(new Blob([JSON.stringify(payload,null,2)],{type:"application/json"}));
     const link=document.createElement("a"); link.href=url; link.download=`draftcenter-my-teams-${new Date().toISOString().slice(0,10)}.json`; link.click(); URL.revokeObjectURL(url);
   }
@@ -160,14 +204,15 @@ export default function PersonalTeams() {
     plans["!cols"]=[24,12,28,50,100].map((wch)=>({wch}));
     XLSX.utils.book_append_sheet(workbook,plans,"Planning");
     const matchups=XLSX.utils.aoa_to_sheet([
-      ["Your team","Week or round","Team sheet","Opponent","Opponent team","Roster","Observed moves","Battle notes","Matchup notes","Format"],
+      ["Your team","Week or round","Team sheet","Opponent","Opponent team","Roster","Scouted sets","Observed moves","Battle notes","Matchup notes","Format"],
       ...teamLabMatchups.map((matchup)=>[
         teams.find((team)=>team.id===matchup.personal_team_id)?.team_name||"",matchup.week_label||"",matchup.sheet_mode==="open"?"Open":"Closed",matchup.opponent_name,matchup.opponent_team_name||"",(matchup.pokemon||[]).join(", "),
+        (matchup.opponent_sets?.pokemon||[]).filter((pokemon)=>pokemon.ability||pokemon.moves?.length).map((pokemon)=>`${pokemon.name}${pokemon.ability?` [${pokemon.ability}]`:""}${pokemon.moves?.length?`: ${pokemon.moves.join(", ")}`:""}`).join("; "),
         (matchup.battle_report?.opponent_pokemon||[]).filter((pokemon)=>pokemon.brought||pokemon.fainted||pokemon.moves?.length).map((pokemon)=>`${pokemon.name}${pokemon.moves?.length?`: ${pokemon.moves.join(", ")}`:""}${pokemon.fainted?" (fainted)":""}`).join("; "),
         matchup.battle_report?.battle_notes||"",matchup.notes||"",matchup.format_id||"",
       ]),
     ]);
-    matchups["!cols"]=[24,18,12,24,24,60,90,100,100,20].map((wch)=>({wch}));
+    matchups["!cols"]=[24,18,12,24,24,60,90,90,100,100,20].map((wch)=>({wch}));
     XLSX.utils.book_append_sheet(workbook,matchups,"Team Lab matchups");
     XLSX.writeFile(workbook,`draftcenter-my-teams-${new Date().toISOString().slice(0,10)}.xlsx`);
   }
@@ -176,7 +221,7 @@ export default function PersonalTeams() {
     setBusy(true); setMessage("");
     try {
       const parsed=JSON.parse(await file.text());
-      if(parsed?.format!=="draftcenter-my-teams"||![1,2,3].includes(parsed?.version)||!Array.isArray(parsed.personal_teams))throw new Error("Choose a DraftCenter My Teams recovery file.");
+      if(parsed?.format!=="draftcenter-my-teams"||![1,2,3,4].includes(parsed?.version)||!Array.isArray(parsed.personal_teams))throw new Error("Choose a DraftCenter My Teams recovery file.");
       if(!window.confirm(`Restore ${parsed.personal_teams.length} private team workspace${parsed.personal_teams.length===1?"":"s"}? Matching teams will be updated and new teams will be added.`))return;
       const rows=parsed.personal_teams.map((team)=>({
         id:team.id,owner_id:user.id,team_name:String(team.team_name||"").trim(),league_name:nullable(team.league_name),format_name:nullable(team.format_name),
@@ -202,6 +247,7 @@ export default function PersonalTeams() {
   const visibleLeagueTeams=leagueTeams.filter((team)=>Boolean(team.user_archived)===showArchivedLeagueTeams);
   const viewingNuzlockeTracker=isNuzlockeTeam(viewing)?nuzlockeTrackerFor(viewing):null;
   const viewingNuzlockeProgress=isNuzlockeTeam(viewing)?nuzlockeProgressFor(viewing):null;
+  const viewingMatchups=viewing?.id&&!viewing.league_source?teamLabMatchups.filter((matchup)=>matchup.personal_team_id===viewing.id):[];
   return <main className="personal-teams-shell">
     <nav className="public-page-nav"><a className="quiet-button" href="/">Dashboard</a><a className="quiet-button" href="/calendar">Calendar</a><a className="quiet-button" href="/resources">Resources</a><a className="quiet-button" href="/explore">Community</a></nav>
     <header className="personal-teams-hero"><div><span className="eyebrow">YOUR TEAM BINDER</span><h1>My Teams</h1><p>Your DraftCenter league teams and private external team workspaces, all in one place. League history remains read-only and external teams never alter a hosted league.</p></div><div className="personal-team-actions"><button className="primary-button" onClick={()=>start()}>Add external team</button><button className="secondary-button" disabled={busy} onClick={downloadReadableExport}>Download spreadsheet</button><button className="quiet-button" disabled={busy} onClick={downloadPrivateBackup}>Download recovery file</button><button className="quiet-button" disabled={busy} onClick={()=>importInputRef.current?.click()}>Restore recovery file</button><input ref={importInputRef} type="file" accept="application/json" onChange={restorePrivateBackup} hidden/></div></header>
@@ -231,6 +277,13 @@ export default function PersonalTeams() {
       {(viewing.notes||viewing.weekly_notes||viewing.replica_code)&&<div className="personal-team-saved-details">{viewing.notes&&<section><h3>General notes</h3><p>{viewing.notes}</p></section>}{viewing.weekly_notes&&<section><h3>Weekly notes</h3><p>{viewing.weekly_notes}</p></section>}{viewing.replica_code&&<section><h3>Pokémon Champions replica code</h3><p>{viewing.replica_code}</p></section>}</div>}
       <div className="personal-team-links">{viewing.pokepaste_url&&<a href={viewing.pokepaste_url} target="_blank" rel="noreferrer">PokéPaste ↗</a>}{viewing.spreadsheet_url&&<a href={viewing.spreadsheet_url} target="_blank" rel="noreferrer">Spreadsheet ↗</a>}{viewing.team_report_url&&<a href={viewing.team_report_url} target="_blank" rel="noreferrer">{isNuzlockeTeam(viewing)?"Recreate build":"Team report"} ↗</a>}</div>
       {Array.isArray(viewing.planning_entries)&&viewing.planning_entries.length>0&&<div className="personal-team-planning-view"><h3>{viewing.workspace_type==="tournament"?"Tournament plans":viewing.workspace_type==="nuzlocke"?"Run details":"Weekly plans"}</h3>{viewing.planning_entries.map((entry,index)=><section key={entry.id||index}><strong>{entry.title||entryLabel(viewing.workspace_type,index)}</strong>{entry.url&&<a href={entry.url} target="_blank" rel="noreferrer">Open saved link ↗</a>}{entry.notes&&<p>{entry.notes}</p>}</section>)}</div>}
+      {!isNuzlockeTeam(viewing)&&<section className="personal-team-opponents">
+        <div className="personal-team-opponents-heading"><div><span className="eyebrow">PRIVATE OPPONENT SCOUTING</span><h3>Teams you are preparing against</h3><p>Save opponent rosters, abilities, four moves per Pokémon, and private matchup notes. The same plans appear in Team Lab.</p></div>{viewing.league_source?<button type="button" className="secondary-button" onClick={(event)=>openInTeamLab(viewing,"league",event)}>Open planning copy</button>:<button type="button" className="secondary-button" disabled={busy} onClick={()=>editMatchup()}>Add opponent</button>}</div>
+        {viewing.league_source&&<p className="team-lab-matchup-empty">This official roster is read-only. Open Team Lab to save a private planning copy, or use a scheduled league event from Calendar to prefill the opponent.</p>}
+        {!viewing.league_source&&!viewingMatchups.length&&!matchupForm&&<p className="team-lab-matchup-empty">No opponent plans yet.</p>}
+        {!viewing.league_source&&viewingMatchups.length>0&&<div className="personal-team-opponent-grid">{viewingMatchups.map((matchup)=>{const savedSets=(matchup.opponent_sets?.pokemon||[]).filter((pokemon)=>pokemon.ability||pokemon.moves?.length);return <article key={matchup.id}><span className="eyebrow">{matchup.week_label||"OPPONENT"}</span><h4>{matchup.opponent_name}</h4>{matchup.opponent_team_name&&<p>{matchup.opponent_team_name}</p>}<div className="team-lab-matchup-pokemon">{(matchup.pokemon||[]).map((name)=><span key={name}>{name}</span>)}</div>{savedSets.length>0&&<ul>{savedSets.map((pokemon)=><li key={pokemon.name}><strong>{pokemon.name}</strong>{pokemon.ability&&<span>{pokemon.ability}</span>}{pokemon.moves?.length>0&&<small>{pokemon.moves.join(", ")}</small>}</li>)}</ul>}{matchup.notes&&<p className="team-lab-matchup-note">{matchup.notes}</p>}<div className="personal-team-actions"><button type="button" className="primary-button" onClick={(event)=>openInTeamLab(viewing,"personal",event,matchup.id)}>Open Battle Mode</button><button type="button" className="quiet-button" onClick={()=>editMatchup(matchup)}>Edit</button><button type="button" className="text-button danger-text" disabled={busy} onClick={()=>deleteMatchup(matchup)}>Delete</button></div></article>})}</div>}
+        {!viewing.league_source&&matchupForm&&<form className="team-lab-matchup-editor" onSubmit={saveMatchup}><div className="team-lab-matchup-editor-heading"><div><span className="eyebrow">{matchupForm.id?"EDIT OPPONENT":"NEW OPPONENT"}</span><h3>{matchupForm.id?matchupForm.opponent_name:"Add a team you are facing"}</h3></div><button type="button" className="quiet-button" onClick={()=>setMatchupForm(null)}>Close</button></div><label>Week or round<input maxLength={100} value={matchupForm.week_label||""} onChange={(event)=>setMatchupForm((current)=>({...current,week_label:event.target.value}))} placeholder="Week 4, finals, practice set…"/></label><TeamLabOpponentEditor form={matchupForm} onChange={setMatchupForm} onMessage={setMessage} inputId="my-teams-opponent-pokemon"/><button className="primary-button" disabled={busy||!matchupForm.opponent_name.trim()}>{busy?"Saving…":"Save opponent plan"}</button></form>}
+      </section>}
     </section></div>}
     {editing&&<div className="modal-backdrop" onMouseDown={(event)=>{if(event.target===event.currentTarget)cancel();}}><section className="tools-modal personal-team-editor"><button className="modal-close" onClick={cancel}>x</button><span className="eyebrow">{editing==="new"?"NEW PERSONAL TEAM":"PRIVATE TEAM WORKSPACE"}</span><h2>{editing==="new"?"Add a team":form.team_name}</h2><form className="form-stack" onSubmit={save}>
       {form.planning_entries.length>0&&<fieldset className="personal-team-entry-links"><legend>{form.workspace_type==="tournament"?"Tournament links":"Weekly links"}</legend><p className="muted">Save a bracket, registration page, matchup, replay, document, or any other useful link with each entry.</p>{form.planning_entries.map((entry,index)=><label key={entry.id||index}>{entry.title||entryLabel(form.workspace_type,index)}<input type="url" placeholder="Optional https:// link" value={entry.url||""} onChange={(event)=>updatePlanningEntry(index,{url:event.target.value})}/></label>)}</fieldset>}

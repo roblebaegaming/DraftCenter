@@ -11,7 +11,8 @@ tool with private, signed-in weekly team and matchup workspaces.
    change every week without overwriting earlier reports.
 3. The coach creates an opponent plan under the saved team. A plan can contain
    the opponent name, team name, known six- or ten-Pokémon roster, format, and
-   private preparation notes.
+   private preparation notes. Each opponent Pokémon can also keep one ability
+   and four known, likely, published, or revealed moves.
 4. **Open Battle Mode** turns that plan into a focused live notebook. The coach
    labels the week or round, selects closed or open team sheet, marks Pokémon as
    brought or fainted, records up to four revealed moves per opponent Pokémon,
@@ -24,6 +25,25 @@ the coach sees them during play. Open team sheet mode uses the same controls so
 the published moves can be entered before a tournament set. Changing the label
 does not publish or reveal any data to another account.
 
+Saved pre-battle set scouting is displayed separately from the live report. It
+does not become a reveal automatically. **Use in report** is an explicit action
+for a published sheet or a confirmed in-battle reveal.
+
+## Calendar and hosted-league connections
+
+A user-created Calendar event can connect to one account-owned My Teams
+workspace. The event and connection remain private. Opening the connection
+hands the team to Team Lab through same-tab session storage; team identifiers,
+notes, and roster details are not added to the public Team Lab URL.
+
+Hosted DraftCenter match events remain derived from the authoritative league
+snapshot instead of being copied into the personal calendar table. Calendar and
+the league team view can open the signed-in manager's scheduled pairing in Team
+Lab. The server verifies league membership, ownership of the selected team, and
+the exact week pairing before returning either roster. Imported rosters are
+read-only planning copies and cannot change picks, transactions, schedules, or
+official league teams.
+
 ## Sharing boundary
 
 Team Lab has three deliberately separate outputs:
@@ -33,7 +53,7 @@ Team Lab has three deliberately separate outputs:
 - **Copy weekly team** contains the week label, the coach's team and event
   context, and the Pokémon marked as brought. If none are marked, it uses the
   full saved team.
-- **Copy battle recap** adds only structured opponent Pokémon, revealed moves,
+- **Copy battle recap** adds only structured opponent Pokémon, abilities, moves,
   and fainted markers to that weekly summary. It is an explicit after-battle
   sharing action, not a public link or automatic publication.
 - Private team notes, matchup notes, battle notes, opponent move observations,
@@ -61,17 +81,38 @@ Forward-only migration 395 adds:
 - battle fields in list, account export, private backup, readable workbook, and
   recovery paths.
 
+Forward-only migration 396 adds:
+
+- versioned opponent-set scouting aligned to the saved opponent roster, with a
+  100-character ability and at most four unique 100-character moves per Pokémon;
+- the owner-scoped detailed matchup-save RPC used by both My Teams and Team Lab;
+- an optional private My Teams connection on user-created Calendar events,
+  protected by owner-only RLS and deletion-safe unlinking;
+- the scheduled-league planning RPC, which fails closed unless the requester
+  owns one side of the exact saved schedule pairing; and
+- ability support in Battle Mode, private export, and recovery.
+
+Damage calculation is intentionally outside migration 396. The structured
+ability and move fields provide future calculator inputs without claiming that
+Team Lab currently computes or validates damage ranges.
+
 Direct `anon` and `authenticated` table reads and writes remain revoked. The
 battle RPC updates only a matchup owned by `auth.uid()`. Old backups without a
 battle report restore with an empty version-one report.
 
 ## Release requirements
 
-Before release, apply migration 395 only to an isolated Supabase Preview and run
-`supabase/tests/395-private-team-lab-battle-reports-preview-regression.sql`.
+Before release, apply migrations 395 and 396 only to an isolated Supabase
+Preview and run their focused regression scripts.
 Verify two separate accounts cannot list, save, or restore each other's report;
 invalid five-move data is rejected; export/recovery round trips; deleting the
 weekly team cascades; and direct browser table access remains unavailable.
+
+For migration 396, also verify a second account cannot attach another user's
+team to its Calendar event, cannot save another user's opponent plan, and cannot
+request a league pairing it does not own or that is not scheduled. Deleting a
+connected My Teams workspace must leave the Calendar event intact and clear
+only the connection.
 
 The application Preview must also verify desktop, 390px, and 320px Battle Mode,
 including move entry, closed/open sheet selection, explicit save, unsaved-close
