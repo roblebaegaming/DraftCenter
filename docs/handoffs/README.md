@@ -1,8 +1,9 @@
 # Agent handoffs
 
 [`DraftCenter-agent-handoff-2026-08-14-mega-bracket-top64-experience.md`](DraftCenter-agent-handoff-2026-08-14-mega-bracket-top64-experience.md)
-is the current implementation handoff for the undeployed Mega Bracket Top 64
-experience. It records the interactive four-region bracket, milestone
+is the current implementation handoff for the Mega Bracket Top 64 experience in
+pull request [#215](https://github.com/roblebaegaming/DraftCenter/pull/215). It
+records the interactive four-region bracket, milestone
 celebrations, illustrated Final Four and champion exports, private results
 recap, complete 1,162-entry artwork resolution, responsive review, and release
 gates. Migration 389 remains current for Mega Bracket; this application-only

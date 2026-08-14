@@ -3,7 +3,8 @@
 - Date: August 14, 2026
 - Branch: `codex/mega-bracket-top64-experience-2026-08-14`
 - Base: `06d9fa42b720ad524aab8179fc1df6bb0d16934d`
-- Status: implemented and validated locally; not merged or deployed
+- Pull request: [#215](https://github.com/roblebaegaming/DraftCenter/pull/215)
+- Status: implemented, validated, and pushed; not merged or deployed
 - Database: no change; production migration 389 remains the Mega Bracket data contract
 
 ## Product result
@@ -92,13 +93,13 @@ The production smoke sweep was not run because this branch is not deployed.
 
 ## Release continuation
 
-1. Push the branch and open a protected pull request.
-2. Require repository checks and review the exact hosted Preview, including a
+1. Require repository checks on pull request #215 and review the exact hosted
+   Preview, including a
    signed-in disposable or owner-approved existing completed bracket. Do not
    create or alter a production attempt just for testing.
-3. Merge only after approval and confirm the exact `main` commit reaches Ready
+2. Merge only after approval and confirm the exact `main` commit reaches Ready
    in Production.
-4. Run the signed-out production smoke sweep and a read-only signed-in Mega
+3. Run the signed-out production smoke sweep and a read-only signed-in Mega
    Bracket review. Do not claim production success from local or Preview
    evidence.
 
