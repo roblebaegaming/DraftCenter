@@ -78,6 +78,12 @@ adoption, and a 30-day completion trend. It does not expose Pokémon Connections
 completion rows, player names, puzzle groups, guesses, answers, failed boards,
 or signed-out play.
 
+Operations also shows two aggregate Full Dex Mega Bracket totals: distinct
+members who have finished at least one Full Dex Mega Bracket and all completed
+brackets. The service-only summary does not return member identities,
+champions, Top 64 results, private choices, active attempts, or abandoned
+attempts.
+
 The same owner-only page includes the upcoming community editorial calendar.
 It previews Daily Games polls and quizzes alongside the separate Question of
 the Day schedule. The owner can add or replace content on future dates; live

@@ -1,7 +1,13 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import test from "node:test";
-import { connectionsAdoptionPercent, getConnectionsUsage, normalizeConnectionsUsage } from "../src/lib/operationsEngagement.js";
+import {
+  connectionsAdoptionPercent,
+  getConnectionsUsage,
+  getMegaBracketCompletions,
+  normalizeConnectionsUsage,
+  normalizeMegaBracketCompletions,
+} from "../src/lib/operationsEngagement.js";
 
 const source = (path) => fs.readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 
@@ -51,4 +57,54 @@ test("Operations exposes Connections aggregates without identities or puzzle det
   assert.match(migration, /grant execute on function public\.get_operations_connections_usage\(\) to service_role/);
   assert.doesNotMatch(migration, /jsonb_build_object\([^)]*user_id/);
   assert.match(docs, /does\s+not add cookies, heartbeats, account linkage, or page-level identity/);
+});
+
+test("Mega Bracket completion totals are normalized without private attempt details", async () => {
+  const summary = normalizeMegaBracketCompletions({
+    generated_at: "2026-08-13T12:00:00.000Z",
+    completed_members: 7,
+    completed_brackets: 11,
+    user_id: "must-not-pass",
+    champion: "must-not-pass",
+    top_64: ["must-not-pass"],
+  });
+  assert.deepEqual(summary, {
+    unavailable: false,
+    generated_at: "2026-08-13T12:00:00.000Z",
+    completed_members: 7,
+    completed_brackets: 11,
+  });
+  assert.equal(JSON.stringify(summary).includes("must-not-pass"), false);
+
+  const calls = [];
+  const loaded = await getMegaBracketCompletions({
+    async rpc(name) {
+      calls.push(name);
+      return { data: { completed_members: 2, completed_brackets: 3 }, error: null };
+    },
+  });
+  assert.deepEqual(calls, ["get_operations_mega_bracket_completions"]);
+  assert.equal(loaded.completed_members, 2);
+  assert.equal(loaded.completed_brackets, 3);
+});
+
+test("Operations exposes only aggregate Mega Bracket completion counts", () => {
+  const route = source("src/app/api/operations/overview/route.js");
+  const dashboard = source("src/components/OperationsDashboard.jsx");
+  const migration = source("supabase/390-operations-mega-bracket-completions.sql");
+  const docs = source("docs/owner-league-operations.md");
+
+  assert.ok(route.indexOf("requireOwner(request)") < route.indexOf("getMegaBracketCompletions(access.supabase)"));
+  assert.match(route, /mega_bracket_completions: megaBracketCompletions/);
+  assert.match(dashboard, /Mega Bracket completions/);
+  assert.match(dashboard, /Members completed/);
+  assert.match(dashboard, /Completed brackets/);
+  assert.doesNotMatch(dashboard, /summary\.(user_id|champion|top_64|winners|catalog_snapshot)/);
+  assert.match(migration, /security definer/);
+  assert.match(migration, /where status = 'completed'/);
+  assert.match(migration, /count\(distinct user_id\)/);
+  assert.match(migration, /revoke all on function public\.get_operations_mega_bracket_completions\(\) from public, anon, authenticated/);
+  assert.match(migration, /grant execute on function public\.get_operations_mega_bracket_completions\(\) to service_role/);
+  assert.doesNotMatch(migration, /jsonb_build_object\([^)]*(user_id|champion|top_64|winners)/);
+  assert.match(docs, /distinct\s+members who have finished at least one Full Dex Mega Bracket/);
 });

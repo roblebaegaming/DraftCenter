@@ -19,6 +19,10 @@ needs.
 - Progress is saved privately to the player's account and also retained in the
   browser while a cross-device save is pending.
 - Completed attempts remain in private history. Launch has unlimited attempts.
+- Owner Operations may read only aggregate completion totals: distinct signed-in
+  members with at least one completed attempt and total completed attempts. It
+  never receives member identities, champions, Top 64 results, bracket choices,
+  active attempts, or abandoned attempts.
 - Completion unlocks a high-resolution Top 64 bracket image and a portrait
   champion card for sharing.
 
