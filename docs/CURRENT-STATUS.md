@@ -3,7 +3,7 @@
 - Last updated: August 13, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified production application commit: `fb65734b3701074fe3996a79039e0842f55ce6d8`
+- Verified production application commit: `340162b7d555d4ba27f6abc6fd2640cef09f19a6`
 - Latest production migration: 389
 
 ## Deployed state
@@ -161,6 +161,17 @@ Draft Lab suite, 244-page build, exact Production deployment at commit
 `fb65734`, live signed-in Home review, and 19-check production smoke sweep
 passed without changing application data, database state, provider settings,
 environment variables, or secrets.
+
+Pull request [#205](https://github.com/roblebaegaming/DraftCenter/pull/205)
+corrected Nuzlocke encounter scope across all 37 reviewed game catalogues.
+Floors and subareas now share the encounter slot of their reviewed parent
+location, while the exact selected floor or subarea remains visible in the
+tracker and exports. Existing private runs are not rewritten. The 77-test
+Nuzlocke suite, SEO suite, 1,027-row National Dex verification, dependency
+audit, 244-page build, protected checks, hosted Preview, exact Production
+deployment at commit `340162b`, live 45-location PokÃ©mon Red verification,
+and 19-check production smoke sweep passed. No migration, saved run, provider
+setting, environment variable, or secret changed.
 
 The August 9 release wave is complete. Pull requests
 [#95](https://github.com/roblebaegaming/DraftCenter/pull/95) through
@@ -798,7 +809,7 @@ guard merely to remove that measurement gap.
 ## Authoritative records
 
 - Current continuation handoff:
-  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-13-mega-bracket-production.md`](handoffs/DraftCenter-agent-handoff-2026-08-13-mega-bracket-production.md)
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-13-nuzlocke-location-grouping.md`](handoffs/DraftCenter-agent-handoff-2026-08-13-nuzlocke-location-grouping.md)
 - Mega Bracket product and data contract:
   [`docs/mega-bracket.md`](mega-bracket.md)
 - Daily Games product and safety contract:
