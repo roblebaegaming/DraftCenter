@@ -11,6 +11,11 @@ export const metadata = {
     description: "Build a location-by-location Nuzlocke run, then track catches, losses, milestones, and notes.",
     url: "/nuzlocke",
   },
+  twitter: {
+    card: "summary_large_image",
+    title: "Pokémon Nuzlocke Run Tracker and Team Generator",
+    description: "Build a location-by-location Nuzlocke run, then track catches, losses, milestones, and notes.",
+  },
 };
 
 export default function NuzlockePage() {

@@ -11,6 +11,11 @@ export const metadata = {
     description: "1,162 Pokémon and forms. 1,161 choices. One personal champion.",
     url: "/tools/mega-bracket",
   },
+  twitter: {
+    card: "summary_large_image",
+    title: "Mega Bracket — The Full Dex Challenge",
+    description: "1,162 Pokémon and forms. 1,161 choices. One personal champion.",
+  },
 };
 
 export default function MegaBracketPage() {
@@ -27,6 +32,7 @@ export default function MegaBracketPage() {
         isAccessibleForFree: true,
         url: "https://www.draftcentral.gg/tools/mega-bracket",
         description: "A resumable Full Dex Pokémon preference bracket with 1,162 supported Pokémon and forms.",
+        featureList: ["1,161 head-to-head choices", "Resumable private progress", "Top 64 bracket reveal", "Downloadable champion card"],
       },
       {
         "@type": "BreadcrumbList",

@@ -5,8 +5,8 @@ export const metadata = {
   description: "Play free Pokémon daily games: solve Pokémon Connections, answer today's community poll, complete daily and Sunday Super Brackets, and identify the daily Pokémon.",
   keywords: ["Pokémon dailies", "Pokémon daily games", "Pokémon connections", "Pokémon grouping game", "daily Pokémon quiz", "Pokémon quiz", "Pokémon bracket", "Pokémon poll of the day"],
   alternates: { canonical: "/resources/daily-games" },
-  openGraph: { title: "Pokémon Daily Games, Polls & Quizzes", description: "Play four fresh Pokémon games every day, including Pokémon Connections.", url: "/resources/daily-games", type: "website" },
-  twitter: { card: "summary_large_image", title: "Pokémon Daily Games", description: "Play Pokémon Connections, a daily Pokémon poll, draft bracket, and quiz." },
+  openGraph: { title: "Pokémon Daily Games, Polls & Quizzes", description: "Play four fresh Pokémon games every day, then return Sunday for the weekly Super Bracket.", url: "/resources/daily-games", type: "website" },
+  twitter: { card: "summary_large_image", title: "Pokémon Daily Games", description: "Play Pokémon Connections, the daily poll, bracket, and quiz—plus Sunday’s weekly Super Bracket." },
 };
 
 export default function DailyGamesPage() {
@@ -18,6 +18,11 @@ export default function DailyGamesPage() {
       { "@type": "Question", name: "How does the Sunday Super Bracket work?", acceptedAnswer: { "@type": "Answer", text: "The six Monday-through-Saturday community champions qualify alongside the two best-performing non-winners. Repeated daily winners take one place, and the next non-winner fills the opening." } },
       { "@type": "Question", name: "What are DraftCenter's Pokémon Daily Games?", acceptedAnswer: { "@type": "Answer", text: "They are Pokémon Connections, a daily community poll, an eight-Pokémon draft bracket, and a Pokémon quiz." } },
       { "@type": "Question", name: "When can I join a Daily Games discussion?", acceptedAnswer: { "@type": "Answer", text: "Signed-in players can join each daily game's discussion after completing that game for the day, which keeps answers hidden until they finish." } },
+    ] },
+    { "@type": "BreadcrumbList", itemListElement: [
+      { "@type": "ListItem", position: 1, name: "DraftCenter", item: "https://www.draftcentral.gg/" },
+      { "@type": "ListItem", position: 2, name: "Resources", item: "https://www.draftcentral.gg/resources" },
+      { "@type": "ListItem", position: 3, name: "Pokémon Daily Games", item: "https://www.draftcentral.gg/resources/daily-games" },
     ] },
   ] };
   return <><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} /><DailyGamesResourcesPage /></>;
