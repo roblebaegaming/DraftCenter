@@ -52,6 +52,8 @@ function normalizeTeamEntry(entry) {
     artwork_url: safeArtworkUrl(entry.artwork_url),
     area_key: areaKey,
     area_name: areaName,
+    source_area_key: cleanText(entry.source_area_key, 160),
+    source_area_name: cleanText(entry.source_area_name, 160),
     method: cleanText(entry.method, 80),
     chance: cleanNumber(entry.chance, 0, 100),
     min_level: cleanInteger(entry.min_level, 0, 1000),
@@ -105,8 +107,8 @@ export function nuzlockeRulesFromShareUrl(shareUrl) {
   if (!/^https?:$/.test(url.protocol) || url.pathname !== "/nuzlocke") return [];
   const params = url.searchParams;
   const rules = [
-    params.get("length") === "all-areas" ? "Draft size: One Pokémon per eligible route/area" : `Draft size: ${/^(?:[1-9]|1\d|20)$/.test(params.get("size") || "") ? params.get("size") : "6"}-Pokémon team`,
-    `Selection: ${params.get("mode") === "true-random" ? "Encounter-pool random" : "Route-first random"}`,
+    params.get("length") === "all-areas" ? "Draft size: One Pokémon per eligible named location" : `Draft size: ${/^(?:[1-9]|1\d|20)$/.test(params.get("size") || "") ? params.get("size") : "6"}-Pokémon team`,
+    `Selection: ${params.get("mode") === "true-random" ? "Encounter-pool random" : "Location-first random"}`,
     `Weighting: ${params.get("weighting") === "authentic" ? "Authentic in-game encounter odds" : "Equal chance per eligible encounter"}`,
     `Evolutionary-family clause: ${params.get("family") === "off" ? "Off" : "On"}`,
     `Legendary Pokémon: ${params.get("legendaries") === "include" ? "Allowed" : "Excluded"}`,
@@ -139,7 +141,7 @@ export function buildNuzlockeRunCardText({ runName, result, rules = [], shareUrl
     "Rules",
     ...rules.map((rule) => `- ${cleanText(rule, 180)}`).filter((rule) => rule !== "- "),
     "",
-    `Progress (${trackerSummary.recorded}/${trackerSummary.total} routes recorded)`,
+    `Progress (${trackerSummary.recorded}/${trackerSummary.total} locations recorded)`,
     `- Living catches: ${trackerSummary.living}`,
     `- Missed encounters: ${trackerSummary.missed}`,
     `- Deceased: ${trackerSummary.deceased}`,
@@ -160,6 +162,7 @@ export function buildNuzlockeRunCardText({ runName, result, rules = [], shareUrl
       ? "Starter Pokémon"
       : [titleCase(entry.method) || "Encounter", entry.min_level != null ? `Lv. ${entry.min_level}${entry.max_level != null && entry.max_level !== entry.min_level ? `–${entry.max_level}` : ""}` : "", entry.chance != null ? `${entry.chance}% rate` : ""].filter(Boolean).join(" · ");
     lines.push(`${index + 1}. ${encounter} — ${entry.area_name} — ${details} — ${nuzlockeEncounterStatusLabel(progress?.status)}`);
+    if (entry.source_area_name && entry.source_area_name !== entry.area_name) lines.push(`   Encounter area: ${entry.source_area_name}`);
     if (entry.conditions.length) lines.push(`   Conditions: ${entry.conditions.map(titleCase).join(", ")}`);
     if (progress?.notes) lines.push(`   Notes: ${progress.notes}`);
   });

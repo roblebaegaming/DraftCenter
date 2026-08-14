@@ -45,7 +45,7 @@ test("My Teams restores and presents Nuzlocke encounters as a distinct private R
   assert.match(myTeams, /personal-nuzlocke-grid/);
   assert.match(myTeams, /Open tracker/);
   assert.match(myTeams, /Tracked encounter roster/);
-  assert.match(myTeams, /routes recorded/);
+  assert.match(myTeams, /locations recorded/);
   assert.match(myTeams, /nuzlocke\?false:Boolean\(form\.is_public\)/);
 });
 

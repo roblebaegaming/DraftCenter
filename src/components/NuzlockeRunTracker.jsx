@@ -68,18 +68,18 @@ export default function NuzlockeRunTracker({ result, onChange }) {
   return <>
     <section className="nuzlocke-tracker" aria-labelledby="nuzlocke-tracker-title">
       <div className="section-heading">
-        <div><span className="eyebrow">RUN TRACKER</span><h2 id="nuzlocke-tracker-title">Track every route</h2></div>
+        <div><span className="eyebrow">RUN TRACKER</span><h2 id="nuzlocke-tracker-title">Track every location</h2></div>
         <label className="nuzlocke-run-state">Run status
           <select value={tracker.run_state} onChange={(event) => changeRunState(event.target.value)}>
             {NUZLOCKE_RUN_STATES.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
           </select>
         </label>
       </div>
-      <div className="nuzlocke-tracker-progress" role="progressbar" aria-label="Routes recorded" aria-valuemin="0" aria-valuemax={summary.total} aria-valuenow={summary.recorded}>
+      <div className="nuzlocke-tracker-progress" role="progressbar" aria-label="Locations recorded" aria-valuemin="0" aria-valuemax={summary.total} aria-valuenow={summary.recorded}>
         <span style={{ width: `${summary.percent}%` }} />
       </div>
       <div className="nuzlocke-tracker-metrics">
-        <article><strong>{summary.recorded}/{summary.total}</strong><span>Routes recorded</span></article>
+        <article><strong>{summary.recorded}/{summary.total}</strong><span>Locations recorded</span></article>
         <article><strong>{summary.living}</strong><span>Living catches</span></article>
         <article><strong>{summary.missed}</strong><span>Missed</span></article>
         <article><strong>{summary.deceased}</strong><span>Deceased</span></article>
@@ -126,6 +126,7 @@ export default function NuzlockeRunTracker({ result, onChange }) {
           <h3><a href={`/pokemon/${profileSlug}`}>{progress.nickname || entry.pokemon_name}{progress.nickname ? <small> · {entry.pokemon_name}</small> : entry.form_name ? ` (${entry.form_name})` : ""}</a></h3>
           <strong>{entry.area_name}</strong>
           <p>{entry.method === "starter" ? "Starter Pokémon" : <>{entry.encounter_pokemon_name ? `Catch ${entry.encounter_pokemon_name}${entry.encounter_form_name ? ` (${entry.encounter_form_name})` : ""} · ` : ""}{pretty(entry.method)} · Lv. {entry.min_level ?? "?"}{entry.max_level && entry.max_level !== entry.min_level ? `–${entry.max_level}` : ""}{entry.chance != null ? ` · ${entry.chance}% rate` : ""}</>}</p>
+          {entry.source_area_name && entry.source_area_name !== entry.area_name && <small>Encounter area: {entry.source_area_name}</small>}
           {entry.conditions?.length ? <small>{entry.conditions.map(pretty).join(", ")}</small> : <small>No special conditions</small>}
         </div>
         <div className="nuzlocke-encounter-controls">

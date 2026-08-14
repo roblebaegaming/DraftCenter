@@ -180,7 +180,7 @@ export async function downloadNuzlockeRunCardImage({ runName, result, rules = []
   context.fillText(fitText(context, cleanText(runName, 80) || `${savedResult.game.display_name} Nuzlocke Run`, WIDTH - PAGE_PADDING * 2), PAGE_PADDING, 108);
   context.fillStyle = "#4fd1c5";
   context.font = "700 21px Inter, Arial, sans-serif";
-  context.fillText(`${savedResult.game.display_name} · ${trackerSummary.recorded}/${trackerSummary.total} routes · ${trackerSummary.living} living · ${trackerSummary.deceased} deceased`, PAGE_PADDING, 145);
+  context.fillText(`${savedResult.game.display_name} · ${trackerSummary.recorded}/${trackerSummary.total} locations · ${trackerSummary.living} living · ${trackerSummary.deceased} deceased`, PAGE_PADDING, 145);
   context.fillStyle = "#9fa9cf";
   context.font = "500 14px Inter, Arial, sans-serif";
   context.fillText(fitText(context, shareUrl ? "Share this image or use the saved run link in My Teams to recreate it." : "Generated from verified, game-specific encounters.", WIDTH - PAGE_PADDING * 2), PAGE_PADDING, 174);

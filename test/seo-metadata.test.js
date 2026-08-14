@@ -89,10 +89,11 @@ test("the Nuzlocke generator is crawlable, internally linked, and uses current p
   assert.match(page, /"@type": "WebPage"/);
   assert.doesNotMatch(page, /"@type": "WebApplication"/);
   assert.match(page, /"@type": "BreadcrumbList"/);
-  assert.match(page, /Track each route as caught, active, boxed, missed, or deceased/);
+  assert.match(page, /Track each named location as caught, active, boxed, missed, or deceased/);
+  assert.match(page, /floors and subareas share one slot/);
   assert.match(page, /save the full tracker privately in My Teams/);
   assert.match(page, /Browser autosave keeps recent progress/);
-  assert.match(page, /Recreation links repeat the generated route plan without exposing private tracker progress/);
+  assert.match(page, /Recreation links repeat the generated location plan without exposing private tracker progress/);
   assert.doesNotMatch(page, /randomizer seed/);
   assert.match(tracker, /pokemonProfileSlugForName\(entry\.pokemon_name\)/);
   assert.match(tracker, /href={`\/pokemon\/\$\{profileSlug\}`}/);
