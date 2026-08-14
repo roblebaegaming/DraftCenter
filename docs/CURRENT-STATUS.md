@@ -3,7 +3,7 @@
 - Last updated: August 13, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified production application commit: `727155b4316017d985af67a22b143634f8fabc73`
+- Verified production application commit: `ee8ac856df5c2e73b1aebc158543b4c5af54db64`
 - Latest production migration: 390
 
 ## Deployed state
@@ -183,6 +183,19 @@ and direct client-role denials. The exact retained Preview matrix, protected
 checks, 244-page build, Production deployment at commit `727155b`, live owner
 review, and 19-check signed-out smoke sweep passed. At production verification,
 the aggregate showed one completed member and one completed bracket.
+
+Pull request [#209](https://github.com/roblebaegaming/DraftCenter/pull/209)
+completed the final public-product SEO reconciliation for Draft Lab, the
+Nuzlocke Run Tracker, Daily Games and the Sunday Super Bracket, Full Dex Mega
+Bracket, and Italian Worlds predictions. Each public product now has current
+canonical, structured, social-sharing, sitemap, internal-discovery, and
+`llms.txt` coverage appropriate to its behavior. The English and Italian VGC
+pages publish reciprocal sitemap alternates, Italian responses identify
+`it-IT`, and Operations remains `noindex` and outside the sitemap. All protected
+checks, the 252-page build, hosted Preview review, exact Production deployment
+at commit `ee8ac856`, live metadata and image verification, and the 19-check
+production smoke sweep passed. No migration, production data, provider setting,
+environment variable, or secret changed.
 
 The August 9 release wave is complete. Pull requests
 [#95](https://github.com/roblebaegaming/DraftCenter/pull/95) through
@@ -820,7 +833,7 @@ guard merely to remove that measurement gap.
 ## Authoritative records
 
 - Current continuation handoff:
-  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-13-operations-mega-bracket-completions.md`](handoffs/DraftCenter-agent-handoff-2026-08-13-operations-mega-bracket-completions.md)
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-13-final-seo-and-release-consolidation.md`](handoffs/DraftCenter-agent-handoff-2026-08-13-final-seo-and-release-consolidation.md)
 - Mega Bracket product and data contract:
   [`docs/mega-bracket.md`](mega-bracket.md)
 - Daily Games product and safety contract:

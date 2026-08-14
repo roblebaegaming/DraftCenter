@@ -1,7 +1,23 @@
 # Agent handoffs
 
+[`DraftCenter-agent-handoff-2026-08-13-final-seo-and-release-consolidation.md`](DraftCenter-agent-handoff-2026-08-13-final-seo-and-release-consolidation.md)
+is the current continuation handoff. It consolidates the deployed Draft Lab,
+Nuzlocke tracker and location grouping, Sunday Super Bracket and Connections
+rotation, Full Dex Mega Bracket and aggregate Operations metric, and Italian
+Worlds work. It also records the final public SEO reconciliation through pull
+request #209, exact Production application commit, protected checks, live
+metadata and image verification, preserved privacy boundaries, and the next
+evidence-led SEO and Italian-localization steps. Start from fresh `origin/main`;
+migration 390 is already applied and must not be replayed.
+
+[`DraftCenter-agent-handoff-2026-08-13-operations-mega-bracket-completions.md`](DraftCenter-agent-handoff-2026-08-13-operations-mega-bracket-completions.md)
+is the preceding continuation handoff. It records the privacy-safe owner
+Operations aggregate through pull request #207 and migration 390, including
+its service-role-only boundary, exact Preview regression, Production totals at
+verification, and protected deployment evidence.
+
 [`DraftCenter-agent-handoff-2026-08-13-nuzlocke-location-grouping.md`](DraftCenter-agent-handoff-2026-08-13-nuzlocke-location-grouping.md)
-is the current continuation handoff. It records the deployed Nuzlocke
+is an earlier continuation handoff. It records the deployed Nuzlocke
 named-location grouping fix through pull request #205, including parent-key
 grouping across all 37 reviewed game catalogues, retained floor/subarea
 details, protected release evidence, the exact Production application commit,
