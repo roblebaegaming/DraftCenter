@@ -44,6 +44,7 @@ test("release migrations use one production number each", () => {
   assert.ok(migrations.includes("389-full-dex-mega-brackets.sql"));
   assert.ok(migrations.includes("390-operations-mega-bracket-completions.sql"));
   assert.ok(migrations.includes("391-account-pokedex-trackers.sql"));
+  assert.ok(migrations.includes("392-complete-pokedex-home-national-dex.sql"));
 });
 
 test("the Gen 6 schema gate supports the official X and Y game keys", () => {

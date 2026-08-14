@@ -67,6 +67,18 @@ test("tracker persistence is private, account-scoped, exportable, and catalog-va
   assert.doesNotMatch(sql, /grant (select|insert|update|delete|all) on table public\.pokedex_trackers to authenticated/i);
 });
 
+test("Pokémon HOME includes all 1,025 National Dex species", () => {
+  const sql = source("supabase/392-complete-pokedex-home-national-dex.sql");
+  assert.match(sql, /Migration 392/);
+  assert.match(sql, /\(719, 'Diancie'/);
+  assert.match(sql, /\(720, 'Hoopa'/);
+  assert.match(sql, /\(721, 'Volcanion'/);
+  assert.match(sql, /v_home_count <> 1025 or v_home_distinct <> 1025/);
+  assert.match(sql, /count\(\*\)::integer from public\.pokedex_tracker_catalog\('home'\)/);
+  assert.match(sql, /revoke all on function public\.pokedex_tracker_catalog\(text\) from public, anon, authenticated/i);
+  assert.doesNotMatch(sql, /alter table public\.pokemon_game_pokedex_entries/i);
+});
+
 test("the account page offers multiple game, HOME, shiny, filter, pagination, rename, delete, and automatic-saving experiences", () => {
   const page = source("src/components/PokedexTrackerPage.jsx");
   const links = source("src/components/SiteQuickLinks.jsx");

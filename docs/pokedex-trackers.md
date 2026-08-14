@@ -46,7 +46,10 @@ tables through their `auth.users` cascade.
 
 The current HOME catalog is a species-level National Pokédex checklist. A
 reference review against standard and shiny HOME organizer workbooks confirmed
-the 1,025-species baseline and informed the page/box/slot presentation. No
+the 1,025-species baseline and informed the page/box/slot presentation.
+Migration 392 supplements Diancie, Hoopa, and Volcanion because those three
+Kalos mythical species do not occur in any of the verified regional game
+catalog rows; it leaves every regional game catalog unchanged. No
 third-party workbook rows, sprites, formulas, or completion state are bundled
 or imported into DraftCenter.
 
