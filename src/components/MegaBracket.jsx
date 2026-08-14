@@ -436,7 +436,7 @@ export default function MegaBracket() {
   const canStartAnother = progress?.complete && attempt?.status === "completed";
 
   return <main className="mega-bracket-shell">
-    <nav className="public-page-nav"><a className="quiet-button" href="/?view=dashboard">DraftCenter home</a><a className="quiet-button" href="/resources/daily-games">Daily Games</a><a className="quiet-button" href="/tools/team-builder">Draft Lab</a></nav>
+    <nav className="public-page-nav"><a className="quiet-button" href="/?view=dashboard">DraftCenter home</a><a className="quiet-button" href="/resources/daily-games">Daily Games</a><a className="quiet-button" href="/tools/team-builder">Team Lab</a></nav>
     <header className="mega-bracket-hero">
       <div><span className="eyebrow">THE FULL DEX CHALLENGE</span><h1>Mega Bracket</h1><p>Choose between every supported Pokémon and form until only your champion remains. Your 1,161 choices save as you go, and the final 64 become a shareable tournament bracket.</p></div>
       <div className="mega-hero-stat"><strong>1,162</strong><span>Pokémon & forms</span><b>1,161 choices · unlimited attempts</b></div>

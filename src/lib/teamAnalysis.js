@@ -209,7 +209,7 @@ export function teamArchetypeConsiderations(roster = []) {
       id: "hazard-pivot",
       name: "Hazard stack / pivot offense",
       fit: "Manual move check",
-      signal: "The Draft Lab does not infer Stealth Rock, Spikes, removal, spinblocking, U-turn, Volt Switch, or Flip Turn from typing.",
+      signal: "Team Lab does not infer Stealth Rock, Spikes, removal, spinblocking, U-turn, Volt Switch, or Flip Turn from typing.",
       consider: "Aim for repeatable hazard pressure, at least one removal plan, and pivots that bring breakers in safely.",
     },
     {

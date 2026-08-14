@@ -43,10 +43,10 @@ test("global navigation separates account actions, tools, and reference links", 
   const quickLinks = navigation.slice(navigation.indexOf('<nav className={`site-quick-links'));
 
   for (const label of ["Mega Bracket", "Pokémon", "Community", "Worlds Predictions", "Profile", "Sign out"]) assert.match(header, new RegExp(`>${label}<`));
-  assert.doesNotMatch(header, />Draft Lab</);
+  assert.doesNotMatch(header, />Team Lab</);
   assert.match(header, /accountName/);
   assert.match(header, /href="\/worlds\/2026"/);
-  assert.match(quickLinks, /href="\/tools\/team-builder"[^>]*>[\s\S]*?quick-label-wide">Draft Lab<\/span>/);
+  assert.match(quickLinks, /href="\/tools\/team-builder"[^>]*>[\s\S]*?quick-label-wide">Team Lab<\/span>/);
   assert.doesNotMatch(quickLinks, /href="\/worlds\/2026"/);
   assert.doesNotMatch(quickLinks, /Sign out/);
   assert.match(quickLinks, /signedIn && <a href="\/trainer-dex"/);

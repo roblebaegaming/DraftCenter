@@ -301,8 +301,8 @@ export default function PokedexTrackerPage() {
       </div>
       <div className="dex-tracker-hero-card" aria-label="Tracker benefits">
         <span><b>37+</b> verified game catalogs</span>
-        <span><b>2</b> progress layers per Pokémon</span>
-        <span><b>∞</b> separate tracker collections</span>
+        <span><b>HOME</b> box-by-box organization</span>
+        <span><b>Private</b> account saving</span>
       </div>
     </header>
 

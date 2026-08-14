@@ -45,6 +45,7 @@ test("release migrations use one production number each", () => {
   assert.ok(migrations.includes("390-operations-mega-bracket-completions.sql"));
   assert.ok(migrations.includes("391-account-pokedex-trackers.sql"));
   assert.ok(migrations.includes("392-complete-pokedex-home-national-dex.sql"));
+  assert.ok(migrations.includes("393-private-team-lab-matchups.sql"));
 });
 
 test("the Gen 6 schema gate supports the official X and Y game keys", () => {
@@ -70,7 +71,7 @@ test("integrated quick links expose each released feature once", () => {
     assert.equal((links.match(new RegExp(`href=\"${path}\"`, "g")) || []).length, 1);
   }
   assert.match(links, /href="\/nuzlocke"[^>]*>[\s\S]*?quick-label-wide">Nuzlockes<\/span>/);
-  assert.match(links, /href="\/tools\/team-builder"[^>]*>[\s\S]*?quick-label-wide">Draft Lab<\/span>/);
+  assert.match(links, /href="\/tools\/team-builder"[^>]*>[\s\S]*?quick-label-wide">Team Lab<\/span>/);
   assert.match(links, /className="site-primary-links"[\s\S]*?href="\/worlds\/2026"[^>]*>Worlds Predictions<\/a>/);
   assert.doesNotMatch(links.slice(links.indexOf('<nav className={`site-quick-links')), /href="\/worlds\/2026"/);
   assert.match(nuzlocke, />NUZLOCKE RUN TRACKER<\/span>/);
