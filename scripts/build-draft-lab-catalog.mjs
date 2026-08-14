@@ -82,7 +82,9 @@ async function buildSnapshot() {
 
 const expected = `${JSON.stringify(await buildSnapshot(), null, 2)}\n`;
 if (process.argv.includes("--check")) {
-  const actual = fs.existsSync(OUTPUT_PATH) ? fs.readFileSync(OUTPUT_PATH, "utf8") : "";
+  const actual = fs.existsSync(OUTPUT_PATH)
+    ? fs.readFileSync(OUTPUT_PATH, "utf8").replace(/\r\n/g, "\n")
+    : "";
   if (actual !== expected) {
     console.error("Draft Lab catalog is stale. Run npm run draft-lab:build-catalog.");
     process.exit(1);

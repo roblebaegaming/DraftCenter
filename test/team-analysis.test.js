@@ -4,9 +4,11 @@ import test from "node:test";
 import {
   buildDraftLabQuery,
   defensiveTypeChart,
+  DRAFT_LAB_MODE_LIMITS,
   parseDraftLabQuery,
   pokemonTypeMultiplier,
   singleTypeMultiplier,
+  teamArchetypeConsiderations,
   teamDefenseSummary,
   teamLegalitySummary,
   teamStabSummary,
@@ -68,6 +70,23 @@ test("stat summary produces speed tiers and physical, special, and mixed counts"
   assert.equal(summary.averages.spe, 85);
 });
 
+test("archetype guidance stays directional and separates detected stat signals from move checks", () => {
+  const considerations = teamArchetypeConsiderations(roster);
+  assert.equal(considerations.length, 6);
+  assert.deepEqual(considerations.map(({ id }) => id), [
+    "balance",
+    "hyper-offense",
+    "hazard-pivot",
+    "weather-terrain",
+    "trick-room",
+    "stall-control",
+  ]);
+  assert.match(considerations.find(({ id }) => id === "balance").signal, /Corviknight/);
+  assert.equal(considerations.find(({ id }) => id === "hazard-pivot").fit, "Manual move check");
+  assert.match(considerations.find(({ id }) => id === "hazard-pivot").signal, /does not infer Stealth Rock/);
+  assert.match(considerations.find(({ id }) => id === "weather-terrain").fit, /type shell present/);
+});
+
 test("legality summary is format-aware and enforces duplicate and special-category limits", () => {
   const regulation = {
     legalNames: ["Garchomp", "Rotom-Wash", "Corviknight", "Miraidon", "Mega Garchomp"],
@@ -99,6 +118,7 @@ test("versioned Draft Lab links round-trip valid unique names and reject unknown
     format: "national-gen9",
     mode: "roster",
     names: ["Garchomp", "Rotom-Wash"],
+    truncatedCount: 0,
   });
 });
 
@@ -109,13 +129,19 @@ test("share links fail closed for unknown versions and honor the selected mode l
     format: "reg-mb",
     mode: "team",
     names: [],
+    truncatedCount: 0,
   });
   const team = parseDraftLabQuery(`v=1&team=${validNames.slice(0, 10).join("~")}`, validNames);
   assert.equal(team.names.length, 6);
+  assert.equal(team.truncatedCount, 4);
+  const legacyRoster = parseDraftLabQuery(`v=1&mode=roster&team=${validNames.join("~")}`, validNames);
+  assert.equal(legacyRoster.names.length, 10);
+  assert.equal(legacyRoster.truncatedCount, 20);
   const rosterQuery = buildDraftLabQuery({ mode: "roster", names: validNames });
-  assert.equal(parseDraftLabQuery(rosterQuery, validNames).names.length, 24);
+  assert.equal(parseDraftLabQuery(rosterQuery, validNames).names.length, 10);
   const teamQuery = buildDraftLabQuery({ mode: "team", names: validNames });
   assert.equal(new URLSearchParams(teamQuery).get("team").split("~").length, 6);
+  assert.deepEqual(DRAFT_LAB_MODE_LIMITS, { team: 6, roster: 10 });
 });
 
 test("the public Draft Lab is indexable, discoverable, and read-only", () => {
@@ -124,16 +150,21 @@ test("the public Draft Lab is indexable, discoverable, and read-only", () => {
   const navigation = fs.readFileSync(new URL("../src/components/SiteQuickLinks.jsx", import.meta.url), "utf8");
   const home = fs.readFileSync(new URL("../src/components/LeagueHub.jsx", import.meta.url), "utf8");
   const resources = fs.readFileSync(new URL("../src/components/ResourcesPage.jsx", import.meta.url), "utf8");
+  const styles = fs.readFileSync(new URL("../src/app/globals.css", import.meta.url), "utf8");
+  const catalogBuilder = fs.readFileSync(new URL("../scripts/build-draft-lab-catalog.mjs", import.meta.url), "utf8");
   const llms = fs.readFileSync(new URL("../src/app/llms.txt/route.js", import.meta.url), "utf8");
   const sitemap = fs.readFileSync(new URL("../src/app/sitemap.js", import.meta.url), "utf8");
   assert.match(route, /alternates:\s*\{ canonical: "\/tools\/team-builder" \}/);
   assert.match(route, /"@type": "WebApplication"/);
   assert.match(component, /teamDefenseSummary\(roster\)/);
+  assert.match(component, /teamArchetypeConsiderations\(roster\)/);
   assert.match(component, /teamLegalitySummary\(roster, regulation\)/);
   assert.match(component, /buildDraftLabQuery/);
   assert.match(component, /draft-lab-catalog\.json/);
   assert.doesNotMatch(component, /from "\.\/PokemonDraftLeague"/);
   assert.match(component, /href="\/my-teams"/);
+  assert.match(component, /Draft roster · 10/);
+  assert.doesNotMatch(component, /Draft roster · 24/);
   assert.doesNotMatch(component, /\.from\(|\.rpc\(|createClient/);
   const primaryHeaderStart = navigation.indexOf('<nav className="site-primary-links"');
   const primaryHeader = navigation.slice(primaryHeaderStart, navigation.indexOf("</nav>", primaryHeaderStart));
@@ -141,6 +172,10 @@ test("the public Draft Lab is indexable, discoverable, and read-only", () => {
   assert.match(navigation, /href="\/tools\/team-builder"[^>]*aria-label="Draft Lab"/);
   assert.match(home, /className="hub-home-tools"[\s\S]*?href="\/tools\/team-builder"/);
   assert.match(resources, /href="\/tools\/team-builder"/);
+  assert.match(styles, /@media\(max-width:780px\)[^}]*[\s\S]*?\.draft-lab-archetype-grid[^}]*grid-template-columns:\s*1fr/);
+  assert.match(styles, /@media\(max-width:520px\)[^}]*[\s\S]*?\.draft-lab-mode\s*\{\s*grid-template-columns:\s*1fr/);
+  assert.match(styles, /\.draft-lab-roster li\s*\{\s*grid-template-columns:\s*26px minmax\(0,1fr\) auto/);
+  assert.match(catalogBuilder, /readFileSync\(OUTPUT_PATH, "utf8"\)\.replace\(\/\\r\\n\/g, "\\n"\)/);
   assert.match(llms, /Draft Lab Pokémon team builder/);
   assert.match(sitemap, /\["\/tools\/team-builder", "weekly", 0\.9\]/);
 });

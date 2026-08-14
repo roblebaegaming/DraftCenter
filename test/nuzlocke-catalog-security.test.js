@@ -449,6 +449,7 @@ description = "Pinned Pokemon audit documentation public PokeAPI and sprite snap
 condition = "AND"
 regexTarget = "secret"
 paths = [
+  '''^src/lib/pokedexTracker\\.js$''',
   '''^docs/pokemon-catalog/pokemon-yellow-encounter-audit-2026-08-05\\.md$''',
   '''^docs/pokemon-catalog/generation-2-schema-investigation-2026-08-05\\.md$''',
   '''^docs/pokemon-catalog/pokemon-gold-encounter-audit-2026-08-05\\.md$''',

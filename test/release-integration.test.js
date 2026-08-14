@@ -42,6 +42,8 @@ test("release migrations use one production number each", () => {
   assert.ok(migrations.includes("386-operations-connections-usage.sql"));
   assert.ok(migrations.includes("388-sunday-super-brackets.sql"));
   assert.ok(migrations.includes("389-full-dex-mega-brackets.sql"));
+  assert.ok(migrations.includes("390-operations-mega-bracket-completions.sql"));
+  assert.ok(migrations.includes("391-account-pokedex-trackers.sql"));
 });
 
 test("the Gen 6 schema gate supports the official X and Y game keys", () => {
@@ -63,7 +65,7 @@ test("the Gen 5 schema gate supports official zero-based regional entries", () =
 test("integrated quick links expose each released feature once", () => {
   const links = source("src/components/SiteQuickLinks.jsx");
   const nuzlocke = source("src/components/NuzlockeLab.jsx");
-  for (const path of ["/tools/team-builder", "/nuzlocke", "/tournaments", "/calendar", "/worlds/2026", "/trainer-dex", "/operations"]) {
+  for (const path of ["/tools/team-builder", "/nuzlocke", "/tournaments", "/calendar", "/worlds/2026", "/trainer-dex", "/pokedex-tracker", "/operations"]) {
     assert.equal((links.match(new RegExp(`href=\"${path}\"`, "g")) || []).length, 1);
   }
   assert.match(links, /href="\/nuzlocke"[^>]*>[\s\S]*?quick-label-wide">Nuzlockes<\/span>/);
@@ -72,13 +74,14 @@ test("integrated quick links expose each released feature once", () => {
   assert.doesNotMatch(links.slice(links.indexOf('<nav className={`site-quick-links')), /href="\/worlds\/2026"/);
   assert.match(nuzlocke, />NUZLOCKE RUN TRACKER<\/span>/);
   assert.match(links, /signedIn && <a href="\/trainer-dex"[^>]*>[\s\S]*?quick-label-wide">Trainer Dex<\/span>/);
+  assert.match(links, /signedIn && <a href="\/pokedex-tracker"[^>]*>[\s\S]*?quick-label-wide">Dex Tracker<\/span>/);
   assert.match(links, /isOwner && <a href="\/operations"[^>]*>[\s\S]*?quick-label-wide">Operations<\/span>/);
   assert.doesNotMatch(links, /href="\/(resources|support)"/);
 });
 
 test("the full suite includes every integrated feature gate", () => {
   const manifest = JSON.parse(source("package.json"));
-  for (const script of ["test:nuzlocke", "test:tournaments", "test:mega-bracket", "test:multi-pod", "test:trainer-dex", "test:calendar", "test:worlds", "test:release-integration"]) {
+  for (const script of ["test:nuzlocke", "test:tournaments", "test:mega-bracket", "test:multi-pod", "test:trainer-dex", "test:pokedex-tracker", "test:calendar", "test:worlds", "test:release-integration"]) {
     assert.match(manifest.scripts["test:all"], new RegExp(`npm run ${script}`));
   }
 });

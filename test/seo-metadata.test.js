@@ -75,6 +75,7 @@ test("sitemap contains only indexable routes and truthful modification dates", (
   assert.match(sitemap, /\["\/about", "monthly", 0\.7\]/);
   assert.match(sitemap, /PRODUCT_DISCOVERY_LAST_MODIFIED/);
   assert.match(sitemap, /productRouteLastModified\.has\(path\)/);
+  assert.match(sitemap, /\["\/pokedex-tracker", "weekly", 0\.9\]/);
   assert.match(sitemap, /ITALIAN_WORLDS_LAST_MODIFIED/);
   assert.match(sitemap, /localizedRouteAlternates\.has\(path\)/);
   assert.match(sitemap, /"x-default": "https:\/\/www\.draftcentral\.gg\/worlds\/2026\/vgc"/);
@@ -84,6 +85,7 @@ test("recent public products expose current social previews and discovery copy",
   const mega = source("src/app/tools/mega-bracket/page.js");
   const lab = source("src/app/tools/team-builder/page.js");
   const nuzlocke = source("src/app/nuzlocke/page.js");
+  const pokedexTracker = source("src/app/pokedex-tracker/page.js");
   const daily = source("src/app/resources/daily-games/page.js");
   const resources = source("src/components/ResourcesPage.jsx");
   const italian = source("src/app/it/worlds/2026/page.js");
@@ -91,7 +93,7 @@ test("recent public products expose current social previews and discovery copy",
   const llms = source("src/app/llms.txt/route.js");
   const nextConfig = source("next.config.mjs");
 
-  for (const page of [mega, lab, nuzlocke, daily, italian]) {
+  for (const page of [mega, lab, nuzlocke, pokedexTracker, daily, italian]) {
     assert.match(page, /openGraph:/);
     assert.match(page, /twitter:/);
   }
@@ -99,6 +101,7 @@ test("recent public products expose current social previews and discovery copy",
     "src/app/tools/mega-bracket/opengraph-image.js",
     "src/app/tools/team-builder/opengraph-image.js",
     "src/app/nuzlocke/opengraph-image.js",
+    "src/app/pokedex-tracker/opengraph-image.js",
     "src/app/resources/daily-games/opengraph-image.js",
     "src/app/it/worlds/2026/opengraph-image.js",
   ]) {
@@ -107,6 +110,12 @@ test("recent public products expose current social previews and discovery copy",
   }
   assert.match(mega, /featureList:/);
   assert.match(lab, /featureList:/);
+  assert.match(lab, /10-Pokémon draft rosters/);
+  assert.match(lab, /Common meta archetype prompts/);
+  assert.match(source("src/app/tools/team-builder/opengraph-image.js"), /10-Pokémon rosters/);
+  assert.match(pokedexTracker, /"@type": "WebApplication"/);
+  assert.match(pokedexTracker, /"@type": "FAQPage"/);
+  assert.match(pokedexTracker, /canonical: "\/pokedex-tracker"/);
   assert.match(daily, /"@type": "BreadcrumbList"/);
   assert.match(resources, /return Sunday for the weekly Super Bracket/);
   assert.match(resources, /cave floors and subareas sharing their parent location’s slot/);

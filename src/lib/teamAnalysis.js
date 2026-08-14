@@ -48,7 +48,8 @@ export const ABILITY_TYPE_MODIFIERS = Object.freeze({
 
 const STAT_KEYS = Object.freeze(["hp", "atk", "def", "spa", "spd", "spe"]);
 const SHARE_VERSION = "1";
-export const DRAFT_LAB_MAX_ROSTER_SIZE = 24;
+export const DRAFT_LAB_MODE_LIMITS = Object.freeze({ team: 6, roster: 10 });
+export const DRAFT_LAB_MAX_ROSTER_SIZE = DRAFT_LAB_MODE_LIMITS.roster;
 
 function validType(value) {
   const type = String(value || "").toLowerCase();
@@ -149,6 +150,94 @@ export function teamStatSummary(roster = []) {
   return { sampleSize: withStats.length, averages, speedTiers, damageProfile };
 }
 
+function pokemonNames(pokemon, maximum = 3) {
+  if (!pokemon.length) return "none yet";
+  const visible = pokemon.slice(0, maximum).map(({ name }) => name);
+  const remaining = pokemon.length - visible.length;
+  return `${visible.join(", ")}${remaining > 0 ? ` +${remaining} more` : ""}`;
+}
+
+function hasType(pokemon, types) {
+  return types.includes(validType(pokemon?.t1)) || types.includes(validType(pokemon?.t2));
+}
+
+/**
+ * Directional archetype prompts derived only from typing and reviewed base stats.
+ * Moves, abilities, items, Tera types, and league rules stay explicit manual checks.
+ */
+export function teamArchetypeConsiderations(roster = []) {
+  const withStats = roster.filter((pokemon) => STAT_KEYS.every((key) => numericStat(pokemon, key) != null));
+  const physicalBreakers = withStats.filter((pokemon) => numericStat(pokemon, "atk") >= 115);
+  const specialBreakers = withStats.filter((pokemon) => numericStat(pokemon, "spa") >= 115);
+  const fastAttackers = withStats.filter((pokemon) => numericStat(pokemon, "spe") >= 100
+    && Math.max(numericStat(pokemon, "atk"), numericStat(pokemon, "spa")) >= 105);
+  const slowAttackers = withStats.filter((pokemon) => numericStat(pokemon, "spe") <= 65
+    && Math.max(numericStat(pokemon, "atk"), numericStat(pokemon, "spa")) >= 105);
+  const defensiveBackbone = withStats.filter((pokemon) => numericStat(pokemon, "hp") >= 80
+    && (numericStat(pokemon, "def") >= 105 || numericStat(pokemon, "spd") >= 105));
+  const bulkyPieces = withStats.filter((pokemon) => numericStat(pokemon, "hp") >= 80
+    && numericStat(pokemon, "def") >= 85
+    && numericStat(pokemon, "spd") >= 85);
+  const weatherShells = [
+    { name: "Rain", types: ["water", "electric", "flying"] },
+    { name: "Sun", types: ["fire", "grass"] },
+    { name: "Sand", types: ["rock", "ground", "steel"] },
+    { name: "Snow", types: ["ice"] },
+  ].map((weather) => ({
+    ...weather,
+    pokemon: roster.filter((pokemon) => hasType(pokemon, weather.types)),
+  })).sort((left, right) => right.pokemon.length - left.pokemon.length || left.name.localeCompare(right.name));
+  const weather = weatherShells[0];
+  const balancedDamage = physicalBreakers.length > 0 && specialBreakers.length > 0;
+
+  return [
+    {
+      id: "balance",
+      name: "Balance / bulky offense",
+      fit: defensiveBackbone.length && balancedDamage && fastAttackers.length ? "Good base-stat fit" : "Worth checking",
+      signal: `Backbone: ${pokemonNames(defensiveBackbone)}. Physical pressure: ${pokemonNames(physicalBreakers)}. Special pressure: ${pokemonNames(specialBreakers)}.`,
+      consider: "Confirm recovery, hazard removal, speed control, and a win condition that the defensive core can support.",
+    },
+    {
+      id: "hyper-offense",
+      name: "Hyper offense",
+      fit: fastAttackers.length >= 2 ? "Fast pressure present" : "Needs more speed data",
+      signal: `Fast attackers at base 100+ Speed: ${pokemonNames(fastAttackers)}.`,
+      consider: "Look for a hazard lead, setup sweepers, priority or Choice Scarf insurance, and ways to keep momentum.",
+    },
+    {
+      id: "hazard-pivot",
+      name: "Hazard stack / pivot offense",
+      fit: "Manual move check",
+      signal: "The Draft Lab does not infer Stealth Rock, Spikes, removal, spinblocking, U-turn, Volt Switch, or Flip Turn from typing.",
+      consider: "Aim for repeatable hazard pressure, at least one removal plan, and pivots that bring breakers in safely.",
+    },
+    {
+      id: "weather-terrain",
+      name: "Weather / terrain offense",
+      fit: weather?.pokemon.length >= 2 ? `${weather.name} type shell present` : "Manual ability check",
+      signal: weather?.pokemon.length
+        ? `${weather.name} has the largest type-level shell: ${pokemonNames(weather.pokemon)}.`
+        : "No weather direction is visible from typing alone.",
+      consider: "Confirm a legal setter, real abusers, speed interaction, defensive synergy, and a backup plan when the field effect is denied.",
+    },
+    {
+      id: "trick-room",
+      name: "Trick Room / speed control",
+      fit: slowAttackers.length >= 2 ? "Slow power present" : "Worth checking",
+      signal: `Slow attackers at base 65 Speed or lower: ${pokemonNames(slowAttackers)}.`,
+      consider: "For Trick Room, plan multiple setters and low-Speed breakers. Otherwise confirm priority, paralysis, Tailwind, or Choice Scarf options.",
+    },
+    {
+      id: "stall-control",
+      name: "Stall / control",
+      fit: bulkyPieces.length >= 3 ? "Bulky shell present" : "Needs role support",
+      signal: `Naturally bulky base-stat profiles: ${pokemonNames(bulkyPieces)}.`,
+      consider: "Confirm reliable recovery, status progress, hazard control, anti-setup tools, and a way to avoid becoming passive.",
+    },
+  ];
+}
+
 export function teamLegalitySummary(roster = [], regulation = null) {
   const counts = new Map();
   for (const pokemon of roster) counts.set(pokemon.name, (counts.get(pokemon.name) || 0) + 1);
@@ -184,29 +273,30 @@ export function parseDraftLabQuery(value, validNames = []) {
   const params = asSearchParams(value);
   const version = params.get("v");
   if (version && version !== SHARE_VERSION) {
-    return { version: SHARE_VERSION, format: "reg-mb", mode: "team", names: [] };
+    return { version: SHARE_VERSION, format: "reg-mb", mode: "team", names: [], truncatedCount: 0 };
   }
 
   const allowed = new Set(validNames);
   const mode = params.get("mode") === "roster" ? "roster" : "team";
-  const limit = mode === "roster" ? DRAFT_LAB_MAX_ROSTER_SIZE : 6;
-  const names = [...new Set(String(params.get("team") || "")
+  const limit = DRAFT_LAB_MODE_LIMITS[mode];
+  const validUniqueNames = [...new Set(String(params.get("team") || "")
     .split("~")
     .map((name) => name.trim())
-    .filter((name) => name && allowed.has(name)))]
-    .slice(0, limit);
+    .filter((name) => name && allowed.has(name)))];
+  const names = validUniqueNames.slice(0, limit);
   return {
     version: SHARE_VERSION,
     format: params.get("format") || "reg-mb",
     mode,
     names,
+    truncatedCount: validUniqueNames.length - names.length,
   };
 }
 
 export function buildDraftLabQuery({ format = "reg-mb", mode = "team", names = [] } = {}) {
   const params = new URLSearchParams();
   const normalizedMode = mode === "roster" ? "roster" : "team";
-  const limit = normalizedMode === "roster" ? DRAFT_LAB_MAX_ROSTER_SIZE : 6;
+  const limit = DRAFT_LAB_MODE_LIMITS[normalizedMode];
   params.set("v", SHARE_VERSION);
   params.set("format", String(format || "reg-mb"));
   if (normalizedMode === "roster") params.set("mode", "roster");
