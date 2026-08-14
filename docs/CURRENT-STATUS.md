@@ -3,8 +3,8 @@
 - Last updated: August 14, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified production application commit: `3bcc222584e697a25ddfdbbf2e7dc8dcbc02fd4e`
-- Latest production migration: 392
+- Verified production application commit: `bf69ad494ab5d94d4b19db1a7d9dfb6e058a9ef5`
+- Latest production migration: 393
 
 ## Deployed state
 
@@ -228,6 +228,24 @@ fallbacks where an exact form image is unavailable. Protected checks, the
 endpoint, and the 20-check signed-out production smoke sweep passed. No
 migration, saved attempt, production data, provider setting, environment
 variable, or secret changed.
+
+Pull request [#214](https://github.com/roblebaegaming/DraftCenter/pull/214)
+shipped **Team Lab** at the stable `/tools/team-builder` route. Signed-in users
+can load My Teams workspaces or read-only copies of owned league rosters, save
+private team notes, and keep private opponent rosters and matchup plans. Public
+analysis links contain only the format, roster mode, and Pokemon names. Team
+names, league names, account identifiers, notes, and matchup plans remain
+private. Migration 393 adds forced-RLS, RPC-only matchup storage, account export
+and recovery support, delete cascades, and removes the old ten-workspace cap
+without introducing a paid entitlement claim. The release also applies the
+requested Pokedex Tracker wording cleanup. The isolated two-account privacy and
+recovery matrix, hosted two-account Team Lab walkthrough, public-link privacy
+check, protected checks, full suite, 1,027-row National Dex verification,
+255-page build, exact Production deployment at commit `bf69ad49`, and all 20
+signed-out production smoke checks passed. Synthetic Preview users and data
+were removed, Preview CAPTCHA protection was restored, and no real league,
+roster, draft, pick, queue, provider setting, environment variable, or secret
+was changed.
 
 The August 9 release wave is complete. Pull requests
 [#95](https://github.com/roblebaegaming/DraftCenter/pull/95) through
@@ -865,7 +883,7 @@ guard merely to remove that measurement gap.
 ## Authoritative records
 
 - Current continuation handoff:
-  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-13-pokedex-tracker-and-draft-lab-release.md`](handoffs/DraftCenter-agent-handoff-2026-08-13-pokedex-tracker-and-draft-lab-release.md)
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-14-final-production-and-team-lab-deployed.md`](handoffs/DraftCenter-agent-handoff-2026-08-14-final-production-and-team-lab-deployed.md)
 - Pokédex Tracker product and data contract:
   [`docs/pokedex-trackers.md`](pokedex-trackers.md)
 - Mega Bracket product and data contract:
