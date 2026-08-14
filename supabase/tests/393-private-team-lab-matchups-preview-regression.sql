@@ -13,6 +13,7 @@ declare
   v_matchup jsonb;
   v_matchup_id uuid;
   v_export jsonb;
+  v_restored integer;
   v_cross_update_denied boolean := false;
   v_cross_delete_denied boolean := false;
   v_cross_parent_denied boolean := false;
@@ -141,7 +142,8 @@ begin
   if jsonb_array_length(public.list_my_team_lab_matchups(null)) <> 0 then
     raise exception 'The owner delete did not remove the exact matchup.';
   end if;
-  if public.restore_my_team_lab_matchups(v_export) <> 1
+  select public.restore_my_team_lab_matchups(v_export) into v_restored;
+  if v_restored <> 1
      or jsonb_array_length(public.list_my_team_lab_matchups(v_team)) <> 1 then
     raise exception 'Team Lab recovery did not restore the private matchup.';
   end if;

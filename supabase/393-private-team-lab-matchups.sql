@@ -132,7 +132,7 @@ begin
   end if;
   if p_pokemon is null
      or jsonb_typeof(p_pokemon) <> 'array'
-     or jsonb_array_length(p_pokemon) > case when p_mode = 'team' then 6 else 10 end
+     or jsonb_array_length(p_pokemon) > (case when p_mode = 'team' then 6 else 10 end)
      or octet_length(p_pokemon::text) > 5000
      or exists (
        select 1 from jsonb_array_elements(p_pokemon) item
@@ -263,7 +263,7 @@ begin
        or char_length(coalesce(v_matchup ->> 'opponent_team_name', '')) > 120
        or coalesce(v_matchup ->> 'format_id', '') !~ '^[a-z0-9-]{1,80}$'
        or jsonb_typeof(v_pokemon) <> 'array'
-       or jsonb_array_length(v_pokemon) > case when v_mode = 'team' then 6 else 10 end
+       or jsonb_array_length(v_pokemon) > (case when v_mode = 'team' then 6 else 10 end)
        or octet_length(v_pokemon::text) > 5000
        or exists (
          select 1 from jsonb_array_elements(v_pokemon) item

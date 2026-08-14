@@ -216,6 +216,9 @@ test("Team Lab is indexable while account notes and matchups stay private", () =
   assert.match(migration, /force row level security/);
   assert.match(migration, /revoke all on table public\.team_lab_matchups from public, anon, authenticated/);
   assert.match(migration, /drop trigger if exists personal_teams_enforce_free_limit/);
+  assert.match(migration, /jsonb_array_length\(p_pokemon\) > \(case when p_mode = 'team' then 6 else 10 end\)/);
+  assert.match(migration, /jsonb_array_length\(v_pokemon\) > \(case when v_mode = 'team' then 6 else 10 end\)/);
+  assert.doesNotMatch(migration, />\s*case when/);
   assert.match(migration, /where team\.id = p_personal_team_id and team\.owner_id = auth\.uid\(\)/);
   assert.match(migration, /where id = p_matchup_id and owner_id = auth\.uid\(\)/);
   const primaryHeaderStart = navigation.indexOf('<nav className="site-primary-links"');
