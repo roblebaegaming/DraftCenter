@@ -3,8 +3,8 @@
 - Last updated: August 13, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified production application commit: `ee8ac856df5c2e73b1aebc158543b4c5af54db64`
-- Latest production migration: 390
+- Verified production application commit: `9ffff2d45e2bca6737f71d0872ba69656439e593`
+- Latest production migration: 392
 
 ## Deployed state
 
@@ -196,6 +196,24 @@ checks, the 252-page build, hosted Preview review, exact Production deployment
 at commit `ee8ac856`, live metadata and image verification, and the 19-check
 production smoke sweep passed. No migration, production data, provider setting,
 environment variable, or secret changed.
+
+Pull requests [#211](https://github.com/roblebaegaming/DraftCenter/pull/211)
+and [#212](https://github.com/roblebaegaming/DraftCenter/pull/212) shipped the
+private account Pokédex Tracker and the focused Draft Lab update. The live
+tracker at `/pokedex-tracker` supports multiple saved game and Pokémon HOME
+collections, independent standard and shiny progress, automatic account
+persistence, search, filters, pagination, rename, deletion, HOME box labels,
+and responsive artwork galleries. Migrations 391 and 392 keep all progress
+behind account-scoped RPCs with direct browser table access denied and expose
+the complete 1,025-species HOME National Dex, including Diancie, Hoopa, and
+Volcanion. Draft Lab now offers only six-Pokémon battle teams and focused
+10-Pokémon draft rosters, with directional prompts for balance, hyper offense,
+hazard/pivot offense, weather or terrain, Trick Room or speed control, and
+stall/control. The tracker canonical, social preview, structured data, sitemap,
+`llms.txt`, internal discovery, 320px and 390px layout checks, isolated
+two-account privacy matrix, full suite, 255-page build, exact Production
+deployment at commit `9ffff2d4`, and 20-check production smoke sweep passed.
+No real production tracker or synthetic production account was created.
 
 The August 9 release wave is complete. Pull requests
 [#95](https://github.com/roblebaegaming/DraftCenter/pull/95) through
@@ -833,7 +851,9 @@ guard merely to remove that measurement gap.
 ## Authoritative records
 
 - Current continuation handoff:
-  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-13-final-seo-and-release-consolidation.md`](handoffs/DraftCenter-agent-handoff-2026-08-13-final-seo-and-release-consolidation.md)
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-13-pokedex-tracker-and-draft-lab-release.md`](handoffs/DraftCenter-agent-handoff-2026-08-13-pokedex-tracker-and-draft-lab-release.md)
+- Pokédex Tracker product and data contract:
+  [`docs/pokedex-trackers.md`](pokedex-trackers.md)
 - Mega Bracket product and data contract:
   [`docs/mega-bracket.md`](mega-bracket.md)
 - Daily Games product and safety contract:
