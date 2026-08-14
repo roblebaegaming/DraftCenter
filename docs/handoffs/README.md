@@ -1,7 +1,15 @@
 # Agent handoffs
 
+[`DraftCenter-agent-handoff-2026-08-13-nuzlocke-location-grouping.md`](DraftCenter-agent-handoff-2026-08-13-nuzlocke-location-grouping.md)
+is the current continuation handoff. It records the deployed Nuzlocke
+named-location grouping fix through pull request #205, including parent-key
+grouping across all 37 reviewed game catalogues, retained floor/subarea
+details, protected release evidence, the exact Production application commit,
+and post-deployment verification. Start from fresh `origin/main`; no migration
+is required.
+
 [`DraftCenter-agent-handoff-2026-08-13-mega-bracket-production.md`](DraftCenter-agent-handoff-2026-08-13-mega-bracket-production.md)
-is the current continuation handoff. It records the deployed Full Dex Mega
+is the preceding continuation handoff. It records the deployed Full Dex Mega
 Bracket through pull request #197 and migration 389, including the frozen
 1,162-entry catalogue, private revision-safe saving, Top 64 and image-export
 contracts, isolated Preview evidence, exact Production application commit,
