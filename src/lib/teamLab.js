@@ -8,6 +8,12 @@ export const TEAM_LAB_ABILITY_LIMIT = 100;
 export const TEAM_LAB_BATTLE_REPORT_VERSION = 1;
 export const TEAM_LAB_BATTLE_MOVE_LIMIT = 4;
 export const TEAM_LAB_BATTLE_NOTE_LIMIT = 10000;
+export const TEAM_LAB_TURN_LOG_VERSION = 1;
+export const TEAM_LAB_TURN_EVENT_LIMIT = 300;
+export const TEAM_LAB_TURN_NOTE_LIMIT = 160;
+export const TEAM_LAB_TURN_DAMAGE_LIMIT = 40;
+export const TEAM_LAB_GAME_MAX = 9;
+export const TEAM_LAB_TURN_MAX = 999;
 export const TEAM_LAB_WEEK_LABEL_LIMIT = 100;
 
 function cleanText(value, limit) {
@@ -163,6 +169,85 @@ function normalizeBattlePokemon(entries, rosterNames, catalogNames, opponent = f
   });
 }
 
+export function normalizeTeamLabTurnLog(turnLog, myRosterNames = [], opponentRosterNames = [], catalogNames = null) {
+  const source = turnLog && typeof turnLog === "object" && !Array.isArray(turnLog) ? turnLog : {};
+  const myRoster = normalizeTeamLabRoster(myRosterNames, catalogNames || myRosterNames);
+  const opponentRoster = normalizeTeamLabRoster(opponentRosterNames, catalogNames || opponentRosterNames);
+  const rosters = { my: new Set(myRoster), opponent: new Set(opponentRoster) };
+  const sourceEvents = Array.isArray(source.events) ? source.events.slice(-TEAM_LAB_TURN_EVENT_LIMIT) : [];
+  const events = [];
+  const ids = new Set();
+
+  for (const [index, entry] of sourceEvents.entries()) {
+    if (!entry || typeof entry !== "object" || Array.isArray(entry)) continue;
+    const game = entry.game == null ? 1 : Number(entry.game);
+    const turn = Number(entry.turn);
+    const kind = ["move", "switch", "faint", "note"].includes(entry.kind) ? entry.kind : "";
+    const side = entry.side === "opponent" ? "opponent" : entry.side === "my" ? "my" : "";
+    if (!Number.isInteger(game) || game < 1 || game > TEAM_LAB_GAME_MAX
+      || !Number.isInteger(turn) || turn < 1 || turn > TEAM_LAB_TURN_MAX || !kind || !side) continue;
+
+    const pokemon = rosters[side].has(cleanText(entry.pokemon, 120)) ? cleanText(entry.pokemon, 120) : "";
+    const targetSide = side === "my" ? "opponent" : "my";
+    const target = rosters[targetSide].has(cleanText(entry.target, 120)) ? cleanText(entry.target, 120) : "";
+    const move = cleanText(entry.move, 100);
+    const damage = cleanText(entry.damage, TEAM_LAB_TURN_DAMAGE_LIMIT);
+    const note = cleanText(entry.note, TEAM_LAB_TURN_NOTE_LIMIT);
+    if (kind === "note" ? !note : !pokemon) continue;
+    if (kind === "move" && !move) continue;
+
+    const baseId = cleanText(entry.id, 80) || `turn-${turn}-${index + 1}`;
+    let id = baseId;
+    let suffix = 2;
+    while (ids.has(id)) {
+      id = `${baseId.slice(0, 72)}-${suffix}`;
+      suffix += 1;
+    }
+    ids.add(id);
+    events.push({
+      id,
+      game,
+      turn,
+      kind,
+      side,
+      pokemon: kind === "note" ? "" : pokemon,
+      target: kind === "move" ? target : "",
+      move: kind === "move" ? move : "",
+      damage: kind === "move" ? damage : "",
+      note,
+    });
+  }
+
+  const savedGame = Number(source.current_game);
+  const latestGame = events.reduce((latest, event) => Math.max(latest, event.game), 1);
+  const currentGame = Number.isInteger(savedGame) && savedGame >= 1 && savedGame <= TEAM_LAB_GAME_MAX
+    ? Math.max(savedGame, latestGame)
+    : latestGame;
+  const savedTurn = Number(source.current_turn);
+  const latestTurn = events
+    .filter((event) => event.game === currentGame)
+    .reduce((latest, event) => Math.max(latest, event.turn), 1);
+  const currentTurn = Number.isInteger(savedTurn) && savedTurn >= 1 && savedTurn <= TEAM_LAB_TURN_MAX
+    && (!Number.isInteger(savedGame) || savedGame === currentGame)
+    ? Math.max(savedTurn, latestTurn)
+    : latestTurn;
+  const activeMyPokemon = myRoster.includes(cleanText(source.active_my_pokemon, 120))
+    ? cleanText(source.active_my_pokemon, 120)
+    : "";
+  const activeOpponentPokemon = opponentRoster.includes(cleanText(source.active_opponent_pokemon, 120))
+    ? cleanText(source.active_opponent_pokemon, 120)
+    : "";
+
+  return {
+    version: TEAM_LAB_TURN_LOG_VERSION,
+    current_game: currentGame,
+    current_turn: currentTurn,
+    active_my_pokemon: activeMyPokemon,
+    active_opponent_pokemon: activeOpponentPokemon,
+    events,
+  };
+}
+
 export function normalizeTeamLabBattleReport(report, myRosterNames = [], opponentRosterNames = [], catalogNames = null, opponentSets = null) {
   const source = report && typeof report === "object" && !Array.isArray(report) ? report : {};
   const normalizedSets = normalizeTeamLabOpponentSets(opponentSets, opponentRosterNames, catalogNames || opponentRosterNames);
@@ -171,6 +256,7 @@ export function normalizeTeamLabBattleReport(report, myRosterNames = [], opponen
     my_pokemon: normalizeBattlePokemon(source.my_pokemon, myRosterNames, catalogNames),
     opponent_pokemon: normalizeBattlePokemon(source.opponent_pokemon, opponentRosterNames, catalogNames, true, normalizedSets),
     battle_notes: cleanText(source.battle_notes, TEAM_LAB_BATTLE_NOTE_LIMIT),
+    turn_log: normalizeTeamLabTurnLog(source.turn_log, myRosterNames, opponentRosterNames, catalogNames),
   };
 }
 
