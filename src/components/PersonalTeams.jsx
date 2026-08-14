@@ -140,7 +140,7 @@ export default function PersonalTeams() {
     window.location.assign("/tools/team-builder");
   }
   function downloadPrivateBackup() {
-    const payload={format:"draftcenter-my-teams",version:2,exported_at:new Date().toISOString(),personal_teams:teams,team_lab_matchups:teamLabMatchups};
+    const payload={format:"draftcenter-my-teams",version:3,exported_at:new Date().toISOString(),personal_teams:teams,team_lab_matchups:teamLabMatchups};
     const url=URL.createObjectURL(new Blob([JSON.stringify(payload,null,2)],{type:"application/json"}));
     const link=document.createElement("a"); link.href=url; link.download=`draftcenter-my-teams-${new Date().toISOString().slice(0,10)}.json`; link.click(); URL.revokeObjectURL(url);
   }
@@ -160,10 +160,14 @@ export default function PersonalTeams() {
     plans["!cols"]=[24,12,28,50,100].map((wch)=>({wch}));
     XLSX.utils.book_append_sheet(workbook,plans,"Planning");
     const matchups=XLSX.utils.aoa_to_sheet([
-      ["Your team","Opponent","Opponent team","Roster","Notes","Format"],
-      ...teamLabMatchups.map((matchup)=>[teams.find((team)=>team.id===matchup.personal_team_id)?.team_name||"",matchup.opponent_name,matchup.opponent_team_name||"",(matchup.pokemon||[]).join(", "),matchup.notes||"",matchup.format_id||""]),
+      ["Your team","Week or round","Team sheet","Opponent","Opponent team","Roster","Observed moves","Battle notes","Matchup notes","Format"],
+      ...teamLabMatchups.map((matchup)=>[
+        teams.find((team)=>team.id===matchup.personal_team_id)?.team_name||"",matchup.week_label||"",matchup.sheet_mode==="open"?"Open":"Closed",matchup.opponent_name,matchup.opponent_team_name||"",(matchup.pokemon||[]).join(", "),
+        (matchup.battle_report?.opponent_pokemon||[]).filter((pokemon)=>pokemon.brought||pokemon.fainted||pokemon.moves?.length).map((pokemon)=>`${pokemon.name}${pokemon.moves?.length?`: ${pokemon.moves.join(", ")}`:""}${pokemon.fainted?" (fainted)":""}`).join("; "),
+        matchup.battle_report?.battle_notes||"",matchup.notes||"",matchup.format_id||"",
+      ]),
     ]);
-    matchups["!cols"]=[24,24,24,60,100,20].map((wch)=>({wch}));
+    matchups["!cols"]=[24,18,12,24,24,60,90,100,100,20].map((wch)=>({wch}));
     XLSX.utils.book_append_sheet(workbook,matchups,"Team Lab matchups");
     XLSX.writeFile(workbook,`draftcenter-my-teams-${new Date().toISOString().slice(0,10)}.xlsx`);
   }
@@ -172,7 +176,7 @@ export default function PersonalTeams() {
     setBusy(true); setMessage("");
     try {
       const parsed=JSON.parse(await file.text());
-      if(parsed?.format!=="draftcenter-my-teams"||![1,2].includes(parsed?.version)||!Array.isArray(parsed.personal_teams))throw new Error("Choose a DraftCenter My Teams recovery file.");
+      if(parsed?.format!=="draftcenter-my-teams"||![1,2,3].includes(parsed?.version)||!Array.isArray(parsed.personal_teams))throw new Error("Choose a DraftCenter My Teams recovery file.");
       if(!window.confirm(`Restore ${parsed.personal_teams.length} private team workspace${parsed.personal_teams.length===1?"":"s"}? Matching teams will be updated and new teams will be added.`))return;
       const rows=parsed.personal_teams.map((team)=>({
         id:team.id,owner_id:user.id,team_name:String(team.team_name||"").trim(),league_name:nullable(team.league_name),format_name:nullable(team.format_name),
@@ -184,7 +188,7 @@ export default function PersonalTeams() {
       if(rows.some((team)=>!team.id||!team.team_name))throw new Error("The recovery file contains an invalid team.");
       const {error}=await supabase.rpc("restore_my_personal_teams",{p_teams:rows});
       if(error)throw error;
-      if(parsed.version===2&&Array.isArray(parsed.team_lab_matchups)&&parsed.team_lab_matchups.length){
+      if(parsed.version>=2&&Array.isArray(parsed.team_lab_matchups)&&parsed.team_lab_matchups.length){
         const {error:matchupError}=await supabase.rpc("restore_my_team_lab_matchups",{p_matchups:parsed.team_lab_matchups});
         if(matchupError)throw matchupError;
       }

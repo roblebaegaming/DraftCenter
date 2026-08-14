@@ -1,6 +1,10 @@
 export const TEAM_LAB_HANDOFF_KEY = "draftcenter-team-lab-handoff-v1";
 export const TEAM_LAB_HANDOFF_VERSION = 1;
 export const TEAM_LAB_OPPONENT_LIMIT = 10;
+export const TEAM_LAB_BATTLE_REPORT_VERSION = 1;
+export const TEAM_LAB_BATTLE_MOVE_LIMIT = 4;
+export const TEAM_LAB_BATTLE_NOTE_LIMIT = 10000;
+export const TEAM_LAB_WEEK_LABEL_LIMIT = 100;
 
 function cleanText(value, limit) {
   return String(value || "").trim().slice(0, limit);
@@ -48,4 +52,83 @@ export function parseTeamLabHandoff(raw, catalogNames) {
   } catch {
     return null;
   }
+}
+
+function uniqueText(values, limit, itemLimit) {
+  const normalized = [];
+  for (const value of Array.isArray(values) ? values : []) {
+    const text = cleanText(value, itemLimit);
+    if (!text || normalized.some((item) => item.toLowerCase() === text.toLowerCase())) continue;
+    normalized.push(text);
+    if (normalized.length >= limit) break;
+  }
+  return normalized;
+}
+
+function normalizeBattlePokemon(entries, rosterNames, catalogNames, opponent = false) {
+  const sourceEntries = (Array.isArray(entries) ? entries : []).filter((entry) => entry && typeof entry === "object");
+  const allowed = catalogNames || rosterNames;
+  const savedNames = normalizeTeamLabRoster(sourceEntries.map((entry) => entry.name), allowed);
+  const roster = savedNames.length ? savedNames : normalizeTeamLabRoster(rosterNames, allowed);
+  const byName = new Map(sourceEntries
+    .filter((entry) => entry && typeof entry === "object")
+    .map((entry) => [cleanText(entry.name, 120), entry]));
+
+  return roster.map((name) => {
+    const entry = byName.get(name) || {};
+    const normalized = {
+      name,
+      brought: Boolean(entry.brought),
+      fainted: Boolean(entry.fainted),
+    };
+    if (opponent) normalized.moves = uniqueText(entry.moves, TEAM_LAB_BATTLE_MOVE_LIMIT, 100);
+    return normalized;
+  });
+}
+
+export function normalizeTeamLabBattleReport(report, myRosterNames = [], opponentRosterNames = [], catalogNames = null) {
+  const source = report && typeof report === "object" && !Array.isArray(report) ? report : {};
+  return {
+    version: TEAM_LAB_BATTLE_REPORT_VERSION,
+    my_pokemon: normalizeBattlePokemon(source.my_pokemon, myRosterNames, catalogNames),
+    opponent_pokemon: normalizeBattlePokemon(source.opponent_pokemon, opponentRosterNames, catalogNames, true),
+    battle_notes: cleanText(source.battle_notes, TEAM_LAB_BATTLE_NOTE_LIMIT),
+  };
+}
+
+export function buildTeamLabWeeklyShareText({
+  teamName,
+  leagueName,
+  weekLabel,
+  formatName,
+  opponentName,
+  report,
+}) {
+  const brought = (report?.my_pokemon || []).filter((pokemon) => pokemon.brought).map((pokemon) => pokemon.name);
+  const fullTeam = (report?.my_pokemon || []).map((pokemon) => pokemon.name);
+  const pokemon = brought.length ? brought : fullTeam;
+  const heading = [cleanText(weekLabel, TEAM_LAB_WEEK_LABEL_LIMIT) || "Weekly team", cleanText(teamName, 120)].filter(Boolean).join(" · ");
+  const context = [cleanText(leagueName, 120), cleanText(opponentName, 120) ? `vs. ${cleanText(opponentName, 120)}` : "", cleanText(formatName, 100)].filter(Boolean).join(" · ");
+  return [heading, context, pokemon.length ? pokemon.map((name) => `• ${name}`).join("\n") : "No Pokémon added yet.", "Built in DraftCenter Team Lab"].filter(Boolean).join("\n");
+}
+
+export function buildTeamLabBattleShareText({
+  teamName,
+  leagueName,
+  weekLabel,
+  formatName,
+  opponentName,
+  report,
+}) {
+  const brought = (report?.my_pokemon || []).filter((pokemon) => pokemon.brought).map((pokemon) => pokemon.name);
+  const fullTeam = (report?.my_pokemon || []).map((pokemon) => pokemon.name);
+  const myPokemon = brought.length ? brought : fullTeam;
+  const opponentReveals = (report?.opponent_pokemon || []).filter((pokemon) => pokemon.brought || pokemon.fainted || pokemon.moves?.length);
+  const heading = [cleanText(weekLabel, TEAM_LAB_WEEK_LABEL_LIMIT) || "Battle recap", cleanText(teamName, 120)].filter(Boolean).join(" · ");
+  const context = [cleanText(leagueName, 120), cleanText(opponentName, 120) ? `vs. ${cleanText(opponentName, 120)}` : "", cleanText(formatName, 100)].filter(Boolean).join(" · ");
+  const myLines = myPokemon.length ? myPokemon.map((name) => `• ${name}`).join("\n") : "• No Pokémon marked";
+  const opponentLines = opponentReveals.length
+    ? opponentReveals.map((pokemon) => `• ${pokemon.name}${pokemon.moves?.length ? ` — ${pokemon.moves.join(", ")}` : ""}${pokemon.fainted ? " · fainted" : ""}`).join("\n")
+    : "• No opponent reveals recorded";
+  return [heading, context, "Your weekly team", myLines, "Opponent reveals", opponentLines, "Built in DraftCenter Team Lab"].filter(Boolean).join("\n");
 }

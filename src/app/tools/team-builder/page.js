@@ -2,19 +2,19 @@ import DraftLab from "../../../components/DraftLab";
 
 export const metadata = {
   title: "Pokémon Team Builder, Notes and Matchup Planner",
-  description: "Use Team Lab to build a 6-Pokémon team or 10-Pokémon draft roster, connect saved teams, keep private notes, plan opponents, and check coverage and legality.",
+  description: "Use Team Lab to build teams, keep private weekly matchup plans, record revealed moves in Battle Mode, and check coverage and legality.",
   alternates: { canonical: "/tools/team-builder" },
   keywords: ["Pokémon team builder", "Pokémon matchup planner", "Pokémon draft roster builder", "Pokémon team notes", "Pokémon type coverage", "Pokémon team archetypes"],
   openGraph: {
     type: "website",
     title: "Team Lab: Pokémon Team Builder and Matchup Planner",
-    description: "Build a battle team or draft roster, connect saved teams, keep private notes, and plan opponent matchups.",
+    description: "Build a team, plan each draft matchup, and record revealed moves in a private closed- or open-sheet battle notebook.",
     url: "/tools/team-builder",
   },
   twitter: {
     card: "summary_large_image",
     title: "Team Lab: Pokémon Team Builder and Matchup Planner",
-    description: "Build a battle team or draft roster, connect saved teams, keep private notes, and plan opponent matchups.",
+    description: "Build a team, plan each draft matchup, and record revealed moves in a private closed- or open-sheet battle notebook.",
   },
 };
 
@@ -31,8 +31,8 @@ export default function TeamBuilderPage() {
         browserRequirements: "Requires JavaScript",
         isAccessibleForFree: true,
         url: "https://www.draftcentral.gg/tools/team-builder",
-        description: "A 6- or 10-Pokémon team builder with private account notes, saved-team connections, opponent matchup plans, coverage, legality, and competitive archetype prompts.",
-        featureList: ["Six-Pokémon battle teams", "10-Pokémon draft rosters", "Private team notes", "Opponent matchup plans", "My Teams and league-roster connections", "Common meta archetype prompts", "Type and STAB analysis", "Versioned public share links"],
+        description: "A 6- or 10-Pokémon team builder with private weekly matchup plans, closed- and open-team-sheet Battle Mode, revealed-move tracking, safe team sharing, coverage, and legality prompts.",
+        featureList: ["Six-Pokémon battle teams", "10-Pokémon draft rosters", "Private weekly team notes", "Opponent matchup plans", "Closed- and open-team-sheet Battle Mode", "Revealed move tracking", "Privacy-safe weekly team sharing", "My Teams and league-roster connections", "Common meta archetype prompts", "Type and STAB analysis"],
       },
       {
         "@type": "BreadcrumbList",
@@ -58,6 +58,11 @@ export default function TeamBuilderPage() {
             "@type": "Question",
             name: "What roster sizes does Team Lab support?",
             acceptedAnswer: { "@type": "Answer", text: "Team Lab supports a six-Pokémon battle team and a focused 10-Pokémon draft roster. Both views include type, STAB, Speed, base-stat, legality, and archetype planning signals." },
+          },
+          {
+            "@type": "Question",
+            name: "How does Team Lab Battle Mode handle closed team sheets?",
+            acceptedAnswer: { "@type": "Answer", text: "Choose Closed sheet and add an opponent's moves only as they are revealed during play. Open sheet mode uses the same private notebook but lets you enter the published information before the set. Battle reports stay private unless you deliberately copy a limited weekly team summary." },
           },
         ],
       },
