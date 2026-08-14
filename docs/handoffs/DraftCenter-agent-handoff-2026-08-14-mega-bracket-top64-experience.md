@@ -4,7 +4,8 @@
 - Branch: `codex/mega-bracket-top64-experience-2026-08-14`
 - Base: `06d9fa42b720ad524aab8179fc1df6bb0d16934d`
 - Pull request: [#215](https://github.com/roblebaegaming/DraftCenter/pull/215)
-- Status: implemented, validated, and pushed; not merged or deployed
+- Merge commit: `3bcc222584e697a25ddfdbbf2e7dc8dcbc02fd4e`
+- Status: merged, deployed, and verified in Production
 - Database: no change; production migration 389 remains the Mega Bracket data contract
 
 ## Product result
@@ -89,19 +90,25 @@ artwork, privacy, export, and validation contracts.
 - `git diff --check`: passed
 - Local desktop, 390px, and 320px browser review: passed
 
-The production smoke sweep was not run because this branch is not deployed.
+- Pull request protected checks passed, including JavaScript security analysis,
+  dependency and security checks, full-history secret scanning, CodeQL, and
+  the Vercel Preview.
+- The exact hosted Preview passed desktop, 390px, and 320px visual review.
+- Vercel reported the exact merge commit Ready in Production.
+- `npm run smoke:production`: all 20 public and protected route checks passed.
+- Live Production passed a read-only signed-in desktop, 390px, and 320px
+  review using an existing completed bracket. The four regions, four visual
+  rounds, illustrated finals, four-card recap, internal bracket scrolling,
+  single-column narrow-phone recap, and all 12 inspected result images rendered
+  without page overflow or broken artwork.
+- The live Open Graph image returned HTTP 200 as a PNG.
 
-## Release continuation
+## Release result
 
-1. Require repository checks on pull request #215 and review the exact hosted
-   Preview, including a
-   signed-in disposable or owner-approved existing completed bracket. Do not
-   create or alter a production attempt just for testing.
-2. Merge only after approval and confirm the exact `main` commit reaches Ready
-   in Production.
-3. Run the signed-out production smoke sweep and a read-only signed-in Mega
-   Bracket review. Do not claim production success from local or Preview
-   evidence.
+Pull request #215 is complete. Normal monitoring may continue from the exact
+Production commit above. Any future verification should remain read-only unless
+the owner explicitly authorizes creating or changing a saved attempt.
 
 No migration, production database row, real account attempt, provider setting,
-environment variable, or secret was changed by this implementation.
+environment variable, or secret was changed by implementation or release
+verification.
