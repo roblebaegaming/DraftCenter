@@ -1,5 +1,12 @@
 # Agent handoffs
 
+[`DraftCenter-agent-handoff-2026-08-14-final-production-and-team-lab-deployed.md`](DraftCenter-agent-handoff-2026-08-14-final-production-and-team-lab-deployed.md)
+is the current production continuation handoff. It records the deployed Team
+Lab release through pull request #214 and migration 393, the exact application
+commit and production smoke evidence, the two-account privacy and recovery
+matrix, public-link privacy contract, cleanup of synthetic Preview data, and
+the preserved boundaries around real leagues and private account planning.
+
 [`DraftCenter-agent-handoff-2026-08-14-mega-bracket-top64-experience.md`](DraftCenter-agent-handoff-2026-08-14-mega-bracket-top64-experience.md)
 is the current implementation handoff for the Mega Bracket Top 64 experience in
 pull request [#215](https://github.com/roblebaegaming/DraftCenter/pull/215). It
