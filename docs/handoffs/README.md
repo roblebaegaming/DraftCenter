@@ -1,7 +1,15 @@
 # Agent handoffs
 
+[`DraftCenter-agent-handoff-2026-08-15-team-lab-battle-flow-production.md`](DraftCenter-agent-handoff-2026-08-15-team-lab-battle-flow-production.md)
+is the current production continuation handoff. It records the completed Team
+Lab Battle Mode workflow through pull request #226 and migration 401, including
+the retained-Preview privacy regression and disposable walkthrough, exact
+Production migration postflight, protected merge and deployment, 20-check
+signed-out smoke sweep, preserved private-data boundaries, and remaining
+Pokédex and roadmap work.
+
 [`DraftCenter-agent-handoff-2026-08-15-bank-rescue-classification-production.md`](DraftCenter-agent-handoff-2026-08-15-bank-rescue-classification-production.md)
-is the current production continuation handoff. It records the deployed,
+is the preceding production continuation handoff. It records the deployed,
 official-source-backed Bank Rescue action labels through pull request #224,
 dated provenance in the private Collection inventory and JSON/CSV exports, the
 explicit uncertain/verify boundary, Preview cleanup, exact Production commit,
