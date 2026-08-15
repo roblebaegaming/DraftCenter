@@ -6,6 +6,33 @@
 - Verified production feature commit: `48de68c5786cbbc47f8ce0ea153b33bd9fdd7915`
 - Latest production migration: 401
 
+## Pending release
+
+Pull request [#228](https://github.com/roblebaegaming/DraftCenter/pull/228)
+at candidate commit `bc315da` prepares the Pokédex Tracker as the
+DraftCenter Collector launch candidate. It adds bounded additive CSV import,
+portable JSON backup and restore-as-new-copy, an eight-sheet workbook,
+cross-tracker totals, dated Bank/HOME source freshness, a focused installable
+web app, privacy-safe coarse conversion events, and an owner-run Founding
+Collector beta workflow. Current tools remain free and the Ko-fi contribution
+is voluntary rather than a purchase or entitlement.
+
+The retained isolated Supabase Preview passed migration 402, its rollback-only
+two-account regression, and a signed-in disposable walkthrough covering create,
+CSV import, active and all-tracker JSON backup, restore as new private copies,
+workbook export, and inventory. That walkthrough caught a 1,022-versus-1,025
+HOME summary regression before Production. Forward-only migration 403 now
+derives the hub total from the complete HOME catalog; its focused rollback-only
+regression and hosted 1,025-species verification pass. The disposable account
+was deleted and all five Collector tables returned to zero rows. The focused
+suites, full repository suite, 1,027-row National Dex verification, production
+dependency audit, 258-page build, workbook render review, and responsive visual
+review pass. Protected checks are rerunning for `bc315da`. Production remains
+on migration 401 and commit `48de68c`; migrations 402 and 403 must be applied in
+order before the protected merge, exact deployment confirmation, and signed-out
+production smoke suite. No Production row, provider setting, real tracker, or
+external tester audience changed while preparing the candidate.
+
 ## Deployed state
 
 Pull request [#226](https://github.com/roblebaegaming/DraftCenter/pull/226)

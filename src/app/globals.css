@@ -479,6 +479,7 @@ button { cursor: pointer; }
   .site-quick-links.has-owner-link { grid-template-columns: repeat(8,minmax(0,1fr)); }
   .site-quick-links.has-tracker-link { grid-template-columns: repeat(8,minmax(0,1fr)); }
   .site-quick-links.has-tracker-link.has-owner-link { grid-template-columns: repeat(9,minmax(0,1fr)); }
+  .site-quick-links.is-collector-nav { grid-template-columns: repeat(5,minmax(0,1fr)); }
   .site-quick-links a {
     min-width: 0;
     min-height: 44px;

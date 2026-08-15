@@ -28,10 +28,18 @@ Nuzlocke run state.
 - Named storage locations represent a game save, Pokémon Bank, Pokémon HOME,
   a cartridge box, or other user-described storage. An individual can point to
   one location plus an optional box label and slot from 1 through 30.
-- Inventory can be downloaded as JSON or CSV. Both formats include a dated
-  Bank Rescue classification snapshot and its official source identifiers.
-  CSV cells that begin like a spreadsheet formula are neutralized before
-  download.
+- Collector CSV import accepts checklist rows and repeatable individual rows.
+  It validates the complete file before saving, then adds checked progress,
+  new locations, and new individual records in one transaction. It never
+  unchecks, edits, or deletes an existing record.
+- A tracker or the whole account collection can be downloaded as portable JSON.
+  JSON restore always creates new private tracker copies and never overwrites
+  an existing tracker. Inventory CSV and the portable eight-sheet workbook
+  retain dated Bank Rescue source provenance. Every spreadsheet-bound cell is
+  neutralized when it begins like a formula.
+- The signed-in control center summarizes tracker, registration, shiny,
+  location, and individual counts across every tracker. Its counts come from
+  the same owner-scoped hub RPC and never become public collection statistics.
 - Progress saves immediately to the signed-in DraftCenter account. Search,
   completion filters, and gallery pagination are presentation-only state.
 - HOME trackers show deterministic page, box, and position labels and can be
@@ -54,6 +62,15 @@ detail and inventory tables force RLS. Direct browser table privileges are
 revoked, and authenticated RPCs scope each read, write, rename, and deletion
 to `auth.uid()`. Account and tracker deletion remove all owned collection rows
 through `on delete cascade`.
+
+Migration `402-private-pokedex-collector-import-restore.sql` adds the two
+transactional browser RPCs. `import_my_pokedex_collection()` is limited to one
+owned tracker and bounded lists of progress, locations, and individuals.
+`restore_my_pokedex_trackers()` accepts at most 50 bounded tracker payloads and
+creates new tracker IDs under `auth.uid()`. Both reuse the existing server-side
+catalog, field, ribbon, Poké Ball, location, and ownership validators. A bad
+row rolls back the entire RPC call. Direct browser table access remains denied,
+and the export RPC adds species labels without weakening that boundary.
 
 Catalog membership is validated inside the database before an entry can be
 saved. Game trackers accept only species from a verified `pokemon_games`
@@ -111,6 +128,10 @@ announced in advance. Pokémon's official HOME guidance says that a Bank move
 requires a HOME Premium Plan, is one-way, and that a Pokémon can move onward
 only into a game in which it appears. The UI links each official source and
 includes the reviewed date; JSON and CSV exports retain that provenance.
+The client treats the snapshot as due for review after 30 days. After that
+date, the inventory shows a prominent warning to recheck the linked official
+sources before relying on any service-status guidance. The warning does not
+invent a deadline or change private records.
 
 Action labels are conservative. They can identify owner-recorded transfer
 completion, an intentional preserve choice, Bank records with owner-entered
@@ -139,6 +160,28 @@ account-scoped RPCs after hydration. Metadata, structured data, the sitemap,
 social previews, and public HTML must never contain tracker IDs, tracker names,
 progress, catches, Poké Balls, ribbons, notes, or account identity.
 
+## Install, measurement, and funding boundary
+
+The route publishes a focused DraftCenter Collector web-app manifest and may be
+installed from a supporting browser. Its scoped service worker caches only the
+public offline explanation and Collector icons. It does not cache signed-in
+tracker HTML, RPC responses, collection contents, private notes, uploaded
+files, or account state. An internet connection and sign-in remain required.
+
+Vercel Analytics receives only allowlisted coarse feature events for tracker
+creation, inventory opening, successful import or restore, exports, install
+choices, the Founding Beta support link, and copying the feedback checklist.
+Allowed properties are a feature kind, broad count bucket, placement, or
+result. Account and tracker identifiers, tracker names, Pokémon or species,
+notes, email addresses, filenames, and file contents are forbidden.
+
+The Founding Collector Beta links to the existing DraftCenter Ko-fi. Suggested
+$10 or pay-what-you-want support is a voluntary one-time contribution, not a
+purchase, subscription, entitlement, or promise of premium access. Current
+Collector and league tools remain free. Recruitment materials are stored in
+`docs/pokedex-collector-founding-beta-2026-08-15.md`; using them with real
+people requires the owner to approve the audience and destination.
+
 ## Release checks
 
 Before release, apply migration 391 to an isolated Preview project and verify:
@@ -164,6 +207,19 @@ export, cross-account read/write denial, catalog membership checks, bounded
 levels and box positions, ball and ribbon validation, same-tracker location
 ownership, referenced-location deletion protection, and deletion in specimen-
 then-location order.
+
+Migration 402 requires the rollback-only two-account Preview matrix in
+`supabase/tests/402-private-pokedex-collector-import-restore-preview-regression.sql`.
+It proves additive import, atomic rollback, new-copy restore, cross-account
+denial, aggregate hub counts, species-labeled export, limits, forced RLS, and
+browser-role grant denial.
+
+Migration 403 restores the complete HOME hub total after migration 402 by
+deriving it from `pokedex_tracker_catalog('home')`, including Diancie, Hoopa,
+and Volcanion. Its rollback-only Preview regression is
+`supabase/tests/403-restore-complete-pokedex-home-summary-preview-regression.sql`;
+it must report the same 1,025 total in the catalog list and a saved HOME tracker
+without weakening the Collector RPC grants.
 
 Run `npm run test:pokedex-tracker`, `npm run test:seo`,
 `npm run test:release-integration`, the full application suite, the National

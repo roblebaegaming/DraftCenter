@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createClient } from "../lib/supabase/client";
+import PokedexCollectorLaunchPanel from "./PokedexCollectorLaunchPanel";
 import {
   bankRescueExport,
   BANK_RESCUE_ACTIONS,
@@ -28,6 +29,7 @@ import {
   POKEDEX_TRACKER_PAGE_SIZE,
   POKEDEX_TRANSFER_STATE_OPTIONS,
 } from "../lib/pokedexTracker";
+import { trackPokedexCollectorEvent } from "../lib/pokedexAnalytics";
 
 function ProgressRing({ progress, label, shiny = false }) {
   return <div className={`dex-tracker-ring ${shiny ? "is-shiny" : ""}`} style={{ "--dex-progress": `${progress.percentage * 3.6}deg` }}>
@@ -298,6 +300,7 @@ function CollectionInventoryPanel({ inventory, loading, busy, error, onReload, o
     {loading ? <div className="dex-tracker-loading is-inline"><span className="dex-ball" aria-hidden="true" /><h3>Loading private inventory…</h3></div> : <>
       <section className="dex-rescue-review" aria-labelledby="dex-rescue-review-title">
         <div className="dex-rescue-status"><span>OFFICIAL STATUS · REVIEWED {rescueReview.reviewed_on}</span><h4 id="dex-rescue-review-title">{rescueReview.status.headline}</h4><p>{rescueReview.status.summary}</p></div>
+        <p className={`dex-rescue-freshness ${rescueReview.source_freshness.stale ? "is-stale" : ""}`} role={rescueReview.source_freshness.stale ? "alert" : undefined}><strong>{rescueReview.source_freshness.stale ? "Source review due." : "Source review current."}</strong> {rescueReview.source_freshness.message}</p>
         {!!rescueReview.records.length && <div className="dex-rescue-counts" aria-label="Bank Rescue classification counts">{Object.entries(rescueReview.counts).map(([key, count]) => <span key={key} className={`is-${BANK_RESCUE_ACTIONS[key].tone}`}><b>{count}</b>{BANK_RESCUE_ACTIONS[key].label}</span>)}</div>}
         <p className="dex-rescue-boundary"><strong>{rescueReview.uncertain_count || 0} availability checks remain uncertain—verify.</strong> Labels use your private inventory plus the dated official facts below. They do not prove transfer support, current form availability, ribbon availability, or completion.</p>
         <details><summary>Why these labels and sources</summary><p>Review order uses your recorded location, transfer choice, importance, event flag, ribbons, and origin mark. It never infers a deadline or says an individual is easy to obtain later.</p><ul>{rescueReview.sources.map((source) => <li key={source.id}><a href={source.url} target="_blank" rel="noreferrer">{source.publisher}: {source.title}</a><span>Reviewed {source.reviewed_on}{source.source_updated_on ? ` · source updated ${source.source_updated_on}` : ""}</span></li>)}</ul></details>
@@ -520,6 +523,7 @@ export default function PokedexTrackerPage() {
     if (accountVersion !== accountVersionRef.current) return;
     setBusy(false);
     if (error) { setMessage(error.message); return; }
+    trackPokedexCollectorEvent("tracker_created", { kind: values.catalogKey === "home" ? "home" : "game" });
     setShowCreate(false);
     await loadHub(data.id);
   }
@@ -614,11 +618,20 @@ export default function PokedexTrackerPage() {
       return null;
     }
     setInventory(data);
+    setHub((current) => current ? {
+      ...current,
+      trackers: current.trackers.map((tracker) => tracker.id === trackerId ? {
+        ...tracker,
+        location_count: data.locations?.length || 0,
+        specimen_count: data.specimens?.length || 0,
+      } : tracker),
+    } : current);
     return data;
   }
 
   async function openInventory(entry = null) {
     if (!active) return;
+    trackPokedexCollectorEvent("inventory_opened", { kind: entry ? "entry" : "tracker" });
     setInventoryOpen(true);
     const loaded = inventory?.tracker_id === active.tracker.id ? inventory : await loadInventory(active.tracker.id);
     if (entry && loaded) setSpecimenTarget({ pokemon_id: entry.pokemon_id, is_shiny: mode === "shiny" });
@@ -769,6 +782,15 @@ export default function PokedexTrackerPage() {
     </header>
 
     {message && <p className="dex-tracker-message" role="status" aria-live="polite">{message}</p>}
+
+    <PokedexCollectorLaunchPanel
+      supabase={supabase}
+      hub={hub}
+      active={active}
+      inventory={inventory}
+      onEnsureInventory={() => loadInventory(active?.tracker?.id)}
+      onReload={(preferredId) => loadHub(preferredId, accountVersionRef.current)}
+    />
 
     <section className="dex-tracker-workspace">
       <aside className="dex-tracker-sidebar">

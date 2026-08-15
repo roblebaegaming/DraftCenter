@@ -64,6 +64,7 @@ export default function SiteQuickLinks() {
   }
 
   const accountName = username ? `@${username}` : "Account";
+  const collectorRoute = pathname.startsWith("/pokedex-tracker");
 
   return <>
     <header className="site-global-header">
@@ -91,7 +92,13 @@ export default function SiteQuickLinks() {
         </div>
       </div>
     </header>
-    <nav className={`site-quick-links${signedIn ? " has-tracker-link" : ""}${isOwner ? " has-owner-link" : ""}`} aria-label="Tools and resources">
+    {collectorRoute ? <nav className="site-quick-links is-collector-nav" aria-label="Collector navigation">
+      <a href="/pokedex-tracker/" {...navState(pathname, "/pokedex-tracker")}><span className="quick-label-wide">Collector home</span><span className="quick-label-compact">Home</span></a>
+      <a href="/pokemon"><span className="quick-label-wide">Public Pokédex</span><span className="quick-label-compact">Dex</span></a>
+      <a href="/pokedex-tracker/#collector-tools"><span className="quick-label-wide">Import &amp; export</span><span className="quick-label-compact">Files</span></a>
+      <a href="/pokedex-tracker/#install-collector"><span className="quick-label-wide">Install Collector</span><span className="quick-label-compact">Install</span></a>
+      <a href="/pokedex-tracker/#collector-founding-beta"><span className="quick-label-wide">Founding beta</span><span className="quick-label-compact">Beta</span></a>
+    </nav> : <nav className={`site-quick-links${signedIn ? " has-tracker-link" : ""}${isOwner ? " has-owner-link" : ""}`} aria-label="Tools and resources">
       <a href="/resources/daily-games" aria-label="Daily Games" {...navState(pathname, "/resources/daily-games")}><span className="quick-label-wide">Daily Games</span><span className="quick-label-compact">Daily</span></a>
       <a href="/tools/team-builder" aria-label="Team Lab" {...navState(pathname, "/tools/team-builder")}><span className="quick-label-wide">Team Lab</span><span className="quick-label-compact">Lab</span></a>
       <a href="/nuzlocke" aria-label="Nuzlockes" {...navState(pathname, "/nuzlocke")}><span className="quick-label-wide">Nuzlockes</span><span className="quick-label-compact">Nuz</span></a>
@@ -102,6 +109,6 @@ export default function SiteQuickLinks() {
       {isOwner && <a href="/operations" aria-label="Operations" {...navState(pathname, "/operations")}><span className="quick-label-wide">Operations</span><span className="quick-label-compact">Ops</span></a>}
       <a href="/my-teams" aria-label="My Teams" {...navState(pathname, "/my-teams")}><span className="quick-label-wide">My Teams</span><span className="quick-label-compact">Teams</span></a>
       {!signedIn && <a href="/manuals" aria-label="Help" {...navState(pathname, "/manuals")}><span className="quick-label-wide">Help</span><span className="quick-label-compact">Help</span></a>}
-    </nav>
+    </nav>}
   </>;
 }

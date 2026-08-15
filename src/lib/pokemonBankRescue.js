@@ -1,4 +1,23 @@
 export const BANK_RESCUE_REVIEWED_ON = "2026-08-15";
+export const BANK_RESCUE_SOURCE_REVIEW_DAYS = 30;
+
+export function bankRescueSourceFreshness(asOf = new Date()) {
+  const reviewed = new Date(`${BANK_RESCUE_REVIEWED_ON}T00:00:00.000Z`);
+  const due = new Date(reviewed);
+  due.setUTCDate(due.getUTCDate() + BANK_RESCUE_SOURCE_REVIEW_DAYS);
+  const checkedAt = asOf instanceof Date ? asOf : new Date(asOf);
+  const validCheckedAt = Number.isNaN(checkedAt.getTime()) ? new Date() : checkedAt;
+  const stale = validCheckedAt.getTime() > due.getTime();
+  return {
+    status: stale ? "review-due" : "current",
+    stale,
+    reviewed_on: BANK_RESCUE_REVIEWED_ON,
+    next_review_on: due.toISOString().slice(0, 10),
+    message: stale
+      ? `Bank and HOME source facts were last reviewed ${BANK_RESCUE_REVIEWED_ON}. Recheck the linked official sources before relying on this guidance.`
+      : `Bank and HOME source facts were reviewed ${BANK_RESCUE_REVIEWED_ON}; the next source review is due ${due.toISOString().slice(0, 10)}.`,
+  };
+}
 
 export const BANK_RESCUE_STATUS = Object.freeze({
   headline: "Nintendo currently says no Pokémon Bank end date is planned.",
@@ -192,6 +211,7 @@ export function buildBankRescueReview(inventory = {}) {
 
   return {
     reviewed_on: BANK_RESCUE_REVIEWED_ON,
+    source_freshness: bankRescueSourceFreshness(),
     status: BANK_RESCUE_STATUS,
     sources: BANK_RESCUE_SOURCES,
     counts,
@@ -204,6 +224,7 @@ export function bankRescueExport(inventory = {}) {
   const review = buildBankRescueReview(inventory);
   return {
     reviewed_on: review.reviewed_on,
+    source_freshness: review.source_freshness,
     status: review.status,
     sources: review.sources,
     classifications: review.records.map(({ specimen, classification }) => ({

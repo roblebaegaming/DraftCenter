@@ -5,6 +5,7 @@ export const metadata = {
   title: "Pokédex Tracker for Every Pokémon Game and HOME",
   description: "Create private Pokédex checklists and individual collection records for every supported Pokémon game and Pokémon HOME, with storage locations, transfer plans, and portable exports.",
   alternates: { canonical: "/pokedex-tracker" },
+  manifest: "/pokedex-tracker/manifest.webmanifest",
   keywords: ["Pokédex tracker", "Pokémon checklist", "shiny Pokédex tracker", "Pokémon HOME Pokédex tracker", "living dex tracker"],
   openGraph: {
     type: "website",

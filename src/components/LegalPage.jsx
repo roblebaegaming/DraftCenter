@@ -4,7 +4,7 @@ export default function LegalPage() {
       <div className="public-page-nav"><a className="quiet-button" href="/">DraftCenter Home</a><a className="quiet-button" href="/explore">Community</a></div>
       <span className="eyebrow">DRAFTCENTER POLICIES</span>
       <h1>Legal, privacy, and community information</h1>
-      <p>Last updated July 23, 2026. Here’s what you should know about using DraftCenter, sharing content, and keeping your league information safe.</p>
+      <p>Last updated August 15, 2026. Here’s what you should know about using DraftCenter, sharing content, and keeping your league or collection information safe.</p>
     </header>
 
     <section id="unofficial-status"><h2>1. Independent and unofficial service</h2>
@@ -43,8 +43,9 @@ export default function LegalPage() {
     </section>
 
     <section id="privacy"><h2>7. Privacy overview</h2>
-      <p>DraftCenter stores the information needed to run the service. This can include your email and profile, league membership, draft picks, results, messages, comments, votes, predictions, badges, notification choices, stream links, and basic security or diagnostic records.</p>
-      <p>That information is used to sign you in, save league activity, calculate community statistics, send notifications you request, prevent misuse, troubleshoot problems, and understand anonymized site traffic. DraftCenter uses Vercel Web Analytics for cookie-free, anonymized page-view measurement.</p>
+      <p>DraftCenter stores the information needed to run the service. This can include your email and profile, league membership, draft picks, results, messages, comments, votes, predictions, badges, notification choices, stream links, private Pokédex checklist progress, collection locations and individual records, and basic security or diagnostic records.</p>
+      <p>That information is used to sign you in, save league and collection activity, calculate community statistics, send notifications you request, prevent misuse, troubleshoot problems, and understand anonymized site traffic. DraftCenter uses Vercel Web Analytics for cookie-free, anonymized page-view measurement.</p>
+      <p>Collector may also record coarse feature events such as whether an import, restore, export, install choice, or support-button selection occurred, plus a broad count range. These events do not include account or tracker identifiers, tracker names, Pokémon or species, notes, email addresses, filenames, or uploaded file contents.</p>
       <p>Information you publish to Community, a public profile, or a public league may be visible to anyone. Private league information is limited to people with the appropriate access.</p>
       <p>DraftCenter does not sell personal information. Aggregated or de-identified league and community statistics may be displayed publicly, including draft trends, matchup results, win rates, poll totals, and Pokémon preference information.</p>
       <p>You can request access, correction, or deletion through DraftCenter’s published support channel. Some records may remain temporarily in backups or where they are needed to resolve security or account issues.</p>
