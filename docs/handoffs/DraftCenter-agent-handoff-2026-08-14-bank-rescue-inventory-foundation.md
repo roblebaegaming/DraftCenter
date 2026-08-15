@@ -6,8 +6,8 @@
 - Worktree: `DraftCenter-bank-rescue-inventory-20260814`
 - Proposed migration: 400
 - Preview validation date: August 15, 2026 Pacific
-- Release state: migration 400 and signed-in flows validated in isolated
-  Preview; branch not yet reviewed, merged, or deployed
+- Release state: isolated database and hosted Preview validation complete;
+  draft pull request #222 open; not merged or deployed
 
 ## Outcome
 
@@ -105,6 +105,14 @@ before application. The postflight confirmed:
 - the origin-mark column and same-tracker location foreign key exist; and
 - the rollback-only two-account migration 400 matrix passes.
 
+The hosted HOME review then exposed one older retained-Preview drift item:
+migration 392 had not been restored there, so HOME still reported 1,022
+species. The existing released migration 392 was applied to that isolated
+project only. Its postflight returned 1,025 distinct HOME rows including IDs
+1023-1025, while migration 400's inventory table and authenticated read RPC
+remained present. The complete migration 400 security postflight and
+rollback-only two-account matrix both passed again after the catalog repair.
+
 Two disposable confirmed Preview accounts then exercised the actual signed-in
 interface. The owner created a Pokémon Red tracker, one Pokémon Bank location,
 and two separate Bulbasaur records while the checklist remained at 0/151. The
@@ -116,23 +124,39 @@ authenticated inventory RPC returned `null` for the owner's tracker. Both
 accounts were deleted afterward; final service-role audits found zero matching
 tracker, location, and specimen rows.
 
+The first hosted Preview sign-in also caught a client-only environment edge:
+the server-only `VERCEL_ENV` signal was not sufficient after hydration, so the
+branch alias could select the non-Preview Supabase configuration. Commit
+`5295f9a` recognizes only Vercel branch aliases matching
+`*-git-*.vercel.app` as Preview hosts, with tests proving that the production
+Vercel alias, DraftCenter domain, and suffix-confusion hosts do not match. No
+Vercel or Supabase provider setting was changed. A newly deployed hosted
+Preview then accepted an account created in the exact retained Preview
+project, confirming the corrected boundary.
+
+The final hosted walkthrough used a 1,025-species HOME tracker, a long Pokémon
+Bank location, and two Bulbasaur records with long private labels. Desktop,
+390px, and 320px reviews kept the inventory controls and both records usable
+without page-level horizontal overflow. JSON and CSV actions completed without
+captured console errors. The exact hosted account was deleted; final audits
+again found zero matching tracker, location, and specimen rows.
+
 The Next.js development overlay reported only its expected local CSP/eval
 warning; the browser console contained no captured warnings or errors. The
 production build did not report that development-only warning.
 
 ## Required before release
 
-1. Review desktop, 390px, and 320px signed-in states on the hosted Preview with
-   enough locations and duplicate individuals to exercise wrapping, long
-   names, and the 1,025-row species selector.
-2. Re-run the protected checks on the final commit and resolve any hosted
-   Preview feedback before merge.
-3. Apply migration 400 to the exact authorized Production project before the
+1. Keep every protected check on pull request #222 passing and resolve any
+   hosted Preview feedback before marking the pull request ready.
+2. Apply migration 400 to the exact authorized Production project before the
    compatible application merge, then verify schema and grants read-only.
-4. Confirm the deployed commit and run the signed-out production smoke sweep.
+3. Merge only after explicit owner approval, confirm the deployed commit, and
+   run the signed-out production smoke sweep.
 
-The only external data writes were migration 400 and exact disposable fixtures
-in the isolated Preview project. No Production database, real tracker,
+The only external data writes were the retained-Preview restoration of
+migration 392, migration 400, and exact disposable fixtures in the isolated
+Preview project. No Production database, real tracker,
 individual record, provider setting, environment variable, credential, or
 secret was changed. Production migration, merge, and deployment remain
 separate owner-authorized release actions.

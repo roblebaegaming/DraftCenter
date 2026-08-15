@@ -4,8 +4,8 @@
 is the current undeployed implementation handoff. It records the private
 individual-Pokémon and storage-location inventory proposed in migration 400,
 portable JSON/CSV exports, completed local checks, the required isolated
-Preview matrix, and the boundary separating this foundation from future
-source-backed Bank deadline and rescue-priority advice.
+Preview matrix and hosted responsive review, and the boundary separating this
+foundation from future source-backed Bank deadline and rescue-priority advice.
 
 [`DraftCenter-agent-handoff-2026-08-14-session-consolidated-production.md`](DraftCenter-agent-handoff-2026-08-14-session-consolidated-production.md)
 is the current production continuation handoff. It records the deployed
