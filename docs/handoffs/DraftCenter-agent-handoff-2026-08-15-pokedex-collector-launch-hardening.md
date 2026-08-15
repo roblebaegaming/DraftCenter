@@ -3,16 +3,16 @@
 - Date: August 15, 2026
 - Branch: `codex/pokedex-launch-hardening-2026-08-15`
 - Pull request: [#228](https://github.com/roblebaegaming/DraftCenter/pull/228)
-- Candidate commit: `bc315dabdfe5e6f1882a8282dcb0e7738851eca4`
+- Feature head: `c8e07ccee16056d1b93640e170ed7ed29b17ec46`
+- Verified Production commit: `e564166439887f4eaf8d6c349375da29a3982be0`
 - Base commit: `61b4c5a3432bf283ba8e3aa33fd7fadb4e5b3e78`
-- Production at handoff: commit `48de68c5786cbbc47f8ce0ea153b33bd9fdd7915`, migration 401
-- Release state: open and intentionally unmerged; migrations 402 and 403 passed
-  in the retained Preview and remain unapplied to Production
+- Previous Production state: commit `48de68c5786cbbc47f8ce0ea153b33bd9fdd7915`, migration 401
+- Release state: migrated, merged, deployed, documented, and smoke-tested
 
 ## Outcome
 
-The private Pokédex Tracker is prepared as the first DraftCenter Collector
-launch candidate. The release adds:
+The private Pokédex Tracker launched as the first DraftCenter Collector
+product. The release adds:
 
 - a UTF-8 CSV template and bounded additive import for checklist progress,
   storage locations, and repeatable individual records;
@@ -100,10 +100,10 @@ hub without rewriting 402 or existing data. Its rollback-only regression is
   widths, provenance URLs, and formula-error scanning passed.
 
 GitHub's protected security and dependency tests, full-history secret scan,
-CodeQL analyses, Vercel deployment, and Vercel Preview comments check pass for
-the original candidate. They are rerunning for `bc315da`. The Supabase Preview
-integration check remains skipped, so it cannot substitute for the completed
-manual isolated regressions.
+CodeQL analyses, Vercel deployment, and Vercel Preview comments check passed
+for feature head `c8e07cc`. The Supabase Preview integration check was skipped,
+so the completed manual isolated regressions remain the authoritative database
+acceptance evidence.
 
 Migration 402 and its rollback-only matrix passed in exact retained Preview
 project `kumcwwuxeecaeqwkydtb`. A hosted signed-in disposable walkthrough then
@@ -113,28 +113,28 @@ and its focused regression passed after the HOME-total issue was found, and the
 hosted tracker then reported 1,025. The disposable user was deleted; tracker,
 progress, detail, location, and specimen row counts all returned to zero.
 
-## Exact release order
+## Production release evidence
 
-1. Wait for the PR's protected security, test, CodeQL, and Vercel checks to
-   finish successfully, and review the hosted application Preview.
-2. Completed: verify exact retained Preview project, apply migration 402, and
-   run its rollback-only two-account regression.
-3. Completed: run the signed-in disposable-data walkthrough, apply migration
-   403 after the discovered HOME-total regression, rerun the hosted check, and
-   clean up the exact disposable account and files.
-4. Apply migrations 402 and 403, in order, to the exact DraftCenter Production
-   project before merging the application. Confirm the migration ledger,
-   1,025-species HOME summary, RLS/grant assertions, and aggregate existing-row
-   preservation.
-5. Merge PR #228 through the protected flow and wait for the production
-   deployment from `main`.
-6. Confirm the exact Vercel Production source commit rather than inferring
-   deployment from the merge.
-7. Run `npm run smoke:production` signed out and review the live Collector
-   route at desktop, 390px, and 320px. Do not create or mutate a real tracker
-   merely to prove the release.
-8. Record the final migration, deployed commit, protected checks, and smoke
-   result in `docs/CURRENT-STATUS.md`.
+Production preflight on exact project `eukexfqpiuidwygllaye` reported the
+complete 1,025-species HOME catalog, two tracker shells, zero progress, detail,
+location, and specimen rows, one Team Lab row, zero Collector client policies,
+denied authenticated table CRUD, and no import/restore RPCs. Migration 402 with
+SHA-256 `E798BB5FA4206F9AE3C4C9704FB43E21F7E3A3298126AD169A6C8FBE7381AC94`
+and migration 403 with SHA-256
+`49CA26B786439CBA6B241030E1A5E5820EC1EEE4712058FA4A68D20984F75E4A`
+were applied in that order before merge.
+
+Postflight preserved every aggregate row count and the existing Team Lab row,
+reported HOME 1,025, forced RLS on all five Collector tables, retained zero
+client policies and denied direct browser CRUD, granted import/restore only to
+authenticated and service roles, and kept the catalog helper unavailable to
+authenticated clients. No rollback regression was run in Production.
+
+The protected flow squash-merged feature head `c8e07cc` as exact `main` commit
+`e564166`. Vercel reported that commit Ready in Production and assigned to
+`www.draftcentral.gg`. The signed-out production smoke suite then passed all 20
+checks, and the live Collector route returned its signed-out product page with
+the expected title and call to action.
 
 ## Owner-controlled follow-up
 
@@ -150,10 +150,14 @@ deployment. The application fails softly when event delivery is unavailable.
 Do not change a provider plan or analytics setting without separate owner
 approval.
 
-## Not done
+## Preserved boundaries and follow-up
 
-- Migrations 402 and 403 were not applied to Production.
-- PR #228 was not merged and no deployment was started.
-- Production smoke testing was not run because there is no deployed change.
-- No Production database row, provider setting, environment variable, secret,
-  payment configuration, real tracker, or real collector audience was changed.
+- No real tracker, progress row, collection detail, location, individual,
+  Team Lab plan, provider setting, environment variable, secret, payment
+  configuration, or collector audience was created or changed for validation.
+- The two existing tracker shells and one existing Team Lab row were preserved.
+- The owner must still approve the exact Founding Collector audience and
+  destination before any invitations are sent.
+- A later provider-capability review may confirm whether Vercel custom events
+  are visible on the current plan; do not change the plan or analytics settings
+  without separate owner approval.
