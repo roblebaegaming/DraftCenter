@@ -8,6 +8,7 @@ import {
   normalizeTeamLabRoster,
   TEAM_LAB_ABILITY_LIMIT,
   TEAM_LAB_BATTLE_MOVE_LIMIT,
+  TEAM_LAB_ITEM_LIMIT,
   TEAM_LAB_OPPONENT_LIMIT,
 } from "../lib/teamLab";
 
@@ -107,7 +108,7 @@ export default function TeamLabOpponentEditor({ form, onChange, onMessage, input
     {!form.pokemon.length && <p className="team-lab-compact-empty">Add the opponent’s known Pokémon now, or save the notes first and return later.</p>}
     {sets.pokemon.length > 0 && <div className="team-lab-opponent-set-grid">{sets.pokemon.map((pokemon, index) => <article key={pokemon.name} className="team-lab-opponent-set-card">
       <header><div><span>{index + 1}</span><strong>{pokemon.name}</strong></div><button type="button" className="text-button danger-text" onClick={() => updateRoster(form.pokemon.filter((name) => name !== pokemon.name))}>Remove</button></header>
-      <label>Ability<input maxLength={TEAM_LAB_ABILITY_LIMIT} value={pokemon.ability} onChange={(event) => updateSet(pokemon.name, { ability: event.target.value })} placeholder="Known or likely ability"/></label>
+      <div className="team-lab-opponent-set-details"><label>Ability<input maxLength={TEAM_LAB_ABILITY_LIMIT} value={pokemon.ability} onChange={(event) => updateSet(pokemon.name, { ability: event.target.value })} placeholder="Known or likely ability"/></label><label>Held item<input maxLength={TEAM_LAB_ITEM_LIMIT} value={pokemon.item} onChange={(event) => updateSet(pokemon.name, { item: event.target.value })} placeholder="Known or likely item"/></label></div>
       <fieldset><legend>Moves</legend><div>{Array.from({ length: TEAM_LAB_BATTLE_MOVE_LIMIT }, (_, moveIndex) => <label key={moveIndex}><span>Move {moveIndex + 1}</span><input maxLength={100} value={pokemon.moves[moveIndex] || ""} onChange={(event) => {
         const moves = [...pokemon.moves];
         moves[moveIndex] = event.target.value;

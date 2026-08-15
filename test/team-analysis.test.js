@@ -30,10 +30,12 @@ import {
   TEAM_LAB_ABILITY_LIMIT,
   TEAM_LAB_BATTLE_MOVE_LIMIT,
   TEAM_LAB_HANDOFF_KEY,
+  TEAM_LAB_ITEM_LIMIT,
   TEAM_LAB_TURN_DAMAGE_LIMIT,
   TEAM_LAB_TURN_EVENT_LIMIT,
   TEAM_LAB_TURN_NOTE_LIMIT,
 } from "../src/lib/teamLab.js";
+import { buildTeamLabWorkbookFilename, buildTeamLabWorkbookSheets } from "../src/lib/teamLabWorkbook.js";
 
 const roster = [
   { name: "Garchomp", t1: "dragon", t2: "ground", stats: { hp: 108, atk: 130, def: 95, spa: 80, spd: 85, spe: 102 } },
@@ -206,22 +208,25 @@ test("private Team Lab handoffs preserve safe account fields without entering sh
   assert.equal(parseTeamLabLeagueMatchupHandoff('{"version":1,"leagueId":"1f7d915f-ae5c-43df-b3d7-d25da1cf07fb"}'), null);
 });
 
-test("opponent set scouting keeps one bounded ability and four unique moves per roster member", () => {
+test("opponent set scouting keeps bounded ability, item, and four unique moves per roster member", () => {
   const catalog = new Set(["Rotom-Wash", "Amoonguss"]);
   const sets = normalizeTeamLabOpponentSets({
     version: 99,
     pokemon: [{
       name: "Rotom-Wash",
       ability: `Levitate${"x".repeat(200)}`,
+      item: `Choice Scarf${"x".repeat(200)}`,
       moves: ["Hydro Pump", "Volt Switch", "hydro pump", "Protect", "Will-O-Wisp", "Thunderbolt"],
     }],
   }, ["Rotom-Wash", "Amoonguss"], catalog);
   assert.equal(sets.version, 1);
   assert.equal(sets.pokemon[0].ability.length, TEAM_LAB_ABILITY_LIMIT);
+  assert.equal(sets.pokemon[0].item.length, TEAM_LAB_ITEM_LIMIT);
   assert.deepEqual(sets.pokemon[0].moves, ["Hydro Pump", "Volt Switch", "Protect", "Will-O-Wisp"]);
-  assert.deepEqual(sets.pokemon[1], { name: "Amoonguss", ability: "", moves: [] });
+  assert.deepEqual(sets.pokemon[1], { name: "Amoonguss", ability: "", item: "", moves: [] });
   const report = normalizeTeamLabBattleReport(null, ["Garchomp"], ["Rotom-Wash", "Amoonguss"], new Set(["Garchomp", ...catalog]), sets);
   assert.equal(report.opponent_pokemon[0].ability.length, TEAM_LAB_ABILITY_LIMIT);
+  assert.equal(report.opponent_pokemon[0].item.length, TEAM_LAB_ITEM_LIMIT);
   assert.deepEqual(report.opponent_pokemon[0].moves, sets.pokemon[0].moves);
 });
 
@@ -272,13 +277,24 @@ test("turn recorder keeps bounded roster-aware moves, damage, switches, faints, 
   }, ["Garchomp"], ["Rotom-Wash"], catalog);
   assert.equal(multiGame.current_game, 2);
   assert.equal(multiGame.current_turn, 3);
+  const reveals = normalizeTeamLabTurnLog({
+    version: 1,
+    current_game: 1,
+    current_turn: 2,
+    events: [
+      { id: "ability-reveal", game: 1, turn: 1, kind: "ability", side: "opponent", pokemon: "Rotom-Wash", detail: "Levitate", note: "Activated" },
+      { id: "item-reveal", game: 1, turn: 2, kind: "item", side: "opponent", pokemon: "Rotom-Wash", detail: "Choice Scarf", note: "Confirmed" },
+      { id: "missing-detail", game: 1, turn: 2, kind: "item", side: "opponent", pokemon: "Rotom-Wash", detail: "" },
+    ],
+  }, ["Garchomp"], ["Rotom-Wash"], catalog);
+  assert.deepEqual(reveals.events.map(({ kind, detail }) => [kind, detail]), [["ability", "Levitate"], ["item", "Choice Scarf"]]);
 });
 
 test("Battle Mode normalizes weekly teams and revealed moves without mixing private share fields", () => {
   const report = normalizeTeamLabBattleReport({
     version: 99,
     my_pokemon: [{ name: "Garchomp", brought: true }, { name: "MissingNo", brought: true }],
-    opponent_pokemon: [{ name: "Rotom-Wash", brought: true, fainted: true, ability: "Levitate", moves: ["Hydro Pump", "Volt Switch", "hydro pump", "Protect", "Will-O-Wisp", "Thunderbolt"] }],
+    opponent_pokemon: [{ name: "Rotom-Wash", brought: true, fainted: true, ability: "Levitate", item: "Choice Scarf", moves: ["Hydro Pump", "Volt Switch", "hydro pump", "Protect", "Will-O-Wisp", "Thunderbolt"] }],
     battle_notes: "Keep the scouting note private",
     turn_log: {
       version: 1,
@@ -321,8 +337,45 @@ test("Battle Mode normalizes weekly teams and revealed moves without mixing priv
     report,
   });
   assert.match(battleShare, /Opponent reveals/);
-  assert.match(battleShare, /Rotom-Wash · Levitate — Hydro Pump, Volt Switch, Protect, Will-O-Wisp · fainted/);
+  assert.match(battleShare, /Rotom-Wash · Ability: Levitate · Item: Choice Scarf — Hydro Pump, Volt Switch, Protect, Will-O-Wisp · fainted/);
   assert.doesNotMatch(battleShare, /scouting note|Private roll note|43%|account/);
+});
+
+test("Team Lab workbook data separates matchups, planned sets, reveals, turns, and editable game plans", () => {
+  const sheets = buildTeamLabWorkbookSheets({
+    myTeam: { team_name: "Rain & Balance", league_name: "Preview League", pokemon: ["Garchomp", "Corviknight"] },
+    matchups: [{
+      id: "matchup-1",
+      opponent_name: "Test Coach",
+      opponent_team_name: "Synthetic Rotoms",
+      week_label: "Week 4",
+      sheet_mode: "closed",
+      format_id: "reg-mb",
+      pokemon: ["Rotom-Wash"],
+      notes: "Prepare two lead paths",
+      opponent_sets: { version: 1, pokemon: [{ name: "Rotom-Wash", ability: "Levitate", item: "Choice Scarf", moves: ["Volt Switch"] }] },
+      battle_report: null,
+    }],
+    activeMatchupId: "matchup-1",
+    activeState: {
+      weekLabel: "Quarterfinal",
+      sheetMode: "open",
+      report: {
+        my_pokemon: [{ name: "Garchomp", brought: true, fainted: false }],
+        opponent_pokemon: [{ name: "Rotom-Wash", brought: true, fainted: false, ability: "Levitate", item: "Choice Scarf", moves: ["Volt Switch"] }],
+        battle_notes: "Save the Ground immunity for Game 2",
+        turn_log: { events: [{ game: 1, turn: 1, side: "opponent", kind: "item", pokemon: "Rotom-Wash", target: "", move: "", detail: "Choice Scarf", damage: "", note: "Speed order" }] },
+      },
+    },
+    formatName: "Mega Battle",
+    exportedAt: new Date("2026-08-15T12:00:00.000Z"),
+  });
+  assert.deepEqual(sheets.map(({ name }) => name), ["Overview", "My Team", "Matchup Plans", "Opponent Sets", "Turn Log", "Game Plans"]);
+  assert.ok(sheets.every((sheet) => sheet.rows.length >= 5 && sheet.widths.length >= 2));
+  assert.deepEqual(sheets.find(({ name }) => name === "Opponent Sets").rows[4].slice(0, 6), ["Quarterfinal", "Test Coach", "Rotom-Wash", "Open", "Levitate", "Choice Scarf"]);
+  assert.deepEqual(sheets.find(({ name }) => name === "Turn Log").rows[4].slice(0, 10), ["Quarterfinal", "Test Coach", 1, 1, "Opponent", "item", "Rotom-Wash", "", "", "Choice Scarf"]);
+  assert.equal(sheets.find(({ name }) => name === "Game Plans").rows.length, 7);
+  assert.equal(buildTeamLabWorkbookFilename("Rain & Balance", new Date("2026-08-15T12:00:00.000Z")), "rain-balance-battle-workbook-2026-08-15.xlsx");
 });
 
 test("Team Lab is indexable while account notes and matchups stay private", () => {
@@ -334,6 +387,7 @@ test("Team Lab is indexable while account notes and matchups stay private", () =
   const battleMigration = fs.readFileSync(new URL("../supabase/395-private-team-lab-battle-reports.sql", import.meta.url), "utf8");
   const scoutingMigration = fs.readFileSync(new URL("../supabase/396-private-team-calendar-links-and-opponent-sets.sql", import.meta.url), "utf8");
   const turnMigration = fs.readFileSync(new URL("../supabase/397-private-team-lab-turn-recorder.sql", import.meta.url), "utf8");
+  const revealMigration = fs.readFileSync(new URL("../supabase/401-private-team-lab-items-and-reveals.sql", import.meta.url), "utf8");
   const opponentEditor = fs.readFileSync(new URL("../src/components/TeamLabOpponentEditor.jsx", import.meta.url), "utf8");
   const calendar = fs.readFileSync(new URL("../src/components/PokemonCalendar.jsx", import.meta.url), "utf8");
   const league = fs.readFileSync(new URL("../src/components/PokemonDraftLeague.jsx", import.meta.url), "utf8");
@@ -363,14 +417,26 @@ test("Team Lab is indexable while account notes and matchups stay private", () =
   assert.match(component, /\.rpc\("delete_my_team_lab_matchup"/);
   assert.match(component, /\.rpc\("save_my_team_lab_battle_report"/);
   assert.match(component, /Open Battle Mode/);
+  assert.match(component, /href="#team-lab-battle-setup">Set up Battle Mode/);
+  assert.match(component, /HOW TO OPEN BATTLE MODE/);
+  assert.match(component, /From this roster to a live turn-by-turn recorder/);
+  assert.match(component, /Save & open Battle Mode/);
+  assert.match(component, /event\.nativeEvent\.submitter\?\.value/);
+  assert.match(component, /<details className="draft-lab-archetypes">/);
+  assert.doesNotMatch(component, /<details className="draft-lab-archetypes" open/);
+  assert.match(component, /OPTIONAL ROSTER PROMPTS · BETA/);
+  assert.match(component, /It does not inspect your actual sets or rate the quality of your team/);
   assert.match(component, /Closed sheet/);
   assert.match(component, /Open sheet/);
   assert.match(component, /Copy weekly team/);
   assert.match(component, /Copy battle recap/);
+  assert.match(component, /Download Excel \/ Sheets workbook/);
   assert.match(component, /Use in report/);
   assert.match(component, /FAST BATTLE TICKER/);
   assert.match(component, /Turn-by-turn recorder/);
   assert.match(component, /Sheet moves — tap one/);
+  assert.match(component, /Opponent appeared — tap once/);
+  assert.match(component, /\[\["move", "Move"\], \["ability", "Ability"\], \["item", "Item"\]/);
   assert.match(component, /Type it the first time it is revealed/);
   assert.match(component, /Damage dealt/);
   assert.match(component, /Record \{actionKind\}/);
@@ -411,7 +477,11 @@ test("Team Lab is indexable while account notes and matchups stay private", () =
   assert.match(turnMigration, /jsonb_array_length\(case when jsonb_typeof\(p_log -> 'events'\)[^\n]+<= 300/);
   assert.match(turnMigration, /octet_length\(p_report::text\) <= 200000/);
   assert.match(turnMigration, /Team Lab turn logs must remain RPC-only/);
+  assert.match(revealMigration, /entry ->> 'kind' not in \('move', 'ability', 'item', 'switch', 'faint', 'note'\)/);
+  assert.match(revealMigration, /char_length\(coalesce\(entry ->> 'item', ''\)\) > 100/);
+  assert.match(revealMigration, /Team Lab reveal recording must remain RPC-only/);
   assert.match(opponentEditor, /Known or likely ability/);
+  assert.match(opponentEditor, /Known or likely item/);
   assert.match(opponentEditor, /Known, likely, or revealed move/);
   assert.match(calendar, /Connect a My Teams workspace/);
   assert.match(calendar, /Plan this matchup/);
