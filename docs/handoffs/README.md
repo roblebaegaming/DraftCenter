@@ -1,14 +1,15 @@
 # Agent handoffs
 
 [`DraftCenter-agent-handoff-2026-08-14-bank-rescue-inventory-foundation.md`](DraftCenter-agent-handoff-2026-08-14-bank-rescue-inventory-foundation.md)
-is the current undeployed implementation handoff. It records the private
-individual-Pokémon and storage-location inventory proposed in migration 400,
-portable JSON/CSV exports, completed local checks, the required isolated
-Preview matrix and hosted responsive review, and the boundary separating this
-foundation from future source-backed Bank deadline and rescue-priority advice.
+is the current production continuation handoff. It records the deployed private
+individual-Pokémon and storage-location inventory through pull request #222 and
+migration 400, portable JSON/CSV exports, the isolated two-account matrix,
+hosted responsive review, exact Production commit and smoke evidence, and the
+boundary separating this foundation from future source-backed Bank deadline
+and rescue-priority advice.
 
 [`DraftCenter-agent-handoff-2026-08-14-session-consolidated-production.md`](DraftCenter-agent-handoff-2026-08-14-session-consolidated-production.md)
-is the current production continuation handoff. It records the deployed
+is the preceding production continuation handoff. It records the deployed
 auction reconciler, Operations organization activity, private Pokédex
 collection details, Team Lab Battle Mode, Calendar and league matchup
 connections, and turn recorder through pull request #220 and migrations
