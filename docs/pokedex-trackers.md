@@ -214,6 +214,13 @@ It proves additive import, atomic rollback, new-copy restore, cross-account
 denial, aggregate hub counts, species-labeled export, limits, forced RLS, and
 browser-role grant denial.
 
+Migration 403 restores the complete HOME hub total after migration 402 by
+deriving it from `pokedex_tracker_catalog('home')`, including Diancie, Hoopa,
+and Volcanion. Its rollback-only Preview regression is
+`supabase/tests/403-restore-complete-pokedex-home-summary-preview-regression.sql`;
+it must report the same 1,025 total in the catalog list and a saved HOME tracker
+without weakening the Collector RPC grants.
+
 Run `npm run test:pokedex-tracker`, `npm run test:seo`,
 `npm run test:release-integration`, the full application suite, the National
 Dex check, dependency audit, and a production build. Render the 1200×630 social

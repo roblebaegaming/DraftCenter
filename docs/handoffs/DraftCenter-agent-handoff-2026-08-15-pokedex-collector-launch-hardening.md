@@ -3,10 +3,11 @@
 - Date: August 15, 2026
 - Branch: `codex/pokedex-launch-hardening-2026-08-15`
 - Pull request: [#228](https://github.com/roblebaegaming/DraftCenter/pull/228)
-- Implementation commit: `378a13492b60dda722155fe5b3269063351e5486`
+- Candidate commit: `bc315dabdfe5e6f1882a8282dcb0e7738851eca4`
 - Base commit: `61b4c5a3432bf283ba8e3aa33fd7fadb4e5b3e78`
 - Production at handoff: commit `48de68c5786cbbc47f8ce0ea153b33bd9fdd7915`, migration 401
-- Release state: open and intentionally unmerged; migration 402 is unapplied
+- Release state: open and intentionally unmerged; migrations 402 and 403 passed
+  in the retained Preview and remain unapplied to Production
 
 ## Outcome
 
@@ -64,12 +65,19 @@ The rollback-only Preview regression is
 `supabase/tests/402-private-pokedex-collector-import-restore-preview-regression.sql`.
 It covers two-account isolation, signed-out denial, additive import, atomic
 rollback, independent-copy restore, invalid and cross-account denial,
-aggregate counts, export labels, RLS, and grants. It has not been executed yet
-because this worktree has no local Supabase Preview database connection.
+aggregate counts, export labels, RLS, and grants. It passed in the retained
+isolated Preview and must never be run in Production.
+
+The retained Preview walkthrough exposed one release-blocking interaction with
+migration 392: migration 402 rebuilt HOME summaries from raw verified game rows
+and reported 1,022 instead of the complete 1,025-species catalog. Forward-only
+migration `supabase/403-restore-complete-pokedex-home-summary.sql` corrects the
+hub without rewriting 402 or existing data. Its rollback-only regression is
+`supabase/tests/403-restore-complete-pokedex-home-summary-preview-regression.sql`.
 
 ## Validation completed
 
-- `npm run test:pokedex-tracker`: 21 of 21 passed.
+- `npm run test:pokedex-tracker`: 22 of 22 passed.
 - `npm run test:seo`: 18 of 18 passed.
 - `npm run test:release-integration`: 5 of 5 passed.
 - `pnpm audit --prod --audit-level high`: no known vulnerabilities.
@@ -93,23 +101,31 @@ because this worktree has no local Supabase Preview database connection.
 
 GitHub's protected security and dependency tests, full-history secret scan,
 CodeQL analyses, Vercel deployment, and Vercel Preview comments check pass for
-the candidate. The Supabase Preview integration check was skipped, so it
-cannot substitute for the required manual isolated regression.
+the original candidate. They are rerunning for `bc315da`. The Supabase Preview
+integration check remains skipped, so it cannot substitute for the completed
+manual isolated regressions.
+
+Migration 402 and its rollback-only matrix passed in exact retained Preview
+project `kumcwwuxeecaeqwkydtb`. A hosted signed-in disposable walkthrough then
+passed tracker creation, additive CSV import, active and all-tracker JSON
+backup, new-copy restore, workbook export, and inventory review. Migration 403
+and its focused regression passed after the HOME-total issue was found, and the
+hosted tracker then reported 1,025. The disposable user was deleted; tracker,
+progress, detail, location, and specimen row counts all returned to zero.
 
 ## Exact release order
 
 1. Wait for the PR's protected security, test, CodeQL, and Vercel checks to
    finish successfully, and review the hosted application Preview.
-2. Verify the exact retained isolated Supabase Preview project before any
-   database action. Apply migration 402 there and run the rollback-only
-   two-account regression file.
-3. Complete one signed-in disposable-data walkthrough in that isolated
-   Preview: CSV preview and confirm, active and all-tracker JSON download,
-   restore as a new copy, workbook download, then clean up only the verified
-   disposable account data.
-4. If the Preview evidence passes, apply migration 402 to the exact DraftCenter
-   Production project before merging the application. Confirm the migration
-   ledger, RLS/grant assertions, and existing tracker-row preservation.
+2. Completed: verify exact retained Preview project, apply migration 402, and
+   run its rollback-only two-account regression.
+3. Completed: run the signed-in disposable-data walkthrough, apply migration
+   403 after the discovered HOME-total regression, rerun the hosted check, and
+   clean up the exact disposable account and files.
+4. Apply migrations 402 and 403, in order, to the exact DraftCenter Production
+   project before merging the application. Confirm the migration ledger,
+   1,025-species HOME summary, RLS/grant assertions, and aggregate existing-row
+   preservation.
 5. Merge PR #228 through the protected flow and wait for the production
    deployment from `main`.
 6. Confirm the exact Vercel Production source commit rather than inferring
@@ -136,9 +152,7 @@ approval.
 
 ## Not done
 
-- Migration 402 was not applied to Preview or Production.
-- The rollback-only Preview regression and signed-in hosted walkthrough were
-  not run.
+- Migrations 402 and 403 were not applied to Production.
 - PR #228 was not merged and no deployment was started.
 - Production smoke testing was not run because there is no deployed change.
 - No Production database row, provider setting, environment variable, secret,
