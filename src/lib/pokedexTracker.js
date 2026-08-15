@@ -3,6 +3,30 @@ export const POKEAPI_SPRITES_COMMIT = "5841d46f1a0d2b8918a29a7376b1424878b86b59"
 export const POKEMON_HOME_BOX_SIZE = 30;
 export const POKEMON_HOME_BOXES_PER_PAGE = 30;
 export const POKEDEX_ENTRY_NOTE_MAX_LENGTH = 1000;
+export const POKEDEX_INVENTORY_NOTE_MAX_LENGTH = 1000;
+export const POKEDEX_LOCATION_NOTE_MAX_LENGTH = 500;
+
+export const POKEDEX_LOCATION_OPTIONS = [
+  { key: "game_save", label: "Game save" },
+  { key: "pokemon_bank", label: "Pokémon Bank" },
+  { key: "pokemon_home", label: "Pokémon HOME" },
+  { key: "cartridge", label: "Cartridge box" },
+  { key: "other", label: "Other storage" },
+];
+
+export const POKEDEX_IMPORTANCE_OPTIONS = [
+  { key: "standard", label: "Standard" },
+  { key: "important", label: "Important" },
+  { key: "irreplaceable", label: "Irreplaceable" },
+];
+
+export const POKEDEX_TRANSFER_STATE_OPTIONS = [
+  { key: "not_planned", label: "Not planned" },
+  { key: "planned", label: "Transfer planned" },
+  { key: "ready", label: "Ready to transfer" },
+  { key: "transferred", label: "Transfer confirmed" },
+  { key: "keep_original", label: "Keep in original game" },
+];
 
 const BASIC_BALL_KEYS = ["poke", "great", "ultra", "master"];
 const GEN_2_BALL_KEYS = ["fast", "level", "lure", "heavy", "love", "friend", "moon", "sport"];
@@ -235,4 +259,68 @@ export function groupPokedexCatalogs(catalogs = []) {
     else groups.push({ label, catalogs: [catalog] });
     return groups;
   }, []);
+}
+
+export function filterPokedexSpecimens(specimens = [], query = "") {
+  const needle = query.trim().toLocaleLowerCase();
+  if (!needle) return specimens;
+  return specimens.filter((specimen) => [
+    specimen.pokemon,
+    specimen.nickname,
+    specimen.form_label,
+    specimen.original_trainer,
+    specimen.origin_game,
+    specimen.origin_mark,
+    specimen.location_name,
+    specimen.box_label,
+    specimen.intended_destination,
+  ].some((value) => String(value || "").toLocaleLowerCase().includes(needle)));
+}
+
+export function pokedexSpecimenDisplayName(specimen = {}) {
+  const species = String(specimen.pokemon || "Unknown Pokémon");
+  const form = String(specimen.form_label || "").trim();
+  const nickname = String(specimen.nickname || "").trim();
+  const identity = form ? `${species} (${form})` : species;
+  return nickname ? `${nickname} · ${identity}` : identity;
+}
+
+function csvCell(value) {
+  let text = value === null || value === undefined ? "" : String(value);
+  if (/^[\t\r\n ]*[=+\-@]/.test(text)) text = `'${text}`;
+  return `"${text.replaceAll('"', '""')}"`;
+}
+
+export function pokedexInventoryCsv(inventory = {}) {
+  const headers = [
+    "species", "national_dex", "form", "nickname", "shiny", "gender", "level",
+    "original_trainer", "origin_game", "origin_mark", "storage_location", "location_type",
+    "box", "box_position", "poke_ball", "ribbons", "event", "importance",
+    "intended_destination", "transfer_state", "transferred_on", "notes",
+  ];
+  const rows = (inventory.specimens || []).map((specimen) => [
+    specimen.pokemon,
+    specimen.dex_number,
+    specimen.form_label,
+    specimen.nickname,
+    specimen.is_shiny ? "yes" : "no",
+    specimen.gender,
+    specimen.level,
+    specimen.original_trainer,
+    specimen.origin_game,
+    specimen.origin_mark,
+    specimen.location_name,
+    specimen.location_kind,
+    specimen.box_label,
+    specimen.box_position,
+    specimen.pokeball,
+    Array.isArray(specimen.ribbons) ? specimen.ribbons.join(" | ") : "",
+    specimen.is_event ? "yes" : "no",
+    specimen.importance,
+    specimen.intended_destination,
+    specimen.transfer_state,
+    specimen.transferred_on,
+    specimen.notes,
+  ]);
+  return [headers, ...rows].map((row) => row.map(csvCell).join(",")).join("\r\n");
 }

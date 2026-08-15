@@ -3,19 +3,19 @@ import "./pokedex-tracker.css";
 
 export const metadata = {
   title: "Pokédex Tracker for Every Pokémon Game and HOME",
-  description: "Create private Pokédex checklists for every supported Pokémon game and Pokémon HOME, with standard and shiny progress, Poké Balls, ribbons, and notes.",
+  description: "Create private Pokédex checklists and individual collection records for every supported Pokémon game and Pokémon HOME, with storage locations, transfer plans, and portable exports.",
   alternates: { canonical: "/pokedex-tracker" },
   keywords: ["Pokédex tracker", "Pokémon checklist", "shiny Pokédex tracker", "Pokémon HOME Pokédex tracker", "living dex tracker"],
   openGraph: {
     type: "website",
     title: "Pokédex Tracker for Every Pokémon Game and HOME",
-    description: "Track catches, shinies, Poké Balls, ribbons, and private notes across every supported game and Pokémon HOME.",
+    description: "Track catches and actual Pokémon across games, saves, Bank, and HOME with private storage locations, transfer plans, and portable exports.",
     url: "/pokedex-tracker",
   },
   twitter: {
     card: "summary_large_image",
     title: "Pokédex Tracker for Every Pokémon Game and HOME",
-    description: "Track catches, shinies, Poké Balls, ribbons, and private notes across every supported game and Pokémon HOME.",
+    description: "Track catches and actual Pokémon across games, saves, Bank, and HOME with private storage locations, transfer plans, and portable exports.",
   },
 };
 
@@ -31,6 +31,10 @@ const questions = [
   {
     question: "Can I save a Pokémon’s ball, ribbons, or notes?",
     answer: "Yes. Each standard or shiny entry can optionally record a supported Poké Ball, game-appropriate ribbons, and a private note. These details remain saved even if you later uncheck the catch.",
+  },
+  {
+    question: "Can I record individual Pokémon and where they are stored?",
+    answer: "Yes. Collection inventory stores repeatable private records for actual individuals, named game-save, Pokémon Bank, Pokémon HOME, cartridge, or other locations, box positions, and owner-entered transfer plans. It never connects to Nintendo services or performs a transfer.",
   },
   {
     question: "Is my Pokédex progress public?",
@@ -58,6 +62,8 @@ export default function PokedexTrackerRoute() {
           "Pokémon HOME National Pokédex",
           "Independent standard and shiny checklists",
           "Optional Poké Ball, ribbon, and note details for every entry",
+          "Private individual Pokémon and storage-location inventory",
+          "Portable JSON and spreadsheet-safe CSV inventory exports",
           "Search, completion filters, progress rings, and responsive galleries",
           "Private cross-device account saving",
         ],
@@ -86,7 +92,7 @@ export default function PokedexTrackerRoute() {
     <section className="dex-tracker-seo" aria-labelledby="dex-tracker-guide-title">
       <span className="dex-kicker">HOW THE TRACKER WORKS</span>
       <h2 id="dex-tracker-guide-title">One private checklist for every Pokédex journey</h2>
-      <p>Choose any supported game or build a Pokémon HOME National Pokédex, then mark each species as registered. Create separate collections for different saves or living-dex projects, record optional Poké Balls, ribbons, and private notes, then search or filter the gallery whenever you return.</p>
+      <p>Choose any supported game or build a Pokémon HOME National Pokédex, then mark each species as registered. Keep the checklist quick, or add separate records for actual individuals, the saves and boxes where they live, and your private transfer intentions.</p>
       <div className="dex-tracker-seo-grid">
         <article>
           <h3>Game-specific Pokédex checklists</h3>
@@ -98,7 +104,7 @@ export default function PokedexTrackerRoute() {
         </article>
         <article>
           <h3>Details for collectors</h3>
-          <p>Each standard or shiny entry can remember its Poké Ball, ribbons available for that game, and a private note. Details are optional and stay saved even when a catch is unchecked.</p>
+          <p>Each standard or shiny entry can remember its Poké Ball, ribbons, and a private note. Collection inventory can separately document multiple actual individuals, storage locations, origin details, importance, and transfer state.</p>
         </article>
       </div>
       <section className="dex-tracker-faq" aria-labelledby="dex-tracker-faq-title">

@@ -3,18 +3,24 @@ import fs from "node:fs";
 import test from "node:test";
 import {
   filterPokedexEntries,
+  filterPokedexSpecimens,
   groupPokedexCatalogs,
   pokedexBallOptions,
   pokedexEntryDetails,
   pokedexHasEntryDetails,
   pokedexArtworkUrl,
   pokedexHomePlacement,
+  pokedexInventoryCsv,
   pokedexRibbonGroups,
+  pokedexSpecimenDisplayName,
   pokedexTrackerProgress,
   POKEDEX_BALL_OPTIONS,
   POKEDEX_ENTRY_NOTE_MAX_LENGTH,
+  POKEDEX_IMPORTANCE_OPTIONS,
+  POKEDEX_LOCATION_OPTIONS,
   POKEDEX_RIBBON_OPTIONS,
   POKEDEX_TRACKER_PAGE_SIZE,
+  POKEDEX_TRANSFER_STATE_OPTIONS,
 } from "../src/lib/pokedexTracker.js";
 
 const source = (path) => fs.readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
@@ -81,6 +87,46 @@ test("standard and shiny entry details remain independent and optional", () => {
   assert.equal(pokedexHasEntryDetails(entry), true);
   assert.equal(pokedexHasEntryDetails({}, "shiny"), false);
   assert.equal(POKEDEX_ENTRY_NOTE_MAX_LENGTH, 1000);
+});
+
+test("individual collection records are searchable, readable, and safely exportable", () => {
+  const specimens = [{
+    pokemon_id: 25,
+    pokemon: "Pikachu",
+    dex_number: 25,
+    form_label: "Partner Cap",
+    nickname: "Sparky",
+    is_shiny: false,
+    gender: "male",
+    level: 88,
+    original_trainer: " =FORMULA()",
+    origin_game: "Pokémon Yellow",
+    origin_mark: "Game Boy origin mark",
+    location_name: "Bank Box 1",
+    location_kind: "pokemon_bank",
+    box_label: "Favorites",
+    box_position: 3,
+    pokeball: "poke",
+    ribbons: ["best-friends"],
+    is_event: false,
+    importance: "irreplaceable",
+    intended_destination: "Pokémon HOME",
+    transfer_state: "planned",
+    transferred_on: null,
+    notes: "Childhood partner",
+  }];
+  assert.equal(pokedexSpecimenDisplayName(specimens[0]), "Sparky · Pikachu (Partner Cap)");
+  assert.equal(filterPokedexSpecimens(specimens, "bank box").length, 1);
+  assert.equal(filterPokedexSpecimens(specimens, "yellow").length, 1);
+  assert.equal(filterPokedexSpecimens(specimens, "missing").length, 0);
+  const csv = pokedexInventoryCsv({ specimens });
+  assert.match(csv, /^"species","national_dex"/);
+  assert.match(csv, /"Pikachu"/);
+  assert.match(csv, /"' =FORMULA\(\)"/);
+  assert.match(csv, /"best-friends"/);
+  assert.deepEqual(POKEDEX_LOCATION_OPTIONS.map(({ key }) => key), ["game_save", "pokemon_bank", "pokemon_home", "cartridge", "other"]);
+  assert.ok(POKEDEX_IMPORTANCE_OPTIONS.some(({ key }) => key === "irreplaceable"));
+  assert.ok(POKEDEX_TRANSFER_STATE_OPTIONS.some(({ key }) => key === "keep_original"));
 });
 
 test("tracker persistence is private, account-scoped, exportable, and catalog-validated", () => {
@@ -152,6 +198,42 @@ test("entry details include an isolated two-account Preview regression matrix", 
   assert.match(sql, /repeat\('x', 1001\)/);
 });
 
+test("collection inventory uses separate forced-RLS tables, owner RPCs, validation, and account export", () => {
+  const sql = source("supabase/400-private-pokedex-collection-inventory.sql");
+  assert.match(sql, /Migration 400/);
+  assert.match(sql, /create table public\.pokedex_collection_locations/i);
+  assert.match(sql, /create table public\.pokedex_collection_specimens/i);
+  assert.match(sql, /foreign key \(tracker_id, user_id\)[\s\S]*references public\.pokedex_trackers\(id, user_id\) on delete cascade/i);
+  assert.match(sql, /foreign key \(location_id, tracker_id, user_id\)[\s\S]*references public\.pokedex_collection_locations/i);
+  assert.match(sql, /alter table public\.pokedex_collection_locations force row level security/i);
+  assert.match(sql, /alter table public\.pokedex_collection_specimens force row level security/i);
+  assert.match(sql, /revoke all on table public\.pokedex_collection_locations from public, anon, authenticated/i);
+  assert.match(sql, /revoke all on table public\.pokedex_collection_specimens from public, anon, authenticated/i);
+  assert.match(sql, /create or replace function public\.get_my_pokedex_collection_inventory/i);
+  assert.match(sql, /create or replace function public\.save_my_pokedex_collection_location/i);
+  assert.match(sql, /create or replace function public\.save_my_pokedex_collection_specimen/i);
+  assert.match(sql, /where id = p_tracker_id and user_id = auth\.uid\(\)\s+for update/i);
+  assert.match(sql, /pokedex_tracker_catalog\(v_tracker\.catalog_key\)/i);
+  assert.match(sql, /pokedex_tracker_detail_key_is_known\('pokeball'/i);
+  assert.match(sql, /pokedex_tracker_detail_key_is_known\('ribbon'/i);
+  assert.match(sql, /Move or delete the Pokemon stored here before deleting this location/i);
+  assert.match(sql, /'locations', coalesce/i);
+  assert.match(sql, /'specimens', coalesce/i);
+  assert.match(sql, /grant execute on function public\.save_my_pokedex_collection_specimen[\s\S]*to authenticated, service_role/i);
+  assert.doesNotMatch(sql, /grant (select|insert|update|delete|all) on table public\.pokedex_collection_(?:locations|specimens) to authenticated/i);
+});
+
+test("collection inventory includes an isolated two-account Preview regression matrix", () => {
+  const sql = source("supabase/tests/400-private-pokedex-collection-inventory-preview-regression.sql");
+  assert.match(sql, /^-- Preview-only owner, privacy, validation, deletion, and export matrix/m);
+  assert.match(sql, /begin;[\s\S]*rollback;/);
+  assert.match(sql, /A second account can read another account collection inventory/);
+  assert.match(sql, /999999/);
+  assert.match(sql, /'level', 101/);
+  assert.match(sql, /not-a-ball/);
+  assert.match(sql, /v_referenced_location_delete_denied/);
+});
+
 test("the account page offers multiple game, HOME, shiny, collection-detail, filter, pagination, rename, delete, and saving experiences", () => {
   const page = source("src/components/PokedexTrackerPage.jsx");
   const links = source("src/components/SiteQuickLinks.jsx");
@@ -162,11 +244,19 @@ test("the account page offers multiple game, HOME, shiny, collection-detail, fil
   assert.match(page, /delete_my_pokedex_tracker/);
   assert.match(page, /set_my_pokedex_tracker_entry/);
   assert.match(page, /set_my_pokedex_tracker_entry_details/);
+  assert.match(page, /get_my_pokedex_collection_inventory/);
+  assert.match(page, /save_my_pokedex_collection_location/);
+  assert.match(page, /delete_my_pokedex_collection_location/);
+  assert.match(page, /save_my_pokedex_collection_specimen/);
+  assert.match(page, /delete_my_pokedex_collection_specimen/);
   assert.match(page, /Pokémon HOME/);
   assert.match(page, /Add a shiny dex/);
   assert.match(page, /Poké Ball/);
   assert.match(page, /Ribbons/);
   assert.match(page, /Private note/);
+  assert.match(page, /Collection inventory/);
+  assert.match(page, /No Nintendo credentials are requested/);
+  assert.match(page, /Download.*(?:JSON|CSV)|onDownload\("json"\)/);
   assert.match(page, /Everything saves to your account/);
   assert.match(page, /<h1>Every Pokédex<\/h1>/);
   assert.doesNotMatch(page, /One home/);
@@ -195,11 +285,13 @@ test("the mobile tracker keeps controls touch-sized and long tracker lists compa
   assert.match(styles, /dex-primary-button[^}]*min-height: 44px/);
   assert.match(styles, /dex-tracker-controls>div button[^}]*min-height: 44px/);
   assert.match(styles, /dex-entry-details-trigger[^}]*min-height: 44px/);
+  assert.match(styles, /dex-entry-inventory-trigger[^}]*min-height: 44px/);
   assert.match(styles, /dex-details-backdrop[^}]*position: fixed/);
   assert.match(styles, /dex-ribbon-groups button[^}]*min-height: 40px/);
   assert.match(styles, /@media \(max-width: 720px\)[\s\S]*dex-tracker-list \{ display: flex;[^}]*overflow-x: auto/);
   assert.match(styles, /dex-tracker-list>button \{ min-width: min\(270px, calc\(100vw - 68px\)\); scroll-snap-align: start; \}/);
   assert.match(styles, /@media \(max-width: 500px\)[\s\S]*dex-pokemon-grid \{ grid-template-columns: repeat\(2/);
+  assert.match(styles, /@media \(max-width: 720px\)[\s\S]*dex-specimen-fields \{ grid-template-columns: 1fr/);
   assert.match(globalStyles, /@media \(max-width:340px\)[\s\S]*site-primary-links a \{[^}]*font-size: 10px/);
 });
 

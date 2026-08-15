@@ -78,6 +78,7 @@
 .dex-active-header { display: flex; justify-content: space-between; gap: 25px; align-items: end; }
 .dex-active-header h2 { margin: 7px 0; font-size: clamp(2rem, 4vw, 3.4rem); letter-spacing: -.045em; }
 .dex-active-header p { margin: 0; color: var(--dex-muted); }
+.dex-active-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
 .dex-tracker-settings { display: grid; grid-template-columns: minmax(220px, 1fr) auto auto auto; gap: 10px; align-items: end; margin-top: 18px; padding: 14px; border: 1px solid var(--dex-line); border-radius: 14px; background: rgba(3, 11, 20, .55); }
 .dex-progress-panel { display: grid; grid-template-columns: auto auto minmax(220px, 1fr); gap: 17px; align-items: center; margin: 27px 0 20px; padding: 20px; border: 1px solid var(--dex-line); border-radius: 18px; background: linear-gradient(105deg, rgba(34, 87, 107, .22), rgba(6, 16, 30, .78)); }
 .dex-tracker-ring { display: grid; width: 112px; height: 112px; padding: 8px; place-items: center; border-radius: 50%; background: conic-gradient(var(--dex-cyan) var(--dex-progress), #1a2b3d 0); box-shadow: 0 0 35px rgba(89, 225, 208, .11); }
@@ -129,8 +130,11 @@
 .dex-tracker-art i { position: absolute; z-index: 2; right: 4px; bottom: 5px; color: var(--dex-gold); font-style: normal; }
 .dex-entry-catch>strong { overflow: hidden; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
 .dex-entry-catch>small { overflow: hidden; margin-top: 3px; color: #6f8298; font-size: 8px; text-overflow: ellipsis; text-transform: capitalize; white-space: nowrap; }
-.dex-entry-details-trigger { display: flex; min-width: 0; min-height: 44px; align-items: center; justify-content: center; gap: 7px; padding: 8px; border: 0; border-top: 1px solid rgba(135, 171, 215, .13); color: #8398ae; background: rgba(4, 12, 21, .38); font: inherit; font-size: 9px; font-weight: 900; cursor: pointer; touch-action: manipulation; }
+.dex-entry-actions { display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid rgba(135, 171, 215, .13); }
+.dex-entry-details-trigger,.dex-entry-inventory-trigger { display: flex; min-width: 0; min-height: 44px; align-items: center; justify-content: center; gap: 7px; padding: 7px 4px; border: 0; color: #8398ae; background: rgba(4, 12, 21, .38); font: inherit; font-size: 8px; font-weight: 900; cursor: pointer; touch-action: manipulation; }
+.dex-entry-inventory-trigger { border-left: 1px solid rgba(135, 171, 215, .13); color: #83b8ae; }
 .dex-entry-details-trigger:hover,.dex-entry-details-trigger:focus-visible { color: #eafffb; background: rgba(89, 225, 208, .1); }
+.dex-entry-inventory-trigger:hover,.dex-entry-inventory-trigger:focus-visible { color: #fff4c5; background: rgba(255, 213, 89, .09); }
 .dex-tracker-pokemon.has-details .dex-entry-details-trigger { color: #b9d9df; background: rgba(16, 48, 59, .45); }
 .dex-ball-badge { position: relative; display: inline-block; flex: 0 0 auto; width: 34px; height: 34px; overflow: hidden; border: 2px solid #182536; border-radius: 50%; background: linear-gradient(var(--ball-top) 0 45%, #26303a 45% 55%, var(--ball-bottom) 55%); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .28), 0 4px 12px rgba(0, 0, 0, .22); }
 .dex-ball-badge:after { position: absolute; inset: 11px; border: 2px solid #26303a; border-radius: 50%; background: #f4f6f7; content: ""; }
@@ -171,6 +175,54 @@
 .dex-notes-field span { position: absolute; right: 10px; bottom: 8px; color: #6d8196; font-size: 9px; }
 .dex-details-dialog>footer { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 9px; align-items: center; padding: 14px 18px; border-top: 1px solid var(--dex-line); background: rgba(6, 16, 27, .92); }
 .dex-details-dialog>footer p { margin: 0; color: #ffb0b0; font-size: 10px; }
+.dex-inventory-panel { display: grid; gap: 18px; margin: 0 0 22px; padding: clamp(16px, 3vw, 24px); border: 1px solid rgba(255, 213, 89, .28); border-radius: 19px; background: linear-gradient(145deg, rgba(45, 38, 23, .52), rgba(5, 18, 30, .94) 48%); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .025); }
+.dex-inventory-panel>header { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; }
+.dex-inventory-panel>header h3 { margin: 5px 0; font-size: clamp(1.45rem, 3vw, 2.15rem); }
+.dex-inventory-panel>header p,.dex-inventory-section-heading p { max-width: 720px; margin: 0; color: #91a3b8; font-size: 11px; line-height: 1.5; }
+.dex-inventory-error { margin: 0; padding: 10px 12px; border: 1px solid rgba(244, 107, 107, .35); border-radius: 10px; color: #ffc0c0; background: rgba(117, 28, 39, .18); font-size: 11px; }
+.dex-inventory-error button { margin-left: 7px; border: 0; color: #fff; background: transparent; font: inherit; font-weight: 900; text-decoration: underline; cursor: pointer; }
+.dex-inventory-panel .dex-tracker-loading.is-inline { min-height: 220px; }
+.dex-inventory-locations,.dex-inventory-specimens { display: grid; gap: 12px; padding-top: 17px; border-top: 1px solid rgba(135, 171, 215, .15); }
+.dex-inventory-section-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 15px; }
+.dex-inventory-section-heading h4 { margin: 0 0 4px; font-size: 1.05rem; }
+.dex-inventory-section-heading>div:last-child { display: flex; flex-wrap: wrap; gap: 7px; justify-content: flex-end; }
+.dex-inventory-location-form { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; padding: 13px; border: 1px solid rgba(89, 225, 208, .25); border-radius: 13px; background: rgba(6, 23, 34, .82); }
+.dex-inventory-location-form label,.dex-specimen-grid label { display: grid; gap: 5px; color: #aabbcf; font-size: 9px; font-weight: 900; letter-spacing: .05em; text-transform: uppercase; }
+.dex-inventory-location-form label>span { color: #667c92; }
+.dex-inventory-location-form input,.dex-inventory-location-form select,.dex-inventory-location-form textarea,.dex-specimen-grid input,.dex-specimen-grid select { min-width: 0; width: 100%; min-height: 44px; padding: 10px 11px; border: 1px solid #36536d; border-radius: 10px; outline: 0; color: #f2f7fc; background: #091725; font: inherit; font-size: 11px; text-transform: none; }
+.dex-inventory-location-form textarea { min-height: 74px; resize: vertical; }
+.dex-inventory-location-form input:focus,.dex-inventory-location-form select:focus,.dex-inventory-location-form textarea:focus,.dex-specimen-grid input:focus,.dex-specimen-grid select:focus { border-color: var(--dex-cyan); box-shadow: 0 0 0 3px rgba(89, 225, 208, .11); }
+.dex-inventory-location-form .dex-location-notes { grid-column: 1 / -1; }
+.dex-inventory-location-form>div { grid-column: 1 / -1; display: flex; gap: 8px; justify-content: flex-end; }
+.dex-location-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.dex-location-list article { display: grid; min-width: 0; gap: 4px; padding: 12px; border: 1px solid #2c4358; border-radius: 12px; background: rgba(9, 24, 38, .78); }
+.dex-location-list article>span { color: var(--dex-cyan); font-size: 8px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+.dex-location-list article>strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dex-location-list article>small { color: #8295aa; font-size: 9px; line-height: 1.4; }
+.dex-location-list article>div { display: flex; gap: 6px; margin-top: 6px; }
+.dex-location-list article button { min-height: 36px; padding: 6px 9px; border: 1px solid #344d64; border-radius: 8px; color: #b8c8d8; background: #102439; font: inherit; font-size: 9px; font-weight: 900; cursor: pointer; }
+.dex-location-list article button:disabled { opacity: .4; cursor: not-allowed; }
+.dex-inventory-empty { margin: 0; padding: 14px; border: 1px dashed #31495f; border-radius: 11px; color: #8295aa; text-align: center; font-size: 11px; line-height: 1.5; }
+.dex-inventory-search { display: flex; gap: 8px; align-items: center; min-height: 44px; padding: 0 12px; border: 1px solid #30485f; border-radius: 11px; color: #6f8198; background: #091725; }
+.dex-inventory-search input { min-width: 0; width: 100%; border: 0; outline: 0; color: #f4f8fd; background: transparent; font: inherit; }
+.dex-specimen-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.dex-specimen-list>button { display: grid; grid-template-columns: 54px minmax(0, 1fr) auto; gap: 10px; align-items: center; min-width: 0; min-height: 76px; padding: 8px 10px; border: 1px solid #2e465d; border-radius: 12px; color: #e8f1f8; text-align: left; background: rgba(9, 24, 38, .82); font: inherit; cursor: pointer; }
+.dex-specimen-list>button:hover,.dex-specimen-list>button:focus-visible { border-color: rgba(89, 225, 208, .52); background: rgba(19, 49, 59, .82); }
+.dex-specimen-list img { width: 54px; height: 54px; object-fit: contain; }
+.dex-specimen-list span { min-width: 0; }
+.dex-specimen-list strong,.dex-specimen-list small,.dex-specimen-list i { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dex-specimen-list small { margin-top: 4px; color: #8799ad; font-size: 9px; }
+.dex-specimen-list i { margin-top: 4px; color: #d9c77c; font-size: 8px; font-style: normal; font-weight: 900; text-transform: uppercase; }
+.dex-specimen-list>button>b { color: #6f859b; font-size: 20px; }
+.dex-specimen-dialog { width: min(980px, 100%); }
+.dex-specimen-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+.dex-specimen-fields>.dex-details-section:last-child { grid-column: 1 / -1; }
+.dex-specimen-grid { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px !important; align-items: end !important; }
+.dex-specimen-grid label.is-wide { grid-column: 1 / -1; }
+.dex-specimen-checks { display: flex !important; flex-wrap: wrap; gap: 12px !important; }
+.dex-specimen-checks label { display: inline-flex; min-height: 44px; align-items: center; gap: 8px; padding: 8px 11px; border: 1px solid #344c62; border-radius: 10px; color: #bac8d5; font-size: 10px; font-weight: 800; cursor: pointer; }
+.dex-specimen-checks input { width: 17px; height: 17px; accent-color: var(--dex-cyan); }
+.dex-inventory-hint { padding: 10px; border: 1px dashed #344c62; border-radius: 9px; }
 .dex-load-more { display: block; min-width: 260px; min-height: 44px; margin: 22px auto 0; padding: 12px 18px; border: 1px solid #36526c; border-radius: 11px; color: #dce8f3; background: #11263a; font: inherit; font-weight: 900; cursor: pointer; touch-action: manipulation; }
 .dex-no-results,.dex-tracker-welcome,.dex-tracker-loading,.dex-tracker-signin { display: grid; min-height: 520px; place-content: center; justify-items: center; padding: 35px; text-align: center; }
 .dex-no-results span { color: #526d86; font-size: 3rem; }
@@ -267,6 +319,8 @@
   .dex-tracker-list { display: flex; max-height: none; padding-bottom: 5px; overflow-x: auto; scroll-snap-type: x proximity; overscroll-behavior-inline: contain; }
   .dex-tracker-list>button { min-width: min(270px, calc(100vw - 68px)); scroll-snap-align: start; }
   .dex-active-header { align-items: stretch; flex-direction: column; }
+  .dex-active-actions { justify-content: stretch; }
+  .dex-active-actions>* { flex: 1 1 180px; }
   .dex-progress-panel { grid-template-columns: 1fr 1fr; }
   .dex-progress-copy { grid-column: 1 / -1; justify-self: stretch; padding-top: 12px; border-top: 1px solid var(--dex-line); text-align: left; }
   .dex-tracker-controls { grid-template-columns: 1fr; }
@@ -275,6 +329,15 @@
   .dex-pokemon-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .dex-details-backdrop { padding: 10px; }
   .dex-details-dialog { max-height: calc(100vh - 20px); border-radius: 18px; }
+  .dex-inventory-section-heading { align-items: stretch; flex-direction: column; }
+  .dex-inventory-section-heading>div:last-child { justify-content: stretch; }
+  .dex-inventory-section-heading>div:last-child>* { flex: 1 1 auto; }
+  .dex-inventory-location-form { grid-template-columns: 1fr; }
+  .dex-inventory-location-form .dex-location-notes,.dex-inventory-location-form>div { grid-column: auto; }
+  .dex-location-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .dex-specimen-list { grid-template-columns: 1fr; }
+  .dex-specimen-fields { grid-template-columns: 1fr; }
+  .dex-specimen-fields>.dex-details-section:last-child { grid-column: auto; }
   .dex-tracker-seo { padding-top: 54px; }
   .dex-tracker-seo-grid,.dex-tracker-faq { grid-template-columns: 1fr; }
 }
@@ -286,7 +349,13 @@
   .dex-add-shiny-card { width: 100%; min-height: 82px; }
   .dex-mode-tabs { align-items: stretch; flex-direction: column; }
   .dex-pokemon-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
-  .dex-tracker-pokemon { min-height: 215px; }
+  .dex-tracker-pokemon { min-height: 226px; }
+  .dex-inventory-panel { padding: 13px 10px; }
+  .dex-inventory-panel>header { gap: 8px; }
+  .dex-location-list { grid-template-columns: 1fr; }
+  .dex-specimen-grid { grid-template-columns: 1fr; }
+  .dex-specimen-grid label.is-wide { grid-column: auto; }
+  .dex-entry-details-trigger,.dex-entry-inventory-trigger { padding-inline: 2px; font-size: 7px; }
   .dex-details-dialog>header { padding: 13px; }
   .dex-details-pokemon img { width: 54px; height: 54px; }
   .dex-details-pokemon h2 { font-size: 1.25rem; }
