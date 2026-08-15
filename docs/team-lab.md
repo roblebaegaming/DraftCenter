@@ -180,8 +180,10 @@ Forward-only migration 404 adds:
 - compatibility dispatch through the released version 1 report validator, so
   existing rows and old recovery files remain valid without a data rewrite;
 - complete-set support in My Teams version 5 JSON backup/recovery; and
-- unchanged owner-only Battle Mode RPCs, forced RLS, revoked internal validator
-  access, and direct browser-table denial.
+- unchanged owner-only Battle Mode RPCs, forced RLS, and direct browser-table
+  denial. Migration 406 supplies the narrow authenticated execution grant that
+  the two outer check-constraint validators require; their implementation
+  helpers remain unavailable to browser roles.
 
 Forward-only migration 405 preserves migration 404 as immutable Preview
 history and makes `restore_my_personal_teams` schema-aware. The recovery RPC
@@ -192,24 +194,39 @@ security-definer body uses a fixed table, an allowlisted column set,
 parameterized values, an empty search path, and the existing authenticated-only
 grant.
 
+Forward-only migration 406 fixes the authenticated write path found during the
+hosted disposable walkthrough. PostgreSQL evaluates the `team_sets` and
+`battle_report` check constraints as the writing role, so revoking execution on
+their outer validator functions caused an otherwise valid owner save to fail.
+The migration makes only those two outer validators security-definer functions
+with an empty search path and grants them to `authenticated`; `anon` remains
+denied and the series, side-state, battle-state, and version-one implementation
+helpers remain hidden. The focused Preview regression performs real
+authenticated-role inserts, valid Battle Mode saves, and invalid-set denial so
+administrator-level tests cannot miss this path again.
+
 Direct `anon` and `authenticated` table reads and writes remain revoked. The
 battle RPC updates only a matchup owned by `auth.uid()`. Old backups without a
 battle report restore with an empty version-one report.
 
 ## Release requirements
 
-Before releasing migrations 404-405, apply them only to the retained isolated
+Before releasing migrations 404-406, apply them only to the retained isolated
 Supabase Preview after confirming its exact project identity and baseline.
 Migration 404 must remain the exact SHA-256 that ran successfully there; apply
-405 after it. Run both rollback-only matrices:
+405 and then 406 after it. Run all rollback-only matrices:
 
 - `supabase/tests/404-team-lab-live-workflow-preview-regression.sql`; and
-- `supabase/tests/405-team-lab-recovery-compatibility-preview-regression.sql`.
+- `supabase/tests/405-team-lab-recovery-compatibility-preview-regression.sql`;
+  and
+- `supabase/tests/406-team-lab-validator-execution-preview-regression.sql`.
 
 Verify both v1 and v2 reports, complete-set validation, two-account denial,
 full account/matchup export and recovery, the minimal retained schema and the
 complete current schema surface, direct-table denial, and unchanged forced
-RLS. Then perform a disposable signed-in walkthrough covering local recovery,
+RLS. Confirm only the two outer constraint validators are executable by
+`authenticated`, while `anon` and every implementation helper remain denied.
+Then perform a disposable signed-in walkthrough covering local recovery,
 conflict copy, edit/undo, set import/export, per-game plans/results, structured
 state, damage assumptions, and workbook output.
 
