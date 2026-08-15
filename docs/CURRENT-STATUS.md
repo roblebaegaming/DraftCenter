@@ -3,10 +3,22 @@
 - Last updated: August 15, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified production feature commit: `d7b6b8d88073de8b6849ee5a92a16afabff7fedd`
+- Verified production feature commit: `3345bd8d2bfa360e5efdb6e9466743b4bdb40c2b`
 - Latest production migration: 400
 
 ## Deployed state
+
+Pull request [#224](https://github.com/roblebaegaming/DraftCenter/pull/224)
+added a dated, official-source-backed Bank Rescue review to the private
+Pokédex Collection inventory. It assigns conservative owner-action labels,
+keeps every availability decision in an explicit uncertain/verify state, and
+includes reviewed source provenance in version 2 JSON and spreadsheet-safe CSV
+exports. It does not invent a Bank shutdown date, prove an external transfer,
+or classify species/form reacquisition availability. No migration or
+Production data change was required; migration 400 remains current. Protected
+checks, signed-in retained-Preview review at desktop/390px/320px, exact
+Production deployment at `3345bd8d`, all 20 production smoke checks, and live
+Pokédex and Team Lab route verification passed.
 
 Pull request [#222](https://github.com/roblebaegaming/DraftCenter/pull/222)
 and migration 400 added the private Pokédex Collection inventory foundation.
