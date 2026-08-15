@@ -24,12 +24,21 @@ import {
 } from "../src/lib/pokedexTracker.js";
 import {
   bankRescueExport,
+  bankRescueSourceFreshness,
   BANK_RESCUE_REVIEWED_ON,
   BANK_RESCUE_SOURCES,
   BANK_RESCUE_STATUS,
   buildBankRescueReview,
   classifyBankRescueSpecimen,
 } from "../src/lib/pokemonBankRescue.js";
+import {
+  buildPokedexCollectorDashboard,
+  buildPokedexTrackerPortableExport,
+  parsePokedexCollectorCsv,
+  parsePokedexRestoreJson,
+  pokedexCollectorCsvTemplate,
+} from "../src/lib/pokedexCollector.js";
+import { buildPokedexCollectorWorkbookSheets } from "../src/lib/pokedexCollectorWorkbook.js";
 
 const source = (path) => fs.readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 
@@ -128,7 +137,7 @@ test("individual collection records are searchable, readable, and safely exporta
   assert.equal(filterPokedexSpecimens(specimens, "yellow").length, 1);
   assert.equal(filterPokedexSpecimens(specimens, "missing").length, 0);
   const csv = pokedexInventoryCsv({ specimens });
-  assert.match(csv, /^"species","national_dex"/);
+  assert.match(csv, /^"record_type","species","pokemon_id","national_dex"/);
   assert.match(csv, /"Pikachu"/);
   assert.match(csv, /"' =FORMULA\(\)"/);
   assert.match(csv, /"best-friends"/);
@@ -183,6 +192,9 @@ test("Bank Rescue review carries dated official provenance without inventing a d
   assert.match(BANK_RESCUE_STATUS.headline, /no Pokémon Bank end date is planned/i);
   assert.doesNotMatch(JSON.stringify({ status: BANK_RESCUE_STATUS, sources: BANK_RESCUE_SOURCES }), /2027/);
   assert.equal(BANK_RESCUE_SOURCES.length, 3);
+  assert.equal(bankRescueSourceFreshness("2026-09-14T00:00:00Z").stale, false);
+  assert.equal(bankRescueSourceFreshness("2026-09-15T00:00:00Z").stale, true);
+  assert.equal(bankRescueSourceFreshness("2026-09-15T00:00:00Z").next_review_on, "2026-09-14");
   assert.deepEqual(buildBankRescueReview(null).records, []);
   for (const source of BANK_RESCUE_SOURCES) {
     assert.match(source.url, /^https:\/\//);
@@ -206,6 +218,86 @@ test("Bank Rescue review carries dated official provenance without inventing a d
   assert.equal(exported.classifications.length, 3);
   assert.ok(exported.classifications.every(({ source_ids }) => source_ids.length > 0));
   assert.ok(exported.classifications.every(({ verification }) => verification.key === "uncertain_verify"));
+  assert.equal(exported.source_freshness.reviewed_on, BANK_RESCUE_REVIEWED_ON);
+});
+
+test("Collector CSV import is bounded, additive, round-trippable, and atomic-ready", () => {
+  const catalog = [
+    { pokemon_id: 1, pokemon: "Bulbasaur", dex_number: 1 },
+    { pokemon_id: 25, pokemon: "Pikachu", dex_number: 25 },
+  ];
+  const template = pokedexCollectorCsvTemplate();
+  assert.match(template, /^"record_type","species","pokemon_id","registered"/);
+  const csv = `${template}checklist,Bulbasaur,1,yes,no\r\nindividual,Pikachu,25,no,no,,Sparky,yes,unknown,88,,,,home-main,HOME Main,pokemon_home,Switch,,Living Dex,4,luxury,best-friends,no,important,Scarlet,planned,,Private note\r\n`;
+  const parsed = parsePokedexCollectorCsv(csv, catalog);
+  assert.deepEqual(parsed.errors, []);
+  assert.equal(parsed.rowCount, 2);
+  assert.deepEqual(parsed.progress, [{ pokemon_id: 1, is_shiny: false }]);
+  assert.equal(parsed.locations.length, 1);
+  assert.equal(parsed.locations[0].source_key, "home-main");
+  assert.equal(parsed.specimens.length, 1);
+  assert.equal(parsed.specimens[0].location_ref, "home-main");
+  assert.equal(parsed.specimens[0].nickname, "Sparky");
+  assert.deepEqual(parsed.specimens[0].ribbons, ["best-friends"]);
+
+  const conflictCsv = "species,location_key,storage_location,location_type\r\nPikachu,same,HOME,pokemon_home\r\nPikachu,same,Bank,pokemon_bank\r\n";
+  assert.ok(parsePokedexCollectorCsv(conflictCsv, catalog).errors.some((message) => /conflicting location details/.test(message)));
+  assert.ok(parsePokedexCollectorCsv("species,pokemon_id\r\nBulbasaur,25\r\n", catalog).errors.some((message) => /species name does not match/i.test(message)));
+  assert.ok(parsePokedexCollectorCsv("species,pokemon_id,dex_number\r\nBulbasaur,1,25\r\n", catalog).errors.some((message) => /Pokédex number does not match/i.test(message)));
+  assert.throws(() => parsePokedexCollectorCsv(`${template}${"checklist,Pikachu,25,yes,no\r\n".repeat(5001)}`, catalog), /at most 5,000 rows/i);
+
+  const inventoryCsv = pokedexInventoryCsv({ specimens: [{
+    pokemon_id: 25, pokemon: "Pikachu", dex_number: 25, nickname: "Round trip",
+    gender: "unknown", importance: "standard", transfer_state: "not_planned", ribbons: [],
+  }] });
+  const roundTrip = parsePokedexCollectorCsv(inventoryCsv, catalog);
+  assert.deepEqual(roundTrip.errors, []);
+  assert.equal(roundTrip.specimens[0].nickname, "Round trip");
+});
+
+test("Collector JSON backup restores only as new private copies", () => {
+  const active = {
+    tracker: { catalog_key: "home", title: "Living Dex", include_shiny: true },
+    pokemon: [
+      { pokemon_id: 1, pokemon: "Bulbasaur", dex_number: 1, caught: true, shiny_caught: false, pokeball: "friend", ribbons: ["partner"], notes: "Keep" },
+      { pokemon_id: 25, pokemon: "Pikachu", dex_number: 25, caught: false, shiny_caught: true, shiny_pokeball: "luxury", shiny_ribbons: [], shiny_notes: "Hunt complete" },
+    ],
+  };
+  const payload = buildPokedexTrackerPortableExport(active, {
+    locations: [{ id: "source-location", kind: "pokemon_home", name: "HOME" }],
+    specimens: [{ pokemon_id: 25, nickname: "Sparky", location_id: "source-location" }],
+  }, new Date("2026-08-15T12:00:00Z"));
+  assert.equal(payload.restore_behavior, "creates-a-new-private-copy");
+  assert.equal(payload.entries.length, 2);
+  assert.equal(payload.details.length, 2);
+  const parsed = parsePokedexRestoreJson(JSON.stringify(payload));
+  assert.deepEqual(parsed.summary, { trackers: 1, entries: 2, details: 2, locations: 1, specimens: 1 });
+  assert.deepEqual(Object.keys(parsed.trackers[0]).sort(), ["catalog_key", "details", "entries", "include_shiny", "locations", "specimens", "title"]);
+  assert.throws(() => parsePokedexRestoreJson("{}"), /does not contain a DraftCenter Pokédex tracker backup/);
+  assert.throws(() => parsePokedexRestoreJson(JSON.stringify({ trackers: [{ ...payload.tracker, include_shiny: "yes" }] })), /invalid include_shiny/i);
+});
+
+test("Collector dashboard and workbook cover the complete private workspace", () => {
+  const trackers = [{ id: "one", title: "HOME", catalog_key: "home", total: 1025, caught: 100, shiny_caught: 3, location_count: 2, specimen_count: 4 }];
+  assert.deepEqual(buildPokedexCollectorDashboard(trackers), {
+    trackers: 1, totalCatalogEntries: 1025, caught: 100, shinyCaught: 3, specimens: 4, locations: 2, completion: 10,
+  });
+  const sheets = buildPokedexCollectorWorkbookSheets({
+    hub: { trackers },
+    exportPayload: { trackers: [{
+      ...trackers[0], catalog_name: "Pokémon HOME National Dex", include_shiny: true,
+      entries: [{ pokemon_id: 1, pokemon: "Bulbasaur", dex_number: 1, is_shiny: false }],
+      details: [{ pokemon_id: 1, pokemon: "Bulbasaur", dex_number: 1, is_shiny: false, notes: "=FORMULA()" }],
+      locations: [{ id: "location-1", kind: "pokemon_home", name: "HOME" }],
+      specimens: [{ pokemon_id: 1, pokemon: "Bulbasaur", dex_number: 1, location_id: "location-1", notes: "+FORMULA()", ribbons: [] }],
+    }] },
+    exportedAt: new Date("2026-08-15T12:00:00Z"),
+  });
+  assert.deepEqual(sheets.map(({ name }) => name), ["Summary", "Trackers", "Checklist", "Entry Details", "Locations", "Individuals", "Bank Rescue", "Import Template"]);
+  assert.match(JSON.stringify(sheets), /'?[=+]FORMULA\(\)/);
+  const homeMoveSource = BANK_RESCUE_SOURCES.find(({ id }) => id === "pokemon-home-move");
+  assert.ok(sheets.find(({ name }) => name === "Bank Rescue").rows.some((row) => row.includes(homeMoveSource.url)));
+  assert.ok(sheets.every(({ rows, widths }) => rows.length >= 5 && widths.length > 0));
 });
 
 test("tracker persistence is private, account-scoped, exportable, and catalog-validated", () => {
@@ -311,6 +403,74 @@ test("collection inventory includes an isolated two-account Preview regression m
   assert.match(sql, /'level', 101/);
   assert.match(sql, /not-a-ball/);
   assert.match(sql, /v_referenced_location_delete_denied/);
+});
+
+test("Collector migration keeps import and restore transactional, owner-scoped, and RPC-only", () => {
+  const sql = source("supabase/402-private-pokedex-collector-import-restore.sql");
+  assert.match(sql, /Migration 402/);
+  assert.match(sql, /create or replace function public\.import_my_pokedex_collection/i);
+  assert.match(sql, /create or replace function public\.restore_my_pokedex_trackers/i);
+  assert.match(sql, /alter table public\.pokedex_trackers force row level security/i);
+  assert.match(sql, /alter table public\.pokedex_tracker_entries force row level security/i);
+  assert.match(sql, /where id = p_tracker_id and user_id = auth\.uid\(\)\s+for update/i);
+  assert.match(sql, /jsonb_array_length\(p_specimens\) > 5000/i);
+  assert.match(sql, /public\.save_my_pokedex_collection_location/i);
+  assert.match(sql, /public\.save_my_pokedex_collection_specimen/i);
+  assert.match(sql, /public\.set_my_pokedex_tracker_entry_details/i);
+  assert.match(sql, /restore_behavior', 'created-new-private-copies'/i);
+  assert.match(sql, /'location_count', coalesce\(locations\.location_count, 0\)/i);
+  assert.match(sql, /'specimen_count', coalesce\(specimens\.specimen_count, 0\)/i);
+  assert.match(sql, /'pokemon', catalog\.pokemon_name/i);
+  assert.match(sql, /revoke all on function public\.import_my_pokedex_collection[\s\S]*from public, anon, authenticated/i);
+  assert.match(sql, /grant execute on function public\.restore_my_pokedex_trackers[\s\S]*to authenticated, service_role/i);
+  assert.match(sql, /Collector tables must not expose direct client policies/i);
+  assert.doesNotMatch(sql, /grant (select|insert|update|delete|all) on table public\.pokedex_/i);
+
+  const preview = source("supabase/tests/402-private-pokedex-collector-import-restore-preview-regression.sql");
+  assert.match(preview, /^-- Preview-only transactional import, new-copy restore, privacy, and export/m);
+  assert.match(preview, /begin;[\s\S]*rollback;/);
+  assert.match(preview, /invalid Collector import was not rejected atomically/i);
+  assert.match(preview, /Restore did not create an independent private copy/i);
+  assert.match(preview, /second account could inspect or mutate another owner/i);
+});
+
+test("Collector PWA, focused navigation, funding, and measurement preserve privacy boundaries", () => {
+  const panel = source("src/components/PokedexCollectorLaunchPanel.jsx");
+  const manifest = source("src/app/pokedex-tracker/manifest.webmanifest/route.js");
+  const worker = source("src/app/pokedex-tracker/sw.js/route.js");
+  const offline = source("src/app/pokedex-tracker/offline/page.js");
+  const route = source("src/app/pokedex-tracker/page.js");
+  const navigation = source("src/components/SiteQuickLinks.jsx");
+  const analytics = source("src/lib/pokedexAnalytics.js");
+  const legal = source("src/components/LegalPage.jsx");
+  const support = source("src/app/support/page.js");
+  const beta = source("docs/pokedex-collector-founding-beta-2026-08-15.md");
+
+  assert.match(panel, /import_my_pokedex_collection/);
+  assert.match(panel, /restore_my_pokedex_trackers/);
+  assert.match(panel, /Eight-sheet Collector workbook/);
+  assert.match(panel, /Current Collector tools stay free/);
+  assert.match(panel, /not a purchase, subscription, or promise of premium access/);
+  assert.match(panel, /ko-fi\.com\/draftcenter/);
+  assert.match(manifest, /DraftCenter Collector/);
+  assert.match(manifest, /start_url: "\/pokedex-tracker\/\?source=pwa"/);
+  assert.match(route, /manifest: "\/pokedex-tracker\/manifest\.webmanifest"/);
+  assert.match(worker, /PUBLIC_SHELL/);
+  assert.match(worker, /event\.request\.mode !== "navigate"/);
+  assert.doesNotMatch(worker, /cache\.put\(event\.request/);
+  assert.match(offline, /does not cache tracker pages, private notes, individual records/);
+  assert.match(navigation, /is-collector-nav/);
+  assert.match(navigation, /Founding beta/);
+  assert.match(analytics, /ALLOWED_PROPERTIES = new Set\(\["kind", "count_bucket", "placement", "result"\]\)/);
+  for (const forbidden of ["user_id", "tracker_id", "tracker_name", "pokemon", "species", "notes", "email", "filename", "file_content"]) {
+    assert.match(analytics, new RegExp(`"${forbidden}"`));
+  }
+  assert.match(legal, /coarse feature events/);
+  assert.match(legal, /do not include account or tracker identifiers/);
+  assert.match(support, /suggested founding contribution is \$10/);
+  assert.match(beta, /five to ten collectors/);
+  assert.match(beta, /\| C08 \|/);
+  assert.match(beta, /Do not contact people/);
 });
 
 test("the account page offers multiple game, HOME, shiny, collection-detail, filter, pagination, rename, delete, and saving experiences", () => {

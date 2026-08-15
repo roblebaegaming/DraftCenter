@@ -295,18 +295,26 @@ function csvCell(value) {
 
 export function pokedexInventoryCsv(inventory = {}) {
   const headers = [
-    "species", "national_dex", "form", "nickname", "shiny", "gender", "level",
-    "original_trainer", "origin_game", "origin_mark", "storage_location", "location_type",
+    "record_type", "species", "pokemon_id", "national_dex", "registered", "shiny_registered",
+    "form", "nickname", "shiny", "gender", "level",
+    "original_trainer", "origin_game", "origin_mark", "location_key", "storage_location", "location_type",
+    "location_platform", "location_notes",
     "box", "box_position", "poke_ball", "ribbons", "event", "importance",
     "intended_destination", "transfer_state", "transferred_on", "notes",
     "bank_rescue_classification", "bank_rescue_reason", "availability_verification",
     "source_reviewed_on", "source_ids", "source_urls",
   ];
+  const locations = new Map((inventory.locations || []).map((location) => [location.id, location]));
   const rows = (inventory.specimens || []).map((specimen) => {
     const rescue = classifyBankRescueSpecimen(specimen);
+    const location = locations.get(specimen.location_id) || {};
     return [
+    "individual",
     specimen.pokemon,
+    specimen.pokemon_id,
     specimen.dex_number,
+    "no",
+    "no",
     specimen.form_label,
     specimen.nickname,
     specimen.is_shiny ? "yes" : "no",
@@ -315,8 +323,11 @@ export function pokedexInventoryCsv(inventory = {}) {
     specimen.original_trainer,
     specimen.origin_game,
     specimen.origin_mark,
-    specimen.location_name,
-    specimen.location_kind,
+    specimen.location_id || "",
+    specimen.location_name || location.name,
+    specimen.location_kind || location.kind,
+    specimen.location_platform || location.platform,
+    location.notes,
     specimen.box_label,
     specimen.box_position,
     specimen.pokeball,
