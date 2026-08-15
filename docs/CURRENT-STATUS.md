@@ -3,10 +3,25 @@
 - Last updated: August 15, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified production feature commit: `3345bd8d2bfa360e5efdb6e9466743b4bdb40c2b`
-- Latest production migration: 400
+- Verified production feature commit: `48de68c5786cbbc47f8ce0ea153b33bd9fdd7915`
+- Latest production migration: 401
 
 ## Deployed state
+
+Pull request [#226](https://github.com/roblebaegaming/DraftCenter/pull/226)
+and migration 401 completed the Team Lab Battle Mode workflow. Closed-sheet
+plans now support rapid opponent selection and Move, Ability, Item, Switch,
+Faint, Damage, and Note capture; open-sheet plans retain published abilities,
+items, and moves inside Battle Mode. The workspace export contains Overview,
+My Team, Matchup Plans, Opponent Sets, Turn Log, and Game Plans tabs for Excel
+or Google Sheets. The retained Preview migration regression and signed-in
+disposable walkthrough passed and were cleaned up. Production migration 401
+was applied before the protected merge; postflight preserved the one existing
+private Team Lab row, confirmed it valid, retained forced RLS and RPC-only
+browser access, and exposed no internal validators. Vercel reports exact
+`main` commit `48de68c` Ready, Current, and Production, and all 20 signed-out
+production smoke checks passed. No real league, roster, plan, or battle record
+was created or changed for release validation.
 
 Pull request [#224](https://github.com/roblebaegaming/DraftCenter/pull/224)
 added a dated, official-source-backed Bank Rescue review to the private
@@ -932,7 +947,7 @@ guard merely to remove that measurement gap.
 ## Authoritative records
 
 - Current continuation handoff:
-  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-14-final-production-and-team-lab-deployed.md`](handoffs/DraftCenter-agent-handoff-2026-08-14-final-production-and-team-lab-deployed.md)
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-15-team-lab-battle-flow-production.md`](handoffs/DraftCenter-agent-handoff-2026-08-15-team-lab-battle-flow-production.md)
 - Pokédex Tracker product and data contract:
   [`docs/pokedex-trackers.md`](pokedex-trackers.md)
 - Mega Bracket product and data contract:
