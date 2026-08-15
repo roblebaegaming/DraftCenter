@@ -6,6 +6,27 @@
 - Verified production feature commit: `48de68c5786cbbc47f8ce0ea153b33bd9fdd7915`
 - Latest production migration: 401
 
+## Pending release
+
+Pull request [#228](https://github.com/roblebaegaming/DraftCenter/pull/228)
+at implementation commit `378a134` prepares the Pokédex Tracker as the
+DraftCenter Collector launch candidate. It adds bounded additive CSV import,
+portable JSON backup and restore-as-new-copy, an eight-sheet workbook,
+cross-tracker totals, dated Bank/HOME source freshness, a focused installable
+web app, privacy-safe coarse conversion events, and an owner-run Founding
+Collector beta workflow. Current tools remain free and the Ko-fi contribution
+is voluntary rather than a purchase or entitlement.
+
+The focused suites, full repository suite, 1,027-row National Dex verification,
+production dependency audit, 258-page build, workbook render review, and
+desktop/390px/320px local visual review pass. Migration 402 and its rollback-
+only two-account regression have not run in the retained isolated Supabase
+Preview, so the PR must remain unmerged. After that regression passes, apply
+migration 402 to the exact Production project, merge and deploy the
+application, confirm the exact deployed commit, and run the signed-out
+production smoke suite. No Production database, provider setting, real
+tracker, or external tester audience changed while preparing the candidate.
+
 ## Deployed state
 
 Pull request [#226](https://github.com/roblebaegaming/DraftCenter/pull/226)
