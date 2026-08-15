@@ -19,15 +19,35 @@ tool with private, signed-in weekly team and matchup workspaces.
    labels the week or round, selects closed or open team sheet, marks Pokémon as
    brought or fainted, records up to four revealed moves per opponent Pokémon,
    and keeps a private battle note.
-5. The turn recorder keeps the active Pokémon, current game and turn, moves,
+5. A connected My Teams workspace can store complete private sets: nickname,
+   level, gender, ability, item, nature, Tera type, shiny and happiness flags,
+   EVs, IVs, four moves, role, and private notes. PokéPaste or Pokémon Showdown
+   text can be pasted into the set editor, and the roster can be copied back in
+   Pokémon Showdown format. Saved own-team moves become one-tap choices in
+   Battle Mode.
+6. The turn recorder keeps the active Pokémon, current game and turn, moves,
    ability and held-item reveals, switches, faints, written damage, and short
    action notes in one quick-entry panel. The opponent roster is a one-tap row
    for fast closed-sheet capture. A closed sheet accepts a move, ability, or
    item the first time it is seen and then remembers it. An open sheet also
    offers saved sheet details as tap targets.
-6. Battle Mode saves only after the coach presses **Save battle report**. Closing
-   with unsaved changes requires confirmation.
-7. **Download Excel / Sheets workbook** exports the complete private team
+7. Every Battle Mode change is locally autosaved in the current browser after
+   a short delay and on page exit. Reopening the same matchup offers to restore
+   that draft. If the cloud report changed after the local draft began, the
+   restore prompt identifies the conflict before anything can be saved over it.
+   **Save battle report** remains the explicit cross-device account save.
+8. Timeline actions support **Undo last action**, per-action **Edit**, and
+   removal. Corrections reconcile a faint, move, ability, or item fact only when
+   no remaining action or open-sheet plan still supports it.
+9. The set tracker supports best-of-1, best-of-3, and best-of-5 matches with a
+   result, planned leads, game plan, and between-game adjustment per game.
+   Structured battle state separately tracks HP percentage, major status,
+   Terastallization, hazards, screens, weather, and terrain for both sides.
+10. An optional damage estimator accepts final manual stats, move power, STAB,
+   type effectiveness, and one combined modifier. It exposes the base damage,
+   85%–100% roll, and every multiplier; it does not guess mechanics or replace a
+   format-specific calculator.
+11. **Download Excel / Sheets workbook** exports the complete private team
    workspace as one `.xlsx` file. It contains Overview, My Team, Matchup Plans,
    Opponent Sets, Turn Log, and editable Game Plans sheets. Excel opens it
    directly; Google Sheets imports the same file without a separate account
@@ -56,8 +76,8 @@ for a published sheet or a confirmed in-battle reveal.
 The turn timeline is observational, not an official battle engine. Written
 damage accepts a percentage, HP amount, knockout, or other short description;
 DraftCenter does not infer damage rolls, legality, priority, targets, or the
-winner. Removing a timeline entry does not silently remove an independently
-recorded reveal or faint marker from the Pokémon cards.
+winner. A correction removes a reveal or faint marker only when the removed
+event is its final structured support; brought markers remain coach-controlled.
 
 ## Calendar and hosted-league connections
 
@@ -87,9 +107,10 @@ Team Lab has three deliberately separate outputs:
   items, moves, and fainted markers to that weekly summary. It is an explicit
   after-battle sharing action, not a public link or automatic publication.
 - **Download Excel / Sheets workbook** is a private, explicit download that
-  includes team, matchup, and battle notes, all saved opponent plans, structured
-  reveals, and turn timelines. The file is not uploaded to Microsoft or Google
-  by DraftCenter; the coach chooses where to store or import it.
+  includes complete own-team sets, matchup and battle notes, all saved opponent
+  plans, structured reveals, set plans/results, field state summaries, and turn
+  timelines. The file is not uploaded to Microsoft or Google by DraftCenter;
+  the coach chooses where to store or import it.
 - Private team notes, matchup notes, battle notes, opponent move observations,
   the turn timeline, written damage, account identifiers, saved-team
   identifiers, and league identifiers are not included in the public analysis
@@ -127,9 +148,9 @@ Forward-only migration 396 adds:
   owns one side of the exact saved schedule pairing; and
 - ability support in Battle Mode, private export, and recovery.
 
-Damage calculation is intentionally outside migrations 396 and 397. The structured
-ability and move fields provide future calculator inputs without claiming that
-Team Lab currently computes or validates damage ranges.
+Damage calculation remains outside migrations 396 and 397. Migration 404 adds
+only the storage model used by the transparent client-side planning estimate;
+it does not claim game-engine or format-specific damage validation.
 
 Forward-only migration 397 extends the existing private `battle_report` JSON
 with a versioned turn log containing the current game and turn, one quick-default Pokémon per
@@ -148,13 +169,51 @@ valid, while the client adds empty item/detail values the next time a report is
 saved. Owner-only RPC access, forced RLS, the 300-event cap, and the 200 KB
 report cap remain unchanged.
 
+Forward-only migration 404 adds:
+
+- a bounded private `personal_teams.team_sets` JSON column whose entries must be
+  unique, remain on the owning roster, and keep every complete-set field inside
+  explicit length and numeric limits;
+- backward-compatible Battle Mode version 2 reports with best-of-1/3/5 game
+  plans/results and structured HP, status, Tera, hazard, screen, weather, and
+  terrain state;
+- compatibility dispatch through the released version 1 report validator, so
+  existing rows and old recovery files remain valid without a data rewrite;
+- complete-set support in My Teams version 5 JSON backup/recovery; and
+- unchanged owner-only Battle Mode RPCs, forced RLS, revoked internal validator
+  access, and direct browser-table denial.
+
+Forward-only migration 405 preserves migration 404 as immutable Preview
+history and makes `restore_my_personal_teams` schema-aware. The recovery RPC
+restores complete Team Lab sets plus every optional sharing or Nuzlocke field
+that exists in the active `personal_teams` schema, without backfilling unrelated
+legacy columns into intentionally smaller retained Preview baselines. Its
+security-definer body uses a fixed table, an allowlisted column set,
+parameterized values, an empty search path, and the existing authenticated-only
+grant.
+
 Direct `anon` and `authenticated` table reads and writes remain revoked. The
 battle RPC updates only a matchup owned by `auth.uid()`. Old backups without a
 battle report restore with an empty version-one report.
 
 ## Release requirements
 
-Before release, apply migration 401 only to an isolated Supabase Preview that
+Before releasing migrations 404-405, apply them only to the retained isolated
+Supabase Preview after confirming its exact project identity and baseline.
+Migration 404 must remain the exact SHA-256 that ran successfully there; apply
+405 after it. Run both rollback-only matrices:
+
+- `supabase/tests/404-team-lab-live-workflow-preview-regression.sql`; and
+- `supabase/tests/405-team-lab-recovery-compatibility-preview-regression.sql`.
+
+Verify both v1 and v2 reports, complete-set validation, two-account denial,
+full account/matchup export and recovery, the minimal retained schema and the
+complete current schema surface, direct-table denial, and unchanged forced
+RLS. Then perform a disposable signed-in walkthrough covering local recovery,
+conflict copy, edit/undo, set import/export, per-game plans/results, structured
+state, damage assumptions, and workbook output.
+
+For the released version 1 path, migration 401 was first applied only to an isolated Supabase Preview that
 already contains the current Production migration history, then run its focused
 regression script. A fresh Preview still needs prerequisite migrations 395
 through 397 before 401.
