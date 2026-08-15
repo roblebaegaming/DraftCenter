@@ -3,10 +3,32 @@
 - Last updated: August 14, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified production application commit: `bf69ad494ab5d94d4b19db1a7d9dfb6e058a9ef5`
-- Latest production migration: 393
+- Verified production feature commit: `d6eea6bf88a3211f7a62041bbcdb928951877024`
+- Latest production migration: 399
 
 ## Deployed state
+
+The final August 14 release sequence is complete. Pull request
+[#218](https://github.com/roblebaegaming/DraftCenter/pull/218) and migration
+398 added the short-interval atomic auction fallback, duplicate-safe expiry
+resolution, opposite-job cancellation, lifecycle status updates, and the
+Operations stale-nomination warning. Pull request
+[#219](https://github.com/roblebaegaming/DraftCenter/pull/219) and migration
+399 added aggregate-only organization signup and real draft-start activity to
+owner Operations without exposing owner or league identities.
+
+Pull request [#220](https://github.com/roblebaegaming/DraftCenter/pull/220)
+deployed private Pokédex Poké Ball, game-appropriate ribbon, and note details;
+Team Lab Battle Mode for open and closed team sheets; weekly report sharing;
+opponent abilities and moves; private Calendar and hosted-league matchup
+connections; and the private turn-by-turn move, switch, faint, damage, and note
+recorder. Migrations 394-397 are applied with forced RLS, denied direct browser
+table access, and owner-scoped RPCs. The isolated Preview matrices, protected
+checks, 1,027-row National Dex verification, 255-page build, exact Production
+deployment at `d6eea6bf`, live public-page review, and all 20 signed-out
+production smoke checks passed. No real league, draft, roster, team plan,
+tracker, provider setting, environment variable, or secret was changed during
+validation.
 
 The August 12 release wave shipped through pull requests
 [#170](https://github.com/roblebaegaming/DraftCenter/pull/170),
