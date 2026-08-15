@@ -5,8 +5,10 @@ import {
   connectionsAdoptionPercent,
   getConnectionsUsage,
   getMegaBracketCompletions,
+  getOrganizationActivity,
   normalizeConnectionsUsage,
   normalizeMegaBracketCompletions,
+  normalizeOrganizationActivity,
 } from "../src/lib/operationsEngagement.js";
 
 const source = (path) => fs.readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
@@ -107,4 +109,68 @@ test("Operations exposes only aggregate Mega Bracket completion counts", () => {
   assert.match(migration, /grant execute on function public\.get_operations_mega_bracket_completions\(\) to service_role/);
   assert.doesNotMatch(migration, /jsonb_build_object\([^)]*(user_id|champion|top_64|winners)/);
   assert.match(docs, /distinct\s+members who have finished at least one Full Dex Mega Bracket/);
+});
+
+test("Organization activity is normalized without owner or league identities", async () => {
+  const activity = normalizeOrganizationActivity({
+    generated_at: "2026-08-14T20:00:00.000Z",
+    time_zone: "America/Los_Angeles",
+    latest_signup_at: "2026-08-14T19:00:00.000Z",
+    latest_league_start_at: "2026-08-14T18:00:00.000Z",
+    totals: {
+      organizations: 9,
+      organizations_with_leagues: 7,
+      organizations_started: 5,
+      attached_leagues: 14,
+      started_leagues: 10,
+      waiting_leagues: 4,
+      owner_id: "must-not-pass",
+    },
+    today: { signups: 1, first_league_starts: 1, league_starts: 2 },
+    last_7_days: { signups: 3, first_league_starts: 2, league_starts: 4 },
+    last_30_days: { signups: 6, first_league_starts: 4, league_starts: 8 },
+    daily: [{ date: "2026-08-14", signups: 1, first_league_starts: 1, league_starts: 2, organization_name: "must-not-pass" }],
+    organizations: [{ name: "must-not-pass", owner_email: "must-not-pass" }],
+  });
+  assert.deepEqual(activity.totals, {
+    organizations: 9,
+    organizations_with_leagues: 7,
+    organizations_started: 5,
+    attached_leagues: 14,
+    started_leagues: 10,
+    waiting_leagues: 4,
+  });
+  assert.deepEqual(activity.daily, [{ date: "2026-08-14", signups: 1, first_league_starts: 1, league_starts: 2 }]);
+  assert.equal(JSON.stringify(activity).includes("must-not-pass"), false);
+
+  const calls = [];
+  const loaded = await getOrganizationActivity({
+    async rpc(name) {
+      calls.push(name);
+      return { data: { totals: { organizations: 2 }, daily: [] }, error: null };
+    },
+  });
+  assert.deepEqual(calls, ["get_operations_organization_activity"]);
+  assert.equal(loaded.totals.organizations, 2);
+});
+
+test("Operations exposes aggregate organization signup and real draft-start activity", () => {
+  const route = source("src/app/api/operations/overview/route.js");
+  const dashboard = source("src/components/OperationsDashboard.jsx");
+  const migration = source("supabase/399-operations-organization-activity.sql");
+  const docs = source("docs/owner-league-operations.md");
+
+  assert.ok(route.indexOf("requireOwner(request)") < route.indexOf("getOrganizationActivity(access.supabase)"));
+  assert.match(route, /organization_activity: organizationActivity/);
+  assert.match(dashboard, /Organization growth/);
+  assert.match(dashboard, /Reached first draft/);
+  assert.match(dashboard, /Signups and league starts by day/);
+  assert.doesNotMatch(dashboard, /activity\.(organizations|owner_id|owner_email|organization_name|league_name|slug)/);
+  assert.match(migration, /event\.kind in \('draft_started', 'scheduled_auction_started'\)/);
+  assert.match(migration, /snapshot\.state ->> 'draftStartedAt'/);
+  assert.match(migration, /security definer/);
+  assert.match(migration, /revoke all on function public\.get_operations_organization_activity\(\) from public, anon, authenticated/);
+  assert.match(migration, /grant execute on function public\.get_operations_organization_activity\(\) to service_role/);
+  assert.doesNotMatch(migration, /jsonb_build_object\([^)]*(owner_id|email|organization_name|league_name|slug)/);
+  assert.match(docs, /organization owners, account\s+details, organization names, league names, slugs, or private draft state/);
 });
