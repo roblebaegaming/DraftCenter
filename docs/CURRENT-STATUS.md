@@ -19,13 +19,16 @@ is voluntary rather than a purchase or entitlement.
 
 The focused suites, full repository suite, 1,027-row National Dex verification,
 production dependency audit, 258-page build, workbook render review, and
-desktop/390px/320px local visual review pass. Migration 402 and its rollback-
-only two-account regression have not run in the retained isolated Supabase
-Preview, so the PR must remain unmerged. After that regression passes, apply
-migration 402 to the exact Production project, merge and deploy the
-application, confirm the exact deployed commit, and run the signed-out
-production smoke suite. No Production database, provider setting, real
-tracker, or external tester audience changed while preparing the candidate.
+desktop/390px/320px local visual review pass. The protected security,
+dependency, secret-scan, CodeQL, and Vercel checks pass, and the hosted
+signed-out Collector shell was reviewed again at desktop, 390px, and 320px.
+Migration 402 and its rollback-only two-account regression have not run in the
+retained isolated Supabase Preview, so the PR must remain unmerged. After that
+regression passes, apply migration 402 to the exact Production project, merge
+and deploy the application, confirm the exact deployed commit, and run the
+signed-out production smoke suite. No Production database, provider setting,
+real tracker, or external tester audience changed while preparing the
+candidate.
 
 ## Deployed state
 

@@ -81,6 +81,9 @@ because this worktree has no local Supabase Preview database connection.
   HTTP status 400.
 - Signed-out desktop, 390px, and 320px route reviews passed with no page-level
   horizontal overflow and correct focused navigation.
+- The deployed PR Preview passed another signed-out desktop, 390px, and 320px
+  review. The focused navigation and manifest link were present, no horizontal
+  overflow appeared, and the narrow sign-in actions remained 44px high.
 - A fictional signed-in local fixture was used to review the full dashboard,
   import/export tools, install card, and Founding Beta panel at the same three
   widths. Mobile actions measured at least 44px. The temporary fixture was
@@ -88,8 +91,9 @@ because this worktree has no local Supabase Preview database connection.
 - All eight workbook sheets were rendered and visually reviewed. Dates,
   widths, provenance URLs, and formula-error scanning passed.
 
-GitHub protected checks and the hosted Preview are still in progress at the
-time of this handoff. The Supabase Preview integration check was skipped, so it
+GitHub's protected security and dependency tests, full-history secret scan,
+CodeQL analyses, Vercel deployment, and Vercel Preview comments check pass for
+the candidate. The Supabase Preview integration check was skipped, so it
 cannot substitute for the required manual isolated regression.
 
 ## Exact release order
