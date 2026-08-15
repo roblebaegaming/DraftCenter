@@ -28,8 +28,10 @@ Nuzlocke run state.
 - Named storage locations represent a game save, Pokémon Bank, Pokémon HOME,
   a cartridge box, or other user-described storage. An individual can point to
   one location plus an optional box label and slot from 1 through 30.
-- Inventory can be downloaded as JSON or CSV. CSV cells that begin like a
-  spreadsheet formula are neutralized before download.
+- Inventory can be downloaded as JSON or CSV. Both formats include a dated
+  Bank Rescue classification snapshot and its official source identifiers.
+  CSV cells that begin like a spreadsheet formula are neutralized before
+  download.
 - Progress saves immediately to the signed-in DraftCenter account. Search,
   completion filters, and gallery pagination are presentation-only state.
 - HOME trackers show deterministic page, box, and position labels and can be
@@ -96,19 +98,33 @@ but does not classify it, claim that the form can move through Bank or HOME,
 or use it for availability decisions. A future rescue-priority engine requires
 a separately reviewed, dated, source-backed availability catalog.
 
-## Bank Rescue boundary
+## Bank Rescue review
 
-The inventory is preparation for a later Bank Rescue planner. It never asks
+The inventory includes a client-computed Bank Rescue review. It never asks
 for Nintendo credentials, connects to a console, reads a save, or claims to
 perform a transfer. Transfer state and intended destination are private notes
 entered by the owner, not proof that a transfer is possible or complete.
 
-Do not hard-code a shutdown deadline, rescue classification, or route advice
-from commentary or secondary reporting. Those features require an
-authoritative dated source, explicit provenance in the data model, an
-uncertain/verify classification, and regression coverage for changing
-availability. Camera-assisted box auditing also remains out of scope for this
-foundation.
+The source snapshot was reviewed on August 15, 2026. Nintendo currently says
+that no Pokémon Bank end date is planned and that service changes will be
+announced in advance. Pokémon's official HOME guidance says that a Bank move
+requires a HOME Premium Plan, is one-way, and that a Pokémon can move onward
+only into a game in which it appears. The UI links each official source and
+includes the reviewed date; JSON and CSV exports retain that provenance.
+
+Action labels are conservative. They can identify owner-recorded transfer
+completion, an intentional preserve choice, Bank records with owner-entered
+legacy signals, a missing destination, a Bank move to review, or a HOME game-
+compatibility check. Every record also exposes an uncertain—verify state because
+DraftCenter does not yet have an audited species, form, origin-mark, ribbon, or
+reacquisition-availability catalog. It does not classify anything as easily
+obtainable later, infer that legacy work remains possible, or turn unofficial
+reporting into a deadline.
+
+The review is derived at display and export time rather than persisted. This
+prevents a dated source snapshot from becoming stale private database state and
+requires no migration after 400. Camera-assisted box auditing remains out of
+scope.
 
 ## Search and discovery boundary
 

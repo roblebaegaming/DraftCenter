@@ -3,6 +3,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createClient } from "../lib/supabase/client";
 import {
+  bankRescueExport,
+  BANK_RESCUE_ACTIONS,
+  buildBankRescueReview,
+} from "../lib/pokemonBankRescue";
+import {
   filterPokedexEntries,
   filterPokedexSpecimens,
   groupPokedexCatalogs,
@@ -282,12 +287,21 @@ function CollectionInventoryPanel({ inventory, loading, busy, error, onReload, o
   const [locationDraft, setLocationDraft] = useState(null);
   const [query, setQuery] = useState("");
   const specimens = filterPokedexSpecimens(inventory?.specimens || [], query);
+  const rescueReview = useMemo(() => buildBankRescueReview(inventory), [inventory]);
+  const rescueBySpecimenId = useMemo(() => new Map(rescueReview.records.map(({ specimen, classification }) => [specimen.id, classification])), [rescueReview]);
+  const rescueSourceById = useMemo(() => new Map(rescueReview.sources.map((source) => [source.id, source])), [rescueReview]);
   const transferLabel = (key) => POKEDEX_TRANSFER_STATE_OPTIONS.find((option) => option.key === key)?.label || key;
   const kindLabel = (key) => POKEDEX_LOCATION_OPTIONS.find((option) => option.key === key)?.label || key;
   return <section className="dex-inventory-panel" aria-labelledby="dex-inventory-title">
     <header><div><span className="dex-kicker">BANK RESCUE FOUNDATION</span><h3 id="dex-inventory-title">Collection inventory</h3><p>Record actual individuals and where they live. No Nintendo credentials are requested, and no transfer is performed.</p></div><button type="button" className="dex-icon-button" onClick={onClose} aria-label="Close collection inventory">×</button></header>
     {error && <p className="dex-inventory-error" role="alert">{error} <button type="button" onClick={onReload}>Try again</button></p>}
     {loading ? <div className="dex-tracker-loading is-inline"><span className="dex-ball" aria-hidden="true" /><h3>Loading private inventory…</h3></div> : <>
+      <section className="dex-rescue-review" aria-labelledby="dex-rescue-review-title">
+        <div className="dex-rescue-status"><span>OFFICIAL STATUS · REVIEWED {rescueReview.reviewed_on}</span><h4 id="dex-rescue-review-title">{rescueReview.status.headline}</h4><p>{rescueReview.status.summary}</p></div>
+        {!!rescueReview.records.length && <div className="dex-rescue-counts" aria-label="Bank Rescue classification counts">{Object.entries(rescueReview.counts).map(([key, count]) => <span key={key} className={`is-${BANK_RESCUE_ACTIONS[key].tone}`}><b>{count}</b>{BANK_RESCUE_ACTIONS[key].label}</span>)}</div>}
+        <p className="dex-rescue-boundary"><strong>{rescueReview.uncertain_count || 0} availability checks remain uncertain—verify.</strong> Labels use your private inventory plus the dated official facts below. They do not prove transfer support, current form availability, ribbon availability, or completion.</p>
+        <details><summary>Why these labels and sources</summary><p>Review order uses your recorded location, transfer choice, importance, event flag, ribbons, and origin mark. It never infers a deadline or says an individual is easy to obtain later.</p><ul>{rescueReview.sources.map((source) => <li key={source.id}><a href={source.url} target="_blank" rel="noreferrer">{source.publisher}: {source.title}</a><span>Reviewed {source.reviewed_on}{source.source_updated_on ? ` · source updated ${source.source_updated_on}` : ""}</span></li>)}</ul></details>
+      </section>
       <section className="dex-inventory-locations">
         <div className="dex-inventory-section-heading"><div><h4>Storage locations</h4><p>Name each save, Bank box group, HOME area, cartridge, or other place.</p></div><button type="button" className="dex-secondary-button" onClick={() => setLocationDraft({})}>＋ Add location</button></div>
         {locationDraft && <LocationForm key={locationDraft.id || "new"} location={locationDraft.id ? locationDraft : null} busy={busy} onSave={async (...args) => { const saved = await onSaveLocation(...args); if (saved) setLocationDraft(null); }} onCancel={() => setLocationDraft(null)} />}
@@ -297,7 +311,7 @@ function CollectionInventoryPanel({ inventory, loading, busy, error, onReload, o
       <section className="dex-inventory-specimens">
         <div className="dex-inventory-section-heading"><div><h4>Individual Pokémon</h4><p>{inventory?.specimens?.length || 0} private records. Add duplicates, special Pokémon, or anyone whose history matters.</p></div><div><button type="button" className="dex-secondary-button" onClick={() => onDownload("json")} disabled={!inventory?.specimens?.length}>JSON</button><button type="button" className="dex-secondary-button" onClick={() => onDownload("csv")} disabled={!inventory?.specimens?.length}>CSV</button><button type="button" className="dex-primary-button" onClick={() => onAddSpecimen()}>＋ Add individual</button></div></div>
         {inventory?.specimens?.length > 0 && <label className="dex-inventory-search"><span aria-hidden="true">⌕</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search individuals, locations, origins, or destinations…" /></label>}
-        <div className="dex-specimen-list">{specimens.map((specimen) => <button type="button" key={specimen.id} onClick={() => onEditSpecimen(specimen)}><img src={pokedexArtworkUrl(specimen.pokemon_id, specimen.is_shiny)} alt="" loading="lazy" /><span><strong>{pokedexSpecimenDisplayName(specimen)}</strong><small>{specimen.location_name || "Location not recorded"}{specimen.box_label ? ` · ${specimen.box_label}` : ""}{specimen.box_position ? ` · Slot ${specimen.box_position}` : ""}</small><i>{transferLabel(specimen.transfer_state)}{specimen.importance !== "standard" ? ` · ${specimen.importance}` : ""}</i></span><b aria-hidden="true">›</b></button>)}</div>
+        <div className="dex-specimen-list">{specimens.map((specimen) => { const rescue = rescueBySpecimenId.get(specimen.id); const rescueSources = rescue?.source_ids.map((sourceId) => rescueSourceById.get(sourceId)?.publisher).filter(Boolean).join(" · "); return <button type="button" key={specimen.id} onClick={() => onEditSpecimen(specimen)}><img src={pokedexArtworkUrl(specimen.pokemon_id, specimen.is_shiny)} alt="" loading="lazy" /><span><strong>{pokedexSpecimenDisplayName(specimen)}</strong><small>{specimen.location_name || "Location not recorded"}{specimen.box_label ? ` · ${specimen.box_label}` : ""}{specimen.box_position ? ` · Slot ${specimen.box_position}` : ""}</small><i>{transferLabel(specimen.transfer_state)}{specimen.importance !== "standard" ? ` · ${specimen.importance}` : ""}</i>{rescue && <><mark className={`is-${rescue.tone}`}>{rescue.label}</mark><em>{rescue.reason}</em><cite>{rescueSources} · reviewed {rescue.reviewed_on}</cite></>}</span><b aria-hidden="true">›</b></button>; })}</div>
         {!inventory?.specimens?.length && <p className="dex-inventory-empty">Your checklist stays unchanged. Add an individual only when you want to preserve its identity, location, or transfer plan.</p>}
         {inventory?.specimens?.length > 0 && !specimens.length && <p className="dex-inventory-empty">No individual records match that search.</p>}
       </section>
@@ -681,11 +695,12 @@ export default function PokedexTrackerPage() {
     const exportedAt = new Date().toISOString();
     const content = format === "csv" ? pokedexInventoryCsv(inventory) : JSON.stringify({
       format: "draftcenter-pokedex-inventory",
-      version: 1,
+      version: 2,
       exported_at: exportedAt,
       tracker: active.tracker,
       locations: inventory.locations,
       specimens: inventory.specimens,
+      bank_rescue_review: bankRescueExport(inventory),
     }, null, 2);
     const url = URL.createObjectURL(new Blob([content], { type: format === "csv" ? "text/csv;charset=utf-8" : "application/json" }));
     const link = document.createElement("a");

@@ -182,6 +182,24 @@
 .dex-inventory-error { margin: 0; padding: 10px 12px; border: 1px solid rgba(244, 107, 107, .35); border-radius: 10px; color: #ffc0c0; background: rgba(117, 28, 39, .18); font-size: 11px; }
 .dex-inventory-error button { margin-left: 7px; border: 0; color: #fff; background: transparent; font: inherit; font-weight: 900; text-decoration: underline; cursor: pointer; }
 .dex-inventory-panel .dex-tracker-loading.is-inline { min-height: 220px; }
+.dex-rescue-review { display: grid; gap: 12px; padding: 16px; border: 1px solid rgba(89, 225, 208, .26); border-radius: 15px; background: linear-gradient(135deg, rgba(6, 32, 43, .88), rgba(12, 24, 42, .9)); }
+.dex-rescue-status>span { color: var(--dex-cyan); font-size: 8px; font-weight: 900; letter-spacing: .1em; }
+.dex-rescue-status h4 { margin: 5px 0; font-size: clamp(1.05rem, 2.3vw, 1.4rem); }
+.dex-rescue-status p,.dex-rescue-boundary,.dex-rescue-review details p { margin: 0; color: #9badbf; font-size: 10px; line-height: 1.55; }
+.dex-rescue-counts { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 7px; }
+.dex-rescue-counts span { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px; align-items: center; padding: 9px 10px; border: 1px solid #344d64; border-radius: 10px; color: #bac9d8; background: rgba(6, 18, 30, .6); font-size: 8px; font-weight: 900; line-height: 1.35; text-transform: uppercase; }
+.dex-rescue-counts b { color: #fff; font-size: 1rem; }
+.dex-rescue-counts .is-review { border-color: rgba(255, 213, 89, .35); }
+.dex-rescue-counts .is-preserve { border-color: rgba(165, 132, 255, .38); }
+.dex-rescue-counts .is-complete { border-color: rgba(89, 225, 208, .34); }
+.dex-rescue-boundary { padding: 10px 11px; border-left: 3px solid #d3ae45; background: rgba(211, 174, 69, .07); }
+.dex-rescue-boundary strong { color: #f0d782; }
+.dex-rescue-review details { border-top: 1px solid rgba(135, 171, 215, .16); }
+.dex-rescue-review summary { min-height: 44px; padding: 14px 0 10px; color: #cbd8e4; font-size: 10px; font-weight: 900; cursor: pointer; }
+.dex-rescue-review ul { display: grid; gap: 8px; margin: 11px 0 0; padding: 0; list-style: none; }
+.dex-rescue-review li { display: grid; gap: 2px; }
+.dex-rescue-review li a { color: var(--dex-cyan); font-size: 10px; font-weight: 800; }
+.dex-rescue-review li span { color: #71859a; font-size: 8px; }
 .dex-inventory-locations,.dex-inventory-specimens { display: grid; gap: 12px; padding-top: 17px; border-top: 1px solid rgba(135, 171, 215, .15); }
 .dex-inventory-section-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 15px; }
 .dex-inventory-section-heading h4 { margin: 0 0 4px; font-size: 1.05rem; }
@@ -213,6 +231,12 @@
 .dex-specimen-list strong,.dex-specimen-list small,.dex-specimen-list i { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .dex-specimen-list small { margin-top: 4px; color: #8799ad; font-size: 9px; }
 .dex-specimen-list i { margin-top: 4px; color: #d9c77c; font-size: 8px; font-style: normal; font-weight: 900; text-transform: uppercase; }
+.dex-specimen-list mark { display: inline-block; max-width: 100%; margin-top: 7px; padding: 4px 6px; border: 1px solid #496079; border-radius: 999px; color: #c8d5e2; white-space: normal; background: rgba(39, 58, 78, .52); font-size: 7px; font-weight: 900; letter-spacing: .04em; line-height: 1.3; text-transform: uppercase; }
+.dex-specimen-list mark.is-review { border-color: rgba(255, 213, 89, .42); color: #f2dd96; background: rgba(155, 121, 19, .13); }
+.dex-specimen-list mark.is-preserve { border-color: rgba(165, 132, 255, .44); color: #d8c9ff; background: rgba(96, 65, 172, .14); }
+.dex-specimen-list mark.is-complete { border-color: rgba(89, 225, 208, .4); color: #b8f2e8; background: rgba(38, 132, 120, .13); }
+.dex-specimen-list em { display: block; margin-top: 5px; color: #71879d; font-size: 8px; font-style: normal; line-height: 1.4; }
+.dex-specimen-list cite { display: block; margin-top: 4px; overflow: hidden; color: #587188; font-size: 7px; font-style: normal; text-overflow: ellipsis; white-space: nowrap; }
 .dex-specimen-list>button>b { color: #6f859b; font-size: 20px; }
 .dex-specimen-dialog { width: min(980px, 100%); }
 .dex-specimen-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }

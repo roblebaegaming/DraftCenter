@@ -1,3 +1,5 @@
+import { BANK_RESCUE_SOURCES, classifyBankRescueSpecimen } from "./pokemonBankRescue.js";
+
 export const POKEDEX_TRACKER_PAGE_SIZE = 120;
 export const POKEAPI_SPRITES_COMMIT = "5841d46f1a0d2b8918a29a7376b1424878b86b59";
 export const POKEMON_HOME_BOX_SIZE = 30;
@@ -297,8 +299,12 @@ export function pokedexInventoryCsv(inventory = {}) {
     "original_trainer", "origin_game", "origin_mark", "storage_location", "location_type",
     "box", "box_position", "poke_ball", "ribbons", "event", "importance",
     "intended_destination", "transfer_state", "transferred_on", "notes",
+    "bank_rescue_classification", "bank_rescue_reason", "availability_verification",
+    "source_reviewed_on", "source_ids", "source_urls",
   ];
-  const rows = (inventory.specimens || []).map((specimen) => [
+  const rows = (inventory.specimens || []).map((specimen) => {
+    const rescue = classifyBankRescueSpecimen(specimen);
+    return [
     specimen.pokemon,
     specimen.dex_number,
     specimen.form_label,
@@ -321,6 +327,13 @@ export function pokedexInventoryCsv(inventory = {}) {
     specimen.transfer_state,
     specimen.transferred_on,
     specimen.notes,
-  ]);
+    rescue.label,
+    rescue.reason,
+    rescue.verification.label,
+    rescue.reviewed_on,
+    rescue.source_ids.join(" | "),
+    rescue.source_ids.map((sourceId) => BANK_RESCUE_SOURCES.find(({ id }) => id === sourceId)?.url || "").filter(Boolean).join(" | "),
+  ];
+  });
   return [headers, ...rows].map((row) => row.map(csvCell).join(",")).join("\r\n");
 }

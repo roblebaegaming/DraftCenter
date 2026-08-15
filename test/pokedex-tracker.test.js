@@ -22,6 +22,14 @@ import {
   POKEDEX_TRACKER_PAGE_SIZE,
   POKEDEX_TRANSFER_STATE_OPTIONS,
 } from "../src/lib/pokedexTracker.js";
+import {
+  bankRescueExport,
+  BANK_RESCUE_REVIEWED_ON,
+  BANK_RESCUE_SOURCES,
+  BANK_RESCUE_STATUS,
+  buildBankRescueReview,
+  classifyBankRescueSpecimen,
+} from "../src/lib/pokemonBankRescue.js";
 
 const source = (path) => fs.readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 
@@ -124,9 +132,80 @@ test("individual collection records are searchable, readable, and safely exporta
   assert.match(csv, /"Pikachu"/);
   assert.match(csv, /"' =FORMULA\(\)"/);
   assert.match(csv, /"best-friends"/);
+  assert.match(csv, /"bank_rescue_classification","bank_rescue_reason","availability_verification"/);
+  assert.match(csv, /"Review legacy details first"/);
+  assert.match(csv, /"2026-08-15"/);
+  assert.match(csv, /https:\/\/home\.pokemon\.com\/en-us\/move\//);
   assert.deepEqual(POKEDEX_LOCATION_OPTIONS.map(({ key }) => key), ["game_save", "pokemon_bank", "pokemon_home", "cartridge", "other"]);
   assert.ok(POKEDEX_IMPORTANCE_OPTIONS.some(({ key }) => key === "irreplaceable"));
   assert.ok(POKEDEX_TRANSFER_STATE_OPTIONS.some(({ key }) => key === "keep_original"));
+});
+
+test("Bank Rescue classifications separate owner actions from uncertain availability", () => {
+  const base = {
+    id: "specimen-1",
+    pokemon: "Pikachu",
+    importance: "standard",
+    is_event: false,
+    ribbons: [],
+    origin_mark: "",
+    transfer_state: "planned",
+  };
+  const classify = (overrides) => classifyBankRescueSpecimen({ ...base, ...overrides });
+
+  assert.equal(classify({ location_kind: "pokemon_bank", importance: "irreplaceable" }).key, "legacy_review");
+  assert.equal(classify({ location_kind: "pokemon_bank", is_event: true }).key, "legacy_review");
+  assert.equal(classify({ location_kind: "pokemon_bank", intended_destination: "" }).key, "choose_destination");
+  assert.equal(classify({ location_kind: "pokemon_bank", intended_destination: "Pokémon HOME" }).key, "bank_move_review");
+  assert.equal(classify({ location_kind: "game_save", transfer_state: "keep_original" }).key, "preserve_original");
+  assert.equal(classify({ location_kind: "pokemon_bank", transfer_state: "transferred" }).key, "recorded_transferred");
+  assert.equal(classify({ location_kind: "pokemon_home" }).key, "home_compatibility");
+  assert.equal(classify({ location_kind: "game_save" }).key, "uncertain_verify");
+
+  for (const overrides of [
+    { location_kind: "pokemon_bank", importance: "irreplaceable" },
+    { location_kind: "pokemon_bank", intended_destination: "Pokémon HOME" },
+    { location_kind: "pokemon_home" },
+    { location_kind: "game_save" },
+  ]) {
+    const result = classify(overrides);
+    assert.equal(result.reviewed_on, BANK_RESCUE_REVIEWED_ON);
+    assert.equal(result.owner_record_only, true);
+    assert.equal(result.verification.key, "uncertain_verify");
+    assert.ok(result.reason.length > 40);
+    assert.ok(result.source_ids.length > 0);
+    for (const sourceId of result.source_ids) assert.ok(BANK_RESCUE_SOURCES.some(({ id }) => id === sourceId));
+  }
+});
+
+test("Bank Rescue review carries dated official provenance without inventing a deadline", () => {
+  assert.equal(BANK_RESCUE_REVIEWED_ON, "2026-08-15");
+  assert.match(BANK_RESCUE_STATUS.headline, /no Pokémon Bank end date is planned/i);
+  assert.doesNotMatch(JSON.stringify({ status: BANK_RESCUE_STATUS, sources: BANK_RESCUE_SOURCES }), /2027/);
+  assert.equal(BANK_RESCUE_SOURCES.length, 3);
+  assert.deepEqual(buildBankRescueReview(null).records, []);
+  for (const source of BANK_RESCUE_SOURCES) {
+    assert.match(source.url, /^https:\/\//);
+    assert.equal(source.reviewed_on, BANK_RESCUE_REVIEWED_ON);
+    assert.ok(source.publisher.length > 0);
+    assert.ok(source.supports.length > 0);
+  }
+
+  const specimens = [
+    { id: "standard-bank", pokemon: "Squirtle", location_kind: "pokemon_bank", importance: "standard", transfer_state: "planned", intended_destination: "Pokémon HOME", ribbons: [] },
+    { id: "legacy-bank", pokemon: "Bulbasaur", location_kind: "pokemon_bank", importance: "irreplaceable", transfer_state: "planned", ribbons: ["best-friends"] },
+    { id: "game-save", pokemon: "Charmander", location_kind: "game_save", importance: "standard", transfer_state: "not_planned", ribbons: [] },
+  ];
+  const review = buildBankRescueReview({ specimens });
+  assert.deepEqual(review.records.map(({ classification }) => classification.key), ["legacy_review", "bank_move_review", "uncertain_verify"]);
+  assert.equal(review.uncertain_count, 3);
+  assert.deepEqual(review.counts, { legacy_review: 1, bank_move_review: 1, uncertain_verify: 1 });
+
+  const exported = bankRescueExport({ specimens });
+  assert.equal(exported.reviewed_on, BANK_RESCUE_REVIEWED_ON);
+  assert.equal(exported.classifications.length, 3);
+  assert.ok(exported.classifications.every(({ source_ids }) => source_ids.length > 0));
+  assert.ok(exported.classifications.every(({ verification }) => verification.key === "uncertain_verify"));
 });
 
 test("tracker persistence is private, account-scoped, exportable, and catalog-validated", () => {
