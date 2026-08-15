@@ -28,11 +28,26 @@ Do not expose `DRAFTCENTER_OWNER_EMAILS` through a `NEXT_PUBLIC_*` variable.
 - The operations digest runs daily at 14:30 UTC and sends only when a real
   league has at least one attention signal.
 
+## Hosted auction reliability
+
+Connected browsers still resolve an expired winning nomination immediately
+for responsive live play. A service-only database reconciler checks every ten
+seconds as the reliable fallback, row-locks the authoritative snapshot, and
+awards the purchase at most once. The same lifecycle boundary marks a started
+auction as drafting and a completed auction as an active season.
+
+The fallback finalizes purchases and advances empty nomination clocks. Bot
+nomination choices and bot bids still run in a connected commissioner's
+browser. A fully unattended bot auction therefore requires a later, separately
+reviewed move of those decision engines to the server.
+
 ## Current attention signals
 
 - unclaimed teams;
 - a draft within 48 hours without a ready scheduled-start job;
 - failed scheduled-draft automation;
+- an auction nomination that expired at least two minutes ago with no recent
+  saved activity;
 - failed notification deliveries;
 - no saved activity for ten days in a live season phase;
 - no recorded commissioner backup, or none in the last 30 days.

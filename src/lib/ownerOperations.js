@@ -4,6 +4,7 @@ import { summarizeAuthUsers } from "./authUserTotals";
 import { draftParticipantLabel, summarizeDraftParticipants } from "./draftParticipants";
 import { countLeagueResults, summarizeLeaguePulse } from "./leaguePulse";
 import { leagueOperationsMetadata, summarizeLeagueOperations } from "./operationsLeagueInsights";
+import { expiredAuctionNominationWarning } from "./auctionOperations";
 
 export function ownerEmails() {
   return String(process.env.DRAFTCENTER_OWNER_EMAILS || process.env.DRAFTCENTER_OWNER_EMAIL || "").split(",").map((email) => email.trim().toLowerCase()).filter(Boolean);
@@ -71,7 +72,7 @@ export async function getOperationsOverview(supabase, viewerUserId = null) {
     const snapshot = snapshots.get(league.id); const state = snapshot?.state || {}; const teams = Array.isArray(state.teams) ? state.teams : [];
     const leagueSize = Number(state?.settings?.leagueSize || teams.length || 0); const participants = summarizeDraftParticipants(teams, leagueSize); const claimed = participants.humanTeamCount;
     const members = membersByLeague.get(league.id) || []; const draftMs = Date.parse(league.draft_starts_at || state?.settings?.draftScheduledAt || "");
-    const hoursToDraft = Number.isFinite(draftMs) ? (draftMs - now) / 3600000 : null; const job = snake.get(league.id) || auction.get(league.id);
+    const hoursToDraft = Number.isFinite(draftMs) ? (draftMs - now) / 3600000 : null; const job = state?.settings?.draftType === "auction" ? (auction.get(league.id) || snake.get(league.id)) : (snake.get(league.id) || auction.get(league.id));
     const backup = backups.get(league.id); const lastBackupMs = Date.parse(backup?.created_at || ""); const lastActivity = snapshot?.updated_at || league.updated_at || league.created_at;
     const idleDays = (now - Date.parse(lastActivity)) / 86400000; const warnings = [];
     if (!league.is_practice && leagueSize > 0 && claimed < leagueSize) warnings.push(warning("unclaimed_teams", hoursToDraft != null && hoursToDraft <= 48 ? "high" : "medium", `${leagueSize - claimed} of ${leagueSize} teams remain unclaimed.`));
@@ -80,6 +81,8 @@ export async function getOperationsOverview(supabase, viewerUserId = null) {
       && String(league.status) === "drafting"
       && /already has a live draft|do not provision it again/i.test(String(job.last_error || ""));
     if (job?.status === "failed" && !harmlessDuplicateStart) warnings.push(warning("automation_failed", "high", job.last_error || "Scheduled draft automation failed."));
+    const stalledAuction = expiredAuctionNominationWarning(state, snapshot?.updated_at, now);
+    if (stalledAuction) warnings.push(stalledAuction);
     const failedNotifications = failedByLeague.get(league.id) || 0; if (failedNotifications) warnings.push(warning("notifications_failed", "high", `${failedNotifications} notification delivery failure${failedNotifications === 1 ? "" : "s"} need review.`));
     if (!league.is_practice && !["setup", "completed", "archived"].includes(String(league.status)) && idleDays >= 10) warnings.push(warning("inactive", "medium", `No saved league activity for ${Math.floor(idleDays)} days.`));
     if (!league.is_practice && String(league.status) === "setup" && idleDays >= 3 && claimed <= 1) warnings.push(warning("setup_stalled", "medium", `Setup has not progressed for ${Math.floor(idleDays)} days and ${leagueSize - claimed} team${leagueSize - claimed === 1 ? " remains" : "s remain"} unclaimed.`));
