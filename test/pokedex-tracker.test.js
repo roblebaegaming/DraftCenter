@@ -4,9 +4,16 @@ import test from "node:test";
 import {
   filterPokedexEntries,
   groupPokedexCatalogs,
+  pokedexBallOptions,
+  pokedexEntryDetails,
+  pokedexHasEntryDetails,
   pokedexArtworkUrl,
   pokedexHomePlacement,
+  pokedexRibbonGroups,
   pokedexTrackerProgress,
+  POKEDEX_BALL_OPTIONS,
+  POKEDEX_ENTRY_NOTE_MAX_LENGTH,
+  POKEDEX_RIBBON_OPTIONS,
   POKEDEX_TRACKER_PAGE_SIZE,
 } from "../src/lib/pokedexTracker.js";
 
@@ -44,6 +51,38 @@ test("catalogs group Pokémon HOME before game generations", () => {
   assert.equal(pokedexHomePlacement(0), null);
 });
 
+test("Poké Ball and ribbon pickers stay appropriate to the selected game", () => {
+  const keys = (options) => options.map(({ key }) => key);
+  assert.deepEqual(keys(pokedexBallOptions("red", 1)), ["poke", "great", "ultra", "master", "safari"]);
+  assert.ok(keys(pokedexBallOptions("crystal", 2)).includes("moon"));
+  assert.ok(!keys(pokedexBallOptions("crystal", 2)).includes("dream"));
+  assert.deepEqual(keys(pokedexBallOptions("legends-arceus", 8)), ["la-poke", "la-great", "la-ultra", "feather", "wing", "jet", "la-heavy", "leaden", "gigaton", "origin"]);
+  assert.ok(keys(pokedexBallOptions("home", 10)).includes("strange"));
+  assert.ok(keys(pokedexBallOptions("home", 10)).includes("beast"));
+
+  assert.deepEqual(pokedexRibbonGroups("red"), []);
+  assert.ok(pokedexRibbonGroups("ruby").flatMap(({ options }) => options).some(({ key }) => key === "champion-g3"));
+  assert.ok(pokedexRibbonGroups("scarlet").flatMap(({ options }) => options).some(({ key }) => key === "champion-paldea"));
+  assert.ok(!pokedexRibbonGroups("scarlet").flatMap(({ options }) => options).some(({ key }) => key === "champion-galar"));
+  assert.equal(pokedexRibbonGroups("home").flatMap(({ options }) => options).length, POKEDEX_RIBBON_OPTIONS.length);
+});
+
+test("standard and shiny entry details remain independent and optional", () => {
+  const entry = {
+    pokeball: "moon",
+    ribbons: ["best-friends"],
+    notes: "Breed for Timid",
+    shiny_pokeball: "luxury",
+    shiny_ribbons: [],
+    shiny_notes: "",
+  };
+  assert.deepEqual(pokedexEntryDetails(entry), { pokeball: "moon", ribbons: ["best-friends"], notes: "Breed for Timid" });
+  assert.deepEqual(pokedexEntryDetails(entry, "shiny"), { pokeball: "luxury", ribbons: [], notes: "" });
+  assert.equal(pokedexHasEntryDetails(entry), true);
+  assert.equal(pokedexHasEntryDetails({}, "shiny"), false);
+  assert.equal(POKEDEX_ENTRY_NOTE_MAX_LENGTH, 1000);
+});
+
 test("tracker persistence is private, account-scoped, exportable, and catalog-validated", () => {
   const sql = source("supabase/391-account-pokedex-trackers.sql");
   assert.match(sql, /Migration 391/);
@@ -79,7 +118,41 @@ test("Pokémon HOME includes all 1,025 National Dex species", () => {
   assert.doesNotMatch(sql, /alter table public\.pokemon_game_pokedex_entries/i);
 });
 
-test("the account page offers multiple game, HOME, shiny, filter, pagination, rename, delete, and automatic-saving experiences", () => {
+test("entry details use a private RPC-only table with strict ownership and vocabulary validation", () => {
+  const sql = source("supabase/394-private-pokedex-entry-details.sql");
+  assert.match(sql, /Migration 394/);
+  assert.match(sql, /create table public\.pokedex_tracker_entry_details/i);
+  assert.match(sql, /foreign key \(tracker_id, user_id\)[\s\S]*references public\.pokedex_trackers\(id, user_id\) on delete cascade/i);
+  assert.match(sql, /alter table public\.pokedex_tracker_entry_details enable row level security/i);
+  assert.match(sql, /alter table public\.pokedex_tracker_entry_details force row level security/i);
+  assert.match(sql, /revoke all on table public\.pokedex_tracker_entry_details from public, anon, authenticated/i);
+  assert.match(sql, /create or replace function public\.set_my_pokedex_tracker_entry_details/i);
+  assert.match(sql, /where id = p_tracker_id and user_id = auth\.uid\(\)\s+for update/i);
+  assert.match(sql, /pokedex_tracker_catalog\(v_tracker\.catalog_key\)/i);
+  assert.match(sql, /Pokémon notes must be 1,000 characters or fewer/i);
+  assert.match(sql, /cardinality\(ribbon_keys\) <= 100/i);
+  assert.match(sql, /pokedex_tracker_detail_key_is_known\('pokeball'/i);
+  assert.match(sql, /pokedex_tracker_detail_key_is_known\('ribbon'/i);
+  assert.match(sql, /'details', coalesce/i);
+  assert.match(sql, /grant execute on function public\.set_my_pokedex_tracker_entry_details[\s\S]*to authenticated, service_role/i);
+  assert.match(sql, /has_function_privilege\('anon',[\s\S]*set_my_pokedex_tracker_entry_details/i);
+  assert.doesNotMatch(sql, /grant (select|insert|update|delete|all) on table public\.pokedex_tracker_entry_details to authenticated/i);
+  for (const { key } of POKEDEX_BALL_OPTIONS) assert.match(sql, new RegExp(`'${key}'`));
+  for (const { key } of POKEDEX_RIBBON_OPTIONS) assert.match(sql, new RegExp(`'${key}'`));
+});
+
+test("entry details include an isolated two-account Preview regression matrix", () => {
+  const sql = source("supabase/tests/394-private-pokedex-entry-details-preview-regression.sql");
+  assert.match(sql, /^-- Preview-only owner, privacy, validation, and export matrix/m);
+  assert.match(sql, /begin;[\s\S]*rollback;/);
+  assert.match(sql, /has_table_privilege\('authenticated', 'public\.pokedex_tracker_entry_details', 'select'\)/i);
+  assert.match(sql, /A second account can read another account Pok.dex details/);
+  assert.match(sql, /not-a-ball/);
+  assert.match(sql, /not-a-ribbon/);
+  assert.match(sql, /repeat\('x', 1001\)/);
+});
+
+test("the account page offers multiple game, HOME, shiny, collection-detail, filter, pagination, rename, delete, and saving experiences", () => {
   const page = source("src/components/PokedexTrackerPage.jsx");
   const links = source("src/components/SiteQuickLinks.jsx");
   const account = source("src/components/AuthGate.jsx");
@@ -88,9 +161,13 @@ test("the account page offers multiple game, HOME, shiny, filter, pagination, re
   assert.match(page, /update_my_pokedex_tracker/);
   assert.match(page, /delete_my_pokedex_tracker/);
   assert.match(page, /set_my_pokedex_tracker_entry/);
+  assert.match(page, /set_my_pokedex_tracker_entry_details/);
   assert.match(page, /Pokémon HOME/);
   assert.match(page, /Add a shiny dex/);
-  assert.match(page, /Your progress saves automatically/);
+  assert.match(page, /Poké Ball/);
+  assert.match(page, /Ribbons/);
+  assert.match(page, /Private note/);
+  assert.match(page, /Everything saves to your account/);
   assert.match(page, /<h1>Every Pokédex<\/h1>/);
   assert.doesNotMatch(page, /One home/);
   assert.match(page, /Search by name or number/);
@@ -103,6 +180,8 @@ test("the account page offers multiple game, HOME, shiny, filter, pagination, re
   assert.match(page, /let currentUserId = null/);
   assert.match(page, /const accountVersionRef = useRef\(0\)/);
   assert.match(page, /accountVersion !== accountVersionRef\.current/);
+  assert.match(page, /pokedexEntryDetails/);
+  assert.match(page, /pokedexRibbonGroups/);
   assert.match(links, /signedIn && <a href="\/pokedex-tracker"/);
   assert.match(links, /quick-label-wide">Dex Tracker<\/span>/);
   assert.match(links, /quick-label-compact">Track<\/span>/);
@@ -115,6 +194,9 @@ test("the mobile tracker keeps controls touch-sized and long tracker lists compa
   const globalStyles = source("src/app/globals.css");
   assert.match(styles, /dex-primary-button[^}]*min-height: 44px/);
   assert.match(styles, /dex-tracker-controls>div button[^}]*min-height: 44px/);
+  assert.match(styles, /dex-entry-details-trigger[^}]*min-height: 44px/);
+  assert.match(styles, /dex-details-backdrop[^}]*position: fixed/);
+  assert.match(styles, /dex-ribbon-groups button[^}]*min-height: 40px/);
   assert.match(styles, /@media \(max-width: 720px\)[\s\S]*dex-tracker-list \{ display: flex;[^}]*overflow-x: auto/);
   assert.match(styles, /dex-tracker-list>button \{ min-width: min\(270px, calc\(100vw - 68px\)\); scroll-snap-align: start; \}/);
   assert.match(styles, /@media \(max-width: 500px\)[\s\S]*dex-pokemon-grid \{ grid-template-columns: repeat\(2/);
@@ -124,6 +206,7 @@ test("the mobile tracker keeps controls touch-sized and long tracker lists compa
 test("the public Tracker landing has complete, privacy-safe SEO and discovery coverage", () => {
   const route = source("src/app/pokedex-tracker/page.js");
   const social = source("src/app/pokedex-tracker/opengraph-image.js");
+  const socialPreview = source("src/components/PokedexTrackerSocialPreview.jsx");
   const sitemap = source("src/app/sitemap.js");
   const llms = source("src/app/llms.txt/route.js");
   const resources = source("src/components/ResourcesPage.jsx");
@@ -140,8 +223,11 @@ test("the public Tracker landing has complete, privacy-safe SEO and discovery co
   assert.match(route, /"@type": "BreadcrumbList"/);
   assert.match(route, /One private checklist for every Pokédex journey/);
   assert.doesNotMatch(route, /robots:\s*\{\s*index:\s*false/);
-  assert.match(social, /SocialPreviewImage/);
+  assert.match(social, /PokedexTrackerSocialPreview/);
   assert.match(social, /width: 1200, height: 630/);
+  assert.match(socialPreview, /921 of 1,025 registered/);
+  assert.match(socialPreview, /Balls · Ribbons · Notes/);
+  assert.match(socialPreview, /My Living Dex/);
   assert.match(sitemap, /\["\/pokedex-tracker", "weekly", 0\.9\]/);
   assert.match(llms, /Pokédex Tracker for every supported game and Pokémon HOME/);
   assert.match(llms, /never published as account-specific search pages/);

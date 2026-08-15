@@ -105,7 +105,7 @@ test("recent public products expose current social previews and discovery copy",
     "src/app/resources/daily-games/opengraph-image.js",
     "src/app/it/worlds/2026/opengraph-image.js",
   ]) {
-    assert.match(source(image), /SocialPreviewImage/);
+    assert.match(source(image), /SocialPreviewImage|PokedexTrackerSocialPreview/);
     assert.match(source(image), /width: 1200, height: 630/);
   }
   assert.match(mega, /featureList:/);

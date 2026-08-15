@@ -15,10 +15,24 @@ import {
   teamStatSummary,
 } from "../src/lib/teamAnalysis.js";
 import {
+  buildTeamLabBattleShareText,
+  buildTeamLabWeeklyShareText,
   createTeamLabHandoff,
+  createTeamLabLeagueMatchupHandoff,
+  createTeamLabMatchupHandoff,
+  normalizeTeamLabBattleReport,
+  normalizeTeamLabOpponentSets,
   normalizeTeamLabRoster,
+  normalizeTeamLabTurnLog,
   parseTeamLabHandoff,
+  parseTeamLabLeagueMatchupHandoff,
+  parseTeamLabMatchupHandoff,
+  TEAM_LAB_ABILITY_LIMIT,
+  TEAM_LAB_BATTLE_MOVE_LIMIT,
   TEAM_LAB_HANDOFF_KEY,
+  TEAM_LAB_TURN_DAMAGE_LIMIT,
+  TEAM_LAB_TURN_EVENT_LIMIT,
+  TEAM_LAB_TURN_NOTE_LIMIT,
 } from "../src/lib/teamLab.js";
 
 const roster = [
@@ -174,6 +188,141 @@ test("private Team Lab handoffs preserve safe account fields without entering sh
   const publicQuery = buildDraftLabQuery({ format: "national-gen9", mode: "team", names: ["Garchomp"] });
   assert.doesNotMatch(publicQuery, /Rain|Preview|private|10c80c7e/);
   assert.equal(TEAM_LAB_HANDOFF_KEY, "draftcenter-team-lab-handoff-v1");
+  const matchupHandoff = createTeamLabMatchupHandoff("10c80c7e-f905-4d6d-b107-7dbf8cb5c17a");
+  assert.equal(parseTeamLabMatchupHandoff(matchupHandoff), "10c80c7e-f905-4d6d-b107-7dbf8cb5c17a");
+  assert.equal(parseTeamLabMatchupHandoff(createTeamLabMatchupHandoff("not-an-id")), null);
+  const leagueHandoff = createTeamLabLeagueMatchupHandoff({
+    league_id: "1f7d915f-ae5c-43df-b3d7-d25da1cf07fb",
+    week_index: 3,
+    my_team_index: 1,
+    opponent_team_index: 4,
+  });
+  assert.deepEqual(parseTeamLabLeagueMatchupHandoff(leagueHandoff), {
+    leagueId: "1f7d915f-ae5c-43df-b3d7-d25da1cf07fb",
+    weekIndex: 3,
+    myTeamIndex: 1,
+    opponentTeamIndex: 4,
+  });
+  assert.equal(parseTeamLabLeagueMatchupHandoff('{"version":1,"leagueId":"1f7d915f-ae5c-43df-b3d7-d25da1cf07fb"}'), null);
+});
+
+test("opponent set scouting keeps one bounded ability and four unique moves per roster member", () => {
+  const catalog = new Set(["Rotom-Wash", "Amoonguss"]);
+  const sets = normalizeTeamLabOpponentSets({
+    version: 99,
+    pokemon: [{
+      name: "Rotom-Wash",
+      ability: `Levitate${"x".repeat(200)}`,
+      moves: ["Hydro Pump", "Volt Switch", "hydro pump", "Protect", "Will-O-Wisp", "Thunderbolt"],
+    }],
+  }, ["Rotom-Wash", "Amoonguss"], catalog);
+  assert.equal(sets.version, 1);
+  assert.equal(sets.pokemon[0].ability.length, TEAM_LAB_ABILITY_LIMIT);
+  assert.deepEqual(sets.pokemon[0].moves, ["Hydro Pump", "Volt Switch", "Protect", "Will-O-Wisp"]);
+  assert.deepEqual(sets.pokemon[1], { name: "Amoonguss", ability: "", moves: [] });
+  const report = normalizeTeamLabBattleReport(null, ["Garchomp"], ["Rotom-Wash", "Amoonguss"], new Set(["Garchomp", ...catalog]), sets);
+  assert.equal(report.opponent_pokemon[0].ability.length, TEAM_LAB_ABILITY_LIMIT);
+  assert.deepEqual(report.opponent_pokemon[0].moves, sets.pokemon[0].moves);
+});
+
+test("turn recorder keeps bounded roster-aware moves, damage, switches, faints, and notes", () => {
+  const catalog = new Set(["Garchomp", "Corviknight", "Rotom-Wash", "Amoonguss"]);
+  const events = Array.from({ length: TEAM_LAB_TURN_EVENT_LIMIT + 2 }, (_, index) => ({
+    id: index < 2 ? "duplicate" : `event-${index}`,
+    turn: Math.min(index + 1, 999),
+    kind: index % 4 === 0 ? "switch" : "move",
+    side: index % 2 === 0 ? "my" : "opponent",
+    pokemon: index % 2 === 0 ? "Garchomp" : "Rotom-Wash",
+    target: index % 2 === 0 ? "Rotom-Wash" : "Corviknight",
+    move: index % 4 === 0 ? "" : "Volt Switch",
+    damage: `${"9".repeat(TEAM_LAB_TURN_DAMAGE_LIMIT + 20)}%`,
+    note: "x".repeat(TEAM_LAB_TURN_NOTE_LIMIT + 20),
+  }));
+  events.push({ id: "bad-roster", turn: 7, kind: "move", side: "opponent", pokemon: "MissingNo", move: "Glitch" });
+  events.push({ id: "private-note", turn: 8, kind: "note", side: "my", pokemon: "", note: "Remember the damage roll" });
+  const log = normalizeTeamLabTurnLog({
+    version: 88,
+    current_turn: 2,
+    active_my_pokemon: "Garchomp",
+    active_opponent_pokemon: "MissingNo",
+    events,
+  }, ["Garchomp", "Corviknight"], ["Rotom-Wash", "Amoonguss"], catalog);
+  assert.equal(log.version, 1);
+  assert.equal(log.current_game, 1);
+  assert.equal(log.events.length, TEAM_LAB_TURN_EVENT_LIMIT - 1);
+  assert.equal(log.current_turn, TEAM_LAB_TURN_EVENT_LIMIT + 2);
+  assert.equal(log.active_my_pokemon, "Garchomp");
+  assert.equal(log.active_opponent_pokemon, "");
+  assert.equal(new Set(log.events.map((event) => event.id)).size, log.events.length);
+  assert.ok(log.events.some((event) => event.kind === "note" && event.note === "Remember the damage roll"));
+  const move = log.events.find((event) => event.kind === "move");
+  assert.equal(move.damage.length, TEAM_LAB_TURN_DAMAGE_LIMIT);
+  assert.equal(move.note.length, TEAM_LAB_TURN_NOTE_LIMIT);
+  assert.ok(!log.events.some((event) => event.pokemon === "MissingNo"));
+  const multiGame = normalizeTeamLabTurnLog({
+    version: 1,
+    current_game: 2,
+    current_turn: 3,
+    active_my_pokemon: "Garchomp",
+    active_opponent_pokemon: "Rotom-Wash",
+    events: [
+      { id: "game-1", game: 1, turn: 20, kind: "move", side: "my", pokemon: "Garchomp", target: "Rotom-Wash", move: "Earthquake", damage: "40%", note: "" },
+      { id: "game-2", game: 2, turn: 2, kind: "move", side: "opponent", pokemon: "Rotom-Wash", target: "Garchomp", move: "Hydro Pump", damage: "55%", note: "" },
+    ],
+  }, ["Garchomp"], ["Rotom-Wash"], catalog);
+  assert.equal(multiGame.current_game, 2);
+  assert.equal(multiGame.current_turn, 3);
+});
+
+test("Battle Mode normalizes weekly teams and revealed moves without mixing private share fields", () => {
+  const report = normalizeTeamLabBattleReport({
+    version: 99,
+    my_pokemon: [{ name: "Garchomp", brought: true }, { name: "MissingNo", brought: true }],
+    opponent_pokemon: [{ name: "Rotom-Wash", brought: true, fainted: true, ability: "Levitate", moves: ["Hydro Pump", "Volt Switch", "hydro pump", "Protect", "Will-O-Wisp", "Thunderbolt"] }],
+    battle_notes: "Keep the scouting note private",
+    turn_log: {
+      version: 1,
+      current_game: 1,
+      current_turn: 4,
+      active_my_pokemon: "Garchomp",
+      active_opponent_pokemon: "Rotom-Wash",
+      events: [{ id: "turn-four", game: 1, turn: 4, kind: "move", side: "opponent", pokemon: "Rotom-Wash", target: "Garchomp", move: "Hydro Pump", damage: "43%", note: "Private roll note" }],
+    },
+  }, ["Garchomp", "Corviknight"], ["Rotom-Wash", "Amoonguss"], new Set(["Garchomp", "Corviknight", "Rotom-Wash", "Amoonguss"]));
+  assert.equal(report.version, 1);
+  assert.deepEqual(report.my_pokemon, [{ name: "Garchomp", brought: true, fainted: false }]);
+  assert.equal(report.opponent_pokemon[0].moves.length, TEAM_LAB_BATTLE_MOVE_LIMIT);
+  assert.deepEqual(report.opponent_pokemon[0].moves, ["Hydro Pump", "Volt Switch", "Protect", "Will-O-Wisp"]);
+  assert.equal(report.opponent_pokemon.length, 1);
+  assert.equal(report.turn_log.events[0].damage, "43%");
+  const fresh = normalizeTeamLabBattleReport(null, ["Garchomp", "Corviknight"], ["Rotom-Wash", "Amoonguss"]);
+  assert.deepEqual(fresh.my_pokemon.map((pokemon) => pokemon.name), ["Garchomp", "Corviknight"]);
+  assert.deepEqual(fresh.opponent_pokemon.map((pokemon) => pokemon.name), ["Rotom-Wash", "Amoonguss"]);
+  assert.deepEqual(fresh.turn_log.events, []);
+
+  const share = buildTeamLabWeeklyShareText({
+    teamName: "Rain checks",
+    leagueName: "Preview League",
+    weekLabel: "Week 4",
+    formatName: "National Dex",
+    opponentName: "Test Coach",
+    report,
+  });
+  assert.match(share, /Week 4 · Rain checks/);
+  assert.match(share, /Preview League · vs\. Test Coach · National Dex/);
+  assert.match(share, /• Garchomp/);
+  assert.doesNotMatch(share, /Hydro Pump|scouting note|Rotom-Wash|account|matchup/);
+  const battleShare = buildTeamLabBattleShareText({
+    teamName: "Rain checks",
+    leagueName: "Preview League",
+    weekLabel: "Week 4",
+    formatName: "National Dex",
+    opponentName: "Test Coach",
+    report,
+  });
+  assert.match(battleShare, /Opponent reveals/);
+  assert.match(battleShare, /Rotom-Wash · Levitate — Hydro Pump, Volt Switch, Protect, Will-O-Wisp · fainted/);
+  assert.doesNotMatch(battleShare, /scouting note|Private roll note|43%|account/);
 });
 
 test("Team Lab is indexable while account notes and matchups stay private", () => {
@@ -182,6 +331,12 @@ test("Team Lab is indexable while account notes and matchups stay private", () =
   const personalTeams = fs.readFileSync(new URL("../src/components/PersonalTeams.jsx", import.meta.url), "utf8");
   const auth = fs.readFileSync(new URL("../src/components/AuthGate.jsx", import.meta.url), "utf8");
   const migration = fs.readFileSync(new URL("../supabase/393-private-team-lab-matchups.sql", import.meta.url), "utf8");
+  const battleMigration = fs.readFileSync(new URL("../supabase/395-private-team-lab-battle-reports.sql", import.meta.url), "utf8");
+  const scoutingMigration = fs.readFileSync(new URL("../supabase/396-private-team-calendar-links-and-opponent-sets.sql", import.meta.url), "utf8");
+  const turnMigration = fs.readFileSync(new URL("../supabase/397-private-team-lab-turn-recorder.sql", import.meta.url), "utf8");
+  const opponentEditor = fs.readFileSync(new URL("../src/components/TeamLabOpponentEditor.jsx", import.meta.url), "utf8");
+  const calendar = fs.readFileSync(new URL("../src/components/PokemonCalendar.jsx", import.meta.url), "utf8");
+  const league = fs.readFileSync(new URL("../src/components/PokemonDraftLeague.jsx", import.meta.url), "utf8");
   const navigation = fs.readFileSync(new URL("../src/components/SiteQuickLinks.jsx", import.meta.url), "utf8");
   const home = fs.readFileSync(new URL("../src/components/LeagueHub.jsx", import.meta.url), "utf8");
   const resources = fs.readFileSync(new URL("../src/components/ResourcesPage.jsx", import.meta.url), "utf8");
@@ -204,12 +359,28 @@ test("Team Lab is indexable while account notes and matchups stay private", () =
   assert.doesNotMatch(component, /Draft roster · 24/);
   assert.match(component, /createClient/);
   assert.match(component, /\.rpc\("list_my_team_lab_matchups"/);
-  assert.match(component, /\.rpc\("save_my_team_lab_matchup"/);
+  assert.match(component, /\.rpc\("save_my_team_lab_matchup_details"/);
   assert.match(component, /\.rpc\("delete_my_team_lab_matchup"/);
+  assert.match(component, /\.rpc\("save_my_team_lab_battle_report"/);
+  assert.match(component, /Open Battle Mode/);
+  assert.match(component, /Closed sheet/);
+  assert.match(component, /Open sheet/);
+  assert.match(component, /Copy weekly team/);
+  assert.match(component, /Copy battle recap/);
+  assert.match(component, /Use in report/);
+  assert.match(component, /FAST BATTLE TICKER/);
+  assert.match(component, /Turn-by-turn recorder/);
+  assert.match(component, /Sheet moves — tap one/);
+  assert.match(component, /Type it the first time it is revealed/);
+  assert.match(component, /Damage dealt/);
+  assert.match(component, /Record \{actionKind\}/);
+  assert.match(component, /Private notes and opponent move observations were not included/);
   assert.match(component, /not account details, team notes, or matchup plans/);
   assert.match(component, /League roster opened as a private planning copy/);
   assert.match(personalTeams, /Open Team Lab/);
   assert.match(personalTeams, /window\.sessionStorage\.setItem\(TEAM_LAB_HANDOFF_KEY/);
+  assert.match(personalTeams, /TeamLabOpponentEditor/);
+  assert.match(personalTeams, /Open Battle Mode/);
   assert.doesNotMatch(personalTeams, /10-team limit reached|\/ 10 used|teams\.length>=10/);
   assert.match(auth, /team_lab_matchups/);
   assert.match(migration, /create table public\.team_lab_matchups/);
@@ -221,6 +392,30 @@ test("Team Lab is indexable while account notes and matchups stay private", () =
   assert.doesNotMatch(migration, />\s*case when/);
   assert.match(migration, /where team\.id = p_personal_team_id and team\.owner_id = auth\.uid\(\)/);
   assert.match(migration, /where id = p_matchup_id and owner_id = auth\.uid\(\)/);
+  assert.match(battleMigration, /add column battle_report jsonb not null/);
+  assert.match(battleMigration, /public\.is_valid_team_lab_battle_report\(battle_report\)/);
+  assert.match(battleMigration, /jsonb_array_length\(case when jsonb_typeof\(entry -> 'moves'\)[^\n]+> 4/);
+  assert.match(battleMigration, /where id = p_matchup_id and owner_id = auth\.uid\(\)/);
+  assert.match(battleMigration, /revoke all on function public\.save_my_team_lab_battle_report/);
+  assert.match(battleMigration, /grant execute on function public\.save_my_team_lab_battle_report/);
+  assert.match(battleMigration, /battle_report = v_battle_report/);
+  assert.match(battleMigration, /Team Lab battle reports must remain RPC-only/);
+  assert.match(scoutingMigration, /add column opponent_sets jsonb not null/);
+  assert.match(scoutingMigration, /add column personal_team_id uuid references public\.personal_teams\(id\) on delete set null/);
+  assert.match(scoutingMigration, /force row level security/);
+  assert.match(scoutingMigration, /get_my_league_matchup_planning_context/);
+  assert.match(scoutingMigration, /v_my_team ->> 'claimedByUserId' = auth\.uid\(\)::text/);
+  assert.match(scoutingMigration, /save_my_team_lab_matchup_details/);
+  assert.match(scoutingMigration, /Structured opponent scouting must remain RPC-only/);
+  assert.match(turnMigration, /create or replace function public\.is_valid_team_lab_turn_log/);
+  assert.match(turnMigration, /jsonb_array_length\(case when jsonb_typeof\(p_log -> 'events'\)[^\n]+<= 300/);
+  assert.match(turnMigration, /octet_length\(p_report::text\) <= 200000/);
+  assert.match(turnMigration, /Team Lab turn logs must remain RPC-only/);
+  assert.match(opponentEditor, /Known or likely ability/);
+  assert.match(opponentEditor, /Known, likely, or revealed move/);
+  assert.match(calendar, /Connect a My Teams workspace/);
+  assert.match(calendar, /Plan this matchup/);
+  assert.match(league, /Plan in Team Lab/);
   const primaryHeaderStart = navigation.indexOf('<nav className="site-primary-links"');
   const primaryHeader = navigation.slice(primaryHeaderStart, navigation.indexOf("</nav>", primaryHeaderStart));
   assert.doesNotMatch(primaryHeader, /href="\/tools\/team-builder"/);
@@ -232,6 +427,9 @@ test("Team Lab is indexable while account notes and matchups stay private", () =
   assert.match(styles, /\.draft-lab-roster li\s*\{\s*display:\s*grid;\s*grid-template-columns:\s*29px minmax\(130px,1fr\) auto auto/);
   assert.match(styles, /@media\(max-width:520px\)[^}]*[\s\S]*?\.team-lab-account-load[^}]*grid-template-columns:\s*1fr/);
   assert.match(styles, /\.team-lab-account input[^}]*min-height:\s*44px/);
+  assert.match(styles, /\.team-lab-battle-toggle[^}]*min-height:\s*44px/);
+  assert.match(styles, /\.team-lab-turn-stepper button[^}]*min-height:\s*44px/);
+  assert.match(styles, /@media\(max-width:780px\)[^}]*[\s\S]*?\.team-lab-battle-columns[^}]*grid-template-columns:\s*1fr/);
   assert.match(catalogBuilder, /readFileSync\(OUTPUT_PATH, "utf8"\)\.replace\(\/\\r\\n\/g, "\\n"\)/);
   assert.match(llms, /Team Lab Pokémon team builder and matchup planner/);
   assert.match(sitemap, /\["\/tools\/team-builder", "weekly", 0\.9\]/);

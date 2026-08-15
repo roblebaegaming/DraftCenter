@@ -46,6 +46,10 @@ test("release migrations use one production number each", () => {
   assert.ok(migrations.includes("391-account-pokedex-trackers.sql"));
   assert.ok(migrations.includes("392-complete-pokedex-home-national-dex.sql"));
   assert.ok(migrations.includes("393-private-team-lab-matchups.sql"));
+  assert.ok(migrations.includes("394-private-pokedex-entry-details.sql"));
+  assert.ok(migrations.includes("395-private-team-lab-battle-reports.sql"));
+  assert.ok(migrations.includes("396-private-team-calendar-links-and-opponent-sets.sql"));
+  assert.ok(migrations.includes("397-private-team-lab-turn-recorder.sql"));
   assert.ok(migrations.includes("398-atomic-auction-reconciliation-and-lifecycle.sql"));
   assert.ok(migrations.includes("399-operations-organization-activity.sql"));
 });

@@ -53,11 +53,15 @@ test("official VGC events remain read-only and can be filtered or exported", () 
 
 test("calendar migration isolates private reminders with owner-only RLS", () => {
   const migration = source("supabase/382-personal-pokemon-calendar.sql");
+  const teamLinks = source("supabase/396-private-team-calendar-links-and-opponent-sets.sql");
   assert.match(migration, /create table if not exists public\.pokemon_calendar_events/);
   assert.match(migration, /alter table public\.pokemon_calendar_events enable row level security/);
   assert.match(migration, /revoke all on table public\.pokemon_calendar_events from public, anon, authenticated/);
   assert.match(migration, /grant select, insert, update, delete on table public\.pokemon_calendar_events to authenticated/);
   assert.ok((migration.match(/owner_id = auth\.uid\(\)/g) || []).length >= 4);
+  assert.match(teamLinks, /add column personal_team_id uuid references public\.personal_teams\(id\) on delete set null/);
+  assert.match(teamLinks, /alter table public\.pokemon_calendar_events force row level security/);
+  assert.ok((teamLinks.match(/team\.id = personal_team_id and team\.owner_id = auth\.uid\(\)/g) || []).length >= 2);
 });
 
 test("calendar subscription tokens are unguessable, hash-only, and timezone validated", () => {
@@ -141,4 +145,17 @@ test("derived league match times honor the league time zone on the server", () =
   const [match] = deriveLeagueEvents(memberships, snapshots, { id: "user-1" }, null, "https://www.draftcentral.gg", "UTC");
   assert.equal(match.starts_at, "2026-08-16T02:00:00.000Z");
   assert.equal(match.source_url, "https://www.draftcentral.gg/?league=test-league");
+  assert.deepEqual({
+    league_id: match.league_id,
+    season_number: match.season_number,
+    week_index: match.week_index,
+    my_team_index: match.my_team_index,
+    opponent_team_index: match.opponent_team_index,
+  }, {
+    league_id: "league-1",
+    season_number: 1,
+    week_index: 0,
+    my_team_index: 0,
+    opponent_team_index: 1,
+  });
 });

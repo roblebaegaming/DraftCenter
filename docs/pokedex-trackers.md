@@ -12,6 +12,13 @@ Nuzlocke run state.
   National Pokédex assembled from the union of verified catalogs.
 - Standard and shiny progress are separate. A standard tracker can add its
   shiny layer later without losing or changing either checklist.
+- Every standard or shiny entry can optionally record a supported Poké Ball,
+  ribbons that can be awarded in the selected game, and a private note up to
+  1,000 characters. Pokémon HOME offers the combined ribbon history and ball
+  catalog. Games that do not award ribbons do not show an empty picker.
+- Entry details are independent of caught flags. A collector can save a hunt
+  plan before registering the Pokémon, and unchecking a catch does not erase
+  its Poké Ball, ribbons, or note.
 - Progress saves immediately to the signed-in DraftCenter account. Search,
   completion filters, and gallery pagination are presentation-only state.
 - HOME trackers show deterministic page, box, and position labels and can be
@@ -24,10 +31,13 @@ Nuzlocke run state.
 ## Data and privacy boundary
 
 Migration `391-account-pokedex-trackers.sql` creates
-`pokedex_trackers` and `pokedex_tracker_entries`. Both tables use RLS, revoke
-direct browser table privileges, and expose only authenticated RPCs. Each read,
-write, rename, and deletion is scoped to `auth.uid()`. Account deletion removes
-tracker data through `on delete cascade`.
+`pokedex_trackers` and `pokedex_tracker_entries`. Migration
+`394-private-pokedex-entry-details.sql` adds the separate
+`pokedex_tracker_entry_details` table for optional Poké Ball, ribbon, and note
+metadata. All three tables use RLS, revoke direct browser table privileges, and
+expose only authenticated RPCs. Each read, write, rename, and deletion is
+scoped to `auth.uid()`. Account and tracker deletion remove detail rows through
+`on delete cascade`.
 
 Catalog membership is validated inside the database before an entry can be
 saved. Game trackers accept only species from a verified `pokemon_games`
@@ -38,9 +48,15 @@ The catalog source is shared with Nuzlocke Lab, but tracker writes never modify
 catalog rows. Adding or removing progress never changes Trainer Dex discovery
 events or badge progress.
 
-The authenticated account export includes tracker definitions and caught-entry
-flags through `export_my_pokedex_trackers()`. Account deletion removes both
-tables through their `auth.users` cascade.
+The authenticated account export includes tracker definitions, caught-entry
+flags, and private entry details through `export_my_pokedex_trackers()`.
+Account deletion removes all three tables through their `auth.users` cascade.
+
+The picker vocabulary was reviewed against PKHeX commit
+`2d970dde75e2dc043e924102ddd8468042df4794`: `Ball.cs`, `RibbonIndex.cs`, and
+the English ribbon-name resource. DraftCenter stores stable lowercase keys,
+not copied save data. This first release intentionally tracks ribbons rather
+than encounter marks.
 
 ## HOME organizer scope
 
@@ -67,10 +83,11 @@ WebApplication and FAQ structured data, a route-specific social preview,
 server-rendered product guidance, sitemap and `llms.txt` entries, and
 crawlable links from Resources and the public Pokédex.
 
-Only product-controlled copy is server rendered. The authenticated client loads
-tracker state through account-scoped RPCs after hydration. Metadata, structured
-data, the sitemap, and public HTML must never contain tracker IDs, tracker names,
-progress, catches, shiny catches, or account identity.
+Only product-controlled copy and the fictional social-preview tracker are
+server rendered. The authenticated client loads real tracker state through
+account-scoped RPCs after hydration. Metadata, structured data, the sitemap,
+social previews, and public HTML must never contain tracker IDs, tracker names,
+progress, catches, Poké Balls, ribbons, notes, or account identity.
 
 ## Release checks
 
@@ -85,6 +102,11 @@ Before release, apply migration 391 to an isolated Preview project and verify:
 6. desktop plus 320px and approximately 390px mobile layouts remain usable
    with a full HOME catalog, touch-sized controls, and no page-level horizontal
    overflow.
+
+Migration 394 also requires an isolated two-account matrix proving that signed-
+out callers and a second account cannot list, create, change, delete, or export
+another account's entry details; invalid catalog species, ball keys, ribbon
+keys, shiny layers, and notes over 1,000 characters must be rejected.
 
 Run `npm run test:pokedex-tracker`, `npm run test:seo`,
 `npm run test:release-integration`, the full application suite, the National
