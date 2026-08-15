@@ -1,7 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import { publicSupabaseConfig } from "../src/lib/supabase/config.js";
+import {
+  isVercelPreviewHostname,
+  publicSupabaseConfig,
+} from "../src/lib/supabase/config.js";
 const migration = fs.readFileSync(
   new URL(
     "../supabase/261-versioned-pokemon-encounter-catalog.sql",
@@ -727,6 +730,20 @@ test("Vercel Preview uses its isolated Supabase integration while production kee
         ? delete process.env[name]
         : (process.env[name] = previous[name]);
   }
+});
+test("Vercel branch aliases retain the Preview database boundary in the browser", () => {
+  assert.equal(
+    isVercelPreviewHostname(
+      "draftcenter-git-codex-bank-rescue-inventory-rob-lebae.vercel.app",
+    ),
+    true,
+  );
+  assert.equal(isVercelPreviewHostname("draftcenter.vercel.app"), false);
+  assert.equal(isVercelPreviewHostname("draftcenter.gg"), false);
+  assert.equal(
+    isVercelPreviewHostname("draftcenter-git-branch.vercel.app.evil.test"),
+    false,
+  );
 });
 test("verified game summaries are bounded, RLS-backed, and browser read-only", () => {
   assert.match(summaryMigration, /list_verified_nuzlocke_games/);

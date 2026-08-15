@@ -11,12 +11,24 @@ function validPublicKey(value) {
   return typeof value === "string" && value.length >= 32 && !/^\$/.test(value);
 }
 
+export function isVercelPreviewHostname(hostname) {
+  const normalized = String(hostname || "")
+    .trim()
+    .toLowerCase()
+    .replace(/\.$/, "");
+  return normalized.endsWith(".vercel.app") && normalized.includes("-git-");
+}
+
 export function publicSupabaseConfig() {
   const preferredUrl = process.env.NEXT_PUBLIC_DRAFTCENTER_SUPABASE_URL;
   const fallbackUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const preferredKey = process.env.NEXT_PUBLIC_DRAFTCENTER_SUPABASE_PUBLISHABLE_KEY;
   const fallbackKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  const isPreview = process.env.VERCEL_ENV === "preview" || process.env.VERCEL_TARGET_ENV === "preview";
+  const isPreview =
+    process.env.VERCEL_ENV === "preview" ||
+    process.env.VERCEL_TARGET_ENV === "preview" ||
+    (typeof window !== "undefined" &&
+      isVercelPreviewHostname(window.location?.hostname));
   const hasPreferredConfig = validUrl(preferredUrl) && validPublicKey(preferredKey);
   const hasPreviewConfig = validUrl(fallbackUrl) && validPublicKey(fallbackKey);
 

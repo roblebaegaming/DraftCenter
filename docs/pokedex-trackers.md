@@ -19,6 +19,17 @@ Nuzlocke run state.
 - Entry details are independent of caught flags. A collector can save a hunt
   plan before registering the Pokémon, and unchecking a catch does not erase
   its Poké Ball, ribbons, or note.
+- Collection inventory is a separate layer for actual individuals. The same
+  species may have any number of private records with a free-text form
+  description, shiny state, gender, level, nickname, Original Trainer, origin
+  game and mark,
+  ball, ribbons, event flag, sentimental importance, notes, intended
+  destination, and transfer state.
+- Named storage locations represent a game save, Pokémon Bank, Pokémon HOME,
+  a cartridge box, or other user-described storage. An individual can point to
+  one location plus an optional box label and slot from 1 through 30.
+- Inventory can be downloaded as JSON or CSV. CSV cells that begin like a
+  spreadsheet formula are neutralized before download.
 - Progress saves immediately to the signed-in DraftCenter account. Search,
   completion filters, and gallery pagination are presentation-only state.
 - HOME trackers show deterministic page, box, and position labels and can be
@@ -34,10 +45,13 @@ Migration `391-account-pokedex-trackers.sql` creates
 `pokedex_trackers` and `pokedex_tracker_entries`. Migration
 `394-private-pokedex-entry-details.sql` adds the separate
 `pokedex_tracker_entry_details` table for optional Poké Ball, ribbon, and note
-metadata. All three tables use RLS, revoke direct browser table privileges, and
-expose only authenticated RPCs. Each read, write, rename, and deletion is
-scoped to `auth.uid()`. Account and tracker deletion remove detail rows through
-`on delete cascade`.
+metadata. Migration `400-private-pokedex-collection-inventory.sql` adds
+`pokedex_collection_locations` and `pokedex_collection_specimens` without
+stretching the species-level checklist schema. All five tables use RLS; the
+detail and inventory tables force RLS. Direct browser table privileges are
+revoked, and authenticated RPCs scope each read, write, rename, and deletion
+to `auth.uid()`. Account and tracker deletion remove all owned collection rows
+through `on delete cascade`.
 
 Catalog membership is validated inside the database before an entry can be
 saved. Game trackers accept only species from a verified `pokemon_games`
@@ -49,8 +63,9 @@ catalog rows. Adding or removing progress never changes Trainer Dex discovery
 events or badge progress.
 
 The authenticated account export includes tracker definitions, caught-entry
-flags, and private entry details through `export_my_pokedex_trackers()`.
-Account deletion removes all three tables through their `auth.users` cascade.
+flags, private entry details, named locations, and individual records through
+`export_my_pokedex_trackers()`. Account deletion removes all five tables
+through their `auth.users` cascade.
 
 The picker vocabulary was reviewed against PKHeX commit
 `2d970dde75e2dc043e924102ddd8468042df4794`: `Ball.cs`, `RibbonIndex.cs`, and
@@ -75,6 +90,25 @@ and final-evolution-only goals, but only after DraftCenter has an audited
 canonical catalog for regional, cosmetic, gender, event, and shiny-eligible
 forms. Those rows must not be inferred from artwork availability or copied from
 an external organizer.
+
+The individual inventory therefore accepts an owner-entered form description,
+but does not classify it, claim that the form can move through Bank or HOME,
+or use it for availability decisions. A future rescue-priority engine requires
+a separately reviewed, dated, source-backed availability catalog.
+
+## Bank Rescue boundary
+
+The inventory is preparation for a later Bank Rescue planner. It never asks
+for Nintendo credentials, connects to a console, reads a save, or claims to
+perform a transfer. Transfer state and intended destination are private notes
+entered by the owner, not proof that a transfer is possible or complete.
+
+Do not hard-code a shutdown deadline, rescue classification, or route advice
+from commentary or secondary reporting. Those features require an
+authoritative dated source, explicit provenance in the data model, an
+uncertain/verify classification, and regression coverage for changing
+availability. Camera-assisted box auditing also remains out of scope for this
+foundation.
 
 ## Search and discovery boundary
 
@@ -107,6 +141,13 @@ Migration 394 also requires an isolated two-account matrix proving that signed-
 out callers and a second account cannot list, create, change, delete, or export
 another account's entry details; invalid catalog species, ball keys, ribbon
 keys, shiny layers, and notes over 1,000 characters must be rejected.
+
+Migration 400 requires its own rollback-only two-account Preview matrix. It
+must prove forced RLS and browser-role table denial, owner round trips and
+export, cross-account read/write denial, catalog membership checks, bounded
+levels and box positions, ball and ribbon validation, same-tracker location
+ownership, referenced-location deletion protection, and deletion in specimen-
+then-location order.
 
 Run `npm run test:pokedex-tracker`, `npm run test:seo`,
 `npm run test:release-integration`, the full application suite, the National

@@ -9,6 +9,9 @@ users.
 - Commissioners can download a readable league spreadsheet and a restorable
   league JSON recovery file.
 - Users can download a private account export from Profile.
+- Pokédex Tracker exports include private caught progress, entry details,
+  storage locations, and individual collection records. The tracker workspace
+  also offers portable JSON and spreadsheet-safe CSV inventory downloads.
 - Users can download readable and restorable My Teams exports from My Teams.
   These exports include account-private Team Lab matchup plans linked to each
   saved team, and restore the plans only after their owning teams exist.
