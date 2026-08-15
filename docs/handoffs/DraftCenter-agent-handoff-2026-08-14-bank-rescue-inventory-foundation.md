@@ -1,13 +1,16 @@
 # DraftCenter agent handoff: Bank Rescue inventory foundation
 
 - Date prepared: August 14, 2026 Pacific
+- Date released: August 15, 2026 Pacific
 - Starting point: fresh `origin/main` at `7364cc547c0edc0ae188cdd596b942a3e2ffaf8c`
 - Branch: `codex/bank-rescue-inventory-foundation-2026-08-14`
 - Worktree: `DraftCenter-bank-rescue-inventory-20260814`
-- Proposed migration: 400
+- Feature pull request: [#222](https://github.com/roblebaegaming/DraftCenter/pull/222)
+- Verified Production feature commit: `d7b6b8d88073de8b6849ee5a92a16afabff7fedd`
+- Production migration: 400
 - Preview validation date: August 15, 2026 Pacific
-- Release state: isolated database and hosted Preview validation complete;
-  draft pull request #222 open; not merged or deployed
+- Release state: merged and deployed; Production database, application,
+  signed-out smoke, and live-page validation complete
 
 ## Outcome
 
@@ -145,18 +148,61 @@ The Next.js development overlay reported only its expected local CSP/eval
 warning; the browser console contained no captured warnings or errors. The
 production build did not report that development-only warning.
 
-## Required before release
+## Production release completed
 
-1. Keep every protected check on pull request #222 passing and resolve any
-   hosted Preview feedback before marking the pull request ready.
-2. Apply migration 400 to the exact authorized Production project before the
-   compatible application merge, then verify schema and grants read-only.
-3. Merge only after explicit owner approval, confirm the deployed commit, and
-   run the signed-out production smoke sweep.
+The owner authorized the complete release on August 15. Pull request #222 was
+marked ready only after its exact head `8c56b7d` remained mergeable and every
+protected application, security, secret-scan, CodeQL, and Vercel check passed.
 
-The only external data writes were the retained-Preview restoration of
-migration 392, migration 400, and exact disposable fixtures in the isolated
-Preview project. No Production database, real tracker,
-individual record, provider setting, environment variable, credential, or
-secret was changed. Production migration, merge, and deployment remain
-separate owner-authorized release actions.
+A read-only preflight on exact Production project
+`eukexfqpiuidwygllaye` verified the existing tracker and entry-detail
+foundations, the 1,025-species HOME catalog, and the absence of both migration
+400 tables and all three checked inventory RPCs. The dashboard rejected the
+first migration submission during parsing because its editor had retained part
+of the prior preflight; PostgreSQL made no change. An immediate authoritative
+recheck again found all migration 400 objects absent. The exact reviewed file,
+SHA-256
+`0B449CE2F85568072BA536D0C0F2774505B02AC0EBFCEF900827D498A9ED8C11`,
+was then loaded into a fresh editor and applied once successfully.
+
+Production postflight, repeated after application deployment, confirmed:
+
+- both inventory tables exist with RLS enabled and forced;
+- the tables have zero policies and deny direct `anon` and `authenticated`
+  reads;
+- `anon` cannot execute the inventory owner RPCs;
+- `authenticated` can execute the intended owner RPCs and account export but
+  cannot execute the internal validation helper;
+- the origin-mark column and same-tracker location foreign key exist;
+- the HOME catalog still contains 1,025 species; and
+- both new Production tables contained zero rows.
+
+GitHub squash-merged pull request #222 to
+`d7b6b8d88073de8b6849ee5a92a16afabff7fedd`. Vercel deployment
+`5FWDF5Lf2TedQxxvStwkcUC8vjBF` reported **Ready**, **Production**, and
+**Current**, assigned `www.draftcentral.gg`, and identified that exact commit
+as its source. All 20 signed-out production smoke checks passed. The live
+`/pokedex-tracker` route resolved to its signed-out state, showed the new
+individual-inventory and Nintendo-service boundary copy, and produced no
+captured browser logs.
+
+The only Production write was the explicitly authorized forward-only schema
+migration. No real tracker, collection location, individual Pokémon record,
+league, draft, roster, provider setting, environment variable, credential, or
+secret was changed for validation.
+
+## Recommended next steps
+
+1. Build the future Bank Rescue classification layer around dated source
+   provenance and an explicit uncertain/verify state; do not infer transfer
+   availability or a shutdown deadline from discussion sources.
+2. Audit form-aware collection goals as a separate catalog effort before
+   offering form-level rescue priorities.
+3. Gather a small amount of signed-in collector feedback on the inventory flow
+   and exports without creating synthetic Production records.
+4. Keep camera-assisted auditing and any Nintendo-service integration outside
+   this foundation until their privacy, accuracy, and platform boundaries are
+   independently reviewed.
+
+Start future work from fresh `origin/main`. Migration 400 is already applied
+to Production and must not be replayed.

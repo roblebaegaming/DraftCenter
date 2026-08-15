@@ -1,12 +1,27 @@
 # DraftCenter current status
 
-- Last updated: August 14, 2026
+- Last updated: August 15, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified production feature commit: `d6eea6bf88a3211f7a62041bbcdb928951877024`
-- Latest production migration: 399
+- Verified production feature commit: `d7b6b8d88073de8b6849ee5a92a16afabff7fedd`
+- Latest production migration: 400
 
 ## Deployed state
+
+Pull request [#222](https://github.com/roblebaegaming/DraftCenter/pull/222)
+and migration 400 added the private Pokédex Collection inventory foundation.
+Collectors can keep the fast species checklist while separately recording
+repeatable individual Pokémon, named game-save, Pokémon Bank, Pokémon HOME,
+cartridge, or other locations, box positions, origin details, importance, and
+owner-entered transfer state. The two new tables force RLS, expose no browser
+table access or policies, and use owner-scoped RPCs; account export now includes
+locations and specimens, with JSON and spreadsheet-safe CSV downloads. The
+isolated two-account matrix, hosted desktop/390px/320px review, protected
+checks, exact Production deployment at `d7b6b8d`, live signed-out review, and
+all 20 production smoke checks passed. Production postflight found zero
+inventory rows, so the release did not create or change a real tracker,
+location, or individual record. The feature does not connect to Nintendo
+services or claim that an owner-entered transfer is supported or complete.
 
 The final August 14 release sequence is complete. Pull request
 [#218](https://github.com/roblebaegaming/DraftCenter/pull/218) and migration
