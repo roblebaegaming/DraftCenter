@@ -1,12 +1,19 @@
 # Agent handoffs
 
+[`DraftCenter-agent-handoff-2026-08-15-bank-rescue-classification-production.md`](DraftCenter-agent-handoff-2026-08-15-bank-rescue-classification-production.md)
+is the current production continuation handoff. It records the deployed,
+official-source-backed Bank Rescue action labels through pull request #224,
+dated provenance in the private Collection inventory and JSON/CSV exports, the
+explicit uncertain/verify boundary, Preview cleanup, exact Production commit,
+smoke and live-route evidence, direct owner test walkthroughs for Pokédex and
+Team Lab, and the next source-backed collection-continuity work.
+
 [`DraftCenter-agent-handoff-2026-08-14-bank-rescue-inventory-foundation.md`](DraftCenter-agent-handoff-2026-08-14-bank-rescue-inventory-foundation.md)
-is the current production continuation handoff. It records the deployed private
+is the preceding Bank Rescue foundation handoff. It records the deployed private
 individual-Pokémon and storage-location inventory through pull request #222 and
 migration 400, portable JSON/CSV exports, the isolated two-account matrix,
 hosted responsive review, exact Production commit and smoke evidence, and the
-boundary separating this foundation from future source-backed Bank deadline
-and rescue-priority advice.
+boundary that preceded the source-backed classification release above.
 
 [`DraftCenter-agent-handoff-2026-08-14-session-consolidated-production.md`](DraftCenter-agent-handoff-2026-08-14-session-consolidated-production.md)
 is the preceding production continuation handoff. It records the deployed
