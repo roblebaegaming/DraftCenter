@@ -11,23 +11,43 @@ tool with private, signed-in weekly team and matchup workspaces.
    change every week without overwriting earlier reports.
 3. The coach creates an opponent plan under the saved team. A plan can contain
    the opponent name, team name, known six- or ten-Pokémon roster, format, and
-   private preparation notes. Each opponent Pokémon can also keep one ability
-   and four known, likely, published, or revealed moves.
-4. **Open Battle Mode** turns that plan into a focused live notebook. The coach
+   private preparation notes. Each opponent Pokémon can also keep one ability,
+   one held item, and four known, likely, published, or revealed moves.
+4. **Save & open Battle Mode** turns a new or edited plan directly into a
+   focused live notebook. A saved plan also keeps a persistent **Open
+   turn-by-turn Battle Mode** action for returning to its report. The coach
    labels the week or round, selects closed or open team sheet, marks Pokémon as
    brought or fainted, records up to four revealed moves per opponent Pokémon,
    and keeps a private battle note.
-5. The turn recorder keeps the active Pokémon, current game and turn, moves, switches,
-   faints, written damage, and short action notes in one quick-entry panel. A
-   closed sheet accepts a move the first time it is seen and then makes it a tap
-   target. An open sheet also offers the saved sheet moves as tap targets.
+5. The turn recorder keeps the active Pokémon, current game and turn, moves,
+   ability and held-item reveals, switches, faints, written damage, and short
+   action notes in one quick-entry panel. The opponent roster is a one-tap row
+   for fast closed-sheet capture. A closed sheet accepts a move, ability, or
+   item the first time it is seen and then remembers it. An open sheet also
+   offers saved sheet details as tap targets.
 6. Battle Mode saves only after the coach presses **Save battle report**. Closing
    with unsaved changes requires confirmation.
+7. **Download Excel / Sheets workbook** exports the complete private team
+   workspace as one `.xlsx` file. It contains Overview, My Team, Matchup Plans,
+   Opponent Sets, Turn Log, and editable Game Plans sheets. Excel opens it
+   directly; Google Sheets imports the same file without a separate account
+   connection.
 
-Closed team sheet mode starts as a scouting notebook: moves are added only as
-the coach sees them during play. Open team sheet mode uses the same controls so
-the published moves can be entered before a tournament set. Changing the label
-does not publish or reveal any data to another account.
+The Team Lab hero links directly to the private Battle Mode setup, where a
+three-step roster → opponent plan → recorder guide remains visible before sign
+in. Battle Mode is a companion notebook: it does not connect to, install into,
+or read data from the game client.
+
+The strategy/archetype suggestions are an optional beta disclosure closed by
+default. They are generated only from typing and base-stat signals and are
+presented as questions, not team grades. Moves, abilities, items, Tera rules,
+and league clauses remain manual checks.
+
+Closed team sheet mode starts as a fast scouting notebook: Pokémon, moves,
+abilities, and held items are recorded only as the coach sees them during play.
+Open team sheet mode uses the same controls so published sets can be entered
+before a tournament set. Changing the label does not publish or reveal any data
+to another account.
 
 Saved pre-battle set scouting is displayed separately from the live report. It
 does not become a reveal automatically. **Use in report** is an explicit action
@@ -63,9 +83,13 @@ Team Lab has three deliberately separate outputs:
 - **Copy weekly team** contains the week label, the coach's team and event
   context, and the Pokémon marked as brought. If none are marked, it uses the
   full saved team.
-- **Copy battle recap** adds only structured opponent Pokémon, abilities, moves,
-  and fainted markers to that weekly summary. It is an explicit after-battle
-  sharing action, not a public link or automatic publication.
+- **Copy battle recap** adds only structured opponent Pokémon, abilities, held
+  items, moves, and fainted markers to that weekly summary. It is an explicit
+  after-battle sharing action, not a public link or automatic publication.
+- **Download Excel / Sheets workbook** is a private, explicit download that
+  includes team, matchup, and battle notes, all saved opponent plans, structured
+  reveals, and turn timelines. The file is not uploaded to Microsoft or Google
+  by DraftCenter; the coach chooses where to store or import it.
 - Private team notes, matchup notes, battle notes, opponent move observations,
   the turn timeline, written damage, account identifiers, saved-team
   identifiers, and league identifiers are not included in the public analysis
@@ -116,14 +140,24 @@ backfilled with an empty log; older backups without one remain readable. The
 existing owner-only save, export, and recovery RPCs carry the complete JSON, so
 no direct browser table access or new sharing channel is introduced.
 
+Forward-only migration 401 adds bounded, optional held-item fields to opponent
+set planning and Battle Mode reports, plus bounded ability and item reveal
+events in the turn timeline. It deliberately performs no data backfill or other
+Production-row update: older plans without the new optional JSON keys remain
+valid, while the client adds empty item/detail values the next time a report is
+saved. Owner-only RPC access, forced RLS, the 300-event cap, and the 200 KB
+report cap remain unchanged.
+
 Direct `anon` and `authenticated` table reads and writes remain revoked. The
 battle RPC updates only a matchup owned by `auth.uid()`. Old backups without a
 battle report restore with an empty version-one report.
 
 ## Release requirements
 
-Before release, apply migrations 395 through 397 only to an isolated Supabase
-Preview and run their focused regression scripts.
+Before release, apply migration 401 only to an isolated Supabase Preview that
+already contains the current Production migration history, then run its focused
+regression script. A fresh Preview still needs prerequisite migrations 395
+through 397 before 401.
 Verify two separate accounts cannot list, save, or restore each other's report;
 invalid five-move data is rejected; export/recovery round trips; deleting the
 weekly team cascades; and direct browser table access remains unavailable.
@@ -139,9 +173,15 @@ notes round-trip through save, list, export, and recovery. Reject an event whose
 Pokémon is not on the saved report roster, a 301-event payload, duplicate event
 identifiers, oversized text, and any cross-account save attempt.
 
+For migration 401, verify planned and revealed held items and ability/item turn
+events round-trip through save, list, account export, and recovery. Confirm old
+events without `detail` remain valid, and reject oversized item/reveal text plus
+cross-account saves.
+
 The application Preview must also verify desktop, 390px, and 320px Battle Mode,
-including closed-sheet first-move entry, open-sheet move chips, damage presets,
-switch/faint/note actions, turn advancement, timeline removal, explicit save,
-unsaved-close confirmation, and the privacy-safe clipboard output. Production
-deployment must follow the repository migration-first, protected-pull-request
-release order.
+including closed-sheet one-tap opponent selection, first move/ability/item
+entry, open-sheet planned-detail chips, damage presets, switch/faint/note
+actions, turn advancement, timeline removal, explicit save, unsaved-close
+confirmation, privacy-safe clipboard output, and a workbook that opens cleanly
+in Excel and imports into Google Sheets. Production deployment must follow the
+repository migration-first, protected-pull-request release order.

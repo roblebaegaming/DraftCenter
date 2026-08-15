@@ -5,6 +5,7 @@ export const TEAM_LAB_HANDOFF_VERSION = 1;
 export const TEAM_LAB_OPPONENT_LIMIT = 10;
 export const TEAM_LAB_OPPONENT_SET_VERSION = 1;
 export const TEAM_LAB_ABILITY_LIMIT = 100;
+export const TEAM_LAB_ITEM_LIMIT = 100;
 export const TEAM_LAB_BATTLE_REPORT_VERSION = 1;
 export const TEAM_LAB_BATTLE_MOVE_LIMIT = 4;
 export const TEAM_LAB_BATTLE_NOTE_LIMIT = 10000;
@@ -133,6 +134,7 @@ export function normalizeTeamLabOpponentSets(sets, rosterNames = [], catalogName
       return {
         name,
         ability: cleanText(entry.ability, TEAM_LAB_ABILITY_LIMIT),
+        item: cleanText(entry.item, TEAM_LAB_ITEM_LIMIT),
         moves: uniqueText(entry.moves, TEAM_LAB_BATTLE_MOVE_LIMIT, 100),
       };
     }),
@@ -159,6 +161,7 @@ function normalizeBattlePokemon(entries, rosterNames, catalogNames, opponent = f
     };
     if (opponent) {
       normalized.ability = cleanText(entry.ability || savedSet.ability, TEAM_LAB_ABILITY_LIMIT);
+      normalized.item = cleanText(entry.item || savedSet.item, TEAM_LAB_ITEM_LIMIT);
       normalized.moves = uniqueText(
         Array.isArray(entry.moves) && entry.moves.length ? entry.moves : savedSet.moves,
         TEAM_LAB_BATTLE_MOVE_LIMIT,
@@ -182,7 +185,7 @@ export function normalizeTeamLabTurnLog(turnLog, myRosterNames = [], opponentRos
     if (!entry || typeof entry !== "object" || Array.isArray(entry)) continue;
     const game = entry.game == null ? 1 : Number(entry.game);
     const turn = Number(entry.turn);
-    const kind = ["move", "switch", "faint", "note"].includes(entry.kind) ? entry.kind : "";
+    const kind = ["move", "ability", "item", "switch", "faint", "note"].includes(entry.kind) ? entry.kind : "";
     const side = entry.side === "opponent" ? "opponent" : entry.side === "my" ? "my" : "";
     if (!Number.isInteger(game) || game < 1 || game > TEAM_LAB_GAME_MAX
       || !Number.isInteger(turn) || turn < 1 || turn > TEAM_LAB_TURN_MAX || !kind || !side) continue;
@@ -192,9 +195,11 @@ export function normalizeTeamLabTurnLog(turnLog, myRosterNames = [], opponentRos
     const target = rosters[targetSide].has(cleanText(entry.target, 120)) ? cleanText(entry.target, 120) : "";
     const move = cleanText(entry.move, 100);
     const damage = cleanText(entry.damage, TEAM_LAB_TURN_DAMAGE_LIMIT);
+    const detail = cleanText(entry.detail, 100);
     const note = cleanText(entry.note, TEAM_LAB_TURN_NOTE_LIMIT);
     if (kind === "note" ? !note : !pokemon) continue;
     if (kind === "move" && !move) continue;
+    if (["ability", "item"].includes(kind) && !detail) continue;
 
     const baseId = cleanText(entry.id, 80) || `turn-${turn}-${index + 1}`;
     let id = baseId;
@@ -214,6 +219,7 @@ export function normalizeTeamLabTurnLog(turnLog, myRosterNames = [], opponentRos
       target: kind === "move" ? target : "",
       move: kind === "move" ? move : "",
       damage: kind === "move" ? damage : "",
+      detail: ["ability", "item"].includes(kind) ? detail : "",
       note,
     });
   }
@@ -287,12 +293,12 @@ export function buildTeamLabBattleShareText({
   const brought = (report?.my_pokemon || []).filter((pokemon) => pokemon.brought).map((pokemon) => pokemon.name);
   const fullTeam = (report?.my_pokemon || []).map((pokemon) => pokemon.name);
   const myPokemon = brought.length ? brought : fullTeam;
-  const opponentReveals = (report?.opponent_pokemon || []).filter((pokemon) => pokemon.brought || pokemon.fainted || pokemon.ability || pokemon.moves?.length);
+  const opponentReveals = (report?.opponent_pokemon || []).filter((pokemon) => pokemon.brought || pokemon.fainted || pokemon.ability || pokemon.item || pokemon.moves?.length);
   const heading = [cleanText(weekLabel, TEAM_LAB_WEEK_LABEL_LIMIT) || "Battle recap", cleanText(teamName, 120)].filter(Boolean).join(" · ");
   const context = [cleanText(leagueName, 120), cleanText(opponentName, 120) ? `vs. ${cleanText(opponentName, 120)}` : "", cleanText(formatName, 100)].filter(Boolean).join(" · ");
   const myLines = myPokemon.length ? myPokemon.map((name) => `• ${name}`).join("\n") : "• No Pokémon marked";
   const opponentLines = opponentReveals.length
-    ? opponentReveals.map((pokemon) => `• ${pokemon.name}${pokemon.ability ? ` · ${pokemon.ability}` : ""}${pokemon.moves?.length ? ` — ${pokemon.moves.join(", ")}` : ""}${pokemon.fainted ? " · fainted" : ""}`).join("\n")
+    ? opponentReveals.map((pokemon) => `• ${pokemon.name}${pokemon.ability ? ` · Ability: ${pokemon.ability}` : ""}${pokemon.item ? ` · Item: ${pokemon.item}` : ""}${pokemon.moves?.length ? ` — ${pokemon.moves.join(", ")}` : ""}${pokemon.fainted ? " · fainted" : ""}`).join("\n")
     : "• No opponent reveals recorded";
   return [heading, context, "Your weekly team", myLines, "Opponent reveals", opponentLines, "Built in DraftCenter Team Lab"].filter(Boolean).join("\n");
 }
