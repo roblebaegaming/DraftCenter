@@ -7,7 +7,7 @@ import { createTeamLabHandoff, createTeamLabMatchupHandoff, TEAM_LAB_HANDOFF_KEY
 import { MonAbilities, MonDefenseChart, MonSprite, MonStats, POLL_POKEMON_NAMES, POKEMON_DIRECTORY, REGULATION_SETS, TeamDefenseSummary } from "./PokemonDraftLeague";
 import TeamLabOpponentEditor, { createEmptyTeamLabMatchup, normalizeTeamLabMatchupForm } from "./TeamLabOpponentEditor";
 
-const EMPTY = { team_name:"", league_name:"", format_name:"", workspace_type:"weekly", planning_entries:[], notes:"", weekly_notes:"", pokepaste_url:"", replica_code:"", spreadsheet_url:"", team_report_url:"", pokemon:[], nuzlocke_run:null, archived:false, is_public:false, regulation_id:"", public_summary:"", share_pokepaste:false, share_replica_code:false, share_team_report:false };
+const EMPTY = { team_name:"", league_name:"", format_name:"", workspace_type:"weekly", planning_entries:[], notes:"", weekly_notes:"", pokepaste_url:"", replica_code:"", spreadsheet_url:"", team_report_url:"", pokemon:[], team_sets:{version:1,pokemon:[]}, nuzlocke_run:null, archived:false, is_public:false, regulation_id:"", public_summary:"", share_pokepaste:false, share_replica_code:false, share_team_report:false };
 const nullable = (value) => value?.trim() || null;
 const entryLabel = (type, index) => `${type === "tournament" ? "Tournament" : type === "nuzlocke" ? "Run detail" : "Week"} ${index + 1}`;
 const isNuzlockeTeam = (team) => team?.workspace_type === "nuzlocke" && Array.isArray(team?.nuzlocke_run?.team);
@@ -102,7 +102,7 @@ export default function PersonalTeams() {
     event.preventDefault(); setBusy(true); setMessage("");
     const planningEntries=form.planning_entries.map((entry,index)=>({id:entry.id||`entry-${Date.now()}-${index}`,title:entry.title?.trim()||entryLabel(form.workspace_type,index),notes:entry.notes?.trim()||"",url:nullable(entry.url)}));
     const nuzlocke=isNuzlockeTeam(form);
-    const payload={owner_id:user.id,team_name:form.team_name.trim(),league_name:nullable(form.league_name),format_name:nullable(form.format_name),workspace_type:form.workspace_type,planning_entries:planningEntries,notes:form.notes.trim(),weekly_notes:"",pokepaste_url:nullable(form.pokepaste_url),replica_code:form.replica_code.trim(),spreadsheet_url:nullable(form.spreadsheet_url),team_report_url:nullable(form.team_report_url),pokemon:form.pokemon,nuzlocke_run:nuzlocke?form.nuzlocke_run:null,archived:Boolean(form.archived),is_public:nuzlocke?false:Boolean(form.is_public),regulation_id:nuzlocke?null:nullable(form.regulation_id),public_summary:nuzlocke?"":form.public_summary?.trim()||"",share_pokepaste:nuzlocke?false:Boolean(form.share_pokepaste&&form.pokepaste_url),share_replica_code:nuzlocke?false:Boolean(form.share_replica_code&&form.replica_code.trim()),share_team_report:nuzlocke?false:Boolean(form.share_team_report&&form.team_report_url)};
+    const payload={owner_id:user.id,team_name:form.team_name.trim(),league_name:nullable(form.league_name),format_name:nullable(form.format_name),workspace_type:form.workspace_type,planning_entries:planningEntries,notes:form.notes.trim(),weekly_notes:"",pokepaste_url:nullable(form.pokepaste_url),replica_code:form.replica_code.trim(),spreadsheet_url:nullable(form.spreadsheet_url),team_report_url:nullable(form.team_report_url),pokemon:form.pokemon,team_sets:nuzlocke?{version:1,pokemon:[]}:{version:1,pokemon:(form.team_sets?.pokemon||[]).filter((entry)=>form.pokemon.includes(entry.name))},nuzlocke_run:nuzlocke?form.nuzlocke_run:null,archived:Boolean(form.archived),is_public:nuzlocke?false:Boolean(form.is_public),regulation_id:nuzlocke?null:nullable(form.regulation_id),public_summary:nuzlocke?"":form.public_summary?.trim()||"",share_pokepaste:nuzlocke?false:Boolean(form.share_pokepaste&&form.pokepaste_url),share_replica_code:nuzlocke?false:Boolean(form.share_replica_code&&form.replica_code.trim()),share_team_report:nuzlocke?false:Boolean(form.share_team_report&&form.team_report_url)};
     const result=editing==="new"
       ? await supabase.from("personal_teams").insert(payload).select("*").single()
       : await supabase.from("personal_teams").update(payload).eq("id",editing).eq("owner_id",user.id).select("*").single();
@@ -184,7 +184,7 @@ export default function PersonalTeams() {
     setMessage("Opponent plan deleted.");
   }
   function downloadPrivateBackup() {
-    const payload={format:"draftcenter-my-teams",version:4,exported_at:new Date().toISOString(),personal_teams:teams,team_lab_matchups:teamLabMatchups};
+    const payload={format:"draftcenter-my-teams",version:5,exported_at:new Date().toISOString(),personal_teams:teams,team_lab_matchups:teamLabMatchups};
     const url=URL.createObjectURL(new Blob([JSON.stringify(payload,null,2)],{type:"application/json"}));
     const link=document.createElement("a"); link.href=url; link.download=`draftcenter-my-teams-${new Date().toISOString().slice(0,10)}.json`; link.click(); URL.revokeObjectURL(url);
   }
@@ -221,13 +221,13 @@ export default function PersonalTeams() {
     setBusy(true); setMessage("");
     try {
       const parsed=JSON.parse(await file.text());
-      if(parsed?.format!=="draftcenter-my-teams"||![1,2,3,4].includes(parsed?.version)||!Array.isArray(parsed.personal_teams))throw new Error("Choose a DraftCenter My Teams recovery file.");
+      if(parsed?.format!=="draftcenter-my-teams"||![1,2,3,4,5].includes(parsed?.version)||!Array.isArray(parsed.personal_teams))throw new Error("Choose a DraftCenter My Teams recovery file.");
       if(!window.confirm(`Restore ${parsed.personal_teams.length} private team workspace${parsed.personal_teams.length===1?"":"s"}? Matching teams will be updated and new teams will be added.`))return;
       const rows=parsed.personal_teams.map((team)=>({
         id:team.id,owner_id:user.id,team_name:String(team.team_name||"").trim(),league_name:nullable(team.league_name),format_name:nullable(team.format_name),
         workspace_type:["tournament","nuzlocke"].includes(team.workspace_type)?team.workspace_type:"weekly",planning_entries:Array.isArray(team.planning_entries)?team.planning_entries:[],
         notes:String(team.notes||""),weekly_notes:String(team.weekly_notes||""),pokepaste_url:nullable(team.pokepaste_url),replica_code:String(team.replica_code||""),
-        spreadsheet_url:nullable(team.spreadsheet_url),team_report_url:nullable(team.team_report_url),pokemon:Array.isArray(team.pokemon)?team.pokemon:[],archived:Boolean(team.archived),is_public:Boolean(team.is_public),regulation_id:nullable(team.regulation_id),public_summary:String(team.public_summary||""),
+        spreadsheet_url:nullable(team.spreadsheet_url),team_report_url:nullable(team.team_report_url),pokemon:Array.isArray(team.pokemon)?team.pokemon:[],team_sets:team.team_sets&&typeof team.team_sets==="object"?team.team_sets:{version:1,pokemon:[]},archived:Boolean(team.archived),is_public:Boolean(team.is_public),regulation_id:nullable(team.regulation_id),public_summary:String(team.public_summary||""),
         share_pokepaste:Boolean(team.share_pokepaste),share_replica_code:Boolean(team.share_replica_code),share_team_report:Boolean(team.share_team_report),nuzlocke_run:team.workspace_type==="nuzlocke"?team.nuzlocke_run:null,
       }));
       if(rows.some((team)=>!team.id||!team.team_name))throw new Error("The recovery file contains an invalid team.");

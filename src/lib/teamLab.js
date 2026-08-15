@@ -6,19 +6,82 @@ export const TEAM_LAB_OPPONENT_LIMIT = 10;
 export const TEAM_LAB_OPPONENT_SET_VERSION = 1;
 export const TEAM_LAB_ABILITY_LIMIT = 100;
 export const TEAM_LAB_ITEM_LIMIT = 100;
-export const TEAM_LAB_BATTLE_REPORT_VERSION = 1;
+export const TEAM_LAB_BATTLE_REPORT_VERSION = 2;
+export const TEAM_LAB_BATTLE_RECOVERY_VERSION = 1;
+export const TEAM_LAB_BATTLE_RECOVERY_KEY_PREFIX = "draftcenter-team-lab-battle-recovery-v1";
+export const TEAM_LAB_BATTLE_RECOVERY_LIMIT = 250000;
 export const TEAM_LAB_BATTLE_MOVE_LIMIT = 4;
 export const TEAM_LAB_BATTLE_NOTE_LIMIT = 10000;
-export const TEAM_LAB_TURN_LOG_VERSION = 1;
+export const TEAM_LAB_TURN_LOG_VERSION = 2;
 export const TEAM_LAB_TURN_EVENT_LIMIT = 300;
 export const TEAM_LAB_TURN_NOTE_LIMIT = 160;
 export const TEAM_LAB_TURN_DAMAGE_LIMIT = 40;
 export const TEAM_LAB_GAME_MAX = 9;
 export const TEAM_LAB_TURN_MAX = 999;
 export const TEAM_LAB_WEEK_LABEL_LIMIT = 100;
+export const TEAM_LAB_SERIES_VERSION = 1;
+export const TEAM_LAB_GAME_PLAN_LIMIT = 2000;
+export const TEAM_LAB_BATTLE_STATE_VERSION = 1;
 
 function cleanText(value, limit) {
   return String(value || "").trim().slice(0, limit);
+}
+
+function isBattleSnapshot(value) {
+  try {
+    const parsed = JSON.parse(value);
+    return Boolean(parsed
+      && typeof parsed === "object"
+      && !Array.isArray(parsed)
+      && typeof parsed.weekLabel === "string"
+      && ["open", "closed"].includes(parsed.sheetMode)
+      && parsed.report
+      && typeof parsed.report === "object"
+      && !Array.isArray(parsed.report));
+  } catch {
+    return false;
+  }
+}
+
+export function createTeamLabBattleRecoveryKey(matchupId) {
+  const id = cleanText(matchupId, 80);
+  return /^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(id)
+    ? `${TEAM_LAB_BATTLE_RECOVERY_KEY_PREFIX}:${id}`
+    : "";
+}
+
+export function createTeamLabBattleRecovery({ matchupId, savedSnapshot, draftSnapshot, updatedAt = new Date() }) {
+  const id = cleanText(matchupId, 80);
+  const saved = String(savedSnapshot || "").slice(0, TEAM_LAB_BATTLE_RECOVERY_LIMIT);
+  const draft = String(draftSnapshot || "").slice(0, TEAM_LAB_BATTLE_RECOVERY_LIMIT);
+  if (!createTeamLabBattleRecoveryKey(id) || !isBattleSnapshot(saved) || !isBattleSnapshot(draft)) return "";
+  const timestamp = updatedAt instanceof Date ? updatedAt.toISOString() : new Date(updatedAt).toISOString();
+  return JSON.stringify({
+    version: TEAM_LAB_BATTLE_RECOVERY_VERSION,
+    matchupId: id,
+    savedSnapshot: saved,
+    draftSnapshot: draft,
+    updatedAt: timestamp,
+  });
+}
+
+export function parseTeamLabBattleRecovery(raw, matchupId) {
+  try {
+    const parsed = typeof raw === "string" ? JSON.parse(raw) : raw;
+    const id = cleanText(matchupId, 80);
+    if (!parsed || parsed.version !== TEAM_LAB_BATTLE_RECOVERY_VERSION || parsed.matchupId !== id) return null;
+    const savedSnapshot = String(parsed.savedSnapshot || "");
+    const draftSnapshot = String(parsed.draftSnapshot || "");
+    if (savedSnapshot.length > TEAM_LAB_BATTLE_RECOVERY_LIMIT
+      || draftSnapshot.length > TEAM_LAB_BATTLE_RECOVERY_LIMIT
+      || !isBattleSnapshot(savedSnapshot)
+      || !isBattleSnapshot(draftSnapshot)) return null;
+    const updatedAt = new Date(parsed.updatedAt);
+    if (Number.isNaN(updatedAt.valueOf())) return null;
+    return { savedSnapshot, draftSnapshot, updatedAt: updatedAt.toISOString() };
+  } catch {
+    return null;
+  }
 }
 
 export function normalizeTeamLabRoster(names, catalogNames, limit = TEAM_LAB_OPPONENT_LIMIT) {
@@ -254,6 +317,71 @@ export function normalizeTeamLabTurnLog(turnLog, myRosterNames = [], opponentRos
   };
 }
 
+export function normalizeTeamLabSeries(series, myRosterNames = [], opponentRosterNames = []) {
+  const source = series && typeof series === "object" && !Array.isArray(series) ? series : {};
+  const bestOf = [1, 3, 5].includes(Number(source.best_of)) ? Number(source.best_of) : 1;
+  const sourceGames = Array.isArray(source.games) ? source.games : [];
+  const byGame = new Map(sourceGames.filter((game) => game && typeof game === "object" && !Array.isArray(game)).map((game) => [Number(game.game), game]));
+  return {
+    version: TEAM_LAB_SERIES_VERSION,
+    best_of: bestOf,
+    games: Array.from({ length: bestOf }, (_, index) => {
+      const gameNumber = index + 1;
+      const game = byGame.get(gameNumber) || {};
+      return {
+        game: gameNumber,
+        result: ["win", "loss", "tie"].includes(game.result) ? game.result : "pending",
+        my_lead: myRosterNames.includes(cleanText(game.my_lead, 120)) ? cleanText(game.my_lead, 120) : "",
+        opponent_lead: opponentRosterNames.includes(cleanText(game.opponent_lead, 120)) ? cleanText(game.opponent_lead, 120) : "",
+        plan: cleanText(game.plan, TEAM_LAB_GAME_PLAN_LIMIT),
+        adjustments: cleanText(game.adjustments, TEAM_LAB_GAME_PLAN_LIMIT),
+      };
+    }),
+  };
+}
+
+function normalizeBattleSideState(sideState, rosterNames) {
+  const source = sideState && typeof sideState === "object" && !Array.isArray(sideState) ? sideState : {};
+  const hazardSource = source.hazards && typeof source.hazards === "object" ? source.hazards : {};
+  const screenSource = source.screens && typeof source.screens === "object" ? source.screens : {};
+  const pokemonSource = Array.isArray(source.pokemon) ? source.pokemon : [];
+  const byName = new Map(pokemonSource.filter((entry) => entry && typeof entry === "object").map((entry) => [cleanText(entry.name, 120), entry]));
+  return {
+    hazards: {
+      stealth_rock: Boolean(hazardSource.stealth_rock),
+      spikes: Math.max(0, Math.min(3, Number(hazardSource.spikes) || 0)),
+      toxic_spikes: Math.max(0, Math.min(2, Number(hazardSource.toxic_spikes) || 0)),
+      sticky_web: Boolean(hazardSource.sticky_web),
+    },
+    screens: {
+      reflect: Boolean(screenSource.reflect),
+      light_screen: Boolean(screenSource.light_screen),
+      aurora_veil: Boolean(screenSource.aurora_veil),
+    },
+    pokemon: rosterNames.map((name) => {
+      const entry = byName.get(name) || {};
+      return {
+        name,
+        hp_percent: Math.max(0, Math.min(100, Number.isFinite(Number(entry.hp_percent)) ? Number(entry.hp_percent) : 100)),
+        status: ["burn", "paralysis", "poison", "toxic", "sleep", "freeze"].includes(entry.status) ? entry.status : "",
+        terastallized: Boolean(entry.terastallized),
+        tera_type: cleanText(entry.tera_type, 20),
+      };
+    }),
+  };
+}
+
+export function normalizeTeamLabBattleState(battleState, myRosterNames = [], opponentRosterNames = []) {
+  const source = battleState && typeof battleState === "object" && !Array.isArray(battleState) ? battleState : {};
+  return {
+    version: TEAM_LAB_BATTLE_STATE_VERSION,
+    weather: ["sun", "rain", "sand", "snow"].includes(source.weather) ? source.weather : "",
+    terrain: ["electric", "grassy", "misty", "psychic"].includes(source.terrain) ? source.terrain : "",
+    my_side: normalizeBattleSideState(source.my_side, myRosterNames),
+    opponent_side: normalizeBattleSideState(source.opponent_side, opponentRosterNames),
+  };
+}
+
 export function normalizeTeamLabBattleReport(report, myRosterNames = [], opponentRosterNames = [], catalogNames = null, opponentSets = null) {
   const source = report && typeof report === "object" && !Array.isArray(report) ? report : {};
   const normalizedSets = normalizeTeamLabOpponentSets(opponentSets, opponentRosterNames, catalogNames || opponentRosterNames);
@@ -263,7 +391,115 @@ export function normalizeTeamLabBattleReport(report, myRosterNames = [], opponen
     opponent_pokemon: normalizeBattlePokemon(source.opponent_pokemon, opponentRosterNames, catalogNames, true, normalizedSets),
     battle_notes: cleanText(source.battle_notes, TEAM_LAB_BATTLE_NOTE_LIMIT),
     turn_log: normalizeTeamLabTurnLog(source.turn_log, myRosterNames, opponentRosterNames, catalogNames),
+    series: normalizeTeamLabSeries(source.series, myRosterNames, opponentRosterNames),
+    battle_state: normalizeTeamLabBattleState(source.battle_state, myRosterNames, opponentRosterNames),
   };
+}
+
+function turnEventMarksFaint(event) {
+  return event?.kind === "faint" || (event?.kind === "move" && ["ko", "100%", "fainted"].includes(String(event.damage || "").trim().toLowerCase()));
+}
+
+function rosterKeyForSide(side) {
+  return side === "my" ? "my_pokemon" : "opponent_pokemon";
+}
+
+export function removeTeamLabTurnEvent(report, eventId, opponentSets = null) {
+  const events = report?.turn_log?.events || [];
+  const removed = events.find((event) => event.id === eventId);
+  if (!removed) return report;
+  const remaining = events.filter((event) => event.id !== eventId);
+  const next = {
+    ...report,
+    my_pokemon: (report.my_pokemon || []).map((pokemon) => ({ ...pokemon })),
+    opponent_pokemon: (report.opponent_pokemon || []).map((pokemon) => ({ ...pokemon, moves: [...(pokemon.moves || [])] })),
+    turn_log: { ...report.turn_log, events: remaining },
+  };
+  const setByName = new Map((opponentSets?.pokemon || []).map((pokemon) => [pokemon.name, pokemon]));
+
+  if (removed.side === "opponent" && removed.kind === "move") {
+    const stillRecorded = remaining.some((event) => event.side === "opponent"
+      && event.kind === "move"
+      && event.pokemon === removed.pokemon
+      && event.move.toLowerCase() === removed.move.toLowerCase());
+    const stillPlanned = (setByName.get(removed.pokemon)?.moves || []).some((move) => move.toLowerCase() === removed.move.toLowerCase());
+    if (!stillRecorded && !stillPlanned) {
+      next.opponent_pokemon = next.opponent_pokemon.map((pokemon) => pokemon.name === removed.pokemon
+        ? { ...pokemon, moves: pokemon.moves.filter((move) => move.toLowerCase() !== removed.move.toLowerCase()) }
+        : pokemon);
+    }
+  }
+
+  if (removed.side === "opponent" && ["ability", "item"].includes(removed.kind)) {
+    const latest = [...remaining].reverse().find((event) => event.side === "opponent"
+      && event.kind === removed.kind
+      && event.pokemon === removed.pokemon);
+    const fallback = latest?.detail || setByName.get(removed.pokemon)?.[removed.kind] || "";
+    next.opponent_pokemon = next.opponent_pokemon.map((pokemon) => pokemon.name === removed.pokemon
+      ? { ...pokemon, [removed.kind]: fallback }
+      : pokemon);
+  }
+
+  if (turnEventMarksFaint(removed)) {
+    const faintedSide = removed.kind === "faint" ? removed.side : removed.side === "my" ? "opponent" : "my";
+    const faintedName = removed.kind === "faint" ? removed.pokemon : removed.target;
+    const stillFainted = remaining.some((event) => {
+      if (event.kind === "faint") return event.side === faintedSide && event.pokemon === faintedName;
+      if (!turnEventMarksFaint(event)) return false;
+      return (event.side === "my" ? "opponent" : "my") === faintedSide && event.target === faintedName;
+    });
+    if (!stillFainted && faintedName) {
+      const rosterKey = rosterKeyForSide(faintedSide);
+      next[rosterKey] = next[rosterKey].map((pokemon) => pokemon.name === faintedName ? { ...pokemon, fainted: false } : pokemon);
+    }
+  }
+
+  const activeKey = removed.side === "my" ? "active_my_pokemon" : "active_opponent_pokemon";
+  if (["switch", "faint"].includes(removed.kind)) {
+    const latestActive = [...remaining].reverse().find((event) => event.game === next.turn_log.current_game
+      && event.side === removed.side
+      && event.kind !== "note"
+      && event.kind !== "faint");
+    if (removed.kind === "switch" && next.turn_log[activeKey] === removed.pokemon) next.turn_log[activeKey] = latestActive?.pokemon || "";
+    if (removed.kind === "faint" && !next.turn_log[activeKey]) next.turn_log[activeKey] = latestActive?.pokemon || removed.pokemon;
+  }
+  return next;
+}
+
+export function applyTeamLabTurnEvent(report, event, { replaceId = "", opponentSets = null } = {}) {
+  const originalEvents = report?.turn_log?.events || [];
+  const replaceIndex = replaceId ? originalEvents.findIndex((entry) => entry.id === replaceId) : -1;
+  const base = replaceIndex >= 0 ? removeTeamLabTurnEvent(report, replaceId, opponentSets) : report;
+  const actorKey = rosterKeyForSide(event.side);
+  const targetSide = event.side === "my" ? "opponent" : "my";
+  const targetKey = rosterKeyForSide(targetSide);
+  const actorActiveKey = event.side === "my" ? "active_my_pokemon" : "active_opponent_pokemon";
+  const targetActiveKey = event.side === "my" ? "active_opponent_pokemon" : "active_my_pokemon";
+  const next = {
+    ...base,
+    my_pokemon: (base.my_pokemon || []).map((pokemon) => ({ ...pokemon })),
+    opponent_pokemon: (base.opponent_pokemon || []).map((pokemon) => ({ ...pokemon, moves: [...(pokemon.moves || [])] })),
+    turn_log: { ...base.turn_log, events: [...(base.turn_log?.events || [])] },
+  };
+  next[actorKey] = next[actorKey].map((pokemon) => {
+    if (pokemon.name !== event.pokemon) return pokemon;
+    const changes = { brought: true, fainted: event.kind === "faint" ? true : pokemon.fainted };
+    if (event.kind === "move" && event.side === "opponent") {
+      changes.moves = uniqueText([...(pokemon.moves || []), event.move], TEAM_LAB_BATTLE_MOVE_LIMIT, 100);
+    }
+    if (["ability", "item"].includes(event.kind) && event.side === "opponent") changes[event.kind] = event.detail;
+    return { ...pokemon, ...changes };
+  });
+  if (event.kind === "move" && event.target) {
+    next[targetKey] = next[targetKey].map((pokemon) => pokemon.name === event.target
+      ? { ...pokemon, brought: true, fainted: turnEventMarksFaint(event) ? true : pokemon.fainted }
+      : pokemon);
+  }
+  if (event.kind !== "note") next.turn_log[actorActiveKey] = event.kind === "faint" ? "" : event.pokemon;
+  if (event.kind === "move" && event.target) next.turn_log[targetActiveKey] = event.target;
+  if (replaceIndex >= 0) next.turn_log.events.splice(replaceIndex, 0, event);
+  else next.turn_log.events.push(event);
+  return next;
 }
 
 export function buildTeamLabWeeklyShareText({

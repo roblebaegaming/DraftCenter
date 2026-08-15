@@ -5,16 +5,20 @@ import draftLabCatalog from "../data/draft-lab-catalog.json";
 import { REGULATION_GROUPS } from "../lib/regulation-catalog";
 import { createClient } from "../lib/supabase/client";
 import {
+  applyTeamLabTurnEvent,
   buildTeamLabBattleShareText,
   buildTeamLabWeeklyShareText,
+  createTeamLabBattleRecovery,
+  createTeamLabBattleRecoveryKey,
   normalizeTeamLabBattleReport,
   normalizeTeamLabRoster,
   parseTeamLabLeagueMatchupHandoff,
   parseTeamLabHandoff,
   parseTeamLabMatchupHandoff,
+  parseTeamLabBattleRecovery,
+  removeTeamLabTurnEvent,
   TEAM_LAB_BATTLE_MOVE_LIMIT,
   TEAM_LAB_BATTLE_NOTE_LIMIT,
-  TEAM_LAB_GAME_MAX,
   TEAM_LAB_HANDOFF_KEY,
   TEAM_LAB_ITEM_LIMIT,
   TEAM_LAB_LEAGUE_MATCHUP_HANDOFF_KEY,
@@ -27,6 +31,9 @@ import {
 } from "../lib/teamLab";
 import { buildTeamLabWorkbookFilename, buildTeamLabWorkbookSheets } from "../lib/teamLabWorkbook";
 import TeamLabOpponentEditor, { createEmptyTeamLabMatchup, normalizeTeamLabMatchupForm } from "./TeamLabOpponentEditor";
+import TeamLabSetEditor from "./TeamLabSetEditor";
+import { hasTeamLabSetDetails, normalizeTeamLabTeamSets } from "../lib/teamLabSets";
+import { BattleDamageEstimator, BattleSeriesTracker, BattleStateTracker } from "./TeamLabBattleTools";
 import {
   buildDraftLabQuery,
   DRAFT_LAB_MODE_LIMITS,
@@ -152,7 +159,7 @@ function CoverageTable({ rows }) {
   </div>;
 }
 
-function BattlePokemonCard({ pokemon, opponent = false, scoutedSet = null, moveEditor, onMoveEditor, onChange }) {
+function BattlePokemonCard({ pokemon, opponent = false, scoutedSet = null, teamSet = null, moveEditor, onMoveEditor, onChange }) {
   const moves = opponent ? pokemon.moves || [] : [];
   const editingThisPokemon = moveEditor?.pokemonName === pokemon.name;
   return <article className={`team-lab-battle-pokemon${pokemon.brought ? " is-brought" : ""}${pokemon.fainted ? " is-fainted" : ""}`}>
@@ -161,6 +168,7 @@ function BattlePokemonCard({ pokemon, opponent = false, scoutedSet = null, moveE
       <button type="button" className="team-lab-battle-toggle danger" aria-pressed={pokemon.fainted} onClick={() => onChange({ fainted: !pokemon.fainted, brought: true })}>Fainted</button>
     </div></header>
     {opponent && scoutedSet && (scoutedSet.ability || scoutedSet.item || scoutedSet.moves?.length) && <div className="team-lab-battle-scouted-set"><div><span>Saved scouting</span><strong>{[scoutedSet.ability && `Ability: ${scoutedSet.ability}`, scoutedSet.item && `Item: ${scoutedSet.item}`, ...(scoutedSet.moves || [])].filter(Boolean).join(" · ")}</strong></div><button type="button" onClick={() => onChange({ ability: scoutedSet.ability || "", item: scoutedSet.item || "", moves: scoutedSet.moves || [], brought: true })}>Use in report</button></div>}
+    {!opponent && teamSet && hasTeamLabSetDetails(teamSet) && <div className="team-lab-battle-own-set"><span>Your saved set</span><strong>{[teamSet.item, teamSet.ability, teamSet.nature && `${teamSet.nature} nature`, teamSet.tera_type && `Tera ${teamSet.tera_type}`].filter(Boolean).join(" · ") || "Set details saved"}</strong>{teamSet.moves?.length > 0 && <small>{teamSet.moves.join(" · ")}</small>}</div>}
     {opponent && <div className="team-lab-battle-reveal-fields"><label>Ability<input maxLength={100} value={pokemon.ability || ""} onChange={(event) => onChange({ ability: event.target.value, brought: event.target.value.trim() ? true : pokemon.brought })} placeholder="Known, published, or revealed"/></label><label>Held item<input maxLength={TEAM_LAB_ITEM_LIMIT} value={pokemon.item || ""} onChange={(event) => onChange({ item: event.target.value, brought: event.target.value.trim() ? true : pokemon.brought })} placeholder="Known, published, or revealed"/></label></div>}
     {opponent && <div className="team-lab-battle-moves" aria-label={`${pokemon.name} revealed moves`}>
       {moves.map((move, index) => <button type="button" key={`${move}-${index}`} onClick={() => onMoveEditor({ pokemonName: pokemon.name, index, value: move })}><span>Move {index + 1}</span><strong>{move}</strong></button>)}
@@ -191,7 +199,7 @@ function turnEventSummary(event) {
   return `${event.pokemon} used ${event.move}${event.target ? ` into ${event.target}` : ""}${event.damage ? ` · ${event.damage}${event.damage.toLowerCase() === "ko" ? "" : " damage"}` : ""}`;
 }
 
-function BattleTurnRecorder({ report, setReport, sheetMode, matchup, onStatus }) {
+function BattleTurnRecorder({ report, setReport, sheetMode, matchup, myTeamSets, onStatus }) {
   const log = report.turn_log;
   const myRoster = report.my_pokemon || [];
   const opponentRoster = report.opponent_pokemon || [];
@@ -205,19 +213,20 @@ function BattleTurnRecorder({ report, setReport, sheetMode, matchup, onStatus })
   const [detailValue, setDetailValue] = useState("");
   const [damageValue, setDamageValue] = useState("");
   const [actionNote, setActionNote] = useState("");
+  const [editingEventId, setEditingEventId] = useState("");
 
   const actorRoster = actionSide === "my" ? myRoster : opponentRoster;
   const targetRoster = actionSide === "my" ? opponentRoster : myRoster;
   const liveActor = actorRoster.find((pokemon) => pokemon.name === actorName);
   const scoutedActor = actionSide === "opponent"
     ? (matchup.opponent_sets?.pokemon || []).find((pokemon) => pokemon.name === actorName)
-    : null;
+    : (myTeamSets?.pokemon || []).find((pokemon) => pokemon.name === actorName);
   const eventMoves = log.events
     .filter((event) => event.kind === "move" && event.side === actionSide && event.pokemon === actorName)
     .map((event) => event.move);
   const availableMoves = [...new Map([
     ...(liveActor?.moves || []),
-    ...(sheetMode === "open" ? scoutedActor?.moves || [] : []),
+    ...(actionSide === "my" || sheetMode === "open" ? scoutedActor?.moves || [] : []),
     ...eventMoves,
   ].filter(Boolean).map((move) => [move.toLowerCase(), move])).values()].slice(0, TEAM_LAB_BATTLE_MOVE_LIMIT);
   const plannedDetail = sheetMode === "open" && actionSide === "opponent" && ["ability", "item"].includes(actionKind)
@@ -259,6 +268,27 @@ function BattleTurnRecorder({ report, setReport, sheetMode, matchup, onStatus })
     onStatus("");
   }
 
+  function clearEntry() {
+    setMoveValue("");
+    setDetailValue("");
+    setDamageValue("");
+    setActionNote("");
+    setEditingEventId("");
+  }
+
+  function editEvent(entry) {
+    setEditingEventId(entry.id);
+    setActionKind(entry.kind);
+    setActionSide(entry.side);
+    setActorName(entry.pokemon);
+    setTargetName(entry.target);
+    setMoveValue(entry.move);
+    setDetailValue(entry.detail);
+    setDamageValue(entry.damage);
+    setActionNote(entry.note);
+    onStatus(`Editing game ${entry.game}, turn ${entry.turn}. Save changes when the correction is ready.`);
+  }
+
   function quickSelectOpponent(name) {
     setActionSide("opponent");
     setActorName(name);
@@ -285,7 +315,7 @@ function BattleTurnRecorder({ report, setReport, sheetMode, matchup, onStatus })
   }
 
   function startNextGame() {
-    if (log.current_game >= TEAM_LAB_GAME_MAX) return;
+    if (log.current_game >= report.series.best_of) return;
     setReport((current) => ({
       ...current,
       turn_log: {
@@ -305,7 +335,7 @@ function BattleTurnRecorder({ report, setReport, sheetMode, matchup, onStatus })
 
   function recordAction(event) {
     event.preventDefault();
-    if (log.events.length >= TEAM_LAB_TURN_EVENT_LIMIT) return onStatus(`This report has reached its ${TEAM_LAB_TURN_EVENT_LIMIT}-action safety limit.`);
+    if (!editingEventId && log.events.length >= TEAM_LAB_TURN_EVENT_LIMIT) return onStatus(`This report has reached its ${TEAM_LAB_TURN_EVENT_LIMIT}-action safety limit.`);
     const move = moveValue.trim();
     const detail = detailValue.trim();
     const note = actionNote.trim();
@@ -321,11 +351,12 @@ function BattleTurnRecorder({ report, setReport, sheetMode, matchup, onStatus })
       }
     }
 
-    const id = globalThis.crypto?.randomUUID?.() || `turn-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
+    const editingEvent = editingEventId ? log.events.find((entry) => entry.id === editingEventId) : null;
+    const id = editingEvent?.id || globalThis.crypto?.randomUUID?.() || `turn-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
     const nextEvent = {
       id,
-      game: log.current_game,
-      turn: log.current_turn,
+      game: editingEvent?.game || log.current_game,
+      turn: editingEvent?.turn || log.current_turn,
       kind: actionKind,
       side: actionSide,
       pokemon: actionKind === "note" ? "" : actorName,
@@ -335,57 +366,33 @@ function BattleTurnRecorder({ report, setReport, sheetMode, matchup, onStatus })
       detail: ["ability", "item"].includes(actionKind) ? detail : "",
       note,
     };
-    const damageMarksFaint = ["ko", "100%", "fainted"].includes(nextEvent.damage.toLowerCase());
-
-    setReport((current) => {
-      const actorKey = actionSide === "my" ? "my_pokemon" : "opponent_pokemon";
-      const targetKey = actionSide === "my" ? "opponent_pokemon" : "my_pokemon";
-      let nextActorRoster = current[actorKey].map((pokemon) => {
-        if (pokemon.name !== actorName) return pokemon;
-        const changes = { brought: true, fainted: actionKind === "faint" ? true : pokemon.fainted };
-        if (actionKind === "move" && actionSide === "opponent") {
-          changes.moves = [...new Map([...(pokemon.moves || []), move].filter(Boolean).map((knownMove) => [knownMove.toLowerCase(), knownMove])).values()].slice(0, TEAM_LAB_BATTLE_MOVE_LIMIT);
-        }
-        if (["ability", "item"].includes(actionKind) && actionSide === "opponent") changes[actionKind] = detail;
-        return { ...pokemon, ...changes };
-      });
-      let nextTargetRoster = current[targetKey].map((pokemon) => pokemon.name === targetName
-        ? { ...pokemon, brought: true, fainted: damageMarksFaint ? true : pokemon.fainted }
-        : pokemon);
-      const activeActorKey = actionSide === "my" ? "active_my_pokemon" : "active_opponent_pokemon";
-      const activeTargetKey = actionSide === "my" ? "active_opponent_pokemon" : "active_my_pokemon";
-      const nextLog = {
-        ...current.turn_log,
-        [activeActorKey]: actionKind === "faint" ? "" : actionKind === "note" ? current.turn_log[activeActorKey] : actorName,
-        [activeTargetKey]: actionKind === "move" && targetName ? targetName : current.turn_log[activeTargetKey],
-        events: [...current.turn_log.events, nextEvent],
-      };
-      return {
-        ...current,
-        [actorKey]: nextActorRoster,
-        [targetKey]: nextTargetRoster,
-        turn_log: nextLog,
-      };
-    });
-    setMoveValue("");
-    setDetailValue("");
-    setDamageValue("");
-    setActionNote("");
-    onStatus(`Game ${log.current_game}, turn ${log.current_turn} ${actionKind === "note" ? "note" : actionKind} recorded. Save the battle report when ready.`);
+    setReport((current) => applyTeamLabTurnEvent(current, nextEvent, {
+      replaceId: editingEventId,
+      opponentSets: sheetMode === "open" ? matchup.opponent_sets : null,
+    }));
+    clearEntry();
+    onStatus(editingEvent
+      ? `Game ${nextEvent.game}, turn ${nextEvent.turn} action corrected and autosaved locally.`
+      : `Game ${log.current_game}, turn ${log.current_turn} ${actionKind === "note" ? "note" : actionKind} recorded.`);
   }
 
   function removeEvent(id) {
-    setReport((current) => ({
-      ...current,
-      turn_log: { ...current.turn_log, events: current.turn_log.events.filter((event) => event.id !== id) },
-    }));
-    onStatus("Turn entry removed. Pokémon markers and revealed moves can be adjusted in the team cards below.");
+    setReport((current) => removeTeamLabTurnEvent(current, id, sheetMode === "open" ? matchup.opponent_sets : null));
+    if (editingEventId === id) clearEntry();
+    onStatus("Action removed and its supported faint/reveal markers were reconciled.");
+  }
+
+  function undoLastAction() {
+    const last = log.events.at(-1);
+    if (!last) return;
+    removeEvent(last.id);
+    onStatus(`Undid ${turnEventSummary(last)}. The correction is autosaved locally.`);
   }
 
   return <section className="team-lab-turn-recorder" aria-labelledby="team-lab-turn-recorder-title">
     <header className="team-lab-turn-header">
       <div><span className="eyebrow">FAST BATTLE TICKER</span><h3 id="team-lab-turn-recorder-title">Turn-by-turn recorder</h3><p>{log.events.length} action{log.events.length === 1 ? "" : "s"} recorded · private until you choose to share details</p></div>
-      <div className="team-lab-turn-navigation"><div className="team-lab-turn-stepper"><button type="button" disabled={log.current_turn <= 1} onClick={() => changeTurn(-1)} aria-label="Previous turn">−</button><strong>Game {log.current_game} · Turn {log.current_turn}</strong><button type="button" disabled={log.current_turn >= TEAM_LAB_TURN_MAX} onClick={() => changeTurn(1)}>Next turn</button></div><button type="button" className="team-lab-turn-next-game" disabled={log.current_game >= TEAM_LAB_GAME_MAX} onClick={startNextGame}>Start game {Math.min(log.current_game + 1, TEAM_LAB_GAME_MAX)}</button></div>
+      <div className="team-lab-turn-navigation"><div className="team-lab-turn-stepper"><button type="button" disabled={log.current_turn <= 1} onClick={() => changeTurn(-1)} aria-label="Previous turn">−</button><strong>Game {log.current_game} · Turn {log.current_turn}</strong><button type="button" disabled={log.current_turn >= TEAM_LAB_TURN_MAX} onClick={() => changeTurn(1)}>Next turn</button></div><button type="button" className="team-lab-turn-next-game" disabled={log.current_game >= report.series.best_of} onClick={startNextGame}>{log.current_game >= report.series.best_of ? `Final game in best of ${report.series.best_of}` : `Start game ${log.current_game + 1}`}</button></div>
     </header>
 
     <div className="team-lab-turn-active" aria-label="Pokémon currently on the field">
@@ -422,12 +429,13 @@ function BattleTurnRecorder({ report, setReport, sheetMode, matchup, onStatus })
       </div>}
 
       <label className="team-lab-turn-note">{actionKind === "note" ? "Turn note" : "Action note (optional)"}<input maxLength={TEAM_LAB_TURN_NOTE_LIMIT} value={actionNote} onChange={(event) => { setActionNote(event.target.value); onStatus(""); }} placeholder={actionKind === "note" ? "Weather, status, Terastallization, matchup detail…" : "Critical hit, resisted, protected, status…"}/></label>
-      <button type="submit" className="primary-button team-lab-turn-record">Record {actionKind}</button>
+      <button type="submit" className="primary-button team-lab-turn-record">{editingEventId ? "Save action changes" : `Record ${actionKind}`}</button>
+      {editingEventId && <button type="button" className="quiet-button" onClick={() => { clearEntry(); onStatus("Action edit canceled."); }}>Cancel edit</button>}
     </form>
 
     <div className="team-lab-turn-timeline">
-      <div><h4>Battle timeline</h4><span>Newest first</span></div>
-      {log.events.length ? <ol>{[...log.events].reverse().map((event) => <li key={event.id}><span>G{event.game} · T{event.turn}</span><div><strong>{turnEventSummary(event)}</strong>{event.note && <p>{event.note}</p>}</div><button type="button" onClick={() => removeEvent(event.id)} aria-label={`Remove game ${event.game}, turn ${event.turn} entry`}>Remove</button></li>)}</ol> : <p>No turns recorded yet. Set the active Pokémon, choose an action, and tap record.</p>}
+      <div><div><h4>Battle timeline</h4><span>Newest first</span></div>{log.events.length > 0 && <button type="button" className="quiet-button" onClick={undoLastAction}>Undo last action</button>}</div>
+      {log.events.length ? <ol>{[...log.events].reverse().map((event) => <li key={event.id}><span>G{event.game} · T{event.turn}</span><div><strong>{turnEventSummary(event)}</strong>{event.note && <p>{event.note}</p>}</div><div><button type="button" onClick={() => editEvent(event)} aria-label={`Edit game ${event.game}, turn ${event.turn} entry`}>Edit</button><button type="button" onClick={() => removeEvent(event.id)} aria-label={`Remove game ${event.game}, turn ${event.turn} entry`}>Remove</button></div></li>)}</ol> : <p>No turns recorded yet. Set the active Pokémon, choose an action, and tap record.</p>}
     </div>
   </section>;
 }
@@ -443,15 +451,77 @@ function BattleMode({ matchup, matchups, myTeam, formatName, supabase, onSaved, 
   const [status, setStatus] = useState("");
   const [saving, setSaving] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [recoveryChecked, setRecoveryChecked] = useState(false);
+  const [recoveryStatus, setRecoveryStatus] = useState("");
   const currentSnapshot = JSON.stringify({ weekLabel, sheetMode, report });
   const dirty = currentSnapshot !== savedSnapshot;
+  const recoveryKey = createTeamLabBattleRecoveryKey(matchup.id);
+  const myTeamSets = normalizeTeamLabTeamSets(myTeam.team_sets, myTeam.pokemon, CATALOG_NAME_SET);
+
+  useEffect(() => {
+    if (!recoveryKey) {
+      setRecoveryChecked(true);
+      return;
+    }
+    try {
+      const recovery = parseTeamLabBattleRecovery(window.localStorage.getItem(recoveryKey), matchup.id);
+      if (!recovery || recovery.draftSnapshot === initialSnapshot) {
+        window.localStorage.removeItem(recoveryKey);
+        setRecoveryChecked(true);
+        return;
+      }
+      const serverChanged = recovery.savedSnapshot !== initialSnapshot;
+      const restore = window.confirm(serverChanged
+        ? "A local Battle Mode draft was found, but the cloud report changed after that draft began. Restore the local draft so you can review it before choosing what to save?"
+        : "Restore the locally autosaved Battle Mode draft from this browser?");
+      if (restore) {
+        const draft = JSON.parse(recovery.draftSnapshot);
+        setWeekLabel(draft.weekLabel.slice(0, TEAM_LAB_WEEK_LABEL_LIMIT));
+        setSheetMode(draft.sheetMode === "open" ? "open" : "closed");
+        setReport(normalizeTeamLabBattleReport(draft.report, myTeam.pokemon, matchup.pokemon, CATALOG_NAME_SET));
+        setRecoveryStatus(serverChanged ? "Recovered a local draft for review; the cloud version has not been overwritten." : "Recovered your locally autosaved battle draft.");
+      } else {
+        window.localStorage.removeItem(recoveryKey);
+      }
+    } catch {
+      try { window.localStorage.removeItem(recoveryKey); } catch { /* Storage is unavailable. */ }
+    } finally {
+      setRecoveryChecked(true);
+    }
+  }, [initialSnapshot, matchup.id, matchup.pokemon, myTeam.pokemon, recoveryKey]);
+
+  useEffect(() => {
+    if (!recoveryChecked || !recoveryKey) return undefined;
+    if (!dirty) {
+      try { window.localStorage.removeItem(recoveryKey); } catch { /* Storage is unavailable. */ }
+      setRecoveryStatus("");
+      return undefined;
+    }
+    const persist = () => {
+      try {
+        const recovery = createTeamLabBattleRecovery({ matchupId: matchup.id, savedSnapshot, draftSnapshot: currentSnapshot });
+        if (recovery) {
+          window.localStorage.setItem(recoveryKey, recovery);
+          setRecoveryStatus("Autosaved locally on this browser.");
+        }
+      } catch {
+        setRecoveryStatus("Local recovery is unavailable in this browser. Save the report to your account regularly.");
+      }
+    };
+    const timeout = window.setTimeout(persist, 350);
+    window.addEventListener("pagehide", persist);
+    return () => {
+      window.clearTimeout(timeout);
+      window.removeEventListener("pagehide", persist);
+    };
+  }, [currentSnapshot, dirty, matchup.id, recoveryChecked, recoveryKey, savedSnapshot]);
 
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     function onKeyDown(event) {
       if (event.key !== "Escape") return;
-      if (!dirty || window.confirm("Close Battle Mode and discard the unsaved changes?")) onClose();
+      if (!dirty || window.confirm("Close Battle Mode? Your unsaved changes will stay in local browser recovery until you return.")) onClose();
     }
     window.addEventListener("keydown", onKeyDown);
     return () => {
@@ -461,7 +531,7 @@ function BattleMode({ matchup, matchups, myTeam, formatName, supabase, onSaved, 
   }, [dirty, onClose]);
 
   function close() {
-    if (!dirty || window.confirm("Close Battle Mode and discard the unsaved changes?")) onClose();
+    if (!dirty || window.confirm("Close Battle Mode? Your unsaved changes will stay in local browser recovery until you return.")) onClose();
   }
 
   function updatePokemon(side, name, changes) {
@@ -491,6 +561,8 @@ function BattleMode({ matchup, matchups, myTeam, formatName, supabase, onSaved, 
     setSheetMode(nextSheetMode);
     setReport(savedReport);
     setSavedSnapshot(JSON.stringify({ weekLabel: nextWeekLabel, sheetMode: nextSheetMode, report: savedReport }));
+    try { if (recoveryKey) window.localStorage.removeItem(recoveryKey); } catch { /* Storage is unavailable. */ }
+    setRecoveryStatus("");
     setStatus("Battle report saved privately to your account.");
     onSaved(data);
   }
@@ -569,15 +641,18 @@ function BattleMode({ matchup, matchups, myTeam, formatName, supabase, onSaved, 
   const turnEvents = report.turn_log.events.length;
   return <div className="team-lab-battle-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) close(); }}>
     <section className="team-lab-battle-mode" role="dialog" aria-modal="true" aria-labelledby="team-lab-battle-title">
-      <header className="team-lab-battle-header"><div><span className="eyebrow">PRIVATE LIVE NOTEBOOK</span><h2 id="team-lab-battle-title">Battle Mode · {matchup.opponent_name}</h2><p>{dirty ? "Unsaved changes" : "Saved"} · {turnEvents} turn action{turnEvents === 1 ? "" : "s"} · {opponentMoves} revealed move{opponentMoves === 1 ? "" : "s"}</p></div><div><button type="button" className="quiet-button" onClick={close}>Close</button><button type="button" className="primary-button" disabled={saving || !dirty} onClick={save}>{saving ? "Saving…" : dirty ? "Save battle report" : "Saved"}</button></div></header>
+      <header className="team-lab-battle-header"><div><span className="eyebrow">PRIVATE LIVE NOTEBOOK</span><h2 id="team-lab-battle-title">Battle Mode · {matchup.opponent_name}</h2><p>{dirty ? recoveryStatus || "Unsaved changes" : "Saved to your account"} · {turnEvents} turn action{turnEvents === 1 ? "" : "s"} · {opponentMoves} revealed move{opponentMoves === 1 ? "" : "s"}</p></div><div><button type="button" className="quiet-button" onClick={close}>Close</button><button type="button" className="primary-button" disabled={saving || !dirty} onClick={save}>{saving ? "Saving…" : dirty ? "Save battle report" : "Saved"}</button></div></header>
       <section className="team-lab-battle-setup" aria-label="Battle report settings">
         <label>Week or round<input maxLength={TEAM_LAB_WEEK_LABEL_LIMIT} value={weekLabel} onChange={(event) => { setWeekLabel(event.target.value); setStatus(""); }} placeholder="Week 4, semifinals, rematch…"/></label>
         <div><span>Team sheet</span><div className="team-lab-sheet-mode" role="group" aria-label="Team sheet visibility"><button type="button" aria-pressed={sheetMode === "closed"} onClick={() => { setSheetMode("closed"); setStatus(""); }}>Closed sheet</button><button type="button" aria-pressed={sheetMode === "open"} onClick={() => { setSheetMode("open"); setStatus(""); }}>Open sheet</button></div><small>{sheetMode === "closed" ? "Add moves only as they are revealed during play." : "Enter moves from the published sheet before or during the set."}</small></div>
         <div className="team-lab-battle-share-actions"><button type="button" className="secondary-button" disabled={exporting} onClick={downloadBattleWorkbook}>{exporting ? "Building workbook…" : "Download Excel / Sheets workbook"}</button><button type="button" className="quiet-button" onClick={copyWeeklyTeam}>Copy weekly team</button><button type="button" className="quiet-button" onClick={copyBattleRecap}>Copy battle recap</button></div>
       </section>
-      <BattleTurnRecorder report={report} setReport={setReport} sheetMode={sheetMode} matchup={matchup} onStatus={setStatus}/>
+      <BattleSeriesTracker report={report} setReport={setReport} onStatus={setStatus}/>
+      <BattleTurnRecorder report={report} setReport={setReport} sheetMode={sheetMode} matchup={matchup} myTeamSets={myTeamSets} onStatus={setStatus}/>
+      <BattleStateTracker report={report} setReport={setReport} onStatus={setStatus}/>
+      <BattleDamageEstimator/>
       <div className="team-lab-battle-columns">
-        <section aria-labelledby="team-lab-my-team-title"><div className="team-lab-battle-section-heading"><div><span className="eyebrow">YOUR WEEKLY TEAM</span><h3 id="team-lab-my-team-title">{myTeam.team_name}</h3></div><span>{report.my_pokemon.filter((pokemon) => pokemon.brought).length} brought</span></div><div className="team-lab-battle-list">{report.my_pokemon.map((pokemon) => <BattlePokemonCard key={pokemon.name} pokemon={pokemon} onChange={(changes) => updatePokemon("my_pokemon", pokemon.name, changes)}/>)}</div>{!report.my_pokemon.length && <p className="team-lab-matchup-empty">Add Pokémon to this My Teams workspace before opening Battle Mode.</p>}</section>
+        <section aria-labelledby="team-lab-my-team-title"><div className="team-lab-battle-section-heading"><div><span className="eyebrow">YOUR WEEKLY TEAM</span><h3 id="team-lab-my-team-title">{myTeam.team_name}</h3></div><span>{report.my_pokemon.filter((pokemon) => pokemon.brought).length} brought</span></div><div className="team-lab-battle-list">{report.my_pokemon.map((pokemon) => <BattlePokemonCard key={pokemon.name} pokemon={pokemon} teamSet={myTeamSets.pokemon.find((entry) => entry.name === pokemon.name)} onChange={(changes) => updatePokemon("my_pokemon", pokemon.name, changes)}/>)}</div>{!report.my_pokemon.length && <p className="team-lab-matchup-empty">Add Pokémon to this My Teams workspace before opening Battle Mode.</p>}</section>
         <section aria-labelledby="team-lab-opponent-title"><div className="team-lab-battle-section-heading"><div><span className="eyebrow">OPPONENT SCOUTING</span><h3 id="team-lab-opponent-title">{matchup.opponent_team_name || matchup.opponent_name}</h3></div><span>{report.opponent_pokemon.filter((pokemon) => pokemon.brought).length} seen</span></div><div className="team-lab-battle-list">{report.opponent_pokemon.map((pokemon) => <BattlePokemonCard key={pokemon.name} pokemon={pokemon} opponent scoutedSet={(matchup.opponent_sets?.pokemon || []).find((entry) => entry.name === pokemon.name)} moveEditor={moveEditor} onMoveEditor={setMoveEditor} onChange={(changes) => updatePokemon("opponent_pokemon", pokemon.name, changes)}/>)}</div>{!report.opponent_pokemon.length && <p className="team-lab-matchup-empty">Close Battle Mode and add the opponent roster to this matchup plan first.</p>}</section>
       </div>
       <label className="team-lab-battle-notes">Battle notes<textarea maxLength={TEAM_LAB_BATTLE_NOTE_LIMIT} rows={5} value={report.battle_notes} onChange={(event) => { setReport((current) => ({ ...current, battle_notes: event.target.value })); setStatus(""); }} placeholder="Leads, switches, revealed tech, game-to-game adjustments…"/><span>{report.battle_notes.length.toLocaleString()} / {TEAM_LAB_BATTLE_NOTE_LIMIT.toLocaleString()}</span></label>
@@ -619,6 +694,7 @@ export default function DraftLab() {
   const [teamName, setTeamName] = useState("");
   const [leagueName, setLeagueName] = useState("");
   const [teamNotes, setTeamNotes] = useState("");
+  const [teamSets, setTeamSets] = useState(() => normalizeTeamLabTeamSets(null, [], CATALOG_NAME_SET));
   const [matchupForm, setMatchupForm] = useState(null);
   const [battleMatchupId, setBattleMatchupId] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -713,6 +789,10 @@ export default function DraftLab() {
   const limit = DRAFT_LAB_MODE_LIMITS[mode];
   const activeMatchups = useMemo(() => matchups.filter((matchup) => matchup.personal_team_id === savedTeamId), [matchups, savedTeamId]);
 
+  useEffect(() => {
+    setTeamSets((current) => normalizeTeamLabTeamSets(current, names, CATALOG_NAME_SET));
+  }, [names]);
+
   function applyHandoff(handoff) {
     const imported = normalizeTeamLabRoster(handoff.pokemon, CATALOG_NAME_SET);
     setNames(imported);
@@ -721,6 +801,7 @@ export default function DraftLab() {
     setTeamName(handoff.teamName || "");
     setLeagueName(handoff.leagueName || "");
     setTeamNotes(handoff.notes || "");
+    setTeamSets(normalizeTeamLabTeamSets(null, imported, CATALOG_NAME_SET));
     setSourceKey(handoff.savedTeamId ? `personal:${handoff.savedTeamId}` : "");
     setMatchupForm(null);
     setBattleMatchupId(null);
@@ -737,6 +818,7 @@ export default function DraftLab() {
     setTeamName(team.team_name || "");
     setLeagueName(team.league_name || "");
     setTeamNotes(source === "personal" ? team.notes || "" : "");
+    setTeamSets(normalizeTeamLabTeamSets(source === "personal" ? team.team_sets : null, imported, CATALOG_NAME_SET));
     setSourceKey(accountTeamKey(team, source));
     setMatchupForm(null);
     setBattleMatchupId(null);
@@ -760,6 +842,7 @@ export default function DraftLab() {
     setTeamName("");
     setLeagueName("");
     setTeamNotes("");
+    setTeamSets(normalizeTeamLabTeamSets(null, [], CATALOG_NAME_SET));
     setNames([]);
     setMode("team");
     setMatchupForm(null);
@@ -769,6 +852,7 @@ export default function DraftLab() {
 
   function clearRoster() {
     setNames([]);
+    setTeamSets(normalizeTeamLabTeamSets(null, [], CATALOG_NAME_SET));
     setMessage("Roster cleared. Save only if you want to update the connected My Teams workspace.");
   }
 
@@ -817,6 +901,7 @@ export default function DraftLab() {
       format_name: regulation.name,
       notes: teamNotes.trim(),
       pokemon: names,
+      team_sets: normalizeTeamLabTeamSets(teamSets, names, CATALOG_NAME_SET),
     };
     const result = savedTeamId
       ? await supabase.from("personal_teams").update(payload).eq("id", savedTeamId).eq("owner_id", user.id).select("*").single()
@@ -831,6 +916,19 @@ export default function DraftLab() {
     } catch (error) {
       setMessage(`The team saved, but the account list could not refresh: ${error.message}`);
     }
+  }
+
+  async function saveTeamSets(nextSets) {
+    if (!user || !savedTeamId) return setMessage("Save this roster to My Teams before saving complete sets.");
+    const normalized = normalizeTeamLabTeamSets(nextSets, names, CATALOG_NAME_SET);
+    setBusy(true);
+    setMessage("");
+    const { data, error } = await supabase.from("personal_teams").update({ team_sets: normalized }).eq("id", savedTeamId).eq("owner_id", user.id).select("*").single();
+    setBusy(false);
+    if (error) return setMessage(error.message);
+    setTeamSets(normalized);
+    setPersonalTeams((current) => current.map((team) => team.id === data.id ? data : team));
+    setMessage("Complete team sets saved privately and made available inside Battle Mode.");
   }
 
   function openMatchup(matchup = null) {
@@ -958,6 +1056,8 @@ export default function DraftLab() {
           {connectedPersonalTeam?.is_public && <p className="team-lab-public-team-note">This team is currently shared in Community. Saving roster or name changes updates that shared team; notes and matchup plans remain private.</p>}
           <div className="team-lab-save-actions"><button className="primary-button" disabled={busy || !teamName.trim()}>{busy ? "Saving…" : savedTeamId ? "Save team & notes" : "Save to My Teams"}</button><span>{savedTeamId ? "Changes update this My Teams workspace; official league rosters stay untouched." : "Save first to attach opponent matchup plans."}</span></div>
         </form>
+
+        {savedTeamId && <TeamLabSetEditor value={teamSets} rosterNames={names} catalogNames={CATALOG_NAME_SET} disabled={busy} onChange={setTeamSets} onSave={saveTeamSets} onMessage={setMessage}/>}
 
         <div className="team-lab-matchups">
           <div className="team-lab-matchups-heading"><div><span className="eyebrow">WEEKLY MATCHUP TRACKER</span><h3>Set up Battle Mode</h3><p>Create an opponent plan, then save it straight into the turn-by-turn closed- or open-sheet recorder. Existing plans can reopen their saved battle report at any time.</p></div><button type="button" className="secondary-button" disabled={!savedTeamId || busy} onClick={() => openMatchup()}>Create opponent plan</button></div>
