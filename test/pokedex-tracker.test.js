@@ -141,6 +141,17 @@ test("entry details use a private RPC-only table with strict ownership and vocab
   for (const { key } of POKEDEX_RIBBON_OPTIONS) assert.match(sql, new RegExp(`'${key}'`));
 });
 
+test("entry details include an isolated two-account Preview regression matrix", () => {
+  const sql = source("supabase/tests/394-private-pokedex-entry-details-preview-regression.sql");
+  assert.match(sql, /^-- Preview-only owner, privacy, validation, and export matrix/m);
+  assert.match(sql, /begin;[\s\S]*rollback;/);
+  assert.match(sql, /has_table_privilege\('authenticated', 'public\.pokedex_tracker_entry_details', 'select'\)/i);
+  assert.match(sql, /A second account can read another account Pok.dex details/);
+  assert.match(sql, /not-a-ball/);
+  assert.match(sql, /not-a-ribbon/);
+  assert.match(sql, /repeat\('x', 1001\)/);
+});
+
 test("the account page offers multiple game, HOME, shiny, collection-detail, filter, pagination, rename, delete, and saving experiences", () => {
   const page = source("src/components/PokedexTrackerPage.jsx");
   const links = source("src/components/SiteQuickLinks.jsx");
