@@ -47,6 +47,7 @@ test("release migrations use one production number each", () => {
   assert.ok(migrations.includes("392-complete-pokedex-home-national-dex.sql"));
   assert.ok(migrations.includes("393-private-team-lab-matchups.sql"));
   assert.ok(migrations.includes("398-atomic-auction-reconciliation-and-lifecycle.sql"));
+  assert.ok(migrations.includes("399-operations-organization-activity.sql"));
 });
 
 test("the Gen 6 schema gate supports the official X and Y game keys", () => {

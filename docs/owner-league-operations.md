@@ -82,6 +82,20 @@ League Pulse never returns team names, Pokemon, matchups, scores, managers,
 messages, support-request text, error text, or transaction contents. It does
 not grant the owner league access and does not notify or alter the league.
 
+## Organization growth
+
+Operations shows aggregate organization adoption and the point when connected
+organization leagues actually begin drafting. It includes total organizations,
+organizations with connected leagues, organizations that have reached a first
+draft, connected league drafts started or still waiting, exact latest activity
+times, and a 30-day daily trend.
+
+A league start is based on the authoritative `draft_started` or
+`scheduled_auction_started` event, with the saved `draftStartedAt` snapshot as
+the auction-safe fallback. Creating or scheduling a league does not count as a
+start. The service-only summary does not expose organization owners, account
+details, organization names, league names, slugs, or private draft state.
+
 ## Daily Games participation
 
 Allowlisted owners can open `/operations/daily-three` from the global Daily

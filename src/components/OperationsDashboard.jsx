@@ -114,6 +114,29 @@ function ConnectionsUsage({ usage, registeredUsers }) {
     </>}
   </section>;
 }
+function OrganizationActivityChart({ daily }) {
+  const rows = daily || [];
+  const maximum = Math.max(1, ...rows.flatMap((row) => [Number(row.signups) || 0, Number(row.league_starts) || 0]));
+  return <div className="organization-activity-chart" role="img" aria-label="Organization signups and linked league starts over the last 30 days">
+    {rows.map((row, index) => <span className="organization-activity-day" key={row.date} aria-label={`${trafficDate(row.date, true)}: ${trafficMetric(row.signups)} organization signups, ${trafficMetric(row.league_starts)} league starts, ${trafficMetric(row.first_league_starts)} organizations reaching their first league start`}><span><i className="signup" style={{ height: `${Math.max(row.signups ? 4 : 0, ((Number(row.signups) || 0) / maximum) * 100)}%` }} /><i className="league-start" style={{ height: `${Math.max(row.league_starts ? 4 : 0, ((Number(row.league_starts) || 0) / maximum) * 100)}%` }} /></span><small>{index === 0 || index === rows.length - 1 ? trafficDate(row.date) : ""}</small></span>)}
+  </div>;
+}
+function OrganizationActivity({ activity }) {
+  const unavailable = !activity || activity.unavailable;
+  return <section className="organization-activity-summary" aria-labelledby="organization-activity-title">
+    <header><div><span className="eyebrow">ORGANIZATIONS · AGGREGATE ONLY</span><h2 id="organization-activity-title">Organization growth</h2><p>See when organizations are created and when their connected leagues begin drafting. Counts contain no organization owner identities, account details, league names, or private draft data.</p></div>{!unavailable && <small>Latest signup {when(activity.latest_signup_at)}<br />Latest league start {when(activity.latest_league_start_at)}</small>}</header>
+    {unavailable ? <p className="organization-activity-unavailable" role="status">Organization activity is temporarily unavailable. The rest of Operations remains current.</p> : <>
+      <div className="organization-activity-metrics">
+        <article><strong>{trafficMetric(activity.totals?.organizations)}</strong><span>Total organizations</span><small>{trafficMetric(activity.today?.signups)} created today</small></article>
+        <article><strong>{trafficMetric(activity.last_7_days?.signups)}</strong><span>New · 7 days</span><small>{trafficMetric(activity.last_30_days?.signups)} in the last 30 days</small></article>
+        <article><strong>{trafficMetric(activity.totals?.organizations_with_leagues)}</strong><span>With connected leagues</span><small>at least one organization league</small></article>
+        <article><strong>{trafficMetric(activity.totals?.organizations_started)}</strong><span>Reached first draft</span><small>{trafficMetric(activity.last_7_days?.first_league_starts)} in the last 7 days</small></article>
+        <article><strong>{trafficMetric(activity.totals?.started_leagues)}</strong><span>League drafts started</span><small>{trafficMetric(activity.totals?.waiting_leagues)} connected leagues waiting</small></article>
+      </div>
+      <article className="organization-activity-trend"><header><h3>Signups and league starts by day</h3><div><span><i className="signup" />Organizations created</span><span><i className="league-start" />League drafts started</span></div></header><OrganizationActivityChart daily={activity.daily} /></article>
+    </>}
+  </section>;
+}
 function MegaBracketCompletions({ summary }) {
   const unavailable = !summary || summary.unavailable;
   return <section className="mega-bracket-completion-summary" aria-labelledby="mega-bracket-completion-title">
@@ -159,6 +182,7 @@ export default function OperationsDashboard() {
     <nav className="public-page-nav"><a className="quiet-button" href="/">DraftCenter</a><a className="quiet-button" href="/operations/daily-three">Daily Games activity</a><button className="quiet-button" onClick={load}>Refresh</button></nav>
     <header className="operations-hero"><span className="eyebrow">OWNER ONLY</span><h1>League Operations</h1><p>Monitor league health without bypassing private-league membership. Configuration support requires commissioner-approved access.</p><small>Updated {when(data.generated_at)}</small></header>
     <section className="operations-user-summary" aria-labelledby="registered-users-title"><div><span className="eyebrow">AUTHENTICATION</span><h2 id="registered-users-title">Registered users</h2><p>Every DraftCenter account is counted, including people who joined through Discord. These totals show sign-in identities only; no emails or Discord usernames are exposed here.</p></div><div className="operations-metrics"><article><strong>{data.users?.total || 0}</strong><span>Total accounts</span></article><article><strong>{data.users?.discord || 0}</strong><span>Discord identity</span></article><article><strong>{data.users?.email || 0}</strong><span>Email identity</span></article><article><strong>{data.users?.both || 0}</strong><span>Email + Discord linked</span></article></div></section>
+    <OrganizationActivity activity={data.organization_activity} />
     <WebsiteTraffic traffic={data.website_traffic} />
     <ConnectionsUsage usage={data.connections_usage} registeredUsers={data.users?.total} />
     <MegaBracketCompletions summary={data.mega_bracket_completions} />
