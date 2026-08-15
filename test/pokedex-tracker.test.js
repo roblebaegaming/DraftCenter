@@ -434,6 +434,21 @@ test("Collector migration keeps import and restore transactional, owner-scoped, 
   assert.match(preview, /second account could inspect or mutate another owner/i);
 });
 
+test("Collector HOME summaries retain all 1,025 species after migration 402", () => {
+  const sql = source("supabase/403-restore-complete-pokedex-home-summary.sql");
+  const regression = source("supabase/tests/403-restore-complete-pokedex-home-summary-preview-regression.sql");
+  assert.match(sql, /Migration 403/i);
+  assert.match(sql, /count\(\*\)::integer from public\.pokedex_tracker_catalog\('home'\)/i);
+  assert.match(sql, /v_catalog_total <> 1025 or v_reported_total <> v_catalog_total/i);
+  assert.match(sql, /location_count/i);
+  assert.match(sql, /specimen_count/i);
+  assert.match(sql, /revoke all on function public\.get_my_pokedex_trackers\(\)[\s\S]*from public, anon, authenticated/i);
+  assert.match(regression, /All fixtures roll back/i);
+  assert.match(regression, /v_reported_catalog_total <> v_catalog_total/i);
+  assert.match(regression, /v_reported_tracker_total <> v_catalog_total/i);
+  assert.match(regression, /rollback;/i);
+});
+
 test("Collector PWA, focused navigation, funding, and measurement preserve privacy boundaries", () => {
   const panel = source("src/components/PokedexCollectorLaunchPanel.jsx");
   const manifest = source("src/app/pokedex-tracker/manifest.webmanifest/route.js");
