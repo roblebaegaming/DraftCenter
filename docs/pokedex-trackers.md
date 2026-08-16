@@ -1,244 +1,149 @@
-# Pokédex trackers
+# Pokédex Tracker
 
-Pokédex trackers are private, account-owned checklists at `/pokedex-tracker`.
-They are separate from Trainer Dex discoveries, leagues, drafts, rosters, and
-Nuzlocke run state.
+Pokédex Tracker is the private, account-owned collection app at
+`/pokedex-tracker`. It shares DraftCenter accounts, reviewed Pokémon data,
+Supabase, security controls, and exports, but has focused app navigation and an
+installable web-app shell.
 
-## Product behavior
+## Current behavior
 
 - A user can create multiple trackers, including multiple playthroughs of the
   same game.
-- Every verified main-series game catalog is available. Pokémon HOME uses the
-  National Pokédex assembled from the union of verified catalogs.
-- Standard and shiny progress are separate. A standard tracker can add its
-  shiny layer later without losing or changing either checklist.
-- Every standard or shiny entry can optionally record a supported Poké Ball,
-  ribbons that can be awarded in the selected game, and a private note up to
-  1,000 characters. Pokémon HOME offers the combined ribbon history and ball
-  catalog. Games that do not award ribbons do not show an empty picker.
-- Entry details are independent of caught flags. A collector can save a hunt
-  plan before registering the Pokémon, and unchecking a catch does not erase
-  its Poké Ball, ribbons, or note.
-- Collection inventory is a separate layer for actual individuals. The same
-  species may have any number of private records with a free-text form
-  description, shiny state, gender, level, nickname, Original Trainer, origin
-  game and mark,
-  ball, ribbons, event flag, sentimental importance, notes, intended
-  destination, and transfer state.
-- Named storage locations represent a game save, Pokémon Bank, Pokémon HOME,
-  a cartridge box, or other user-described storage. An individual can point to
-  one location plus an optional box label and slot from 1 through 30.
-- Collector CSV import accepts checklist rows and repeatable individual rows.
-  It validates the complete file before saving, then adds checked progress,
-  new locations, and new individual records in one transaction. It never
-  unchecks, edits, or deletes an existing record.
-- A tracker or the whole account collection can be downloaded as portable JSON.
-  JSON restore always creates new private tracker copies and never overwrites
-  an existing tracker. Inventory CSV and the portable eight-sheet workbook
-  retain dated Bank Rescue source provenance. Every spreadsheet-bound cell is
-  neutralized when it begins like a formula.
-- The signed-in control center summarizes tracker, registration, shiny,
-  location, and individual counts across every tracker. Its counts come from
-  the same owner-scoped hub RPC and never become public collection statistics.
-- Progress saves immediately to the signed-in DraftCenter account. Search,
-  completion filters, and gallery pagination are presentation-only state.
-- HOME trackers show deterministic page, box, and position labels and can be
-  narrowed to one HOME box. The organizer follows National Pokédex order with
-  30 Pokémon per box, six slots per row, and 30 boxes per HOME page.
-- The public product explanation is indexable. Tracker names, entries, and
-  progress stay private, load only after authentication, and never become
-  account-specific search pages.
+- Every supported main-series game uses its own Pokédex numbers. Entries are
+  sorted by that number rather than by source-import order.
+- Games with more than one Pokédex expose separate sections inside the same
+  tracker. Scarlet and Violet have Paldea, Kitakami, and Blueberry sections;
+  Sword and Shield have Galar, Isle of Armor, and Crown Tundra sections. Kalos
+  and Alola area dexes follow the same section model.
+- A caught or shiny-caught flag is stored once per tracker and species. If a
+  species appears in two sections of the same game, checking it in either
+  section updates both views.
+- Pokémon marked in any game tracker also count toward each Pokémon HOME
+  National Dex owned by the same account. This is a derived account-scoped
+  union, not a copied record or data migration. Direct National Dex progress
+  remains independent and is not removed when a game entry is unchecked.
+- Standard and shiny progress are independent. A shiny list can be enabled
+  after tracker creation without changing standard progress.
+- The Pokémon finder searches the open catalog and reads the existing verified
+  public game, Pokédex, location, and encounter tables. It shows game-specific
+  dex numbers and reviewed encounter combinations; it does not guess when a
+  direct encounter is absent.
+- Every regional, DLC, and National section has a box planner in Pokédex order.
+  Generation I and II layouts use 20 slots. Later games and HOME use 30 slots.
+  Let's Go uses 30-slot planner groups with an explicit note that the games
+  have one sortable Pokémon Box rather than numbered PC boxes.
+- Each standard or shiny entry can optionally save a supported Poké Ball,
+  game-appropriate ribbons, and a private note. These details are independent
+  of the caught flag.
+- Collection inventory separately records individual Pokémon, their identity
+  and origin details, balls, ribbons, private notes, storage locations, and
+  optional box positions.
+- Spreadsheet import is additive and validated before it saves. A readable
+  seven-tab workbook and inventory CSV are available to regular users.
+- Raw JSON backup and restore controls are hidden from regular users and shown
+  only in the owner interface. Restore still creates new private copies and
+  never overwrites an existing tracker.
+- The former Bank Rescue dashboard, guided project, classifications, archive,
+  navigation item, and rescue-specific export fields have been removed.
 
-## Data and privacy boundary
+## Catalog and numbering contract
 
-Migration `391-account-pokedex-trackers.sql` creates
-`pokedex_trackers` and `pokedex_tracker_entries`. Migration
-`394-private-pokedex-entry-details.sql` adds the separate
-`pokedex_tracker_entry_details` table for optional Poké Ball, ribbon, and note
-metadata. Migration `400-private-pokedex-collection-inventory.sql` adds
-`pokedex_collection_locations` and `pokedex_collection_specimens` without
-stretching the species-level checklist schema. All five tables use RLS; the
-detail and inventory tables force RLS. Direct browser table privileges are
-revoked, and authenticated RPCs scope each read, write, rename, and deletion
-to `auth.uid()`. Account and tracker deletion remove all owned collection rows
-through `on delete cascade`.
+`pokedex_tracker_catalog(catalog_key)` returns one canonical species row per
+game Pokédex section. Pokémon HOME remains one canonical National Dex row per
+species. The server returns sections in product order and entries in ascending
+`entry_number` order.
 
-Migration `402-private-pokedex-collector-import-restore.sql` adds the two
-transactional browser RPCs. `import_my_pokedex_collection()` is limited to one
-owned tracker and bounded lists of progress, locations, and individuals.
-`restore_my_pokedex_trackers()` accepts at most 50 bounded tracker payloads and
-creates new tracker IDs under `auth.uid()`. Both reuse the existing server-side
-catalog, field, ribbon, Poké Ball, location, and ownership validators. A bad
-row rolls back the entire RPC call. Direct browser table access remains denied,
-and the export RPC adds species labels without weakening that boundary.
+Migration 408 verifies these reviewed totals:
 
-Catalog membership is validated inside the database before an entry can be
-saved. Game trackers accept only species from a verified `pokemon_games`
-catalog. The HOME tracker accepts canonical National Pokédex species found in
-the verified catalog union and excludes form-specific PokéAPI IDs.
+| Game | Section | Entries |
+|---|---|---:|
+| Scarlet/Violet | Paldea | 400 |
+| Scarlet/Violet | Kitakami | 200 |
+| Scarlet/Violet | Blueberry | 243 |
+| Sword/Shield | Galar | 400 |
+| Sword/Shield | Isle of Armor | 211 |
+| Sword/Shield | Crown Tundra | 210 |
+| Pokémon HOME | National Dex | 1,025 |
 
-The catalog source is shared with Nuzlocke Lab, but tracker writes never modify
-catalog rows. Adding or removing progress never changes Trainer Dex discovery
-events or badge progress.
+Catalog rows remain read-only. Tracker writes never modify the reviewed public
+Pokémon tables or Trainer Dex state.
 
-The authenticated account export includes tracker definitions, caught-entry
-flags, private entry details, named locations, and individual records through
-`export_my_pokedex_trackers()`. Account deletion removes all five tables
-through their `auth.users` cascade.
+## Privacy and data boundary
 
-The picker vocabulary was reviewed against PKHeX commit
-`2d970dde75e2dc043e924102ddd8468042df4794`: `Ball.cs`, `RibbonIndex.cs`, and
-the English ribbon-name resource. DraftCenter stores stable lowercase keys,
-not copied save data. This first release intentionally tracks ribbons rather
-than encounter marks.
+The private tables are `pokedex_trackers`, `pokedex_tracker_entries`,
+`pokedex_tracker_entry_details`, `pokedex_collection_locations`, and
+`pokedex_collection_specimens`. All use RLS; migrations 394, 400, and 402
+ensure forced RLS for the private collection boundary. Browser table CRUD is
+denied. Authenticated RPCs scope every read and write to `auth.uid()`.
 
-## HOME organizer scope
+Migration 408 preserves that boundary while deriving National progress. The
+join requires both the progress row and source tracker to belong to the current
+account. It ignores progress from any other HOME tracker and counts distinct
+species, so duplicate game sections or multiple game trackers cannot inflate a
+National total. The two-account rollback test is
+`supabase/tests/408-numbered-pokedex-sections-linked-national-preview-regression.sql`.
 
-The current HOME catalog is a species-level National Pokédex checklist. A
-reference review against standard and shiny HOME organizer workbooks confirmed
-the 1,025-species baseline and informed the page/box/slot presentation.
-Migration 392 supplements Diancie, Hoopa, and Volcanion because those three
-Kalos mythical species do not occur in any of the verified regional game
-catalog rows; it leaves every regional game catalog unchanged. No
-third-party workbook rows, sprites, formulas, or completion state are bundled
-or imported into DraftCenter.
+The finder reads only the existing public, verified catalog tables. It does not
+send private tracker IDs, caught flags, collection notes, or account identity
+into those queries.
 
-Form-aware collection modes remain a separate product and data-model change.
-A future release may add living-form, lighter-form, final-evolution-with-forms,
-and final-evolution-only goals, but only after DraftCenter has an audited
-canonical catalog for regional, cosmetic, gender, event, and shiny-eligible
-forms. Those rows must not be inferred from artwork availability or copied from
-an external organizer.
+Account export continues to include tracker definitions, direct caught flags,
+entry details, locations, and individual records. Derived National progress is
+not materialized in an export as if it were a direct HOME record. Account or
+tracker deletion removes owned private rows through the existing cascades.
 
-The individual inventory therefore accepts an owner-entered form description,
-but does not classify it, claim that the form can move through Bank or HOME,
-or use it for availability decisions. A future rescue-priority engine requires
-a separately reviewed, dated, source-backed availability catalog.
+## Box planner boundary
 
-## Bank Rescue review
+The box planner is an organization view, not a connection to a game, console,
+Pokémon HOME, or Nintendo account. It never reads a save and does not claim to
+move Pokémon. Checking a box slot changes the same species progress flag as the
+normal card.
 
-The inventory includes a client-computed Bank Rescue review. It never asks
-for Nintendo credentials, connects to a console, reads a save, or claims to
-perform a transfer. Transfer state and intended destination are private notes
-entered by the owner, not proof that a transfer is possible or complete.
+For a selected dex, entries are divided into that game's slot capacity in
+ascending local Pokédex number. This makes #001 the first slot and continues in
+number order across boxes. It does not invent empty species for numbering gaps.
+Let's Go planner groups are explicitly virtual because those games use one
+sortable Pokémon Box.
 
-The source snapshot was reviewed on August 16, 2026. Nintendo currently says
-that no Pokémon Bank end date is planned and that service changes will be
-announced in advance. Pokémon's official HOME guidance says that a Bank move
-requires a HOME Premium Plan, is one-way, and that a Pokémon can move onward
-only into a game in which it appears. The UI links each official source and
-includes the reviewed date; JSON and CSV exports retain that provenance.
-The client treats the snapshot as due for review after 30 days. After that
-date, the inventory shows a prominent warning to recheck the linked official
-sources before relying on any service-status guidance. The warning does not
-invent a deadline or change private records.
+## Search and indexing boundary
 
-Action labels are conservative. They can identify owner-recorded transfer
-completion, an intentional preserve choice, Bank records with owner-entered
-legacy signals, a missing destination, a Bank move to review, or a HOME game-
-compatibility check. Every record also exposes an uncertain—verify state because
-DraftCenter does not yet have an audited species, form, origin-mark, ribbon, or
-reacquisition-availability catalog. It does not classify anything as easily
-obtainable later, infer that legacy work remains possible, or turn unofficial
-reporting into a deadline.
+The public route metadata and server-rendered explanation describe the product,
+regional/DLC sections, linked National progress, finder, and box layouts. Real
+tracker names, progress, catches, notes, and account identity load only after
+authentication and must never appear in metadata, structured data, the
+sitemap, social previews, or account-specific search pages.
 
-The review is derived at display and export time rather than persisted. This
-prevents a dated source snapshot from becoming stale private database state and
-requires no migration after 400. Camera-assisted box auditing remains out of
-scope.
+## Install, analytics, and funding
 
-The guided Rescue project is a client-side workflow over the same private
-inventory. Its Access map, Important Pokémon, Intentions, and Archive steps
-derive their completion from saved locations, individual records, and transfer
-states, so the next unfinished step resumes without a separate project row or
-database migration. Adding a record from the guide opens the established
-owner-scoped inventory form and returns to the guide after a successful save.
+The scoped service worker caches only the public offline explanation and app
+icons. It does not cache signed-in tracker HTML, RPC responses, collection
+contents, uploaded files, or account state. An internet connection and sign-in
+remain required for private data.
 
-Access-map locations are owner-entered labels, not proof that a game save,
-cartridge, Bank box, HOME account, console, or subscription is available. The
-guide requests no Nintendo credentials, performs no console or service
-connection, and never treats an intention as transfer verification. A future
-cross-tracker hardware and service-access library would require its own
-forward-only migration, privacy review, and focused RLS coverage.
+Vercel Analytics receives only the existing allowlisted coarse feature events
+and properties. Account IDs, tracker IDs or names, Pokémon, notes, emails,
+filenames, and file contents remain forbidden.
 
-## Search and discovery boundary
-
-The public `/pokedex-tracker` route has a canonical, descriptive metadata,
-WebApplication and FAQ structured data, a route-specific social preview,
-server-rendered product guidance, sitemap and `llms.txt` entries, and
-crawlable links from Resources and the public Pokédex.
-
-Only product-controlled copy and the fictional social-preview tracker are
-server rendered. The authenticated client loads real tracker state through
-account-scoped RPCs after hydration. Metadata, structured data, the sitemap,
-social previews, and public HTML must never contain tracker IDs, tracker names,
-progress, catches, Poké Balls, ribbons, notes, or account identity.
-
-## Install, measurement, and funding boundary
-
-The route publishes a focused Pokédex Tracker by DraftCenter web-app manifest
-and may be installed from a supporting browser. Its scoped service worker
-caches only the public offline explanation and Tracker icons. It does not cache signed-in
-tracker HTML, RPC responses, collection contents, private notes, uploaded
-files, or account state. An internet connection and sign-in remain required.
-
-Vercel Analytics receives only allowlisted coarse feature events for tracker
-creation, inventory opening, successful import or restore, exports, install
-choices, the Founding Beta support link, and copying the feedback checklist.
-Allowed properties are a feature kind, broad count bucket, placement, or
-result. Account and tracker identifiers, tracker names, Pokémon or species,
-notes, email addresses, filenames, and file contents are forbidden.
-
-The Founding Collector Beta links to the existing DraftCenter Ko-fi. Suggested
-$10 or pay-what-you-want support is a voluntary one-time contribution, not a
-purchase, subscription, entitlement, or promise of premium access. Current
-Collector and league tools remain free. Recruitment materials are stored in
-`docs/pokedex-collector-founding-beta-2026-08-15.md`; using them with real
-people requires the owner to approve the audience and destination.
+Current Pokédex Tracker features remain free. The existing Ko-fi link is a
+voluntary contribution, not a purchase, subscription, entitlement, or promise
+of later premium access.
 
 ## Release checks
 
-Before release, apply migration 391 to an isolated Preview project and verify:
+Before release:
 
-1. signed-out RPC calls are rejected;
-2. one account cannot read, update, or delete another account's tracker;
-3. arbitrary species IDs and unverified game keys are rejected;
-4. disabling a shiny layer cannot erase saved shiny progress;
-5. HOME and representative Generation I, IV, VII, VIII, and IX catalogs return
-   the expected distinct species counts; and
-6. desktop plus 320px and approximately 390px mobile layouts remain usable
-   with a full HOME catalog, touch-sized controls, and no page-level horizontal
-   overflow.
-
-Migration 394 also requires an isolated two-account matrix proving that signed-
-out callers and a second account cannot list, create, change, delete, or export
-another account's entry details; invalid catalog species, ball keys, ribbon
-keys, shiny layers, and notes over 1,000 characters must be rejected.
-
-Migration 400 requires its own rollback-only two-account Preview matrix. It
-must prove forced RLS and browser-role table denial, owner round trips and
-export, cross-account read/write denial, catalog membership checks, bounded
-levels and box positions, ball and ribbon validation, same-tracker location
-ownership, referenced-location deletion protection, and deletion in specimen-
-then-location order.
-
-Migration 402 requires the rollback-only two-account Preview matrix in
-`supabase/tests/402-private-pokedex-collector-import-restore-preview-regression.sql`.
-It proves additive import, atomic rollback, new-copy restore, cross-account
-denial, aggregate hub counts, species-labeled export, limits, forced RLS, and
-browser-role grant denial.
-
-Migration 403 restores the complete HOME hub total after migration 402 by
-deriving it from `pokedex_tracker_catalog('home')`, including Diancie, Hoopa,
-and Volcanion. Its rollback-only Preview regression is
-`supabase/tests/403-restore-complete-pokedex-home-summary-preview-regression.sql`;
-it must report the same 1,025 total in the catalog list and a saved HOME tracker
-without weakening the Collector RPC grants.
-
-Run `npm run test:pokedex-tracker`, `npm run test:seo`,
-`npm run test:release-integration`, the full application suite, the National
-Dex check, dependency audit, and a production build. Render the 1200×630 social
-preview and review signed-out plus signed-in desktop, 320px, and approximately
-390px layouts. The signed-out production smoke test is post-deployment evidence only.
-Production data or provider settings must not be changed merely to test the
-feature.
+1. Apply migration 408 to the retained isolated Preview project.
+2. Run the rollback-only migration 408 two-account regression.
+3. Verify Scarlet/Violet and Sword/Shield section counts and in-section number
+   order against the pinned reviewed catalog.
+4. Verify a game catch appears in the same owner's National Dex, cannot appear
+   for another account, disappears when its only source is unchecked, and
+   cannot erase direct National progress.
+5. Confirm regular users do not see JSON controls and owner access still does.
+6. Review signed-in desktop, 390px, and 320px layouts for section tabs, finder,
+   20-slot and 30-slot boxes, long game names, and no horizontal overflow.
+7. Run `pnpm audit --prod --audit-level high`, `npm run test:all`,
+   `npm run test:national-dex`, and `npm run build` with the public Supabase
+   build variables.
+8. After an authorized protected release, confirm the deployed commit and run
+   `npm run smoke:production` as post-deployment evidence.

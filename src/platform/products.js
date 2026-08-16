@@ -2,15 +2,15 @@ const products = {
   collector: {
     id: "collector",
     name: "Pokédex Tracker",
-    eyebrow: "COLLECTION APP",
+    eyebrow: "POKÉDEX APP",
     homePath: "/pokedex-tracker/",
     icon: "/pokedex-collector-icon-192.png",
     routePrefixes: ["/pokedex-tracker"],
     navigation: [
       { label: "Dex", compactLabel: "Dex", href: "/pokedex-tracker/#dex-tracker-workspace" },
-      { label: "Rescue", compactLabel: "Rescue", href: "/pokedex-tracker/#bank-rescue" },
+      { label: "Find a Pokémon", compactLabel: "Find", href: "/pokedex-tracker/#pokemon-finder" },
       { label: "Collection", compactLabel: "Collect", href: "/pokedex-tracker/#collection-inventory" },
-      { label: "Boxes", compactLabel: "Boxes", href: "/pokedex-tracker/#home-box-planner" },
+      { label: "Boxes", compactLabel: "Boxes", href: "/pokedex-tracker/#game-box-planner" },
       { label: "More", compactLabel: "More", href: "/pokedex-tracker/#collector-tools" },
     ],
   },

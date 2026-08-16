@@ -13,6 +13,7 @@ import {
 } from "../lib/pokedexCollector";
 import { buildPokedexCollectorWorkbookFilename, buildPokedexCollectorWorkbookSheets } from "../platform/exports";
 import { useInstallableWebApp } from "../platform/useInstallableWebApp";
+import { usePlatformAccount } from "../platform/usePlatformAccount";
 import { pokedexCountBucket, trackPokedexCollectorEvent } from "../lib/pokedexAnalytics";
 
 const KOFI_URL = "https://ko-fi.com/draftcenter";
@@ -53,7 +54,7 @@ function ImportPreview({ preview, busy, onConfirm, onCancel }) {
     {preview.payload.warnings?.length > 0 && <ul className="dex-collector-warnings">{preview.payload.warnings.slice(0, 8).map((warning) => <li key={warning}>{warning}</li>)}</ul>}
     <div className="dex-collector-preview-actions">
       <button type="button" className="dex-secondary-button" onClick={onCancel} disabled={busy}>Cancel</button>
-      <button type="button" className="dex-primary-button" onClick={onConfirm} disabled={busy}>{busy ? "Saving atomically…" : preview.kind === "csv" ? "Import additive records" : "Create private copies"}</button>
+      <button type="button" className="dex-primary-button" onClick={onConfirm} disabled={busy}>{busy ? "Saving…" : preview.kind === "csv" ? "Add to tracker" : "Create private copies"}</button>
     </div>
   </section>;
 }
@@ -65,6 +66,7 @@ export default function PokedexCollectorLaunchPanel({ supabase, hub, active, inv
   const [error, setError] = useState("");
   const [showInstallHelp, setShowInstallHelp] = useState(false);
   const dashboard = useMemo(() => buildPokedexCollectorDashboard(hub?.trackers), [hub?.trackers]);
+  const { isOwner } = usePlatformAccount();
   const { promptInstall } = useInstallableWebApp({ serviceWorkerUrl: "/pokedex-tracker/sw.js", scope: "/pokedex-tracker/" });
 
   async function chooseFile(event, kind) {
@@ -74,7 +76,7 @@ export default function PokedexCollectorLaunchPanel({ supabase, hub, active, inv
     setError("");
     setStatus("");
     if (file.size > POKEDEX_COLLECTOR_MAX_FILE_BYTES) {
-      setError("Choose a CSV or JSON file under 10 MB.");
+      setError(`Choose a ${kind.toUpperCase()} file under 10 MB.`);
       return;
     }
     try {
@@ -127,14 +129,14 @@ export default function PokedexCollectorLaunchPanel({ supabase, hub, active, inv
 
   async function fetchAllTrackers() {
     const { data, error: exportError } = await supabase.rpc("export_my_pokedex_trackers");
-    if (exportError || !data) throw new Error(exportError?.message || "Your Collector export could not be prepared.");
+    if (exportError || !data) throw new Error(exportError?.message || "Your Pokédex Tracker download could not be prepared.");
     return data;
   }
 
   function downloadTemplate() {
     downloadFile(pokedexCollectorCsvTemplate(), "draftcenter-collector-import-template.csv", "text/csv;charset=utf-8");
     trackPokedexCollectorEvent("export_downloaded", { kind: "csv-template" });
-    setStatus("Blank Collector CSV template downloaded.");
+    setStatus("Blank Pokédex Tracker CSV template downloaded.");
   }
 
   async function downloadActiveJson() {
@@ -162,7 +164,7 @@ export default function PokedexCollectorLaunchPanel({ supabase, hub, active, inv
       const payload = await fetchAllTrackers();
       downloadFile(JSON.stringify(payload, null, 2), pokedexCollectorFilename("DraftCenter Collector", "all-trackers-backup"), "application/json;charset=utf-8");
       trackPokedexCollectorEvent("export_downloaded", { kind: "all-json" });
-      setStatus("Restorable JSON backup downloaded for every Collector tracker.");
+      setStatus("Restorable JSON backup downloaded for every Pokédex tracker.");
     } catch (downloadError) {
       setError(downloadError?.message || "The all-tracker backup could not be created.");
     } finally {
@@ -192,9 +194,9 @@ export default function PokedexCollectorLaunchPanel({ supabase, hub, active, inv
       }
       XLSX.writeFile(workbook, buildPokedexCollectorWorkbookFilename());
       trackPokedexCollectorEvent("workbook_downloaded", { kind: "xlsx", count_bucket: pokedexCountBucket(hub?.trackers?.length) });
-      setStatus("Eight-sheet Collector workbook downloaded for Excel or Google Sheets.");
+      setStatus("Seven-tab collection workbook downloaded for Excel or Google Sheets.");
     } catch (downloadError) {
-      setError(downloadError?.message || "The Collector workbook could not be created in this browser.");
+      setError(downloadError?.message || "The collection workbook could not be created in this browser.");
     } finally {
       setBusy(false);
     }
@@ -215,7 +217,7 @@ export default function PokedexCollectorLaunchPanel({ supabase, hub, active, inv
     try {
       await navigator.clipboard.writeText(POKEDEX_COLLECTOR_FEEDBACK_CHECKLIST);
       trackPokedexCollectorEvent("feedback_checklist_copied", { placement: "founding-beta" });
-      setStatus("Collector beta checklist copied. Paste it into the conversation or community you choose.");
+      setStatus("Tester checklist copied. Paste it wherever you plan to collect feedback.");
     } catch {
       setError("The checklist could not be copied automatically in this browser.");
     }
@@ -223,7 +225,7 @@ export default function PokedexCollectorLaunchPanel({ supabase, hub, active, inv
 
   return <section className="dex-collector-launch" id="collector-tools" aria-labelledby="dex-collector-launch-title">
     <div className="dex-collector-launch-heading">
-      <div><span className="dex-kicker">COLLECTOR CONTROL CENTER</span><h2 id="dex-collector-launch-title">Your whole collection, portable.</h2><p>Move in with a CSV, restore safe copies from JSON, or take every private tracker into a workbook you control.</p></div>
+      <div><span className="dex-kicker">COLLECTION TOOLS</span><h2 id="dex-collector-launch-title">Bring your list with you.</h2><p>Import a spreadsheet, download a readable copy of your collection, or install the tracker on this device.</p></div>
       <img src="/pokedex-collector-icon.png" alt="" />
     </div>
 
@@ -238,20 +240,20 @@ export default function PokedexCollectorLaunchPanel({ supabase, hub, active, inv
 
     <div className="dex-collector-tool-grid">
       <article>
-        <span>01 · MOVE IN</span><h3>CSV import</h3><p>Use the template for checklist rows or repeatable individual records. Every row is checked before anything saves.</p>
+        <span>01 · IMPORT</span><h3>Import a spreadsheet</h3><p>Use the template to add checklist progress or individual Pokémon. You can review the totals before anything is saved.</p>
         <div><button type="button" className="dex-secondary-button" onClick={downloadTemplate}>Get template</button><label className={`dex-primary-button ${!active ? "is-disabled" : ""}`}>Choose CSV<input type="file" accept=".csv,text/csv" disabled={!active || busy} onChange={(event) => { void chooseFile(event, "csv"); }} /></label></div>
         {!active && <small>Open a tracker before choosing its CSV.</small>}
       </article>
-      <article>
-        <span>02 · BACK UP</span><h3>JSON restore</h3><p>Download one tracker or all of them. Restoring a backup always creates a new private copy.</p>
+      {isOwner && <article>
+        <span>02 · OWNER RECOVERY</span><h3>JSON recovery files</h3><p>Owner-only tools for downloading and restoring raw account backups. A restore always creates a new private copy.</p>
         <div><button type="button" className="dex-secondary-button" onClick={downloadActiveJson} disabled={!active || busy}>Open tracker JSON</button><button type="button" className="dex-secondary-button" onClick={downloadAllJson} disabled={!hub?.trackers?.length || busy}>All JSON</button><label className="dex-primary-button">Restore JSON<input type="file" accept=".json,application/json" disabled={busy} onChange={(event) => { void chooseFile(event, "json"); }} /></label></div>
-      </article>
+      </article>}
       <article>
-        <span>03 · TAKE IT WITH YOU</span><h3>Collector workbook</h3><p>Eight Sheets-ready tabs cover progress, details, locations, individuals, Bank review, and an import template.</p>
+        <span>{isOwner ? "03" : "02"} · DOWNLOAD</span><h3>Collection workbook</h3><p>Seven spreadsheet tabs cover your trackers, progress, notes, locations, individual Pokémon, and an import template.</p>
         <button type="button" className="dex-primary-button" onClick={downloadWorkbook} disabled={!hub?.trackers?.length || busy}>{busy ? "Preparing…" : "Download workbook"}</button>
       </article>
       <article id="install-collector">
-        <span>04 · FOCUSED APP</span><h3>Install Pokédex Tracker</h3><p>Add a focused launcher to this device. An internet connection and sign-in are still required for private collection data.</p>
+        <span>{isOwner ? "04" : "03"} · INSTALL</span><h3>Install Pokédex Tracker</h3><p>Add the tracker to your home screen. You will still need an internet connection and your account for saved collection data.</p>
         <button type="button" className="dex-secondary-button" onClick={installCollector}>Install or show instructions</button>
         {showInstallHelp && <small>Open your browser’s share or menu button, then choose “Add to Home Screen” or “Install app.”</small>}
       </article>
@@ -262,7 +264,7 @@ export default function PokedexCollectorLaunchPanel({ supabase, hub, active, inv
     {status && <p className="dex-collector-status" role="status">{status}</p>}
 
     <aside className="dex-collector-founding" id="collector-founding-beta">
-      <div><span className="dex-kicker">FOUNDING COLLECTOR BETA</span><h3>Help shape the convenience layer.</h3><p>Current Collector tools stay free. A suggested $10—or any amount you choose—is a voluntary one-time contribution through Ko-fi, not a purchase, subscription, or promise of premium access.</p></div>
+      <div><span className="dex-kicker">FOUNDING COLLECTOR BETA</span><h3>Help improve Pokédex Tracker.</h3><p>The tracker stays free. If you want to support its development, you can make an optional one-time contribution through Ko-fi. It is not a purchase or subscription.</p></div>
       <div><a className="dex-primary-button" href={KOFI_URL} target="_blank" rel="noreferrer" onClick={() => trackPokedexCollectorEvent("supporter_cta_selected", { placement: "founding-beta" })}>Support the beta</a><button type="button" className="dex-secondary-button" onClick={copyFeedbackChecklist}>Copy tester checklist</button></div>
     </aside>
   </section>;

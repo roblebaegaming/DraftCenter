@@ -1,4 +1,3 @@
-import { buildBankRescueReview } from "./pokemonBankRescue.js";
 import { POKEDEX_COLLECTOR_CSV_HEADERS, pokedexCollectorFilename } from "./pokedexCollector.js";
 
 function safe(value) {
@@ -48,7 +47,7 @@ export function buildPokedexCollectorWorkbookSheets({ hub, exportPayload, export
   const summary = {
     name: "Summary",
     rows: [
-      ["DraftCenter Collector — private collection workbook"],
+      ["Pokédex Tracker — private collection workbook"],
       ["This download contains private checklist and collection information because you explicitly exported it. Store and share it carefully."],
       [],
       ["Field", "Value"],
@@ -56,8 +55,7 @@ export function buildPokedexCollectorWorkbookSheets({ hub, exportPayload, export
       ["Storage locations", totalLocations],
       ["Individual Pokémon", totalSpecimens],
       ["Exported", exportedIso],
-      ["Restore behavior", "JSON restore creates new private copies and never overwrites an existing tracker."],
-      ["Bank Rescue boundary", "Dated owner-action guidance only; compatibility and availability remain uncertain until verified."],
+      ["About this file", "This workbook is a readable copy of the tracker information saved to your account."],
     ],
     headerRow: 3,
     widths: [30, 110],
@@ -93,27 +91,15 @@ export function buildPokedexCollectorWorkbookSheets({ hub, exportPayload, export
     trackerLabel(tracker), safe(specimen.pokemon), specimen.pokemon_id, specimen.dex_number ?? "", safe(specimen.form_label), safe(specimen.nickname),
     yesNo(specimen.is_shiny), safe(specimen.gender), specimen.level ?? "", safe(specimen.original_trainer), safe(specimen.origin_game), safe(specimen.origin_mark),
     safe(specimen.location_name), safe(specimen.location_kind), safe(specimen.location_platform), safe(specimen.box_label), specimen.box_position ?? "",
-    safe(specimen.pokeball), (specimen.ribbons || []).map(safe).join(" | "), yesNo(specimen.is_event), safe(specimen.importance),
-    safe(specimen.intended_destination), safe(specimen.transfer_state), safe(specimen.transferred_on), safe(specimen.notes),
+    safe(specimen.pokeball), (specimen.ribbons || []).map(safe).join(" | "), yesNo(specimen.is_event), safe(specimen.notes),
   ]));
-
-  const rescueRows = trackers.flatMap((tracker) => {
-    const inventory = { specimens: enrichedSpecimens(tracker) };
-    const review = buildBankRescueReview(inventory);
-    const sources = new Map(review.sources.map((source) => [source.id, source.url]));
-    return review.records.map(({ specimen, classification }) => [
-      trackerLabel(tracker), safe(specimen.pokemon), safe(specimen.nickname), safe(specimen.location_name), safe(specimen.location_kind),
-      classification.label, classification.reason, classification.verification.label, classification.reviewed_on,
-      classification.source_ids.join(" | "), classification.source_ids.map((id) => sources.get(id)).filter(Boolean).join(" | "), yesNo(classification.owner_record_only),
-    ]);
-  });
 
   const template = sheet(
     "Import Template",
     "Bulk CSV import template",
     "Copy the header row into a UTF-8 CSV. Use record_type checklist for progress-only rows or individual for repeatable collection records. Existing data is never overwritten.",
     POKEDEX_COLLECTOR_CSV_HEADERS,
-    [["individual", "Pikachu", 25, "yes", "no", "", "Example only — remove this row", "no", "unknown", "", "", "", "", "home-main", "HOME main", "pokemon_home", "Switch", "", "Living Dex", 1, "poke", "", "no", "standard", "", "not_planned", "", "Remove this example before import"]],
+    [["individual", "Pikachu", 25, "yes", "no", "", "Example only — remove this row", "no", "unknown", "", "", "", "", "home-main", "HOME main", "pokemon_home", "Switch", "", "Living Dex", 1, "poke", "", "no", "Remove this example before import"]],
     POKEDEX_COLLECTOR_CSV_HEADERS.map((header) => Math.max(13, Math.min(26, header.length + 3))),
   );
 
@@ -122,9 +108,8 @@ export function buildPokedexCollectorWorkbookSheets({ hub, exportPayload, export
     sheet("Trackers", "Tracker dashboard", "Cross-tracker progress and inventory totals.", ["Tracker", "Catalog", "Catalog total", "Registered", "Shiny registered", "Shiny layer", "Locations", "Individuals", "Updated"], trackerRows, [28, 28, 14, 13, 17, 13, 12, 13, 24]),
     sheet("Checklist", "Registered checklist entries", "Only registered standard or shiny entries are listed.", ["Tracker", "Catalog", "Pokémon ID", "Species", "Dex number", "Progress type", "Registered at"], checklistRows, [28, 26, 12, 24, 12, 14, 24]),
     sheet("Entry Details", "Checklist details", "Optional ball, ribbon, and private-note details stored independently of registration.", ["Tracker", "Pokémon ID", "Species", "Dex number", "Progress type", "Poké Ball", "Ribbons", "Private note", "Updated"], detailRows, [28, 12, 24, 12, 14, 18, 42, 55, 24]),
-    sheet("Locations", "Storage locations", "Private game-save, Bank, HOME, cartridge, and other owner-described locations.", ["Tracker", "Import key", "Location", "Type", "Platform", "Private note", "Updated"], locationRows, [28, 16, 28, 18, 22, 46, 24]),
-    sheet("Individuals", "Individual Pokémon", "Repeatable private records for actual individuals and their owner-entered history.", ["Tracker", "Species", "Pokémon ID", "Dex number", "Form", "Nickname", "Shiny", "Gender", "Level", "Original Trainer", "Origin game", "Origin mark", "Location", "Location type", "Platform", "Box", "Slot", "Poké Ball", "Ribbons", "Event", "Importance", "Destination", "Transfer state", "Transferred on", "Private note"], specimenRows, [28, 24, 12, 12, 22, 22, 9, 12, 9, 22, 22, 22, 26, 18, 20, 18, 9, 18, 42, 9, 14, 24, 18, 16, 55]),
-    sheet("Bank Rescue", "Bank Rescue review", "Dated organizing guidance derived from private records. It never proves availability, compatibility, or an external transfer.", ["Tracker", "Species", "Nickname", "Location", "Location type", "Action", "Reason", "Availability", "Reviewed", "Source IDs", "Source URLs", "Owner record only"], rescueRows, [28, 24, 22, 26, 18, 32, 70, 34, 14, 44, 68, 18]),
+    sheet("Locations", "Storage locations", "Private game-save, HOME, cartridge, and other locations you have added.", ["Tracker", "Import key", "Location", "Type", "Platform", "Private note", "Updated"], locationRows, [28, 16, 28, 18, 22, 46, 24]),
+    sheet("Individuals", "Individual Pokémon", "Private records for individual Pokémon and the details you choose to save.", ["Tracker", "Species", "Pokémon ID", "Dex number", "Form", "Nickname", "Shiny", "Gender", "Level", "Original Trainer", "Origin game", "Origin mark", "Location", "Location type", "Platform", "Box", "Slot", "Poké Ball", "Ribbons", "Event", "Private note"], specimenRows, [28, 24, 12, 12, 22, 22, 9, 12, 9, 22, 22, 22, 26, 18, 20, 18, 9, 18, 42, 9, 55]),
     template,
   ];
 }
