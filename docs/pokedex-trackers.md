@@ -162,9 +162,9 @@ progress, catches, Poké Balls, ribbons, notes, or account identity.
 
 ## Install, measurement, and funding boundary
 
-The route publishes a focused DraftCenter Collector web-app manifest and may be
-installed from a supporting browser. Its scoped service worker caches only the
-public offline explanation and Collector icons. It does not cache signed-in
+The route publishes a focused Pokédex Tracker by DraftCenter web-app manifest
+and may be installed from a supporting browser. Its scoped service worker
+caches only the public offline explanation and Tracker icons. It does not cache signed-in
 tracker HTML, RPC responses, collection contents, private notes, uploaded
 files, or account state. An internet connection and sign-in remain required.
 

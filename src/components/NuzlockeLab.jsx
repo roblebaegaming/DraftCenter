@@ -496,7 +496,7 @@ export default function NuzlockeLab() {
             <button className="quiet-button" type="button" disabled={downloadingTeam} onClick={downloadTeam}>{downloadingTeam ? "Creating image…" : "Download progress card"}</button>
           </div>}
         </div>
-        {outputMessage && <p className="nuzlocke-output-status" role="status">{outputMessage}{savedToMyTeams && <> <a href="/my-teams">Open My Teams →</a></>}</p>}
+        {outputMessage && <p className="nuzlocke-output-status" role="status">{outputMessage}{savedToMyTeams && <> <a href="/team-lab/teams">Open My Teams →</a></>}</p>}
         {!result && <div className="empty-state">Choose a verified game and your rules, then build a run.</div>}
         {result && <p className="nuzlocke-browser-save">Tracker changes are saved in this browser automatically. Sign in and save to My Teams for private cross-device access.</p>}
         {result?.allAreas && <p className="nuzlocke-run-summary">One Pokémon was requested from every eligible named location under these rules. Floors and subareas share one encounter slot.</p>}

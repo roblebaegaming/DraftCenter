@@ -38,6 +38,7 @@ function analyticsFetch(calls) {
       { requestPath: "/explore", visitors: 15, pageviews: 40 },
       { requestPath: "/operations", visitors: 100, pageviews: 1000 },
       { requestPath: "/my-teams/example", visitors: 50, pageviews: 500 },
+      { requestPath: "/team-lab/teams/example", visitors: 45, pageviews: 450 },
       { requestPath: "/trainer-dex", visitors: 40, pageviews: 400 },
       { requestPath: "/worlds/2026", visitors: 12, pageviews: 35 },
       { requestPath: "/resources", visitors: 9, pageviews: 20 },
@@ -71,6 +72,7 @@ test("website traffic summarizes 30 days and excludes private paths", async () =
     assert.equal(call.url.searchParams.get("until"), "2026-08-12");
     assert.match(call.url.searchParams.get("filter"), /not startswith\(requestPath, '\/operations'\)/);
     assert.match(call.url.searchParams.get("filter"), /not startswith\(requestPath, '\/my-teams'\)/);
+    assert.match(call.url.searchParams.get("filter"), /not startswith\(requestPath, '\/team-lab\/teams'\)/);
     assert.match(call.url.searchParams.get("filter"), /not startswith\(requestPath, '\/organizations'\)/);
     assert.match(call.url.searchParams.get("filter"), /not startswith\(requestPath, '\/trainer-dex'\)/);
     assert.equal(call.url.toString().includes(env.DRAFTCENTER_VERCEL_ANALYTICS_TOKEN), false);

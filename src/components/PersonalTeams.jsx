@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { createClient } from "../lib/supabase/client";
 import { nuzlockeEncounterStatusLabel, normalizeNuzlockeTracker, summarizeNuzlockeTracker } from "../lib/nuzlockeRunTracker";
 import { createTeamLabHandoff, createTeamLabMatchupHandoff, TEAM_LAB_HANDOFF_KEY, TEAM_LAB_MATCHUP_HANDOFF_KEY } from "../lib/teamLab";
-import { MonAbilities, MonDefenseChart, MonSprite, MonStats, POLL_POKEMON_NAMES, POKEMON_DIRECTORY, REGULATION_SETS, TeamDefenseSummary } from "./PokemonDraftLeague";
+import { PRODUCT_ROUTES } from "../platform/products";
+import { SHARED_POKEMON_DIRECTORY as POKEMON_DIRECTORY, SHARED_POKEMON_NAMES as POLL_POKEMON_NAMES, SHARED_REGULATION_SETS as REGULATION_SETS } from "../platform/pokemonCatalog";
+import { MonAbilities, MonDefenseChart, MonSprite, MonStats, TeamDefenseSummary } from "../platform/pokemonUi";
+import { createPlatformBrowserClient } from "../platform/supabase";
 import TeamLabOpponentEditor, { createEmptyTeamLabMatchup, normalizeTeamLabMatchupForm } from "./TeamLabOpponentEditor";
 
 const EMPTY = { team_name:"", league_name:"", format_name:"", workspace_type:"weekly", planning_entries:[], notes:"", weekly_notes:"", pokepaste_url:"", replica_code:"", spreadsheet_url:"", team_report_url:"", pokemon:[], team_sets:{version:1,pokemon:[]}, nuzlocke_run:null, archived:false, is_public:false, regulation_id:"", public_summary:"", share_pokepaste:false, share_replica_code:false, share_team_report:false };
@@ -21,7 +23,7 @@ const nuzlockeProgressFor = (team) => summarizeNuzlockeTracker(team?.nuzlocke_ru
 const REGULATION_OPTIONS = Object.entries(REGULATION_SETS).map(([id, regulation]) => ({ id, name:regulation.name || id }));
 
 export default function PersonalTeams() {
-  const [supabase] = useState(() => createClient());
+  const [supabase] = useState(() => createPlatformBrowserClient());
   const [user, setUser] = useState(undefined);
   const [teams, setTeams] = useState([]);
   const [leagueTeams, setLeagueTeams] = useState([]);
@@ -141,7 +143,7 @@ export default function PersonalTeams() {
     const transferable = source === "league" ? { ...team, format_name:`Season ${team.season_number}` } : team;
     window.sessionStorage.setItem(TEAM_LAB_HANDOFF_KEY, createTeamLabHandoff(transferable, source));
     if (matchupId) window.sessionStorage.setItem(TEAM_LAB_MATCHUP_HANDOFF_KEY, createTeamLabMatchupHandoff(matchupId));
-    window.location.assign("/tools/team-builder");
+    window.location.assign(PRODUCT_ROUTES.teamLab);
   }
   function editMatchup(matchup = null) {
     if (!viewing?.id || viewing.league_source || isNuzlockeTeam(viewing)) return;

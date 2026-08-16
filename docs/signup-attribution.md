@@ -38,7 +38,7 @@ enumeration-safe existing-account response is not counted.
 | Public path | Bucket |
 | --- | --- |
 | `/pokedex-tracker` | `collector` |
-| `/tools/team-builder` | `team-lab` |
+| `/team-lab` and legacy `/tools/team-builder` | `team-lab` |
 | `/tools/mega-bracket` | `mega-bracket` |
 | `/resources/daily-games` | `daily-games` |
 | `/nuzlocke` | `nuzlocke` |
@@ -59,7 +59,7 @@ Use lowercase `utm_source`, `utm_medium=social` (or the real medium), and one
 stable lowercase `utm_campaign` slug. Example:
 
 ```text
-https://www.draftcentral.gg/tools/team-builder?utm_source=discord&utm_medium=social&utm_campaign=team-lab-launch
+https://www.draftcentral.gg/team-lab?utm_source=discord&utm_medium=social&utm_campaign=team-lab-launch
 ```
 
 Recommended source slugs are `discord`, `reddit`, `x`, `instagram`, `youtube`,

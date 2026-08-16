@@ -46,7 +46,7 @@ test("global navigation separates account actions, tools, and reference links", 
   assert.doesNotMatch(header, />Team Lab</);
   assert.match(header, /accountName/);
   assert.match(header, /href="\/worlds\/2026"/);
-  assert.match(quickLinks, /href="\/tools\/team-builder"[^>]*>[\s\S]*?quick-label-wide">Team Lab<\/span>/);
+  assert.match(quickLinks, /href="\/team-lab"[^>]*>[\s\S]*?quick-label-wide">Team Lab<\/span>/);
   assert.doesNotMatch(quickLinks, /href="\/worlds\/2026"/);
   assert.doesNotMatch(quickLinks, /Sign out/);
   assert.match(quickLinks, /signedIn && <a href="\/trainer-dex"/);

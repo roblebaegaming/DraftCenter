@@ -517,7 +517,8 @@ test("Team Lab workbook data separates complete sets, matchups, reveals, turns, 
 });
 
 test("Team Lab is indexable while account notes and matchups stay private", () => {
-  const route = fs.readFileSync(new URL("../src/app/tools/team-builder/page.js", import.meta.url), "utf8");
+  const route = fs.readFileSync(new URL("../src/app/team-lab/page.js", import.meta.url), "utf8");
+  const legacyRoute = fs.readFileSync(new URL("../src/app/tools/team-builder/page.js", import.meta.url), "utf8");
   const component = fs.readFileSync(new URL("../src/components/DraftLab.jsx", import.meta.url), "utf8");
   const personalTeams = fs.readFileSync(new URL("../src/components/PersonalTeams.jsx", import.meta.url), "utf8");
   const auth = fs.readFileSync(new URL("../src/components/AuthGate.jsx", import.meta.url), "utf8");
@@ -542,26 +543,28 @@ test("Team Lab is indexable while account notes and matchups stay private", () =
   const catalogBuilder = fs.readFileSync(new URL("../scripts/build-draft-lab-catalog.mjs", import.meta.url), "utf8");
   const llms = fs.readFileSync(new URL("../src/app/llms.txt/route.js", import.meta.url), "utf8");
   const sitemap = fs.readFileSync(new URL("../src/app/sitemap.js", import.meta.url), "utf8");
-  assert.match(route, /alternates:\s*\{ canonical: "\/tools\/team-builder" \}/);
+  assert.match(route, /alternates:\s*\{ canonical: "\/team-lab" \}/);
   assert.match(route, /"@type": "WebApplication"/);
   assert.match(route, /"@type": "FAQPage"/);
-  assert.match(route, /name: "DraftCenter Team Lab"/);
+  assert.match(route, /name: "Team Lab by DraftCenter"/);
+  assert.match(route, /closed- or open-team-sheet Battle Room/);
+  assert.match(legacyRoute, /from "\.\.\/\.\.\/team-lab\/page"/);
   assert.match(component, /teamDefenseSummary\(roster\)/);
   assert.match(component, /teamArchetypeConsiderations\(roster\)/);
   assert.match(component, /teamLegalitySummary\(roster, regulation\)/);
   assert.match(component, /buildDraftLabQuery/);
-  assert.match(component, /draft-lab-catalog\.json/);
+  assert.match(component, /from "\.\.\/platform\/pokemonCatalog"/);
   assert.doesNotMatch(component, /from "\.\/PokemonDraftLeague"/);
-  assert.match(component, /href="\/my-teams"/);
+  assert.match(component, /PRODUCT_ROUTES\.teamLabTeams/);
   assert.match(component, /Draft roster · 10/);
   assert.doesNotMatch(component, /Draft roster · 24/);
-  assert.match(component, /createClient/);
+  assert.match(component, /createPlatformBrowserClient/);
   assert.match(component, /\.rpc\("list_my_team_lab_matchups"/);
   assert.match(component, /\.rpc\("save_my_team_lab_matchup_details"/);
   assert.match(component, /\.rpc\("delete_my_team_lab_matchup"/);
   assert.match(component, /\.rpc\("save_my_team_lab_battle_report"/);
   assert.match(component, /Open Battle Mode/);
-  assert.match(component, /href="#team-lab-battle-setup">Set up Battle Mode/);
+  assert.match(component, /href="#team-lab-battle-setup">Open Battle Room/);
   assert.match(component, /HOW TO OPEN BATTLE MODE/);
   assert.match(component, /From this roster to a live turn-by-turn recorder/);
   assert.match(component, /Save & open Battle Mode/);
@@ -655,10 +658,10 @@ test("Team Lab is indexable while account notes and matchups stay private", () =
   assert.match(league, /Plan in Team Lab/);
   const primaryHeaderStart = navigation.indexOf('<nav className="site-primary-links"');
   const primaryHeader = navigation.slice(primaryHeaderStart, navigation.indexOf("</nav>", primaryHeaderStart));
-  assert.doesNotMatch(primaryHeader, /href="\/tools\/team-builder"/);
-  assert.match(navigation, /href="\/tools\/team-builder"[^>]*aria-label="Team Lab"/);
-  assert.match(home, /className="hub-home-tools"[\s\S]*?href="\/tools\/team-builder"/);
-  assert.match(resources, /href="\/tools\/team-builder"/);
+  assert.doesNotMatch(primaryHeader, /href="\/team-lab"/);
+  assert.match(navigation, /href="\/team-lab"[^>]*aria-label="Team Lab"/);
+  assert.match(home, /className="hub-home-tools"[\s\S]*?href="\/team-lab"/);
+  assert.match(resources, /href="\/team-lab"/);
   assert.match(styles, /@media\(max-width:780px\)[^}]*[\s\S]*?\.draft-lab-archetype-grid[^}]*grid-template-columns:\s*1fr/);
   assert.match(styles, /@media\(max-width:520px\)[^}]*[\s\S]*?\.draft-lab-mode[^}]*grid-template-columns:\s*1fr/);
   assert.match(styles, /\.draft-lab-roster li\s*\{\s*display:\s*grid;\s*grid-template-columns:\s*29px minmax\(130px,1fr\) auto auto/);
@@ -668,6 +671,6 @@ test("Team Lab is indexable while account notes and matchups stay private", () =
   assert.match(styles, /\.team-lab-turn-stepper button[^}]*min-height:\s*44px/);
   assert.match(styles, /@media\(max-width:780px\)[^}]*[\s\S]*?\.team-lab-battle-columns[^}]*grid-template-columns:\s*1fr/);
   assert.match(catalogBuilder, /readFileSync\(OUTPUT_PATH, "utf8"\)\.replace\(\/\\r\\n\/g, "\\n"\)/);
-  assert.match(llms, /Team Lab Pokémon team builder and matchup planner/);
-  assert.match(sitemap, /\["\/tools\/team-builder", "weekly", 0\.9\]/);
+  assert.match(llms, /Team Lab Pokémon team builder and private Battle Room/);
+  assert.match(sitemap, /\["\/team-lab", "weekly", 0\.9\]/);
 });

@@ -6,6 +6,7 @@ import { createClient } from "../lib/supabase/client";
 import { VGC_CALENDAR_EVENTS, VGC_CALENDAR_REGIONS, VGC_CALENDAR_UPDATED_AT } from "../data/vgcCalendarEvents";
 import { calendarToIcs, dateKey, deriveLeagueEvents } from "../lib/pokemonCalendar";
 import { createTeamLabHandoff, createTeamLabLeagueMatchupHandoff, TEAM_LAB_HANDOFF_KEY, TEAM_LAB_LEAGUE_MATCHUP_HANDOFF_KEY } from "../lib/teamLab";
+import { PRODUCT_ROUTES } from "../platform/products";
 
 const EMPTY_EVENT = {
   title: "",
@@ -229,19 +230,19 @@ export default function PokemonCalendar() {
     const team = personalTeams.find((item) => item.id === event.personal_team_id);
     if (!team) return setMessage("That linked My Teams workspace is no longer available.");
     window.sessionStorage.setItem(TEAM_LAB_HANDOFF_KEY, createTeamLabHandoff(team, "personal"));
-    window.location.assign("/tools/team-builder");
+    window.location.assign(PRODUCT_ROUTES.teamLab);
   }
 
   function openLeagueMatchup(event) {
     window.sessionStorage.setItem(TEAM_LAB_LEAGUE_MATCHUP_HANDOFF_KEY, createTeamLabLeagueMatchupHandoff(event));
-    window.location.assign("/tools/team-builder");
+    window.location.assign(PRODUCT_ROUTES.teamLab);
   }
 
   if (user === undefined) return <main className="pokemon-calendar-shell"><p>Loading your Pokémon calendar...</p></main>;
   if (!user) return <main className="pokemon-calendar-shell"><section className="hub-card"><h1>Your Pokémon calendar is private.</h1><p className="muted">Sign in to see league dates and save tournaments.</p><a className="primary-button inline-link-button" href="/">Sign in</a></section></main>;
 
   return <main className="pokemon-calendar-shell">
-    <nav className="public-page-nav"><a className="quiet-button" href="/">Dashboard</a><a className="quiet-button" href="/my-teams">My Teams</a><a className="quiet-button" href="/explore">Community</a></nav>
+    <nav className="public-page-nav"><a className="quiet-button" href="/">Dashboard</a><a className="quiet-button" href={PRODUCT_ROUTES.teamLabTeams}>My Teams</a><a className="quiet-button" href="/explore">Community</a></nav>
     <header className="pokemon-calendar-hero">
       <div><span className="eyebrow">YOUR POKÉMON SCHEDULE</span><h1>Calendar</h1><p>Your league dates and major VGC events appear automatically. Add private tournaments, registration deadlines, practice sessions, and reminders alongside them.</p></div>
       <div className="pokemon-calendar-actions"><button className="primary-button" onClick={startNew}>Add event</button><button className="secondary-button" disabled={!events.length} onClick={() => downloadCalendar(events)}>Download calendar</button></div>

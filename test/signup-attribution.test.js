@@ -20,6 +20,7 @@ class MemoryStorage {
 
 test("feature attribution uses coarse public-product buckets", () => {
   assert.equal(featureForPathname("/pokedex-tracker"), "collector");
+  assert.equal(featureForPathname("/team-lab?utm_source=discord"), "team-lab");
   assert.equal(featureForPathname("/tools/team-builder?utm_source=discord"), "team-lab");
   assert.equal(featureForPathname("/tools/mega-bracket/results"), "mega-bracket");
   assert.equal(featureForPathname("/resources/daily-games"), "daily-games");
@@ -48,7 +49,7 @@ test("capture keeps first touch, updates the last non-home feature, and expires 
   assert.equal(first.lastFeature, "collector");
   assert.equal(first.source, "discord:collector-founding-beta");
 
-  captureSignupAttribution({ pathname: "/tools/team-builder", storage, now: start + 1000 });
+  captureSignupAttribution({ pathname: "/team-lab", storage, now: start + 1000 });
   captureSignupAttribution({ pathname: "/", storage, now: start + 2000 });
   assert.deepEqual(signupAttributionProperties({ storage, now: start + 3000 }), {
     journey: "collector>team-lab",

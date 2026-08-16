@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { createClient } from "../lib/supabase/client";
+import { createPlatformBrowserClient } from "../platform/supabase";
 import PokedexCollectorLaunchPanel from "./PokedexCollectorLaunchPanel";
+import PokedexRescueDashboard from "./PokedexRescueDashboard";
 import {
   bankRescueExport,
   BANK_RESCUE_ACTIONS,
@@ -348,8 +349,9 @@ function CreateTracker({ catalogs, busy, onCreate, onCancel }) {
 }
 
 export default function PokedexTrackerPage() {
-  const [supabase] = useState(() => createClient());
+  const [supabase] = useState(() => createPlatformBrowserClient());
   const trackerRequestRef = useRef(0);
+  const inventoryRequestRef = useRef(0);
   const accountVersionRef = useRef(0);
   const [authState, setAuthState] = useState("loading");
   const [hub, setHub] = useState(null);
@@ -379,6 +381,7 @@ export default function PokedexTrackerPage() {
 
   async function openTracker(id, accountVersion = accountVersionRef.current) {
     const requestId = ++trackerRequestRef.current;
+    inventoryRequestRef.current += 1;
     if (!id) {
       setActive(null);
       setActiveId("");
@@ -442,6 +445,7 @@ export default function PokedexTrackerPage() {
       currentUserId = nextUserId;
       const accountVersion = ++accountVersionRef.current;
       trackerRequestRef.current += 1;
+      inventoryRequestRef.current += 1;
       setHub(null);
       setActive(null);
       setActiveId("");
@@ -474,6 +478,7 @@ export default function PokedexTrackerPage() {
       mounted = false;
       accountVersionRef.current += 1;
       trackerRequestRef.current += 1;
+      inventoryRequestRef.current += 1;
       listener.subscription.unsubscribe();
     };
   // The browser client is stable for the life of this page.
@@ -481,6 +486,13 @@ export default function PokedexTrackerPage() {
   }, []);
 
   useEffect(() => { setShown(POKEDEX_TRACKER_PAGE_SIZE); }, [query, status, mode, homeBox, activeId]);
+
+  useEffect(() => {
+    if (!active?.tracker?.id) return;
+    void loadInventory(active.tracker.id);
+  // Inventory is loaded once for each newly opened tracker so Rescue can summarize it.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active?.tracker?.id]);
 
   useEffect(() => {
     if (!detailsTarget && !specimenTarget) return undefined;
@@ -607,11 +619,12 @@ export default function PokedexTrackerPage() {
 
   async function loadInventory(trackerId = active?.tracker?.id) {
     if (!trackerId) return null;
+    const requestId = ++inventoryRequestRef.current;
     const accountVersion = accountVersionRef.current;
     setInventoryLoading(true);
     setInventoryError("");
     const { data, error } = await supabase.rpc("get_my_pokedex_collection_inventory", { p_tracker_id: trackerId });
-    if (accountVersion !== accountVersionRef.current || trackerId !== active?.tracker?.id) return null;
+    if (accountVersion !== accountVersionRef.current || requestId !== inventoryRequestRef.current) return null;
     setInventoryLoading(false);
     if (error || !data) {
       setInventoryError(error?.message || "Your collection inventory could not be opened.");
@@ -635,6 +648,16 @@ export default function PokedexTrackerPage() {
     setInventoryOpen(true);
     const loaded = inventory?.tracker_id === active.tracker.id ? inventory : await loadInventory(active.tracker.id);
     if (entry && loaded) setSpecimenTarget({ pokemon_id: entry.pokemon_id, is_shiny: mode === "shiny" });
+  }
+
+  async function openHomeBoxes() {
+    const homeTracker = hub?.trackers?.find(({ catalog_key: catalogKey }) => catalogKey === "home");
+    if (!homeTracker) return;
+    if (active?.tracker?.id !== homeTracker.id) await openTracker(homeTracker.id);
+    setMode("standard");
+    setStatus("all");
+    setHomeBox("all");
+    window.setTimeout(() => document.getElementById("dex-tracker-workspace")?.scrollIntoView({ behavior: "smooth", block: "start" }), 0);
   }
 
   async function saveInventoryLocation(locationId, payload) {
@@ -783,6 +806,16 @@ export default function PokedexTrackerPage() {
 
     {message && <p className="dex-tracker-message" role="status" aria-live="polite">{message}</p>}
 
+    <PokedexRescueDashboard
+      active={active}
+      hub={hub}
+      inventory={inventory}
+      loading={inventoryLoading}
+      error={inventoryError}
+      onOpenInventory={() => openInventory()}
+      onOpenHomeBoxes={openHomeBoxes}
+    />
+
     <PokedexCollectorLaunchPanel
       supabase={supabase}
       hub={hub}
@@ -792,7 +825,7 @@ export default function PokedexTrackerPage() {
       onReload={(preferredId) => loadHub(preferredId, accountVersionRef.current)}
     />
 
-    <section className="dex-tracker-workspace">
+    <section className="dex-tracker-workspace" id="dex-tracker-workspace">
       <aside className="dex-tracker-sidebar">
         <div className="dex-tracker-sidebar-heading"><div><span className="dex-kicker">MY TRACKERS</span><strong>{hub?.trackers?.length || 0} collections</strong></div><button type="button" onClick={() => setShowCreate(true)} aria-label="Create a new Pokédex tracker">+</button></div>
         <div className="dex-tracker-list">

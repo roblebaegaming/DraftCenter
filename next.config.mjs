@@ -7,6 +7,12 @@ export default {
   turbopack: {
     root: projectRoot,
   },
+  async redirects() {
+    return [
+      { source: "/tools/team-builder", destination: "/team-lab", permanent: true },
+      { source: "/my-teams", destination: "/team-lab/teams", permanent: true },
+    ];
+  },
   async headers() {
     return [{
       source: "/it/:path*",

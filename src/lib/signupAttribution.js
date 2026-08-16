@@ -11,6 +11,7 @@ const EVENT_NAMES = Object.freeze({
 
 const FEATURE_PATHS = Object.freeze([
   ["/pokedex-tracker", "collector"],
+  ["/team-lab", "team-lab"],
   ["/tools/team-builder", "team-lab"],
   ["/tools/mega-bracket", "mega-bracket"],
   ["/resources/daily-games", "daily-games"],

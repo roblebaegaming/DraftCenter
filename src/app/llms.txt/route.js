@@ -10,7 +10,7 @@ DraftCenter helps communities configure leagues, run snake and auction drafts, m
 - [Pokémon draft league guides](https://www.draftcentral.gg/guides)
 - [Pokémon shiny hunting guides by game](https://www.draftcentral.gg/guides/shiny-hunting)
 - [Supported draft formats](https://www.draftcentral.gg/formats)
-- [Team Lab Pokémon team builder and matchup planner](https://www.draftcentral.gg/tools/team-builder)
+- [Team Lab Pokémon team builder and private Battle Room](https://www.draftcentral.gg/team-lab)
 - [Replayable Pokémon Mega Brackets](https://www.draftcentral.gg/tools/mega-bracket)
 - [Pokédex Tracker for every supported game and Pokémon HOME](https://www.draftcentral.gg/pokedex-tracker)
 - [Public Pokémon catalog](https://www.draftcentral.gg/pokemon)

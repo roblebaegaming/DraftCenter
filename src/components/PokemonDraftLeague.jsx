@@ -13,6 +13,7 @@ import { readLeagueNavigation, writeLeagueNavigation } from "../lib/leagueNaviga
 import { claimedTeamCount, compactLocalTeamsClaimedFirst, openSetupTeams, teamIsClaimed } from "../lib/teamOwnership";
 import { draftManagerLabel, snakeDraftContext } from "../lib/draftBoardContext";
 import { createTeamLabLeagueMatchupHandoff, TEAM_LAB_LEAGUE_MATCHUP_HANDOFF_KEY } from "../lib/teamLab";
+import { PRODUCT_ROUTES } from "../platform/products";
 import { saveWithConflictRecovery, waitForSaveFailureGrace } from "../lib/leagueSaveReconciliation";
 import {
   DEFAULT_LEAGUE_TEAM_CAP,
@@ -10495,7 +10496,7 @@ function MyTeamView({ state, leagueId, myTeamIdx, isCommissioner, myName, myTeam
                   my_team_index: myTeamIdx,
                   opponent_team_index: oppIdx,
                 }));
-                window.location.assign("/tools/team-builder");
+                window.location.assign(PRODUCT_ROUTES.teamLab);
               }} className="px-3 py-2 rounded text-sm font-medium"
                 style={{ background: "#4FD1C522", border: "1px solid #4FD1C566", color: "#4FD1C5" }}>
                 Plan in Team Lab

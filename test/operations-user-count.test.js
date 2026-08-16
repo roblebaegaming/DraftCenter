@@ -51,6 +51,7 @@ test("Operations displays team control on lifecycle and league views", () => {
 
 test("the verified owner gets a visible Operations navigation tab", () => {
   const navigation = fs.readFileSync(new URL("../src/components/SiteQuickLinks.jsx", import.meta.url), "utf8");
+  const account = fs.readFileSync(new URL("../src/platform/usePlatformAccount.js", import.meta.url), "utf8");
   const accessRoute = fs.readFileSync(new URL("../src/app/api/operations/access/route.js", import.meta.url), "utf8");
   const ownerAccess = fs.readFileSync(new URL("../src/lib/ownerOperations.js", import.meta.url), "utf8");
   const ownerGate = ownerAccess.slice(ownerAccess.indexOf("export async function requireOwner"), ownerAccess.indexOf("function warning"));
@@ -59,7 +60,8 @@ test("the verified owner gets a visible Operations navigation tab", () => {
   assert.match(quickLinks, /isOwner && <a href="\/operations" aria-label="Operations"/);
   assert.match(quickLinks, /quick-label-wide">Operations<\/span><span className="quick-label-compact">Ops<\/span>/);
   assert.equal((navigation.match(/href="\/operations"/g) || []).length, 1);
-  assert.match(navigation, /setUsername\(profileResult\.data\?\.username \|\| ""\)/);
+  assert.match(navigation, /usePlatformAccount\(\)/);
+  assert.match(account, /setUsername\(profileResult\.data\?\.username \|\| ""\)/);
   assert.match(accessRoute, /requireOwner\(request\)/);
   assert.match(ownerGate, /ownerEmails\(\)\.includes\(email\)/);
   assert.doesNotMatch(ownerGate, /username/);
