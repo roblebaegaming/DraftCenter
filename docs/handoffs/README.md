@@ -4,6 +4,7 @@
 is the current continuation handoff. It records the completed official bracket,
 the verified seventh result and final leaderboard, the stopped five-minute
 monitor, the public entrant-bracket gallery through pull request #272,
+downloadable posting-ready bracket PNGs through pull request #274,
 finalization safeguards, and the ordered tournament archive roadmap. It must
 be read before any future Victory Road correction or archive work.
 
