@@ -1,13 +1,16 @@
 # Agent handoffs
 
+[`DraftCenter-agent-handoff-2026-08-16-post-launch-final.md`](DraftCenter-agent-handoff-2026-08-16-post-launch-final.md)
+is the current continuation handoff. The application, migration 407, both
+Instagram sequences, retained Preview Turnstile verification, completion
+documentation, Production deployment, and post-deployment smoke sweep are
+complete. It records the scheduled 3/7/30-day aggregate measurement and the
+only remaining owner decision: the exact Founding Collector tester audience.
+
 [`DraftCenter-agent-handoff-2026-08-15-final-launch-next-steps.md`](DraftCenter-agent-handoff-2026-08-15-final-launch-next-steps.md)
-is the current continuation handoff. The application, migration 407, promotion
-assets, documentation, and Production verification are complete. It gives the
-next agent the exact two remaining credential-gated actions: publish Team Lab
-then Pokédex Tracker from an authenticated Instagram brand session, and restore
-hCaptcha only in retained Supabase Preview after the owner enters the secret
-directly. It also defines publication verification, 3/7/30-day aggregate
-measurement, stop conditions, and privacy boundaries.
+is the preceding full launch-evidence record. It contains all 20 public post
+URLs and publication times, the corrected Cloudflare Turnstile evidence, the
+aggregate measurement plan, and the preserved privacy boundaries.
 
 [`DraftCenter-agent-handoff-2026-08-15-shiny-hunting-guides.md`](DraftCenter-agent-handoff-2026-08-15-shiny-hunting-guides.md)
 records the reviewed 37-game shiny hunting library released through pull
@@ -21,9 +24,10 @@ is the preceding detailed handoff. It records the live privacy-safe signup
 attribution release; the deployed Pokédex Tracker and Team Lab Instagram asset
 sets; the replayable type, generation, Mega Evolution, Quick 64, and worst-pick
 Mega Bracket release through migration 407; campaign links and measurement
-plan; the unauthenticated Instagram publishing gate; the remaining owner-only
-Preview hCaptcha step; and the evidence-led product follow-up. It is superseded
-for continuation order by the final-launch handoff above.
+plan; the then-unauthenticated Instagram publishing gate; the then-pending
+Preview CAPTCHA step; and the evidence-led product follow-up. Its provider and
+pending-state language are corrected and superseded by the current post-launch
+handoff above.
 
 [`DraftCenter-agent-handoff-2026-08-15-team-lab-battle-flow-production.md`](DraftCenter-agent-handoff-2026-08-15-team-lab-battle-flow-production.md)
 is the detailed Team Lab production handoff. It records the completed Team
