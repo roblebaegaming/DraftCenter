@@ -13,11 +13,11 @@ Francisco**. Its public page is:
 
 `/worlds/2026/vgc/victory-road-to-san-francisco`
 
-The public page intentionally begins in `waiting_for_official_bracket`. The
-user-provided Battlefy link is a Phase 1 Swiss round, not the Phase 2
-elimination bracket. Do not derive or guess Top Cut players, seeds, byes, or
-matchups from Swiss standings. The reviewed event description is maintained at
-[Victory Road](https://victoryroad.pro/vrtsf26/).
+The reviewed Phase 2 Top 16 field is published at revision 1. Entries opened on
+August 16, 2026 at 1:31 PM Pacific and lock at 1:45 PM Pacific / 20:45 UTC. The
+official result source is the [Victory Road Phase 2 Top Cut bracket](https://battlefy.com/victoryroad/victory-road-to-san-francisco-phase-2-top-cut/6a60ab274f0d45001a7281b6/stage/6a820c17b2796d0019f6d118/bracket/).
+Do not derive or guess results from Phase 1 Swiss standings, aliases, stream
+graphics, partial scores, or unconfirmed advancement.
 
 ## Bracket behavior
 
@@ -35,6 +35,8 @@ matchups from Swiss standings. The reviewed event description is maintained at
   and change them before publication.
 - Entries are private before lock. After lock, saved brackets and the scored
   leaderboard are public.
+- The public page reloads current event, result, entry, and leaderboard data
+  every 60 seconds. A manual reload may be used for immediate verification.
 
 ## Owner event-day workflow
 
@@ -51,6 +53,13 @@ The owner controls are in Operations under **Victory Road to San Francisco**.
    bracket. Feeder matches must be recorded before later rounds.
 7. After every played match is recorded, compare the full bracket again and
    type `FINALIZE OFFICIAL BRACKET`.
+
+The active `victory-road-top-cut-live-scoring` thread heartbeat performs this
+review every five minutes until the official champion is shown. It may record
+only newly confirmed completed winners in feeder order. A conflicting existing
+result requires owner review; it must not be overwritten automatically. After
+all 15 winners are reconciled, it finalizes the challenge, verifies the final
+leaderboard, reports completion, and stops itself.
 
 Once any member saves an entry, the published field cannot be replaced. A
 result correction is allowed only before a dependent downstream result has

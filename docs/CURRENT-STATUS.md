@@ -25,7 +25,10 @@ and CodeQL checks, exact deployment, signed-in publication review, and all 22
 Production smoke checks passed. Publishing created the intended official event
 revision and audit record only; it did not create a member entry or result or
 change any league, team, account, provider setting, environment variable, or
-secret.
+secret. The active thread heartbeat `victory-road-top-cut-live-scoring` checks
+the official Battlefy Top Cut every five minutes, records only confirmed
+completed winners in feeder order, verifies automatic leaderboard scoring, and
+stops after all 15 results and the champion are reconciled and finalized.
 
 Pull request [#252](https://github.com/roblebaegaming/DraftCenter/pull/252)
 reframed Pokédex Tracker around game-accurate numbered dexes. Regional and DLC
@@ -1121,7 +1124,10 @@ Phase 2 Top 16 bracket and locks at 1:45 PM Pacific / 20:45 UTC on August 16.
 Do not replace the field after a member saves an entry. Record winners in
 feeder order from the same official Battlefy bracket, confirm the public
 leaderboard after each round, and finalize only after all 15 results have been
-visually reconciled with the completed official bracket.
+visually reconciled with the completed official bracket. The active
+`victory-road-top-cut-live-scoring` heartbeat owns this five-minute monitoring
+loop until a champion is official; unchanged state is expected and is not a
+reason to stop it.
 
 Keep VGC and TCG Meta Picks open through their published locks and preserve
 private pre-lock selections plus the separate player Pick 10 competitions.
