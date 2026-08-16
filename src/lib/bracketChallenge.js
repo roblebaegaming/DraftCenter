@@ -128,6 +128,60 @@ export function scoreBracketChallengeEntry({ choices = {}, results = [], roundPo
   }, 0);
 }
 
+function normalizedBracketChallengeName(value) {
+  return String(value || "").normalize("NFKC").trim().toLocaleLowerCase("en-US");
+}
+
+export function buildBracketChallengeArchiveResults({
+  archiveCapacity,
+  archiveSlots = [],
+  activeCapacity,
+  activeSlots = [],
+  activeResults = [],
+}) {
+  if (Number(archiveCapacity) !== Number(activeCapacity) * 2) return [];
+
+  const archiveByName = new Map((archiveSlots || []).map((slot) => [
+    normalizedBracketChallengeName(slot.display_name ?? slot.displayName),
+    {
+      id: slot.competitor_id || slot.competitorId || `slot-${Number(slot.slot_number ?? slot.slot)}`,
+      slot: Number(slot.slot_number ?? slot.slot),
+    },
+  ]));
+  const activeById = new Map((activeSlots || []).map((slot) => [
+    slot.competitor_id || slot.competitorId || `slot-${Number(slot.slot_number ?? slot.slot)}`,
+    slot,
+  ]));
+  const reconstructed = [];
+
+  for (const slot of activeSlots || []) {
+    const archived = archiveByName.get(normalizedBracketChallengeName(slot.display_name ?? slot.displayName));
+    const match = Number(slot.slot_number ?? slot.slot);
+    if (archived?.id && Number.isInteger(match) && match > 0) {
+      reconstructed.push({ round_number: 1, match_number: match, winner_id: archived.id, result_status: "final" });
+    }
+  }
+
+  for (const result of activeResults || []) {
+    const activeWinner = activeById.get(result.winner_id);
+    const archived = archiveByName.get(normalizedBracketChallengeName(activeWinner?.display_name ?? activeWinner?.displayName));
+    const round = Number(result.round_number) + 1;
+    const match = Number(result.match_number);
+    if (archived?.id && Number.isInteger(round) && Number.isInteger(match) && round > 1 && match > 0) {
+      reconstructed.push({
+        round_number: round,
+        match_number: match,
+        winner_id: archived.id,
+        result_status: result.result_status || "final",
+        source_url: result.source_url,
+        updated_at: result.updated_at,
+      });
+    }
+  }
+
+  return reconstructed.sort((a, b) => a.round_number - b.round_number || a.match_number - b.match_number);
+}
+
 export function bracketChallengeMaximumScore({ capacity, slots, roundPoints = {} }) {
   const fieldSize = (slots || []).length;
   const rounds = bracketChallengeRoundCount(capacity);
