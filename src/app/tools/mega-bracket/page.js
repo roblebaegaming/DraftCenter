@@ -1,20 +1,20 @@
 import MegaBracket from "../../../components/MegaBracket";
 
 export const metadata = {
-  title: "Mega Bracket — Choose Your Champion From Every Pokémon",
-  description: "Compare 1,162 Pokémon and forms, play a visual Top 64 bracket, and finish with an illustrated champion card and personal bracket recap.",
+  title: "Mega Bracket — Pokémon Brackets by Type, Generation, and More",
+  description: "Build a Full Dex, type, generation, or Mega Evolution Pokémon bracket, pick favorites or vote for the worst, and choose a full field or Quick 64 draw.",
   alternates: { canonical: "/tools/mega-bracket" },
-  keywords: ["Pokémon bracket", "favorite Pokémon bracket", "all Pokémon bracket", "Mega Bracket"],
+  keywords: ["Pokémon bracket", "favorite Pokémon bracket", "Pokémon type bracket", "Pokémon generation bracket", "worst Pokémon bracket", "Mega Bracket"],
   openGraph: {
     type: "website",
-    title: "Mega Bracket — The Full Dex Challenge",
-    description: "1,162 Pokémon and forms, a live Top 64 bracket, and one personal champion.",
+    title: "Mega Bracket — Your Pokémon Bracket, Your Rules",
+    description: "Pick a field, choose favorites or the worst, and crown one personal winner.",
     url: "/tools/mega-bracket",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Mega Bracket — The Full Dex Challenge",
-    description: "1,162 Pokémon and forms, a live Top 64 bracket, and one personal champion.",
+    title: "Mega Bracket — Your Pokémon Bracket, Your Rules",
+    description: "Full Dex, type, generation, and Mega Evolution brackets with favorite and worst-pick modes.",
   },
 };
 
@@ -31,8 +31,8 @@ export default function MegaBracketPage() {
         browserRequirements: "Requires JavaScript and a free DraftCenter account",
         isAccessibleForFree: true,
         url: "https://www.draftcentral.gg/tools/mega-bracket",
-        description: "A resumable Full Dex Pokémon preference bracket with 1,162 supported Pokémon and forms, an interactive Top 64, and an illustrated results recap.",
-        featureList: ["1,161 head-to-head choices", "Private cross-device progress", "Interactive four-region Top 64 bracket", "Round milestone celebrations", "Illustrated Final Four and champion downloads", "Personal bracket recap"],
+        description: "A replayable Pokémon bracket builder with Full Dex, type, generation, and Mega Evolution fields, favorite and worst-pick objectives, and optional Quick 64 draws.",
+        featureList: ["Full Dex, type, generation, and Mega Evolution fields", "Favorite and worst-pick objectives", "Full field and Quick 64 formats", "Private cross-device progress", "Interactive four-region Top 64 bracket", "Illustrated Final Four and result downloads", "Personal bracket recap"],
       },
       {
         "@type": "BreadcrumbList",
