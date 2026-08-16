@@ -31,6 +31,11 @@ test("feature attribution uses coarse public-product buckets", () => {
 test("campaign sources are normalized without storing raw referrer URLs", () => {
   assert.equal(signupSource({ search: "?utm_source=twitter&utm_campaign=Team Lab Launch" }), "x:team-lab-launch");
   assert.equal(signupSource({ referrer: "https://www.reddit.com/r/pokemon/comments/example", hostname: "www.draftcentral.gg" }), "reddit");
+  assert.equal(signupSource({ referrer: "https://community.reddit.com/r/pokemon", hostname: "www.draftcentral.gg" }), "reddit");
+  assert.equal(signupSource({ referrer: "https://notreddit.com/deceptive", hostname: "www.draftcentral.gg" }), "referral");
+  assert.equal(signupSource({ referrer: "https://evilx.com/deceptive", hostname: "www.draftcentral.gg" }), "referral");
+  assert.equal(signupSource({ referrer: "https://fakefacebook.com/deceptive", hostname: "www.draftcentral.gg" }), "referral");
+  assert.equal(signupSource({ referrer: "https://maliciousyoutube.com/deceptive", hostname: "www.draftcentral.gg" }), "referral");
   assert.equal(signupSource({ referrer: "https://partner.example/path/person-name", hostname: "www.draftcentral.gg" }), "referral");
   assert.equal(signupSource({ referrer: "https://www.draftcentral.gg/guides", hostname: "www.draftcentral.gg" }), "direct");
 });

@@ -47,19 +47,23 @@ function safeSlug(value, maximum = 32) {
     .slice(0, maximum);
 }
 
+function isHostOrSubdomain(host, domain) {
+  return host === domain || host.endsWith(`.${domain}`);
+}
+
 function sourceFromReferrer(referrer, hostname) {
   if (!referrer) return "direct";
   try {
     const host = new URL(referrer).hostname.toLowerCase().replace(/^www\./, "");
     const currentHost = String(hostname || "").toLowerCase().replace(/^www\./, "");
     if (!host || host === currentHost) return "direct";
-    if (host === "t.co" || host.endsWith("twitter.com") || host.endsWith("x.com")) return "x";
-    if (host.endsWith("discord.com") || host.endsWith("discord.gg")) return "discord";
-    if (host.endsWith("reddit.com")) return "reddit";
-    if (host.endsWith("instagram.com")) return "instagram";
-    if (host.endsWith("youtube.com") || host === "youtu.be") return "youtube";
-    if (host.endsWith("facebook.com") || host === "fb.com") return "facebook";
-    if (host.endsWith("bsky.app")) return "bluesky";
+    if (host === "t.co" || isHostOrSubdomain(host, "twitter.com") || isHostOrSubdomain(host, "x.com")) return "x";
+    if (isHostOrSubdomain(host, "discord.com") || isHostOrSubdomain(host, "discord.gg")) return "discord";
+    if (isHostOrSubdomain(host, "reddit.com")) return "reddit";
+    if (isHostOrSubdomain(host, "instagram.com")) return "instagram";
+    if (isHostOrSubdomain(host, "youtube.com") || host === "youtu.be") return "youtube";
+    if (isHostOrSubdomain(host, "facebook.com") || host === "fb.com") return "facebook";
+    if (isHostOrSubdomain(host, "bsky.app")) return "bluesky";
     if (["google.", "bing.com", "duckduckgo.com", "search.yahoo.com"].some((part) => host.includes(part))) return "search";
     return "referral";
   } catch {
