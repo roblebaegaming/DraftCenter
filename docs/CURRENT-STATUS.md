@@ -1,12 +1,25 @@
 # DraftCenter current status
 
-- Last updated: August 15, 2026
+- Last updated: August 16, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified production feature commit: `619b252dba7a911cc6515918a4ff839ed051c206`
+- Verified production feature commit: `a8d099b3d1bb2ecf20db5e6b310a07decae6a9bf`
 - Latest production migration: 407
 
 ## Deployed state
+
+Pull request [#243](https://github.com/roblebaegaming/DraftCenter/pull/243)
+deployed the reviewed shiny hunting library for the exact 37 verified game
+catalogs. The public collection and static game pages cover Red, Blue, and
+Yellow through Scarlet and Violet, connect to the encounter guides and private
+shiny tracker, and correctly state that Generation I has no native shiny
+mechanic. Pokémon Legends: Z-A remains excluded because it is not in the
+verified game catalog. The focused mechanics and SEO tests, dependency audit,
+complete application suite, 1,027-row National Dex check, 296-page build,
+protected checks, hosted responsive review, exact Production deployment at
+`a8d099b`, all 20 signed-out smoke checks, and live collection/Red/Scarlet route
+checks passed. No migration, Production data, provider setting, environment
+variable, or secret changed.
 
 Pull requests [#239](https://github.com/roblebaegaming/DraftCenter/pull/239)
 and [#238](https://github.com/roblebaegaming/DraftCenter/pull/238) deployed the
