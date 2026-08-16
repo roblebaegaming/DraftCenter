@@ -3,10 +3,30 @@
 - Last updated: August 15, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified production feature commit: `ab587f7d49178e8d81e868265adeb565819fa16f`
+- Verified production feature commit: `b692c1cd5894d237d040e7d0549a629cbd21e3fe`
 - Latest production migration: 406
 
 ## Deployed state
+
+Pull request [#231](https://github.com/roblebaegaming/DraftCenter/pull/231)
+added privacy-safe signup attribution. DraftCenter now remembers one coarse
+30-day first-feature, last-meaningful-feature, and normalized campaign record,
+then emits `Signup Started` and confirmed-real-identity `Account Created`
+events with exactly two Vercel properties. It never sends email, account ID,
+username, IP address, Pokémon, notes, raw paths, full referrer URLs, or browsing
+history. Owner Operations combines authoritative aggregate Authentication
+creation counts with attributed starts, creations, sources, and feature
+journeys, and explicitly exposes the historical and browser-blocker coverage
+gap. No database migration or Production data change was required. CodeQL
+caught and the release fixed deceptive look-alike referrer hostnames before
+merge. The focused and full suites, dependency audit, 1,027-row National Dex
+verification, 258-page build, protected checks, and hosted desktop/390px/320px
+review passed. Vercel reports exact `main` commit `b692c1c` Ready, Current, and
+Production on `www.draftcentral.gg`; all 20 signed-out smoke checks passed. A
+single signed-out Team Lab QA visit produced the expected `Signup Started`
+event without submitting or creating an account. The owner-only Operations API
+remained protected signed-out; a signed-in live panel review still requires an
+owner browser session.
 
 Pull request [#230](https://github.com/roblebaegaming/DraftCenter/pull/230)
 and migrations 404-406 completed the Team Lab live-battle workflow. Team Lab
