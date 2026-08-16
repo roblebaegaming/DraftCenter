@@ -23,7 +23,7 @@ images, and never receive hosted event URLs.
 - Worktree: `DraftCenter-tournament-publisher-20260816`
 - Original base: deployed Victory Road commit `39799c5`; the branch now also
   contains the deployed archive, corrected Top 16 presentation, and status-link
-  releases through public entrant-gallery production commit `ff83bfb`.
+  releases through mobile-polished entrant-gallery production commit `26a95dc`.
 - The original working tree and all of its unrelated user changes were left
   untouched.
 - Pull request: [#264](https://github.com/roblebaegaming/DraftCenter/pull/264)
@@ -125,7 +125,8 @@ synthetic Preview regression run.
   Preview is validated through the manual migration and regression gate above.
 - After production PR #271 added the reusable entrant bracket gallery, it was
   merged into this branch and the overlapping bracket, public-studio, and
-  release-integration tests passed together.
+  release-integration tests passed together. Production PR #272's mobile sticky
+  header and compact round-label polish is also inherited and revalidated.
 - No production smoke test was run because the change is not deployed.
 
 ## Required continuation
