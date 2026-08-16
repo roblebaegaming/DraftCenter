@@ -66,9 +66,9 @@ test("shared game metadata drives Z-A move and Pokédex choices", () => {
 });
 
 test("forward migrations expose the Z-A Pokédex without exposing encounters", () => {
-  const capabilityMigration = source("supabase/413-separate-pokedex-and-encounter-verification.sql");
-  const importMigration = source("supabase/414-import-pokemon-legends-za-pokedex.sql");
-  const previewRegression = source("supabase/tests/413-414-legends-za-pokedex-preview-regression.sql");
+  const capabilityMigration = source("supabase/414-separate-pokedex-and-encounter-verification.sql");
+  const importMigration = source("supabase/415-import-pokemon-legends-za-pokedex.sql");
+  const previewRegression = source("supabase/tests/414-415-legends-za-pokedex-preview-regression.sql");
   const nuzlockeRoute = source("src/app/api/nuzlocke/route.js");
 
   assert.match(capabilityMigration, /add column pokedex_status text not null default 'pending'/i);

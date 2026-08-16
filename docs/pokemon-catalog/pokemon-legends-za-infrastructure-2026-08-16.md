@@ -14,7 +14,7 @@ Pokédex coverage and encounter coverage are separate capabilities:
 | Pokédex | Verified artifact | Lumiose Pokédex (232) and Hyperspace Pokédex (132) |
 | Move source | Ready for API-backed lookup | PokéAPI `legends-za` version group; never blended with turn-based games |
 | Draft format pools | Ready | Lumiose (308), Hyperspace (151), and combined (459) DraftCenter entries with independently available forms |
-| Account Pokédex tracker | Migration-ready | Z-A becomes selectable after migrations 413 and 414 are applied |
+| Account Pokédex tracker | Migration-ready | Z-A becomes selectable after migrations 414 and 415 are applied |
 | Encounter catalog / Nuzlocke | Pending | No locations or encounter rows are imported or exposed |
 
 This boundary is intentional. A complete regional Pokédex does not establish where, when, or under which conditions a Pokémon can be encountered.
@@ -50,7 +50,7 @@ npm run test:regulations
 
 The generated migration asserts the exact 232/132/364 counts, three starters, `pokedex_status='verified'`, and `encounter_status='pending'`. It also fails if any Z-A location or encounter rows exist, preventing this Pokédex-only milestone from silently widening into Nuzlocke support.
 
-After both migrations, `supabase/tests/413-414-legends-za-pokedex-preview-regression.sql`
+After both migrations, `supabase/tests/414-415-legends-za-pokedex-preview-regression.sql`
 provides a read-only isolated-Preview gate for anonymous Pokédex visibility,
 encounter invisibility, the separate RLS predicates, and tracker-function grants.
 

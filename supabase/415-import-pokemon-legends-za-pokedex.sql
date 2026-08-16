@@ -1,4 +1,4 @@
--- Generated from data/pokemon/pokemon-legends-za-pokedex.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json
+-- Migration 415 generated from data/pokemon/pokemon-legends-za-pokedex.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json
 -- PokéAPI source commit: 5064f1d72746b3a6a931616dae3fb6445c556d4f -- gitleaks:allow -- public upstream revision pin
 -- Independent Pokémon Showdown check: d43fb79a049f624c079c387d043ef53f62aed226
 -- Pokédex-only import: encounter data intentionally remains unavailable.

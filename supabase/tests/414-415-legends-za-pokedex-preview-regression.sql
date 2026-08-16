@@ -1,4 +1,4 @@
--- Run only after migrations 413 and 414 on an isolated Preview project.
+-- Run only after migrations 414 and 415 on an isolated Preview project.
 -- This matrix is read-only: it verifies anonymous visibility, capability
 -- separation, RLS predicates, and tracker-function grants without fixtures.
 
