@@ -148,4 +148,3 @@ Use [`../CURRENT-STATUS.md`](../CURRENT-STATUS.md) for the canonical deployed
 status, [`../pokedex-trackers.md`](../pokedex-trackers.md) for the Collector
 contract, [`../team-lab.md`](../team-lab.md) for the Team Lab contract, and
 [`../../AGENTS.md`](../../AGENTS.md) for permanent repository policy.
-
