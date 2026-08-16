@@ -143,6 +143,7 @@ export default function TournamentDirectory() {
         <span className="eyebrow">TOURNAMENTS</span>
         <h1>Pokémon tournament organizer</h1>
         <p>Choose single elimination, double elimination, or Swiss, then decide whether everyone brings a team or drafts their rosters together first.</p>
+        <a className="quiet-button inline-link-button" href="/tools/bracket-builder">Just make and download a bracket →</a>
       </header>
       <PredictionBracketDirectory />
       <div className="tournament-directory-layout">

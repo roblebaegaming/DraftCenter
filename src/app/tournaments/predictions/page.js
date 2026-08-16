@@ -14,7 +14,10 @@ export const metadata = {
 export default function TournamentPredictionsPage() {
   return <main className="tournament-shell prediction-tournament-shell">
     <header className="tournament-hero">
-      <a className="quiet-button" href="/tournaments">← Tournament center</a>
+      <div className="public-page-nav">
+        <a className="quiet-button" href="/tournaments">← Tournament center</a>
+        <a className="quiet-button" href="/tools/bracket-builder">Open free Bracket Studio</a>
+      </div>
       <span className="eyebrow">TOURNAMENT BRACKET PREDICTIONS</span>
       <h1>One home for the next big bracket—and every past pick.</h1>
       <p>Build full elimination brackets for major Pokémon events, follow reviewed official results, and return to completed challenges after the champion is crowned.</p>

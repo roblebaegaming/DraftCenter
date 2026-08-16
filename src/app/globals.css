@@ -459,7 +459,7 @@ button { cursor: pointer; }
   .site-draft-home img { display: block; width: 30px; height: 30px; }
   .draft-home-label-wide { display: none; }
   .draft-home-label-compact { display: inline; }
-  .site-primary-links { grid-column: 1/-1; grid-row: 2; display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 5px; }
+  .site-primary-links { grid-column: 1/-1; grid-row: 2; display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); gap: 5px; }
   .site-primary-links a { min-height: 44px; padding: 6px; border-color: #283252; background: #13192e; }
   .site-global-account { grid-column: 2; grid-row: 1; min-width: 0; gap: 4px; }
   .site-global-account>a,.site-global-account>button,.site-owner-menu>summary { min-height: 30px; padding: 6px 7px; font-size: 11px; }

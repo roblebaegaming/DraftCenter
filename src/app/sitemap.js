@@ -24,6 +24,7 @@ const localizedRouteAlternates = new Map([
 const productRouteLastModified = new Map([
   ["/team-lab", PRODUCT_DISCOVERY_LAST_MODIFIED],
   ["/tools/mega-bracket", PRODUCT_DISCOVERY_LAST_MODIFIED],
+  ["/tools/bracket-builder", PRODUCT_DISCOVERY_LAST_MODIFIED],
   ["/pokedex-tracker", PRODUCT_DISCOVERY_LAST_MODIFIED],
   ["/nuzlocke", PRODUCT_DISCOVERY_LAST_MODIFIED],
   ["/tournaments", PRODUCT_DISCOVERY_LAST_MODIFIED],
@@ -48,6 +49,7 @@ const routes = [
   ["/pokemon/generations", "monthly", 0.8],
   ["/team-lab", "weekly", 0.9],
   ["/tools/mega-bracket", "weekly", 0.9],
+  ["/tools/bracket-builder", "weekly", 0.9],
   ["/pokedex-tracker", "weekly", 0.9],
   ["/nuzlocke", "weekly", 0.9],
   ["/nuzlocke/guides", "monthly", 0.9],

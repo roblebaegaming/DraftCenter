@@ -48,6 +48,7 @@ export default function SiteQuickLinks() {
         </a>
         <nav className="site-primary-links" aria-label="Primary navigation">
           <a href="/tools/mega-bracket" {...navState(pathname, "/tools/mega-bracket")}>Mega Bracket</a>
+          <a href="/tools/bracket-builder" {...navState(pathname, "/tools/bracket-builder")}>Bracket Studio</a>
           <a href="/pokemon" {...navState(pathname, "/pokemon")}>Pokémon</a>
           <a href="/explore" {...navState(pathname, "/explore")}>Community</a>
           <a href="/tournaments/predictions" {...navState(pathname, "/tournaments/predictions")}>Predictions</a>
