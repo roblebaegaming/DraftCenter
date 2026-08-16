@@ -3,12 +3,15 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import test from "node:test";
 import {
+  buildMegaBracketPool,
   buildMegaBracketRecap,
   evaluateMegaBracket,
   MEGA_BRACKET_CATALOG_HASH,
   MEGA_BRACKET_ENTRANT_COUNT,
   MEGA_BRACKET_TOP_64_CHOICE,
   MEGA_BRACKET_TOTAL_CHOICES,
+  megaBracketFormatLabel,
+  megaBracketMilestones,
   top64BracketFromRounds,
 } from "../src/lib/megaBracket.js";
 import { pokemonArtworkCandidates, pokemonArtworkSlug, resolvePokemonArtwork } from "../src/lib/pokemonArtwork.js";
@@ -33,6 +36,15 @@ function chooseLeftThrough(count = MEGA_BRACKET_TOTAL_CHOICES) {
   const winners = [];
   while (winners.length < count) {
     const progress = evaluateMegaBracket(entrants, winners);
+    winners.push(progress.nextMatch.left);
+  }
+  return winners;
+}
+
+function chooseLeftFor(field, count = field.length - 1) {
+  const winners = [];
+  while (winners.length < count) {
+    const progress = evaluateMegaBracket(field, winners);
     winners.push(progress.nextMatch.left);
   }
   return winners;
@@ -71,6 +83,61 @@ test("a completed bracket produces one champion and Final Four", () => {
   assert.deepEqual(bracket.regions[0].rounds.map((round) => round.matches.length), [8, 4, 2, 1]);
   assert.equal(bracket.finalFourMatches.length, 2);
   assert.equal(bracket.championshipMatch.winner, progress.champion);
+});
+
+test("type, generation, and Mega Evolution fields keep the frozen catalogue order", () => {
+  const catalog = JSON.parse(fs.readFileSync(new URL("../src/data/draft-lab-catalog.json", import.meta.url), "utf8")).pokemon;
+  assert.equal(buildMegaBracketPool(catalog, { scope: "type", filter: "water" }).length, 168);
+  assert.equal(buildMegaBracketPool(catalog, { scope: "type", filter: "ice" }).length, 59);
+  assert.equal(buildMegaBracketPool(catalog, { scope: "generation", filter: "5" }).length, 157);
+  assert.equal(buildMegaBracketPool(catalog, { scope: "mega" }).length, 75);
+  assert.equal(megaBracketFormatLabel({ bracket_scope: "type", bracket_filter: "water" }), "Water-type");
+  assert.equal(megaBracketFormatLabel({ bracket_scope: "generation", bracket_filter: "5" }), "Generation 5");
+  assert.equal(megaBracketFormatLabel({ bracket_scope: "mega" }), "Mega Evolutions");
+});
+
+test("every themed server pool hash matches the exact ordered client field", () => {
+  const catalog = JSON.parse(fs.readFileSync(new URL("../src/data/draft-lab-catalog.json", import.meta.url), "utf8")).pokemon;
+  const sql = fs.readFileSync(new URL("../supabase/407-mega-bracket-variety.sql", import.meta.url), "utf8");
+  const cases = [
+    ["mega", null],
+    ...["bug", "dark", "dragon", "electric", "fairy", "fighting", "fire", "flying", "ghost", "grass", "ground", "ice", "normal", "poison", "psychic", "rock", "steel", "water"].map((type) => ["type", type]),
+    ...Array.from({ length: 9 }, (_, index) => ["generation", String(index + 1)]),
+  ];
+  for (const [scope, filter] of cases) {
+    const pool = buildMegaBracketPool(catalog, { scope, filter });
+    const hash = crypto.createHash("sha256").update(pool.map((entry) => entry.name).join("\n")).digest("hex");
+    assert.ok(sql.includes(`when '${scope}:${filter || ""}' then '${pool.length}:${hash}'`), `${scope}:${filter || ""} should match the migration hash`);
+  }
+});
+
+test("variable fields use one elimination per entrant and still reveal a Top 64 when available", () => {
+  const largeField = Array.from({ length: 98 }, (_, index) => `Fire ${index + 1}`);
+  const atTop64 = evaluateMegaBracket(largeField, chooseLeftFor(largeField, 34));
+  assert.equal(atTop64.totalChoices, 97);
+  assert.equal(atTop64.choicesCompleted, 34);
+  assert.equal(atTop64.phase, "top_64");
+  assert.equal(atTop64.top64.length, 64);
+  assert.equal(top64BracketFromRounds(atTop64.rounds).regions.length, 4);
+
+  const quickField = largeField.slice(0, 64);
+  const quickStart = evaluateMegaBracket(quickField, []);
+  assert.equal(quickStart.phase, "top_64");
+  assert.equal(quickStart.totalChoices, 63);
+  assert.equal(quickStart.top64.length, 64);
+});
+
+test("a complete 59-entry Ice bracket stays compact and still produces a Final Four recap", () => {
+  const field = Array.from({ length: 59 }, (_, index) => `Ice ${index + 1}`);
+  const start = evaluateMegaBracket(field, []);
+  assert.equal(start.phase, "compact");
+  assert.equal(start.totalChoices, 58);
+  assert.equal(start.top64.length, 59);
+  const complete = evaluateMegaBracket(field, chooseLeftFor(field));
+  assert.equal(complete.complete, true);
+  assert.equal(complete.finalFour.length, 4);
+  assert.equal(top64BracketFromRounds(complete.rounds).regions.length, 0);
+  assert.deepEqual(megaBracketMilestones(59).map((item) => item.survivors), [32, 16, 8, 4, 2, 1]);
 });
 
 test("completed brackets produce a private recap from the frozen catalogue", () => {
@@ -209,6 +276,21 @@ test("the migration keeps attempts private and validates the frozen catalogue", 
   assert.match(previewRegression, /v_cross_user_denied/);
 });
 
+test("the variety migration preserves private RPCs and validates every themed field", () => {
+  const sql = fs.readFileSync(new URL("../supabase/407-mega-bracket-variety.sql", import.meta.url), "utf8");
+  const previewRegression = fs.readFileSync(new URL("../supabase/tests/407-mega-bracket-variety-preview-regression.sql", import.meta.url), "utf8");
+  assert.match(sql, /bracket_scope in \('full_dex', 'type', 'generation', 'mega'\)/);
+  assert.match(sql, /selection_mode in \('favorite', 'worst'\)/);
+  assert.match(sql, /entry_limit is null or entry_limit = 64/);
+  assert.match(sql, /jsonb_array_length\(catalog_snapshot\) between 2 and 1162/);
+  assert.match(sql, /The selected Mega Bracket field changed/);
+  assert.match(sql, /type:ice/);
+  assert.match(sql, /grant execute on function public\.create_mega_bracket_attempt\(jsonb, text, jsonb, text, text, text, integer\) to authenticated, service_role/);
+  assert.match(previewRegression, /quick_64_worst_completed/);
+  assert.match(previewRegression, /compact_ice_completed/);
+  assert.match(previewRegression, /cross_user_read_denied/);
+});
+
 test("Mega Bracket is an indexable product with honest catalogue and saving copy", () => {
   const page = fs.readFileSync(new URL("../src/app/tools/mega-bracket/page.js", import.meta.url), "utf8");
   const component = fs.readFileSync(new URL("../src/components/MegaBracket.jsx", import.meta.url), "utf8");
@@ -217,17 +299,19 @@ test("Mega Bracket is an indexable product with honest catalogue and saving copy
   const css = fs.readFileSync(new URL("../src/app/globals.css", import.meta.url), "utf8");
   assert.match(page, /canonical: "\/tools\/mega-bracket"/);
   assert.match(page, /"@type": "WebApplication"/);
-  assert.match(component, /1,162 Pokémon and forms/);
+  assert.match(component, /Full Dex, type, generation, or Mega Evolution bracket/);
   assert.match(component, /Purely cosmetic appearances are not treated as separate competitors/);
   assert.match(component, /unlimited attempts/);
   assert.doesNotMatch(component, /session goal/i);
   assert.match(component, /savedKey: winnersKey\(payload\.winners\)/);
   assert.match(component, /winnersKey\(snapshot\) === saveRef\.current\.savedKey/);
-  assert.match(component, /Pick directly in the live bracket/);
+  assert.match(component, /Pick \{selectionMode === "worst" \? "the worse Pokémon" : "who advances"\} directly in the live bracket/);
+  assert.match(component, /Pick the worst/);
+  assert.match(component, /Quick 64/);
   assert.match(component, /mega-milestone-dialog/);
   assert.match(component, /Your bracket by the numbers/);
   assert.match(component, /Final Four artwork/);
   assert.match(css, /@media\(max-width:420px\) \{ \.mega-recap-grid \{ grid-template-columns: 1fr; \} \}/);
   assert.match(sitemap, /\["\/tools\/mega-bracket", "weekly", 0\.9\]/);
-  assert.match(llms, /Mega Bracket Full Dex Challenge/);
+  assert.match(llms, /Replayable Pokémon Mega Brackets/);
 });

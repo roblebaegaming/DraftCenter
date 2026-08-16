@@ -1,4 +1,4 @@
-import { evaluateMegaBracket, top64BracketFromRounds } from "./megaBracket.js";
+import { evaluateMegaBracket, megaBracketFormatLabel, top64BracketFromRounds } from "./megaBracket.js";
 import { loadPokemonArtwork } from "./pokemonArtwork.js";
 
 const REGION_NAMES = ["Region One", "Region Two", "Region Three", "Region Four"];
@@ -133,22 +133,24 @@ function baseCanvas(width, height) {
 
 export async function renderMegaBracketCanvas(attempt, artworkLoader = loadPokemonArtwork) {
   const progress = evaluateMegaBracket(attempt.entrants, attempt.winners);
-  if (!progress.top64) throw new Error("Reach the Top 64 before downloading the full Mega Bracket.");
+  if (!progress.hasVisualTop64) throw new Error("Reach a 64-entry field before downloading the full Mega Bracket.");
   const bracket = top64BracketFromRounds(progress.rounds);
+  const format = megaBracketFormatLabel(attempt).toUpperCase();
+  const selectionMode = attempt.selection_mode || "favorite";
   const artwork = await loadArtworkMap([...bracket.finalFour, progress.champion], artworkLoader);
   const { canvas, context } = baseCanvas(3200, 2050);
   context.fillStyle = "#ffd23f";
   context.font = "900 58px Arial, sans-serif";
   context.textAlign = "left";
-  context.fillText("MEGA BRACKET", 58, 76);
+  context.fillText(`${format} MEGA BRACKET`, 58, 76);
   context.fillStyle = "#f2f4ff";
   context.font = "800 29px Arial, sans-serif";
-  context.fillText("The Top 64 · chosen from 1,162 Pokémon and forms", 60, 119);
+  context.fillText(`The Top 64 · ${selectionMode === "worst" ? "voting for the worst" : "picking a favorite"} from ${progress.entrantCount.toLocaleString()} entries`, 60, 119);
   context.fillStyle = "#8e99be";
   context.font = "17px Arial, sans-serif";
   context.textAlign = "right";
   context.fillText("DRAFTCENTER · DRAFTCENTRAL.GG", 3140, 76);
-  context.fillText(progress.complete ? "COMPLETE" : `${progress.choicesCompleted.toLocaleString()} OF 1,161 CHOICES`, 3140, 111);
+  context.fillText(progress.complete ? "COMPLETE" : `${progress.choicesCompleted.toLocaleString()} OF ${progress.totalChoices.toLocaleString()} CHOICES`, 3140, 111);
 
   drawRegion(context, bracket.regions[0], 45, 160, 1370, 835, "left", "#4fd1c5");
   drawRegion(context, bracket.regions[1], 45, 1035, 1370, 835, "left", "#82aaff");
@@ -171,7 +173,7 @@ export async function renderMegaBracketCanvas(attempt, artworkLoader = loadPokem
   context.fillText("FINALISTS", 1600, 1065);
   drawNameColumn(context, bracket.semifinalWinners, 1480, 1082, 240, 150, "#ffd23f", "left");
   context.fillStyle = "#98a3c6";
-  context.fillText("CHAMPION", 1600, 1267);
+  context.fillText(selectionMode === "worst" ? "WORST PICK" : "CHAMPION", 1600, 1267);
   context.fillStyle = progress.champion ? "#ffd23f" : "#26304f";
   context.strokeStyle = "#ffd23f";
   roundedRect(context, 1480, 1285, 240, 190, 14);
@@ -184,7 +186,7 @@ export async function renderMegaBracketCanvas(attempt, artworkLoader = loadPokem
   context.fillStyle = "#7f8aad";
   context.font = "15px Arial, sans-serif";
   context.textBaseline = "alphabetic";
-  context.fillText("1,161 choices. One champion.", 1600, 1975);
+  context.fillText(`${progress.totalChoices.toLocaleString()} choices. One ${selectionMode === "worst" ? "dubious winner" : "champion"}.`, 1600, 1975);
   return canvas;
 }
 
@@ -192,31 +194,33 @@ export async function renderMegaChampionCanvas(attempt, artworkLoader = loadPoke
   const progress = evaluateMegaBracket(attempt.entrants, attempt.winners);
   if (!progress.complete) throw new Error("Finish the Mega Bracket before downloading the champion card.");
   const bracket = top64BracketFromRounds(progress.rounds);
+  const format = megaBracketFormatLabel(attempt);
+  const selectionMode = attempt.selection_mode || "favorite";
   const artwork = await loadArtworkMap([...bracket.finalFour, progress.champion], artworkLoader);
   const { canvas, context } = baseCanvas(1080, 1350);
   context.fillStyle = "#4fd1c5";
   context.font = "900 26px Arial, sans-serif";
   context.textAlign = "center";
-  context.fillText("DRAFTCENTER MEGA BRACKET", 540, 90);
+  context.fillText(`DRAFTCENTER · ${format.toUpperCase()} MEGA BRACKET`, 540, 90);
   context.fillStyle = "#f4f6ff";
   context.font = "900 58px Arial, sans-serif";
-  context.fillText("1,161 choices.", 540, 184);
+  context.fillText(`${progress.totalChoices.toLocaleString()} choices.`, 540, 184);
   context.fillStyle = "#ffd23f";
-  context.fillText("One champion.", 540, 249);
+  context.fillText(selectionMode === "worst" ? "One worst pick." : "One champion.", 540, 249);
   context.fillStyle = "#111a34";
   context.strokeStyle = "#ffd23f";
   context.lineWidth = 4;
   roundedRect(context, 90, 285, 900, 500, 30);
   context.fillStyle = "#8e99be";
   context.font = "800 18px Arial, sans-serif";
-  context.fillText("MY MEGA BRACKET CHAMPION", 540, 345);
+  context.fillText(selectionMode === "worst" ? "MY WORST-OF BRACKET PICK" : "MY MEGA BRACKET CHAMPION", 540, 345);
   if (artwork.get(progress.champion)) drawContainedImage(context, artwork.get(progress.champion), 340, 360, 400, 300);
   context.fillStyle = "#ffd23f";
   context.font = "900 76px Arial, sans-serif";
   context.fillText(fitText(context, progress.champion, 790), 540, 700);
   context.fillStyle = "#c7cee7";
   context.font = "22px Arial, sans-serif";
-  context.fillText("Chosen from 1,162 Pokémon and forms", 540, 752);
+  context.fillText(`Chosen from ${progress.entrantCount.toLocaleString()} ${format} entries`, 540, 752);
   context.fillStyle = "#8e99be";
   context.font = "800 16px Arial, sans-serif";
   context.fillText("FINAL FOUR", 540, 835);
@@ -236,7 +240,7 @@ export async function renderMegaChampionCanvas(attempt, artworkLoader = loadPoke
   context.textBaseline = "alphabetic";
   context.fillStyle = "#a7b0d0";
   context.font = "20px Arial, sans-serif";
-  context.fillText("I completed the Full Dex Challenge.", 540, 1130);
+  context.fillText(`I completed a ${format} ${selectionMode === "worst" ? "worst-of" : "favorite"} bracket.`, 540, 1130);
   context.fillStyle = "#4fd1c5";
   context.font = "900 24px Arial, sans-serif";
   context.fillText("DRAFTCENTRAL.GG/TOOLS/MEGA-BRACKET", 540, 1232);

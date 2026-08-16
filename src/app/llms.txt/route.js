@@ -10,7 +10,7 @@ DraftCenter helps communities configure leagues, run snake and auction drafts, m
 - [Pokémon draft league guides](https://www.draftcentral.gg/guides)
 - [Supported draft formats](https://www.draftcentral.gg/formats)
 - [Team Lab Pokémon team builder and matchup planner](https://www.draftcentral.gg/tools/team-builder)
-- [Mega Bracket Full Dex Challenge](https://www.draftcentral.gg/tools/mega-bracket)
+- [Replayable Pokémon Mega Brackets](https://www.draftcentral.gg/tools/mega-bracket)
 - [Pokédex Tracker for every supported game and Pokémon HOME](https://www.draftcentral.gg/pokedex-tracker)
 - [Public Pokémon catalog](https://www.draftcentral.gg/pokemon)
 - [Pokémon Daily Games](https://www.draftcentral.gg/resources/daily-games)
@@ -28,7 +28,7 @@ DraftCenter helps communities configure leagues, run snake and auction drafts, m
 ## Public tools and events
 
 - Team Lab is a public six-Pokémon battle-team and 10-Pokémon draft-roster builder with optional private account tools. It checks typing, STAB gaps, Speed tiers, base-stat balance, base regulation legality, and common competitive archetypes. Signed-in coaches can load their My Teams workspaces or owned DraftCenter league rosters, save team notes, and keep opponent rosters and matchup notes private to their account. League rosters open as planning copies and cannot be changed from Team Lab. Versioned public links contain only the selected roster, mode, and base format; they exclude team names, account details, notes, and matchup plans.
-- Mega Bracket is a free, private, resumable preference challenge across DraftCenter's 1,162 supported Pokémon and battle-relevant forms. Its 1,161 head-to-head choices produce a shareable Top 64 bracket and one personal champion. Purely cosmetic appearances are not separate entrants.
+- Mega Bracket is a free, private, resumable bracket builder. Players can use the Full Dex, one type, one generation, or Mega Evolutions; choose the full eligible field or a randomized Quick 64 when available; and advance either favorites or the worse Pokémon. The original 1,162-entry Full Dex challenge remains available. Purely cosmetic appearances are not separate entrants.
 - Pokédex Tracker lets signed-in members create multiple private checklists for every verified main-series game catalog and Pokémon HOME. Standard and shiny progress are independent, saved across devices, and never published as account-specific search pages.
 - The tournament organizer supports standalone single elimination for up to 512 entrants and double elimination for up to 256 entrants. For 4–16 managers, Draft teams first adds a shared snake draft before single elimination, double elimination, or Swiss play. Swiss currently requires that shared draft and uses three rounds for 4–8 managers or four rounds for 9–16.
 - Multi-pod organizations can qualify retained league rosters into connected single- or double-elimination championships. Organization administration and event workspaces are not public reference material.
