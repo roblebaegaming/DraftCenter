@@ -94,10 +94,24 @@ test("Victory Road page and owner controls use the generic bracket contract", ()
   assert.match(publicComponent, /save_prediction_bracket_entry/);
   assert.match(route, /normalizeBracketChallengePublication/);
   assert.match(route, /requireOwner/);
+  assert.match(route, /supersede_prediction_bracket/);
   assert.doesNotMatch(route, /\.rpc\("get_prediction_bracket_hub"/);
   assert.match(operations, /PUBLISH OFFICIAL BRACKET/);
-  assert.match(operations, /2026-08-16T20:45:00\.000Z/);
+  assert.match(operations, /SUPERSEDE OFFICIAL BRACKET/);
+  assert.match(operations, /2026-08-16T21:10:00\.000Z/);
   assert.match(operations, /supabase\.auth\.getSession\(\)/);
   assert.match(operations, /Authorization: `Bearer \$\{data\.session\.access_token\}`/);
   assert.match(dashboard, /<BracketChallengeOperations \/>/);
+});
+
+test("owner-only supersession preserves the entry snapshot and service boundary", () => {
+  const migration = source("supabase/410-owner-only-bracket-supersession.sql");
+  assert.match(migration, /exactly one current entry/i);
+  assert.match(migration, /v_entry\.user_id <> p_approved_by/);
+  assert.match(migration, /v_result_count <> 0/);
+  assert.match(migration, /'superseded'/);
+  assert.match(migration, /'picks', v_entry\.picks/);
+  assert.match(migration, /delete from public\.prediction_bracket_entries/);
+  assert.match(migration, /grant execute on function public\.supersede_prediction_bracket[^;]+to service_role/is);
+  assert.match(migration, /has_function_privilege\('authenticated'.+supersede_prediction_bracket.+execute/is);
 });

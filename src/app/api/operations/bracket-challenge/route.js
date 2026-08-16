@@ -78,12 +78,12 @@ export async function PATCH(request) {
     const id = eventId(body.data.event_id);
     const action = String(body.data.action || "");
     let result;
-    if (action === "publish") {
+    if (action === "publish" || action === "supersede") {
       const normalized = normalizeBracketChallengePublication(body.data);
       const opensAt = isoTimestamp(body.data.opens_at, "Entry opening time");
       const locksAt = isoTimestamp(body.data.locks_at, "Entry lock time");
       if (Date.parse(locksAt) <= Date.parse(opensAt) || Date.parse(locksAt) <= Date.now()) throw new BracketOperationError("The entry lock must be in the future after entries open.");
-      result = await rpc(access.supabase, "publish_prediction_bracket", {
+      result = await rpc(access.supabase, action === "supersede" ? "supersede_prediction_bracket" : "publish_prediction_bracket", {
         p_event_id: id,
         p_field_size: normalized.fieldSize,
         p_opens_at: opensAt,

@@ -10,7 +10,7 @@ import {
 } from "../lib/bracketChallenge";
 
 const EVENT_ID = "victory-road-san-francisco-2026";
-const EVENT_LOCK_AT = "2026-08-16T20:45:00.000Z";
+const EVENT_LOCK_AT = "2026-08-16T21:10:00.000Z";
 
 async function ownerRequest(url, options = {}) {
   const supabase = createClient();
@@ -94,10 +94,10 @@ export default function BracketChallengeOperations() {
     setSetup({ ...setup, participants: setup.participants.map((participant, participantIndex) => participantIndex === index ? { ...participant, ...values } : participant) });
   }
 
-  function publish(event) {
+  function publish(event, supersede = false) {
     event.preventDefault();
     mutate({
-      action: "publish",
+      action: supersede ? "supersede" : "publish",
       ...setup,
       field_size: Number(setup.field_size),
       bracket_capacity: Number(setup.bracket_capacity),
@@ -110,7 +110,7 @@ export default function BracketChallengeOperations() {
         country_code: participant.country_code.trim(),
         source_seed: participant.source_seed === "" || participant.source_seed == null ? null : Number(participant.source_seed),
       })),
-    }, "The reviewed official bracket is published and predictions are ready.");
+    }, supersede ? "The sole owner entry was archived and the reviewed replacement bracket is live." : "The reviewed official bracket is published and predictions are ready.");
   }
 
   if (error && !data) return <section className="worlds-results-operations" id="victory-road-bracket-operations"><h2>Victory Road bracket</h2><p className="worlds-ops-error">{error}</p><button className="quiet-button" onClick={() => load().catch((loadError) => setError(loadError.message))}>Try again</button></section>;
@@ -119,7 +119,9 @@ export default function BracketChallengeOperations() {
   const bracket = data.bracket;
   const published = bracket.revision > 0;
   const locked = published && Date.now() >= Date.parse(bracket.locks_at);
-  const canReplace = !data.entry_count && bracket.status !== "final";
+  const canSupersede = data.entry_count === 1 && data.results.length === 0 && bracket.status !== "final";
+  const canReplace = (!data.entry_count || canSupersede) && bracket.status !== "final";
+  const confirmationPhrase = canSupersede ? "SUPERSEDE OFFICIAL BRACKET" : "PUBLISH OFFICIAL BRACKET";
   const allResults = published && data.results.length === bracket.field_size - 1;
 
   return <section className="worlds-results-operations worlds-bracket-operations" id="victory-road-bracket-operations">
@@ -134,7 +136,8 @@ export default function BracketChallengeOperations() {
 
     <details className="worlds-ops-panel" open={!published}>
       <summary>{published ? `Official bracket · revision ${bracket.revision}` : "Publish the reviewed official bracket"}</summary>
-      {!canReplace ? <p>The field is immutable because an entry has been saved or the bracket is final.</p> : <form className="worlds-ops-form worlds-bracket-setup" onSubmit={publish}>
+      {!canReplace ? <p>The field is immutable because multiple entries, an official result, or finalization already exists.</p> : <form className="worlds-ops-form worlds-bracket-setup" onSubmit={(event) => publish(event, canSupersede)}>
+        {canSupersede && <p className="wide worlds-ops-warning">Exactly one entry exists and it must belong to the approving owner. Superseding archives that entry in the private audit trail and opens a fresh revision.</p>}
         <label>Official player count<input required type="number" min="3" max="64" value={setup.field_size} onChange={(event) => chooseFieldSize(event.target.value)} /></label>
         <label>Bracket capacity<input readOnly value={setup.bracket_capacity} /></label>
         <label>Predictions open<input required type="datetime-local" value={setup.opens_at} onChange={(event) => setSetup({ ...setup, opens_at: event.target.value })} /></label>
@@ -154,8 +157,8 @@ export default function BracketChallengeOperations() {
             </div>)}
           </article>)}
         </div>
-        <label className="wide">Type <strong>PUBLISH OFFICIAL BRACKET</strong><input required value={setup.confirmation_text} onChange={(event) => setSetup({ ...setup, confirmation_text: event.target.value })} /></label>
-        <div className="wide worlds-ops-actions"><button className="primary-button" type="submit" disabled={busy || setup.confirmation_text !== "PUBLISH OFFICIAL BRACKET"}>Publish bracket challenge</button></div>
+        <label className="wide">Type <strong>{confirmationPhrase}</strong><input required value={setup.confirmation_text} onChange={(event) => setSetup({ ...setup, confirmation_text: event.target.value })} /></label>
+        <div className="wide worlds-ops-actions"><button className="primary-button" type="submit" disabled={busy || setup.confirmation_text !== confirmationPhrase}>{canSupersede ? "Replace with reviewed bracket" : "Publish bracket challenge"}</button></div>
       </form>}
     </details>
 
