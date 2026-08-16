@@ -19,9 +19,13 @@ function attributionFetch(calls) {
     const url = new URL(input);
     calls.push({ url, options });
     const filter = url.searchParams.get("filter") || "";
-    if (url.searchParams.get("by") === "eventData") return response([
-      { eventData: JSON.stringify({ journey: "team-lab>team-lab", source: "discord:team-lab-launch" }), events: 3 },
-      { eventData: { journey: "collector>home", source: "reddit:collector-founding-beta" }, count: 2 },
+    if (url.searchParams.get("by") === "eventData/source") return response([
+      { eventData: "discord:team-lab-launch", count: 3, visitors: 2 },
+      { eventData: "reddit:collector-founding-beta", count: 2, visitors: 2 },
+    ]);
+    if (url.searchParams.get("by") === "eventData/journey") return response([
+      { eventData: "team-lab>team-lab", count: 3, visitors: 2 },
+      { eventData: "collector>home", count: 2, visitors: 2 },
     ]);
     if (filter.includes("Signup Started")) return response([
       { timestamp: "2026-08-15T00:00:00.000Z", events: 6 },
@@ -50,18 +54,41 @@ test("signup attribution summarizes account events, starts, journeys, and campai
     { label: "team-lab>team-lab", count: 3 },
     { label: "collector>home", count: 2 },
   ]);
-  assert.equal(calls.length, 3);
+  assert.equal(calls.length, 4);
   for (const call of calls) {
     assert.equal(call.url.origin + call.url.pathname, "https://api.vercel.com/v1/query/web-analytics/events/aggregate");
     assert.equal(call.url.searchParams.get("projectId"), "test-project");
     assert.equal(call.url.searchParams.get("teamId"), "test-team");
-    assert.match(call.url.searchParams.get("filter"), /environment eq 'production'/);
+    assert.match(call.url.searchParams.get("filter"), /^eventName eq '(Account Created|Signup Started)'$/);
+    assert.equal(call.url.searchParams.get("filter").includes("environment"), false);
     assert.equal(call.url.toString().includes(env.DRAFTCENTER_VERCEL_ANALYTICS_TOKEN), false);
     assert.equal(call.options.headers.Authorization, `Bearer ${env.DRAFTCENTER_VERCEL_ANALYTICS_TOKEN}`);
     assert.equal(call.options.cache, "no-store");
   }
   assert.equal(calls.filter((call) => call.url.searchParams.get("by") === "day").length, 2);
-  assert.equal(calls.filter((call) => call.url.searchParams.get("by") === "eventData").length, 1);
+  assert.equal(calls.filter((call) => call.url.searchParams.get("by") === "eventData/source").length, 1);
+  assert.equal(calls.filter((call) => call.url.searchParams.get("by") === "eventData/journey").length, 1);
+});
+
+test("signup attribution keeps totals when one event-data grouping is unavailable", async () => {
+  resetSignupAttributionReportCache();
+  const result = await getSignupAttributionReport({
+    fetchImpl: async (input) => {
+      const url = new URL(input);
+      if (url.searchParams.get("by") === "eventData/source") return response([], 400);
+      if (url.searchParams.get("by") === "day") return response([{ timestamp: "2026-08-15T00:00:00.000Z", count: 1 }]);
+      return response([{ eventData: "team-lab>team-lab", count: 1 }]);
+    },
+    env,
+    now,
+    bypassCache: true,
+  });
+  assert.equal(result.unavailable, false);
+  assert.equal(result.account_created.last_30_days, 1);
+  assert.equal(result.signup_started.last_30_days, 1);
+  assert.equal(result.details_unavailable, true);
+  assert.deepEqual(result.top_sources, []);
+  assert.deepEqual(result.top_journeys, [{ label: "team-lab>team-lab", count: 1 }]);
 });
 
 test("signup attribution fails softly when configuration or account events are unavailable", async () => {

@@ -1,6 +1,7 @@
 const ANALYTICS_ENDPOINT = "https://api.vercel.com/v1/query/web-analytics/events/aggregate";
 const ANALYTICS_TIME_ZONE = "America/Los_Angeles";
 const CACHE_TTL_MS = 5 * 60 * 1000;
+const PARTIAL_CACHE_TTL_MS = 60 * 1000;
 
 let cachedReport = null;
 
@@ -32,7 +33,7 @@ function buildEventsUrl({ projectId, teamId, since, until, eventName, by, limit 
   url.searchParams.set("since", since);
   url.searchParams.set("until", until);
   url.searchParams.set("by", by);
-  url.searchParams.set("filter", `eventName eq '${eventName.replaceAll("'", "''")}' and environment eq 'production'`);
+  url.searchParams.set("filter", `eventName eq '${eventName.replaceAll("'", "''")}'`);
   if (limit) url.searchParams.set("limit", String(limit));
   return url;
 }
@@ -64,19 +65,10 @@ function periodSummary(daily) {
   return { today: daily.at(-1)?.events || 0, last_7_days: sum(daily.slice(-7)), last_30_days: sum(daily) };
 }
 
-function parseEventData(row) {
-  if (row?.eventData && typeof row.eventData === "object") return row.eventData;
-  const encoded = row?.eventData ?? row?.event_data ?? row?.data;
-  if (typeof encoded === "string") {
-    try { return JSON.parse(encoded); } catch { return {}; }
-  }
-  return { journey: row?.journey, source: row?.source };
-}
-
-function leaderboard(rows, property) {
+function eventDataLeaderboard(rows) {
   const counts = new Map();
   for (const row of rows) {
-    const label = String(parseEventData(row)?.[property] || "").slice(0, 64);
+    const label = String(row?.eventData ?? row?.event_data ?? "").slice(0, 64);
     if (!label) continue;
     counts.set(label, (counts.get(label) || 0) + eventCount(row));
   }
@@ -101,18 +93,18 @@ export async function getSignupAttributionReport({ fetchImpl = fetch, env = proc
   const endDate = dateKeyInTimeZone(currentDate);
   const startDate = shiftDateKey(endDate, -29);
   const query = { projectId, teamId, since: startDate, until: endDate };
-  const [createdResult, startedResult, detailResult] = await Promise.allSettled([
+  const [createdResult, startedResult, sourceResult, journeyResult] = await Promise.allSettled([
     queryEvents(fetchImpl, buildEventsUrl({ ...query, eventName: "Account Created", by: "day" }), token),
     queryEvents(fetchImpl, buildEventsUrl({ ...query, eventName: "Signup Started", by: "day" }), token),
-    queryEvents(fetchImpl, buildEventsUrl({ ...query, eventName: "Account Created", by: "eventData", limit: 250 }), token),
+    queryEvents(fetchImpl, buildEventsUrl({ ...query, eventName: "Account Created", by: "eventData/source", limit: 250 }), token),
+    queryEvents(fetchImpl, buildEventsUrl({ ...query, eventName: "Account Created", by: "eventData/journey", limit: 250 }), token),
   ]);
   if (createdResult.status !== "fulfilled") return { unavailable: true };
 
   const createdDaily = fillDaily(createdResult.value, startDate, endDate);
   const startedUnavailable = startedResult.status !== "fulfilled";
   const startedDaily = startedUnavailable ? [] : fillDaily(startedResult.value, startDate, endDate);
-  const detailsUnavailable = detailResult.status !== "fulfilled";
-  const details = detailsUnavailable ? [] : detailResult.value;
+  const detailsUnavailable = sourceResult.status !== "fulfilled" || journeyResult.status !== "fulfilled";
   const value = {
     unavailable: false,
     generated_at: currentDate.toISOString(),
@@ -120,12 +112,16 @@ export async function getSignupAttributionReport({ fetchImpl = fetch, env = proc
     period: { start: startDate, end: endDate },
     account_created: periodSummary(createdDaily),
     signup_started: startedUnavailable ? null : periodSummary(startedDaily),
-    top_journeys: leaderboard(details, "journey"),
-    top_sources: leaderboard(details, "source"),
+    top_journeys: journeyResult.status === "fulfilled" ? eventDataLeaderboard(journeyResult.value) : [],
+    top_sources: sourceResult.status === "fulfilled" ? eventDataLeaderboard(sourceResult.value) : [],
     signup_started_unavailable: startedUnavailable,
     details_unavailable: detailsUnavailable,
   };
-  cachedReport = { key: cacheKey, expiresAt: nowMs + CACHE_TTL_MS, value };
+  cachedReport = {
+    key: cacheKey,
+    expiresAt: nowMs + (startedUnavailable || detailsUnavailable ? PARTIAL_CACHE_TTL_MS : CACHE_TTL_MS),
+    value,
+  };
   return value;
 }
 

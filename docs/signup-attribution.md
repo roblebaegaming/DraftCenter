@@ -80,6 +80,12 @@ The report uses the authenticated, server-only Vercel Web Analytics API token
 already used by Website Traffic. It fails softly without exposing the token or
 interrupting the rest of Operations.
 
+Custom-event totals are grouped by `day`. Account-created source and journey
+leaderboards use Vercel's structured `eventData/source` and
+`eventData/journey` dimensions. The Web Analytics API reads the Production
+dataset for these project queries, so the report does not add an unsupported
+environment filter.
+
 References: [Vercel custom events](https://vercel.com/docs/analytics/custom-events),
 [Web Analytics API](https://vercel.com/changelog/web-analytics-api), and
 [Web Analytics privacy](https://vercel.com/docs/analytics/privacy-policy).
