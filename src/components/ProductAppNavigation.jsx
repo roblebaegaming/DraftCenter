@@ -15,7 +15,7 @@ export default function ProductAppNavigation({ accountName, isOwner, onSignOut, 
         <img src={product.icon} alt="" />
         <span><small>{product.eyebrow}</small><strong>{product.name}</strong></span>
       </a>
-      <nav className="product-app-links" aria-label={`${product.name} navigation`}>
+      <nav className="product-app-links" aria-label={`${product.name} navigation`} style={{ "--product-nav-items": product.navigation.length }}>
         {product.navigation.map((item) => <a key={item.href} href={item.href} {...linkState(pathname, item.href)}>
           <span className="product-link-wide">{item.label}</span>
           <span className="product-link-compact" aria-hidden="true">{item.compactLabel}</span>

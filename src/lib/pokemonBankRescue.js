@@ -1,4 +1,4 @@
-export const BANK_RESCUE_REVIEWED_ON = "2026-08-15";
+export const BANK_RESCUE_REVIEWED_ON = "2026-08-16";
 export const BANK_RESCUE_SOURCE_REVIEW_DAYS = 30;
 
 export function bankRescueSourceFreshness(asOf = new Date()) {
@@ -20,8 +20,11 @@ export function bankRescueSourceFreshness(asOf = new Date()) {
 }
 
 export const BANK_RESCUE_STATUS = Object.freeze({
+  label: "Active",
   headline: "Nintendo currently says no Pokémon Bank end date is planned.",
   summary: "DraftCenter does not assume a shutdown deadline. Nintendo says it will announce service changes in advance.",
+  closure_date: null,
+  deadline_announced: false,
   source_ids: ["nintendo-bank-service-update"],
 });
 
@@ -217,6 +220,71 @@ export function buildBankRescueReview(inventory = {}) {
     counts,
     uncertain_count: records.filter(({ classification }) => classification.verification.key === "uncertain_verify").length,
     records,
+  };
+}
+
+export function buildBankRescueDashboard(inventory = {}) {
+  const locations = Array.isArray(inventory?.locations) ? inventory.locations : [];
+  const specimens = Array.isArray(inventory?.specimens) ? inventory.specimens : [];
+  const review = buildBankRescueReview({ locations, specimens });
+  const bankLocations = locations.filter(({ kind }) => kind === "pokemon_bank");
+  const bankSpecimens = specimens.filter(({ location_kind }) => location_kind === "pokemon_bank");
+  const importantSpecimens = specimens.filter((specimen) =>
+    specimen.importance === "important"
+      || specimen.importance === "irreplaceable"
+      || specimen.is_event
+      || (Array.isArray(specimen.ribbons) && specimen.ribbons.length > 0));
+  const decidedSpecimens = specimens.filter(({ transfer_state }) =>
+    transfer_state && transfer_state !== "not_planned");
+  const bankDestinations = bankSpecimens.filter((specimen) =>
+    specimen.transfer_state === "keep_original"
+      || String(specimen.intended_destination || "").trim());
+  const readiness = [
+    {
+      key: "locations",
+      label: "Map storage",
+      detail: locations.length
+        ? `${locations.length.toLocaleString()} named storage ${locations.length === 1 ? "location" : "locations"}`
+        : "Add a game save, Bank area, HOME area, cartridge, or other location.",
+      complete: locations.length > 0,
+    },
+    {
+      key: "individuals",
+      label: "Record what matters",
+      detail: specimens.length
+        ? `${specimens.length.toLocaleString()} individual ${specimens.length === 1 ? "record" : "records"}`
+        : "Record one important, sentimental, shiny, event, or ribbon Pokémon.",
+      complete: specimens.length > 0,
+    },
+    {
+      key: "decisions",
+      label: "Choose intentions",
+      detail: specimens.length
+        ? `${decidedSpecimens.length.toLocaleString()} of ${specimens.length.toLocaleString()} transfer intentions recorded`
+        : "Transfer intentions become available after an individual is recorded.",
+      complete: specimens.length > 0 && decidedSpecimens.length === specimens.length,
+    },
+  ];
+
+  return {
+    status: review.status,
+    source_freshness: review.source_freshness,
+    sources: review.sources,
+    readiness,
+    readiness_complete: readiness.filter(({ complete }) => complete).length,
+    stats: {
+      locations: locations.length,
+      bank_locations: bankLocations.length,
+      individuals: specimens.length,
+      bank_individuals: bankSpecimens.length,
+      important_individuals: importantSpecimens.length,
+      decisions: decidedSpecimens.length,
+      bank_destinations: bankDestinations.length,
+    },
+    priorities: review.records
+      .filter(({ classification }) => !["recorded_transferred", "preserve_original"].includes(classification.key))
+      .slice(0, 3),
+    review,
   };
 }
 

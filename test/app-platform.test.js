@@ -15,6 +15,8 @@ test("focused products have stable canonical and legacy route ownership", () => 
   assert.equal(productForPathname("/my-teams"), PLATFORM_PRODUCTS.teamLab);
   assert.equal(productForPathname("/pokemon"), null);
   assert.equal(pathMatchesPrefix("/team-laboratory", "/team-lab"), false);
+  assert.deepEqual(PLATFORM_PRODUCTS.collector.navigation.map(({ compactLabel }) => compactLabel), ["Dex", "Rescue", "Collect", "Boxes", "More"]);
+  assert.equal(PLATFORM_PRODUCTS.teamLab.navigation.length, 4);
 });
 
 test("shared platform boundaries keep data, accounts, UI, and exports reusable", () => {

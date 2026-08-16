@@ -28,6 +28,7 @@ import {
   BANK_RESCUE_REVIEWED_ON,
   BANK_RESCUE_SOURCES,
   BANK_RESCUE_STATUS,
+  buildBankRescueDashboard,
   buildBankRescueReview,
   classifyBankRescueSpecimen,
 } from "../src/lib/pokemonBankRescue.js";
@@ -143,7 +144,7 @@ test("individual collection records are searchable, readable, and safely exporta
   assert.match(csv, /"best-friends"/);
   assert.match(csv, /"bank_rescue_classification","bank_rescue_reason","availability_verification"/);
   assert.match(csv, /"Review legacy details first"/);
-  assert.match(csv, /"2026-08-15"/);
+  assert.match(csv, /"2026-08-16"/);
   assert.match(csv, /https:\/\/home\.pokemon\.com\/en-us\/move\//);
   assert.deepEqual(POKEDEX_LOCATION_OPTIONS.map(({ key }) => key), ["game_save", "pokemon_bank", "pokemon_home", "cartridge", "other"]);
   assert.ok(POKEDEX_IMPORTANCE_OPTIONS.some(({ key }) => key === "irreplaceable"));
@@ -188,13 +189,16 @@ test("Bank Rescue classifications separate owner actions from uncertain availabi
 });
 
 test("Bank Rescue review carries dated official provenance without inventing a deadline", () => {
-  assert.equal(BANK_RESCUE_REVIEWED_ON, "2026-08-15");
+  assert.equal(BANK_RESCUE_REVIEWED_ON, "2026-08-16");
+  assert.equal(BANK_RESCUE_STATUS.label, "Active");
+  assert.equal(BANK_RESCUE_STATUS.closure_date, null);
+  assert.equal(BANK_RESCUE_STATUS.deadline_announced, false);
   assert.match(BANK_RESCUE_STATUS.headline, /no Pokémon Bank end date is planned/i);
   assert.doesNotMatch(JSON.stringify({ status: BANK_RESCUE_STATUS, sources: BANK_RESCUE_SOURCES }), /2027/);
   assert.equal(BANK_RESCUE_SOURCES.length, 3);
-  assert.equal(bankRescueSourceFreshness("2026-09-14T00:00:00Z").stale, false);
-  assert.equal(bankRescueSourceFreshness("2026-09-15T00:00:00Z").stale, true);
-  assert.equal(bankRescueSourceFreshness("2026-09-15T00:00:00Z").next_review_on, "2026-09-14");
+  assert.equal(bankRescueSourceFreshness("2026-09-15T00:00:00Z").stale, false);
+  assert.equal(bankRescueSourceFreshness("2026-09-16T00:00:00Z").stale, true);
+  assert.equal(bankRescueSourceFreshness("2026-09-16T00:00:00Z").next_review_on, "2026-09-15");
   assert.deepEqual(buildBankRescueReview(null).records, []);
   for (const source of BANK_RESCUE_SOURCES) {
     assert.match(source.url, /^https:\/\//);
@@ -219,6 +223,54 @@ test("Bank Rescue review carries dated official provenance without inventing a d
   assert.ok(exported.classifications.every(({ source_ids }) => source_ids.length > 0));
   assert.ok(exported.classifications.every(({ verification }) => verification.key === "uncertain_verify"));
   assert.equal(exported.source_freshness.reviewed_on, BANK_RESCUE_REVIEWED_ON);
+});
+
+test("Bank Rescue dashboard turns private inventory into bounded readiness and priorities", () => {
+  const dashboard = buildBankRescueDashboard({
+    locations: [
+      { id: "bank", kind: "pokemon_bank", name: "Bank Box 3" },
+      { id: "home", kind: "pokemon_home", name: "HOME Living Dex" },
+    ],
+    specimens: [
+      {
+        id: "charizard",
+        pokemon: "Charizard",
+        location_kind: "pokemon_bank",
+        importance: "irreplaceable",
+        is_event: false,
+        ribbons: ["champion-g3"],
+        origin_mark: "Game Boy origin mark",
+        transfer_state: "planned",
+        intended_destination: "Pokémon HOME",
+      },
+      {
+        id: "eevee",
+        pokemon: "Eevee",
+        location_kind: "pokemon_bank",
+        importance: "standard",
+        is_event: false,
+        ribbons: [],
+        origin_mark: "",
+        transfer_state: "not_planned",
+        intended_destination: "",
+      },
+    ],
+  });
+
+  assert.equal(dashboard.readiness_complete, 2);
+  assert.equal(dashboard.readiness.length, 3);
+  assert.deepEqual(dashboard.stats, {
+    locations: 2,
+    bank_locations: 1,
+    individuals: 2,
+    bank_individuals: 2,
+    important_individuals: 1,
+    decisions: 1,
+    bank_destinations: 1,
+  });
+  assert.deepEqual(dashboard.priorities.map(({ specimen }) => specimen.id), ["charizard", "eevee"]);
+  assert.equal(dashboard.status.deadline_announced, false);
+  assert.equal(buildBankRescueDashboard(null).readiness_complete, 0);
 });
 
 test("Collector CSV import is bounded, additive, round-trippable, and atomic-ready", () => {
@@ -451,6 +503,7 @@ test("Collector HOME summaries retain all 1,025 species after migration 402", ()
 
 test("Collector PWA, focused navigation, funding, and measurement preserve privacy boundaries", () => {
   const panel = source("src/components/PokedexCollectorLaunchPanel.jsx");
+  const rescueDashboard = source("src/components/PokedexRescueDashboard.jsx");
   const manifest = source("src/app/pokedex-tracker/manifest.webmanifest/route.js");
   const worker = source("src/app/pokedex-tracker/sw.js/route.js");
   const offline = source("src/app/pokedex-tracker/offline/page.js");
@@ -470,6 +523,10 @@ test("Collector PWA, focused navigation, funding, and measurement preserve priva
   assert.match(panel, /not a purchase, subscription, or promise of premium access/);
   assert.match(panel, /ko-fi\.com\/draftcenter/);
   assert.match(manifest, /Pokédex Tracker by DraftCenter/);
+  assert.match(manifest, /source-backed Pokémon Bank Rescue planning/);
+  assert.match(manifest, /url: "\/pokedex-tracker\/#bank-rescue"/);
+  assert.match(manifest, /url: "\/pokedex-tracker\/#collection-inventory"/);
+  assert.match(manifest, /url: "\/pokedex-tracker\/#home-box-planner"/);
   assert.match(manifest, /start_url: "\/pokedex-tracker\/\?source=pwa"/);
   assert.match(route, /manifest: "\/pokedex-tracker\/manifest\.webmanifest"/);
   assert.match(worker, /PUBLIC_SHELL/);
@@ -479,7 +536,11 @@ test("Collector PWA, focused navigation, funding, and measurement preserve priva
   assert.match(navigation, /ProductAppNavigation/);
   assert.match(productNavigation, /Switch to DraftCenter/);
   assert.match(products, /name: "Pokédex Tracker"/);
-  assert.match(products, /label: "Import & export"/);
+  for (const label of ["Dex", "Rescue", "Collection", "Boxes", "More"]) assert.match(products, new RegExp(`label: "${label}"`));
+  assert.match(rescueDashboard, /No closure date announced/);
+  assert.match(rescueDashboard, /buildBankRescueDashboard/);
+  assert.match(rescueDashboard, /Verify before acting/);
+  assert.doesNotMatch(rescueDashboard, /closes in|countdown/i);
   assert.match(analytics, /ALLOWED_PROPERTIES = new Set\(\["kind", "count_bucket", "placement", "result"\]\)/);
   for (const forbidden of ["user_id", "tracker_id", "tracker_name", "pokemon", "species", "notes", "email", "filename", "file_content"]) {
     assert.match(analytics, new RegExp(`"${forbidden}"`));

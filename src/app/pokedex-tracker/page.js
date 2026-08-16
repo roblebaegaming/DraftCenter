@@ -64,6 +64,7 @@ export default function PokedexTrackerRoute() {
           "Independent standard and shiny checklists",
           "Optional Poké Ball, ribbon, and note details for every entry",
           "Private individual Pokémon and storage-location inventory",
+          "Source-backed Pokémon Bank Rescue readiness and review priorities",
           "Portable JSON and spreadsheet-safe CSV inventory exports",
           "Search, completion filters, progress rings, and responsive galleries",
           "Private cross-device account saving",

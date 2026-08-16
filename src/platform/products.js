@@ -7,10 +7,11 @@ const products = {
     icon: "/pokedex-collector-icon-192.png",
     routePrefixes: ["/pokedex-tracker"],
     navigation: [
-      { label: "Tracker", compactLabel: "Track", href: "/pokedex-tracker/" },
-      { label: "Import & export", compactLabel: "Files", href: "/pokedex-tracker/#collector-tools" },
-      { label: "Install", compactLabel: "Install", href: "/pokedex-tracker/#install-collector" },
-      { label: "Public Pokédex", compactLabel: "Dex", href: "/pokemon" },
+      { label: "Dex", compactLabel: "Dex", href: "/pokedex-tracker/#dex-tracker-workspace" },
+      { label: "Rescue", compactLabel: "Rescue", href: "/pokedex-tracker/#bank-rescue" },
+      { label: "Collection", compactLabel: "Collect", href: "/pokedex-tracker/#collection-inventory" },
+      { label: "Boxes", compactLabel: "Boxes", href: "/pokedex-tracker/#home-box-planner" },
+      { label: "More", compactLabel: "More", href: "/pokedex-tracker/#collector-tools" },
     ],
   },
   teamLab: {

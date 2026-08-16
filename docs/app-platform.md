@@ -62,6 +62,11 @@ The product opportunity is collection continuity: fast checklists plus
 individual inventory, portable records, and a source-backed Bank Rescue plan.
 The current app already has the checklist, individual-location records,
 additive import, JSON/CSV/workbook exports, and conservative rescue review.
+The first Rescue dashboard turns those existing records into a three-step
+readiness view and a bounded priority queue. Its focused navigation is **Dex,
+Rescue, Collection, Boxes, More**. The Bank status panel shows the last official
+review date and explicitly says that no closure date is announced; it does not
+substitute a secondary report or a countdown for Nintendo's current guidance.
 Future deadline, availability, ribbon, form, and acquisition advice must be
 derived from dated authoritative sources. Do not hard-code a reported Pokémon
 Bank shutdown date until an official Nintendo or Pokémon source publishes it.
