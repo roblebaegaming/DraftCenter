@@ -3,10 +3,20 @@
 - Last updated: August 16, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified production feature commit: `cabe7fdc6b07d8fdcd760538af5b9673b7963752`
+- Verified production feature commit: `26a95dc5ae66cde281a0c6a8cdda5ee41c25d448`
 - Latest production migration: 412
 
 ## Deployed state
+
+Pull requests [#271](https://github.com/roblebaegaming/DraftCenter/pull/271)
+and [#272](https://github.com/roblebaegaming/DraftCenter/pull/272) added the
+post-lock public entrant-bracket gallery and polished its mobile navigation.
+Leaderboard rows now open each entrant's complete read-only bracket, with saved
+predictions in yellow and official winners in aqua. Entrant picks remain
+private before lock, public payloads omit account identity, and no database
+migration was required. Exact Production commit `26a95dc` passed protected
+checks, deployment verification, the signed-out smoke sweep, and live desktop
+and 390px mobile review with no page overflow or browser errors.
 
 Pull request [#266](https://github.com/roblebaegaming/DraftCenter/pull/266)
 and migration 412 restored the original Victory Road Top 16 as a separate,
@@ -1140,14 +1150,16 @@ Keep the Worlds bracket challenge closed until official pairings exist.
 The Victory Road to San Francisco challenge is revision 2 with the reviewed
 Top 8 field and locked at 2:10 PM Pacific / 21:10 UTC on August 16. Its active
 leaderboard uses 1/2/4 scoring, while the separate read-only Top 16 archive
-keeps the exact original names, picks, and 1/2/4/8 score. Do not replace either
-field. Record winners in feeder order from the same official Battlefy bracket,
-confirm the public leaderboard and archive score after each round, and finalize
-only after all seven active Top 8 results have been visually reconciled with
-the completed official bracket. The active
-`victory-road-top-cut-live-scoring` heartbeat owns this five-minute monitoring
-loop until a champion is official; unchanged state is expected and is not a
-reason to stop it.
+keeps the exact original names, picks, and 1/2/4/8 score. The official Battlefy
+bracket is now complete: its final page shows seed 21 defeating seed 18, 2-1;
+the reviewed field maps those seeds to champion Hyungwoo Shin and runner-up
+João Felipe Leite. DraftCenter recorded the seventh result and finalized from
+the same official URL. The signed-in Production postflight confirmed final
+state, 7/7 results, one entry, and 12 audit events. The public page shows final
+results, Rob Lebae's 4/32 original bracket with 15/15 official results, and the
+Top 8 carryover ranked first at 0/12. The completed heartbeat was deleted after
+verification. Do not replace either field, replay a result, or recreate the
+monitor unless an official correction is documented.
 
 Keep VGC and TCG Meta Picks open through their published locks and preserve
 private pre-lock selections plus the separate player Pick 10 competitions.
@@ -1178,7 +1190,7 @@ guard merely to remove that measurement gap.
 ## Authoritative records
 
 - Current continuation handoff:
-  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-16-victory-road-bracket-production.md`](handoffs/DraftCenter-agent-handoff-2026-08-16-victory-road-bracket-production.md)
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-16-victory-road-final-monitoring.md`](handoffs/DraftCenter-agent-handoff-2026-08-16-victory-road-final-monitoring.md)
 - Reusable prediction-bracket contract:
   [`docs/prediction-bracket-challenges.md`](prediction-bracket-challenges.md)
 - Focused-app monetization decision:
