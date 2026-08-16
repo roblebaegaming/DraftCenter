@@ -2,8 +2,9 @@
 
 Date: August 16, 2026
 Status: pull request open; owner publisher and public download-only studio
-implemented, pushed, and protected-check validated; isolated Preview matrices
-and signed-in owner review remain; not merged or deployed
+implemented and pushed; migration 413 and the authorized isolated Preview
+matrices passed except for the separately gated migration-412 archive matrix;
+signed-in owner review remains; not merged or deployed
 
 ## Owner goal
 
@@ -22,8 +23,9 @@ images, and never receive hosted event URLs.
 - Branch: `codex/internal-tournament-publisher-2026-08-16`
 - Worktree: `DraftCenter-tournament-publisher-20260816`
 - Original base: deployed Victory Road commit `39799c5`; the branch now also
-  contains the deployed archive, corrected Top 16 presentation, and status-link
-  releases through mobile-polished entrant-gallery production commit `26a95dc`.
+  contains every later Victory Road release through production commit `87d2e5`,
+  including the Top 16 archive, entrant gallery, mobile polish, and bracket PNG
+  downloads.
 - The original working tree and all of its unrelated user changes were left
   untouched.
 - Pull request: [#264](https://github.com/roblebaegaming/DraftCenter/pull/264)
@@ -44,8 +46,8 @@ images, and never receive hosted event URLs.
   receive permanent dynamic routes at `/predictions/<event-id>`. Draft and
   cancelled events are excluded from the directory.
 - The existing Victory Road route continues to work. Its event data is served
-  through the same reusable public component, while the current live-scoring
-  monitor's result, carry-forward, and finalization API remains compatible.
+  through the same reusable public component, while the completed live-scoring
+  workflow's result, carry-forward, and finalization API remains compatible.
 - The locked-entry bracket gallery released on `main` is inherited by this
   branch, so future published events also let visitors click a leaderboard
   entrant and inspect that person's complete bracket after entries lock.
@@ -85,19 +87,19 @@ Forward-only migration `supabase/413-owner-published-prediction-events.sql`:
 
 The migration was first tested as 412 on the retained isolated Preview, before
 the Victory Road archive claimed 412 in Production. It is now renumbered 413
-without changing its SQL behavior. The retained Preview postflight
-confirmed the creator and directory RPCs, anonymous directory access,
-authenticated creator denial, service-role creator access, retained audit
-actions, and forced-RLS table boundaries. It was not applied to Production.
+without changing its SQL behavior. On August 16, the owner authorized migration
+413 and the rollback matrices in isolated Preview `kumcwwuxeecaeqwkydtb`,
+including the SQL editor's **Run without RLS** warning. Migration 413 applied
+there successfully. It was not applied to Production.
 
 The focused regression is
 `supabase/tests/413-owner-published-prediction-events-preview-regression.sql`.
-Running the complete 409-413 Preview matrix triggers the Supabase SQL editor's
-destructive-operation confirmation because the rollback-only fixtures create
-and remove exact synthetic rows and use a temporary table. That confirmation
-has not been accepted without the owner's explicit approval. The dialog remains
-pending; do not click **Run without RLS** unless the owner authorizes that exact
-synthetic Preview regression run.
+Matrices 409, 410, 411, and 413 passed with their exact RLS, grant, privacy,
+audit, lifecycle, and cleanup assertions. Matrix 412 stopped before fixture
+creation because the retained Preview does not contain migration 412's public
+archive RPC. Final postflight found zero synthetic prediction-event fixtures.
+Applying migration 412 remains a separate database action and requires its own
+exact owner authorization before that final matrix may be rerun.
 
 ## Validation completed
 
@@ -115,14 +117,16 @@ synthetic Preview regression run.
   matchups, PNG download, and exact browser-local recovery after refresh. Its
   hosted Preview then passed a separate four-name, three-winner, Paper-theme,
   PNG-download, and refresh-recovery walkthrough with no browser issue overlay.
-- The hosted publisher and directory render signed out. A signed-in owner
-  walkthrough still requires the owner to sign in on the hosted Preview. No
-  disposable or real event was created.
-- All protected PR checks pass for the public-studio commit: security tests,
-  dependency audit, full-history secret scan, JavaScript security analysis,
-  CodeQL, Vercel, and Vercel Preview Comments. The repository's Supabase Preview
-  integration check intentionally reports skipped; the retained isolated
-  Preview is validated through the manual migration and regression gate above.
+- The hosted publisher and directory render signed out. The production browser
+  session is signed in, but the Vercel Preview remains a separate signed-out
+  origin. A signed-in owner walkthrough still requires a human sign-in on that
+  exact Preview hostname. No disposable or real event was created.
+- Protected checks passed before the final synchronization with the deployed
+  bracket-image release. Focused combined bracket, image-export, public-studio,
+  Z-A, and release-integration tests passed after that merge; refreshed protected
+  checks are running. The repository's Supabase Preview integration check
+  intentionally reports skipped; the retained isolated Preview is validated
+  through the manual migration and regression gate above.
 - After production PR #271 added the reusable entrant bracket gallery, it was
   merged into this branch and the overlapping bracket, public-studio, and
   release-integration tests passed together. Production PR #272's mobile sticky
@@ -131,9 +135,9 @@ synthetic Preview regression run.
 
 ## Required continuation
 
-1. If the owner explicitly approves the synthetic Preview SQL warning, run the
-   409-413 rollback-only matrices and verify their exact fixture cleanup. Do not
-   use a real prediction event.
+1. If the owner explicitly authorizes applying migration 412 to isolated
+   Preview `kumcwwuxeecaeqwkydtb`, apply it and rerun only matrix 412. Verify
+   exact fixture cleanup and do not use a real prediction event.
 2. Have the owner sign in on the hosted Preview and review the publisher. A
    disposable four-player end-to-end event still requires exact authorization
    and cleanup; a non-mutating owner-page review can proceed after sign-in.
@@ -144,5 +148,5 @@ synthetic Preview regression run.
    owner explicitly asks.
 
 Do not change `docs/CURRENT-STATUS.md` until this feature is actually released.
-Do not apply migration 413, create a Production event, change the Victory Road
-event, or interfere with its active monitor merely to test this publisher.
+Do not apply migration 413 to Production, create a Production event, or change
+the finalized Victory Road event merely to test this publisher.

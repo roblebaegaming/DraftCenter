@@ -2,7 +2,7 @@
 
 Date: August 16, 2026
 
-Status: application and forward-migration groundwork; not a production-data change
+Status: application and forward migrations validated in isolated Preview; not a production-data change
 
 ## Capability boundary
 
@@ -14,7 +14,7 @@ Pokédex coverage and encounter coverage are separate capabilities:
 | Pokédex | Verified artifact | Lumiose Pokédex (232) and Hyperspace Pokédex (132) |
 | Move source | Ready for API-backed lookup | PokéAPI `legends-za` version group; never blended with turn-based games |
 | Draft format pools | Ready | Lumiose (308), Hyperspace (151), and combined (459) DraftCenter entries with independently available forms |
-| Account Pokédex tracker | Migration-ready | Z-A becomes selectable after migrations 414 and 415 are applied |
+| Account Pokédex tracker | Preview-verified | Z-A is selectable in isolated Preview after migrations 414 and 415; Production remains unchanged |
 | Encounter catalog / Nuzlocke | Source-audited; activation pending | A pinned 2,444-row source inventory exists, but no locations or encounter rows are imported or exposed |
 
 This boundary is intentional. A complete regional Pokédex does not establish where, when, or under which conditions a Pokémon can be encountered.
@@ -54,6 +54,14 @@ The generated migration asserts the exact 232/132/364 counts, three starters, `p
 After both migrations, `supabase/tests/414-415-legends-za-pokedex-preview-regression.sql`
 provides a read-only isolated-Preview gate for anonymous Pokédex visibility,
 encounter invisibility, the separate RLS predicates, and tracker-function grants.
+
+On August 16, the owner authorized migrations 414 and 415 in isolated Preview
+`kumcwwuxeecaeqwkydtb`, including the SQL editor warning. Both migrations and
+the exact read-only regression matrix passed. Postflight confirmed 364 Z-A
+entries: 232 Lumiose and 132 Hyperspace, all with
+`pokedex_status='verified'` and `encounter_status='pending'`. Anonymous Pokédex
+access returned those exact counts, while Z-A locations and encounters both
+remained zero and hidden. Production was not changed.
 
 ## Encounter audit result
 
