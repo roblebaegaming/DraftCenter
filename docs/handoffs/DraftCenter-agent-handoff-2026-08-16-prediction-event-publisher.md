@@ -1,8 +1,8 @@
 # DraftCenter reusable prediction-event publisher handoff
 
 Date: August 16, 2026
-Status: implemented, committed, and locally validated; not migrated, released,
-or deployed
+Status: pull request open; owner publisher and public download-only studio
+implemented and validated; not merged or deployed
 
 ## Owner goal
 
@@ -11,6 +11,10 @@ without waiting for a new application change or an agent-assisted event setup.
 Each event must have a permanent public URL, be discoverable from a Live
 Predictions area, and remain private until its official field is reviewed and
 published.
+
+The public also needs a separate, no-account bracket maker for its own
+competitions. Those brackets must remain in the visitor's browser, download as
+images, and never receive hosted event URLs.
 
 ## Isolated implementation
 
@@ -22,6 +26,7 @@ published.
   implementation.
 - The original working tree and all of its unrelated user changes were left
   untouched.
+- Pull request: [#264](https://github.com/roblebaegaming/DraftCenter/pull/264)
 
 ## What was built
 
@@ -45,6 +50,26 @@ published.
   remains available from that directory. Owners receive a Publish predictions
   shortcut.
 
+## Public Bracket Studio
+
+- `/tools/bracket-builder` is a no-account, download-only bracket maker for any
+  4, 8, 16, or 32-competitor competition.
+- Visitors can enter names individually or paste a numbered list, click winners
+  through every round, change an earlier winner without retaining impossible
+  downstream choices, and download the complete bracket as a high-resolution
+  PNG.
+- The initial free design catalog includes Midnight, Paper, and Berry themes;
+  Modern, Rounded, and Classic fonts; and Soft, Pill, and Square matchup cards.
+- The draft recovers from browser-local storage after a refresh. Names, picks,
+  and styles are not sent to Supabase, no public bracket URL is created, and no
+  account is required.
+- There is no billing, entitlement, checkout, public price, or locked paid
+  control in this milestone. The product boundary and later ideas are recorded
+  in [`docs/public-bracket-studio.md`](../public-bracket-studio.md).
+- The route is discoverable from the primary navigation, Live Predictions,
+  Tournaments, the sitemap, and the public reference feed. The Pokémon Mega
+  Bracket remains separately available.
+
 ## Database boundary
 
 Forward-only migration `supabase/412-owner-published-prediction-events.sql`:
@@ -55,35 +80,57 @@ Forward-only migration `supabase/412-owner-published-prediction-events.sql`:
   published, non-cancelled events and aggregate entry counts;
 - preserves forced RLS and denies browser roles direct table access.
 
-The focused Preview regression is
+Migration 412 was applied to the retained isolated Preview only. Postflight
+confirmed the creator and directory RPCs, anonymous directory access,
+authenticated creator denial, service-role creator access, retained audit
+actions, and forced-RLS table boundaries. It was not applied to Production.
+
+The focused regression is
 `supabase/tests/412-owner-published-prediction-events-preview-regression.sql`.
-It has been prepared but deliberately not run because no isolated Preview
-database was authorized in this task. Migration 412 has not been applied
-anywhere.
+Running the complete 409-412 Preview matrix triggers the Supabase SQL editor's
+destructive-operation confirmation because the rollback-only fixtures create
+and remove exact synthetic rows and use a temporary table. That confirmation
+has not been accepted without the owner's explicit approval. The dialog remains
+pending; do not click **Run without RLS** unless the owner authorizes that exact
+synthetic Preview regression run.
 
 ## Validation completed
 
-- Focused bracket, help-guide, and release-integration tests passed.
-- Full `npm run test:all` passed.
-- Production build passed with the existing local public configuration: 307
-  static pages, including the Live Predictions directory, dynamic event page,
-  and owner publisher.
-- Desktop, 390 px, and 320 px signed-out browser review passed with no horizontal
-  overflow. Public actions are at least 46 px high; owner mobile inputs are at
-  least 44 px high. Automatic URL generation was exercised in the browser.
+- The publisher's focused 11-test bracket suite and the public studio's focused
+  5-test suite pass, along with help-guide and release-integration coverage.
+- Full `npm run test:all` passes.
+- `pnpm audit --prod --audit-level high` reports no known vulnerabilities.
+- National Dex paging passes across 1,027 rows.
+- The production build passes with the existing local public configuration: 308
+  static pages, including Live Predictions, the dynamic event page, owner
+  publisher, and public Bracket Studio. The existing non-blocking dynamic-symbol
+  font download warning remains.
+- The public studio passed a signed-out local browser walkthrough: eight names,
+  all seven winners, champion propagation, Berry theme, Classic font, Pill
+  matchups, PNG download, and exact browser-local recovery after refresh.
+- The hosted publisher and directory render signed out. A signed-in owner
+  walkthrough still requires the owner to sign in on the hosted Preview. No
+  disposable or real event was created.
+- Protected PR checks passed for the publisher commit, including CodeQL after
+  its generated-public-path warning was fixed. They must rerun after the public
+  studio commit is pushed.
 - No production smoke test was run because the change is not deployed.
 
 ## Required continuation
 
-1. Review the full branch diff and run the final repository gates.
-2. Apply migrations 409 through 412 to a fresh isolated Preview and run all focused
-   bracket regression files. Review the hosted owner workflow and a disposable
-   four-player event end to end, including exact cleanup.
-3. Open a protected pull request and review the Preview. Do not merge unless
-   repository checks and the database privacy matrix pass.
-4. After owner-authorized merge, verify migration 412 in Production, confirm the
-   deployed commit, run the signed-out production smoke sweep, and exercise the
-   owner page without creating a real event unless the owner explicitly asks.
+1. Commit and push the public Bracket Studio addition, then require the updated
+   protected checks and hosted Preview to pass.
+2. If the owner explicitly approves the synthetic Preview SQL warning, run the
+   409-412 rollback-only matrices and verify their exact fixture cleanup. Do not
+   use a real prediction event.
+3. Have the owner sign in on the hosted Preview and review the publisher. A
+   disposable four-player end-to-end event still requires exact authorization
+   and cleanup; a non-mutating owner-page review can proceed after sign-in.
+4. Do not merge until protected checks, Preview privacy matrices, and hosted
+   review pass. After an owner-authorized merge, verify migration 412 in
+   Production, confirm the deployed commit, run the signed-out production smoke
+   sweep, and exercise the owner page without creating a real event unless the
+   owner explicitly asks.
 
 Do not change `docs/CURRENT-STATUS.md` until this feature is actually released.
 Do not apply migration 412, create a Production event, change the Victory Road

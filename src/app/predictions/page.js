@@ -29,7 +29,7 @@ export default async function PredictionsPage() {
       <span className="eyebrow">LIVE PREDICTIONS</span>
       <h1>Build the bracket before the matches begin.</h1>
       <p>Pick every winner, follow reviewed official results, and see how your bracket ranks. Each event gets one permanent link from opening picks through the final champion.</p>
-      <div><Link className="primary-button inline-link-button" href="#prediction-events">See prediction events</Link><Link className="quiet-button" href="/worlds/2026">Pokémon Worlds hub</Link></div>
+      <div><Link className="primary-button inline-link-button" href="#prediction-events">See prediction events</Link><Link className="quiet-button" href="/tools/bracket-builder">Make my own bracket</Link><Link className="quiet-button" href="/worlds/2026">Pokémon Worlds hub</Link></div>
     </section>
 
     <section className="predictions-directory-section" id="prediction-events">
@@ -44,6 +44,11 @@ export default async function PredictionsPage() {
         </Link>)}
         {!events.length && <article className="prediction-event-empty"><span className="eyebrow">NEXT EVENT</span><h3>The next bracket challenge will appear here.</h3><p>The publisher is ready for reviewed official fields from 3 to 64 players, including first-round byes.</p></article>}
       </div>
+    </section>
+
+    <section className="predictions-worlds-card predictions-builder-card">
+      <div><span className="eyebrow">FREE BRACKET STUDIO</span><h2>Need a bracket for your own competition?</h2><p>Add any names, choose the winners, customize the look, and download a high-resolution image. It stays in your browser and never creates a public URL.</p></div>
+      <Link className="primary-button inline-link-button" href="/tools/bracket-builder">Make a downloadable bracket →</Link>
     </section>
 
     <section className="predictions-worlds-card">

@@ -91,7 +91,7 @@ test("integrated quick links expose each released feature once", () => {
 
 test("the full suite includes every integrated feature gate", () => {
   const manifest = JSON.parse(source("package.json"));
-  for (const script of ["test:nuzlocke", "test:tournaments", "test:mega-bracket", "test:multi-pod", "test:trainer-dex", "test:pokedex-tracker", "test:app-platform", "test:calendar", "test:auction-reconciliation", "test:worlds", "test:release-integration"]) {
+  for (const script of ["test:nuzlocke", "test:tournaments", "test:mega-bracket", "test:public-bracket-builder", "test:multi-pod", "test:trainer-dex", "test:pokedex-tracker", "test:app-platform", "test:calendar", "test:auction-reconciliation", "test:worlds", "test:release-integration"]) {
     assert.match(manifest.scripts["test:all"], new RegExp(`npm run ${script}`));
   }
 });

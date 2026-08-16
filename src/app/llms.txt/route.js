@@ -12,6 +12,7 @@ DraftCenter helps communities configure leagues, run snake and auction drafts, m
 - [Supported draft formats](https://www.draftcentral.gg/formats)
 - [Team Lab Pokémon team builder and private Battle Room](https://www.draftcentral.gg/team-lab)
 - [Replayable Pokémon Mega Brackets](https://www.draftcentral.gg/tools/mega-bracket)
+- [Free downloadable tournament bracket maker](https://www.draftcentral.gg/tools/bracket-builder)
 - [Pokédex Tracker for every supported game and Pokémon HOME](https://www.draftcentral.gg/pokedex-tracker)
 - [Public Pokémon catalog](https://www.draftcentral.gg/pokemon)
 - [Pokémon Daily Games](https://www.draftcentral.gg/resources/daily-games)
@@ -30,6 +31,7 @@ DraftCenter helps communities configure leagues, run snake and auction drafts, m
 
 - Team Lab is a public six-Pokémon battle-team and 10-Pokémon draft-roster builder with optional private account tools. It checks typing, STAB gaps, Speed tiers, base-stat balance, base regulation legality, and common competitive archetypes. Signed-in coaches can load their My Teams workspaces or owned DraftCenter league rosters, save team notes, and keep opponent rosters and matchup notes private to their account. League rosters open as planning copies and cannot be changed from Team Lab. Versioned public links contain only the selected roster, mode, and base format; they exclude team names, account details, notes, and matchup plans.
 - Mega Bracket is a free, private, resumable bracket builder. Players can use the Full Dex, one type, one generation, or Mega Evolutions; choose the full eligible field or a randomized Quick 64 when available; and advance either favorites or the worse Pokémon. The original 1,162-entry Full Dex challenge remains available. Purely cosmetic appearances are not separate entrants.
+- Bracket Studio is a no-account, browser-only single-elimination bracket maker for any competition. Visitors can add 4, 8, 16, or 32 names, advance winners, choose from curated color, font, and matchup styles, recover the draft locally after a refresh, and download a high-resolution PNG. Names and picks are not uploaded and no public bracket URL is created.
 - Pokédex Tracker lets signed-in members create multiple private checklists for every verified main-series game catalog and Pokémon HOME. Standard and shiny progress are independent, saved across devices, and never published as account-specific search pages.
 - The tournament organizer supports standalone single elimination for up to 512 entrants and double elimination for up to 256 entrants. For 4–16 managers, Draft teams first adds a shared snake draft before single elimination, double elimination, or Swiss play. Swiss currently requires that shared draft and uses three rounds for 4–8 managers or four rounds for 9–16.
 - Multi-pod organizations can qualify retained league rosters into connected single- or double-elimination championships. Organization administration and event workspaces are not public reference material.
