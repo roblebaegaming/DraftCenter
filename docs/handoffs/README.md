@@ -3,7 +3,7 @@
 [`DraftCenter-agent-handoff-2026-08-16-prediction-event-publisher.md`](DraftCenter-agent-handoff-2026-08-16-prediction-event-publisher.md)
 is the current pending implementation handoff for the reusable internal Live
 Predictions publisher. It records the isolated branch, permanent per-event
-URLs, public directory, bulk field import, local draft recovery, migration 412
+URLs, public directory, bulk field import, local draft recovery, migration 413
 security boundary, completed local validation, and the remaining Preview and
 protected-release gates. Nothing in that handoff is deployed or applied to
 Production.

@@ -5,6 +5,7 @@ import {
   bracketChallengeEntryIsComplete,
   bracketChallengeMaximumScore,
   bracketChallengeMatchKey,
+  buildBracketChallengeArchiveResults,
   buildBracketChallengeRounds,
   chooseBracketChallengeWinner,
   normalizePredictionBracketEvent,
@@ -63,6 +64,43 @@ test("round points score a complete asymmetric bracket", () => {
   assert.equal(scoreBracketChallengeEntry({ choices, results, roundPoints: { 1: 1, 2: 2, 3: 4, 4: 8 } }), 29);
 });
 
+test("the archived Top 16 view keeps original names while active results map back by player", () => {
+  const names = [
+    "Markus Hamann", "Shohei Kimura", "Dorian Quiñonez", "Carlos Cabal",
+    "Marcus Koh", "Kandai Nagatome", "Louis Markl", "Hyungwoo Shin",
+    "Michał Kwiatkowski", "João Felipe Leite", "Léo Fontvieille", "Shunsuke Minami",
+    "Marco Silva", "Héctor Sánchez", "Naoto Mizobuchi", "Masahiro Ito",
+  ];
+  const archiveSlots = names.map((display_name, index) => ({ slot: index + 1, display_name }));
+  const advancingSlots = [2, 3, 6, 8, 10, 12, 14, 16];
+  const activeSlots = advancingSlots.map((sourceSlot, index) => ({
+    slot_number: index + 1,
+    competitor_id: `top-${index + 1}`,
+    display_name: names[sourceSlot - 1],
+  }));
+  const activeResults = [
+    { round_number: 1, match_number: 1, winner_id: "top-2" },
+    { round_number: 1, match_number: 2, winner_id: "top-4" },
+    { round_number: 1, match_number: 3, winner_id: "top-5" },
+    { round_number: 1, match_number: 4, winner_id: "top-7" },
+    { round_number: 2, match_number: 2, winner_id: "top-5" },
+  ];
+  const results = buildBracketChallengeArchiveResults({
+    archiveCapacity: 16,
+    archiveSlots,
+    activeCapacity: 8,
+    activeSlots,
+    activeResults,
+  });
+
+  assert.equal(results.length, 13);
+  assert.deepEqual(results.find((result) => result.round_number === 1 && result.match_number === 1), {
+    round_number: 1, match_number: 1, winner_id: "slot-2", result_status: "final",
+  });
+  assert.equal(results.find((result) => result.round_number === 2 && result.match_number === 1)?.winner_id, "slot-3");
+  assert.equal(results.find((result) => result.round_number === 3 && result.match_number === 2)?.winner_id, "slot-10");
+});
+
 test("publication validation preserves official slots and rejects empty paths", () => {
   const valid = {
     field_size: 13,
@@ -115,8 +153,8 @@ test("migration keeps entries private and owner mutations service-only", () => {
 });
 
 test("forward migration adds owner event creation and a bounded public directory", () => {
-  const migration = source("supabase/412-owner-published-prediction-events.sql");
-  const preview = source("supabase/tests/412-owner-published-prediction-events-preview-regression.sql");
+  const migration = source("supabase/413-owner-published-prediction-events.sql");
+  const preview = source("supabase/tests/413-owner-published-prediction-events-preview-regression.sql");
   assert.match(migration, /create_prediction_bracket_event/);
   assert.match(migration, /CREATE PREDICTION EVENT/);
   assert.match(migration, /'superseded'/);
@@ -171,6 +209,8 @@ test("owner-only supersession preserves the entry snapshot and service boundary"
 
 test("owner carry-forward preserves archived bracket paths and stays audited", () => {
   const migration = source("supabase/411-owner-bracket-path-carryover.sql");
+  const archiveMigration = source("supabase/412-public-locked-bracket-archive.sql");
+  const publicComponent = source("src/components/BracketChallenge.jsx");
   assert.match(migration, /v_source_round := v_target_round \+ 1/);
   assert.match(migration, /v_source_choice = v_source_left/);
   assert.match(migration, /v_source_choice = v_source_right/);
@@ -179,4 +219,12 @@ test("owner carry-forward preserves archived bracket paths and stays audited", (
   assert.match(migration, /Carry-forward requires an empty replacement leaderboard/i);
   assert.match(migration, /grant execute on function public\.carry_forward_prediction_bracket_entry[^;]+to service_role/is);
   assert.match(migration, /has_function_privilege\('authenticated'.+carry_forward_prediction_bracket_entry.+execute/is);
+  assert.match(archiveMigration, /now\(\) < v_event\.locks_at/);
+  assert.match(archiveMigration, /action = 'entry_carried_forward'/);
+  assert.match(archiveMigration, /action = 'superseded'/);
+  assert.match(archiveMigration, /grant execute on function public\.get_prediction_bracket_archive\(text\)[^;]+to anon, authenticated/is);
+  assert.doesNotMatch(archiveMigration, /'actor_user_id'/);
+  assert.match(publicComponent, /get_prediction_bracket_archive/);
+  assert.match(publicComponent, /ORIGINAL TOP 16 BRACKET/);
+  assert.match(publicComponent, /buildBracketChallengeArchiveResults/);
 });
