@@ -43,6 +43,11 @@ remains visible even when the carried side later contains Shohei Kimura.
   and change them before publication.
 - Entries are private before lock. After lock, saved brackets and the scored
   leaderboard are public.
+- After lock, every available leaderboard row opens that member's complete
+  read-only bracket. The visual view shows their advancing picks beside the
+  reviewed official winners and recalculates the displayed score as live
+  results arrive. Before lock, other members' rows remain disabled and say
+  that their brackets are private.
 - A carried entry may expose its locked original bracket as a separate archive.
   The archive never changes the active revision, active leaderboard, or live
   result writer.
