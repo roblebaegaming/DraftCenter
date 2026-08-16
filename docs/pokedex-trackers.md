@@ -122,7 +122,7 @@ for Nintendo credentials, connects to a console, reads a save, or claims to
 perform a transfer. Transfer state and intended destination are private notes
 entered by the owner, not proof that a transfer is possible or complete.
 
-The source snapshot was reviewed on August 15, 2026. Nintendo currently says
+The source snapshot was reviewed on August 16, 2026. Nintendo currently says
 that no Pokémon Bank end date is planned and that service changes will be
 announced in advance. Pokémon's official HOME guidance says that a Bank move
 requires a HOME Premium Plan, is one-way, and that a Pokémon can move onward
@@ -146,6 +146,20 @@ The review is derived at display and export time rather than persisted. This
 prevents a dated source snapshot from becoming stale private database state and
 requires no migration after 400. Camera-assisted box auditing remains out of
 scope.
+
+The guided Rescue project is a client-side workflow over the same private
+inventory. Its Access map, Important Pokémon, Intentions, and Archive steps
+derive their completion from saved locations, individual records, and transfer
+states, so the next unfinished step resumes without a separate project row or
+database migration. Adding a record from the guide opens the established
+owner-scoped inventory form and returns to the guide after a successful save.
+
+Access-map locations are owner-entered labels, not proof that a game save,
+cartridge, Bank box, HOME account, console, or subscription is available. The
+guide requests no Nintendo credentials, performs no console or service
+connection, and never treats an intention as transfer verification. A future
+cross-tracker hardware and service-access library would require its own
+forward-only migration, privacy review, and focused RLS coverage.
 
 ## Search and discovery boundary
 

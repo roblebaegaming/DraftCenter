@@ -334,6 +334,57 @@
 .dex-specimen-checks label { display: inline-flex; min-height: 44px; align-items: center; gap: 8px; padding: 8px 11px; border: 1px solid #344c62; border-radius: 10px; color: #bac8d5; font-size: 10px; font-weight: 800; cursor: pointer; }
 .dex-specimen-checks input { width: 17px; height: 17px; accent-color: var(--dex-cyan); }
 .dex-inventory-hint { padding: 10px; border: 1px dashed #344c62; border-radius: 9px; }
+.dex-rescue-guide-backdrop { z-index: 1300; }
+.dex-rescue-guide { display: grid; grid-template-rows: auto auto minmax(0, 1fr); width: min(1000px, 100%); max-height: min(860px, calc(100vh - 36px)); overflow: hidden; border: 1px solid rgba(89, 225, 208, .34); border-radius: 23px; color: #edf6fc; background: radial-gradient(circle at 92% 0, rgba(82, 164, 199, .2), transparent 30%), #071522; box-shadow: 0 34px 100px rgba(0, 0, 0, .55); }
+.dex-rescue-guide>header { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; padding: 20px 22px 16px; border-bottom: 1px solid rgba(135, 171, 215, .15); }
+.dex-rescue-guide>header h2 { margin: 5px 0; font-size: clamp(1.55rem, 3vw, 2.35rem); letter-spacing: -.035em; }
+.dex-rescue-guide>header p { margin: 0; color: #8fa5ba; font-size: 10px; line-height: 1.5; }
+.dex-rescue-guide-steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); padding: 0 16px; border-bottom: 1px solid rgba(135, 171, 215, .15); background: rgba(4, 14, 24, .62); }
+.dex-rescue-guide-steps button { display: flex; min-width: 0; min-height: 56px; align-items: center; gap: 8px; padding: 8px 10px; border: 0; border-bottom: 2px solid transparent; color: #8397aa; text-align: left; background: transparent; font: inherit; font-size: 9px; font-weight: 900; cursor: pointer; }
+.dex-rescue-guide-steps button:hover,.dex-rescue-guide-steps button:focus-visible { color: #d8e6f1; background: rgba(89, 225, 208, .05); }
+.dex-rescue-guide-steps button.is-active { border-color: var(--dex-cyan); color: #effffa; }
+.dex-rescue-guide-steps button b { display: grid; flex: 0 0 25px; width: 25px; height: 25px; place-items: center; border: 1px solid #3c566c; border-radius: 50%; color: #8da1b4; }
+.dex-rescue-guide-steps button.is-complete b { border-color: rgba(89, 225, 208, .45); color: var(--dex-cyan); background: rgba(89, 225, 208, .1); }
+.dex-rescue-guide-content { min-height: 0; overflow-y: auto; padding: clamp(16px, 3vw, 24px); }
+.dex-rescue-guide-content>section { outline: 0; }
+.dex-rescue-guide-intro { max-width: 780px; }
+.dex-rescue-guide-intro>span { color: var(--dex-cyan); font-size: 8px; font-weight: 950; letter-spacing: .12em; }
+.dex-rescue-guide-intro h3 { margin: 5px 0 7px; font-size: clamp(1.35rem, 3vw, 2rem); letter-spacing: -.025em; }
+.dex-rescue-guide-intro p { margin: 0; color: #a3b3c3; font-size: 11px; line-height: 1.65; }
+.dex-rescue-guide-error { margin: 0 0 14px; padding: 10px 12px; border: 1px solid rgba(255, 111, 111, .35); border-radius: 10px; color: #ffd0d0; background: rgba(150, 38, 38, .12); font-size: 10px; }
+.dex-rescue-access-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 9px; margin-top: 18px; }
+.dex-rescue-access-grid article { display: grid; grid-template-columns: 38px minmax(0, 1fr); gap: 10px; align-content: start; min-width: 0; padding: 14px; border: 1px solid #2d465b; border-radius: 14px; background: rgba(9, 25, 39, .8); }
+.dex-rescue-access-grid article>span { display: grid; width: 38px; height: 38px; place-items: center; border: 1px solid rgba(89, 225, 208, .26); border-radius: 10px; color: var(--dex-cyan); background: rgba(89, 225, 208, .07); }
+.dex-rescue-access-grid h4 { margin: 0 0 5px; font-size: 1rem; }
+.dex-rescue-access-grid p { margin: 0; color: #8499ad; font-size: 9px; line-height: 1.5; }
+.dex-rescue-access-grid small { display: block; margin-top: 8px; color: #d5c57b; font-size: 8px; font-weight: 900; text-transform: uppercase; }
+.dex-rescue-access-grid button { grid-column: 1 / -1; width: 100%; margin-top: 3px; }
+.dex-rescue-guide-content section>footer { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; margin-top: 19px; padding-top: 15px; border-top: 1px solid rgba(135, 171, 215, .15); }
+.dex-rescue-guide-summary { display: flex; align-items: baseline; gap: 9px; margin: 18px 0 10px; padding: 13px 15px; border-left: 3px solid var(--dex-cyan); background: rgba(89, 225, 208, .06); }
+.dex-rescue-guide-summary strong { color: var(--dex-cyan); font-size: 1.8rem; }
+.dex-rescue-guide-summary span { color: #a4b6c6; font-size: 10px; font-weight: 900; }
+.dex-rescue-guide-pokemon { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 12px; }
+.dex-rescue-guide-pokemon>button { display: grid; grid-template-columns: 48px minmax(0, 1fr) auto; gap: 9px; align-items: center; min-width: 0; min-height: 66px; padding: 8px 10px; border: 1px solid #2e465d; border-radius: 11px; color: #e8f1f8; text-align: left; background: rgba(9, 24, 38, .82); font: inherit; cursor: pointer; }
+.dex-rescue-guide-pokemon>button:hover,.dex-rescue-guide-pokemon>button:focus-visible { border-color: rgba(89, 225, 208, .52); background: rgba(19, 49, 59, .82); }
+.dex-rescue-guide-pokemon img { width: 48px; height: 48px; object-fit: contain; }
+.dex-rescue-guide-pokemon span { min-width: 0; }
+.dex-rescue-guide-pokemon span strong,.dex-rescue-guide-pokemon span small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dex-rescue-guide-pokemon span small { margin-top: 4px; color: #8094a8; font-size: 8px; }
+.dex-rescue-guide-pokemon>button>b { color: #7f96aa; font-size: 9px; }
+.dex-rescue-guide-empty { margin: 17px 0 0; padding: 18px; border: 1px dashed #344d63; border-radius: 12px; color: #8da1b4; text-align: center; font-size: 11px; line-height: 1.55; }
+.dex-rescue-guide-queue { margin: 17px 0 0; color: #a7bac9; font-size: 10px; }
+.dex-rescue-guide-queue strong { color: var(--dex-gold); font-size: 1.45rem; }
+.dex-rescue-guide-complete { display: flex; gap: 13px; align-items: flex-start; margin-top: 18px; padding: 17px; border: 1px solid rgba(89, 225, 208, .27); border-radius: 13px; background: rgba(89, 225, 208, .07); }
+.dex-rescue-guide-complete>b { display: grid; flex: 0 0 34px; width: 34px; height: 34px; place-items: center; border-radius: 50%; color: #062019; background: var(--dex-cyan); }
+.dex-rescue-guide-complete strong { color: #dffbf5; }
+.dex-rescue-guide-complete p { margin: 5px 0 0; color: #8da8aa; font-size: 9px; line-height: 1.5; }
+.dex-rescue-archive-card { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-top: 20px; padding: 18px; border: 1px solid rgba(89, 225, 208, .28); border-radius: 15px; background: linear-gradient(120deg, rgba(18, 70, 74, .43), rgba(9, 24, 39, .9)); }
+.dex-rescue-archive-card span { display: block; color: var(--dex-cyan); font-size: 8px; font-weight: 950; letter-spacing: .1em; }
+.dex-rescue-archive-card strong { display: block; margin-top: 4px; font-size: 1.1rem; }
+.dex-rescue-archive-card p { margin: 5px 0 0; color: #8ca1b4; font-size: 9px; }
+.dex-rescue-archive-card button { flex: 0 0 auto; }
+.dex-rescue-guide-boundary { margin: 12px 0 0; padding: 11px 12px; border-left: 3px solid var(--dex-gold); color: #a99d78; background: rgba(211, 174, 69, .06); font-size: 9px; line-height: 1.55; }
+.dex-rescue-guide-boundary strong { color: #efd986; }
 .dex-load-more { display: block; min-width: 260px; min-height: 44px; margin: 22px auto 0; padding: 12px 18px; border: 1px solid #36526c; border-radius: 11px; color: #dce8f3; background: #11263a; font: inherit; font-weight: 900; cursor: pointer; touch-action: manipulation; }
 .dex-no-results,.dex-tracker-welcome,.dex-tracker-loading,.dex-tracker-signin { display: grid; min-height: 520px; place-content: center; justify-items: center; padding: 35px; text-align: center; }
 .dex-no-results span { color: #526d86; font-size: 3rem; }
@@ -462,6 +513,11 @@
   .dex-collector-founding { align-items: stretch; flex-direction: column; }
   .dex-collector-founding>div:last-child>* { flex: 1 1 auto; }
   .dex-rescue-shortcuts { grid-template-columns: 1fr; }
+  .dex-rescue-guide { max-height: calc(100vh - 20px); border-radius: 18px; }
+  .dex-rescue-guide>header { padding: 15px 14px 12px; }
+  .dex-rescue-guide-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); padding-inline: 8px; }
+  .dex-rescue-guide-steps button { min-height: 50px; }
+  .dex-rescue-access-grid,.dex-rescue-guide-pokemon { grid-template-columns: 1fr; }
 }
 @media (max-width: 500px) {
   .dex-tracker-main { padding: 17px 12px; }
@@ -497,6 +553,10 @@
   .dex-rescue-dashboard { padding: 14px 10px; border-radius: 18px; }
   .dex-rescue-dashboard-heading h2 { font-size: 2.15rem; }
   .dex-rescue-readiness,.dex-rescue-priorities { padding: 12px; }
+  .dex-rescue-guide-content { padding: 13px 10px; }
+  .dex-rescue-guide-steps button { padding-inline: 7px; font-size: 8px; }
+  .dex-rescue-archive-card { align-items: stretch; flex-direction: column; }
+  .dex-rescue-archive-card button,.dex-rescue-guide-content section>footer>* { width: 100%; }
 }
 @media (prefers-reduced-motion: reduce) {
   .dex-welcome-orbit,.dex-ball { animation: none; }
