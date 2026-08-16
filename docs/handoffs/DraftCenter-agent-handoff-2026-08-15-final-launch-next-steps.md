@@ -1,6 +1,6 @@
-# DraftCenter agent handoff: final launch next steps
+# DraftCenter agent handoff: final launch completion and next steps
 
-- Date: August 15, 2026 Pacific
+- Date: August 16, 2026 Pacific
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
 - Production baseline at handoff creation:
@@ -9,24 +9,25 @@
   `619b252dba7a911cc6515918a4ff839ed051c206`
 - Latest Production migration: 407
 - Application state: released, migrated, deployed, and smoke-tested
-- External launch state: authorized but blocked on owner credential entry
+- External launch state: completed and verified
 
 ## Start here
 
-There is no application release left to build or deploy from this work. Do not
-reopen, recreate, or replay pull requests 238-241 or migration 407.
+There is no application, database, provider, or deployment work left from this
+launch. Do not reopen, recreate, or replay pull requests 238-243 or migration
+407.
 
-Only two launch gates remain:
+The intended public brand account published Team Lab first and Pokédex Tracker
+second. The retained isolated Supabase Preview now uses the Cloudflare Turnstile
+provider the application actually implements, and the signed-out Preview widget
+was verified without submitting credentials or creating an account.
 
-1. authenticate the intended DraftCenter Instagram account and publish the
-   prepared Team Lab sequence, followed by the Pokédex Tracker sequence;
-2. paste the hCaptcha secret directly into the retained isolated Supabase
-   Preview configuration, save it, and verify Preview CAPTCHA behavior.
-
-The owner explicitly authorized these launch actions on August 15. That
-authorization does not supply a password, session, token, or hCaptcha secret.
-Never ask the owner to paste a credential into chat or place one in a command,
-screenshot, repository file, log, or handoff.
+The remaining work is measurement and product judgment: review aggregate
+attribution at 3, 7, and 30 days, decide the exact Founding Collector tester
+audience before sending invitations, and evaluate the ordered product candidates
+only after feedback. One cosmetic mobile-only correction remains on the
+Collector profile-link title; its first position, destination, and campaign
+parameters are already correct.
 
 ## What is already complete
 
@@ -49,89 +50,79 @@ screenshot, repository file, log, or handoff.
   all 20 checks. The live Mega Bracket route and social image return 200, and a
   non-mutating Water-type, Quick 64, worst-pick setup review passed.
 
-## Next step 1: publish Instagram
+## Instagram launch evidence
 
-### Gate
+The intended public brand account was visibly authenticated before publishing.
+Team Lab was published first, followed by Pokédex Tracker. All 20 reviewed
+1080×1080 images used the exact prepared captions. Each caption was verified on
+its public post after sharing. AI labeling and Facebook cross-posting remained
+off, and no location or collaborator was added.
 
-An authenticated session for the intended DraftCenter Instagram account must
-be visible in the controllable browser. The in-app browser and its Facebook
-login path were both signed out, and no Instagram connector or connected
-desktop browser was available at handoff.
+The Team Lab campaign link remained available with the unchanged
+`team-lab-battle-mode` value. Its sequence began at **03:14:06 Pacific on
+August 16, 2026**:
 
-If the account is not signed in, stop and ask the owner to sign in directly in
-the browser. Do not request, read, store, or transmit the password. Before
-publishing, confirm visibly that the selected account is the intended public
-DraftCenter brand account; do not record the account identifier in repository
-documentation.
+1. https://www.instagram.com/draftcenter.gg/p/DcGOS7sm2VA/ — 03:14:06
+2. https://www.instagram.com/draftcenter.gg/p/DcGSS_6m65C/ — 03:49:04
+3. https://www.instagram.com/draftcenter.gg/p/DcGSd07G6Ev/ — 03:50:37
+4. https://www.instagram.com/draftcenter.gg/p/DcGShkYm12P/ — 03:51:08
+5. https://www.instagram.com/draftcenter.gg/p/DcGSlnlmxcv/ — 03:51:39
+6. https://www.instagram.com/draftcenter.gg/p/DcGSpYPGzNq/ — 03:52:11
+7. https://www.instagram.com/draftcenter.gg/p/DcGStOCmzGb/ — 03:52:42
+8. https://www.instagram.com/draftcenter.gg/p/DcGSw9AG2ad/ — 03:53:13
+9. https://www.instagram.com/draftcenter.gg/p/DcGS00am0od/ — 03:53:44
+10. https://www.instagram.com/draftcenter.gg/p/DcGS4IEG7rv/ — 03:54:13
 
-### Publish Team Lab first
+Before the Collector sequence, its tracked link was moved to the first profile-
+link position with the unchanged `collector-founding-beta` value. Its sequence
+began at **04:03:58 Pacific on August 16, 2026**:
 
-Use the images and captions exactly as prepared in
-[`../promotion/instagram/team-lab-matchup-planner-2026-08-15/README.md`](../promotion/instagram/team-lab-matchup-planner-2026-08-15/README.md).
+1. https://www.instagram.com/draftcenter.gg/p/DcGUARim14l/ — 04:03:58
+2. https://www.instagram.com/draftcenter.gg/p/DcGULNqG6I7/ — 04:05:28
+3. https://www.instagram.com/draftcenter.gg/p/DcGUNVOGy4t/ — 04:05:45
+4. https://www.instagram.com/draftcenter.gg/p/DcGUQOjm_TP/ — 04:06:09
+5. https://www.instagram.com/draftcenter.gg/p/DcGUSsLm5V8/ — 04:06:29
+6. https://www.instagram.com/draftcenter.gg/p/DcGUVg7m1sL/ — 04:06:52
+7. https://www.instagram.com/draftcenter.gg/p/DcGUXkFGysp/ — 04:07:09
+8. https://www.instagram.com/draftcenter.gg/p/DcGUafpG58M/ — 04:07:33
+9. https://www.instagram.com/draftcenter.gg/p/DcGUc1VG-O3/ — 04:07:52
+10. https://www.instagram.com/draftcenter.gg/p/DcGUfl9m_JE/ — 04:08:15
 
-Use this exact profile or Story link:
+The Collector profile-link title still has a cosmetic mobile-only spelling
+correction remaining. The link is first, its destination and campaign
+parameters are correct, and the typo does not change attribution.
 
-https://www.draftcentral.gg/tools/team-builder?utm_source=instagram&utm_medium=social&utm_campaign=team-lab-battle-mode
+No Founding Collector invitations, direct messages, account credentials, or
+private audience identifiers were sent or recorded.
 
-Keep `team-lab-battle-mode` unchanged. Publish only the reviewed ten
-1080×1080 screenshots. Do not add overlays, private notes, account identifiers,
-team names, opponent names, or new claims. The product name remains **Team
-Lab**; **matchup planner** and **Battle Mode** describe its features.
+## Preview Turnstile evidence
 
-### Publish Pokédex Tracker second
+The original handoff incorrectly named hCaptcha. DraftCenter uses **Cloudflare
+Turnstile**. Only the retained isolated Supabase Preview was changed:
 
-Use the images and captions exactly as prepared in
-[`../promotion/instagram/pokedex-tracker-2026-08-15/README.md`](../promotion/instagram/pokedex-tracker-2026-08-15/README.md).
+1. the existing Production hostname remained on the current Turnstile widget;
+2. the retained hosted Preview hostname was added;
+3. the owner entered the secret directly into Supabase Preview without placing
+   it in chat, commands, logs, screenshots, or repository files;
+4. after reload, Supabase showed CAPTCHA enabled, Turnstile selected, the
+   secret masked, and no unsaved changes;
+5. signed-out Preview sign-in and signup both rendered a successful Turnstile
+   widget without submitting credentials or creating an account.
 
-Use this exact profile or Story link:
-
-https://www.draftcentral.gg/pokedex-tracker?utm_source=instagram&utm_medium=social&utm_campaign=collector-founding-beta
-
-Keep `collector-founding-beta` unchanged. Publish only the reviewed ten
-1080×1080 screenshots. Do not add tracker names, collection details, Pokémon
-choices, notes, account identifiers, or claims of Nintendo connectivity.
-
-### Verify and record
-
-After each sequence:
-
-- verify that the intended images, captions, and link destination are public;
-- record the public post URLs and actual Pacific publication timestamp without
-  recording an account email, phone number, session detail, or credential;
-- run the signed-out Production smoke sweep only if a site or tracked-link
-  problem is observed; posting alone does not require another deployment;
-- start the 3-, 7-, and 30-day aggregate Operations windows from that
-  sequence's actual publication date.
-
-Do not send Founding Collector invitations or direct messages as part of the
-public post launch. The exact tester audience and destination remain a separate
-owner decision.
-
-## Next step 2: restore Preview hCaptcha
-
-This is for the retained isolated Supabase Preview project only. Do not change
-Production authentication settings.
-
-1. Open **Authentication → Attack Protection** in the retained Preview.
-2. Enable CAPTCHA protection and select **hCaptcha**.
-3. Have the owner paste the secret directly into the masked **Captcha secret**
-   field. The agent must not read or copy the secret.
-4. Save changes.
-5. Reopen the page and verify read-only that CAPTCHA is enabled and hCaptcha is
-   selected. Do not reveal the secret.
-6. Open the signed-out Preview signup flow and confirm the CAPTCHA widget
-   loads. Submit a signup only with an owner-controlled disposable Preview
-   email; if submitted, delete that exact disposable account and verify no
-   Team Lab, Collector, or Mega Bracket fixtures remain.
-
-Stop if the secret is unavailable. Do not retrieve it from a password store,
-browser storage, Production provider configuration, logs, commands, or the
-repository.
+Production authentication settings, application environment variables, and
+provider secrets were not changed.
 
 ## Measurement after publication
 
-At 3, 7, and 30 days after each actual Instagram launch, review only the
-aggregate owner Operations report:
+One aggregate-only follow-up is scheduled in this task at **09:00 Pacific** on
+each milestone date for both campaigns:
+
+- August 19, 2026: 3-day review;
+- August 23, 2026: 7-day review;
+- September 15, 2026: 30-day review.
+
+At each run, review only the aggregate owner Operations report and report the
+`team-lab-battle-mode` and `collector-founding-beta` campaigns separately:
 
 1. attributed confirmed account creations;
 2. signup starts;
