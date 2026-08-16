@@ -559,3 +559,14 @@ test("the public Tracker landing has complete, privacy-safe SEO and discovery co
   assert.match(policy, /must never contain a[\s\S]*tracker identifier/);
   assert.match(smoke, /"\/pokedex-tracker"/);
 });
+
+test("Pokédex-only games can be tracked without becoming Nuzlocke encounter sources", () => {
+  const migration = source("supabase/413-separate-pokedex-and-encounter-verification.sql");
+  const nuzlockeRoute = source("src/app/api/nuzlocke/route.js");
+
+  assert.match(migration, /where game\.pokedex_status = 'verified'/);
+  assert.match(migration, /where game_key = p_catalog_key and pokedex_status = 'verified'/);
+  assert.match(migration, /encounter_status='verified'/);
+  assert.match(nuzlockeRoute, /\.eq\("encounter_status", "verified"\)/);
+  assert.doesNotMatch(nuzlockeRoute, /pokedex_status/);
+});

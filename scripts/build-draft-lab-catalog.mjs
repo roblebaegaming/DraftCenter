@@ -13,7 +13,12 @@ async function importSource(relativePath) {
 
 async function evaluateLeagueCatalog(source) {
   const showdown = await importSource("src/lib/showdown-regional-pokedexes.js");
+  const pokemonGames = await importSource("src/lib/pokemonGames.js");
   const catalog = await importSource("src/lib/regulation-catalog.js");
+  const legendsZaPokedex = JSON.parse(fs.readFileSync(
+    path.join(ROOT, "data/pokemon/pokemon-legends-za-pokedex.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json"),
+    "utf8",
+  ));
   const start = source.indexOf("const TYPE_COLORS");
   const end = source.indexOf("function regulationFor");
   if (start < 0 || end <= start) throw new Error("League catalog block is no longer discoverable.");
@@ -24,12 +29,18 @@ async function evaluateLeagueCatalog(source) {
   const evaluate = new Function(
     "SHOWDOWN_REGIONAL_POKEDEXES",
     "SHOWDOWN_GAME_AVAILABILITY",
+    "LEGENDS_ZA_POKEDEX",
+    "pokemonBaseSpeciesKey",
+    "pokemonShowdownProfileKeys",
     "withRegulationMetadata",
     `${dataSource}\nreturn { MASTER_POKEDEX, REGULATION_SETS };`,
   );
   return evaluate(
     showdown.SHOWDOWN_REGIONAL_POKEDEXES,
     showdown.SHOWDOWN_GAME_AVAILABILITY,
+    legendsZaPokedex,
+    pokemonGames.pokemonBaseSpeciesKey,
+    pokemonGames.pokemonShowdownProfileKeys,
     catalog.withRegulationMetadata,
   );
 }

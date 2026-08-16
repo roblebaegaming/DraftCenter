@@ -52,6 +52,8 @@ test("release migrations use one production number each", () => {
   assert.ok(migrations.includes("397-private-team-lab-turn-recorder.sql"));
   assert.ok(migrations.includes("398-atomic-auction-reconciliation-and-lifecycle.sql"));
   assert.ok(migrations.includes("399-operations-organization-activity.sql"));
+  assert.ok(migrations.includes("413-separate-pokedex-and-encounter-verification.sql"));
+  assert.ok(migrations.includes("414-import-pokemon-legends-za-pokedex.sql"));
 });
 
 test("the Gen 6 schema gate supports the official X and Y game keys", () => {
@@ -91,7 +93,7 @@ test("integrated quick links expose each released feature once", () => {
 
 test("the full suite includes every integrated feature gate", () => {
   const manifest = JSON.parse(source("package.json"));
-  for (const script of ["test:nuzlocke", "test:tournaments", "test:mega-bracket", "test:public-bracket-builder", "test:multi-pod", "test:trainer-dex", "test:pokedex-tracker", "test:app-platform", "test:calendar", "test:auction-reconciliation", "test:worlds", "test:release-integration"]) {
+  for (const script of ["test:nuzlocke", "test:tournaments", "test:mega-bracket", "test:public-bracket-builder", "test:multi-pod", "test:trainer-dex", "test:pokedex-tracker", "test:app-platform", "test:calendar", "test:auction-reconciliation", "test:worlds", "test:legends-za", "test:release-integration"]) {
     assert.match(manifest.scripts["test:all"], new RegExp(`npm run ${script}`));
   }
 });
