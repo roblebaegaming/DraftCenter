@@ -80,11 +80,15 @@ The report uses the authenticated, server-only Vercel Web Analytics API token
 already used by Website Traffic. It fails softly without exposing the token or
 interrupting the rest of Operations.
 
-Custom-event totals are grouped by `day`. Account-created source and journey
+Custom-event summaries use Vercel's production-only event count endpoint with
+exact Pacific-time starts for today, the last 7 days, and the last 30 days.
+This keeps Pacific-evening events in the current reporting window instead of
+losing them at a UTC date boundary. Account-created source and journey
 leaderboards use Vercel's structured `eventData/source` and
-`eventData/journey` dimensions. The Web Analytics API reads the Production
-dataset for these project queries, so the report does not add an unsupported
-environment filter.
+`eventData/journey` dimensions. When there are no attributed account creations,
+those empty leaderboards are treated as current rather than as an API failure.
+The Web Analytics API reads the Production dataset for these project queries,
+so the report does not add an unsupported environment filter.
 
 References: [Vercel custom events](https://vercel.com/docs/analytics/custom-events),
 [Web Analytics API](https://vercel.com/changelog/web-analytics-api), and
