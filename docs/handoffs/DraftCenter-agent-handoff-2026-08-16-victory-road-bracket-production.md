@@ -1,222 +1,109 @@
-# DraftCenter agent handoff: Victory Road bracket live scoring
+# DraftCenter agent handoff: Victory Road Top 8 live scoring
 
 - Date: August 16, 2026 Pacific
 - Production: https://www.draftcentral.gg
-- Public challenge:
-  https://www.draftcentral.gg/worlds/2026/vgc/victory-road-to-san-francisco
-- Production branch: `main`
-- Verified Production commit:
-  `4d8d900dc42e3eb1a1302f5f044878dd9ad07d62`
-- Release pull requests:
-  [#254](https://github.com/roblebaegaming/DraftCenter/pull/254),
-  [#256](https://github.com/roblebaegaming/DraftCenter/pull/256),
-  [#257](https://github.com/roblebaegaming/DraftCenter/pull/257), and
-  [#258](https://github.com/roblebaegaming/DraftCenter/pull/258)
-- Latest Production migration: 409
-- Release state: deployed, published, verified, and under live scoring monitor
-- Active monitor: `victory-road-top-cut-live-scoring`
-- Monitor cadence: every five minutes until a champion is official
-
-## Start here
-
-The separate Victory Road to San Francisco Top 16 bracket challenge is live at
-the public URL above. It uses the reviewed official Phase 2 Battlefy bracket,
-not the earlier Phase 1 Swiss page. All 16 real names, countries, and eight
-opening matchups were compared before publication. Entries opened at 1:31 PM
-Pacific and lock at 1:45 PM Pacific / 20:45 UTC on August 16, 2026.
-
-At publication, the owner Operations panel reported state `open`, official
-field 16 players, zero member entries, and 0/15 official results. Continue from
-the same [official Phase 2 bracket](https://battlefy.com/victoryroad/victory-road-to-san-francisco-phase-2-top-cut/6a60ab274f0d45001a7281b6/stage/6a820c17b2796d0019f6d118/bracket/)
-for scoring. Do not use aliases, Swiss standings, or a stream graphic to record
-results when the official bracket is available.
-
-A thread heartbeat named **Victory Road Top Cut live scoring** is active. It
-checks the official bracket every five minutes, writes only newly confirmed
-completed winners through the owner controls, verifies the public leaderboard,
-and stops after the official champion is recorded and the challenge is
-finalized. It remains the active continuation while the owner is away.
-
-## What is live
-
-- Members choose the winner of every played matchup. Their choices advance
-  through their own bracket automatically.
-- Fields may contain 3–64 players inside 4-, 8-, 16-, 32-, or 64-slot
-  brackets.
-- Official empty slots become automatic first-round byes. A member never
-  predicts a bye and a bye never awards points.
-- A field of `n` players requires exactly `n - 1` picks.
-- Default correct-pick values progress 1, 2, 4, 8, 16, and 32 by round. The
-  owner can review them before publication.
-- Each account may save one bracket and edit it until lock.
-- Other members' choices stay private before lock. Saved brackets become
-  public after lock and score automatically as reviewed results are entered.
-- Changing an earlier pick clears downstream choices that no longer fit.
-- The owner can publish the field, record reviewed winners, correct a result
-  before a dependent result exists, finalize the challenge, and review the
-  private audit trail from Operations.
-- The official field becomes immutable after the first member saves an entry.
-
-The existing Pokémon Worlds Top Cut challenge remains separate and unchanged.
-This release is the generic event-bracket foundation requested for future
-tournaments.
+- Public challenge: https://www.draftcentral.gg/worlds/2026/vgc/victory-road-to-san-francisco
+- Official source: https://battlefy.com/victoryroad/victory-road-to-san-francisco-phase-2-top-cut/6a60ab274f0d45001a7281b6/stage/6a820c17b2796d0019f6d118/bracket/
+- Verified Production commit: `049c7528efb8aec1cc357abbd3b5feb0cb361715`
+- Release pull request: [#261](https://github.com/roblebaegaming/DraftCenter/pull/261)
+- Latest Production migration: 410
+- Active monitor: `victory-road-top-cut-live-scoring`, every five minutes
 
 ## Current Production state
 
-Event ID: `victory-road-san-francisco-2026`
+The Victory Road challenge was safely replaced with the official Top 8 after
+the Top 16 first round had already finished. The old revision had exactly one
+entry, owned by the approving owner, and no official results. Migration 410's
+guarded supersession archived that entry in the private audit trail, removed it
+from the active leaderboard, and published revision 2 in one transaction.
 
-- configured status: `open`; the public effective state changes to `locked`,
-  `scoring`, or `final` from the deadline and recorded results;
-- revision: 1;
-- field: 16 official players in eight Top 16 matchups;
-- entry window: August 16, 1:31 PM to 1:45 PM Pacific;
-- point values: 1, 2, 4, and 8 by round, 32 maximum;
-- entries at publication: 0;
-- official results at publication: 0/15;
-- audit: one reviewed publication event;
-- public summary RPC: available to anonymous and authenticated visitors;
-- signed-in save RPC: authenticated only;
-- publish, result, and finalize RPCs: service role only through the owner-
-  authenticated Operations API;
-- all five `prediction_bracket_*` tables: forced RLS;
-- direct anonymous and authenticated table access: denied.
+- event ID: `victory-road-san-francisco-2026`;
+- revision: 2;
+- field: 8 players;
+- entries at replacement: 0;
+- results at replacement: 0/7;
+- entry window: August 16, 1:58 PM to 2:10 PM Pacific / 21:10 UTC;
+- points: 1 for each quarterfinal, 2 for each semifinal, and 4 for the final;
+- maximum score: 12 points;
+- public page and leaderboard: verified live;
+- audit: original publication, guarded supersession, and replacement
+  publication recorded privately.
 
-The entry and result counts above are the publication baseline, not a permanent
-snapshot. Every monitoring run must read the current owner state before taking
-action. Never replay a result mutation from a previous run merely because that
-run timed out.
+The official quarterfinals, in bracket order, are:
 
-Migration 409 is forward-only and already applied to Production. Do not replay
-or rewrite it.
+1. Shohei Kimura (JP) vs Dorian Quiñonez (PE)
+2. Kandai Nagatome (JP) vs Hyungwoo Shin (KR)
+3. João Felipe Leite (BR) vs Shunsuke Minami (JP)
+4. Héctor Sánchez (ES) vs Masahiro Ito (JP)
 
 ## Active five-minute monitor
 
-- Automation ID: `victory-road-top-cut-live-scoring`.
-- Kind: thread heartbeat.
-- Status at handoff: `ACTIVE`.
-- Recurrence: every five minutes.
-- Official result source:
-  [Victory Road Phase 2 Top Cut](https://battlefy.com/victoryroad/victory-road-to-san-francisco-phase-2-top-cut/6a60ab274f0d45001a7281b6/stage/6a820c17b2796d0019f6d118/bracket/).
-- DraftCenter challenge:
-  [Victory Road bracket challenge](https://www.draftcentral.gg/worlds/2026/vgc/victory-road-to-san-francisco).
+The thread heartbeat `victory-road-top-cut-live-scoring` is `ACTIVE`. Every run
+must compare Battlefy with the current DraftCenter owner state and record only
+newly completed, official winners in feeder order. Do not infer winners from a
+partial score, stream graphic, Swiss standings, alias, or unconfirmed bracket
+advancement. Never replay a timed-out mutation without re-reading the current
+authoritative state.
 
-Each run must compare the official bracket with the current DraftCenter owner
-state. Record only completed winners that Battlefy shows as official, and do
-so in feeder-match order. Never infer a winner from a partial score, stream
-graphic, Swiss standings, alias, or an unconfirmed advancement. If an existing
-DraftCenter result conflicts with the official bracket, stop that mutation and
-report the conflict for owner review instead of overwriting it.
+After every accepted winner, verify the public leaderboard and the published
+1/2/4 scoring. If an existing result conflicts with Battlefy, do not overwrite
+it; report the conflict for owner review. When Battlefy shows the champion,
+verify all seven winners, finalize with the same official URL, verify the final
+leaderboard, report completion, and stop the heartbeat.
 
-After every accepted result, verify that the public leaderboard recalculates
-rank, display name, and points using the published 1/2/4/8 round values. The
-public client refreshes its hub data every 60 seconds; a manual reload may be
-used for immediate verification. Before lock, other members' picks are private;
-after lock, saved brackets and their scores are public.
+## Replacement safety contract
 
-When Battlefy shows the champion, compare all 15 played winners with the
-DraftCenter result set. Only then finalize with the same official URL, verify
-the final leaderboard, report the champion and completion summary to the user,
-and stop the heartbeat. Do not stop merely because the page is temporarily
-unavailable or unchanged.
+Migration 410 adds the service-role-only
+`supersede_prediction_bracket(...)` RPC. It succeeds only when all of these are
+true:
 
-## Exact event-day continuation
+- the typed confirmation is exactly `SUPERSEDE OFFICIAL BRACKET`;
+- the current revision has exactly one saved entry;
+- that entry belongs to the approving owner;
+- the current revision has zero recorded official results;
+- the event is neither final nor cancelled.
 
-### 1. Let the entry window lock
-
-The saved deadline is August 16 at 1:45 PM Pacific / 20:45 UTC. Do not extend
-or reopen it after seeing match outcomes. Confirm the public page changes from
-open to locked and exposes saved brackets according to the existing privacy
-contract.
-
-### 2. Score from the official bracket
-
-Use the official live bracket URL in the result panel. Record feeder matches
-before later rounds. Byes appear as automatic and have no result button. Check
-the public leaderboard after each round.
-
-If an official result was entered incorrectly, correct it before recording the
-dependent downstream match. The database rejects an upstream change once a
-downstream result exists.
-
-### 3. Finalize only from the completed official bracket
-
-After all `field_size - 1` played winners match the official bracket, compare
-the whole result once more, supply the final public source, and type
-`FINALIZE OFFICIAL BRACKET`. Finalization makes all recorded results final and
-prevents later writes.
+The RPC stores the old entry's display name, picks, and timestamps in the
+private audit, deletes the old active entry, and calls the established bracket
+publication path to create a fresh revision. The transaction rolls back if any
+step fails. All five prediction-bracket tables continue to force RLS, and only
+the service role can execute the supersession RPC.
 
 ## Validation evidence
 
+- Focused bracket tests: 7/7 passed.
+- Preview migration and isolated regression passed, including wrong-owner and
+  multiple-entry denial, revision 2 publication, private archival, RLS, grants,
+  active-entry reset, and exact fixture cleanup.
 - `pnpm audit --prod --audit-level high`: no known vulnerabilities.
-- `npm run test:all`: passed, including the new six-test bracket suite.
+- `npm run test:all`: passed.
 - `npm run test:national-dex`: passed across 1,027 rows.
-- `npm run build`: passed with 305 static pages; the existing non-blocking
-  symbol-font download warning remained unchanged.
-- Protected dependency/security, full-history secret scan, CodeQL, JavaScript
-  analysis, Supabase, and Vercel checks passed.
-- Migration 409 was applied to retained Preview project
-  `kumcwwuxeecaeqwkydtb` before Production.
-- The retained Preview regression passed a disposable 13-player field inside a
-  16-slot bracket: three byes, 12 picks, pre-lock privacy, field immutability,
-  automatic 29-point scoring, correction safeguards, finalization, grants,
-  forced RLS, and exact fixture cleanup.
-- The exact hosted Preview passed desktop, 390px, and 320px review with no
-  horizontal overflow or browser alerts.
-- Production preflight confirmed migration 408 present and migration 409
-  absent before the one-time apply.
-- Production postflight first confirmed the waiting revision-0 seed, forced
-  RLS, denied direct browser reads, authenticated save access, denied
-  authenticated publish access, and service-only publish access.
-- Pull requests #256 and #257 corrected the owner Operations session forwarding
-  and loader contract; pull request #258 fixed the event deadline at
-  `2026-08-16T20:45:00.000Z`. Their protected security, CodeQL, JavaScript
-  analysis, secret-scan, Supabase, and Vercel checks passed.
-- Vercel deployed exact merge commit `4d8d900` to Production.
-- The signed-in owner panel confirmed `open`, revision 1, 16 players, zero
-  entries, and 0/15 results immediately after publication.
-- The live public page showed the separate Victory Road identity, all eight
-  official Top 16 matchups, reviewed Battlefy source, August 16 1:45 PM PDT
-  lock, 1/2/4/8 round values, 15 required picks, and 32 maximum points.
+- Environment-backed `npm run build`: passed with 305 static pages; the
+  existing non-blocking symbol-font download warning remained unchanged.
+- Protected security, secret-scan, CodeQL, JavaScript analysis, and Vercel
+  checks passed on PR #261.
+- Production preflight confirmed revision 1, field size 16, exactly one entry,
+  zero results, and migration 410 absent before application.
+- Migration 410 applied successfully to exact Production project
+  `eukexfqpiuidwygllaye`.
+- Vercel deployed exact merge commit `049c752`.
+- Signed-in Operations verified revision 2, eight players, zero entries, 0/7
+  results, the exact four matchups, and the three-event audit.
+- The public page verified the 2:10 PM PDT lock, 1/2/4 values, seven picks,
+  12-point maximum, and zero active brackets.
 - `npm run smoke:production`: all 17 public routes and five protected 401
   boundaries passed.
 
 ## Preserved boundaries
 
-- Publication created only the intended official field revision and private
-  audit record. It created no member entry, official result, synthetic account,
-  league, team, roster, draft, or Pokédex record.
-- Preview fixtures were synthetic and removed by exact identifiers.
-- Production retained the intended event infrastructure and now contains the
-  reviewed official Top 16 field at revision 1.
-- No provider setting, environment variable, authentication configuration, or
-  secret changed.
-- No result importer, scraper, scheduler, or automatic Swiss-to-bracket writer
-  was enabled.
-- The original dirty DraftCenter workspace and all unrelated owner changes were
-  preserved.
-- Mushroom Cup and the intentionally paused historical Mushroom Hut drafts
-  were not touched.
-
-## Later improvements, not needed for today's event
-
-- Add an owner-reviewed setup-file import only if manual entry proves too slow;
-  keep a final visual comparison and typed publication confirmation.
-- Add a public event directory when more than one non-Worlds bracket challenge
-  exists.
-- Add share images or perfect-bracket statistics only after the core entry and
-  scoring workflow receives real usage.
-- Do not automate Battlefy ingestion without explicit permission, a reviewed
-  stable data contract, attribution, failure handling, and a separate release.
+No league, draft, roster, team, account, provider setting, environment
+variable, authentication setting, or secret changed. No unrelated tournament
+or Worlds challenge changed. The original owner entry is retained only in the
+private audit and is not an active submission. The original dirty workspace,
+Mushroom Cup, and the intentionally paused Mushroom Hut drafts were untouched.
 
 ## References
 
 - Canonical status: [`../CURRENT-STATUS.md`](../CURRENT-STATUS.md)
-- Bracket contract:
-  [`../prediction-bracket-challenges.md`](../prediction-bracket-challenges.md)
-- Existing Worlds Top Cut contract:
-  [`../worlds-vgc-top-cut-bracket.md`](../worlds-vgc-top-cut-bracket.md)
-- Existing Worlds announcement checklist:
-  [`../worlds-vgc-top-cut-announcement-checklist.md`](../worlds-vgc-top-cut-announcement-checklist.md)
-- Preceding Pokédex handoff:
-  [`DraftCenter-agent-handoff-2026-08-16-pokedex-numbered-dexes-production.md`](DraftCenter-agent-handoff-2026-08-16-pokedex-numbered-dexes-production.md)
+- Bracket contract: [`../prediction-bracket-challenges.md`](../prediction-bracket-challenges.md)
 - Permanent repository policy: [`../../AGENTS.md`](../../AGENTS.md)

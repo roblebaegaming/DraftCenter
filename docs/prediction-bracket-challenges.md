@@ -13,8 +13,8 @@ Francisco**. Its public page is:
 
 `/worlds/2026/vgc/victory-road-to-san-francisco`
 
-The reviewed Phase 2 Top 16 field is published at revision 1. Entries opened on
-August 16, 2026 at 1:31 PM Pacific and lock at 1:45 PM Pacific / 20:45 UTC. The
+The reviewed Phase 2 Top 8 field is published at revision 2. Entries opened on
+August 16, 2026 at 1:58 PM Pacific and lock at 2:10 PM Pacific / 21:10 UTC. The
 official result source is the [Victory Road Phase 2 Top Cut bracket](https://battlefy.com/victoryroad/victory-road-to-san-francisco-phase-2-top-cut/6a60ab274f0d45001a7281b6/stage/6a820c17b2796d0019f6d118/bracket/).
 Do not derive or guess results from Phase 1 Swiss standings, aliases, stream
 graphics, partial scores, or unconfirmed advancement.
@@ -58,17 +58,21 @@ The active `victory-road-top-cut-live-scoring` thread heartbeat performs this
 review every five minutes until the official champion is shown. It may record
 only newly confirmed completed winners in feeder order. A conflicting existing
 result requires owner review; it must not be overwritten automatically. After
-all 15 winners are reconciled, it finalizes the challenge, verifies the final
+all seven winners are reconciled, it finalizes the challenge, verifies the final
 leaderboard, reports completion, and stops itself.
 
-Once any member saves an entry, the published field cannot be replaced. A
-result correction is allowed only before a dependent downstream result has
-been recorded. Every publication, result, correction, and finalization is
-written to the private owner audit trail.
+Migration 410 permits one narrow replacement case: exactly one entry, owned by
+the approving owner, and zero official results. The owner must type
+`SUPERSEDE OFFICIAL BRACKET`; the old entry is archived privately and the new
+revision is published atomically. Multiple entries or any recorded result keep
+the field immutable. A result correction is allowed only before a dependent
+downstream result has been recorded. Every publication, supersession, result,
+correction, and finalization is written to the private owner audit trail.
 
 ## Data and security boundary
 
-Migration 409 adds generic `prediction_bracket_*` tables. All five tables force
+Migration 409 adds generic `prediction_bracket_*` tables. Migration 410 adds
+the guarded service-role-only supersession RPC. All five tables force
 row-level security and deny direct browser-role table access. Public and signed-
 in clients read the bounded hub RPC. Only a signed-in account may save its own
 entry. Publication, result recording, and finalization RPCs are service-role
@@ -79,3 +83,8 @@ The focused Preview matrix is
 a disposable 13-player/16-slot field with three byes, verifies 12 played picks,
 pre-lock privacy, automatic scoring, field immutability, correction safety,
 finalization, grants, forced RLS, and exact fixture cleanup.
+
+The focused supersession Preview matrix is
+`supabase/tests/410-owner-only-bracket-supersession-preview-regression.sql`. It
+verifies ownership and entry-count rejection, private archival, fresh-revision
+publication, RLS, grants, active-entry reset, and exact fixture cleanup.
