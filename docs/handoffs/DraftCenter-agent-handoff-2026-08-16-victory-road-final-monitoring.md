@@ -6,7 +6,7 @@
 - Public challenge: https://www.draftcentral.gg/worlds/2026/vgc/victory-road-to-san-francisco
 - Official bracket: https://battlefy.com/victoryroad/victory-road-to-san-francisco-phase-2-top-cut/6a60ab274f0d45001a7281b6/stage/6a820c17b2796d0019f6d118/bracket/
 - Official final match: https://battlefy.com/victoryroad/victory-road-to-san-francisco-phase-2-top-cut/6a60ab274f0d45001a7281b6/stage/6a820c17b2796d0019f6d118/match/6a820c2bb2796d0019f6d158
-- Verified Production feature commit: `26a95dc5ae66cde281a0c6a8cdda5ee41c25d448`
+- Verified Production feature commit: `0c9e07b348f5f91d5062e20cbdb6b04a8b33a276`
 - Latest Production migration: 412
 - Completed monitor: `victory-road-top-cut-live-scoring`, stopped after final verification
 
@@ -99,6 +99,14 @@ near the selected row, round navigation fits without horizontal page overflow,
 and the browser reported no page warnings or errors. No database migration was
 required for these two releases.
 
+Pull request [#274](https://github.com/roblebaegaming/DraftCenter/pull/274)
+then added dependency-free PNG downloads for the member's completed bracket,
+the public Top 16 archive, and each post-lock leaderboard bracket. Exports are
+generated locally from the same authorized payload, start at 1,920 by 1,350
+pixels, and contain the event, Trainer, score, round values, saved picks,
+official winners, and public URL. They do not expose account IDs, publish
+anything new, or make another member's pre-lock picks available.
+
 ## Release and validation evidence
 
 - Pull request #266 and migration 412 released the exact Top 16 archive at
@@ -107,6 +115,9 @@ required for these two releases.
   view and corrected status language.
 - Pull requests #271 and #272 released the post-lock entrant gallery and mobile
   navigation at commit `26a95dc5ae66cde281a0c6a8cdda5ee41c25d448`.
+- Pull request #274 released bracket PNG downloads at exact Production commit
+  `0c9e07b348f5f91d5062e20cbdb6b04a8b33a276`.
+- Focused bracket and image-export tests: 12/12 passed.
 - Focused prediction-bracket tests: 9/9 passed.
 - `pnpm audit --prod --audit-level high`: no known vulnerabilities.
 - `npm run test:all`: passed.
@@ -120,6 +131,9 @@ required for these two releases.
   passed after deployment.
 - Live desktop and mobile checks confirmed the archive, entrant gallery,
   leaderboard interaction, responsive layout, and clean browser console.
+- The generated 1,920 by 1,350 preview was visually reviewed, and both the
+  archived-bracket and public entrant-bracket Production downloads encoded
+  successfully with their completion status announced in the page.
 
 ## What remains
 
