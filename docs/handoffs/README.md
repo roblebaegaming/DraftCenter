@@ -1,12 +1,14 @@
 # Agent handoffs
 
 [`DraftCenter-agent-handoff-2026-08-16-post-launch-final.md`](DraftCenter-agent-handoff-2026-08-16-post-launch-final.md)
-is the current continuation handoff. The application, migration 407, both
+is the current continuation handoff. The focused Pokédex Tracker and Team Lab
+shells, guided four-step Bank Rescue project, application, migration 407, both
 Instagram sequences, retained Preview Turnstile verification, completion
-documentation, Production deployment, and post-deployment smoke sweep are
-complete. It records the scheduled 3/7/30-day aggregate measurement and the
-remaining owner work: identify Founding Collector tester candidates and decide
-the exact audience before any invitations are sent.
+documentation, exact Production deployments, and post-deployment smoke sweeps
+are complete. It records the scheduled 3/7/30-day aggregate measurement, the
+source-backed Pokédex continuation order, and the remaining owner work: identify
+Founding Collector tester candidates and decide the exact audience before any
+invitations are sent.
 
 [`DraftCenter-agent-handoff-2026-08-15-final-launch-next-steps.md`](DraftCenter-agent-handoff-2026-08-15-final-launch-next-steps.md)
 is the preceding full launch-evidence record. It contains all 20 public post

@@ -3,10 +3,23 @@
 - Last updated: August 16, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified production feature commit: `7126f3a492078e435b9dd4276701f502ef1ab32b`
+- Verified production feature commit: `9ad9734cc976464de42f53d210b0a3fd61410385`
 - Latest production migration: 407
 
 ## Deployed state
+
+Pull request [#249](https://github.com/roblebaegaming/DraftCenter/pull/249)
+deployed the first guided Bank Rescue project. Its Access map, Important
+Pokémon, Intentions, and Archive steps resume from the existing owner-scoped
+location and individual records, hand off to the established private forms,
+and return to the guide after a save or cancel. The archive retains the dated
+official-source review, while access labels and transfer intentions remain
+explicitly owner-entered—not proof of access, compatibility, or completion.
+The dependency audit, complete application suite, 1,027-row National Dex
+check, protected security and CodeQL checks, hosted build, exact Production
+deployment at `9ad9734`, all 20 signed-out Production smoke checks, and a
+non-mutating signed-in live walkthrough passed. No migration, Production data,
+provider setting, environment variable, secret, or tester invitation changed.
 
 Pull request [#248](https://github.com/roblebaegaming/DraftCenter/pull/248)
 deployed the shared focused-app foundation plus the Pokédex Tracker Rescue
