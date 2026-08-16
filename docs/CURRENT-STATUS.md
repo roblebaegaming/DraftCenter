@@ -3,7 +3,7 @@
 - Last updated: August 15, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified production feature commit: `b692c1cd5894d237d040e7d0549a629cbd21e3fe`
+- Verified production feature commit: `0d4ce5c9fe2f70b8c9d2dd784d9f142c1500c305`
 - Latest production migration: 406
 
 ## Deployed state
@@ -24,9 +24,17 @@ verification, 258-page build, protected checks, and hosted desktop/390px/320px
 review passed. Vercel reports exact `main` commit `b692c1c` Ready, Current, and
 Production on `www.draftcentral.gg`; all 20 signed-out smoke checks passed. A
 single signed-out Team Lab QA visit produced the expected `Signup Started`
-event without submitting or creating an account. The owner-only Operations API
-remained protected signed-out; a signed-in live panel review still requires an
-owner browser session.
+event without submitting or creating an account. Pull requests
+[#233](https://github.com/roblebaegaming/DraftCenter/pull/233) through
+[#236](https://github.com/roblebaegaming/DraftCenter/pull/236) then aligned the
+owner report with Vercel's supported aggregate query contract: exact Pacific
+reporting windows, structured event dimensions, production-default filtering,
+and bounded 20-row groupings. Vercel reports exact `main` commit `0d4ce5c`
+Ready, Current, and Production; all 20 signed-out smoke checks passed. The
+signed-in owner panel now shows the same one signup start as Vercel Production
+Analytics, zero attributed account creations as expected before the first
+post-release completion, current empty source and journey lists, no outage
+warning, and no identities or other personal data.
 
 Pull request [#230](https://github.com/roblebaegaming/DraftCenter/pull/230)
 and migrations 404-406 completed the Team Lab live-battle workflow. Team Lab
