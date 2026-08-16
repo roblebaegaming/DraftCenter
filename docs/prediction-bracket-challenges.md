@@ -19,6 +19,10 @@ official result source is the [Victory Road Phase 2 Top Cut bracket](https://bat
 Do not derive or guess results from Phase 1 Swiss standings, aliases, stream
 graphics, partial scores, or unconfirmed advancement.
 
+The event is final. Hyungwoo Shin is the reviewed champion, all seven Top 8
+results and all 15 reconstructed Top 16 results are scored, and the completed
+five-minute monitor has been deleted.
+
 Revision 1 contained the original Top 16 and Rob Lebae's saved bracket. When
 the official event moved to Top 8 before the public challenge was ready, the
 owner-only replacement archived that entry. The active Top 8 leaderboard uses
@@ -56,6 +60,15 @@ remains visible even when the carried side later contains Shohei Kimura.
   does not infer a result from a partial score or an unreviewed stream graphic.
 - The public page reloads current event, result, entry, and leaderboard data
   every 60 seconds. A manual reload may be used for immediate verification.
+- A member can download their complete bracket as a branded PNG without
+  publishing anything new. After lock, the same download is available for
+  every public leaderboard bracket and any deliberately public archive.
+- The image is built locally in the browser from the already-authorized bracket
+  payload. It includes the event and Trainer names, score when available,
+  round values, full saved path, official-winner markings, and the public page
+  URL. It does not add account IDs or make pre-lock entries public.
+- Social images are at least 1,920 by 1,350 pixels and expand for larger
+  supported fields so the complete bracket remains legible.
 
 ## Owner event-day workflow
 
@@ -73,12 +86,12 @@ The owner controls are in Operations under **Victory Road to San Francisco**.
 7. After every played match is recorded, compare the full bracket again and
    type `FINALIZE OFFICIAL BRACKET`.
 
-The active `victory-road-top-cut-live-scoring` thread heartbeat performs this
-review every five minutes until the official champion is shown. It may record
-only newly confirmed completed winners in feeder order. A conflicting existing
-result requires owner review; it must not be overwritten automatically. After
-all seven winners are reconciled, it finalizes the challenge, verifies the final
-leaderboard, reports completion, and stops itself.
+The completed `victory-road-top-cut-live-scoring` thread heartbeat performed
+this review every five minutes until the official champion was shown. It
+recorded only newly confirmed completed winners in feeder order, finalized the
+challenge after all seven winners were reconciled, verified the final
+leaderboard, and was then deleted. Do not recreate it unless a new live event
+explicitly requires monitoring.
 
 Migration 410 permits one narrow replacement case: exactly one entry, owned by
 the approving owner, and zero official results. The owner must type
