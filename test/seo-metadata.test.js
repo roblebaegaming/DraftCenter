@@ -482,7 +482,7 @@ test("AI discovery foundation exposes a trustworthy entity and reference index",
   assert.match(llms, /Team Lab Pokémon team builder and matchup planner/);
   assert.match(llms, /Sunday's eight-entry Super Bracket/);
   assert.match(llms, /it\/worlds\/2026/);
-  assert.match(llms, /Last reviewed: 2026-08-13/);
+  assert.match(llms, /Last reviewed: 2026-08-15/);
   assert.match(llms, /Private queues/);
   assert.match(content, /national-gen\$\{generation\}/);
 });

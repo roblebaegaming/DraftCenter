@@ -3,6 +3,7 @@ import { FORMATS, GUIDES, GUIDE_UPDATED_DATE } from "../lib/seoContent";
 import { getAllPokemonProfiles, POKEMON_GENERATIONS, POKEMON_TYPES } from "../lib/publicPokemonIndex";
 import { POKEMON_COLOR_OPTIONS, POKEMON_EGG_GROUP_OPTIONS, POKEMON_SHAPE_OPTIONS } from "../lib/pokemonSpeciesTraits";
 import nuzlockeGameGuides from "../lib/nuzlockeGameGuides.json";
+import { SHINY_HUNTING_GUIDES, SHINY_GUIDE_UPDATED_DATE } from "../lib/shinyHuntingGuides";
 
 const PRODUCT_DISCOVERY_LAST_MODIFIED = new Date("2026-08-13T00:00:00.000Z");
 const WORLDS_2026_LAST_MODIFIED = new Date("2026-08-11T00:00:00.000Z");
@@ -44,6 +45,7 @@ const routes = [
   ["/pokedex-tracker", "weekly", 0.9],
   ["/nuzlocke", "weekly", 0.9],
   ["/nuzlocke/guides", "monthly", 0.9],
+  ["/guides/shiny-hunting", "monthly", 0.9],
   ["/tournaments", "daily", 0.8],
   ["/worlds/2026", "daily", 0.9],
   ["/worlds/2026/vgc", "daily", 0.9],
@@ -65,6 +67,7 @@ const routes = [
 // Update this only when the authored guide or format catalog materially changes.
 const AUTHORED_CONTENT_LAST_MODIFIED = new Date("2026-08-03T00:00:00.000Z");
 const NUZLOCKE_GUIDES_LAST_MODIFIED = new Date("2026-08-07T00:00:00.000Z");
+const SHINY_GUIDES_LAST_MODIFIED = new Date(SHINY_GUIDE_UPDATED_DATE + "T00:00:00.000Z");
 const POKEMON_TRAIT_CONTENT_LAST_MODIFIED = new Date("2026-08-09T00:00:00.000Z");
 
 async function pokemonRoutes() {
@@ -131,5 +134,11 @@ export default async function sitemap() {
     changeFrequency: "monthly",
     priority: 0.8,
   }));
-  return [...staticRoutes, ...nuzlockeGuideRoutes, ...guideRoutes, ...formatRoutes, ...pokemonIndexRoutes, ...pokemonTraitRoutes, ...leagueRoutes, ...pokemon];
+  const shinyGuideRoutes = SHINY_HUNTING_GUIDES.map(({ slug }) => ({
+    url: "https://www.draftcentral.gg/guides/shiny-hunting/" + slug,
+    lastModified: SHINY_GUIDES_LAST_MODIFIED,
+    changeFrequency: "monthly",
+    priority: 0.8,
+  }));
+  return [...staticRoutes, ...nuzlockeGuideRoutes, ...shinyGuideRoutes, ...guideRoutes, ...formatRoutes, ...pokemonIndexRoutes, ...pokemonTraitRoutes, ...leagueRoutes, ...pokemon];
 }
