@@ -1685,3 +1685,4 @@ button.mega-bracket-slot:hover,button.mega-bracket-slot:focus-visible { color: #
 }
 @media(max-width:420px) { .mega-recap-grid { grid-template-columns: 1fr; } }
 @media(prefers-reduced-motion:reduce) { .mega-milestone-backdrop,.mega-milestone-dialog { animation: none; } }
+.auth-captcha,.auth-captcha-widget{width:100%;min-width:0;max-width:100%;overflow:hidden}.auth-captcha-widget>div,.auth-captcha-widget iframe{width:100%!important;max-width:100%!important}

@@ -64,7 +64,7 @@ export default function TurnstileChallenge({ siteKey, action, resetKey, onTokenC
         sitekey: siteKey,
         action,
         theme: "dark",
-        size: "flexible",
+        size: window.matchMedia("(max-width: 360px)").matches ? "compact" : "flexible",
         callback(token) {
           if (!active) return;
           setError("");
@@ -100,5 +100,5 @@ export default function TurnstileChallenge({ siteKey, action, resetKey, onTokenC
   }, [action, resetKey, siteKey]);
 
   if (!siteKey) return null;
-  return <div><div ref={containerRef} role="group" aria-label="Security check" />{error && <p className="hub-message" role="alert">{error}</p>}</div>;
+  return <div className="auth-captcha"><div className="auth-captcha-widget" ref={containerRef} role="group" aria-label="Security check" />{error && <p className="hub-message" role="alert">{error}</p>}</div>;
 }
