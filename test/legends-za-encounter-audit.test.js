@@ -73,7 +73,7 @@ test("activation stays blocked until route conditions and an independent source 
   assert.ok(audit.activation_blockers.some((reason) => reason.includes("commissioner-approved location/progression model")));
 
   const nuzlockeRoute = source("src/app/api/nuzlocke/route.js");
-  const pokedexMigration = source("supabase/414-import-pokemon-legends-za-pokedex.sql");
+  const pokedexMigration = source("supabase/415-import-pokemon-legends-za-pokedex.sql");
   assert.match(nuzlockeRoute, /\.eq\("encounter_status", "verified"\)/);
   assert.match(pokedexMigration, /encounter data must remain absent until separately reviewed/);
   assert.doesNotMatch(pokedexMigration, /insert into public\.pokemon_game_(locations|encounters)/i);

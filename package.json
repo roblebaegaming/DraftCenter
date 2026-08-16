@@ -98,7 +98,7 @@
     "catalog:build:gen8": "node scripts/build-pokemon-gen8-catalog.mjs",
     "catalog:build:gen9": "node scripts/build-pokemon-gen9-catalog.mjs",
     "catalog:build:legends-za": "node scripts/build-pokemon-pokedex-catalog.mjs --game legends-za --output data/pokemon/pokemon-legends-za-pokedex.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json",
-    "catalog:build:legends-za-migration": "node scripts/build-pokemon-pokedex-migration.mjs --input data/pokemon/pokemon-legends-za-pokedex.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json --output supabase/414-import-pokemon-legends-za-pokedex.sql",
+    "catalog:build:legends-za-migration": "node scripts/build-pokemon-pokedex-migration.mjs --input data/pokemon/pokemon-legends-za-pokedex.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json --output supabase/415-import-pokemon-legends-za-pokedex.sql",
     "catalog:build:legends-za-encounter-audit": "node scripts/build-pokemon-legends-za-encounter-audit.mjs",
     "catalog:check:legends-za-encounter-audit": "node scripts/build-pokemon-legends-za-encounter-audit.mjs --check",
     "catalog:build:migration": "node scripts/build-pokemon-catalog-migration.mjs",

@@ -3,10 +3,31 @@
 - Last updated: August 16, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified production feature commit: `049c7528efb8aec1cc357abbd3b5feb0cb361715`
-- Latest production migration: 410
+- Verified production feature commit: `cabe7fdc6b07d8fdcd760538af5b9673b7963752`
+- Latest production migration: 412
 
 ## Deployed state
+
+Pull request [#266](https://github.com/roblebaegaming/DraftCenter/pull/266)
+and migration 412 restored the original Victory Road Top 16 as a separate,
+read-only archive on the live challenge page. It shows Rob Lebae's exact saved
+names and picks, including Markus Hamann's original path, and scores that
+archive against the reviewed Top 16 and Top 8 results using the original
+1/2/4/8 contract. The active revision 2 Top 8 entry and 1/2/4 leaderboard are
+unchanged. The bounded public archive RPC works only after lock, omits account
+identity, and does not grant browser access to the private audit table. At
+release, the archive scored 4/32 with 13/15 results reconstructed while the
+active Top 8 remained at five reviewed results. The isolated Preview privacy
+matrix, focused and full suites, dependency audit, 1,027-row National Dex
+check, 305-page build, protected checks, exact Production deployment at
+`cabe7fd`, live desktop review, and all 22 Production smoke checks passed.
+
+Pull request [#263](https://github.com/roblebaegaming/DraftCenter/pull/263)
+and migration 411 had previously restored the approving owner's archived
+submission to the empty revision 2 leaderboard. That carryover intentionally
+preserves bracket-side choices, which can display an actual advancing player
+where the original prediction named a different player on the same side. The
+new Top 16 archive is the canonical view of the exact original names and picks.
 
 Pull request [#261](https://github.com/roblebaegaming/DraftCenter/pull/261) and
 migration 410 safely replaced the Victory Road to San Francisco challenge with
@@ -1116,12 +1137,14 @@ and its group assignments, advancement rules, and playoff pairings are
 published. Model UNITE predictions by team, not by individual player.
 Keep the Worlds bracket challenge closed until official pairings exist.
 
-The Victory Road to San Francisco challenge is open from the reviewed public
-Phase 2 Top 16 bracket and locks at 1:45 PM Pacific / 20:45 UTC on August 16.
-Do not replace the field after a member saves an entry. Record winners in
-feeder order from the same official Battlefy bracket, confirm the public
-leaderboard after each round, and finalize only after all 15 results have been
-visually reconciled with the completed official bracket. The active
+The Victory Road to San Francisco challenge is revision 2 with the reviewed
+Top 8 field and locked at 2:10 PM Pacific / 21:10 UTC on August 16. Its active
+leaderboard uses 1/2/4 scoring, while the separate read-only Top 16 archive
+keeps the exact original names, picks, and 1/2/4/8 score. Do not replace either
+field. Record winners in feeder order from the same official Battlefy bracket,
+confirm the public leaderboard and archive score after each round, and finalize
+only after all seven active Top 8 results have been visually reconciled with
+the completed official bracket. The active
 `victory-road-top-cut-live-scoring` heartbeat owns this five-minute monitoring
 loop until a champion is official; unchanged state is expected and is not a
 reason to stop it.

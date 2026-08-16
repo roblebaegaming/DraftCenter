@@ -50,7 +50,7 @@ const countAssertions = Object.entries(expectedCounts)
   .map(([key, count]) => `(select count(*) from public.pokemon_game_pokedex_entries where game_key=${gameKey} and pokedex_key=${quoted(key)})<>${count}`)
   .join(" or ");
 
-const sql = `-- Generated from ${input}
+const sql = `-- Migration 415 generated from ${input}
 -- PokéAPI source commit: ${sourceCommit} -- gitleaks:allow -- public upstream revision pin
 -- Independent Pokémon Showdown check: ${independentCommit}
 -- Pokédex-only import: encounter data intentionally remains unavailable.

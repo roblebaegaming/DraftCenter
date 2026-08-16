@@ -1,5 +1,5 @@
 -- Preview-only regression for owner-created prediction events and the public
--- directory. Run only after migrations 409 through 412 on an isolated Preview.
+-- directory. Run only after migrations 409 through 413 on an isolated Preview.
 
 rollback;
 drop table if exists pg_temp.dc_prediction_publisher_preview_results;
@@ -41,7 +41,7 @@ begin
   select public.create_prediction_bracket_event(
     v_event_id,
     'Preview prediction publisher',
-    'Disposable owner-published prediction event for migration 412.',
+    'Disposable owner-published prediction event for migration 413.',
     'https://example.com/preview-event',
     v_owner,
     'CREATE PREDICTION EVENT'

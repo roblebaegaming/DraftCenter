@@ -16,7 +16,7 @@ hidden from the directory.
 The existing Victory Road page remains available at
 `/worlds/2026/vgc/victory-road-to-san-francisco` for compatibility. Its reusable
 event route is `/predictions/victory-road-san-francisco-2026` after migration
-412 and the publisher application are released.
+413 and the publisher application are released.
 
 ## Current production event
 
@@ -30,6 +30,14 @@ August 16, 2026 at 1:58 PM Pacific and lock at 2:10 PM Pacific / 21:10 UTC. The
 official result source is the [Victory Road Phase 2 Top Cut bracket](https://battlefy.com/victoryroad/victory-road-to-san-francisco-phase-2-top-cut/6a60ab274f0d45001a7281b6/stage/6a820c17b2796d0019f6d118/bracket/).
 Do not derive or guess results from Phase 1 Swiss standings, aliases, stream
 graphics, partial scores, or unconfirmed advancement.
+
+Revision 1 contained the original Top 16 and Rob Lebae's saved bracket. When
+the official event moved to Top 8 before the public challenge was ready, the
+owner-only replacement archived that entry. The active Top 8 leaderboard uses
+the carried bracket-side path and the 1/2/4 scoring contract. The public page
+also shows the original Top 16 names and choices as a separate read-only
+archive with its original 1/2/4/8 scoring, so a pick such as Markus Hamann
+remains visible even when the carried side later contains Shohei Kimura.
 
 ## Bracket behavior
 
@@ -47,6 +55,12 @@ graphics, partial scores, or unconfirmed advancement.
   and change them before publication.
 - Entries are private before lock. After lock, saved brackets and the scored
   leaderboard are public.
+- A carried entry may expose its locked original bracket as a separate archive.
+  The archive never changes the active revision, active leaderboard, or live
+  result writer.
+- The archive maps the official replacement field back to the original player
+  names, then maps each reviewed live result to the next original round. It
+  does not infer a result from a partial score or an unreviewed stream graphic.
 - The public page reloads current event, result, entry, and leaderboard data
   every 60 seconds. A manual reload may be used for immediate verification.
 
@@ -101,20 +115,25 @@ Migration 410 permits one narrow replacement case: exactly one entry, owned by
 the approving owner, and zero official results. The owner must type
 `SUPERSEDE OFFICIAL BRACKET`; the old entry is archived privately and the new
 revision is published atomically. Multiple entries or any recorded result keep
-the field immutable. A result correction is allowed only before a dependent
+the field immutable. Migration 411 permits the same approving owner to carry
+that archived path into an empty, locked replacement leaderboard. It preserves
+which bracket side was chosen, labels the entry as a Top 16 carryover, and
+records the action privately. A result correction is allowed only before a dependent
 downstream result has been recorded. Every publication, supersession, result,
-correction, and finalization is written to the private owner audit trail.
+correction, carryover, and finalization is written to the private owner audit
+trail.
 
 ## Data and security boundary
 
 Migration 409 adds generic `prediction_bracket_*` tables. Migration 410 adds
-the guarded, service-role-only supersession path. Migration 411 adds the
-audited owner-entry carry-forward path. Migration 412 adds the service-role-
-only event creator and the bounded public event directory. All
-five tables force row-level security and deny direct browser-role table access.
-Only a signed-in account may save its own entry. Browser roles can list only
-already-published, non-cancelled events; they cannot create or directly query
-events. Publication, supersession, result recording, and finalization remain
+the guarded service-role-only supersession RPC, migration 411 adds the audited
+owner-entry carryover RPC, and migration 412 adds the bounded public archive
+RPC. Migration 413 adds the service-role-only event creator and bounded public
+event directory. The archive never returns an account ID or grants browser
+access to the private audit table. All five tables force row-level security and
+deny direct browser-role table access. Public and signed-in clients read only
+bounded RPCs. Only a signed-in account may save its own entry. Event creation,
+publication, supersession, result recording, and finalization remain
 service-role only behind the owner-authenticated Operations route. Event
 identifiers are validated and unique, so a permanent public route cannot be
 silently reused.
@@ -130,9 +149,16 @@ The focused supersession Preview matrix is
 verifies ownership and entry-count rejection, private archival, fresh-revision
 publication, RLS, grants, active-entry reset, and exact fixture cleanup.
 
-The migration 412 Preview matrix is
-`supabase/tests/412-owner-published-prediction-events-preview-regression.sql`.
+The carryover and archive Preview matrices are
+`supabase/tests/411-owner-bracket-path-carryover-preview-regression.sql` and
+`supabase/tests/412-public-locked-bracket-archive-preview-regression.sql`.
+They verify side-path preservation, replay and wrong-owner rejection, public
+lock timing, identity omission, private audit-table grants, and exact fixture
+cleanup.
+
+The publisher Preview matrix is
+`supabase/tests/413-owner-published-prediction-events-preview-regression.sql`.
 It creates a disposable draft, verifies that the draft is hidden, rejects a
 duplicate permanent URL, publishes the field, verifies directory visibility
 and grants, then removes the fixture exactly. It must be run only on an
-isolated Preview after migrations 409 through 412.
+isolated Preview after migrations 409 through 413.

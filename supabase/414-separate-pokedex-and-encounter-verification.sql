@@ -1,4 +1,4 @@
--- Pokédex completeness and encounter completeness are independent capabilities.
+-- Migration 414: Pokédex completeness and encounter completeness are independent capabilities.
 -- A game may be safe for browsing and private progress tracking before it is
 -- safe for encounter-driven Nuzlocke generation.
 
