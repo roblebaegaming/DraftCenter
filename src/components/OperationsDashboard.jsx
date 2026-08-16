@@ -168,6 +168,38 @@ function WebsiteTraffic({ traffic }) {
   </section>;
 }
 
+function attributionLabel(value) {
+  return String(value || "unknown").split(":").map((part) => part.replaceAll("-", " ")).join(" · ").replaceAll(">", " → ");
+}
+function AttributionList({ title, rows, empty }) {
+  return <article><h3>{title}</h3>{rows?.length ? <ol>{rows.map((row) => <li key={row.label}><span title={attributionLabel(row.label)}>{attributionLabel(row.label)}</span><strong>{trafficMetric(row.count)}</strong></li>)}</ol> : <p>{empty}</p>}</article>;
+}
+function SignupAttribution({ report, users }) {
+  const unavailable = !report || report.unavailable;
+  const recent = users?.recent || {};
+  const attributed = report?.account_created?.last_30_days || 0;
+  const actual = recent.last_30_days || 0;
+  const coverage = actual ? Math.round((attributed / actual) * 100) : null;
+  return <section className="signup-attribution-summary" aria-labelledby="signup-attribution-title">
+    <header><div><span className="eyebrow">ACCOUNT ACQUISITION · AGGREGATE ONLY</span><h2 id="signup-attribution-title">What brings people to sign up</h2><p>Actual account totals come from Supabase Authentication. Privacy-safe Vercel events add only a coarse first/last feature journey and tagged campaign source—never emails, account IDs, usernames, IP addresses, Pokémon, notes, or raw browsing histories.</p></div>{!unavailable && <small>Collecting from this release forward<br />Updated {when(report.generated_at)}</small>}</header>
+    <div className="signup-attribution-metrics">
+      <article><strong>{trafficMetric(recent.today)}</strong><span>Accounts today</span><small>actual Authentication creations</small></article>
+      <article><strong>{trafficMetric(recent.last_7_days)}</strong><span>Accounts · 7 days</span><small>actual Authentication creations</small></article>
+      <article><strong>{trafficMetric(actual)}</strong><span>Accounts · 30 days</span><small>actual Authentication creations</small></article>
+      <article><strong>{unavailable ? "—" : trafficMetric(attributed)}</strong><span>Attributed · 30 days</span><small>{coverage == null ? "coverage starts with the release" : `${coverage}% event coverage`}</small></article>
+      <article><strong>{unavailable || report.signup_started_unavailable ? "—" : trafficMetric(report.signup_started?.last_30_days)}</strong><span>Signup starts · 30 days</span><small>create-account screen opened</small></article>
+    </div>
+    {unavailable ? <p className="signup-attribution-unavailable" role="status">Signup attribution is temporarily unavailable. Actual aggregate account totals remain current.</p> : <>
+      <div className="signup-attribution-details">
+        <AttributionList title="Top campaign sources" rows={report.top_sources} empty="No attributed account creations yet." />
+        <AttributionList title="Top feature journeys" rows={report.top_journeys} empty="No attributed feature journeys yet." />
+      </div>
+      {report.details_unavailable && <p className="signup-attribution-unavailable" role="status">Attribution totals are current, but the source and journey breakdown is temporarily unavailable.</p>}
+    </>}
+    <p className="signup-attribution-note">Historical accounts cannot be assigned to a source retroactively. Browser blockers may prevent an event, so compare “Attributed” with the actual account count and use the coverage percentage as the confidence check.</p>
+  </section>;
+}
+
 export default function OperationsDashboard() {
   const [data, setData] = useState(null); const [error, setError] = useState(""); const [filter, setFilter] = useState("attention"); const [query, setQuery] = useState(""); const [regulationFilter, setRegulationFilter] = useState("all"); const [draftTypeFilter, setDraftTypeFilter] = useState("all"); const [stageFilter, setStageFilter] = useState("all"); const [supportLeague, setSupportLeague] = useState(null); const [copyStatus, setCopyStatus] = useState("");
   async function load() { setError(""); const supabase = createClient(); const { data: sessionData } = await supabase.auth.getSession(); if (!sessionData.session) return setError("Sign in with an owner account to open League Operations."); const response = await fetch("/api/operations/overview", { headers: { Authorization: `Bearer ${sessionData.session.access_token}` } }); const result = await response.json(); if (!response.ok) return setError(result.error || "League Operations could not load."); setData(result); }
@@ -182,6 +214,7 @@ export default function OperationsDashboard() {
     <nav className="public-page-nav"><a className="quiet-button" href="/">DraftCenter</a><a className="quiet-button" href="/operations/daily-three">Daily Games activity</a><button className="quiet-button" onClick={load}>Refresh</button></nav>
     <header className="operations-hero"><span className="eyebrow">OWNER ONLY</span><h1>League Operations</h1><p>Monitor league health without bypassing private-league membership. Configuration support requires commissioner-approved access.</p><small>Updated {when(data.generated_at)}</small></header>
     <section className="operations-user-summary" aria-labelledby="registered-users-title"><div><span className="eyebrow">AUTHENTICATION</span><h2 id="registered-users-title">Registered users</h2><p>Every DraftCenter account is counted, including people who joined through Discord. These totals show sign-in identities only; no emails or Discord usernames are exposed here.</p></div><div className="operations-metrics"><article><strong>{data.users?.total || 0}</strong><span>Total accounts</span></article><article><strong>{data.users?.discord || 0}</strong><span>Discord identity</span></article><article><strong>{data.users?.email || 0}</strong><span>Email identity</span></article><article><strong>{data.users?.both || 0}</strong><span>Email + Discord linked</span></article></div></section>
+    <SignupAttribution report={data.signup_attribution} users={data.users} />
     <OrganizationActivity activity={data.organization_activity} />
     <WebsiteTraffic traffic={data.website_traffic} />
     <ConnectionsUsage usage={data.connections_usage} registeredUsers={data.users?.total} />

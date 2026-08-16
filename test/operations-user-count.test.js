@@ -11,7 +11,17 @@ test("authentication totals include Discord, email, linked, and other accounts",
     { identities: [{ provider: "email" }, { provider: "discord" }] },
     { identities: [{ provider: "github" }] },
   ]);
-  assert.deepEqual(totals, { total: 4, email: 2, discord: 2, both: 1, other: 1 });
+  assert.deepEqual(totals, { total: 4, email: 2, discord: 2, both: 1, other: 1, recent: { today: 0, last_7_days: 0, last_30_days: 0, time_zone: "America/Los_Angeles" } });
+});
+
+test("authentication totals expose only aggregate recent creation counts", () => {
+  const totals = summarizeAuthUsers([
+    { created_at: "2026-08-15T18:00:00Z", identities: [{ provider: "email" }] },
+    { created_at: "2026-08-10T18:00:00Z", identities: [{ provider: "email" }] },
+    { created_at: "2026-07-20T18:00:00Z", identities: [{ provider: "discord" }] },
+    { created_at: "2026-06-01T18:00:00Z", identities: [{ provider: "email" }] },
+  ], new Date("2026-08-15T19:00:00Z"));
+  assert.deepEqual(totals.recent, { today: 1, last_7_days: 2, last_30_days: 3, time_zone: "America/Los_Angeles" });
 });
 
 test("Operations exposes aggregate identity counts without user identifiers", () => {
