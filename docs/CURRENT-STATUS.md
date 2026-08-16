@@ -3,10 +3,29 @@
 - Last updated: August 15, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified production feature commit: `e564166439887f4eaf8d6c349375da29a3982be0`
-- Latest production migration: 403
+- Verified production feature commit: `ab587f7d49178e8d81e868265adeb565819fa16f`
+- Latest production migration: 406
 
 ## Deployed state
+
+Pull request [#230](https://github.com/roblebaegaming/DraftCenter/pull/230)
+and migrations 404-406 completed the Team Lab live-battle workflow. Team Lab
+now keeps complete own-team sets, imports and exports Showdown/PokéPaste text,
+supports best-of-1/3/5 game plans, preserves matchup-local crash recovery, and
+adds editable or undoable Battle Mode timelines, structured HP/status/field
+state, a transparent manual damage estimate, and the expanded six-tab workbook.
+The retained Preview passed all three rollback-only regression matrices and a
+signed-in desktop/390px/320px walkthrough; its exact third disposable account,
+team, matchup, and nine temporary compatibility columns were removed afterward.
+Preview CAPTCHA still requires the hCaptcha secret to be re-entered before it
+can be restored. Production received 404, 405, and 406 in order. Postflight
+preserved 114 accounts/profiles, two personal teams, and one matchup, found zero
+invalid team-set or battle-report rows, retained forced RLS and browser-table
+denial, and exposed only the intended authenticated RPCs and two outer
+constraint validators. Vercel reports exact `main` commit `ab587f7` Ready,
+Current, and Production on `www.draftcentral.gg`; all 20 signed-out smoke checks
+and the live Team Lab route passed. No real team, matchup, league, roster, or
+battle report was changed for release validation.
 
 Pull request [#228](https://github.com/roblebaegaming/DraftCenter/pull/228)
 and migrations 402-403 launched the Pokédex Tracker as the DraftCenter

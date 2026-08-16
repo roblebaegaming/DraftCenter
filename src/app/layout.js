@@ -2,6 +2,7 @@ import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
 import SiteLegalFooter from "../components/SiteLegalFooter";
 import SiteQuickLinks from "../components/SiteQuickLinks";
+import SignupAttributionCapture from "../components/SignupAttributionCapture";
 
 export const metadata = {
   metadataBase: new URL("https://www.draftcentral.gg"),
@@ -49,7 +50,7 @@ export default function RootLayout({ children }) {
   };
   return (
     <html lang="en">
-      <body suppressHydrationWarning><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} /><SiteQuickLinks />{children}<SiteLegalFooter /><Analytics /></body>
+      <body suppressHydrationWarning><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} /><SignupAttributionCapture /><SiteQuickLinks />{children}<SiteLegalFooter /><Analytics /></body>
     </html>
   );
 }
