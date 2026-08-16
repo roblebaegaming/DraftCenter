@@ -10,7 +10,12 @@ DraftCenter now has a reproducible inventory of every encounter row exposed by t
 
 The source establishes species, numeric forms, locations where encoded, level ranges, Alpha markers, shiny markers, gifts, static encounters, and trades. It does not establish enough gameplay context to decide what counts as a valid route encounter or when that encounter becomes available.
 
-`encounter_status` therefore remains `pending`. No migration imports these rows, no production or Preview data changed, and `src/app/api/nuzlocke/route.js` continues to expose only games whose encounter catalog is separately verified.
+`encounter_status` therefore remains `pending`. No migration imports these audit
+rows, and no Z-A location or encounter data changed in Preview or Production.
+The separately authorized Pokédex-only migrations added 364 Z-A Pokédex entries
+to isolated Preview while preserving zero Z-A locations and encounters.
+`src/app/api/nuzlocke/route.js` continues to expose only games whose encounter
+catalog is separately verified.
 
 ## Pinned inputs
 
