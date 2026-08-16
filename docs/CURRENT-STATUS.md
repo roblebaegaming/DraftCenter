@@ -3,10 +3,31 @@
 - Last updated: August 15, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified production feature commit: `0d4ce5c9fe2f70b8c9d2dd784d9f142c1500c305`
-- Latest production migration: 406
+- Verified production feature commit: `619b252dba7a911cc6515918a4ff839ed051c206`
+- Latest production migration: 407
 
 ## Deployed state
+
+Pull requests [#239](https://github.com/roblebaegaming/DraftCenter/pull/239)
+and [#238](https://github.com/roblebaegaming/DraftCenter/pull/238) deployed the
+reviewed Team Lab/Battle Mode and Pokédex Tracker Instagram screenshot sets in
+that order. Every image is a direct 1080×1080 site screenshot without AI
+artwork, account identifiers, or private user data. Exact-commit Vercel checks
+and the 20-check signed-out Production smoke sweep passed after both merges.
+Instagram publishing is waiting only for an authenticated owner session; the
+tracked campaign links and exact captions are in each set's guide.
+
+Pull request [#241](https://github.com/roblebaegaming/DraftCenter/pull/241)
+and migration 407 made Mega Bracket replayable by Full Dex, type, generation,
+or Mega Evolution; full field or randomized Quick 64; and favorite or worst
+voting. The retained Preview passed Quick 64 worst-mode and compact Ice-type
+completion, cross-user denial, RPC-only grants, and cleanup. Production
+preflight found 22 private attempts; migration 407 preserved every row with
+its original behavior, retained RLS and direct browser-read denial, and
+installed only the new owner-scoped RPC signature. Vercel reports exact
+`main` commit `619b252` deployed successfully. All 20 signed-out smoke checks,
+the live route and social image, and a non-mutating live Water/Quick 64/worst
+setup review passed.
 
 Pull request [#231](https://github.com/roblebaegaming/DraftCenter/pull/231)
 added privacy-safe signup attribution. DraftCenter now remembers one coarse

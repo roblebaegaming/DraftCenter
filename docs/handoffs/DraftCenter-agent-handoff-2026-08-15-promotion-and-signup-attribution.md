@@ -3,12 +3,15 @@
 - Date: August 15, 2026 Pacific
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Current Production documentation commit: `cd861f85a5b2f6bde367418b85b0891e90669365`
+- Current Production feature commit: `619b252dba7a911cc6515918a4ff839ed051c206`
 - Verified signup-attribution feature commit: `0d4ce5c9fe2f70b8c9d2dd784d9f142c1500c305`
-- Latest Production migration: 406
+- Team Lab promotion commit: `3e0ee1016faebcbf6647c68c487bd92ab55d88c3`
+- Pokédex Tracker promotion commit: `e1a4c7630140cdf0e450c7b9bc6962561e9b3f1f`
+- Latest Production migration: 407
 - Handoff pull request: [#240](https://github.com/roblebaegaming/DraftCenter/pull/240)
 - Application release state: migrated, merged, deployed, documented, and smoke-tested
-- Promotion state: two screenshot PRs open and intentionally unmerged
+- Promotion state: both screenshot PRs merged and deployed; Instagram publishing
+  is waiting for an authenticated owner session
 
 ## Current outcome
 
@@ -22,22 +25,44 @@ journey lists, and no analytics-outage warning. No email, account ID, username,
 IP address, Pokémon choice, note, raw path, full referrer URL, or browsing
 history enters the report.
 
-The feature implementation is exact Production commit `0d4ce5c9`. The later
-documentation-only verification commit `cd861f8` is the current Production
-deployment on `www.draftcentral.gg`. Protected checks, the full repository
-suite, dependency audit, 1,027-row National Dex verification, 258-page build,
-exact deployment confirmation, responsive hosted review, and all 20 signed-out
-production smoke checks passed for the completed release chain.
+The release follow-through is also complete. Pull request
+[#239](https://github.com/roblebaegaming/DraftCenter/pull/239) merged first for
+Team Lab/Battle Mode promotion, followed by pull request
+[#238](https://github.com/roblebaegaming/DraftCenter/pull/238) for the Pokédex
+Tracker. Vercel attached successful Production deployments to exact commits
+`3e0ee10` and `e1a4c76`; the 20-check signed-out Production smoke sweep passed
+after each merge.
 
-## Instagram screenshot pull requests
+Pull request [#241](https://github.com/roblebaegaming/DraftCenter/pull/241)
+then shipped replayable Mega Brackets by Full Dex, type, generation, or Mega
+Evolution, with full-field or randomized Quick 64 pacing and favorite or worst
+voting. Migration 407 passed the retained Preview replayability/privacy
+regression before Production. Production preflight found 22 private attempts
+(17 active and five completed), RLS enabled, and browser table reads denied.
+The forward-only migration preserved all 22 attempts with their original Full
+Dex/favorite behavior, installed the five new fields and new owner-scoped RPC,
+removed the obsolete RPC signature, and retained browser table denial.
+Vercel reports exact `main` commit `619b252` deployed successfully. All 20
+signed-out Production checks, the live Mega Bracket route, its social image,
+and a non-mutating Water-type/Quick 64/worst-mode setup review passed.
 
-Two independent promotion-only pull requests are open. Do not merge them as a
-single runtime release; each can be reviewed and merged on its own.
+The signup-attribution implementation is exact Production commit `0d4ce5c9`.
+The later documentation-only verification commit `cd861f8` was deployed and
+verified before the promotion and Mega Bracket follow-through above. Protected
+checks, the full repository suite, dependency audit, 1,027-row National Dex
+verification, 258-page build, exact deployment confirmation, responsive hosted
+review, and all 20 signed-out Production smoke checks passed for that release
+chain.
+
+## Deployed Instagram screenshot sets
+
+The two independent promotion-only pull requests are merged. They contain only
+documentation and promotion assets and did not alter application behavior.
 
 ### Pokédex Tracker
 
 - Pull request: [#238](https://github.com/roblebaegaming/DraftCenter/pull/238)
-- Head: `272b9daa40bea0cd4baede0ce67a7b4a29c57b5e`
+- Production commit: `e1a4c7630140cdf0e450c7b9bc6962561e9b3f1f`
 - Branch: `codex/instagram-pokedex-tracker-screenshots-2026-08-15`
 - Assets:
   `docs/promotion/instagram/pokedex-tracker-2026-08-15/`
@@ -54,7 +79,7 @@ read-only: only tabs, search, filters, and read-only views were used.
 ### Team Lab matchup planner and Battle Mode
 
 - Pull request: [#239](https://github.com/roblebaegaming/DraftCenter/pull/239)
-- Head: `c9c496c210e75d9a2bad2daf6d00f85e402c116f`
+- Production commit: `3e0ee1016faebcbf6647c68c487bd92ab55d88c3`
 - Branch: `codex/instagram-team-lab-screenshots-2026-08-15`
 - Assets:
   `docs/promotion/instagram/team-lab-matchup-planner-2026-08-15/`
@@ -83,11 +108,11 @@ product to Match Lab.
 - The PRs contain documentation and promotion assets only. They do not alter
   application behavior, migrations, or production configuration.
 
-## Recommended publishing order
+## Publishing package and current gate
 
-1. Review and merge PR #239, then launch the Team Lab/Battle Mode sequence.
-2. Review and merge PR #238, then launch the Founding Collector sequence.
-3. Use the exact Instagram campaign link from each manifest in the profile or
+1. PR #239 is merged; launch the Team Lab/Battle Mode sequence first.
+2. PR #238 is merged; launch the Founding Collector sequence second.
+3. Use the exact Instagram campaign link from each guide in the profile or
    Story link sticker; captions should say “link in bio” rather than include an
    unclickable URL.
 4. Keep one stable campaign name for the entire sequence. Do not add usernames,
@@ -96,8 +121,13 @@ product to Match Lab.
 5. Review aggregate Operations results after 3, 7, and 30 days. Prioritize
    attributed account creations, then signup starts and feature journeys.
 
-Publishing to Instagram remains an owner action. No post, message, beta
-invitation, or external audience contact was sent during this work.
+The available browser reached Instagram's login screen but had no authenticated
+owner session, and no Instagram connector or alternate signed-in browser was
+available. No password was requested or handled. No post, message, beta
+invitation, or external audience contact was sent. After the owner signs in
+directly, publish Team Lab first and Pokédex Tracker second using the exact
+guides above; start the 3-, 7-, and 30-day Operations windows from each actual
+publication date.
 
 ## Remaining owner action
 
@@ -130,12 +160,13 @@ feedback read. The highest-value candidates to evaluate next are:
 
 Every database change must use a new forward-only migration, focused
 two-account regression, and RLS/grant verification. Never rewrite or replay
-migrations 401-406.
+migrations 401-407.
 
 ## Preserved boundaries
 
 - The original dirty DraftCenter workspace remains untouched.
-- The screenshot branches were created from fresh `origin/main` at `cd861f8`.
+- The screenshot branches were rebased onto current `main` before their
+  protected merges.
 - Main remains protected; no direct push or protection bypass occurred.
 - Private Team Lab fields and Collector details must not enter public links,
   metadata, Operations analytics, logs, or promotion assets.

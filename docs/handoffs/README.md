@@ -2,11 +2,11 @@
 
 [`DraftCenter-agent-handoff-2026-08-15-promotion-and-signup-attribution.md`](DraftCenter-agent-handoff-2026-08-15-promotion-and-signup-attribution.md)
 is the current continuation handoff. It records the live privacy-safe signup
-attribution release, exact Production commits, open Pokédex Tracker and Team
-Lab Instagram screenshot pull requests, campaign links and measurement plan,
-the remaining owner-only Preview hCaptcha step, and the evidence-led product
-follow-up. The screenshot PRs contain promotion assets and documentation only;
-they are intentionally unmerged.
+attribution release; the deployed Pokédex Tracker and Team Lab Instagram asset
+sets; the replayable type, generation, Mega Evolution, Quick 64, and worst-pick
+Mega Bracket release through migration 407; campaign links and measurement
+plan; the unauthenticated Instagram publishing gate; the remaining owner-only
+Preview hCaptcha step; and the evidence-led product follow-up.
 
 [`DraftCenter-agent-handoff-2026-08-15-team-lab-battle-flow-production.md`](DraftCenter-agent-handoff-2026-08-15-team-lab-battle-flow-production.md)
 is the current production continuation handoff. It records the completed Team
