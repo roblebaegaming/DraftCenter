@@ -8,6 +8,7 @@ DraftCenter helps communities configure leagues, run snake and auction drafts, m
 
 - [About DraftCenter and our data](https://www.draftcentral.gg/about)
 - [Pokémon draft league guides](https://www.draftcentral.gg/guides)
+- [Pokémon shiny hunting guides by game](https://www.draftcentral.gg/guides/shiny-hunting)
 - [Supported draft formats](https://www.draftcentral.gg/formats)
 - [Team Lab Pokémon team builder and matchup planner](https://www.draftcentral.gg/tools/team-builder)
 - [Replayable Pokémon Mega Brackets](https://www.draftcentral.gg/tools/mega-bracket)
@@ -38,6 +39,7 @@ DraftCenter helps communities configure leagues, run snake and auction drafts, m
 
 ## Practical guides
 
+- [Pokémon Shiny Hunting Guides by Game](https://www.draftcentral.gg/guides/shiny-hunting)
 - [How a Pokémon Draft League Works](https://www.draftcentral.gg/guides/what-is-pokemon-draft-league)
 - [How to Run a Pokémon Draft League](https://www.draftcentral.gg/guides/how-to-run-pokemon-draft-league)
 - [Snake or Auction? Choosing Your Pokémon Draft Style](https://www.draftcentral.gg/guides/snake-vs-auction-pokemon-draft)
@@ -64,6 +66,15 @@ DraftCenter helps communities configure leagues, run snake and auction drafts, m
 - [Pokémon Platinum Nuzlocke guide](https://www.draftcentral.gg/nuzlocke/platinum)
 - [Pokémon Scarlet Nuzlocke guide](https://www.draftcentral.gg/nuzlocke/scarlet)
 
+## Shiny hunting guides
+
+- [All Pokémon shiny hunting guides by game](https://www.draftcentral.gg/guides/shiny-hunting)
+- [Pokémon Crystal shiny hunting guide](https://www.draftcentral.gg/guides/shiny-hunting/crystal)
+- [Pokémon Ultra Sun shiny hunting guide](https://www.draftcentral.gg/guides/shiny-hunting/ultra-sun)
+- [Pokémon Sword shiny hunting guide](https://www.draftcentral.gg/guides/shiny-hunting/sword)
+- [Pokémon Legends: Arceus shiny hunting guide](https://www.draftcentral.gg/guides/shiny-hunting/legends-arceus)
+- [Pokémon Scarlet shiny hunting guide](https://www.draftcentral.gg/guides/shiny-hunting/scarlet)
+
 ## Data and citation notes
 
 - Core Pokémon facts and artwork references are retrieved from PokéAPI and refreshed daily.
@@ -79,7 +90,7 @@ DraftCenter helps communities configure leagues, run snake and auction drafts, m
 
 DraftCenter is an independent fan project and is not affiliated with or endorsed by Nintendo, Creatures Inc., GAME FREAK inc., or The Pokémon Company. Pokémon names, characters, artwork, and trademarks belong to their respective owners.
 
-Last reviewed: 2026-08-13
+Last reviewed: 2026-08-15
 `;
 
 export function GET() {
