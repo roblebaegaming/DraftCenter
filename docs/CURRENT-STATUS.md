@@ -1043,7 +1043,7 @@ guard merely to remove that measurement gap.
 ## Authoritative records
 
 - Current continuation handoff:
-  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-15-team-lab-battle-flow-production.md`](handoffs/DraftCenter-agent-handoff-2026-08-15-team-lab-battle-flow-production.md)
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-15-final-launch-next-steps.md`](handoffs/DraftCenter-agent-handoff-2026-08-15-final-launch-next-steps.md)
 - Pokédex Tracker product and data contract:
   [`docs/pokedex-trackers.md`](pokedex-trackers.md)
 - Mega Bracket product and data contract:
