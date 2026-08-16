@@ -6,28 +6,28 @@
   https://www.draftcentral.gg/worlds/2026/vgc/victory-road-to-san-francisco
 - Production branch: `main`
 - Verified Production commit:
-  `6731a39f389e9585a720a141a940695b0e44c351`
-- Release pull request:
-  [#254](https://github.com/roblebaegaming/DraftCenter/pull/254)
+  `4d8d900dc42e3eb1a1302f5f044878dd9ad07d62`
+- Release pull requests:
+  [#254](https://github.com/roblebaegaming/DraftCenter/pull/254),
+  [#256](https://github.com/roblebaegaming/DraftCenter/pull/256),
+  [#257](https://github.com/roblebaegaming/DraftCenter/pull/257), and
+  [#258](https://github.com/roblebaegaming/DraftCenter/pull/258)
 - Latest Production migration: 409
-- Release state: deployed, verified, and waiting for the official bracket
+- Release state: deployed, published, verified, and open until 1:45 PM Pacific
 
 ## Start here
 
-The reusable round-by-round bracket infrastructure is live. The Victory Road
-to San Francisco page is also live, but predictions are intentionally closed.
-The user-provided Battlefy URL is **Phase 1 Swiss Round 10**, not a Phase 2
-elimination bracket. Production contains no invented player, seed, bye, or
-matchup.
+The separate Victory Road to San Francisco Top 16 bracket challenge is live at
+the public URL above. It uses the reviewed official Phase 2 Battlefy bracket,
+not the earlier Phase 1 Swiss page. All 16 real names, countries, and eight
+opening matchups were compared before publication. Entries opened at 1:31 PM
+Pacific and lock at 1:45 PM Pacific / 20:45 UTC on August 16, 2026.
 
-The authoritative event page still describes Phase 2 as Swiss followed by an
-X-2 asymmetrical single-elimination cut and says that the likely cut is between
-16 and 32 players. It does not yet publish the final elimination field or slot
-order. It also still says that the post-Phase-1 qualifier information is coming
-soon. Use the [Victory Road event page](https://victoryroad.pro/vrtsf26/) and
-the eventual public Battlefy Phase 2 bracket as the sources; do not infer the
-field from Phase 1 standings, the invitee list, stream graphics, or projected
-X-2 records.
+The owner Operations panel reports state `open`, official field 16 players,
+zero member entries at publication, and 0/15 official results. Continue from
+the same [official Phase 2 bracket](https://battlefy.com/victoryroad/victory-road-to-san-francisco-phase-2-top-cut/6a60ab274f0d45001a7281b6/stage/6a820c17b2796d0019f6d118/bracket/)
+for scoring. Do not use aliases, Swiss standings, or a stream graphic to record
+results when the official bracket is available.
 
 ## What is live
 
@@ -57,10 +57,15 @@ tournaments.
 
 Event ID: `victory-road-san-francisco-2026`
 
-- status: `waiting_for_official_bracket`;
-- revision: 0;
-- field, slots, entries, results, and audit events: empty;
-- public waiting-page RPC: available to anonymous and authenticated visitors;
+- status: `open`;
+- revision: 1;
+- field: 16 official players in eight Top 16 matchups;
+- entry window: August 16, 1:31 PM to 1:45 PM Pacific;
+- point values: 1, 2, 4, and 8 by round, 32 maximum;
+- entries at publication: 0;
+- official results at publication: 0/15;
+- audit: one reviewed publication event;
+- public summary RPC: available to anonymous and authenticated visitors;
 - signed-in save RPC: authenticated only;
 - publish, result, and finalize RPCs: service role only through the owner-
   authenticated Operations API;
@@ -72,42 +77,14 @@ or rewrite it.
 
 ## Exact event-day continuation
 
-### 1. Wait for the public elimination bracket
+### 1. Let the entry window lock
 
-Check Victory Road's event page and the public Phase 2 Battlefy event. The
-bracket must show the actual elimination field and slot order. Do not publish
-from Swiss Round 10 or from an incomplete standings snapshot.
+The saved deadline is August 16 at 1:45 PM Pacific / 20:45 UTC. Do not extend
+or reopen it after seeing match outcomes. Confirm the public page changes from
+open to locked and exposes saved brackets according to the existing privacy
+contract.
 
-### 2. Confirm there is still an honest prediction window
-
-Find the scheduled start of the first elimination match. Entries must lock
-before that match. If the official field appears too late to give people a
-reasonable entry window, leave the challenge closed rather than opening after
-play has begun.
-
-### 3. Publish from owner Operations
-
-Open **Operations → Victory Road to San Francisco** and review:
-
-1. exact player count;
-2. exact slot order;
-3. official seeds when shown;
-4. official bye positions;
-5. entry opening and lock times;
-6. official public elimination-bracket URL;
-7. source-check time; and
-8. points for every round.
-
-Place names in the exact published slots and leave only real bye slots blank.
-Every first-round matchup must have at least one player. Type
-`PUBLISH OFFICIAL BRACKET` only after a second visual comparison with the
-official bracket.
-
-Once any member saves an entry, the field cannot be replaced. A corrected
-official field would then require a new forward-only product decision rather
-than editing stored brackets in place.
-
-### 4. Score after entries lock
+### 2. Score from the official bracket
 
 Use the official live bracket URL in the result panel. Record feeder matches
 before later rounds. Byes appear as automatic and have no result button. Check
@@ -117,7 +94,7 @@ If an official result was entered incorrectly, correct it before recording the
 dependent downstream match. The database rejects an upstream change once a
 downstream result exists.
 
-### 5. Finalize only from the completed official bracket
+### 3. Finalize only from the completed official bracket
 
 After all `field_size - 1` played winners match the official bracket, compare
 the whole result once more, supply the final public source, and type
@@ -143,21 +120,30 @@ prevents later writes.
   horizontal overflow or browser alerts.
 - Production preflight confirmed migration 408 present and migration 409
   absent before the one-time apply.
-- Production postflight confirmed the waiting revision-0 seed, forced RLS,
-  denied direct browser reads, authenticated save access, denied authenticated
-  publish access, and service-only publish access.
-- Vercel deployed exact merge commit `6731a39` to Production.
-- The live page returned the waiting state and source-gating language without
-  horizontal overflow or browser alerts.
+- Production postflight first confirmed the waiting revision-0 seed, forced
+  RLS, denied direct browser reads, authenticated save access, denied
+  authenticated publish access, and service-only publish access.
+- Pull requests #256 and #257 corrected the owner Operations session forwarding
+  and loader contract; pull request #258 fixed the event deadline at
+  `2026-08-16T20:45:00.000Z`. Their protected security, CodeQL, JavaScript
+  analysis, secret-scan, Supabase, and Vercel checks passed.
+- Vercel deployed exact merge commit `4d8d900` to Production.
+- The signed-in owner panel confirmed `open`, revision 1, 16 players, zero
+  entries, and 0/15 results immediately after publication.
+- The live public page showed the separate Victory Road identity, all eight
+  official Top 16 matchups, reviewed Battlefy source, August 16 1:45 PM PDT
+  lock, 1/2/4/8 round values, 15 required picks, and 32 maximum points.
 - `npm run smoke:production`: all 17 public routes and five protected 401
   boundaries passed.
 
 ## Preserved boundaries
 
-- No real account, bracket entry, prediction, tournament, league, team, roster,
-  draft, or Pokédex record was created or changed.
+- Publication created only the intended official field revision and private
+  audit record. It created no member entry, official result, synthetic account,
+  league, team, roster, draft, or Pokédex record.
 - Preview fixtures were synthetic and removed by exact identifiers.
-- Production received only the empty intended event seed and infrastructure.
+- Production retained the intended event infrastructure and now contains the
+  reviewed official Top 16 field at revision 1.
 - No provider setting, environment variable, authentication configuration, or
   secret changed.
 - No result importer, scraper, scheduler, or automatic Swiss-to-bracket writer
