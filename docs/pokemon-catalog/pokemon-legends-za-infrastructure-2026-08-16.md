@@ -15,7 +15,7 @@ Pokédex coverage and encounter coverage are separate capabilities:
 | Move source | Ready for API-backed lookup | PokéAPI `legends-za` version group; never blended with turn-based games |
 | Draft format pools | Ready | Lumiose (308), Hyperspace (151), and combined (459) DraftCenter entries with independently available forms |
 | Account Pokédex tracker | Migration-ready | Z-A becomes selectable after migrations 413 and 414 are applied |
-| Encounter catalog / Nuzlocke | Pending | No locations or encounter rows are imported or exposed |
+| Encounter catalog / Nuzlocke | Source-audited; activation pending | A pinned 2,444-row source inventory exists, but no locations or encounter rows are imported or exposed |
 
 This boundary is intentional. A complete regional Pokédex does not establish where, when, or under which conditions a Pokémon can be encountered.
 
@@ -44,6 +44,7 @@ The builder verifies both regional counts, rejects overlap, checks Showdown's in
 ```powershell
 npm run catalog:build:legends-za
 npm run catalog:build:legends-za-migration
+npm run catalog:check:legends-za-encounter-audit
 npm run test:legends-za
 npm run test:regulations
 ```
@@ -54,14 +55,10 @@ After both migrations, `supabase/tests/413-414-legends-za-pokedex-preview-regres
 provides a read-only isolated-Preview gate for anonymous Pokédex visibility,
 encounter invisibility, the separate RLS predicates, and tracker-function grants.
 
-## Next encounter milestone
+## Encounter audit result
 
-Before enabling Z-A in Nuzlocke tools:
+The dedicated [Z-A encounter source audit](pokemon-legends-za-encounter-source-audit-2026-08-16.md) pinned PKHeX, reproduced 2,444 source rows, checked all 357 encountered species against the verified Pokédex, and confirmed that the pinned PokéAPI snapshot has no Z-A encounter rows.
 
-1. Pin an exact independent encounter-source commit. PKHeX's [`Gen9/Encounters9a.cs`](https://github.com/kwsch/PKHeX/blob/master/PKHeX.Core/Legality/Encounters/Data/Gen9/Encounters9a.cs) is a discovery lead, not yet a pinned verification source.
-2. Model Wild Zones, Hyperspace content, gifts, static encounters, progression gates, and other encounter conditions explicitly.
-3. Build a separate artifact and forward-only import migration for locations and encounters.
-4. Add focused regression coverage and review affected RLS policies and grants.
-5. Set `encounter_status='verified'` only in a separate verification migration after the encounter audit passes.
+That audit also proved the available sources do not carry enough route semantics, probability, or progression data to activate Nuzlocke safely. The inventory is retained as a reproducible research artifact; it is not import-ready. A second source and a commissioner-approved location/progression model are the next gates.
 
 Until then, Z-A remains invisible to every encounter-driven Nuzlocke query even though its Pokédex can be browsed and tracked.

@@ -381,6 +381,7 @@ description = "Generated public Pokemon encounter catalogs"
 targetRules = ["generic-api-key"]
 paths = [
   '''^data/nuzlocke/pokemon-[a-z0-9-]+\\.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f\\.json$''',
+  '''^data/nuzlocke/pokemon-legends-za-encounter-audit\\.pkhex-[0-9a-f]{40}\\.json$''',
   '''^src/lib/nuzlockeGameGuides\\.json$''',
   '''^docs/pokemon-catalog/pokemon-species-traits-2026-08-07\\.md$''',
   '''^docs/pokemon-catalog/(?:pokemon-[a-z0-9-]+-encounter-audit|generation-[0-9]+-schema-investigation)-2026-08-(?:05|06)\\.md$''',
