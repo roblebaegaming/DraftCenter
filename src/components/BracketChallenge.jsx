@@ -41,6 +41,71 @@ function BracketRounds({ rounds, roundPoints, choices, resultNames = {}, open = 
   </section>)}</div>;
 }
 
+function bracketEntrySignature(entry) {
+  return entry?.picks ? `${entry.display_name}\n${JSON.stringify(entry.picks)}` : "";
+}
+
+function BracketLeaderboard({
+  capacity,
+  entryCount,
+  label,
+  maximumScore,
+  results,
+  roundPoints,
+  slots,
+  standings = [],
+}) {
+  const [selectedEntry, setSelectedEntry] = useState(null);
+  const selectedSignature = bracketEntrySignature(selectedEntry);
+  const viewedEntry = useMemo(() => selectedEntry ? standings.find((entry) => bracketEntrySignature(entry) === selectedSignature) || selectedEntry : null, [selectedEntry, selectedSignature, standings]);
+  const selectedRounds = useMemo(() => viewedEntry ? buildBracketChallengeRounds({
+    capacity,
+    slots,
+    choices: viewedEntry.picks,
+    results,
+  }) : [], [capacity, results, slots, viewedEntry]);
+  const selectedScore = viewedEntry ? scoreBracketChallengeEntry({
+    choices: viewedEntry.picks,
+    results,
+    roundPoints,
+  }) : 0;
+  const resultNames = useMemo(() => Object.fromEntries(slots.map((slot) => [slot.competitor_id, slot.display_name])), [slots]);
+
+  useEffect(() => {
+    if (!selectedEntry) return;
+    const viewer = document.getElementById("leaderboard-entry-bracket");
+    viewer?.focus({ preventScroll: true });
+    viewer?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [selectedEntry]);
+
+  return <section className="worlds-bracket-leaderboard" aria-labelledby="bracket-leaderboard-heading">
+    <header><div><span className="eyebrow">{label}</span><h2 id="bracket-leaderboard-heading">{entryCount || 0} brackets</h2><p>Once entries lock, select any Trainer to see every pick in their bracket.</p></div><p>Maximum score: <strong>{maximumScore} points</strong></p></header>
+    {viewedEntry && <section className="worlds-entry-bracket-view" id="leaderboard-entry-bracket" tabIndex="-1" aria-labelledby="leaderboard-entry-heading">
+      <header><div><span className="eyebrow">ENTRY BRACKET · LEADERBOARD #{viewedEntry.rank}</span><h3 id="leaderboard-entry-heading">{viewedEntry.display_name}&rsquo;s bracket</h3><p>{selectedScore} of {maximumScore} points · {Object.keys(viewedEntry.picks).length} saved picks</p></div><button type="button" className="quiet-button" onClick={() => setSelectedEntry(null)}>Close bracket</button></header>
+      <div className="worlds-bracket-legend" aria-label="Bracket color key"><span><i className="is-pick" />Yellow: saved pick</span><span><i className="is-winner" />Aqua outline: official winner</span></div>
+      <BracketRounds rounds={selectedRounds} roundPoints={roundPoints} choices={viewedEntry.picks} resultNames={resultNames} />
+    </section>}
+    {standings.length ? <div className="worlds-bracket-entry-list">{standings.map((entry, index) => {
+      const canView = Boolean(entry.picks);
+      const isSelected = canView && selectedSignature === bracketEntrySignature(entry);
+      return <button
+        type="button"
+        key={`${entry.display_name}-${index}`}
+        className={`${entry.is_me ? "is-me" : ""}${isSelected ? " is-selected" : ""}`}
+        disabled={!canView}
+        aria-expanded={isSelected}
+        aria-controls={canView ? "leaderboard-entry-bracket" : undefined}
+        onClick={() => canView && setSelectedEntry(entry)}
+      >
+        <span>#{entry.rank}</span>
+        <span><strong>{entry.display_name}</strong><small>{canView ? "View bracket" : "Private until entries lock"}</small></span>
+        <b>{entry.score} pts</b>
+        <i aria-hidden="true">{canView ? "→" : "🔒"}</i>
+      </button>;
+    })}</div> : <p className="worlds-empty-state">No brackets have been saved yet.</p>}
+  </section>;
+}
+
 export default function BracketChallenge({ eventId, infoUrl }) {
   const [hub, setHub] = useState(null);
   const [archive, setArchive] = useState(null);
@@ -162,7 +227,16 @@ export default function BracketChallenge({ eventId, infoUrl }) {
           <div className="worlds-save-row"><div>{event.status === "open" ? <p>{hub.my_entry ? `Saved as ${hub.my_entry.display_name}. Edits close ${localTime(event.locks_at)}.` : "Complete every played matchup, then save one bracket."}</p> : <p>Entries are locked. {hub.my_entry ? `Your score is ${hub.my_entry.score} of ${maximumScore} possible points.` : "No bracket was saved for this account."}</p>}{message && <p className="worlds-message" role="status">{message}</p>}</div><button className="primary-button" disabled={!open || busy || !complete} onClick={save}>{busy ? "Saving…" : hub.my_entry ? "Update bracket" : "Save bracket"}</button></div>
         </>}
       </section>
-      <section className="worlds-bracket-leaderboard"><header><div><span className="eyebrow">{archive ? "TOP 8 CARRYOVER LEADERBOARD" : "TOP 8 LEADERBOARD"}</span><h2>{hub.entry_count || 0} brackets</h2></div><p>Maximum score: <strong>{maximumScore} points</strong></p></header>{hub.standings?.length ? <div>{hub.standings.map((entry, index) => <details key={`${entry.display_name}-${index}`} className={entry.is_me ? "is-me" : ""}><summary><span>#{entry.rank}</span><strong>{entry.display_name}</strong><b>{entry.score} pts</b></summary><p>{entry.picks ? Object.entries(entry.picks).map(([key, id]) => `${key}: ${slots.find((slot) => slot.competitor_id === id)?.display_name || id}`).join(" · ") : "This bracket stays private until entries lock."}</p></details>)}</div> : <p className="worlds-empty-state">No brackets have been saved yet.</p>}</section>
+      <BracketLeaderboard
+        capacity={event.bracket_capacity}
+        entryCount={hub.entry_count}
+        label={archive ? "TOP 8 CARRYOVER LEADERBOARD" : "TOP 8 LEADERBOARD"}
+        maximumScore={maximumScore}
+        results={hub.results || []}
+        roundPoints={event.round_points}
+        slots={slots}
+        standings={hub.standings || []}
+      />
     </>}
   </main>;
 }
