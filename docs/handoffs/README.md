@@ -8,8 +8,15 @@ security boundary, completed local validation, and the remaining Preview and
 protected-release gates. Nothing in that handoff is deployed or applied to
 Production.
 
+[`DraftCenter-agent-handoff-2026-08-16-victory-road-final-monitoring.md`](DraftCenter-agent-handoff-2026-08-16-victory-road-final-monitoring.md)
+is the current Victory Road production handoff. It records the completed official bracket,
+the verified seventh result and final leaderboard, the stopped five-minute
+monitor, the public entrant-bracket gallery through pull request #272,
+finalization safeguards, and the ordered tournament archive roadmap. It must
+be read before any future Victory Road correction or archive work.
+
 [`DraftCenter-agent-handoff-2026-08-16-pokedex-numbered-dexes-production.md`](DraftCenter-agent-handoff-2026-08-16-pokedex-numbered-dexes-production.md)
-is the current continuation handoff. It records the released game-numbered and
+is the current Pokédex product handoff. It records the released game-numbered and
 DLC-separated Pokédex experience, location finder, linked HOME National Dex
 progress, game-aware box planner, regular-user JSON removal, exact application
 and migration deployment, validation evidence, opt-in tester boundary, and
