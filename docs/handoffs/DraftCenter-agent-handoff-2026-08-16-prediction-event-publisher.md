@@ -2,7 +2,8 @@
 
 Date: August 16, 2026
 Status: pull request open; owner publisher and public download-only studio
-implemented and validated; not merged or deployed
+implemented, pushed, and protected-check validated; isolated Preview matrices
+and signed-in owner review remain; not merged or deployed
 
 ## Owner goal
 
@@ -20,10 +21,9 @@ images, and never receive hosted event URLs.
 
 - Branch: `codex/internal-tournament-publisher-2026-08-16`
 - Worktree: `DraftCenter-tournament-publisher-20260816`
-- Original base: deployed Victory Road commit `39799c5`; the branch was rebased
-  onto audited carry-forward commit `08b992d`, which includes guarded
-  supersession commit `049c752`, after `origin/main` advanced during
-  implementation.
+- Original base: deployed Victory Road commit `39799c5`; the branch now also
+  contains the deployed archive, corrected Top 16 presentation, and status-link
+  releases through production commit `4d1845b`.
 - The original working tree and all of its unrelated user changes were left
   untouched.
 - Pull request: [#264](https://github.com/roblebaegaming/DraftCenter/pull/264)
@@ -98,7 +98,7 @@ synthetic Preview regression run.
 
 ## Validation completed
 
-- The publisher's focused 11-test bracket suite and the public studio's focused
+- The publisher's focused 12-test bracket suite and the public studio's focused
   5-test suite pass, along with help-guide and release-integration coverage.
 - Full `npm run test:all` passes.
 - `pnpm audit --prod --audit-level high` reports no known vulnerabilities.
@@ -124,14 +124,15 @@ synthetic Preview regression run.
 
 ## Required continuation
 
-1. Commit and push the public Bracket Studio addition, then require the updated
-   protected checks and hosted Preview to pass.
-2. If the owner explicitly approves the synthetic Preview SQL warning, run the
+1. If the owner explicitly approves the synthetic Preview SQL warning, run the
    409-413 rollback-only matrices and verify their exact fixture cleanup. Do not
    use a real prediction event.
-3. Have the owner sign in on the hosted Preview and review the publisher. A
+2. Have the owner sign in on the hosted Preview and review the publisher. A
    disposable four-player end-to-end event still requires exact authorization
    and cleanup; a non-mutating owner-page review can proceed after sign-in.
+3. Before merging, incorporate and revalidate any newer production bracket
+   gallery release that lands on `main`; do not duplicate or interfere with its
+   active isolated task.
 4. Do not merge until protected checks, Preview privacy matrices, and hosted
    review pass. After an owner-authorized merge, verify migration 413 in
    Production, confirm the deployed commit, run the signed-out production smoke
