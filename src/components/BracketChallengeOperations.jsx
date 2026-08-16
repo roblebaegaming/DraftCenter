@@ -51,6 +51,7 @@ export default function BracketChallengeOperations() {
   const [resultSourceUrl, setResultSourceUrl] = useState("");
   const [finalSourceUrl, setFinalSourceUrl] = useState("");
   const [finalConfirmation, setFinalConfirmation] = useState("");
+  const [carryConfirmation, setCarryConfirmation] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
@@ -122,6 +123,8 @@ export default function BracketChallengeOperations() {
   const canSupersede = data.entry_count === 1 && data.results.length === 0 && bracket.status !== "final";
   const canReplace = (!data.entry_count || canSupersede) && bracket.status !== "final";
   const confirmationPhrase = canSupersede ? "SUPERSEDE OFFICIAL BRACKET" : "PUBLISH OFFICIAL BRACKET";
+  const archivedRevision = data.audit.find((item) => item.action === "superseded" && item.bracket_revision < bracket.revision)?.bracket_revision;
+  const canCarryForward = Boolean(locked && archivedRevision && data.entry_count === 0 && bracket.status !== "final");
   const allResults = published && data.results.length === bracket.field_size - 1;
 
   return <section className="worlds-results-operations worlds-bracket-operations" id="victory-road-bracket-operations">
@@ -161,6 +164,15 @@ export default function BracketChallengeOperations() {
         <div className="wide worlds-ops-actions"><button className="primary-button" type="submit" disabled={busy || setup.confirmation_text !== confirmationPhrase}>{canSupersede ? "Replace with reviewed bracket" : "Publish bracket challenge"}</button></div>
       </form>}
     </details>
+
+    {canCarryForward && <details className="worlds-ops-panel" open>
+      <summary>Carry forward the archived owner bracket</summary>
+      <div className="worlds-finalize-form">
+        <p>This creates one clearly labeled historical test entry. It preserves the archived Top 16 bracket-side choices from rounds 2–4, maps them onto the replacement Top 8, and does not change any official result.</p>
+        <label>Type <strong>CARRY FORWARD ARCHIVED OWNER ENTRY</strong><input value={carryConfirmation} onChange={(event) => setCarryConfirmation(event.target.value)} /></label>
+        <button className="primary-button" disabled={busy || carryConfirmation !== "CARRY FORWARD ARCHIVED OWNER ENTRY"} onClick={() => mutate({ action: "carry_forward", source_revision: archivedRevision, confirmation_text: carryConfirmation }, "The archived owner bracket is now a labeled Top 8 carryover entry.")}>Create historical test entry</button>
+      </div>
+    </details>}
 
     {published && <details className="worlds-ops-panel" open={locked && bracket.status !== "final"}>
       <summary>Record official winners · {data.results.length}/{bracket.field_size - 1}</summary>

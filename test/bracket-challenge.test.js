@@ -95,9 +95,11 @@ test("Victory Road page and owner controls use the generic bracket contract", ()
   assert.match(route, /normalizeBracketChallengePublication/);
   assert.match(route, /requireOwner/);
   assert.match(route, /supersede_prediction_bracket/);
+  assert.match(route, /carry_forward_prediction_bracket_entry/);
   assert.doesNotMatch(route, /\.rpc\("get_prediction_bracket_hub"/);
   assert.match(operations, /PUBLISH OFFICIAL BRACKET/);
   assert.match(operations, /SUPERSEDE OFFICIAL BRACKET/);
+  assert.match(operations, /CARRY FORWARD ARCHIVED OWNER ENTRY/);
   assert.match(operations, /2026-08-16T21:10:00\.000Z/);
   assert.match(operations, /supabase\.auth\.getSession\(\)/);
   assert.match(operations, /Authorization: `Bearer \$\{data\.session\.access_token\}`/);
@@ -114,4 +116,16 @@ test("owner-only supersession preserves the entry snapshot and service boundary"
   assert.match(migration, /delete from public\.prediction_bracket_entries/);
   assert.match(migration, /grant execute on function public\.supersede_prediction_bracket[^;]+to service_role/is);
   assert.match(migration, /has_function_privilege\('authenticated'.+supersede_prediction_bracket.+execute/is);
+});
+
+test("owner carry-forward preserves archived bracket paths and stays audited", () => {
+  const migration = source("supabase/411-owner-bracket-path-carryover.sql");
+  assert.match(migration, /v_source_round := v_target_round \+ 1/);
+  assert.match(migration, /v_source_choice = v_source_left/);
+  assert.match(migration, /v_source_choice = v_source_right/);
+  assert.match(migration, /Top 16 carryover/);
+  assert.match(migration, /entry_carried_forward/);
+  assert.match(migration, /Carry-forward requires an empty replacement leaderboard/i);
+  assert.match(migration, /grant execute on function public\.carry_forward_prediction_bracket_entry[^;]+to service_role/is);
+  assert.match(migration, /has_function_privilege\('authenticated'.+carry_forward_prediction_bracket_entry.+execute/is);
 });

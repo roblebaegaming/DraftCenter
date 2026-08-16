@@ -95,6 +95,13 @@ export async function PATCH(request) {
         p_approved_by: access.user.id,
         p_confirmation_text: body.data.confirmation_text,
       });
+    } else if (action === "carry_forward") {
+      result = await rpc(access.supabase, "carry_forward_prediction_bracket_entry", {
+        p_event_id: id,
+        p_source_revision: positiveInteger(body.data.source_revision, "Archived revision"),
+        p_approved_by: access.user.id,
+        p_confirmation_text: String(body.data.confirmation_text || ""),
+      });
     } else if (action === "record_result") {
       result = await rpc(access.supabase, "record_prediction_bracket_result", {
         p_event_id: id,
