@@ -175,5 +175,10 @@ test("owner carry-forward preserves archived bracket paths and stays audited", (
   assert.doesNotMatch(archiveMigration, /'actor_user_id'/);
   assert.match(publicComponent, /get_prediction_bracket_archive/);
   assert.match(publicComponent, /ORIGINAL TOP 16 BRACKET/);
+  assert.match(publicComponent, /SAVED TOP 8 CARRYOVER/);
+  assert.match(publicComponent, /Official winner:/);
+  assert.match(publicComponent, /Yellow: saved pick/);
+  assert.match(publicComponent, /Aqua outline: official winner/);
+  assert.ok(publicComponent.indexOf("ORIGINAL TOP 16 BRACKET") < publicComponent.indexOf("SAVED TOP 8 CARRYOVER"));
   assert.match(publicComponent, /buildBracketChallengeArchiveResults/);
 });
