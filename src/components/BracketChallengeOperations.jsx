@@ -10,6 +10,7 @@ import {
 } from "../lib/bracketChallenge";
 
 const EVENT_ID = "victory-road-san-francisco-2026";
+const EVENT_LOCK_AT = "2026-08-16T20:45:00.000Z";
 
 async function ownerRequest(url, options = {}) {
   const supabase = createClient();
@@ -33,7 +34,15 @@ function localDateTime(value) {
 function when(value) { return value ? new Date(value).toLocaleString() : "Not set"; }
 function initialSetup(fieldSize = 16) {
   const template = buildBracketChallengeSetupTemplate(fieldSize);
-  return { ...template, confirmation_text: "" };
+  const now = new Date();
+  const eventLock = new Date(EVENT_LOCK_AT);
+  return {
+    ...template,
+    opens_at: now < eventLock ? localDateTime(now) : "",
+    locks_at: now < eventLock ? localDateTime(eventLock) : "",
+    source_checked_at: now < eventLock ? localDateTime(now) : "",
+    confirmation_text: "",
+  };
 }
 
 export default function BracketChallengeOperations() {
