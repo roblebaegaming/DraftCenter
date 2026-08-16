@@ -3,32 +3,29 @@
 - Last updated: August 16, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified production feature commit: `4d8d900dc42e3eb1a1302f5f044878dd9ad07d62`
-- Latest production migration: 409
+- Verified production feature commit: `049c7528efb8aec1cc357abbd3b5feb0cb361715`
+- Latest production migration: 410
 
 ## Deployed state
 
-Pull requests [#254](https://github.com/roblebaegaming/DraftCenter/pull/254)
-through [#258](https://github.com/roblebaegaming/DraftCenter/pull/258) and
-migration 409 deployed the reusable full-bracket prediction foundation and
-opened the separate Victory Road to San Francisco Top 16 challenge. The
-reviewed Phase 2 bracket is revision 1 with the 16 official players and eight
-published opening matchups; entries lock August 16 at 1:45 PM Pacific / 20:45
-UTC and award 1, 2, 4, and 8 points by round. The owner Operations fixes forward
-the signed-in session to the protected API, avoids an invalid service-role call
-to the public summary RPC, and prefills the event's exact lock deadline. Vercel
-deployed exact `main` commit `4d8d900`; the owner panel confirmed `open`, 16
-players, zero entries, and 0/15 results, and the public page confirmed every
-name, country, matchup, point value, source link, and lock time. The dependency
-audit, complete suite, 1,027-row National Dex check, build, protected security
-and CodeQL checks, exact deployment, signed-in publication review, and all 22
-Production smoke checks passed. Publishing created the intended official event
-revision and audit record only; it did not create a member entry or result or
-change any league, team, account, provider setting, environment variable, or
-secret. The active thread heartbeat `victory-road-top-cut-live-scoring` checks
-the official Battlefy Top Cut every five minutes, records only confirmed
-completed winners in feeder order, verifies automatic leaderboard scoring, and
-stops after all 15 results and the champion are reconciled and finalized.
+Pull request [#261](https://github.com/roblebaegaming/DraftCenter/pull/261) and
+migration 410 safely replaced the Victory Road to San Francisco challenge with
+the official Top 8. Revision 2 has eight reviewed players in four quarterfinals,
+locks August 16 at 2:10 PM Pacific / 21:10 UTC, requires seven picks, and awards
+1, 2, and 4 points by round for a 12-point maximum. The previous revision had
+exactly one owner entry and zero results; the guarded service-role-only
+supersession archived that entry privately, reset the active leaderboard to
+zero entries, and published the replacement atomically. Vercel deployed exact
+`main` commit `049c752`; the owner panel confirmed eight players, zero entries,
+0/7 results, revision 2, and a three-event audit, while the public page confirmed
+every matchup, country, point value, source link, and lock time. The dependency
+audit, complete suite, 1,027-row National Dex check, build, Preview regression,
+protected security and CodeQL checks, exact deployment, signed-in review, and
+all 22 Production smoke checks passed. No unrelated league, tournament,
+account, provider setting, environment variable, or secret changed. The active
+thread heartbeat `victory-road-top-cut-live-scoring` checks Battlefy every five
+minutes, records only newly confirmed winners in feeder order, verifies the
+leaderboard, and stops after all seven results and the champion are finalized.
 
 Pull request [#252](https://github.com/roblebaegaming/DraftCenter/pull/252)
 reframed Pokédex Tracker around game-accurate numbered dexes. Regional and DLC
