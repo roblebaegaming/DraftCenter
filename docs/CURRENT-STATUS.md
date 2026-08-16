@@ -3,17 +3,34 @@
 - Last updated: August 16, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified production feature commit: `9ad9734cc976464de42f53d210b0a3fd61410385`
-- Latest production migration: 407
+- Verified production feature commit: `88badbf810ec4ed67f30b156b15c4f336738d756`
+- Latest production migration: 408
 
 ## Deployed state
+
+Pull request [#252](https://github.com/roblebaegaming/DraftCenter/pull/252)
+reframed Pokédex Tracker around game-accurate numbered dexes. Regional and DLC
+dexes are separate, including Paldea, Kitakami, and Blueberry and Galar, Isle
+of Armor, and Crown Tundra. The active list and box planner follow the selected
+in-game numbering; game progress contributes to the same account's HOME
+National Dex; and the new finder shows reviewed locations and cross-game dex
+numbers. The guided Rescue experience is removed. Portable JSON recovery is
+owner-only while regular users keep CSV import and workbook export. Migration
+408 is applied to Production with forced RLS and RPC-only private-data access
+preserved. Vercel deployed exact `main` commit `88badbf8`; the dependency audit,
+full suites, 1,027-row National Dex check, build, protected checks, retained-
+Preview two-account regression, hosted responsive review, Production database
+postflight, live route review, and full Production smoke sweep passed. No real
+tracker progress, collection record, account, provider setting, secret, tester
+audience, or invitation changed.
 
 Pull request [#251](https://github.com/roblebaegaming/DraftCenter/pull/251)
 records the focused-app monetization decision and current continuation handoff.
 Pokédex Tracker and Team Lab commercialization remains intentionally gated.
-Every released collection, Rescue, My Teams, Battle Mode, export, and recovery
-workflow remains free during validation; the existing voluntary Ko-fi support
-does not grant an entitlement. Do not add a payment processor, paywall, ads,
+Every currently released Pokédex, collection, My Teams, Battle Mode, export,
+and recovery workflow remains free during validation; the existing voluntary
+Ko-fi support does not grant an entitlement. Do not add a payment processor,
+paywall, ads,
 public pricing, entitlement migration, or native billing before launch
 measurement, opt-in tester research, explicit willingness-to-pay evidence, and
 qualified intellectual-property review. The shared-platform hypothesis and
@@ -1109,7 +1126,7 @@ guard merely to remove that measurement gap.
 ## Authoritative records
 
 - Current continuation handoff:
-  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-16-focused-apps-next.md`](handoffs/DraftCenter-agent-handoff-2026-08-16-focused-apps-next.md)
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-16-pokedex-numbered-dexes-production.md`](handoffs/DraftCenter-agent-handoff-2026-08-16-pokedex-numbered-dexes-production.md)
 - Focused-app monetization decision:
   [`docs/focused-app-monetization.md`](focused-app-monetization.md)
 - Pokédex Tracker product and data contract:
