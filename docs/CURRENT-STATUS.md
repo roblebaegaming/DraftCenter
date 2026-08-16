@@ -27,8 +27,17 @@ reviewed Team Lab/Battle Mode and Pokédex Tracker Instagram screenshot sets in
 that order. Every image is a direct 1080×1080 site screenshot without AI
 artwork, account identifiers, or private user data. Exact-commit Vercel checks
 and the 20-check signed-out Production smoke sweep passed after both merges.
-Instagram publishing is waiting only for an authenticated owner session; the
-tracked campaign links and exact captions are in each set's guide.
+The intended public brand account published all ten Team Lab posts followed by
+all ten Pokédex Tracker posts on August 16. Every public caption was verified
+against its reviewed guide, the tracked Collector link was moved to the first
+profile-link position before its sequence, and AI labeling and Facebook
+cross-posting remained off. The Team Lab launch began at 03:14:06 Pacific and
+the Collector launch began at 04:03:58 Pacific. Aggregate 3-, 7-, and 30-day
+attribution reviews are scheduled for August 19, August 23, and September 15.
+No direct invitations or messages were sent; the exact Founding Collector
+tester audience remains an owner decision. The Collector profile-link title
+still has a cosmetic mobile-only spelling correction remaining, but its first
+position, destination, and campaign parameters are correct.
 
 Pull request [#241](https://github.com/roblebaegaming/DraftCenter/pull/241)
 and migration 407 made Mega Bracket replayable by Full Dex, type, generation,
@@ -79,8 +88,13 @@ state, a transparent manual damage estimate, and the expanded six-tab workbook.
 The retained Preview passed all three rollback-only regression matrices and a
 signed-in desktop/390px/320px walkthrough; its exact third disposable account,
 team, matchup, and nine temporary compatibility columns were removed afterward.
-Preview CAPTCHA still requires the hCaptcha secret to be re-entered before it
-can be restored. Production received 404, 405, and 406 in order. Postflight
+The retained Preview CAPTCHA is restored with the Cloudflare Turnstile provider
+the application actually uses. The existing Production hostname was preserved,
+the retained hosted Preview hostname was added to the widget, Supabase Preview
+showed the masked saved secret after reload, and signed-out Preview sign-in and
+signup both rendered a successful widget without submitting credentials or
+creating an account. Production authentication configuration was not changed.
+Production received 404, 405, and 406 in order. Postflight
 preserved 114 accounts/profiles, two personal teams, and one matchup, found zero
 invalid team-set or battle-report rows, retained forced RLS and browser-table
 denial, and exposed only the intended authenticated RPCs and two outer
