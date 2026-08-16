@@ -10,7 +10,7 @@ begin;
 
 do $validation$
 declare
-  v_event_id text := 'preview-prediction-publisher-412';
+  v_event_id text := 'preview-prediction-publisher-413';
   v_owner uuid := gen_random_uuid();
   v_created jsonb;
   v_directory jsonb;
