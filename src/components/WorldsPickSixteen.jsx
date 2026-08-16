@@ -233,6 +233,7 @@ export default function WorldsPickSixteen({ rosterSource, discipline = "vgc", lo
           <a className="primary-button inline-link-button" href={user === null ? "/#member-access" : staged ? "#qualified-players" : "#pick-ten"}>{isItalian ? user === null ? copy.hero.signIn : staged ? copy.hero.browse : copy.hero.build : user === null ? "Sign in to predict" : staged ? "Browse reviewed roster" : "Build my 10"}</a>
           <a className="quiet-button" href="#meta-picks">{isItalian ? copy.hero.meta : "Predict the winning meta"}</a>
           {config.key === "vgc" && <a className="quiet-button" href="/worlds/2026/vgc/bracket">{isItalian ? copy.hero.bracket : "Top Cut bracket"}</a>}
+          {config.key === "vgc" && !isItalian && <a className="quiet-button" href="/worlds/2026/vgc/victory-road-to-san-francisco">Victory Road bracket</a>}
           <a className="quiet-button" href="/worlds/2026">{isItalian ? copy.hero.all : "All Worlds competitions"}</a>
           <a className="quiet-button" href="#qualified-players">{isItalian ? copy.hero.invitees(competitors.length) : <>See all {competitors.length} {config.entryPlural.toLowerCase()}</>}</a>
         </div>

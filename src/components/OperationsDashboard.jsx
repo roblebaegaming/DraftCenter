@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "../lib/supabase/client";
 import WorldsBracketOperations from "./WorldsBracketOperations";
+import BracketChallengeOperations from "./BracketChallengeOperations";
 import WorldsFutureOperations from "./WorldsFutureOperations";
 import WorldsResultsOperations from "./WorldsResultsOperations";
 import { connectionsAdoptionPercent } from "../lib/operationsEngagement";
@@ -222,6 +223,7 @@ export default function OperationsDashboard() {
     <WorldsEntrySummary summary={data.worlds_entries} />
     <WorldsResultsOperations />
     <WorldsBracketOperations />
+    <BracketChallengeOperations />
     <WorldsFutureOperations />
     <section className="operations-metrics"><article><strong>{data.totals.leagues}</strong><span>Active leagues</span></article><article><strong>{data.totals.archived || 0}</strong><span>Archived leagues</span></article><article><strong>{data.totals.real}</strong><span>Active real leagues</span></article><article><strong>{data.totals.drafting || 0}</strong><span>Active or paused drafts</span></article><article><strong>{data.totals.needing_attention}</strong><span>Need attention</span></article><article className={data.totals.high_priority ? "danger" : ""}><strong>{data.totals.high_priority}</strong><span>High priority</span></article><article className={data.totals.open_support_requests ? "danger" : ""}><strong>{data.totals.open_support_requests || 0}</strong><span>Support requests</span></article><article className={data.totals.errors_24h ? "danger" : ""}><strong>{data.totals.errors_24h || 0}</strong><span>System failures · 24 hours</span></article><article><strong>{data.totals.expected_rejections_24h || 0}</strong><span>Safety rejections · 24 hours</span></article></section>
     <LeagueInsights insights={data.league_insights} chooseRegulation={(value) => { setRegulationFilter(value); setFilter("real"); }} chooseDraftType={(value) => { setDraftTypeFilter(value); setFilter("real"); }} chooseStage={(value) => { setStageFilter(value); setFilter("real"); }} />
