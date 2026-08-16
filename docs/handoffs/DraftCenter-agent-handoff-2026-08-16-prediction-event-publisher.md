@@ -23,7 +23,7 @@ images, and never receive hosted event URLs.
 - Worktree: `DraftCenter-tournament-publisher-20260816`
 - Original base: deployed Victory Road commit `39799c5`; the branch now also
   contains the deployed archive, corrected Top 16 presentation, and status-link
-  releases through production commit `4d1845b`.
+  releases through public entrant-gallery production commit `ff83bfb`.
 - The original working tree and all of its unrelated user changes were left
   untouched.
 - Pull request: [#264](https://github.com/roblebaegaming/DraftCenter/pull/264)
@@ -46,6 +46,9 @@ images, and never receive hosted event URLs.
 - The existing Victory Road route continues to work. Its event data is served
   through the same reusable public component, while the current live-scoring
   monitor's result, carry-forward, and finalization API remains compatible.
+- The locked-entry bracket gallery released on `main` is inherited by this
+  branch, so future published events also let visitors click a leaderboard
+  entrant and inspect that person's complete bracket after entries lock.
 - Global navigation now links to Live Predictions, while Worlds Predictions
   remains available from that directory. Owners receive a Publish predictions
   shortcut.
@@ -120,6 +123,9 @@ synthetic Preview regression run.
   CodeQL, Vercel, and Vercel Preview Comments. The repository's Supabase Preview
   integration check intentionally reports skipped; the retained isolated
   Preview is validated through the manual migration and regression gate above.
+- After production PR #271 added the reusable entrant bracket gallery, it was
+  merged into this branch and the overlapping bracket, public-studio, and
+  release-integration tests passed together.
 - No production smoke test was run because the change is not deployed.
 
 ## Required continuation
@@ -130,10 +136,7 @@ synthetic Preview regression run.
 2. Have the owner sign in on the hosted Preview and review the publisher. A
    disposable four-player end-to-end event still requires exact authorization
    and cleanup; a non-mutating owner-page review can proceed after sign-in.
-3. Before merging, incorporate and revalidate any newer production bracket
-   gallery release that lands on `main`; do not duplicate or interfere with its
-   active isolated task.
-4. Do not merge until protected checks, Preview privacy matrices, and hosted
+3. Do not merge until protected checks, Preview privacy matrices, and hosted
    review pass. After an owner-authorized merge, verify migration 413 in
    Production, confirm the deployed commit, run the signed-out production smoke
    sweep, and exercise the owner page without creating a real event unless the
