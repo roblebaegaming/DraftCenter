@@ -87,7 +87,8 @@ model without depending on the separate count endpoint's bucket behavior.
 This keeps Pacific-evening events in the current reporting window instead of
 losing them at a UTC date boundary. Account-created source and journey
 leaderboards use Vercel's structured `eventData/source` and
-`eventData/journey` dimensions. When there are no attributed account creations,
+`eventData/journey` dimensions. Aggregate groupings use a bounded 20-row limit;
+Operations displays at most eight values. When there are no attributed account creations,
 those empty leaderboards are treated as current rather than as an API failure.
 The Web Analytics API reads the Production dataset for these project queries,
 so the report does not add an unsupported environment filter.

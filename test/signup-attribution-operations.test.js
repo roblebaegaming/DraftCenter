@@ -64,6 +64,7 @@ test("signup attribution summarizes account events, starts, journeys, and campai
     const filter = call.url.searchParams.get("filter");
     assert.equal(filter === null || /^eventName eq 'Account Created'$/.test(filter), true);
     assert.equal(String(filter || "").includes("environment"), false);
+    assert.equal(call.url.searchParams.get("limit"), "20");
     assert.equal(call.url.toString().includes(env.DRAFTCENTER_VERCEL_ANALYTICS_TOKEN), false);
     assert.equal(call.options.headers.Authorization, `Bearer ${env.DRAFTCENTER_VERCEL_ANALYTICS_TOKEN}`);
     assert.equal(call.options.cache, "no-store");

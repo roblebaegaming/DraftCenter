@@ -123,7 +123,7 @@ export async function getSignupAttributionReport({ fetchImpl = fetch, env = proc
     { key: "last_30_days", since: startOfDateKeyInTimeZone(startDate) },
   ];
   const summaryResults = await Promise.allSettled(windows.map(({ since }) => (
-    queryEvents(fetchImpl, buildEventsUrl({ projectId, teamId, since, until, by: "eventName", limit: 250 }), token)
+    queryEvents(fetchImpl, buildEventsUrl({ projectId, teamId, since, until, by: "eventName", limit: 20 }), token)
   )));
   if (summaryResults.some((result) => result.status !== "fulfilled")) return { unavailable: true };
 
@@ -138,8 +138,8 @@ export async function getSignupAttributionReport({ fetchImpl = fetch, env = proc
   let journeyResult = { status: "fulfilled", value: [] };
   if (accountCreated.last_30_days > 0) {
     [sourceResult, journeyResult] = await Promise.allSettled([
-      queryEvents(fetchImpl, buildEventsUrl({ projectId, teamId, since: windows[2].since, until, eventName: "Account Created", by: "eventData/source", limit: 250 }), token),
-      queryEvents(fetchImpl, buildEventsUrl({ projectId, teamId, since: windows[2].since, until, eventName: "Account Created", by: "eventData/journey", limit: 250 }), token),
+      queryEvents(fetchImpl, buildEventsUrl({ projectId, teamId, since: windows[2].since, until, eventName: "Account Created", by: "eventData/source", limit: 20 }), token),
+      queryEvents(fetchImpl, buildEventsUrl({ projectId, teamId, since: windows[2].since, until, eventName: "Account Created", by: "eventData/journey", limit: 20 }), token),
     ]);
   }
   const detailsUnavailable = sourceResult.status !== "fulfilled" || journeyResult.status !== "fulfilled";
