@@ -1,4 +1,4 @@
-import { bankRescueExport } from "./pokemonBankRescue.js";
+import { uniquePokedexEntries } from "./pokedexTracker.js";
 
 export const POKEDEX_COLLECTOR_EXPORT_FORMAT = "draftcenter-pokedex-tracker";
 export const POKEDEX_COLLECTOR_EXPORT_VERSION = 3;
@@ -30,23 +30,21 @@ export const POKEDEX_COLLECTOR_CSV_HEADERS = [
   "poke_ball",
   "ribbons",
   "event",
-  "importance",
-  "intended_destination",
-  "transfer_state",
-  "transferred_on",
   "notes",
 ];
 
 export const POKEDEX_COLLECTOR_FEEDBACK_CHECKLIST = [
   "Which game or HOME collection did you try?",
-  "Did creating or restoring a tracker feel clear?",
-  "If you imported a CSV, what was confusing or slow?",
+  "Did the game-specific numbering and order match what you expected?",
+  "Were the base-game and DLC area dexes easy to understand and switch between?",
+  "Did Find show a useful answer for where to get a missing Pokémon?",
+  "Did the box layout make the checklist easier to use in the game?",
+  "Did linked National Dex progress behave the way you expected?",
   "Could you find and edit an individual Pokémon quickly?",
-  "Did the workbook contain the information you expected?",
-  "Was any Bank or HOME guidance unclear or too confident?",
-  "What one convenience feature would make this worth supporting?",
+  "If you imported a CSV or opened the workbook, what was confusing or missing?",
+  "What one feature would make the tracker more useful to you?",
   "Would you prefer a one-time contribution or an optional subscription for future convenience features?",
-  "Anything you expected DraftCenter Collector to do that it did not?",
+  "Anything you expected Pokédex Tracker to do that it did not?",
 ].join("\n");
 
 const LOCATION_KINDS = new Set(["game_save", "pokemon_bank", "pokemon_home", "cartridge", "other"]);
@@ -378,7 +376,7 @@ export function buildPokedexTrackerPortableExport(active, inventory, exportedAt 
   if (!active?.tracker) throw new Error("Open a Pokédex tracker before exporting it.");
   const entries = [];
   const details = [];
-  for (const pokemon of active.pokemon || []) {
+  for (const pokemon of uniquePokedexEntries(active.pokemon || [])) {
     if (pokemon.caught) entries.push({ pokemon_id: pokemon.pokemon_id, pokemon: pokemon.pokemon, dex_number: pokemon.dex_number, is_shiny: false });
     if (pokemon.shiny_caught) entries.push({ pokemon_id: pokemon.pokemon_id, pokemon: pokemon.pokemon, dex_number: pokemon.dex_number, is_shiny: true });
     if (pokemon.pokeball || pokemon.ribbons?.length || pokemon.notes) details.push({
@@ -404,7 +402,6 @@ export function buildPokedexTrackerPortableExport(active, inventory, exportedAt 
     details,
     locations: inventory?.locations || [],
     specimens: inventory?.specimens || [],
-    bank_rescue_review: bankRescueExport(inventory),
   };
 }
 

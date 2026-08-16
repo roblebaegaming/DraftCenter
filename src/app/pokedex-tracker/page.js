@@ -3,27 +3,27 @@ import "./pokedex-tracker.css";
 
 export const metadata = {
   title: "Pokédex Tracker for Every Pokémon Game and HOME",
-  description: "Create private Pokédex checklists and individual collection records for every supported Pokémon game and Pokémon HOME, with storage locations, transfer plans, and portable exports.",
+  description: "Track each Pokémon game and DLC Pokédex in its own numbered order, link progress to a National Dex, find Pokémon by game, and plan collection boxes.",
   alternates: { canonical: "/pokedex-tracker" },
   manifest: "/pokedex-tracker/manifest.webmanifest",
   keywords: ["Pokédex tracker", "Pokémon checklist", "shiny Pokédex tracker", "Pokémon HOME Pokédex tracker", "living dex tracker"],
   openGraph: {
     type: "website",
     title: "Pokédex Tracker for Every Pokémon Game and HOME",
-    description: "Track catches and actual Pokémon across games, saves, Bank, and HOME with private storage locations, transfer plans, and portable exports.",
+    description: "Track game and DLC Pokédexes in their original numbering, link them to a National Dex, search locations, and organize collection boxes.",
     url: "/pokedex-tracker",
   },
   twitter: {
     card: "summary_large_image",
     title: "Pokédex Tracker for Every Pokémon Game and HOME",
-    description: "Track catches and actual Pokémon across games, saves, Bank, and HOME with private storage locations, transfer plans, and portable exports.",
+    description: "Track game and DLC Pokédexes in their original numbering, link them to a National Dex, search locations, and organize collection boxes.",
   },
 };
 
 const questions = [
   {
     question: "Which Pokémon games can I track?",
-    answer: "DraftCenter offers a separate checklist for every verified main-series game catalog, plus one Pokémon HOME National Pokédex assembled from those reviewed catalogs.",
+    answer: "DraftCenter offers a checklist for every supported main-series game. Games with multiple Pokédexes include separate regional or DLC sections, such as Paldea, Kitakami, and Blueberry.",
   },
   {
     question: "Can I track shiny Pokémon separately?",
@@ -35,7 +35,11 @@ const questions = [
   },
   {
     question: "Can I record individual Pokémon and where they are stored?",
-    answer: "Yes. Collection inventory stores repeatable private records for actual individuals, named game-save, Pokémon Bank, Pokémon HOME, cartridge, or other locations, box positions, and owner-entered transfer plans. It never connects to Nintendo services or performs a transfer.",
+    answer: "Yes. Collection inventory stores private records for individual Pokémon, game saves, Pokémon HOME, cartridges, other locations, and box positions.",
+  },
+  {
+    question: "Does game progress count toward my National Dex?",
+    answer: "Yes. A Pokémon checked off in one of your game trackers also counts in your Pokémon HOME National Dex. You can still check Pokémon directly in the National Dex too.",
   },
   {
     question: "Is my Pokédex progress public?",
@@ -64,8 +68,11 @@ export default function PokedexTrackerRoute() {
           "Independent standard and shiny checklists",
           "Optional Poké Ball, ribbon, and note details for every entry",
           "Private individual Pokémon and storage-location inventory",
-          "Source-backed Pokémon Bank Rescue readiness and review priorities",
-          "Portable JSON and spreadsheet-safe CSV inventory exports",
+          "Separate regional and DLC Pokédex sections with original game numbering",
+          "Game progress linked to the Pokémon HOME National Dex",
+          "Pokémon game and encounter search",
+          "Game-aware collection box layouts in Pokédex order",
+          "Spreadsheet imports and readable workbook or CSV downloads",
           "Search, completion filters, progress rings, and responsive galleries",
           "Private cross-device account saving",
         ],
@@ -93,20 +100,20 @@ export default function PokedexTrackerRoute() {
     <PokedexTrackerPage />
     <section className="dex-tracker-seo" aria-labelledby="dex-tracker-guide-title">
       <span className="dex-kicker">HOW THE TRACKER WORKS</span>
-      <h2 id="dex-tracker-guide-title">One private checklist for every Pokédex journey</h2>
-      <p>Choose any supported game or build a Pokémon HOME National Pokédex, then mark each species as registered. Keep the checklist quick, or add separate records for actual individuals, the saves and boxes where they live, and your private transfer intentions.</p>
+      <h2 id="dex-tracker-guide-title">Track each game in the order it uses</h2>
+      <p>Choose a game, open the regional or DLC dex you are working on, and check off Pokémon by their number in that dex. Your game progress can also fill the matching entries in a National Dex.</p>
       <div className="dex-tracker-seo-grid">
         <article>
           <h3>Game-specific Pokédex checklists</h3>
-          <p>Each game tracker comes from DraftCenter’s verified catalog for that exact version. Pokémon HOME uses the canonical National Pokédex species found across the complete verified catalog set.</p>
+          <p>Each game uses its own Pokédex numbers. Scarlet and Violet include Paldea, Kitakami, and Blueberry; Sword and Shield include Galar, the Isle of Armor, and the Crown Tundra.</p>
         </article>
         <article>
           <h3>Independent shiny progress</h3>
           <p>Add a shiny checklist when you create a tracker or whenever a hunt begins. Standard and shiny catches are stored separately, so neither checklist can overwrite the other.</p>
         </article>
         <article>
-          <h3>Details for collectors</h3>
-          <p>Each standard or shiny entry can remember its Poké Ball, ribbons, and a private note. Collection inventory can separately document multiple actual individuals, storage locations, origin details, importance, and transfer state.</p>
+          <h3>Search and boxes</h3>
+          <p>Look up where a Pokémon appears in supported games, then use the box layout to arrange the selected dex in number order. Individual records can still hold private notes, storage locations, balls, and ribbons.</p>
         </article>
       </div>
       <section className="dex-tracker-faq" aria-labelledby="dex-tracker-faq-title">
@@ -114,8 +121,8 @@ export default function PokedexTrackerRoute() {
         {questions.map(({ question, answer }) => <article key={question}><h3>{question}</h3><p>{answer}</p></article>)}
       </section>
       <aside className="dex-tracker-next-step">
-        <h2>Research before you check it off</h2>
-        <p>Use DraftCenter’s public Pokédex for species profiles, forms, types, abilities, stats, measurements, and versioned move pools. Nuzlocke guides remain a separate route-by-route encounter tool.</p>
+        <h2>Looking for a specific Pokémon?</h2>
+        <p>Use Find inside the tracker to check game locations and Pokédex numbers. DraftCenter’s public Pokédex also has species profiles, forms, types, abilities, stats, measurements, and move lists.</p>
         <div><a href="/pokemon">Explore the Pokédex</a><a href="/nuzlocke/guides">Browse Nuzlocke guides</a><a href="/#member-access">Create a free account</a></div>
       </aside>
     </section>

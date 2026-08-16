@@ -8,7 +8,7 @@
 
 Do not add a paywall, advertising, payment processor, subscription entitlement,
 public price page, or native-store billing yet. Keep every released Pokédex
-Tracker, Rescue, Team Lab, and Battle Mode capability free while the products
+Tracker, collection search and boxes, Team Lab, and Battle Mode capability free while the products
 establish real use.
 
 The existing voluntary Ko-fi contribution may remain available as support. It
@@ -53,8 +53,8 @@ This record is product and engineering guidance, not legal advice.
 Keep these released workflows free:
 
 - species checklist and collection inventory;
-- guided Bank Rescue, owner-entered access map, intentions, and archive;
-- portable JSON, CSV, and workbook exports and restore-as-new-copy recovery;
+- game and DLC checklists, linked National progress, Pokémon search, and box layouts;
+- CSV and workbook exports, plus owner-only recovery tooling;
 - My Teams, public Team Builder, matchup plans, and current Battle Mode;
 - account export and deletion paths;
 - reviewed public Pokémon guidance and source provenance.
@@ -85,7 +85,7 @@ facts or official artwork. Candidate areas include:
 - shared platform: cross-product dashboards, higher convenience limits, and
   priority support.
 
-The existing Rescue and Battle Mode foundations must remain usable without
+The existing Pokédex checklist, finder, boxes, and Battle Mode foundations must remain usable without
 Plus. Paid value should save time, coordinate people, or add original analysis.
 
 ## Activation gates
@@ -96,7 +96,7 @@ Do not implement payment code until all of these are recorded:
    reviews, keeping Pokédex Tracker and Team Lab attribution separate.
 2. Recruit 5-8 owner-approved, opt-in testers from existing followers, known
    collectors, or organically engaged users. Do not invite random people.
-3. Observe real Rescue and closed-sheet Battle Mode sessions and identify a
+3. Observe real Pokédex completion and closed-sheet Battle Mode sessions and identify a
    repeated problem users value enough to solve.
 4. Conduct at least eight structured discovery conversations, with at least
    five explicit statements of willingness to pay for the same defined outcome.

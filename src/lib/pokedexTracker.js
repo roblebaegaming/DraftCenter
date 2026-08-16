@@ -1,5 +1,3 @@
-import { BANK_RESCUE_SOURCES, classifyBankRescueSpecimen } from "./pokemonBankRescue.js";
-
 export const POKEDEX_TRACKER_PAGE_SIZE = 120;
 export const POKEAPI_SPRITES_COMMIT = "5841d46f1a0d2b8918a29a7376b1424878b86b59";
 export const POKEMON_HOME_BOX_SIZE = 30;
@@ -16,19 +14,117 @@ export const POKEDEX_LOCATION_OPTIONS = [
   { key: "other", label: "Other storage" },
 ];
 
-export const POKEDEX_IMPORTANCE_OPTIONS = [
-  { key: "standard", label: "Standard" },
-  { key: "important", label: "Important" },
-  { key: "irreplaceable", label: "Irreplaceable" },
-];
+const POKEDEX_SECTION_META = Object.freeze({
+  national: { label: "National Dex", order: 0 },
+  kanto: { label: "Kanto Dex", order: 0 },
+  "letsgo-kanto": { label: "Kanto Dex", order: 0 },
+  "original-johto": { label: "Johto Dex", order: 0 },
+  "updated-johto": { label: "Johto Dex", order: 0 },
+  hoenn: { label: "Hoenn Dex", order: 0 },
+  "updated-hoenn": { label: "Hoenn Dex", order: 0 },
+  "original-sinnoh": { label: "Sinnoh Dex", order: 0 },
+  "extended-sinnoh": { label: "Sinnoh Dex", order: 0 },
+  "original-unova": { label: "Unova Dex", order: 0 },
+  "updated-unova": { label: "Unova Dex", order: 0 },
+  "kalos-central": { label: "Central Kalos Dex", order: 0 },
+  "kalos-coastal": { label: "Coastal Kalos Dex", order: 1 },
+  "kalos-mountain": { label: "Mountain Kalos Dex", order: 2 },
+  "original-alola": { label: "Alola Dex", order: 0 },
+  "updated-alola": { label: "Alola Dex", order: 0 },
+  "original-melemele": { label: "Melemele Dex", order: 1 },
+  "updated-melemele": { label: "Melemele Dex", order: 1 },
+  "original-akala": { label: "Akala Dex", order: 2 },
+  "updated-akala": { label: "Akala Dex", order: 2 },
+  "original-ulaula": { label: "Ula'ula Dex", order: 3 },
+  "updated-ulaula": { label: "Ula'ula Dex", order: 3 },
+  "original-poni": { label: "Poni Dex", order: 4 },
+  "updated-poni": { label: "Poni Dex", order: 4 },
+  galar: { label: "Galar Dex", order: 0 },
+  "isle-of-armor": { label: "Isle of Armor Dex", order: 1 },
+  "crown-tundra": { label: "Crown Tundra Dex", order: 2 },
+  hisui: { label: "Hisui Dex", order: 0 },
+  paldea: { label: "Paldea Dex", order: 0 },
+  kitakami: { label: "Kitakami Dex", order: 1 },
+  blueberry: { label: "Blueberry Dex", order: 2 },
+});
 
-export const POKEDEX_TRANSFER_STATE_OPTIONS = [
-  { key: "not_planned", label: "Not planned" },
-  { key: "planned", label: "Transfer planned" },
-  { key: "ready", label: "Ready to transfer" },
-  { key: "transferred", label: "Transfer confirmed" },
-  { key: "keep_original", label: "Keep in original game" },
-];
+const LETS_GO_BOX_GAMES = new Set(["lets-go-pikachu", "lets-go-eevee"]);
+
+export function pokedexSectionLabel(key) {
+  const normalized = String(key || "");
+  return POKEDEX_SECTION_META[normalized]?.label
+    || normalized.split("-").filter(Boolean).map((word) => `${word[0]?.toLocaleUpperCase() || ""}${word.slice(1)}`).join(" ")
+    || "Game Dex";
+}
+
+export function sortPokedexEntries(entries = []) {
+  return [...entries].sort((left, right) => Number(left.dex_number) - Number(right.dex_number)
+    || String(left.pokemon || "").localeCompare(String(right.pokemon || ""))
+    || Number(left.pokemon_id) - Number(right.pokemon_id));
+}
+
+export function uniquePokedexEntries(entries = []) {
+  const unique = new Map();
+  for (const entry of entries) {
+    const pokemonId = Number(entry?.pokemon_id);
+    if (Number.isInteger(pokemonId) && !unique.has(pokemonId)) unique.set(pokemonId, entry);
+  }
+  return [...unique.values()];
+}
+
+export function groupPokedexSections(entries = []) {
+  const grouped = new Map();
+  for (const entry of entries) {
+    const key = String(entry?.pokedex_key || "game");
+    if (!grouped.has(key)) grouped.set(key, []);
+    grouped.get(key).push(entry);
+  }
+  return [...grouped.entries()].map(([key, values]) => ({
+    key,
+    label: pokedexSectionLabel(key),
+    order: POKEDEX_SECTION_META[key]?.order ?? 99,
+    entries: sortPokedexEntries(uniquePokedexEntries(values)),
+  })).sort((left, right) => left.order - right.order || left.label.localeCompare(right.label));
+}
+
+export function pokedexBoxLayout(catalogKey, generation = 0) {
+  if (LETS_GO_BOX_GAMES.has(catalogKey)) return {
+    size: 30,
+    columns: 6,
+    label: "Planner group",
+    note: "Let's Go keeps Pokémon in one sortable Pokémon Box, so these 30-slot groups are an organizing plan rather than numbered in-game boxes.",
+    virtual: true,
+  };
+  if (catalogKey !== "home" && Number(generation) > 0 && Number(generation) <= 2) return {
+    size: 20,
+    columns: 5,
+    label: "Box",
+    note: "This layout follows the 20-slot PC boxes used by this game.",
+    virtual: false,
+  };
+  return {
+    size: 30,
+    columns: 6,
+    label: catalogKey === "home" ? "HOME box" : "Box",
+    note: catalogKey === "home"
+      ? "Each HOME box holds 30 Pokémon. The plan follows National Dex order."
+      : "This layout follows the game's 30-slot storage boxes.",
+    virtual: false,
+  };
+}
+
+export function buildPokedexBoxPlan(entries = [], layout = pokedexBoxLayout("home")) {
+  const ordered = sortPokedexEntries(uniquePokedexEntries(entries));
+  return Array.from({ length: Math.ceil(ordered.length / layout.size) }, (_, boxIndex) => {
+    const entriesInBox = ordered.slice(boxIndex * layout.size, (boxIndex + 1) * layout.size);
+    return {
+      number: boxIndex + 1,
+      entries: [...entriesInBox, ...Array(Math.max(0, layout.size - entriesInBox.length)).fill(null)],
+      firstDexNumber: entriesInBox[0]?.dex_number ?? null,
+      lastDexNumber: entriesInBox.at(-1)?.dex_number ?? null,
+    };
+  });
+}
 
 const BASIC_BALL_KEYS = ["poke", "great", "ultra", "master"];
 const GEN_2_BALL_KEYS = ["fast", "level", "lure", "heavy", "love", "friend", "moon", "sport"];
@@ -299,14 +395,10 @@ export function pokedexInventoryCsv(inventory = {}) {
     "form", "nickname", "shiny", "gender", "level",
     "original_trainer", "origin_game", "origin_mark", "location_key", "storage_location", "location_type",
     "location_platform", "location_notes",
-    "box", "box_position", "poke_ball", "ribbons", "event", "importance",
-    "intended_destination", "transfer_state", "transferred_on", "notes",
-    "bank_rescue_classification", "bank_rescue_reason", "availability_verification",
-    "source_reviewed_on", "source_ids", "source_urls",
+    "box", "box_position", "poke_ball", "ribbons", "event", "notes",
   ];
   const locations = new Map((inventory.locations || []).map((location) => [location.id, location]));
   const rows = (inventory.specimens || []).map((specimen) => {
-    const rescue = classifyBankRescueSpecimen(specimen);
     const location = locations.get(specimen.location_id) || {};
     return [
     "individual",
@@ -333,17 +425,7 @@ export function pokedexInventoryCsv(inventory = {}) {
     specimen.pokeball,
     Array.isArray(specimen.ribbons) ? specimen.ribbons.join(" | ") : "",
     specimen.is_event ? "yes" : "no",
-    specimen.importance,
-    specimen.intended_destination,
-    specimen.transfer_state,
-    specimen.transferred_on,
     specimen.notes,
-    rescue.label,
-    rescue.reason,
-    rescue.verification.label,
-    rescue.reviewed_on,
-    rescue.source_ids.join(" | "),
-    rescue.source_ids.map((sourceId) => BANK_RESCUE_SOURCES.find(({ id }) => id === sourceId)?.url || "").filter(Boolean).join(" | "),
   ];
   });
   return [headers, ...rows].map((row) => row.map(csvCell).join(",")).join("\r\n");

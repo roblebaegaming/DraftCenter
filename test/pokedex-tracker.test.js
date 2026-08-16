@@ -2,10 +2,13 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import test from "node:test";
 import {
+  buildPokedexBoxPlan,
   filterPokedexEntries,
   filterPokedexSpecimens,
   groupPokedexCatalogs,
+  groupPokedexSections,
   pokedexBallOptions,
+  pokedexBoxLayout,
   pokedexEntryDetails,
   pokedexHasEntryDetails,
   pokedexArtworkUrl,
@@ -16,22 +19,10 @@ import {
   pokedexTrackerProgress,
   POKEDEX_BALL_OPTIONS,
   POKEDEX_ENTRY_NOTE_MAX_LENGTH,
-  POKEDEX_IMPORTANCE_OPTIONS,
   POKEDEX_LOCATION_OPTIONS,
   POKEDEX_RIBBON_OPTIONS,
   POKEDEX_TRACKER_PAGE_SIZE,
-  POKEDEX_TRANSFER_STATE_OPTIONS,
 } from "../src/lib/pokedexTracker.js";
-import {
-  bankRescueExport,
-  bankRescueSourceFreshness,
-  BANK_RESCUE_REVIEWED_ON,
-  BANK_RESCUE_SOURCES,
-  BANK_RESCUE_STATUS,
-  buildBankRescueDashboard,
-  buildBankRescueReview,
-  classifyBankRescueSpecimen,
-} from "../src/lib/pokemonBankRescue.js";
 import {
   buildPokedexCollectorDashboard,
   buildPokedexTrackerPortableExport,
@@ -73,6 +64,24 @@ test("catalogs group Pokémon HOME before game generations", () => {
   assert.deepEqual(pokedexHomePlacement(901), { page: 2, box: 1, globalBox: 31, position: 1, row: 1, slot: 1 });
   assert.deepEqual(pokedexHomePlacement(1025), { page: 2, box: 5, globalBox: 35, position: 5, row: 1, slot: 5 });
   assert.equal(pokedexHomePlacement(0), null);
+});
+
+test("game Pokédex sections use their own numbers and box layouts", () => {
+  const sections = groupPokedexSections([
+    { pokemon_id: 25, pokemon: "Pikachu", dex_number: 74, pokedex_key: "blueberry" },
+    { pokemon_id: 906, pokemon: "Sprigatito", dex_number: 1, pokedex_key: "paldea" },
+    { pokemon_id: 25, pokemon: "Pikachu", dex_number: 21, pokedex_key: "paldea" },
+    { pokemon_id: 1011, pokemon: "Dipplin", dex_number: 200, pokedex_key: "kitakami" },
+  ]);
+  assert.deepEqual(sections.map(({ key }) => key), ["paldea", "kitakami", "blueberry"]);
+  assert.deepEqual(sections[0].entries.map(({ dex_number }) => dex_number), [1, 21]);
+  assert.equal(pokedexBoxLayout("red", 1).size, 20);
+  assert.equal(pokedexBoxLayout("scarlet", 9).size, 30);
+  assert.equal(pokedexBoxLayout("lets-go-pikachu", 7).virtual, true);
+  const boxes = buildPokedexBoxPlan(sections[0].entries, pokedexBoxLayout("scarlet", 9));
+  assert.equal(boxes.length, 1);
+  assert.deepEqual(boxes[0].entries.slice(0, 2).map(({ pokemon }) => pokemon), ["Sprigatito", "Pikachu"]);
+  assert.equal(boxes[0].entries.length, 30);
 });
 
 test("Poké Ball and ribbon pickers stay appropriate to the selected game", () => {
@@ -142,146 +151,9 @@ test("individual collection records are searchable, readable, and safely exporta
   assert.match(csv, /"Pikachu"/);
   assert.match(csv, /"' =FORMULA\(\)"/);
   assert.match(csv, /"best-friends"/);
-  assert.match(csv, /"bank_rescue_classification","bank_rescue_reason","availability_verification"/);
-  assert.match(csv, /"Review legacy details first"/);
-  assert.match(csv, /"2026-08-16"/);
-  assert.match(csv, /https:\/\/home\.pokemon\.com\/en-us\/move\//);
+  assert.doesNotMatch(csv, /rescue/i);
+  assert.doesNotMatch(csv, /intended_destination|transfer_state|transferred_on|irreplaceable|planned/i);
   assert.deepEqual(POKEDEX_LOCATION_OPTIONS.map(({ key }) => key), ["game_save", "pokemon_bank", "pokemon_home", "cartridge", "other"]);
-  assert.ok(POKEDEX_IMPORTANCE_OPTIONS.some(({ key }) => key === "irreplaceable"));
-  assert.ok(POKEDEX_TRANSFER_STATE_OPTIONS.some(({ key }) => key === "keep_original"));
-});
-
-test("Bank Rescue classifications separate owner actions from uncertain availability", () => {
-  const base = {
-    id: "specimen-1",
-    pokemon: "Pikachu",
-    importance: "standard",
-    is_event: false,
-    ribbons: [],
-    origin_mark: "",
-    transfer_state: "planned",
-  };
-  const classify = (overrides) => classifyBankRescueSpecimen({ ...base, ...overrides });
-
-  assert.equal(classify({ location_kind: "pokemon_bank", importance: "irreplaceable" }).key, "legacy_review");
-  assert.equal(classify({ location_kind: "pokemon_bank", is_event: true }).key, "legacy_review");
-  assert.equal(classify({ location_kind: "pokemon_bank", intended_destination: "" }).key, "choose_destination");
-  assert.equal(classify({ location_kind: "pokemon_bank", intended_destination: "Pokémon HOME" }).key, "bank_move_review");
-  assert.equal(classify({ location_kind: "game_save", transfer_state: "keep_original" }).key, "preserve_original");
-  assert.equal(classify({ location_kind: "pokemon_bank", transfer_state: "transferred" }).key, "recorded_transferred");
-  assert.equal(classify({ location_kind: "pokemon_home" }).key, "home_compatibility");
-  assert.equal(classify({ location_kind: "game_save" }).key, "uncertain_verify");
-
-  for (const overrides of [
-    { location_kind: "pokemon_bank", importance: "irreplaceable" },
-    { location_kind: "pokemon_bank", intended_destination: "Pokémon HOME" },
-    { location_kind: "pokemon_home" },
-    { location_kind: "game_save" },
-  ]) {
-    const result = classify(overrides);
-    assert.equal(result.reviewed_on, BANK_RESCUE_REVIEWED_ON);
-    assert.equal(result.owner_record_only, true);
-    assert.equal(result.verification.key, "uncertain_verify");
-    assert.ok(result.reason.length > 40);
-    assert.ok(result.source_ids.length > 0);
-    for (const sourceId of result.source_ids) assert.ok(BANK_RESCUE_SOURCES.some(({ id }) => id === sourceId));
-  }
-});
-
-test("Bank Rescue review carries dated official provenance without inventing a deadline", () => {
-  assert.equal(BANK_RESCUE_REVIEWED_ON, "2026-08-16");
-  assert.equal(BANK_RESCUE_STATUS.label, "Active");
-  assert.equal(BANK_RESCUE_STATUS.closure_date, null);
-  assert.equal(BANK_RESCUE_STATUS.deadline_announced, false);
-  assert.match(BANK_RESCUE_STATUS.headline, /no Pokémon Bank end date is planned/i);
-  assert.doesNotMatch(JSON.stringify({ status: BANK_RESCUE_STATUS, sources: BANK_RESCUE_SOURCES }), /2027/);
-  assert.equal(BANK_RESCUE_SOURCES.length, 3);
-  assert.equal(bankRescueSourceFreshness("2026-09-15T00:00:00Z").stale, false);
-  assert.equal(bankRescueSourceFreshness("2026-09-16T00:00:00Z").stale, true);
-  assert.equal(bankRescueSourceFreshness("2026-09-16T00:00:00Z").next_review_on, "2026-09-15");
-  assert.deepEqual(buildBankRescueReview(null).records, []);
-  for (const source of BANK_RESCUE_SOURCES) {
-    assert.match(source.url, /^https:\/\//);
-    assert.equal(source.reviewed_on, BANK_RESCUE_REVIEWED_ON);
-    assert.ok(source.publisher.length > 0);
-    assert.ok(source.supports.length > 0);
-  }
-
-  const specimens = [
-    { id: "standard-bank", pokemon: "Squirtle", location_kind: "pokemon_bank", importance: "standard", transfer_state: "planned", intended_destination: "Pokémon HOME", ribbons: [] },
-    { id: "legacy-bank", pokemon: "Bulbasaur", location_kind: "pokemon_bank", importance: "irreplaceable", transfer_state: "planned", ribbons: ["best-friends"] },
-    { id: "game-save", pokemon: "Charmander", location_kind: "game_save", importance: "standard", transfer_state: "not_planned", ribbons: [] },
-  ];
-  const review = buildBankRescueReview({ specimens });
-  assert.deepEqual(review.records.map(({ classification }) => classification.key), ["legacy_review", "bank_move_review", "uncertain_verify"]);
-  assert.equal(review.uncertain_count, 3);
-  assert.deepEqual(review.counts, { legacy_review: 1, bank_move_review: 1, uncertain_verify: 1 });
-
-  const exported = bankRescueExport({ specimens });
-  assert.equal(exported.reviewed_on, BANK_RESCUE_REVIEWED_ON);
-  assert.equal(exported.classifications.length, 3);
-  assert.ok(exported.classifications.every(({ source_ids }) => source_ids.length > 0));
-  assert.ok(exported.classifications.every(({ verification }) => verification.key === "uncertain_verify"));
-  assert.equal(exported.source_freshness.reviewed_on, BANK_RESCUE_REVIEWED_ON);
-});
-
-test("Bank Rescue dashboard turns private inventory into bounded readiness and priorities", () => {
-  const dashboard = buildBankRescueDashboard({
-    locations: [
-      { id: "bank", kind: "pokemon_bank", name: "Bank Box 3" },
-      { id: "home", kind: "pokemon_home", name: "HOME Living Dex" },
-    ],
-    specimens: [
-      {
-        id: "charizard",
-        pokemon: "Charizard",
-        location_kind: "pokemon_bank",
-        importance: "irreplaceable",
-        is_event: false,
-        ribbons: ["champion-g3"],
-        origin_mark: "Game Boy origin mark",
-        transfer_state: "planned",
-        intended_destination: "Pokémon HOME",
-      },
-      {
-        id: "eevee",
-        pokemon: "Eevee",
-        location_kind: "pokemon_bank",
-        importance: "standard",
-        is_event: false,
-        ribbons: [],
-        origin_mark: "",
-        transfer_state: "not_planned",
-        intended_destination: "",
-      },
-    ],
-  });
-
-  assert.equal(dashboard.readiness_complete, 2);
-  assert.equal(dashboard.readiness.length, 3);
-  assert.deepEqual(dashboard.stats, {
-    locations: 2,
-    bank_locations: 1,
-    individuals: 2,
-    bank_individuals: 2,
-    important_individuals: 1,
-    decisions: 1,
-    bank_destinations: 1,
-  });
-  assert.deepEqual(dashboard.priorities.map(({ specimen }) => specimen.id), ["charizard", "eevee"]);
-  assert.equal(dashboard.status.deadline_announced, false);
-  assert.equal(dashboard.guided_project.next_step, "intentions");
-  assert.deepEqual(dashboard.guided_project.unplanned_specimens.map(({ id }) => id), ["eevee"]);
-  assert.deepEqual(dashboard.guided_project.location_counts, {
-    game_save: 0,
-    pokemon_bank: 1,
-    pokemon_home: 1,
-    other: 0,
-  });
-  assert.equal(dashboard.guided_project.complete, false);
-  const emptyDashboard = buildBankRescueDashboard(null);
-  assert.equal(emptyDashboard.readiness_complete, 0);
-  assert.equal(emptyDashboard.guided_project.next_step, "access");
 });
 
 test("Collector CSV import is bounded, additive, round-trippable, and atomic-ready", () => {
@@ -291,7 +163,8 @@ test("Collector CSV import is bounded, additive, round-trippable, and atomic-rea
   ];
   const template = pokedexCollectorCsvTemplate();
   assert.match(template, /^"record_type","species","pokemon_id","registered"/);
-  const csv = `${template}checklist,Bulbasaur,1,yes,no\r\nindividual,Pikachu,25,no,no,,Sparky,yes,unknown,88,,,,home-main,HOME Main,pokemon_home,Switch,,Living Dex,4,luxury,best-friends,no,important,Scarlet,planned,,Private note\r\n`;
+  assert.doesNotMatch(template, /importance|intended_destination|transfer_state|transferred_on/i);
+  const csv = `${template}checklist,Bulbasaur,1,yes,no\r\nindividual,Pikachu,25,no,no,,Sparky,yes,unknown,88,,,,home-main,HOME Main,pokemon_home,Switch,,Living Dex,4,luxury,best-friends,no,Private note\r\n`;
   const parsed = parsePokedexCollectorCsv(csv, catalog);
   assert.deepEqual(parsed.errors, []);
   assert.equal(parsed.rowCount, 2);
@@ -356,10 +229,10 @@ test("Collector dashboard and workbook cover the complete private workspace", ()
     }] },
     exportedAt: new Date("2026-08-15T12:00:00Z"),
   });
-  assert.deepEqual(sheets.map(({ name }) => name), ["Summary", "Trackers", "Checklist", "Entry Details", "Locations", "Individuals", "Bank Rescue", "Import Template"]);
+  assert.deepEqual(sheets.map(({ name }) => name), ["Summary", "Trackers", "Checklist", "Entry Details", "Locations", "Individuals", "Import Template"]);
   assert.match(JSON.stringify(sheets), /'?[=+]FORMULA\(\)/);
-  const homeMoveSource = BANK_RESCUE_SOURCES.find(({ id }) => id === "pokemon-home-move");
-  assert.ok(sheets.find(({ name }) => name === "Bank Rescue").rows.some((row) => row.includes(homeMoveSource.url)));
+  assert.doesNotMatch(JSON.stringify(sheets), /rescue/i);
+  assert.doesNotMatch(JSON.stringify(sheets), /Destination|Transfer state|Transferred on/);
   assert.ok(sheets.every(({ rows, widths }) => rows.length >= 5 && widths.length > 0));
 });
 
@@ -512,10 +385,32 @@ test("Collector HOME summaries retain all 1,025 species after migration 402", ()
   assert.match(regression, /rollback;/i);
 });
 
+test("numbered game sections and linked National progress keep account boundaries", () => {
+  const sql = source("supabase/408-numbered-pokedex-sections-and-linked-national-progress.sql");
+  const preview = source("supabase/tests/408-numbered-pokedex-sections-linked-national-preview-regression.sql");
+  assert.match(sql, /Migration 408/i);
+  assert.match(sql, /partition by entry\.pokemon_id,[\s\S]*entry\.pokedex_key/i);
+  assert.match(sql, /when 'isle-of-armor' then 1/i);
+  assert.match(sql, /when 'crown-tundra' then 2/i);
+  assert.match(sql, /when 'kitakami' then 1/i);
+  assert.match(sql, /when 'blueberry' then 2/i);
+  assert.match(sql, /v_paldea_count <> 400 or v_kitakami_count <> 200 or v_blueberry_count <> 243/i);
+  assert.match(sql, /v_galar_count <> 400 or v_armor_count <> 211 or v_tundra_count <> 210/i);
+  assert.match(sql, /progress\.tracker_id = v_tracker\.id[\s\S]*source_tracker\.catalog_key <> 'home'/i);
+  assert.match(sql, /source_tracker\.user_id = auth\.uid\(\)/i);
+  assert.match(sql, /count\(distinct progress\.pokemon_id\)/i);
+  assert.match(sql, /Private Pokédex tables must retain forced RLS/i);
+  assert.doesNotMatch(sql, /grant (select|insert|update|delete|all) on (table )?public\.pokedex_tracker/i);
+  assert.match(preview, /All fixtures roll back/i);
+  assert.match(preview, /Game progress did not contribute to the owner National Dex/i);
+  assert.match(preview, /second account inherited or read another account National progress/i);
+  assert.match(preview, /Direct National progress was removed with its game link/i);
+  assert.match(preview, /rollback;/i);
+});
+
 test("Collector PWA, focused navigation, funding, and measurement preserve privacy boundaries", () => {
   const panel = source("src/components/PokedexCollectorLaunchPanel.jsx");
-  const rescueDashboard = source("src/components/PokedexRescueDashboard.jsx");
-  const rescueGuide = source("src/components/PokedexRescueGuideDialog.jsx");
+  const finder = source("src/components/PokedexPokemonFinder.jsx");
   const manifest = source("src/app/pokedex-tracker/manifest.webmanifest/route.js");
   const worker = source("src/app/pokedex-tracker/sw.js/route.js");
   const offline = source("src/app/pokedex-tracker/offline/page.js");
@@ -530,15 +425,17 @@ test("Collector PWA, focused navigation, funding, and measurement preserve priva
 
   assert.match(panel, /import_my_pokedex_collection/);
   assert.match(panel, /restore_my_pokedex_trackers/);
-  assert.match(panel, /Eight-sheet Collector workbook/);
-  assert.match(panel, /Current Collector tools stay free/);
-  assert.match(panel, /not a purchase, subscription, or promise of premium access/);
+  assert.match(panel, /Seven-tab collection workbook/);
+  assert.match(panel, /\{isOwner && <article>/);
+  assert.match(panel, /OWNER RECOVERY/);
+  assert.match(panel, /The tracker stays free/);
+  assert.match(panel, /not a purchase or subscription/);
   assert.match(panel, /ko-fi\.com\/draftcenter/);
   assert.match(manifest, /Pokédex Tracker by DraftCenter/);
-  assert.match(manifest, /source-backed Pokémon Bank Rescue planning/);
-  assert.match(manifest, /url: "\/pokedex-tracker\/#bank-rescue"/);
+  assert.match(manifest, /Game and DLC Pokédex checklists/);
+  assert.match(manifest, /url: "\/pokedex-tracker\/#pokemon-finder"/);
   assert.match(manifest, /url: "\/pokedex-tracker\/#collection-inventory"/);
-  assert.match(manifest, /url: "\/pokedex-tracker\/#home-box-planner"/);
+  assert.match(manifest, /url: "\/pokedex-tracker\/#game-box-planner"/);
   assert.match(manifest, /start_url: "\/pokedex-tracker\/\?source=pwa"/);
   assert.match(route, /manifest: "\/pokedex-tracker\/manifest\.webmanifest"/);
   assert.match(worker, /PUBLIC_SHELL/);
@@ -548,17 +445,10 @@ test("Collector PWA, focused navigation, funding, and measurement preserve priva
   assert.match(navigation, /ProductAppNavigation/);
   assert.match(productNavigation, /Switch to DraftCenter/);
   assert.match(products, /name: "Pokédex Tracker"/);
-  for (const label of ["Dex", "Rescue", "Collection", "Boxes", "More"]) assert.match(products, new RegExp(`label: "${label}"`));
-  assert.match(rescueDashboard, /No closure date announced/);
-  assert.match(rescueDashboard, /buildBankRescueDashboard/);
-  assert.match(rescueDashboard, /Verify before acting/);
-  assert.doesNotMatch(rescueDashboard, /closes in|countdown/i);
-  for (const step of ["Access map", "Important Pokémon", "Intentions", "Archive"]) assert.match(rescueGuide, new RegExp(step));
-  assert.match(rescueGuide, /owner-entered labels/);
-  assert.match(rescueGuide, /does not request Nintendo credentials/);
-  assert.match(rescueGuide, /never proof of compatibility or completion/);
-  assert.match(rescueGuide, /Download Rescue archive/);
-  assert.doesNotMatch(rescueGuide, /supabase|\.rpc\(/i);
+  for (const label of ["Dex", "Find a Pokémon", "Collection", "Boxes", "More"]) assert.match(products, new RegExp(`label: "${label}"`));
+  assert.match(finder, /Where can I get it\?/);
+  assert.match(finder, /pokemon_game_encounters/);
+  assert.match(finder, /pokemon_game_pokedex_entries/);
   assert.match(analytics, /ALLOWED_PROPERTIES = new Set\(\["kind", "count_bucket", "placement", "result"\]\)/);
   for (const forbidden of ["user_id", "tracker_id", "tracker_name", "pokemon", "species", "notes", "email", "filename", "file_content"]) {
     assert.match(analytics, new RegExp(`"${forbidden}"`));
@@ -576,8 +466,9 @@ test("the account page offers multiple game, HOME, shiny, collection-detail, fil
   const links = source("src/components/SiteQuickLinks.jsx");
   const account = source("src/components/AuthGate.jsx");
   assert.match(page, /get_my_pokedex_trackers/);
-  assert.match(page, /PokedexRescueGuideDialog/);
-  assert.match(page, /resumeGuideAfterSave/);
+  assert.match(page, /PokedexPokemonFinder/);
+  assert.match(page, /groupPokedexSections/);
+  assert.match(page, /PokedexBoxPlanner/);
   assert.match(page, /create_my_pokedex_tracker/);
   assert.match(page, /update_my_pokedex_tracker/);
   assert.match(page, /delete_my_pokedex_tracker/);
@@ -588,21 +479,21 @@ test("the account page offers multiple game, HOME, shiny, collection-detail, fil
   assert.match(page, /delete_my_pokedex_collection_location/);
   assert.match(page, /save_my_pokedex_collection_specimen/);
   assert.match(page, /delete_my_pokedex_collection_specimen/);
-  assert.match(page, /Pokémon HOME/);
+  assert.match(page, /catalog_key === "home"/);
   assert.match(page, /Add a shiny dex/);
   assert.match(page, /Poké Ball/);
   assert.match(page, /Ribbons/);
   assert.match(page, /Private note/);
   assert.match(page, /Collection inventory/);
-  assert.match(page, /No Nintendo credentials are requested/);
-  assert.match(page, /Download.*(?:JSON|CSV)|onDownload\("json"\)/);
-  assert.match(page, /Everything saves to your account/);
-  assert.match(page, /<h1>Every Pokédex<\/h1>/);
+  assert.match(page, /Download CSV/);
+  assert.doesNotMatch(page, /onDownload\("json"\)/);
+  assert.match(page, /Everything saves to your account|private to your account/);
+  assert.match(page, /<h1>One place for every dex<\/h1>/);
   assert.doesNotMatch(page, /One home/);
   assert.match(page, /Search by name or number/);
-  assert.match(page, /HOME box/);
-  assert.match(page, /pokedexHomePlacement/);
-  assert.match(page, /Page \{placement\.page\} · Box \{placement\.box\}/);
+  assert.match(page, /BOX LAYOUT/);
+  assert.match(page, /buildPokedexBoxPlan/);
+  assert.match(page, /activeSection\?\.label/);
   assert.match(page, /Show \{Math\.min\(POKEDEX_TRACKER_PAGE_SIZE/);
   assert.match(page, /Manage tracker/);
   assert.match(page, /onAuthStateChange/);
@@ -652,7 +543,7 @@ test("the public Tracker landing has complete, privacy-safe SEO and discovery co
   assert.match(route, /"@type": "WebApplication"/);
   assert.match(route, /"@type": "FAQPage"/);
   assert.match(route, /"@type": "BreadcrumbList"/);
-  assert.match(route, /One private checklist for every Pokédex journey/);
+  assert.match(route, /Track each game in the order it uses/);
   assert.doesNotMatch(route, /robots:\s*\{\s*index:\s*false/);
   assert.match(social, /PokedexTrackerSocialPreview/);
   assert.match(social, /width: 1200, height: 630/);
