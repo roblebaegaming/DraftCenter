@@ -1,4 +1,4 @@
-# DraftCenter agent handoff: Victory Road bracket production release
+# DraftCenter agent handoff: Victory Road bracket live scoring
 
 - Date: August 16, 2026 Pacific
 - Production: https://www.draftcentral.gg
@@ -13,7 +13,9 @@
   [#257](https://github.com/roblebaegaming/DraftCenter/pull/257), and
   [#258](https://github.com/roblebaegaming/DraftCenter/pull/258)
 - Latest Production migration: 409
-- Release state: deployed, published, verified, and open until 1:45 PM Pacific
+- Release state: deployed, published, verified, and under live scoring monitor
+- Active monitor: `victory-road-top-cut-live-scoring`
+- Monitor cadence: every five minutes until a champion is official
 
 ## Start here
 
@@ -23,11 +25,17 @@ not the earlier Phase 1 Swiss page. All 16 real names, countries, and eight
 opening matchups were compared before publication. Entries opened at 1:31 PM
 Pacific and lock at 1:45 PM Pacific / 20:45 UTC on August 16, 2026.
 
-The owner Operations panel reports state `open`, official field 16 players,
-zero member entries at publication, and 0/15 official results. Continue from
+At publication, the owner Operations panel reported state `open`, official
+field 16 players, zero member entries, and 0/15 official results. Continue from
 the same [official Phase 2 bracket](https://battlefy.com/victoryroad/victory-road-to-san-francisco-phase-2-top-cut/6a60ab274f0d45001a7281b6/stage/6a820c17b2796d0019f6d118/bracket/)
 for scoring. Do not use aliases, Swiss standings, or a stream graphic to record
 results when the official bracket is available.
+
+A thread heartbeat named **Victory Road Top Cut live scoring** is active. It
+checks the official bracket every five minutes, writes only newly confirmed
+completed winners through the owner controls, verifies the public leaderboard,
+and stops after the official champion is recorded and the challenge is
+finalized. It remains the active continuation while the owner is away.
 
 ## What is live
 
@@ -57,7 +65,8 @@ tournaments.
 
 Event ID: `victory-road-san-francisco-2026`
 
-- status: `open`;
+- configured status: `open`; the public effective state changes to `locked`,
+  `scoring`, or `final` from the deadline and recorded results;
 - revision: 1;
 - field: 16 official players in eight Top 16 matchups;
 - entry window: August 16, 1:31 PM to 1:45 PM Pacific;
@@ -72,8 +81,43 @@ Event ID: `victory-road-san-francisco-2026`
 - all five `prediction_bracket_*` tables: forced RLS;
 - direct anonymous and authenticated table access: denied.
 
+The entry and result counts above are the publication baseline, not a permanent
+snapshot. Every monitoring run must read the current owner state before taking
+action. Never replay a result mutation from a previous run merely because that
+run timed out.
+
 Migration 409 is forward-only and already applied to Production. Do not replay
 or rewrite it.
+
+## Active five-minute monitor
+
+- Automation ID: `victory-road-top-cut-live-scoring`.
+- Kind: thread heartbeat.
+- Status at handoff: `ACTIVE`.
+- Recurrence: every five minutes.
+- Official result source:
+  [Victory Road Phase 2 Top Cut](https://battlefy.com/victoryroad/victory-road-to-san-francisco-phase-2-top-cut/6a60ab274f0d45001a7281b6/stage/6a820c17b2796d0019f6d118/bracket/).
+- DraftCenter challenge:
+  [Victory Road bracket challenge](https://www.draftcentral.gg/worlds/2026/vgc/victory-road-to-san-francisco).
+
+Each run must compare the official bracket with the current DraftCenter owner
+state. Record only completed winners that Battlefy shows as official, and do
+so in feeder-match order. Never infer a winner from a partial score, stream
+graphic, Swiss standings, alias, or an unconfirmed advancement. If an existing
+DraftCenter result conflicts with the official bracket, stop that mutation and
+report the conflict for owner review instead of overwriting it.
+
+After every accepted result, verify that the public leaderboard recalculates
+rank, display name, and points using the published 1/2/4/8 round values. The
+public client refreshes its hub data every 60 seconds; a manual reload may be
+used for immediate verification. Before lock, other members' picks are private;
+after lock, saved brackets and their scores are public.
+
+When Battlefy shows the champion, compare all 15 played winners with the
+DraftCenter result set. Only then finalize with the same official URL, verify
+the final leaderboard, report the champion and completion summary to the user,
+and stop the heartbeat. Do not stop merely because the page is temporarily
+unavailable or unchanged.
 
 ## Exact event-day continuation
 
