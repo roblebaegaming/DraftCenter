@@ -41,9 +41,9 @@ It was not staged, edited, hidden, committed, or discarded during this launch.
   post is https://www.instagram.com/draftcenter.gg/p/DcGUARim14l/.
 - The tracked Collector profile link was first before the Collector sequence.
   Its destination and `collector-founding-beta` campaign value were verified.
-  At the last public check, its title still read **Pokadex Tracker**; correcting
-  that cosmetic title to **Pokédex Tracker** remains a mobile-app-only owner
-  cleanup and does not affect the destination or attribution.
+  The owner corrected its title to **Pokédex Tracker**, and the public profile
+  was then verified with that exact title, first position, destination, and
+  campaign value intact.
 - The retained isolated Supabase Preview now uses the Cloudflare Turnstile
   provider implemented by the application. The existing Production hostname
   stayed on the widget and the retained hosted Preview hostname was added.
@@ -85,10 +85,11 @@ personal information.
 
 ## Owner decision still required
 
-No Founding Collector invitations or direct messages have been sent. Before
-any invitation is prepared or sent, the owner must decide the exact tester
-audience and destination. Keep names, handles, email addresses, and other
-audience identifiers out of repository documentation.
+The owner has not yet identified Founding Collector tester candidates. No
+invitations or direct messages have been sent. Audience discovery comes first;
+before any invitation is prepared or sent, the owner must then decide the exact
+tester audience and destination. Keep names, handles, email addresses, and
+other audience identifiers out of repository documentation.
 
 After the first measurement and real tester feedback, evaluate these candidates
 in order rather than starting them automatically:

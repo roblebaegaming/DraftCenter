@@ -5,7 +5,8 @@ is the current continuation handoff. The application, migration 407, both
 Instagram sequences, retained Preview Turnstile verification, completion
 documentation, Production deployment, and post-deployment smoke sweep are
 complete. It records the scheduled 3/7/30-day aggregate measurement and the
-only remaining owner decision: the exact Founding Collector tester audience.
+remaining owner work: identify Founding Collector tester candidates and decide
+the exact audience before any invitations are sent.
 
 [`DraftCenter-agent-handoff-2026-08-15-final-launch-next-steps.md`](DraftCenter-agent-handoff-2026-08-15-final-launch-next-steps.md)
 is the preceding full launch-evidence record. It contains all 20 public post

@@ -23,11 +23,11 @@ provider the application actually implements, and the signed-out Preview widget
 was verified without submitting credentials or creating an account.
 
 The remaining work is measurement and product judgment: review aggregate
-attribution at 3, 7, and 30 days, decide the exact Founding Collector tester
-audience before sending invitations, and evaluate the ordered product candidates
-only after feedback. One cosmetic mobile-only correction remains on the
-Collector profile-link title; its first position, destination, and campaign
-parameters are already correct.
+attribution at 3, 7, and 30 days, identify Founding Collector tester candidates,
+decide the exact audience before sending invitations, and evaluate the ordered
+product candidates only after feedback. The Collector profile-link title is
+corrected to **Pokédex Tracker**, and its first position, destination, and
+campaign parameters were publicly verified.
 
 ## What is already complete
 
@@ -88,12 +88,13 @@ began at **04:03:58 Pacific on August 16, 2026**:
 9. https://www.instagram.com/draftcenter.gg/p/DcGUc1VG-O3/ — 04:07:52
 10. https://www.instagram.com/draftcenter.gg/p/DcGUfl9m_JE/ — 04:08:15
 
-The Collector profile-link title still has a cosmetic mobile-only spelling
-correction remaining. The link is first, its destination and campaign
-parameters are correct, and the typo does not change attribution.
+The Collector profile-link title was corrected to **Pokédex Tracker** after
+publication. The public profile was then verified with that exact title, first
+position, destination, and campaign parameters intact.
 
-No Founding Collector invitations, direct messages, account credentials, or
-private audience identifiers were sent or recorded.
+No Founding Collector tester candidates have been identified. No invitations,
+direct messages, account credentials, or private audience identifiers were
+sent or recorded.
 
 ## Preview Turnstile evidence
 
