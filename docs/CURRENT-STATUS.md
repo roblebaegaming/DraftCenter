@@ -8,6 +8,18 @@
 
 ## Deployed state
 
+Pull request [#251](https://github.com/roblebaegaming/DraftCenter/pull/251)
+records the focused-app monetization decision and current continuation handoff.
+Pokédex Tracker and Team Lab commercialization remains intentionally gated.
+Every released collection, Rescue, My Teams, Battle Mode, export, and recovery
+workflow remains free during validation; the existing voluntary Ko-fi support
+does not grant an entitlement. Do not add a payment processor, paywall, ads,
+public pricing, entitlement migration, or native billing before launch
+measurement, opt-in tester research, explicit willingness-to-pay evidence, and
+qualified intellectual-property review. The shared-platform hypothesis and
+activation gates are recorded in
+[`docs/focused-app-monetization.md`](focused-app-monetization.md).
+
 Pull request [#249](https://github.com/roblebaegaming/DraftCenter/pull/249)
 deployed the first guided Bank Rescue project. Its Access map, Important
 Pokémon, Intentions, and Archive steps resume from the existing owner-scoped
@@ -1097,7 +1109,9 @@ guard merely to remove that measurement gap.
 ## Authoritative records
 
 - Current continuation handoff:
-  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-16-post-launch-final.md`](handoffs/DraftCenter-agent-handoff-2026-08-16-post-launch-final.md)
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-16-focused-apps-next.md`](handoffs/DraftCenter-agent-handoff-2026-08-16-focused-apps-next.md)
+- Focused-app monetization decision:
+  [`docs/focused-app-monetization.md`](focused-app-monetization.md)
 - Pokédex Tracker product and data contract:
   [`docs/pokedex-trackers.md`](pokedex-trackers.md)
 - Mega Bracket product and data contract:
