@@ -72,7 +72,7 @@ images, and never receive hosted event URLs.
 
 ## Database boundary
 
-Forward-only migration `supabase/412-owner-published-prediction-events.sql`:
+Forward-only migration `supabase/413-owner-published-prediction-events.sql`:
 
 - adds `created` to the private bracket audit action constraint;
 - adds a service-role-only `create_prediction_bracket_event` RPC;
@@ -80,14 +80,16 @@ Forward-only migration `supabase/412-owner-published-prediction-events.sql`:
   published, non-cancelled events and aggregate entry counts;
 - preserves forced RLS and denies browser roles direct table access.
 
-Migration 412 was applied to the retained isolated Preview only. Postflight
+The migration was first tested as 412 on the retained isolated Preview, before
+the Victory Road archive claimed 412 in Production. It is now renumbered 413
+without changing its SQL behavior. The retained Preview postflight
 confirmed the creator and directory RPCs, anonymous directory access,
 authenticated creator denial, service-role creator access, retained audit
 actions, and forced-RLS table boundaries. It was not applied to Production.
 
 The focused regression is
-`supabase/tests/412-owner-published-prediction-events-preview-regression.sql`.
-Running the complete 409-412 Preview matrix triggers the Supabase SQL editor's
+`supabase/tests/413-owner-published-prediction-events-preview-regression.sql`.
+Running the complete 409-413 Preview matrix triggers the Supabase SQL editor's
 destructive-operation confirmation because the rollback-only fixtures create
 and remove exact synthetic rows and use a temporary table. That confirmation
 has not been accepted without the owner's explicit approval. The dialog remains
@@ -125,17 +127,17 @@ synthetic Preview regression run.
 1. Commit and push the public Bracket Studio addition, then require the updated
    protected checks and hosted Preview to pass.
 2. If the owner explicitly approves the synthetic Preview SQL warning, run the
-   409-412 rollback-only matrices and verify their exact fixture cleanup. Do not
+   409-413 rollback-only matrices and verify their exact fixture cleanup. Do not
    use a real prediction event.
 3. Have the owner sign in on the hosted Preview and review the publisher. A
    disposable four-player end-to-end event still requires exact authorization
    and cleanup; a non-mutating owner-page review can proceed after sign-in.
 4. Do not merge until protected checks, Preview privacy matrices, and hosted
-   review pass. After an owner-authorized merge, verify migration 412 in
+   review pass. After an owner-authorized merge, verify migration 413 in
    Production, confirm the deployed commit, run the signed-out production smoke
    sweep, and exercise the owner page without creating a real event unless the
    owner explicitly asks.
 
 Do not change `docs/CURRENT-STATUS.md` until this feature is actually released.
-Do not apply migration 412, create a Production event, change the Victory Road
+Do not apply migration 413, create a Production event, change the Victory Road
 event, or interfere with its active monitor merely to test this publisher.
