@@ -94,6 +94,7 @@ test("Victory Road page and owner controls use the generic bracket contract", ()
   assert.match(publicComponent, /save_prediction_bracket_entry/);
   assert.match(route, /normalizeBracketChallengePublication/);
   assert.match(route, /requireOwner/);
+  assert.doesNotMatch(route, /\.rpc\("get_prediction_bracket_hub"/);
   assert.match(operations, /PUBLISH OFFICIAL BRACKET/);
   assert.match(operations, /supabase\.auth\.getSession\(\)/);
   assert.match(operations, /Authorization: `Bearer \$\{data\.session\.access_token\}`/);
