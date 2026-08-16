@@ -6,7 +6,7 @@
 - Current Production documentation commit: `cd861f85a5b2f6bde367418b85b0891e90669365`
 - Verified signup-attribution feature commit: `0d4ce5c9fe2f70b8c9d2dd784d9f142c1500c305`
 - Latest Production migration: 406
-- Handoff pull request: pending
+- Handoff pull request: [#240](https://github.com/roblebaegaming/DraftCenter/pull/240)
 - Application release state: migrated, merged, deployed, documented, and smoke-tested
 - Promotion state: two screenshot PRs open and intentionally unmerged
 
