@@ -4,23 +4,44 @@
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
 - Starting commit for continuation:
-  `52af25a41d132fb48d619bd39978c1b5124f6297`
+  `9ad9734cc976464de42f53d210b0a3fd61410385`
 - Verified feature commit:
-  `a8d099b3d1bb2ecf20db5e6b310a07decae6a9bf`
+  `9ad9734cc976464de42f53d210b0a3fd61410385`
 - Latest Production migration: 407
-- Release state: application, database, promotions, Preview CAPTCHA, and
-  completion documentation are released and verified
+- Release state: focused app shells, guided Bank Rescue, application, database,
+  promotions, Preview CAPTCHA, and completion documentation are released and
+  verified
 
 ## Start here
 
-There is no application, database, provider, migration, or deployment work left
-from this launch. Start any future repository work from fresh `origin/main` and
-do not replay pull requests 238-245 or migration 407.
+There is no unfinished application, database, provider, migration, or
+deployment work from pull requests 238-249. Start future repository work from
+fresh `origin/main` and do not replay those releases or migration 407.
 
 The original DraftCenter workspace still contains unrelated pre-existing work.
 It was not staged, edited, hidden, committed, or discarded during this launch.
 
 ## Completed release and launch work
+
+- Pull request [#249](https://github.com/roblebaegaming/DraftCenter/pull/249)
+  released a resumable four-step Bank Rescue project at exact Production commit
+  `9ad9734`. Access map, Important Pokémon, Intentions, and Archive derive their
+  state from the existing private collection inventory. Guided actions use the
+  established owner-scoped forms and return to the guide without a new table or
+  migration. The archive carries the dated official-source review. Access
+  labels and intentions remain owner notes, never transfer verification.
+- Pull request [#248](https://github.com/roblebaegaming/DraftCenter/pull/248)
+  released the shared focused-app foundation and Rescue dashboard at exact
+  Production commit `7126f3a`. Pokédex Tracker and Team Lab retain the same
+  DraftCenter account, Pokémon data, Supabase project, and compatible routes
+  while adding focused navigation, account controls, installable-app continuity,
+  and a clear switch back to DraftCenter.
+- Both releases passed protected security, secret, CodeQL, and hosted build
+  checks. PR #249 also passed the complete local application suite, dependency
+  audit, 1,027-row National Dex verification, the 20-check signed-out Production
+  smoke sweep, and a non-mutating signed-in live walkthrough of all four guide
+  steps plus the preselected Bank form and cancel-to-guide return. No collection
+  records or Production/provider configuration changed during validation.
 
 - Pull request [#243](https://github.com/roblebaegaming/DraftCenter/pull/243)
   released the reviewed 37-game shiny hunting library at feature commit
@@ -101,6 +122,24 @@ in order rather than starting them automatically:
 
 Mega Bracket variety is complete. Require actual replay and feedback evidence
 before adding another scope, objective, or bracket size.
+
+## Product continuation order
+
+1. Keep the August 19 aggregate attribution review as the immediate operating
+   follow-up. It remains separate from collection contents and identities.
+2. The next Pokédex Tracker engineering slice is a dated, source-backed
+   species/form/legacy-value availability catalog and explainable owned-game
+   routing. Do not infer availability from artwork, community folklore, or a
+   user's owner-entered form label. Research and schema design come before UI.
+3. A cross-tracker systems, games, subscriptions, and access profile may need a
+   new forward-only migration. If pursued, use an isolated Preview, focused RLS
+   and grant coverage, and an explicit privacy review; do not reinterpret
+   current storage locations as verified hardware or service access.
+4. Team Lab remains the next product after the deeper Rescue guidance. Focus on
+   closed-sheet Battle Room crash recovery, tap reduction, reusable rematch
+   plans, and real-set testing before native packaging.
+5. Keep both focused products as installable web apps until actual usage
+   justifies App Store or Play Store wrappers.
 
 ## Preserved boundaries
 
