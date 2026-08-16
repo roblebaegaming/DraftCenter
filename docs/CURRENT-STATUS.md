@@ -8,6 +8,8 @@
 
 ## Deployed state
 
+Pull request [#251](https://github.com/roblebaegaming/DraftCenter/pull/251)
+records the focused-app monetization decision and current continuation handoff.
 Pokédex Tracker and Team Lab commercialization remains intentionally gated.
 Every released collection, Rescue, My Teams, Battle Mode, export, and recovery
 workflow remains free during validation; the existing voluntary Ko-fi support

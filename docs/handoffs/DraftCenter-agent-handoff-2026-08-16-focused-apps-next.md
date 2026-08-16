@@ -35,6 +35,9 @@ wholesale. Do not replay migration 407 or any prior focused-app release.
 - Pull request [#250](https://github.com/roblebaegaming/DraftCenter/pull/250)
   reconciled the canonical status and post-launch handoff. The verified feature
   deployment remains `9ad9734`; migration 407 remains current.
+- Pull request [#251](https://github.com/roblebaegaming/DraftCenter/pull/251)
+  records this monetization decision, continuation order, and canonical handoff
+  pointer. It is documentation only and changes no product behavior or data.
 - Security, secret, CodeQL, hosted build, dependency audit, complete application
   suite, 1,027-row National Dex verification, the 20-check signed-out Production
   smoke sweep, and a signed-in non-mutating Rescue walkthrough passed for the
