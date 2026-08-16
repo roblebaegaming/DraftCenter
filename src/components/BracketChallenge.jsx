@@ -30,13 +30,13 @@ function statusCopy(status) {
   })[status] || ["Waiting for the bracket", "Predictions are not open yet."];
 }
 
-function BracketRounds({ rounds, roundPoints, choices, open = false, onChoose }) {
+function BracketRounds({ rounds, roundPoints, choices, resultNames = {}, open = false, onChoose }) {
   return <div className="worlds-bracket-rounds" style={{ "--worlds-bracket-rounds": rounds.length }}>{rounds.map((round, roundIndex) => <section key={roundIndex} aria-label={`Round ${roundIndex + 1}`}>
     <header><span>Round {roundIndex + 1}</span><strong>{roundPoints[String(roundIndex + 1)]} pts each</strong></header>
     <div>{round.map((match) => <article key={match.key} className={match.result ? "has-result" : ""}>
       <small>Match {match.match}</small>
       {match.isBye ? <><div className="worlds-bracket-tbd">{match.automaticWinner.displayName}</div><p>Advances with a bye</p></> : [match.a, match.b].map((competitor, sideIndex) => competitor ? <button type="button" key={competitor.id} aria-pressed={match.pickedId === competitor.id} disabled={!open} className={`${match.pickedId === competitor.id ? "is-picked" : ""}${match.result?.winner_id === competitor.id ? " is-result-winner" : ""}`} onClick={() => onChoose?.(match.round, match.match, competitor.id)}><span>{competitor.sourceSeed ? `#${competitor.sourceSeed}` : sideIndex === 0 ? "A" : "B"}</span><strong>{competitor.displayName}</strong><small>{competitor.countryCode}</small></button> : <div className="worlds-bracket-tbd" key={sideIndex}>Winner from earlier round</div>)}
-      {match.result && <p>{choices[match.key] === match.result.winner_id ? "Correct pick" : choices[match.key] ? "Result recorded" : "No saved pick"}</p>}
+      {match.result && <p>Official winner: {resultNames[match.result.winner_id] || "Recorded"}{choices[match.key] === match.result.winner_id ? " · Pick correct" : choices[match.key] ? " · Pick missed" : ""}</p>}
     </article>)}</div>
   </section>)}</div>;
 }
@@ -88,6 +88,7 @@ export default function BracketChallenge({ eventId, infoUrl }) {
   const complete = event.bracket_capacity ? bracketChallengeEntryIsComplete({ fieldSize: event.field_size, capacity: event.bracket_capacity, slots, choices }) : false;
   const open = event.status === "open" && Boolean(user);
   const maximumScore = event.bracket_capacity ? bracketChallengeMaximumScore({ capacity: event.bracket_capacity, slots, roundPoints: event.round_points }) : 0;
+  const resultNames = useMemo(() => Object.fromEntries(slots.map((slot) => [slot.competitor_id, slot.display_name])), [slots]);
   const archiveResults = useMemo(() => archive ? buildBracketChallengeArchiveResults({
     archiveCapacity: archive.bracket_capacity,
     archiveSlots: archive.slots,
@@ -103,6 +104,7 @@ export default function BracketChallenge({ eventId, infoUrl }) {
   }) : [], [archive, archiveResults]);
   const archiveMaximumScore = archive ? bracketChallengeMaximumScore({ capacity: archive.bracket_capacity, slots: archive.slots, roundPoints: archive.round_points }) : 0;
   const archiveScore = archive ? scoreBracketChallengeEntry({ choices: archive.picks, results: archiveResults, roundPoints: archive.round_points }) : 0;
+  const archiveResultNames = useMemo(() => Object.fromEntries((archive?.slots || []).map((slot) => [`slot-${Number(slot.slot_number ?? slot.slot)}`, slot.display_name])), [archive]);
   const [statusTitle, statusDetail] = statusCopy(event.status);
   const eventName = event.display_name || "Live tournament";
   const eventDescription = event.description || "Choose every matchup winner and build your own path to the champion.";
@@ -149,19 +151,21 @@ export default function BracketChallenge({ eventId, infoUrl }) {
       {officialInfoUrl && <a className="quiet-button" href={officialInfoUrl} target="_blank" rel="noreferrer">Official event information ↗</a>}
     </section> : <>
       <section className="worlds-bracket-source-bar"><div><span className="eyebrow">REVIEWED OFFICIAL BRACKET</span><strong>{event.field_size} players · revision {event.revision}</strong><small>Source checked {localTime(event.source_checked_at)}</small></div><a href={event.official_bracket_url} target="_blank" rel="noreferrer">View official bracket ↗</a></section>
+      {archive && <section className="worlds-public-bracket worlds-bracket-archive" aria-labelledby="archived-bracket-heading">
+        <header><div><span className="eyebrow">ORIGINAL TOP 16 BRACKET</span><h2 id="archived-bracket-heading">{archive.display_name}</h2><p>This is Rob&rsquo;s exact original bracket, with every name and pick shown as saved.</p></div><div><strong>{archiveScore}/{archiveMaximumScore}</strong><span>{archiveResults.length}/{archive.field_size - 1} results scored</span></div></header>
+        <div className="worlds-bracket-legend" aria-label="Bracket color key"><span><i className="is-pick" />Yellow: saved pick</span><span><i className="is-winner" />Aqua outline: official winner</span></div>
+        <div className="worlds-bracket-archive-note"><strong>Why the smaller bracket looked different</strong><p>The Top 8 carryover kept the side Rob chose in each later matchup. When Shohei advanced from Markus&rsquo;s side, that carried path showed Shohei. This full bracket keeps Markus in the rounds Rob originally picked him.</p></div>
+        <BracketRounds rounds={archiveRounds} roundPoints={archive.round_points} choices={archive.picks} resultNames={archiveResultNames} />
+      </section>}
       <section className="worlds-public-bracket" id="prediction-bracket" aria-labelledby="prediction-bracket-heading">
-        <header><div><span className="eyebrow">YOUR BRACKET</span><h2 id="prediction-bracket-heading">Choose every winner</h2><p>Winners advance through your bracket automatically. Byes advance without asking you to make a pick.</p></div><div><strong>{Object.keys(choices).length}/{event.field_size - 1}</strong><span>matchups picked</span></div></header>
+        <header><div><span className="eyebrow">{archive ? "SAVED TOP 8 CARRYOVER" : "YOUR BRACKET"}</span><h2 id="prediction-bracket-heading">{archive ? "Leaderboard scoring view" : "Choose every winner"}</h2><p>{archive ? "This locked entry remains unchanged while official winners are recorded against it." : "Winners advance through your bracket automatically. Byes advance without asking you to make a pick."}</p></div><div><strong>{Object.keys(choices).length}/{event.field_size - 1}</strong><span>{archive ? "saved picks" : "matchups picked"}</span></div></header>
+        {archive && <div className="worlds-bracket-legend" aria-label="Bracket color key"><span><i className="is-pick" />Yellow: saved pick</span><span><i className="is-winner" />Aqua outline: official winner</span></div>}
         {user === undefined || loading ? <p className="worlds-empty-state">Checking your DraftCenter account…</p> : !user ? <div className="worlds-account-gate"><div aria-hidden="true" className="worlds-account-lock">🔒</div><h3>Sign in to save a bracket.</h3><p>The official field is public. A free DraftCenter account is required to save, and everyone else's choices stay private until entries lock.</p><a className="secondary-button" href="/#member-access">Sign in or create an account</a></div> : <>
-          <BracketRounds rounds={rounds} roundPoints={event.round_points} choices={choices} open={open} onChoose={choose} />
+          <BracketRounds rounds={rounds} roundPoints={event.round_points} choices={choices} resultNames={resultNames} open={open} onChoose={choose} />
           <div className="worlds-save-row"><div>{event.status === "open" ? <p>{hub.my_entry ? `Saved as ${hub.my_entry.display_name}. Edits close ${localTime(event.locks_at)}.` : "Complete every played matchup, then save one bracket."}</p> : <p>Entries are locked. {hub.my_entry ? `Your score is ${hub.my_entry.score} of ${maximumScore} possible points.` : "No bracket was saved for this account."}</p>}{message && <p className="worlds-message" role="status">{message}</p>}</div><button className="primary-button" disabled={!open || busy || !complete} onClick={save}>{busy ? "Saving…" : hub.my_entry ? "Update bracket" : "Save bracket"}</button></div>
         </>}
       </section>
-      {archive && <section className="worlds-public-bracket worlds-bracket-archive" aria-labelledby="archived-bracket-heading">
-        <header><div><span className="eyebrow">ORIGINAL TOP 16 BRACKET</span><h2 id="archived-bracket-heading">{archive.display_name}</h2><p>The original names and picks are shown here exactly as they were saved.</p></div><div><strong>{archiveScore}/{archiveMaximumScore}</strong><span>{archiveResults.length}/{archive.field_size - 1} results scored</span></div></header>
-        <div className="worlds-bracket-archive-note"><strong>Why the Top 8 carryover looks different</strong><p>The shorter bracket kept the side Rob chose in each later matchup. When Shohei advanced from Markus&rsquo;s side, that carried path showed Shohei. The full bracket below keeps Markus in the rounds Rob originally picked him.</p></div>
-        <BracketRounds rounds={archiveRounds} roundPoints={archive.round_points} choices={archive.picks} />
-      </section>}
-      <section className="worlds-bracket-leaderboard"><header><div><span className="eyebrow">TOP 8 LEADERBOARD</span><h2>{hub.entry_count || 0} brackets</h2></div><p>Maximum score: <strong>{maximumScore} points</strong></p></header>{hub.standings?.length ? <div>{hub.standings.map((entry, index) => <details key={`${entry.display_name}-${index}`} className={entry.is_me ? "is-me" : ""}><summary><span>#{entry.rank}</span><strong>{entry.display_name}</strong><b>{entry.score} pts</b></summary><p>{entry.picks ? Object.entries(entry.picks).map(([key, id]) => `${key}: ${slots.find((slot) => slot.competitor_id === id)?.display_name || id}`).join(" · ") : "This bracket stays private until entries lock."}</p></details>)}</div> : <p className="worlds-empty-state">No brackets have been saved yet.</p>}</section>
+      <section className="worlds-bracket-leaderboard"><header><div><span className="eyebrow">{archive ? "TOP 8 CARRYOVER LEADERBOARD" : "TOP 8 LEADERBOARD"}</span><h2>{hub.entry_count || 0} brackets</h2></div><p>Maximum score: <strong>{maximumScore} points</strong></p></header>{hub.standings?.length ? <div>{hub.standings.map((entry, index) => <details key={`${entry.display_name}-${index}`} className={entry.is_me ? "is-me" : ""}><summary><span>#{entry.rank}</span><strong>{entry.display_name}</strong><b>{entry.score} pts</b></summary><p>{entry.picks ? Object.entries(entry.picks).map(([key, id]) => `${key}: ${slots.find((slot) => slot.competitor_id === id)?.display_name || id}`).join(" · ") : "This bracket stays private until entries lock."}</p></details>)}</div> : <p className="worlds-empty-state">No brackets have been saved yet.</p>}</section>
     </>}
   </main>;
 }
