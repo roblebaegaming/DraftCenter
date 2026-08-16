@@ -1,7 +1,16 @@
 # Agent handoffs
 
+[`DraftCenter-agent-handoff-2026-08-16-focused-apps-next.md`](DraftCenter-agent-handoff-2026-08-16-focused-apps-next.md)
+is the current continuation handoff. It records the verified Pokédex Tracker
+and Team Lab focused-app foundation, guided Bank Rescue release, decision to
+keep the released core free while measurement and IP review are pending, exact
+monetization gates, August 19 operating follow-up, source-backed Rescue research
+sequence, opt-in tester boundary, and closed-sheet Battle Room stabilization
+order. No payment, entitlement, provider, Production-data, or tester-message
+change is authorized.
+
 [`DraftCenter-agent-handoff-2026-08-16-post-launch-final.md`](DraftCenter-agent-handoff-2026-08-16-post-launch-final.md)
-is the current continuation handoff. The focused Pokédex Tracker and Team Lab
+is the preceding post-launch handoff. The focused Pokédex Tracker and Team Lab
 shells, guided four-step Bank Rescue project, application, migration 407, both
 Instagram sequences, retained Preview Turnstile verification, completion
 documentation, exact Production deployments, and post-deployment smoke sweeps
