@@ -19,12 +19,14 @@ function attributionFetch(calls) {
     const url = new URL(input);
     calls.push({ url, options });
     const filter = url.searchParams.get("filter") || "";
-    if (url.pathname.endsWith("/events/count")) {
+    if (url.searchParams.get("by") === "eventName") {
       const since = url.searchParams.get("since");
-      const counts = filter.includes("Signup Started")
-        ? { "2026-08-15T07:00:00.000Z": 6, "2026-08-09T07:00:00.000Z": 8, "2026-07-17T07:00:00.000Z": 8 }
-        : { "2026-08-15T07:00:00.000Z": 3, "2026-08-09T07:00:00.000Z": 5, "2026-07-17T07:00:00.000Z": 5 };
-      return response({ count: counts[since], visitors: counts[since] });
+      const created = { "2026-08-15T07:00:00.000Z": 3, "2026-08-09T07:00:00.000Z": 5, "2026-07-17T07:00:00.000Z": 5 };
+      const started = { "2026-08-15T07:00:00.000Z": 6, "2026-08-09T07:00:00.000Z": 8, "2026-07-17T07:00:00.000Z": 8 };
+      return response([
+        { eventName: "Account Created", count: created[since], visitors: created[since] },
+        { eventName: "Signup Started", count: started[since], visitors: started[since] },
+      ]);
     }
     if (url.searchParams.get("by") === "eventData/source") return response([
       { eventData: "discord:team-lab-launch", count: 3, visitors: 2 },
@@ -54,21 +56,22 @@ test("signup attribution summarizes account events, starts, journeys, and campai
     { label: "team-lab>team-lab", count: 3 },
     { label: "collector>home", count: 2 },
   ]);
-  assert.equal(calls.length, 8);
+  assert.equal(calls.length, 5);
   for (const call of calls) {
-    assert.match(call.url.origin + call.url.pathname, /^https:\/\/api\.vercel\.com\/v1\/query\/web-analytics\/events\/(count|aggregate)$/);
+    assert.equal(call.url.origin + call.url.pathname, "https://api.vercel.com/v1/query/web-analytics/events/aggregate");
     assert.equal(call.url.searchParams.get("projectId"), "test-project");
     assert.equal(call.url.searchParams.get("teamId"), "test-team");
-    assert.match(call.url.searchParams.get("filter"), /^eventName eq '(Account Created|Signup Started)'$/);
-    assert.equal(call.url.searchParams.get("filter").includes("environment"), false);
+    const filter = call.url.searchParams.get("filter");
+    assert.equal(filter === null || /^eventName eq 'Account Created'$/.test(filter), true);
+    assert.equal(String(filter || "").includes("environment"), false);
     assert.equal(call.url.toString().includes(env.DRAFTCENTER_VERCEL_ANALYTICS_TOKEN), false);
     assert.equal(call.options.headers.Authorization, `Bearer ${env.DRAFTCENTER_VERCEL_ANALYTICS_TOKEN}`);
     assert.equal(call.options.cache, "no-store");
   }
-  const countCalls = calls.filter((call) => call.url.pathname.endsWith("/events/count"));
-  assert.equal(countCalls.length, 6);
-  assert.deepEqual([...new Set(countCalls.map((call) => call.url.searchParams.get("until")))], ["2026-08-15T19:00:00.000Z"]);
-  assert.deepEqual([...new Set(countCalls.map((call) => call.url.searchParams.get("since")))].sort(), [
+  const summaryCalls = calls.filter((call) => call.url.searchParams.get("by") === "eventName");
+  assert.equal(summaryCalls.length, 3);
+  assert.deepEqual([...new Set(summaryCalls.map((call) => call.url.searchParams.get("until")))], ["2026-08-15T19:00:00.000Z"]);
+  assert.deepEqual([...new Set(summaryCalls.map((call) => call.url.searchParams.get("since")))].sort(), [
     "2026-07-17T07:00:00.000Z",
     "2026-08-09T07:00:00.000Z",
     "2026-08-15T07:00:00.000Z",
@@ -83,7 +86,10 @@ test("signup attribution keeps totals when one event-data grouping is unavailabl
     fetchImpl: async (input) => {
       const url = new URL(input);
       if (url.searchParams.get("by") === "eventData/source") return response([], 400);
-      if (url.pathname.endsWith("/events/count")) return response({ count: 1, visitors: 1 });
+      if (url.searchParams.get("by") === "eventName") return response([
+        { eventName: "Account Created", count: 1, visitors: 1 },
+        { eventName: "Signup Started", count: 1, visitors: 1 },
+      ]);
       return response([{ eventData: "team-lab>team-lab", count: 1 }]);
     },
     env,
@@ -105,7 +111,7 @@ test("signup attribution treats absent account events as current empty leaderboa
     fetchImpl: async (input) => {
       const url = new URL(input);
       calls.push(url);
-      return response({ count: url.searchParams.get("filter").includes("Signup Started") ? 1 : 0, visitors: 1 });
+      return response([{ eventName: "Signup Started", count: 1, visitors: 1 }]);
     },
     env,
     now,
@@ -117,8 +123,8 @@ test("signup attribution treats absent account events as current empty leaderboa
   assert.equal(result.details_unavailable, false);
   assert.deepEqual(result.top_sources, []);
   assert.deepEqual(result.top_journeys, []);
-  assert.equal(calls.length, 6);
-  assert.equal(calls.some((url) => url.pathname.endsWith("/events/aggregate")), false);
+  assert.equal(calls.length, 3);
+  assert.equal(calls.every((url) => url.searchParams.get("by") === "eventName"), true);
 });
 
 test("signup attribution uses the Pacific standard-time boundary in winter", async () => {
@@ -127,7 +133,7 @@ test("signup attribution uses the Pacific standard-time boundary in winter", asy
   await getSignupAttributionReport({
     fetchImpl: async (input) => {
       calls.push(new URL(input));
-      return response({ count: 0, visitors: 0 });
+      return response([]);
     },
     env,
     now: new Date("2026-01-15T19:00:00.000Z"),
@@ -142,7 +148,7 @@ test("signup attribution fails softly when configuration or account events are u
   assert.deepEqual(await getSignupAttributionReport({ fetchImpl: async () => { calls += 1; }, env: {}, now, bypassCache: true }), { unavailable: true });
   assert.equal(calls, 0);
   const failed = await getSignupAttributionReport({
-    fetchImpl: async (input) => new URL(input).searchParams.get("filter").includes("Account Created") ? response({}, 503) : response({ count: 0 }),
+    fetchImpl: async () => response([], 503),
     env,
     now,
     bypassCache: true,

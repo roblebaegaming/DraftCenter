@@ -80,8 +80,10 @@ The report uses the authenticated, server-only Vercel Web Analytics API token
 already used by Website Traffic. It fails softly without exposing the token or
 interrupting the rest of Operations.
 
-Custom-event summaries use Vercel's production-only event count endpoint with
-exact Pacific-time starts for today, the last 7 days, and the last 30 days.
+Custom-event summaries use Vercel's aggregate event endpoint, grouped by
+`eventName`, with exact Pacific-time starts for today, the last 7 days, and the
+last 30 days. Grouping the complete event set matches Vercel's dashboard data
+model without depending on the separate count endpoint's bucket behavior.
 This keeps Pacific-evening events in the current reporting window instead of
 losing them at a UTC date boundary. Account-created source and journey
 leaderboards use Vercel's structured `eventData/source` and

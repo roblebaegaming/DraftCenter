@@ -1,5 +1,4 @@
 const ANALYTICS_ENDPOINT = "https://api.vercel.com/v1/query/web-analytics/events/aggregate";
-const ANALYTICS_COUNT_ENDPOINT = "https://api.vercel.com/v1/query/web-analytics/events/count";
 const ANALYTICS_TIME_ZONE = "America/Los_Angeles";
 const CACHE_TTL_MS = 5 * 60 * 1000;
 const PARTIAL_CACHE_TTL_MS = 60 * 1000;
@@ -67,23 +66,9 @@ function buildEventsUrl({ endpoint = ANALYTICS_ENDPOINT, projectId, teamId, sinc
   url.searchParams.set("since", since);
   url.searchParams.set("until", until);
   if (by) url.searchParams.set("by", by);
-  url.searchParams.set("filter", `eventName eq '${eventName.replaceAll("'", "''")}'`);
+  if (eventName) url.searchParams.set("filter", `eventName eq '${eventName.replaceAll("'", "''")}'`);
   if (limit) url.searchParams.set("limit", String(limit));
   return url;
-}
-
-async function queryEventCount(fetchImpl, url, token) {
-  const options = { headers: { Accept: "application/json", Authorization: `Bearer ${token}` }, cache: "no-store" };
-  const signal = globalThis.AbortSignal?.timeout?.(8000);
-  if (signal) options.signal = signal;
-  const response = await fetchImpl(url, options);
-  if (!response.ok) throw new Error(`Vercel Web Analytics event count request failed (${response.status}).`);
-  const payload = await response.json();
-  const rawCount = typeof payload?.data === "number"
-    ? payload.data
-    : payload?.data?.count ?? payload?.data?.events ?? payload?.data?.total;
-  if (!Number.isFinite(Number(rawCount))) throw new Error("Vercel Web Analytics returned an unexpected event count response.");
-  return nonNegativeNumber(rawCount);
 }
 
 async function queryEvents(fetchImpl, url, token) {
@@ -105,6 +90,12 @@ function eventDataLeaderboard(rows) {
     counts.set(label, (counts.get(label) || 0) + eventCount(row));
   }
   return [...counts].map(([label, count]) => ({ label, count })).sort((a, b) => b.count - a.count || a.label.localeCompare(b.label)).slice(0, 8);
+}
+
+function namedEventCount(rows, eventName) {
+  return rows.reduce((total, row) => (
+    String(row?.eventName ?? row?.event_name ?? "") === eventName ? total + eventCount(row) : total
+  ), 0);
 }
 
 export function resetSignupAttributionReportCache() {
@@ -131,21 +122,18 @@ export async function getSignupAttributionReport({ fetchImpl = fetch, env = proc
     { key: "last_7_days", since: startOfDateKeyInTimeZone(sevenDayStart) },
     { key: "last_30_days", since: startOfDateKeyInTimeZone(startDate) },
   ];
-  const countRequests = ["Account Created", "Signup Started"].flatMap((eventName) => windows.map(({ since }) => (
-    queryEventCount(fetchImpl, buildEventsUrl({ endpoint: ANALYTICS_COUNT_ENDPOINT, projectId, teamId, since, until, eventName }), token)
+  const summaryResults = await Promise.allSettled(windows.map(({ since }) => (
+    queryEvents(fetchImpl, buildEventsUrl({ projectId, teamId, since, until, by: "eventName", limit: 250 }), token)
   )));
-  const countResults = await Promise.allSettled(countRequests);
-  const createdResults = countResults.slice(0, windows.length);
-  const startedResults = countResults.slice(windows.length);
-  if (createdResults.some((result) => result.status !== "fulfilled")) return { unavailable: true };
+  if (summaryResults.some((result) => result.status !== "fulfilled")) return { unavailable: true };
 
-  const periodCounts = (results) => Object.fromEntries(windows.map(({ key }, index) => [
+  const periodCounts = (eventName) => Object.fromEntries(windows.map(({ key }, index) => [
     key,
-    results[index].status === "fulfilled" ? results[index].value : 0,
+    namedEventCount(summaryResults[index].value, eventName),
   ]));
-  const accountCreated = periodCounts(createdResults);
-  const startedUnavailable = startedResults.some((result) => result.status !== "fulfilled");
-  const signupStarted = startedUnavailable ? null : periodCounts(startedResults);
+  const accountCreated = periodCounts("Account Created");
+  const signupStarted = periodCounts("Signup Started");
+  const startedUnavailable = false;
   let sourceResult = { status: "fulfilled", value: [] };
   let journeyResult = { status: "fulfilled", value: [] };
   if (accountCreated.last_30_days > 0) {
@@ -177,6 +165,5 @@ export async function getSignupAttributionReport({ fetchImpl = fetch, env = proc
 
 export const signupAttributionReportConfig = Object.freeze({
   endpoint: ANALYTICS_ENDPOINT,
-  countEndpoint: ANALYTICS_COUNT_ENDPOINT,
   timeZone: ANALYTICS_TIME_ZONE,
 });
