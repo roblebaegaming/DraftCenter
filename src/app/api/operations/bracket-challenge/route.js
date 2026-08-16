@@ -47,15 +47,14 @@ async function loadOperations(supabase, id) {
     .select("event_id,display_name,description,official_info_url,status,field_size,bracket_capacity,revision,opens_at,locks_at,official_bracket_url,source_checked_at,round_points,published_at,finalized_at,updated_at")
     .eq("event_id", id).single();
   if (bracketError) throw bracketError;
-  const [slots, results, entries, audit, hub] = await Promise.all([
+  const [slots, results, entries, audit] = await Promise.all([
     supabase.from("prediction_bracket_slots").select("slot_number,competitor_id,display_name,country_code,source_seed,bracket_revision").eq("event_id", id).eq("bracket_revision", bracket.revision || 0).order("slot_number"),
     supabase.from("prediction_bracket_results").select("round_number,match_number,winner_id,result_status,source_url,updated_at").eq("event_id", id).eq("bracket_revision", bracket.revision || 0).order("round_number").order("match_number"),
     supabase.from("prediction_bracket_entries").select("user_id", { count: "exact", head: true }).eq("event_id", id).eq("bracket_revision", bracket.revision || 0),
     supabase.from("prediction_bracket_audit_log").select("id,bracket_revision,action,source_url,details,created_at").eq("event_id", id).order("created_at", { ascending: false }).limit(30),
-    supabase.rpc("get_prediction_bracket_hub", { p_event_id: id }),
   ]);
-  for (const result of [slots, results, entries, audit, hub]) if (result.error) throw result.error;
-  return { bracket, slots: slots.data || [], results: results.data || [], entry_count: entries.count || 0, audit: audit.data || [], hub: hub.data || null };
+  for (const result of [slots, results, entries, audit]) if (result.error) throw result.error;
+  return { bracket, slots: slots.data || [], results: results.data || [], entry_count: entries.count || 0, audit: audit.data || [] };
 }
 
 export async function GET(request) {
