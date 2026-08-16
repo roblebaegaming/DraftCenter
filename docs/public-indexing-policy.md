@@ -25,6 +25,13 @@ tracker identifier, title, caught entry, shiny entry, account identity, or
 other member-specific state. Signed-in tracker data remains private RPC-loaded
 account data even though the product landing is in the sitemap.
 
+The public `/team-lab` landing is indexable as product documentation and as a
+bounded public roster-analysis tool. Public share queries may contain only the
+selected format, roster mode, and Pokémon names. `/team-lab/teams` and all
+account-owned notes, sets, matchup plans, and Battle Room reports remain
+private and non-indexed. The legacy `/tools/team-builder` address redirects to
+the canonical public landing without becoming a second sitemap entry.
+
 The public league directory must server-render the same public league-card
 RPC used by its interactive filters and expose a direct crawlable link to
 every returned league. This does not broaden visibility: the public RPC and
@@ -37,7 +44,8 @@ The following surfaces remain `noindex` and excluded from the sitemap:
 - `/tournaments/[slug]`, including public standalone brackets, connected
   championships, and Draft Tournaments;
 - `/organizations` and `/organizations/[slug]`;
-- `/my-teams`, saved Nuzlocke Run Cards, and other personal team workspaces;
+- `/team-lab/teams`, its legacy `/my-teams` address, saved Nuzlocke Run Cards,
+  and other personal team workspaces;
 - individual Pokédex Tracker collections, entries, names, and progress;
 - `/trainer-dex`, Operations, support, and authenticated league or account
   state that does not have a separate approved public route.

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { createClient } from "../lib/supabase/client";
+import { createPlatformBrowserClient } from "../platform/supabase";
 import PokedexCollectorLaunchPanel from "./PokedexCollectorLaunchPanel";
 import {
   bankRescueExport,
@@ -348,7 +348,7 @@ function CreateTracker({ catalogs, busy, onCreate, onCancel }) {
 }
 
 export default function PokedexTrackerPage() {
-  const [supabase] = useState(() => createClient());
+  const [supabase] = useState(() => createPlatformBrowserClient());
   const trackerRequestRef = useRef(0);
   const accountVersionRef = useRef(0);
   const [authState, setAuthState] = useState("loading");

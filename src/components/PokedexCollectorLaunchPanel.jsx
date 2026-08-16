@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   buildPokedexCollectorDashboard,
   buildPokedexTrackerPortableExport,
@@ -11,10 +11,8 @@ import {
   pokedexCollectorCsvTemplate,
   pokedexCollectorFilename,
 } from "../lib/pokedexCollector";
-import {
-  buildPokedexCollectorWorkbookFilename,
-  buildPokedexCollectorWorkbookSheets,
-} from "../lib/pokedexCollectorWorkbook";
+import { buildPokedexCollectorWorkbookFilename, buildPokedexCollectorWorkbookSheets } from "../platform/exports";
+import { useInstallableWebApp } from "../platform/useInstallableWebApp";
 import { pokedexCountBucket, trackPokedexCollectorEvent } from "../lib/pokedexAnalytics";
 
 const KOFI_URL = "https://ko-fi.com/draftcenter";
@@ -65,21 +63,9 @@ export default function PokedexCollectorLaunchPanel({ supabase, hub, active, inv
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState("");
   const [error, setError] = useState("");
-  const [installPrompt, setInstallPrompt] = useState(null);
   const [showInstallHelp, setShowInstallHelp] = useState(false);
   const dashboard = useMemo(() => buildPokedexCollectorDashboard(hub?.trackers), [hub?.trackers]);
-
-  useEffect(() => {
-    function rememberInstallPrompt(event) {
-      event.preventDefault();
-      setInstallPrompt(event);
-    }
-    window.addEventListener("beforeinstallprompt", rememberInstallPrompt);
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("/pokedex-tracker/sw.js", { scope: "/pokedex-tracker/" }).catch(() => {});
-    }
-    return () => window.removeEventListener("beforeinstallprompt", rememberInstallPrompt);
-  }, []);
+  const { promptInstall } = useInstallableWebApp({ serviceWorkerUrl: "/pokedex-tracker/sw.js", scope: "/pokedex-tracker/" });
 
   async function chooseFile(event, kind) {
     const file = event.target.files?.[0];
@@ -216,15 +202,13 @@ export default function PokedexCollectorLaunchPanel({ supabase, hub, active, inv
 
   async function installCollector() {
     trackPokedexCollectorEvent("install_selected", { placement: "collector-tools" });
-    if (!installPrompt) {
+    const choice = await promptInstall();
+    if (choice.outcome === "unavailable") {
       setShowInstallHelp(true);
       return;
     }
-    await installPrompt.prompt();
-    const choice = await installPrompt.userChoice;
-    trackPokedexCollectorEvent("install_completed", { result: choice.outcome === "accepted" ? "accepted" : "dismissed" });
-    setInstallPrompt(null);
-    if (choice.outcome === "accepted") setStatus("DraftCenter Collector was added to this device.");
+    trackPokedexCollectorEvent("install_completed", { result: choice.outcome });
+    if (choice.outcome === "accepted") setStatus("Pokédex Tracker was added to this device.");
   }
 
   async function copyFeedbackChecklist() {
@@ -267,7 +251,7 @@ export default function PokedexCollectorLaunchPanel({ supabase, hub, active, inv
         <button type="button" className="dex-primary-button" onClick={downloadWorkbook} disabled={!hub?.trackers?.length || busy}>{busy ? "Preparing…" : "Download workbook"}</button>
       </article>
       <article id="install-collector">
-        <span>04 · FOCUSED APP</span><h3>Install Collector</h3><p>Add a focused launcher to this device. An internet connection and sign-in are still required for private collection data.</p>
+        <span>04 · FOCUSED APP</span><h3>Install Pokédex Tracker</h3><p>Add a focused launcher to this device. An internet connection and sign-in are still required for private collection data.</p>
         <button type="button" className="dex-secondary-button" onClick={installCollector}>Install or show instructions</button>
         {showInstallHelp && <small>Open your browser’s share or menu button, then choose “Add to Home Screen” or “Install app.”</small>}
       </article>

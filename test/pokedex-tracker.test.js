@@ -456,6 +456,8 @@ test("Collector PWA, focused navigation, funding, and measurement preserve priva
   const offline = source("src/app/pokedex-tracker/offline/page.js");
   const route = source("src/app/pokedex-tracker/page.js");
   const navigation = source("src/components/SiteQuickLinks.jsx");
+  const productNavigation = source("src/components/ProductAppNavigation.jsx");
+  const products = source("src/platform/products.js");
   const analytics = source("src/lib/pokedexAnalytics.js");
   const legal = source("src/components/LegalPage.jsx");
   const support = source("src/app/support/page.js");
@@ -467,15 +469,17 @@ test("Collector PWA, focused navigation, funding, and measurement preserve priva
   assert.match(panel, /Current Collector tools stay free/);
   assert.match(panel, /not a purchase, subscription, or promise of premium access/);
   assert.match(panel, /ko-fi\.com\/draftcenter/);
-  assert.match(manifest, /DraftCenter Collector/);
+  assert.match(manifest, /Pokédex Tracker by DraftCenter/);
   assert.match(manifest, /start_url: "\/pokedex-tracker\/\?source=pwa"/);
   assert.match(route, /manifest: "\/pokedex-tracker\/manifest\.webmanifest"/);
   assert.match(worker, /PUBLIC_SHELL/);
   assert.match(worker, /event\.request\.mode !== "navigate"/);
   assert.doesNotMatch(worker, /cache\.put\(event\.request/);
   assert.match(offline, /does not cache tracker pages, private notes, individual records/);
-  assert.match(navigation, /is-collector-nav/);
-  assert.match(navigation, /Founding beta/);
+  assert.match(navigation, /ProductAppNavigation/);
+  assert.match(productNavigation, /Switch to DraftCenter/);
+  assert.match(products, /name: "Pokédex Tracker"/);
+  assert.match(products, /label: "Import & export"/);
   assert.match(analytics, /ALLOWED_PROPERTIES = new Set\(\["kind", "count_bucket", "placement", "result"\]\)/);
   for (const forbidden of ["user_id", "tracker_id", "tracker_name", "pokemon", "species", "notes", "email", "filename", "file_content"]) {
     assert.match(analytics, new RegExp(`"${forbidden}"`));

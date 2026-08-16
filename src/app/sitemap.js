@@ -5,7 +5,7 @@ import { POKEMON_COLOR_OPTIONS, POKEMON_EGG_GROUP_OPTIONS, POKEMON_SHAPE_OPTIONS
 import nuzlockeGameGuides from "../lib/nuzlockeGameGuides.json";
 import { SHINY_HUNTING_GUIDES, SHINY_GUIDE_UPDATED_DATE } from "../lib/shinyHuntingGuides";
 
-const PRODUCT_DISCOVERY_LAST_MODIFIED = new Date("2026-08-13T00:00:00.000Z");
+const PRODUCT_DISCOVERY_LAST_MODIFIED = new Date("2026-08-16T00:00:00.000Z");
 const WORLDS_2026_LAST_MODIFIED = new Date("2026-08-11T00:00:00.000Z");
 const ITALIAN_WORLDS_LAST_MODIFIED = new Date("2026-08-12T00:00:00.000Z");
 const WORLDS_LANGUAGE_ALTERNATES = {
@@ -18,7 +18,7 @@ const localizedRouteAlternates = new Map([
   ["/it/worlds/2026", WORLDS_LANGUAGE_ALTERNATES],
 ]);
 const productRouteLastModified = new Map([
-  ["/tools/team-builder", PRODUCT_DISCOVERY_LAST_MODIFIED],
+  ["/team-lab", PRODUCT_DISCOVERY_LAST_MODIFIED],
   ["/tools/mega-bracket", PRODUCT_DISCOVERY_LAST_MODIFIED],
   ["/pokedex-tracker", PRODUCT_DISCOVERY_LAST_MODIFIED],
   ["/nuzlocke", PRODUCT_DISCOVERY_LAST_MODIFIED],
@@ -40,7 +40,7 @@ const routes = [
   ["/pokemon/a-z", "monthly", 0.8],
   ["/pokemon/types", "monthly", 0.8],
   ["/pokemon/generations", "monthly", 0.8],
-  ["/tools/team-builder", "weekly", 0.9],
+  ["/team-lab", "weekly", 0.9],
   ["/tools/mega-bracket", "weekly", 0.9],
   ["/pokedex-tracker", "weekly", 0.9],
   ["/nuzlocke", "weekly", 0.9],

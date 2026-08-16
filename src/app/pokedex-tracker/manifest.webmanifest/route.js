@@ -2,8 +2,8 @@ export const dynamic = "force-static";
 
 export function GET() {
   return Response.json({
-    name: "DraftCenter Collector",
-    short_name: "Collector",
+    name: "Pokédex Tracker by DraftCenter",
+    short_name: "Dex Tracker",
     description: "Private Pokédex checklists, individual collection records, portable backups, and collector workbooks.",
     id: "/pokedex-tracker/",
     start_url: "/pokedex-tracker/?source=pwa",

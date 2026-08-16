@@ -1,9 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import draftLabCatalog from "../data/draft-lab-catalog.json";
 import { REGULATION_GROUPS } from "../lib/regulation-catalog";
-import { createClient } from "../lib/supabase/client";
 import {
   applyTeamLabTurnEvent,
   buildTeamLabBattleShareText,
@@ -29,7 +27,10 @@ import {
   TEAM_LAB_TURN_NOTE_LIMIT,
   TEAM_LAB_WEEK_LABEL_LIMIT,
 } from "../lib/teamLab";
-import { buildTeamLabWorkbookFilename, buildTeamLabWorkbookSheets } from "../lib/teamLabWorkbook";
+import { buildTeamLabWorkbookFilename, buildTeamLabWorkbookSheets } from "../platform/exports";
+import { SHARED_POKEMON_BY_NAME, SHARED_POKEMON_DIRECTORY, SHARED_POKEMON_NAMES, SHARED_REGULATION_SETS } from "../platform/pokemonCatalog";
+import { PRODUCT_ROUTES } from "../platform/products";
+import { createPlatformBrowserClient } from "../platform/supabase";
 import TeamLabOpponentEditor, { createEmptyTeamLabMatchup, normalizeTeamLabMatchupForm } from "./TeamLabOpponentEditor";
 import TeamLabSetEditor from "./TeamLabSetEditor";
 import { hasTeamLabSetDetails, normalizeTeamLabTeamSets } from "../lib/teamLabSets";
@@ -45,11 +46,11 @@ import {
   teamStatSummary,
 } from "../lib/teamAnalysis";
 
-const CATALOG = draftLabCatalog.pokemon;
-const CATALOG_BY_NAME = new Map(CATALOG.map((pokemon) => [pokemon.name, pokemon]));
-const CATALOG_NAMES = CATALOG.map((pokemon) => pokemon.name);
+const CATALOG = SHARED_POKEMON_DIRECTORY;
+const CATALOG_BY_NAME = SHARED_POKEMON_BY_NAME;
+const CATALOG_NAMES = SHARED_POKEMON_NAMES;
 const CATALOG_NAME_SET = new Set(CATALOG_NAMES);
-const REGULATION_SETS = draftLabCatalog.regulations;
+const REGULATION_SETS = SHARED_REGULATION_SETS;
 const FORMAT_GROUPS = REGULATION_GROUPS
   .filter((group) => group.id !== "custom")
   .map((group) => ({
@@ -679,7 +680,7 @@ function MatchupCard({ matchup, onBattle, onEdit, onDelete, busy }) {
 }
 
 export default function DraftLab() {
-  const [supabase] = useState(() => createClient());
+  const [supabase] = useState(() => createPlatformBrowserClient());
   const [formatId, setFormatId] = useState("reg-mb");
   const [mode, setMode] = useState("team");
   const [names, setNames] = useState([]);
@@ -1018,10 +1019,10 @@ export default function DraftLab() {
   const battleMatchup = battleMatchupId ? activeMatchups.find((matchup) => matchup.id === battleMatchupId) : null;
 
   return <main className="draft-lab-shell">
-    <nav className="public-page-nav"><a className="quiet-button" href="/?view=dashboard">DraftCenter home</a><a className="quiet-button" href="/pokemon">Pokédex</a><a className="quiet-button" href="/my-teams">My Teams</a></nav>
+    <nav className="public-page-nav"><a className="quiet-button" href="/?view=dashboard">DraftCenter home</a><a className="quiet-button" href="/pokemon">Pokédex</a><a className="quiet-button" href={PRODUCT_ROUTES.teamLabTeams}>My Teams</a></nav>
     <header className="draft-lab-hero">
       <div><span className="eyebrow">TEAM BUILDER & MATCHUP PLANNER</span><h1>Team Lab</h1><p>Build a six-Pokémon battle team or focused 10-Pokémon draft roster, plan each weekly opponent, and use private Battle Mode to record turns, revealed moves, abilities, items, switches, faints, and written damage without leaving DraftCenter.</p></div>
-      <div className="draft-lab-hero-actions"><a className="primary-button inline-link-button" href="#team-lab-battle-setup">Set up Battle Mode</a><button className="quiet-button" type="button" onClick={copyLink}>Copy roster link</button><a className="quiet-button" href="/my-teams">Open My Teams</a></div>
+      <div className="draft-lab-hero-actions"><a className="primary-button inline-link-button" href="#team-lab-battle-setup">Open Battle Room</a><button className="quiet-button" type="button" onClick={copyLink}>Copy roster link</button><a className="quiet-button" href={PRODUCT_ROUTES.teamLabTeams}>Open My Teams</a></div>
     </header>
 
     <section className="draft-lab-builder" aria-labelledby="draft-lab-builder-title">
@@ -1092,7 +1093,7 @@ export default function DraftLab() {
       </section>
     </>}
 
-    <section className="draft-lab-next"><div><span className="eyebrow">SHARE OR KEEP PLANNING</span><h2>One roster, two kinds of privacy</h2><p>The public link contains only Pokémon names, roster size, and base format. Team names, account connections, notes, and opponent plans stay in your private DraftCenter account.</p></div><div><button className="primary-button" type="button" onClick={copyLink}>Copy public analysis</button><a className="quiet-button inline-link-button" href="/my-teams">Open My Teams</a></div></section>
+    <section className="draft-lab-next"><div><span className="eyebrow">SHARE OR KEEP PLANNING</span><h2>One roster, two kinds of privacy</h2><p>The public link contains only Pokémon names, roster size, and base format. Team names, account connections, notes, and opponent plans stay in your private DraftCenter account.</p></div><div><button className="primary-button" type="button" onClick={copyLink}>Copy public analysis</button><a className="quiet-button inline-link-button" href={PRODUCT_ROUTES.teamLabTeams}>Open My Teams</a></div></section>
     {battleMatchup && connectedPersonalTeam && <BattleMode
       key={battleMatchup.id}
       matchup={battleMatchup}

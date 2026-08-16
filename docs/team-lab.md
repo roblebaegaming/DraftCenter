@@ -1,7 +1,24 @@
 # Team Lab product and privacy contract
 
-Team Lab lives at `/tools/team-builder`. It combines a public roster-analysis
-tool with private, signed-in weekly team and matchup workspaces.
+Team Lab lives at `/team-lab`. It combines a public roster-analysis tool with
+private, signed-in weekly team and matchup workspaces. `/tools/team-builder`
+permanently redirects to the canonical app route and preserves old public
+share-link queries. `/my-teams` permanently redirects to the private
+`/team-lab/teams` workspace.
+
+## Focused app shell
+
+Team Lab has product-specific navigation for Build, Battle Room, My Teams, and
+installation, plus an explicit switch back to DraftCenter. It uses the same
+DraftCenter account and Supabase project; the shell does not copy or migrate
+teams, sets, matchups, reports, or league-roster planning copies.
+
+The scoped `/team-lab/` web-app manifest and service worker make Team Lab
+installable from supporting browsers. The service worker provides only a
+public offline explanation. It does not cache private team pages, account RPC
+responses, notes, sets, opponent plans, or Battle Room reports. Account saves
+still require a connection; existing matchup-scoped local crash recovery keeps
+its separate browser-only contract.
 
 ## Weekly workflow
 

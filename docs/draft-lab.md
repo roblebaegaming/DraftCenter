@@ -1,10 +1,10 @@
 # Team Lab
 
 Team Lab is DraftCenter's public team builder and optional private preparation
-workspace at `/tools/team-builder`. The route is unchanged from the earlier
-Draft Lab release so existing links and search history remain valid. The
-product name shown in navigation, metadata, structured data, social previews,
-and current documentation is **Team Lab**.
+workspace at `/team-lab`. The earlier `/tools/team-builder` address permanently
+redirects to the canonical route so existing public links and their query
+details remain valid. The product name shown in navigation, metadata,
+structured data, social previews, and current documentation is **Team Lab**.
 
 ## Public builder contract
 
@@ -86,7 +86,7 @@ paid plan today.
 Public share links keep the existing bounded, versioned contract:
 
 ```text
-/tools/team-builder?v=1&format=reg-mb&team=Garchomp~Rotom-Wash
+/team-lab?v=1&format=reg-mb&team=Garchomp~Rotom-Wash
 ```
 
 `mode=roster` opts into the 10-member view. Unknown names, duplicate names,
@@ -107,11 +107,12 @@ modern 18-type chart, bounded ability modifiers used on individual Pokémon
 cards, defensive and STAB summaries, base-stat summaries, format checks,
 archetype signals, and the versioned share-link parser.
 
-The public page consumes `src/data/draft-lab-catalog.json`, a generated,
-client-sized snapshot of the hosted-league catalog, regulation data, and
-reviewed base stats. `npm run test:draft-lab` fails when the snapshot drifts
-from `PokemonDraftLeague.jsx`; regenerate it intentionally with
-`npm run draft-lab:build-catalog`.
+The public page consumes `src/data/draft-lab-catalog.json` through the shared
+`src/platform/pokemonCatalog.js` boundary. It is a generated, client-sized
+snapshot of the hosted-league catalog, regulation data, and reviewed base
+stats. `npm run test:draft-lab` fails when the snapshot drifts from
+`PokemonDraftLeague.jsx`; regenerate it intentionally with `npm run
+draft-lab:build-catalog`.
 
 ## Validation
 

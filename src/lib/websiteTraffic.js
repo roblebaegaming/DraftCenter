@@ -1,7 +1,7 @@
 const ANALYTICS_ENDPOINT = "https://api.vercel.com/v1/query/web-analytics/visits/aggregate";
 const ANALYTICS_COUNT_ENDPOINT = "https://api.vercel.com/v1/query/web-analytics/visits/count";
 const ANALYTICS_TIME_ZONE = "America/Los_Angeles";
-const PRIVATE_PATH_PREFIXES = ["/operations", "/my-teams", "/organizations", "/trainer-dex"];
+const PRIVATE_PATH_PREFIXES = ["/operations", "/my-teams", "/team-lab/teams", "/organizations", "/trainer-dex"];
 const CACHE_TTL_MS = 5 * 60 * 1000;
 const PARTIAL_CACHE_TTL_MS = 60 * 1000;
 const ACTIVE_CACHE_TTL_MS = 60 * 1000;

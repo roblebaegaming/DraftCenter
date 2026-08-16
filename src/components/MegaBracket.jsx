@@ -501,7 +501,7 @@ export default function MegaBracket() {
   const attemptFormat = megaBracketFormatLabel(attempt || {});
 
   return <main className="mega-bracket-shell">
-    <nav className="public-page-nav"><a className="quiet-button" href="/?view=dashboard">DraftCenter home</a><a className="quiet-button" href="/resources/daily-games">Daily Games</a><a className="quiet-button" href="/tools/team-builder">Team Lab</a></nav>
+    <nav className="public-page-nav"><a className="quiet-button" href="/?view=dashboard">DraftCenter home</a><a className="quiet-button" href="/resources/daily-games">Daily Games</a><a className="quiet-button" href="/team-lab">Team Lab</a></nav>
     <header className="mega-bracket-hero">
       <div><span className="eyebrow">YOUR BRACKET, YOUR RULES</span><h1>Mega Bracket</h1><p>Build a Full Dex, type, generation, or Mega Evolution bracket. Pick favorites or vote for the worst, then replay with a new randomized draw whenever inspiration strikes.</p></div>
       <div className="mega-hero-stat"><strong>1,162</strong><span>Pokémon & forms available</span><b>Full fields or quick 64 · unlimited attempts</b></div>

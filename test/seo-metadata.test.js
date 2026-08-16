@@ -76,6 +76,7 @@ test("sitemap contains only indexable routes and truthful modification dates", (
   assert.match(sitemap, /PRODUCT_DISCOVERY_LAST_MODIFIED/);
   assert.match(sitemap, /productRouteLastModified\.has\(path\)/);
   assert.match(sitemap, /\["\/pokedex-tracker", "weekly", 0\.9\]/);
+  assert.match(sitemap, /\["\/team-lab", "weekly", 0\.9\]/);
   assert.match(sitemap, /ITALIAN_WORLDS_LAST_MODIFIED/);
   assert.match(sitemap, /localizedRouteAlternates\.has\(path\)/);
   assert.match(sitemap, /"x-default": "https:\/\/www\.draftcentral\.gg\/worlds\/2026\/vgc"/);
@@ -83,7 +84,7 @@ test("sitemap contains only indexable routes and truthful modification dates", (
 
 test("recent public products expose current social previews and discovery copy", () => {
   const mega = source("src/app/tools/mega-bracket/page.js");
-  const lab = source("src/app/tools/team-builder/page.js");
+  const lab = source("src/app/team-lab/page.js");
   const nuzlocke = source("src/app/nuzlocke/page.js");
   const pokedexTracker = source("src/app/pokedex-tracker/page.js");
   const daily = source("src/app/resources/daily-games/page.js");
@@ -115,6 +116,9 @@ test("recent public products expose current social previews and discovery copy",
   assert.match(lab, /Common meta archetype prompts/);
   assert.match(source("src/app/tools/team-builder/opengraph-image.js"), /Team Lab/);
   assert.match(source("src/app/tools/team-builder/opengraph-image.js"), /opponent matchup/);
+  assert.match(source("src/app/team-lab/opengraph-image.js"), /tools\/team-builder\/opengraph-image/);
+  assert.match(nextConfig, /source: "\/tools\/team-builder", destination: "\/team-lab", permanent: true/);
+  assert.match(nextConfig, /source: "\/my-teams", destination: "\/team-lab\/teams", permanent: true/);
   assert.match(pokedexTracker, /"@type": "WebApplication"/);
   assert.match(pokedexTracker, /"@type": "FAQPage"/);
   assert.match(pokedexTracker, /canonical: "\/pokedex-tracker"/);
@@ -479,7 +483,7 @@ test("AI discovery foundation exposes a trustworthy entity and reference index",
   assert.match(llms, /saved cards are not public pages/);
   assert.match(llms, /How to Use Pokémon Draft League ADP/);
   assert.match(llms, /Pokémon Draft League Manager vs\. Spreadsheets/);
-  assert.match(llms, /Team Lab Pokémon team builder and matchup planner/);
+  assert.match(llms, /Team Lab Pokémon team builder and private Battle Room/);
   assert.match(llms, /Sunday's eight-entry Super Bracket/);
   assert.match(llms, /it\/worlds\/2026/);
   assert.match(llms, /Last reviewed: 2026-08-15/);
