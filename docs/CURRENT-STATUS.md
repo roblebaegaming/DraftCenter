@@ -34,10 +34,11 @@ profile-link position before its sequence, and AI labeling and Facebook
 cross-posting remained off. The Team Lab launch began at 03:14:06 Pacific and
 the Collector launch began at 04:03:58 Pacific. Aggregate 3-, 7-, and 30-day
 attribution reviews are scheduled for August 19, August 23, and September 15.
-No direct invitations or messages were sent; the exact Founding Collector
-tester audience remains an owner decision. The Collector profile-link title
-still has a cosmetic mobile-only spelling correction remaining, but its first
-position, destination, and campaign parameters are correct.
+No Founding Collector tester candidates have been identified and no direct
+invitations or messages were sent; audience discovery and the exact invitation
+scope remain owner decisions. The Collector profile-link title is corrected to
+**Pokédex Tracker** and its first position, destination, and campaign parameters
+were publicly verified.
 
 Pull request [#241](https://github.com/roblebaegaming/DraftCenter/pull/241)
 and migration 407 made Mega Bracket replayable by Full Dex, type, generation,
