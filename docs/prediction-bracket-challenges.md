@@ -19,6 +19,14 @@ official result source is the [Victory Road Phase 2 Top Cut bracket](https://bat
 Do not derive or guess results from Phase 1 Swiss standings, aliases, stream
 graphics, partial scores, or unconfirmed advancement.
 
+Revision 1 contained the original Top 16 and Rob Lebae's saved bracket. When
+the official event moved to Top 8 before the public challenge was ready, the
+owner-only replacement archived that entry. The active Top 8 leaderboard uses
+the carried bracket-side path and the 1/2/4 scoring contract. The public page
+also shows the original Top 16 names and choices as a separate read-only
+archive with its original 1/2/4/8 scoring, so a pick such as Markus Hamann
+remains visible even when the carried side later contains Shohei Kimura.
+
 ## Bracket behavior
 
 - Official fields may contain 3–64 players.
@@ -35,6 +43,12 @@ graphics, partial scores, or unconfirmed advancement.
   and change them before publication.
 - Entries are private before lock. After lock, saved brackets and the scored
   leaderboard are public.
+- A carried entry may expose its locked original bracket as a separate archive.
+  The archive never changes the active revision, active leaderboard, or live
+  result writer.
+- The archive maps the official replacement field back to the original player
+  names, then maps each reviewed live result to the next original round. It
+  does not infer a result from a partial score or an unreviewed stream graphic.
 - The public page reloads current event, result, entry, and leaderboard data
   every 60 seconds. A manual reload may be used for immediate verification.
 
@@ -65,14 +79,22 @@ Migration 410 permits one narrow replacement case: exactly one entry, owned by
 the approving owner, and zero official results. The owner must type
 `SUPERSEDE OFFICIAL BRACKET`; the old entry is archived privately and the new
 revision is published atomically. Multiple entries or any recorded result keep
-the field immutable. A result correction is allowed only before a dependent
+the field immutable. Migration 411 permits the same approving owner to carry
+that archived path into an empty, locked replacement leaderboard. It preserves
+which bracket side was chosen, labels the entry as a Top 16 carryover, and
+records the action privately. A result correction is allowed only before a dependent
 downstream result has been recorded. Every publication, supersession, result,
-correction, and finalization is written to the private owner audit trail.
+correction, carryover, and finalization is written to the private owner audit
+trail.
 
 ## Data and security boundary
 
 Migration 409 adds generic `prediction_bracket_*` tables. Migration 410 adds
-the guarded service-role-only supersession RPC. All five tables force
+the guarded service-role-only supersession RPC, and migration 411 adds the
+service-role-only carryover RPC. Migration 412 adds a bounded public archive
+RPC that returns only the locked original publication, display name, picks,
+and mapping explanation for an entry that was deliberately carried forward.
+It never returns an account ID or grants browser access to the audit table. All five tables force
 row-level security and deny direct browser-role table access. Public and signed-
 in clients read the bounded hub RPC. Only a signed-in account may save its own
 entry. Publication, result recording, and finalization RPCs are service-role
@@ -88,3 +110,10 @@ The focused supersession Preview matrix is
 `supabase/tests/410-owner-only-bracket-supersession-preview-regression.sql`. It
 verifies ownership and entry-count rejection, private archival, fresh-revision
 publication, RLS, grants, active-entry reset, and exact fixture cleanup.
+
+The carryover and archive Preview matrices are
+`supabase/tests/411-owner-bracket-path-carryover-preview-regression.sql` and
+`supabase/tests/412-public-locked-bracket-archive-preview-regression.sql`.
+They verify side-path preservation, replay and wrong-owner rejection, public
+lock timing, identity omission, private audit-table grants, and exact fixture
+cleanup.
