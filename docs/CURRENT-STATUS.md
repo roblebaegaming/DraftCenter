@@ -3,10 +3,22 @@
 - Last updated: August 16, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified production feature commit: `26a95dc5ae66cde281a0c6a8cdda5ee41c25d448`
+- Verified production feature commit: `0c9e07b348f5f91d5062e20cbdb6b04a8b33a276`
 - Latest production migration: 412
 
 ## Deployed state
+
+Pull request [#274](https://github.com/roblebaegaming/DraftCenter/pull/274)
+added branded PNG downloads for complete prediction brackets. A member can
+download their own completed bracket, and after lock any public leaderboard or
+deliberately public archived bracket can be downloaded for posting. The image
+is generated locally from the already-authorized bracket payload and includes
+event and Trainer names, score, round values, saved picks, official winners,
+and the public page URL without exposing account identity or changing pre-lock
+privacy. The 1,920 by 1,350 minimum export uses no new dependency or migration.
+Exact Production commit `0c9e07b` passed the complete suite, dependency audit,
+1,027-row National Dex check, 305-page build, protected checks, exact Vercel
+deployment, both live download paths, and all 22 Production smoke checks.
 
 Pull requests [#271](https://github.com/roblebaegaming/DraftCenter/pull/271)
 and [#272](https://github.com/roblebaegaming/DraftCenter/pull/272) added the
