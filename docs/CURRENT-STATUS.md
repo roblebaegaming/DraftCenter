@@ -3,10 +3,27 @@
 - Last updated: August 16, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified production feature commit: `88badbf810ec4ed67f30b156b15c4f336738d756`
-- Latest production migration: 408
+- Verified production feature commit: `6731a39f389e9585a720a141a940695b0e44c351`
+- Latest production migration: 409
 
 ## Deployed state
+
+Pull request [#254](https://github.com/roblebaegaming/DraftCenter/pull/254)
+and migration 409 deployed the reusable full-bracket prediction foundation and
+the live Victory Road to San Francisco waiting page. Members will advance
+their own matchup winners and earn configurable round points; asymmetric
+official cuts use first-round byes without asking members to predict a bye.
+The supplied Battlefy link remains Phase 1 Swiss Round 10, not the Phase 2
+elimination bracket, so the production event is intentionally
+`waiting_for_official_bracket` at revision 0 with no players, seeds, matchups,
+entries, or results. Once Victory Road publishes the real elimination bracket,
+the owner can load and open it from Operations without another deployment.
+The dependency audit, complete suite, 1,027-row National Dex check, build,
+protected checks, retained-Preview 13-player/three-bye lifecycle matrix,
+desktop/390px/320px hosted review, Production database postflight, exact
+deployment at `6731a39`, live page review, and all 22 Production smoke checks
+passed. No real account, prediction, league, team, provider setting, secret, or
+unrelated production data changed.
 
 Pull request [#252](https://github.com/roblebaegaming/DraftCenter/pull/252)
 reframed Pokédex Tracker around game-accurate numbered dexes. Regional and DLC
@@ -1097,6 +1114,14 @@ and its group assignments, advancement rules, and playoff pairings are
 published. Model UNITE predictions by team, not by individual player.
 Keep the Worlds bracket challenge closed until official pairings exist.
 
+Keep the Victory Road to San Francisco challenge closed until Victory Road
+publishes the official public Phase 2 elimination field and slot order. Do not
+use the Phase 1 Swiss Round 10 page, the invitee list, projected X-2 standings,
+or a stream graphic as a substitute. When the official bracket exists, review
+the exact players, seeds, byes, source URL, and first-elimination-match time,
+then publish through the owner-only Operations panel. If there is no honest
+entry window before elimination play begins, leave the challenge closed.
+
 Keep VGC and TCG Meta Picks open through their published locks and preserve
 private pre-lock selections plus the separate player Pick 10 competitions.
 Migration 381 is already applied and must not be replayed. Keep GO Meta Picks
@@ -1126,7 +1151,9 @@ guard merely to remove that measurement gap.
 ## Authoritative records
 
 - Current continuation handoff:
-  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-16-pokedex-numbered-dexes-production.md`](handoffs/DraftCenter-agent-handoff-2026-08-16-pokedex-numbered-dexes-production.md)
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-16-victory-road-bracket-production.md`](handoffs/DraftCenter-agent-handoff-2026-08-16-victory-road-bracket-production.md)
+- Reusable prediction-bracket contract:
+  [`docs/prediction-bracket-challenges.md`](prediction-bracket-challenges.md)
 - Focused-app monetization decision:
   [`docs/focused-app-monetization.md`](focused-app-monetization.md)
 - Pokédex Tracker product and data contract:
