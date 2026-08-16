@@ -3,27 +3,29 @@
 - Last updated: August 16, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified production feature commit: `6731a39f389e9585a720a141a940695b0e44c351`
+- Verified production feature commit: `4d8d900dc42e3eb1a1302f5f044878dd9ad07d62`
 - Latest production migration: 409
 
 ## Deployed state
 
-Pull request [#254](https://github.com/roblebaegaming/DraftCenter/pull/254)
-and migration 409 deployed the reusable full-bracket prediction foundation and
-the live Victory Road to San Francisco waiting page. Members will advance
-their own matchup winners and earn configurable round points; asymmetric
-official cuts use first-round byes without asking members to predict a bye.
-The supplied Battlefy link remains Phase 1 Swiss Round 10, not the Phase 2
-elimination bracket, so the production event is intentionally
-`waiting_for_official_bracket` at revision 0 with no players, seeds, matchups,
-entries, or results. Once Victory Road publishes the real elimination bracket,
-the owner can load and open it from Operations without another deployment.
-The dependency audit, complete suite, 1,027-row National Dex check, build,
-protected checks, retained-Preview 13-player/three-bye lifecycle matrix,
-desktop/390px/320px hosted review, Production database postflight, exact
-deployment at `6731a39`, live page review, and all 22 Production smoke checks
-passed. No real account, prediction, league, team, provider setting, secret, or
-unrelated production data changed.
+Pull requests [#254](https://github.com/roblebaegaming/DraftCenter/pull/254)
+through [#258](https://github.com/roblebaegaming/DraftCenter/pull/258) and
+migration 409 deployed the reusable full-bracket prediction foundation and
+opened the separate Victory Road to San Francisco Top 16 challenge. The
+reviewed Phase 2 bracket is revision 1 with the 16 official players and eight
+published opening matchups; entries lock August 16 at 1:45 PM Pacific / 20:45
+UTC and award 1, 2, 4, and 8 points by round. The owner Operations fixes forward
+the signed-in session to the protected API, avoids an invalid service-role call
+to the public summary RPC, and prefills the event's exact lock deadline. Vercel
+deployed exact `main` commit `4d8d900`; the owner panel confirmed `open`, 16
+players, zero entries, and 0/15 results, and the public page confirmed every
+name, country, matchup, point value, source link, and lock time. The dependency
+audit, complete suite, 1,027-row National Dex check, build, protected security
+and CodeQL checks, exact deployment, signed-in publication review, and all 22
+Production smoke checks passed. Publishing created the intended official event
+revision and audit record only; it did not create a member entry or result or
+change any league, team, account, provider setting, environment variable, or
+secret.
 
 Pull request [#252](https://github.com/roblebaegaming/DraftCenter/pull/252)
 reframed Pokédex Tracker around game-accurate numbered dexes. Regional and DLC
@@ -1114,13 +1116,12 @@ and its group assignments, advancement rules, and playoff pairings are
 published. Model UNITE predictions by team, not by individual player.
 Keep the Worlds bracket challenge closed until official pairings exist.
 
-Keep the Victory Road to San Francisco challenge closed until Victory Road
-publishes the official public Phase 2 elimination field and slot order. Do not
-use the Phase 1 Swiss Round 10 page, the invitee list, projected X-2 standings,
-or a stream graphic as a substitute. When the official bracket exists, review
-the exact players, seeds, byes, source URL, and first-elimination-match time,
-then publish through the owner-only Operations panel. If there is no honest
-entry window before elimination play begins, leave the challenge closed.
+The Victory Road to San Francisco challenge is open from the reviewed public
+Phase 2 Top 16 bracket and locks at 1:45 PM Pacific / 20:45 UTC on August 16.
+Do not replace the field after a member saves an entry. Record winners in
+feeder order from the same official Battlefy bracket, confirm the public
+leaderboard after each round, and finalize only after all 15 results have been
+visually reconciled with the completed official bracket.
 
 Keep VGC and TCG Meta Picks open through their published locks and preserve
 private pre-lock selections plus the separate player Pick 10 competitions.
