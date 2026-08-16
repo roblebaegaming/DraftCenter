@@ -1,5 +1,79 @@
 export const BRACKET_CHALLENGE_CAPACITIES = [4, 8, 16, 32, 64];
 
+export function predictionBracketEventSlug(value) {
+  return String(value || "")
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80)
+    .replace(/-+$/g, "");
+}
+
+export function normalizePredictionBracketEvent(input = {}) {
+  const eventId = String(input.event_id || "").trim().toLowerCase();
+  const displayName = String(input.display_name || "").trim();
+  const description = String(input.description || "").trim();
+  const officialInfoUrl = String(input.official_info_url || "").trim();
+  if (!/^[a-z0-9-]{3,80}$/.test(eventId)) throw new Error("The public URL name must use 3 to 80 lowercase letters, numbers, or hyphens.");
+  if (displayName.length < 3 || displayName.length > 120) throw new Error("The event name must contain 3 to 120 characters.");
+  if (description.length < 10 || description.length > 500) throw new Error("The event description must contain 10 to 500 characters.");
+  let parsed;
+  try { parsed = new URL(officialInfoUrl); } catch { throw new Error("The official event page must be a valid HTTPS URL."); }
+  if (parsed.protocol !== "https:" || parsed.username || parsed.password || parsed.port) throw new Error("The official event page must be a public HTTPS URL.");
+  return { eventId, displayName, description, officialInfoUrl: parsed.toString() };
+}
+
+function pastedColumns(line) {
+  const delimiter = line.includes("\t") ? "\t" : line.includes("|") ? "|" : ",";
+  return line.split(delimiter).map((value) => value.trim());
+}
+
+export function parseBracketChallengeParticipantPaste(value) {
+  const lines = String(value || "").replace(/\r/g, "").split("\n").filter((line) => line.trim());
+  if (!lines.length) throw new Error("Paste at least three players first.");
+  const rows = lines.map(pastedColumns);
+  const headerCells = (rows[0] || []).map((cell) => cell.toLowerCase());
+  if (!/^\d+$/.test(rows[0]?.[0] || "") && headerCells.some((cell) => ["slot", "name", "player", "country", "seed"].includes(cell))) rows.shift();
+
+  const participantsBySlot = new Map();
+  rows.forEach((columns, index) => {
+    const hasExplicitSlot = /^\d+$/.test(columns[0] || "") && columns.length > 1;
+    const slot = hasExplicitSlot ? Number(columns[0]) : index + 1;
+    const displayName = String(hasExplicitSlot ? columns[1] : columns[0] || "").trim();
+    const countryCode = String(hasExplicitSlot ? columns[2] || "" : columns[1] || "").trim().toUpperCase();
+    const sourceSeedText = String(hasExplicitSlot ? columns[3] || "" : columns[2] || "").trim();
+    if (!Number.isInteger(slot) || slot < 1 || slot > 64) throw new Error(`Row ${index + 1} needs a bracket slot from 1 to 64.`);
+    if (participantsBySlot.has(slot)) throw new Error(`Bracket slot ${slot} appears more than once.`);
+    if (!displayName || /^(bye|empty|tbd)$/i.test(displayName)) {
+      participantsBySlot.set(slot, null);
+      return;
+    }
+    participantsBySlot.set(slot, {
+      slot,
+      display_name: displayName,
+      country_code: countryCode,
+      source_seed: sourceSeedText ? Number(sourceSeedText) : null,
+    });
+  });
+
+  const participants = [...participantsBySlot.values()].filter(Boolean);
+  const fieldSize = participants.length;
+  const capacity = bracketChallengeCapacityForField(fieldSize);
+  if ([...participantsBySlot.keys()].some((slot) => slot > capacity)) throw new Error(`A ${fieldSize}-player field uses slots 1 through ${capacity}.`);
+  const slots = Array.from({ length: capacity }, (_, index) => participantsBySlot.get(index + 1) || {
+    slot: index + 1, display_name: "", country_code: "", source_seed: null,
+  });
+  normalizeBracketChallengePublication({
+    field_size: fieldSize,
+    bracket_capacity: capacity,
+    round_points: defaultBracketChallengeRoundPoints(capacity),
+    participants: slots,
+  });
+  return { fieldSize, capacity, participants: slots };
+}
+
 export function bracketChallengeCapacityForField(fieldSize) {
   const size = Number(fieldSize);
   if (!Number.isInteger(size) || size < 3 || size > 64) {

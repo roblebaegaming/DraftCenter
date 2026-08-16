@@ -19,7 +19,7 @@ function localTime(value) {
 
 function statusCopy(status) {
   return ({
-    waiting_for_official_bracket: ["Waiting for the official bracket", "The challenge is ready. We will add the real players and pairings after Victory Road publishes them."],
+    waiting_for_official_bracket: ["Waiting for the official bracket", "The prediction page is ready. The reviewed players and pairings still need to be published."],
     scheduled: ["The bracket is ready", "The official field is loaded. Predictions open at the time shown below."],
     open: ["Bracket predictions are open", "Pick a winner in every played matchup, then save before entries lock."],
     locked: ["Predictions are locked", "Everyone's saved brackets are public now. Points start as official results are recorded."],
@@ -71,6 +71,9 @@ export default function BracketChallenge({ eventId, infoUrl }) {
   const open = event.status === "open" && Boolean(user);
   const maximumScore = event.bracket_capacity ? bracketChallengeMaximumScore({ capacity: event.bracket_capacity, slots, roundPoints: event.round_points }) : 0;
   const [statusTitle, statusDetail] = statusCopy(event.status);
+  const eventName = event.display_name || "Live tournament";
+  const eventDescription = event.description || "Choose every matchup winner and build your own path to the champion.";
+  const officialInfoUrl = event.official_info_url || infoUrl;
 
   function choose(round, match, winnerId) {
     if (!open) return;
@@ -96,10 +99,10 @@ export default function BracketChallenge({ eventId, infoUrl }) {
   return <main className="worlds-shell worlds-bracket-shell">
     <section className="worlds-hero worlds-top-cut-hero">
       <div>
-        <span className="eyebrow">VGC · FULL BRACKET CHALLENGE</span>
-        <h1>Victory Road to San Francisco bracket challenge</h1>
-        <p>Choose each matchup winner and build your own path to the champion. Correct picks earn more points in each later round.</p>
-        <div className="worlds-hero-actions"><Link className="primary-button inline-link-button" href="#prediction-bracket">{event.status === "open" ? "Build my bracket" : "See bracket status"}</Link><Link className="quiet-button" href="/worlds/2026/vgc">VGC predictions</Link></div>
+        <span className="eyebrow">LIVE PREDICTIONS · FULL BRACKET CHALLENGE</span>
+        <h1>{eventName} bracket challenge</h1>
+        <p>{eventDescription} Correct picks earn more points in each later round.</p>
+        <div className="worlds-hero-actions"><Link className="primary-button inline-link-button" href="#prediction-bracket">{event.status === "open" ? "Build my bracket" : "See bracket status"}</Link><Link className="quiet-button" href="/predictions">All live predictions</Link></div>
       </div>
       <aside className={`worlds-event-card worlds-top-cut-status is-${event.status}`}>
         <span>CHALLENGE STATUS</span><strong>{statusTitle}</strong><p>{statusDetail}</p>
@@ -109,8 +112,8 @@ export default function BracketChallenge({ eventId, infoUrl }) {
 
     {!event.revision ? <section className="worlds-bracket-waiting" id="prediction-bracket">
       <span className="eyebrow">READY FOR THE OFFICIAL PAIRINGS</span><h2>The bracket challenge will open as soon as the elimination bracket is official.</h2>
-      <p>The linked page is still the Phase 1 Swiss event, so no players, seeds, or matchups are being guessed. Once Victory Road publishes the Phase 2 elimination bracket, it can be loaded here without another app release.</p>
-      <a className="quiet-button" href={infoUrl} target="_blank" rel="noreferrer">Victory Road event information ↗</a>
+      <p>No players, seeds, or matchups are guessed. The owner will publish the reviewed official field here without another app release.</p>
+      {officialInfoUrl && <a className="quiet-button" href={officialInfoUrl} target="_blank" rel="noreferrer">Official event information ↗</a>}
     </section> : <>
       <section className="worlds-bracket-source-bar"><div><span className="eyebrow">REVIEWED OFFICIAL BRACKET</span><strong>{event.field_size} players · revision {event.revision}</strong><small>Source checked {localTime(event.source_checked_at)}</small></div><a href={event.official_bracket_url} target="_blank" rel="noreferrer">View official bracket ↗</a></section>
       <section className="worlds-public-bracket" id="prediction-bracket" aria-labelledby="prediction-bracket-heading">

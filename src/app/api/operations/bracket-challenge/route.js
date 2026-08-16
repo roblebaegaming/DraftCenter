@@ -1,19 +1,17 @@
 import { NextResponse } from "next/server";
 import { readBoundedJson, safeFailure } from "../../../../lib/apiSecurity";
 import { requireOwner } from "../../../../lib/ownerOperations";
-import { normalizeBracketChallengePublication } from "../../../../lib/bracketChallenge";
+import { normalizeBracketChallengePublication, normalizePredictionBracketEvent } from "../../../../lib/bracketChallenge";
 
 export const runtime = "nodejs";
-
-const EVENTS = new Set(["victory-road-san-francisco-2026"]);
 
 class BracketOperationError extends Error {
   constructor(message) { super(message); this.name = "BracketOperationError"; }
 }
 
 function eventId(value) {
-  const id = String(value || "").trim();
-  if (!EVENTS.has(id)) throw new BracketOperationError("Choose a supported bracket event.");
+  const id = String(value || "").trim().toLowerCase();
+  if (!/^[a-z0-9-]{3,80}$/.test(id)) throw new BracketOperationError("Choose a valid prediction event.");
   return id;
 }
 
@@ -34,6 +32,11 @@ function positiveInteger(value, label) {
   const number = Number(value);
   if (!Number.isInteger(number) || number < 1) throw new BracketOperationError(`${label} must be a positive whole number.`);
   return number;
+}
+
+function validateInput(callback) {
+  try { return callback(); }
+  catch (error) { throw new BracketOperationError(error?.message || "Review the prediction event details."); }
 }
 
 async function rpc(supabase, name, args) {
@@ -57,12 +60,21 @@ async function loadOperations(supabase, id) {
   return { bracket, slots: slots.data || [], results: results.data || [], entry_count: entries.count || 0, audit: audit.data || [] };
 }
 
+async function listOperations(supabase) {
+  const { data, error } = await supabase.from("prediction_bracket_events")
+    .select("event_id,display_name,description,official_info_url,status,field_size,bracket_capacity,revision,opens_at,locks_at,published_at,finalized_at,updated_at")
+    .order("updated_at", { ascending: false })
+    .limit(100);
+  if (error) throw error;
+  return { events: (data || []).map((event) => ({ ...event, public_path: `/predictions/${event.event_id}` })) };
+}
+
 export async function GET(request) {
   const access = await requireOwner(request);
   if (access.error) return NextResponse.json({ error: access.error }, { status: access.status });
   try {
-    const id = eventId(new URL(request.url).searchParams.get("event_id"));
-    return NextResponse.json(await loadOperations(access.supabase, id));
+    const requestedId = new URL(request.url).searchParams.get("event_id");
+    return NextResponse.json(requestedId ? await loadOperations(access.supabase, eventId(requestedId)) : await listOperations(access.supabase));
   } catch (error) {
     if (error instanceof BracketOperationError) return NextResponse.json({ error: error.message }, { status: 400 });
     return safeFailure(error, "Bracket operations could not be loaded.", { context: "bracket-challenge-operations" });
@@ -78,8 +90,18 @@ export async function PATCH(request) {
     const id = eventId(body.data.event_id);
     const action = String(body.data.action || "");
     let result;
-    if (action === "publish" || action === "supersede") {
-      const normalized = normalizeBracketChallengePublication(body.data);
+    if (action === "create_event") {
+      const normalized = validateInput(() => normalizePredictionBracketEvent(body.data));
+      result = await rpc(access.supabase, "create_prediction_bracket_event", {
+        p_event_id: normalized.eventId,
+        p_display_name: normalized.displayName,
+        p_description: normalized.description,
+        p_official_info_url: normalized.officialInfoUrl,
+        p_created_by: access.user.id,
+        p_confirmation_text: body.data.confirmation_text,
+      });
+    } else if (action === "publish" || action === "supersede") {
+      const normalized = validateInput(() => normalizeBracketChallengePublication(body.data));
       const opensAt = isoTimestamp(body.data.opens_at, "Entry opening time");
       const locksAt = isoTimestamp(body.data.locks_at, "Entry lock time");
       if (Date.parse(locksAt) <= Date.parse(opensAt) || Date.parse(locksAt) <= Date.now()) throw new BracketOperationError("The entry lock must be in the future after entries open.");

@@ -61,3 +61,25 @@ export async function getPublicPokemonTournamentProfile(pokemonKey) {
     return [];
   }
 }
+
+export async function getPublicPredictionBracketEvents() {
+  try {
+    const client = createPublicServerClient();
+    if (!client) return [];
+    const { data, error } = await client.rpc("list_prediction_bracket_events");
+    return error ? [] : (data || []);
+  } catch {
+    return [];
+  }
+}
+
+export async function getPublicPredictionBracketHub(eventId) {
+  try {
+    const client = createPublicServerClient();
+    if (!client || !/^[a-z0-9-]{3,80}$/.test(String(eventId || ""))) return null;
+    const { data, error } = await client.rpc("get_prediction_bracket_hub", { p_event_id: eventId });
+    return error ? null : data;
+  } catch {
+    return null;
+  }
+}

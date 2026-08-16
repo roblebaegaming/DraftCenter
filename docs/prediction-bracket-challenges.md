@@ -6,7 +6,19 @@ brackets: each member picks a matchup winner, that winner advances through the
 member's own bracket, and each reviewed official result awards the configured
 points for that round.
 
-## Current event
+## Public routes
+
+`/predictions` is the reusable **Live Predictions** directory. Every owner-
+published event receives a permanent route at `/predictions/<event-id>` and
+appears in the directory after its bracket is published. Draft events remain
+hidden from the directory.
+
+The existing Victory Road page remains available at
+`/worlds/2026/vgc/victory-road-to-san-francisco` for compatibility. Its reusable
+event route is `/predictions/victory-road-san-francisco-2026` after migration
+412 and the publisher application are released.
+
+## Current production event
 
 `victory-road-san-francisco-2026` is the event key for **Victory Road to San
 Francisco**. Its public page is:
@@ -38,9 +50,33 @@ graphics, partial scores, or unconfirmed advancement.
 - The public page reloads current event, result, entry, and leaderboard data
   every 60 seconds. A manual reload may be used for immediate verification.
 
+## Owner event publisher
+
+The reusable owner tool is at `/operations/predictions`. It is designed to let
+the owner create, prepare, publish, score, and finalize a bracket without an
+application change or an agent-assisted release for every new event.
+
+To prepare an event:
+
+1. Create its name, permanent URL identifier, description, and official event
+   page. Type `CREATE PREDICTION EVENT` after reviewing the permanent URL.
+2. Paste the official bracket field as tab-separated rows, upload a TSV/CSV/TXT
+   file, or enter slots individually. The downloadable template uses
+   `slot`, `player`, `country`, and `seed` columns.
+3. Confirm the exact field, slot order, official byes, bracket URL, round
+   points, and opening and locking times. Quick 15, 30, 60, and 120 minute entry
+   windows are available when speed matters.
+4. Review the displayed first-round matchups and type
+   `PUBLISH OFFICIAL BRACKET`.
+
+Unpublished work is backed up in that browser for recovery. Once an event is
+published, its stable public link can be copied from the owner tool. Publishing
+is intentionally a separate confirmation from creating a draft event so an
+unfinished field cannot appear in the public directory.
+
 ## Owner event-day workflow
 
-The owner controls are in Operations under **Victory Road to San Francisco**.
+Open the event from **Publish predictions** in Operations.
 
 1. Open the official public Phase 2 elimination bracket.
 2. Confirm the exact player count, slot order, seeds, byes, and first-match
@@ -72,11 +108,16 @@ correction, and finalization is written to the private owner audit trail.
 ## Data and security boundary
 
 Migration 409 adds generic `prediction_bracket_*` tables. Migration 410 adds
-the guarded service-role-only supersession RPC. All five tables force
-row-level security and deny direct browser-role table access. Public and signed-
-in clients read the bounded hub RPC. Only a signed-in account may save its own
-entry. Publication, result recording, and finalization RPCs are service-role
-only and are exposed through an owner-authenticated Operations route.
+the guarded, service-role-only supersession path. Migration 411 adds the
+audited owner-entry carry-forward path. Migration 412 adds the service-role-
+only event creator and the bounded public event directory. All
+five tables force row-level security and deny direct browser-role table access.
+Only a signed-in account may save its own entry. Browser roles can list only
+already-published, non-cancelled events; they cannot create or directly query
+events. Publication, supersession, result recording, and finalization remain
+service-role only behind the owner-authenticated Operations route. Event
+identifiers are validated and unique, so a permanent public route cannot be
+silently reused.
 
 The focused Preview matrix is
 `supabase/tests/409-reusable-asymmetric-bracket-preview-regression.sql`. It uses
@@ -88,3 +129,10 @@ The focused supersession Preview matrix is
 `supabase/tests/410-owner-only-bracket-supersession-preview-regression.sql`. It
 verifies ownership and entry-count rejection, private archival, fresh-revision
 publication, RLS, grants, active-entry reset, and exact fixture cleanup.
+
+The migration 412 Preview matrix is
+`supabase/tests/412-owner-published-prediction-events-preview-regression.sql`.
+It creates a disposable draft, verifies that the draft is hidden, rejects a
+duplicate permanent URL, publishes the field, verifies directory visibility
+and grants, then removes the fixture exactly. It must be run only on an
+isolated Preview after migrations 409 through 412.
