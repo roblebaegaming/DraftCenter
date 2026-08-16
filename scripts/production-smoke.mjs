@@ -10,6 +10,7 @@ const publicRoutes = [
   "/pokemon",
   "/pokedex-tracker",
   "/team-lab",
+  "/worlds/2026/vgc/victory-road-to-san-francisco",
   "/manuals",
   "/manuals/commissioner",
   "/manuals/manager",
