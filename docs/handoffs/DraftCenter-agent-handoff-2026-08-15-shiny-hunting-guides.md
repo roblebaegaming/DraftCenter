@@ -3,7 +3,20 @@
 Date: August 15, 2026
 Branch: `codex/shiny-hunting-guides-2026-08-15`
 Base: `cd861f8` (`origin/main`)
-Status: implemented and locally verified; not committed, pushed, deployed, or released
+Status: released through pull request #243 at Production commit `a8d099b`
+
+## Release completion
+
+The implementation was rebased onto the August 16 `main` baseline, preserving
+the released Draft League guide and current Mega Bracket resource copy. Pull
+request [#243](https://github.com/roblebaegaming/DraftCenter/pull/243) passed
+the protected security, dependency, secret-scan, CodeQL, and Vercel checks and
+was squash-merged as `a8d099b3d1bb2ecf20db5e6b310a07decae6a9bf`.
+
+Vercel reported that exact commit deployed successfully. The full 20-check
+signed-out Production smoke sweep passed, and the live collection, Pokémon
+Red, and Pokémon Scarlet shiny-guide routes returned 200 with the expected
+titles. No database migration or Production-data change was required.
 
 ## Outcome
 

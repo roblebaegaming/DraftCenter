@@ -9,6 +9,13 @@ hCaptcha only in retained Supabase Preview after the owner enters the secret
 directly. It also defines publication verification, 3/7/30-day aggregate
 measurement, stop conditions, and privacy boundaries.
 
+[`DraftCenter-agent-handoff-2026-08-15-shiny-hunting-guides.md`](DraftCenter-agent-handoff-2026-08-15-shiny-hunting-guides.md)
+records the reviewed 37-game shiny hunting library released through pull
+request #243 at Production commit `a8d099b`. It includes the catalog-sync and
+mechanics gates, hosted responsive review, protected checks, 296-page build,
+post-deployment smoke sweep, and live route verification. No migration or
+Production-data change was required.
+
 [`DraftCenter-agent-handoff-2026-08-15-promotion-and-signup-attribution.md`](DraftCenter-agent-handoff-2026-08-15-promotion-and-signup-attribution.md)
 is the preceding detailed handoff. It records the live privacy-safe signup
 attribution release; the deployed Pokédex Tracker and Team Lab Instagram asset
