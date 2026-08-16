@@ -270,7 +270,18 @@ test("Bank Rescue dashboard turns private inventory into bounded readiness and p
   });
   assert.deepEqual(dashboard.priorities.map(({ specimen }) => specimen.id), ["charizard", "eevee"]);
   assert.equal(dashboard.status.deadline_announced, false);
-  assert.equal(buildBankRescueDashboard(null).readiness_complete, 0);
+  assert.equal(dashboard.guided_project.next_step, "intentions");
+  assert.deepEqual(dashboard.guided_project.unplanned_specimens.map(({ id }) => id), ["eevee"]);
+  assert.deepEqual(dashboard.guided_project.location_counts, {
+    game_save: 0,
+    pokemon_bank: 1,
+    pokemon_home: 1,
+    other: 0,
+  });
+  assert.equal(dashboard.guided_project.complete, false);
+  const emptyDashboard = buildBankRescueDashboard(null);
+  assert.equal(emptyDashboard.readiness_complete, 0);
+  assert.equal(emptyDashboard.guided_project.next_step, "access");
 });
 
 test("Collector CSV import is bounded, additive, round-trippable, and atomic-ready", () => {
@@ -504,6 +515,7 @@ test("Collector HOME summaries retain all 1,025 species after migration 402", ()
 test("Collector PWA, focused navigation, funding, and measurement preserve privacy boundaries", () => {
   const panel = source("src/components/PokedexCollectorLaunchPanel.jsx");
   const rescueDashboard = source("src/components/PokedexRescueDashboard.jsx");
+  const rescueGuide = source("src/components/PokedexRescueGuideDialog.jsx");
   const manifest = source("src/app/pokedex-tracker/manifest.webmanifest/route.js");
   const worker = source("src/app/pokedex-tracker/sw.js/route.js");
   const offline = source("src/app/pokedex-tracker/offline/page.js");
@@ -541,6 +553,12 @@ test("Collector PWA, focused navigation, funding, and measurement preserve priva
   assert.match(rescueDashboard, /buildBankRescueDashboard/);
   assert.match(rescueDashboard, /Verify before acting/);
   assert.doesNotMatch(rescueDashboard, /closes in|countdown/i);
+  for (const step of ["Access map", "Important Pokémon", "Intentions", "Archive"]) assert.match(rescueGuide, new RegExp(step));
+  assert.match(rescueGuide, /owner-entered labels/);
+  assert.match(rescueGuide, /does not request Nintendo credentials/);
+  assert.match(rescueGuide, /never proof of compatibility or completion/);
+  assert.match(rescueGuide, /Download Rescue archive/);
+  assert.doesNotMatch(rescueGuide, /supabase|\.rpc\(/i);
   assert.match(analytics, /ALLOWED_PROPERTIES = new Set\(\["kind", "count_bucket", "placement", "result"\]\)/);
   for (const forbidden of ["user_id", "tracker_id", "tracker_name", "pokemon", "species", "notes", "email", "filename", "file_content"]) {
     assert.match(analytics, new RegExp(`"${forbidden}"`));
@@ -558,6 +576,8 @@ test("the account page offers multiple game, HOME, shiny, collection-detail, fil
   const links = source("src/components/SiteQuickLinks.jsx");
   const account = source("src/components/AuthGate.jsx");
   assert.match(page, /get_my_pokedex_trackers/);
+  assert.match(page, /PokedexRescueGuideDialog/);
+  assert.match(page, /resumeGuideAfterSave/);
   assert.match(page, /create_my_pokedex_tracker/);
   assert.match(page, /update_my_pokedex_tracker/);
   assert.match(page, /delete_my_pokedex_tracker/);

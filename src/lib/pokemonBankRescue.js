@@ -265,6 +265,24 @@ export function buildBankRescueDashboard(inventory = {}) {
       complete: specimens.length > 0 && decidedSpecimens.length === specimens.length,
     },
   ];
+  const guidedProject = {
+    next_step: !readiness[0].complete
+      ? "access"
+      : !readiness[1].complete
+        ? "important"
+        : !readiness[2].complete
+          ? "intentions"
+          : "archive",
+    complete: readiness.every(({ complete }) => complete),
+    unplanned_specimens: specimens.filter(({ transfer_state }) =>
+      !transfer_state || transfer_state === "not_planned"),
+    location_counts: {
+      game_save: locations.filter(({ kind }) => kind === "game_save").length,
+      pokemon_bank: bankLocations.length,
+      pokemon_home: locations.filter(({ kind }) => kind === "pokemon_home").length,
+      other: locations.filter(({ kind }) => !["game_save", "pokemon_bank", "pokemon_home"].includes(kind)).length,
+    },
+  };
 
   return {
     status: review.status,
@@ -272,6 +290,7 @@ export function buildBankRescueDashboard(inventory = {}) {
     sources: review.sources,
     readiness,
     readiness_complete: readiness.filter(({ complete }) => complete).length,
+    guided_project: guidedProject,
     stats: {
       locations: locations.length,
       bank_locations: bankLocations.length,

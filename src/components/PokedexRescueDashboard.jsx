@@ -20,6 +20,7 @@ export default function PokedexRescueDashboard({
   inventory,
   loading,
   error,
+  onStartGuide,
   onOpenInventory,
   onOpenHomeBoxes,
 }) {
@@ -52,7 +53,7 @@ export default function PokedexRescueDashboard({
           <b aria-hidden="true">{item.complete ? "✓" : "○"}</b>
           <span><strong>{item.label}</strong><small>{item.detail}</small></span>
         </li>)}</ol>
-        <button type="button" className="dex-primary-button" onClick={onOpenInventory} disabled={!active || loading}>{loading ? "Loading private inventory…" : active ? "Open Rescue workspace" : "Create a tracker first"}</button>
+        <button type="button" className="dex-primary-button" onClick={onStartGuide} disabled={!active || loading}>{loading ? "Loading private inventory…" : active ? "Continue guided Rescue" : "Create a tracker first"}</button>
         {error && <p className="dex-rescue-dashboard-error" role="alert">{error}</p>}
       </article>
 

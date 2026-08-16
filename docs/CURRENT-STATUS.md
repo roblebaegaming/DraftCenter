@@ -3,10 +3,23 @@
 - Last updated: August 16, 2026
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified production feature commit: `a8d099b3d1bb2ecf20db5e6b310a07decae6a9bf`
+- Verified production feature commit: `7126f3a492078e435b9dd4276701f502ef1ab32b`
 - Latest production migration: 407
 
 ## Deployed state
+
+Pull request [#248](https://github.com/roblebaegaming/DraftCenter/pull/248)
+deployed the shared focused-app foundation plus the Pokédex Tracker Rescue
+dashboard. Pokédex Tracker and Team Lab now have product-focused navigation,
+account controls, installable-web-app continuity, and a clear switch back to
+DraftCenter while retaining the same accounts, Pokémon data, Supabase project,
+and existing routes. Rescue derives three-step readiness and conservative
+priorities from the existing private collection inventory, shows the reviewed
+official Bank status without inventing a deadline, and links into Collection
+and HOME boxes. Vercel reports exact `main` commit `7126f3a` successfully
+deployed; all protected checks, all 20 signed-out Production smoke checks, and
+a signed-in 390px live Rescue review passed. No migration, Production data,
+provider setting, environment variable, secret, or tester invitation changed.
 
 Pull request [#243](https://github.com/roblebaegaming/DraftCenter/pull/243)
 deployed the reviewed shiny hunting library for the exact 37 verified game
