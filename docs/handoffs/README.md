@@ -1,13 +1,19 @@
 # Agent handoffs
 
-[`DraftCenter-agent-handoff-2026-08-16-focused-apps-next.md`](DraftCenter-agent-handoff-2026-08-16-focused-apps-next.md)
-is the current continuation handoff. It records the verified Pokédex Tracker
-and Team Lab focused-app foundation, guided Bank Rescue release, decision to
-keep the released core free while measurement and IP review are pending, exact
-monetization gates, August 19 operating follow-up, source-backed Rescue research
-sequence, opt-in tester boundary, and closed-sheet Battle Room stabilization
-order. No payment, entitlement, provider, Production-data, or tester-message
+[`DraftCenter-agent-handoff-2026-08-16-pokedex-numbered-dexes-production.md`](DraftCenter-agent-handoff-2026-08-16-pokedex-numbered-dexes-production.md)
+is the current continuation handoff. It records the released game-numbered and
+DLC-separated Pokédex experience, location finder, linked HOME National Dex
+progress, game-aware box planner, regular-user JSON removal, exact application
+and migration deployment, validation evidence, opt-in tester boundary, and
+ordered continuation. No payment, provider, Production-data, or tester-message
 change is authorized.
+
+[`DraftCenter-agent-handoff-2026-08-16-focused-apps-next.md`](DraftCenter-agent-handoff-2026-08-16-focused-apps-next.md)
+is the preceding planning and monetization handoff. Its recommendation to build
+deeper Rescue workflows is superseded: Rescue is no longer part of the live
+product. Its aggregate launch-measurement, opt-in tester, monetization, native
+packaging, and Team Lab boundaries remain current unless the new handoff says
+otherwise.
 
 [`DraftCenter-agent-handoff-2026-08-16-post-launch-final.md`](DraftCenter-agent-handoff-2026-08-16-post-launch-final.md)
 is the preceding post-launch handoff. The focused Pokédex Tracker and Team Lab
