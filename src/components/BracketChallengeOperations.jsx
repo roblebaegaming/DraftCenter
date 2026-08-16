@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { createClient } from "../lib/supabase/client";
 import {
   buildBracketChallengeRounds,
   buildBracketChallengeSetupTemplate,
@@ -9,6 +10,19 @@ import {
 } from "../lib/bracketChallenge";
 
 const EVENT_ID = "victory-road-san-francisco-2026";
+
+async function ownerRequest(url, options = {}) {
+  const supabase = createClient();
+  const { data } = await supabase.auth.getSession();
+  if (!data.session) throw new Error("Sign in with an owner account.");
+  const response = await fetch(url, {
+    ...options,
+    headers: { Authorization: `Bearer ${data.session.access_token}`, ...(options.headers || {}) },
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(payload.error || "The bracket operation could not be completed.");
+  return payload;
+}
 
 function localDateTime(value) {
   if (!value) return "";
@@ -34,9 +48,7 @@ export default function BracketChallengeOperations() {
 
   async function load() {
     setError("");
-    const response = await fetch(`/api/operations/bracket-challenge?event_id=${EVENT_ID}`, { cache: "no-store" });
-    const payload = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(payload.error || "Bracket operations could not be loaded.");
+    const payload = await ownerRequest(`/api/operations/bracket-challenge?event_id=${EVENT_ID}`, { cache: "no-store" });
     setData(payload);
     if (payload.bracket?.official_bracket_url) {
       setResultSourceUrl((current) => current || payload.bracket.official_bracket_url);
@@ -49,11 +61,9 @@ export default function BracketChallengeOperations() {
   async function mutate(body, successMessage) {
     setBusy(true); setError(""); setMessage("");
     try {
-      const response = await fetch("/api/operations/bracket-challenge", {
+      await ownerRequest("/api/operations/bracket-challenge", {
         method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ event_id: EVENT_ID, ...body }),
       });
-      const payload = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(payload.error || "The bracket operation was rejected.");
       await load();
       setMessage(successMessage);
     } catch (mutationError) { setError(mutationError.message); }
