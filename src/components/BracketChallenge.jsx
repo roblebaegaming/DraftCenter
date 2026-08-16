@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "../lib/supabase/client";
+import PredictionBracketDownload from "./PredictionBracketDownload";
 import {
   bracketChallengeEntryIsComplete,
   bracketChallengeMaximumScore,
@@ -48,6 +49,9 @@ function bracketEntrySignature(entry) {
 function BracketLeaderboard({
   capacity,
   entryCount,
+  eventId,
+  eventStatus,
+  eventTitle,
   label,
   maximumScore,
   results,
@@ -81,7 +85,7 @@ function BracketLeaderboard({
   return <section className="worlds-bracket-leaderboard" aria-labelledby="bracket-leaderboard-heading">
     <header><div><span className="eyebrow">{label}</span><h2 id="bracket-leaderboard-heading">{entryCount || 0} brackets</h2><p>Once entries lock, select any Trainer to see every pick in their bracket.</p></div><p>Maximum score: <strong>{maximumScore} points</strong></p></header>
     {viewedEntry && <section className="worlds-entry-bracket-view" id="leaderboard-entry-bracket" tabIndex="-1" aria-labelledby="leaderboard-entry-heading">
-      <header><div><span className="eyebrow">ENTRY BRACKET · LEADERBOARD #{viewedEntry.rank}</span><h3 id="leaderboard-entry-heading">{viewedEntry.display_name}&rsquo;s bracket</h3><p>{selectedScore} of {maximumScore} points · {Object.keys(viewedEntry.picks).length} saved picks</p></div><button type="button" className="quiet-button" onClick={() => setSelectedEntry(null)}>Close bracket</button></header>
+      <header><div><span className="eyebrow">ENTRY BRACKET · LEADERBOARD #{viewedEntry.rank}</span><h3 id="leaderboard-entry-heading">{viewedEntry.display_name}&rsquo;s bracket</h3><p>{selectedScore} of {maximumScore} points · {Object.keys(viewedEntry.picks).length} saved picks</p></div><div className="worlds-entry-bracket-actions"><PredictionBracketDownload bracket={{ eventId, title: eventTitle, bracketLabel: `Leaderboard #${viewedEntry.rank}`, displayName: viewedEntry.display_name, rounds: selectedRounds, roundPoints, choices: viewedEntry.picks, resultNames, score: selectedScore, maximumScore, status: eventStatus }} /><button type="button" className="quiet-button" onClick={() => setSelectedEntry(null)}>Close bracket</button></div></header>
       <div className="worlds-bracket-legend" aria-label="Bracket color key"><span><i className="is-pick" />Yellow: saved pick</span><span><i className="is-winner" />Aqua outline: official winner</span></div>
       <BracketRounds rounds={selectedRounds} roundPoints={roundPoints} choices={viewedEntry.picks} resultNames={resultNames} />
     </section>}
@@ -217,7 +221,7 @@ export default function BracketChallenge({ eventId, infoUrl }) {
     </section> : <>
       <section className="worlds-bracket-source-bar"><div><span className="eyebrow">REVIEWED OFFICIAL BRACKET</span><strong>{event.field_size} players · revision {event.revision}</strong><small>Source checked {localTime(event.source_checked_at)}</small></div><a href={event.official_bracket_url} target="_blank" rel="noreferrer">View official bracket ↗</a></section>
       {archive && <section className="worlds-public-bracket worlds-bracket-archive" id="prediction-bracket" aria-labelledby="archived-bracket-heading">
-        <header><div><span className="eyebrow">ORIGINAL TOP 16 BRACKET</span><h2 id="archived-bracket-heading">{archive.display_name}</h2><p>This is Rob&rsquo;s exact original bracket, with every name and pick shown as saved.</p></div><div><strong>{archiveScore}/{archiveMaximumScore}</strong><span>{archiveResults.length}/{archive.field_size - 1} results scored</span></div></header>
+        <header><div><span className="eyebrow">ORIGINAL TOP 16 BRACKET</span><h2 id="archived-bracket-heading">{archive.display_name}</h2><p>This is Rob&rsquo;s exact original bracket, with every name and pick shown as saved.</p></div><div><strong>{archiveScore}/{archiveMaximumScore}</strong><span>{archiveResults.length}/{archive.field_size - 1} results scored</span><PredictionBracketDownload bracket={{ eventId, title: event.display_name, bracketLabel: "Original Top 16 bracket", displayName: archive.display_name, rounds: archiveRounds, roundPoints: archive.round_points, choices: archive.picks, resultNames: archiveResultNames, score: archiveScore, maximumScore: archiveMaximumScore, status: event.status }} /></div></header>
         <div className="worlds-bracket-legend" aria-label="Bracket color key"><span><i className="is-pick" />Yellow: saved pick</span><span><i className="is-winner" />Aqua outline: official winner</span></div>
         <div className="worlds-bracket-archive-note"><strong>Why the smaller bracket looked different</strong><p>The Top 8 carryover kept the side Rob chose in each later matchup. When Shohei advanced from Markus&rsquo;s side, that carried path showed Shohei. This full bracket keeps Markus in the rounds Rob originally picked him.</p></div>
         <BracketRounds rounds={archiveRounds} roundPoints={archive.round_points} choices={archive.picks} resultNames={archiveResultNames} />
@@ -227,12 +231,15 @@ export default function BracketChallenge({ eventId, infoUrl }) {
         {archive && <div className="worlds-bracket-legend" aria-label="Bracket color key"><span><i className="is-pick" />Yellow: saved pick</span><span><i className="is-winner" />Aqua outline: official winner</span></div>}
         {user === undefined || loading ? <p className="worlds-empty-state">Checking your DraftCenter account…</p> : !user ? <div className="worlds-account-gate"><div aria-hidden="true" className="worlds-account-lock">🔒</div><h3>Sign in to save a bracket.</h3><p>The official field is public. A free DraftCenter account is required to save, and everyone else's choices stay private until entries lock.</p><a className="secondary-button" href="/#member-access">Sign in or create an account</a></div> : <>
           <BracketRounds rounds={rounds} roundPoints={event.round_points} choices={choices} resultNames={resultNames} open={open} onChoose={choose} />
-          <div className="worlds-save-row"><div>{event.status === "open" ? <p>{hub.my_entry ? `Saved as ${hub.my_entry.display_name}. Edits close ${localTime(event.locks_at)}.` : "Complete every played matchup, then save one bracket."}</p> : <p>Entries are locked. {hub.my_entry ? `Your score is ${hub.my_entry.score} of ${maximumScore} possible points.` : "No bracket was saved for this account."}</p>}{message && <p className="worlds-message" role="status">{message}</p>}</div><button className="primary-button" disabled={!open || busy || !complete} onClick={save}>{busy ? "Saving…" : hub.my_entry ? "Update bracket" : "Save bracket"}</button></div>
+          <div className="worlds-save-row"><div>{event.status === "open" ? <p>{hub.my_entry ? `Saved as ${hub.my_entry.display_name}. Edits close ${localTime(event.locks_at)}.` : "Complete every played matchup, then save one bracket."}</p> : <p>Entries are locked. {hub.my_entry ? `Your score is ${hub.my_entry.score} of ${maximumScore} possible points.` : "No bracket was saved for this account."}</p>}{message && <p className="worlds-message" role="status">{message}</p>}</div><div className="worlds-bracket-save-actions"><PredictionBracketDownload disabled={!complete} label="Download my bracket" bracket={{ eventId, title: event.display_name, bracketLabel: "My bracket", displayName: hub.my_entry?.display_name || user.user_metadata?.display_name || "Trainer", rounds, roundPoints: event.round_points, choices, resultNames, score: hub.my_entry?.score, maximumScore, status: event.status }} /><button className="primary-button" disabled={!open || busy || !complete} onClick={save}>{busy ? "Saving…" : hub.my_entry ? "Update bracket" : "Save bracket"}</button></div></div>
         </>}
       </section>
       <BracketLeaderboard
         capacity={event.bracket_capacity}
         entryCount={hub.entry_count}
+        eventId={eventId}
+        eventStatus={event.status}
+        eventTitle={event.display_name}
         label={archive ? "TOP 8 CARRYOVER LEADERBOARD" : "TOP 8 LEADERBOARD"}
         maximumScore={maximumScore}
         results={hub.results || []}
