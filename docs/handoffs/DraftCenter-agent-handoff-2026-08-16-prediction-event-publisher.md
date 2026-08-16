@@ -107,13 +107,17 @@ synthetic Preview regression run.
   font download warning remains.
 - The public studio passed a signed-out local browser walkthrough: eight names,
   all seven winners, champion propagation, Berry theme, Classic font, Pill
-  matchups, PNG download, and exact browser-local recovery after refresh.
+  matchups, PNG download, and exact browser-local recovery after refresh. Its
+  hosted Preview then passed a separate four-name, three-winner, Paper-theme,
+  PNG-download, and refresh-recovery walkthrough with no browser issue overlay.
 - The hosted publisher and directory render signed out. A signed-in owner
   walkthrough still requires the owner to sign in on the hosted Preview. No
   disposable or real event was created.
-- Protected PR checks passed for the publisher commit, including CodeQL after
-  its generated-public-path warning was fixed. They must rerun after the public
-  studio commit is pushed.
+- All protected PR checks pass for the public-studio commit: security tests,
+  dependency audit, full-history secret scan, JavaScript security analysis,
+  CodeQL, Vercel, and Vercel Preview Comments. The repository's Supabase Preview
+  integration check intentionally reports skipped; the retained isolated
+  Preview is validated through the manual migration and regression gate above.
 - No production smoke test was run because the change is not deployed.
 
 ## Required continuation
