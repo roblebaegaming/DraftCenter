@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { TEAM_LAB_GAME_PLAN_LIMIT, normalizeTeamLabSeries } from "../lib/teamLab";
+import { TEAM_LAB_GAME_PLAN_LIMIT, normalizeTeamLabSeries, teamLabBattleMechanicForFormat } from "../lib/teamLab";
 import { calculateTeamLabDamageEstimate } from "../lib/teamLabDamage";
 
 function updateGame(setReport, gameNumber, changes) {
@@ -48,7 +48,7 @@ export function BattleSeriesTracker({ report, setReport, onStatus }) {
   </details>;
 }
 
-function BattleSideState({ title, value, onChange }) {
+function BattleSideState({ title, value, mechanic, onChange }) {
   function updatePokemon(name, changes) {
     onChange({ ...value, pokemon: value.pokemon.map((pokemon) => pokemon.name === name ? { ...pokemon, ...changes } : pokemon) });
   }
@@ -58,21 +58,22 @@ function BattleSideState({ title, value, onChange }) {
   }
   return <section className="team-lab-state-side"><h4>{title}</h4>
     <div className="team-lab-state-effects"><button type="button" aria-pressed={value.hazards.stealth_rock} onClick={() => cycleHazard("stealth_rock", 1)}>Stealth Rock</button><button type="button" aria-pressed={value.hazards.spikes > 0} onClick={() => cycleHazard("spikes", 3)}>Spikes {value.hazards.spikes || ""}</button><button type="button" aria-pressed={value.hazards.toxic_spikes > 0} onClick={() => cycleHazard("toxic_spikes", 2)}>Toxic Spikes {value.hazards.toxic_spikes || ""}</button><button type="button" aria-pressed={value.hazards.sticky_web} onClick={() => cycleHazard("sticky_web", 1)}>Sticky Web</button>{Object.entries({ reflect: "Reflect", light_screen: "Light Screen", aurora_veil: "Aurora Veil" }).map(([key, label]) => <button type="button" key={key} aria-pressed={value.screens[key]} onClick={() => onChange({ ...value, screens: { ...value.screens, [key]: !value.screens[key] } })}>{label}</button>)}</div>
-    <div className="team-lab-state-pokemon">{value.pokemon.map((pokemon) => <div key={pokemon.name}><strong>{pokemon.name}</strong><label>HP %<input type="number" min="0" max="100" step="0.1" value={pokemon.hp_percent} onChange={(event) => updatePokemon(pokemon.name, { hp_percent: Math.max(0, Math.min(100, Number(event.target.value) || 0)) })}/></label><label>Status<select value={pokemon.status} onChange={(event) => updatePokemon(pokemon.name, { status: event.target.value })}><option value="">Healthy</option><option value="burn">Burn</option><option value="paralysis">Paralysis</option><option value="poison">Poison</option><option value="toxic">Bad poison</option><option value="sleep">Sleep</option><option value="freeze">Freeze</option></select></label><label className="team-lab-state-tera"><input type="checkbox" checked={pokemon.terastallized} onChange={(event) => updatePokemon(pokemon.name, { terastallized: event.target.checked })}/><span>Tera</span></label><input aria-label={`${pokemon.name} Tera type`} maxLength={20} value={pokemon.tera_type} onChange={(event) => updatePokemon(pokemon.name, { tera_type: event.target.value })} placeholder="Tera type"/></div>)}</div>
+    <div className="team-lab-state-pokemon">{value.pokemon.map((pokemon) => <div key={pokemon.name}><strong>{pokemon.name}</strong><label>HP %<input type="number" min="0" max="100" step="0.1" value={pokemon.hp_percent} onChange={(event) => updatePokemon(pokemon.name, { hp_percent: Math.max(0, Math.min(100, Number(event.target.value) || 0)) })}/></label><label>Status<select value={pokemon.status} onChange={(event) => updatePokemon(pokemon.name, { status: event.target.value })}><option value="">Healthy</option><option value="burn">Burn</option><option value="paralysis">Paralysis</option><option value="poison">Poison</option><option value="toxic">Bad poison</option><option value="sleep">Sleep</option><option value="freeze">Freeze</option></select></label>{mechanic && <label className="team-lab-state-mechanic"><input type="checkbox" checked={Boolean(pokemon[mechanic.stateKey])} onChange={(event) => updatePokemon(pokemon.name, { [mechanic.stateKey]: event.target.checked })}/><span>{mechanic.id === "mega" ? "Mega evolved" : "Tera"}</span></label>}{mechanic?.id === "tera" && <input aria-label={`${pokemon.name} Tera type`} maxLength={20} value={pokemon.tera_type} onChange={(event) => updatePokemon(pokemon.name, { tera_type: event.target.value })} placeholder="Tera type"/>}</div>)}</div>
   </section>;
 }
 
-export function BattleStateTracker({ report, setReport, onStatus }) {
+export function BattleStateTracker({ report, setReport, formatId, onStatus }) {
   const state = report.battle_state;
+  const mechanic = teamLabBattleMechanicForFormat(formatId);
   function update(changes) {
     setReport((current) => ({ ...current, battle_state: { ...current.battle_state, ...changes } }));
     onStatus("");
   }
   return <details className="team-lab-state">
-    <summary><div><span className="eyebrow">STRUCTURED BATTLE STATE</span><strong>HP, status, field effects, and Tera</strong><small>{state.weather ? `${state.weather} weather` : "No weather"} · {state.terrain ? `${state.terrain} terrain` : "no terrain"}</small></div><span>Open state tracker</span></summary>
+    <summary><div><span className="eyebrow">STRUCTURED BATTLE STATE</span><strong>HP, status, field effects{mechanic ? `, and ${mechanic.label}` : ""}</strong><small>{state.weather ? `${state.weather} weather` : "No weather"} · {state.terrain ? `${state.terrain} terrain` : "no terrain"}</small></div><span>Open state tracker</span></summary>
     <div className="team-lab-state-body">
       <div className="team-lab-state-field"><label>Weather<select value={state.weather} onChange={(event) => update({ weather: event.target.value })}><option value="">None</option><option value="sun">Sun</option><option value="rain">Rain</option><option value="sand">Sand</option><option value="snow">Snow</option></select></label><label>Terrain<select value={state.terrain} onChange={(event) => update({ terrain: event.target.value })}><option value="">None</option><option value="electric">Electric</option><option value="grassy">Grassy</option><option value="misty">Misty</option><option value="psychic">Psychic</option></select></label></div>
-      <div className="team-lab-state-sides"><BattleSideState title="Your side" value={state.my_side} onChange={(my_side) => update({ my_side })}/><BattleSideState title="Opponent side" value={state.opponent_side} onChange={(opponent_side) => update({ opponent_side })}/></div>
+      <div className="team-lab-state-sides"><BattleSideState title="Your side" value={state.my_side} mechanic={mechanic} onChange={(my_side) => update({ my_side })}/><BattleSideState title="Opponent side" value={state.opponent_side} mechanic={mechanic} onChange={(opponent_side) => update({ opponent_side })}/></div>
     </div>
   </details>;
 }

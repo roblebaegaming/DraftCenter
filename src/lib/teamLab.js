@@ -1,3 +1,5 @@
+import { REGULATION_METADATA } from "./regulation-catalog.js";
+
 export const TEAM_LAB_HANDOFF_KEY = "draftcenter-team-lab-handoff-v1";
 export const TEAM_LAB_MATCHUP_HANDOFF_KEY = "draftcenter-team-lab-matchup-handoff-v1";
 export const TEAM_LAB_LEAGUE_MATCHUP_HANDOFF_KEY = "draftcenter-team-lab-league-matchup-v1";
@@ -23,6 +25,28 @@ export const TEAM_LAB_WEEK_LABEL_LIMIT = 100;
 export const TEAM_LAB_SERIES_VERSION = 1;
 export const TEAM_LAB_GAME_PLAN_LIMIT = 2000;
 export const TEAM_LAB_BATTLE_STATE_VERSION = 1;
+
+const TERA_BATTLE_MECHANIC = Object.freeze({
+  id: "tera",
+  label: "Terastallization",
+  shortLabel: "Tera",
+  stateKey: "terastallized",
+  typeKey: "tera_type",
+});
+const MEGA_BATTLE_MECHANIC = Object.freeze({
+  id: "mega",
+  label: "Mega Evolution",
+  shortLabel: "Mega",
+  stateKey: "mega_evolved",
+  typeKey: "",
+});
+
+export function teamLabBattleMechanicForFormat(formatId) {
+  const gameId = REGULATION_METADATA[formatId]?.gameId;
+  if (gameId === "scarlet-violet") return TERA_BATTLE_MECHANIC;
+  if (["champions", "oras", "xy"].includes(gameId)) return MEGA_BATTLE_MECHANIC;
+  return null;
+}
 
 function cleanText(value, limit) {
   return String(value || "").trim().slice(0, limit);
@@ -409,10 +433,19 @@ export function buildTeamLabPerformanceSummary(matchups = [], rosterNames = []) 
   }
 
   const pokemonByName = new Map();
+  const createPokemonSummary = (name) => ({
+    name,
+    broughtMatches: 0,
+    leads: 0,
+    leadWins: 0,
+    leadLosses: 0,
+    teraMatches: 0,
+    megaMatches: 0,
+  });
   for (const name of Array.isArray(rosterNames) ? rosterNames : []) {
     const normalizedName = cleanText(name, 120);
     if (normalizedName && !pokemonByName.has(normalizedName)) {
-      pokemonByName.set(normalizedName, { name: normalizedName, broughtMatches: 0, leads: 0, leadWins: 0, leadLosses: 0, teraMatches: 0 });
+      pokemonByName.set(normalizedName, createPokemonSummary(normalizedName));
     }
   }
   const opponentByName = new Map();
@@ -424,22 +457,24 @@ export function buildTeamLabPerformanceSummary(matchups = [], rosterNames = []) 
     for (const pokemon of Array.isArray(report.my_pokemon) ? report.my_pokemon : []) {
       const name = cleanText(pokemon?.name, 120);
       if (!name) continue;
-      if (!pokemonByName.has(name)) pokemonByName.set(name, { name, broughtMatches: 0, leads: 0, leadWins: 0, leadLosses: 0, teraMatches: 0 });
+      if (!pokemonByName.has(name)) pokemonByName.set(name, createPokemonSummary(name));
       if (pokemon.brought) pokemonByName.get(name).broughtMatches += 1;
     }
     for (const game of completedGames) {
       if (!game.myLead) continue;
-      if (!pokemonByName.has(game.myLead)) pokemonByName.set(game.myLead, { name: game.myLead, broughtMatches: 0, leads: 0, leadWins: 0, leadLosses: 0, teraMatches: 0 });
+      if (!pokemonByName.has(game.myLead)) pokemonByName.set(game.myLead, createPokemonSummary(game.myLead));
       const pokemon = pokemonByName.get(game.myLead);
       pokemon.leads += 1;
       if (game.result === "win") pokemon.leadWins += 1;
       if (game.result === "loss") pokemon.leadLosses += 1;
     }
+    const battleMechanic = teamLabBattleMechanicForFormat(matchup.format_id);
     for (const pokemon of Array.isArray(report.battle_state?.my_side?.pokemon) ? report.battle_state.my_side.pokemon : []) {
       const name = cleanText(pokemon?.name, 120);
-      if (!name || !pokemon.terastallized) continue;
-      if (!pokemonByName.has(name)) pokemonByName.set(name, { name, broughtMatches: 0, leads: 0, leadWins: 0, leadLosses: 0, teraMatches: 0 });
-      pokemonByName.get(name).teraMatches += 1;
+      if (!name || !battleMechanic || !pokemon[battleMechanic.stateKey]) continue;
+      if (!pokemonByName.has(name)) pokemonByName.set(name, createPokemonSummary(name));
+      if (battleMechanic.id === "tera") pokemonByName.get(name).teraMatches += 1;
+      if (battleMechanic.id === "mega") pokemonByName.get(name).megaMatches += 1;
     }
     for (const pokemon of Array.isArray(report.opponent_pokemon) ? report.opponent_pokemon : []) {
       const name = cleanText(pokemon?.name, 120);
@@ -490,6 +525,7 @@ function normalizeBattleSideState(sideState, rosterNames) {
         status: ["burn", "paralysis", "poison", "toxic", "sleep", "freeze"].includes(entry.status) ? entry.status : "",
         terastallized: Boolean(entry.terastallized),
         tera_type: cleanText(entry.tera_type, 20),
+        mega_evolved: Boolean(entry.mega_evolved),
       };
     }),
   };

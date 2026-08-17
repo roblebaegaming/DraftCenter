@@ -39,14 +39,17 @@ its separate browser-only contract.
    brought or fainted, records up to four revealed moves per opponent Pokémon,
    and keeps a private battle note.
 5. A connected My Teams workspace can store complete private sets: nickname,
-   level, gender, ability, item, nature, Tera type, shiny and happiness flags,
+   level, gender, ability, item, nature, shiny and happiness flags,
    EVs, IVs, four moves, role, and private notes. PokéPaste or Pokémon Showdown
    text can be loaded from an authenticated PokéPaste URL, uploaded from a local
    `.txt` file, or pasted into the builder, and the roster can be copied back in
    Pokémon Showdown format. Saved own-team moves become one-tap choices in
    Battle Mode. Closed opponent sheets keep blank manual ability/item/move
    fields and add optional suggestions from DraftCenter's pinned exact-game
-   move catalog when the selected format maps to one game pool.
+   move catalog when the selected format maps to one game pool. Tera type is
+   available only for Scarlet/Violet formats. Pokémon Champions and supported
+   Generation VI formats use Mega Evolution instead; the chosen Mega Pokémon
+   and its held Mega Stone define the saved set.
 6. The turn recorder keeps the active Pokémon, current game and turn, moves,
    ability and held-item reveals, switches, faints, written damage, and short
    action notes in one quick-entry panel. The opponent roster is a one-tap row
@@ -69,13 +72,16 @@ its separate browser-only contract.
    state, reveal, or note carryover.
 10. The saved-team performance panel rolls completed reports into wins,
    losses, ties, decided-game win rate, current streak, last-ten form, matches
-   logged, Pokémon brought counts, lead records, Tera usage, and most-seen
-   opposing Pokémon. These are private account statistics derived only from
-   information the coach explicitly records in Battle Room.
+   logged, Pokémon brought counts, lead records, format-correct Mega Evolution
+   or Tera usage, and most-seen opposing Pokémon. These are private account
+   statistics derived only from information the coach explicitly records in
+   Battle Room.
 11. The set tracker supports best-of-1, best-of-3, and best-of-5 matches with a
    result, planned leads, game plan, and between-game adjustment per game.
    Structured battle state separately tracks HP percentage, major status,
-   Terastallization, hazards, screens, weather, and terrain for both sides.
+   hazards, screens, weather, terrain, and the selected format's supported
+   battle mechanic for both sides. Pokémon Champions shows Mega Evolution;
+   only Scarlet/Violet formats show Terastallization and Tera type.
 12. An optional damage estimator accepts final manual stats, move power, STAB,
    type effectiveness, and one combined modifier. It exposes the base damage,
    85%–100% roll, and every multiplier; it does not guess mechanics or replace a
@@ -93,8 +99,8 @@ or read data from the game client.
 
 The strategy/archetype suggestions are an optional beta disclosure closed by
 default. They are generated only from typing and base-stat signals and are
-presented as questions, not team grades. Moves, abilities, items, Tera rules,
-and league clauses remain manual checks.
+presented as questions, not team grades. Moves, abilities, items, the selected
+format's battle-mechanic rules, and league clauses remain manual checks.
 
 Closed team sheet mode starts as a fast scouting notebook: Pokémon, moves,
 abilities, and held items are recorded only as the coach sees them during play.
