@@ -14,12 +14,42 @@ in their original release order. Their standard copies are byte-equivalent
 after line-ending normalization and retain the human migration number in each
 filename.
 
-The reconciliation does not replay any migration against Production. Before
-the reconciliation release, prove the full chain on a fresh data-less Preview
-branch. Then register the already-applied versions in Production migration
-history with their exact SQL statements so later branches can reconstruct the
-same state. Verify Production schema counts, RLS, grants, application checks,
-and a fresh branch after the history update.
+The fresh-chain replay also proved that Production's anonymous grant removal on
+`personal_teams` was missing from the historical SQL. The standard-only bridge
+`20260726010644_364_revoke_legacy_personal_teams_anon.sql` records that existing
+privacy boundary before migration 365 asserts it. It is idempotent on
+Production, denies anonymous table access, preserves the four authenticated
+owner-policy operations, and does not change a private row.
+
+Four Production changes had been displaced when historical root migration
+numbers were reused. Standard migrations 414 through 417 recover match
+availability, tester feedback, commissioner ownership repair, and match
+scheduling from the exact historical files. Migration 418 restores three
+service-only Operations tables and the remaining schema details. Migrations
+419 and 420 normalize the Production routine definitions and direct privileges.
+Migration 421 restores 14 badge definitions and the retired
+`pokemon-champions` alias that predate migration 204 and therefore could not be
+present in a schema-only baseline.
+
+A separate historical security-lint file was deliberately excluded after the
+fresh replay proved it never ran in Production: applying it would have added a
+Daily Games export policy and changed future function grants. Git history alone
+is not evidence that a migration reached Production.
+
+The complete chain was proved on a fresh data-less branch. Its audited public
+schema matched Production across 158 relations, 1,431 columns, 1,042
+constraints, 348 indexes, 55 policies, 392 routines, 45 triggers, 12 sequences,
+and the direct schema/table/routine privilege sets. Routine comparison
+normalizes CRLF versus LF because line endings do not change PostgreSQL
+behavior. Public seed datasets also matched after excluding import timestamps;
+the finalized Victory Road bracket event is runtime Production data and is not
+copied into a data-less branch.
+
+Register already-applied versions in Production migration history only with
+their exact SQL text and only after this replay evidence passes. Do not replay
+the historical DDL or copy private/runtime rows. After registration, create a
+second fresh branch and repeat schema, RLS, grant, reference-data, advisor, and
+application checks before calling the history repaired.
 
 ## New migrations
 
