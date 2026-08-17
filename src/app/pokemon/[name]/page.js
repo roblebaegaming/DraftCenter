@@ -3,6 +3,7 @@ import { getPublicPokemonCompetitiveProfile, getPublicPokemonDraftProfile, getPu
 import { getAllPokemonProfiles, pokemonProfileCanonicalPath, pokemonProfileDisplayName, pokemonProfileSlugCandidates, pokemonProfileSlugForName, pokemonRouteSlug } from "../../../lib/publicPokemonIndex";
 import { pokemonDirectoryHref } from "../../../lib/pokemonNavigation";
 import { pokemonColorLabel, pokemonEggGroupLabel, pokemonShapeDetails } from "../../../lib/pokemonSpeciesTraits";
+import { POKEMON_EDITORIAL_REVIEWED_DATE, POKEMON_EDITORIAL_REVIEWED_LABEL, pokemonProfileEditorial } from "../../../lib/pokemonEditorial";
 import CompetitivePokemonProfile from "../../../components/CompetitivePokemonProfile";
 import TournamentPokemonProfile from "../../../components/TournamentPokemonProfile";
 
@@ -59,7 +60,8 @@ export async function generateMetadata({ params }) {
   const displayName = data.displayName;
   const genus = data.species.genera?.find((entry) => entry.language.name === "en")?.genus || "Pokémon";
   const types = data.pokemon.types.map(({ type }) => titleCase(type.name)).join("/");
-  const description = `${displayName} Pokédex profile: ${types} typing, base stats, abilities, color, shape, Egg Groups, generation, and Pokémon draft-league research on DraftCenter.`;
+  const editorial = pokemonProfileEditorial(data.pokemon.name);
+  const description = editorial?.metaDescription || `${displayName} Pokédex profile: ${types} typing, base stats, abilities, color, shape, Egg Groups, generation, and Pokémon draft-league research on DraftCenter.`;
   const artwork = data.pokemon.sprites?.other?.["official-artwork"]?.front_default;
   return {
     title: `${displayName} Pokédex & Stats`,
@@ -70,6 +72,7 @@ export async function generateMetadata({ params }) {
       title: `${displayName} — ${genus}`,
       description,
       url: `/pokemon/${data.pokemon.name}`,
+      modifiedTime: editorial ? POKEMON_EDITORIAL_REVIEWED_DATE : undefined,
       images: artwork ? [{ url: artwork, alt: `${displayName} official artwork` }] : undefined,
     },
   };
@@ -90,6 +93,7 @@ export default async function PokemonDetailPage({ params }) {
   const color = species.color?.name ? { id: species.color.name, label: pokemonColorLabel(species.color.name) } : null;
   const shape = pokemonShapeDetails(species.shape?.name);
   const eggGroups = (species.egg_groups || []).map(({ name: eggGroup }) => ({ id: eggGroup, label: pokemonEggGroupLabel(eggGroup) }));
+  const editorial = pokemonProfileEditorial(pokemon.name);
   const structuredData = {
     "@context": "https://schema.org",
     "@graph": [
@@ -98,6 +102,7 @@ export default async function PokemonDetailPage({ params }) {
         name: `${displayName} Pokédex & Stats`,
         url: `https://www.draftcentral.gg/pokemon/${pokemon.name}`,
         description: `${displayName} stats, typing, abilities, Pokédex color and shape, Egg Groups, and Pokémon draft-league profile.`,
+        dateModified: editorial ? POKEMON_EDITORIAL_REVIEWED_DATE : undefined,
         primaryImageOfPage: artwork ? { "@type": "ImageObject", url: artwork } : undefined,
       },
       {
@@ -139,6 +144,18 @@ export default async function PokemonDetailPage({ params }) {
         <p>These appearances share this battle profile, so they are grouped here instead of creating duplicate stat pages.</p>
         <div className="pokemon-tags">{pokemon.forms.map((appearance) => <span key={appearance.name}>{titleCase(appearance.name)}</span>)}</div>
       </details>
+    </section>}
+    {editorial && <section className="explore-card pokemon-draft-editorial">
+      <span className="eyebrow">DRAFT LEAGUE CONTEXT</span>
+      <h2>{displayName} in a draft league</h2>
+      <div className="career-record-grid">
+        <article><h3>What it offers</h3><p>{editorial.draftRole}</p></article>
+        <article><h3>Roster planning</h3><p>{editorial.rosterPlanning}</p></article>
+        <article><h3>Form and format check</h3><p>{editorial.formDistinction}</p></article>
+      </div>
+      <h3>Practical comparisons</h3>
+      <div className="public-pick-list">{editorial.comparisons.map((comparison) => <div key={comparison.slug}><strong><a href={`/pokemon/${comparison.slug}`}>{comparison.name}</a></strong><span>{comparison.note}</span></div>)}</div>
+      <p className="muted">DraftCenter editorial context · Reviewed {POKEMON_EDITORIAL_REVIEWED_LABEL}. These notes interpret the displayed typing, base stats, and abilities; they do not override game-specific move access, league legality, or the sample sizes shown below.</p>
     </section>}
     <section className="explore-card">
       <h2>{displayName} base stats</h2>
@@ -195,6 +212,7 @@ export default async function PokemonDetailPage({ params }) {
     <section className="explore-card pokemon-profile-sources">
       <h2>Sources and methodology</h2>
       <p>Core Pokédex facts, measurements, abilities, species color, shape, Egg Groups, and artwork are retrieved from <a href="https://pokeapi.co/" rel="noreferrer">PokéAPI</a> and refreshed daily. DraftCenter community statistics are anonymous aggregates calculated from eligible DraftCenter leagues.</p>
+      <p>Competitive ladder observations come from reviewed <a href="https://www.smogon.com/stats/" rel="noreferrer">Smogon usage snapshots</a>. Tournament aggregates use complete community events from <a href="https://play.limitlesstcg.com/tournaments" rel="noreferrer">Limitless</a>; available cards link to the exact source snapshot or event. See the <a href="/about#data-methodology">full data methodology</a>.</p>
       <p>Draft rate and ADP include eligibility and show their current sample sizes. Auction averages use completed auction samples, while team win rate uses confirmed match results. Small samples should be treated as early evidence, not a definitive ranking.</p>
     </section>
   </main>;
