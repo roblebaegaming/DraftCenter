@@ -99,7 +99,7 @@
     "catalog:build:migration": "node scripts/build-pokemon-catalog-migration.mjs",
     "catalog:import": "node scripts/import-pokemon-game-catalog.mjs",
     "test:trainer-dex": "node --test test/daily-games-resources.test.js test/trainer-dex.test.js",
-    "test:pokedex-tracker": "node --test test/pokedex-tracker.test.js",
+    "test:pokedex-tracker": "node scripts/verify-pokedex-tracker-catalog-quality.mjs && node --test test/pokedex-tracker.test.js",
     "test:app-platform": "node --test test/app-platform.test.js",
     "test:calendar": "node --test test/pokemon-calendar.test.js",
     "test:release-integration": "node --test test/release-integration.test.js",
