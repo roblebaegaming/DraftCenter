@@ -1,7 +1,14 @@
 # Agent handoffs
 
+[`DraftCenter-agent-handoff-2026-08-16-worlds-odds-release.md`](DraftCenter-agent-handoff-2026-08-16-worlds-odds-release.md)
+is the current release and continuation handoff. It records the privacy-gated
+Worlds VGC Top 10 through pull request #276 and migration 413, exact Production
+deployment and responsive verification, the 24/25-entry privacy boundary,
+deleted isolated Preview branch, active Supabase migration-history repair, and
+the ordered tournament-directory, Spanish-localization, and Pokédex-data work.
+
 [`DraftCenter-agent-handoff-2026-08-16-victory-road-final-monitoring.md`](DraftCenter-agent-handoff-2026-08-16-victory-road-final-monitoring.md)
-is the current continuation handoff. It records the completed official bracket,
+is the current Victory Road handoff. It records the completed official bracket,
 the verified seventh result and final leaderboard, the stopped five-minute
 monitor, the public entrant-bracket gallery through pull request #272,
 downloadable posting-ready bracket PNGs through pull request #274,
