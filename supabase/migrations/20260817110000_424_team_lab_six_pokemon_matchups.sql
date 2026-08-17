@@ -155,9 +155,9 @@ begin
   end if;
   select pg_get_functiondef('public.save_my_team_lab_matchup_details(uuid,uuid,text,text,text,text,jsonb,jsonb,text,text)'::regprocedure)
   into v_definition;
-  if v_definition not like '%jsonb_array_length(p_pokemon) > 6%'
-     or v_definition not like '%p_mode IS DISTINCT FROM ''team''%'
-     or v_definition not like '%SET search_path TO ''''%' then
+  if lower(v_definition) not like '%jsonb_array_length(p_pokemon) > 6%'
+     or lower(v_definition) not like '%p_mode is distinct from ''team''%'
+     or lower(v_definition) not like '%set search_path to ''''%' then
     raise exception 'Team Lab six-Pokémon RPC hardening is incomplete.';
   end if;
 end;
