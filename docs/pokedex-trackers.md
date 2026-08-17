@@ -68,6 +68,17 @@ Migration 408 verifies these reviewed totals:
 Catalog rows remain read-only. Tracker writes never modify the reviewed public
 Pokémon tables or Trainer Dex state.
 
+The August 17, 2026 full-catalog audit verified all 37 games, 65 sections,
+13,130 local Pokédex rows, and the complete 1,025-species HOME catalog against
+the pinned game-specific source checks and aggregate Production state. It found
+no evidence-backed correction to apply. The durable audit record is
+[`pokedex-tracker-data-quality-audit-2026-08-17.md`](pokedex-tracker-data-quality-audit-2026-08-17.md).
+
+`npm run test:pokedex-tracker` now begins with the permanent catalog-quality
+gate. It rejects an unreviewed change to the 37-game set, section totals,
+numbering continuity, one-to-one local number/species mapping, high-risk
+regional or DLC counts, or #1–1025 HOME coverage.
+
 ## Privacy and data boundary
 
 The private tables are `pokedex_trackers`, `pokedex_tracker_entries`,
