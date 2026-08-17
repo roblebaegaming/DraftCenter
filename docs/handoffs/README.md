@@ -1,11 +1,20 @@
 # Agent handoffs
 
+[`DraftCenter-agent-handoff-2026-08-17-tournament-team-lab-spanish-pokedex-audit.md`](DraftCenter-agent-handoff-2026-08-17-tournament-team-lab-spanish-pokedex-audit.md)
+is the current release and continuation handoff. It records the completed
+tournament-directory and durable entrant-URL release, six-Pokémon Team Lab
+workflow, Spanish Worlds localization, Pokédex Tracker source audit and
+permanent quality gate, migrations through 424, Supabase automatic branching
+configuration, exact Production verification, preserved privacy boundaries,
+and the remaining operational follow-ups.
+
 [`DraftCenter-agent-handoff-2026-08-16-worlds-odds-release.md`](DraftCenter-agent-handoff-2026-08-16-worlds-odds-release.md)
-is the current release and continuation handoff. It records the privacy-gated
+is the preceding Worlds odds handoff. It records the privacy-gated
 Worlds VGC Top 10 through pull request #276 and migration 413, exact Production
 deployment and responsive verification, the 24/25-entry privacy boundary,
 deleted isolated Preview branch, active Supabase migration-history repair, and
-the ordered tournament-directory, Spanish-localization, and Pokédex-data work.
+the then-ordered tournament-directory, Spanish-localization, and Pokédex-data
+work completed in the current handoff above.
 
 [`DraftCenter-agent-handoff-2026-08-16-victory-road-final-monitoring.md`](DraftCenter-agent-handoff-2026-08-16-victory-road-final-monitoring.md)
 is the current Victory Road handoff. It records the completed official bracket,
