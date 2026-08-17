@@ -52,6 +52,14 @@ remains visible even when the carried side later contains Shohei Kimura.
   reviewed official winners and recalculates the displayed score as live
   results arrive. Before lock, other members' rows remain disabled and say
   that their brackets are private.
+- The permanent `/tournaments` directory lists published prediction events
+  with aggregate entry counts. It does not return entrant names, picks,
+  account IDs, or bracket URL IDs.
+- After lock, each leaderboard bracket also has a durable public page. The URL
+  uses a random opaque bracket UUID, never the owner's account ID, and the
+  bounded public-entry RPC returns `null` before lock. Known events retain
+  their readable event path; future events use
+  `/tournaments/predictions/{event-id}`.
 - A carried entry may expose its locked original bracket as a separate archive.
   The archive never changes the active revision, active leaderboard, or live
   result writer.
@@ -112,11 +120,13 @@ the guarded service-role-only supersession RPC, and migration 411 adds the
 service-role-only carryover RPC. Migration 412 adds a bounded public archive
 RPC that returns only the locked original publication, display name, picks,
 and mapping explanation for an entry that was deliberately carried forward.
-It never returns an account ID or grants browser access to the audit table. All five tables force
-row-level security and deny direct browser-role table access. Public and signed-
-in clients read the bounded hub RPC. Only a signed-in account may save its own
-entry. Publication, result recording, and finalization RPCs are service-role
-only and are exposed through an owner-authenticated Operations route.
+It never returns an account ID or grants browser access to the audit table.
+Migration 423 adds the opaque entry UUID plus separate aggregate-directory and
+post-lock public-entry RPCs. All five tables force row-level security and deny
+direct browser-role table access. Public and signed-in clients read bounded
+RPCs. Only a signed-in account may save its own entry. Publication, result
+recording, and finalization RPCs are service-role only and are exposed through
+an owner-authenticated Operations route.
 
 The focused Preview matrix is
 `supabase/tests/409-reusable-asymmetric-bracket-preview-regression.sql`. It uses
@@ -135,3 +145,9 @@ The carryover and archive Preview matrices are
 They verify side-path preservation, replay and wrong-owner rejection, public
 lock timing, identity omission, private audit-table grants, and exact fixture
 cleanup.
+
+The permanent-directory Preview matrix is
+`supabase/tests/423-prediction-bracket-directory-preview-regression.sql`. It
+proves aggregate-only directory output, scheduled and pre-lock privacy,
+post-lock single-entry visibility, opaque URL assignment, owner-identity
+omission, direct-table denial, and the exact browser RPC grants.
