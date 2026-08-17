@@ -6,7 +6,12 @@ brackets: each member picks a matchup winner, that winner advances through the
 member's own bracket, and each reviewed official result awards the configured
 points for that round.
 
-## Current event
+The public home is `/tournaments/predictions`. It separates upcoming and live
+events from the permanent past-tournament archive. The 2026 Worlds VGC Top Cut
+is the featured upcoming challenge; any future major published with the owner
+tool joins the same directory automatically.
+
+## Past event: Victory Road to San Francisco
 
 `victory-road-san-francisco-2026` is the event key for **Victory Road to San
 Francisco**. Its public page is:
@@ -78,9 +83,38 @@ remains visible even when the carried side later contains Shohei Kimura.
 - Social images are at least 1,920 by 1,350 pixels and expand for larger
   supported fields so the complete bracket remains legible.
 
-## Owner event-day workflow
+## Publishing a custom bracket
 
-The owner controls are in Operations under **Victory Road to San Francisco**.
+The reusable owner publisher is at `/operations/predictions`. It creates future
+major-tournament challenges without an application release or a hand-authored
+route.
+
+1. Choose **Create a custom prediction event**. Enter the event name, permanent
+   URL name, short description, and official event-information URL. Type
+   `CREATE PREDICTION EVENT`. This creates a private setup record; it does not
+   add anything to the public directory.
+2. Paste or upload the official bracket field as `slot`, `name`, `country`, and
+   `seed`. TSV, CSV, and pipe-separated text are accepted. Use `BYE` only where
+   the official bracket has an empty slot.
+3. Set the opening and lock times, official bracket URL, source-review time,
+   and points for every round. Fields may contain 3–64 players.
+4. Compare every first-round matchup with the official bracket, then type
+   `PUBLISH OFFICIAL BRACKET`. Publication makes the permanent
+   `/tournaments/predictions/{event-id}` page discoverable.
+5. After entries lock, record only reviewed official winners in feeder order.
+   Safe corrections remain possible until a dependent later result exists.
+6. After all played matches match the official source, type
+   `FINALIZE OFFICIAL BRACKET`. The event then moves automatically into **Past
+   tournaments** while keeping its leaderboard and durable entrant pages.
+
+Unpublished setup is backed up in that browser. Creating an event, publishing
+the field, recording a result, correcting a safe result, superseding the one
+narrowly permitted owner-only case, and finalizing are all explicit owner-only
+actions recorded in the private audit trail.
+
+## Victory Road event-day workflow
+
+The original owner controls are now part of the generic prediction publisher.
 
 1. Open the official public Phase 2 elimination bracket.
 2. Confirm the exact player count, slot order, seeds, byes, and first-match
@@ -128,6 +162,14 @@ RPCs. Only a signed-in account may save its own entry. Publication, result
 recording, and finalization RPCs are service-role only and are exposed through
 an owner-authenticated Operations route.
 
+The forward-only owner-publisher migration adds the service-role-only event
+creator, adds `created` to the private audit contract, and updates the public
+directory to exclude revision-zero setup records. The creator uses a fixed
+empty search path, browser roles have no execute grant, and public directory
+payloads remain aggregate-only. Generic event pages also require the event to
+be present in that public directory, so guessing a future event URL cannot
+open its unpublished setup.
+
 The focused Preview matrix is
 `supabase/tests/409-reusable-asymmetric-bracket-preview-regression.sql`. It uses
 a disposable 13-player/16-slot field with three byes, verifies 12 played picks,
@@ -151,3 +193,9 @@ The permanent-directory Preview matrix is
 proves aggregate-only directory output, scheduled and pre-lock privacy,
 post-lock single-entry visibility, opaque URL assignment, owner-identity
 omission, direct-table denial, and the exact browser RPC grants.
+
+The owner-publisher Preview matrix is
+`supabase/tests/429-owner-published-prediction-events-preview-regression.sql`.
+It verifies private draft setup, published-event discovery, duplicate URL
+rejection, owner-identity omission, service-only creation, forced RLS, and
+exact fixture cleanup.

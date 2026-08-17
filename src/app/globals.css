@@ -972,12 +972,23 @@ button { cursor: pointer; }
 .prediction-bracket-directory .section-heading p { max-width: 760px; margin: 6px 0 0; color: #aeb7dc; line-height: 1.6; }
 .prediction-bracket-directory-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,280px),1fr)); gap: 12px; }
 .prediction-bracket-directory-grid>a { display: grid; align-content: start; gap: 8px; min-height: 210px; padding: 18px; color: #eef2ff; text-decoration: none; border: 1px solid #39456f; border-radius: 14px; background: linear-gradient(145deg,rgba(79,209,197,.08),rgba(182,151,255,.06)),#11182e; transition: border-color .16s ease,transform .16s ease; }
+.prediction-bracket-directory-grid>a.is-featured { border-color: rgba(255,210,63,.62); background: radial-gradient(circle at 100% 0,rgba(255,210,63,.17),transparent 42%),linear-gradient(145deg,rgba(79,209,197,.08),rgba(182,151,255,.08)),#11182e; }
 .prediction-bracket-directory-grid>a:hover,.prediction-bracket-directory-grid>a:focus-visible { border-color: #ffd23f; outline: none; transform: translateY(-2px); }
 .prediction-bracket-directory-grid>a>span { color: #72e3d6; font-size: 11px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
 .prediction-bracket-directory-grid>a>strong { font-size: 1.2rem; }
 .prediction-bracket-directory-grid>a>p { margin: 0; color: #aeb7dc; line-height: 1.55; }
 .prediction-bracket-directory-grid footer { display: flex; justify-content: space-between; gap: 12px; align-items: end; margin-top: auto; padding-top: 14px; color: #ffd23f; border-top: 1px solid #2d395d; }
 .prediction-bracket-directory-grid footer small { color: #909cbc; }
+.prediction-bracket-directory-actions { display: flex; justify-content: flex-end; margin-top: 14px; }
+.prediction-bracket-directory-actions a { color: #ffd23f; font-weight: 900; text-decoration: none; }
+.prediction-directory-note { margin: 12px 0 0; color: #f4c987; }
+.prediction-tournament-shell>.prediction-bracket-directory+.prediction-bracket-directory,.prediction-publishing-guide { margin-top: 20px; }
+.prediction-publishing-guide p { max-width: 850px; color: #aeb7dc; line-height: 1.65; }
+.prediction-publishing-guide ol { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 10px; margin: 18px 0; padding: 0; counter-reset: prediction-publish; list-style: none; }
+.prediction-publishing-guide li { padding: 14px; border: 1px solid #35416c; border-radius: 11px; color: #cbd3eb; background: #11182e; line-height: 1.5; counter-increment: prediction-publish; }
+.prediction-publishing-guide li::before { display: block; margin-bottom: 8px; color: #72e3d6; font-weight: 900; content: "0" counter(prediction-publish); }
+@media(max-width:800px){.prediction-publishing-guide ol{grid-template-columns:1fr 1fr}.prediction-bracket-directory .section-heading{gap:12px;flex-direction:column}}
+@media(max-width:520px){.prediction-publishing-guide ol{grid-template-columns:1fr}.prediction-bracket-directory-grid>a{min-height:0}}
 .prediction-entry-shell { min-height: 100vh; }
 .prediction-entry-hero .worlds-event-card .worlds-bracket-download { margin-top: 14px; }
 .prediction-entry-hero .worlds-event-card .secondary-button { width: 100%; }

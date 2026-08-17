@@ -7,6 +7,17 @@ export function createPublicServerClient() {
   return createClient(url, key, { auth: { autoRefreshToken: false, persistSession: false } });
 }
 
+export async function getPublicPredictionBracketDirectory() {
+  try {
+    const client = createPublicServerClient();
+    if (!client) return [];
+    const { data, error } = await client.rpc("get_prediction_bracket_directory");
+    return error || !Array.isArray(data) ? [] : data;
+  } catch {
+    return [];
+  }
+}
+
 export async function getPublicLeague(slug) {
   try {
     const client = createPublicServerClient();

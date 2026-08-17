@@ -9,6 +9,9 @@ import {
   buildBracketChallengeRounds,
   chooseBracketChallengeWinner,
   normalizeBracketChallengePublication,
+  normalizePredictionBracketEvent,
+  parseBracketChallengeParticipantPaste,
+  predictionBracketEventSlug,
   scoreBracketChallengeEntry,
 } from "../src/lib/bracketChallenge.js";
 import {
@@ -116,6 +119,34 @@ test("publication validation preserves official slots and rejects empty paths", 
   assert.throws(() => normalizeBracketChallengePublication({ ...valid, participants: valid.participants.map((participant, index) => ({ ...participant, slot: index + 1 })) }), /first-round matchup/);
 });
 
+test("owner paste import preserves official slots, byes, countries, and seeds", () => {
+  const text = ["slot\tname\tcountry\tseed", ...Array.from({ length: 16 }, (_, index) => {
+    const slot = index + 1;
+    const occupiedIndex = occupied.indexOf(slot);
+    return occupiedIndex >= 0 ? `${slot}\tPlayer ${occupiedIndex + 1}\tUS\t${occupiedIndex + 1}` : `${slot}\tBYE\t\t`;
+  })].join("\n");
+  const parsed = parseBracketChallengeParticipantPaste(text);
+  assert.equal(parsed.fieldSize, 13);
+  assert.equal(parsed.capacity, 16);
+  assert.equal(parsed.participants[11].display_name, "");
+  assert.equal(parsed.participants[12].display_name, "Player 12");
+  assert.equal(parsed.participants[14].source_seed, 13);
+  assert.throws(() => parseBracketChallengeParticipantPaste("1,One,US,not-a-seed\n2,Two,JP,2\n3,Three,CA,3"), /invalid seed/i);
+});
+
+test("custom event setup creates stable URL names and validates public metadata", () => {
+  assert.equal(predictionBracketEventSlug("  Sacramento Regional — Top Cut  "), "sacramento-regional-top-cut");
+  const event = normalizePredictionBracketEvent({
+    event_id: "sacramento-regional-top-cut-2026",
+    display_name: "Sacramento Regional Top Cut",
+    description: "Predict every winner in the reviewed official elimination bracket.",
+    official_info_url: "https://example.com/event",
+  });
+  assert.equal(event.eventId, "sacramento-regional-top-cut-2026");
+  assert.equal(event.officialInfoUrl, "https://example.com/event");
+  assert.throws(() => normalizePredictionBracketEvent({ ...event, event_id: "Not Valid" }), /public URL name/i);
+});
+
 test("migration keeps entries private and owner mutations service-only", () => {
   const migration = source("supabase/409-reusable-asymmetric-bracket-challenges.sql");
   assert.match(migration, /alter table public\.prediction_bracket_entries force row level security/i);
@@ -127,7 +158,7 @@ test("migration keeps entries private and owner mutations service-only", () => {
   assert.match(migration, /ranked\.user_id = auth\.uid\(\) or v_is_locked/i);
 });
 
-test("Victory Road page and owner controls use the generic bracket contract", () => {
+test("Victory Road and the custom publisher use the generic bracket contract", () => {
   const page = source("src/app/worlds/2026/vgc/victory-road-to-san-francisco/page.js");
   const publicComponent = source("src/components/BracketChallenge.jsx");
   const route = source("src/app/api/operations/bracket-challenge/route.js");
@@ -136,6 +167,7 @@ test("Victory Road page and owner controls use the generic bracket contract", ()
   assert.match(page, /victory-road-san-francisco-2026/);
   assert.match(publicComponent, /save_prediction_bracket_entry/);
   assert.match(route, /normalizeBracketChallengePublication/);
+  assert.match(route, /normalizePredictionBracketEvent/);
   assert.match(route, /requireOwner/);
   assert.match(route, /supersede_prediction_bracket/);
   assert.match(route, /carry_forward_prediction_bracket_entry/);
@@ -143,10 +175,27 @@ test("Victory Road page and owner controls use the generic bracket contract", ()
   assert.match(operations, /PUBLISH OFFICIAL BRACKET/);
   assert.match(operations, /SUPERSEDE OFFICIAL BRACKET/);
   assert.match(operations, /CARRY FORWARD ARCHIVED OWNER ENTRY/);
-  assert.match(operations, /2026-08-16T21:10:00\.000Z/);
+  assert.match(operations, /CREATE PREDICTION EVENT/);
+  assert.match(operations, /parseBracketChallengeParticipantPaste/);
+  assert.match(operations, /tournaments\/predictions/);
   assert.match(operations, /supabase\.auth\.getSession\(\)/);
   assert.match(operations, /Authorization: `Bearer \$\{data\.session\.access_token\}`/);
   assert.match(dashboard, /<BracketChallengeOperations \/>/);
+});
+
+test("forward migration adds service-only event creation and hides private setups", () => {
+  const migration = source("supabase/migrations/20260817234500_429_owner_published_prediction_events.sql");
+  const regression = source("supabase/tests/429-owner-published-prediction-events-preview-regression.sql");
+  assert.match(migration, /create or replace function public\.create_prediction_bracket_event/i);
+  assert.match(migration, /CREATE PREDICTION EVENT/);
+  assert.match(migration, /set search_path = ''/i);
+  assert.match(migration, /where event\.revision > 0/i);
+  assert.match(migration, /grant execute on function public\.create_prediction_bracket_event[^;]+to service_role/is);
+  assert.match(migration, /has_function_privilege\('authenticated', 'public\.create_prediction_bracket_event/i);
+  assert.match(regression, /draft_hidden_from_directory/);
+  assert.match(regression, /owner_identity_hidden/);
+  assert.match(regression, /duplicate_url_denied/);
+  assert.match(regression, /fixtures_removed/);
 });
 
 test("owner-only supersession preserves the entry snapshot and service boundary", () => {
@@ -214,6 +263,8 @@ test("directory and entrant pages use aggregate-only and post-lock bracket RPCs"
   const tournamentDirectory = source("src/components/TournamentDirectory.jsx");
   const prettyRoute = source("src/app/worlds/2026/vgc/victory-road-to-san-francisco/entries/[entryId]/page.js");
   const genericRoute = source("src/app/tournaments/predictions/[eventId]/entries/[entryId]/page.js");
+  const genericEventRoute = source("src/app/tournaments/predictions/[eventId]/page.js");
+  const predictionHome = source("src/app/tournaments/predictions/page.js");
 
   assert.match(migration, /add column if not exists public_id uuid/i);
   assert.match(migration, /create unique index if not exists prediction_bracket_entries_public_id_idx/i);
@@ -226,6 +277,13 @@ test("directory and entrant pages use aggregate-only and post-lock bracket RPCs"
   assert.match(regression, /position\(v_user_id::text in v_public_entry::text\) > 0/i);
   assert.match(regression, /has_table_privilege\('anon', 'public\.prediction_bracket_entries', 'SELECT'\)/i);
   assert.match(directory, /get_prediction_bracket_directory/);
+  assert.match(directory, /WORLDS_2026/);
+  assert.match(directory, /event\.status === "final"/);
+  assert.match(directory, /Past tournament predictions/);
+  assert.match(directory, /Open owner bracket publisher/);
+  assert.match(genericEventRoute, /getPublicPredictionBracketDirectory/);
+  assert.match(genericEventRoute, /publicEvents\.some\(\(event\) => event\.event_id === eventId\)/);
+  assert.match(predictionHome, /<PredictionBracketDirectory fullPage \/>/);
   assert.match(entry, /get_prediction_bracket_public_entry/);
   assert.match(entry, /PredictionBracketDownload/);
   assert.match(tournamentDirectory, /<PredictionBracketDirectory \/>/);
