@@ -3,7 +3,7 @@
 - Last updated: August 17, 2026 Pacific
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified Production application commit: `419fa1cead81d4fe037f923584d854fce2925efb`
+- Verified Production application commit: `b6f3746ef7a2d1142eefd4dbc27bdd86752d43bb`
 - Latest applied Production migration: 425
 
 ## Deployed state
@@ -59,13 +59,19 @@ before cleanup.
 
 All local release gates, protected pull-request checks, exact Production
 deployments, signed-out Production smoke sweeps, and relevant live responsive
-browser reviews passed through commit `419fa1c`.
+browser reviews passed through commit `b6f3746`.
+
+The read-only local-work audit found 126 linked worktrees: 116 clean and 10
+containing changes. The exact preserve, publish, archive, or discard
+recommendation for every dirty worktree is recorded in the current handoff. No
+file, worktree, branch, or generated artifact was deleted or discarded. The
+owner's explicit cleanup decision remains pending.
 
 ## Current continuation order
 
-1. Inventory old branches, worktrees, and uncommitted work read-only. Present
-   exact keep, publish, or delete recommendations to the owner; do not delete
-   or discard anything without a separate explicit decision.
+1. Obtain the owner's exact decision on the completed worktree audit. Preserve
+   the original dirty checkout and active work; do not delete or discard any
+   approved cleanup target until the owner names the action.
 2. Implement auction Draft Tournaments as a separate 4-32 entrant release.
    Keep the existing shared snake-draft tournament cap at 16 until the complete
    32-player auction lifecycle and mobile Preview matrix pass.
@@ -100,7 +106,7 @@ explicitly separate future work.
 ## Authoritative records
 
 - Current release and continuation handoff:
-  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-17-tournament-team-lab-spanish-pokedex-audit.md`](handoffs/DraftCenter-agent-handoff-2026-08-17-tournament-team-lab-spanish-pokedex-audit.md)
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-17-battle-mode-worktree-audit.md`](handoffs/DraftCenter-agent-handoff-2026-08-17-battle-mode-worktree-audit.md)
 - Pokédex data-quality audit:
   [`docs/pokedex-tracker-data-quality-audit-2026-08-17.md`](pokedex-tracker-data-quality-audit-2026-08-17.md)
 - Prediction-bracket contract:
