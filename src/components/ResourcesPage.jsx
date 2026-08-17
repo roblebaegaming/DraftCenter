@@ -54,7 +54,7 @@ export default function ResourcesPage() {
       <section className="resource-section">
         <h2>DraftCenter learning library</h2>
         <div className="resource-grid">
-          <a href="/team-lab"><strong>Team Lab builder and Battle Room</strong><p>Build a six-Pokémon team or 10-Pokémon draft roster, connect saved teams, keep private notes, and plan closed- or open-sheet matchups.</p><span>Open Team Lab →</span></a>
+          <a href="/team-lab"><strong>Team Lab builder and Battle Room</strong><p>Build a six-Pokémon team, import a PokéPaste, connect saved teams, keep private notes, and plan format-aware closed- or open-sheet matchups.</p><span>Open Team Lab →</span></a>
           <a href="/tools/mega-bracket"><strong>Replayable Pokémon Mega Brackets</strong><p>Build Full Dex, type, generation, or Mega Evolution brackets, then pick favorites or vote for the worst.</p><span>Start Mega Bracket →</span></a>
           <a href="/pokedex-tracker"><strong>Pokédex Tracker</strong><p>Create private game-by-game and Pokémon HOME checklists with independent standard and shiny progress.</p><span>Open the Dex Tracker →</span></a>
           <a href="/guides/shiny-hunting"><strong>Shiny hunting guides by game</strong><p>Find the best legitimate method, odds, places, targets, and failure points for each supported game.</p><span>Browse shiny guides →</span></a>

@@ -23,11 +23,11 @@ its separate browser-only contract.
 ## Weekly workflow
 
 1. A coach builds a six-Pokémon battle team or loads a My Teams workspace.
-2. The saved workspace can hold the season's draft roster. Each opponent plan
-   keeps its own Battle Mode snapshot, so the six Pokémon marked as brought can
-   change every week without overwriting earlier reports.
+2. The saved Team Lab workspace holds up to six Pokémon. An official hosted
+   league roster remains read-only and can be opened as a planning source; Team
+   Lab loads a six-Pokémon copy without changing the league.
 3. The coach creates an opponent plan under the saved team. A plan can contain
-   the opponent name, team name, known six- or ten-Pokémon roster, format, and
+   the opponent name, team name, known six-Pokémon team, format, and
    private preparation notes. Each opponent Pokémon can also keep one ability,
    one held item, and four known, likely, published, or revealed moves.
 4. **Save & open Battle Mode** turns a new or edited plan directly into a
@@ -39,9 +39,12 @@ its separate browser-only contract.
 5. A connected My Teams workspace can store complete private sets: nickname,
    level, gender, ability, item, nature, Tera type, shiny and happiness flags,
    EVs, IVs, four moves, role, and private notes. PokéPaste or Pokémon Showdown
-   text can be pasted into the set editor, and the roster can be copied back in
+   text can be loaded from an authenticated PokéPaste URL, uploaded from a local
+   `.txt` file, or pasted into the builder, and the roster can be copied back in
    Pokémon Showdown format. Saved own-team moves become one-tap choices in
-   Battle Mode.
+   Battle Mode. Closed opponent sheets keep blank manual ability/item/move
+   fields and add optional suggestions from DraftCenter's pinned exact-game
+   move catalog when the selected format maps to one game pool.
 6. The turn recorder keeps the active Pokémon, current game and turn, moves,
    ability and held-item reveals, switches, faints, written damage, and short
    action notes in one quick-entry panel. The opponent roster is a one-tap row
@@ -115,7 +118,7 @@ official league teams.
 
 Team Lab has three deliberately separate outputs:
 
-- The public analysis URL contains only the format, roster mode, and Pokémon
+- The public analysis URL contains only the format and Pokémon
   names.
 - **Copy weekly team** contains the week label, the coach's team and event
   context, and the Pokémon marked as brought. If none are marked, it uses the
@@ -222,11 +225,24 @@ helpers remain hidden. The focused Preview regression performs real
 authenticated-role inserts, valid Battle Mode saves, and invalid-set denial so
 administrator-level tests cannot miss this path again.
 
+Forward-only migration 424 retires new 10-Pokémon opponent plans at the RPC
+boundary. New and edited plans must use `mode = team` with no more than six
+unique Pokémon. Existing larger plans remain readable and recoverable, direct
+browser table access stays revoked, and the detailed save RPC remains limited
+to `authenticated` and `service_role`.
+
 Direct `anon` and `authenticated` table reads and writes remain revoked. The
 battle RPC updates only a matchup owned by `auth.uid()`. Old backups without a
 battle report restore with an empty version-one report.
 
 ## Release requirements
+
+Before releasing migration 424, apply it only to an isolated Supabase Preview
+after migration 423, then run
+`supabase/tests/424-team-lab-six-pokemon-preview-regression.sql` plus the
+updated Team Lab rollback matrices. Verify six succeeds, seven and the retired
+roster mode fail, cross-account saves fail, direct table access remains denied,
+and the authenticated/service-role grants are exact.
 
 Before releasing migrations 404-406, apply them only to the retained isolated
 Supabase Preview after confirming its exact project identity and baseline.

@@ -57,7 +57,7 @@ begin
   perform set_config('request.jwt.claims', jsonb_build_object('sub', v_owner, 'role', 'authenticated')::text, true);
 
   select public.save_my_team_lab_matchup_details(
-    null, v_team, 'Preview Opponent', 'Synthetic Rotoms', 'roster', 'reg-mb',
+    null, v_team, 'Preview Opponent', 'Synthetic Rotoms', 'team', 'reg-mb',
     '["Rotom-Wash","Iron Hands"]'::jsonb,
     '{"version":1,"pokemon":[
       {"name":"Rotom-Wash","ability":"Levitate","moves":["Hydro Pump","Volt Switch","Protect"]},
@@ -75,7 +75,7 @@ begin
 
   begin
     perform public.save_my_team_lab_matchup_details(
-      v_matchup_id, v_team, 'Preview Opponent', 'Synthetic Rotoms', 'roster', 'reg-mb',
+      v_matchup_id, v_team, 'Preview Opponent', 'Synthetic Rotoms', 'team', 'reg-mb',
       '["Rotom-Wash"]'::jsonb,
       '{"version":1,"pokemon":[{"name":"Rotom-Wash","ability":"Levitate","moves":["One","Two","Three","Four","Five"]}]}'::jsonb,
       '', 'Week 4'
@@ -139,7 +139,7 @@ begin
   perform set_config('request.jwt.claims', jsonb_build_object('sub', v_other, 'role', 'authenticated')::text, true);
   begin
     perform public.save_my_team_lab_matchup_details(
-      v_matchup_id, v_team, 'Stolen', '', 'roster', 'reg-mb', '[]'::jsonb,
+      v_matchup_id, v_team, 'Stolen', '', 'team', 'reg-mb', '[]'::jsonb,
       '{"version":1,"pokemon":[]}'::jsonb, '', ''
     );
   exception when others then

@@ -2,6 +2,7 @@ export const TEAM_LAB_HANDOFF_KEY = "draftcenter-team-lab-handoff-v1";
 export const TEAM_LAB_MATCHUP_HANDOFF_KEY = "draftcenter-team-lab-matchup-handoff-v1";
 export const TEAM_LAB_LEAGUE_MATCHUP_HANDOFF_KEY = "draftcenter-team-lab-league-matchup-v1";
 export const TEAM_LAB_HANDOFF_VERSION = 1;
+export const TEAM_LAB_ROSTER_LIMIT = 6;
 export const TEAM_LAB_OPPONENT_LIMIT = 10;
 export const TEAM_LAB_OPPONENT_SET_VERSION = 1;
 export const TEAM_LAB_ABILITY_LIMIT = 100;
@@ -105,7 +106,7 @@ export function createTeamLabHandoff(team, source = "personal") {
     leagueName: cleanText(team?.league_name, 120),
     formatName: cleanText(team?.format_name, 100),
     notes: source === "personal" ? cleanText(team?.notes, 20000) : "",
-    pokemon: Array.isArray(team?.pokemon) ? team.pokemon.slice(0, TEAM_LAB_OPPONENT_LIMIT) : [],
+    pokemon: Array.isArray(team?.pokemon) ? team.pokemon.slice(0, TEAM_LAB_ROSTER_LIMIT) : [],
   });
 }
 
@@ -121,7 +122,7 @@ export function parseTeamLabHandoff(raw, catalogNames) {
       leagueName: cleanText(parsed.leagueName, 120),
       formatName: cleanText(parsed.formatName, 100),
       notes: source === "personal" ? cleanText(parsed.notes, 20000) : "",
-      pokemon: normalizeTeamLabRoster(parsed.pokemon, catalogNames),
+      pokemon: normalizeTeamLabRoster(parsed.pokemon, catalogNames, TEAM_LAB_ROSTER_LIMIT),
     };
   } catch {
     return null;

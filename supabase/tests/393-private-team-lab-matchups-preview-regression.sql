@@ -78,7 +78,7 @@ begin
     v_team,
     'Preview Opponent',
     'Synthetic Preview Team',
-    'roster',
+    'team',
     'reg-mb',
     '["Miraidon","Iron Hands"]'::jsonb,
     'Synthetic private notes that must never cross accounts.'

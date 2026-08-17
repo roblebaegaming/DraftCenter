@@ -1102,7 +1102,7 @@ button { cursor: pointer; }
 .draft-lab-hero-actions,.draft-lab-next>div:last-child { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; }
 .draft-lab-builder,.draft-lab-legality,.draft-lab-archetypes,.draft-lab-card,.draft-lab-next { border: 1px solid #303a5e; border-radius: 18px; background: rgba(17,22,43,.96); }
 .draft-lab-builder { position: relative; padding: 24px; }
-.draft-lab-controls { display: grid; grid-template-columns: minmax(180px,.65fr) minmax(260px,.75fr) minmax(220px,.8fr) minmax(260px,1fr); align-items: end; gap: 16px; }
+.draft-lab-controls { display: grid; grid-template-columns: minmax(180px,.65fr) minmax(260px,.75fr) minmax(260px,1fr); align-items: end; gap: 16px; }
 .draft-lab-controls h2,.draft-lab-legality h2,.draft-lab-card h2,.draft-lab-next h2 { margin: 5px 0 7px; }
 .draft-lab-controls label,.draft-lab-search>label { display: grid; gap: 6px; color: #c8d0ec; font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: .06em; }
 .draft-lab-controls select,.draft-lab-search input { width: 100%; min-width: 0; padding: 11px 12px; color: #f2f4ff; border: 1px solid #46517b; border-radius: 9px; background: #090d1d; }
@@ -1131,6 +1131,15 @@ button { cursor: pointer; }
 .draft-lab-type { --type-color:#9aa3bc; display: inline-flex; padding: 4px 7px; color: #fff; border: 1px solid color-mix(in srgb,var(--type-color),white 25%); border-radius: 999px; background: color-mix(in srgb,var(--type-color),#101424 46%); font-size: 9px; font-weight: 900; letter-spacing: .04em; }
 .draft-lab-type.type-normal{--type-color:#8f91a1}.draft-lab-type.type-fire{--type-color:#e96c38}.draft-lab-type.type-water{--type-color:#4d91e8}.draft-lab-type.type-electric{--type-color:#d5a817}.draft-lab-type.type-grass{--type-color:#62ad4d}.draft-lab-type.type-ice{--type-color:#58bdc0}.draft-lab-type.type-fighting{--type-color:#cc4761}.draft-lab-type.type-poison{--type-color:#a85ad0}.draft-lab-type.type-ground{--type-color:#d4774a}.draft-lab-type.type-flying{--type-color:#7b91dd}.draft-lab-type.type-psychic{--type-color:#ef6581}.draft-lab-type.type-bug{--type-color:#91a82c}.draft-lab-type.type-rock{--type-color:#b59a53}.draft-lab-type.type-ghost{--type-color:#626cb1}.draft-lab-type.type-dragon{--type-color:#4776ce}.draft-lab-type.type-dark{--type-color:#5d5465}.draft-lab-type.type-steel{--type-color:#5a96a7}.draft-lab-type.type-fairy{--type-color:#db78bc}
 .draft-lab-empty { margin-top: 22px; padding: 32px; border: 1px dashed #394467; border-radius: 12px; color: #aab4d4; text-align: center; }
+.team-lab-pokepaste-import { margin-top: 18px; border: 1px solid #3b486c; border-radius: 12px; background: #0b1122; }
+.team-lab-pokepaste-import summary { min-height: 44px; padding: 13px 15px; color: #4fd1c5; font-size: 11px; font-weight: 900; text-transform: uppercase; cursor: pointer; }
+.team-lab-pokepaste-body { display: grid; gap: 12px; padding: 0 15px 15px; }
+.team-lab-pokepaste-body p,.team-lab-pokepaste-body small { margin: 0; color: #99a5c6; font-size: 11px; line-height: 1.55; }
+.team-lab-pokepaste-body>label,.team-lab-pokepaste-url label { display: grid; gap: 6px; color: #c8d0ec; font-size: 10px; font-weight: 900; letter-spacing: .05em; text-transform: uppercase; }
+.team-lab-pokepaste-body input,.team-lab-pokepaste-body textarea { width: 100%; min-height: 44px; padding: 10px 11px; color: #f2f4ff; border: 1px solid #46517b; border-radius: 9px; background: #090d1d; font: inherit; text-transform: none; }
+.team-lab-pokepaste-body textarea { min-height: 150px; resize: vertical; line-height: 1.45; }
+.team-lab-pokepaste-url { display: grid; grid-template-columns: minmax(0,1fr) auto auto; align-items: end; gap: 8px; }
+.team-lab-pokepaste-url button,.team-lab-pokepaste-body>button { min-height: 44px; }
 .draft-lab-empty p { margin: 5px 0 0; }
 .draft-lab-legality { display: grid; grid-template-columns: minmax(0,1fr) minmax(340px,.9fr); gap: 25px; margin-top: 16px; padding: 23px; border-left: 4px solid #4fd1c5; }
 .draft-lab-legality.is-invalid { border-left-color: #f0555a; }
@@ -1434,6 +1443,8 @@ button { cursor: pointer; }
 .team-lab-opponent-set-card legend { margin-bottom: 7px; color: #ffd23f; font-size: 9px; font-weight: 900; text-transform: uppercase; }
 .team-lab-opponent-set-card fieldset>div { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 7px; }
 .team-lab-opponent-set-card fieldset label span { color: #7985a8; }
+.team-lab-opponent-set-card fieldset>small { display: block; margin-top: 7px; color: #8995b7; font-size: 9px; line-height: 1.45; }
+.team-lab-legality-warning { margin: 0; color: #ffaaaa; font-size: 11px; line-height: 1.5; }
 .team-lab-battle-reveal-fields { margin-top: 10px; }
 .team-lab-battle-reveal-fields label { display: grid; gap: 5px; color: #bdc7e4; font-size: 9px; font-weight: 900; text-transform: uppercase; }
 .team-lab-battle-scouted-set { display: flex; align-items: center; justify-content: space-between; gap: 9px; margin-top: 10px; padding: 8px 9px; border: 1px dashed #526185; border-radius: 8px; background: #080d1b; }
@@ -1867,6 +1878,10 @@ button.mega-bracket-slot:hover,button.mega-bracket-slot:focus-visible { color: #
   .team-lab-install>div:last-child { justify-items: stretch; min-width: 0; }
   .team-lab-install button { width: 100%; min-height: 44px; }
   .team-lab-install small { max-width: none; text-align: left; }
+}
+@media(max-width:520px) {
+  .team-lab-pokepaste-url { grid-template-columns: 1fr; }
+  .team-lab-pokepaste-url button { width: 100%; }
 }
 @media(max-width:390px) {
   .product-app-brand span { display: none; }

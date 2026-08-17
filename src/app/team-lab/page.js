@@ -49,7 +49,7 @@ export default function TeamLabPage() {
         isAccessibleForFree: true,
         url: "https://www.draftcentral.gg/team-lab",
         description: metadata.description,
-        featureList: ["Six-Pokémon battle teams", "10-Pokémon draft rosters", "Common meta archetype prompts", "Private My Teams workspaces", "Closed- and open-team-sheet Battle Room", "Best-of-1, best-of-3, and best-of-5 plans", "Turn and reveal timeline", "Local crash recovery", "Private Excel and Google Sheets-ready workbook"],
+        featureList: ["Six-Pokémon battle teams", "PokéPaste URL, file, and text import", "Format-aware Pokémon and move suggestions", "Common meta archetype prompts", "Private My Teams workspaces", "Closed- and open-team-sheet Battle Room", "Best-of-1, best-of-3, and best-of-5 plans", "Turn and reveal timeline", "Local crash recovery", "Private Excel and Google Sheets-ready workbook"],
       },
       {
         "@type": "BreadcrumbList",
