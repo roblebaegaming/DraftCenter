@@ -21,7 +21,7 @@
     "test:draft-experience": "node --test test/draft-experience.test.js",
     "test:auction-reconciliation": "node --test test/auction-reconciliation.test.js",
     "draft-lab:build-catalog": "node scripts/build-draft-lab-catalog.mjs",
-    "test:draft-lab": "node scripts/build-draft-lab-catalog.mjs --check && node --test test/team-analysis.test.js",
+    "test:draft-lab": "node scripts/build-draft-lab-catalog.mjs --check && node --test test/team-analysis.test.js test/open-team-sheets.test.js",
     "test:mega-bracket": "node --test test/mega-bracket.test.js",
     "test:team-ownership": "node --test test/team-ownership.test.js",
     "test:draft-board-ux": "node --test test/draft-board-ux.test.js",
