@@ -6,17 +6,15 @@ league lifecycle come before new product areas.
 
 ## Current release sequence
 
-Tournament strengthening, Draft Tournament Swiss, and ordinary-league Swiss
-are complete. Auction Draft Tournaments are the current protected release:
+Tournament strengthening, Draft Tournament Swiss, ordinary-league Swiss, and
+4–32-manager Auction Draft Tournaments are complete through migration 428:
 
-1. Release Auction Draft Tournaments for 4–32 entrants by reusing the proven
-   hosted auction engine without weakening event roster lock or bracket
-   recovery. Validate the full 32-player lifecycle, pool capacity, clocks,
-   reconnect behavior, mobile views, server-side pairing performance, and
-   cleanup in an isolated Preview before release.
-2. Stabilize ordinary-league Swiss and tournament auction workflows through
+1. Stabilize ordinary-league Swiss and tournament auction workflows through
    real commissioner feedback and isolated lifecycle testing.
-3. Freeze broad feature development and return to monitoring, bug fixes,
+2. Complete the already reviewed prediction-publisher, Legends: Z-A, Team
+   Sheet, and organization-communication backlog as separate protected
+   releases.
+3. Return to monitoring, bug fixes,
    live-draft performance, tournament feedback, and external SEO measurement.
 
 ## Next flagship expansion: multi-pod league organizations
