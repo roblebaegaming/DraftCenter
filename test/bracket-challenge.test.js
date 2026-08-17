@@ -11,6 +11,11 @@ import {
   normalizeBracketChallengePublication,
   scoreBracketChallengeEntry,
 } from "../src/lib/bracketChallenge.js";
+import {
+  isPredictionBracketEntryId,
+  predictionBracketEntryPath,
+  predictionBracketEventPath,
+} from "../src/lib/predictionBracketPaths.js";
 
 const occupied = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 15];
 const slots = occupied.map((slot, index) => ({
@@ -188,4 +193,42 @@ test("owner carry-forward preserves archived bracket paths and stays audited", (
   assert.doesNotMatch(publicComponent, /Object\.entries\(entry\.picks\).*join/);
   assert.ok(publicComponent.indexOf("ORIGINAL TOP 16 BRACKET") < publicComponent.indexOf("SAVED TOP 8 CARRYOVER"));
   assert.match(publicComponent, /buildBracketChallengeArchiveResults/);
+});
+
+test("prediction bracket paths keep the known event pretty and future events durable", () => {
+  const entryId = "123e4567-e89b-42d3-a456-426614174000";
+  assert.equal(predictionBracketEventPath("victory-road-san-francisco-2026"), "/worlds/2026/vgc/victory-road-to-san-francisco");
+  assert.equal(predictionBracketEventPath("future-event-2027"), "/tournaments/predictions/future-event-2027");
+  assert.equal(predictionBracketEntryPath("victory-road-san-francisco-2026", entryId), `/worlds/2026/vgc/victory-road-to-san-francisco/entries/${entryId}`);
+  assert.equal(predictionBracketEntryPath("future-event-2027", entryId), `/tournaments/predictions/future-event-2027/entries/${entryId}`);
+  assert.equal(isPredictionBracketEntryId(entryId), true);
+  assert.throws(() => predictionBracketEventPath("../private"), /Invalid prediction bracket event ID/);
+  assert.throws(() => predictionBracketEntryPath("future-event-2027", "not-an-entry"), /Invalid prediction bracket entry ID/);
+});
+
+test("directory and entrant pages use aggregate-only and post-lock bracket RPCs", () => {
+  const migration = source("supabase/migrations/20260817083000_423_prediction_bracket_directory_and_durable_entry_urls.sql");
+  const regression = source("supabase/tests/423-prediction-bracket-directory-preview-regression.sql");
+  const directory = source("src/components/PredictionBracketDirectory.jsx");
+  const entry = source("src/components/PredictionBracketEntry.jsx");
+  const tournamentDirectory = source("src/components/TournamentDirectory.jsx");
+  const prettyRoute = source("src/app/worlds/2026/vgc/victory-road-to-san-francisco/entries/[entryId]/page.js");
+  const genericRoute = source("src/app/tournaments/predictions/[eventId]/entries/[entryId]/page.js");
+
+  assert.match(migration, /add column if not exists public_id uuid/i);
+  assert.match(migration, /create unique index if not exists prediction_bracket_entries_public_id_idx/i);
+  assert.match(migration, /create or replace function public\.get_prediction_bracket_directory\(\)/i);
+  assert.match(migration, /create or replace function public\.get_prediction_bracket_public_entry\(/i);
+  assert.match(migration, /v_effective_status in \('waiting_for_official_bracket', 'scheduled', 'open'\)/i);
+  assert.match(migration, /v_is_locked := v_effective_status in \('locked', 'scoring', 'final'\)/i);
+  assert.doesNotMatch(migration.match(/create or replace function public\.get_prediction_bracket_public_entry[\s\S]+?end;\n\$\$;/i)?.[0] || "", /'user_id'/i);
+  assert.match(regression, /A durable entrant URL exposed picks before lock/i);
+  assert.match(regression, /position\(v_user_id::text in v_public_entry::text\) > 0/i);
+  assert.match(regression, /has_table_privilege\('anon', 'public\.prediction_bracket_entries', 'SELECT'\)/i);
+  assert.match(directory, /get_prediction_bracket_directory/);
+  assert.match(entry, /get_prediction_bracket_public_entry/);
+  assert.match(entry, /PredictionBracketDownload/);
+  assert.match(tournamentDirectory, /<PredictionBracketDirectory \/>/);
+  assert.match(prettyRoute, /PredictionBracketEntry/);
+  assert.match(genericRoute, /predictionBracketEntryPath/);
 });

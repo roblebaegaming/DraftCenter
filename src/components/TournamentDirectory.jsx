@@ -9,6 +9,7 @@ import {
   SINGLE_ELIMINATION_MAX_ENTRANTS,
   tournamentEntrantBounds,
 } from "../lib/tournamentLimits";
+import PredictionBracketDirectory from "./PredictionBracketDirectory";
 
 function formatLabel(format, competitionFormat = null) {
   if (format === "draft-tournament" && competitionFormat === "double-elimination") return "Draft + double elimination";
@@ -124,6 +125,7 @@ export default function TournamentDirectory() {
         <h1>Pokémon tournament organizer</h1>
         <p>Choose single elimination, double elimination, or Swiss, then decide whether everyone brings a team or drafts their rosters together first.</p>
       </header>
+      <PredictionBracketDirectory />
       <div className="tournament-directory-layout">
         <section className="tournament-panel">
           <div className="section-heading"><div><span className="eyebrow">PUBLIC & YOUR EVENTS</span><h2>Tournaments</h2></div></div>

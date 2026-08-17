@@ -12,6 +12,7 @@ import {
   chooseBracketChallengeWinner,
   scoreBracketChallengeEntry,
 } from "../lib/bracketChallenge";
+import { predictionBracketEntryPath } from "../lib/predictionBracketPaths";
 
 function localTime(value) {
   if (!value) return "To be announced";
@@ -22,7 +23,7 @@ function localTime(value) {
 
 function statusCopy(status) {
   return ({
-    waiting_for_official_bracket: ["Waiting for the official bracket", "The challenge is ready. We will add the real players and pairings after Victory Road publishes them."],
+    waiting_for_official_bracket: ["Waiting for the official bracket", "The challenge is ready. We will add the real players and pairings after the organizer publishes them."],
     scheduled: ["The bracket is ready", "The official field is loaded. Predictions open at the time shown below."],
     open: ["Bracket predictions are open", "Pick a winner in every played matchup, then save before entries lock."],
     locked: ["Predictions are locked", "Everyone's saved brackets are public now. Points start as official results are recorded."],
@@ -31,7 +32,7 @@ function statusCopy(status) {
   })[status] || ["Waiting for the bracket", "Predictions are not open yet."];
 }
 
-function BracketRounds({ rounds, roundPoints, choices, resultNames = {}, open = false, onChoose }) {
+export function BracketRounds({ rounds, roundPoints, choices, resultNames = {}, open = false, onChoose }) {
   return <div className="worlds-bracket-rounds" style={{ "--worlds-bracket-rounds": rounds.length }}>{rounds.map((round, roundIndex) => <section key={roundIndex} aria-label={`Round ${roundIndex + 1}`}>
     <header><span>Round {roundIndex + 1}</span><strong>{roundPoints[String(roundIndex + 1)]} pts each</strong></header>
     <div>{round.map((match) => <article key={match.key} className={match.result ? "has-result" : ""}>
@@ -44,6 +45,10 @@ function BracketRounds({ rounds, roundPoints, choices, resultNames = {}, open = 
 
 function bracketEntrySignature(entry) {
   return entry?.picks ? `${entry.display_name}\n${JSON.stringify(entry.picks)}` : "";
+}
+
+function bracketStatusIsPublic(status) {
+  return ["locked", "scoring", "final"].includes(status);
 }
 
 function BracketLeaderboard({
@@ -73,6 +78,9 @@ function BracketLeaderboard({
     results,
     roundPoints,
   }) : 0;
+  const selectedEntryPath = viewedEntry?.entry_id && bracketStatusIsPublic(eventStatus)
+    ? predictionBracketEntryPath(eventId, viewedEntry.entry_id)
+    : null;
   const resultNames = useMemo(() => Object.fromEntries(slots.map((slot) => [slot.competitor_id, slot.display_name])), [slots]);
 
   useEffect(() => {
@@ -85,7 +93,7 @@ function BracketLeaderboard({
   return <section className="worlds-bracket-leaderboard" aria-labelledby="bracket-leaderboard-heading">
     <header><div><span className="eyebrow">{label}</span><h2 id="bracket-leaderboard-heading">{entryCount || 0} brackets</h2><p>Once entries lock, select any Trainer to see every pick in their bracket.</p></div><p>Maximum score: <strong>{maximumScore} points</strong></p></header>
     {viewedEntry && <section className="worlds-entry-bracket-view" id="leaderboard-entry-bracket" tabIndex="-1" aria-labelledby="leaderboard-entry-heading">
-      <header><div><span className="eyebrow">ENTRY BRACKET · LEADERBOARD #{viewedEntry.rank}</span><h3 id="leaderboard-entry-heading">{viewedEntry.display_name}&rsquo;s bracket</h3><p>{selectedScore} of {maximumScore} points · {Object.keys(viewedEntry.picks).length} saved picks</p></div><div className="worlds-entry-bracket-actions"><PredictionBracketDownload bracket={{ eventId, title: eventTitle, bracketLabel: `Leaderboard #${viewedEntry.rank}`, displayName: viewedEntry.display_name, rounds: selectedRounds, roundPoints, choices: viewedEntry.picks, resultNames, score: selectedScore, maximumScore, status: eventStatus }} /><button type="button" className="quiet-button" onClick={() => setSelectedEntry(null)}>Close bracket</button></div></header>
+      <header><div><span className="eyebrow">ENTRY BRACKET · LEADERBOARD #{viewedEntry.rank}</span><h3 id="leaderboard-entry-heading">{viewedEntry.display_name}&rsquo;s bracket</h3><p>{selectedScore} of {maximumScore} points · {Object.keys(viewedEntry.picks).length} saved picks</p></div><div className="worlds-entry-bracket-actions"><PredictionBracketDownload bracket={{ eventId, title: eventTitle, bracketLabel: `Leaderboard #${viewedEntry.rank}`, displayName: viewedEntry.display_name, rounds: selectedRounds, roundPoints, choices: viewedEntry.picks, resultNames, score: selectedScore, maximumScore, status: eventStatus }} />{selectedEntryPath && <Link className="quiet-button inline-link-button" href={selectedEntryPath}>Open permanent page</Link>}<button type="button" className="quiet-button" onClick={() => setSelectedEntry(null)}>Close bracket</button></div></header>
       <div className="worlds-bracket-legend" aria-label="Bracket color key"><span><i className="is-pick" />Yellow: saved pick</span><span><i className="is-winner" />Aqua outline: official winner</span></div>
       <BracketRounds rounds={selectedRounds} roundPoints={roundPoints} choices={viewedEntry.picks} resultNames={resultNames} />
     </section>}
@@ -94,7 +102,7 @@ function BracketLeaderboard({
       const isSelected = canView && selectedSignature === bracketEntrySignature(entry);
       return <button
         type="button"
-        key={`${entry.display_name}-${index}`}
+        key={entry.entry_id || `${entry.display_name}-${index}`}
         className={`${entry.is_me ? "is-me" : ""}${isSelected ? " is-selected" : ""}`}
         disabled={!canView}
         aria-expanded={isSelected}
@@ -175,6 +183,11 @@ export default function BracketChallenge({ eventId, infoUrl }) {
   const archiveScore = archive ? scoreBracketChallengeEntry({ choices: archive.picks, results: archiveResults, roundPoints: archive.round_points }) : 0;
   const archiveResultNames = useMemo(() => Object.fromEntries((archive?.slots || []).map((slot) => [`slot-${Number(slot.slot_number ?? slot.slot)}`, slot.display_name])), [archive]);
   const [statusTitle, statusDetail] = statusCopy(event.status);
+  const eventInfoUrl = event.official_info_url || infoUrl;
+  const eventTitle = event.display_name ? `${event.display_name} bracket challenge` : "Tournament bracket challenge";
+  const myEntryPath = hub?.my_entry?.entry_id && bracketStatusIsPublic(event.status)
+    ? predictionBracketEntryPath(eventId, hub.my_entry.entry_id)
+    : null;
 
   function choose(round, match, winnerId) {
     if (!open) return;
@@ -200,10 +213,10 @@ export default function BracketChallenge({ eventId, infoUrl }) {
   return <main className="worlds-shell worlds-bracket-shell">
     <section className="worlds-hero worlds-top-cut-hero">
       <div>
-        <span className="eyebrow">VGC · FULL BRACKET CHALLENGE</span>
-        <h1>Victory Road to San Francisco bracket challenge</h1>
+        <span className="eyebrow">FULL TOURNAMENT BRACKET CHALLENGE</span>
+        <h1>{eventTitle}</h1>
         <p>Choose each matchup winner and build your own path to the champion. Correct picks earn more points in each later round.</p>
-        <div className="worlds-hero-actions"><Link className="primary-button inline-link-button" href="#prediction-bracket">{event.status === "open" ? "Build my bracket" : "See bracket status"}</Link><Link className="quiet-button" href="/worlds/2026/vgc">VGC predictions</Link></div>
+        <div className="worlds-hero-actions"><Link className="primary-button inline-link-button" href="#prediction-bracket">{event.status === "open" ? "Build my bracket" : "See bracket status"}</Link><Link className="quiet-button" href="/tournaments">Tournament directory</Link></div>
       </div>
       <aside className={`worlds-event-card worlds-top-cut-status is-${event.status}`}>
         <span>CHALLENGE STATUS</span><strong>{statusTitle}</strong><p>{statusDetail}</p>
@@ -213,8 +226,8 @@ export default function BracketChallenge({ eventId, infoUrl }) {
 
     {!event.revision ? <section className="worlds-bracket-waiting" id="prediction-bracket">
       <span className="eyebrow">READY FOR THE OFFICIAL PAIRINGS</span><h2>The bracket challenge will open as soon as the elimination bracket is official.</h2>
-      <p>The linked page is still the Phase 1 Swiss event, so no players, seeds, or matchups are being guessed. Once Victory Road publishes the Phase 2 elimination bracket, it can be loaded here without another app release.</p>
-      <a className="quiet-button" href={infoUrl} target="_blank" rel="noreferrer">Victory Road event information ↗</a>
+      <p>No players, seeds, or matchups are guessed. Once the organizer publishes the official elimination bracket, it can be loaded here without another app release.</p>
+      {eventInfoUrl && <a className="quiet-button" href={eventInfoUrl} target="_blank" rel="noreferrer">Official event information ↗</a>}
     </section> : <>
       <section className="worlds-bracket-source-bar"><div><span className="eyebrow">REVIEWED OFFICIAL BRACKET</span><strong>{event.field_size} players · revision {event.revision}</strong><small>Source checked {localTime(event.source_checked_at)}</small></div><a href={event.official_bracket_url} target="_blank" rel="noreferrer">View official bracket ↗</a></section>
       {archive && <section className="worlds-public-bracket worlds-bracket-archive" id="prediction-bracket" aria-labelledby="archived-bracket-heading">
@@ -228,7 +241,7 @@ export default function BracketChallenge({ eventId, infoUrl }) {
         {archive && <div className="worlds-bracket-legend" aria-label="Bracket color key"><span><i className="is-pick" />Yellow: saved pick</span><span><i className="is-winner" />Aqua outline: official winner</span></div>}
         {user === undefined || loading ? <p className="worlds-empty-state">Checking your DraftCenter account…</p> : !user ? <div className="worlds-account-gate"><div aria-hidden="true" className="worlds-account-lock">🔒</div><h3>Sign in to save a bracket.</h3><p>The official field is public. A free DraftCenter account is required to save, and everyone else's choices stay private until entries lock.</p><a className="secondary-button" href="/#member-access">Sign in or create an account</a></div> : <>
           <BracketRounds rounds={rounds} roundPoints={event.round_points} choices={choices} resultNames={resultNames} open={open} onChoose={choose} />
-          <div className="worlds-save-row"><div>{event.status === "open" ? <p>{hub.my_entry ? `Saved as ${hub.my_entry.display_name}. Edits close ${localTime(event.locks_at)}.` : "Complete every played matchup, then save one bracket."}</p> : <p>Entries are locked. {hub.my_entry ? `Your score is ${hub.my_entry.score} of ${maximumScore} possible points.` : "No bracket was saved for this account."}</p>}{message && <p className="worlds-message" role="status">{message}</p>}</div><div className="worlds-bracket-save-actions"><PredictionBracketDownload disabled={!complete} label="Download my bracket" bracket={{ eventId, title: event.display_name, bracketLabel: "My bracket", displayName: hub.my_entry?.display_name || user.user_metadata?.display_name || "Trainer", rounds, roundPoints: event.round_points, choices, resultNames, score: hub.my_entry?.score, maximumScore, status: event.status }} /><button className="primary-button" disabled={!open || busy || !complete} onClick={save}>{busy ? "Saving…" : hub.my_entry ? "Update bracket" : "Save bracket"}</button></div></div>
+          <div className="worlds-save-row"><div>{event.status === "open" ? <p>{hub.my_entry ? `Saved as ${hub.my_entry.display_name}. Edits close ${localTime(event.locks_at)}.` : "Complete every played matchup, then save one bracket."}</p> : <p>Entries are locked. {hub.my_entry ? `Your score is ${hub.my_entry.score} of ${maximumScore} possible points.` : "No bracket was saved for this account."}</p>}{message && <p className="worlds-message" role="status">{message}</p>}</div><div className="worlds-bracket-save-actions"><PredictionBracketDownload disabled={!complete} label="Download my bracket" bracket={{ eventId, title: event.display_name, bracketLabel: "My bracket", displayName: hub.my_entry?.display_name || user.user_metadata?.display_name || "Trainer", rounds, roundPoints: event.round_points, choices, resultNames, score: hub.my_entry?.score, maximumScore, status: event.status }} />{myEntryPath && <Link className="quiet-button inline-link-button" href={myEntryPath}>My permanent page</Link>}<button className="primary-button" disabled={!open || busy || !complete} onClick={save}>{busy ? "Saving…" : hub.my_entry ? "Update bracket" : "Save bracket"}</button></div></div>
         </>}
       </section>
       <BracketLeaderboard
@@ -237,7 +250,7 @@ export default function BracketChallenge({ eventId, infoUrl }) {
         eventId={eventId}
         eventStatus={event.status}
         eventTitle={event.display_name}
-        label={archive ? "TOP 8 CARRYOVER LEADERBOARD" : "TOP 8 LEADERBOARD"}
+        label={archive ? "TOP 8 CARRYOVER LEADERBOARD" : "BRACKET LEADERBOARD"}
         maximumScore={maximumScore}
         results={hub.results || []}
         roundPoints={event.round_points}
