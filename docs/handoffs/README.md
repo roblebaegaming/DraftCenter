@@ -1,5 +1,13 @@
 # Agent handoffs
 
+[`DraftCenter-agent-handoff-2026-08-16-publisher-za-release-next-steps.md`](DraftCenter-agent-handoff-2026-08-16-publisher-za-release-next-steps.md)
+is the current consolidated release handoff for the pending Live Predictions
+publisher, public Bracket Studio, Legends: Z-A Pokédex, and Z-A encounter audit
+stack. It records the three-PR order, exact isolated-Preview database state,
+remaining migration-412 and hosted-owner-review gates, required validation,
+Production authorization boundaries, and safe release sequence. Read it before
+continuing any of these open pull requests.
+
 [`DraftCenter-agent-handoff-2026-08-16-prediction-event-publisher.md`](DraftCenter-agent-handoff-2026-08-16-prediction-event-publisher.md)
 is the current pending implementation handoff for the reusable internal Live
 Predictions publisher. It records the isolated branch, permanent per-event
