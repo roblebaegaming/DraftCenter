@@ -2,8 +2,8 @@
 
 “Draft teams first” is a roster-building setting, not a tournament format. A
 commissioner chooses single elimination, double elimination, or Swiss. The
-elimination formats can use brought teams or one shared snake draft; Swiss
-currently uses the shared draft:
+elimination formats can use brought teams or one shared snake or auction
+draft; Swiss uses a shared draft:
 
 ```text
 Registration -> check-in -> one shared draft -> roster lock
@@ -17,11 +17,11 @@ is no automatic conversion of historical events.
 
 ## Product contract
 
-- 4–16 registered entrants for every shared-draft event, with no waitlist or
-  late entry after field lock.
+- 4–16 registered entrants for snake events or 4–32 for auction events, with
+  no waitlist or late entry after field lock.
 - Explicit check-in; unchecked entrants become recorded no-shows.
-- Snake draft only, using the final registration seed as the fixed first-round
-  draft order.
+- Snake uses the final registration seed as its fixed first-round order.
+  Auction uses the same immutable seat identities as its nomination order.
 - 4–12 Pokémon per roster, default 6.
 - Optional 60–1,000 point snake budget and a 0–1,440 minute pick clock.
 - Existing private queues, server clock, pause/resume, and auto-pick behavior.
@@ -35,28 +35,26 @@ is no automatic conversion of historical events.
   review. Cancellation removes the private draft room. Roster lock closes the
   cancellation boundary.
 
-The released snake-only shared draft currently has a maximum of **16 entrants**.
-Raising standalone bracket limits does not by itself raise that shared-draft
-boundary. Do not expand this infrastructure beyond 16 teams until the complete
-auction-specific 32-player lifecycle below has passed its Preview matrix. Until
-then, larger events should draft and play inside their pods before advancing to
-a connected championship. Pod qualifiers advance to an elimination stage under
-the existing connected-event model.
+The snake path remains capped at **16 entrants**. Auction is a separate adapter
+over the expanded hosted-auction engine and supports **4–32 entrants** without
+raising or rewriting the proven snake limit. Larger snake events should still
+draft and play inside pods before advancing qualifiers to a connected
+championship.
 
-## Planned auction expansion
+## Auction release contract
 
 Auction Draft Tournaments must support **4–32 entrants** in one shared expanded
 auction room, matching the proven 32-team capacity available to explicitly
-expanded leagues. This is a release requirement for tournament auction mode,
-not a claim about the current snake-only interface.
+expanded leagues. Migration 428 implements this as a distinct creation,
+field-lock, snapshot-validation, phase-sync, and roster-materialization path.
 
 The expansion must preserve server-authoritative budgets, nominations,
 pause/resume, reconnect recovery, immutable tournament seats, atomic roster
 lock, and the selected competition handoff. A 17–32 entrant Swiss event uses
 five recommended rounds. The 32-player Preview matrix must cover pool capacity,
 the complete auction-to-roster-lock transition, Swiss pairing performance,
-elimination bracket creation, mobile paging, and cleanup before the public
-limit changes. No partial release may advertise 32 entrants while any creation,
+elimination bracket creation, mobile paging, and cleanup before release. No
+partial deployment may advertise 32 entrants while any auction creation,
 draft, pairing, or bracket path still enforces 16.
 
 ## Architecture
@@ -88,9 +86,11 @@ relational `roster_entries` are guarded after atomic roster lock.
 
 ## Tournament-play handoff
 
-At roster lock, the server verifies that the hosted snake draft is complete
-and that every active seat has exactly the required roster size. It writes the
-roster snapshots and hashes in the same transaction that creates the bracket.
+At roster lock, the server verifies that the hosted snake or auction draft is
+complete and that every active seat has exactly the required roster size. For
+auction it materializes relational teams and roster entries from the guarded
+snapshot, then writes seat snapshots and hashes in the same transaction that
+creates the bracket.
 
 The adapter invokes the existing authoritative single- or double-elimination
 builder. That preserves seeded placement, automatic bye propagation, winners
@@ -110,18 +110,19 @@ and recalculates the published standings after confirmed results.
 
 ## Swiss contract
 
-`competition_format = 'swiss'` events use three rounds for 4–8 entrants or four
-for 9–16. New Swiss events created through the simplified format control have
-no top cut by default; historical events may retain their optional Top 2, 4, or
-8. Standings, correction rollback, and completion rules are unchanged by
-migration 385.
+`competition_format = 'swiss'` events use three rounds for 4–8 entrants, four
+for 9–16, or five for 17–32 auction entrants. New Swiss events created through
+the simplified format control have no top cut by default; historical events
+may retain their optional Top 2, 4, or 8. Standings, correction rollback, and
+completion rules are unchanged.
 
 ## Validation boundary
 
-Migration 385 is forward only. Its Preview regression uses disposable
+Migrations 385 and 428 are forward only. Their Preview regressions use disposable
 identities and events inside a transaction that rolls back. It checks the RPC
 grant boundary, an eight-manager double-elimination graph, a four-manager
 single-elimination graph, Swiss creation through the new control, directory
-projection, completion propagation, and fixture cleanup. A real league, draft,
-roster, tournament, or provider setting must never be changed merely to test
-this lifecycle.
+projection, completion propagation, a complete 32-seat auction-to-roster-lock
+handoff, 16-pair Swiss creation, a 63-row double-elimination graph, and fixture
+cleanup. A real league, draft, roster, tournament, or provider setting must
+never be changed merely to test this lifecycle.

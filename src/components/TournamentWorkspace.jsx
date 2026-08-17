@@ -6,6 +6,7 @@ import { tournamentError } from "../lib/tournamentErrors";
 
 const MATCH_PAGE_SIZE = 64;
 const ENTRANT_PAGE_SIZE = 64;
+const AUCTION_TOURNAMENT_ENTRANT_PAGE_SIZE = 16;
 
 const statusLabel = (status) => status.replaceAll("-", " ");
 const formatLabel = (format, competitionFormat = null) => format === "draft-tournament"
@@ -443,9 +444,12 @@ export default function TournamentWorkspace({ slug }) {
     if (!query) return workspace?.entrants || [];
     return (workspace?.entrants || []).filter((entrant) => entrant.display_name.toLocaleLowerCase().includes(query));
   }, [entrantQuery, workspace]);
-  const entrantPageCount = Math.max(1, Math.ceil(filteredEntrants.length / ENTRANT_PAGE_SIZE));
+  const entrantPageSize = workspace?.draft_tournament?.event?.draft_type === "auction"
+    ? AUCTION_TOURNAMENT_ENTRANT_PAGE_SIZE
+    : ENTRANT_PAGE_SIZE;
+  const entrantPageCount = Math.max(1, Math.ceil(filteredEntrants.length / entrantPageSize));
   const visibleEntrantPage = Math.min(entrantPage, entrantPageCount);
-  const visibleEntrants = filteredEntrants.slice((visibleEntrantPage - 1) * ENTRANT_PAGE_SIZE, visibleEntrantPage * ENTRANT_PAGE_SIZE);
+  const visibleEntrants = filteredEntrants.slice((visibleEntrantPage - 1) * entrantPageSize, visibleEntrantPage * entrantPageSize);
   const rounds = useMemo(() => {
     if (workspace?.rounds) {
       const finalRounds = new Map();
@@ -610,13 +614,14 @@ export default function TournamentWorkspace({ slug }) {
   }
 
   function requestLockDraftField() {
+    const isAuction = workspace.draft_tournament?.event?.draft_type === "auction";
     setConfirmation({
       title: "Lock the checked-in field?",
-      description: "Unchecked entrants become recorded no-shows, late entry closes, and DraftCenter creates the private shared draft room with exact account ownership.",
+      description: `Unchecked entrants become recorded no-shows, late entry closes, and DraftCenter creates the private shared ${isAuction ? "auction" : "snake"} room with exact account ownership.`,
       confirmLabel: "Lock field",
       workingLabel: "Creating draft room...",
       tone: "danger",
-      onConfirm: () => runDraftTournamentAction("lock_draft_tournament_field", {
+      onConfirm: () => runDraftTournamentAction(isAuction ? "lock_auction_draft_tournament_field" : "lock_draft_tournament_field", {
         p_tournament_id: workspace.tournament.id,
         p_expected_revision: workspace.draft_tournament.event.revision,
       }),
@@ -934,6 +939,7 @@ export default function TournamentWorkspace({ slug }) {
   const draftTournament = workspace.draft_tournament;
   const draftEvent = draftTournament?.event || null;
   const competitionFormat = draftEvent?.competition_format || null;
+  const tournamentDraftType = draftEvent?.draft_type || "snake";
   const displayFormat = formatLabel(tournament.format, competitionFormat);
   const usesDraftFirstBracket = ["single-elimination", "double-elimination"].includes(competitionFormat);
   const currentDraftRound = draftTournament?.rounds?.find((round) => round.round_number === draftEvent?.current_swiss_round) || null;
@@ -952,7 +958,7 @@ export default function TournamentWorkspace({ slug }) {
         <div>
           <span>Best of {tournament.best_of}</span>
           <span>{registeredEntrants.length} / {tournament.entrant_limit} active entrants</span>
-          {draftEvent && <span>{draftEvent.roster_size} Pokemon &middot; {draftEvent.pick_time_limit_minutes ? `${draftEvent.pick_time_limit_minutes} min/pick` : "No pick clock"} &middot; {usesDraftFirstBracket ? `${formatLabel(competitionFormat)} bracket` : draftEvent.swiss_round_count ? `${draftEvent.swiss_round_count} Swiss rounds` : "Swiss rounds set at field lock"}</span>}
+          {draftEvent && <span>{draftEvent.roster_size} Pokemon &middot; {tournamentDraftType === "auction" ? `${draftEvent.draft_budget} budget · ${draftEvent.auction_timer_seconds}s opening bid` : draftEvent.pick_time_limit_minutes ? `${draftEvent.pick_time_limit_minutes} min/pick` : "No pick clock"} &middot; {usesDraftFirstBracket ? `${formatLabel(competitionFormat)} bracket` : draftEvent.swiss_round_count ? `${draftEvent.swiss_round_count} Swiss rounds` : "Swiss rounds set at field lock"}</span>}
           {tournament.is_owner && tournament.visibility === "private" && tournament.status === "registration" && (
             <button type="button" className="quiet-button" disabled={busy} onClick={copyInvite}>{inviteCode ? "Copy private registration link" : "Create private registration link"}</button>
           )}
@@ -1031,7 +1037,7 @@ export default function TournamentWorkspace({ slug }) {
               <button className="secondary-button" disabled={busy}>Register</button>
             </form>
           ) : <p className="muted">Sign in from the DraftCenter home page to register.</p>)}
-          {workspace.entrants.length > ENTRANT_PAGE_SIZE && (
+          {workspace.entrants.length > entrantPageSize && (
             <div className="tournament-list-toolbar">
               <label>Find entrant
                 <input
@@ -1083,7 +1089,7 @@ export default function TournamentWorkspace({ slug }) {
           {draftTournament?.draft_room?.slug && ["draft-setup", "drafting", "roster-review"].includes(draftEvent.phase) && (
             <div className="tournament-draft-room-callout">
               <div>
-                <strong>{draftEvent.phase === "draft-setup" ? "The shared draft room is ready" : draftEvent.phase === "drafting" ? "The shared draft is live" : "Review the completed rosters"}</strong>
+                <strong>{draftEvent.phase === "draft-setup" ? `The shared ${tournamentDraftType} room is ready` : draftEvent.phase === "drafting" ? `The shared ${tournamentDraftType} draft is live` : "Review the completed rosters"}</strong>
                 <p className="muted">The room is restricted to the event owner and checked-in entrants. Team control is bound to exact account IDs.</p>
               </div>
               <a className="primary-button inline-link-button" href={`/?league=${encodeURIComponent(draftTournament.draft_room.slug)}`}>Open draft room</a>

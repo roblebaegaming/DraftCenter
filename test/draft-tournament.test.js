@@ -3,13 +3,16 @@ import fs from "node:fs";
 import test from "node:test";
 import {
   DRAFT_TOURNAMENT_FORMAT,
+  DRAFT_TOURNAMENT_DRAFT_TYPES,
   DRAFT_FIRST_COMPETITION_FORMATS,
+  auctionDraftTournamentCreateRpcArguments,
   draftTournamentCheckInArguments,
   draftTournamentCreateRpcArguments,
   draftFirstTournamentCreateRpcArguments,
   draftTournamentRevisionArguments,
   draftTournamentTopCutSeeds,
   normalizeDraftTournamentSettings,
+  normalizeAuctionDraftTournamentSettings,
   pairDraftTournamentSwissRound,
   rankDraftTournamentStandings,
 } from "../src/lib/draftTournament.js";
@@ -36,14 +39,50 @@ test("Draft Tournament creation settings are bounded for the first release", () 
   assert.throws(() => normalizeDraftTournamentSettings({ name: "Cup", bestOf: 2 }), /best of 1 or best of 3/);
 });
 
-test("planned auction Draft Tournaments retain the 32-entrant release requirement", () => {
+test("auction Draft Tournament creation is independently bounded from 4 to 32 entrants", () => {
+  assert.deepEqual(DRAFT_TOURNAMENT_DRAFT_TYPES, ["snake", "auction"]);
+  const settings = normalizeAuctionDraftTournamentSettings({
+    name: "Creator Auction Cup",
+    format: "swiss",
+    entrantLimit: 32,
+    rosterSize: 6,
+    draftBudget: 180,
+    auctionNominationSeconds: 45,
+    auctionTimerSeconds: 30,
+    auctionBidResetSeconds: 8,
+  });
+  assert.equal(settings.entrantLimit, 32);
+  assert.equal(settings.competitionFormat, "swiss");
+  assert.equal(settings.draftBudget, 180);
+  assert.throws(() => normalizeAuctionDraftTournamentSettings({ name: "Cup", format: "swiss", entrantLimit: 33 }), /between 4 and 32/);
+  assert.throws(() => normalizeAuctionDraftTournamentSettings({ name: "Cup", format: "round-robin" }), /single elimination, double elimination, or Swiss/);
+
+  assert.deepEqual(auctionDraftTournamentCreateRpcArguments({
+    name: "Private 32",
+    format: "double-elimination",
+    visibility: "private",
+    entrantLimit: 32,
+    publishRosters: true,
+  }), {
+    p_name: "Private 32",
+    p_description: "",
+    p_visibility: "private",
+    p_best_of: 3,
+    p_entrant_limit: 32,
+    p_rules: "",
+    p_roster_size: 6,
+    p_draft_budget: 120,
+    p_auction_nomination_seconds: 30,
+    p_auction_timer_seconds: 30,
+    p_auction_bid_reset_seconds: 10,
+    p_publish_rosters: false,
+    p_competition_format: "double-elimination",
+  });
+
   const concept = fs.readFileSync(new URL("../docs/draft-tournament-concept.md", import.meta.url), "utf8");
-  const roadmap = fs.readFileSync(new URL("../docs/product-roadmap.md", import.meta.url), "utf8");
   assert.match(concept, /Auction Draft Tournaments must support \*\*4–32 entrants\*\*/);
   assert.match(concept, /17–32 entrant Swiss event uses[\s\S]*five recommended rounds/);
   assert.match(concept, /complete auction-to-roster-lock transition/);
-  assert.match(roadmap, /Auction Draft Tournaments must support 4–32 entrants/);
-  assert.match(roadmap, /full 32-player lifecycle/);
 });
 
 test("private events never request public roster publication", () => {
@@ -193,6 +232,21 @@ test("Swiss pairing minimizes rematches before keeping entrants in the closest s
   ]);
 });
 
+test("Swiss pairing covers a 32-player auction field without duplicates", () => {
+  const standings = Array.from({ length: 32 }, (_, index) => ({
+    entrantId: `entrant-${index + 1}`,
+    rank: index + 1,
+    matchWins: 0,
+    status: "active",
+  }));
+  const startedAt = performance.now();
+  const round = pairDraftTournamentSwissRound({ standings, priorMatches: [] });
+  assert.equal(round.pairings.length, 16);
+  assert.equal(round.bye, null);
+  assert.equal(new Set(round.pairings.flatMap((pairing) => [pairing.entrantAId, pairing.entrantBId])).size, 32);
+  assert.ok(performance.now() - startedAt < 1000);
+});
+
 test("top cut preserves final Swiss rank as seed", () => {
   const seeds = draftTournamentTopCutSeeds([
     { entrantId: "winner", status: "active" },
@@ -252,6 +306,33 @@ test("migration keeps Draft Tournament state private and server-authoritative", 
   assert.doesNotMatch(sql, /grant (insert|update|delete|all)[^;]+to authenticated/i);
 });
 
+test("migration 428 adds a separate server-authoritative 4-32 auction lifecycle", () => {
+  const sql = fs.readFileSync(
+    new URL("../supabase/migrations/20260817233000_428_auction_draft_tournaments.sql", import.meta.url),
+    "utf8",
+  );
+  for (const evidence of [
+    "create_auction_draft_first_tournament",
+    "lock_auction_draft_tournament_field",
+    "guard_auction_draft_tournament_snapshot",
+    "guard_draft_tournament_snapshot",
+    "guard_draft_tournament_league_settings",
+    "sync_auction_draft_tournament_phase",
+    "materialize_auction_draft_tournament_rosters",
+  ]) assert.match(sql, new RegExp(evidence));
+  assert.match(sql, /p_entrant_limit not between 4 and 32/i);
+  assert.match(sql, /format = 'draft-tournament' and entrant_limit between 4 and 32/i);
+  assert.match(sql, /if not found or v_event\.draft_type = 'auction' then return new/i);
+  assert.match(sql, /leagueScaleMode', 'expanded'/i);
+  assert.match(sql, /insert into public\.auction_team_owners[\s\S]*seat\.user_id/i);
+  assert.match(sql, /jsonb_array_length\(new\.state -> 'pool'\) < v_team_count \* v_event\.roster_size/i);
+  assert.match(sql, /Every checked-in entrant must have exactly % auctioned Pokemon before roster lock/i);
+  assert.match(sql, /perform public\.create_draft_tournament_swiss_round\(v_event\.id, 1, auth\.uid\(\)\)/i);
+  assert.match(sql, /perform public\.lock_double_elimination_tournament/i);
+  assert.match(sql, /grant execute on function public\.create_auction_draft_first_tournament[\s\S]*to authenticated/i);
+  assert.match(sql, /revoke all on function public\.materialize_auction_draft_tournament_rosters[\s\S]*from public, anon, authenticated, service_role/i);
+});
+
 test("isolated Preview matrix covers 8-manager draft-first double elimination", () => {
   const matrix = fs.readFileSync(
     new URL("../supabase/tests/385-draft-first-elimination-preview-regression.sql", import.meta.url),
@@ -302,12 +383,18 @@ test("Tournament UI exposes the Draft Tournament lifecycle without leaking its i
   assert.match(directory, /Draft teams first/);
   assert.match(directory, /Swiss currently uses the shared draft/);
   assert.match(directory, /create_draft_first_tournament/);
+  assert.match(directory, /create_auction_draft_first_tournament/);
+  assert.match(directory, /Auction draft — 4–32 managers/);
   assert.match(workspace, /Open check-in/);
   assert.match(workspace, /Lock rosters & build bracket/);
   assert.match(workspace, /draftEvent\.phase === "bracket"/);
   assert.match(workspace, /cancel_draft_tournament/);
+  assert.match(workspace, /lock_auction_draft_tournament_field/);
+  assert.match(workspace, /AUCTION_TOURNAMENT_ENTRANT_PAGE_SIZE = 16/);
+  assert.match(workspace, /draft_type === "auction"[\s\S]*AUCTION_TOURNAMENT_ENTRANT_PAGE_SIZE/);
   assert.match(workspace, /opponent_match_win_percentage/);
   assert.match(draftRoom, /DRAFT TOURNAMENT ROOM/);
+  assert.match(draftRoom, /draft style, roster size, budget, and clocks are fixed by the event/);
   assert.match(draftRoom, /isDraftTournamentMode \? \[/);
   assert.match(leagueHub, /workspace_kind !== "draft-tournament"/);
 });

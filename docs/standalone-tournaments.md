@@ -138,11 +138,11 @@ current independently reviewed format release. Commissioner forfeits, drops,
 disqualifications, and safe pre-play entrant replacement are already live;
 never simulate them with direct bracket-table edits.
 
-Draft Tournament is also a separate product boundary. Its shared-draft
-workflow remains capped at 16 entrants because all teams draft from one limited
-Pokémon pool. Do not scale that infrastructure by raising its cap. A future
-larger draft-based competition would use separate draft-and-play pods whose
-qualifiers feed an elimination stage.
+Draft Tournament is also a separate product boundary. Its shared snake-draft
+workflow remains capped at 16 entrants. Auction events use a separately guarded
+expanded room for 4–32 entrants, with pool-capacity validation and an atomic
+handoff into Swiss or elimination play. Larger snake-based competitions still
+use separate draft-and-play pods whose qualifiers feed an elimination stage.
 
 ## Capacity validation
 

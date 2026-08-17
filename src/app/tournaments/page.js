@@ -4,7 +4,7 @@ import {
   SINGLE_ELIMINATION_MAX_ENTRANTS,
 } from "../../lib/tournamentLimits";
 
-const description = `Run Pokémon tournaments with up to ${SINGLE_ELIMINATION_MAX_ENTRANTS} entrants in single elimination or ${DOUBLE_ELIMINATION_MAX_ENTRANTS} in double elimination, or host a 4–16 manager shared draft before Swiss or elimination play.`;
+const description = `Run Pokémon tournaments with up to ${SINGLE_ELIMINATION_MAX_ENTRANTS} entrants in single elimination or ${DOUBLE_ELIMINATION_MAX_ENTRANTS} in double elimination, or host a 4–16 manager snake draft or 4–32 manager auction before Swiss or elimination play.`;
 
 export const metadata = {
   title: "Pokémon Tournament Organizer & Draft Events",
