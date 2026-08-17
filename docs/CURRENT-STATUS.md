@@ -3,7 +3,7 @@
 - Last updated: August 17, 2026 Pacific
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified Production application commit: `6ea856e876bd5d6d8ca6185fc33c4f9e962c4703`
+- Verified Production application commit: `197b62dca07a681f9d25739d8cd7e37374cbec5e`
 - Latest applied Production migration: 424
 
 ## Deployed state
@@ -14,6 +14,15 @@ Production. They released the permanent prediction-tournament directory and
 durable post-lock entrant-bracket URLs, the six-Pokémon Team Lab workflow with
 PokéPaste imports and regulation-aware closed team sheets, complete Spanish
 Worlds localization, and the permanent Pokédex Tracker catalog-quality gate.
+
+Pull request [#286](https://github.com/roblebaegaming/DraftCenter/pull/286)
+released the phone-first Battle Room ladder loop. A coach can start a blank
+ladder match, record Win, Loss, or Tie from an always-visible finish control,
+save the result, and open the next match without leaving Battle Room. Private
+team performance now includes record, decided-game win rate, current streak,
+last-ten form, Pokémon usage and lead records, Tera usage, most-seen opposing
+Pokémon, and a matching workbook Performance sheet. This release required no
+database migration or provider-setting change.
 
 Production migrations 423 and 424 are applied. The Worlds aggregate-popularity
 contract from migration 413 was re-proved at 24 entries, 25 entries, and after
@@ -33,22 +42,28 @@ before cleanup.
 
 All local release gates, protected pull-request checks, exact Production
 deployments, signed-out Production smoke sweeps, and relevant live responsive
-browser reviews passed through commit `6ea856e`.
+browser reviews passed through commit `197b62d`.
 
 ## Current continuation order
 
-1. Run the scheduled aggregate-only attribution review at 09:00 Pacific on
+1. Complete the separate Swiss-league release only after its required isolated
+   Supabase Preview branch is explicitly approved and the protected release
+   gates pass.
+2. Review the ready local Pokémon-profile SEO package and publish it through a
+   separate protected pull request if approved.
+3. Run the scheduled aggregate-only attribution review at 09:00 Pacific on
    August 19, 2026. Do not inspect or report individual identity or activity.
-2. Decide whether to delete any specifically identified older Supabase Preview
+4. Decide whether to delete any specifically identified older Supabase Preview
    branches; do not infer authorization from the new one-branch limit.
-3. Invite opt-in Pokédex Tracker testers only after the owner approves the
+5. Invite opt-in Pokédex Tracker testers only after the owner approves the
    exact people and destination.
-4. Continue ordinary security, SEO, tournament, and product monitoring. Apply
+6. Continue ordinary security, SEO, tournament, and product monitoring. Apply
    an official Worlds result correction only through the existing source and
    release gates.
 
 No application or database item from the authorized tournament-directory,
-Team Lab, Spanish Worlds, or Pokédex data-quality release list remains open.
+Team Lab, Battle Room, Spanish Worlds, or Pokédex data-quality release list
+remains open.
 
 ## Active boundaries
 

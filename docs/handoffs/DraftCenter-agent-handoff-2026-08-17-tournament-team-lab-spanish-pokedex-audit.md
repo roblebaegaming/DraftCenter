@@ -3,17 +3,17 @@
 - Date: August 17, 2026 Pacific
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified Production application commit: `6ea856e876bd5d6d8ca6185fc33c4f9e962c4703`
+- Verified Production application commit: `197b62dca07a681f9d25739d8cd7e37374cbec5e`
 - Latest applied Production migration: 424
 
 ## Outcome
 
 The authorized release list is complete. The tournament directory and durable
-entrant URLs, six-Pokémon Team Lab workflow, Spanish Worlds localization, and
-Pokédex Tracker data-quality audit are released. The corresponding local
-checks, isolated database regressions, protected pull-request checks, exact
-Production deployments, signed-out smoke sweeps, and live browser reviews
-passed.
+entrant URLs, six-Pokémon Team Lab workflow, phone-first Battle Room ladder
+loop and team performance summary, Spanish Worlds localization, and Pokédex
+Tracker data-quality audit are released. The corresponding local checks,
+isolated database regressions, protected pull-request checks, exact Production
+deployments, signed-out smoke sweeps, and live browser reviews passed.
 
 No private Worlds lineup, tracker progress, account identity, team, league, or
 other user-owned record was exposed or changed for validation. No payment,
@@ -27,6 +27,7 @@ tester invitation, real-league mutation, or Mushroom action was performed.
 | Team Lab six-Pokémon workflow | [#281](https://github.com/roblebaegaming/DraftCenter/pull/281) | `a3bef99e19486b31ebe58e12f133786862519094` | Migration 424 |
 | Spanish Worlds localization | [#282](https://github.com/roblebaegaming/DraftCenter/pull/282) | `71cbcaa4b59298ea22b3466df5a5e3ddd40db22a` | None |
 | Pokédex Tracker quality audit and permanent gate | [#283](https://github.com/roblebaegaming/DraftCenter/pull/283) | `6ea856e876bd5d6d8ca6185fc33c4f9e962c4703` | None |
+| Battle Room ladder loop and team performance | [#286](https://github.com/roblebaegaming/DraftCenter/pull/286) | `197b62dca07a681f9d25739d8cd7e37374cbec5e` | None |
 
 ## Supabase branching and migration proof
 
@@ -110,6 +111,26 @@ Forward-only migration 424 is
 `20260817110000_424_team_lab_six_pokemon_matchups.sql`. Its focused Preview
 regression is `supabase/tests/424-team-lab-six-pokemon-preview-regression.sql`.
 
+## Battle Room ladder loop and team performance
+
+Pull request #286 released a fast repeated-ladder workflow for the private Team
+Lab Battle Room. A coach can start a blank ladder report without first creating
+an opponent plan, record Win, Loss, or Tie near the top of the phone layout,
+then use **Save & start next match** to preserve that result and immediately
+open a clean report with the same team, format, and sheet choice. Turn state,
+reveals, and notes do not carry into the next report.
+
+Completed private reports now roll into team record, decided-game win rate,
+current streak, last-ten form, matches logged, Pokémon brought and lead counts,
+lead record, Tera usage, and most-seen opposing Pokémon. Workbook downloads add
+the same record and usage view on a Performance sheet. Results remain explicit
+coach input; DraftCenter does not infer a winner from battle notes.
+
+This application-only release required no migration or provider-setting change.
+The full local gates, protected PR checks, desktop review, and 390-by-844 phone
+review passed without horizontal overflow. The exact Production deployment and
+22-check signed-out smoke sweep passed at `197b62d`.
+
 ## Spanish Worlds localization
 
 Pull request #282 released the complete Spanish route at
@@ -167,27 +188,33 @@ For the application releases, the applicable full gates passed:
 - focused migration 413, 423, and 424 regressions on the isolated branch;
 - protected security, secret-scan, JavaScript analysis, Supabase Preview, and
   Vercel pull-request checks;
-- exact Production deployments for merge commits #280 through #283;
+- exact Production deployments for merge commits #280 through #283 and #286;
 - signed-out Production smoke sweeps after deployment; and
-- live tournament, Team Lab, Spanish Worlds, and Pokédex Tracker review at the
-  relevant release points, with no observed overflow or browser errors.
+- live tournament, Team Lab, Battle Room, Spanish Worlds, and Pokédex Tracker
+  review at the relevant release points, with no observed overflow or browser
+  errors.
 
-Production is currently verified at exact commit `6ea856e`. Migration 424 is
+Production is currently verified at exact commit `197b62d`. Migration 424 is
 the latest applied Production migration.
 
 ## Remaining continuation
 
-No application or database item from this authorized release list remains.
-The next work is operational and separately scoped:
+No application or database item from this authorized release list remains. The
+next work is separately scoped:
 
-1. At 09:00 Pacific on August 19, 2026, run the scheduled aggregate-only launch
+1. Complete the separate Swiss-league release only after its required isolated
+   Supabase Preview branch is explicitly approved and its protected release
+   gates pass.
+2. Review the ready local Pokémon-profile SEO package and publish it through a
+   separate protected pull request if approved.
+3. At 09:00 Pacific on August 19, 2026, run the scheduled aggregate-only launch
    attribution review. Keep reporting aggregate-only and do not identify an
    individual visitor or account.
-2. If desired, explicitly authorize cleanup by exact name for any old Supabase
+4. If desired, explicitly authorize cleanup by exact name for any old Supabase
    Preview branch. Do not delete one merely because it appears stale.
-3. Invite Pokédex Tracker testers only after the owner identifies the exact
+5. Invite Pokédex Tracker testers only after the owner identifies the exact
    opt-in people and approves the destination and message.
-4. Continue ordinary security, SEO, tournament, Daily Games, Nuzlocke,
+6. Continue ordinary security, SEO, tournament, Daily Games, Nuzlocke,
    navigation, League Pulse, and commissioner-save monitoring in their subject
    records. Handle an official Worlds correction only through the established
    source, privacy, and protected-release gates.
