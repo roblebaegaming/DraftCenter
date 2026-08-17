@@ -105,5 +105,5 @@ test("autonomous auction functions are service-only and never resume a pause", (
   assert.match(autonomyMigration, /grant execute on function public\.run_autonomous_live_auction_action\(uuid\)[\s\S]*to service_role;/);
   assert.match(autonomyMigration, /coalesce\(\(v_state ->> 'paused'\)::boolean, false\)[\s\S]*return jsonb_build_object\('status', 'inactive'\)/);
   assert.match(autonomyPreviewMatrix, /A paused auction was changed or resumed by automation/);
-  assert.match(autonomyPreviewMatrix, /The unaffordable auction did not end with its data intact/);
+  assert.match(autonomyPreviewMatrix, /The ineligible auction did not preserve its pool and rosters/);
 });

@@ -290,11 +290,6 @@ begin
      or exists (
        select 1 from jsonb_array_elements(v_state -> 'rosters') roster(value)
        where jsonb_array_length(roster.value) <> 0
-     )
-     or not exists (
-       select 1 from public.leagues
-       where id = v_league
-         and status = 'regular_season'
      ) then
     raise exception 'A no-progress rotation was not safely paused intact.';
   end if;
@@ -307,15 +302,28 @@ begin
     raise exception 'The automatic no-progress pause was not recorded.';
   end if;
 
-  -- If nobody can afford even the minimum legal opening bid, the auction ends
-  -- instead of looping or pausing indefinitely.
+  -- If every roster has met its minimum but no team can legally acquire any
+  -- remaining Pokemon, the auction ends instead of looping indefinitely.
   update public.league_state_snapshots
   set state = jsonb_set(
         jsonb_set(
           jsonb_set(
-            jsonb_set(v_base_state, '{budgets}', '[0, 0, 0]'::jsonb, true),
-            '{settings,rosterMin}',
-            '0'::jsonb,
+            jsonb_set(
+              v_base_state,
+              '{rosters}',
+              jsonb_build_array(
+                jsonb_build_array(jsonb_build_object('id', 'owned-one', 'name', 'Owned One', 'cost', 1, 'isRestricted', true)),
+                jsonb_build_array(jsonb_build_object('id', 'owned-two', 'name', 'Owned Two', 'cost', 1, 'isRestricted', true)),
+                jsonb_build_array(jsonb_build_object('id', 'owned-three', 'name', 'Owned Three', 'cost', 1, 'isRestricted', true))
+              ),
+              true
+            ),
+            '{pool}',
+            jsonb_build_array(
+              jsonb_build_object('id', 'restricted-one', 'name', 'Restricted One', 'cost', 8, 'isRestricted', true),
+              jsonb_build_object('id', 'restricted-two', 'name', 'Restricted Two', 'cost', 5, 'isRestricted', true),
+              jsonb_build_object('id', 'restricted-three', 'name', 'Restricted Three', 'cost', 2, 'isRestricted', true)
+            ),
             true
           ),
           '{auctionAutomation}',
@@ -332,14 +340,25 @@ begin
   v_result := public.run_autonomous_live_auction_action(v_league);
   select state into v_state
   from public.league_state_snapshots where league_id = v_league;
-  if v_result ->> 'status' <> 'ended'
-     or not coalesce((v_state ->> 'auctionEnded')::boolean, false)
-     or jsonb_array_length(v_state -> 'pool') <> 3
+  if v_result ->> 'status' <> 'ended' then
+    raise exception 'The ineligible auction returned status % instead of ended.', v_result ->> 'status';
+  end if;
+  if not coalesce((v_state ->> 'auctionEnded')::boolean, false) then
+    raise exception 'The ineligible auction did not persist its ended flag.';
+  end if;
+  if jsonb_array_length(v_state -> 'pool') <> 3
      or exists (
        select 1 from jsonb_array_elements(v_state -> 'rosters') roster(value)
-       where jsonb_array_length(roster.value) <> 0
+       where jsonb_array_length(roster.value) <> 1
      ) then
-    raise exception 'The unaffordable auction did not end with its data intact.';
+    raise exception 'The ineligible auction did not preserve its pool and rosters.';
+  end if;
+  if not exists (
+    select 1 from public.leagues
+    where id = v_league
+      and status = 'regular_season'
+  ) then
+    raise exception 'The completed auction did not enter the regular season.';
   end if;
 
   if has_function_privilege(
