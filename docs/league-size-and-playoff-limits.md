@@ -16,6 +16,8 @@ A multi-pod league uses a scalable two-stage postseason. Each pod can qualify as
 
 Pod round-robin schedules use the largest pod—not the entire league—to calculate the automatic regular-season length. A league that does not enable pod-only scheduling uses the full league size for its round robin.
 
+Swiss regular seasons use one shared 4–16 team table and therefore remain in Standard scale mode. They do not combine with pods, divisions, or manual matchup editing. The recommended length is three rounds for 4–8 teams and four rounds for 9–16 teams; commissioners may choose 2–10 rounds before pairing begins. See [`league-swiss-regular-seasons.md`](league-swiss-regular-seasons.md).
+
 ## Enforcement
 
 The browser and hosted database both enforce the selected scale mode. A snapshot trigger covers manual auctions and ordinary saves, rejects one-team states, and requires every team above 32 to belong to exactly one of at least two populated pods. Scheduled auctions and hosted snake provisioning also validate the selected limit directly. Hosted snake provisioning allows a larger bounded pick order for massive leagues. Database migration `384-expanded-and-multi-pod-league-limits.sql` changes no league rows and introduces no new public data access; its helper is executable only by the server role.

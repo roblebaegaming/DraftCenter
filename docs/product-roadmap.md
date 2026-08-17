@@ -4,22 +4,14 @@ This roadmap preserves the current feature freeze. Reliability, privacy,
 permissions, recovery, data portability, mobile usability, and the complete
 league lifecycle come before new product areas.
 
-## Final broad feature phase: tournament strengthening
+## Current release sequence
 
-The remaining broad feature work is deliberately narrow and ordered:
+Tournament strengthening and Draft Tournament Swiss are complete. The next work remains deliberately narrow and ordered:
 
-1. Complete the existing single-elimination accessibility, confirmation,
-   large-field mobile, and isolated-fixture hardening.
-2. Add commissioner recovery for forfeits, disqualifications, drops, and safe
-   entrant replacement.
-3. Complete the in-progress double-elimination release as one independently
-   validated format.
-4. Then add a Draft Tournament workflow that reuses DraftCenter's existing league
-   draft room and rosters, then transitions into Swiss rounds and an optional
-   single-elimination top cut. The primary user experience belongs under
-   Tournaments; leagues may offer a second entry point for converting existing
-   league rosters into the same competition workflow.
-5. Freeze broad feature development and return to monitoring, bug fixes,
+1. Release ordinary-league Swiss regular seasons for 4–16 teams after either a snake or auction draft. Keep pairing, corrections, byes, standings, and playoff seeding server-authoritative. The contract is in [`league-swiss-regular-seasons.md`](league-swiss-regular-seasons.md).
+2. Stabilize that league workflow through real commissioner feedback and isolated lifecycle testing.
+3. Add auction drafting to Draft Tournaments by reusing the proven league auction engine without weakening event roster lock or bracket recovery.
+4. Freeze broad feature development and return to monitoring, bug fixes,
    live-draft performance, tournament feedback, and external SEO measurement.
 
 ## Next flagship expansion: multi-pod league organizations
@@ -39,9 +31,7 @@ detailed product and data contract is in
 organizer-facing flow and configurable choices are summarized in
 [`multi-pod-organizer-guide.md`](multi-pod-organizer-guide.md).
 
-Round robin and general-purpose standalone Swiss are not parallel workstreams.
-Swiss is revisited as part of the explicitly planned Draft Tournament after the
-current bracket and recovery foundations are proven.
+Multi-pod seasons continue to use their existing round-robin and connected-championship workflow. The first ordinary-league Swiss release deliberately remains one 4–16 team table rather than combining two new scheduling models at once.
 
 ## Current hardening priorities
 
