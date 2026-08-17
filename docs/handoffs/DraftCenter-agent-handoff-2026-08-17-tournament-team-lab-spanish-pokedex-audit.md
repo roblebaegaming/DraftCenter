@@ -3,15 +3,16 @@
 - Date: August 17, 2026 Pacific
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified Production application commit: `197b62dca07a681f9d25739d8cd7e37374cbec5e`
-- Latest applied Production migration: 424
+- Verified Production application commit: `419fa1cead81d4fe037f923584d854fce2925efb`
+- Latest applied Production migration: 425
 
 ## Outcome
 
 The authorized release list is complete. The tournament directory and durable
 entrant URLs, six-Pokémon Team Lab workflow, phone-first Battle Room ladder
-loop and team performance summary, Spanish Worlds localization, and Pokédex
-Tracker data-quality audit are released. The corresponding local checks,
+loop and team performance summary, ordinary-league Swiss regular seasons,
+Spanish Worlds localization, and Pokédex Tracker data-quality audit are
+released. The corresponding local checks,
 isolated database regressions, protected pull-request checks, exact Production
 deployments, signed-out smoke sweeps, and live browser reviews passed.
 
@@ -28,6 +29,7 @@ tester invitation, real-league mutation, or Mushroom action was performed.
 | Spanish Worlds localization | [#282](https://github.com/roblebaegaming/DraftCenter/pull/282) | `71cbcaa4b59298ea22b3466df5a5e3ddd40db22a` | None |
 | Pokédex Tracker quality audit and permanent gate | [#283](https://github.com/roblebaegaming/DraftCenter/pull/283) | `6ea856e876bd5d6d8ca6185fc33c4f9e962c4703` | None |
 | Battle Room ladder loop and team performance | [#286](https://github.com/roblebaegaming/DraftCenter/pull/286) | `197b62dca07a681f9d25739d8cd7e37374cbec5e` | None |
+| Ordinary-league Swiss regular seasons | [#285](https://github.com/roblebaegaming/DraftCenter/pull/285) | `419fa1cead81d4fe037f923584d854fce2925efb` | Migration 425 |
 
 ## Supabase branching and migration proof
 
@@ -42,6 +44,14 @@ The authorized temporary data-less branch
 422, then migrations 423 and 424 were applied and tested. The branch was deleted
 by its exact identifier after validation and was verified absent, ending its
 billing. It contained no lasting fixtures or user data.
+
+The owner separately approved one data-less branch for the Swiss release at
+the same `$0.01344` per active branch-hour rate. The exact branch
+`league-swiss-pr-285-2026-08-17` replayed the Production baseline through 424,
+accepted migration 425, and passed the disposable five-team Swiss lifecycle
+regression. It was deleted by its exact identifier immediately after database
+and Vercel Preview validation and was verified absent. The regression ran
+inside a rolled-back transaction and left zero fixture leagues behind.
 
 Older branches visible before this work remain untouched:
 
@@ -63,14 +73,26 @@ The isolated database matrix proved:
   lineup;
 - direct anonymous and authenticated entry-row reads remain denied;
 - migration 423 exposes only the intended tournament directory and locked,
-  opaque entrant-bracket resources; and
-- migration 424 enforces the Team Lab ownership and six-Pokémon contracts.
+  opaque entrant-bracket resources;
+- migration 424 enforces the Team Lab ownership and six-Pokémon contracts;
+- migration 425 creates deterministic record-grouped league Swiss rounds,
+  rotates odd-team byes, avoids rematches when possible, and keeps pairings and
+  competitive result corrections server-authoritative; and
+- anonymous clients cannot start a league Swiss round while the internal
+  standings and pairing helpers remain service-role only.
 
 The Preview security-advisor delta consisted only of the two intended bounded
 migration-423 public SECURITY DEFINER functions being executable by anonymous
 and authenticated clients. Their fixed return shapes, grants, post-lock guard,
 and privacy regressions were reviewed. The existing performance-advisor count
 did not change.
+
+Migration 425 added one separately reviewed security-advisor warning because
+the public start-round RPC is intentionally a SECURITY DEFINER function callable
+by authenticated users. The function rejects a missing identity and verifies
+league-staff authority before locking or writing. The Preview regression proved
+the anonymous denial and helper grants. Migration 425 added no performance
+advisor finding.
 
 ## Tournament directory and durable entrant URLs
 
@@ -131,6 +153,41 @@ The full local gates, protected PR checks, desktop review, and 390-by-844 phone
 review passed without horizontal overflow. The exact Production deployment and
 22-check signed-out smoke sweep passed at `197b62d`.
 
+## Ordinary-league Swiss regular seasons
+
+Pull request #285 released Swiss as a regular-season option for ordinary 4-16
+team leagues after either a snake or auction draft. It does not change the
+standalone Draft Tournament lifecycle. Commissioners choose one shared Swiss
+table with 2-10 rounds; the product recommends three rounds through eight teams
+and four rounds for nine through sixteen.
+
+Each round is paired on the server after the prior round is complete. Pairing
+uses current match wins first, then OMWP, GWP, OGWP, and initial team order. It
+avoids rematches when possible and records unavoidable rematches, gives an odd
+field's bye to the lowest eligible team, and rotates byes before repeating one.
+A bye counts as a match win without inventing games or an opponent.
+
+Competitive corrections are serialized with the authoritative snapshot. An
+earlier score change removes only still-empty later pairings so they can be
+rebuilt; it is refused after a later competitive result exists. Replay and MVP
+edits do not disturb pairings. Whole-snapshot saves cannot tamper with the
+Swiss schedule, byes, results, format, or round count after the season starts.
+
+Forward-only migration 425 is
+`20260817174757_425_league_swiss_regular_seasons.sql`. Its focused database
+regression is `supabase/tests/425-league-swiss-preview-regression.sql`.
+Production contains migration 425, Vercel deployed exact merge commit
+`419fa1cead81d4fe037f923584d854fce2925efb`, the signed-out 22-check smoke
+sweep passed, and the live commissioner manual displayed the Swiss workflow
+without browser errors or horizontal overflow.
+
+The 4-32 entrant auction Draft Tournament requested for creator outreach is a
+separate implementation. This release records 32 entrants as its required
+target but does not advertise or enable tournament auction mode. The released
+shared snake-draft tournament path remains capped at 16 until the complete
+auction-to-roster-lock, Swiss/elimination handoff, performance, recovery,
+mobile, privacy, and cleanup matrix passes at 32 entrants.
+
 ## Spanish Worlds localization
 
 Pull request #282 released the complete Spanish route at
@@ -185,16 +242,17 @@ For the application releases, the applicable full gates passed:
 - `npm run test:all`, including the new Pokédex catalog gate;
 - `npm run test:national-dex`: 1,027 reviewed rows;
 - environment-backed `npm run build`: 309 generated pages;
-- focused migration 413, 423, and 424 regressions on the isolated branch;
+- focused migration 413, 423, 424, and 425 regressions on isolated branches;
 - protected security, secret-scan, JavaScript analysis, Supabase Preview, and
   Vercel pull-request checks;
-- exact Production deployments for merge commits #280 through #283 and #286;
+- exact Production deployments for merge commits #280 through #283, #285, and
+  #286;
 - signed-out Production smoke sweeps after deployment; and
-- live tournament, Team Lab, Battle Room, Spanish Worlds, and Pokédex Tracker
-  review at the relevant release points, with no observed overflow or browser
-  errors.
+- live tournament, Team Lab, Battle Room, Swiss, Spanish Worlds, and Pokédex
+  Tracker review at the relevant release points, with no observed overflow or
+  browser errors.
 
-Production is currently verified at exact commit `197b62d`. Migration 424 is
+Production is currently verified at exact commit `419fa1c`. Migration 425 is
 the latest applied Production migration.
 
 ## Remaining continuation
@@ -202,19 +260,22 @@ the latest applied Production migration.
 No application or database item from this authorized release list remains. The
 next work is separately scoped:
 
-1. Complete the separate Swiss-league release only after its required isolated
-   Supabase Preview branch is explicitly approved and its protected release
-   gates pass.
-2. Review the ready local Pokémon-profile SEO package and publish it through a
+1. Inventory old branches, worktrees, and uncommitted changes read-only. Give
+   the owner an exact keep, publish, or delete recommendation for each item;
+   do not discard or delete anything before the owner decides.
+2. Build auction Draft Tournaments as a separate 4-32 entrant release. Do not
+   lift the current 16-entrant shared snake-draft boundary or claim auction
+   tournament support before the complete 32-player Preview matrix passes.
+3. Review the ready local Pokémon-profile SEO package and publish it through a
    separate protected pull request if approved.
-3. At 09:00 Pacific on August 19, 2026, run the scheduled aggregate-only launch
+4. At 09:00 Pacific on August 19, 2026, run the scheduled aggregate-only launch
    attribution review. Keep reporting aggregate-only and do not identify an
    individual visitor or account.
-4. If desired, explicitly authorize cleanup by exact name for any old Supabase
+5. If desired, explicitly authorize cleanup by exact name for any old Supabase
    Preview branch. Do not delete one merely because it appears stale.
-5. Invite Pokédex Tracker testers only after the owner identifies the exact
+6. Invite Pokédex Tracker testers only after the owner identifies the exact
    opt-in people and approves the destination and message.
-6. Continue ordinary security, SEO, tournament, Daily Games, Nuzlocke,
+7. Continue ordinary security, SEO, tournament, Daily Games, Nuzlocke,
    navigation, League Pulse, and commissioner-save monitoring in their subject
    records. Handle an official Worlds correction only through the established
    source, privacy, and protected-release gates.

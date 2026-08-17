@@ -3,8 +3,8 @@
 - Last updated: August 17, 2026 Pacific
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified Production application commit: `197b62dca07a681f9d25739d8cd7e37374cbec5e`
-- Latest applied Production migration: 424
+- Verified Production application commit: `419fa1cead81d4fe037f923584d854fce2925efb`
+- Latest applied Production migration: 425
 
 ## Deployed state
 
@@ -24,10 +24,22 @@ last-ten form, Pokémon usage and lead records, Tera usage, most-seen opposing
 Pokémon, and a matching workbook Performance sheet. This release required no
 database migration or provider-setting change.
 
-Production migrations 423 and 424 are applied. The Worlds aggregate-popularity
-contract from migration 413 was re-proved at 24 entries, 25 entries, and after
-lock on a fresh isolated Supabase branch. Anonymous clients cannot read an
-individual lineup, and durable entrant URLs reveal brackets only after lock.
+Pull request [#285](https://github.com/roblebaegaming/DraftCenter/pull/285)
+released server-authoritative Swiss regular seasons for ordinary 4-16 team
+leagues after either a snake or auction draft. Commissioners pair each round
+after the previous round is complete; standings use match wins, OMWP, GWP,
+OGWP, and initial team order. Pairing avoids rematches where possible, rotates
+byes, protects later played results from earlier score changes, and rolls back
+only still-empty future pairings when a correction requires rebuilding them.
+This does not release auction Draft Tournaments or raise their current
+16-entrant shared snake-draft limit. Auction Draft Tournaments remain a
+separate planned 4-32 entrant implementation and Preview matrix.
+
+Production migrations 423 through 425 are applied. The Worlds
+aggregate-popularity contract from migration 413 was re-proved at 24 entries,
+25 entries, and after lock on a fresh isolated Supabase branch. Anonymous
+clients cannot read an individual lineup, and durable entrant URLs reveal
+brackets only after lock.
 
 The Pokédex Tracker audit covered all 37 supported games, 65 sections, and
 13,130 local entries. It found zero catalog conflicts or numbering gaps and
@@ -42,28 +54,32 @@ before cleanup.
 
 All local release gates, protected pull-request checks, exact Production
 deployments, signed-out Production smoke sweeps, and relevant live responsive
-browser reviews passed through commit `197b62d`.
+browser reviews passed through commit `419fa1c`.
 
 ## Current continuation order
 
-1. Complete the separate Swiss-league release only after its required isolated
-   Supabase Preview branch is explicitly approved and the protected release
-   gates pass.
-2. Review the ready local Pokémon-profile SEO package and publish it through a
+1. Inventory old branches, worktrees, and uncommitted work read-only. Present
+   exact keep, publish, or delete recommendations to the owner; do not delete
+   or discard anything without a separate explicit decision.
+2. Implement auction Draft Tournaments as a separate 4-32 entrant release.
+   Keep the existing shared snake-draft tournament cap at 16 until the complete
+   32-player auction lifecycle and mobile Preview matrix pass.
+3. Review the ready local Pokémon-profile SEO package and publish it through a
    separate protected pull request if approved.
-3. Run the scheduled aggregate-only attribution review at 09:00 Pacific on
+4. Run the scheduled aggregate-only attribution review at 09:00 Pacific on
    August 19, 2026. Do not inspect or report individual identity or activity.
-4. Decide whether to delete any specifically identified older Supabase Preview
+5. Decide whether to delete any specifically identified older Supabase Preview
    branches; do not infer authorization from the new one-branch limit.
-5. Invite opt-in Pokédex Tracker testers only after the owner approves the
+6. Invite opt-in Pokédex Tracker testers only after the owner approves the
    exact people and destination.
-6. Continue ordinary security, SEO, tournament, and product monitoring. Apply
+7. Continue ordinary security, SEO, tournament, and product monitoring. Apply
    an official Worlds result correction only through the existing source and
    release gates.
 
-No application or database item from the authorized tournament-directory,
-Team Lab, Battle Room, Spanish Worlds, or Pokédex data-quality release list
-remains open.
+No application or database item from the authorized Swiss,
+tournament-directory, Team Lab, Battle Room, Spanish Worlds, or Pokédex
+data-quality release list remains open. Auction Draft Tournaments are
+explicitly separate future work.
 
 ## Active boundaries
 
