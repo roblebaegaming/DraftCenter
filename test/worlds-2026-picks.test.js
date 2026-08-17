@@ -2,10 +2,14 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import test from "node:test";
 import {
+  buildWorldsChampionOdds,
   filterWorldsCompetitors,
   formatWorldsAverageFinish,
   normalizeWorldsDisciplineScore,
   toggleWorldsPick,
+  WORLDS_2026_ODDS_CAP,
+  WORLDS_2026_ODDS_WEIGHTS,
+  WORLDS_2026_POINTS_URL,
   WORLDS_OVERALL_POINTS_PER_DISCIPLINE,
   WORLDS_2026_PICK_COUNT,
   WORLDS_2026_SCORING,
@@ -22,10 +26,14 @@ import {
 const source = (path) => fs.readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 const roster = JSON.parse(source("src/data/worlds-2026-vgc-masters.json"));
 const normalizedRoster = roster.competitors.map((competitor) => ({
+  slug: competitor.slug,
   displayName: competitor.name,
   countryCode: competitor.countryCode,
   qualificationRegion: competitor.region,
   qualificationPath: competitor.qualification,
+  seasonResults: competitor.seasonResults || "",
+  pickCount: 0,
+  aceCount: 0,
 }));
 
 test("the Worlds pick pool is a complete, unique Masters invite snapshot", () => {
@@ -37,6 +45,7 @@ test("the Worlds pick pool is a complete, unique Masters invite snapshot", () =>
   assert.equal(roster.competitors.length, 438);
   assert.equal(new Set(roster.competitors.map(({ slug }) => slug)).size, 438);
   assert.ok(roster.competitors.every(({ division }) => division === "Masters"));
+  assert.ok(roster.competitors.filter(({ seasonResults }) => seasonResults && seasonResults !== "–").length > 400);
 
   const regionCounts = Object.fromEntries([...new Set(roster.competitors.map(({ region }) => region))]
     .map((region) => [region, roster.competitors.filter((competitor) => competitor.region === region).length]));
@@ -106,6 +115,34 @@ test("entry locking respects status, open time, and the published deadline", () 
   assert.equal(worldsEntryIsLocked({ ...event, status: "locked" }, new Date("2026-08-20T12:00:00Z")), true);
 });
 
+test("the pre-event champion model totals 100 percent and caps all 438 invitees at five percent", () => {
+  const odds = buildWorldsChampionOdds(normalizedRoster);
+  const probabilityTotal = odds.reduce((sum, competitor) => sum + competitor.probability, 0);
+  assert.equal(odds.length, 438);
+  assert.ok(Math.abs(probabilityTotal - 1) < 1e-10);
+  assert.ok(odds.every(({ probability }) => probability <= WORLDS_2026_ODDS_CAP + Number.EPSILON));
+  assert.ok(odds.find(({ slug }) => slug === "wolfe-glick").worldsTitles > 0);
+  assert.ok(Math.abs(Object.values(WORLDS_2026_ODDS_WEIGHTS).reduce((sum, weight) => sum + weight, 0) - 1) < 1e-10);
+});
+
+test("community support changes the model only when privacy-gated aggregates are supplied", () => {
+  const field = Array.from({ length: 30 }, (_, index) => ({
+    slug: `competitor-${index}`,
+    displayName: `Competitor ${index}`,
+    qualificationPath: "Invite earned",
+    seasonResults: "",
+    pickCount: index === 0 ? 8 : 0,
+    aceCount: index === 0 ? 4 : 0,
+  }));
+  const privateOdds = buildWorldsChampionOdds(field, 0);
+  assert.equal(privateOdds.find(({ slug }) => slug === "competitor-0").signals.community, 0.5);
+  const publicOdds = buildWorldsChampionOdds(field, 25);
+  const supported = publicOdds.find(({ slug }) => slug === "competitor-0");
+  const baseline = publicOdds.find(({ slug }) => slug === "competitor-1");
+  assert.ok(supported.probability > baseline.probability);
+  assert.ok(supported.signals.community < 1);
+});
+
 test("the database contract keeps entries private before lock and browser writes inside an authenticated RPC", () => {
   const schema = source("supabase/369-worlds-pick-sixteen.sql");
   const pickTen = source("supabase/373-worlds-pick-ten-and-champion-label.sql");
@@ -114,6 +151,8 @@ test("the database contract keeps entries private before lock and browser writes
   const pickTenPreview = source("supabase/tests/373-worlds-pick-ten-and-champion-preview-regression.sql");
   const finalTiebreakers = source("supabase/375-worlds-pick-ten-final-tiebreakers.sql");
   const finalTiebreakersPreview = source("supabase/tests/375-worlds-pick-ten-final-tiebreakers-preview-regression.sql");
+  const popularity = source("supabase/413-worlds-champion-odds-popularity.sql");
+  const popularityPreview = source("supabase/tests/413-worlds-champion-odds-popularity-preview-regression.sql");
   assert.match(schema, /alter table public\.worlds_pick_entries enable row level security/i);
   assert.match(schema, /revoke all on table public\.worlds_pick_entries from public, anon, authenticated/i);
   assert.match(schema, /create or replace function public\.save_worlds_pick_entry[\s\S]+security definer[\s\S]+set search_path = public/i);
@@ -156,6 +195,15 @@ test("the database contract keeps entries private before lock and browser writes
   assert.match(finalTiebreakersPreview, /Provisional standings must not apply final tiebreakers/i);
   assert.match(finalTiebreakersPreview, /Finalization did not fail closed when a saved pick lacked a placement/i);
   assert.match(finalTiebreakersPreview, /all_ten_average_finish.*34\.70/s);
+  assert.match(popularity, /create or replace function public\.get_worlds_pick_popularity/i);
+  assert.match(popularity, /security definer[\s\S]+set search_path = public, pg_temp/i);
+  assert.match(popularity, /cross join lateral unnest\(entry\.pick_slugs\)/i);
+  assert.match(popularity, /count\(\*\) >= 25 or now\(\) >= \(select locks_at from selected_event\)/i);
+  assert.match(popularity, /case when sample\.sample_ready then coalesce\(popularity\.pick_count, 0\) else 0 end/i);
+  assert.match(popularity, /grant execute on function public\.get_worlds_pick_popularity\(text\) to anon, authenticated/i);
+  assert.doesNotMatch(popularity, /entry\.user_id|jsonb_build_object\([^)]*user_id/i);
+  assert.match(popularityPreview, /Popularity leaked aggregate support or identity below the 25-entry threshold/);
+  assert.match(popularityPreview, /Locked events must expose aggregate popularity even below 25 entries/);
 });
 
 test("the Worlds page defers bracket predictions until official pairings exist", () => {
@@ -178,6 +226,9 @@ test("the Worlds page defers bracket predictions until official pairings exist",
   assert.match(page, /if \(!user \|\| locked/);
   assert.match(page, /name="worlds-ace"/);
   assert.match(page, /p_ace_slug: ace/);
+  assert.match(page, /get_worlds_pick_popularity/);
+  assert.match(page, /<WorldsChampionOdds/);
+  assert.match(WORLDS_2026_POINTS_URL, /^https:\/\/www\.pokemon\.com\//);
   assert.match(page, /Your Champion ×2/);
   assert.match(page, /const draftDirtyRef = useRef\(false\)/);
   assert.match(page, /if \(hydrateEntry \|\| !draftDirtyRef\.current\)/);

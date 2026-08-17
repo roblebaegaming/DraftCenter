@@ -99,7 +99,7 @@ test("TCG and GO are wired to reviewed rosters while operations tools stay draft
   assert.match(pickComponent, /WORLDS_PICK_DISCIPLINES\[discipline\]/);
   assert.match(pickComponent, /p_event_id: eventId/);
   assert.match(pickComponent, /event\.status !== "open"/);
-  assert.match(pickComponent, /hub\?\.competitors\?\.length \? hubCompetitors\(hub\) : fallback/);
+  assert.match(pickComponent, /hub\?\.competitors\?\.length \? hubCompetitors\(hub, fallbackBySlug, popularityBySlug\) : fallback/);
   assert.match(tcgPage, /import roster from .*worlds-2026-tcg-masters-sources\.json/);
   assert.match(tcgPage, /discipline="tcg"/);
   assert.doesNotMatch(tcgPage, /WorldsTcgPickSixteenSetup/);
