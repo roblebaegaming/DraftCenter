@@ -34,6 +34,7 @@ import {
   parseTeamLabBattleRecovery,
   removeTeamLabTurnEvent,
   summarizeTeamLabSeries,
+  teamLabBattleMechanicForFormat,
   parseTeamLabLeagueMatchupHandoff,
   parseTeamLabMatchupHandoff,
   TEAM_LAB_ABILITY_LIMIT,
@@ -467,18 +468,29 @@ test("best-of series plans and structured battle state stay bounded and roster-a
   const state = normalizeTeamLabBattleState({
     weather: "rain",
     terrain: "invalid",
-    my_side: { hazards: { spikes: 9, toxic_spikes: 2 }, pokemon: [{ name: "Garchomp", hp_percent: -12, status: "burn", terastallized: true, tera_type: "Fire" }] },
+    my_side: { hazards: { spikes: 9, toxic_spikes: 2 }, pokemon: [{ name: "Garchomp", hp_percent: -12, status: "burn", terastallized: true, tera_type: "Fire", mega_evolved: true }] },
     opponent_side: { pokemon: [{ name: "Rotom-Wash", hp_percent: 42.5, status: "confusion" }] },
   }, ["Garchomp"], ["Rotom-Wash"]);
   assert.equal(state.weather, "rain");
   assert.equal(state.terrain, "");
   assert.equal(state.my_side.hazards.spikes, 3);
   assert.equal(state.my_side.pokemon[0].hp_percent, 0);
+  assert.equal(state.my_side.pokemon[0].mega_evolved, true);
   assert.equal(state.opponent_side.pokemon[0].hp_percent, 42.5);
   assert.equal(state.opponent_side.pokemon[0].status, "");
 });
 
-test("Battle Room summaries roll completed games into team records, streaks, leads, usage, and Tera", () => {
+test("Battle Room mechanics follow the selected game instead of treating every format as Tera", () => {
+  assert.equal(teamLabBattleMechanicForFormat("reg-mb")?.id, "mega");
+  assert.equal(teamLabBattleMechanicForFormat("reg-ma")?.id, "mega");
+  assert.equal(teamLabBattleMechanicForFormat("vgc2016")?.id, "mega");
+  assert.equal(teamLabBattleMechanicForFormat("reg-j")?.id, "tera");
+  assert.equal(teamLabBattleMechanicForFormat("sv-full-dex")?.id, "tera");
+  assert.equal(teamLabBattleMechanicForFormat("vgc2022"), null);
+  assert.equal(teamLabBattleMechanicForFormat("national-gen9"), null);
+});
+
+test("Battle Room summaries roll completed games into team records, streaks, leads, usage, and format mechanics", () => {
   assert.deepEqual(summarizeTeamLabSeries({ best_of: 3, games: [{ result: "win" }, { result: "loss" }, { result: "win" }] }), {
     bestOf: 3,
     wins: 2,
@@ -492,6 +504,7 @@ test("Battle Room summaries roll completed games into team records, streaks, lea
 
   const summary = buildTeamLabPerformanceSummary([{
     id: "match-1",
+    format_id: "reg-j",
     opponent_name: "First opponent",
     created_at: "2026-08-17T10:00:00.000Z",
     battle_report: {
@@ -506,6 +519,7 @@ test("Battle Room summaries roll completed games into team records, streaks, lea
     },
   }, {
     id: "match-2",
+    format_id: "reg-j",
     opponent_name: "Second opponent",
     created_at: "2026-08-17T11:00:00.000Z",
     battle_report: {
@@ -518,8 +532,20 @@ test("Battle Room summaries roll completed games into team records, streaks, lea
   assert.deepEqual({ wins: summary.wins, losses: summary.losses, ties: summary.ties, matches: summary.matchesLogged, winRate: summary.winRate }, { wins: 2, losses: 2, ties: 0, matches: 2, winRate: 50 });
   assert.deepEqual(summary.lastTen, ["win", "loss", "win", "loss"]);
   assert.deepEqual(summary.streak, { result: "loss", count: 1 });
-  assert.deepEqual(summary.pokemon.find((pokemon) => pokemon.name === "Garchomp"), { name: "Garchomp", broughtMatches: 2, leads: 3, leadWins: 2, leadLosses: 1, teraMatches: 1 });
+  assert.deepEqual(summary.pokemon.find((pokemon) => pokemon.name === "Garchomp"), { name: "Garchomp", broughtMatches: 2, leads: 3, leadWins: 2, leadLosses: 1, teraMatches: 1, megaMatches: 0 });
   assert.deepEqual(summary.opponentPokemon[0], { name: "Rotom-Wash", seenMatches: 2 });
+
+  const champions = buildTeamLabPerformanceSummary([{
+    id: "champions-match",
+    format_id: "reg-mb",
+    battle_report: {
+      my_pokemon: [{ name: "Mega Garchomp", brought: true }],
+      opponent_pokemon: [],
+      series: { games: [{ game: 1, result: "win", my_lead: "Mega Garchomp" }] },
+      battle_state: { my_side: { pokemon: [{ name: "Mega Garchomp", mega_evolved: true, terastallized: true }] } },
+    },
+  }], ["Mega Garchomp"]);
+  assert.deepEqual(champions.pokemon[0], { name: "Mega Garchomp", broughtMatches: 1, leads: 1, leadWins: 1, leadLosses: 0, teraMatches: 0, megaMatches: 1 });
 });
 
 test("the damage estimator exposes a bounded repeatable range and its assumptions", () => {
@@ -584,7 +610,7 @@ test("Battle Mode normalizes weekly teams and revealed moves without mixing priv
 
 test("Team Lab workbook data separates complete sets, matchups, reveals, turns, and saved game plans", () => {
   const sheets = buildTeamLabWorkbookSheets({
-    myTeam: { team_name: "Rain & Balance", league_name: "Preview League", pokemon: ["Garchomp", "Corviknight"], team_sets: { version: 1, pokemon: [{ name: "Garchomp", level: 50, ability: "Rough Skin", item: "Choice Scarf", nature: "Jolly", tera_type: "Fire", evs: { hp: 4, atk: 252, def: 0, spa: 0, spd: 0, spe: 252 }, ivs: { hp: 31, atk: 31, def: 31, spa: 31, spd: 31, spe: 31 }, moves: ["Earthquake"], role: "Cleaner", notes: "Private benchmark" }] } },
+    myTeam: { team_name: "Rain & Balance", league_name: "Preview League", regulation_id: "reg-mb", pokemon: ["Garchomp", "Corviknight"], team_sets: { version: 1, pokemon: [{ name: "Garchomp", level: 50, ability: "Rough Skin", item: "Garchompite", nature: "Jolly", tera_type: "Fire", evs: { hp: 4, atk: 252, def: 0, spa: 0, spd: 0, spe: 252 }, ivs: { hp: 31, atk: 31, def: 31, spa: 31, spd: 31, spe: 31 }, moves: ["Earthquake"], role: "Cleaner", notes: "Private benchmark" }] } },
     matchups: [{
       id: "matchup-1",
       opponent_name: "Test Coach",
@@ -607,7 +633,7 @@ test("Team Lab workbook data separates complete sets, matchups, reveals, turns, 
         battle_notes: "Save the Ground immunity for Game 2",
         turn_log: { events: [{ game: 1, turn: 1, side: "opponent", kind: "item", pokemon: "Rotom-Wash", target: "", move: "", detail: "Choice Scarf", damage: "", note: "Speed order" }] },
         series: { best_of: 3, games: [{ game: 1, result: "win", my_lead: "Garchomp", opponent_lead: "Rotom-Wash", plan: "Lead Scarf", adjustments: "Preserve Garchomp" }, { game: 2, result: "pending", my_lead: "Corviknight", opponent_lead: "Rotom-Wash", plan: "Change lead", adjustments: "" }, { game: 3, result: "pending", my_lead: "", opponent_lead: "", plan: "", adjustments: "" }] },
-        battle_state: { weather: "rain", terrain: "" },
+        battle_state: { weather: "rain", terrain: "", my_side: { pokemon: [{ name: "Garchomp", mega_evolved: true }] } },
       },
     },
     formatName: "Mega Battle",
@@ -617,10 +643,10 @@ test("Team Lab workbook data separates complete sets, matchups, reveals, turns, 
   assert.ok(sheets.every((sheet) => sheet.rows.length >= 5 && sheet.widths.length >= 2));
   assert.deepEqual(sheets.find(({ name }) => name === "Opponent Sets").rows[4].slice(0, 6), ["Quarterfinal", "Test Coach", "Rotom-Wash", "Open", "Levitate", "Choice Scarf"]);
   assert.deepEqual(sheets.find(({ name }) => name === "Turn Log").rows[4].slice(0, 10), ["Quarterfinal", "Test Coach", 1, 1, "Opponent", "item", "Rotom-Wash", "", "", "Choice Scarf"]);
-  assert.deepEqual(sheets.find(({ name }) => name === "My Team").rows[4].slice(0, 8), ["Garchomp", "Yes", "No", 50, "Rough Skin", "Choice Scarf", "Jolly", "Fire"]);
+  assert.deepEqual(sheets.find(({ name }) => name === "My Team").rows[4].slice(0, 8), ["Garchomp", "Yes", "No", 50, "Rough Skin", "Garchompite", "Jolly", "Yes"]);
   assert.deepEqual(sheets.find(({ name }) => name === "Game Plans").rows[4].slice(3, 9), [1, "win", "Garchomp", "Rotom-Wash", "Lead Scarf", "Preserve Garchomp"]);
   assert.deepEqual(sheets.find(({ name }) => name === "Performance").rows[3], ["Record", "1-0"]);
-  assert.deepEqual(sheets.find(({ name }) => name === "Performance").rows[11], ["Garchomp", 1, 1, 1, 0, 0]);
+  assert.deepEqual(sheets.find(({ name }) => name === "Performance").rows[11], ["Garchomp", 1, 1, 1, 0, 1, 0]);
   assert.equal(sheets.find(({ name }) => name === "Game Plans").rows.length, 7);
   assert.equal(buildTeamLabWorkbookFilename("Rain & Balance", new Date("2026-08-15T12:00:00.000Z")), "rain-balance-battle-workbook-2026-08-15.xlsx");
 });
@@ -714,8 +740,11 @@ test("Team Lab is indexable while account notes and matchups stay private", () =
   assert.match(component, /BattleDamageEstimator/);
   assert.match(setEditor, /Import PokéPaste \/ Pokémon Showdown text/);
   assert.match(setEditor, /Save sets/);
+  assert.match(setEditor, /Champions formats do not use Tera types/);
+  assert.match(setEditor, /usesTera && <label>Tera type/);
   assert.match(battleTools, /Best of 3/);
-  assert.match(battleTools, /HP, status, field effects, and Tera/);
+  assert.match(battleTools, /mechanic\.id === "mega" \? "Mega evolved" : "Tera"/);
+  assert.match(battleTools, /HP, status, field effects\{mechanic \? `, and \$\{mechanic\.label\}` : ""\}/);
   assert.match(battleTools, /Planning estimate only/);
   assert.match(component, /Private notes and opponent move observations were not included/);
   assert.match(component, /not account details, team notes, or matchup plans/);

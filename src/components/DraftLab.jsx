@@ -17,6 +17,7 @@ import {
   parseTeamLabBattleRecovery,
   removeTeamLabTurnEvent,
   summarizeTeamLabSeries,
+  teamLabBattleMechanicForFormat,
   TEAM_LAB_BATTLE_MOVE_LIMIT,
   TEAM_LAB_BATTLE_NOTE_LIMIT,
   TEAM_LAB_HANDOFF_KEY,
@@ -163,7 +164,7 @@ function CoverageTable({ rows }) {
   </div>;
 }
 
-function BattlePokemonCard({ pokemon, opponent = false, scoutedSet = null, teamSet = null, moveEditor, onMoveEditor, onChange }) {
+function BattlePokemonCard({ pokemon, opponent = false, scoutedSet = null, teamSet = null, battleMechanic = null, moveEditor, onMoveEditor, onChange }) {
   const moves = opponent ? pokemon.moves || [] : [];
   const editingThisPokemon = moveEditor?.pokemonName === pokemon.name;
   return <article className={`team-lab-battle-pokemon${pokemon.brought ? " is-brought" : ""}${pokemon.fainted ? " is-fainted" : ""}`}>
@@ -172,7 +173,7 @@ function BattlePokemonCard({ pokemon, opponent = false, scoutedSet = null, teamS
       <button type="button" className="team-lab-battle-toggle danger" aria-pressed={pokemon.fainted} onClick={() => onChange({ fainted: !pokemon.fainted, brought: true })}>Fainted</button>
     </div></header>
     {opponent && scoutedSet && (scoutedSet.ability || scoutedSet.item || scoutedSet.moves?.length) && <div className="team-lab-battle-scouted-set"><div><span>Saved scouting</span><strong>{[scoutedSet.ability && `Ability: ${scoutedSet.ability}`, scoutedSet.item && `Item: ${scoutedSet.item}`, ...(scoutedSet.moves || [])].filter(Boolean).join(" · ")}</strong></div><button type="button" onClick={() => onChange({ ability: scoutedSet.ability || "", item: scoutedSet.item || "", moves: scoutedSet.moves || [], brought: true })}>Use in report</button></div>}
-    {!opponent && teamSet && hasTeamLabSetDetails(teamSet) && <div className="team-lab-battle-own-set"><span>Your saved set</span><strong>{[teamSet.item, teamSet.ability, teamSet.nature && `${teamSet.nature} nature`, teamSet.tera_type && `Tera ${teamSet.tera_type}`].filter(Boolean).join(" · ") || "Set details saved"}</strong>{teamSet.moves?.length > 0 && <small>{teamSet.moves.join(" · ")}</small>}</div>}
+    {!opponent && teamSet && hasTeamLabSetDetails(teamSet) && <div className="team-lab-battle-own-set"><span>Your saved set</span><strong>{[teamSet.item, teamSet.ability, teamSet.nature && `${teamSet.nature} nature`, battleMechanic?.id === "tera" && teamSet.tera_type && `Tera ${teamSet.tera_type}`].filter(Boolean).join(" · ") || "Set details saved"}</strong>{teamSet.moves?.length > 0 && <small>{teamSet.moves.join(" · ")}</small>}</div>}
     {opponent && <div className="team-lab-battle-reveal-fields"><label>Ability<input maxLength={100} value={pokemon.ability || ""} onChange={(event) => onChange({ ability: event.target.value, brought: event.target.value.trim() ? true : pokemon.brought })} placeholder="Known, published, or revealed"/></label><label>Held item<input maxLength={TEAM_LAB_ITEM_LIMIT} value={pokemon.item || ""} onChange={(event) => onChange({ item: event.target.value, brought: event.target.value.trim() ? true : pokemon.brought })} placeholder="Known, published, or revealed"/></label></div>}
     {opponent && <div className="team-lab-battle-moves" aria-label={`${pokemon.name} revealed moves`}>
       {moves.map((move, index) => <button type="button" key={`${move}-${index}`} onClick={() => onMoveEditor({ pokemonName: pokemon.name, index, value: move })}><span>Move {index + 1}</span><strong>{move}</strong></button>)}
@@ -206,7 +207,7 @@ function TeamPerformancePanel({ summary }) {
       <div><span>Matches</span><strong>{summary.matchesLogged}</strong><small>Battle reports</small></div>
     </div>
     {summary.lastTen.length > 0 ? <div className="team-lab-last-ten"><span>Last {summary.lastTen.length}</span><div>{summary.lastTen.map((result, index) => <b key={`${result}-${index}`} className={`is-${result}`} aria-label={result}>{result === "win" ? "W" : result === "loss" ? "L" : "T"}</b>)}</div></div> : <p className="team-lab-performance-empty">Choose Win, Loss, or Tie in Battle Room and your team history will begin here.</p>}
-    {summary.games.length > 0 && <details><summary>Pokémon usage and leads</summary><div className="team-lab-performance-pokemon">{summary.pokemon.map((pokemon) => <article key={pokemon.name}><strong>{pokemon.name}</strong><span>{pokemon.broughtMatches} match{pokemon.broughtMatches === 1 ? "" : "es"} brought</span><small>{pokemon.leads} lead{pokemon.leads === 1 ? "" : "s"} · {pokemon.leadWins}–{pokemon.leadLosses} lead record{pokemon.teraMatches ? ` · ${pokemon.teraMatches} Tera` : ""}</small></article>)}</div>{summary.opponentPokemon.length > 0 && <div className="team-lab-common-opponents"><span>Most-seen opposing Pokémon</span><div>{summary.opponentPokemon.slice(0, 8).map((pokemon) => <b key={pokemon.name}>{pokemon.name} · {pokemon.seenMatches}</b>)}</div></div>}</details>}
+    {summary.games.length > 0 && <details><summary>Pokémon usage and leads</summary><div className="team-lab-performance-pokemon">{summary.pokemon.map((pokemon) => <article key={pokemon.name}><strong>{pokemon.name}</strong><span>{pokemon.broughtMatches} match{pokemon.broughtMatches === 1 ? "" : "es"} brought</span><small>{pokemon.leads} lead{pokemon.leads === 1 ? "" : "s"} · {pokemon.leadWins}–{pokemon.leadLosses} lead record{pokemon.megaMatches ? ` · ${pokemon.megaMatches} Mega` : ""}{pokemon.teraMatches ? ` · ${pokemon.teraMatches} Tera` : ""}</small></article>)}</div>{summary.opponentPokemon.length > 0 && <div className="team-lab-common-opponents"><span>Most-seen opposing Pokémon</span><div>{summary.opponentPokemon.slice(0, 8).map((pokemon) => <b key={pokemon.name}>{pokemon.name} · {pokemon.seenMatches}</b>)}</div></div>}</details>}
   </section>;
 }
 
@@ -220,7 +221,7 @@ function turnEventSummary(event) {
   return `${event.pokemon} used ${event.move}${event.target ? ` into ${event.target}` : ""}${event.damage ? ` · ${event.damage}${event.damage.toLowerCase() === "ko" ? "" : " damage"}` : ""}`;
 }
 
-function BattleTurnRecorder({ report, setReport, sheetMode, matchup, myTeamSets, onStatus }) {
+function BattleTurnRecorder({ report, setReport, sheetMode, matchup, myTeamSets, battleMechanic, onStatus }) {
   const log = report.turn_log;
   const myRoster = report.my_pokemon || [];
   const opponentRoster = report.opponent_pokemon || [];
@@ -449,7 +450,7 @@ function BattleTurnRecorder({ report, setReport, sheetMode, matchup, myTeamSets,
         <label>Revealed {actionKind}<input autoFocus maxLength={100} value={detailValue} onChange={(event) => { setDetailValue(event.target.value); onStatus(""); }} placeholder={`Type the ${actionKind} as soon as it activates`}/></label>
       </div>}
 
-      <label className="team-lab-turn-note">{actionKind === "note" ? "Turn note" : "Action note (optional)"}<input maxLength={TEAM_LAB_TURN_NOTE_LIMIT} value={actionNote} onChange={(event) => { setActionNote(event.target.value); onStatus(""); }} placeholder={actionKind === "note" ? "Weather, status, Terastallization, matchup detail…" : "Critical hit, resisted, protected, status…"}/></label>
+      <label className="team-lab-turn-note">{actionKind === "note" ? "Turn note" : "Action note (optional)"}<input maxLength={TEAM_LAB_TURN_NOTE_LIMIT} value={actionNote} onChange={(event) => { setActionNote(event.target.value); onStatus(""); }} placeholder={actionKind === "note" ? `Weather, status${battleMechanic ? `, ${battleMechanic.label}` : ""}, matchup detail…` : "Critical hit, resisted, protected, status…"}/></label>
       <button type="submit" className="primary-button team-lab-turn-record">{editingEventId ? "Save action changes" : `Record ${actionKind}`}</button>
       {editingEventId && <button type="button" className="quiet-button" onClick={() => { clearEntry(); onStatus("Action edit canceled."); }}>Cancel edit</button>}
     </form>
@@ -462,6 +463,7 @@ function BattleTurnRecorder({ report, setReport, sheetMode, matchup, myTeamSets,
 }
 
 function BattleMode({ matchup, matchups, myTeam, formatName, supabase, onSaved, onStartNextMatch, onClose }) {
+  const battleMechanic = teamLabBattleMechanicForFormat(matchup.format_id);
   const initialReport = normalizeTeamLabBattleReport(matchup.battle_report, myTeam.pokemon, matchup.pokemon, CATALOG_NAME_SET);
   const initialSnapshot = JSON.stringify({ weekLabel: matchup.week_label || "", sheetMode: matchup.sheet_mode === "open" ? "open" : "closed", report: initialReport });
   const [weekLabel, setWeekLabel] = useState(matchup.week_label || "");
@@ -716,12 +718,12 @@ function BattleMode({ matchup, matchups, myTeam, formatName, supabase, onSaved, 
         <div className="team-lab-battle-share-actions"><button type="button" className="secondary-button" disabled={exporting} onClick={downloadBattleWorkbook}>{exporting ? "Building workbook…" : "Download Excel / Sheets workbook"}</button><button type="button" className="quiet-button" onClick={copyWeeklyTeam}>Copy weekly team</button><button type="button" className="quiet-button" onClick={copyBattleRecap}>Copy battle recap</button></div>
       </section>
       <BattleSeriesTracker report={report} setReport={setReport} onStatus={setStatus}/>
-      <BattleTurnRecorder report={report} setReport={setReport} sheetMode={sheetMode} matchup={matchup} myTeamSets={myTeamSets} onStatus={setStatus}/>
-      <BattleStateTracker report={report} setReport={setReport} onStatus={setStatus}/>
+      <BattleTurnRecorder report={report} setReport={setReport} sheetMode={sheetMode} matchup={matchup} myTeamSets={myTeamSets} battleMechanic={battleMechanic} onStatus={setStatus}/>
+      <BattleStateTracker report={report} setReport={setReport} formatId={matchup.format_id} onStatus={setStatus}/>
       <BattleDamageEstimator/>
       <div className="team-lab-battle-columns">
-        <section aria-labelledby="team-lab-my-team-title"><div className="team-lab-battle-section-heading"><div><span className="eyebrow">YOUR WEEKLY TEAM</span><h3 id="team-lab-my-team-title">{myTeam.team_name}</h3></div><span>{report.my_pokemon.filter((pokemon) => pokemon.brought).length} brought</span></div><div className="team-lab-battle-list">{report.my_pokemon.map((pokemon) => <BattlePokemonCard key={pokemon.name} pokemon={pokemon} teamSet={myTeamSets.pokemon.find((entry) => entry.name === pokemon.name)} onChange={(changes) => updatePokemon("my_pokemon", pokemon.name, changes)}/>)}</div>{!report.my_pokemon.length && <p className="team-lab-matchup-empty">Add Pokémon to this My Teams workspace before opening Battle Mode.</p>}</section>
-        <section aria-labelledby="team-lab-opponent-title"><div className="team-lab-battle-section-heading"><div><span className="eyebrow">OPPONENT SCOUTING</span><h3 id="team-lab-opponent-title">{matchup.opponent_team_name || matchup.opponent_name}</h3></div><span>{report.opponent_pokemon.filter((pokemon) => pokemon.brought).length} seen</span></div><div className="team-lab-battle-list">{report.opponent_pokemon.map((pokemon) => <BattlePokemonCard key={pokemon.name} pokemon={pokemon} opponent scoutedSet={(matchup.opponent_sets?.pokemon || []).find((entry) => entry.name === pokemon.name)} moveEditor={moveEditor} onMoveEditor={setMoveEditor} onChange={(changes) => updatePokemon("opponent_pokemon", pokemon.name, changes)}/>)}</div>{!report.opponent_pokemon.length && <p className="team-lab-matchup-empty">Close Battle Mode and add the opponent roster to this matchup plan first.</p>}</section>
+        <section aria-labelledby="team-lab-my-team-title"><div className="team-lab-battle-section-heading"><div><span className="eyebrow">YOUR WEEKLY TEAM</span><h3 id="team-lab-my-team-title">{myTeam.team_name}</h3></div><span>{report.my_pokemon.filter((pokemon) => pokemon.brought).length} brought</span></div><div className="team-lab-battle-list">{report.my_pokemon.map((pokemon) => <BattlePokemonCard key={pokemon.name} pokemon={pokemon} teamSet={myTeamSets.pokemon.find((entry) => entry.name === pokemon.name)} battleMechanic={battleMechanic} onChange={(changes) => updatePokemon("my_pokemon", pokemon.name, changes)}/>)}</div>{!report.my_pokemon.length && <p className="team-lab-matchup-empty">Add Pokémon to this My Teams workspace before opening Battle Mode.</p>}</section>
+        <section aria-labelledby="team-lab-opponent-title"><div className="team-lab-battle-section-heading"><div><span className="eyebrow">OPPONENT SCOUTING</span><h3 id="team-lab-opponent-title">{matchup.opponent_team_name || matchup.opponent_name}</h3></div><span>{report.opponent_pokemon.filter((pokemon) => pokemon.brought).length} seen</span></div><div className="team-lab-battle-list">{report.opponent_pokemon.map((pokemon) => <BattlePokemonCard key={pokemon.name} pokemon={pokemon} opponent battleMechanic={battleMechanic} scoutedSet={(matchup.opponent_sets?.pokemon || []).find((entry) => entry.name === pokemon.name)} moveEditor={moveEditor} onMoveEditor={setMoveEditor} onChange={(changes) => updatePokemon("opponent_pokemon", pokemon.name, changes)}/>)}</div>{!report.opponent_pokemon.length && <p className="team-lab-matchup-empty">Close Battle Mode and add the opponent roster to this matchup plan first.</p>}</section>
       </div>
       <label className="team-lab-battle-notes">Battle notes<textarea maxLength={TEAM_LAB_BATTLE_NOTE_LIMIT} rows={5} value={report.battle_notes} onChange={(event) => { setReport((current) => ({ ...current, battle_notes: event.target.value })); setStatus(""); }} placeholder="Leads, switches, revealed tech, game-to-game adjustments…"/><span>{report.battle_notes.length.toLocaleString()} / {TEAM_LAB_BATTLE_NOTE_LIMIT.toLocaleString()}</span></label>
       <footer className="team-lab-battle-footer"><p>Only you can access this notebook. The weekly-team copy excludes every opponent observation. The battle recap includes structured reveals, but neither share action includes private notes or account details.</p>{status && <strong role="status">{status}</strong>}</footer>
@@ -850,6 +852,7 @@ export default function DraftLab() {
 
   const roster = useMemo(() => buildRoster(names), [names]);
   const regulation = REGULATION_SETS[formatId] || REGULATION_SETS["reg-mb"];
+  const selectedBattleMechanic = teamLabBattleMechanicForFormat(formatId);
   const allowedPokemonNames = useMemo(() => new Set(Array.isArray(regulation?.legalNames) ? regulation.legalNames : CATALOG_NAMES), [regulation]);
   const defense = useMemo(() => teamDefenseSummary(roster), [roster]);
   const stab = useMemo(() => teamStabSummary(roster), [roster]);
@@ -1172,7 +1175,7 @@ export default function DraftLab() {
           <div className="team-lab-save-actions"><button className="primary-button" disabled={busy || !teamName.trim()}>{busy ? "Saving…" : savedTeamId ? "Save team & notes" : "Save to My Teams"}</button><span>{savedTeamId ? "Changes update this My Teams workspace; official league rosters stay untouched." : "Save first to attach opponent matchup plans."}</span></div>
         </form>
 
-        {savedTeamId && <TeamLabSetEditor value={teamSets} rosterNames={names} catalogNames={CATALOG_NAME_SET} disabled={busy} onChange={setTeamSets} onSave={saveTeamSets} onMessage={setMessage}/>}
+        {savedTeamId && <TeamLabSetEditor value={teamSets} rosterNames={names} catalogNames={CATALOG_NAME_SET} formatId={formatId} disabled={busy} onChange={setTeamSets} onSave={saveTeamSets} onMessage={setMessage}/>}
 
         <div className="team-lab-matchups">
           <div className="team-lab-matchups-heading"><div><span className="eyebrow">MATCH &amp; LADDER TRACKER</span><h3>Set up Battle Room</h3><p>Plan a known opponent or jump straight into a quick ladder match. Every saved result stays attached to this team.</p></div><div className="team-lab-matchups-heading-actions"><button type="button" className="primary-button" disabled={!savedTeamId || busy} onClick={async () => { try { await createQuickLadderMatch(); } catch (error) { setMessage(error.message); } }}>Start ladder match</button><button type="button" className="secondary-button" disabled={!savedTeamId || busy} onClick={() => openMatchup()}>Plan an opponent</button></div></div>
@@ -1194,7 +1197,7 @@ export default function DraftLab() {
       <LegalityPanel summary={legality} regulation={regulation} />
       <details className="draft-lab-archetypes">
         <summary><div><span className="eyebrow">OPTIONAL ROSTER PROMPTS · BETA</span><h2 id="draft-lab-archetypes-title">Roster ideas to review</h2><p>A lightweight checklist generated from typing and base-stat signals. It does not inspect your actual sets or rate the quality of your team.</p></div><span className="draft-lab-archetypes-action"><span className="when-closed">Open prompts</span><span className="when-open">Close prompts</span><b aria-hidden="true">⌄</b></span></summary>
-        <div className="draft-lab-archetypes-body" aria-labelledby="draft-lab-archetypes-title"><p>Use these as questions, not grades. Confirm moves, abilities, items, Tera rules, and league clauses separately.</p><div className="draft-lab-archetype-grid">{archetypes.map((archetype) => <article key={archetype.id}>
+        <div className="draft-lab-archetypes-body" aria-labelledby="draft-lab-archetypes-title"><p>Use these as questions, not grades. Confirm moves, abilities, items, {selectedBattleMechanic ? `${selectedBattleMechanic.label} rules` : "format mechanics"}, and league clauses separately.</p><div className="draft-lab-archetype-grid">{archetypes.map((archetype) => <article key={archetype.id}>
             <div><h3>{archetype.name}</h3><span>{archetype.fit}</span></div>
             <p>{archetype.signal}</p>
             <small><strong>Consider:</strong> {archetype.consider}</small>

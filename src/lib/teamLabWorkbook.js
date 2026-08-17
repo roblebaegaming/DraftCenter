@@ -1,4 +1,4 @@
-import { buildTeamLabPerformanceSummary } from "./teamLab.js";
+import { buildTeamLabPerformanceSummary, teamLabBattleMechanicForFormat } from "./teamLab.js";
 
 const WORKBOOK_GAME_PLAN_COUNT = 3;
 
@@ -68,8 +68,13 @@ export function buildTeamLabWorkbookSheets({
   const activeMatchup = matchups.find((matchup) => matchup.id === activeMatchupId) || matchups[0] || null;
   const activeReport = activeMatchup ? reportForMatchup(activeMatchup, activeMatchupId, activeState) : {};
   const activeMyPokemon = new Map((activeReport.my_pokemon || []).map((pokemon) => [pokemon.name, pokemon]));
+  const activeBattleState = new Map((activeReport.battle_state?.my_side?.pokemon || []).map((pokemon) => [pokemon.name, pokemon]));
   const mySetByName = new Map((myTeam?.team_sets?.pokemon || []).map((pokemon) => [pokemon.name, pokemon]));
   const teamName = text(myTeam?.team_name) || "My Team";
+  const teamBattleMechanic = teamLabBattleMechanicForFormat(myTeam?.regulation_id);
+  const mechanicColumn = teamBattleMechanic?.id === "tera"
+    ? "Tera type"
+    : teamBattleMechanic?.id === "mega" ? "Mega evolved" : "Format mechanic";
   const performanceMatchups = matchups.map((matchup) => matchup.id === activeMatchupId && activeState?.report
     ? { ...matchup, battle_report: activeState.report }
     : matchup);
@@ -111,23 +116,27 @@ export function buildTeamLabWorkbookSheets({
       ["Current streak", performance.streak.count ? `${performance.streak.result === "win" ? "W" : "L"}${performance.streak.count}` : ""],
       ["Last 10", performance.lastTen.map((result) => result === "win" ? "W" : result === "loss" ? "L" : "T").join(" ")],
       [],
-      ["Pokémon", "Matches brought", "Leads", "Lead wins", "Lead losses", "Tera matches"],
-      ...(performance.pokemon.length ? performance.pokemon.map((pokemon) => [pokemon.name, pokemon.broughtMatches, pokemon.leads, pokemon.leadWins, pokemon.leadLosses, pokemon.teraMatches]) : [["No completed games yet"]]),
+      ["Pokémon", "Matches brought", "Leads", "Lead wins", "Lead losses", "Mega Evolutions", "Tera uses"],
+      ...(performance.pokemon.length ? performance.pokemon.map((pokemon) => [pokemon.name, pokemon.broughtMatches, pokemon.leads, pokemon.leadWins, pokemon.leadLosses, pokemon.megaMatches, pokemon.teraMatches]) : [["No completed games yet"]]),
     ],
     headerRow: 10,
-    widths: [25, 18, 12, 14, 14, 15],
-    mergeTitleThrough: 5,
+    widths: [25, 18, 12, 14, 14, 18, 13],
+    mergeTitleThrough: 6,
   };
 
   const myTeamSheet = workbookSheet(
     "My Team",
     `My Team — ${teamName}`,
     "Keep the roster here and add the set, role, speed, and game-plan details you want beside it.",
-    ["Pokémon", "Brought now", "Fainted now", "Level", "Ability", "Item", "Nature", "Tera type", "EVs", "IVs", "Move 1", "Move 2", "Move 3", "Move 4", "Role", "Private set notes"],
+    ["Pokémon", "Brought now", "Fainted now", "Level", "Ability", "Item", "Nature", mechanicColumn, "EVs", "IVs", "Move 1", "Move 2", "Move 3", "Move 4", "Role", "Private set notes"],
     (myTeam?.pokemon || []).map((name) => {
       const pokemon = activeMyPokemon.get(name) || {};
+      const battlePokemon = activeBattleState.get(name) || {};
       const set = mySetByName.get(name) || {};
-      return [name, yesNo(pokemon.brought), yesNo(pokemon.fainted), set.level || "", text(set.ability), text(set.item), text(set.nature), text(set.tera_type), statSpread(set.evs), statSpread(set.ivs, 31), moveAt(set, 0), moveAt(set, 1), moveAt(set, 2), moveAt(set, 3), text(set.role), text(set.notes)];
+      const mechanicValue = teamBattleMechanic?.id === "tera"
+        ? text(set.tera_type)
+        : teamBattleMechanic?.id === "mega" ? yesNo(battlePokemon.mega_evolved) : "";
+      return [name, yesNo(pokemon.brought), yesNo(pokemon.fainted), set.level || "", text(set.ability), text(set.item), text(set.nature), mechanicValue, statSpread(set.evs), statSpread(set.ivs, 31), moveAt(set, 0), moveAt(set, 1), moveAt(set, 2), moveAt(set, 3), text(set.role), text(set.notes)];
     }),
     [24, 13, 13, 9, 20, 20, 14, 14, 35, 35, 20, 20, 20, 20, 24, 45],
   );
