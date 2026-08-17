@@ -11661,7 +11661,7 @@ function SetupView({ state, leagueId = null, leagueName = "league", isCommission
         <section className="rounded-lg p-5 mb-6" style={{ background: "#162238", border: "1px solid #4FD1C577" }}>
           <span className="eyebrow">DRAFT TOURNAMENT ROOM</span>
           <h2 className="display-font text-2xl" style={{ color: "#4FD1C5" }}>Event-scoped setup</h2>
-          <p className="text-sm" style={{ color: "#BDF7EE" }}>Entrants, team ownership, snake format, roster size, and transaction rules are fixed by the event. Configure the legal Pokemon pool and prices here, then start the shared draft when everyone is ready.</p>
+          <p className="text-sm" style={{ color: "#BDF7EE" }}>Entrants, team ownership, draft style, roster size, budget, and clocks are fixed by the event. Review the legal Pokemon pool and prices here, then start the shared draft when everyone is ready.</p>
         </section>
       )}
       {isCommissioner && (

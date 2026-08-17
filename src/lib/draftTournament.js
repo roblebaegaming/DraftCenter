@@ -1,4 +1,5 @@
 export const DRAFT_TOURNAMENT_FORMAT = "draft-tournament";
+export const DRAFT_TOURNAMENT_DRAFT_TYPES = Object.freeze(["snake", "auction"]);
 export const DRAFT_FIRST_COMPETITION_FORMATS = Object.freeze([
   "single-elimination",
   "double-elimination",
@@ -111,6 +112,54 @@ export function draftFirstTournamentCreateRpcArguments(input) {
     p_draft_budget: settings.draftBudget,
     p_publish_rosters: settings.publishRosters,
     p_competition_format: competitionFormat,
+  };
+}
+
+export function normalizeAuctionDraftTournamentSettings(input = {}) {
+  const competitionFormat = String(input?.format ?? "");
+  if (!DRAFT_FIRST_COMPETITION_FORMATS.includes(competitionFormat)) {
+    throw new Error("Auction Draft Tournaments must use single elimination, double elimination, or Swiss.");
+  }
+  const entrantLimit = boundedInteger(input.entrantLimit ?? 16, "Entrant limit", 4, 32);
+  const rosterSize = boundedInteger(input.rosterSize ?? 6, "Roster size", 4, 12);
+  const bestOf = boundedInteger(input.bestOf ?? 3, "Series length", 1, 3);
+  if (![1, 3].includes(bestOf)) throw new Error("Series length must be best of 1 or best of 3.");
+  const visibility = input.visibility ?? "public";
+  if (!["public", "private"].includes(visibility)) throw new Error("Visibility must be public or private.");
+
+  return {
+    name: cleanText(input.name, "Name", 2, 120),
+    description: String(input.description ?? "").trim().slice(0, 2000),
+    visibility,
+    competitionFormat,
+    bestOf,
+    entrantLimit,
+    rosterSize,
+    draftBudget: boundedInteger(input.draftBudget ?? 120, "Auction budget", 60, 1000),
+    auctionNominationSeconds: boundedInteger(input.auctionNominationSeconds ?? 30, "Nomination clock", 5, 600),
+    auctionTimerSeconds: boundedInteger(input.auctionTimerSeconds ?? 30, "Opening bid clock", 5, 600),
+    auctionBidResetSeconds: boundedInteger(input.auctionBidResetSeconds ?? 10, "Bid reset clock", 1, 120),
+    publishRosters: visibility === "public" && Boolean(input.publishRosters),
+    rules: String(input.rules ?? "").trim().slice(0, 10000),
+  };
+}
+
+export function auctionDraftTournamentCreateRpcArguments(input) {
+  const settings = normalizeAuctionDraftTournamentSettings(input);
+  return {
+    p_name: settings.name,
+    p_description: settings.description,
+    p_visibility: settings.visibility,
+    p_best_of: settings.bestOf,
+    p_entrant_limit: settings.entrantLimit,
+    p_rules: settings.rules,
+    p_roster_size: settings.rosterSize,
+    p_draft_budget: settings.draftBudget,
+    p_auction_nomination_seconds: settings.auctionNominationSeconds,
+    p_auction_timer_seconds: settings.auctionTimerSeconds,
+    p_auction_bid_reset_seconds: settings.auctionBidResetSeconds,
+    p_publish_rosters: settings.publishRosters,
+    p_competition_format: settings.competitionFormat,
   };
 }
 

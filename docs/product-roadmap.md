@@ -6,12 +6,17 @@ league lifecycle come before new product areas.
 
 ## Current release sequence
 
-Tournament strengthening and Draft Tournament Swiss are complete. The next work remains deliberately narrow and ordered:
+Tournament strengthening, Draft Tournament Swiss, and ordinary-league Swiss
+are complete. Auction Draft Tournaments are the current protected release:
 
-1. Release ordinary-league Swiss regular seasons for 4–16 teams after either a snake or auction draft. Keep pairing, corrections, byes, standings, and playoff seeding server-authoritative. The contract is in [`league-swiss-regular-seasons.md`](league-swiss-regular-seasons.md).
-2. Stabilize that league workflow through real commissioner feedback and isolated lifecycle testing.
-3. Add auction drafting to Draft Tournaments by reusing the proven league auction engine without weakening event roster lock or bracket recovery. Auction Draft Tournaments must support 4–32 entrants in one expanded draft room, including a complete 32-entrant draft-to-Swiss or draft-to-elimination handoff. Validate the full 32-player lifecycle, pool capacity, clocks, reconnect behavior, mobile views, and server-side pairing performance before raising the released limit.
-4. Freeze broad feature development and return to monitoring, bug fixes,
+1. Release Auction Draft Tournaments for 4–32 entrants by reusing the proven
+   hosted auction engine without weakening event roster lock or bracket
+   recovery. Validate the full 32-player lifecycle, pool capacity, clocks,
+   reconnect behavior, mobile views, server-side pairing performance, and
+   cleanup in an isolated Preview before release.
+2. Stabilize ordinary-league Swiss and tournament auction workflows through
+   real commissioner feedback and isolated lifecycle testing.
+3. Freeze broad feature development and return to monitoring, bug fixes,
    live-draft performance, tournament feedback, and external SEO measurement.
 
 ## Next flagship expansion: multi-pod league organizations
