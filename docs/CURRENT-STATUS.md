@@ -22,9 +22,12 @@ save the result, and open the next match without leaving Battle Room. Private
 team performance now includes record, decided-game win rate, current streak,
 last-ten form, Pokémon usage and lead records, battle-mechanic usage, most-seen
 opposing Pokémon, and a matching workbook Performance sheet. This release
-required no database migration or provider-setting change. The current Battle
-Room behavior is format-aware: Pokémon Champions uses Mega Evolution, while
-Tera is limited to Scarlet/Violet formats.
+required no database migration or provider-setting change.
+
+Pull request [#289](https://github.com/roblebaegaming/DraftCenter/pull/289)
+made Battle Room's mechanic handling format-aware: Pokémon Champions uses Mega
+Evolution, while Tera is limited to Scarlet/Violet formats. The state tracker,
+team-performance totals, and workbook export all follow that distinction.
 
 Pull request [#285](https://github.com/roblebaegaming/DraftCenter/pull/285)
 released server-authoritative Swiss regular seasons for ordinary 4-16 team
