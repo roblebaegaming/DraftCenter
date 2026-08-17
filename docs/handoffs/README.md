@@ -1,7 +1,16 @@
 # Agent handoffs
 
+[`DraftCenter-agent-handoff-2026-08-17-battle-mode-worktree-audit.md`](DraftCenter-agent-handoff-2026-08-17-battle-mode-worktree-audit.md)
+is the current release and continuation handoff. It records the live
+format-aware Battle Room correction, the exact Mega Evolution versus Tera
+boundary, the reference-spreadsheet scope, Production verification at
+`b6f3746`, and the read-only inventory of all 126 linked worktrees. It gives an
+exact preserve, publish, archive, or discard recommendation for each of the ten
+dirty worktrees and records that no cleanup is authorized until the owner makes
+a separate explicit decision.
+
 [`DraftCenter-agent-handoff-2026-08-17-tournament-team-lab-spanish-pokedex-audit.md`](DraftCenter-agent-handoff-2026-08-17-tournament-team-lab-spanish-pokedex-audit.md)
-is the current release and continuation handoff. It records the completed
+is the preceding comprehensive release handoff. It records the completed
 tournament-directory and durable entrant-URL release, six-Pokémon Team Lab
 workflow, Spanish Worlds localization, Pokédex Tracker source audit and
 permanent quality gate, migrations through 424, Supabase automatic branching
