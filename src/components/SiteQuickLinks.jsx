@@ -48,14 +48,16 @@ export default function SiteQuickLinks() {
         </a>
         <nav className="site-primary-links" aria-label="Primary navigation">
           <a href="/tools/mega-bracket" {...navState(pathname, "/tools/mega-bracket")}>Mega Bracket</a>
+          <a href="/tools/bracket-builder" {...navState(pathname, "/tools/bracket-builder")}>Bracket Studio</a>
           <a href="/pokemon" {...navState(pathname, "/pokemon")}>Pokémon</a>
           <a href="/explore" {...navState(pathname, "/explore")}>Community</a>
-          <a href="/worlds/2026" {...navState(pathname, "/worlds/2026")}>Worlds Predictions</a>
+          <a href="/tournaments/predictions" {...navState(pathname, "/tournaments/predictions")}>Predictions</a>
         </nav>
         <div className="site-global-account">
           {signedIn ? <>
             {isOwner ? <details className="site-owner-menu">
               <summary>{accountName}</summary>
+              <div><a href="/operations/predictions">Publish predictions</a></div>
               <div><a href="/operations/daily-three">Daily Games</a></div>
             </details> : <span className="site-account-name">{accountName}</span>}
             <a href="/?profile=open" onClick={openProfile}>Profile</a>

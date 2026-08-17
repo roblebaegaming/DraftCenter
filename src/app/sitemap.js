@@ -1,10 +1,11 @@
-import { getPublicLeagueCards } from "../lib/supabase/publicServer";
+import { getPublicLeagueCards, getPublicPredictionBracketDirectory } from "../lib/supabase/publicServer";
 import { FORMATS, GUIDES, GUIDE_UPDATED_DATE } from "../lib/seoContent";
 import { getAllPokemonProfiles, POKEMON_GENERATIONS, POKEMON_TYPES } from "../lib/publicPokemonIndex";
 import { POKEMON_EDITORIAL_REVIEWED_DATE, pokemonProfileEditorial } from "../lib/pokemonEditorial";
 import { POKEMON_COLOR_OPTIONS, POKEMON_EGG_GROUP_OPTIONS, POKEMON_SHAPE_OPTIONS } from "../lib/pokemonSpeciesTraits";
 import nuzlockeGameGuides from "../lib/nuzlockeGameGuides.json";
 import { SHINY_HUNTING_GUIDES, SHINY_GUIDE_UPDATED_DATE } from "../lib/shinyHuntingGuides";
+import { predictionBracketEventPath } from "../lib/predictionBracketPaths";
 
 const PRODUCT_DISCOVERY_LAST_MODIFIED = new Date("2026-08-16T00:00:00.000Z");
 const WORLDS_2026_LAST_MODIFIED = new Date("2026-08-11T00:00:00.000Z");
@@ -24,9 +25,11 @@ const localizedRouteAlternates = new Map([
 const productRouteLastModified = new Map([
   ["/team-lab", PRODUCT_DISCOVERY_LAST_MODIFIED],
   ["/tools/mega-bracket", PRODUCT_DISCOVERY_LAST_MODIFIED],
+  ["/tools/bracket-builder", PRODUCT_DISCOVERY_LAST_MODIFIED],
   ["/pokedex-tracker", PRODUCT_DISCOVERY_LAST_MODIFIED],
   ["/nuzlocke", PRODUCT_DISCOVERY_LAST_MODIFIED],
   ["/tournaments", PRODUCT_DISCOVERY_LAST_MODIFIED],
+  ["/tournaments/predictions", PRODUCT_DISCOVERY_LAST_MODIFIED],
   ["/resources/daily-games", PRODUCT_DISCOVERY_LAST_MODIFIED],
   ["/worlds/2026", WORLDS_2026_LAST_MODIFIED],
   ["/worlds/2026/vgc", WORLDS_2026_LAST_MODIFIED],
@@ -47,11 +50,13 @@ const routes = [
   ["/pokemon/generations", "monthly", 0.8],
   ["/team-lab", "weekly", 0.9],
   ["/tools/mega-bracket", "weekly", 0.9],
+  ["/tools/bracket-builder", "weekly", 0.9],
   ["/pokedex-tracker", "weekly", 0.9],
   ["/nuzlocke", "weekly", 0.9],
   ["/nuzlocke/guides", "monthly", 0.9],
   ["/guides/shiny-hunting", "monthly", 0.9],
   ["/tournaments", "daily", 0.8],
+  ["/tournaments/predictions", "daily", 0.9],
   ["/worlds/2026", "daily", 0.9],
   ["/worlds/2026/vgc", "daily", 0.9],
   ["/it/worlds/2026", "daily", 0.8],
@@ -88,7 +93,7 @@ async function pokemonRoutes() {
 }
 
 export default async function sitemap() {
-  const [leagues, pokemon] = await Promise.all([getPublicLeagueCards(), pokemonRoutes()]);
+  const [leagues, predictionEvents, pokemon] = await Promise.all([getPublicLeagueCards(), getPublicPredictionBracketDirectory(), pokemonRoutes()]);
   const staticRoutes = routes.map(([path, changeFrequency, priority]) => ({
     url: `https://www.draftcentral.gg${path}`,
     ...(productRouteLastModified.has(path) ? { lastModified: productRouteLastModified.get(path) } : {}),
@@ -102,6 +107,20 @@ export default async function sitemap() {
     changeFrequency: "daily",
     priority: 0.8,
   }));
+  const predictionRoutes = predictionEvents.flatMap((event) => {
+    try {
+      const path = predictionBracketEventPath(event.event_id);
+      const modifiedAt = event.finalized_at || event.published_at;
+      return [{
+        url: `https://www.draftcentral.gg${path}`,
+        ...(modifiedAt ? { lastModified: new Date(modifiedAt) } : {}),
+        changeFrequency: event.status === "final" ? "monthly" : "daily",
+        priority: 0.8,
+      }];
+    } catch {
+      return [];
+    }
+  });
   const guideRoutes = Object.entries(GUIDES).map(([slug, guide]) => ({
     url: `https://www.draftcentral.gg/guides/${slug}`,
     lastModified: new Date(`${guide.updatedDate || GUIDE_UPDATED_DATE}T00:00:00.000Z`),
@@ -148,5 +167,5 @@ export default async function sitemap() {
     changeFrequency: "monthly",
     priority: 0.8,
   }));
-  return [...staticRoutes, ...nuzlockeGuideRoutes, ...shinyGuideRoutes, ...guideRoutes, ...formatRoutes, ...pokemonIndexRoutes, ...pokemonTraitRoutes, ...leagueRoutes, ...pokemon];
+  return [...staticRoutes, ...nuzlockeGuideRoutes, ...shinyGuideRoutes, ...guideRoutes, ...formatRoutes, ...pokemonIndexRoutes, ...pokemonTraitRoutes, ...leagueRoutes, ...predictionRoutes, ...pokemon];
 }
