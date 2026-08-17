@@ -290,3 +290,11 @@ test("directory and entrant pages use aggregate-only and post-lock bracket RPCs"
   assert.match(prettyRoute, /PredictionBracketEntry/);
   assert.match(genericRoute, /predictionBracketEntryPath/);
 });
+
+test("published prediction events enter discovery without exposing private setup URLs", () => {
+  const sitemap = source("src/app/sitemap.js");
+  assert.match(sitemap, /getPublicPredictionBracketDirectory/);
+  assert.match(sitemap, /predictionBracketEventPath\(event\.event_id\)/);
+  assert.match(sitemap, /event\.finalized_at \|\| event\.published_at/);
+  assert.doesNotMatch(sitemap, /prediction_bracket_events/);
+});
