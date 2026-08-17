@@ -1,95 +1,76 @@
 # DraftCenter current status
 
-- Last updated: August 16, 2026 Pacific
+- Last updated: August 17, 2026 Pacific
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified Production application commit: `5a7b8f6b1291bb29fb1765d1a5bc3170f6950369`
-- Latest applied Production migration: 413
+- Verified Production application commit: `6ea856e876bd5d6d8ca6185fc33c4f9e962c4703`
+- Latest applied Production migration: 424
 
 ## Deployed state
 
-Pull request [#276](https://github.com/roblebaegaming/DraftCenter/pull/276)
-released the privacy-gated Worlds VGC champion outlook. The current Worlds page
-shows a model-generated Top 10 in English and Italian, links to the official
-Masters season standings, and explains the configurable model weights. The
-model distributes 100% probability across all 438 invite-earned competitors,
-caps every pre-Worlds competitor at 5%, and uses regional equivalents for
-Japan, Korea, and Asia-Pacific instead of treating Championship Points as a
-universal qualification system.
+Pull requests [#280](https://github.com/roblebaegaming/DraftCenter/pull/280)
+through [#283](https://github.com/roblebaegaming/DraftCenter/pull/283) are in
+Production. They released the permanent prediction-tournament directory and
+durable post-lock entrant-bracket URLs, the six-Pokémon Team Lab workflow with
+PokéPaste imports and regulation-aware closed team sheets, complete Spanish
+Worlds localization, and the permanent Pokédex Tracker catalog-quality gate.
 
-Migration 413 adds the bounded aggregate-popularity function used by the
-outlook. Community influence stays disabled below 25 complete entries. At
-release there were 17 entries, so the function returned no per-competitor
-counts and the model used no private community signal. Direct browser reads of
-entry rows remain denied, all three Worlds tables retain forced RLS, and the
-public aggregate never returns account identity or an individual lineup.
+Production migrations 423 and 424 are applied. The Worlds aggregate-popularity
+contract from migration 413 was re-proved at 24 entries, 25 entries, and after
+lock on a fresh isolated Supabase branch. Anonymous clients cannot read an
+individual lineup, and durable entrant URLs reveal brackets only after lock.
 
-The Production release was verified at exact commit `5a7b8f6`. Protected
-checks, the dependency audit, complete tests, the 1,027-row National Dex check,
-the 305-page build, Vercel deployment, the full signed-out smoke sweep, and live
-English and Italian desktop/mobile review passed. The temporary isolated
-Supabase branch was deleted after verification and contained no lasting test
-data.
+The Pokédex Tracker audit covered all 37 supported games, 65 sections, and
+13,130 local entries. It found zero catalog conflicts or numbering gaps and
+confirmed complete HOME National Dex coverage through #1025. No evidence-backed
+correction was required, so no catalog or Production data was changed.
 
-The Victory Road to San Francisco bracket is complete. Its public challenge
-retains the final Top 8 results, the read-only original Top 16 archive, the
-post-lock entrant-bracket gallery, and browser-generated PNG downloads. The
-official source shows Hyungwoo Shin as champion. The result monitor is stopped;
-do not replay results or recreate it without a documented official correction.
+Supabase automatic branching is enabled for the GitHub integration with a
+one-branch limit and **Supabase changes only** enabled. The temporary paid
+release-validation branch was deleted after validation. Older Preview branches
+that predated this release remain untouched and require exact owner approval
+before cleanup.
 
-Pokédex Tracker is deployed with separate game-accurate regional and DLC dexes,
-linked HOME National Dex progress, the location finder, and the game-aware box
-planner. Collection and progress data remain private and RPC-only. Current
-tools remain free; no payment processor, paywall, entitlement, native billing,
-or external tester invitation is authorized by the existing product decision.
+All local release gates, protected pull-request checks, exact Production
+deployments, signed-out Production smoke sweeps, and relevant live responsive
+browser reviews passed through commit `6ea856e`.
 
 ## Current continuation order
 
-1. Repair and prove the Supabase Preview migration workflow. The GitHub
-   integration currently imports the remote schema and reports the standard
-   migration directory up to date, while this repository's numbered SQL files
-   live outside that directory and Production's migration ledger does not
-   represent the forward migration sequence. Do not rewrite an applied
-   migration or repair history blindly; reconcile it in an isolated branch and
-   prove fresh-branch behavior before any Production history change.
-2. Release a permanent public tournament directory and durable entrant-bracket
-   URLs. Preserve the post-lock-only entrant visibility boundary and never put
-   account IDs or email addresses in public URLs or payloads.
-3. Add Spanish Worlds localization as a separate protected release after the
-   directory work, while retaining the current English and Italian routes.
-4. Audit Pokédex Tracker data quality against authoritative game-specific
-   sources and implement only the highest-priority evidence-backed corrections.
-5. Continue the scheduled aggregate launch measurement and the normal SEO,
-   tournament, Daily Games, Nuzlocke, navigation, League Pulse, and
-   commissioner-save monitoring already recorded in their subject documents.
+1. Run the scheduled aggregate-only attribution review at 09:00 Pacific on
+   August 19, 2026. Do not inspect or report individual identity or activity.
+2. Decide whether to delete any specifically identified older Supabase Preview
+   branches; do not infer authorization from the new one-branch limit.
+3. Invite opt-in Pokédex Tracker testers only after the owner approves the
+   exact people and destination.
+4. Continue ordinary security, SEO, tournament, and product monitoring. Apply
+   an official Worlds result correction only through the existing source and
+   release gates.
+
+No application or database item from the authorized tournament-directory,
+Team Lab, Spanish Worlds, or Pokédex data-quality release list remains open.
 
 ## Active boundaries
 
 - Use a short-lived branch and protected pull request for every release.
 - Add forward-only database migrations; never rewrite one that may have run.
-- Keep Worlds entries private before lock. Aggregate popularity is unavailable
-  before 25 complete entries and must never make one lineup reconstructible.
+- Keep Worlds entries private before lock and aggregate-only at or above the
+  25-entry threshold.
 - Keep GO Meta Picks closed until an official eligibility pool is reviewed.
-- Keep the live Worlds results importer off until the exact feed, permission,
-  attribution, and event identifier are approved.
+- Do not invite testers, start payments, or change real Production data without
+  exact owner authorization.
 - Do not modify Mushroom Cup or the intentionally paused Mushroom Hut drafts.
-- Do not change Production data, providers, environment variables, secrets,
-  accounts, or real leagues merely for testing.
 
 ## Authoritative records
 
 - Current release and continuation handoff:
-  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-16-worlds-odds-release.md`](handoffs/DraftCenter-agent-handoff-2026-08-16-worlds-odds-release.md)
-- Completed Victory Road record:
-  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-16-victory-road-final-monitoring.md`](handoffs/DraftCenter-agent-handoff-2026-08-16-victory-road-final-monitoring.md)
-- Pokédex Tracker product handoff:
-  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-16-pokedex-numbered-dexes-production.md`](handoffs/DraftCenter-agent-handoff-2026-08-16-pokedex-numbered-dexes-production.md)
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-17-tournament-team-lab-spanish-pokedex-audit.md`](handoffs/DraftCenter-agent-handoff-2026-08-17-tournament-team-lab-spanish-pokedex-audit.md)
+- Pokédex data-quality audit:
+  [`docs/pokedex-tracker-data-quality-audit-2026-08-17.md`](pokedex-tracker-data-quality-audit-2026-08-17.md)
 - Prediction-bracket contract:
   [`docs/prediction-bracket-challenges.md`](prediction-bracket-challenges.md)
 - Pokédex Tracker contract:
   [`docs/pokedex-trackers.md`](pokedex-trackers.md)
-- Focused-app monetization decision:
-  [`docs/focused-app-monetization.md`](focused-app-monetization.md)
 - Permanent repository policy: [`AGENTS.md`](../AGENTS.md)
 
 When this file conflicts with an older handoff, this verified Production record
