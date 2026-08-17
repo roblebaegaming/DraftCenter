@@ -21,6 +21,7 @@ import {
   TEAM_LAB_ITEM_LIMIT,
   TEAM_LAB_LEAGUE_MATCHUP_HANDOFF_KEY,
   TEAM_LAB_MATCHUP_HANDOFF_KEY,
+  TEAM_LAB_ROSTER_LIMIT,
   TEAM_LAB_TURN_DAMAGE_LIMIT,
   TEAM_LAB_TURN_EVENT_LIMIT,
   TEAM_LAB_TURN_MAX,
@@ -33,11 +34,11 @@ import { PRODUCT_ROUTES } from "../platform/products";
 import { createPlatformBrowserClient } from "../platform/supabase";
 import TeamLabOpponentEditor, { createEmptyTeamLabMatchup, normalizeTeamLabMatchupForm } from "./TeamLabOpponentEditor";
 import TeamLabSetEditor from "./TeamLabSetEditor";
+import TeamLabPokePasteImport from "./TeamLabPokePasteImport";
 import { hasTeamLabSetDetails, normalizeTeamLabTeamSets } from "../lib/teamLabSets";
 import { BattleDamageEstimator, BattleSeriesTracker, BattleStateTracker } from "./TeamLabBattleTools";
 import {
   buildDraftLabQuery,
-  DRAFT_LAB_MODE_LIMITS,
   parseDraftLabQuery,
   teamArchetypeConsiderations,
   teamDefenseSummary,
@@ -91,16 +92,16 @@ function TypeBadge({ type }) {
   return <span className={`draft-lab-type type-${type}`}>{displayType(type)}</span>;
 }
 
-function PokemonPicker({ inputId, label, names, limit, onChange, onMessage, placeholder = "Garchomp, Rotom-Wash..." }) {
+function PokemonPicker({ inputId, label, names, limit, allowedNames, onChange, onMessage, placeholder = "Garchomp, Rotom-Wash..." }) {
   const [query, setQuery] = useState("");
   const matches = useMemo(() => {
     const needle = query.trim().toLowerCase();
     if (!needle) return [];
-    return CATALOG.filter((pokemon) => !names.includes(pokemon.name) && pokemon.name.toLowerCase().includes(needle)).slice(0, 10);
-  }, [names, query]);
+    return CATALOG.filter((pokemon) => allowedNames.has(pokemon.name) && !names.includes(pokemon.name) && pokemon.name.toLowerCase().includes(needle)).slice(0, 10);
+  }, [allowedNames, names, query]);
 
   function add(name) {
-    if (!CATALOG_BY_NAME.has(name)) return onMessage("Choose a Pokémon from the DraftCenter catalogue.");
+    if (!CATALOG_BY_NAME.has(name) || !allowedNames.has(name)) return onMessage("Choose a Pokémon available in the selected format.");
     if (names.includes(name)) return onMessage(`${name} is already on this roster.`);
     if (names.length >= limit) return onMessage(`This roster is limited to ${limit} Pokémon in Team Lab.`);
     onChange([...names, name]);
@@ -669,7 +670,7 @@ function MatchupCard({ matchup, onBattle, onEdit, onDelete, busy }) {
   const scoutedSets = (matchup.opponent_sets?.pokemon || []).filter((pokemon) => pokemon.ability || pokemon.item || pokemon.moves?.length).length;
   const turnEvents = matchup.battle_report?.turn_log?.events?.length || 0;
   return <article className="team-lab-matchup-card">
-    <div className="team-lab-matchup-card-heading"><div><span className="eyebrow">{matchup.week_label || "OPPONENT"}</span><h3>{matchup.opponent_name}</h3>{matchup.opponent_team_name && <p>{matchup.opponent_team_name}</p>}</div><span>{matchup.mode === "team" ? "6-Pokémon team" : "10-Pokémon roster"}</span></div>
+    <div className="team-lab-matchup-card-heading"><div><span className="eyebrow">{matchup.week_label || "OPPONENT"}</span><h3>{matchup.opponent_name}</h3>{matchup.opponent_team_name && <p>{matchup.opponent_team_name}</p>}</div><span>{matchup.pokemon?.length > TEAM_LAB_ROSTER_LIMIT ? `Legacy roster · ${matchup.pokemon.length} Pokémon` : "6-Pokémon team"}</span></div>
     <div className="team-lab-matchup-pokemon">{(matchup.pokemon || []).map((name) => <span key={name}>{name}</span>)}{!matchup.pokemon?.length && <span className="muted">Roster not added yet</span>}</div>
     {scoutedSets > 0 && <p className="team-lab-matchup-battle-summary"><strong>{scoutedSets} scouted set{scoutedSets === 1 ? "" : "s"}</strong> · abilities, items, and moves saved</p>}
     {pressurePoints.length > 0 && <p className="team-lab-matchup-pressure"><strong>Type pressure to review:</strong> {pressurePoints.map((row) => displayType(row.type)).join(", ")}</p>}
@@ -682,7 +683,6 @@ function MatchupCard({ matchup, onBattle, onEdit, onDelete, busy }) {
 export default function DraftLab() {
   const [supabase] = useState(() => createPlatformBrowserClient());
   const [formatId, setFormatId] = useState("reg-mb");
-  const [mode, setMode] = useState("team");
   const [names, setNames] = useState([]);
   const [message, setMessage] = useState("");
   const [hydrated, setHydrated] = useState(false);
@@ -704,10 +704,9 @@ export default function DraftLab() {
     let cancelled = false;
     const shared = parseDraftLabQuery(window.location.search, CATALOG_NAMES);
     setFormatId(REGULATION_SETS[shared.format] && shared.format !== "custom" ? shared.format : "reg-mb");
-    setMode(shared.mode);
     setNames(shared.names);
     if (shared.truncatedCount > 0) {
-      setMessage(`Team Lab now supports up to ${DRAFT_LAB_MODE_LIMITS[shared.mode]} Pokémon. This older link had ${shared.truncatedCount} extra pick${shared.truncatedCount === 1 ? "" : "s"}, so only the first ${DRAFT_LAB_MODE_LIMITS[shared.mode]} were opened.`);
+      setMessage(`Team Lab supports six Pokémon. This older link had ${shared.truncatedCount} extra pick${shared.truncatedCount === 1 ? "" : "s"}, so only the first six were opened.`);
     }
     let handoff = null;
     let matchupHandoff = null;
@@ -776,18 +775,19 @@ export default function DraftLab() {
 
   useEffect(() => {
     if (!hydrated) return;
-    const search = buildDraftLabQuery({ format: formatId, mode, names });
+    const search = buildDraftLabQuery({ format: formatId, names });
     window.history.replaceState(null, "", `${window.location.pathname}?${search}`);
-  }, [formatId, hydrated, mode, names]);
+  }, [formatId, hydrated, names]);
 
   const roster = useMemo(() => buildRoster(names), [names]);
   const regulation = REGULATION_SETS[formatId] || REGULATION_SETS["reg-mb"];
+  const allowedPokemonNames = useMemo(() => new Set(Array.isArray(regulation?.legalNames) ? regulation.legalNames : CATALOG_NAMES), [regulation]);
   const defense = useMemo(() => teamDefenseSummary(roster), [roster]);
   const stab = useMemo(() => teamStabSummary(roster), [roster]);
   const stats = useMemo(() => teamStatSummary(roster), [roster]);
   const archetypes = useMemo(() => teamArchetypeConsiderations(roster), [roster]);
   const legality = useMemo(() => teamLegalitySummary(roster, regulation), [regulation, roster]);
-  const limit = DRAFT_LAB_MODE_LIMITS[mode];
+  const limit = TEAM_LAB_ROSTER_LIMIT;
   const activeMatchups = useMemo(() => matchups.filter((matchup) => matchup.personal_team_id === savedTeamId), [matchups, savedTeamId]);
 
   useEffect(() => {
@@ -795,9 +795,8 @@ export default function DraftLab() {
   }, [names]);
 
   function applyHandoff(handoff) {
-    const imported = normalizeTeamLabRoster(handoff.pokemon, CATALOG_NAME_SET);
+    const imported = normalizeTeamLabRoster(handoff.pokemon, CATALOG_NAME_SET, TEAM_LAB_ROSTER_LIMIT);
     setNames(imported);
-    setMode(imported.length > 6 ? "roster" : "team");
     setSavedTeamId(handoff.savedTeamId || null);
     setTeamName(handoff.teamName || "");
     setLeagueName(handoff.leagueName || "");
@@ -810,10 +809,8 @@ export default function DraftLab() {
   }
 
   function applyAccountTeam(team, source) {
-    const imported = normalizeTeamLabRoster(team.pokemon, CATALOG_NAME_SET);
-    const nextMode = imported.length > 6 ? "roster" : "team";
+    const imported = normalizeTeamLabRoster(team.pokemon, CATALOG_NAME_SET, TEAM_LAB_ROSTER_LIMIT);
     setNames(imported);
-    setMode(nextMode);
     if (source === "personal" && REGULATION_SETS[team.regulation_id]) setFormatId(team.regulation_id);
     setSavedTeamId(source === "personal" ? team.id : null);
     setTeamName(team.team_name || "");
@@ -825,8 +822,8 @@ export default function DraftLab() {
     setBattleMatchupId(null);
     const wasTrimmed = Array.isArray(team.pokemon) && team.pokemon.length > imported.length;
     setMessage(source === "league"
-      ? `Loaded ${team.team_name} as a planning copy. Team Lab cannot change the official league roster.${wasTrimmed ? " The first 10 supported Pokémon were loaded." : ""}`
-      : `Loaded ${team.team_name} from My Teams.${wasTrimmed ? " The first 10 supported Pokémon were loaded." : ""}`);
+      ? `Loaded ${team.team_name} as a planning copy. Team Lab cannot change the official league roster.${wasTrimmed ? " The first six supported Pokémon were loaded; choose the weekly six you want to analyze." : ""}`
+      : `Loaded ${team.team_name} from My Teams.${wasTrimmed ? " The first six supported Pokémon were loaded; trim the saved workspace before updating it." : ""}`);
   }
 
   function loadSelectedAccountTeam() {
@@ -845,7 +842,6 @@ export default function DraftLab() {
     setTeamNotes("");
     setTeamSets(normalizeTeamLabTeamSets(null, [], CATALOG_NAME_SET));
     setNames([]);
-    setMode("team");
     setMatchupForm(null);
     setBattleMatchupId(null);
     setMessage("New Team Lab plan started.");
@@ -855,17 +851,6 @@ export default function DraftLab() {
     setNames([]);
     setTeamSets(normalizeTeamLabTeamSets(null, [], CATALOG_NAME_SET));
     setMessage("Roster cleared. Save only if you want to update the connected My Teams workspace.");
-  }
-
-  function changeMode(nextMode) {
-    const nextLimit = DRAFT_LAB_MODE_LIMITS[nextMode];
-    if (names.length > nextLimit) {
-      const removeCount = names.length - nextLimit;
-      setMessage(`Remove ${removeCount} Pokémon before switching to the ${nextLimit}-Pokémon version. No picks were removed.`);
-      return;
-    }
-    setMode(nextMode);
-    setMessage("");
   }
 
   async function copyLink() {
@@ -894,12 +879,15 @@ export default function DraftLab() {
     event.preventDefault();
     if (!user) return setMessage("Sign in to save a private team and notes.");
     if (!teamName.trim()) return setMessage("Name this team before saving it.");
+    const illegalNames = names.filter((name) => !allowedPokemonNames.has(name));
+    if (illegalNames.length) return setMessage(`Remove Pokémon unavailable in ${regulation.name} before saving: ${illegalNames.join(", ")}.`);
     setBusy(true);
     setMessage("");
     const payload = {
       team_name: teamName.trim(),
       league_name: nullable(leagueName),
       format_name: regulation.name,
+      regulation_id: formatId,
       notes: teamNotes.trim(),
       pokemon: names,
       team_sets: normalizeTeamLabTeamSets(teamSets, names, CATALOG_NAME_SET),
@@ -935,7 +923,7 @@ export default function DraftLab() {
   function openMatchup(matchup = null) {
     setMatchupForm(matchup
       ? normalizeTeamLabMatchupForm(matchup)
-      : createEmptyTeamLabMatchup({ mode, format_id: formatId }));
+      : createEmptyTeamLabMatchup({ mode:"team", format_id:formatId }));
     setMessage("");
   }
 
@@ -947,6 +935,13 @@ export default function DraftLab() {
     setBusy(true);
     setMessage("");
     const normalizedMatchup = normalizeTeamLabMatchupForm(matchupForm);
+    const matchupRegulation = REGULATION_SETS[normalizedMatchup.format_id];
+    const legalOpponentNames = new Set(Array.isArray(matchupRegulation?.legalNames) ? matchupRegulation.legalNames : CATALOG_NAMES);
+    const illegalOpponentNames = normalizedMatchup.pokemon.filter((name) => !legalOpponentNames.has(name));
+    if (illegalOpponentNames.length) {
+      setBusy(false);
+      return setMessage(`Remove Pokémon unavailable in ${matchupRegulation?.name || "this format"} before saving: ${illegalOpponentNames.join(", ")}.`);
+    }
     const { data, error } = await supabase.rpc("save_my_team_lab_matchup_details", {
       p_matchup_id: normalizedMatchup.id,
       p_personal_team_id: savedTeamId,
@@ -994,11 +989,11 @@ export default function DraftLab() {
       notes: "",
       pokemon: context.my_pokemon,
     });
-    const opponentPokemon = normalizeTeamLabRoster(context.opponent_pokemon, CATALOG_NAME_SET);
+    const opponentPokemon = normalizeTeamLabRoster(context.opponent_pokemon, CATALOG_NAME_SET, TEAM_LAB_ROSTER_LIMIT);
     setMatchupForm(normalizeTeamLabMatchupForm({
       opponent_name: context.opponent_coach || context.opponent_team_name,
       opponent_team_name: context.opponent_team_name,
-      mode: opponentPokemon.length > 6 ? "roster" : "team",
+      mode: "team",
       format_id: formatId,
       pokemon: opponentPokemon,
       notes: "",
@@ -1021,20 +1016,20 @@ export default function DraftLab() {
   return <main className="draft-lab-shell">
     <nav className="public-page-nav"><a className="quiet-button" href="/?view=dashboard">DraftCenter home</a><a className="quiet-button" href="/pokemon">Pokédex</a><a className="quiet-button" href={PRODUCT_ROUTES.teamLabTeams}>My Teams</a></nav>
     <header className="draft-lab-hero">
-      <div><span className="eyebrow">TEAM BUILDER & MATCHUP PLANNER</span><h1>Team Lab</h1><p>Build a six-Pokémon battle team or focused 10-Pokémon draft roster, plan each weekly opponent, and use private Battle Mode to record turns, revealed moves, abilities, items, switches, faints, and written damage without leaving DraftCenter.</p></div>
+      <div><span className="eyebrow">TEAM BUILDER & MATCHUP PLANNER</span><h1>Team Lab</h1><p>Build one six-Pokémon battle team, import its PokéPaste, plan each weekly opponent, and use private Battle Mode to record turns, revealed moves, abilities, items, switches, faints, and written damage without leaving DraftCenter.</p></div>
       <div className="draft-lab-hero-actions"><a className="primary-button inline-link-button" href="#team-lab-battle-setup">Open Battle Room</a><button className="quiet-button" type="button" onClick={copyLink}>Copy roster link</button><a className="quiet-button" href={PRODUCT_ROUTES.teamLabTeams}>Open My Teams</a></div>
     </header>
 
     <section className="draft-lab-builder" aria-labelledby="draft-lab-builder-title">
       <div className="draft-lab-controls">
         <div><span className="eyebrow">BUILD</span><h2 id="draft-lab-builder-title">Choose your roster</h2></div>
-        <div className="draft-lab-mode" role="group" aria-label="Roster size"><button type="button" aria-pressed={mode === "team"} onClick={() => changeMode("team")}>Battle team · 6</button><button type="button" aria-pressed={mode === "roster"} onClick={() => changeMode("roster")}>Draft roster · 10</button></div>
         <label>Format<select value={formatId} onChange={(event) => setFormatId(event.target.value)}>{FORMAT_GROUPS.map((group) => <optgroup key={group.id} label={group.label}>{group.options.map((option) => <option key={option.id} value={option.id}>{option.name}</option>)}</optgroup>)}</select></label>
-        <PokemonPicker inputId="draft-lab-pokemon" label="Add Pokémon" names={names} limit={limit} onChange={setNames} onMessage={setMessage}/>
+        <PokemonPicker inputId="draft-lab-pokemon" label="Add Pokémon" names={names} limit={limit} allowedNames={allowedPokemonNames} onChange={setNames} onMessage={setMessage}/>
       </div>
+      <TeamLabPokePasteImport supabase={supabase} regulation={regulation} catalogNames={CATALOG_NAME_SET} disabled={busy} onImport={(parsed) => { setNames(parsed.rosterNames); setTeamSets(parsed.teamSets); }} onMessage={setMessage}/>
 
       {message && <p className="hub-message" role="status">{message}</p>}
-      {roster.length ? <><div className="draft-lab-roster-heading"><strong>{mode === "team" ? "6-Pokémon battle team" : "10-Pokémon draft roster"}</strong><button className="quiet-button" type="button" onClick={clearRoster}>Clear roster</button></div><ol className="draft-lab-roster">{roster.map((pokemon, index) => <li key={pokemon.name}>
+      {roster.length ? <><div className="draft-lab-roster-heading"><strong>6-Pokémon battle team</strong><button className="quiet-button" type="button" onClick={clearRoster}>Clear roster</button></div><ol className="draft-lab-roster">{roster.map((pokemon, index) => <li key={pokemon.name}>
         <span>{index + 1}</span><div><strong>{pokemon.name}</strong><small>BST {pokemon.bst}{pokemon.stats?.spe != null ? ` · Speed ${pokemon.stats.spe}` : ""}</small></div><div className="draft-lab-types"><TypeBadge type={pokemon.t1} />{pokemon.t2 && <TypeBadge type={pokemon.t2} />}</div><button type="button" aria-label={`Remove ${pokemon.name}`} onClick={() => setNames((current) => current.filter((name) => name !== pokemon.name))}>Remove</button>
       </li>)}</ol></> : <div className="draft-lab-empty"><strong>Your analysis is ready to start.</strong><p>Add a Pokémon above or load one of your account teams below.</p></div>}
     </section>

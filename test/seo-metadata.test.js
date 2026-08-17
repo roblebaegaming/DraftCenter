@@ -112,7 +112,8 @@ test("recent public products expose current social previews and discovery copy",
   assert.match(mega, /featureList:/);
   assert.match(lab, /featureList:/);
   assert.match(lab, /"@type": "FAQPage"/);
-  assert.match(lab, /10-Pokémon draft rosters/);
+  assert.match(lab, /Six-Pokémon battle teams/);
+  assert.match(lab, /PokéPaste URL, file, and text import/);
   assert.match(lab, /Common meta archetype prompts/);
   assert.match(source("src/app/tools/team-builder/opengraph-image.js"), /Team Lab/);
   assert.match(source("src/app/tools/team-builder/opengraph-image.js"), /opponent matchup/);

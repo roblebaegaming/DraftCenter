@@ -1,8 +1,8 @@
 export const TEAM_LAB_TEAM_SET_VERSION = 1;
-export const TEAM_LAB_TEAM_SET_LIMIT = 10;
+export const TEAM_LAB_TEAM_SET_LIMIT = 6;
 export const TEAM_LAB_SET_TEXT_LIMIT = 100;
 export const TEAM_LAB_SET_NOTES_LIMIT = 1000;
-export const TEAM_LAB_SET_IMPORT_LIMIT = 50000;
+export const TEAM_LAB_SET_IMPORT_LIMIT = 60000;
 
 export const TEAM_LAB_STAT_KEYS = ["hp", "atk", "def", "spa", "spd", "spe"];
 export const TEAM_LAB_STAT_LABELS = { hp: "HP", atk: "Atk", def: "Def", spa: "SpA", spd: "SpD", spe: "Spe" };
@@ -87,6 +87,60 @@ function parseStats(line) {
   return values;
 }
 
+export function teamLabPokemonLookupKey(value) {
+  return String(value || "")
+    .normalize("NFKD")
+    .replace(/[♀]/g, "f")
+    .replace(/[♂]/g, "m")
+    .replace(/[^a-z0-9]+/gi, "")
+    .toLowerCase();
+}
+
+function titleCaseWords(value) {
+  return String(value || "")
+    .split(/[-\s]+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(" ");
+}
+
+function showdownDisplayCandidates(value) {
+  const clean = String(value || "").trim().replace(/\s+\([MF]\)$/i, "");
+  const candidates = [clean, clean.replace(/-/g, " ")];
+  const special = {
+    "calyrex-shadow": "Calyrex-Shadow Rider",
+    "calyrex-ice": "Calyrex-Ice Rider",
+    "basculegion-f": "Basculegion-Female",
+    "tauros-paldea-combat": "Paldean Tauros",
+    "tauros-paldea-blaze": "Paldean Tauros (Fire)",
+    "tauros-paldea-aqua": "Paldean Tauros (Water)",
+  }[clean.toLowerCase()];
+  if (special) candidates.unshift(special);
+
+  let match = clean.match(/^(.+)-Mega(?:-([XY]))?$/i);
+  if (match) candidates.unshift(`Mega ${titleCaseWords(match[1])}${match[2] ? ` ${match[2].toUpperCase()}` : ""}`);
+  match = clean.match(/^(.+)-(Alola|Galar|Hisui)$/i);
+  if (match) {
+    const prefix = { alola: "Alolan", galar: "Galarian", hisui: "Hisuian" }[match[2].toLowerCase()];
+    candidates.unshift(`${prefix} ${titleCaseWords(match[1])}`);
+  }
+
+  const pieces = clean.split("-");
+  while (pieces.length > 1) {
+    pieces.pop();
+    candidates.push(pieces.join("-"), pieces.join(" "));
+  }
+  return candidates;
+}
+
+function catalogPokemon(value, catalog) {
+  for (const candidate of showdownDisplayCandidates(value)) {
+    const match = catalog.get(teamLabPokemonLookupKey(candidate));
+    if (match) return match;
+  }
+  return "";
+}
+
 function parseHeader(header, catalog) {
   const itemSeparator = header.lastIndexOf(" @ ");
   const item = itemSeparator >= 0 ? cleanText(header.slice(itemSeparator + 3)) : "";
@@ -100,20 +154,21 @@ function parseHeader(header, catalog) {
   let nickname = "";
   let speciesText = identity;
   const speciesMatch = identity.match(/^(.*?)\s+\(([^()]+)\)$/);
-  if (speciesMatch && catalog.has(speciesMatch[2].toLowerCase())) {
+  if (speciesMatch && catalogPokemon(speciesMatch[2], catalog)) {
     nickname = cleanText(speciesMatch[1], 80);
     speciesText = speciesMatch[2];
   }
-  const name = catalog.get(speciesText.toLowerCase()) || "";
+  const name = catalogPokemon(speciesText, catalog);
   return { name, nickname, gender, item };
 }
 
-export function parseTeamLabShowdownTeam(text, rosterNames = [], catalogNames = rosterNames) {
+function parseTeamLabShowdownEntries(text, catalogNames, rosterNames = null) {
   const source = String(text || "").slice(0, TEAM_LAB_SET_IMPORT_LIMIT).replace(/\r/g, "").trim();
-  const catalog = new Map(Array.from(catalogNames || []).map((name) => [String(name).toLowerCase(), String(name)]));
-  const roster = new Set((rosterNames || []).map((name) => String(name).toLowerCase()));
+  const catalog = new Map(Array.from(catalogNames || []).map((name) => [teamLabPokemonLookupKey(name), String(name)]));
+  const roster = Array.isArray(rosterNames) ? new Set(rosterNames.map((name) => String(name).toLowerCase())) : null;
   const imported = [];
   const warnings = [];
+  let truncated = false;
   for (const block of source ? source.split(/\n\s*\n+/) : []) {
     const lines = block.split("\n").map((line) => line.trim()).filter(Boolean);
     if (!lines.length) continue;
@@ -122,7 +177,7 @@ export function parseTeamLabShowdownTeam(text, rosterNames = [], catalogNames = 
       warnings.push(`Skipped an unknown Pokémon header: ${cleanText(lines[0], 120)}`);
       continue;
     }
-    if (roster.size && !roster.has(header.name.toLowerCase())) {
+    if (roster && !roster.has(header.name.toLowerCase())) {
       warnings.push(`Skipped ${header.name} because it is not on this Team Lab roster.`);
       continue;
     }
@@ -155,10 +210,31 @@ export function parseTeamLabShowdownTeam(text, rosterNames = [], catalogNames = 
       else if (/ Nature$/i.test(line)) entry.nature = cleanText(line.replace(/ Nature$/i, ""), 30);
       else if (line.startsWith("-")) entry.moves.push(cleanText(line.slice(1)));
     }
+    if (imported.length >= TEAM_LAB_TEAM_SET_LIMIT) {
+      truncated = true;
+      continue;
+    }
     imported.push(entry);
   }
+  return { imported, warnings, truncated };
+}
+
+export function parseTeamLabShowdownTeam(text, rosterNames = [], catalogNames = rosterNames) {
+  const { imported, warnings, truncated } = parseTeamLabShowdownEntries(text, catalogNames, rosterNames);
   const teamSets = normalizeTeamLabTeamSets({ pokemon: imported }, rosterNames, catalogNames);
-  return { teamSets, importedCount: imported.length, warnings };
+  return { teamSets, importedCount: imported.length, warnings, truncated };
+}
+
+export function parseTeamLabShowdownRoster(text, catalogNames = []) {
+  const { imported, warnings, truncated } = parseTeamLabShowdownEntries(text, catalogNames);
+  const rosterNames = imported.map((entry) => entry.name);
+  return {
+    rosterNames,
+    teamSets: normalizeTeamLabTeamSets({ pokemon: imported }, rosterNames, catalogNames),
+    importedCount: imported.length,
+    warnings,
+    truncated,
+  };
 }
 
 function formatStats(stats, predicate) {

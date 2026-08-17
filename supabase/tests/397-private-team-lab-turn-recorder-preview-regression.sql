@@ -45,7 +45,7 @@ begin
   perform set_config('request.jwt.claims', jsonb_build_object('sub', v_owner, 'role', 'authenticated')::text, true);
 
   select public.save_my_team_lab_matchup_details(
-    null, v_team, 'Preview Rival', 'Synthetic Rotoms', 'roster', 'reg-mb',
+    null, v_team, 'Preview Rival', 'Synthetic Rotoms', 'team', 'reg-mb',
     '["Rotom-Wash","Amoonguss"]'::jsonb,
     '{"version":1,"pokemon":[
       {"name":"Rotom-Wash","ability":"Levitate","moves":["Hydro Pump","Volt Switch","Protect"]},

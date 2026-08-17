@@ -47,9 +47,12 @@ import {
   buildTeamLabShowdownExport,
   hasTeamLabSetDetails,
   normalizeTeamLabTeamSets,
+  parseTeamLabShowdownRoster,
   parseTeamLabShowdownTeam,
+  TEAM_LAB_TEAM_SET_LIMIT,
 } from "../src/lib/teamLabSets.js";
 import { calculateTeamLabDamageEstimate } from "../src/lib/teamLabDamage.js";
+import { teamLabMoveReference, teamLabMoveSourceForRegulation } from "../src/lib/teamLabMoveSuggestions.js";
 
 const roster = [
   { name: "Garchomp", t1: "dragon", t2: "ground", stats: { hp: 108, atk: 130, def: 95, spa: 80, spd: 85, spe: 102 } },
@@ -152,13 +155,13 @@ test("versioned Team Lab links round-trip valid unique names and reject unknown 
   assert.deepEqual(parseDraftLabQuery(params, ["Garchomp", "Rotom-Wash"]), {
     version: "1",
     format: "national-gen9",
-    mode: "roster",
+    mode: "team",
     names: ["Garchomp", "Rotom-Wash"],
     truncatedCount: 0,
   });
 });
 
-test("share links fail closed for unknown versions and honor the selected mode limit", () => {
+test("share links fail closed and retire the legacy ten-Pokémon mode", () => {
   const validNames = Array.from({ length: 30 }, (_, index) => `Pokémon ${index + 1}`);
   assert.deepEqual(parseDraftLabQuery("v=2&format=national-gen9&mode=roster&team=Pok%C3%A9mon+1", validNames), {
     version: "1",
@@ -171,13 +174,15 @@ test("share links fail closed for unknown versions and honor the selected mode l
   assert.equal(team.names.length, 6);
   assert.equal(team.truncatedCount, 4);
   const legacyRoster = parseDraftLabQuery(`v=1&mode=roster&team=${validNames.join("~")}`, validNames);
-  assert.equal(legacyRoster.names.length, 10);
-  assert.equal(legacyRoster.truncatedCount, 20);
+  assert.equal(legacyRoster.mode, "team");
+  assert.equal(legacyRoster.names.length, 6);
+  assert.equal(legacyRoster.truncatedCount, 24);
   const rosterQuery = buildDraftLabQuery({ mode: "roster", names: validNames });
-  assert.equal(parseDraftLabQuery(rosterQuery, validNames).names.length, 10);
+  assert.equal(parseDraftLabQuery(rosterQuery, validNames).names.length, 6);
+  assert.equal(new URLSearchParams(rosterQuery).has("mode"), false);
   const teamQuery = buildDraftLabQuery({ mode: "team", names: validNames });
   assert.equal(new URLSearchParams(teamQuery).get("team").split("~").length, 6);
-  assert.deepEqual(DRAFT_LAB_MODE_LIMITS, { team: 6, roster: 10 });
+  assert.deepEqual(DRAFT_LAB_MODE_LIMITS, { team: 6 });
 });
 
 test("private Team Lab handoffs preserve safe account fields without entering share queries", () => {
@@ -279,6 +284,62 @@ MissingNo @ Leftovers
   assert.equal(normalized.pokemon[0].level, 100);
   assert.deepEqual(normalized.pokemon[0].moves, ["Earthquake", "Protect", "Dragon Claw", "Rock Slide"]);
   assert.equal(hasTeamLabSetDetails(normalized.pokemon[1]), false);
+});
+
+test("PokéPaste team imports rebuild exactly six supported regulation members with form-aware sets", () => {
+  const catalog = ["Gholdengo", "Landorus", "Mega Charizard X", "Amoonguss", "Incineroar", "Urshifu", "Rillaboom"];
+  const parsed = parseTeamLabShowdownRoster(`Gold (Gholdengo) @ Leftovers
+Ability: Good as Gold
+Tera Type: Water
+Timid Nature
+- Make It Rain
+- Shadow Ball
+
+Landorus-Therian @ Choice Scarf
+Ability: Intimidate
+- Stomping Tantrum
+
+Charizard-Mega-X @ Charizardite X
+Ability: Tough Claws
+- Flare Blitz
+
+Amoonguss @ Rocky Helmet
+Ability: Regenerator
+- Spore
+
+Incineroar @ Safety Goggles
+Ability: Intimidate
+- Fake Out
+
+Urshifu @ Focus Sash
+Ability: Unseen Fist
+- Close Combat
+
+Rillaboom @ Assault Vest
+Ability: Grassy Surge
+- Grassy Glide`, catalog);
+  assert.equal(TEAM_LAB_TEAM_SET_LIMIT, 6);
+  assert.deepEqual(parsed.rosterNames, ["Gholdengo", "Landorus", "Mega Charizard X", "Amoonguss", "Incineroar", "Urshifu"]);
+  assert.equal(parsed.teamSets.pokemon[0].nickname, "Gold");
+  assert.deepEqual(parsed.teamSets.pokemon[2].moves, ["Flare Blitz"]);
+  assert.equal(parsed.truncated, true);
+});
+
+test("closed-sheet move suggestions map to an exact regulation game and preserve safe form fallbacks", () => {
+  assert.equal(teamLabMoveSourceForRegulation("reg-mb")?.key, "champions");
+  assert.equal(teamLabMoveSourceForRegulation("vgc2010")?.key, "heartgold-soulsilver");
+  assert.equal(teamLabMoveSourceForRegulation("vgc2009")?.key, "platinum");
+  assert.equal(teamLabMoveSourceForRegulation("national-gen9"), null);
+  assert.deepEqual(teamLabMoveReference("Mega Charizard X"), {
+    apiName: "charizard-mega-x",
+    speciesName: "charizard",
+    fallbackApiName: "charizard",
+  });
+  assert.deepEqual(teamLabMoveReference("Galarian Moltres"), {
+    apiName: "moltres-galar",
+    speciesName: "moltres",
+    fallbackApiName: "moltres",
+  });
 });
 
 test("opponent set scouting keeps bounded ability, item, and four unique moves per roster member", () => {
@@ -529,11 +590,16 @@ test("Team Lab is indexable while account notes and matchups stay private", () =
   const revealMigration = fs.readFileSync(new URL("../supabase/401-private-team-lab-items-and-reveals.sql", import.meta.url), "utf8");
   const liveMigration = fs.readFileSync(new URL("../supabase/404-team-lab-live-workflow.sql", import.meta.url), "utf8");
   const recoveryMigration = fs.readFileSync(new URL("../supabase/405-team-lab-recovery-compatibility.sql", import.meta.url), "utf8");
+  const sixPokemonMigration = fs.readFileSync(new URL("../supabase/migrations/20260817110000_424_team_lab_six_pokemon_matchups.sql", import.meta.url), "utf8");
   const liveRegression = fs.readFileSync(new URL("../supabase/tests/404-team-lab-live-workflow-preview-regression.sql", import.meta.url), "utf8");
   const recoveryRegression = fs.readFileSync(new URL("../supabase/tests/405-team-lab-recovery-compatibility-preview-regression.sql", import.meta.url), "utf8");
+  const sixPokemonRegression = fs.readFileSync(new URL("../supabase/tests/424-team-lab-six-pokemon-preview-regression.sql", import.meta.url), "utf8");
   const setEditor = fs.readFileSync(new URL("../src/components/TeamLabSetEditor.jsx", import.meta.url), "utf8");
   const battleTools = fs.readFileSync(new URL("../src/components/TeamLabBattleTools.jsx", import.meta.url), "utf8");
   const opponentEditor = fs.readFileSync(new URL("../src/components/TeamLabOpponentEditor.jsx", import.meta.url), "utf8");
+  const pokepasteImport = fs.readFileSync(new URL("../src/components/TeamLabPokePasteImport.jsx", import.meta.url), "utf8");
+  const suggestedMoves = fs.readFileSync(new URL("../src/components/TeamLabSuggestedMoves.jsx", import.meta.url), "utf8");
+  const pokepasteRoute = fs.readFileSync(new URL("../src/app/api/team-lab/pokepaste/route.js", import.meta.url), "utf8");
   const calendar = fs.readFileSync(new URL("../src/components/PokemonCalendar.jsx", import.meta.url), "utf8");
   const league = fs.readFileSync(new URL("../src/components/PokemonDraftLeague.jsx", import.meta.url), "utf8");
   const navigation = fs.readFileSync(new URL("../src/components/SiteQuickLinks.jsx", import.meta.url), "utf8");
@@ -556,8 +622,10 @@ test("Team Lab is indexable while account notes and matchups stay private", () =
   assert.match(component, /from "\.\.\/platform\/pokemonCatalog"/);
   assert.doesNotMatch(component, /from "\.\/PokemonDraftLeague"/);
   assert.match(component, /PRODUCT_ROUTES\.teamLabTeams/);
-  assert.match(component, /Draft roster · 10/);
-  assert.doesNotMatch(component, /Draft roster · 24/);
+  assert.match(component, /6-Pokémon battle team/);
+  assert.doesNotMatch(component, /Draft roster · (?:10|24)/);
+  assert.match(component, /TeamLabPokePasteImport/);
+  assert.match(component, /regulation_id: formatId/);
   assert.match(component, /createPlatformBrowserClient/);
   assert.match(component, /\.rpc\("list_my_team_lab_matchups"/);
   assert.match(component, /\.rpc\("save_my_team_lab_matchup_details"/);
@@ -603,6 +671,8 @@ test("Team Lab is indexable while account notes and matchups stay private", () =
   assert.match(personalTeams, /Open Team Lab/);
   assert.match(personalTeams, /window\.sessionStorage\.setItem\(TEAM_LAB_HANDOFF_KEY/);
   assert.match(personalTeams, /TeamLabOpponentEditor/);
+  assert.match(personalTeams, /Team Lab regulation/);
+  assert.match(personalTeams, /\[\.\.\.legalTeamPokemonNames\]\.map/);
   assert.match(personalTeams, /Open Battle Mode/);
   assert.doesNotMatch(personalTeams, /10-team limit reached|\/ 10 used|teams\.length>=10/);
   assert.match(auth, /team_lab_matchups/);
@@ -646,13 +716,31 @@ test("Team Lab is indexable while account notes and matchups stay private", () =
   assert.match(recoveryMigration, /v_insert_columns/);
   assert.match(recoveryMigration, /set search_path = ''/);
   assert.match(recoveryMigration, /restore_my_personal_teams/);
+  assert.match(sixPokemonMigration, /p_mode is distinct from 'team'/i);
+  assert.match(sixPokemonMigration, /jsonb_array_length\(p_pokemon\) > 6/);
+  assert.match(sixPokemonMigration, /where team\.id = p_personal_team_id[\s\S]*team\.owner_id = auth\.uid\(\)/);
+  assert.match(sixPokemonMigration, /relforcerowsecurity/);
+  assert.match(sixPokemonMigration, /grant execute[\s\S]*to authenticated, service_role/);
   assert.match(liveRegression, /v_cross_save_denied/);
   assert.match(liveRegression, /rollback;/);
   assert.match(recoveryRegression, /share_team_report/);
   assert.match(recoveryRegression, /rollback;/);
+  assert.match(sixPokemonRegression, /v_seven_denied/);
+  assert.match(sixPokemonRegression, /v_roster_mode_denied/);
+  assert.match(sixPokemonRegression, /v_null_mode_denied/);
+  assert.match(sixPokemonRegression, /v_cross_owner_denied/);
+  assert.match(sixPokemonRegression, /rollback;/);
   assert.match(opponentEditor, /Known or likely ability/);
   assert.match(opponentEditor, /Known or likely item/);
-  assert.match(opponentEditor, /Known, likely, or revealed move/);
+  assert.match(opponentEditor, /TeamLabSuggestedMoves/);
+  assert.match(suggestedMoves, /Known, likely, or revealed move/);
+  assert.match(suggestedMoves, /manual entry is always available/);
+  assert.match(pokepasteImport, /Import a PokéPaste or Showdown team/);
+  assert.match(pokepasteImport, /Set details remain private/);
+  assert.match(pokepasteRoute, /supabase\.auth\.getUser\(token\)/);
+  assert.ok(pokepasteRoute.includes("const POKEPASTE_PATTERN = /^https:\\/\\/pokepast\\.es\\/"));
+  assert.match(pokepasteRoute, /redirect: "error"/);
+  assert.match(pokepasteRoute, /"Cache-Control": "private, no-store"/);
   assert.match(calendar, /Connect a My Teams workspace/);
   assert.match(calendar, /Plan this matchup/);
   assert.match(league, /Plan in Team Lab/);
@@ -663,7 +751,7 @@ test("Team Lab is indexable while account notes and matchups stay private", () =
   assert.match(home, /className="hub-home-tools"[\s\S]*?href="\/team-lab"/);
   assert.match(resources, /href="\/team-lab"/);
   assert.match(styles, /@media\(max-width:780px\)[^}]*[\s\S]*?\.draft-lab-archetype-grid[^}]*grid-template-columns:\s*1fr/);
-  assert.match(styles, /@media\(max-width:520px\)[^}]*[\s\S]*?\.draft-lab-mode[^}]*grid-template-columns:\s*1fr/);
+  assert.match(styles, /@media\(max-width:520px\)[^}]*[\s\S]*?\.team-lab-pokepaste-url[^}]*grid-template-columns:\s*1fr/);
   assert.match(styles, /\.draft-lab-roster li\s*\{\s*display:\s*grid;\s*grid-template-columns:\s*29px minmax\(130px,1fr\) auto auto/);
   assert.match(styles, /@media\(max-width:520px\)[^}]*[\s\S]*?\.team-lab-account-load[^}]*grid-template-columns:\s*1fr/);
   assert.match(styles, /\.team-lab-account input[^}]*min-height:\s*44px/);

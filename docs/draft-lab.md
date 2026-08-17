@@ -8,9 +8,11 @@ structured data, social previews, and current documentation is **Team Lab**.
 
 ## Public builder contract
 
-Visitors can build either a six-Pokémon battle team or a 10-Pokémon draft
-roster and choose from the same regulation catalog used by hosted leagues. The
-analysis shows:
+Visitors build one six-Pokémon battle team and choose from the same regulation
+catalog used by hosted leagues. The selected regulation filters the Pokémon
+picker. A PokéPaste can be imported by authenticated URL fetch, local `.txt`
+file, or pasted Showdown text; all three fill supported set fields. The analysis
+shows:
 
 - shared defensive weaknesses, resistances, immunities, and 4x weaknesses;
 - single-type targets that the roster can or cannot hit super effectively with
@@ -61,7 +63,7 @@ forward-only migration 393. Every matchup belongs to both the authenticated
 account and one of that account's personal-team rows. A plan contains:
 
 - an opponent name and optional opponent team name;
-- a six-Pokémon battle team or 10-Pokémon draft roster;
+- a six-Pokémon opponent team;
 - the selected base format; and
 - private preparation notes.
 
@@ -89,12 +91,12 @@ Public share links keep the existing bounded, versioned contract:
 /team-lab?v=1&format=reg-mb&team=Garchomp~Rotom-Wash
 ```
 
-`mode=roster` opts into the 10-member view. Unknown names, duplicate names,
-unsupported formats, and names beyond the mode limit fail closed or fall back
-to the current Regulation M-B view. Older 24-member links open only the first
-10 valid unique names and explain the truncation.
+The retired `mode=roster` parameter is accepted only for old-link compatibility
+and now opens the first six valid unique names. Unknown names, duplicate names,
+unsupported formats, and names beyond six fail closed or fall back to the
+current Regulation M-B view.
 
-The public query contains only Pokémon names, mode, and base format. It never
+The public query contains only Pokémon names and the base format. It never
 contains private team IDs, league IDs, team names, account identity, notes, or
 opponent plans. SEO metadata, FAQ and application structured data, social
 previews, sitemap entries, and `llms.txt` describe only product-controlled
@@ -125,8 +127,8 @@ npm run test:seo
 npm run test:release-integration
 ```
 
-Migration 393 also requires an isolated two-account Preview matrix proving the
-owner allow cases, every cross-account denial, direct-table denial, complete
+Migrations 393 and 424 require isolated two-account Preview matrices proving
+the owner allow cases, the new six-Pokémon save boundary, every cross-account denial, direct-table denial, complete
 export and recovery, removal of the old count trigger, and fixture cleanup.
 Before release, run the repository's complete required checks and review Team
 Lab and My Teams on desktop, 390px, and 320px widths. Production smoke testing

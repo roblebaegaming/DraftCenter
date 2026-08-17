@@ -69,7 +69,7 @@ begin
     v_team,
     'Preview Opponent',
     'Synthetic Team',
-    'roster',
+    'team',
     'reg-mb',
     '["Rotom-Wash","Iron Hands"]'::jsonb,
     'Private preparation notes.'

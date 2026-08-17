@@ -48,8 +48,8 @@ export const ABILITY_TYPE_MODIFIERS = Object.freeze({
 
 const STAT_KEYS = Object.freeze(["hp", "atk", "def", "spa", "spd", "spe"]);
 const SHARE_VERSION = "1";
-export const DRAFT_LAB_MODE_LIMITS = Object.freeze({ team: 6, roster: 10 });
-export const DRAFT_LAB_MAX_ROSTER_SIZE = DRAFT_LAB_MODE_LIMITS.roster;
+export const DRAFT_LAB_MODE_LIMITS = Object.freeze({ team: 6 });
+export const DRAFT_LAB_MAX_ROSTER_SIZE = DRAFT_LAB_MODE_LIMITS.team;
 
 function validType(value) {
   const type = String(value || "").toLowerCase();
@@ -277,7 +277,7 @@ export function parseDraftLabQuery(value, validNames = []) {
   }
 
   const allowed = new Set(validNames);
-  const mode = params.get("mode") === "roster" ? "roster" : "team";
+  const mode = "team";
   const limit = DRAFT_LAB_MODE_LIMITS[mode];
   const validUniqueNames = [...new Set(String(params.get("team") || "")
     .split("~")
@@ -293,13 +293,11 @@ export function parseDraftLabQuery(value, validNames = []) {
   };
 }
 
-export function buildDraftLabQuery({ format = "reg-mb", mode = "team", names = [] } = {}) {
+export function buildDraftLabQuery({ format = "reg-mb", names = [] } = {}) {
   const params = new URLSearchParams();
-  const normalizedMode = mode === "roster" ? "roster" : "team";
-  const limit = DRAFT_LAB_MODE_LIMITS[normalizedMode];
+  const limit = DRAFT_LAB_MODE_LIMITS.team;
   params.set("v", SHARE_VERSION);
   params.set("format", String(format || "reg-mb"));
-  if (normalizedMode === "roster") params.set("mode", "roster");
   const normalizedNames = [...new Set(names.map((name) => String(name || "").trim()).filter(Boolean))]
     .slice(0, limit);
   if (normalizedNames.length) params.set("team", normalizedNames.join("~"));
