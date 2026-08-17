@@ -17,6 +17,7 @@ import {
 import {
   applyTeamLabTurnEvent,
   buildTeamLabBattleShareText,
+  buildTeamLabPerformanceSummary,
   buildTeamLabWeeklyShareText,
   createTeamLabHandoff,
   createTeamLabBattleRecovery,
@@ -32,6 +33,7 @@ import {
   parseTeamLabHandoff,
   parseTeamLabBattleRecovery,
   removeTeamLabTurnEvent,
+  summarizeTeamLabSeries,
   parseTeamLabLeagueMatchupHandoff,
   parseTeamLabMatchupHandoff,
   TEAM_LAB_ABILITY_LIMIT,
@@ -476,6 +478,50 @@ test("best-of series plans and structured battle state stay bounded and roster-a
   assert.equal(state.opponent_side.pokemon[0].status, "");
 });
 
+test("Battle Room summaries roll completed games into team records, streaks, leads, usage, and Tera", () => {
+  assert.deepEqual(summarizeTeamLabSeries({ best_of: 3, games: [{ result: "win" }, { result: "loss" }, { result: "win" }] }), {
+    bestOf: 3,
+    wins: 2,
+    losses: 1,
+    ties: 0,
+    pending: 0,
+    complete: true,
+    result: "win",
+  });
+  assert.equal(summarizeTeamLabSeries({ best_of: 3, games: [{ result: "win" }, { result: "pending" }, { result: "pending" }] }).complete, false);
+
+  const summary = buildTeamLabPerformanceSummary([{
+    id: "match-1",
+    opponent_name: "First opponent",
+    created_at: "2026-08-17T10:00:00.000Z",
+    battle_report: {
+      my_pokemon: [{ name: "Garchomp", brought: true }, { name: "Corviknight", brought: true }],
+      opponent_pokemon: [{ name: "Rotom-Wash", brought: true }],
+      series: { games: [
+        { game: 1, result: "win", my_lead: "Garchomp", opponent_lead: "Rotom-Wash" },
+        { game: 2, result: "loss", my_lead: "Corviknight", opponent_lead: "Rotom-Wash" },
+        { game: 3, result: "win", my_lead: "Garchomp", opponent_lead: "Rotom-Wash" },
+      ] },
+      battle_state: { my_side: { pokemon: [{ name: "Garchomp", terastallized: true }] } },
+    },
+  }, {
+    id: "match-2",
+    opponent_name: "Second opponent",
+    created_at: "2026-08-17T11:00:00.000Z",
+    battle_report: {
+      my_pokemon: [{ name: "Garchomp", brought: true }, { name: "Corviknight", brought: false }],
+      opponent_pokemon: [{ name: "Amoonguss", brought: true }, { name: "Rotom-Wash", brought: true }],
+      series: { games: [{ game: 1, result: "loss", my_lead: "Garchomp", opponent_lead: "Amoonguss" }] },
+      battle_state: { my_side: { pokemon: [{ name: "Garchomp", terastallized: false }] } },
+    },
+  }], ["Garchomp", "Corviknight"]);
+  assert.deepEqual({ wins: summary.wins, losses: summary.losses, ties: summary.ties, matches: summary.matchesLogged, winRate: summary.winRate }, { wins: 2, losses: 2, ties: 0, matches: 2, winRate: 50 });
+  assert.deepEqual(summary.lastTen, ["win", "loss", "win", "loss"]);
+  assert.deepEqual(summary.streak, { result: "loss", count: 1 });
+  assert.deepEqual(summary.pokemon.find((pokemon) => pokemon.name === "Garchomp"), { name: "Garchomp", broughtMatches: 2, leads: 3, leadWins: 2, leadLosses: 1, teraMatches: 1 });
+  assert.deepEqual(summary.opponentPokemon[0], { name: "Rotom-Wash", seenMatches: 2 });
+});
+
 test("the damage estimator exposes a bounded repeatable range and its assumptions", () => {
   const estimate = calculateTeamLabDamageEstimate({ level: 50, power: 80, attack: 150, defense: 120, defenderHp: 180, stab: 1.5, typeEffectiveness: 2, otherModifier: 1 });
   assert.deepEqual({ minimum: estimate.minimum, maximum: estimate.maximum, baseDamage: estimate.baseDamage }, { minimum: 117, maximum: 138, baseDamage: 46 });
@@ -567,12 +613,14 @@ test("Team Lab workbook data separates complete sets, matchups, reveals, turns, 
     formatName: "Mega Battle",
     exportedAt: new Date("2026-08-15T12:00:00.000Z"),
   });
-  assert.deepEqual(sheets.map(({ name }) => name), ["Overview", "My Team", "Matchup Plans", "Opponent Sets", "Turn Log", "Game Plans"]);
+  assert.deepEqual(sheets.map(({ name }) => name), ["Overview", "Performance", "My Team", "Matchup Plans", "Opponent Sets", "Turn Log", "Game Plans"]);
   assert.ok(sheets.every((sheet) => sheet.rows.length >= 5 && sheet.widths.length >= 2));
   assert.deepEqual(sheets.find(({ name }) => name === "Opponent Sets").rows[4].slice(0, 6), ["Quarterfinal", "Test Coach", "Rotom-Wash", "Open", "Levitate", "Choice Scarf"]);
   assert.deepEqual(sheets.find(({ name }) => name === "Turn Log").rows[4].slice(0, 10), ["Quarterfinal", "Test Coach", 1, 1, "Opponent", "item", "Rotom-Wash", "", "", "Choice Scarf"]);
   assert.deepEqual(sheets.find(({ name }) => name === "My Team").rows[4].slice(0, 8), ["Garchomp", "Yes", "No", 50, "Rough Skin", "Choice Scarf", "Jolly", "Fire"]);
   assert.deepEqual(sheets.find(({ name }) => name === "Game Plans").rows[4].slice(3, 9), [1, "win", "Garchomp", "Rotom-Wash", "Lead Scarf", "Preserve Garchomp"]);
+  assert.deepEqual(sheets.find(({ name }) => name === "Performance").rows[3], ["Record", "1-0"]);
+  assert.deepEqual(sheets.find(({ name }) => name === "Performance").rows[11], ["Garchomp", 1, 1, 1, 0, 0]);
   assert.equal(sheets.find(({ name }) => name === "Game Plans").rows.length, 7);
   assert.equal(buildTeamLabWorkbookFilename("Rain & Balance", new Date("2026-08-15T12:00:00.000Z")), "rain-balance-battle-workbook-2026-08-15.xlsx");
 });
@@ -646,6 +694,10 @@ test("Team Lab is indexable while account notes and matchups stay private", () =
   assert.match(component, /Copy weekly team/);
   assert.match(component, /Copy battle recap/);
   assert.match(component, /Download Excel \/ Sheets workbook/);
+  assert.match(component, /FAST MATCH FINISH/);
+  assert.match(component, /Save & start next match/);
+  assert.match(component, /Start ladder match/);
+  assert.match(component, /TEAM PERFORMANCE/);
   assert.match(component, /Use in report/);
   assert.match(component, /FAST BATTLE TICKER/);
   assert.match(component, /Turn-by-turn recorder/);

@@ -26,7 +26,9 @@ its separate browser-only contract.
 2. The saved Team Lab workspace holds up to six Pokémon. An official hosted
    league roster remains read-only and can be opened as a planning source; Team
    Lab loads a six-Pokémon copy without changing the league.
-3. The coach creates an opponent plan under the saved team. A plan can contain
+3. For repeated ladder games, **Start ladder match** opens a blank private
+   Battle Room report immediately. A known matchup can still begin with an
+   opponent plan under the saved team. A plan can contain
    the opponent name, team name, known six-Pokémon team, format, and
    private preparation notes. Each opponent Pokémon can also keep one ability,
    one held item, and four known, likely, published, or revealed moves.
@@ -59,19 +61,30 @@ its separate browser-only contract.
 8. Timeline actions support **Undo last action**, per-action **Edit**, and
    removal. Corrections reconcile a faint, move, ability, or item fact only when
    no remaining action or open-sheet plan still supports it.
-9. The set tracker supports best-of-1, best-of-3, and best-of-5 matches with a
+9. The always-visible finish control records Win, Loss, or Tie for the current
+   game. Once a best-of-1 match or longer set is complete, a phone-friendly
+   **Save & start next match** action saves the report and opens a fresh ladder
+   report with the same saved team, format, and sheet choice. The finished
+   report remains separate and editable; the new report starts without turn,
+   state, reveal, or note carryover.
+10. The saved-team performance panel rolls completed reports into wins,
+   losses, ties, decided-game win rate, current streak, last-ten form, matches
+   logged, Pokémon brought counts, lead records, Tera usage, and most-seen
+   opposing Pokémon. These are private account statistics derived only from
+   information the coach explicitly records in Battle Room.
+11. The set tracker supports best-of-1, best-of-3, and best-of-5 matches with a
    result, planned leads, game plan, and between-game adjustment per game.
    Structured battle state separately tracks HP percentage, major status,
    Terastallization, hazards, screens, weather, and terrain for both sides.
-10. An optional damage estimator accepts final manual stats, move power, STAB,
+12. An optional damage estimator accepts final manual stats, move power, STAB,
    type effectiveness, and one combined modifier. It exposes the base damage,
    85%–100% roll, and every multiplier; it does not guess mechanics or replace a
    format-specific calculator.
-11. **Download Excel / Sheets workbook** exports the complete private team
-   workspace as one `.xlsx` file. It contains Overview, My Team, Matchup Plans,
-   Opponent Sets, Turn Log, and editable Game Plans sheets. Excel opens it
-   directly; Google Sheets imports the same file without a separate account
-   connection.
+13. **Download Excel / Sheets workbook** exports the complete private team
+   workspace as one `.xlsx` file. It contains Overview, Performance, My Team,
+   Matchup Plans, Opponent Sets, Turn Log, and editable Game Plans sheets. Excel
+   opens it directly; Google Sheets imports the same file without a separate
+   account connection.
 
 The Team Lab hero links directly to the private Battle Mode setup, where a
 three-step roster → opponent plan → recorder guide remains visible before sign
@@ -96,8 +109,9 @@ for a published sheet or a confirmed in-battle reveal.
 The turn timeline is observational, not an official battle engine. Written
 damage accepts a percentage, HP amount, knockout, or other short description;
 DraftCenter does not infer damage rolls, legality, priority, targets, or the
-winner. A correction removes a reveal or faint marker only when the removed
-event is its final structured support; brought markers remain coach-controlled.
+winner; the coach explicitly chooses the result. A correction removes a reveal
+or faint marker only when the removed event is its final structured support;
+brought markers remain coach-controlled.
 
 ## Calendar and hosted-league connections
 

@@ -341,6 +341,129 @@ export function normalizeTeamLabSeries(series, myRosterNames = [], opponentRoste
   };
 }
 
+export function summarizeTeamLabSeries(series) {
+  const bestOf = [1, 3, 5].includes(Number(series?.best_of)) ? Number(series.best_of) : 1;
+  const games = Array.isArray(series?.games) ? series.games.slice(0, bestOf) : [];
+  const wins = games.filter((game) => game?.result === "win").length;
+  const losses = games.filter((game) => game?.result === "loss").length;
+  const ties = games.filter((game) => game?.result === "tie").length;
+  const pending = games.filter((game) => !["win", "loss", "tie"].includes(game?.result)).length;
+  const winsNeeded = Math.floor(bestOf / 2) + 1;
+  const complete = wins >= winsNeeded || losses >= winsNeeded || (games.length === bestOf && pending === 0);
+  return {
+    bestOf,
+    wins,
+    losses,
+    ties,
+    pending,
+    complete,
+    result: complete ? wins > losses ? "win" : losses > wins ? "loss" : "tie" : "pending",
+  };
+}
+
+export function buildTeamLabPerformanceSummary(matchups = [], rosterNames = []) {
+  const chronological = (Array.isArray(matchups) ? matchups : [])
+    .filter((matchup) => matchup && typeof matchup === "object")
+    .map((matchup, index) => {
+      const timestamp = Date.parse(matchup.created_at || matchup.updated_at || "");
+      return { matchup, index, timestamp: Number.isFinite(timestamp) ? timestamp : null };
+    })
+    .sort((left, right) => {
+      if (left.timestamp != null && right.timestamp != null && left.timestamp !== right.timestamp) return left.timestamp - right.timestamp;
+      if (left.timestamp != null && right.timestamp == null) return -1;
+      if (left.timestamp == null && right.timestamp != null) return 1;
+      return left.index - right.index;
+    });
+  const games = [];
+
+  for (const { matchup, timestamp } of chronological) {
+    const report = matchup.battle_report && typeof matchup.battle_report === "object" ? matchup.battle_report : {};
+    const seriesGames = Array.isArray(report.series?.games) ? report.series.games : [];
+    for (const game of seriesGames) {
+      if (!["win", "loss", "tie"].includes(game?.result)) continue;
+      games.push({
+        matchupId: String(matchup.id || ""),
+        opponentName: cleanText(matchup.opponent_name, 120),
+        weekLabel: cleanText(matchup.week_label, TEAM_LAB_WEEK_LABEL_LIMIT),
+        game: Number(game.game) || 1,
+        result: game.result,
+        myLead: cleanText(game.my_lead, 120),
+        opponentLead: cleanText(game.opponent_lead, 120),
+        timestamp,
+      });
+    }
+  }
+
+  const wins = games.filter((game) => game.result === "win").length;
+  const losses = games.filter((game) => game.result === "loss").length;
+  const ties = games.filter((game) => game.result === "tie").length;
+  const decisions = wins + losses;
+  const latestDecision = [...games].reverse().find((game) => game.result === "win" || game.result === "loss");
+  let streakCount = 0;
+  if (latestDecision) {
+    for (let index = games.length - 1; index >= 0; index -= 1) {
+      if (games[index].result === "tie") continue;
+      if (games[index].result !== latestDecision.result) break;
+      streakCount += 1;
+    }
+  }
+
+  const pokemonByName = new Map();
+  for (const name of Array.isArray(rosterNames) ? rosterNames : []) {
+    const normalizedName = cleanText(name, 120);
+    if (normalizedName && !pokemonByName.has(normalizedName)) {
+      pokemonByName.set(normalizedName, { name: normalizedName, broughtMatches: 0, leads: 0, leadWins: 0, leadLosses: 0, teraMatches: 0 });
+    }
+  }
+  const opponentByName = new Map();
+
+  for (const { matchup } of chronological) {
+    const report = matchup.battle_report && typeof matchup.battle_report === "object" ? matchup.battle_report : {};
+    const completedGames = games.filter((game) => game.matchupId === String(matchup.id || ""));
+    if (!completedGames.length) continue;
+    for (const pokemon of Array.isArray(report.my_pokemon) ? report.my_pokemon : []) {
+      const name = cleanText(pokemon?.name, 120);
+      if (!name) continue;
+      if (!pokemonByName.has(name)) pokemonByName.set(name, { name, broughtMatches: 0, leads: 0, leadWins: 0, leadLosses: 0, teraMatches: 0 });
+      if (pokemon.brought) pokemonByName.get(name).broughtMatches += 1;
+    }
+    for (const game of completedGames) {
+      if (!game.myLead) continue;
+      if (!pokemonByName.has(game.myLead)) pokemonByName.set(game.myLead, { name: game.myLead, broughtMatches: 0, leads: 0, leadWins: 0, leadLosses: 0, teraMatches: 0 });
+      const pokemon = pokemonByName.get(game.myLead);
+      pokemon.leads += 1;
+      if (game.result === "win") pokemon.leadWins += 1;
+      if (game.result === "loss") pokemon.leadLosses += 1;
+    }
+    for (const pokemon of Array.isArray(report.battle_state?.my_side?.pokemon) ? report.battle_state.my_side.pokemon : []) {
+      const name = cleanText(pokemon?.name, 120);
+      if (!name || !pokemon.terastallized) continue;
+      if (!pokemonByName.has(name)) pokemonByName.set(name, { name, broughtMatches: 0, leads: 0, leadWins: 0, leadLosses: 0, teraMatches: 0 });
+      pokemonByName.get(name).teraMatches += 1;
+    }
+    for (const pokemon of Array.isArray(report.opponent_pokemon) ? report.opponent_pokemon : []) {
+      const name = cleanText(pokemon?.name, 120);
+      if (!name || !pokemon.brought) continue;
+      if (!opponentByName.has(name)) opponentByName.set(name, { name, seenMatches: 0 });
+      opponentByName.get(name).seenMatches += 1;
+    }
+  }
+
+  return {
+    games,
+    wins,
+    losses,
+    ties,
+    decisions,
+    matchesLogged: new Set(games.map((game) => game.matchupId)).size,
+    winRate: decisions ? Math.round((wins / decisions) * 1000) / 10 : null,
+    streak: latestDecision ? { result: latestDecision.result, count: streakCount } : { result: "", count: 0 },
+    lastTen: games.slice(-10).map((game) => game.result),
+    pokemon: [...pokemonByName.values()],
+    opponentPokemon: [...opponentByName.values()].sort((left, right) => right.seenMatches - left.seenMatches || left.name.localeCompare(right.name)),
+  };
+}
+
 function normalizeBattleSideState(sideState, rosterNames) {
   const source = sideState && typeof sideState === "object" && !Array.isArray(sideState) ? sideState : {};
   const hazardSource = source.hazards && typeof source.hazards === "object" ? source.hazards : {};
