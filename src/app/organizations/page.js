@@ -1,4 +1,5 @@
 import LeagueOrganizationWorkspace from "../../components/LeagueOrganizationWorkspace";
+import OrganizationDirectory from "../../components/OrganizationDirectory";
 
 export const metadata = {
   title: "League Organizations",
@@ -8,5 +9,5 @@ export const metadata = {
 };
 
 export default function OrganizationsPage() {
-  return <LeagueOrganizationWorkspace />;
+  return <><OrganizationDirectory /><LeagueOrganizationWorkspace /></>;
 }
