@@ -18,6 +18,7 @@ import {
   worldsServerError,
 } from "../lib/worlds2026I18n";
 import WorldsDisciplineNav from "./WorldsDisciplineNav";
+import WorldsChampionOdds from "./WorldsChampionOdds";
 import WorldsMetaChallenge from "./WorldsMetaChallenge";
 import WorldsPickShare from "./WorldsPickShare";
 
@@ -48,6 +49,10 @@ function fallbackCompetitors(rosterSource, config, locale = "en") {
     countryCode: competitor.countryCode || competitor.country_code,
     qualificationRegion: competitor.region || competitor.qualification_region,
     qualificationPath: competitor.qualification || competitor.qualification_path,
+    modelQualificationPath: competitor.qualification || competitor.qualification_path,
+    seasonResults: competitor.seasonResults || competitor.season_results || "",
+    pickCount: 0,
+    aceCount: 0,
     attendanceStatus: competitor.attendanceStatus || competitor.attendance_status || "invite_earned",
     isSelectable: competitor.isSelectable ?? competitor.is_selectable ?? true,
     scorePoints: competitor.scorePoints || competitor.score_points || 0,
@@ -55,13 +60,18 @@ function fallbackCompetitors(rosterSource, config, locale = "en") {
   }));
 }
 
-function hubCompetitors(hub) {
+function hubCompetitors(hub, fallbackBySlug, popularityBySlug) {
   return hub.competitors.map((competitor) => ({
+    ...fallbackBySlug.get(competitor.slug),
     slug: competitor.slug,
     displayName: competitor.display_name,
     countryCode: competitor.country_code,
     qualificationRegion: competitor.qualification_region,
     qualificationPath: competitor.qualification_path,
+    modelQualificationPath: competitor.qualification_path,
+    seasonResults: fallbackBySlug.get(competitor.slug)?.seasonResults || "",
+    pickCount: popularityBySlug.get(competitor.slug)?.pick_count || 0,
+    aceCount: popularityBySlug.get(competitor.slug)?.ace_count || 0,
     attendanceStatus: competitor.attendance_status,
     isSelectable: competitor.is_selectable,
     scorePoints: competitor.score_points,
@@ -104,16 +114,19 @@ export default function WorldsPickSixteen({ rosterSource, discipline = "vgc", lo
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const [loadingHub, setLoadingHub] = useState(true);
+  const [popularity, setPopularity] = useState(null);
   const [showItalianOffer, setShowItalianOffer] = useState(false);
   const draftDirtyRef = useRef(false);
   const currentUserIdRef = useRef(undefined);
 
   const fallback = useMemo(() => fallbackCompetitors(rosterSource, config, locale), [rosterSource, config, locale]);
-  const competitors = useMemo(() => (hub?.competitors?.length ? hubCompetitors(hub) : fallback).map((competitor) => ({
+  const fallbackBySlug = useMemo(() => new Map(fallback.map((competitor) => [competitor.slug, competitor])), [fallback]);
+  const popularityBySlug = useMemo(() => new Map((popularity?.competitors || []).map((competitor) => [competitor.slug, competitor])), [popularity]);
+  const competitors = useMemo(() => (hub?.competitors?.length ? hubCompetitors(hub, fallbackBySlug, popularityBySlug) : fallback).map((competitor) => ({
     ...competitor,
     qualificationRegion: worldsRegionLabel(competitor.qualificationRegion, locale),
     qualificationPath: worldsQualificationLabel(competitor.qualificationPath, locale),
-  })), [hub, fallback, locale]);
+  })), [hub, fallback, fallbackBySlug, popularityBySlug, locale]);
   const competitorBySlug = useMemo(() => new Map(competitors.map((competitor) => [competitor.slug, competitor])), [competitors]);
   const event = hub?.event || fallbackEvent(config, rosterSource);
   const staged = event.status === "draft";
@@ -122,9 +135,12 @@ export default function WorldsPickSixteen({ rosterSource, discipline = "vgc", lo
   const filtered = useMemo(() => filterWorldsCompetitors(competitors, search, region), [competitors, search, region]);
 
   async function loadHub(supabase, { hydrateEntry = false } = {}) {
-    const [{ data, error }, results] = await Promise.all([
+    const [{ data, error }, results, popularityResult] = await Promise.all([
       supabase.rpc("get_worlds_pick_hub", { p_event_id: eventId }),
       supabase.rpc("get_worlds_result_status", { p_event_id: eventId }),
+      config.key === "vgc"
+        ? supabase.rpc("get_worlds_pick_popularity", { p_event_id: eventId })
+        : Promise.resolve({ data: null, error: null }),
     ]);
     if (error || !data) {
       setLoadingHub(false);
@@ -135,6 +151,7 @@ export default function WorldsPickSixteen({ rosterSource, discipline = "vgc", lo
       setLoadingHub(false);
       return;
     }
+    setPopularity(popularityResult.error ? null : popularityResult.data);
     setHub({ ...data, results: results.error ? { status: "waiting", is_stale: false } : results.data });
     if (hydrateEntry || !draftDirtyRef.current) {
       setSelected(data.my_entry?.picks || []);
@@ -255,6 +272,13 @@ export default function WorldsPickSixteen({ rosterSource, discipline = "vgc", lo
       <p>{isItalian ? copy.trust.body : config.division === "Masters" ? "Masters Division only — Senior and Junior Division qualifiers are excluded." : "Only published competitor identity and qualification information needed for the prediction game is used. DraftCenter does not collect or infer private age data."}</p>
       <div className="worlds-source-links">{(rosterSource.sourceUrl || rosterSource.source_url) && <a href={rosterSource.sourceUrl || rosterSource.source_url} target="_blank" rel="noreferrer">{isItalian ? copy.trust.source : "Roster source ↗"}</a>}<a href="https://worlds.pokemon.com/en-us" target="_blank" rel="noreferrer">{isItalian ? copy.trust.official : "Official Worlds site ↗"}</a></div>
     </section>
+
+    {config.key === "vgc" && <WorldsChampionOdds
+      competitors={competitors}
+      entryCount={popularity?.entry_count || 0}
+      sampleReady={Boolean(popularity?.sample_ready)}
+      locale={locale}
+    />}
 
     <WorldsMetaChallenge discipline={config.key} user={user} locale={locale} />
 

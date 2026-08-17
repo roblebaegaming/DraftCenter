@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 const SOURCE_URL = "https://victoryroad.pro/2026-worlds-invites/";
-const CHECKED_AT = "2026-08-10";
+const CHECKED_AT = "2026-08-16";
 const OUTPUT_PATH = path.resolve("src/data/worlds-2026-vgc-masters.json");
 const MIGRATION_PATH = path.resolve("supabase/370-seed-worlds-2026-vgc-masters-roster.sql");
 const buildInitialSeed = process.argv.includes("--initial-seed");
@@ -93,6 +93,7 @@ function parseRoster(html) {
         region,
         division: "Masters",
         qualification,
+        seasonResults: resultSummary,
       });
     }
   }

@@ -9,6 +9,11 @@ DraftCenter members can assemble, save, or edit a prediction entry. The page
 uses the same explicit account gate as Daily Games, while the authenticated
 database function remains the authoritative write boundary.
 
+The page also includes a transparent pre-event champion outlook across all 438
+invitees. Its published weights, regional-equivalence policy, five-percent cap,
+source provenance, and 25-entry community privacy threshold are maintained in
+[`worlds-2026-champion-outlook.md`](worlds-2026-champion-outlook.md).
+
 The public Worlds hub and VGC page use the full 2026 Pokémon World
 Championships name in their search metadata and visible answers. They expose
 canonical URLs, social metadata, breadcrumb and event structured data, current
@@ -117,6 +122,11 @@ Before the lock, the public leaderboard exposes aggregate entry count, display
 names, ranks, and scores but not other users' selections. A signed-in user can
 always retrieve their own entry. Direct table access is revoked; the bounded
 read and authenticated save functions are the browser-facing boundary.
+
+Migration 413 adds a separate aggregate-only popularity RPC for the champion
+outlook. It returns zero player counts before 25 entries unless the event has
+locked. It never returns an account identifier or individual pre-lock lineup,
+and it does not grant browser roles direct table access.
 
 ## Live scoring
 
