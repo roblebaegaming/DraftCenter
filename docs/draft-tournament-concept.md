@@ -35,12 +35,29 @@ is no automatic conversion of historical events.
   review. Cancellation removes the private draft room. Roster lock closes the
   cancellation boundary.
 
-The shared draft has a maximum of **16 entrants** because all managers draft from one
-limited Pokémon pool. A larger draft-based competition requires a separate
-multi-pod design where entrants draft and play inside their pods before
-pod qualifiers advance to an elimination stage. Raising standalone bracket
-limits does not raise the shared
-draft boundary. Do not expand this infrastructure beyond 16 teams.
+The released snake-only shared draft currently has a maximum of **16 entrants**.
+Raising standalone bracket limits does not by itself raise that shared-draft
+boundary. Do not expand this infrastructure beyond 16 teams until the complete
+auction-specific 32-player lifecycle below has passed its Preview matrix. Until
+then, larger events should draft and play inside their pods before advancing to
+a connected championship. Pod qualifiers advance to an elimination stage under
+the existing connected-event model.
+
+## Planned auction expansion
+
+Auction Draft Tournaments must support **4–32 entrants** in one shared expanded
+auction room, matching the proven 32-team capacity available to explicitly
+expanded leagues. This is a release requirement for tournament auction mode,
+not a claim about the current snake-only interface.
+
+The expansion must preserve server-authoritative budgets, nominations,
+pause/resume, reconnect recovery, immutable tournament seats, atomic roster
+lock, and the selected competition handoff. A 17–32 entrant Swiss event uses
+five recommended rounds. The 32-player Preview matrix must cover pool capacity,
+the complete auction-to-roster-lock transition, Swiss pairing performance,
+elimination bracket creation, mobile paging, and cleanup before the public
+limit changes. No partial release may advertise 32 entrants while any creation,
+draft, pairing, or bracket path still enforces 16.
 
 ## Architecture
 

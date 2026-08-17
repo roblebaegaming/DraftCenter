@@ -36,6 +36,16 @@ test("Draft Tournament creation settings are bounded for the first release", () 
   assert.throws(() => normalizeDraftTournamentSettings({ name: "Cup", bestOf: 2 }), /best of 1 or best of 3/);
 });
 
+test("planned auction Draft Tournaments retain the 32-entrant release requirement", () => {
+  const concept = fs.readFileSync(new URL("../docs/draft-tournament-concept.md", import.meta.url), "utf8");
+  const roadmap = fs.readFileSync(new URL("../docs/product-roadmap.md", import.meta.url), "utf8");
+  assert.match(concept, /Auction Draft Tournaments must support \*\*4–32 entrants\*\*/);
+  assert.match(concept, /17–32 entrant Swiss event uses[\s\S]*five recommended rounds/);
+  assert.match(concept, /complete auction-to-roster-lock transition/);
+  assert.match(roadmap, /Auction Draft Tournaments must support 4–32 entrants/);
+  assert.match(roadmap, /full 32-player lifecycle/);
+});
+
 test("private events never request public roster publication", () => {
   const args = draftTournamentCreateRpcArguments({
     name: "Private Draft",

@@ -16,6 +16,15 @@ import { createTeamLabLeagueMatchupHandoff, TEAM_LAB_LEAGUE_MATCHUP_HANDOFF_KEY 
 import { PRODUCT_ROUTES } from "../platform/products";
 import { saveWithConflictRecovery, waitForSaveFailureGrace } from "../lib/leagueSaveReconciliation";
 import {
+  buildNextLeagueSwissRoundState,
+  effectiveLeagueSwissRounds,
+  isLeagueSwiss,
+  isLeagueSwissSeasonComplete,
+  leagueSwissRoundIsComplete,
+  rankLeagueSwissStandings,
+  recommendedLeagueSwissRounds,
+} from "../lib/leagueSwiss.mjs";
+import {
   DEFAULT_LEAGUE_TEAM_CAP,
   EXPANDED_LEAGUE_TEAM_CAP,
   LEAGUE_SCALE_MODES,
@@ -3878,6 +3887,14 @@ function regulationFingerprint(settings) {
   return `${base}|pricing:${pricing}|${settings.draftType}|size:${settings.leagueSize}`;
 }
 function computeStandings(s, criteria) {
+  if (isLeagueSwiss(s.settings)) {
+    return rankLeagueSwissStandings({
+      teams: s.teams,
+      schedule: s.schedule,
+      matchResults: s.matchResults,
+      swissByes: s.swissByes,
+    });
+  }
   const c = criteria || s.settings.standingsCriteria || { setWinLoss: true, gameWinLoss: true, differential: true, other: false };
   const rows = s.teams.map((t) => ({
     id: t.id, name: t.name, logoUrl: t.logoUrl, color: t.color, w: 0, l: 0, gameW: 0, gameL: 0,
@@ -4108,6 +4125,15 @@ function getRegularSeasonChampions(state, standings) {
 // without a separate, parallel standings-tracking system. Not sorted,
 // since callers just need each team's own w/l at that point in time.
 function computeStandingsThroughWeek(s, cutoffWeek) {
+  if (isLeagueSwiss(s.settings)) {
+    return rankLeagueSwissStandings({
+      teams: s.teams,
+      schedule: s.schedule,
+      matchResults: s.matchResults,
+      swissByes: s.swissByes,
+      throughRound: cutoffWeek,
+    });
+  }
   const rows = s.teams.map((t) => ({ id: t.id, w: 0, l: 0 }));
   s.schedule.forEach((matches, wIdx) => {
     if (wIdx > cutoffWeek) return;
@@ -4349,7 +4375,10 @@ function computeCareerDraftBadges(state, personName) {
     .sort((a, b) => b.count - a.count);
   return { typeBadges, genBadges, monBadges };
 }
-function isRegularSeasonComplete(schedule, matchResults) {
+function isRegularSeasonComplete(schedule, matchResults, settings = {}, teams = [], swissByes = {}) {
+  if (isLeagueSwiss(settings)) {
+    return isLeagueSwissSeasonComplete({ schedule, matchResults, settings, teams, swissByes });
+  }
   if (!schedule || !schedule.length) return false;
   return schedule.every((matches, wIdx) => matches.every((_, mIdx) => !!matchResults[`${wIdx}-${mIdx}`]));
 }
@@ -4593,6 +4622,12 @@ function draftReadinessIssues(state, resolveCost) {
     issues.push("Leagues above 32 teams need at least two pods or divisions.");
   }
   if (Number(settings.leagueSize) !== teamCount) issues.push("The saved league size does not match the number of teams.");
+  if (isLeagueSwiss(settings)) {
+    if (teamCount < 4 || teamCount > 16) issues.push("Swiss regular seasons currently support 4-16 teams.");
+    if (Array.isArray(settings.divisions) && settings.divisions.length > 0) issues.push("Remove pods or divisions before using a Swiss regular season.");
+    try { effectiveLeagueSwissRounds(settings, teamCount); }
+    catch (error) { issues.push(error.message); }
+  }
 
   const normalizedTeamNames = teams.map((team) => String(team?.name || "").trim().toLowerCase());
   if (normalizedTeamNames.some((name) => !name)) issues.push("Every team needs a name.");
@@ -4757,6 +4792,8 @@ function freshState() {
       manualDraftOrder: null, // null = randomize snake draft order fresh each time it starts; array = commissioner-fixed round-1 order
       customSelectedGens: [], customSelectedTypes: [], // tracks Custom format's gen/type quick-toggle button state, separate from bannedMons itself
       scheduleWeeks: null, // null = auto (one full round robin)
+      regularSeasonFormat: "round-robin", // "round-robin" | "swiss"
+      swissRoundCount: null, // null = recommended (3 rounds for 4-8 teams, 4 rounds for 9-16)
       calendarMode: "untimed", // "untimed" preserves leagues that advance manually; "weekly" puts the season on a shared clock
       seasonStartsAt: null, // ISO date/time for the beginning of operational week 1
       leagueTimeZone: Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
@@ -4842,7 +4879,7 @@ function freshState() {
     auctionNominationOrder: [], auctionNominationIdx: 0,
     paused: false, pausedAt: null, pauseIsOvernight: false,
     auctionEnded: false,
-    schedule: [], week: 0, matchResults: {}, predictions: {},
+    schedule: [], swissByes: {}, week: 0, matchResults: {}, predictions: {},
     trades: [],
     transactionLog: [],
     homepage: { rules: "", payments: "" },
@@ -5036,6 +5073,8 @@ function hydrateState(remote) {
       snakeBudgetEnabled: remote.settings?.snakeBudgetEnabled ?? false,
       budget: remote.settings?.budget ?? 100,
       scheduleWeeks: remote.settings?.scheduleWeeks ?? null,
+      regularSeasonFormat: remote.settings?.regularSeasonFormat === "swiss" ? "swiss" : "round-robin",
+      swissRoundCount: remote.settings?.swissRoundCount ?? null,
       calendarMode: remote.settings?.calendarMode || "untimed",
       seasonStartsAt: remote.settings?.seasonStartsAt || null,
       leagueTimeZone: remote.settings?.leagueTimeZone || "UTC",
@@ -5118,6 +5157,7 @@ function hydrateState(remote) {
     pauseIsOvernight: remote.pauseIsOvernight ?? false,
     auctionNominationIdx: remote.auctionNominationIdx ?? 0,
     schedule: arrayOr(remote.schedule).map((week) => arrayOr(week)),
+    swissByes: objectOr(remote.swissByes),
     matchResults: objectOr(remote.matchResults),
     predictions: objectOr(remote.predictions),
     homepage: { rules: "", payments: "", ...objectOr(remote.homepage) },
@@ -5268,6 +5308,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   const [synced, setSynced] = useState(false);
   const [saveStatus, setSaveStatus] = useState(leagueId ? "loading" : "local");
   const [liveDraftError, setLiveDraftError] = useState("");
+  const [scheduleActionBusy, setScheduleActionBusy] = useState(false);
   const [teamResizeMessage, setTeamResizeMessage] = useState("");
   const [scheduledStartStatus, setScheduledStartStatus] = useState({
     phase: "idle",
@@ -7826,7 +7867,40 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     return true;
   }
 
-  function generateSchedule() {
+  async function generateSchedule() {
+    if (scheduleActionBusy) return false;
+    if (isLeagueSwiss(state.settings)) {
+      setScheduleActionBusy(true);
+      try {
+        if (leagueId) {
+          const pendingSave = await saveChainRef.current;
+          if (pendingSave && pendingSave.ok === false) {
+            throw new Error("The latest league change has not been verified yet. Refresh before pairing the round.");
+          }
+          const authoritative = await loadRemote(leagueId);
+          if (!authoritative) throw new Error("The latest league state could not be loaded.");
+          const { data, error } = await supabase.rpc("start_next_league_swiss_round", {
+            p_league_id: leagueId,
+            p_expected_rev: Number(authoritative.rev) || 0,
+          });
+          if (error) throw error;
+          const hydrated = hydrateState(data);
+          revRef.current = Math.max(revRef.current, hydrated.rev || 0);
+          setState(hydrated);
+          setLiveDraftError("");
+        } else {
+          commit((current) => buildNextLeagueSwissRoundState(current));
+        }
+        setTab("league");
+        setLeagueSubTab("schedule");
+        return true;
+      } catch (error) {
+        setLiveDraftError(friendlySaveFailure("The Swiss round could not be paired", error));
+        return false;
+      } finally {
+        setScheduleActionBusy(false);
+      }
+    }
     commit((s) => {
       let schedule;
       if (s.settings.divisionRoundRobin && s.settings.divisions.length > 0) {
@@ -7840,9 +7914,10 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       // playoff bracket already built came from standings that no longer
       // mean anything once results get wiped, so it has to go too rather
       // than sit there stale and confusing.
-      return { ...s, schedule, week: 0, matchResults: {}, playoffs: null };
+      return { ...s, schedule, swissByes: {}, week: 0, matchResults: {}, playoffs: null };
     });
     setTab("league"); setLeagueSubTab("schedule");
+    return true;
   }
 
   // Replaces one week's matchups with a commissioner-chosen set of pairs.
@@ -7966,7 +8041,34 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     });
   }
 
-  function simulateWeek() {
+  function simulatedRegularSeasonResult(s, a, b) {
+    const bstA = (s.rosters[a] || []).reduce((sum, mon) => sum + mon.bst, 0) || 300;
+    const bstB = (s.rosters[b] || []).reduce((sum, mon) => sum + mon.bst, 0) || 300;
+    const aFavored = bstA + Math.random() * 200 > bstB + Math.random() * 200;
+    const gamesA = aFavored ? 2 : Math.round(Math.random());
+    const gamesB = aFavored ? Math.round(Math.random()) : 2;
+    const randomAliveCount = () => (Math.random() < 0.6 ? 1 : Math.random() < 0.8 ? 2 : Math.random() < 0.95 ? 3 : 4);
+    return {
+      gamesA,
+      gamesB,
+      monsAliveA: Array.from({ length: gamesA }, randomAliveCount).reduce((sum, count) => sum + count, 0),
+      monsAliveB: Array.from({ length: gamesB }, randomAliveCount).reduce((sum, count) => sum + count, 0),
+      reportedBy: "auto-sim",
+    };
+  }
+
+  async function simulateWeek() {
+    if (leagueId && isLeagueSwiss(state.settings)) {
+      const matches = state.schedule[state.week] || [];
+      for (let idx = 0; idx < matches.length; idx += 1) {
+        const [a, b] = matches[idx];
+        const key = `${state.week}-${idx}`;
+        if (state.matchResults[key] || (state.teams[a]?.claimedBy && state.teams[b]?.claimedBy)) continue;
+        const saved = await saveHostedRegularSeasonResult(state.week, idx, simulatedRegularSeasonResult(state, a, b));
+        if (!saved) return false;
+      }
+      return true;
+    }
     commit((s) => {
       if (!s.schedule[s.week]) return s;
       const hasBotTeams = s.teams.some((team) => !team?.claimedBy);
@@ -7976,25 +8078,11 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
         const key = `${s.week}-${idx}`;
         if (matchResults[key]) return; // don't overwrite already-reported matches
         if (s.teams[a]?.claimedBy && s.teams[b]?.claimedBy) return; // human-vs-human matches must be reported
-        const bstA = (s.rosters[a] || []).reduce((sum, m) => sum + m.bst, 0) || 300;
-        const bstB = (s.rosters[b] || []).reduce((sum, m) => sum + m.bst, 0) || 300;
-        const aFavored = bstA + Math.random() * 200 > bstB + Math.random() * 200;
-        const gamesA = aFavored ? 2 : Math.round(Math.random());
-        const gamesB = aFavored ? Math.round(Math.random()) : 2;
-        // Same rule as a manually-reported match: only the winner of a given
-        // game has mons alive at its end (1-4, most commonly 1-2) — the
-        // loser of that game is always 0.
-        const randomAliveCount = () => (Math.random() < 0.6 ? 1 : Math.random() < 0.8 ? 2 : Math.random() < 0.95 ? 3 : 4);
-        const monsAliveA = Array.from({ length: gamesA }, randomAliveCount).reduce((s2, n) => s2 + n, 0);
-        const monsAliveB = Array.from({ length: gamesB }, randomAliveCount).reduce((s2, n) => s2 + n, 0);
-        matchResults[key] = {
-          gamesA, gamesB,
-          monsAliveA, monsAliveB,
-          reportedBy: "auto-sim",
-        };
+        matchResults[key] = simulatedRegularSeasonResult(s, a, b);
       });
       return { ...s, matchResults, week: s.week < s.schedule.length - 1 ? s.week + 1 : s.week };
     });
+    return true;
   }
   function setWeek(w) {
     commit((s) => ({ ...s, week: w }));
@@ -8003,7 +8091,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   /* ---- Playoffs ---- */
   function generatePlayoffs(customSeeds) {
     commit((s) => {
-      const divisions = s.settings.divisions;
+      const divisions = isLeagueSwiss(s.settings) ? [] : s.settings.divisions;
       // Division mode needs at least 2 real divisions to make a champion
       // bracket meaningful — with fewer than that it just falls back to one
       // combined bracket, same as a league with no divisions at all.
@@ -8411,7 +8499,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
         auctionNominationOrder: [], auctionNominationIdx: 0,
         paused: false, pausedAt: null, pauseIsOvernight: false,
         auctionEnded: false,
-        schedule: [], week: 0, matchResults: {}, predictions: {},
+        schedule: [], swissByes: {}, week: 0, matchResults: {}, predictions: {},
         trades: [],
         transactionLog: [],
         keeperRosters: {},
@@ -8517,7 +8605,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
         // guessing at who owned what from a team name that might not even
         // be the same team anymore.
         mvpTally,
-        standings: standings.map((r) => ({ id: r.id, name: r.name, color: r.color, logoUrl: r.logoUrl, w: r.w, l: r.l, gameW: r.gameW, gameL: r.gameL, differential: r.differential, claimedBy: s.teams[r.id]?.claimedBy || null })),
+        standings: standings.map((r) => ({ id: r.id, name: r.name, color: r.color, logoUrl: r.logoUrl, w: r.w, l: r.l, gameW: r.gameW, gameL: r.gameL, differential: r.differential, omwp: r.omwp ?? null, gwp: r.gwp ?? null, ogwp: r.ogwp ?? null, byeCount: r.byeCount ?? 0, claimedBy: s.teams[r.id]?.claimedBy || null })),
         rosters: s.rosters.map((r) => r.map((m) => ({ name: m.name, cost: m.cost ?? null, bst: m.bst ?? null, t1: m.t1, t2: m.t2, acquiredVia: m.acquiredVia || null }))),
         trades: s.trades.filter((t) => t.status === "accepted"),
         draftType: s.settings.draftType,
@@ -8526,6 +8614,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
         homepage: { ...s.homepage },
         teams: s.teams.map((team) => ({ ...team })),
         schedule: s.schedule,
+        swissByes: s.swissByes || {},
         matchResults: s.matchResults,
         playoffs: s.playoffs,
         // One entry per drafted mon — draftPick (snake) or cost (auction) is
@@ -8580,7 +8669,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
         auctionNominationOrder: [], auctionNominationIdx: 0,
         paused: false, pausedAt: null, pauseIsOvernight: false,
         auctionEnded: false,
-        schedule: [], week: 0, matchResults: {}, predictions: {},
+        schedule: [], swissByes: {}, week: 0, matchResults: {}, predictions: {},
         trades: [],
         transactionLog: [],
         playoffs: null,
@@ -9256,6 +9345,8 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       ["Draft date", settings.draftScheduledAt ? new Date(settings.draftScheduledAt) : ""],
       ["Regulation", regulation?.name || settings.regulationId || ""],
       ["Draft type", settings.draftType || ""],
+      ["Regular-season format", isLeagueSwiss(settings) ? "Swiss" : "Round robin"],
+      ["Swiss rounds", isLeagueSwiss(settings) ? effectiveLeagueSwissRounds(settings, state.teams.length) : ""],
       ["League size", state.teams.length],
       ["Roster size", `${settings.rosterMin || ""}-${settings.rosterMax || settings.rosterSize || ""}`],
       ["Draft budget", settings.budget ?? ""],
@@ -9280,18 +9371,35 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
         mon.cost ?? "", mon.draftPick ?? "", mon.acquiredVia || "Draft", mon.t1 || "", mon.t2 || "", mon.bst ?? "",
       ])),
     ], [28, 44, 28, 10, 12, 16, 14, 14, 10]);
-    addSheet("Standings", [
+    addSheet("Standings", isLeagueSwiss(settings) ? [
+      ["Rank", "Team", "Manager", "Wins", "Losses", "Game wins", "Game losses", "OMWP", "GWP", "OGWP", "Byes"],
+      ...standingsRows.map((row, index) => [index + 1, row.name, state.teams[row.id]?.claimedBy || "", row.w, row.l, row.gameW, row.gameL, row.omwp, row.gwp, row.ogwp, row.byeCount]),
+    ] : [
       ["Rank", "Team", "Manager", "Wins", "Losses", "Game wins", "Game losses", "Differential"],
       ...standingsRows.map((row, index) => [index + 1, row.name, state.teams[row.id]?.claimedBy || "", row.w, row.l, row.gameW, row.gameL, row.differential]),
-    ], [10, 28, 44, 10, 10, 12, 12, 14]);
+    ], isLeagueSwiss(settings) ? [10, 28, 44, 10, 10, 12, 12, 12, 12, 12, 10] : [10, 28, 44, 10, 10, 12, 12, 14]);
     addSheet("Schedule and Results", [
       ["Week", "Match", "Team A", "Team B", "Score", "Differential A", "Differential B", "MVP", "Replay A", "Replay B"],
-      ...state.schedule.flatMap((week, weekIndex) => week.map(([a, b], matchIndex) => {
-        const result = state.matchResults?.[`${weekIndex}-${matchIndex}`];
-        return [weekIndex + 1, matchIndex + 1, state.teams[a]?.name || "", state.teams[b]?.name || "",
-          result ? `${result.gamesA}-${result.gamesB}` : "Not reported", result?.monsAliveA ?? "", result?.monsAliveB ?? "",
-          result?.mvp?.name || "", result?.replayUrlA || "", result?.replayUrlB || ""];
-      })),
+      ...state.schedule.flatMap((week, weekIndex) => [
+        ...week.map(([a, b], matchIndex) => {
+          const result = state.matchResults?.[`${weekIndex}-${matchIndex}`];
+          return [weekIndex + 1, matchIndex + 1, state.teams[a]?.name || "", state.teams[b]?.name || "",
+            result ? `${result.gamesA}-${result.gamesB}` : "Not reported", result?.monsAliveA ?? "", result?.monsAliveB ?? "",
+            result?.mvp?.name || "", result?.replayUrlA || "", result?.replayUrlB || ""];
+        }),
+        ...(Number.isInteger(Number(state.swissByes?.[weekIndex])) ? [[
+          weekIndex + 1,
+          "BYE",
+          state.teams[Number(state.swissByes[weekIndex])]?.name || "",
+          "",
+          "Match win",
+          "",
+          "",
+          "",
+          "",
+          "",
+        ]] : []),
+      ]),
     ], [10, 10, 28, 28, 14, 16, 16, 24, 48, 48]);
     addSheet("Transactions", [
       ["Type", "Date", "Status", "Team / From", "To", "Added", "Dropped", "Details"],
@@ -9319,12 +9427,27 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     ], [10, 28, 44, 28, 10, 12, 16]);
     addSheet("Archived Results", [
       ["Season", "Week", "Match", "Team A", "Team B", "Score", "Differential A", "Differential B", "MVP", "Replay A", "Replay B"],
-      ...(state.seasonHistory || []).flatMap((season) => (season.schedule || []).flatMap((week, weekIndex) => (week || []).map(([a, b], matchIndex) => {
-        const result = season.matchResults?.[`${weekIndex}-${matchIndex}`];
-        return [season.seasonNumber, weekIndex + 1, matchIndex + 1, season.teams?.[a]?.name || "", season.teams?.[b]?.name || "",
-          result ? `${result.gamesA}-${result.gamesB}` : "Not reported", result?.monsAliveA ?? "", result?.monsAliveB ?? "",
-          result?.mvp?.name || "", result?.replayUrlA || "", result?.replayUrlB || ""];
-      }))),
+      ...(state.seasonHistory || []).flatMap((season) => (season.schedule || []).flatMap((week, weekIndex) => [
+        ...(week || []).map(([a, b], matchIndex) => {
+          const result = season.matchResults?.[`${weekIndex}-${matchIndex}`];
+          return [season.seasonNumber, weekIndex + 1, matchIndex + 1, season.teams?.[a]?.name || "", season.teams?.[b]?.name || "",
+            result ? `${result.gamesA}-${result.gamesB}` : "Not reported", result?.monsAliveA ?? "", result?.monsAliveB ?? "",
+            result?.mvp?.name || "", result?.replayUrlA || "", result?.replayUrlB || ""];
+        }),
+        ...(Number.isInteger(Number(season.swissByes?.[weekIndex])) ? [[
+          season.seasonNumber,
+          weekIndex + 1,
+          "BYE",
+          season.teams?.[Number(season.swissByes[weekIndex])]?.name || "",
+          "",
+          "Match win",
+          "",
+          "",
+          "",
+          "",
+          "",
+        ]] : []),
+      ])),
     ], [10, 10, 10, 28, 28, 14, 16, 16, 24, 48, 48]);
     addSheet("Archived Draft Logs", [
       ["Season", "Pokemon", "Draft pick", "Auction cost"],
@@ -9487,7 +9610,13 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   // has no standings or public schedule yet, and a playoff tab only becomes
   // useful once the commissioner has generated a bracket.
   const hasSchedule = (state.schedule || []).length > 0;
-  const regularSeasonComplete = hasSchedule && isRegularSeasonComplete(state.schedule, state.matchResults);
+  const regularSeasonComplete = hasSchedule && isRegularSeasonComplete(
+    state.schedule,
+    state.matchResults,
+    state.settings,
+    state.teams,
+    state.swissByes,
+  );
   const hasAwardWinners = Boolean(
     Object.keys(state.draftHeroVotes || {}).length ||
     (state.trades || []).some((t) => t.status === "accepted") ||
@@ -9734,7 +9863,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
             finishBudgetSnakeRoster={finishBudgetSnakeRoster}
             placeBid={placeBid} endAuctionEarly={endAuctionEarly} pauseDraft={pauseDraft} resumeDraft={resumeDraft} skipAuctionNomination={skipAuctionNomination}
             toggleAutoDraft={toggleAutoDraft} addToQueue={addToQueue} removeFromQueue={removeFromQueue} moveQueueItem={moveQueueItem}
-            onGenerateSchedule={generateSchedule} updateSettings={updateSettings} onViewTeam={goToTeam} castDraftHeroVote={castDraftHeroVote} restartDraft={restartDraft} rebuildCurrentSeason={rebuildCurrentSeason} onStart={startDraft}
+            onGenerateSchedule={generateSchedule} scheduleActionBusy={scheduleActionBusy} updateSettings={updateSettings} onViewTeam={goToTeam} castDraftHeroVote={castDraftHeroVote} restartDraft={restartDraft} rebuildCurrentSeason={rebuildCurrentSeason} onStart={startDraft}
             postToBoard={postToBoard} markBoardRead={markBoardRead} showChat={!displayIsSpectator} canPostChat={!displayIsSpectator && !previewReadOnly}
             readOnly={displayIsLimitedObserver || previewReadOnly}
             scheduledStartStatus={scheduledStartStatus}
@@ -9826,7 +9955,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
                 finishBudgetSnakeRoster={finishBudgetSnakeRoster}
                 placeBid={placeBid} endAuctionEarly={endAuctionEarly} pauseDraft={pauseDraft} resumeDraft={resumeDraft} skipAuctionNomination={skipAuctionNomination}
                 toggleAutoDraft={toggleAutoDraft} addToQueue={addToQueue} removeFromQueue={removeFromQueue} moveQueueItem={moveQueueItem}
-                onGenerateSchedule={generateSchedule} updateSettings={updateSettings} onViewTeam={goToTeam} castDraftHeroVote={castDraftHeroVote} restartDraft={restartDraft} rebuildCurrentSeason={rebuildCurrentSeason} onStart={startDraft}
+                onGenerateSchedule={generateSchedule} scheduleActionBusy={scheduleActionBusy} updateSettings={updateSettings} onViewTeam={goToTeam} castDraftHeroVote={castDraftHeroVote} restartDraft={restartDraft} rebuildCurrentSeason={rebuildCurrentSeason} onStart={startDraft}
                 postToBoard={postToBoard} markBoardRead={markBoardRead} showChat={!displayIsSpectator} canPostChat={!displayIsSpectator && !previewReadOnly}
                 readOnly={displayIsLimitedObserver || previewReadOnly}
                 scheduledStartStatus={scheduledStartStatus}
@@ -9836,14 +9965,14 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
             {leagueSubTab === "schedule" && !displayIsLimitedObserver && (
               <ScheduleView
                 state={state} isCommissioner={isCommissioner} myName={myName} myTeamIdx={myTeamIdx}
-                setWeek={setWeek} simulateWeek={simulateWeek} onGenerate={generateSchedule} reportMatch={reportMatch}
+                setWeek={setWeek} simulateWeek={simulateWeek} onGenerate={generateSchedule} scheduleActionBusy={scheduleActionBusy} reportMatch={reportMatch}
                 setMatchMVP={setMatchMVP}
                 onViewTeam={goToTeam} setWeekMatchups={setWeekMatchups}
               />
             )}
             {leagueSubTab === "standings" && (
               <StandingsView standings={standings} settings={state.settings} isCommissioner={displayIsCommissioner} setTeamOtherValue={setTeamOtherValue} rosters={state.rosters}
-                schedule={state.schedule} matchResults={state.matchResults} seasonNumber={state.seasonNumber} />
+                schedule={state.schedule} matchResults={state.matchResults} swissByes={state.swissByes} teams={state.teams} seasonNumber={state.seasonNumber} />
             )}
             {leagueSubTab === "playoffs" && (
               <PlayoffsView
@@ -10392,9 +10521,15 @@ function MyTeamView({ state, leagueId, myTeamIdx, isCommissioner, myName, myTeam
   const usesRange = settings.draftType === "auction" || settings.snakeBudgetEnabled;
   const usesBudget = usesRange;
   const canEdit = !!team && (isCommissioner || team.claimedBy === myName);
+  let configuredSeasonLength = 0;
+  if (isLeagueSwiss(settings)) {
+    try { configuredSeasonLength = effectiveLeagueSwissRounds(settings, teams.length); }
+    catch { configuredSeasonLength = state.schedule?.length || 1; }
+  }
   const notebookWeeks = Math.max(
     1,
-    state.schedule?.length
+    configuredSeasonLength
+      || state.schedule?.length
       || Number(settings.scheduleWeeks)
       || (Number(settings.leagueSize) % 2 === 0 ? Number(settings.leagueSize) - 1 : Number(settings.leagueSize))
       || 1,
@@ -11733,12 +11868,17 @@ function SetupView({ state, leagueId = null, leagueName = "league", isCommission
       {isCommissioner && !eventMode && (
         <div style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }} className="rounded-lg p-6 mb-6">
           <h2 className="display-font text-2xl mb-1" style={{ color: "#FFD23F" }}>PODS &amp; DIVISIONS</h2>
+          {isLeagueSwiss(settings) && (
+            <p className="text-sm mb-4 rounded p-3" style={{ color: "#BDF7EE", background: "#102B2B", border: "1px solid #4FD1C544" }}>
+              Swiss uses one shared league table, so pods and divisions are unavailable in this format. Switch the regular season back to round robin before setting them up.
+            </p>
+          )}
           {settings.divisions.length === 0 ? (
             <>
               <p className="text-sm mb-4" style={{ color: "#9A9FBD" }}>
                 Optional — split the league into pods or conferences, each running its own bracket that feeds a league championship bracket. Most leagues don't need this.
               </p>
-              <button onClick={addDivision} className="px-4 py-2 rounded text-sm font-semibold" style={{ background: "#1F2338", color: "#4FD1C5", border: "1px solid rgba(255,255,255,0.08)" }}>
+              <button disabled={isLeagueSwiss(settings)} onClick={addDivision} className="px-4 py-2 rounded text-sm font-semibold disabled:opacity-35" style={{ background: "#1F2338", color: "#4FD1C5", border: "1px solid rgba(255,255,255,0.08)" }}>
                 + Set up divisions
               </button>
             </>
@@ -12810,13 +12950,23 @@ function ScheduleAndPlayoffsCard({ state, isCommissioner, updateSettings }) {
       nextPowerOfTwo(playoffTeams),
     ),
   };
-  const usesMultiPodPlayoffs = Array.isArray(settings.divisions) && settings.divisions.length >= 2;
+  const usesMultiPodPlayoffs = !isLeagueSwiss(settings) && Array.isArray(settings.divisions) && settings.divisions.length >= 2;
   const perPodPlayoffTeams = Math.max(1, Math.min(Number(settings.divisionPlayoffTeams) || 1, divisionPlayoffTeamLimit(settings.divisions)));
   const multiPodPlayoffField = usesMultiPodPlayoffs
     ? settings.divisions.reduce((total, division) => total + Math.min(division.teamIds?.length || 0, perPodPlayoffTeams), 0)
     : 0;
   const baseWeeks = roundRobinWeeks(scheduledRoundRobinTeamCount(settings, state.teams?.length || settings.leagueSize));
   const effectiveWeeks = settings.scheduleWeeks || baseWeeks;
+  const swiss = isLeagueSwiss(settings);
+  const swissTeamCount = state.teams?.length || Number(settings.leagueSize) || 0;
+  const swissTeamCountValid = swissTeamCount >= 4 && swissTeamCount <= 16;
+  const recommendedSwissRounds = swissTeamCountValid ? recommendedLeagueSwissRounds(swissTeamCount) : null;
+  let effectiveSwissRounds = null;
+  if (swissTeamCountValid) {
+    try { effectiveSwissRounds = effectiveLeagueSwissRounds(settings, swissTeamCount); }
+    catch { effectiveSwissRounds = recommendedSwissRounds; }
+  }
+  const scheduleStarted = state.schedule?.length > 0;
 
   function setPlayoffTeams(n) {
     const next = Math.max(2, Math.min(n, playoffMax));
@@ -12832,38 +12982,94 @@ function ScheduleAndPlayoffsCard({ state, isCommissioner, updateSettings }) {
     <div style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }} className="rounded-lg p-6 mt-6">
       <h2 className="display-font text-2xl mb-4" style={{ color: "#FFD23F" }}>SCHEDULE &amp; PLAYOFFS</h2>
       <fieldset disabled={!isCommissioner} className="disabled:opacity-50">
-        <label className="block text-sm mb-2" style={{ color: "#9A9FBD" }}>
-          Regular season length — <span style={{ color: "#EDEBFA" }}>{effectiveWeeks} week{effectiveWeeks === 1 ? "" : "s"}</span>
-          {!settings.scheduleWeeks && <span style={{ color: "#5B5F7E" }}> (auto — one full round robin)</span>}
-        </label>
-        <div className="flex items-center gap-2 mb-1">
-          <input type="number" min={1} max={Math.max(30, baseWeeks)} value={settings.scheduleWeeks ?? baseWeeks}
-            onChange={(e) => updateSettings({ scheduleWeeks: e.target.value === "" ? "" : Number(e.target.value) })}
-            onBlur={(e) => updateSettings({ scheduleWeeks: Number(e.target.value) || baseWeeks })}
-            className="w-24 px-3 py-2 rounded mono-font text-sm" style={{ background: "#1F2338", border: "1px solid rgba(255,255,255,0.1)", color: "#EDEBFA" }} />
-          <button type="button" onClick={() => updateSettings({ scheduleWeeks: null })}
-            className="text-xs px-2 py-1.5 rounded" style={{ background: "#1F2338", color: "#9A9FBD" }}>
-            Reset to auto
-          </button>
+        <label className="block text-sm mb-2" style={{ color: "#9A9FBD" }}>Regular-season format</label>
+        <div className="flex gap-2 mb-2">
+          {[["round-robin", "Round robin"], ["swiss", "Swiss"]].map(([value, label]) => (
+            <button key={value} type="button"
+              disabled={scheduleStarted || (value === "swiss" && (settings.divisions?.length || !swissTeamCountValid))}
+              onClick={() => updateSettings(value === "swiss"
+                ? { regularSeasonFormat: value, manualScheduling: false, divisionRoundRobin: false }
+                : { regularSeasonFormat: value })}
+              className="px-3 py-2 rounded text-xs font-semibold mono-font disabled:opacity-35"
+              style={{ background: settings.regularSeasonFormat === value ? "#FFD23F" : "#1F2338", color: settings.regularSeasonFormat === value ? "#10121C" : "#9A9FBD", border: "1px solid rgba(255,255,255,0.08)" }}>
+              {label}
+            </button>
+          ))}
         </div>
-        <p className="text-xs mb-5" style={{ color: "#5B5F7E" }}>
-          If you set more weeks than a single round robin covers, matchups repeat in the same order to fill out the season.
+        <p className="text-xs mb-5" style={{ color: swissTeamCountValid && !settings.divisions?.length ? "#5B5F7E" : "#F6A84F" }}>
+          {scheduleStarted
+            ? "The format is locked once the regular-season schedule starts."
+            : settings.divisions?.length
+              ? "Swiss is available for one 4-16 team league table; remove pods or divisions before selecting it."
+              : !swissTeamCountValid
+                ? "Swiss regular seasons currently support 4-16 teams."
+                : "Swiss pairs teams with the same record each round, avoids rematches where possible, and rotates byes."}
         </p>
 
-        <label className="flex items-center gap-2 text-sm mb-5">
-          <input type="checkbox" checked={!!settings.manualScheduling} onChange={(e) => updateSettings({ manualScheduling: e.target.checked })} />
-          <span style={{ color: "#9A9FBD" }}>Set matchups manually, week by week, instead of an auto round robin</span>
-        </label>
+        {swiss ? (
+          <>
+            <label className="block text-sm mb-2" style={{ color: "#9A9FBD" }}>
+              Swiss rounds — <span style={{ color: "#EDEBFA" }}>{effectiveSwissRounds ?? "Unavailable"}</span>
+              {settings.swissRoundCount == null && recommendedSwissRounds != null && <span style={{ color: "#5B5F7E" }}> (recommended)</span>}
+            </label>
+            <div className="flex items-center gap-2 mb-1">
+              <input type="number" min={2} max={10} value={settings.swissRoundCount ?? recommendedSwissRounds ?? 3}
+                disabled={scheduleStarted || !swissTeamCountValid}
+                onChange={(e) => updateSettings({ swissRoundCount: e.target.value === "" ? "" : Number(e.target.value) })}
+                onBlur={(e) => updateSettings({ swissRoundCount: Math.max(2, Math.min(10, Number(e.target.value) || recommendedSwissRounds || 3)) })}
+                className="w-24 px-3 py-2 rounded mono-font text-sm disabled:opacity-35" style={{ background: "#1F2338", border: "1px solid rgba(255,255,255,0.1)", color: "#EDEBFA" }} />
+              <button type="button" disabled={scheduleStarted} onClick={() => updateSettings({ swissRoundCount: null })}
+                className="text-xs px-2 py-1.5 rounded disabled:opacity-35" style={{ background: "#1F2338", color: "#9A9FBD" }}>
+                Use recommended
+              </button>
+            </div>
+            <p className="text-xs mb-5" style={{ color: "#5B5F7E" }}>
+              Pairings are created one round at a time after every current result is reported. Ties rank by wins, opponent match-win percentage, game-win percentage, opponent game-win percentage, then initial team order.
+            </p>
+          </>
+        ) : (
+          <>
+            <label className="block text-sm mb-2" style={{ color: "#9A9FBD" }}>
+              Regular season length — <span style={{ color: "#EDEBFA" }}>{effectiveWeeks} week{effectiveWeeks === 1 ? "" : "s"}</span>
+              {!settings.scheduleWeeks && <span style={{ color: "#5B5F7E" }}> (auto — one full round robin)</span>}
+            </label>
+            <div className="flex items-center gap-2 mb-1">
+              <input type="number" min={1} max={Math.max(30, baseWeeks)} value={settings.scheduleWeeks ?? baseWeeks}
+                onChange={(e) => updateSettings({ scheduleWeeks: e.target.value === "" ? "" : Number(e.target.value) })}
+                onBlur={(e) => updateSettings({ scheduleWeeks: Number(e.target.value) || baseWeeks })}
+                className="w-24 px-3 py-2 rounded mono-font text-sm" style={{ background: "#1F2338", border: "1px solid rgba(255,255,255,0.1)", color: "#EDEBFA" }} />
+              <button type="button" onClick={() => updateSettings({ scheduleWeeks: null })}
+                className="text-xs px-2 py-1.5 rounded" style={{ background: "#1F2338", color: "#9A9FBD" }}>
+                Reset to auto
+              </button>
+            </div>
+            <p className="text-xs mb-5" style={{ color: "#5B5F7E" }}>
+              If you set more weeks than a single round robin covers, matchups repeat in the same order to fill out the season.
+            </p>
+            <label className="flex items-center gap-2 text-sm mb-5">
+              <input type="checkbox" checked={!!settings.manualScheduling} onChange={(e) => updateSettings({ manualScheduling: e.target.checked })} />
+              <span style={{ color: "#9A9FBD" }}>Set matchups manually, week by week, instead of an auto round robin</span>
+            </label>
+          </>
+        )}
 
         <label className="block text-sm mb-2" style={{ color: "#9A9FBD" }}>What counts toward standings rank</label>
-        <p className="text-xs mb-2" style={{ color: "#5B5F7E" }}>
-          Applied in this order top to bottom, skipping anything toggled off. All the underlying stats still show either way — this only controls what breaks ties.
-        </p>
-        <CriteriaToggleRow label="Regular season" criteria={settings.standingsCriteria} onChange={(next) => updateSettings({ standingsCriteria: next })} />
-        <p className="text-xs mt-3 mb-2" style={{ color: "#5B5F7E" }}>
-          Playoff brackets usually only care about Set W-L for seeding — this is separate from the regular-season table above, so you can keep it simple even if the season standings use more tiebreakers.
-        </p>
-        <CriteriaToggleRow label="Playoffs" criteria={settings.playoffSeedCriteria} onChange={(next) => updateSettings({ playoffSeedCriteria: next })} />
+        {swiss ? (
+          <p className="text-xs mb-5" style={{ color: "#5B5F7E" }}>
+            Swiss uses its published tiebreaker chain for both the live table and playoff seeding, so commissioners cannot change the order mid-season.
+          </p>
+        ) : (
+          <>
+            <p className="text-xs mb-2" style={{ color: "#5B5F7E" }}>
+              Applied in this order top to bottom, skipping anything toggled off. All the underlying stats still show either way — this only controls what breaks ties.
+            </p>
+            <CriteriaToggleRow label="Regular season" criteria={settings.standingsCriteria} onChange={(next) => updateSettings({ standingsCriteria: next })} />
+            <p className="text-xs mt-3 mb-2" style={{ color: "#5B5F7E" }}>
+              Playoff brackets usually only care about Set W-L for seeding — this is separate from the regular-season table above, so you can keep it simple even if the season standings use more tiebreakers.
+            </p>
+            <CriteriaToggleRow label="Playoffs" criteria={settings.playoffSeedCriteria} onChange={(next) => updateSettings({ playoffSeedCriteria: next })} />
+          </>
+        )}
         <label className="block text-sm mt-4 mb-2" style={{ color: "#9A9FBD" }}>"Other" category label</label>
         <input type="text" value={settings.otherStandingsLabel} onChange={(e) => updateSettings({ otherStandingsLabel: e.target.value })}
           onBlur={(e) => { if (!e.target.value.trim()) updateSettings({ otherStandingsLabel: "Other" }); }}
@@ -13944,7 +14150,7 @@ function DraftChatPanel({ board = [], myName, postToBoard, markBoardRead, canPos
   );
 }
 
-function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTeamIdx, costFor, currentTeamOnClock, draftDone, allTeamsMetMin, snakePick, undoLastSnakePick, nominateForAuction, autoPickForClock, requestDueSnakeTurnResolution = null, finishBudgetSnakeRoster, placeBid, endAuctionEarly, pauseDraft, resumeDraft, skipAuctionNomination, toggleAutoDraft, addToQueue, removeFromQueue, moveQueueItem, onGenerateSchedule, updateSettings, onViewTeam, castDraftHeroVote, restartDraft, rebuildCurrentSeason, onStart, postToBoard, markBoardRead, showChat = true, canPostChat = true, readOnly = false, scheduledStartStatus = null, retryScheduledStart = null, eventMode = false }) {
+function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTeamIdx, costFor, currentTeamOnClock, draftDone, allTeamsMetMin, snakePick, undoLastSnakePick, nominateForAuction, autoPickForClock, requestDueSnakeTurnResolution = null, finishBudgetSnakeRoster, placeBid, endAuctionEarly, pauseDraft, resumeDraft, skipAuctionNomination, toggleAutoDraft, addToQueue, removeFromQueue, moveQueueItem, onGenerateSchedule, scheduleActionBusy = false, updateSettings, onViewTeam, castDraftHeroVote, restartDraft, rebuildCurrentSeason, onStart, postToBoard, markBoardRead, showChat = true, canPostChat = true, readOnly = false, scheduledStartStatus = null, retryScheduledStart = null, eventMode = false }) {
   const {
     locked,
     settings,
@@ -14501,9 +14707,9 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
               <a href={state.tournamentSlug ? `/tournaments/${encodeURIComponent(state.tournamentSlug)}` : "/tournaments"} className="primary-button inline-link-button mt-4">Return to event</a>
             </div>
           ) : !readOnly ? (
-            <button onClick={onGenerateSchedule} disabled={draftType === "auction" && !allTeamsMetMin}
+            <button onClick={onGenerateSchedule} disabled={scheduleActionBusy || (draftType === "auction" && !allTeamsMetMin)}
               className="px-6 py-3 rounded font-semibold display-font text-xl glow disabled:opacity-40 disabled:cursor-not-allowed" style={{ background: "#4FD1C5", color: "#10121C" }}>
-              GENERATE SCHEDULE →
+              {scheduleActionBusy ? "PAIRING…" : isLeagueSwiss(settings) ? "PAIR SWISS ROUND 1 →" : "GENERATE SCHEDULE →"}
             </button>
           ) : null}
           {draftType === "auction" && !allTeamsMetMin && (
@@ -14609,7 +14815,8 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
               confirmNomination={() => nominateForAuction(pendingNominee, pendingBid)}
               cancelPendingNomination={() => { setPendingNominee(null); setPendingBid("1"); }}
               skipAuctionNomination={skipAuctionNomination}
-              poolEmpty={pool.length === 0} onDone={readOnly ? null : onGenerateSchedule} />
+              poolEmpty={pool.length === 0} onDone={readOnly || scheduleActionBusy ? null : onGenerateSchedule}
+              doneLabel={isLeagueSwiss(settings) ? "PAIR SWISS ROUND 1 →" : "GENERATE SCHEDULE →"} />
           )}
 
           {!readOnly && myTeamIdx >= 0 && (
@@ -14990,7 +15197,7 @@ function PickTimer({ deadline, isCommissioner, onExpireAction, onServerExpireAct
   );
 }
 
-function AuctionPanel({ teams, budgets, rosters, rosterMin, rosterMax, nominee, placeBid, myTeamIdx, isCommissioner, auctionNominationOrder, auctionNominationIdx, paused, pausedAt, nominationDeadline, pendingNominee, pendingBid, setPendingBid, confirmNomination, cancelPendingNomination, skipAuctionNomination, poolEmpty, onDone }) {
+function AuctionPanel({ teams, budgets, rosters, rosterMin, rosterMax, nominee, placeBid, myTeamIdx, isCommissioner, auctionNominationOrder, auctionNominationIdx, paused, pausedAt, nominationDeadline, pendingNominee, pendingBid, setPendingBid, confirmNomination, cancelPendingNomination, skipAuctionNomination, poolEmpty, onDone, doneLabel = "GENERATE SCHEDULE →" }) {
   const [now, setNow] = useState(Date.now());
   const [customAmount, setCustomAmount] = useState("");
   useEffect(() => {
@@ -15003,7 +15210,7 @@ function AuctionPanel({ teams, budgets, rosters, rosterMin, rosterMax, nominee, 
       return (
         <div className="text-center py-10">
           <p className="display-font text-3xl mb-4" style={{ color: "#FFD23F" }}>DRAFT COMPLETE</p>
-          {onDone && <button onClick={onDone} className="px-6 py-3 rounded font-semibold display-font text-xl glow" style={{ background: "#4FD1C5", color: "#10121C" }}>GENERATE SCHEDULE →</button>}
+          {onDone && <button onClick={onDone} className="px-6 py-3 rounded font-semibold display-font text-xl glow" style={{ background: "#4FD1C5", color: "#10121C" }}>{doneLabel}</button>}
         </div>
       );
     }
@@ -15435,15 +15642,25 @@ function PredictionsView({ state, myName, submitPrediction, onViewTeam, readOnly
   );
 }
 
-function ScheduleView({ state, isCommissioner, myName, myTeamIdx, setWeek, simulateWeek, onGenerate, reportMatch, setMatchMVP, onViewTeam, setWeekMatchups }) {
+function ScheduleView({ state, isCommissioner, myName, myTeamIdx, setWeek, simulateWeek, onGenerate, scheduleActionBusy = false, reportMatch, setMatchMVP, onViewTeam, setWeekMatchups }) {
   const { teams, schedule, week, matchResults, rosters, settings } = state;
   const [editingWeek, setEditingWeek] = useState(false);
   const [draftPairs, setDraftPairs] = useState([]);
   if (!schedule.length) {
     return <div className="text-center py-20" style={{ color: "#9A9FBD" }}>Finish the draft to generate your weekly schedule.</div>;
   }
-  const canEditSchedule = isCommissioner && settings.manualScheduling;
+  const swiss = isLeagueSwiss(settings);
+  const canEditSchedule = isCommissioner && settings.manualScheduling && !swiss;
   const hasBotTeams = teams.some((team) => !team?.claimedBy);
+  let swissRoundTarget = schedule.length;
+  if (swiss) {
+    try { swissRoundTarget = effectiveLeagueSwissRounds(settings, teams.length); }
+    catch { swissRoundTarget = schedule.length; }
+  }
+  const currentSwissRoundComplete = swiss && leagueSwissRoundIsComplete(schedule, matchResults, schedule.length - 1);
+  const canPairNextSwissRound = isCommissioner && currentSwissRoundComplete && schedule.length < swissRoundTarget;
+  const byeTeamIndex = swiss ? Number(state.swissByes?.[week]) : null;
+  const byeTeam = Number.isInteger(byeTeamIndex) ? teams[byeTeamIndex] : null;
 
   function startEditing() {
     setDraftPairs(schedule[week].map((pair) => [...pair]));
@@ -15458,11 +15675,17 @@ function ScheduleView({ state, isCommissioner, myName, myTeamIdx, setWeek, simul
   return (
     <div>
       <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
-        <h2 className="display-font text-2xl" style={{ color: "#FFD23F" }}>WEEK {week + 1} OF {schedule.length}</h2>
+        <h2 className="display-font text-2xl" style={{ color: "#FFD23F" }}>{swiss ? "ROUND" : "WEEK"} {week + 1} OF {swissRoundTarget}</h2>
         <div className="flex gap-2">
           <button disabled={week === 0} onClick={() => setWeek(week - 1)} className="px-3 py-2 rounded text-sm mono-font disabled:opacity-30" style={{ background: "#1F2338", border: "1px solid rgba(255,255,255,0.08)" }}>← PREV</button>
           <button disabled={week >= schedule.length - 1} onClick={() => setWeek(week + 1)} className="px-3 py-2 rounded text-sm mono-font disabled:opacity-30" style={{ background: "#1F2338", border: "1px solid rgba(255,255,255,0.08)" }}>NEXT →</button>
           {isCommissioner && hasBotTeams && <button onClick={simulateWeek} className="px-4 py-2 rounded text-sm font-semibold" style={{ background: "#4FD1C5", color: "#10121C" }}>SIMULATE BOT MATCHES</button>}
+          {canPairNextSwissRound && (
+            <button disabled={scheduleActionBusy} onClick={onGenerate}
+              className="px-4 py-2 rounded text-sm font-semibold disabled:opacity-40" style={{ background: "#FFD23F", color: "#10121C" }}>
+              {scheduleActionBusy ? "PAIRING…" : `PAIR ROUND ${schedule.length + 1} →`}
+            </button>
+          )}
           {canEditSchedule && !editingWeek && (
             <button onClick={startEditing} className="px-4 py-2 rounded text-sm font-semibold" style={{ background: "#1F2338", color: "#FFD23F", border: "1px solid #FFD23F55" }}>
               EDIT MATCHUPS
@@ -15471,6 +15694,9 @@ function ScheduleView({ state, isCommissioner, myName, myTeamIdx, setWeek, simul
         </div>
       </div>
       {!isCommissioner && hasBotTeams && <p className="text-xs mb-4" style={{ color: "#5B5F7E" }}>The commissioner can simulate matches involving bot teams; you can report your own match below.</p>}
+      {swiss && week === schedule.length - 1 && !currentSwissRoundComplete && (
+        <p className="text-xs mb-4" style={{ color: "#9A9FBD" }}>The next round unlocks after every result in this round is reported.</p>
+      )}
 
       {editingWeek ? (
         <div style={{ background: "#171A2C", border: "1px solid #FFD23F55" }} className="rounded-lg p-4 mb-6">
@@ -15515,6 +15741,18 @@ function ScheduleView({ state, isCommissioner, myName, myTeamIdx, setWeek, simul
                 rosterA={rosters[a]} rosterB={rosters[b]} trackDifferential={!!settings.standingsCriteria?.differential} onViewTeam={onViewTeam} />
             );
           })}
+          {byeTeam && (
+            <div style={{ background: "#171A2C", border: "1px solid #4FD1C555" }} className="rounded-lg p-4 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <TeamLogo team={byeTeam} size={28} />
+                <div>
+                  <p className="text-sm font-semibold" style={{ color: byeTeam.color || "#EDEBFA" }}>{byeTeam.name}</p>
+                  <p className="mono-font text-[10px]" style={{ color: "#5B5F7E" }}>SWISS BYE · COUNTS AS A MATCH WIN</p>
+                </div>
+              </div>
+              <span style={{ color: "#4FD1C5" }}>✓</span>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -15899,24 +16137,29 @@ async function downloadStandingsImage(standings, seasonNumber, mvpEntries = []) 
   a.download = `standings-season-${seasonNumber}.png`;
   a.click();
 }
-function StandingsView({ standings, settings, isCommissioner, setTeamOtherValue, rosters, schedule, matchResults, seasonNumber }) {
+function StandingsView({ standings, settings, isCommissioner, setTeamOtherValue, rosters, schedule, matchResults, swissByes = {}, teams = [], seasonNumber }) {
   const [editingOther, setEditingOther] = useState(null);
   const [viewingRoster, setViewingRoster] = useState(null);
   if (standings.every((s) => s.w === 0 && s.l === 0)) {
     return <div className="text-center py-20" style={{ color: "#9A9FBD" }}>No matches reported yet. Head to Schedule to report or simulate a week.</div>;
   }
-  const seasonMVPActive = (settings.showSeasonMVP ?? true) && isRegularSeasonComplete(schedule, matchResults);
+  const swiss = isLeagueSwiss(settings);
+  const seasonMVPActive = (settings.showSeasonMVP ?? true) && isRegularSeasonComplete(schedule, matchResults, settings, teams, swissByes);
   const c = settings?.standingsCriteria || { setWinLoss: true, gameWinLoss: true, differential: true, other: false };
   const otherLabel = settings?.otherStandingsLabel || "Other";
   // A short human-readable description of the active tiebreaker chain, in
   // priority order, so it's clear at a glance what's actually deciding rank
   // right now — not just which columns happen to be visible.
   const activeParts = [];
-  if (c.setWinLoss) activeParts.push("wins");
-  if (c.gameWinLoss) activeParts.push("game win-loss differential");
-  if (c.differential) activeParts.push("mon differential");
-  if (c.other) activeParts.push(`"${otherLabel}"`);
-  const chainText = activeParts.length ? activeParts.join(", then ") : "nothing (all tiebreakers are off — order may look arbitrary)";
+  if (!swiss) {
+    if (c.setWinLoss) activeParts.push("wins");
+    if (c.gameWinLoss) activeParts.push("game win-loss differential");
+    if (c.differential) activeParts.push("mon differential");
+    if (c.other) activeParts.push(`"${otherLabel}"`);
+  }
+  const chainText = swiss
+    ? "wins, then opponent match-win percentage, game-win percentage, opponent game-win percentage, then initial team order"
+    : activeParts.length ? activeParts.join(", then ") : "nothing (all tiebreakers are off — order may look arbitrary)";
 
   function headerStyle(active) {
     return { color: active ? "#FFD23F" : "#5B5F7E" };
@@ -15926,18 +16169,24 @@ function StandingsView({ standings, settings, isCommissioner, setTeamOtherValue,
     // Number of columns after "Team" that are actually visible right now —
     // needed so the roster-expand row's colSpan always matches whatever
     // columns are showing, rather than assuming all four criteria are on.
-    const visibleColsAfterTeam = (c.setWinLoss ? 2 : 0) + (c.gameWinLoss ? 1 : 0) + (c.differential ? 1 : 0) + (c.other ? 1 : 0);
+    const visibleColsAfterTeam = swiss
+      ? 7
+      : (c.setWinLoss ? 2 : 0) + (c.gameWinLoss ? 1 : 0) + (c.differential ? 1 : 0) + (c.other ? 1 : 0);
     return (
-      <table className="w-full text-sm">
+      <table className="w-full text-sm" style={swiss ? { minWidth: 820 } : undefined}>
         <thead>
           <tr style={{ background: "#1F2338" }}>
             <th className="text-left px-4 py-3 mono-font text-xs uppercase" style={{ color: "#9A9FBD" }}>#</th>
             <th className="text-left px-4 py-3 mono-font text-xs uppercase" style={{ color: "#9A9FBD" }}>Team</th>
-            {c.setWinLoss && <th className="text-left px-4 py-3 mono-font text-xs uppercase" style={headerStyle(true)}>W</th>}
-            {c.setWinLoss && <th className="text-left px-4 py-3 mono-font text-xs uppercase" style={headerStyle(true)}>L</th>}
-            {c.gameWinLoss && <th className="text-left px-4 py-3 mono-font text-xs uppercase" style={headerStyle(true)}>Game W-L</th>}
-            {c.differential && <th className="text-left px-4 py-3 mono-font text-xs uppercase" style={headerStyle(true)}>Differential</th>}
-            {c.other && <th className="text-left px-4 py-3 mono-font text-xs uppercase" style={headerStyle(true)}>{otherLabel}</th>}
+            {(swiss || c.setWinLoss) && <th className="text-left px-4 py-3 mono-font text-xs uppercase" style={headerStyle(true)}>W</th>}
+            {(swiss || c.setWinLoss) && <th className="text-left px-4 py-3 mono-font text-xs uppercase" style={headerStyle(true)}>L</th>}
+            {(swiss || c.gameWinLoss) && <th className="text-left px-4 py-3 mono-font text-xs uppercase" style={headerStyle(true)}>Game W-L</th>}
+            {swiss && <th className="text-left px-4 py-3 mono-font text-xs uppercase" style={headerStyle(true)}>OMWP</th>}
+            {swiss && <th className="text-left px-4 py-3 mono-font text-xs uppercase" style={headerStyle(true)}>GWP</th>}
+            {swiss && <th className="text-left px-4 py-3 mono-font text-xs uppercase" style={headerStyle(true)}>OGWP</th>}
+            {swiss && <th className="text-left px-4 py-3 mono-font text-xs uppercase" style={{ color: "#5B5F7E" }}>Bye</th>}
+            {!swiss && c.differential && <th className="text-left px-4 py-3 mono-font text-xs uppercase" style={headerStyle(true)}>Differential</th>}
+            {!swiss && c.other && <th className="text-left px-4 py-3 mono-font text-xs uppercase" style={headerStyle(true)}>{otherLabel}</th>}
           </tr>
         </thead>
         <tbody>
@@ -15952,15 +16201,19 @@ function StandingsView({ standings, settings, isCommissioner, setTeamOtherValue,
                   <span className="mono-font text-[10px]" style={{ color: "#5B5F7E" }}>{viewingRoster === s.id ? "▲" : "▼"}</span>
                 </button>
               </td>
-              {c.setWinLoss && <td className="px-4 py-3 mono-font" style={{ color: "#4FD1C5" }}>{s.w}</td>}
-              {c.setWinLoss && <td className="px-4 py-3 mono-font" style={{ color: "#F0555A" }}>{s.l}</td>}
-              {c.gameWinLoss && <td className="px-4 py-3 mono-font" style={{ color: "#9A9FBD" }}>{s.gameW}-{s.gameL}</td>}
-              {c.differential && (
+              {(swiss || c.setWinLoss) && <td className="px-4 py-3 mono-font" style={{ color: "#4FD1C5" }}>{s.w}</td>}
+              {(swiss || c.setWinLoss) && <td className="px-4 py-3 mono-font" style={{ color: "#F0555A" }}>{s.l}</td>}
+              {(swiss || c.gameWinLoss) && <td className="px-4 py-3 mono-font" style={{ color: "#9A9FBD" }}>{s.gameW}-{s.gameL}</td>}
+              {swiss && <td className="px-4 py-3 mono-font" style={{ color: "#9A9FBD" }}>{(s.omwp * 100).toFixed(1)}%</td>}
+              {swiss && <td className="px-4 py-3 mono-font" style={{ color: "#9A9FBD" }}>{(s.gwp * 100).toFixed(1)}%</td>}
+              {swiss && <td className="px-4 py-3 mono-font" style={{ color: "#9A9FBD" }}>{(s.ogwp * 100).toFixed(1)}%</td>}
+              {swiss && <td className="px-4 py-3 mono-font" style={{ color: "#5B5F7E" }}>{s.byeCount || "—"}</td>}
+              {!swiss && c.differential && (
                 <td className="px-4 py-3 mono-font" style={{ color: s.differential > 0 ? "#4FD1C5" : s.differential < 0 ? "#F0555A" : "#9A9FBD" }}>
                   {s.differential > 0 ? `+${s.differential}` : s.differential}
                 </td>
               )}
-              {c.other && (
+              {!swiss && c.other && (
                 <td className="px-4 py-3 mono-font" style={{ color: "#9A9FBD" }}>
                   {isCommissioner ? (
                     editingOther === s.id ? (
@@ -16014,7 +16267,7 @@ function StandingsView({ standings, settings, isCommissioner, setTeamOtherValue,
     );
   }
 
-  const divisions = settings?.divisions || [];
+  const divisions = swiss ? [] : settings?.divisions || [];
   const hasDivisions = divisions.length > 0;
   const mvpLeaders = hasDivisions
     ? divisions.map((division) => standings.find((row) => division.teamIds.includes(row.id))).filter(Boolean)
@@ -16027,8 +16280,8 @@ function StandingsView({ standings, settings, isCommissioner, setTeamOtherValue,
     : [];
   const footer = (
     <p className="text-xs px-4 py-3" style={{ color: "#5B5F7E", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-      Ranked by: {chainText}. Columns in yellow are the ones actually deciding rank right now — change which count in Schedule &amp; Playoffs settings.
-      {isCommissioner && ` Click any "${otherLabel}" value to edit it directly.`}
+      Ranked by: {chainText}. {swiss ? "Byes count as match wins but do not count as played opponents." : "Columns in yellow are the ones actually deciding rank right now — change which count in Schedule & Playoffs settings."}
+      {!swiss && isCommissioner && ` Click any "${otherLabel}" value to edit it directly.`}
     </p>
   );
   const downloadButton = (
@@ -16045,7 +16298,7 @@ function StandingsView({ standings, settings, isCommissioner, setTeamOtherValue,
       <div>
         {downloadButton}
         <div style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }} className="rounded-lg overflow-hidden">
-          {renderTable(standings)}
+          <div className={swiss ? "overflow-x-auto" : ""}>{renderTable(standings)}</div>
           {footer}
         </div>
       </div>
@@ -16161,7 +16414,7 @@ function PlayoffsView({ state, isCommissioner, myName, standings, finalizeSeason
     return <div className="text-center py-20" style={{ color: "#9A9FBD" }}>Playoffs open up once the draft is underway.</div>;
   }
 
-  const usesDivisions = (settings.divisions || []).length >= 2;
+  const usesDivisions = !isLeagueSwiss(settings) && (settings.divisions || []).length >= 2;
   // Older two-team leagues may still have the original default of four
   // playoff teams saved. A bracket cannot require more teams than the
   // league actually has, so a two-team postseason becomes one Final.
