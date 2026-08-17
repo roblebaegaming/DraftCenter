@@ -31,6 +31,11 @@ Migration 421 restores 14 badge definitions and the retired
 `pokemon-champions` alias that predate migration 204 and therefore could not be
 present in a schema-only baseline.
 
+Migration 422 is the forward-only recovery for a partial Production replay of
+migrations 204 through 248 during the migration-history repair release. It
+restores the 16 affected functions from a fresh replay of migrations 204
+through 421 and removes the retired weekly-claim-cycle overload again.
+
 A separate historical security-lint file was deliberately excluded after the
 fresh replay proved it never ran in Production: applying it would have added a
 Daily Games export policy and changed future function grants. Git history alone

@@ -21,6 +21,7 @@ const requiredReconciliationNames = [
   "20260817064005_419_normalize_production_function_definitions.sql",
   "20260817064006_420_normalize_production_privileges.sql",
   "20260817064007_421_restore_prebaseline_reference_rows.sql",
+  "20260817080000_422_restore_functions_after_partial_history_replay.sql",
 ];
 
 function normalizedSha256(filePath) {
@@ -79,6 +80,39 @@ const referenceRecovery = fs.readFileSync(
 );
 assert.match(referenceRecovery, /badge reference catalog must contain 17 rows/i);
 assert.match(referenceRecovery, /game-version reference catalog must contain 33 rows/i);
+
+const postReplayFunctionRepair = fs.readFileSync(
+  path.join(migrationsRoot, "20260817080000_422_restore_functions_after_partial_history_replay.sql"),
+  "utf8",
+);
+for (const functionName of [
+  "capture_league_recovery_snapshot",
+  "claim_league_notification_events",
+  "claim_live_setup_team",
+  "claim_twitch_eventsub_message",
+  "consume_api_rate_limit",
+  "get_public_explore",
+  "is_my_setup_team",
+  "list_private_free_agent_claims",
+  "mutate_live_auction",
+  "process_private_free_agent_claims_internal",
+  "reconcile_autonomous_league_claims",
+  "reconcile_autonomous_live_auctions",
+  "reconcile_autonomous_snake_drafts",
+  "reconcile_scheduled_auction_drafts",
+  "restore_my_personal_teams",
+  "schedule_live_auction_draft",
+]) {
+  assert.match(
+    postReplayFunctionRepair,
+    new RegExp(`create or replace function public\\.${functionName}\\(`, "i"),
+    `Migration 422 is missing the canonical ${functionName} definition.`,
+  );
+}
+assert.match(
+  postReplayFunctionRepair,
+  /drop function if exists public\.reset_current_weekly_claim_cycle\(uuid\);/i,
+);
 
 const versions = migrationFiles.map((name) => {
   const match = name.match(/^(\d{14})_[a-z0-9_]+\.sql$/);
