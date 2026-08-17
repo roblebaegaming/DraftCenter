@@ -37,7 +37,11 @@ is no automatic conversion of historical events.
 
 The released snake-only shared draft currently has a maximum of **16 entrants**.
 Raising standalone bracket limits does not by itself raise that shared-draft
-boundary.
+boundary. Do not expand this infrastructure beyond 16 teams until the complete
+auction-specific 32-player lifecycle below has passed its Preview matrix. Until
+then, larger events should draft and play inside their pods before advancing to
+a connected championship. Pod qualifiers advance to an elimination stage under
+the existing connected-event model.
 
 ## Planned auction expansion
 
