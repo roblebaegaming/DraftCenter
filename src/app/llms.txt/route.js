@@ -21,6 +21,7 @@ DraftCenter helps communities configure leagues, run snake and auction drafts, m
 - [Pokémon tournament organizer](https://www.draftcentral.gg/tournaments)
 - [2026 Pokémon World Championships Predictions](https://www.draftcentral.gg/worlds/2026)
 - [Pronostici VGC dei Mondiali Pokémon 2026 in italiano](https://www.draftcentral.gg/it/worlds/2026)
+- [Pronósticos VGC del Mundial Pokémon 2026 en español](https://www.draftcentral.gg/es/worlds/2026)
 - [2026 Pokémon Worlds TCG Masters Predictions](https://www.draftcentral.gg/worlds/2026/tcg)
 - [2026 Pokémon Worlds VGC Top Cut Bracket Challenge](https://www.draftcentral.gg/worlds/2026/vgc/bracket)
 - [2026 Pokémon GO Worlds Predictions](https://www.draftcentral.gg/worlds/2026/go)
@@ -35,7 +36,7 @@ DraftCenter helps communities configure leagues, run snake and auction drafts, m
 - Multi-pod organizations can qualify retained league rosters into connected single- or double-elimination championships. Organization administration and event workspaces are not public reference material.
 - Pokémon Daily Games includes Pokémon Connections, a community poll, an eight-Pokémon bracket, and a Pokémon quiz. Monday through Saturday's bracket champions qualify for Sunday's eight-entry Super Bracket alongside the strongest non-winners. Exact Connections themes stay out of rotation for at least seven days, and theme categories cannot repeat on consecutive days. Signed-in discussions open only after the relevant daily game is completed.
 - The Nuzlocke Run Tracker uses independently reviewed, game-specific encounter catalogs. Floors and subareas share their reviewed parent location's encounter slot while preserving the exact selected area. Signed-in players may save a Run Card privately in My Teams or download a visual progress card; saved cards are not public pages.
-- The 2026 Pokémon World Championships hub covers VGC, the Pokémon TCG, Pokémon GO, and Pokémon UNITE, with the current VGC Pick 10 experience also available in Italian. The open VGC, TCG Masters, and Pokémon GO games let signed-in members pick 10 qualified competitors and name Your Champion for double placement points. The VGC Top Cut bracket challenge stays closed until reviewed official pairings are published. Pokémon's official August 2026 qualified-competitors page supplies 880 unique TCG Masters qualifiers and 369 unique Pokémon GO qualifiers after duplicate source rows are removed. Both are invite-earned lists, not confirmed registration or attendance. The official GO format uses 32 pools advancing two Trainers each into double elimination, but pool assignments and pairings remain unpublished. Pokémon UNITE remains closed while its teams, groups, advancement details, and playoff pairings are reviewed.
+- The 2026 Pokémon World Championships hub covers VGC, the Pokémon TCG, Pokémon GO, and Pokémon UNITE, with the current VGC Pick 10 and champion outlook also available in Italian and Spanish. The open VGC, TCG Masters, and Pokémon GO games let signed-in members pick 10 qualified competitors and name Your Champion for double placement points. VGC includes a transparent pre-event Top 10 across all 438 invite-earned competitors; community influence remains disabled below 25 complete entries. Tournament bracket challenges have a permanent directory and durable post-lock entry links. Pokémon's official August 2026 qualified-competitors page supplies 880 unique TCG Masters qualifiers and 369 unique Pokémon GO qualifiers after duplicate source rows are removed. These are invite-earned lists, not confirmed registration or attendance. Pokémon UNITE remains closed while its teams, groups, advancement details, and playoff pairings are reviewed.
 
 ## Practical guides
 
@@ -90,7 +91,7 @@ DraftCenter helps communities configure leagues, run snake and auction drafts, m
 
 DraftCenter is an independent fan project and is not affiliated with or endorsed by Nintendo, Creatures Inc., GAME FREAK inc., or The Pokémon Company. Pokémon names, characters, artwork, and trademarks belong to their respective owners.
 
-Last reviewed: 2026-08-15
+Last reviewed: 2026-08-17
 `;
 
 export function GET() {

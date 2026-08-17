@@ -32,13 +32,25 @@ const COPY = {
     labels: ["Classifica e forma stagionale", "Vittorie negli eventi", "Vittorie agli Internazionali", "Titoli mondiali", "Scelte della community e Campione"],
     wins: (season, international, worlds) => `${season} ${season === 1 ? "vittoria nell’evento" : "vittorie negli eventi"} · ${international} ${international === 1 ? "vittoria all’Internazionale" : "vittorie agli Internazionali"} · ${worlds} ${worlds === 1 ? "titolo mondiale" : "titoli mondiali"}`,
   },
+  es: {
+    eyebrow: "PROYECCIÓN DEL MODELO",
+    title: "Los 10 favoritos para ganar el Mundial",
+    body: "Una previsión transparente y ajena a las apuestas que incluye a todos los jugadores con invitación. Evolucionará cuando haya nuevos resultados publicados y suficientes pronósticos de la comunidad.",
+    standings: "Clasificación oficial de VGC Máster ↗",
+    method: "Cómo se pondera el modelo",
+    note: "Cada invitado conserva una probabilidad. El grupo completo suma el 100 % y ningún jugador puede superar el 5 % antes de que empiece el Mundial.",
+    communityReady: (count) => `Señal de la comunidad activa · ${count} pronósticos`,
+    communityWaiting: "La señal agregada de la comunidad se activa con 25 pronósticos · las selecciones individuales permanecen privadas hasta el cierre",
+    labels: ["Clasificación y forma de la temporada", "Victorias en eventos", "Victorias en Internacionales", "Títulos mundiales", "Selecciones de la comunidad y Campeón"],
+    wins: (season, international, worlds) => `${season} ${season === 1 ? "victoria en eventos" : "victorias en eventos"} · ${international} ${international === 1 ? "victoria en un Internacional" : "victorias en Internacionales"} · ${worlds} ${worlds === 1 ? "título mundial" : "títulos mundiales"}`,
+  },
 };
 
 export default function WorldsChampionOdds({ competitors, entryCount = 0, sampleReady = false, locale = "en" }) {
   const copy = COPY[locale] || COPY.en;
   const odds = buildWorldsChampionOdds(competitors, sampleReady ? entryCount : 0);
   const leaders = odds.slice(0, WORLDS_2026_ODDS_LEADERS);
-  const percentage = new Intl.NumberFormat(locale === "it" ? "it-IT" : "en-US", {
+  const percentage = new Intl.NumberFormat(locale === "it" ? "it-IT" : locale === "es" ? "es-ES" : "en-US", {
     style: "percent",
     minimumFractionDigits: 1,
     maximumFractionDigits: 1,

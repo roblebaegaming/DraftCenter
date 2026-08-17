@@ -41,7 +41,7 @@ function fallbackEvent(config, rosterSource) {
 function fallbackCompetitors(rosterSource, config, locale = "en") {
   if (!Array.isArray(rosterSource.competitors)) return [];
   if (config.division === "Masters" && (rosterSource.division !== "Masters" || rosterSource.competitors.some((competitor) => competitor.division && competitor.division !== "Masters"))) {
-    throw new Error(locale === "it" ? worldsCopy("it").errors.mastersOnly : "The Worlds prediction pool must contain only Masters Division competitors.");
+    throw new Error(locale !== "en" ? worldsCopy(locale).errors.mastersOnly : "The Worlds prediction pool must contain only Masters Division competitors.");
   }
   return rosterSource.competitors.map((competitor) => ({
     slug: competitor.slug,
@@ -90,7 +90,7 @@ function displayPacificDate(value, includeTime = false, locale = "en-US") {
 }
 
 function statusLabel(status, locale = "en") {
-  if (locale === "it") return worldsCopy("it").status[status] || status;
+  if (locale !== "en") return worldsCopy(locale).status[status] || status;
   return ({
     invite_earned: "Invite earned",
     confirmed: "Attendance confirmed",
@@ -102,7 +102,7 @@ function statusLabel(status, locale = "en") {
 export default function WorldsPickSixteen({ rosterSource, discipline = "vgc", locale = "en" }) {
   const config = WORLDS_PICK_DISCIPLINES[discipline] || WORLDS_PICK_DISCIPLINES.vgc;
   const copy = worldsCopy(locale);
-  const isItalian = locale === "it";
+  const isItalian = locale !== "en";
   const eventId = config.eventId;
   const pickCount = config.pickCount;
   const [hub, setHub] = useState(null);
@@ -239,7 +239,7 @@ export default function WorldsPickSixteen({ rosterSource, discipline = "vgc", lo
       <div><strong>{copy.languageOffer.label}</strong><span>{copy.languageOffer.body}</span></div>
       <div><a href="/it/worlds/2026" hrefLang="it">{copy.languageOffer.action}</a><button type="button" onClick={dismissItalianOffer}>{copy.languageOffer.dismiss}</button></div>
     </section>}
-    {isItalian && <nav className="worlds-language-switch" aria-label={copy.languageSwitch.label}><strong>{copy.languageSwitch.current}</strong><a href="/worlds/2026/vgc" hrefLang="en">{copy.languageSwitch.action}</a></nav>}
+    {config.key === "vgc" && <nav className="worlds-language-switch" aria-label={copy.languageSwitch.label}><strong>{copy.languageSwitch.current}</strong>{locale !== "en" && <a href="/worlds/2026/vgc" hrefLang="en">English</a>}{locale !== "it" && <a href="/it/worlds/2026" hrefLang="it">Italiano</a>}{locale !== "es" && <a href="/es/worlds/2026" hrefLang="es">Español</a>}</nav>}
     <WorldsDisciplineNav current={config.key} locale={locale} />
     <section className="worlds-hero">
       <div>
@@ -250,7 +250,7 @@ export default function WorldsPickSixteen({ rosterSource, discipline = "vgc", lo
           <a className="primary-button inline-link-button" href={user === null ? "/#member-access" : staged ? "#qualified-players" : "#pick-ten"}>{isItalian ? user === null ? copy.hero.signIn : staged ? copy.hero.browse : copy.hero.build : user === null ? "Sign in to predict" : staged ? "Browse reviewed roster" : "Build my 10"}</a>
           <a className="quiet-button" href="#meta-picks">{isItalian ? copy.hero.meta : "Predict the winning meta"}</a>
           {config.key === "vgc" && <a className="quiet-button" href="/worlds/2026/vgc/bracket">{isItalian ? copy.hero.bracket : "Top Cut bracket"}</a>}
-          {config.key === "vgc" && !isItalian && <a className="quiet-button" href="/worlds/2026/vgc/victory-road-to-san-francisco">Victory Road bracket</a>}
+          {config.key === "vgc" && <a className="quiet-button" href="/worlds/2026/vgc/victory-road-to-san-francisco">{isItalian ? copy.hero.victoryRoad : "Victory Road bracket"}</a>}
           <a className="quiet-button" href="/worlds/2026">{isItalian ? copy.hero.all : "All Worlds competitions"}</a>
           <a className="quiet-button" href="#qualified-players">{isItalian ? copy.hero.invitees(competitors.length) : <>See all {competitors.length} {config.entryPlural.toLowerCase()}</>}</a>
         </div>

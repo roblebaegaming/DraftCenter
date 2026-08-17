@@ -16,12 +16,21 @@ const italianLabels = {
   unite: { label: "Pokémon UNITE", status: "Non disponibile" },
 };
 
+const spanishLabels = {
+  overview: { label: "Inicio del Mundial", status: "Todos los juegos" },
+  vgc: { label: "VGC", status: "Pronósticos abiertos" },
+  tcg: { label: "TCG", status: "Pronósticos abiertos" },
+  go: { label: "Pokémon GO", status: "Pronósticos abiertos" },
+  unite: { label: "Pokémon UNITE", status: "No disponible" },
+};
+
 export default function WorldsDisciplineNav({ current = "overview", locale = "en" }) {
-  const isItalian = locale === "it";
-  return <nav className="worlds-discipline-nav" aria-label={isItalian ? "Competizioni pronostici Mondiali 2026" : "2026 Worlds prediction competitions"}>
+  const localizedLabels = locale === "it" ? italianLabels : locale === "es" ? spanishLabels : null;
+  const navLabel = locale === "it" ? "Competizioni pronostici Mondiali 2026" : locale === "es" ? "Competiciones de pronósticos del Mundial 2026" : "2026 Worlds prediction competitions";
+  return <nav className="worlds-discipline-nav" aria-label={navLabel}>
     {items.map((item) => {
-      const copy = isItalian ? italianLabels[item.id] : item;
-      const href = isItalian && item.id === "vgc" ? "/it/worlds/2026" : item.href;
+      const copy = localizedLabels ? localizedLabels[item.id] : item;
+      const href = item.id === "vgc" && locale === "it" ? "/it/worlds/2026" : item.id === "vgc" && locale === "es" ? "/es/worlds/2026" : item.href;
       return href
       ? <Link key={item.id} href={href} aria-current={current === item.id ? "page" : undefined}>
         <span>{copy.label}</span><small>{copy.status}</small>

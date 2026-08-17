@@ -3,6 +3,7 @@ import roster from "../../../../data/worlds-2026-vgc-masters.json";
 
 const canonicalUrl = "https://www.draftcentral.gg/worlds/2026/vgc";
 const italianUrl = "https://www.draftcentral.gg/it/worlds/2026";
+const spanishUrl = "https://www.draftcentral.gg/es/worlds/2026";
 const pageTitle = "2026 Pokémon Worlds VGC Predictions";
 const pageDescription = `Browse ${roster.competitors.length} Pokémon Worlds 2026 VGC Masters invitees, pick 10 qualified players, name Your Champion, and follow the community leaderboard.`;
 
@@ -11,13 +12,13 @@ export const metadata = {
   description: pageDescription,
   alternates: {
     canonical: "/worlds/2026/vgc",
-    languages: { en: "/worlds/2026/vgc", it: "/it/worlds/2026", "x-default": "/worlds/2026/vgc" },
+    languages: { en: "/worlds/2026/vgc", it: "/it/worlds/2026", es: "/es/worlds/2026", "x-default": "/worlds/2026/vgc" },
   },
   openGraph: {
     type: "website",
     siteName: "DraftCenter",
     locale: "en_US",
-    alternateLocale: ["it_IT"],
+    alternateLocale: ["it_IT", "es_ES"],
     title: `${pageTitle} | DraftCenter`,
     description: pageDescription,
     url: canonicalUrl,
@@ -42,7 +43,7 @@ export default function Worlds2026VgcPage() {
         description: pageDescription,
         url: canonicalUrl,
         inLanguage: "en-US",
-        workTranslation: { "@id": `${italianUrl}#webpage` },
+        workTranslation: [{ "@id": `${italianUrl}#webpage` }, { "@id": `${spanishUrl}#webpage` }],
         isPartOf: { "@id": "https://www.draftcentral.gg/#website" },
         about: {
           "@type": "Thing",
