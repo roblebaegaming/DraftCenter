@@ -11,7 +11,7 @@ or DraftCenter account.
 
 It is intentionally separate from:
 
-- `/predictions`, where DraftCenter publishes official prediction events at
+- `/tournaments/predictions`, where DraftCenter publishes official prediction events at
   permanent public URLs;
 - `/tournaments`, where signed-in commissioners operate persistent tournament
   registrations and results; and

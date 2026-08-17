@@ -162,7 +162,7 @@ RPCs. Only a signed-in account may save its own entry. Publication, result
 recording, and finalization RPCs are service-role only and are exposed through
 an owner-authenticated Operations route.
 
-The forward-only owner-publisher migration adds the service-role-only event
+Forward-only migration 429 adds the service-role-only event
 creator, adds `created` to the private audit contract, and updates the public
 directory to exclude revision-zero setup records. The creator uses a fixed
 empty search path, browser roles have no execute grant, and public directory
