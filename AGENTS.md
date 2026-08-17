@@ -49,9 +49,11 @@ and publishable key; keep server-only credentials out of `NEXT_PUBLIC_*`
 variables. Document any check that cannot run and cite the authoritative CI,
 preview, or production evidence used instead.
 
-Database changes require a new forward-only migration, focused regression
-coverage, and verification of affected RLS policies and grants. Never rewrite
-a migration that may already have run.
+Database changes require a new forward-only migration under
+`supabase/migrations/`, focused regression coverage, and verification of
+affected RLS policies and grants. Use a UTC timestamp filename, keep the next
+human migration number in its snake-case suffix, and never rewrite a migration
+that may already have run. See [`docs/supabase-migration-workflow.md`](docs/supabase-migration-workflow.md).
 
 ## Release policy
 
