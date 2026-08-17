@@ -7,6 +7,7 @@ import { expiredAuctionNominationWarning } from "../src/lib/auctionOperations.js
 const source = (path) => fs.readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 const migration = source("supabase/398-atomic-auction-reconciliation-and-lifecycle.sql");
 const autonomyMigration = source("supabase/migrations/20260817204353_426_autonomous_bot_auctions.sql");
+const lifecycleRepairMigration = source("supabase/migrations/20260817212010_427_repair_auction_completion_lifecycle.sql");
 const browser = source("src/components/PokemonDraftLeague.jsx");
 const operations = source("src/lib/ownerOperations.js");
 const previewMatrix = source("supabase/tests/398-auction-reconciliation-preview-regression.sql");
@@ -39,9 +40,10 @@ test("switching draft mode serializes and cancels the opposite scheduled job", (
 
 test("scheduled auction start and completion update the canonical league lifecycle", () => {
   assert.match(migration, /set status = 'drafting'/);
-  assert.match(migration, /set status = 'active'/);
+  assert.match(lifecycleRepairMigration, /set status = 'regular_season'/);
+  assert.doesNotMatch(lifecycleRepairMigration, /set status = 'active'/);
   assert.match(previewMatrix, /Scheduled auction start did not set league status to drafting/);
-  assert.match(previewMatrix, /Completed auction did not move the league into its active season/);
+  assert.match(autonomyPreviewMatrix, /status = 'regular_season'/);
 });
 
 test("Operations warns only after an expired nomination also lacks recent activity", () => {

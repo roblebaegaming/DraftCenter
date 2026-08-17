@@ -1,6 +1,6 @@
--- Preview-only regression matrix for migration 426.
+-- Preview-only regression matrix for migrations 426 and 427.
 -- Run only in an isolated Supabase branch after the production baseline
--- through migration 426 exists. The transaction rolls back every fixture.
+-- through migration 427 exists. The transaction rolls back every fixture.
 
 begin;
 
@@ -290,6 +290,11 @@ begin
      or exists (
        select 1 from jsonb_array_elements(v_state -> 'rosters') roster(value)
        where jsonb_array_length(roster.value) <> 0
+     )
+     or not exists (
+       select 1 from public.leagues
+       where id = v_league
+         and status = 'regular_season'
      ) then
     raise exception 'A no-progress rotation was not safely paused intact.';
   end if;
@@ -307,7 +312,12 @@ begin
   update public.league_state_snapshots
   set state = jsonb_set(
         jsonb_set(
-          jsonb_set(v_base_state, '{budgets}', '[0, 0, 0]'::jsonb, true),
+          jsonb_set(
+            jsonb_set(v_base_state, '{budgets}', '[0, 0, 0]'::jsonb, true),
+            '{settings,rosterMin}',
+            '0'::jsonb,
+            true
+          ),
           '{auctionAutomation}',
           jsonb_build_object('lastServerActionAt', 0),
           true
@@ -324,7 +334,11 @@ begin
   from public.league_state_snapshots where league_id = v_league;
   if v_result ->> 'status' <> 'ended'
      or not coalesce((v_state ->> 'auctionEnded')::boolean, false)
-     or jsonb_array_length(v_state -> 'pool') <> 3 then
+     or jsonb_array_length(v_state -> 'pool') <> 3
+     or exists (
+       select 1 from jsonb_array_elements(v_state -> 'rosters') roster(value)
+       where jsonb_array_length(roster.value) <> 0
+     ) then
     raise exception 'The unaffordable auction did not end with its data intact.';
   end if;
 
