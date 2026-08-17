@@ -78,7 +78,9 @@ test("sitemap contains only indexable routes and truthful modification dates", (
   assert.match(sitemap, /\["\/pokedex-tracker", "weekly", 0\.9\]/);
   assert.match(sitemap, /\["\/team-lab", "weekly", 0\.9\]/);
   assert.match(sitemap, /ITALIAN_WORLDS_LAST_MODIFIED/);
+  assert.match(sitemap, /SPANISH_WORLDS_LAST_MODIFIED/);
   assert.match(sitemap, /localizedRouteAlternates\.has\(path\)/);
+  assert.match(sitemap, /es: "https:\/\/www\.draftcentral\.gg\/es\/worlds\/2026"/);
   assert.match(sitemap, /"x-default": "https:\/\/www\.draftcentral\.gg\/worlds\/2026\/vgc"/);
 });
 
@@ -90,11 +92,12 @@ test("recent public products expose current social previews and discovery copy",
   const daily = source("src/app/resources/daily-games/page.js");
   const resources = source("src/components/ResourcesPage.jsx");
   const italian = source("src/app/it/worlds/2026/page.js");
+  const spanish = source("src/app/es/worlds/2026/page.js");
   const englishWorlds = source("src/app/worlds/2026/vgc/page.js");
   const llms = source("src/app/llms.txt/route.js");
   const nextConfig = source("next.config.mjs");
 
-  for (const page of [mega, lab, nuzlocke, pokedexTracker, daily, italian]) {
+  for (const page of [mega, lab, nuzlocke, pokedexTracker, daily, italian, spanish]) {
     assert.match(page, /openGraph:/);
     assert.match(page, /twitter:/);
   }
@@ -105,6 +108,7 @@ test("recent public products expose current social previews and discovery copy",
     "src/app/pokedex-tracker/opengraph-image.js",
     "src/app/resources/daily-games/opengraph-image.js",
     "src/app/it/worlds/2026/opengraph-image.js",
+    "src/app/es/worlds/2026/opengraph-image.js",
   ]) {
     assert.match(source(image), /SocialPreviewImage|PokedexTrackerSocialPreview/);
     assert.match(source(image), /width: 1200, height: 630/);
@@ -127,11 +131,16 @@ test("recent public products expose current social previews and discovery copy",
   assert.match(resources, /return Sunday for the weekly Super Bracket/);
   assert.match(resources, /cave floors and subareas sharing their parent location’s slot/);
   assert.match(englishWorlds, /workTranslation/);
+  assert.match(englishWorlds, /es: "\/es\/worlds\/2026"/);
+  assert.match(spanish, /canonical: "\/es\/worlds\/2026"/);
+  assert.match(spanish, /inLanguage: "es-ES"/);
   assert.match(nextConfig, /Content-Language", value: "it-IT"/);
+  assert.match(nextConfig, /Content-Language", value: "es-ES"/);
   assert.match(llms, /Sunday's eight-entry Super Bracket/);
   assert.match(llms, /Exact Connections themes stay out of rotation for at least seven days/);
   assert.match(llms, /Floors and subareas share their reviewed parent location's encounter slot/);
   assert.match(llms, /Pronostici VGC dei Mondiali Pokémon 2026 in italiano/);
+  assert.match(llms, /Pronósticos VGC del Mundial Pokémon 2026 en español/);
 });
 
 test("the Nuzlocke generator is crawlable, internally linked, and uses current product language", () => {
@@ -487,7 +496,8 @@ test("AI discovery foundation exposes a trustworthy entity and reference index",
   assert.match(llms, /Team Lab Pokémon team builder and private Battle Room/);
   assert.match(llms, /Sunday's eight-entry Super Bracket/);
   assert.match(llms, /it\/worlds\/2026/);
-  assert.match(llms, /Last reviewed: 2026-08-15/);
+  assert.match(llms, /es\/worlds\/2026/);
+  assert.match(llms, /Last reviewed: 2026-08-17/);
   assert.match(llms, /Private queues/);
   assert.match(content, /national-gen\$\{generation\}/);
 });

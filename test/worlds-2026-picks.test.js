@@ -381,6 +381,61 @@ test("the Italian Worlds route localizes the current Pick 10 experience without 
   assert.ok(filterWorldsCompetitors(localizedRoster, "KOR", "Corea del Sud").length > 0);
 });
 
+test("the Spanish Worlds route localizes Pick 10, odds, Meta Picks, roster labels, and errors", () => {
+  const spanishPage = source("src/app/es/worlds/2026/page.js");
+  const englishPage = source("src/app/worlds/2026/vgc/page.js");
+  const component = source("src/components/WorldsPickSixteen.jsx");
+  const meta = source("src/components/WorldsMetaChallenge.jsx");
+  const odds = source("src/components/WorldsChampionOdds.jsx");
+  const nav = source("src/components/WorldsDisciplineNav.jsx");
+  const sitemap = source("src/app/sitemap.js");
+
+  assert.match(spanishPage, /locale="es"/);
+  assert.match(spanishPage, /canonical: "\/es\/worlds\/2026"/);
+  assert.match(spanishPage, /inLanguage: "es-ES"/);
+  assert.match(spanishPage, /translationOfWork/);
+  assert.match(englishPage, /es: "\/es\/worlds\/2026"/);
+  assert.match(sitemap, /\["\/es\/worlds\/2026", "daily", 0\.8\]/);
+  assert.match(component, /href="\/es\/worlds\/2026" hrefLang="es"/);
+  assert.match(meta, /worldsCopy\(locale\)\.meta/);
+  assert.match(odds, /es: \{/);
+  assert.match(nav, /const spanishLabels/);
+
+  const copy = worldsCopy("es");
+  assert.equal(copy.documentLanguage, "es");
+  assert.equal(copy.locale, "es-ES");
+  assert.match(copy.hero.title, /Pronósticos de VGC/);
+  assert.match(copy.pick.champion, /Campeón ×2/);
+  assert.match(copy.save.finish, /10 jugadores/);
+  assert.equal(copy.status.withdrawn, "Retirado");
+  assert.equal(copy.scoring.placements[0], "Campeón del mundo");
+  assert.match(copy.meta.title, /Campeón del mundo/);
+  assert.match(copy.errors.spotsFull(10), /10 puestos/);
+  assert.match(worldsServerError("Sign in to save a Worlds entry.", "es"), /Inicia sesión/);
+  assert.match(worldsServerError("Choose exactly 10 competitors.", "es"), /exactamente 10 jugadores/);
+  assert.match(worldsServerError("Each competitor can be chosen only once.", "es"), /una vez/);
+  assert.match(worldsServerError("Choose Your Champion from your 10 selected competitors.", "es"), /Campeón/);
+  assert.match(worldsServerError("unexpected provider detail", "es"), /No se ha podido guardar/);
+
+  const regions = [...new Set(roster.competitors.map(({ region }) => region))];
+  const qualifications = [...new Set(roster.competitors.map(({ qualification }) => qualification))];
+  assert.deepEqual(regions.map((region) => worldsRegionLabel(region, "es")).sort(), [
+    "Asia-Pacífico", "Corea del Sur", "Europa", "Japón", "Latinoamérica", "Norteamérica", "Oceanía", "Oriente Medio y Sudáfrica",
+  ]);
+  assert.ok(qualifications.every((qualification) => worldsQualificationLabel(qualification, "es") !== qualification));
+
+  const localizedRoster = normalizedRoster.map((competitor) => ({
+    ...competitor,
+    modelQualificationPath: competitor.qualificationPath,
+    qualificationRegion: worldsRegionLabel(competitor.qualificationRegion, "es"),
+    qualificationPath: worldsQualificationLabel(competitor.qualificationPath, "es"),
+  }));
+  assert.ok(filterWorldsCompetitors(localizedRoster, "campeón regional").length > 20);
+  assert.ok(filterWorldsCompetitors(localizedRoster, "KOR", "Corea del Sur").length > 0);
+  const englishOdds = new Map(buildWorldsChampionOdds(normalizedRoster).map((entry) => [entry.slug, entry.probability]));
+  assert.ok(buildWorldsChampionOdds(localizedRoster).every((entry) => Math.abs(entry.probability - englishOdds.get(entry.slug)) < 1e-12));
+});
+
 test("the official TCG Masters qualifier pool is complete, unique, and release-ready", () => {
   const registry = JSON.parse(source("src/data/worlds-2026-tcg-masters-sources.json"));
   const cpSnapshot = JSON.parse(source("src/data/worlds-2026-tcg-masters-cp.json"));

@@ -8,14 +8,17 @@ import { SHINY_HUNTING_GUIDES, SHINY_GUIDE_UPDATED_DATE } from "../lib/shinyHunt
 const PRODUCT_DISCOVERY_LAST_MODIFIED = new Date("2026-08-16T00:00:00.000Z");
 const WORLDS_2026_LAST_MODIFIED = new Date("2026-08-11T00:00:00.000Z");
 const ITALIAN_WORLDS_LAST_MODIFIED = new Date("2026-08-12T00:00:00.000Z");
+const SPANISH_WORLDS_LAST_MODIFIED = new Date("2026-08-17T00:00:00.000Z");
 const WORLDS_LANGUAGE_ALTERNATES = {
   en: "https://www.draftcentral.gg/worlds/2026/vgc",
   it: "https://www.draftcentral.gg/it/worlds/2026",
+  es: "https://www.draftcentral.gg/es/worlds/2026",
   "x-default": "https://www.draftcentral.gg/worlds/2026/vgc",
 };
 const localizedRouteAlternates = new Map([
   ["/worlds/2026/vgc", WORLDS_LANGUAGE_ALTERNATES],
   ["/it/worlds/2026", WORLDS_LANGUAGE_ALTERNATES],
+  ["/es/worlds/2026", WORLDS_LANGUAGE_ALTERNATES],
 ]);
 const productRouteLastModified = new Map([
   ["/team-lab", PRODUCT_DISCOVERY_LAST_MODIFIED],
@@ -27,6 +30,7 @@ const productRouteLastModified = new Map([
   ["/worlds/2026", WORLDS_2026_LAST_MODIFIED],
   ["/worlds/2026/vgc", WORLDS_2026_LAST_MODIFIED],
   ["/it/worlds/2026", ITALIAN_WORLDS_LAST_MODIFIED],
+  ["/es/worlds/2026", SPANISH_WORLDS_LAST_MODIFIED],
   ["/worlds/2026/tcg", WORLDS_2026_LAST_MODIFIED],
   ["/worlds/2026/go", WORLDS_2026_LAST_MODIFIED],
   ["/worlds/2026/vgc/bracket", WORLDS_2026_LAST_MODIFIED],
@@ -50,6 +54,7 @@ const routes = [
   ["/worlds/2026", "daily", 0.9],
   ["/worlds/2026/vgc", "daily", 0.9],
   ["/it/worlds/2026", "daily", 0.8],
+  ["/es/worlds/2026", "daily", 0.8],
   ["/worlds/2026/tcg", "daily", 0.9],
   ["/worlds/2026/go", "daily", 0.9],
   ["/worlds/2026/vgc/bracket", "daily", 0.8],

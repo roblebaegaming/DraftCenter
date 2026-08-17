@@ -1,6 +1,7 @@
 const ENGLISH_COPY = {
   locale: "en-US",
   documentLanguage: "en",
+  languageSwitch: { label: "Language", current: "English" },
   languageOffer: {
     label: "Italiano disponibile",
     body: "Preferisci completare il pronostico in italiano?",
@@ -40,6 +41,7 @@ const ITALIAN_COPY = {
     build: "Crea la mia Pick 10",
     meta: "Pronostica il meta vincente",
     bracket: "Tabellone Top Cut",
+    victoryRoad: "Tabellone Victory Road",
     all: "Tutte le competizioni dei Mondiali",
     invitees: (count) => `Vedi tutti i ${count} giocatori`,
   },
@@ -228,6 +230,226 @@ const ITALIAN_COPY = {
   },
 };
 
+const SPANISH_COPY = {
+  locale: "es-ES",
+  documentLanguage: "es",
+  languageSwitch: { label: "Idioma", current: "Español" },
+  errors: {
+    mastersOnly: "El grupo de pronósticos del Mundial debe incluir únicamente jugadores de la categoría Máster.",
+    unavailableDivision: "Esta competición no está disponible porque la lista no pertenece a la categoría Máster verificada.",
+    signIn: "Inicia sesión desde la página principal de DraftCenter antes de guardar tu pronóstico.",
+    notConnected: "La competición Pick 10 todavía no está conectada. Mientras tanto, puedes consultar la lista verificada.",
+    locked: "Los pronósticos del Mundial están cerrados.",
+    chooseExactly: (count) => "Elige exactamente " + count + " jugadores antes de guardar.",
+    chooseChampion: (count) => "Elige a tu Campeón entre los " + count + " jugadores seleccionados antes de guardar.",
+    save: "No se ha podido guardar tu pronóstico.",
+    spotsFull: (count) => "Ya has ocupado los " + count + " puestos. Quita a un jugador antes de añadir otro.",
+  },
+  saved: "Tu Pick 10 y tu Campeón se han guardado. Puedes modificarlos hasta el cierre de los pronósticos.",
+  status: {
+    invite_earned: "Invitación obtenida",
+    confirmed: "Participación confirmada",
+    withdrawn: "Retirado",
+    declined: "Invitación rechazada",
+  },
+  hero: {
+    eyebrow: "MUNDIAL POKÉMON · SAN FRANCISCO",
+    title: "Pronósticos de VGC para el Mundial Pokémon 2026",
+    body: "Elige a los 10 jugadores en los que más confías de la lista VGC verificada. Al terminar el Mundial, el pronóstico con los mejores resultados conjuntos ganará la clasificación de la comunidad de DraftCenter.",
+    signIn: "Inicia sesión para participar",
+    browse: "Consulta la lista verificada",
+    build: "Crea mi Pick 10",
+    meta: "Pronostica el meta ganador",
+    bracket: "Cuadro del Top Cut",
+    victoryRoad: "Cuadro de Victory Road",
+    all: "Todas las competiciones del Mundial",
+    invitees: (count) => "Ver los " + count + " jugadores",
+  },
+  event: {
+    title: "CAMPEONATO MUNDIAL 2026",
+    dates: "28–30 de agosto",
+    location: "Moscone Center · Domingo de finales en el Chase Center",
+    competitionLabel: "Competición",
+    competition: "VGC Máster",
+    lock: "Cierre de pronósticos",
+    checked: "Lista verificada",
+  },
+  trust: {
+    eyebrow: "SOLO LISTA VERIFICADA",
+    title: (count) => count + " jugadores en el grupo de pronósticos",
+    body: "Solo categoría Máster: se excluyen los clasificados de las categorías Júnior y Sénior.",
+    source: "Fuente de la lista ↗",
+    official: "Sitio oficial del Mundial ↗",
+  },
+  pick: {
+    eyebrow: "COMPETICIÓN DE DRAFTCENTER",
+    title: "Tu Pick 10",
+    body: "Tus selecciones permanecen privadas hasta el cierre. Elige a tu Campeón: sus puntos por posición valen el doble.",
+    checking: "Comprobando tu cuenta de DraftCenter…",
+    accountRequired: "SE REQUIERE UNA CUENTA DE DRAFTCENTER",
+    signInTitle: "Inicia sesión para crear tu pronóstico del Mundial.",
+    signInBody: "Como en los Daily Games de DraftCenter, necesitas una cuenta gratuita para enviar una Pick 10. Tus selecciones permanecen privadas hasta el cierre y puedes modificarlas antes de la fecha límite.",
+    signInAction: "Inicia sesión o crea una cuenta",
+    remove: (countryCode) => countryCode + " · quitar",
+    champion: "Tu Campeón ×2",
+    open: "Puesto libre",
+  },
+  save: {
+    connecting: "Conectando con la competición de la comunidad…",
+    staged: "La competición está en preparación. Los pronósticos permanecerán cerrados hasta que se publiquen juntos la lista verificada y el periodo de apertura.",
+    locked: "Los pronósticos están cerrados. Las alineaciones guardadas ya son públicas en la clasificación.",
+    signInLink: "Inicia sesión",
+    signInSuffix: "para guardar y modificar tu pronóstico.",
+    savedAsPrefix: "Guardado como",
+    savedAsSuffix: "Puedes hacer cambios hasta la fecha límite.",
+    finish: "Elige a los 10 jugadores y a tu Campeón para guardar el pronóstico.",
+    saving: "Guardando…",
+    update: "Actualizar pronóstico",
+    create: "Guardar pronóstico",
+  },
+  scoring: {
+    eyebrow: "CÓMO FUNCIONA LA PUNTUACIÓN",
+    body: "Cada jugador seleccionado obtiene los puntos de su posición final. Tu Campeón suma el doble; después se agregan los resultados de los 10 jugadores.",
+    points: (points) => points + " pts",
+    tieTitle: "Si hay empate en los puntos totales",
+    tieOne: "1. Menor posición media entre tus seis selecciones mejor clasificadas.",
+    tieTwo: "2. Menor posición media entre las 10 selecciones.",
+    tieNote: "Estos desempates se aplican después de confirmar los resultados. Si ambas medias también coinciden, los pronósticos comparten posición.",
+    note: "La escala recompensa cada selección del Top 64 y da un valor importante al campeón. La clasificación en directo sigue siendo provisional hasta que el propietario verifique un resultado oficial publicado y confirme la puntuación.",
+    placements: ["Campeón del mundo", "Finalista", "Top 4", "Top 8", "Top 16", "Top 32", "Top 64"],
+  },
+  roster: {
+    eyebrow: "VGC MÁSTER 2026",
+    title: "Lista de invitados VGC Máster al Mundial Pokémon",
+    body: "Consulta los jugadores verificados por nombre, código de país, región o vía de clasificación.",
+    shown: (count) => count + " " + (count === 1 ? "mostrado" : "mostrados"),
+    sourceEyebrow: "FUENTE DE LA LISTA",
+    sourceTitle: "De dónde procede esta lista",
+    sourceBody: "El registro de invitados al Campeonato Mundial 2026 de Victory Road reúne a los jugadores VGC Máster que obtuvieron una invitación mediante la clasificación de Championship Points y los resultados de eventos clasificatorios.",
+    sourceNote: "Es una lista de invitaciones obtenidas, no una confirmación de asistencia o inscripción.",
+    sourceAction: "Ver el registro de Victory Road ↗",
+    find: "Buscar jugador",
+    placeholder: "Prueba Giovanni Cischke, Luca Ceribelli o Wolfe Glick…",
+    region: "Región de clasificación",
+    all: "Todas las regiones",
+    selected: "Seleccionado ✓",
+    unavailable: "No disponible",
+    signIn: "Inicia sesión para elegir",
+    closed: "Pronósticos cerrados",
+    add: "Añadir a los 10",
+    noResults: "Ningún jugador coincide con esos filtros.",
+    clear: "Borrar filtros",
+  },
+  leaderboard: {
+    eyebrow: "CLASIFICACIÓN VGC DE LA COMUNIDAD",
+    entries: (count) => count + " " + (count === 1 ? "pronóstico" : "pronósticos"),
+    rank: (rank) => "Tu posición: " + rank,
+    final: "Final",
+    provisional: "En directo · provisional",
+    delayed: "En directo · provisional · actualizaciones retrasadas",
+    waiting: "Esperando resultados en directo",
+    finalBody: "El propietario ha verificado y bloqueado el resultado oficial.",
+    provisionalBody: "Las clasificaciones importadas en directo no son oficiales. Si falla una actualización, se mantienen visibles las últimas puntuaciones aceptadas.",
+    waitingBody: "Los pronósticos guardados puntuarán cuando estén disponibles las clasificaciones VGC verificadas.",
+    updated: "Actualizado",
+    resultSource: "Fuente de resultados",
+    points: (points) => points + " pts",
+    tiebreakers: "Desempates finales:",
+    topSix: "media del Top 6",
+    allTen: "media de los 10",
+    champion: "Tu Campeón ×2",
+    private: "La alineación permanece privada hasta el cierre de los pronósticos.",
+    empty: "Guarda el primer pronóstico Pick 10 de la comunidad de DraftCenter.",
+  },
+  bracket: {
+    eyebrow: "SEGUNDA FASE",
+    title: "La sala de pronósticos del Top Cut está lista.",
+    body: "DraftCenter podrá abrir el reto completo de eliminación cuando el propietario verifique el cuadro Máster oficial, los emparejamientos y la primera fecha límite. No se inventan cabezas de serie ni enfrentamientos por adelantado.",
+    action: "Abrir el estado del cuadro Top Cut →",
+  },
+  share: {
+    title: "Comparte tus selecciones",
+    incomplete: (count) => "Elige a tus " + count + " jugadores y después a tu Campeón.",
+    note: "Compartir es público y no guarda el pronóstico.",
+    downloading: "Descargando…",
+    download: "Descargar",
+    downloaded: "Imagen descargada.",
+    error: "No se ha podido descargar la imagen de tus selecciones.",
+  },
+  meta: {
+    priority: "Prioridad 1",
+    eyebrow: "COMPETICIÓN DE META INDEPENDIENTE",
+    title: "Crea el equipo del Campeón del mundo",
+    intro: "Es independiente del pronóstico de jugadores. La Pick 10 y las selecciones del Meta tienen sus propias clasificaciones: cualquiera de tus conocimientos de Pokémon puede darte la victoria.",
+    poolReview: "Revisión del grupo",
+    locked: "Pronósticos cerrados",
+    open: "Pronósticos abiertos",
+    notOpen: "Aún no abiertos",
+    scoring: "Cómo funciona la puntuación",
+    scoringSummary: "Ordena seis selecciones · máximo 100 puntos",
+    scoringBody: "Ordena seis Pokémon de mayor a menor confianza. Cada selección obtiene los puntos de su posición si aparece en el equipo registrado del Campeón del mundo.",
+    pick: (index) => "Selección " + index,
+    perfect: "Acierta los seis integrantes del equipo para recibir 8 puntos extra y alcanzar un total perfecto de 100.",
+    order: "El orden expresa tu nivel de confianza y no tiene que coincidir con el orden de la hoja de equipo.",
+    forms: "El grupo oficial utiliza las especies y formas registradas. Las megaevoluciones no aparecen como opciones independientes.",
+    separate: "Competición independiente:",
+    separateBody: "los puntos del Meta nunca se suman a la Pick 10. La clasificación general del Meta se abrirá cuando al menos dos disciplinas tengan resultados definitivos.",
+    stagedEyebrow: "INFRAESTRUCTURA LISTA · CERRADA DE FORMA SEGURA",
+    reviewTitle: "Revisión de la lista de Pokémon en curso",
+    waitingCopy: "La estructura y la puntuación están listas, pero las opciones siguen cerradas hasta que se publique el grupo oficial verificado.",
+    noPlaceholders: "Ningún Pokémon o mazo provisional se trata como opción verificada del evento.",
+    gameScoring: "Juego y puntuación",
+    ready: "Listo",
+    reviewedPool: "Grupo de opciones verificado",
+    reviewRequired: "Revisión necesaria",
+    entries: "Pronósticos",
+    closedDefault: "Cerrados de forma predeterminada",
+    reviewSource: "Consultar la fuente ↗",
+    picksEyebrow: "TUS SELECCIONES DEL META",
+    selected: (selected, required) => selected + " / " + required + " seleccionados",
+    confidence: "El orden importa · mayor confianza primero",
+    checking: "Comprobando tu cuenta de DraftCenter…",
+    signInTitle: "Inicia sesión para crear tus selecciones del Meta.",
+    signInBody: "Tus selecciones permanecen privadas hasta el cierre de los pronósticos.",
+    signInAction: "Inicia sesión o crea una cuenta",
+    moveUp: (name) => "Subir " + name,
+    moveDown: (name) => "Bajar " + name,
+    remove: (name) => "Quitar " + name,
+    removeLabel: "Quitar",
+    openSpot: "Puesto libre",
+    trending: "Tendencias",
+    allReviewed: "Todas las opciones verificadas",
+    browseLabel: "Consultar los Pokémon verificados",
+    trendLead: "Las tendencias son un punto de partida, no un pronóstico.",
+    trendBody: "Reflejan hojas de equipo anónimas de 10 eventos no oficiales de la comunidad en Limitless, con 737 equipos en total. Nunca determinan la elegibilidad ni las probabilidades oficiales del Mundial.",
+    find: "Buscar Pokémon",
+    search: (count) => "Buscar entre las " + count + " opciones VGC verificadas…",
+    selectedLabel: "Seleccionado ✓",
+    add: "Añadir Pokémon",
+    noResults: "Ninguna opción verificada coincide con la búsqueda.",
+    savedAs: "Guardado como",
+    edits: "Puedes hacer cambios hasta el cierre.",
+    complete: "Completa todos los puestos por orden de confianza para guardar.",
+    saving: "Guardando…",
+    update: "Actualizar selecciones del Meta",
+    save: "Guardar selecciones del Meta",
+    leaderboard: "CLASIFICACIÓN DEL META VGC",
+    entriesCount: (count) => count + " " + (count === 1 ? "pronóstico" : "pronósticos"),
+    private: "Las selecciones permanecen privadas hasta el cierre.",
+    empty: "Todavía no hay pronósticos del Meta. Los guardados aparecerán aquí.",
+    safety: ["🔒 Selecciones privadas hasta el cierre", "✓ Grupo verificado obligatorio", "✓ Resultados finales verificados por el propietario", "Automatización desactivada"],
+    errors: {
+      signIn: "Inicia sesión desde la página principal de DraftCenter antes de guardar.",
+      reviewing: "El grupo de opciones todavía está en revisión. Los pronósticos aún no están abiertos.",
+      locked: "Los pronósticos de esta competición del Meta están cerrados.",
+      chooseExactly: (count) => "Elige exactamente " + count + " Pokémon.",
+      spotsFull: (count) => "Ya has elegido " + count + " Pokémon. Quita uno antes de añadir otro.",
+      save: "No se han podido guardar tus selecciones del Meta.",
+    },
+    saved: "Tus selecciones del Meta se han guardado. Puedes modificarlas hasta el cierre.",
+  },
+};
+
 const ITALIAN_REGIONS = {
   "North America": "Nord America",
   Europe: "Europa",
@@ -237,6 +459,17 @@ const ITALIAN_REGIONS = {
   Japan: "Giappone",
   "South Korea": "Corea del Sud",
   "Asia-Pacific": "Asia-Pacifico",
+};
+
+const SPANISH_REGIONS = {
+  "North America": "Norteamérica",
+  Europe: "Europa",
+  "Latin America": "Latinoamérica",
+  Oceania: "Oceanía",
+  "Middle East & South Africa": "Oriente Medio y Sudáfrica",
+  Japan: "Japón",
+  "South Korea": "Corea del Sur",
+  "Asia-Pacific": "Asia-Pacífico",
 };
 
 const ITALIAN_QUALIFICATION_LABELS = {
@@ -263,6 +496,30 @@ const ITALIAN_QUALIFICATION_LABELS = {
   "Travel Stipend": "Contributo di viaggio",
 };
 
+const SPANISH_QUALIFICATION_LABELS = {
+  "2025 World Champion": "Campeón del mundo 2025",
+  "2025 Worlds Finalist": "Finalista del Mundial 2025",
+  "2025 Worlds Semifinalist": "Semifinalista del Mundial 2025",
+  "International Champion": "Campeón Internacional",
+  "International Finalist": "Finalista Internacional",
+  "International Semifinalist": "Semifinalista Internacional",
+  "Regional Champion": "Campeón Regional",
+  "SC Champion": "Campeón de SC",
+  "Trainers Cup Champion": "Campeón de la Trainers Cup",
+  "Trainers Cup Finalist": "Finalista de la Trainers Cup",
+  "JCS Champion": "Campeón de JCS",
+  "JCS Finalist": "Finalista de JCS",
+  "JCS Semifinalist": "Semifinalista de JCS",
+  "MBL Champion": "Campeón de MBL",
+  "MBL Finalist": "Finalista de MBL",
+  "Taiwan MBL Semifinalist": "Semifinalista de MBL Taiwán",
+  "Travel Award": "Premio de viaje",
+  "Travel Award (A)": "Premio de viaje (A)",
+  "Travel Award (F)": "Premio de viaje (F)",
+  "Travel Award (F+A)": "Premio de viaje (F+A)",
+  "Travel Stipend": "Ayuda de viaje",
+};
+
 function italianQualificationPart(value) {
   if (ITALIAN_QUALIFICATION_LABELS[value]) return ITALIAN_QUALIFICATION_LABELS[value];
   let match = value.match(/^CP leaderboard (\d+)(?:st|nd|rd|th)(\*)$/);
@@ -280,31 +537,53 @@ function italianQualificationPart(value) {
   return value;
 }
 
+function spanishQualificationPart(value) {
+  if (SPANISH_QUALIFICATION_LABELS[value]) return SPANISH_QUALIFICATION_LABELS[value];
+  let match = value.match(/^CP leaderboard (\d+)(?:st|nd|rd|th)(\*)$/);
+  if (match) return match[1] + ".º en la clasificación de CP" + match[2];
+  match = value.match(/^CP leaderboard Top (\d+)$/);
+  if (match) return "Top " + match[1] + " de la clasificación de CP";
+  match = value.match(/^JCS (\d+)(?:st|nd|rd|th) to (\d+)(?:st|nd|rd|th)$/);
+  if (match) return "JCS del " + match[1] + ".º al " + match[2] + ".º puesto";
+  match = value.match(/^MBL (\d+)(?:st|nd|rd|th) to (\d+)(?:st|nd|rd|th)$/);
+  if (match) return "MBL del " + match[1] + ".º al " + match[2] + ".º puesto";
+  match = value.match(/^Taiwan MBL (\d+)(?:st|nd|rd|th) to (\d+)(?:st|nd|rd|th)$/);
+  if (match) return "MBL Taiwán del " + match[1] + ".º al " + match[2] + ".º puesto";
+  match = value.match(/^Trainers Cup Top (\d+)$/);
+  if (match) return "Top " + match[1] + " de la Trainers Cup";
+  return value;
+}
+
 export function worldsCopy(locale = "en") {
-  return locale === "it" ? ITALIAN_COPY : ENGLISH_COPY;
+  if (locale === "it") return ITALIAN_COPY;
+  if (locale === "es") return SPANISH_COPY;
+  return ENGLISH_COPY;
 }
 
 export function worldsRegionLabel(value, locale = "en") {
-  return locale === "it" ? ITALIAN_REGIONS[value] || value : value;
+  if (locale === "it") return ITALIAN_REGIONS[value] || value;
+  if (locale === "es") return SPANISH_REGIONS[value] || value;
+  return value;
 }
 
 export function worldsQualificationLabel(value, locale = "en") {
-  if (locale !== "it") return value;
-  return String(value || "").split(" / ").map(italianQualificationPart).join(" / ");
+  if (locale === "it") return String(value || "").split(" / ").map(italianQualificationPart).join(" / ");
+  if (locale === "es") return String(value || "").split(" / ").map(spanishQualificationPart).join(" / ");
+  return value;
 }
 
 export function worldsServerError(message, locale = "en", pickCount = 10) {
   const value = String(message || "").trim();
-  if (locale !== "it") return value || "Your entry could not be saved.";
-  const copy = ITALIAN_COPY;
+  if (locale !== "it" && locale !== "es") return value || "Your entry could not be saved.";
+  const copy = worldsCopy(locale);
   if (/Sign in to save a Worlds entry/i.test(value)) return copy.errors.signIn;
-  if (/competition was not found/i.test(value)) return "La competizione dei Mondiali non è stata trovata.";
+  if (/competition was not found/i.test(value)) return locale === "it" ? "La competizione dei Mondiali non è stata trovata." : "No se ha encontrado la competición del Mundial.";
   if (/entries for this Worlds competition are locked/i.test(value)) return copy.errors.locked;
   if (/Only Masters Division Worlds entries are supported/i.test(value)) return copy.errors.mastersOnly;
   const exactCount = value.match(/Choose exactly (\d+) competitors/i);
   if (exactCount) return copy.errors.chooseExactly(Number(exactCount[1]));
-  if (/Each competitor can be chosen only once/i.test(value)) return "Ogni giocatore può essere scelto una sola volta.";
+  if (/Each competitor can be chosen only once/i.test(value)) return locale === "it" ? "Ogni giocatore può essere scelto una sola volta." : "Cada jugador solo puede elegirse una vez.";
   if (/Choose Your Champion|Choose one Ace Pick/i.test(value)) return copy.errors.chooseChampion(pickCount);
-  if (/not in the current selectable roster/i.test(value)) return "Una o più scelte non fanno parte dell’elenco attualmente selezionabile.";
+  if (/not in the current selectable roster/i.test(value)) return locale === "it" ? "Una o più scelte non fanno parte dell’elenco attualmente selezionabile." : "Una o más selecciones no forman parte de la lista disponible.";
   return copy.errors.save;
 }

@@ -9,8 +9,8 @@ import {
 import { worldsCopy } from "../lib/worlds2026I18n";
 
 export default function WorldsPickShare({ discipline, gameLabel, picks, championSlug, displayName, pickCount = 10, locale = "en" }) {
-  const isItalian = locale === "it";
-  const copy = isItalian ? worldsCopy("it").share : null;
+  const isItalian = locale !== "en";
+  const copy = isItalian ? worldsCopy(locale).share : null;
   const [busy, setBusy] = useState("");
   const [message, setMessage] = useState("");
   const ready = picks.length === pickCount && Boolean(championSlug) && picks.some(({ slug }) => slug === championSlug);

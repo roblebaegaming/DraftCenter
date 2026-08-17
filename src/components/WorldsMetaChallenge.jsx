@@ -43,8 +43,8 @@ function displayPacificDate(value, locale = "en-US") {
 }
 
 function MetaScoring({ config, locale = "en" }) {
-  const isItalian = locale === "it" && config.discipline === "vgc";
-  const copy = isItalian ? worldsCopy("it").meta : null;
+  const isItalian = locale !== "en" && config.discipline === "vgc";
+  const copy = isItalian ? worldsCopy(locale).meta : null;
   if (config.predictionType === "deck_archetype") {
     return <details className="worlds-meta-scoring">
       <summary><span>How scoring works</span><strong>Five decks · 100 points max</strong></summary>
@@ -88,8 +88,8 @@ function MetaScoring({ config, locale = "en" }) {
 
 export default function WorldsMetaChallenge({ discipline = "vgc", user, locale = "en" }) {
   const config = WORLDS_META_EVENTS[discipline] || WORLDS_META_EVENTS.vgc;
-  const isItalian = locale === "it" && config.discipline === "vgc";
-  const copy = isItalian ? worldsCopy("it").meta : null;
+  const isItalian = locale !== "en" && config.discipline === "vgc";
+  const copy = isItalian ? worldsCopy(locale).meta : null;
   const [hub, setHub] = useState(null);
   const [selected, setSelected] = useState([]);
   const [featured, setFeatured] = useState(null);
@@ -204,7 +204,7 @@ export default function WorldsMetaChallenge({ discipline = "vgc", user, locale =
       </div>
       <div className={`worlds-meta-status is-${staged ? "review" : locked ? "locked" : "open"}`}>
         <span>{isItalian ? staged ? copy.poolReview : locked ? copy.locked : copy.open : staged ? "Pool review" : locked ? "Entries locked" : "Entries open"}</span>
-        <strong>{isItalian && staged ? copy.notOpen : staged ? "Not open yet" : displayPacificDate(event.locks_at, isItalian ? "it-IT" : "en-US")}</strong>
+        <strong>{isItalian && staged ? copy.notOpen : staged ? "Not open yet" : displayPacificDate(event.locks_at, isItalian ? worldsCopy(locale).locale : "en-US")}</strong>
       </div>
     </header>
 
