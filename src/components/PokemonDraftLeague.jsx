@@ -7462,6 +7462,10 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   useEffect(() => {
     if (state.settings.draftType !== "auction" || !state.locked || state.paused) return;
     if (state.nominee || state.auctionEnded || !state.pool.length) return;
+    // Hosted bot decisions belong to the row-locked server scheduler. Keeping
+    // this browser automation for local practice drafts only prevents a
+    // commissioner's open tab from racing the same bot nomination.
+    if (leagueId) return;
     const n = state.auctionNominationOrder.length;
     if (!n) return;
     const nomKey = state.auctionNominationIdx;
@@ -7469,12 +7473,6 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     const team = state.teams[teamIdx];
     const isBotTeam = !team?.claimedBy;
     const fastTrack = isBotTeam || !!team?.autoDraft;
-    if (leagueId && (
-      (isBotTeam && !isCommissioner)
-      || (!isBotTeam && fastTrack && teamIdx !== myTeamIdx)
-      || (!isBotTeam && !fastTrack && !isCommissioner && teamIdx !== myTeamIdx)
-    )) return;
-
     if (!fastTrack) {
       // Reaching an active human team breaks any run of completed-bot skips.
       // Without this reset, a later lap through the same finished bots could
@@ -7552,9 +7550,10 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   // a stalled draft sitting there until the commissioner notices.
   useEffect(() => {
     if (state.settings.draftType !== "auction" || !state.locked || state.auctionEnded) return;
+    // Hosted completion is decided from the authoritative database snapshot.
+    if (leagueId) return;
     if (state.nominee) return; // let an active nomination resolve first
     if (!state.teams.length) return;
-    if (leagueId && !isCommissioner) return;
     const allDone = state.teams.every((_, i) => {
       const rosterCount = (state.rosters[i] || []).length;
       if (rosterCount < state.settings.rosterMin) return false;
@@ -7576,12 +7575,14 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   // the effect re-runs on the next change and that bot gets another look.
   useEffect(() => {
     if (state.settings.draftType !== "auction" || !state.locked || state.paused || !state.nominee) return;
+    // Hosted bots bid on the server. Local practice leagues retain the
+    // lightweight in-browser simulation below.
+    if (leagueId) return;
     const { mon, currentBid, currentBidder, deadline } = state.nominee;
     const timers = [];
     state.teams.forEach((team, teamIdx) => {
       if (teamIdx === currentBidder) return;
       const isBotTeam = !team?.claimedBy;
-      if (leagueId && ((isBotTeam && !isCommissioner) || (!isBotTeam && teamIdx !== myTeamIdx))) return;
       if (!team?.autoDraft && !isBotTeam) return;
       if ((state.rosters[teamIdx] || []).length >= state.settings.rosterMax) return;
       if (isBotTeam && botReachedAuctionRosterTarget(state, teamIdx)) return;
