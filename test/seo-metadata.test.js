@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import test from "node:test";
+import { POKEMON_EDITORIAL_REVIEWED_DATE, pokemonGenerationIndexEditorial, pokemonProfileEditorial, pokemonTypeIndexEditorial } from "../src/lib/pokemonEditorial.js";
 import { GUIDES, relatedFormatsBySlug } from "../src/lib/seoContent.js";
 import { pokemonDirectoryFragment, pokemonDirectoryHref } from "../src/lib/pokemonNavigation.js";
 import { pokemonProfileCanonicalPath, pokemonProfileDisplayName, pokemonProfileSlugForName, pokemonRouteSlug } from "../src/lib/publicPokemonIndex.js";
@@ -66,7 +67,12 @@ test("tournament discovery reflects every released event format without indexing
 
 test("sitemap contains only indexable routes and truthful modification dates", () => {
   const sitemap = source("src/app/sitemap.js");
+  const robots = source("src/app/robots.js");
   assert.doesNotMatch(sitemap, /\["\/support"/);
+  for (const privatePath of ["/api/", "/my-teams", "/team-lab/teams"]) {
+    assert.ok(robots.includes(privatePath));
+    assert.ok(!sitemap.includes(privatePath));
+  }
   assert.match(sitemap, /AUTHORED_CONTENT_LAST_MODIFIED/);
   assert.doesNotMatch(sitemap, /lastModified:\s*new Date\(\)/);
   assert.match(sitemap, /league\.updated_at \? \{ lastModified: new Date\(league\.updated_at\) \} : \{\}/);
@@ -80,6 +86,8 @@ test("sitemap contains only indexable routes and truthful modification dates", (
   assert.match(sitemap, /ITALIAN_WORLDS_LAST_MODIFIED/);
   assert.match(sitemap, /SPANISH_WORLDS_LAST_MODIFIED/);
   assert.match(sitemap, /localizedRouteAlternates\.has\(path\)/);
+  assert.match(sitemap, /pokemonProfileEditorial\(name\)/);
+  assert.match(sitemap, /POKEMON_EDITORIAL_LAST_MODIFIED/);
   assert.match(sitemap, /es: "https:\/\/www\.draftcentral\.gg\/es\/worlds\/2026"/);
   assert.match(sitemap, /"x-default": "https:\/\/www\.draftcentral\.gg\/worlds\/2026\/vgc"/);
 });
@@ -252,6 +260,46 @@ test("Pokémon profiles have crawlable indexes and complete core facts", () => {
   assert.match(profile, /pokemonProfileSlugForName\(teammate\.pokemon, availableProfiles\)/);
   assert.match(profile, /pokemonProfileDisplayName\(pokemon\.name, directoryName\)/);
   assert.match(profile, /Pokédex & Stats/);
+});
+
+test("priority Pokémon profiles publish reviewed draft context and useful comparisons", () => {
+  const profilePage = source("src/app/pokemon/[name]/page.js");
+  const typePage = source("src/app/pokemon/type/[type]/page.js");
+  const generationPage = source("src/app/pokemon/generation/[generation]/page.js");
+  const targetProfiles = ["garchomp", "tauros", "weezing-galar", "garchomp-mega", "lugia"];
+
+  assert.equal(POKEMON_EDITORIAL_REVIEWED_DATE, "2026-08-17");
+  for (const slug of targetProfiles) {
+    const editorial = pokemonProfileEditorial(slug);
+    assert.ok(editorial, `${slug} should have reviewed draft context`);
+    assert.ok(editorial.metaDescription.length <= 160, `${slug} should keep a concise search description`);
+    assert.ok(editorial.draftRole.length >= 120, `${slug} should explain its draft role`);
+    assert.ok(editorial.formDistinction.length >= 120, `${slug} should explain form distinctions`);
+    assert.ok(editorial.comparisons.length >= 3, `${slug} should offer practical comparisons`);
+    assert.equal(new Set(editorial.comparisons.map(({ slug: comparisonSlug }) => comparisonSlug)).size, editorial.comparisons.length);
+  }
+  assert.equal(pokemonProfileEditorial("pikachu"), null);
+  assert.match(profilePage, /DRAFT LEAGUE CONTEXT/);
+  assert.match(profilePage, /Practical comparisons/);
+  assert.match(profilePage, /POKEMON_EDITORIAL_REVIEWED_LABEL/);
+  assert.match(profilePage, /Smogon usage snapshots/);
+  assert.match(profilePage, /play\.limitlesstcg\.com\/tournaments/);
+  assert.match(profilePage, /about#data-methodology/);
+
+  const water = pokemonTypeIndexEditorial("water");
+  const psychic = pokemonTypeIndexEditorial("psychic");
+  const generationFour = pokemonGenerationIndexEditorial(4);
+  assert.equal(water.links.length, 6);
+  assert.equal(psychic.links.length, 6);
+  assert.equal(generationFour.links.length, 8);
+  assert.ok(water.links.some(({ href }) => href === "/pokemon/rotom-wash"));
+  assert.ok(psychic.links.some(({ href }) => href === "/pokemon/lugia"));
+  assert.ok(generationFour.links.some(({ href }) => href === "/formats/platinum-sinnoh-dex"));
+  assert.ok(generationFour.links.some(({ href }) => href === "/pokedex-tracker"));
+  assert.ok(pokemonProfileEditorial("garchomp").comparisons.some(({ slug }) => slug === "garchomp-mega-z"));
+  assert.ok(pokemonProfileEditorial("garchomp-mega").comparisons.some(({ slug }) => slug === "garchomp-mega-z"));
+  assert.match(typePage, /pokemonTypeIndexEditorial\(type\)/);
+  assert.match(generationPage, /pokemonGenerationIndexEditorial\(value\)/);
 });
 
 test("Pokédex colors, Egg Groups, and shapes have indexable pages and interactive filters", () => {

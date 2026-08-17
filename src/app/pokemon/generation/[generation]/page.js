@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { pokemonGenerationIndexEditorial } from "../../../../lib/pokemonEditorial";
 import { getPokemonForGeneration, POKEMON_GENERATIONS, pokemonDisplayName } from "../../../../lib/publicPokemonIndex";
 
 export function generateStaticParams() {
@@ -21,6 +22,7 @@ export default async function PokemonGenerationPage({ params }) {
   const generation = POKEMON_GENERATIONS.find(({ id }) => id === Number(value));
   const pokemon = await getPokemonForGeneration(value);
   if (!generation || !pokemon) notFound();
+  const editorial = pokemonGenerationIndexEditorial(value);
 
   return <main className="explore-shell pokemon-index-page">
     <header className="explore-hero">
@@ -29,6 +31,11 @@ export default async function PokemonGenerationPage({ params }) {
       <h1>{generation.name} Pokémon</h1>
       <p>Browse {pokemon.length} species introduced in {generation.region} and open their DraftCenter profiles.</p>
     </header>
+    {editorial && <section className="explore-card pokemon-index-editorial">
+      <h2>{editorial.heading}</h2>
+      <p>{editorial.introduction}</p>
+      <div className="public-pick-list">{editorial.links.map((link) => <div key={link.href}><strong><a href={link.href}>{link.label}</a></strong><span>{link.note}</span></div>)}</div>
+    </section>}
     <section className="explore-card">
       <div className="pokemon-profile-link-grid">{pokemon.map((name) => <a href={`/pokemon/${name}`} key={name}>{pokemonDisplayName(name)}</a>)}</div>
     </section>

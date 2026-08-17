@@ -1,6 +1,7 @@
 import { getPublicLeagueCards } from "../lib/supabase/publicServer";
 import { FORMATS, GUIDES, GUIDE_UPDATED_DATE } from "../lib/seoContent";
 import { getAllPokemonProfiles, POKEMON_GENERATIONS, POKEMON_TYPES } from "../lib/publicPokemonIndex";
+import { POKEMON_EDITORIAL_REVIEWED_DATE, pokemonProfileEditorial } from "../lib/pokemonEditorial";
 import { POKEMON_COLOR_OPTIONS, POKEMON_EGG_GROUP_OPTIONS, POKEMON_SHAPE_OPTIONS } from "../lib/pokemonSpeciesTraits";
 import nuzlockeGameGuides from "../lib/nuzlockeGameGuides.json";
 import { SHINY_HUNTING_GUIDES, SHINY_GUIDE_UPDATED_DATE } from "../lib/shinyHuntingGuides";
@@ -74,11 +75,13 @@ const AUTHORED_CONTENT_LAST_MODIFIED = new Date("2026-08-03T00:00:00.000Z");
 const NUZLOCKE_GUIDES_LAST_MODIFIED = new Date("2026-08-07T00:00:00.000Z");
 const SHINY_GUIDES_LAST_MODIFIED = new Date(SHINY_GUIDE_UPDATED_DATE + "T00:00:00.000Z");
 const POKEMON_TRAIT_CONTENT_LAST_MODIFIED = new Date("2026-08-09T00:00:00.000Z");
+const POKEMON_EDITORIAL_LAST_MODIFIED = new Date(`${POKEMON_EDITORIAL_REVIEWED_DATE}T00:00:00.000Z`);
 
 async function pokemonRoutes() {
   const pokemon = await getAllPokemonProfiles();
   return pokemon.map((name) => ({
       url: `https://www.draftcentral.gg/pokemon/${name}`,
+      ...(pokemonProfileEditorial(name) ? { lastModified: POKEMON_EDITORIAL_LAST_MODIFIED } : {}),
       changeFrequency: "monthly",
       priority: 0.6,
     }));
