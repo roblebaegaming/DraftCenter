@@ -1,3 +1,5 @@
+import { buildTeamLabPerformanceSummary } from "./teamLab.js";
+
 const WORKBOOK_GAME_PLAN_COUNT = 3;
 
 function text(value) {
@@ -68,6 +70,10 @@ export function buildTeamLabWorkbookSheets({
   const activeMyPokemon = new Map((activeReport.my_pokemon || []).map((pokemon) => [pokemon.name, pokemon]));
   const mySetByName = new Map((myTeam?.team_sets?.pokemon || []).map((pokemon) => [pokemon.name, pokemon]));
   const teamName = text(myTeam?.team_name) || "My Team";
+  const performanceMatchups = matchups.map((matchup) => matchup.id === activeMatchupId && activeState?.report
+    ? { ...matchup, battle_report: activeState.report }
+    : matchup);
+  const performance = buildTeamLabPerformanceSummary(performanceMatchups, myTeam?.pokemon || []);
 
   const overview = {
     name: "Overview",
@@ -85,11 +91,32 @@ export function buildTeamLabWorkbookSheets({
       ["Current sheet type", activeMatchup ? sheetModeForMatchup(activeMatchup, activeMatchupId, activeState) : ""],
       ["Exported", exportDate],
       [],
-      ["How to use", "Use Matchup Plans for the weekly overview, Opponent Sets for planned and revealed information, Turn Log for battle review, and Game Plans for separate games in a set."],
+      ["How to use", "Use Performance for the team record and usage, Matchup Plans for the weekly overview, Opponent Sets for revealed information, Turn Log for battle review, and Game Plans for each game."],
     ],
     headerRow: 3,
     widths: [31, 100],
     mergeTitleThrough: 1,
+  };
+
+  const performanceSheet = {
+    name: "Performance",
+    rows: [
+      [`Performance — ${teamName}`],
+      ["Team record and Pokémon usage calculated from completed private Battle Room games."],
+      [],
+      ["Record", `${performance.wins}-${performance.losses}${performance.ties ? `-${performance.ties}` : ""}`],
+      ["Win rate", performance.winRate == null ? "" : `${performance.winRate}%`],
+      ["Games logged", performance.games.length],
+      ["Matches logged", performance.matchesLogged],
+      ["Current streak", performance.streak.count ? `${performance.streak.result === "win" ? "W" : "L"}${performance.streak.count}` : ""],
+      ["Last 10", performance.lastTen.map((result) => result === "win" ? "W" : result === "loss" ? "L" : "T").join(" ")],
+      [],
+      ["Pokémon", "Matches brought", "Leads", "Lead wins", "Lead losses", "Tera matches"],
+      ...(performance.pokemon.length ? performance.pokemon.map((pokemon) => [pokemon.name, pokemon.broughtMatches, pokemon.leads, pokemon.leadWins, pokemon.leadLosses, pokemon.teraMatches]) : [["No completed games yet"]]),
+    ],
+    headerRow: 10,
+    widths: [25, 18, 12, 14, 14, 15],
+    mergeTitleThrough: 5,
   };
 
   const myTeamSheet = workbookSheet(
@@ -224,7 +251,7 @@ export function buildTeamLabWorkbookSheets({
     [17, 23, 10, 9, 12, 23, 23, 55, 45, 48],
   );
 
-  return [overview, myTeamSheet, matchupPlans, opponentSets, turnLog, gamePlans];
+  return [overview, performanceSheet, myTeamSheet, matchupPlans, opponentSets, turnLog, gamePlans];
 }
 
 export function buildTeamLabWorkbookFilename(teamName, exportedAt = new Date()) {
