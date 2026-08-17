@@ -6,9 +6,11 @@ import { expiredAuctionNominationWarning } from "../src/lib/auctionOperations.js
 
 const source = (path) => fs.readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 const migration = source("supabase/398-atomic-auction-reconciliation-and-lifecycle.sql");
+const autonomyMigration = source("supabase/migrations/20260817204353_426_autonomous_bot_auctions.sql");
 const browser = source("src/components/PokemonDraftLeague.jsx");
 const operations = source("src/lib/ownerOperations.js");
 const previewMatrix = source("supabase/tests/398-auction-reconciliation-preview-regression.sql");
+const autonomyPreviewMatrix = source("supabase/tests/426-autonomous-bot-auctions-preview-regression.sql");
 
 test("a disconnected browser has a short-interval atomic server award fallback", () => {
   assert.match(browser, /setTimeout\(\(\) => resolveAuction\(\), Math\.max\(0, msLeft\) \+ 50\)/);
@@ -67,4 +69,39 @@ test("Operations warns only after an expired nomination also lacks recent activi
     expiredAuctionNominationWarning({ ...state, paused: true }, "2026-08-14T19:55:00.000Z", now),
     null,
   );
+});
+
+test("hosted bot nominations and bids run behind one server-owned league lock", () => {
+  assert.match(autonomyMigration, /create or replace function public\.run_autonomous_live_auction_action/);
+  assert.match(autonomyMigration, /pg_try_advisory_xact_lock\([\s\S]*draftcenter-auction:/);
+  assert.match(autonomyMigration, /'status', 'throttled'/);
+  assert.match(autonomyMigration, /v_status := 'bot_nominated'/);
+  assert.match(autonomyMigration, /v_status := 'bot_bid'/);
+  assert.match(autonomyMigration, /jsonb_array_elements_text\([\s\S]*queues[\s\S]*order by queued\.position/);
+  assert.match(autonomyMigration, /'source', 'server_bot'/);
+  assert.match(autonomyPreviewMatrix, /A duplicate scheduler pass changed the auction/);
+  assert.match(autonomyPreviewMatrix, /The server bot bid was not distinctly recorded/);
+});
+
+test("hosted browser tabs do not race server bot decisions", () => {
+  assert.match(browser, /Hosted bot decisions belong to the row-locked server scheduler[\s\S]*if \(leagueId\) return;/);
+  assert.match(browser, /Hosted bots bid on the server[\s\S]*if \(leagueId\) return;/);
+  assert.match(browser, /Hosted completion is decided from the authoritative database snapshot[\s\S]*if \(leagueId\) return;/);
+  assert.match(browser, /setTimeout\(\(\) => resolveAuction\(\), Math\.max\(0, msLeft\) \+ 50\)/);
+});
+
+test("human windows are preserved and a full no-progress rotation pauses intact", () => {
+  assert.match(autonomyMigration, /v_status := 'started_human_clock'/);
+  assert.match(autonomyMigration, /return jsonb_build_object\('status', 'waiting_for_human_nomination'\)/);
+  assert.match(autonomyMigration, /'complete_rotation_without_nomination'/);
+  assert.match(autonomyPreviewMatrix, /Automation advanced before the human window expired/);
+  assert.match(autonomyPreviewMatrix, /A no-progress rotation was not safely paused intact/);
+});
+
+test("autonomous auction functions are service-only and never resume a pause", () => {
+  assert.match(autonomyMigration, /revoke all on function public\.run_autonomous_live_auction_action\(uuid\)[\s\S]*from public, anon, authenticated, service_role;/);
+  assert.match(autonomyMigration, /grant execute on function public\.run_autonomous_live_auction_action\(uuid\)[\s\S]*to service_role;/);
+  assert.match(autonomyMigration, /coalesce\(\(v_state ->> 'paused'\)::boolean, false\)[\s\S]*return jsonb_build_object\('status', 'inactive'\)/);
+  assert.match(autonomyPreviewMatrix, /A paused auction was changed or resumed by automation/);
+  assert.match(autonomyPreviewMatrix, /The unaffordable auction did not end with its data intact/);
 });

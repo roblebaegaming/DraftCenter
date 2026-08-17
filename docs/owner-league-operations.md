@@ -36,10 +36,14 @@ seconds as the reliable fallback, row-locks the authoritative snapshot, and
 awards the purchase at most once. The same lifecycle boundary marks a started
 auction as drafting and a completed auction as an active season.
 
-The fallback finalizes purchases and advances empty nomination clocks. Bot
-nomination choices and bot bids still run in a connected commissioner's
-browser. A fully unattended bot auction therefore requires a later, separately
-reviewed move of those decision engines to the server.
+Unclaimed bot teams nominate and bid through that same server boundary, so a
+hosted auction continues when every browser is closed. Human teams keep their
+complete nomination windows, and every valid bid still opens a fresh complete
+response window. The reconciler performs at most one row-locked action for a
+league on each pass, labels bot and automation events separately, finishes when
+no team can legally afford an available Pokemon, and automatically pauses after
+one complete nomination rotation without progress. It never resumes a paused
+auction; a commissioner must review and resume it deliberately.
 
 ## Current attention signals
 
