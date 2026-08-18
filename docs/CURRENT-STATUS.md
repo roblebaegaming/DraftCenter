@@ -3,7 +3,7 @@
 - Last updated: August 18, 2026 Pacific
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified Production application and asset commit: `00597adf23c4270cc913414073d2a07a24abed11`
+- Verified Production application and asset commit: `bffe645f70f0f5d488ece212bcd46aa29cc1c717`
 - Latest applied Production migration: 434
 
 ## Deployed state
@@ -82,6 +82,14 @@ saving changes from shifting dates under the wrong weekday. Production imported
 the reported six-Pokémon paste successfully, and December 4–6, 2026 rendered
 under Friday–Sunday at 390×844 with no overflow or console errors. The complete
 22-check signed-out Production smoke sweep passed.
+
+Pull request [#306](https://github.com/roblebaegaming/DraftCenter/pull/306)
+made every new ladder report start without a carried opponent, placed the
+opponent team above the turn recorder, and added six expandable private cards.
+Closed sheets record only seen Pokémon, abilities, items, and moves; open sheets
+can privately import a PokéPaste URL or pasted Showdown team before battle
+observations begin. The 390×844 closed- and open-sheet flows passed without
+overflow, and the complete 22-check signed-out Production smoke sweep passed.
 
 Supabase automatic branching remains enabled with a one-concurrent-Preview
 limit and Supabase-only changes. Older Preview branches were left untouched.
