@@ -93,7 +93,7 @@ const payload = {
 const serialized = `${JSON.stringify(payload, null, 2)}\n`;
 
 if (CHECK) {
-  const current = await fs.readFile(OUTPUT, "utf8");
+  const current = (await fs.readFile(OUTPUT, "utf8")).replace(/\r\n/g, "\n");
   if (current !== serialized) throw new Error("Collectible form catalog is out of date.");
 } else {
   await fs.mkdir(path.dirname(OUTPUT), { recursive: true });
