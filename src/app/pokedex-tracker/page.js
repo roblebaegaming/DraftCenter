@@ -3,7 +3,7 @@ import "./pokedex-tracker.css";
 
 export const metadata = {
   title: "Pokédex Tracker for Every Pokémon Game, GO and HOME",
-  description: "Track numbered and postgame Pokémon game Pokédexes, Pokémon GO and HOME, then search private collections by form, type, Ball, ribbon, mark, game or save.",
+  description: "Track numbered and postgame Pokédexes, Pokémon GO and HOME, Champions achievements, forms, marks, games, saves, Balls and ribbons.",
   alternates: { canonical: "/pokedex-tracker" },
   manifest: "/pokedex-tracker/manifest.webmanifest",
   keywords: ["Pokédex tracker", "Pokémon checklist", "shiny Pokédex tracker", "Pokémon GO tracker", "Pokémon HOME Pokédex tracker", "living dex tracker", "Pokémon mark tracker"],
@@ -21,6 +21,10 @@ export const metadata = {
 };
 
 const questions = [
+  {
+    question: "Can I track Pokémon Champions achievements and Pokémon titles?",
+    answer: "Yes. The private Champions center tracks every reviewed Trainer Achievement and all 208 eligible Pokémon. Enter wins once to see Admirer, Tamer, Professor, Silver Badge, and Gold Badge progress automatically.",
+  },
   {
     question: "Which Pokémon games can I track?",
     answer: "DraftCenter offers checklists for every supported main-series game, Pokémon GO, and Pokémon HOME. Official regional or DLC numbering stays intact, while verified postgame encounters outside those sections appear under Other obtainable.",
@@ -70,6 +74,7 @@ export default function PokedexTrackerRoute() {
           "Every verified main-series game catalog",
           "Pokémon GO availability checklist",
           "Pokémon HOME National Pokédex",
+          "Pokémon Champions Trainer Achievements and per-Pokémon title and badge progress",
           "Independent standard and shiny checklists",
           "Verified postgame encounters outside official numbered sections",
           "Persistent collectible forms and patterns",
@@ -123,6 +128,10 @@ export default function PokedexTrackerRoute() {
         <article>
           <h3>Search, hunts, and forms</h3>
           <p>Search the whole private collection by species, type, game, save, Ball, ribbon, mark, or Alpha status. Individual records and hunt targets can also name forms and patterns such as Vivillon or Furfrou.</p>
+        </article>
+        <article>
+          <h3>Pokémon Champions achievements</h3>
+          <p>Keep account-wide Trainer Achievement totals and search the 208 eligible Pokémon. Per-Pokémon wins automatically show Admirer, Tamer, Professor, Silver Badge, and Gold Badge milestones.</p>
         </article>
       </div>
       <section className="dex-tracker-faq" aria-labelledby="dex-tracker-faq-title">

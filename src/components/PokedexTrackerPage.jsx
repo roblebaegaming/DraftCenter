@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { createPlatformBrowserClient } from "../platform/supabase";
 import PokedexCollectorLaunchPanel from "./PokedexCollectorLaunchPanel";
 import PokedexPokemonFinder from "./PokedexPokemonFinder";
+import PokemonChampionsAchievementCenter from "./PokemonChampionsAchievementCenter";
 import {
   buildPokedexBoxPlan,
   filterPokedexEntries,
@@ -1075,6 +1076,7 @@ export default function PokedexTrackerPage() {
         },
       }}
     />}
+    <PokemonChampionsAchievementCenter supabase={supabase} />
     <PokedexCollectorLaunchPanel
       supabase={supabase}
       hub={hub}

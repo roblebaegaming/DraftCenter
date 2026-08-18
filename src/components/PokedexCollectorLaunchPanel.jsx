@@ -41,6 +41,8 @@ function ImportPreview({ preview, busy, onConfirm, onCancel }) {
     "Entry details": preview.payload.summary.details,
     "Storage locations": preview.payload.summary.locations,
     "Individuals": preview.payload.summary.specimens,
+    "Champions achievements": preview.payload.summary.championsAchievements,
+    "Champions Pokémon": preview.payload.summary.championsPokemon,
   };
   return <section className="dex-collector-import-preview" aria-live="polite">
     <div>
@@ -48,7 +50,7 @@ function ImportPreview({ preview, busy, onConfirm, onCancel }) {
       <h3>{preview.kind === "csv" ? "Add this CSV to the open tracker?" : "Create new trackers from this backup?"}</h3>
       <p>{preview.kind === "csv"
         ? "Import is additive: it checks listed entries and creates new inventory records. Existing records are not edited or removed."
-        : "Restore always creates new private copies. It never overwrites or deletes an existing tracker."}</p>
+        : "Restore creates new private tracker copies. Champions totals merge by keeping the higher saved value, so existing progress never goes backward."}</p>
     </div>
     <dl>{Object.entries(summary).map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{Number(value).toLocaleString()}</dd></div>)}</dl>
     {preview.payload.warnings?.length > 0 && <ul className="dex-collector-warnings">{preview.payload.warnings.slice(0, 8).map((warning) => <li key={warning}>{warning}</li>)}</ul>}
@@ -107,7 +109,13 @@ export default function PokedexCollectorLaunchPanel({ supabase, hub, active, inv
         p_locations: preview.payload.locations,
         p_specimens: preview.payload.specimens,
       })
-      : await supabase.rpc("restore_my_pokedex_trackers", { p_trackers: preview.payload.trackers });
+      : await supabase.rpc("restore_my_pokedex_collector", { p_export: {
+        trackers: preview.payload.trackers,
+        champions: {
+          achievement_progress: preview.payload.champions.achievementProgress,
+          pokemon_wins: preview.payload.champions.pokemonWins,
+        },
+      } });
     setBusy(false);
     if (result.error) {
       setError(result.error.message || "The import was rejected. Nothing was partially saved.");
@@ -121,7 +129,7 @@ export default function PokedexCollectorLaunchPanel({ supabase, hub, active, inv
       await onReload(accountVersionTracker);
     } else {
       trackPokedexCollectorEvent("restore_completed", { kind: "json", count_bucket: pokedexCountBucket(result.data?.restored), result: "success" });
-      setStatus(`${Number(result.data?.restored || 0).toLocaleString()} new private tracker ${Number(result.data?.restored) === 1 ? "copy was" : "copies were"} created.`);
+      setStatus(`${Number(result.data?.restored || 0).toLocaleString()} new private tracker ${Number(result.data?.restored) === 1 ? "copy was" : "copies were"} created. Any included Champions totals were merged without lowering existing progress.`);
       setPreview(null);
       await onReload(result.data?.tracker_ids?.[0] || "");
     }
@@ -194,7 +202,7 @@ export default function PokedexCollectorLaunchPanel({ supabase, hub, active, inv
       }
       XLSX.writeFile(workbook, buildPokedexCollectorWorkbookFilename());
       trackPokedexCollectorEvent("workbook_downloaded", { kind: "xlsx", count_bucket: pokedexCountBucket(hub?.trackers?.length) });
-      setStatus("Seven-tab collection workbook downloaded for Excel or Google Sheets.");
+      setStatus("Ten-tab collection workbook downloaded for Excel or Google Sheets, including Champions achievements and Pokémon mastery.");
     } catch (downloadError) {
       setError(downloadError?.message || "The collection workbook could not be created in this browser.");
     } finally {
@@ -249,7 +257,7 @@ export default function PokedexCollectorLaunchPanel({ supabase, hub, active, inv
         <div><button type="button" className="dex-secondary-button" onClick={downloadActiveJson} disabled={!active || busy}>Open tracker JSON</button><button type="button" className="dex-secondary-button" onClick={downloadAllJson} disabled={!hub?.trackers?.length || busy}>All JSON</button><label className="dex-primary-button">Restore JSON<input type="file" accept=".json,application/json" disabled={busy} onChange={(event) => { void chooseFile(event, "json"); }} /></label></div>
       </article>}
       <article>
-        <span>{isOwner ? "03" : "02"} · DOWNLOAD</span><h3>Collection workbook</h3><p>Seven spreadsheet tabs cover your trackers, progress, notes, locations, individual Pokémon, and an import template.</p>
+        <span>{isOwner ? "03" : "02"} · DOWNLOAD</span><h3>Collection workbook</h3><p>Ten spreadsheet tabs cover your trackers, collection, Champions achievements, Pokémon mastery, and an import template.</p>
         <button type="button" className="dex-primary-button" onClick={downloadWorkbook} disabled={!hub?.trackers?.length || busy}>{busy ? "Preparing…" : "Download workbook"}</button>
       </article>
       <article id="install-collector">

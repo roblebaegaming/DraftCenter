@@ -1,7 +1,8 @@
 import { POKEDEX_MARK_OPTIONS, uniquePokedexEntries } from "./pokedexTracker.js";
+import { normalizeChampionsProgress } from "./pokemonChampionsAchievements.js";
 
 export const POKEDEX_COLLECTOR_EXPORT_FORMAT = "draftcenter-pokedex-tracker";
-export const POKEDEX_COLLECTOR_EXPORT_VERSION = 5;
+export const POKEDEX_COLLECTOR_EXPORT_VERSION = 6;
 export const POKEDEX_COLLECTOR_MAX_FILE_BYTES = 10 * 1024 * 1024;
 export const POKEDEX_COLLECTOR_MAX_CSV_ROWS = 5000;
 export const POKEDEX_COLLECTOR_MAX_RESTORE_TRACKERS = 50;
@@ -375,8 +376,10 @@ export function parsePokedexRestoreJson(input) {
     throw new Error(`Restore at most ${POKEDEX_COLLECTOR_MAX_RESTORE_TRACKERS} trackers at a time.`);
   }
   const trackers = candidates.map(allowedRestoreTracker);
+  const champions = normalizeChampionsProgress(payload?.champions || payload?.pokedex_trackers?.champions || null);
   return {
     trackers,
+    champions,
     summary: {
       trackers: trackers.length,
       entries: trackers.reduce((total, tracker) => total + tracker.entries.length, 0),
@@ -384,6 +387,8 @@ export function parsePokedexRestoreJson(input) {
       locations: trackers.reduce((total, tracker) => total + tracker.locations.length, 0),
       specimens: trackers.reduce((total, tracker) => total + tracker.specimens.length, 0),
       wanted: trackers.reduce((total, tracker) => total + tracker.wanted.length, 0),
+      championsAchievements: Object.keys(champions.achievementProgress).length,
+      championsPokemon: Object.keys(champions.pokemonWins).length,
     },
   };
 }

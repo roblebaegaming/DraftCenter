@@ -35,6 +35,14 @@ import {
   pokedexCollectorCsvTemplate,
 } from "../src/lib/pokedexCollector.js";
 import { buildPokedexCollectorWorkbookSheets } from "../src/lib/pokedexCollectorWorkbook.js";
+import {
+  championsAchievementState,
+  championsAchievementSummary,
+  championsPokemonState,
+  normalizeChampionsProgress,
+  POKEMON_CHAMPIONS_POKEMON,
+  POKEMON_CHAMPIONS_TRAINER_ACHIEVEMENTS,
+} from "../src/lib/pokemonChampionsAchievements.js";
 
 const source = (path) => fs.readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 
@@ -236,7 +244,7 @@ test("Collector JSON backup restores only as new private copies", () => {
   assert.equal(payload.wanted.length, 1);
   assert.deepEqual(payload.details[0].marks, ["rare"]);
   const parsed = parsePokedexRestoreJson(JSON.stringify(payload));
-  assert.deepEqual(parsed.summary, { trackers: 1, entries: 2, details: 2, locations: 1, specimens: 1, wanted: 1 });
+  assert.deepEqual(parsed.summary, { trackers: 1, entries: 2, details: 2, locations: 1, specimens: 1, wanted: 1, championsAchievements: 0, championsPokemon: 0 });
   assert.deepEqual(Object.keys(parsed.trackers[0]).sort(), ["catalog_key", "details", "entries", "include_alpha", "include_shiny", "locations", "specimens", "title", "wanted"]);
   assert.throws(() => parsePokedexRestoreJson("{}"), /does not contain a DraftCenter Pokédex tracker backup/);
   assert.throws(() => parsePokedexRestoreJson(JSON.stringify({ trackers: [{ ...payload.tracker, include_shiny: "yes" }] })), /invalid include_shiny/i);
@@ -256,10 +264,11 @@ test("Collector dashboard and workbook cover the complete private workspace", ()
       wanted: [{ pokemon_id: 1, pokemon: "Bulbasaur", dex_number: 1, is_shiny: false, form_label: "Any", marks: ["rare"], notes: "Trade" }],
       locations: [{ id: "location-1", kind: "pokemon_home", name: "HOME" }],
       specimens: [{ pokemon_id: 1, pokemon: "Bulbasaur", dex_number: 1, location_id: "location-1", notes: "+FORMULA()", ribbons: [], marks: ["rare"], is_alpha: true }],
-    }] },
+    }], champions: { achievement_progress: { battlewise: 100 }, pokemon_wins: { 445: 50 } } },
     exportedAt: new Date("2026-08-15T12:00:00Z"),
   });
-  assert.deepEqual(sheets.map(({ name }) => name), ["Summary", "Trackers", "Checklist", "Entry Details", "Looking For", "Locations", "Individuals", "Import Template"]);
+  assert.deepEqual(sheets.map(({ name }) => name), ["Summary", "Trackers", "Checklist", "Entry Details", "Looking For", "Locations", "Individuals", "Champions Achievements", "Champions Pokémon", "Import Template"]);
+  assert.match(JSON.stringify(sheets.find(({ name }) => name === "Champions Pokémon")), /Garchomp Tamer title/);
   assert.match(JSON.stringify(sheets), /'?[=+]FORMULA\(\)/);
   assert.doesNotMatch(JSON.stringify(sheets), /rescue/i);
   assert.doesNotMatch(JSON.stringify(sheets), /Destination|Transfer state|Transferred on/);
@@ -460,6 +469,43 @@ test("migration 435 adds reviewed postgame coverage, Pokémon GO, marks, and pri
   assert.match(regression, /rollback;/i);
 });
 
+test("Pokémon Champions catalog covers every reviewed Trainer Achievement and eligible Pokémon", () => {
+  assert.equal(POKEMON_CHAMPIONS_TRAINER_ACHIEVEMENTS.length, 51);
+  assert.equal(POKEMON_CHAMPIONS_POKEMON.length, 208);
+  assert.equal(new Set(POKEMON_CHAMPIONS_POKEMON.map(({ pokemonId }) => pokemonId)).size, 208);
+  assert.equal(POKEMON_CHAMPIONS_POKEMON.find(({ name }) => name === "Garchomp")?.pokemonId, 445);
+  assert.equal(POKEMON_CHAMPIONS_POKEMON.find(({ name }) => name === "Hydrapple")?.pokemonId, 1019);
+  const battlewise = POKEMON_CHAMPIONS_TRAINER_ACHIEVEMENTS.find(({ key }) => key === "battlewise");
+  assert.deepEqual(battlewise.milestones.map(({ value }) => value), [10, 50, 100, 250, 500]);
+  assert.match(championsAchievementState(battlewise, 100).completed.flatMap(({ rewards }) => rewards).join(" "), /Silver Poké Ball Badge/);
+  const garchomp = POKEMON_CHAMPIONS_POKEMON.find(({ name }) => name === "Garchomp");
+  assert.deepEqual(championsPokemonState(garchomp, 50).rewards, ["Garchomp Admirer title", "Garchomp Tamer title", "Silver Garchomp Badge"]);
+  assert.equal(championsPokemonState(garchomp, 100).next, null);
+  const normalized = normalizeChampionsProgress({ achievement_progress: { battlewise: 120, fake: 999 }, pokemon_wins: { 445: 51, 1: 999 } });
+  assert.deepEqual(normalized.achievementProgress, { battlewise: 120 });
+  assert.deepEqual(normalized.pokemonWins, { 445: 51 });
+  assert.deepEqual(championsAchievementSummary({ achievement_progress: { battlewise: 100 }, pokemon_wins: { 445: 100 } }), {
+    trainerMilestones: 3, pokemonStarted: 1, pokemonMastered: 1, titles: 6, badges: 3,
+  });
+});
+
+test("migration 436 keeps Champions progress private and account-scoped", () => {
+  const sql = source("supabase/migrations/20260818053222_436_pokedex_champions_achievements.sql");
+  const regression = source("supabase/tests/436-pokedex-champions-achievements-preview-regression.sql");
+  assert.match(sql, /create table public\.pokedex_champions_progress/i);
+  assert.match(sql, /force row level security/i);
+  assert.match(sql, /create function public\.get_my_pokedex_champions_progress\(\)/i);
+  assert.match(sql, /set_my_pokedex_champions_achievement_progress/i);
+  assert.match(sql, /set_my_pokedex_champions_pokemon_wins/i);
+  assert.match(sql, /rename to export_my_pokedex_trackers_v5/i);
+  assert.match(sql, /'version', 6/i);
+  assert.match(sql, /restore_my_pokedex_collector/i);
+  assert.doesNotMatch(sql, /grant (select|insert|update|delete|all) on (table )?public\.pokedex_champions_progress/i);
+  assert.match(regression, /second account read the owner Champions progress/i);
+  assert.match(regression, /lower backup value replaced higher Champions progress/i);
+  assert.match(regression, /rollback;/i);
+});
+
 test("Collector PWA, focused navigation, funding, and measurement preserve privacy boundaries", () => {
   const panel = source("src/components/PokedexCollectorLaunchPanel.jsx");
   const finder = source("src/components/PokedexPokemonFinder.jsx");
@@ -476,8 +522,8 @@ test("Collector PWA, focused navigation, funding, and measurement preserve priva
   const beta = source("docs/pokedex-collector-founding-beta-2026-08-15.md");
 
   assert.match(panel, /import_my_pokedex_collection/);
-  assert.match(panel, /restore_my_pokedex_trackers/);
-  assert.match(panel, /Seven-tab collection workbook/);
+  assert.match(panel, /restore_my_pokedex_collector/);
+  assert.match(panel, /Ten-tab collection workbook/);
   assert.match(panel, /\{isOwner && <article>/);
   assert.match(panel, /OWNER RECOVERY/);
   assert.match(panel, /The tracker stays free/);

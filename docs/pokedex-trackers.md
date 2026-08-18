@@ -57,10 +57,17 @@ installable web-app shell.
 - Collection search spans every tracker and save location owned by the current
   account. It can filter owned Pokémon and hunt targets by name, nickname,
   form, type, game, save, Ball, ribbon, mark, Shiny status, and Alpha status.
+- The private **Pokémon Champions** center is account-wide rather than tied to
+  one game-save tracker. It records all 51 reviewed Trainer Achievement totals
+  and win progress for the 208 Pokémon currently eligible in Champions.
+  Admirer, Tamer, Professor, Silver Pokémon Badge, and Gold Pokémon Badge
+  rewards are derived at 10, 50, and 100 wins so one number drives every
+  per-Pokémon milestone. Achievement-earned profile titles and badges are
+  derived from the same totals.
 - Spreadsheet import is additive and validated before it saves. A readable
-  eight-tab workbook and inventory CSV are available to regular users. Marks,
-  Alpha status, forms, and hunt targets are included in version-5 backups and
-  workbook exports.
+  ten-tab workbook and inventory CSV are available to regular users. Marks,
+  Alpha status, forms, hunt targets, Champions achievements, and Champions
+  Pokémon mastery are included in version-6 backups and workbook exports.
 - Raw JSON backup and restore controls are hidden from regular users and shown
   only in the owner interface. Restore still creates new private copies and
   never overwrites an existing tracker.
@@ -106,6 +113,16 @@ Collectible form labels are generated from the pinned
 [PokéAPI data repository](https://github.com/PokeAPI/pokeapi/tree/5064f1d72746b3a6a931616dae3fb6445c556d4f/data/v2/csv),
 not maintained as an unreviewed handwritten list.
 
+The Champions snapshot was reviewed on August 18, 2026 against the current
+[Champions Pokédex](https://www.serebii.net/pokedex-champions/),
+[Trainer Achievement table](https://www.serebii.net/pokemonchampions/achievements.shtml),
+[badge catalog](https://www.serebii.net/pokemonchampions/badges.shtml), and
+[profile title catalog](https://www.serebii.net/pokemonchampions/titles.shtml).
+The official Champions site confirms that Trainer customization rewards are
+earned through game challenges, but it does not publish the complete numeric
+catalog. DraftCenter therefore labels this as a dated reviewed snapshot rather
+than a live official API.
+
 `npm run test:pokedex-tracker` now begins with both the permanent numbered-dex
 quality gate and the pinned collectible-form drift check. It rejects an
 unreviewed change to the 37-game set, section totals, numbering continuity,
@@ -116,7 +133,8 @@ one-to-one local number/species mapping, high-risk regional or DLC counts,
 
 The private tables are `pokedex_trackers`, `pokedex_tracker_entries`,
 `pokedex_tracker_entry_details`, `pokedex_collection_locations`, and
-`pokedex_collection_specimens`, plus `pokedex_tracker_wanted_entries`. All use RLS; migrations 394, 400, 402, and 435
+`pokedex_collection_specimens`, plus `pokedex_tracker_wanted_entries` and
+`pokedex_champions_progress`. All use RLS; migrations 394, 400, 402, 435, and 436
 ensure forced RLS for the private collection boundary. Browser table CRUD is
 denied. Authenticated RPCs scope every read and write to `auth.uid()`.
 
@@ -175,14 +193,14 @@ of later premium access.
 
 ## Release checks
 
-Before a release containing migration 435:
+Before a release containing migrations 435 and 436:
 
 1. Apply migration 435 to one disposable isolated Preview branch based on the
    current Production migration ledger.
-2. Run the rollback-only migration 435 two-account regression. It checks the
+2. Run the rollback-only migration 435 and 436 two-account regressions. They check the
    954-species GO catalog, exact FireRed/LeafGreen postgame split, Brilliant
-   Diamond union, marks, Alpha eligibility, search isolation, and version-5
-   export/restore.
+   Diamond union, marks, Alpha eligibility, search isolation, the 208-species
+   Champions allowlist, cross-account isolation, and version-6 export/restore.
 3. Verify official numbered sections and **Other obtainable** remain separate.
 4. Confirm regular users do not see JSON controls and owner access still does.
 5. Review signed-in desktop, 390px, and 320px layouts for collection search,
