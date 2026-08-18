@@ -1,5 +1,14 @@
 const DAY_MS = 24 * 60 * 60 * 1000;
 
+export function calendarMonthDays(value, count = 42) {
+  const cursor = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(cursor.getTime())) return [];
+  const year = cursor.getFullYear();
+  const month = cursor.getMonth();
+  const firstWeekday = new Date(year, month, 1, 12).getDay();
+  return Array.from({ length: count }, (_, index) => new Date(year, month, 1 - firstWeekday + index, 12));
+}
+
 export function dateKey(value, timeZone = "") {
   const date = value instanceof Date ? value : new Date(value);
   if (Number.isNaN(date.getTime())) return "";

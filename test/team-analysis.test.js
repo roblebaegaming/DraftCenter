@@ -56,12 +56,34 @@ import {
 } from "../src/lib/teamLabSets.js";
 import { calculateTeamLabDamageEstimate } from "../src/lib/teamLabDamage.js";
 import { teamLabMoveReference, teamLabMoveSourceForRegulation } from "../src/lib/teamLabMoveSuggestions.js";
+import { readTeamLabPokePasteResponse } from "../src/lib/teamLabPokePaste.js";
 
 const roster = [
   { name: "Garchomp", t1: "dragon", t2: "ground", stats: { hp: 108, atk: 130, def: 95, spa: 80, spd: 85, spe: 102 } },
   { name: "Rotom-Wash", t1: "electric", t2: "water", stats: { hp: 50, atk: 65, def: 107, spa: 105, spd: 107, spe: 86 } },
   { name: "Corviknight", t1: "flying", t2: "steel", stats: { hp: 98, atk: 87, def: 105, spa: 53, spd: 85, spe: 67 } },
 ];
+
+test("PokéPaste imports handle JSON, plain-text success, and non-JSON platform errors", async () => {
+  assert.equal(await readTeamLabPokePasteResponse({
+    ok: true,
+    status: 200,
+    text: async () => JSON.stringify({ text: "Garchomp @ Garchompite" }),
+  }), "Garchomp @ Garchompite");
+  assert.equal(await readTeamLabPokePasteResponse({
+    ok: true,
+    status: 200,
+    text: async () => "Garchomp @ Garchompite",
+  }), "Garchomp @ Garchompite");
+  await assert.rejects(
+    readTeamLabPokePasteResponse({ ok: false, status: 500, text: async () => "An error occurred with this application" }),
+    /copy its text, and paste it below/,
+  );
+  await assert.rejects(
+    readTeamLabPokePasteResponse({ ok: false, status: 404, text: async () => JSON.stringify({ error: "That PokéPaste could not be loaded." }) }),
+    /could not be loaded/,
+  );
+});
 
 test("type multipliers support dual typing and the bounded ability layer", () => {
   assert.equal(singleTypeMultiplier("fire", "grass"), 2);
@@ -847,7 +869,10 @@ test("Team Lab is indexable while account notes and matchups stay private", () =
   assert.match(suggestedMoves, /manual entry is always available/);
   assert.match(pokepasteImport, /Import a PokéPaste or Showdown team/);
   assert.match(pokepasteImport, /Set details remain private/);
+  assert.doesNotMatch(pokepasteImport, /Upload \.txt|type="file"/);
+  assert.match(pokepasteImport, /readTeamLabPokePasteResponse/);
   assert.match(pokepasteRoute, /supabase\.auth\.getUser\(token\)/);
+  assert.match(pokepasteRoute, /maxDuration = 30/);
   assert.ok(pokepasteRoute.includes("const POKEPASTE_PATTERN = /^https:\\/\\/pokepast\\.es\\/"));
   assert.match(pokepasteRoute, /redirect: "error"/);
   assert.match(pokepasteRoute, /"Cache-Control": "private, no-store"/);

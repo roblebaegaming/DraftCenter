@@ -9,7 +9,7 @@ import {
   normalizeCalendarTimeZone,
 } from "../src/lib/calendarSubscription.js";
 import { VGC_CALENDAR_EVENTS, VGC_CALENDAR_UPDATED_AT } from "../src/data/vgcCalendarEvents.js";
-import { calendarToIcs, deriveLeagueEvents } from "../src/lib/pokemonCalendar.js";
+import { calendarMonthDays, calendarToIcs, dateKey, deriveLeagueEvents } from "../src/lib/pokemonCalendar.js";
 
 const source = (path) => fs.readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 
@@ -41,12 +41,31 @@ test("the maintained VGC schedule is complete, chronological, and source-linked"
   assert.ok(VGC_CALENDAR_EVENTS.some((event) => event.id === "vgc-naic-2027" && event.location.includes("Chicago")));
 });
 
+test("month grids keep dates under their real weekdays across DST and December 2026", () => {
+  const november = calendarMonthDays(new Date(2026, 10, 1));
+  assert.equal(new Set(november.map((day) => dateKey(day))).size, 42);
+  assert.deepEqual(november.slice(0, 8).map((day) => dateKey(day)), [
+    "2026-11-01", "2026-11-02", "2026-11-03", "2026-11-04",
+    "2026-11-05", "2026-11-06", "2026-11-07", "2026-11-08",
+  ]);
+
+  const december = calendarMonthDays(new Date(2026, 11, 1));
+  assert.deepEqual(december.slice(0, 7).map((day) => dateKey(day)), [
+    "2026-11-29", "2026-11-30", "2026-12-01", "2026-12-02",
+    "2026-12-03", "2026-12-04", "2026-12-05",
+  ]);
+  assert.equal(december.find((day) => dateKey(day) === "2026-12-04")?.getDay(), 5);
+  assert.equal(december.find((day) => dateKey(day) === "2026-12-05")?.getDay(), 6);
+  assert.equal(december.find((day) => dateKey(day) === "2026-12-06")?.getDay(), 0);
+});
+
 test("official VGC events remain read-only and can be filtered or exported", () => {
   const calendar = source("src/components/PokemonCalendar.jsx");
   assert.match(calendar, /source === "official-vgc"/);
   assert.match(calendar, /Show official VGC events/);
   assert.match(calendar, /Notable online competitions will appear here after Pokémon publishes confirmed dates/);
   assert.match(calendar, /eventOccursOnDate\(event, day\)/);
+  assert.match(calendar, /calendarMonthDays\(cursor\)/);
   assert.match(calendar, /selected\.source === "personal" && <button className="quiet-button"/);
   assert.match(calendar, /calendarToIcs\(events/);
 });
