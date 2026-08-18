@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createClient } from "../lib/supabase/client";
+import MemberEmailComposer from "./MemberEmailComposer";
 import {
   MULTI_POD_RPCS,
   MULTI_POD_CHAMPIONSHIP_FORMATS,
@@ -588,8 +589,8 @@ export default function LeagueOrganizationWorkspace() {
     }, "Administrator invitation accepted.");
   }
 
-  if (loading || session === undefined) return <main className="organization-shell"><p className="hub-message">Loading organization workspace…</p></main>;
-  return <main className="organization-shell">
+  if (loading || session === undefined) return <section id="organization-commissioner-workspace" className="organization-shell"><p className="hub-message">Loading organization workspace…</p></section>;
+  return <section id="organization-commissioner-workspace" className="organization-shell">
     <section className="organization-workspace-hero"><div><span className="eyebrow">LEAGUE OPERATIONS</span><h1>Organizations and concurrent divisions</h1><p>Create large seasons as independent pods, coordinate different draft times, and place managers where their availability works.</p></div><a className="quiet-button" href="/">Back to your leagues</a></section>
     {message && <p className="hub-message">{message}</p>}
     {invitePreview && <section className="organization-invite-card">
@@ -606,6 +607,7 @@ export default function LeagueOrganizationWorkspace() {
         {!selectedOrganization && <div className="organization-empty"><strong>Create your first organization.</strong><span>It will contain shared seasons and the existing leagues you link as pods.</span></div>}
         {selectedOrganization && <>
           <header className="organization-heading" style={{ "--organization-color": selectedOrganization.brand_color || "#4fd1c5" }}><OrganizationMark organization={selectedOrganization} /><div><span className="eyebrow">{selectedOrganization.visibility.toUpperCase()} ORGANIZATION</span><h2>{selectedOrganization.name}</h2><p>{selectedOrganization.description || "Add a description for commissioners and the public organization page."}</p></div>{selectedOrganization.visibility === "public" && <a className="quiet-button" href={`/organizations/${selectedOrganization.slug}`}>View public page</a>}</header>
+          {selectedOrganization.is_admin && <MemberEmailComposer scopeType="organization" scopeId={selectedOrganization.id} scopeName={selectedOrganization.name} />}
           {selectedOrganization.is_admin && <details className="organization-panel"><summary>Branding and public details</summary><form className="organization-form-grid" onSubmit={saveOrganization}><label>Name<input required value={organizationDraft.name} onChange={(event) => setOrganizationDraft({ ...organizationDraft, name: event.target.value })} /></label><label>Brand color<input type="color" value={organizationDraft.brandColor} onChange={(event) => setOrganizationDraft({ ...organizationDraft, brandColor: event.target.value })} /></label><label className="organization-form-wide">Description<textarea rows={3} value={organizationDraft.description} onChange={(event) => setOrganizationDraft({ ...organizationDraft, description: event.target.value })} /></label><label className="organization-form-wide">Organization artwork URL<input type="url" value={organizationDraft.imageUrl} onChange={(event) => setOrganizationDraft({ ...organizationDraft, imageUrl: event.target.value })} placeholder="https://…" /></label><label>Visibility<select value={organizationDraft.visibility} onChange={(event) => setOrganizationDraft({ ...organizationDraft, visibility: event.target.value })}><option value="private">Private</option><option value="public">Public page</option></select></label><button className="primary-button" disabled={busy}>Save details</button></form></details>}
           {selectedOrganization.is_admin && <details className="organization-panel"><summary>Administrators</summary><div className="organization-administrators">{workspace.administrators?.map((administrator) => <p key={administrator.user_id}><span>{administrator.display_name || (administrator.username ? `@${administrator.username}` : "Administrator")}</span><span className="organization-administrator-role"><strong>{administrator.role}</strong>{selectedOrganization.is_owner && administrator.role === "administrator" && <button className="quiet-button" disabled={busy} onClick={() => removeAdministrator(administrator)}>Remove</button>}</span></p>)}</div>{selectedOrganization.is_owner && <><button className="secondary-button" disabled={busy} onClick={createAdministratorInvite}>Create secure invitation</button>{administratorInviteUrl && <div className="organization-invite-link"><label>Share this one-time link<input readOnly value={administratorInviteUrl} onFocus={(event) => event.target.select()} /></label><button className="quiet-button" onClick={() => navigator.clipboard?.writeText(administratorInviteUrl)}>Copy link</button></div>}{workspace.pending_invitations?.map((invitation) => <p className="organization-pending-invite" key={invitation.id}><span>Unused invitation · expires {new Date(invitation.expires_at).toLocaleDateString()}</span><button className="quiet-button" disabled={busy} onClick={() => revokeAdministratorInvite(invitation.id)}>Revoke</button></p>)}</>}</details>}
           <div className="organization-season-stack">
@@ -646,5 +648,5 @@ export default function LeagueOrganizationWorkspace() {
         </>}
       </section>
     </div>}
-  </main>;
+  </section>;
 }

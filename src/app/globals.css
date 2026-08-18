@@ -2034,3 +2034,35 @@ button.mega-bracket-slot:hover,button.mega-bracket-slot:focus-visible { color: #
   .print-mode-multilingual .team-sheet-broadcast-page { display: none!important; }
   .print-mode-multilingual .team-sheet-multilingual-page { break-after: auto; page-break-after: auto; }
 }
+
+/* Organization directory and private commissioner announcements. */
+.organization-directory-shell { width: min(1180px, calc(100% - 32px)); margin: 0 auto; padding: 42px 0 18px; }
+.organization-directory-hero { position: relative; overflow: hidden; padding: clamp(24px, 5vw, 58px); border: 1px solid rgba(79,209,197,.28); border-radius: 24px; background: radial-gradient(circle at 82% 15%, rgba(79,209,197,.18), transparent 34%), linear-gradient(145deg, #151b33, #0b1022); }
+.organization-directory-hero h1 { max-width: 760px; margin: 8px 0 10px; font-size: clamp(2rem, 5vw, 4.2rem); line-height: .98; }
+.organization-directory-hero>p { max-width: 720px; color: #c0c5db; font-size: 1.05rem; }
+.organization-directory-hero-actions,.organization-directory-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+.organization-membership-summary,.organization-directory-controls,.organization-directory-empty { margin-top: 18px; padding: 18px 20px; border: 1px solid rgba(255,255,255,.09); border-radius: 16px; background: #13182c; }
+.organization-membership-summary p { margin: 5px 0 0; color: #dce0f2; }
+.organization-directory-controls { display: flex; align-items: end; gap: 12px; }
+.organization-directory-controls label { display: grid; flex: 1; gap: 6px; }
+.organization-directory-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 16px; margin-top: 18px; }
+.organization-directory-card { display: flex; flex-direction: column; min-height: 290px; padding: 22px; border: 1px solid rgba(255,255,255,.1); border-radius: 18px; background: linear-gradient(160deg, #171c32, #111628); }
+.organization-directory-card-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
+.organization-directory-card h2 { margin: 5px 0 0; }
+.organization-directory-card>p { flex: 1; color: #b4bad1; }
+.organization-directory-card dl { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 12px 0 0; }
+.organization-directory-card dl div { padding: 9px; border-radius: 10px; background: rgba(255,255,255,.045); }
+.organization-directory-card dt { color: #7f86a6; font-size: .72rem; text-transform: uppercase; }
+.organization-directory-card dd { margin: 3px 0 0; font-weight: 700; }
+.organization-role-badge { padding: 5px 9px; border: 1px solid rgba(79,209,197,.35); border-radius: 999px; color: #72e2d8; font-size: .72rem; font-weight: 800; text-transform: uppercase; }
+.member-email-composer { margin: 18px 0; padding: 16px 18px; border: 1px solid rgba(79,209,197,.25); border-radius: 14px; background: rgba(79,209,197,.055); }
+.member-email-composer>summary { cursor: pointer; color: #72e2d8; font-weight: 800; }
+.member-email-composer form { margin-top: 16px; }
+
+@media(max-width:620px) {
+  .organization-directory-shell { width: min(100% - 20px, 1180px); padding-top: 18px; }
+  .organization-directory-hero { padding: 24px 18px; border-radius: 18px; }
+  .organization-directory-controls { align-items: stretch; flex-direction: column; }
+  .organization-directory-card dl { grid-template-columns: 1fr; }
+  .organization-directory-actions>* { flex: 1 1 100%; text-align: center; }
+}
