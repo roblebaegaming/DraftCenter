@@ -5,7 +5,8 @@
 - Production branch: `main`
 - Previous Production application commit: `435cc6fb3c209c64e31c0b2b7af29aa9c26416e6`
 - Released application commit: `f292260e82be10b8c2b933ceea0858caf76b2aea`
-- Production migration: unchanged at 438 (`20260818090807`)
+- Production migration: unchanged at 438; canonical history version
+  `20260818080111`
 - Implementation commit: `bf63b4103decbefc54de3152c33e523ded489b5b`
 - Pull request: [#313](https://github.com/roblebaegaming/DraftCenter/pull/313)
 - Release state: merged, deployed, and application-verified
@@ -74,29 +75,30 @@ All implementation validation used the isolated release worktree.
   the August 18 review date, and the replay evidence boundaries.
 - All three post-merge security workflows passed.
 
-## Supabase integration finding
+## Supabase integration reconciliation
 
-The post-merge `main` Supabase integration failed after cloning `main` with
-`Remote migration versions not found in local migrations directory.` This SEO
-release has no migration and did not cause a schema or data failure.
+The post-merge `main` Supabase integration initially failed after cloning
+`main` with `Remote migration versions not found in local migrations
+directory.` This SEO release had no migration and did not cause a schema or
+data failure.
 
-Read-only verification established:
+The owner subsequently authorized a migration-history-only reconciliation.
+Preflight and postflight established:
 
 - the exact Production project is `ACTIVE_HEALTHY`;
-- migration 438 remains the latest applied Production migration;
+- migration 438 remains the latest applied Production migration, now under its
+  exact repository timestamp `20260818080111`;
 - no SEO Preview database branch was created, so this release started no new
   hourly branch charge; and
-- the integration failure comes from the existing mismatch between Production
-  ledger timestamps and standard migration filenames for migrations 429–438.
+- all 233 Production timestamps now match all 233 standard migration files,
+  with no local-only or remote-only version.
 
-Do not rename or rewrite those applied migrations and do not repair the
-Production migration ledger automatically. A future repair requires a separate
-owner-approved plan that maps every local and remote version, proves identical
-SQL intent, accounts for retained Preview branches, uses the supported Supabase
-migration-history workflow, and verifies the ledger and schema afterward. The
-current application release and Production database health are not blocked by
-this finding, but the automatic `main` migration check will remain red until it
-is reconciled.
+The ten-row repair remapped only existing migration-history primary keys. Every
+stored SQL and metadata fingerprint was preserved, the public-schema
+fingerprint was identical before and after, Production remained
+`ACTIVE_HEALTHY`, and no existing Preview branch was changed. The exact mapping,
+SQL-equivalence proof, inverse rollback, and validation are recorded in
+[`docs/supabase-migration-history-reconciliation-2026-08-18.md`](../supabase-migration-history-reconciliation-2026-08-18.md).
 
 ## Follow-up
 
@@ -105,7 +107,10 @@ is reconciled.
   and normally 28 days under `docs/seo-review-2026-08-17.md`.
 - Monitor the new guide and refreshed commissioner pages for discovery and query
   impressions before making another metadata change.
-- Obtain separate owner authorization before repairing Supabase migration
-  history, changing Production data, or opening another paid Preview branch.
+- Keep future Production migration records on the exact standard-file
+  timestamp. Any emergency generated timestamp requires owner authorization,
+  SQL-equivalence proof, and same-release reconciliation.
+- Obtain separate owner authorization before changing Production data or
+  opening another paid Preview branch.
 - Continue the aggregate-only attribution review and commissioner support order
   already recorded in `docs/CURRENT-STATUS.md`.

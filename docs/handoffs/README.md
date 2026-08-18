@@ -1,7 +1,13 @@
 # Agent handoffs
 
+[`DraftCenter-agent-handoff-2026-08-18-commissioner-workflow-seo-release.md`](DraftCenter-agent-handoff-2026-08-18-commissioner-workflow-seo-release.md)
+is the current release and continuation handoff. It records the focused
+commissioner-workflow SEO release, live metadata and sitemap verification, and
+the completed owner-approved reconciliation of Production migration-history
+timestamps 429 through 438.
+
 [`DraftCenter-agent-handoff-2026-08-18-commissioner-activation-import-showdown.md`](DraftCenter-agent-handoff-2026-08-18-commissioner-activation-import-showdown.md)
-is the current released continuation handoff. It records the commissioner-first
+is the current feature-source handoff. It records the commissioner-first
 promise and activation path, bounded spreadsheet and CSV import, confirmed
 Showdown replay result facts through Production migration 438, aggregate
 retention measures, synthetic complete-season proof plan, isolated Preview and
