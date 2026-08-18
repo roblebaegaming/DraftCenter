@@ -1,40 +1,45 @@
 # DraftCenter product roadmap
 
-This roadmap preserves the current feature freeze. Reliability, privacy,
-permissions, recovery, data portability, mobile usability, and the complete
-league lifecycle come before new product areas.
+DraftCenter's current advantage is its connected organizer-to-player
+lifecycle, not raw feature count. Reliability, privacy, recovery, portability,
+mobile usability, activation, and completed real seasons come before another
+broad product area. The detailed competitive rationale and 30-day sequence are
+in the
+[`competitive lead and growth handoff`](handoffs/DraftCenter-agent-handoff-2026-08-18-competitive-lead-and-growth.md).
 
-## Current release sequence
+## Current release and growth sequence
 
-Tournament strengthening, Draft Tournament Swiss, ordinary-league Swiss, and
-4–32-manager Auction Draft Tournaments are complete through migration 428:
+Tournament strengthening, Swiss, 4–32-manager Auction Draft Tournaments,
+multi-pod organizations, prediction publishing, Legends: Z-A, Team Sheets, and
+organization communication are released. The current sequence is:
 
-1. Stabilize ordinary-league Swiss and tournament auction workflows through
-   real commissioner feedback and isolated lifecycle testing.
-2. Complete the already reviewed prediction-publisher, Legends: Z-A, Team
-   Sheet, and organization-communication backlog as separate protected
-   releases.
-3. Return to monitoring, bug fixes,
-   live-draft performance, tournament feedback, and external SEO measurement.
+1. Make the commissioner path understandable in under one minute: one promise,
+   plain-language presets, a safe practice path, and a setup checklist ending
+   at a scheduled or started draft.
+2. Publish one reviewed import template and a safe preview-before-write path
+   for commissioners moving an existing league from spreadsheets.
+3. Add confirmed Showdown replay-to-result automation with participant,
+   duplicate, conflict, authorization, and audit safeguards.
+4. Recruit an owner-approved lighthouse group and measure leagues reaching a
+   scheduled draft, completed draft, first result, week-two activity, and
+   completed season.
+5. Continue reliability, export, restore, permissions, mobile, and live-draft
+   hardening before choosing another expansion.
 
-## Next flagship expansion: multi-pod league organizations
+## Released flagship: multi-pod league organizations
 
-After the stabilization period, the preferred major league expansion is an
-organization season containing multiple independent league pods and one shared
-championship. Each pod uses the existing draft, roster, schedule, standings,
-transaction, and replacement systems. Qualifying teams retain their exact
-regular-season rosters, and duplicate Pokemon across pods remain legal when
-those teams meet in the championship.
+Multi-pod league organizations and connected championships are live. Treat
+them as a stabilization and adoption surface, not a future build. Qualifying
+teams retain their exact regular-season rosters, and duplicate Pokémon across
+pods remain legal when those teams meet in the championship.
 
-Build this in staged releases: organization and season infrastructure,
-commissioner workspace and shared regulations, qualification review, connected
-championships, then public organization history and community features. The
-detailed product and data contract is in
-[`multi-pod-league-organizations.md`](multi-pod-league-organizations.md). The
-organizer-facing flow and configurable choices are summarized in
-[`multi-pod-organizer-guide.md`](multi-pod-organizer-guide.md).
-
-Multi-pod seasons continue to use their existing round-robin and connected-championship workflow. The first ordinary-league Swiss release deliberately remains one 4–16 team table rather than combining two new scheduling models at once.
+The durable product and data contract remains in
+[`multi-pod-league-organizations.md`](multi-pod-league-organizations.md), with
+the organizer-facing flow in
+[`multi-pod-organizer-guide.md`](multi-pod-organizer-guide.md). Multi-pod
+seasons keep their existing round-robin and connected-championship workflow;
+ordinary-league Swiss remains one 4–16-team table rather than combining two
+scheduling models.
 
 ## Current hardening priorities
 

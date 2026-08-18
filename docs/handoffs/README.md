@@ -1,8 +1,16 @@
 # Agent handoffs
 
+[`DraftCenter-agent-handoff-2026-08-18-competitive-lead-and-growth.md`](DraftCenter-agent-handoff-2026-08-18-competitive-lead-and-growth.md)
+is the current release and continuation handoff. It records the
+Pokédex/Champions and Daily Games work released through pull requests #308–#309
+and migrations 435–437, its sequential Preview and Production evidence, the
+reviewed competitive landscape, DraftCenter's defensible organizer-to-player
+position, and the ordered activation, switching, replay-import, retention,
+proof, and reliability priorities.
+
 [`DraftCenter-agent-handoff-2026-08-17-backlog-completion-and-cleanup.md`](DraftCenter-agent-handoff-2026-08-17-backlog-completion-and-cleanup.md)
-is the current release and continuation handoff. It records the complete August
-17 backlog through pull request #302 and migration 434, Production and Supabase
+is the preceding completion handoff. It records the complete August 17 backlog
+through pull request #302 and migration 434, Production and Supabase
 verification, the current filming package, exact cleanup of 130 approved
 worktrees, preserved `.vercel` archives, and the remaining operational actions
 that still require a direct owner decision.

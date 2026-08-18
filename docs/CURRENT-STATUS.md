@@ -3,8 +3,8 @@
 - Last updated: August 18, 2026 Pacific
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified Production application and asset commit: `bffe645f70f0f5d488ece212bcd46aa29cc1c717`
-- Latest applied Production migration: 434
+- Verified Production application and asset commit: `31e9d5691c69e166a381ced4999479097a6b5378`
+- Latest applied Production migration: 437
 
 ## Deployed state
 
@@ -91,6 +91,21 @@ can privately import a PokéPaste URL or pasted Showdown team before battle
 observations begin. The 390×844 closed- and open-sheet flows passed without
 overflow, and the complete 22-check signed-out Production smoke sweep passed.
 
+Pull requests [#308](https://github.com/roblebaegaming/DraftCenter/pull/308)
+and [#309](https://github.com/roblebaegaming/DraftCenter/pull/309) are released
+at Production commit `31e9d5691c69e166a381ced4999479097a6b5378` through
+migrations 435–437. They add expanded private collection search, collectible
+forms, marks, Pokémon GO, hunt targets, Pokémon Champions achievements,
+stronger Pokémon Connections rotation, and ordinary-bracket base-species
+protection. The complete signed-out 22-check Production smoke sweep passed.
+
+The owner-approved sequential Preview matrix caught and repaired a real SQL
+output-alias defect before release. Migrations 435, 436, and 437 then passed
+their rollback-only privacy, grants, RLS, collection, restore, Champions, form,
+and Sunday-exception regressions in order. The obsolete branch and both paid
+validation branches were deleted and confirmed absent; no validation-branch
+hourly charge continues.
+
 Supabase automatic branching remains enabled with a one-concurrent-Preview
 limit and Supabase-only changes. Older Preview branches were left untouched.
 The automatic check on pull request #298 was canceled solely because that limit
@@ -109,14 +124,14 @@ not be resumed until the owner explicitly requests it.
 
 ## Current continuation order
 
-No requested application or database implementation remains.
-
-1. Keep PokeEarth paused until the owner directly requests resumption.
-2. Run the scheduled aggregate-only attribution review at 09:00 Pacific on
+1. Run the scheduled aggregate-only attribution review at 09:00 Pacific on
    August 19 without inspecting or reporting individual identity or activity.
-3. Delete an older Supabase Preview branch only after the owner names and
-   approves that exact branch.
-4. Keep GO Meta Picks closed until an official eligibility pool is reviewed.
+2. Prioritize commissioner activation, safe league import, and confirmed
+   Showdown replay-to-result automation before another broad feature area.
+3. Recruit lighthouse commissioners only after the owner approves the exact
+   audience and destination.
+4. Keep PokeEarth paused until the owner directly requests resumption.
+5. Keep GO Meta Picks closed until an official eligibility pool is reviewed.
 
 The aggregate-only attribution review remains scheduled for 09:00 Pacific on
 August 19, 2026. Do not inspect or report individual identity or activity.
@@ -135,7 +150,9 @@ August 19, 2026. Do not inspect or report individual identity or activity.
 
 ## Authoritative records
 
-- Current release and continuation handoff:
+- Current release, competitive strategy, and continuation handoff:
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-18-competitive-lead-and-growth.md`](handoffs/DraftCenter-agent-handoff-2026-08-18-competitive-lead-and-growth.md)
+- Previous backlog completion and cleanup handoff:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-17-backlog-completion-and-cleanup.md`](handoffs/DraftCenter-agent-handoff-2026-08-17-backlog-completion-and-cleanup.md)
 - Auction Draft Tournament contract:
   [`docs/auction-draft-tournaments.md`](auction-draft-tournaments.md)
