@@ -125,6 +125,15 @@ test("the pre-event champion model totals 100 percent and caps all 438 invitees 
   assert.ok(Math.abs(Object.values(WORLDS_2026_ODDS_WEIGHTS).reduce((sum, weight) => sum + weight, 0) - 1) < 1e-10);
 });
 
+test("the public Worlds odds card keeps the probabilities and omits methodology and player summaries", () => {
+  const component = source("src/components/WorldsChampionOdds.jsx");
+  assert.match(component, /Top 10 Worlds Champion Odds/);
+  assert.match(component, /worlds-odds-value/);
+  assert.doesNotMatch(component, /WORLDS_2026_ODDS_WEIGHTS/);
+  assert.doesNotMatch(component, /worlds-odds-method/);
+  assert.doesNotMatch(component, /competitor\.seasonWins|copy\.wins/);
+});
+
 test("community support changes the model only when privacy-gated aggregates are supplied", () => {
   const field = Array.from({ length: 30 }, (_, index) => ({
     slug: `competitor-${index}`,

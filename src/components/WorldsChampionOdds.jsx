@@ -3,46 +3,27 @@
 import {
   buildWorldsChampionOdds,
   WORLDS_2026_ODDS_LEADERS,
-  WORLDS_2026_ODDS_WEIGHTS,
   WORLDS_2026_POINTS_URL,
 } from "../lib/worlds2026";
 
 const COPY = {
   en: {
-    eyebrow: "MODELLED CHAMPION OUTLOOK",
-    title: "Top 10 Worlds favorites",
-    body: "A transparent, non-betting forecast across the complete invite-earned field. It will evolve as published results and enough community entries become available.",
+    eyebrow: "DRAFTCENTER · 2026 VGC MASTERS",
+    title: "Top 10 Worlds Champion Odds",
+    body: "Current pre-event, non-betting probabilities across the complete invite-earned Masters field.",
     standings: "Official VGC Masters standings ↗",
-    method: "How the model is weighted",
-    note: "Every invitee keeps a probability. The complete field totals 100%, and no player can exceed 5% before Worlds begins.",
-    communityReady: (count) => `Community signal active · ${count} entries`,
-    communityWaiting: "Aggregate community signal activates at 25 entries · lineups stay private until lock",
-    labels: ["Season standing and form", "Event wins", "International wins", "Worlds titles", "Community picks and Champion choices"],
-    wins: (season, international, worlds) => `${season} event win${season === 1 ? "" : "s"} · ${international} International win${international === 1 ? "" : "s"} · ${worlds} Worlds title${worlds === 1 ? "" : "s"}`,
   },
   it: {
-    eyebrow: "PROIEZIONE DEL MODELLO",
-    title: "I 10 favoriti per il Mondiale",
-    body: "Una previsione trasparente e non legata alle scommesse sull’intero gruppo degli invitati. Si aggiorna con i risultati pubblicati e con un campione sufficiente di pronostici della community.",
+    eyebrow: "DRAFTCENTER · VGC MASTERS 2026",
+    title: "Le 10 migliori probabilità di vittoria ai Mondiali",
+    body: "Probabilità attuali pre-evento e non legate alle scommesse per l’intero gruppo Masters con invito.",
     standings: "Classifica ufficiale VGC Masters ↗",
-    method: "Pesi del modello",
-    note: "Ogni invitato mantiene una probabilità. L’intero gruppo totalizza il 100% e nessun giocatore può superare il 5% prima dell’inizio del Mondiale.",
-    communityReady: (count) => `Segnale della community attivo · ${count} pronostici`,
-    communityWaiting: "Il segnale aggregato della community si attiva a 25 pronostici · le singole scelte restano private fino alla chiusura",
-    labels: ["Classifica e forma stagionale", "Vittorie negli eventi", "Vittorie agli Internazionali", "Titoli mondiali", "Scelte della community e Campione"],
-    wins: (season, international, worlds) => `${season} ${season === 1 ? "vittoria nell’evento" : "vittorie negli eventi"} · ${international} ${international === 1 ? "vittoria all’Internazionale" : "vittorie agli Internazionali"} · ${worlds} ${worlds === 1 ? "titolo mondiale" : "titoli mondiali"}`,
   },
   es: {
-    eyebrow: "PROYECCIÓN DEL MODELO",
-    title: "Los 10 favoritos para ganar el Mundial",
-    body: "Una previsión transparente y ajena a las apuestas que incluye a todos los jugadores con invitación. Evolucionará cuando haya nuevos resultados publicados y suficientes pronósticos de la comunidad.",
+    eyebrow: "DRAFTCENTER · VGC MÁSTER 2026",
+    title: "Las 10 mejores probabilidades de ganar el Mundial",
+    body: "Probabilidades actuales previas al evento, ajenas a las apuestas, para todo el grupo Máster con invitación.",
     standings: "Clasificación oficial de VGC Máster ↗",
-    method: "Cómo se pondera el modelo",
-    note: "Cada invitado conserva una probabilidad. El grupo completo suma el 100 % y ningún jugador puede superar el 5 % antes de que empiece el Mundial.",
-    communityReady: (count) => `Señal de la comunidad activa · ${count} pronósticos`,
-    communityWaiting: "La señal agregada de la comunidad se activa con 25 pronósticos · las selecciones individuales permanecen privadas hasta el cierre",
-    labels: ["Clasificación y forma de la temporada", "Victorias en eventos", "Victorias en Internacionales", "Títulos mundiales", "Selecciones de la comunidad y Campeón"],
-    wins: (season, international, worlds) => `${season} ${season === 1 ? "victoria en eventos" : "victorias en eventos"} · ${international} ${international === 1 ? "victoria en un Internacional" : "victorias en Internacionales"} · ${worlds} ${worlds === 1 ? "título mundial" : "títulos mundiales"}`,
   },
 };
 
@@ -73,18 +54,11 @@ export default function WorldsChampionOdds({ competitors, entryCount = 0, sample
           <span className="worlds-odds-rank">{index + 1}</span>
           <div className="worlds-odds-player">
             <div><strong>{competitor.displayName}</strong><span>{competitor.countryCode}</span></div>
-            <small>{copy.wins(competitor.seasonWins, competitor.internationalWins, competitor.worldsTitles)}</small>
             <div className="worlds-odds-bar" aria-hidden="true"><i style={{ width: `${Math.min(100, competitor.probability / 0.05 * 100).toFixed(4)}%` }} /></div>
           </div>
           <b className="worlds-odds-value">{percentage.format(competitor.probability)}</b>
         </li>)}
       </ol>
-      <aside className="worlds-odds-method">
-        <span>{sampleReady ? copy.communityReady(entryCount) : copy.communityWaiting}</span>
-        <h3>{copy.method}</h3>
-        <ul>{Object.values(WORLDS_2026_ODDS_WEIGHTS).map((weight, index) => <li key={copy.labels[index]}><span>{copy.labels[index]}</span><strong>{percentage.format(weight)}</strong></li>)}</ul>
-        <p>{copy.note}</p>
-      </aside>
     </div>
   </section>;
 }
