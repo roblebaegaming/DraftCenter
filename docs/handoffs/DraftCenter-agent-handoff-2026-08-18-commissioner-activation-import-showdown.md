@@ -9,7 +9,8 @@
 - Implementation commit: `760dccdbfcd229a27e8f157b1945b29b4fba4b48`
 - Draft pull request: [#311](https://github.com/roblebaegaming/DraftCenter/pull/311)
 - Candidate migration: 438
-- Release state: draft review candidate; not merged or deployed
+- Release state: draft review candidate; isolated database and Preview UI gates
+  passed; not merged or deployed
 
 ## Outcome
 
@@ -139,6 +140,33 @@ worktree was inspected read-only and preserved.
   historical forward migrations, and 26 standard-only reconciliation
   migrations.
 - Signed-out local browser review: desktop and 390 px phone layouts passed.
+- Hosted Vercel Preview review: signed-out desktop and 390 px phone layouts
+  passed without horizontal overflow. The Preview sign-in route showed the
+  expected branch-domain Turnstile warning, so no authenticated Preview UI
+  claim is made.
+- Supabase Preview migration matrix: passed on one empty, nonpersistent branch
+  created from the exact Production project. The full chain replayed through
+  437, migration 438 applied as `20260818085659`, and the rollback-only 438
+  regression passed after correcting its expected error-text spelling from
+  `Pokémon` to the function's ASCII `Pokemon`. The function itself had already
+  rejected the malformed missing-array payload as intended.
+- Database postflight confirmed the 438 function is security-definer with
+  `search_path=public`, owned by `postgres`, executable only by
+  `authenticated` and `service_role`, and still checks authentication,
+  membership, and the authoritative locked snapshot. The snapshot table has
+  RLS enabled. The stored payload has no raw replay-log field.
+- Preview rollback cleanup left zero test profiles, leagues, and replay-event
+  rows.
+- Supabase security advisors matched Production exactly: 420 existing
+  warnings/information findings and no errors. The only 438-related advisory is
+  its intentional authenticated security-definer exposure, bounded by the
+  function's internal checks and explicit grants. Preview performance had 27
+  extra unused-index information notices because the branch was empty; there
+  was no 438-specific performance finding.
+- The exact paid branch `pr-311-commissioner-activation-20260818`
+  (`6a354f3e-978b-4e03-bed8-6b6c83f70a5c`, isolated project
+  `ywzctfkupnagdxmbtjca`) was deleted after validation and confirmed absent.
+  Its approved `$0.01344/hour` charge no longer continues.
 - `git diff --check`: passed.
 
 The local development browser emitted only the known Next.js development-mode
@@ -146,26 +174,13 @@ The local development browser emitted only the known Next.js development-mode
 
 ## Required release gates still open
 
-### Isolated database regression
-
-The rollback-only regression at
-[`supabase/tests/438-confirmed-showdown-replay-results-regression.sql`](../../supabase/tests/438-confirmed-showdown-replay-results-regression.sql)
-has not been executed. It requires a disposable isolated Supabase Preview
-branch, which can incur an hourly charge and therefore needs exact owner
-approval. It covers field whitelisting, missing arrays, duplicate replay reuse,
-invalid hosts, anonymous denial, RLS, and function grants.
-
-Do not apply migration 438 to Production until that matrix passes immediately
-after the full migration chain and the disposable branch is deleted and
-confirmed absent.
-
 ### Merge and deployment
 
 This candidate is not a Production deployment. A pull request may be reviewed,
-but merge remains gated on the isolated database regression and Preview UI
-review. After an authorized merge, confirm the exact deployed commit and run
-the signed-out Production smoke sweep. Do not use the local build as deployment
-proof.
+but it must not be merged without direct owner authorization and passing hosted
+checks on the final commit. After an authorized merge, confirm the exact
+deployed commit and migration 438, then run the signed-out Production smoke
+sweep. Do not use the local build or Preview as deployment proof.
 
 ### Lighthouse recruitment and public proof
 
@@ -180,14 +195,11 @@ Fix repeated activation blockers before opening another unrelated feature area.
 
 ## Recommended next operator sequence
 
-1. Review the candidate diff and Preview UI.
-2. With exact owner approval, create one disposable Supabase Preview branch.
-3. Replay migrations through 438 and run the rollback-only 438 regression.
-4. Inspect advisors, affected RLS, grants, and the exact function definition.
-5. Delete the paid branch and confirm it is absent.
-6. Merge only after required repository and hosted checks pass.
-7. Confirm the exact Production commit and migration 438, then run the complete
+1. Review the candidate diff and completed Preview evidence.
+2. Confirm required hosted checks pass on the final candidate commit.
+3. Merge only with direct owner authorization.
+4. Confirm the exact Production commit and migration 438, then run the complete
    signed-out Production smoke sweep.
-8. Update `docs/CURRENT-STATUS.md` only after those release facts are true.
-9. Obtain exact owner approval before sending the lighthouse invitation or
+5. Update `docs/CURRENT-STATUS.md` only after those release facts are true.
+6. Obtain exact owner approval before sending the lighthouse invitation or
    publishing the synthetic demonstration.

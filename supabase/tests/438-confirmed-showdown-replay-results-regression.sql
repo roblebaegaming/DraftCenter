@@ -161,7 +161,7 @@ begin
       )
     );
   exception when others then
-    v_denied := sqlerrm like '%revealed-Pokémon facts%';
+    v_denied := sqlerrm like '%revealed-Pokemon facts%';
   end;
   if not v_denied then
     raise exception 'A confirmed replay without bounded revealed-Pokémon arrays passed validation.';
