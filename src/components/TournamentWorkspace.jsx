@@ -606,6 +606,19 @@ export default function TournamentWorkspace({ slug }) {
     });
   }
 
+  function requestEnableTournamentDemo() {
+    setConfirmation({
+      title: "Turn this into a private organizer demo?",
+      description: "DraftCenter will keep your real owner seat, add 31 clearly labeled bot seats, check in the full field, and permanently mark this tournament as synthetic and private.",
+      confirmLabel: "Add 31 demo bots",
+      workingLabel: "Building demo field...",
+      onConfirm: () => runDraftTournamentAction("enable_tournament_demo", {
+        p_tournament_id: workspace.tournament.id,
+        p_expected_revision: workspace.tournament.revision,
+      }),
+    });
+  }
+
   async function setDraftCheckIn(checkedIn) {
     return runDraftTournamentAction("set_draft_tournament_check_in", {
       p_tournament_id: workspace.tournament.id,
@@ -615,13 +628,57 @@ export default function TournamentWorkspace({ slug }) {
 
   function requestLockDraftField() {
     const isAuction = workspace.draft_tournament?.event?.draft_type === "auction";
+    const isDemo = Boolean(workspace.draft_tournament?.event?.is_demo);
     setConfirmation({
       title: "Lock the checked-in field?",
-      description: `Unchecked entrants become recorded no-shows, late entry closes, and DraftCenter creates the private shared ${isAuction ? "auction" : "snake"} room with exact account ownership.`,
+      description: isDemo
+        ? "DraftCenter will lock your owner seat plus 31 synthetic bot seats and create the private auction room. You can run the auction live against the bots or generate completed demo rosters."
+        : `Unchecked entrants become recorded no-shows, late entry closes, and DraftCenter creates the private shared ${isAuction ? "auction" : "snake"} room with exact account ownership.`,
       confirmLabel: "Lock field",
       workingLabel: "Creating draft room...",
       tone: "danger",
       onConfirm: () => runDraftTournamentAction(isAuction ? "lock_auction_draft_tournament_field" : "lock_draft_tournament_field", {
+        p_tournament_id: workspace.tournament.id,
+        p_expected_revision: workspace.draft_tournament.event.revision,
+      }),
+    });
+  }
+
+  function requestFillDemoAuction() {
+    setConfirmation({
+      title: "Generate a completed demo auction?",
+      description: "DraftCenter will assign unique synthetic auction rosters to all 32 seats. If you already practiced part of this demo auction, its partial auction state will be replaced.",
+      confirmLabel: "Generate 32 rosters",
+      workingLabel: "Generating auction...",
+      tone: "danger",
+      onConfirm: () => runDraftTournamentAction("fill_tournament_demo_auction", {
+        p_tournament_id: workspace.tournament.id,
+        p_expected_revision: workspace.draft_tournament.event.revision,
+      }),
+    });
+  }
+
+  function requestCompleteDemoSwiss() {
+    setConfirmation({
+      title: "Generate the remaining demo Swiss results?",
+      description: "DraftCenter will finish every unresolved synthetic match, pair all remaining rounds from the live standings, and complete the event. Existing completed demo results remain intact.",
+      confirmLabel: "Complete demo Swiss",
+      workingLabel: "Generating results...",
+      onConfirm: () => runDraftTournamentAction("complete_tournament_demo_swiss", {
+        p_tournament_id: workspace.tournament.id,
+        p_expected_revision: workspace.draft_tournament.event.revision,
+      }),
+    });
+  }
+
+  function requestResetDemo() {
+    setConfirmation({
+      title: "Reset this organizer demo?",
+      description: "This removes the synthetic draft room, rosters, pairings, standings, and results, then returns all 32 demo entrants to check-in. The private demo itself and its audit history remain available.",
+      confirmLabel: "Reset demo",
+      workingLabel: "Resetting demo...",
+      tone: "danger",
+      onConfirm: () => runDraftTournamentAction("reset_tournament_demo", {
         p_tournament_id: workspace.tournament.id,
         p_expected_revision: workspace.draft_tournament.event.revision,
       }),
@@ -940,18 +997,30 @@ export default function TournamentWorkspace({ slug }) {
   const draftEvent = draftTournament?.event || null;
   const competitionFormat = draftEvent?.competition_format || null;
   const tournamentDraftType = draftEvent?.draft_type || "snake";
+  const isDemo = Boolean(draftEvent?.is_demo);
   const displayFormat = formatLabel(tournament.format, competitionFormat);
   const usesDraftFirstBracket = ["single-elimination", "double-elimination"].includes(competitionFormat);
   const currentDraftRound = draftTournament?.rounds?.find((round) => round.round_number === draftEvent?.current_swiss_round) || null;
   const latestDraftStandings = (draftTournament?.standings || []).filter((standing) => standing.round_id === currentDraftRound?.id);
   const connectedChampionship = workspace.connected_championship;
   const connectedEntrants = new Map((connectedChampionship?.entrants || []).map((entrant) => [entrant.tournament_entrant_id, entrant]));
+  const canEnableDemo = Boolean(
+    tournament.is_owner
+      && !isDemo
+      && tournament.visibility === "private"
+      && tournament.status === "registration"
+      && draftEvent?.phase === "registration"
+      && tournamentDraftType === "auction"
+      && competitionFormat === "swiss"
+      && registeredEntrants.length === 1
+      && me,
+  );
   return (
     <main className={`tournament-shell ${tournament.format === "draft-tournament" ? "is-draft-tournament" : ""}`}>
       <ConfirmationDialog request={confirmation} onDismiss={() => setConfirmation(null)} />
       <header className="tournament-detail-hero">
         <a className="quiet-button" href="/tournaments">&larr; Tournaments</a>
-        <span className="eyebrow">{draftEvent ? statusLabel(draftEvent.phase) : statusLabel(tournament.status)} &middot; {tournament.visibility}</span>
+        <span className="eyebrow">{isDemo ? "PRIVATE ORGANIZER DEMO" : draftEvent ? statusLabel(draftEvent.phase) : statusLabel(tournament.status)} &middot; {tournament.visibility}</span>
         <h1>{tournament.name}</h1>
         <p>{tournament.description || `${displayFormat} tournament`}</p>
         {connectedChampionship && <a className="tournament-connected-link" href={`/organizations/${connectedChampionship.organization_slug}`}>{connectedChampionship.organization_name} · {connectedChampionship.season_name}</a>}
@@ -959,7 +1028,7 @@ export default function TournamentWorkspace({ slug }) {
           <span>Best of {tournament.best_of}</span>
           <span>{registeredEntrants.length} / {tournament.entrant_limit} active entrants</span>
           {draftEvent && <span>{draftEvent.roster_size} Pokemon &middot; {tournamentDraftType === "auction" ? `${draftEvent.draft_budget} budget · ${draftEvent.auction_timer_seconds}s opening bid` : draftEvent.pick_time_limit_minutes ? `${draftEvent.pick_time_limit_minutes} min/pick` : "No pick clock"} &middot; {usesDraftFirstBracket ? `${formatLabel(competitionFormat)} bracket` : draftEvent.swiss_round_count ? `${draftEvent.swiss_round_count} Swiss rounds` : "Swiss rounds set at field lock"}</span>}
-          {tournament.is_owner && tournament.visibility === "private" && tournament.status === "registration" && (
+          {tournament.is_owner && !isDemo && tournament.visibility === "private" && tournament.status === "registration" && (
             <button type="button" className="quiet-button" disabled={busy} onClick={copyInvite}>{inviteCode ? "Copy private registration link" : "Create private registration link"}</button>
           )}
           {tournament.is_owner && ["registration", "complete"].includes(tournament.status) && (
@@ -968,6 +1037,19 @@ export default function TournamentWorkspace({ slug }) {
         </div>
       </header>
       {message && <p className="hub-message" role="status" aria-live="polite">{message}</p>}
+
+      {isDemo && <section className="tournament-demo-banner" aria-labelledby="tournament-demo-heading">
+        <div>
+          <span className="eyebrow">SYNTHETIC · PRIVATE · RESETTABLE</span>
+          <h2 id="tournament-demo-heading">Tournament organizer sandbox</h2>
+          <p>Only your commissioner account is real. Every Bot badge, generated roster, pairing, score, and standing belongs to this private practice event and is never presented as real competition data.</p>
+        </div>
+        <div className="tournament-demo-summary" aria-label="Organizer demo safeguards">
+          <span><strong>1</strong> owner account</span>
+          <span><strong>31</strong> bot seats</span>
+          <span><strong>0</strong> public entries</span>
+        </div>
+      </section>}
 
       {connectedChampionship && <section className="tournament-panel tournament-connected-panel" aria-labelledby="connected-championship-heading">
         <div className="section-heading"><div><span className="eyebrow">CONNECTED CHAMPIONSHIP</span><h2 id="connected-championship-heading">Qualified field</h2></div><span>{connectedChampionship.seeding_policy === "overall-record" ? "Overall record seeds" : connectedChampionship.seeding_policy === "pod-finish-bands" ? "Pod-finish seeds" : "Pod-finish seeds · rematches avoided"}</span></div>
@@ -1007,6 +1089,9 @@ export default function TournamentWorkspace({ slug }) {
         <section className="tournament-panel" aria-labelledby="tournament-entrants-heading">
           <div className="section-heading">
             <div><span className="eyebrow">REGISTRATION</span><h2 id="tournament-entrants-heading">Entrants</h2></div>
+            {canEnableDemo && <div className="tournament-owner-actions">
+              <button type="button" className="primary-button" disabled={busy} onClick={requestEnableTournamentDemo}>Build 32-seat organizer demo</button>
+            </div>}
             {tournament.is_owner && tournament.format === "draft-tournament" && registeredEntrants.length >= 4 && (
               <div className="tournament-owner-actions">
                 {draftEvent?.phase === "registration" && <button type="button" className="quiet-button" disabled={busy} onClick={requestShuffle}>Shuffle seeds</button>}
@@ -1060,7 +1145,7 @@ export default function TournamentWorkspace({ slug }) {
           <div className="tournament-entrant-list">
             {visibleEntrants.map((entrant) => (
               <article key={entrant.id}>
-                <strong>{entrant.display_name}</strong>
+                <strong>{entrant.display_name} {isDemo && !entrant.is_me && <span className="tournament-bot-badge">Bot</span>}</strong>
                 {tournament.is_owner && entrant.status === "registered" ? (
                   <label>Seed
                     <input key={`${entrant.id}-${entrant.seed ?? "none"}`} type="number" inputMode="numeric" min="1" max={registeredEntrants.length} defaultValue={entrant.seed || ""} onBlur={(event) => seed(entrant, event.target.value)} />
@@ -1090,10 +1175,13 @@ export default function TournamentWorkspace({ slug }) {
             <div className="tournament-draft-room-callout">
               <div>
                 <strong>{draftEvent.phase === "draft-setup" ? `The shared ${tournamentDraftType} room is ready` : draftEvent.phase === "drafting" ? `The shared ${tournamentDraftType} draft is live` : "Review the completed rosters"}</strong>
-                <p className="muted">The room is restricted to the event owner and checked-in entrants. Team control is bound to exact account IDs.</p>
+                <p className="muted">{isDemo ? "You control your owner seat; the other 31 unclaimed teams use the existing draft bots. Practice the live room or use the synthetic fast-forward below." : "The room is restricted to the event owner and checked-in entrants. Team control is bound to exact account IDs."}</p>
               </div>
               <a className="primary-button inline-link-button" href={`/?league=${encodeURIComponent(draftTournament.draft_room.slug)}`}>Open draft room</a>
             </div>
+          )}
+          {tournament.is_owner && isDemo && ["draft-setup", "drafting"].includes(draftEvent.phase) && (
+            <button type="button" className="secondary-button" disabled={busy} onClick={requestFillDemoAuction}>Generate completed demo auction</button>
           )}
           {tournament.is_owner && draftEvent.phase === "roster-review" && (
             <button type="button" className="primary-button" disabled={busy} onClick={requestLockDraftRosters}>{usesDraftFirstBracket ? `Lock rosters & build ${formatLabel(competitionFormat).toLowerCase()} bracket` : "Lock rosters & pair Swiss Round 1"}</button>
@@ -1101,11 +1189,17 @@ export default function TournamentWorkspace({ slug }) {
           {tournament.is_owner && draftEvent.phase === "swiss" && currentDraftRound?.status === "complete" && draftEvent.current_swiss_round < draftEvent.swiss_round_count && (
             <button type="button" className="primary-button" disabled={busy} onClick={requestNextSwissRound}>Pair Swiss Round {draftEvent.current_swiss_round + 1}</button>
           )}
-          {tournament.is_owner && draftEvent.phase === "swiss-complete" && (
+          {tournament.is_owner && !isDemo && draftEvent.phase === "swiss-complete" && (
             <button type="button" className="primary-button" disabled={busy} onClick={requestStartTopCut}>{draftEvent.top_cut_size ? `Start Top ${draftEvent.top_cut_size}` : "Complete event"}</button>
           )}
-          {tournament.is_owner && ["draft-setup", "drafting", "roster-review"].includes(draftEvent.phase) && (
+          {tournament.is_owner && isDemo && ["swiss", "swiss-complete"].includes(draftEvent.phase) && (
+            <button type="button" className="secondary-button" disabled={busy} onClick={requestCompleteDemoSwiss}>Complete remaining demo Swiss rounds</button>
+          )}
+          {tournament.is_owner && !isDemo && ["draft-setup", "drafting", "roster-review"].includes(draftEvent.phase) && (
             <button type="button" className="danger-button" disabled={busy} onClick={requestCancelDraftTournament}>Cancel event</button>
+          )}
+          {tournament.is_owner && isDemo && ["draft-setup", "drafting", "roster-review", "swiss", "swiss-complete", "complete"].includes(draftEvent.phase) && (
+            <button type="button" className="quiet-button" disabled={busy} onClick={requestResetDemo}>Reset demo to check-in</button>
           )}
           {draftEvent.phase === "top-cut" && <p className="muted">Swiss standings are final. The remaining matches use the confirmed single-elimination top-cut bracket below.</p>}
           {draftEvent.phase === "bracket" && <p className="muted">The drafted rosters are locked. The {formatLabel(competitionFormat).toLowerCase()} bracket is live below.</p>}
@@ -1128,7 +1222,7 @@ export default function TournamentWorkspace({ slug }) {
             <div className="tournament-roster-grid">
               {draftTournament.seats.filter((seat) => Array.isArray(seat.roster)).map((seat) => (
                 <article key={seat.id}>
-                  <strong>#{seat.initial_seed} {entrants.get(seat.entrant_id)?.display_name || "Entrant"}</strong>
+                  <strong>#{seat.initial_seed} {entrants.get(seat.entrant_id)?.display_name || "Entrant"} {seat.is_bot && <span className="tournament-bot-badge">Bot</span>}</strong>
                   <div>{seat.roster.map((pokemon) => <span key={pokemon.id || pokemon.name}>{pokemon.name}</span>)}</div>
                 </article>
               ))}
