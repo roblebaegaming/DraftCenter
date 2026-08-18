@@ -14,6 +14,22 @@ invitees. Its published weights, regional-equivalence policy, five-percent cap,
 source provenance, and 25-entry community privacy threshold are maintained in
 [`worlds-2026-champion-outlook.md`](worlds-2026-champion-outlook.md).
 
+## Language routes
+
+VGC has one shared competition and three public language routes: English at
+`/worlds/2026/vgc`, Italian at `/it/worlds/2026`, and Spanish at
+`/es/worlds/2026`. The localized routes do not duplicate entries, results, odds,
+or community thresholds. They share the same database event and translate only
+the presentation layer.
+
+Each localized response declares its full `Content-Language`, publishes the
+matching canonical, alternate-language links, Open Graph locale, and structured
+data `inLanguage`, and scopes the page content with `lang`. The shared Worlds
+client also updates the browser document element to the active language and
+restores the previous language on navigation. This preserves the application's
+static root layout while preventing a Spanish or Italian client-side visit from
+leaving the document language set to English.
+
 The public Worlds hub and VGC page use the full 2026 Pokémon World
 Championships name in their search metadata and visible answers. They expose
 canonical URLs, social metadata, breadcrumb and event structured data, current
