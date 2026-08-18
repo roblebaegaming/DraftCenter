@@ -205,9 +205,17 @@ function TeamPerformancePanel({ summary }) {
       <div><span>Win rate</span><strong>{summary.winRate == null ? "—" : `${summary.winRate}%`}</strong><small>Decided games</small></div>
       <div><span>Current streak</span><strong>{streak}</strong><small>{summary.streak.count ? `${summary.streak.result === "win" ? "Win" : "Loss"} streak` : "No results yet"}</small></div>
       <div><span>Matches</span><strong>{summary.matchesLogged}</strong><small>Battle reports</small></div>
+      {summary.rating.gamesTracked > 0 && <div><span>Latest rating</span><strong>{summary.rating.latest ?? "—"}</strong><small>{summary.rating.totalChange >= 0 ? "+" : ""}{summary.rating.totalChange} tracked change</small></div>}
+      {summary.replayCount > 0 && <div><span>Replays</span><strong>{summary.replayCount}</strong><small>Private saved links</small></div>}
     </div>
     {summary.lastTen.length > 0 ? <div className="team-lab-last-ten"><span>Last {summary.lastTen.length}</span><div>{summary.lastTen.map((result, index) => <b key={`${result}-${index}`} className={`is-${result}`} aria-label={result}>{result === "win" ? "W" : result === "loss" ? "L" : "T"}</b>)}</div></div> : <p className="team-lab-performance-empty">Choose Win, Loss, or Tie in Battle Room and your team history will begin here.</p>}
-    {summary.games.length > 0 && <details><summary>Pokémon usage and leads</summary><div className="team-lab-performance-pokemon">{summary.pokemon.map((pokemon) => <article key={pokemon.name}><strong>{pokemon.name}</strong><span>{pokemon.broughtMatches} match{pokemon.broughtMatches === 1 ? "" : "es"} brought</span><small>{pokemon.leads} lead{pokemon.leads === 1 ? "" : "s"} · {pokemon.leadWins}–{pokemon.leadLosses} lead record{pokemon.megaMatches ? ` · ${pokemon.megaMatches} Mega` : ""}{pokemon.teraMatches ? ` · ${pokemon.teraMatches} Tera` : ""}</small></article>)}</div>{summary.opponentPokemon.length > 0 && <div className="team-lab-common-opponents"><span>Most-seen opposing Pokémon</span><div>{summary.opponentPokemon.slice(0, 8).map((pokemon) => <b key={pokemon.name}>{pokemon.name} · {pokemon.seenMatches}</b>)}</div></div>}</details>}
+    {summary.games.length > 0 && <details><summary>Sheet, matchup, and usage analytics</summary>
+      <div className="team-lab-sheet-performance"><article><span>Open team sheet</span><strong>{summary.sheetModes.open.wins}–{summary.sheetModes.open.losses}{summary.sheetModes.open.ties ? `–${summary.sheetModes.open.ties}` : ""}</strong><small>{summary.sheetModes.open.winRate == null ? "No decided games" : `${summary.sheetModes.open.winRate}% wins`} · {summary.sheetModes.open.games} game{summary.sheetModes.open.games === 1 ? "" : "s"}</small></article><article><span>Closed team sheet</span><strong>{summary.sheetModes.closed.wins}–{summary.sheetModes.closed.losses}{summary.sheetModes.closed.ties ? `–${summary.sheetModes.closed.ties}` : ""}</strong><small>{summary.sheetModes.closed.winRate == null ? "No decided games" : `${summary.sheetModes.closed.winRate}% wins`} · {summary.sheetModes.closed.games} game{summary.sheetModes.closed.games === 1 ? "" : "s"}</small></article></div>
+      <h4>Your Pokémon usage and leads</h4><div className="team-lab-performance-pokemon">{summary.pokemon.map((pokemon) => <article key={pokemon.name}><strong>{pokemon.name}</strong><span>{pokemon.broughtMatches} match{pokemon.broughtMatches === 1 ? "" : "es"} brought</span><small>{pokemon.leads} lead{pokemon.leads === 1 ? "" : "s"} · {pokemon.leadWins}–{pokemon.leadLosses} lead record{pokemon.megaMatches ? ` · ${pokemon.megaMatches} Mega` : ""}{pokemon.teraMatches ? ` · ${pokemon.teraMatches} Tera` : ""}</small></article>)}</div>
+      {summary.opponentPokemon.length > 0 && <div className="team-lab-opponent-matchups"><h4>Opposing-Pokémon matchup record</h4><div>{summary.opponentPokemon.map((pokemon) => <article key={pokemon.name}><strong>{pokemon.name}</strong><span>{pokemon.wins}–{pokemon.losses}{pokemon.ties ? `–${pokemon.ties}` : ""}</span><small>{pokemon.winRate == null ? "No completed match decisions" : `${pokemon.winRate}% wins`} · seen in {pokemon.seenMatches}</small></article>)}</div></div>}
+      {summary.moveUsage.length > 0 && <div className="team-lab-move-usage"><h4>Recorded move usage</h4><div>{summary.moveUsage.slice(0, 24).map((usage) => <article key={`${usage.side}-${usage.pokemon}-${usage.move}`}><span>{usage.side === "my" ? "Your side" : "Opponent"}</span><strong>{usage.pokemon} · {usage.move}</strong><small>{usage.uses} use{usage.uses === 1 ? "" : "s"} across {usage.games} game{usage.games === 1 ? "" : "s"}{usage.winRate == null ? "" : ` · ${usage.winRate}% wins when used`}</small></article>)}</div></div>}
+      {(summary.replayCount > 0 || summary.rating.gamesTracked > 0) && <div className="team-lab-game-history"><h4>Ratings and replays</h4><div>{summary.games.filter((game) => game.replayUrl || game.eloBefore != null || game.eloAfter != null).map((game) => <article key={`${game.matchupId}-${game.game}`}><strong>{game.weekLabel || game.opponentName || "Saved match"} · Game {game.game}</strong><span>{game.eloBefore != null || game.eloAfter != null ? `${game.eloBefore ?? "—"} → ${game.eloAfter ?? "—"}` : "No rating"}</span>{game.replayUrl && <a href={game.replayUrl} target="_blank" rel="noreferrer">Open replay</a>}</article>)}</div></div>}
+    </details>}
   </section>;
 }
 
@@ -605,7 +613,7 @@ function BattleMode({ matchup, matchups, myTeam, formatName, supabase, onSaved, 
       return;
     }
     try {
-      const liveMatchups = matchups.map((item) => item.id === matchup.id ? { ...item, battle_report: report } : item);
+      const liveMatchups = matchups.map((item) => item.id === matchup.id ? { ...item, battle_report: report, sheet_mode: sheetMode, week_label: weekLabel } : item);
       const performance = buildTeamLabPerformanceSummary(liveMatchups, myTeam.pokemon);
       await onStartNextMatch({
         formatId: matchup.format_id,
@@ -693,7 +701,7 @@ function BattleMode({ matchup, matchups, myTeam, formatName, supabase, onSaved, 
   const seriesSummary = summarizeTeamLabSeries(report.series);
   const currentGameNumber = Math.min(report.series.best_of, Math.max(1, report.turn_log.current_game || 1));
   const currentGame = report.series.games.find((game) => game.game === currentGameNumber) || report.series.games[0];
-  const livePerformance = buildTeamLabPerformanceSummary(matchups.map((item) => item.id === matchup.id ? { ...item, battle_report: report } : item), myTeam.pokemon);
+  const livePerformance = buildTeamLabPerformanceSummary(matchups.map((item) => item.id === matchup.id ? { ...item, battle_report: report, sheet_mode: sheetMode, week_label: weekLabel } : item), myTeam.pokemon);
   function setCurrentGameResult(result) {
     setReport((current) => ({
       ...current,

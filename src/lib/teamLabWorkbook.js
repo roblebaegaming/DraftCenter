@@ -76,7 +76,7 @@ export function buildTeamLabWorkbookSheets({
     ? "Tera type"
     : teamBattleMechanic?.id === "mega" ? "Mega evolved" : "Format mechanic";
   const performanceMatchups = matchups.map((matchup) => matchup.id === activeMatchupId && activeState?.report
-    ? { ...matchup, battle_report: activeState.report }
+    ? { ...matchup, battle_report: activeState.report, sheet_mode: activeState.sheetMode, week_label: activeState.weekLabel }
     : matchup);
   const performance = buildTeamLabPerformanceSummary(performanceMatchups, myTeam?.pokemon || []);
 
@@ -96,7 +96,7 @@ export function buildTeamLabWorkbookSheets({
       ["Current sheet type", activeMatchup ? sheetModeForMatchup(activeMatchup, activeMatchupId, activeState) : ""],
       ["Exported", exportDate],
       [],
-      ["How to use", "Use Performance for the team record and usage, Matchup Plans for the weekly overview, Opponent Sets for revealed information, Turn Log for battle review, and Game Plans for each game."],
+      ["How to use", "Use Performance for the team record and usage, Game Results for replay and rating history, Matchup Stats for opposing-Pokémon results, Move Usage for aggregate actions, and the planning sheets for private review."],
     ],
     headerRow: 3,
     widths: [31, 100],
@@ -118,6 +118,14 @@ export function buildTeamLabWorkbookSheets({
       [],
       ["Pokémon", "Matches brought", "Leads", "Lead wins", "Lead losses", "Mega Evolutions", "Tera uses"],
       ...(performance.pokemon.length ? performance.pokemon.map((pokemon) => [pokemon.name, pokemon.broughtMatches, pokemon.leads, pokemon.leadWins, pokemon.leadLosses, pokemon.megaMatches, pokemon.teraMatches]) : [["No completed games yet"]]),
+      [],
+      ["Sheet type", "Record", "Win rate", "Games"],
+      ["Open team sheet", `${performance.sheetModes.open.wins}-${performance.sheetModes.open.losses}${performance.sheetModes.open.ties ? `-${performance.sheetModes.open.ties}` : ""}`, performance.sheetModes.open.winRate == null ? "" : `${performance.sheetModes.open.winRate}%`, performance.sheetModes.open.games],
+      ["Closed team sheet", `${performance.sheetModes.closed.wins}-${performance.sheetModes.closed.losses}${performance.sheetModes.closed.ties ? `-${performance.sheetModes.closed.ties}` : ""}`, performance.sheetModes.closed.winRate == null ? "" : `${performance.sheetModes.closed.winRate}%`, performance.sheetModes.closed.games],
+      [],
+      ["Latest tracked rating", performance.rating.latest ?? ""],
+      ["Tracked rating change", performance.rating.gamesTracked ? performance.rating.totalChange : ""],
+      ["Saved replay links", performance.replayCount],
     ],
     headerRow: 10,
     widths: [25, 18, 12, 14, 14, 18, 13],
@@ -236,11 +244,50 @@ export function buildTeamLabWorkbookSheets({
     [17, 23, 9, 9, 12, 12, 23, 23, 22, 25, 14, 46],
   );
 
+  const gameResults = workbookSheet(
+    "Game Results",
+    `Game Results — ${teamName}`,
+    "One row per completed Battle Room game, including private replay links and optional rating movement.",
+    ["Week / round", "Opponent", "Sheet", "Game", "Result", "Replay URL", "Rating before", "Rating after", "Rating change", "Your lead", "Opposing lead"],
+    performance.games.map((game) => [
+      game.weekLabel,
+      game.opponentName,
+      game.sheetMode === "open" ? "Open" : "Closed",
+      game.game,
+      game.result,
+      game.replayUrl,
+      game.eloBefore ?? "",
+      game.eloAfter ?? "",
+      game.eloBefore != null && game.eloAfter != null ? game.eloAfter - game.eloBefore : "",
+      game.myLead,
+      game.opponentLead,
+    ]),
+    [17, 24, 10, 9, 11, 58, 15, 15, 15, 23, 23],
+  );
+
+  const matchupStats = workbookSheet(
+    "Matchup Stats",
+    `Matchup Stats — ${teamName}`,
+    "Series-level record when each opposing Pokémon was marked as seen. Incomplete series do not add a win, loss, or tie.",
+    ["Opposing Pokémon", "Matches seen", "Wins", "Losses", "Ties", "Win rate"],
+    performance.opponentPokemon.map((pokemon) => [pokemon.name, pokemon.seenMatches, pokemon.wins, pokemon.losses, pokemon.ties, pokemon.winRate == null ? "" : `${pokemon.winRate}%`]),
+    [26, 15, 11, 11, 11, 14],
+  );
+
+  const moveUsage = workbookSheet(
+    "Move Usage",
+    `Move Usage — ${teamName}`,
+    "Aggregate counts from recorded Battle Room move actions. Game record counts a result once per move per game, even when the move was used repeatedly.",
+    ["Side", "Pokémon", "Move", "Uses", "Games used", "Wins", "Losses", "Ties", "Win rate"],
+    performance.moveUsage.map((usage) => [usage.side === "my" ? "My side" : "Opponent", usage.pokemon, usage.move, usage.uses, usage.games, usage.wins, usage.losses, usage.ties, usage.winRate == null ? "" : `${usage.winRate}%`]),
+    [13, 25, 25, 11, 13, 10, 10, 10, 14],
+  );
+
   const gamePlans = workbookSheet(
     "Game Plans",
     `Game Plans — ${teamName}`,
     "Saved per-game plans, results, and between-game adjustments. Legacy reports receive three editable starter rows.",
-    ["Week / round", "Opponent", "Sheet", "Game", "Result", "Planned lead", "Opposing lead", "Game plan", "Next-game adjustment", "Preparation notes"],
+    ["Week / round", "Opponent", "Sheet", "Game", "Result", "Planned lead", "Opposing lead", "Game plan", "Next-game adjustment", "Preparation notes", "Replay URL", "Rating before", "Rating after"],
     matchups.flatMap((matchup) => {
       const report = reportForMatchup(matchup, activeMatchupId, activeState);
       const games = report.series?.games?.length ? report.series.games : Array.from({ length: WORKBOOK_GAME_PLAN_COUNT }, (_, index) => ({ game: index + 1 }));
@@ -255,12 +302,15 @@ export function buildTeamLabWorkbookSheets({
         text(game.plan),
         text(game.adjustments),
         index === 0 ? text(matchup.notes) : "",
+        text(game.replay_url),
+        game.elo_before ?? "",
+        game.elo_after ?? "",
       ]);
     }),
-    [17, 23, 10, 9, 12, 23, 23, 55, 45, 48],
+    [17, 23, 10, 9, 12, 23, 23, 55, 45, 48, 58, 15, 15],
   );
 
-  return [overview, performanceSheet, myTeamSheet, matchupPlans, opponentSets, turnLog, gamePlans];
+  return [overview, performanceSheet, gameResults, matchupStats, moveUsage, myTeamSheet, matchupPlans, opponentSets, turnLog, gamePlans];
 }
 
 export function buildTeamLabWorkbookFilename(teamName, exportedAt = new Date()) {

@@ -505,27 +505,35 @@ test("Battle Room summaries roll completed games into team records, streaks, lea
   const summary = buildTeamLabPerformanceSummary([{
     id: "match-1",
     format_id: "reg-j",
+    sheet_mode: "open",
     opponent_name: "First opponent",
     created_at: "2026-08-17T10:00:00.000Z",
     battle_report: {
       my_pokemon: [{ name: "Garchomp", brought: true }, { name: "Corviknight", brought: true }],
       opponent_pokemon: [{ name: "Rotom-Wash", brought: true }],
       series: { games: [
-        { game: 1, result: "win", my_lead: "Garchomp", opponent_lead: "Rotom-Wash" },
-        { game: 2, result: "loss", my_lead: "Corviknight", opponent_lead: "Rotom-Wash" },
+        { game: 1, result: "win", my_lead: "Garchomp", opponent_lead: "Rotom-Wash", replay_url: "https://replay.pokemonshowdown.com/test-1", elo_before: 1500, elo_after: 1520 },
+        { game: 2, result: "loss", my_lead: "Corviknight", opponent_lead: "Rotom-Wash", replay_url: "javascript:alert(1)", elo_before: -1, elo_after: "not-a-rating" },
         { game: 3, result: "win", my_lead: "Garchomp", opponent_lead: "Rotom-Wash" },
+      ] },
+      turn_log: { events: [
+        { game: 1, kind: "move", side: "my", pokemon: "Garchomp", move: "Earthquake" },
+        { game: 1, kind: "move", side: "my", pokemon: "Garchomp", move: "Earthquake" },
+        { game: 2, kind: "move", side: "opponent", pokemon: "Rotom-Wash", move: "Hydro Pump" },
       ] },
       battle_state: { my_side: { pokemon: [{ name: "Garchomp", terastallized: true }] } },
     },
   }, {
     id: "match-2",
     format_id: "reg-j",
+    sheet_mode: "closed",
     opponent_name: "Second opponent",
     created_at: "2026-08-17T11:00:00.000Z",
     battle_report: {
       my_pokemon: [{ name: "Garchomp", brought: true }, { name: "Corviknight", brought: false }],
       opponent_pokemon: [{ name: "Amoonguss", brought: true }, { name: "Rotom-Wash", brought: true }],
       series: { games: [{ game: 1, result: "loss", my_lead: "Garchomp", opponent_lead: "Amoonguss" }] },
+      turn_log: { events: [{ game: 1, kind: "move", side: "my", pokemon: "Garchomp", move: "Earthquake" }] },
       battle_state: { my_side: { pokemon: [{ name: "Garchomp", terastallized: false }] } },
     },
   }], ["Garchomp", "Corviknight"]);
@@ -533,7 +541,12 @@ test("Battle Room summaries roll completed games into team records, streaks, lea
   assert.deepEqual(summary.lastTen, ["win", "loss", "win", "loss"]);
   assert.deepEqual(summary.streak, { result: "loss", count: 1 });
   assert.deepEqual(summary.pokemon.find((pokemon) => pokemon.name === "Garchomp"), { name: "Garchomp", broughtMatches: 2, leads: 3, leadWins: 2, leadLosses: 1, teraMatches: 1, megaMatches: 0 });
-  assert.deepEqual(summary.opponentPokemon[0], { name: "Rotom-Wash", seenMatches: 2 });
+  assert.deepEqual(summary.opponentPokemon[0], { name: "Rotom-Wash", seenMatches: 2, wins: 1, losses: 1, ties: 0, winRate: 50 });
+  assert.deepEqual(summary.sheetModes.open, { games: 3, wins: 2, losses: 1, ties: 0, winRate: 66.7 });
+  assert.deepEqual(summary.sheetModes.closed, { games: 1, wins: 0, losses: 1, ties: 0, winRate: 0 });
+  assert.deepEqual(summary.rating, { gamesTracked: 1, latest: 1520, totalChange: 20 });
+  assert.equal(summary.replayCount, 1);
+  assert.deepEqual(summary.moveUsage.find((usage) => usage.pokemon === "Garchomp" && usage.move === "Earthquake"), { side: "my", pokemon: "Garchomp", move: "Earthquake", uses: 3, wins: 1, losses: 1, ties: 0, games: 2, winRate: 50 });
 
   const champions = buildTeamLabPerformanceSummary([{
     id: "champions-match",
@@ -572,7 +585,9 @@ test("Battle Mode normalizes weekly teams and revealed moves without mixing priv
       events: [{ id: "turn-four", game: 1, turn: 4, kind: "move", side: "opponent", pokemon: "Rotom-Wash", target: "Garchomp", move: "Hydro Pump", damage: "43%", note: "Private roll note" }],
     },
   }, ["Garchomp", "Corviknight"], ["Rotom-Wash", "Amoonguss"], new Set(["Garchomp", "Corviknight", "Rotom-Wash", "Amoonguss"]));
-  assert.equal(report.version, 2);
+  assert.equal(report.version, 3);
+  assert.equal(report.series.version, 2);
+  assert.deepEqual(report.series.games[0], { game: 1, result: "pending", my_lead: "", opponent_lead: "", plan: "", adjustments: "", replay_url: "", elo_before: null, elo_after: null });
   assert.deepEqual(report.my_pokemon, [{ name: "Garchomp", brought: true, fainted: false }]);
   assert.equal(report.opponent_pokemon[0].moves.length, TEAM_LAB_BATTLE_MOVE_LIMIT);
   assert.deepEqual(report.opponent_pokemon[0].moves, ["Hydro Pump", "Volt Switch", "Protect", "Will-O-Wisp"]);
@@ -631,20 +646,23 @@ test("Team Lab workbook data separates complete sets, matchups, reveals, turns, 
         my_pokemon: [{ name: "Garchomp", brought: true, fainted: false }],
         opponent_pokemon: [{ name: "Rotom-Wash", brought: true, fainted: false, ability: "Levitate", item: "Choice Scarf", moves: ["Volt Switch"] }],
         battle_notes: "Save the Ground immunity for Game 2",
-        turn_log: { events: [{ game: 1, turn: 1, side: "opponent", kind: "item", pokemon: "Rotom-Wash", target: "", move: "", detail: "Choice Scarf", damage: "", note: "Speed order" }] },
-        series: { best_of: 3, games: [{ game: 1, result: "win", my_lead: "Garchomp", opponent_lead: "Rotom-Wash", plan: "Lead Scarf", adjustments: "Preserve Garchomp" }, { game: 2, result: "pending", my_lead: "Corviknight", opponent_lead: "Rotom-Wash", plan: "Change lead", adjustments: "" }, { game: 3, result: "pending", my_lead: "", opponent_lead: "", plan: "", adjustments: "" }] },
+        turn_log: { events: [{ game: 1, turn: 1, side: "opponent", kind: "item", pokemon: "Rotom-Wash", target: "", move: "", detail: "Choice Scarf", damage: "", note: "Speed order" }, { game: 1, turn: 2, side: "my", kind: "move", pokemon: "Garchomp", target: "Rotom-Wash", move: "Earthquake", detail: "", damage: "KO", note: "" }] },
+        series: { best_of: 3, games: [{ game: 1, result: "win", my_lead: "Garchomp", opponent_lead: "Rotom-Wash", plan: "Lead Scarf", adjustments: "Preserve Garchomp", replay_url: "https://replay.pokemonshowdown.com/quarterfinal-1", elo_before: 1600, elo_after: 1624 }, { game: 2, result: "pending", my_lead: "Corviknight", opponent_lead: "Rotom-Wash", plan: "Change lead", adjustments: "", replay_url: "", elo_before: null, elo_after: null }, { game: 3, result: "pending", my_lead: "", opponent_lead: "", plan: "", adjustments: "", replay_url: "", elo_before: null, elo_after: null }] },
         battle_state: { weather: "rain", terrain: "", my_side: { pokemon: [{ name: "Garchomp", mega_evolved: true }] } },
       },
     },
     formatName: "Mega Battle",
     exportedAt: new Date("2026-08-15T12:00:00.000Z"),
   });
-  assert.deepEqual(sheets.map(({ name }) => name), ["Overview", "Performance", "My Team", "Matchup Plans", "Opponent Sets", "Turn Log", "Game Plans"]);
+  assert.deepEqual(sheets.map(({ name }) => name), ["Overview", "Performance", "Game Results", "Matchup Stats", "Move Usage", "My Team", "Matchup Plans", "Opponent Sets", "Turn Log", "Game Plans"]);
   assert.ok(sheets.every((sheet) => sheet.rows.length >= 5 && sheet.widths.length >= 2));
   assert.deepEqual(sheets.find(({ name }) => name === "Opponent Sets").rows[4].slice(0, 6), ["Quarterfinal", "Test Coach", "Rotom-Wash", "Open", "Levitate", "Choice Scarf"]);
   assert.deepEqual(sheets.find(({ name }) => name === "Turn Log").rows[4].slice(0, 10), ["Quarterfinal", "Test Coach", 1, 1, "Opponent", "item", "Rotom-Wash", "", "", "Choice Scarf"]);
   assert.deepEqual(sheets.find(({ name }) => name === "My Team").rows[4].slice(0, 8), ["Garchomp", "Yes", "No", 50, "Rough Skin", "Garchompite", "Jolly", "Yes"]);
   assert.deepEqual(sheets.find(({ name }) => name === "Game Plans").rows[4].slice(3, 9), [1, "win", "Garchomp", "Rotom-Wash", "Lead Scarf", "Preserve Garchomp"]);
+  assert.deepEqual(sheets.find(({ name }) => name === "Game Results").rows[4].slice(0, 9), ["Quarterfinal", "Test Coach", "Open", 1, "win", "https://replay.pokemonshowdown.com/quarterfinal-1", 1600, 1624, 24]);
+  assert.deepEqual(sheets.find(({ name }) => name === "Matchup Stats").rows[4], ["Rotom-Wash", 1, 0, 0, 0, ""]);
+  assert.deepEqual(sheets.find(({ name }) => name === "Move Usage").rows[4], ["My side", "Garchomp", "Earthquake", 1, 1, 1, 0, 0, "100%"]);
   assert.deepEqual(sheets.find(({ name }) => name === "Performance").rows[3], ["Record", "1-0"]);
   assert.deepEqual(sheets.find(({ name }) => name === "Performance").rows[11], ["Garchomp", 1, 1, 1, 0, 1, 0]);
   assert.equal(sheets.find(({ name }) => name === "Game Plans").rows.length, 7);
@@ -665,9 +683,11 @@ test("Team Lab is indexable while account notes and matchups stay private", () =
   const liveMigration = fs.readFileSync(new URL("../supabase/404-team-lab-live-workflow.sql", import.meta.url), "utf8");
   const recoveryMigration = fs.readFileSync(new URL("../supabase/405-team-lab-recovery-compatibility.sql", import.meta.url), "utf8");
   const sixPokemonMigration = fs.readFileSync(new URL("../supabase/migrations/20260817110000_424_team_lab_six_pokemon_matchups.sql", import.meta.url), "utf8");
+  const analyticsMigration = fs.readFileSync(new URL("../supabase/migrations/20260818015000_434_private_team_lab_battle_analytics.sql", import.meta.url), "utf8");
   const liveRegression = fs.readFileSync(new URL("../supabase/tests/404-team-lab-live-workflow-preview-regression.sql", import.meta.url), "utf8");
   const recoveryRegression = fs.readFileSync(new URL("../supabase/tests/405-team-lab-recovery-compatibility-preview-regression.sql", import.meta.url), "utf8");
   const sixPokemonRegression = fs.readFileSync(new URL("../supabase/tests/424-team-lab-six-pokemon-preview-regression.sql", import.meta.url), "utf8");
+  const analyticsRegression = fs.readFileSync(new URL("../supabase/tests/434-private-team-lab-battle-analytics-preview-regression.sql", import.meta.url), "utf8");
   const setEditor = fs.readFileSync(new URL("../src/components/TeamLabSetEditor.jsx", import.meta.url), "utf8");
   const battleTools = fs.readFileSync(new URL("../src/components/TeamLabBattleTools.jsx", import.meta.url), "utf8");
   const opponentEditor = fs.readFileSync(new URL("../src/components/TeamLabOpponentEditor.jsx", import.meta.url), "utf8");
@@ -743,6 +763,9 @@ test("Team Lab is indexable while account notes and matchups stay private", () =
   assert.match(setEditor, /Champions formats do not use Tera types/);
   assert.match(setEditor, /usesTera && <label>Tera type/);
   assert.match(battleTools, /Best of 3/);
+  assert.match(battleTools, /Replay URL/);
+  assert.match(battleTools, /Rating before/);
+  assert.match(battleTools, /Rating after/);
   assert.match(battleTools, /mechanic\.id === "mega" \? "Mega evolved" : "Tera"/);
   assert.match(battleTools, /HP, status, field effects\{mechanic \? `, and \$\{mechanic\.label\}` : ""\}/);
   assert.match(battleTools, /Planning estimate only/);
@@ -811,6 +834,12 @@ test("Team Lab is indexable while account notes and matchups stay private", () =
   assert.match(sixPokemonRegression, /v_null_mode_denied/);
   assert.match(sixPokemonRegression, /v_cross_owner_denied/);
   assert.match(sixPokemonRegression, /rollback;/);
+  assert.match(analyticsMigration, /create or replace function public\.is_valid_team_lab_series_v2/);
+  assert.match(analyticsMigration, /game ->> 'replay_url' !~\* '\^https:\/\//);
+  assert.match(analyticsMigration, /when '3' then/);
+  assert.match(analyticsMigration, /revoke all on function public\.is_valid_team_lab_series_v2/);
+  assert.match(analyticsRegression, /A non-HTTPS replay URL was accepted/);
+  assert.match(analyticsRegression, /rollback;/);
   assert.match(opponentEditor, /Known or likely ability/);
   assert.match(opponentEditor, /Known or likely item/);
   assert.match(opponentEditor, /TeamLabSuggestedMoves/);
