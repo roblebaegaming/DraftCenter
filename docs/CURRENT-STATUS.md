@@ -253,18 +253,21 @@ not be resumed until the owner explicitly requests it.
 1. Show the completed private Tournament Organizer Demo and its four captures
    to the tournament operator; preserve the finished event until the owner
    explicitly asks to reset it.
-2. Reconstruct the supplied week-four four-pod league only after a dry-run
+2. Prepare but do not launch the gated commissioner-focused Google Search
+   experiment in the current acquisition handoff. No ad account, tag, billing,
+   campaign, or spend change is authorized.
+3. Reconstruct the supplied week-four four-pod league only after a dry-run
    reconciliation of both source spreadsheets and explicit Production-write
    approval.
-3. Run the scheduled aggregate-only attribution review at 09:00 Pacific on
+4. Run the scheduled aggregate-only attribution review at 09:00 Pacific on
    August 19 without inspecting or reporting individual identity or activity.
-4. Use the released activation, import, replay, and weekly-health workflows to
+5. Use the released activation, import, replay, and weekly-health workflows to
    support complete commissioner seasons before opening another broad feature
    area.
-5. Recruit lighthouse commissioners only after the owner approves the exact
+6. Recruit lighthouse commissioners only after the owner approves the exact
    audience, message, destination, and reply path.
-6. Keep PokeEarth paused until the owner directly requests resumption.
-7. Keep GO Meta Picks closed until an official eligibility pool is reviewed.
+7. Keep PokeEarth paused until the owner directly requests resumption.
+8. Keep GO Meta Picks closed until an official eligibility pool is reviewed.
 
 The aggregate-only attribution review remains scheduled for 09:00 Pacific on
 August 19, 2026. Do not inspect or report individual identity or activity.
@@ -283,6 +286,8 @@ August 19, 2026. Do not inspect or report individual identity or activity.
 
 ## Authoritative records
 
+- Current acquisition-strategy handoff:
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-18-google-ads-readiness.md`](handoffs/DraftCenter-agent-handoff-2026-08-18-google-ads-readiness.md)
 - Current release and continuation handoff:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-18-private-tournament-organizer-demo.md`](handoffs/DraftCenter-agent-handoff-2026-08-18-private-tournament-organizer-demo.md)
 - Previous reload/resume and battle-reporting handoff:

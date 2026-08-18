@@ -1,7 +1,13 @@
 # Agent handoffs
 
+[`DraftCenter-agent-handoff-2026-08-18-google-ads-readiness.md`](DraftCenter-agent-handoff-2026-08-18-google-ads-readiness.md)
+is the current acquisition-strategy handoff. It recommends preparing but not
+yet launching a small commissioner-focused Google Search experiment, records
+the measurement, privacy, landing-page, policy, and owner-approval gates, and
+preserves the rule that no campaign or spend is authorized.
+
 [`DraftCenter-agent-handoff-2026-08-18-private-tournament-organizer-demo.md`](DraftCenter-agent-handoff-2026-08-18-private-tournament-organizer-demo.md)
-is the current release and continuation handoff. It records the private
+is the current release handoff. It records the private
 Tournament Organizer Demo mode, maximum 32-seat Auction Swiss Production
 showcase, synthetic-entry boundaries, migration 439 and its history
 reconciliation, presentation captures, and the supplied four-pod league source
