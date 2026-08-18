@@ -13,7 +13,7 @@ DraftCenter helps communities configure leagues, run snake and auction drafts, m
 - [Team Lab Pokémon team builder and private Battle Room](https://www.draftcentral.gg/team-lab)
 - [Replayable Pokémon Mega Brackets](https://www.draftcentral.gg/tools/mega-bracket)
 - [Free downloadable tournament bracket maker](https://www.draftcentral.gg/tools/bracket-builder)
-- [Pokédex Tracker for every supported game and Pokémon HOME](https://www.draftcentral.gg/pokedex-tracker)
+- [Pokédex Tracker for every supported game, Pokémon GO, and Pokémon HOME](https://www.draftcentral.gg/pokedex-tracker)
 - [Public Pokémon catalog](https://www.draftcentral.gg/pokemon)
 - [Pokémon Daily Games](https://www.draftcentral.gg/resources/daily-games)
 - [Public leagues](https://www.draftcentral.gg/leagues)

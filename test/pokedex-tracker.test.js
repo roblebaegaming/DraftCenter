@@ -588,7 +588,7 @@ test("the public Tracker landing has complete, privacy-safe SEO and discovery co
   const policy = source("docs/public-indexing-policy.md");
   const smoke = source("scripts/production-smoke.mjs");
 
-  assert.match(route, /title: "Pokédex Tracker for Every Pokémon Game and HOME"/);
+  assert.match(route, /title: "Pokédex Tracker for Every Pokémon Game, GO and HOME"/);
   assert.match(route, /alternates: \{ canonical: "\/pokedex-tracker" \}/);
   assert.match(route, /openGraph:/);
   assert.match(route, /twitter:/);
@@ -600,10 +600,10 @@ test("the public Tracker landing has complete, privacy-safe SEO and discovery co
   assert.match(social, /PokedexTrackerSocialPreview/);
   assert.match(social, /width: 1200, height: 630/);
   assert.match(socialPreview, /921 of 1,025 registered/);
-  assert.match(socialPreview, /Balls · Ribbons · Notes/);
+  assert.match(socialPreview, /Forms · Balls · Ribbons · Marks/);
   assert.match(socialPreview, /My Living Dex/);
   assert.match(sitemap, /\["\/pokedex-tracker", "weekly", 0\.9\]/);
-  assert.match(llms, /Pokédex Tracker for every supported game and Pokémon HOME/);
+  assert.match(llms, /Pokédex Tracker for every supported game, Pokémon GO, and Pokémon HOME/);
   assert.match(llms, /never published as account-specific search pages/);
   assert.match(resources, /href="\/pokedex-tracker"/);
   assert.match(pokemon, /href="\/pokedex-tracker">Start a Pokédex Tracker/);

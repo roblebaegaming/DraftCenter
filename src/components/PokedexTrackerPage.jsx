@@ -960,7 +960,7 @@ export default function PokedexTrackerPage() {
     <section className="dex-tracker-signin">
       <span className="dex-kicker">YOUR POKÉDEXES</span>
       <h1>Keep every game dex in one place.</h1>
-      <p>Sign in to track each game and DLC area, link that progress to a National Dex, and keep separate shiny or supported Legends Alpha lists.</p>
+      <p>Sign in to track numbered and postgame Pokédexes, Pokémon GO, forms, marks, shinies, supported Legends Alpha lists, and the Pokémon you are still hunting.</p>
       <div><a className="dex-primary-button" href="/#member-access">Sign in to start</a><a className="dex-secondary-button" href="/pokemon">Explore the Pokédex</a></div>
     </section>
   </main>;
