@@ -40,7 +40,10 @@ its separate browser-only contract.
    and keeps a private battle note.
 5. A connected My Teams workspace can store complete private sets: nickname,
    level, gender, ability, item, nature, shiny and happiness flags,
-   EVs, IVs, four moves, role, and private notes. PokéPaste or Pokémon Showdown
+   EVs, format-supported IVs, four moves, role, and private notes. Pokémon
+   Champions set editing is EV-only because that game does not use IVs; IV
+   values in a Champions import are ignored and normalized to the neutral
+   export default. PokéPaste or Pokémon Showdown
    text can be loaded from an authenticated PokéPaste URL or pasted into the
    builder, and the roster can be copied back in Pokémon Showdown format. Saved
    own-team moves become one-tap choices in
@@ -50,21 +53,27 @@ its separate browser-only contract.
    available only for Scarlet/Violet formats. Pokémon Champions and supported
    Generation VI formats use Mega Evolution instead; the chosen Mega Pokémon
    and its held Mega Stone define the saved set.
-6. Battle Mode places the opponent team above the turn recorder. Its six
-   Pokémon are compact rows; opening one reveals its Seen/Fainted controls,
-   ability, held item, and four move fields. Closed sheet mode adds Pokémon and
-   details only as they appear. Open sheet mode can privately import a
-   PokéPaste URL or pasted Showdown team before turn actions are recorded.
-7. The turn recorder keeps the active Pokémon, current game and turn, moves,
-   ability and held-item reveals, switches, faints, written damage, and short
-   action notes in one quick-entry panel. The opponent roster is a one-tap row
-   for fast closed-sheet capture. A closed sheet accepts a move, ability, or
-   item the first time it is seen and then remembers it. An open sheet also
-   offers saved sheet details as tap targets.
+6. Battle Mode places the opponent team above the turn recorder. All six
+   Pokémon remain visible as a compact phone-friendly grid with direct
+   **Brought** and **Out** controls. Selecting one opens a single detail panel
+   below the intact roster for its ability, held item, and four move fields.
+   Closed sheet mode adds Pokémon and details only as they appear. Open sheet
+   mode can privately import a PokéPaste URL or pasted Showdown team before
+   turn actions are recorded.
+7. The turn recorder starts with a four-slot doubles board: the opponent's two
+   active Pokémon are on top and the coach's two active Pokémon are closest to
+   the bottom. Each field card keeps known moves visible as direct tap targets;
+   opposing field cards become direct targets, and **Change** and **Out**
+   handle switches and faints without walking through the full form. The
+   existing quick-entry panel remains available for moves, ability and
+   held-item reveals, switches, faints, written damage, and short action notes.
+   Two active slots per side are saved in backward-compatible turn-log fields;
+   existing single-active reports open with their saved Pokémon in slot one.
 8. Every Battle Mode change is locally autosaved in the current browser after
-   a short delay and on page exit. Reopening the same matchup offers to restore
-   that draft. If the cloud report changed after the local draft began, the
-   restore prompt identifies the conflict before anything can be saved over it.
+   a short delay and on page exit. Reopening the same matchup shows a
+   non-blocking inline recovery banner with **Restore draft** and **Keep saved
+   report** actions. If the cloud report changed after the local draft began,
+   the banner identifies the conflict before anything can be saved over it.
    **Save battle report** remains the explicit cross-device account save.
 9. Timeline actions support **Undo last action**, per-action **Edit**, and
    removal. Corrections reconcile a faint, move, ability, or item fact only when

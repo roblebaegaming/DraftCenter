@@ -36,6 +36,7 @@ import {
   replaceTeamLabBattleOpponentRoster,
   summarizeTeamLabSeries,
   teamLabBattleMechanicForFormat,
+  teamLabFormatUsesIvs,
   parseTeamLabLeagueMatchupHandoff,
   parseTeamLabMatchupHandoff,
   TEAM_LAB_ABILITY_LIMIT,
@@ -418,12 +419,26 @@ test("turn recorder keeps bounded roster-aware moves, damage, switches, faints, 
   assert.equal(log.current_turn, TEAM_LAB_TURN_EVENT_LIMIT + 2);
   assert.equal(log.active_my_pokemon, "Garchomp");
   assert.equal(log.active_opponent_pokemon, "");
+  assert.deepEqual(log.active_my_pokemon_slots, ["Garchomp", ""]);
+  assert.deepEqual(log.active_opponent_pokemon_slots, ["", ""]);
   assert.equal(new Set(log.events.map((event) => event.id)).size, log.events.length);
   assert.ok(log.events.some((event) => event.kind === "note" && event.note === "Remember the damage roll"));
   const move = log.events.find((event) => event.kind === "move");
   assert.equal(move.damage.length, TEAM_LAB_TURN_DAMAGE_LIMIT);
   assert.equal(move.note.length, TEAM_LAB_TURN_NOTE_LIMIT);
   assert.ok(!log.events.some((event) => event.pokemon === "MissingNo"));
+  const doubles = normalizeTeamLabTurnLog({
+    current_game: 1,
+    current_turn: 1,
+    active_my_pokemon: "Corviknight",
+    active_opponent_pokemon: "Rotom-Wash",
+    active_my_pokemon_slots: ["Garchomp", "Corviknight", "MissingNo"],
+    active_opponent_pokemon_slots: ["Rotom-Wash", "Amoonguss", "Rotom-Wash"],
+    events: [],
+  }, ["Garchomp", "Corviknight"], ["Rotom-Wash", "Amoonguss"], catalog);
+  assert.deepEqual(doubles.active_my_pokemon_slots, ["Garchomp", "Corviknight"]);
+  assert.deepEqual(doubles.active_opponent_pokemon_slots, ["Rotom-Wash", "Amoonguss"]);
+  assert.equal(doubles.active_my_pokemon, "Corviknight");
   const multiGame = normalizeTeamLabTurnLog({
     version: 1,
     current_game: 2,
@@ -458,6 +473,9 @@ test("battle actions can be corrected without erasing facts supported by remaini
   const afterSecond = applyTeamLabTurnEvent(afterFirst, secondMove);
   assert.deepEqual(afterSecond.opponent_pokemon[0].moves, ["Hydro Pump"]);
   assert.equal(afterSecond.my_pokemon[0].fainted, true);
+  assert.deepEqual(afterFirst.turn_log.active_opponent_pokemon_slots, ["Rotom-Wash", ""]);
+  assert.deepEqual(afterFirst.turn_log.active_my_pokemon_slots, ["Garchomp", ""]);
+  assert.deepEqual(afterSecond.turn_log.active_my_pokemon_slots, ["", ""]);
   const withoutFirst = removeTeamLabTurnEvent(afterSecond, "move-1");
   assert.deepEqual(withoutFirst.opponent_pokemon[0].moves, ["Hydro Pump"]);
   assert.equal(withoutFirst.my_pokemon[0].fainted, true);
@@ -511,6 +529,10 @@ test("Battle Room mechanics follow the selected game instead of treating every f
   assert.equal(teamLabBattleMechanicForFormat("sv-full-dex")?.id, "tera");
   assert.equal(teamLabBattleMechanicForFormat("vgc2022"), null);
   assert.equal(teamLabBattleMechanicForFormat("national-gen9"), null);
+  assert.equal(teamLabFormatUsesIvs("reg-mb"), false);
+  assert.equal(teamLabFormatUsesIvs("reg-ma"), false);
+  assert.equal(teamLabFormatUsesIvs("vgc2016"), true);
+  assert.equal(teamLabFormatUsesIvs("reg-j"), true);
 });
 
 test("Battle Room summaries roll completed games into team records, streaks, leads, usage, and format mechanics", () => {
@@ -794,25 +816,35 @@ test("Team Lab is indexable while account notes and matchups stay private", () =
   assert.match(component, /TEAM PERFORMANCE/);
   assert.match(component, /Use in report/);
   assert.match(component, /OPPONENT TEAM/);
-  assert.match(component, /team-lab-opponent-battle-card/);
+  assert.match(component, /team-lab-opponent-roster-card/);
+  assert.match(component, /team-lab-opponent-battle-detail/);
   assert.match(component, /variant="opponent"/);
   assert.match(component, /Import the open sheet before recording opponent reveals or turn actions/);
   assert.match(component, /FAST BATTLE TICKER/);
   assert.match(component, /Turn-by-turn recorder/);
+  assert.match(component, /Four-slot doubles field/);
+  assert.match(component, /Opponent’s field/);
+  assert.match(component, /Your field/);
+  assert.match(component, /Tap a target, add damage if useful, then record/);
   assert.match(component, /Sheet moves — tap one/);
-  assert.match(component, /Opponent appeared — tap once/);
   assert.match(component, /\[\["move", "Move"\], \["ability", "Ability"\], \["item", "Item"\]/);
   assert.match(component, /Type it the first time it is revealed/);
   assert.match(component, /Damage dealt/);
   assert.match(component, /editingEventId \? "Save action changes" : `Record \$\{actionKind\}`/);
   assert.match(component, /Undo last action/);
   assert.match(component, /Autosaved locally on this browser/);
+  assert.match(component, /Unsaved Battle Mode draft available/);
+  assert.match(component, /Restore draft/);
+  assert.match(component, /Keep saved report/);
+  assert.doesNotMatch(component, /window\.confirm\(serverChanged/);
   assert.match(component, /BattleSeriesTracker/);
   assert.match(component, /BattleStateTracker/);
   assert.match(component, /BattleDamageEstimator/);
   assert.match(setEditor, /Import PokéPaste \/ Pokémon Showdown text/);
   assert.match(setEditor, /Save sets/);
   assert.match(setEditor, /Champions formats do not use Tera types/);
+  assert.match(setEditor, /Pokémon Champions does not use IVs/);
+  assert.match(setEditor, /usesIvs && <input aria-label=\{`\$\{TEAM_LAB_STAT_LABELS\[key\]\} IVs`\}/);
   assert.match(setEditor, /usesTera && <label>Tera type/);
   assert.match(battleTools, /Best of 3/);
   assert.match(battleTools, /Replay URL/);

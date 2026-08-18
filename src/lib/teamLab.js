@@ -50,6 +50,10 @@ export function teamLabBattleMechanicForFormat(formatId) {
   return null;
 }
 
+export function teamLabFormatUsesIvs(formatId) {
+  return REGULATION_METADATA[formatId]?.gameId !== "champions";
+}
+
 function cleanText(value, limit) {
   return String(value || "").trim().slice(0, limit);
 }
@@ -344,12 +348,26 @@ export function normalizeTeamLabTurnLog(turnLog, myRosterNames = [], opponentRos
     && (!Number.isInteger(savedGame) || savedGame === currentGame)
     ? Math.max(savedTurn, latestTurn)
     : latestTurn;
-  const activeMyPokemon = myRoster.includes(cleanText(source.active_my_pokemon, 120))
+  const savedActiveMyPokemon = myRoster.includes(cleanText(source.active_my_pokemon, 120))
     ? cleanText(source.active_my_pokemon, 120)
     : "";
-  const activeOpponentPokemon = opponentRoster.includes(cleanText(source.active_opponent_pokemon, 120))
+  const savedActiveOpponentPokemon = opponentRoster.includes(cleanText(source.active_opponent_pokemon, 120))
     ? cleanText(source.active_opponent_pokemon, 120)
     : "";
+  const normalizeActiveSlots = (value, roster, fallback) => {
+    const slots = [];
+    for (const name of Array.isArray(value) ? value : []) {
+      const normalizedName = cleanText(name, 120);
+      if (normalizedName && roster.includes(normalizedName) && !slots.includes(normalizedName)) slots.push(normalizedName);
+      if (slots.length === 2) break;
+    }
+    if (!slots.length && fallback) slots.push(fallback);
+    return [slots[0] || "", slots[1] || ""];
+  };
+  const activeMyPokemonSlots = normalizeActiveSlots(source.active_my_pokemon_slots, myRoster, savedActiveMyPokemon);
+  const activeOpponentPokemonSlots = normalizeActiveSlots(source.active_opponent_pokemon_slots, opponentRoster, savedActiveOpponentPokemon);
+  const activeMyPokemon = savedActiveMyPokemon || activeMyPokemonSlots.find(Boolean) || "";
+  const activeOpponentPokemon = savedActiveOpponentPokemon || activeOpponentPokemonSlots.find(Boolean) || "";
 
   return {
     version: TEAM_LAB_TURN_LOG_VERSION,
@@ -357,6 +375,8 @@ export function normalizeTeamLabTurnLog(turnLog, myRosterNames = [], opponentRos
     current_turn: currentTurn,
     active_my_pokemon: activeMyPokemon,
     active_opponent_pokemon: activeOpponentPokemon,
+    active_my_pokemon_slots: activeMyPokemonSlots,
+    active_opponent_pokemon_slots: activeOpponentPokemonSlots,
     events,
   };
 }
@@ -684,6 +704,44 @@ function rosterKeyForSide(side) {
   return side === "my" ? "my_pokemon" : "opponent_pokemon";
 }
 
+function activeKeyForSide(side) {
+  return side === "my" ? "active_my_pokemon" : "active_opponent_pokemon";
+}
+
+function activeSlotsKeyForSide(side) {
+  return side === "my" ? "active_my_pokemon_slots" : "active_opponent_pokemon_slots";
+}
+
+function activeSlotsForSide(turnLog, side) {
+  const activeKey = activeKeyForSide(side);
+  const slotsKey = activeSlotsKeyForSide(side);
+  const slots = Array.isArray(turnLog?.[slotsKey]) ? turnLog[slotsKey].slice(0, 2) : [];
+  if (!slots.some(Boolean) && turnLog?.[activeKey]) slots[0] = turnLog[activeKey];
+  return [slots[0] || "", slots[1] || ""];
+}
+
+function putActivePokemon(turnLog, side, name) {
+  if (!name) return;
+  const activeKey = activeKeyForSide(side);
+  const slotsKey = activeSlotsKeyForSide(side);
+  const slots = activeSlotsForSide(turnLog, side);
+  if (!slots.includes(name)) {
+    const focusedIndex = slots.indexOf(turnLog[activeKey]);
+    const replaceIndex = focusedIndex >= 0 ? focusedIndex : slots.findIndex((entry) => !entry);
+    slots[replaceIndex >= 0 ? replaceIndex : 0] = name;
+  }
+  turnLog[activeKey] = name;
+  turnLog[slotsKey] = slots;
+}
+
+function clearActivePokemon(turnLog, side, name) {
+  const activeKey = activeKeyForSide(side);
+  const slotsKey = activeSlotsKeyForSide(side);
+  const slots = activeSlotsForSide(turnLog, side).map((entry) => entry === name ? "" : entry);
+  turnLog[slotsKey] = slots;
+  if (turnLog[activeKey] === name) turnLog[activeKey] = slots.find(Boolean) || "";
+}
+
 export function removeTeamLabTurnEvent(report, eventId, opponentSets = null) {
   const events = report?.turn_log?.events || [];
   const removed = events.find((event) => event.id === eventId);
@@ -734,14 +792,22 @@ export function removeTeamLabTurnEvent(report, eventId, opponentSets = null) {
     }
   }
 
-  const activeKey = removed.side === "my" ? "active_my_pokemon" : "active_opponent_pokemon";
+  const activeKey = activeKeyForSide(removed.side);
+  const activeSlotsKey = activeSlotsKeyForSide(removed.side);
   if (["switch", "faint"].includes(removed.kind)) {
     const latestActive = [...remaining].reverse().find((event) => event.game === next.turn_log.current_game
       && event.side === removed.side
       && event.kind !== "note"
       && event.kind !== "faint");
-    if (removed.kind === "switch" && next.turn_log[activeKey] === removed.pokemon) next.turn_log[activeKey] = latestActive?.pokemon || "";
-    if (removed.kind === "faint" && !next.turn_log[activeKey]) next.turn_log[activeKey] = latestActive?.pokemon || removed.pokemon;
+    if (removed.kind === "switch" && next.turn_log[activeKey] === removed.pokemon) {
+      next.turn_log[activeKey] = latestActive?.pokemon || "";
+      next.turn_log[activeSlotsKey] = activeSlotsForSide(next.turn_log, removed.side)
+        .map((name) => name === removed.pokemon ? latestActive?.pokemon || "" : name);
+    }
+    if (removed.kind === "faint" && !next.turn_log[activeKey]) {
+      next.turn_log[activeKey] = latestActive?.pokemon || removed.pokemon;
+      putActivePokemon(next.turn_log, removed.side, next.turn_log[activeKey]);
+    }
   }
   return next;
 }
@@ -753,8 +819,6 @@ export function applyTeamLabTurnEvent(report, event, { replaceId = "", opponentS
   const actorKey = rosterKeyForSide(event.side);
   const targetSide = event.side === "my" ? "opponent" : "my";
   const targetKey = rosterKeyForSide(targetSide);
-  const actorActiveKey = event.side === "my" ? "active_my_pokemon" : "active_opponent_pokemon";
-  const targetActiveKey = event.side === "my" ? "active_opponent_pokemon" : "active_my_pokemon";
   const next = {
     ...base,
     my_pokemon: (base.my_pokemon || []).map((pokemon) => ({ ...pokemon })),
@@ -775,8 +839,14 @@ export function applyTeamLabTurnEvent(report, event, { replaceId = "", opponentS
       ? { ...pokemon, brought: true, fainted: turnEventMarksFaint(event) ? true : pokemon.fainted }
       : pokemon);
   }
-  if (event.kind !== "note") next.turn_log[actorActiveKey] = event.kind === "faint" ? "" : event.pokemon;
-  if (event.kind === "move" && event.target) next.turn_log[targetActiveKey] = event.target;
+  if (event.kind !== "note") {
+    if (event.kind === "faint") clearActivePokemon(next.turn_log, event.side, event.pokemon);
+    else putActivePokemon(next.turn_log, event.side, event.pokemon);
+  }
+  if (event.kind === "move" && event.target) {
+    if (turnEventMarksFaint(event)) clearActivePokemon(next.turn_log, targetSide, event.target);
+    else putActivePokemon(next.turn_log, targetSide, event.target);
+  }
   if (replaceIndex >= 0) next.turn_log.events.splice(replaceIndex, 0, event);
   else next.turn_log.events.push(event);
   return next;
