@@ -4,7 +4,7 @@
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
 - Verified Production application and asset commit: `f292260e82be10b8c2b933ceea0858caf76b2aea`
-- Latest applied Production migration: 438
+- Latest applied Production migration: 438 (`20260818080111`)
 
 ## Deployed state
 
@@ -153,12 +153,14 @@ materially refreshed route August 18. `llms.txt` exposes the same factual data
 boundaries.
 
 This release contained no database migration. Its PR Supabase check correctly
-skipped and no SEO Preview database branch was created. The post-merge `main`
-Supabase integration nevertheless failed on the pre-existing mismatch between
-Production ledger versions and repository filenames for migrations 429–438.
-Read-only verification found Production `ACTIVE_HEALTHY`, migration 438 still
-latest, and no SEO database write. Do not rewrite migration files or repair the
-Production ledger without a separate owner-approved reconciliation plan.
+skipped and no SEO Preview database branch was created. The pre-existing
+Production migration-history mismatch for migrations 429–438 was subsequently
+reconciled under separate owner approval. Production now has the exact same 233
+migration timestamps as `supabase/migrations/`, ending at migration 438 version
+`20260818080111`. The repair changed history metadata only, preserved every
+stored statement and history field, and left the public-schema fingerprint
+unchanged. The exact proof and reversible mapping are in
+[`docs/supabase-migration-history-reconciliation-2026-08-18.md`](supabase-migration-history-reconciliation-2026-08-18.md).
 
 Supabase automatic branching remains enabled with a one-concurrent-Preview
 limit and Supabase-only changes. Older Preview branches were left untouched.

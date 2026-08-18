@@ -75,7 +75,17 @@ application checks before calling the history repaired.
    successfully before merge.
 6. After authorized merge, verify the exact Production migration version and
    database postflight. Never rewrite a standard migration that may have run.
+7. Let the protected Supabase GitHub integration apply the exact standard file
+   to Production whenever possible. Do not use a provider-generated timestamp
+   as the permanent Production record for a repository migration.
+8. If an owner-authorized emergency application creates a generated timestamp,
+   capture the exact old-to-standard mapping, prove SQL equivalence, reconcile
+   migration history during the same release, and require a 100% local/remote
+   timestamp comparison before declaring the release complete.
 
 Do not add a second root-level copy for migration 414 or later. The historical
 204-413 copies remain only to preserve existing links, generated-data tooling,
 and release records.
+
+The August 18 reconciliation of migrations 429 through 438 is recorded in
+[`supabase-migration-history-reconciliation-2026-08-18.md`](supabase-migration-history-reconciliation-2026-08-18.md).
