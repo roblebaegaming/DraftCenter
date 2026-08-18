@@ -3,8 +3,8 @@
 - Last updated: August 17, 2026 Pacific
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified Production application commit: `e6f5da2c1d07ba614a009a822e11d1f960c1c865`
-- Latest applied Production migration: 433
+- Verified Production application commit: `b49ccf44dc3dda5908adfcbb5a5509e6e54f0a0b`
+- Latest applied Production migration: 434
 
 ## Deployed state
 
@@ -52,10 +52,21 @@ The Alpha lists contain exactly 224 of 242 Arceus species and 339 of 364 Z-A
 species. Alpha-locked species are omitted. Z-A encounter data remains pending,
 with zero public Z-A location or encounter rows.
 
-Production migrations 423 through 433 are applied. The exact Production
-deployment for `e6f5da2` succeeded. The Z-A directory passed phone-width review
-without overflow or console errors, the public Tracker page advertises Alpha
-support, and the complete 22-check signed-out smoke sweep passed.
+Pull requests [#299](https://github.com/roblebaegaming/DraftCenter/pull/299)
+and [#300](https://github.com/roblebaegaming/DraftCenter/pull/300) completed the
+remaining Worlds interface/document-language review and recorded its verified
+language boundary. Pull request
+[#301](https://github.com/roblebaegaming/DraftCenter/pull/301) then added
+private per-game HTTPS replay links, optional rating movement, open/closed
+sheet performance, opposing-Pokémon records, move usage, rating/replay history,
+and the 10-sheet Team Lab workbook.
+
+Production migrations 423 through 434 are applied. The exact Production
+deployment for `b49ccf4` succeeded. The Z-A directory and Team Lab passed
+phone-width review without overflow or console errors, the public Tracker page
+advertises Alpha support, and the complete 22-check signed-out smoke sweep
+passed. A fresh post-434 Supabase advisor audit returned zero security and zero
+performance findings, so obsolete migration 382 remains unapplied.
 
 Supabase automatic branching remains enabled with a one-concurrent-Preview
 limit and Supabase-only changes. Older Preview branches were left untouched.
@@ -73,14 +84,12 @@ owner explicitly requests it.
 
 ## Current continuation order
 
-1. Complete the remaining Worlds localization and document-language review.
-2. Re-audit Supabase security lint against current Production and rebuild only
-   evidence-backed fixes as new forward migrations. Do not apply old migration
-   382.
-3. Evaluate the remaining spreadsheet-inspired Battle analytics separately
-   from the already released Battle Room performance summary.
-4. Refresh the promotion plan, Team Lab screenshots, workbook QA captures, and
-   filming assets, then perform only the approved exact-path worktree cleanup.
+1. Publish the refreshed promotion plan, Team Lab screenshots, workbook QA
+   captures, and filming assets.
+2. Perform only the approved exact-path worktree cleanup with `.vercel`
+   preservation and without resetting the original dirty checkout.
+3. Publish the final consolidated handoff and repeat the Production verification
+   sweep.
 
 The aggregate-only attribution review remains scheduled for 09:00 Pacific on
 August 19, 2026. Do not inspect or report individual identity or activity.
