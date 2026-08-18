@@ -1,7 +1,20 @@
 # Agent handoffs
 
+[`DraftCenter-agent-handoff-2026-08-18-private-tournament-organizer-demo.md`](DraftCenter-agent-handoff-2026-08-18-private-tournament-organizer-demo.md)
+is the current release and continuation handoff. It records the private
+Tournament Organizer Demo mode, maximum 32-seat Auction Swiss Production
+showcase, synthetic-entry boundaries, migration 439 and its history
+reconciliation, presentation captures, and the supplied four-pod league source
+spreadsheets for a separate dry-run-first reconstruction.
+
+[`DraftCenter-agent-handoff-2026-08-18-reload-resume-and-battle-reporting.md`](DraftCenter-agent-handoff-2026-08-18-reload-resume-and-battle-reporting.md)
+is the current Team Lab source handoff. It records exact private workspace and
+battle reload restoration, league Draft-tab persistence, richer battle context
+and shared reporting, and the retained Champions and four-slot doubles Battle
+Mode behavior.
+
 [`DraftCenter-agent-handoff-2026-08-18-commissioner-workflow-seo-release.md`](DraftCenter-agent-handoff-2026-08-18-commissioner-workflow-seo-release.md)
-is the current release and continuation handoff. It records the focused
+is the current SEO source handoff. It records the focused
 commissioner-workflow SEO release, live metadata and sitemap verification, and
 the completed owner-approved reconciliation of Production migration-history
 timestamps 429 through 438.
