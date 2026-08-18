@@ -3,7 +3,7 @@
 - Last updated: August 17, 2026 Pacific
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified Production application commit: `b49ccf44dc3dda5908adfcbb5a5509e6e54f0a0b`
+- Verified Production application and asset commit: `36f66df97c7414ec5f48445f323a2331a877af94`
 - Latest applied Production migration: 434
 
 ## Deployed state
@@ -62,11 +62,17 @@ sheet performance, opposing-Pokémon records, move usage, rating/replay history,
 and the 10-sheet Team Lab workbook.
 
 Production migrations 423 through 434 are applied. The exact Production
-deployment for `b49ccf4` succeeded. The Z-A directory and Team Lab passed
+deployment for `36f66df` succeeded. The Z-A directory and Team Lab passed
 phone-width review without overflow or console errors, the public Tracker page
 advertises Alpha support, and the complete 22-check signed-out smoke sweep
 passed. A fresh post-434 Supabase advisor audit returned zero security and zero
 performance findings, so obsolete migration 382 remains unapplied.
+
+Pull request [#302](https://github.com/roblebaegaming/DraftCenter/pull/302)
+released the refreshed promotion plan, four synthetic Battle Room filming
+captures, the current 10-sheet Team Lab sample workbook, and one rendered QA
+image per workbook sheet. The temporary capture fixture was removed before
+commit, and the 22-check Production smoke sweep passed after deployment.
 
 Supabase automatic branching remains enabled with a one-concurrent-Preview
 limit and Supabase-only changes. Older Preview branches were left untouched.
@@ -76,20 +82,24 @@ disposable branch, which was deleted immediately after validation. Any future
 database backlog item may use one temporary paid Preview branch at a time under
 the owner's August 17 authorization, deleting it immediately after validation.
 
-The read-only audit found 126 worktrees and recorded exact preserve, rebuild,
-or cleanup recommendations in the current handoff. The original dirty checkout
-must never be pushed wholesale. Cleanup remains limited to exact reviewed
-targets with `.vercel` preservation; PokeEarth must not be resumed until the
-owner explicitly requests it.
+The final cleanup preflight found 133 worktrees. All 130 approved redundant
+worktrees are now unlinked; the original dirty checkout, clean current `main`,
+and temporary final-handoff worktree were retained for the handoff release.
+Local branches were preserved. Two `.vercel` folders were archived and
+SHA-256-verified outside the repository before their worktrees were removed.
+The original dirty checkout must never be pushed wholesale, and PokeEarth must
+not be resumed until the owner explicitly requests it.
 
 ## Current continuation order
 
-1. Publish the refreshed promotion plan, Team Lab screenshots, workbook QA
-   captures, and filming assets.
-2. Perform only the approved exact-path worktree cleanup with `.vercel`
-   preservation and without resetting the original dirty checkout.
-3. Publish the final consolidated handoff and repeat the Production verification
-   sweep.
+No requested application or database implementation remains.
+
+1. Keep PokeEarth paused until the owner directly requests resumption.
+2. Run the scheduled aggregate-only attribution review at 09:00 Pacific on
+   August 19 without inspecting or reporting individual identity or activity.
+3. Delete an older Supabase Preview branch only after the owner names and
+   approves that exact branch.
+4. Keep GO Meta Picks closed until an official eligibility pool is reviewed.
 
 The aggregate-only attribution review remains scheduled for 09:00 Pacific on
 August 19, 2026. Do not inspect or report individual identity or activity.
@@ -109,7 +119,7 @@ August 19, 2026. Do not inspect or report individual identity or activity.
 ## Authoritative records
 
 - Current release and continuation handoff:
-  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-17-battle-mode-worktree-audit.md`](handoffs/DraftCenter-agent-handoff-2026-08-17-battle-mode-worktree-audit.md)
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-17-backlog-completion-and-cleanup.md`](handoffs/DraftCenter-agent-handoff-2026-08-17-backlog-completion-and-cleanup.md)
 - Auction Draft Tournament contract:
   [`docs/auction-draft-tournaments.md`](auction-draft-tournaments.md)
 - Pokédex data-quality audit:
