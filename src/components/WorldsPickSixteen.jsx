@@ -193,6 +193,12 @@ export default function WorldsPickSixteen({ rosterSource, discipline = "vgc", lo
     setShowItalianOffer(prefersItalian && !dismissed);
   }, [config.key, isItalian]);
 
+  useEffect(() => {
+    const previousLanguage = document.documentElement.lang;
+    document.documentElement.lang = copy.documentLanguage;
+    return () => { document.documentElement.lang = previousLanguage || "en"; };
+  }, [copy.documentLanguage]);
+
   function dismissItalianOffer() {
     try { localStorage.setItem("draftcenter-worlds-italian-offer-dismissed", "1"); } catch {}
     setShowItalianOffer(false);

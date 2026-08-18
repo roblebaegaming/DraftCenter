@@ -344,6 +344,8 @@ test("the Italian Worlds route localizes the current Pick 10 experience without 
   assert.match(sitemap, /\["\/it\/worlds\/2026", "daily", 0\.8\]/);
   assert.match(component, /navigator\.languages/);
   assert.match(component, /draftcenter-worlds-italian-offer-dismissed/);
+  assert.match(component, /document\.documentElement\.lang = copy\.documentLanguage/);
+  assert.match(component, /document\.documentElement\.lang = previousLanguage \|\| "en"/);
   assert.doesNotMatch(component, /location\.(?:assign|replace)|window\.location\s*=/);
   assert.match(component, /WorldsMetaChallenge discipline=\{config\.key\} user=\{user\} locale=\{locale\}/);
   assert.match(meta, /locale = "en"/);
@@ -397,6 +399,7 @@ test("the Spanish Worlds route localizes Pick 10, odds, Meta Picks, roster label
   assert.match(englishPage, /es: "\/es\/worlds\/2026"/);
   assert.match(sitemap, /\["\/es\/worlds\/2026", "daily", 0\.8\]/);
   assert.match(component, /href="\/es\/worlds\/2026" hrefLang="es"/);
+  assert.match(component, /document\.documentElement\.lang = copy\.documentLanguage/);
   assert.match(meta, /worldsCopy\(locale\)\.meta/);
   assert.match(odds, /es: \{/);
   assert.match(nav, /const spanishLabels/);
