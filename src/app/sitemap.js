@@ -8,6 +8,7 @@ import { SHINY_HUNTING_GUIDES, SHINY_GUIDE_UPDATED_DATE } from "../lib/shinyHunt
 import { predictionBracketEventPath } from "../lib/predictionBracketPaths";
 
 const PRODUCT_DISCOVERY_LAST_MODIFIED = new Date("2026-08-16T00:00:00.000Z");
+const COMMISSIONER_SEO_LAST_MODIFIED = new Date("2026-08-18T00:00:00.000Z");
 const WORLDS_2026_LAST_MODIFIED = new Date("2026-08-11T00:00:00.000Z");
 const ITALIAN_WORLDS_LAST_MODIFIED = new Date("2026-08-12T00:00:00.000Z");
 const SPANISH_WORLDS_LAST_MODIFIED = new Date("2026-08-17T00:00:00.000Z");
@@ -23,12 +24,18 @@ const localizedRouteAlternates = new Map([
   ["/es/worlds/2026", WORLDS_LANGUAGE_ALTERNATES],
 ]);
 const productRouteLastModified = new Map([
-  ["/team-lab", PRODUCT_DISCOVERY_LAST_MODIFIED],
+  ["", COMMISSIONER_SEO_LAST_MODIFIED],
+  ["/about", COMMISSIONER_SEO_LAST_MODIFIED],
+  ["/guides", COMMISSIONER_SEO_LAST_MODIFIED],
+  ["/manuals", COMMISSIONER_SEO_LAST_MODIFIED],
+  ["/manuals/commissioner", COMMISSIONER_SEO_LAST_MODIFIED],
+  ["/manuals/manager", COMMISSIONER_SEO_LAST_MODIFIED],
+  ["/team-lab", COMMISSIONER_SEO_LAST_MODIFIED],
   ["/tools/mega-bracket", PRODUCT_DISCOVERY_LAST_MODIFIED],
   ["/tools/bracket-builder", PRODUCT_DISCOVERY_LAST_MODIFIED],
-  ["/pokedex-tracker", PRODUCT_DISCOVERY_LAST_MODIFIED],
+  ["/pokedex-tracker", COMMISSIONER_SEO_LAST_MODIFIED],
   ["/nuzlocke", PRODUCT_DISCOVERY_LAST_MODIFIED],
-  ["/tournaments", PRODUCT_DISCOVERY_LAST_MODIFIED],
+  ["/tournaments", COMMISSIONER_SEO_LAST_MODIFIED],
   ["/tournaments/predictions", PRODUCT_DISCOVERY_LAST_MODIFIED],
   ["/resources/daily-games", PRODUCT_DISCOVERY_LAST_MODIFIED],
   ["/worlds/2026", WORLDS_2026_LAST_MODIFIED],
