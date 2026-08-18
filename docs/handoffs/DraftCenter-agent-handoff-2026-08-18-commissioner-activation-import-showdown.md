@@ -6,8 +6,10 @@
 - Verified Production application commit before this candidate: `31e9d5691c69e166a381ced4999479097a6b5378`
 - Latest applied Production migration before this candidate: 437
 - Candidate branch: `codex/commissioner-activation-2026-08-18`
+- Implementation commit: `760dccdbfcd229a27e8f157b1945b29b4fba4b48`
+- Draft pull request: [#311](https://github.com/roblebaegaming/DraftCenter/pull/311)
 - Candidate migration: 438
-- Release state: local candidate only; not merged or deployed
+- Release state: draft review candidate; not merged or deployed
 
 ## Outcome
 
