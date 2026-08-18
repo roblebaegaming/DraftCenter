@@ -16,6 +16,9 @@ import {
 } from "../src/lib/teamAnalysis.js";
 import {
   applyTeamLabTurnEvent,
+  activeTeamLabTimedEffects,
+  buildTeamLabGameCsv,
+  buildTeamLabGameFilename,
   buildTeamLabBattleShareText,
   buildTeamLabPerformanceSummary,
   buildTeamLabWeeklyShareText,
@@ -31,12 +34,15 @@ import {
   normalizeTeamLabRoster,
   normalizeTeamLabTurnLog,
   normalizeTeamLabSeries,
+  isTeamLabPivotMove,
   parseTeamLabHandoff,
   parseTeamLabBattleRecovery,
   removeTeamLabTurnEvent,
+  removeTeamLabTimedEffect,
   replaceTeamLabBattleOpponentRoster,
   summarizeTeamLabSeries,
   summarizeTeamLabBattleReport,
+  startTeamLabTimedEffect,
   teamLabBattleMechanicForFormat,
   teamLabBattlePurposeForMatchup,
   teamLabBattlePurposeLabel,
@@ -63,6 +69,7 @@ import {
 } from "../src/lib/teamLabSets.js";
 import { calculateTeamLabDamageEstimate } from "../src/lib/teamLabDamage.js";
 import { teamLabMoveReference, teamLabMoveSourceForRegulation } from "../src/lib/teamLabMoveSuggestions.js";
+import { loadTeamLabAbilitySuggestions, loadTeamLabItemSuggestions, prioritizeTeamLabSuggestions } from "../src/lib/teamLabBattleSuggestions.js";
 import { readTeamLabPokePasteResponse } from "../src/lib/teamLabPokePaste.js";
 
 const roster = [
@@ -479,6 +486,13 @@ test("turn recorder keeps bounded roster-aware moves, damage, switches, faints, 
     ],
   }, ["Garchomp"], ["Rotom-Wash"], catalog);
   assert.deepEqual(reveals.events.map(({ kind, detail }) => [kind, detail]), [["ability", "Levitate"], ["item", "Choice Scarf"]]);
+  const allyTarget = normalizeTeamLabTurnLog({
+    current_game: 1,
+    current_turn: 1,
+    events: [{ id: "helping-hand", game: 1, turn: 1, kind: "move", side: "my", pokemon: "Garchomp", target: "Corviknight", target_side: "my", move: "Helping Hand" }],
+  }, ["Garchomp", "Corviknight"], ["Rotom-Wash"], catalog);
+  assert.equal(allyTarget.events[0].target, "Corviknight");
+  assert.equal(allyTarget.events[0].target_side, "my");
 });
 
 test("battle actions can be corrected without erasing facts supported by remaining events", () => {
@@ -507,6 +521,87 @@ test("battle actions can be corrected without erasing facts supported by remaini
   assert.equal(corrected.opponent_pokemon[0].ability, "Pressure");
 });
 
+test("battle autocomplete prioritizes saved details and keeps exact ability and broad item fallbacks", async () => {
+  assert.deepEqual(prioritizeTeamLabSuggestions(["Choice Scarf", "choice scarf", "Focus Sash"], ["Leftovers"]), ["Choice Scarf", "Focus Sash", "Leftovers"]);
+  const abilitySuggestions = await loadTeamLabAbilitySuggestions("Garchomp", async () => ({
+    ok: true,
+    json: async () => ({ abilities: [{ ability: { name: "rough-skin" } }, { ability: { name: "sand-veil" } }] }),
+  }));
+  assert.deepEqual(abilitySuggestions.slice(0, 2), ["Rough Skin", "Sand Veil"]);
+  const itemSuggestions = await loadTeamLabItemSuggestions(async () => ({
+    ok: true,
+    json: async () => ({ results: [{ name: "choice-scarf" }, { name: "punching-glove" }] }),
+  }));
+  assert.ok(itemSuggestions.indexOf("Choice Scarf") < itemSuggestions.indexOf("Punching Glove"));
+});
+
+test("rapid battle actions preserve switch pairs, pivot detection, timed effects, and per-game CSV data", () => {
+  const empty = normalizeTeamLabBattleReport({
+    turn_log: {
+      active_my_pokemon: "Garchomp",
+      active_my_pokemon_slots: ["Garchomp", "Corviknight"],
+    },
+  }, ["Garchomp", "Corviknight", "Amoonguss"], ["Rotom-Wash"]);
+  const switched = applyTeamLabTurnEvent(empty, {
+    id: "switch-pair",
+    game: 1,
+    turn: 1,
+    kind: "switch",
+    side: "my",
+    pokemon: "Amoonguss",
+    switched_out: "Garchomp",
+    target: "",
+    move: "",
+    damage: "",
+    detail: "",
+    note: "",
+  });
+  assert.equal(switched.turn_log.events[0].switched_out, "Garchomp");
+  assert.deepEqual(switched.turn_log.active_my_pokemon_slots, ["Amoonguss", "Corviknight"]);
+  const restored = removeTeamLabTurnEvent(switched, "switch-pair");
+  assert.deepEqual(restored.turn_log.active_my_pokemon_slots, ["Garchomp", "Corviknight"]);
+  assert.equal(isTeamLabPivotMove("Parting Shot"), true);
+  assert.equal(isTeamLabPivotMove("Volt-Switch"), true);
+  assert.equal(isTeamLabPivotMove("Protect"), false);
+
+  const helped = applyTeamLabTurnEvent(empty, {
+    id: "ally-target",
+    game: 1,
+    turn: 1,
+    kind: "move",
+    side: "my",
+    pokemon: "Garchomp",
+    target: "Corviknight",
+    target_side: "my",
+    move: "Helping Hand",
+    damage: "",
+    detail: "",
+    note: "",
+  });
+  assert.equal(helped.turn_log.events[0].target_side, "my");
+  assert.deepEqual(helped.turn_log.active_my_pokemon_slots, ["Garchomp", "Corviknight"]);
+
+  const tailwind = startTeamLabTimedEffect(empty, "tailwind", "my");
+  assert.deepEqual(activeTeamLabTimedEffects(tailwind, 1, 1).map(({ label, remaining }) => [label, remaining]), [["Tailwind", 4]]);
+  assert.deepEqual(activeTeamLabTimedEffects(tailwind, 1, 4).map(({ label, remaining }) => [label, remaining]), [["Tailwind", 1]]);
+  assert.deepEqual(activeTeamLabTimedEffects(tailwind, 1, 5), []);
+  assert.deepEqual(removeTeamLabTimedEffect(tailwind, tailwind.battle_state.timed_effects[0].id).battle_state.timed_effects, []);
+
+  const csv = buildTeamLabGameCsv({
+    teamName: "Rain & Balance",
+    leagueName: "Preview League",
+    opponentName: "Test Coach",
+    weekLabel: "Week 4",
+    formatName: "Mega Battle",
+    sheetMode: "closed",
+    report: switched,
+    gameNumber: 1,
+  });
+  assert.match(csv, /Turn,Side,Action,Pokémon,Switched out,Target,Target side/);
+  assert.match(csv, /1,Your side,switch,Amoonguss,Garchomp/);
+  assert.equal(buildTeamLabGameFilename({ teamName: "Rain & Balance", opponentName: "Test Coach", gameNumber: 1 }), "rain-balance-test-coach-game-1.csv");
+});
+
 test("best-of series plans and structured battle state stay bounded and roster-aware", () => {
   const series = normalizeTeamLabSeries({
     best_of: 3,
@@ -525,11 +620,13 @@ test("best-of series plans and structured battle state stay bounded and roster-a
   const state = normalizeTeamLabBattleState({
     weather: "rain",
     terrain: "invalid",
+    timed_effects: [{ id: "tailwind-test", effect: "tailwind", side: "my", started_game: 1, started_turn: 2, duration: 8 }],
     my_side: { hazards: { spikes: 9, toxic_spikes: 2 }, pokemon: [{ name: "Garchomp", hp_percent: -12, status: "burn", terastallized: true, tera_type: "Fire", mega_evolved: true }] },
     opponent_side: { pokemon: [{ name: "Rotom-Wash", hp_percent: 42.5, status: "confusion" }] },
   }, ["Garchomp"], ["Rotom-Wash"]);
   assert.equal(state.weather, "rain");
   assert.equal(state.terrain, "");
+  assert.equal(state.timed_effects[0].duration, 4);
   assert.equal(state.my_side.hazards.spikes, 3);
   assert.equal(state.my_side.pokemon[0].hp_percent, 0);
   assert.equal(state.my_side.pokemon[0].mega_evolved, true);
@@ -762,7 +859,7 @@ test("Team Lab workbook data separates complete sets, matchups, reveals, turns, 
     formatName: "Mega Battle",
     exportedAt: new Date("2026-08-15T12:00:00.000Z"),
   });
-  assert.deepEqual(sheets.map(({ name }) => name), ["Overview", "Performance", "Game Results", "Matchup Stats", "Move Usage", "My Team", "Matchup Plans", "Opponent Sets", "Turn Log", "Game Plans"]);
+  assert.deepEqual(sheets.map(({ name }) => name), ["Overview", "Performance", "Game Results", "Matchup Stats", "Move Usage", "My Team", "Matchup Plans", "Opponent Sets", "Turn Log", "Timed Effects", "Game Plans"]);
   assert.ok(sheets.every((sheet) => sheet.rows.length >= 5 && sheet.widths.length >= 2));
   assert.deepEqual(sheets.find(({ name }) => name === "Opponent Sets").rows[4].slice(0, 6), ["Quarterfinal", "Test Coach", "Rotom-Wash", "Open", "Levitate", "Choice Scarf"]);
   assert.deepEqual(sheets.find(({ name }) => name === "Turn Log").rows[4].slice(0, 10), ["Quarterfinal", "Test Coach", 1, 1, "Opponent", "item", "Rotom-Wash", "", "", "Choice Scarf"]);
@@ -803,6 +900,7 @@ test("Team Lab is indexable while account notes and matchups stay private", () =
   const opponentEditor = fs.readFileSync(new URL("../src/components/TeamLabOpponentEditor.jsx", import.meta.url), "utf8");
   const pokepasteImport = fs.readFileSync(new URL("../src/components/TeamLabPokePasteImport.jsx", import.meta.url), "utf8");
   const suggestedMoves = fs.readFileSync(new URL("../src/components/TeamLabSuggestedMoves.jsx", import.meta.url), "utf8");
+  const battleAutocomplete = fs.readFileSync(new URL("../src/components/TeamLabBattleAutocomplete.jsx", import.meta.url), "utf8");
   const pokepasteRoute = fs.readFileSync(new URL("../src/app/api/team-lab/pokepaste/route.js", import.meta.url), "utf8");
   const calendar = fs.readFileSync(new URL("../src/components/PokemonCalendar.jsx", import.meta.url), "utf8");
   const league = fs.readFileSync(new URL("../src/components/PokemonDraftLeague.jsx", import.meta.url), "utf8");
@@ -880,6 +978,12 @@ test("Team Lab is indexable while account notes and matchups stay private", () =
   assert.match(component, /Opponent’s field/);
   assert.match(component, /Your field/);
   assert.match(component, /Tap a target, add damage if useful, then record/);
+  assert.match(component, /1 · Pokémon selected/);
+  assert.match(component, /\+ Move \{index \+ 1\}/);
+  assert.match(component, /Switched out<select/);
+  assert.match(component, /Download Game \{log\.current_game\}/);
+  assert.match(component, /Your Tailwind/);
+  assert.match(component, /isTeamLabPivotMove/);
   assert.match(component, /Sheet moves — tap one/);
   assert.match(component, /\[\["move", "Move"\], \["ability", "Ability"\], \["item", "Item"\]/);
   assert.match(component, /Type it the first time it is revealed/);
@@ -985,6 +1089,8 @@ test("Team Lab is indexable while account notes and matchups stay private", () =
   assert.match(opponentEditor, /TeamLabSuggestedMoves/);
   assert.match(suggestedMoves, /Known, likely, or revealed move/);
   assert.match(suggestedMoves, /manual entry is always available/);
+  assert.match(battleAutocomplete, /<datalist/);
+  assert.match(battleAutocomplete, /slice\(0, 40\)/);
   assert.match(pokepasteImport, /Import a PokéPaste or Showdown team/);
   assert.match(pokepasteImport, /Set details remain private/);
   assert.doesNotMatch(pokepasteImport, /Upload \.txt|type="file"/);

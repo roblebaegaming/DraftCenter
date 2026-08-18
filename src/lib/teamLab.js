@@ -29,12 +29,40 @@ export const TEAM_LAB_TURN_NOTE_LIMIT = 160;
 export const TEAM_LAB_TURN_DAMAGE_LIMIT = 40;
 export const TEAM_LAB_GAME_MAX = 9;
 export const TEAM_LAB_TURN_MAX = 999;
+export const TEAM_LAB_TIMED_EFFECT_LIMIT = 24;
 export const TEAM_LAB_WEEK_LABEL_LIMIT = 100;
 export const TEAM_LAB_SERIES_VERSION = 2;
 export const TEAM_LAB_GAME_PLAN_LIMIT = 2000;
 export const TEAM_LAB_REPLAY_URL_LIMIT = 2048;
 export const TEAM_LAB_ELO_MAX = 100000;
 export const TEAM_LAB_BATTLE_STATE_VERSION = 1;
+export const TEAM_LAB_TIMED_EFFECTS = Object.freeze([
+  Object.freeze({ id: "trick-room", label: "Trick Room", scope: "field", duration: 5 }),
+  Object.freeze({ id: "gravity", label: "Gravity", scope: "field", duration: 5 }),
+  Object.freeze({ id: "tailwind", label: "Tailwind", scope: "side", duration: 4 }),
+  Object.freeze({ id: "reflect", label: "Reflect", scope: "side", duration: 5 }),
+  Object.freeze({ id: "light-screen", label: "Light Screen", scope: "side", duration: 5 }),
+  Object.freeze({ id: "aurora-veil", label: "Aurora Veil", scope: "side", duration: 5 }),
+  Object.freeze({ id: "safeguard", label: "Safeguard", scope: "side", duration: 5 }),
+  Object.freeze({ id: "mist", label: "Mist", scope: "side", duration: 5 }),
+]);
+export const TEAM_LAB_PIVOT_MOVES = Object.freeze([
+  "Baton Pass",
+  "Chilly Reception",
+  "Flip Turn",
+  "Parting Shot",
+  "Shed Tail",
+  "Teleport",
+  "U-turn",
+  "Volt Switch",
+]);
+
+const TEAM_LAB_TIMED_EFFECT_BY_ID = new Map(TEAM_LAB_TIMED_EFFECTS.map((effect) => [effect.id, effect]));
+
+export function isTeamLabPivotMove(move) {
+  const normalized = cleanText(move, 100).toLowerCase().replace(/[\s-]+/g, "-");
+  return TEAM_LAB_PIVOT_MOVES.some((candidate) => candidate.toLowerCase().replace(/[\s-]+/g, "-") === normalized);
+}
 
 const TERA_BATTLE_MECHANIC = Object.freeze({
   id: "tera",
@@ -333,8 +361,10 @@ export function normalizeTeamLabTurnLog(turnLog, myRosterNames = [], opponentRos
       || !Number.isInteger(turn) || turn < 1 || turn > TEAM_LAB_TURN_MAX || !kind || !side) continue;
 
     const pokemon = rosters[side].has(cleanText(entry.pokemon, 120)) ? cleanText(entry.pokemon, 120) : "";
-    const targetSide = side === "my" ? "opponent" : "my";
+    const oppositeSide = side === "my" ? "opponent" : "my";
+    const targetSide = entry.target_side === "my" || entry.target_side === "opponent" ? entry.target_side : oppositeSide;
     const target = rosters[targetSide].has(cleanText(entry.target, 120)) ? cleanText(entry.target, 120) : "";
+    const switchedOut = rosters[side].has(cleanText(entry.switched_out, 120)) ? cleanText(entry.switched_out, 120) : "";
     const move = cleanText(entry.move, 100);
     const damage = cleanText(entry.damage, TEAM_LAB_TURN_DAMAGE_LIMIT);
     const detail = cleanText(entry.detail, 100);
@@ -358,7 +388,9 @@ export function normalizeTeamLabTurnLog(turnLog, myRosterNames = [], opponentRos
       kind,
       side,
       pokemon: kind === "note" ? "" : pokemon,
+      switched_out: kind === "switch" && switchedOut !== pokemon ? switchedOut : "",
       target: kind === "move" ? target : "",
+      target_side: kind === "move" && target ? targetSide : "",
       move: kind === "move" ? move : "",
       damage: kind === "move" ? damage : "",
       detail: ["ability", "item"].includes(kind) ? detail : "",
@@ -674,14 +706,100 @@ function normalizeBattleSideState(sideState, rosterNames) {
   };
 }
 
+function normalizeTimedEffects(value) {
+  const effects = [];
+  const ids = new Set();
+  for (const [index, entry] of (Array.isArray(value) ? value : []).slice(-TEAM_LAB_TIMED_EFFECT_LIMIT).entries()) {
+    if (!entry || typeof entry !== "object" || Array.isArray(entry)) continue;
+    const definition = TEAM_LAB_TIMED_EFFECT_BY_ID.get(cleanText(entry.effect, 40));
+    if (!definition) continue;
+    const side = definition.scope === "field"
+      ? "field"
+      : entry.side === "my" || entry.side === "opponent" ? entry.side : "";
+    const startedGame = Number(entry.started_game);
+    const startedTurn = Number(entry.started_turn);
+    const duration = Number(entry.duration);
+    if (!side
+      || !Number.isInteger(startedGame) || startedGame < 1 || startedGame > TEAM_LAB_GAME_MAX
+      || !Number.isInteger(startedTurn) || startedTurn < 1 || startedTurn > TEAM_LAB_TURN_MAX
+      || !Number.isInteger(duration) || duration < 1 || duration > 8) continue;
+    const baseId = cleanText(entry.id, 80) || `effect-${definition.id}-${side}-${startedGame}-${startedTurn}-${index + 1}`;
+    let id = baseId;
+    let suffix = 2;
+    while (ids.has(id)) {
+      id = `${baseId.slice(0, 72)}-${suffix}`;
+      suffix += 1;
+    }
+    ids.add(id);
+    effects.push({
+      id,
+      effect: definition.id,
+      side,
+      started_game: startedGame,
+      started_turn: startedTurn,
+      duration: definition.duration,
+    });
+  }
+  return effects;
+}
+
 export function normalizeTeamLabBattleState(battleState, myRosterNames = [], opponentRosterNames = []) {
   const source = battleState && typeof battleState === "object" && !Array.isArray(battleState) ? battleState : {};
   return {
     version: TEAM_LAB_BATTLE_STATE_VERSION,
     weather: ["sun", "rain", "sand", "snow"].includes(source.weather) ? source.weather : "",
     terrain: ["electric", "grassy", "misty", "psychic"].includes(source.terrain) ? source.terrain : "",
+    timed_effects: normalizeTimedEffects(source.timed_effects),
     my_side: normalizeBattleSideState(source.my_side, myRosterNames),
     opponent_side: normalizeBattleSideState(source.opponent_side, opponentRosterNames),
+  };
+}
+
+export function activeTeamLabTimedEffects(report, game = report?.turn_log?.current_game, turn = report?.turn_log?.current_turn) {
+  const currentGame = Number(game);
+  const currentTurn = Number(turn);
+  return normalizeTimedEffects(report?.battle_state?.timed_effects).flatMap((effect) => {
+    if (effect.started_game !== currentGame || currentTurn < effect.started_turn) return [];
+    const remaining = effect.duration - (currentTurn - effect.started_turn);
+    if (remaining <= 0) return [];
+    const definition = TEAM_LAB_TIMED_EFFECT_BY_ID.get(effect.effect);
+    return [{ ...effect, label: definition.label, remaining }];
+  });
+}
+
+export function startTeamLabTimedEffect(report, effectId, side = "field") {
+  const definition = TEAM_LAB_TIMED_EFFECT_BY_ID.get(effectId);
+  if (!definition) return report;
+  const normalizedSide = definition.scope === "field" ? "field" : side === "my" || side === "opponent" ? side : "";
+  if (!normalizedSide) return report;
+  const game = Number(report?.turn_log?.current_game) || 1;
+  const turn = Number(report?.turn_log?.current_turn) || 1;
+  const current = normalizeTimedEffects(report?.battle_state?.timed_effects)
+    .filter((effect) => !(effect.effect === definition.id && effect.side === normalizedSide && effect.started_game === game));
+  const id = globalThis.crypto?.randomUUID?.() || `effect-${definition.id}-${normalizedSide}-${game}-${turn}`;
+  return {
+    ...report,
+    battle_state: {
+      ...report.battle_state,
+      timed_effects: [...current, {
+        id,
+        effect: definition.id,
+        side: normalizedSide,
+        started_game: game,
+        started_turn: turn,
+        duration: definition.duration,
+      }].slice(-TEAM_LAB_TIMED_EFFECT_LIMIT),
+    },
+  };
+}
+
+export function removeTeamLabTimedEffect(report, effectId) {
+  return {
+    ...report,
+    battle_state: {
+      ...report.battle_state,
+      timed_effects: normalizeTimedEffects(report?.battle_state?.timed_effects).filter((effect) => effect.id !== effectId),
+    },
   };
 }
 
@@ -850,12 +968,19 @@ export function removeTeamLabTurnEvent(report, eventId, opponentSets = null) {
   }
 
   if (turnEventMarksFaint(removed)) {
-    const faintedSide = removed.kind === "faint" ? removed.side : removed.side === "my" ? "opponent" : "my";
+    const faintedSide = removed.kind === "faint"
+      ? removed.side
+      : removed.target_side === "my" || removed.target_side === "opponent"
+        ? removed.target_side
+        : removed.side === "my" ? "opponent" : "my";
     const faintedName = removed.kind === "faint" ? removed.pokemon : removed.target;
     const stillFainted = remaining.some((event) => {
       if (event.kind === "faint") return event.side === faintedSide && event.pokemon === faintedName;
       if (!turnEventMarksFaint(event)) return false;
-      return (event.side === "my" ? "opponent" : "my") === faintedSide && event.target === faintedName;
+      const eventTargetSide = event.target_side === "my" || event.target_side === "opponent"
+        ? event.target_side
+        : event.side === "my" ? "opponent" : "my";
+      return eventTargetSide === faintedSide && event.target === faintedName;
     });
     if (!stillFainted && faintedName) {
       const rosterKey = rosterKeyForSide(faintedSide);
@@ -871,9 +996,10 @@ export function removeTeamLabTurnEvent(report, eventId, opponentSets = null) {
       && event.kind !== "note"
       && event.kind !== "faint");
     if (removed.kind === "switch" && next.turn_log[activeKey] === removed.pokemon) {
-      next.turn_log[activeKey] = latestActive?.pokemon || "";
+      const restoredName = removed.switched_out || latestActive?.pokemon || "";
+      next.turn_log[activeKey] = restoredName;
       next.turn_log[activeSlotsKey] = activeSlotsForSide(next.turn_log, removed.side)
-        .map((name) => name === removed.pokemon ? latestActive?.pokemon || "" : name);
+        .map((name) => name === removed.pokemon ? restoredName : name);
     }
     if (removed.kind === "faint" && !next.turn_log[activeKey]) {
       next.turn_log[activeKey] = latestActive?.pokemon || removed.pokemon;
@@ -888,7 +1014,9 @@ export function applyTeamLabTurnEvent(report, event, { replaceId = "", opponentS
   const replaceIndex = replaceId ? originalEvents.findIndex((entry) => entry.id === replaceId) : -1;
   const base = replaceIndex >= 0 ? removeTeamLabTurnEvent(report, replaceId, opponentSets) : report;
   const actorKey = rosterKeyForSide(event.side);
-  const targetSide = event.side === "my" ? "opponent" : "my";
+  const targetSide = event.target_side === "my" || event.target_side === "opponent"
+    ? event.target_side
+    : event.side === "my" ? "opponent" : "my";
   const targetKey = rosterKeyForSide(targetSide);
   const next = {
     ...base,
@@ -912,7 +1040,16 @@ export function applyTeamLabTurnEvent(report, event, { replaceId = "", opponentS
   }
   if (event.kind !== "note") {
     if (event.kind === "faint") clearActivePokemon(next.turn_log, event.side, event.pokemon);
-    else putActivePokemon(next.turn_log, event.side, event.pokemon);
+    else if (event.kind === "switch" && event.switched_out) {
+      const activeKey = activeKeyForSide(event.side);
+      const slotsKey = activeSlotsKeyForSide(event.side);
+      const slots = activeSlotsForSide(next.turn_log, event.side);
+      const switchIndex = slots.indexOf(event.switched_out);
+      if (switchIndex >= 0) slots[switchIndex] = event.pokemon;
+      else if (!slots.includes(event.pokemon)) slots[slots.findIndex((name) => !name) >= 0 ? slots.findIndex((name) => !name) : 0] = event.pokemon;
+      next.turn_log[activeKey] = event.pokemon;
+      next.turn_log[slotsKey] = slots;
+    } else putActivePokemon(next.turn_log, event.side, event.pokemon);
   }
   if (event.kind === "move" && event.target) {
     if (turnEventMarksFaint(event)) clearActivePokemon(next.turn_log, targetSide, event.target);
@@ -958,4 +1095,67 @@ export function buildTeamLabBattleShareText({
     ? opponentReveals.map((pokemon) => `• ${pokemon.name}${pokemon.ability ? ` · Ability: ${pokemon.ability}` : ""}${pokemon.item ? ` · Item: ${pokemon.item}` : ""}${pokemon.moves?.length ? ` — ${pokemon.moves.join(", ")}` : ""}${pokemon.fainted ? " · fainted" : ""}`).join("\n")
     : "• No opponent reveals recorded";
   return [heading, context, "Your weekly team", myLines, "Opponent reveals", opponentLines, "Built in DraftCenter Team Lab"].filter(Boolean).join("\n");
+}
+
+function teamLabCsvCell(value) {
+  let text = String(value ?? "");
+  if (/^[=+\-@]/.test(text)) text = `'${text}`;
+  return /[",\r\n]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text;
+}
+
+export function buildTeamLabGameFilename({ teamName, opponentName, gameNumber }) {
+  const slug = [teamName, opponentName, `game-${gameNumber}`]
+    .filter(Boolean)
+    .join("-")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "")
+    .slice(0, 120) || `battle-game-${gameNumber}`;
+  return `${slug}.csv`;
+}
+
+export function buildTeamLabGameCsv({ teamName, leagueName, opponentName, weekLabel, formatName, sheetMode, report, gameNumber }) {
+  const game = Math.max(1, Math.min(TEAM_LAB_GAME_MAX, Number(gameNumber) || 1));
+  const seriesGame = report?.series?.games?.find((entry) => entry.game === game) || {};
+  const events = (report?.turn_log?.events || []).filter((event) => event.game === game);
+  const effects = normalizeTimedEffects(report?.battle_state?.timed_effects).filter((effect) => effect.started_game === game);
+  const rows = [
+    ["DraftCenter Battle Lab game export"],
+    ["Team", cleanText(teamName, 120)],
+    ["League", cleanText(leagueName, 120)],
+    ["Opponent", cleanText(opponentName, 120)],
+    ["Week / round", cleanText(weekLabel, TEAM_LAB_WEEK_LABEL_LIMIT)],
+    ["Format", cleanText(formatName, 100)],
+    ["Team sheet", sheetMode === "open" ? "Open" : "Closed"],
+    ["Game", game],
+    ["Result", cleanText(seriesGame.result, 20) || "pending"],
+    ["Replay", normalizeBattleReplayUrl(seriesGame.replay_url)],
+    [],
+    ["Turn", "Side", "Action", "Pokémon", "Switched out", "Target", "Target side", "Move", "Damage", "Detail", "Note"],
+    ...events.map((event) => [
+      event.turn,
+      event.side === "my" ? "Your side" : "Opponent",
+      event.kind,
+      event.pokemon,
+      event.switched_out || "",
+      event.target,
+      event.target ? (event.target_side === "my" ? "Your side" : "Opponent") : "",
+      event.move,
+      event.damage,
+      event.detail,
+      event.note,
+    ]),
+  ];
+  if (effects.length) {
+    rows.push([], ["Timed effects"], ["Effect", "Side", "Started turn", "Duration"]);
+    for (const effect of effects) {
+      rows.push([
+        TEAM_LAB_TIMED_EFFECT_BY_ID.get(effect.effect)?.label || effect.effect,
+        effect.side === "my" ? "Your side" : effect.side === "opponent" ? "Opponent" : "Whole field",
+        effect.started_turn,
+        effect.duration,
+      ]);
+    }
+  }
+  return rows.map((row) => row.map(teamLabCsvCell).join(",")).join("\r\n");
 }

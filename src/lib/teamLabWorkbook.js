@@ -1,4 +1,4 @@
-import { buildTeamLabPerformanceSummary, teamLabBattleMechanicForFormat, teamLabBattlePurposeForMatchup, teamLabBattlePurposeLabel, TEAM_LAB_BATTLE_PURPOSE_OPTIONS } from "./teamLab.js";
+import { buildTeamLabPerformanceSummary, teamLabBattleMechanicForFormat, teamLabBattlePurposeForMatchup, teamLabBattlePurposeLabel, TEAM_LAB_BATTLE_PURPOSE_OPTIONS, TEAM_LAB_TIMED_EFFECTS } from "./teamLab.js";
 
 const WORKBOOK_GAME_PLAN_COUNT = 3;
 
@@ -250,15 +250,38 @@ export function buildTeamLabWorkbookSheets({
       text(event.detail),
       text(event.damage),
       text(event.note),
+      text(event.switched_out),
+      event.target ? (event.target_side === "my" ? "My side" : "Opponent") : "",
     ]);
   });
   const turnLog = workbookSheet(
     "Turn Log",
     `Turn Log — ${teamName}`,
     "Every saved action across this team workspace, ready to filter by opponent, game, turn, side, or action.",
-    ["Week / round", "Opponent", "Game", "Turn", "Side", "Action", "Pokémon", "Target", "Move", "Ability / item reveal", "Damage", "Action note"],
+    ["Week / round", "Opponent", "Game", "Turn", "Side", "Action", "Pokémon", "Target", "Move", "Ability / item reveal", "Damage", "Action note", "Switched out", "Target side"],
     turnLogRows,
-    [17, 23, 9, 9, 12, 12, 23, 23, 22, 25, 14, 46],
+    [17, 23, 9, 9, 12, 12, 23, 23, 22, 25, 14, 46, 23, 15],
+  );
+
+  const effectById = new Map(TEAM_LAB_TIMED_EFFECTS.map((effect) => [effect.id, effect]));
+  const timedEffects = workbookSheet(
+    "Timed Effects",
+    `Timed Effects — ${teamName}`,
+    "Turn-limited field effects recorded in Battle Mode. Duration and start turn make every expiration auditable.",
+    ["Week / round", "Opponent", "Game", "Effect", "Side", "Started turn", "Duration"],
+    matchups.flatMap((matchup) => {
+      const report = reportForMatchup(matchup, activeMatchupId, activeState);
+      return (report.battle_state?.timed_effects || []).map((effect) => [
+        weekForMatchup(matchup, activeMatchupId, activeState),
+        text(matchup.opponent_name),
+        effect.started_game,
+        effectById.get(effect.effect)?.label || text(effect.effect),
+        effect.side === "my" ? "My side" : effect.side === "opponent" ? "Opponent" : "Whole field",
+        effect.started_turn,
+        effect.duration,
+      ]);
+    }),
+    [17, 23, 9, 22, 15, 15, 12],
   );
 
   const gameResults = workbookSheet(
@@ -329,7 +352,7 @@ export function buildTeamLabWorkbookSheets({
     [17, 23, 10, 9, 12, 23, 23, 55, 45, 48, 58, 15, 15],
   );
 
-  return [overview, performanceSheet, gameResults, matchupStats, moveUsage, myTeamSheet, matchupPlans, opponentSets, turnLog, gamePlans];
+  return [overview, performanceSheet, gameResults, matchupStats, moveUsage, myTeamSheet, matchupPlans, opponentSets, turnLog, timedEffects, gamePlans];
 }
 
 export function buildTeamLabWorkbookFilename(teamName, exportedAt = new Date()) {
