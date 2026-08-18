@@ -3,8 +3,8 @@
 - Last updated: August 17, 2026 Pacific
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified Production application commit: `b386653e4d52b065922409851337ef0a133be561`
-- Latest applied Production migration: 428
+- Verified Production application commit: `e6f5da2c1d07ba614a009a822e11d1f960c1c865`
+- Latest applied Production migration: 433
 
 ## Deployed state
 
@@ -38,13 +38,30 @@ double elimination created its complete 63-match graph. Every fixture rolled
 back. The paid Preview branch was deleted and its absence confirmed, so no
 hourly charge from that validation branch continues.
 
-Production migrations 423 through 428 are applied. The exact Production
-deployment for `b386653` succeeded, the live Tournament page advertises the
-separate snake and auction limits, and the complete 22-check signed-out smoke
-sweep passed.
+Pull requests [#294](https://github.com/roblebaegaming/DraftCenter/pull/294)
+through [#297](https://github.com/roblebaegaming/DraftCenter/pull/297) released
+the reviewed Pokémon-profile SEO package, owner prediction publisher and
+Bracket Studio, private Open Team Sheet printing, and the privacy-reviewed
+organization directory/member email workflow. Their database work uses
+migrations 429 and 430.
 
-Supabase automatic branching remains enabled with a one-branch limit and
-Supabase-only changes. Older Preview branches were left untouched. Any future
+Pull request [#298](https://github.com/roblebaegaming/DraftCenter/pull/298)
+released the verified Pokémon Legends: Z-A Pokédex, three Z-A Draft Lab pools,
+and optional private Alpha Dex checklists for Legends: Arceus and Legends: Z-A.
+The Alpha lists contain exactly 224 of 242 Arceus species and 339 of 364 Z-A
+species. Alpha-locked species are omitted. Z-A encounter data remains pending,
+with zero public Z-A location or encounter rows.
+
+Production migrations 423 through 433 are applied. The exact Production
+deployment for `e6f5da2` succeeded. The Z-A directory passed phone-width review
+without overflow or console errors, the public Tracker page advertises Alpha
+support, and the complete 22-check signed-out smoke sweep passed.
+
+Supabase automatic branching remains enabled with a one-concurrent-Preview
+limit and Supabase-only changes. Older Preview branches were left untouched.
+The automatic check on pull request #298 was canceled solely because that limit
+was already occupied; migrations 431–433 instead passed the owner-authorized
+disposable branch, which was deleted immediately after validation. Any future
 database backlog item may use one temporary paid Preview branch at a time under
 the owner's August 17 authorization, deleting it immediately after validation.
 
@@ -56,22 +73,13 @@ owner explicitly requests it.
 
 ## Current continuation order
 
-1. Rebase and release the validated Pokémon-profile SEO package.
-2. Consolidate the prediction publisher and Bracket Studio onto current
-   `main`, starting its database work after migration 428.
-3. Selectively rebuild and release Open Team Sheet printing and the
-   organization/member email system. Review email privacy, authorization,
-   provider idempotency, opt-out behavior, and rate limits independently.
-4. Rebase the Legends: Z-A work, renumber its forward migrations, and add an
-   Alpha Dex option for Legends: Arceus and Legends: Z-A using verified
-   game-specific alpha availability and alpha-locked species.
-5. Complete the remaining Worlds localization and document-language review.
-6. Re-audit Supabase security lint against current Production and rebuild only
+1. Complete the remaining Worlds localization and document-language review.
+2. Re-audit Supabase security lint against current Production and rebuild only
    evidence-backed fixes as new forward migrations. Do not apply old migration
    382.
-7. Evaluate the remaining spreadsheet-inspired Battle analytics separately
+3. Evaluate the remaining spreadsheet-inspired Battle analytics separately
    from the already released Battle Room performance summary.
-8. Refresh the promotion plan, Team Lab screenshots, workbook QA captures, and
+4. Refresh the promotion plan, Team Lab screenshots, workbook QA captures, and
    filming assets, then perform only the approved exact-path worktree cleanup.
 
 The aggregate-only attribution review remains scheduled for 09:00 Pacific on
@@ -99,6 +107,8 @@ August 19, 2026. Do not inspect or report individual identity or activity.
   [`docs/pokedex-tracker-data-quality-audit-2026-08-17.md`](pokedex-tracker-data-quality-audit-2026-08-17.md)
 - Prediction-bracket contract:
   [`docs/prediction-bracket-challenges.md`](prediction-bracket-challenges.md)
+- Legends Alpha Dex source and privacy contract:
+  [`docs/pokemon-catalog/pokemon-legends-alpha-dex-2026-08-17.md`](pokemon-catalog/pokemon-legends-alpha-dex-2026-08-17.md)
 - Permanent repository policy: [`AGENTS.md`](../AGENTS.md)
 
 When this file conflicts with an older handoff, this verified Production record
