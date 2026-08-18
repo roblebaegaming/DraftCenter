@@ -3,7 +3,7 @@
 - Last updated: August 18, 2026 Pacific
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified Production application and asset commit: `f292260e82be10b8c2b933ceea0858caf76b2aea`
+- Verified Production application and asset commit: `6670ab34961d73d174af9436cd5224e9c7f4325d`
 - Latest applied Production migration: 438 (`20260818080111`)
 
 ## Deployed state
@@ -166,6 +166,24 @@ The protected record merged through pull request
 The post-merge Supabase `main` integration, Vercel deployment, all security
 checks, and two complete 22-check Production smoke sweeps passed.
 
+Pull request [#317](https://github.com/roblebaegaming/DraftCenter/pull/317)
+is released at exact application commit
+`6670ab34961d73d174af9436cd5224e9c7f4325d`. Pokémon Champions set editing is
+now EV-only and discards imported IV values. Battle Mode replaces its blocking
+browser-recovery prompt with an inline choice, keeps all six opposing Pokémon
+visible with direct **Brought** and **Out** controls, and adds a four-slot
+doubles field with visible move buttons, direct targets, switches, and faints.
+Two active slots per side are stored in backward-compatible report fields, so
+existing single-active reports continue to open in slot one.
+
+This release contained no database migration, RLS, grant, provider-setting, or
+Production-data change. The Supabase Preview check correctly skipped. The
+390×844 closed-sheet, opponent-detail, Champions, move, target, switch, and
+faint interactions passed local review; the hosted Preview was Ready and
+loaded without browser errors or horizontal overflow. All protected checks,
+the production build, and the complete 22-check signed-out Production smoke
+sweep passed. The short-lived application branch was deleted.
+
 Supabase automatic branching remains enabled with a one-concurrent-Preview
 limit and Supabase-only changes. Older Preview branches were left untouched.
 The automatic check on pull request #298 was canceled solely because that limit
@@ -212,6 +230,8 @@ August 19, 2026. Do not inspect or report individual identity or activity.
 ## Authoritative records
 
 - Current release and continuation handoff:
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-18-team-lab-battle-mode-ux-release.md`](handoffs/DraftCenter-agent-handoff-2026-08-18-team-lab-battle-mode-ux-release.md)
+- Commissioner workflow SEO release handoff:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-18-commissioner-workflow-seo-release.md`](handoffs/DraftCenter-agent-handoff-2026-08-18-commissioner-workflow-seo-release.md)
 - Commissioner activation, import, and replay source handoff:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-18-commissioner-activation-import-showdown.md`](handoffs/DraftCenter-agent-handoff-2026-08-18-commissioner-activation-import-showdown.md)
