@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import test from "node:test";
-import { CONNECTION_DIVERSITY_START_DATE, CONNECTION_GROUP_COOLDOWN_DAYS, CONNECTION_GROUPS, normalizeRosterConnectionsSave, pokemonConnectionsShareText, rosterConnectionsPuzzle } from "../src/lib/rosterConnections.js";
+import { CONNECTION_DIVERSITY_START_DATE, CONNECTION_GROUP_COOLDOWN_DAYS, CONNECTION_GROUPS, CONNECTION_STRONG_DIVERSITY_START_DATE, normalizeRosterConnectionsSave, pokemonConnectionsShareText, rosterConnectionsPuzzle } from "../src/lib/rosterConnections.js";
+import { pokemonBaseSpeciesKey } from "../src/lib/pokemonGames.js";
 
 function source(path) {
   return fs.readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
@@ -121,6 +122,56 @@ test("Pokémon Connections creates stable non-overlapping daily puzzles", () => 
   }
 });
 
+test("Pokémon Connections preserves old boards and strongly separates weekly themes and species", () => {
+  const preservedThemes = {
+    "2026-08-14": ["Intimidate staples", "Regenerator pivots", "Shell Smash users", "Kanto final starters and ace"],
+    "2026-08-15": ["Water and Fairy type", "Eeveelutions", "Pokédex shape: Arms", "Only 0.1 m tall"],
+    "2026-08-16": ["Technician users", "Amorphous Egg Group", "Yellow Pokédex color", "Prankster utility"],
+    "2026-08-17": ["Pokédex shape: Heads", "Steel and Psychic type", "Guardian deities", "Defog users"],
+    "2026-08-18": ["Trick Room setters", "Human-Like Egg Group", "Alola final starters and ace", "Flash Fire users"],
+  };
+  for (const [date, themes] of Object.entries(preservedThemes)) {
+    assert.deepEqual(rosterConnectionsPuzzle(date).groups.map((group) => group.title), themes, `${date} changed after it was playable`);
+  }
+
+  const start = Date.parse(`${CONNECTION_STRONG_DIVERSITY_START_DATE}T00:00:00Z`);
+  const recentThemes = [];
+  const recentPokemon = [];
+  let previousCategories = null;
+  let previousSpecies = null;
+  for (let offset = 0; offset < 3650; offset += 1) {
+    const date = new Date(start + offset * 86400000).toISOString().slice(0, 10);
+    const puzzle = rosterConnectionsPuzzle(date);
+    const themes = new Set(puzzle.groups.map((group) => `${group.category}:${group.title}`));
+    const categories = new Set(puzzle.groups.map((group) => group.category));
+    const species = new Set(puzzle.pokemon.map(pokemonBaseSpeciesKey));
+
+    assert.equal(themes.size, 4, `theme repeated within ${date}`);
+    assert.equal(categories.size, 4, `category repeated within ${date}`);
+    assert.equal(species.size, 16, `two forms of one species appeared within ${date}`);
+    if (previousCategories) {
+      for (const category of categories) assert.ok(!previousCategories.has(category), `${category} repeated on consecutive days ending ${date}`);
+    }
+    if (previousSpecies) {
+      for (const speciesKey of species) assert.ok(!previousSpecies.has(speciesKey), `${speciesKey} repeated on consecutive days ending ${date}`);
+    }
+    for (const previous of recentThemes) {
+      for (const theme of themes) assert.ok(!previous.has(theme), `${theme} repeated within the ${CONNECTION_GROUP_COOLDOWN_DAYS}-day cooldown on ${date}`);
+    }
+
+    recentThemes.push(themes);
+    if (recentThemes.length > CONNECTION_GROUP_COOLDOWN_DAYS) recentThemes.shift();
+    recentPokemon.push(species);
+    if (recentPokemon.length > 7) recentPokemon.shift();
+    if (recentPokemon.length === 7) {
+      const weeklySpecies = new Set(recentPokemon.flatMap((day) => [...day]));
+      assert.ok(weeklySpecies.size >= 104, `only ${weeklySpecies.size} unique species appeared in the seven days ending ${date}`);
+    }
+    previousCategories = categories;
+    previousSpecies = species;
+  }
+});
+
 test("Pokémon Connections shares the guess pattern without spoiling answers", () => {
   const puzzle = rosterConnectionsPuzzle("2026-08-12");
   const guesses = [
@@ -218,6 +269,29 @@ test("Sunday Super Bracket is service-finalized, auditable, and submission-gated
   assert.match(resources, /How does the Sunday Super Bracket work\?/);
   assert.match(page, /How does the Sunday Super Bracket work\?/);
   assert.ok(fs.existsSync(new URL("../docs/daily-games.md", import.meta.url)));
+});
+
+test("ordinary daily brackets reject same-species forms while Sunday remains exempt", () => {
+  const migration = source("supabase/migrations/20260818060829_437_daily_game_variety.sql");
+  const preview = source("supabase/tests/437-daily-game-variety-preview-regression.sql");
+  assert.match(migration, /create or replace function public\.daily_bracket_species_key/);
+  assert.match(migration, /create trigger require_daily_bracket_species_variety/);
+  assert.match(migration, /new\.bracket_kind <> 'daily'/);
+  assert.match(migration, /game_date > v_today/);
+  assert.match(migration, /not exists \([\s\S]*daily_bracket_matchups/);
+  assert.match(migration, /revoke all on function public\.daily_bracket_species_key\(text\) from public, anon, authenticated/);
+  assert.match(preview, /Audino.*Mega Audino/);
+  assert.match(preview, /weekly_final/);
+  assert.match(preview, /rollback;/);
+  for (const [left, right] of [
+    ["Audino", "Mega Audino"],
+    ["Raichu", "Alolan Raichu"],
+    ["Tauros", "Paldean Tauros (Water)"],
+    ["Lycanroc-Midday", "Lycanroc-Dusk"],
+    ["Rotom", "Rotom-Mow"],
+  ]) {
+    assert.equal(pokemonBaseSpeciesKey(left), pokemonBaseSpeciesKey(right));
+  }
 });
 
 test("Daily Games migration grandfathers badges and gates every game discussion", () => {

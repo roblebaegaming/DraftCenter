@@ -30,15 +30,33 @@ the result is auditable and cannot drift later.
 
 ## Pokémon Connections rotation
 
-Connections puzzles before August 14, 2026 retain their original deterministic
-boards so browser saves and shared results continue to match. Starting that
-date, the deterministic scheduler enforces all of these rules:
+Connections puzzles already made available through August 18, 2026 retain
+their original deterministic boards so browser saves and shared results
+continue to match. Starting August 19, the stronger deterministic scheduler
+enforces all of these rules:
 
-- an exact theme cannot reappear during the previous seven calendar days;
+- an exact theme cannot reappear during the previous ten calendar days;
 - a category cannot appear on consecutive days;
 - the four themes in one puzzle use four different categories; and
-- all 16 Pokémon remain unique within the board.
+- all 16 Pokémon are different base species, so alternate forms do not occupy
+  two places in the same board;
+- a Pokémon cannot appear on consecutive days; and
+- the scheduler prefers a two-day Pokémon cooldown and weighs the previous
+  seven days when choosing among otherwise valid groups.
 
 The curated theme catalog contains enough strategy, ability, move, family,
 shape, Egg Group, color, generation, type, evolution, height, and weight groups
 to enforce the cooldown without changing a puzzle based on request order.
+
+## Daily Draft Bracket form variety
+
+Ordinary Daily Draft Brackets use only one form of each base Pokémon species.
+For example, Audino and Mega Audino cannot both occupy places in one ordinary
+eight-Pokémon field. The Sunday Super Bracket is exempt because its entrants
+are earned from the six completed daily brackets and distinct qualified forms
+must remain eligible.
+
+The database applies this rule whenever an ordinary bracket is created or
+edited. The release repairs only untouched future ordinary brackets. It never
+rewrites the current day, historical results, Sunday qualifiers, or a future
+bracket that already has submissions.

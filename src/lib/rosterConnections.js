@@ -1,3 +1,5 @@
+import { pokemonBaseSpeciesKey } from "./pokemonGames.js";
+
 const LEGACY_CONNECTION_GROUPS = [
   { category: "draft", title: "Pseudo-legendary Pokémon", note: "Three-stage powerhouses with a 600 base-stat total", pokemon: ["Dragonite", "Tyranitar", "Metagross", "Garchomp"] },
   { category: "draft", title: "Prankster utility", note: "Draft support Pokémon known for priority status moves", pokemon: ["Grimmsnarl", "Whimsicott", "Klefki", "Sableye"] },
@@ -90,7 +92,13 @@ export const CONNECTION_GROUPS = [
 ];
 
 export const CONNECTION_DIVERSITY_START_DATE = "2026-08-14";
-export const CONNECTION_GROUP_COOLDOWN_DAYS = 7;
+export const CONNECTION_STRONG_DIVERSITY_START_DATE = "2026-08-19";
+export const CONNECTION_GROUP_COOLDOWN_DAYS = 10;
+export const CONNECTION_POKEMON_HARD_COOLDOWN_DAYS = 1;
+export const CONNECTION_POKEMON_PREFERRED_COOLDOWN_DAYS = 2;
+
+const LEGACY_DIVERSITY_GROUP_COOLDOWN_DAYS = 7;
+const CONNECTION_POKEMON_SCORE_DAYS = 7;
 
 export const CONNECTION_GROUP_MARKS = ["🟨", "🟩", "🟦", "🟪"];
 export const CONNECTIONS_URL = "https://www.draftcentral.gg/resources/daily-games";
@@ -119,17 +127,24 @@ export function seededConnectionsShuffle(items, seed) {
   return shuffled;
 }
 
-function selectDisjointGroups(candidates, count, { blockedCategories = new Set(), distinctCategories = false } = {}) {
+function selectDisjointGroups(candidates, count, {
+  blockedCategories = new Set(),
+  blockedPokemon = new Set(),
+  distinctCategories = false,
+  speciesAware = false,
+} = {}) {
   function visit(start, selected, usedPokemon, usedCategories) {
     if (selected.length === count) return selected;
     for (let index = start; index < candidates.length; index += 1) {
       const group = candidates[index];
+      const pokemonKeys = speciesAware ? group.pokemon.map(pokemonBaseSpeciesKey) : group.pokemon;
       if (blockedCategories.has(group.category) || (distinctCategories && usedCategories.has(group.category))) continue;
-      if (group.pokemon.some((name) => usedPokemon.has(name))) continue;
+      if (pokemonKeys.some((name) => blockedPokemon.has(name) || usedPokemon.has(name))) continue;
+      if (new Set(pokemonKeys).size !== pokemonKeys.length) continue;
       const next = visit(
         index + 1,
         [...selected, group],
-        new Set([...usedPokemon, ...group.pokemon]),
+        new Set([...usedPokemon, ...pokemonKeys]),
         new Set([...usedCategories, group.category]),
       );
       if (next) return next;
@@ -157,15 +172,21 @@ function connectionGroupKey(group) {
 }
 
 const diversityStartOrdinal = dateOrdinal(CONNECTION_DIVERSITY_START_DATE);
+const strongDiversityStartOrdinal = dateOrdinal(CONNECTION_STRONG_DIVERSITY_START_DATE);
 const diverseSchedule = new Map();
 let scheduledThroughOrdinal = diversityStartOrdinal - 1;
 
-function scheduledConnectionsGroups(dateKey) {
+function legacyConnectionsGroups(dateKey) {
+  const candidates = seededConnectionsShuffle(LEGACY_CONNECTION_GROUPS, hash(`groups-${dateKey}`));
+  return selectDisjointGroups(candidates, 4);
+}
+
+function scheduledLegacyDiversityGroups(dateKey) {
   const targetOrdinal = dateOrdinal(dateKey);
   for (let ordinal = scheduledThroughOrdinal + 1; ordinal <= targetOrdinal; ordinal += 1) {
     const currentDateKey = dateKeyFromOrdinal(ordinal);
     const recentGroupKeys = new Set();
-    for (let lookback = 1; lookback <= CONNECTION_GROUP_COOLDOWN_DAYS; lookback += 1) {
+    for (let lookback = 1; lookback <= LEGACY_DIVERSITY_GROUP_COOLDOWN_DAYS; lookback += 1) {
       for (const group of diverseSchedule.get(dateKeyFromOrdinal(ordinal - lookback)) || []) {
         recentGroupKeys.add(connectionGroupKey(group));
       }
@@ -184,15 +205,97 @@ function scheduledConnectionsGroups(dateKey) {
   return diverseSchedule.get(dateKey);
 }
 
+const strongDiversitySchedule = new Map();
+let stronglyScheduledThroughOrdinal = strongDiversityStartOrdinal - 1;
+
+function priorConnectionsGroups(ordinal) {
+  if (ordinal < diversityStartOrdinal) return legacyConnectionsGroups(dateKeyFromOrdinal(ordinal));
+  if (ordinal < strongDiversityStartOrdinal) return scheduledLegacyDiversityGroups(dateKeyFromOrdinal(ordinal));
+  return strongDiversitySchedule.get(dateKeyFromOrdinal(ordinal)) || [];
+}
+
+function pokemonReuseScore(group, pokemonLastSeen) {
+  return group.pokemon.reduce((score, name) => {
+    const daysAgo = pokemonLastSeen.get(pokemonBaseSpeciesKey(name));
+    return score + (daysAgo ? 2 ** (8 - daysAgo) : 0);
+  }, 0);
+}
+
+function scheduledStrongDiversityGroups(dateKey) {
+  const targetOrdinal = dateOrdinal(dateKey);
+  for (let ordinal = stronglyScheduledThroughOrdinal + 1; ordinal <= targetOrdinal; ordinal += 1) {
+    const currentDateKey = dateKeyFromOrdinal(ordinal);
+    const recentGroupKeys = new Set();
+    const pokemonLastSeen = new Map();
+    const categoryLastSeen = new Map();
+
+    for (let lookback = 1; lookback <= CONNECTION_GROUP_COOLDOWN_DAYS; lookback += 1) {
+      for (const group of priorConnectionsGroups(ordinal - lookback)) {
+        recentGroupKeys.add(connectionGroupKey(group));
+        if (!categoryLastSeen.has(group.category)) categoryLastSeen.set(group.category, lookback);
+        if (lookback <= CONNECTION_POKEMON_SCORE_DAYS) {
+          for (const name of group.pokemon) {
+            const speciesKey = pokemonBaseSpeciesKey(name);
+            if (!pokemonLastSeen.has(speciesKey)) pokemonLastSeen.set(speciesKey, lookback);
+          }
+        }
+      }
+    }
+
+    const blockedCategories = new Set(priorConnectionsGroups(ordinal - 1).map((group) => group.category));
+    const candidates = seededConnectionsShuffle(
+      CONNECTION_GROUPS.filter((group) => !recentGroupKeys.has(connectionGroupKey(group))),
+      hash(`groups-v3-${currentDateKey}`),
+    )
+      .map((group, tieBreaker) => ({
+        group,
+        tieBreaker,
+        score: pokemonReuseScore(group, pokemonLastSeen)
+          + (categoryLastSeen.has(group.category) ? CONNECTION_GROUP_COOLDOWN_DAYS + 1 - categoryLastSeen.get(group.category) : 0),
+      }))
+      .sort((left, right) => left.score - right.score || left.tieBreaker - right.tieBreaker)
+      .map(({ group }) => group);
+
+    let groups = null;
+    for (const cooldownDays of [CONNECTION_POKEMON_PREFERRED_COOLDOWN_DAYS, CONNECTION_POKEMON_HARD_COOLDOWN_DAYS]) {
+      const blockedPokemon = new Set(
+        [...pokemonLastSeen]
+          .filter(([, daysAgo]) => daysAgo <= cooldownDays)
+          .map(([speciesKey]) => speciesKey),
+      );
+      groups = selectDisjointGroups(candidates, 4, {
+        blockedCategories,
+        blockedPokemon,
+        distinctCategories: true,
+        speciesAware: true,
+      });
+      if (groups) break;
+    }
+
+    if (!groups) throw new Error(`Pokémon Connections could not schedule four strongly diverse groups for ${currentDateKey}.`);
+    strongDiversitySchedule.set(currentDateKey, groups);
+    stronglyScheduledThroughOrdinal = ordinal;
+  }
+  return strongDiversitySchedule.get(dateKey);
+}
+
 export function rosterConnectionsPuzzle(dateKey = localDateKey()) {
-  const legacy = dateOrdinal(dateKey) < diversityStartOrdinal;
-  const candidates = legacy ? seededConnectionsShuffle(LEGACY_CONNECTION_GROUPS, hash(`groups-${dateKey}`)) : null;
-  const groups = legacy ? selectDisjointGroups(candidates, 4) : scheduledConnectionsGroups(dateKey);
+  const ordinal = dateOrdinal(dateKey);
+  const legacy = ordinal < diversityStartOrdinal;
+  const stronglyDiverse = ordinal >= strongDiversityStartOrdinal;
+  const groups = legacy
+    ? legacyConnectionsGroups(dateKey)
+    : stronglyDiverse
+      ? scheduledStrongDiversityGroups(dateKey)
+      : scheduledLegacyDiversityGroups(dateKey);
   if (!groups) throw new Error("Pokémon Connections needs four non-overlapping groups.");
   return {
     dateKey,
     groups,
-    pokemon: seededConnectionsShuffle(groups.flatMap((group) => group.pokemon), hash(`${legacy ? "pokemon" : "pokemon-v2"}-${dateKey}`)),
+    pokemon: seededConnectionsShuffle(
+      groups.flatMap((group) => group.pokemon),
+      hash(`${legacy ? "pokemon" : stronglyDiverse ? "pokemon-v3" : "pokemon-v2"}-${dateKey}`),
+    ),
   };
 }
 
