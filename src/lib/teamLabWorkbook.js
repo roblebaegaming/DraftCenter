@@ -1,4 +1,4 @@
-import { buildTeamLabPerformanceSummary, teamLabBattleMechanicForFormat } from "./teamLab.js";
+import { buildTeamLabPerformanceSummary, teamLabBattleMechanicForFormat, teamLabBattlePurposeForMatchup, teamLabBattlePurposeLabel, TEAM_LAB_BATTLE_PURPOSE_OPTIONS } from "./teamLab.js";
 
 const WORKBOOK_GAME_PLAN_COUNT = 3;
 
@@ -35,6 +35,12 @@ function sheetModeForMatchup(matchup, activeMatchupId, activeState) {
 
 function weekForMatchup(matchup, activeMatchupId, activeState) {
   return text(matchup.id === activeMatchupId ? activeState?.weekLabel : matchup.week_label);
+}
+
+function battleContextForMatchup(matchup, activeMatchupId, activeState) {
+  const report = reportForMatchup(matchup, activeMatchupId, activeState);
+  const purpose = teamLabBattlePurposeForMatchup({ ...matchup, battle_report: report });
+  return { purpose, purposeLabel: teamLabBattlePurposeLabel(purpose), sessionLabel: text(report.battle_context?.session_label) };
 }
 
 function workbookSheet(name, title, purpose, headers, dataRows, widths) {
@@ -92,6 +98,8 @@ export function buildTeamLabWorkbookSheets({
       ["Current format", text(formatName || myTeam?.format_name)],
       ["Opponent plans", matchups.length],
       ["Current Battle Mode opponent", text(activeMatchup?.opponent_name)],
+      ["Current battle type", activeMatchup ? battleContextForMatchup(activeMatchup, activeMatchupId, activeState).purposeLabel : ""],
+      ["Current session / event", activeMatchup ? battleContextForMatchup(activeMatchup, activeMatchupId, activeState).sessionLabel : ""],
       ["Current week or round", activeMatchup ? weekForMatchup(activeMatchup, activeMatchupId, activeState) : ""],
       ["Current sheet type", activeMatchup ? sheetModeForMatchup(activeMatchup, activeMatchupId, activeState) : ""],
       ["Exported", exportDate],
@@ -123,6 +131,12 @@ export function buildTeamLabWorkbookSheets({
       ["Open team sheet", `${performance.sheetModes.open.wins}-${performance.sheetModes.open.losses}${performance.sheetModes.open.ties ? `-${performance.sheetModes.open.ties}` : ""}`, performance.sheetModes.open.winRate == null ? "" : `${performance.sheetModes.open.winRate}%`, performance.sheetModes.open.games],
       ["Closed team sheet", `${performance.sheetModes.closed.wins}-${performance.sheetModes.closed.losses}${performance.sheetModes.closed.ties ? `-${performance.sheetModes.closed.ties}` : ""}`, performance.sheetModes.closed.winRate == null ? "" : `${performance.sheetModes.closed.winRate}%`, performance.sheetModes.closed.games],
       [],
+      ["Battle type", "Record", "Win rate", "Games"],
+      ...TEAM_LAB_BATTLE_PURPOSE_OPTIONS.filter((option) => performance.purposes[option.id].games > 0).map((option) => {
+        const result = performance.purposes[option.id];
+        return [option.label, `${result.wins}-${result.losses}${result.ties ? `-${result.ties}` : ""}`, result.winRate == null ? "" : `${result.winRate}%`, result.games];
+      }),
+      [],
       ["Latest tracked rating", performance.rating.latest ?? ""],
       ["Tracked rating change", performance.rating.gamesTracked ? performance.rating.totalChange : ""],
       ["Saved replay links", performance.replayCount],
@@ -153,13 +167,16 @@ export function buildTeamLabWorkbookSheets({
     "Matchup Plans",
     `Matchup Plans — ${teamName}`,
     "One row per saved opponent plan. Private preparation and battle notes are intentionally included.",
-    ["Week / round", "Opponent", "Opponent team", "Sheet", "Format", "Opponent roster", "Preparation notes", "Battle notes", "Set score", "Weather", "Terrain", "Actions", "Seen", "Fainted"],
+    ["Battle type", "Session / event", "Week / round", "Opponent", "Opponent team", "Sheet", "Format", "Opponent roster", "Preparation notes", "Battle notes", "Set score", "Weather", "Terrain", "Actions", "Seen", "Fainted"],
     matchups.map((matchup) => {
       const report = reportForMatchup(matchup, activeMatchupId, activeState);
+      const context = battleContextForMatchup(matchup, activeMatchupId, activeState);
       const opponentPokemon = report.opponent_pokemon || [];
       const wins = (report.series?.games || []).filter((game) => game.result === "win").length;
       const losses = (report.series?.games || []).filter((game) => game.result === "loss").length;
       return [
+        context.purposeLabel,
+        context.sessionLabel,
         weekForMatchup(matchup, activeMatchupId, activeState),
         text(matchup.opponent_name),
         text(matchup.opponent_team_name),
@@ -176,7 +193,7 @@ export function buildTeamLabWorkbookSheets({
         opponentPokemon.filter((pokemon) => pokemon.fainted).length,
       ];
     }),
-    [17, 24, 24, 11, 18, 48, 58, 58, 12, 12, 12, 11, 10, 10],
+    [22, 28, 17, 24, 24, 11, 18, 48, 58, 58, 12, 12, 12, 11, 10, 10],
   );
 
   const opponentSetsRows = matchups.flatMap((matchup) => {
@@ -248,8 +265,10 @@ export function buildTeamLabWorkbookSheets({
     "Game Results",
     `Game Results — ${teamName}`,
     "One row per completed Battle Room game, including private replay links and optional rating movement.",
-    ["Week / round", "Opponent", "Sheet", "Game", "Result", "Replay URL", "Rating before", "Rating after", "Rating change", "Your lead", "Opposing lead"],
+    ["Battle type", "Session / event", "Week / round", "Opponent", "Sheet", "Game", "Result", "Replay URL", "Rating before", "Rating after", "Rating change", "Your lead", "Opposing lead"],
     performance.games.map((game) => [
+      teamLabBattlePurposeLabel(game.purpose),
+      game.sessionLabel,
       game.weekLabel,
       game.opponentName,
       game.sheetMode === "open" ? "Open" : "Closed",
@@ -262,7 +281,7 @@ export function buildTeamLabWorkbookSheets({
       game.myLead,
       game.opponentLead,
     ]),
-    [17, 24, 10, 9, 11, 58, 15, 15, 15, 23, 23],
+    [22, 28, 17, 24, 10, 9, 11, 58, 15, 15, 15, 23, 23],
   );
 
   const matchupStats = workbookSheet(

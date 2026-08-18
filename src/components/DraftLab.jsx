@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { REGULATION_GROUPS } from "../lib/regulation-catalog";
 import {
   applyTeamLabTurnEvent,
@@ -20,6 +20,10 @@ import {
   replaceTeamLabBattleOpponentRoster,
   summarizeTeamLabSeries,
   teamLabBattleMechanicForFormat,
+  teamLabBattlePurposeForMatchup,
+  teamLabBattlePurposeLabel,
+  TEAM_LAB_BATTLE_PURPOSE_OPTIONS,
+  TEAM_LAB_BATTLE_SESSION_LABEL_LIMIT,
   TEAM_LAB_BATTLE_MOVE_LIMIT,
   TEAM_LAB_BATTLE_NOTE_LIMIT,
   TEAM_LAB_HANDOFF_KEY,
@@ -40,6 +44,7 @@ import { createPlatformBrowserClient } from "../platform/supabase";
 import TeamLabOpponentEditor, { createEmptyTeamLabMatchup, normalizeTeamLabMatchupForm } from "./TeamLabOpponentEditor";
 import TeamLabSetEditor from "./TeamLabSetEditor";
 import TeamLabPokePasteImport from "./TeamLabPokePasteImport";
+import TeamLabReports from "./TeamLabReports";
 import { hasTeamLabSetDetails, normalizeTeamLabTeamSets } from "../lib/teamLabSets";
 import { BattleDamageEstimator, BattleSeriesTracker, BattleStateTracker } from "./TeamLabBattleTools";
 import {
@@ -51,6 +56,7 @@ import {
   teamStabSummary,
   teamStatSummary,
 } from "../lib/teamAnalysis";
+import { readTeamLabNavigation, writeTeamLabNavigation } from "../lib/teamLabNavigation";
 
 const CATALOG = SHARED_POKEMON_DIRECTORY;
 const CATALOG_BY_NAME = SHARED_POKEMON_BY_NAME;
@@ -236,31 +242,6 @@ function OpponentBattlePokemonDetails({ pokemon, scoutedSet, sheetMode, moveEdit
       </form>}
       <button type="button" className="text-button danger-text team-lab-opponent-remove" onClick={() => onRemove(pokemon.name)}>Remove from opponent team</button>
     </div>
-  </section>;
-}
-
-function TeamPerformancePanel({ summary }) {
-  const streak = summary.streak.count
-    ? `${summary.streak.result === "win" ? "W" : "L"}${summary.streak.count}`
-    : "—";
-  return <section className="team-lab-performance" aria-labelledby="team-lab-performance-title">
-    <div className="team-lab-performance-heading"><div><span className="eyebrow">TEAM PERFORMANCE</span><h3 id="team-lab-performance-title">Results and usage</h3><p>Private Battle Room results roll up automatically for this saved team.</p></div>{summary.games.length > 0 && <span>{summary.games.length} game{summary.games.length === 1 ? "" : "s"} logged</span>}</div>
-    <div className="team-lab-performance-metrics">
-      <div><span>Record</span><strong>{summary.wins}–{summary.losses}{summary.ties ? `–${summary.ties}` : ""}</strong><small>{summary.ties ? "W–L–T" : "Wins–losses"}</small></div>
-      <div><span>Win rate</span><strong>{summary.winRate == null ? "—" : `${summary.winRate}%`}</strong><small>Decided games</small></div>
-      <div><span>Current streak</span><strong>{streak}</strong><small>{summary.streak.count ? `${summary.streak.result === "win" ? "Win" : "Loss"} streak` : "No results yet"}</small></div>
-      <div><span>Matches</span><strong>{summary.matchesLogged}</strong><small>Battle reports</small></div>
-      {summary.rating.gamesTracked > 0 && <div><span>Latest rating</span><strong>{summary.rating.latest ?? "—"}</strong><small>{summary.rating.totalChange >= 0 ? "+" : ""}{summary.rating.totalChange} tracked change</small></div>}
-      {summary.replayCount > 0 && <div><span>Replays</span><strong>{summary.replayCount}</strong><small>Private saved links</small></div>}
-    </div>
-    {summary.lastTen.length > 0 ? <div className="team-lab-last-ten"><span>Last {summary.lastTen.length}</span><div>{summary.lastTen.map((result, index) => <b key={`${result}-${index}`} className={`is-${result}`} aria-label={result}>{result === "win" ? "W" : result === "loss" ? "L" : "T"}</b>)}</div></div> : <p className="team-lab-performance-empty">Choose Win, Loss, or Tie in Battle Room and your team history will begin here.</p>}
-    {summary.games.length > 0 && <details><summary>Sheet, matchup, and usage analytics</summary>
-      <div className="team-lab-sheet-performance"><article><span>Open team sheet</span><strong>{summary.sheetModes.open.wins}–{summary.sheetModes.open.losses}{summary.sheetModes.open.ties ? `–${summary.sheetModes.open.ties}` : ""}</strong><small>{summary.sheetModes.open.winRate == null ? "No decided games" : `${summary.sheetModes.open.winRate}% wins`} · {summary.sheetModes.open.games} game{summary.sheetModes.open.games === 1 ? "" : "s"}</small></article><article><span>Closed team sheet</span><strong>{summary.sheetModes.closed.wins}–{summary.sheetModes.closed.losses}{summary.sheetModes.closed.ties ? `–${summary.sheetModes.closed.ties}` : ""}</strong><small>{summary.sheetModes.closed.winRate == null ? "No decided games" : `${summary.sheetModes.closed.winRate}% wins`} · {summary.sheetModes.closed.games} game{summary.sheetModes.closed.games === 1 ? "" : "s"}</small></article></div>
-      <h4>Your Pokémon usage and leads</h4><div className="team-lab-performance-pokemon">{summary.pokemon.map((pokemon) => <article key={pokemon.name}><strong>{pokemon.name}</strong><span>{pokemon.broughtMatches} match{pokemon.broughtMatches === 1 ? "" : "es"} brought</span><small>{pokemon.leads} lead{pokemon.leads === 1 ? "" : "s"} · {pokemon.leadWins}–{pokemon.leadLosses} lead record{pokemon.megaMatches ? ` · ${pokemon.megaMatches} Mega` : ""}{pokemon.teraMatches ? ` · ${pokemon.teraMatches} Tera` : ""}</small></article>)}</div>
-      {summary.opponentPokemon.length > 0 && <div className="team-lab-opponent-matchups"><h4>Opposing-Pokémon matchup record</h4><div>{summary.opponentPokemon.map((pokemon) => <article key={pokemon.name}><strong>{pokemon.name}</strong><span>{pokemon.wins}–{pokemon.losses}{pokemon.ties ? `–${pokemon.ties}` : ""}</span><small>{pokemon.winRate == null ? "No completed match decisions" : `${pokemon.winRate}% wins`} · seen in {pokemon.seenMatches}</small></article>)}</div></div>}
-      {summary.moveUsage.length > 0 && <div className="team-lab-move-usage"><h4>Recorded move usage</h4><div>{summary.moveUsage.slice(0, 24).map((usage) => <article key={`${usage.side}-${usage.pokemon}-${usage.move}`}><span>{usage.side === "my" ? "Your side" : "Opponent"}</span><strong>{usage.pokemon} · {usage.move}</strong><small>{usage.uses} use{usage.uses === 1 ? "" : "s"} across {usage.games} game{usage.games === 1 ? "" : "s"}{usage.winRate == null ? "" : ` · ${usage.winRate}% wins when used`}</small></article>)}</div></div>}
-      {(summary.replayCount > 0 || summary.rating.gamesTracked > 0) && <div className="team-lab-game-history"><h4>Ratings and replays</h4><div>{summary.games.filter((game) => game.replayUrl || game.eloBefore != null || game.eloAfter != null).map((game) => <article key={`${game.matchupId}-${game.game}`}><strong>{game.weekLabel || game.opponentName || "Saved match"} · Game {game.game}</strong><span>{game.eloBefore != null || game.eloAfter != null ? `${game.eloBefore ?? "—"} → ${game.eloAfter ?? "—"}` : "No rating"}</span>{game.replayUrl && <a href={game.replayUrl} target="_blank" rel="noreferrer">Open replay</a>}</article>)}</div></div>}
-    </details>}
   </section>;
 }
 
@@ -626,7 +607,7 @@ function BattleMode({ matchup, matchups, myTeam, formatName, supabase, onSaved, 
   const [initialBattle] = useState(() => {
     const week = matchup.week_label || "";
     const sheet = matchup.sheet_mode === "open" ? "open" : "closed";
-    const initialReport = normalizeTeamLabBattleReport(matchup.battle_report, myTeam.pokemon, matchup.pokemon, CATALOG_NAME_SET);
+    const initialReport = normalizeTeamLabBattleReport(matchup.battle_report, myTeam.pokemon, matchup.pokemon, CATALOG_NAME_SET, null, { purpose: teamLabBattlePurposeForMatchup(matchup) });
     return { week, sheet, report: initialReport, snapshot: JSON.stringify({ weekLabel: week, sheetMode: sheet, report: initialReport }) };
   });
   const [weekLabel, setWeekLabel] = useState(initialBattle.week);
@@ -645,6 +626,7 @@ function BattleMode({ matchup, matchups, myTeam, formatName, supabase, onSaved, 
   const [recoveryStatus, setRecoveryStatus] = useState("");
   const [pendingRecovery, setPendingRecovery] = useState(null);
   const [opponentDetailName, setOpponentDetailName] = useState("");
+  const battleBackdropRef = useRef(null);
   const initialSnapshot = initialBattle.snapshot;
   const currentSnapshot = JSON.stringify({ weekLabel, sheetMode, report });
   const dirty = currentSnapshot !== savedSnapshot;
@@ -665,13 +647,41 @@ function BattleMode({ matchup, matchups, myTeam, formatName, supabase, onSaved, 
         return;
       }
       const serverChanged = recovery.savedSnapshot !== initialSnapshot;
-      setPendingRecovery({ recovery, serverChanged });
+      if (!serverChanged) {
+        const draft = JSON.parse(recovery.draftSnapshot);
+        setWeekLabel(draft.weekLabel.slice(0, TEAM_LAB_WEEK_LABEL_LIMIT));
+        setSheetMode(draft.sheetMode === "open" ? "open" : "closed");
+        setReport(normalizeTeamLabBattleReport(draft.report, myTeam.pokemon, matchup.pokemon, CATALOG_NAME_SET, null, { purpose: teamLabBattlePurposeForMatchup(matchup) }));
+        setRecoveryStatus("Recovered your locally autosaved battle after reload.");
+      } else {
+        setPendingRecovery({ recovery, serverChanged: true });
+      }
     } catch {
       try { window.localStorage.removeItem(recoveryKey); } catch { /* Storage is unavailable. */ }
     } finally {
       setRecoveryChecked(true);
     }
   }, [initialSnapshot, matchup.id, matchup.pokemon, myTeam.pokemon, recoveryChecked, recoveryKey]);
+
+  useEffect(() => {
+    const scrollKey = `draftcenter-team-lab-battle-scroll-v1:${matchup.id}`;
+    const persistScroll = () => {
+      try {
+        if (battleBackdropRef.current) window.sessionStorage.setItem(scrollKey, String(battleBackdropRef.current.scrollTop));
+      } catch { /* Session recovery is optional. */ }
+    };
+    try {
+      const savedScroll = Math.max(0, Number(window.sessionStorage.getItem(scrollKey)) || 0);
+      window.requestAnimationFrame(() => {
+        if (battleBackdropRef.current) battleBackdropRef.current.scrollTop = savedScroll;
+      });
+    } catch { /* Session recovery is optional. */ }
+    window.addEventListener("pagehide", persistScroll);
+    return () => {
+      persistScroll();
+      window.removeEventListener("pagehide", persistScroll);
+    };
+  }, [matchup.id]);
 
   useEffect(() => {
     if (!recoveryChecked || !recoveryKey || pendingRecovery) return undefined;
@@ -714,7 +724,10 @@ function BattleMode({ matchup, matchups, myTeam, formatName, supabase, onSaved, 
   }, [dirty, onClose]);
 
   function close() {
-    if (!dirty || window.confirm("Close Battle Mode? Your unsaved changes will stay in local browser recovery until you return.")) onClose();
+    if (!dirty || window.confirm("Close Battle Mode? Your unsaved changes will stay in local browser recovery until you return.")) {
+      try { window.sessionStorage.removeItem(`draftcenter-team-lab-battle-scroll-v1:${matchup.id}`); } catch { /* Session recovery is optional. */ }
+      onClose();
+    }
   }
 
   function restoreLocalRecovery() {
@@ -723,7 +736,7 @@ function BattleMode({ matchup, matchups, myTeam, formatName, supabase, onSaved, 
       const draft = JSON.parse(pendingRecovery.recovery.draftSnapshot);
       setWeekLabel(draft.weekLabel.slice(0, TEAM_LAB_WEEK_LABEL_LIMIT));
       setSheetMode(draft.sheetMode === "open" ? "open" : "closed");
-      setReport(normalizeTeamLabBattleReport(draft.report, myTeam.pokemon, opponentRosterNames, CATALOG_NAME_SET));
+      setReport(normalizeTeamLabBattleReport(draft.report, myTeam.pokemon, opponentRosterNames, CATALOG_NAME_SET, null, { purpose: teamLabBattlePurposeForMatchup(matchup) }));
       setRecoveryStatus(pendingRecovery.serverChanged ? "Recovered a local draft for review; the cloud version has not been overwritten." : "Recovered your locally autosaved battle draft.");
     } catch {
       try { if (recoveryKey) window.localStorage.removeItem(recoveryKey); } catch { /* Storage is unavailable. */ }
@@ -836,7 +849,7 @@ function BattleMode({ matchup, matchups, myTeam, formatName, supabase, onSaved, 
   async function save(successMessage = "Battle report saved privately to your account.") {
     setSaving(true);
     setStatus("");
-    const normalized = normalizeTeamLabBattleReport(report, myTeam.pokemon, opponentRosterNames, CATALOG_NAME_SET);
+    const normalized = normalizeTeamLabBattleReport(report, myTeam.pokemon, opponentRosterNames, CATALOG_NAME_SET, null, { purpose: teamLabBattlePurposeForMatchup(matchup) });
     const { data, error } = await supabase.rpc("save_my_team_lab_battle_report", {
       p_matchup_id: matchup.id,
       p_week_label: weekLabel.trim(),
@@ -848,7 +861,7 @@ function BattleMode({ matchup, matchups, myTeam, formatName, supabase, onSaved, 
       setStatus(error.message);
       return null;
     }
-    const savedReport = normalizeTeamLabBattleReport(data.battle_report, myTeam.pokemon, opponentRosterNames, CATALOG_NAME_SET);
+    const savedReport = normalizeTeamLabBattleReport(data.battle_report, myTeam.pokemon, opponentRosterNames, CATALOG_NAME_SET, null, { purpose: teamLabBattlePurposeForMatchup(matchup) });
     const nextWeekLabel = data.week_label || "";
     const nextSheetMode = data.sheet_mode === "open" ? "open" : "closed";
     setWeekLabel(nextWeekLabel);
@@ -877,6 +890,8 @@ function BattleMode({ matchup, matchups, myTeam, formatName, supabase, onSaved, 
       await onStartNextMatch({
         formatId: matchup.format_id,
         sheetMode,
+        battlePurpose: report.battle_context.purpose,
+        sessionLabel: report.battle_context.session_label,
         nextGameNumber: performance.games.length + 1,
       });
     } catch (error) {
@@ -971,7 +986,9 @@ function BattleMode({ matchup, matchups, myTeam, formatName, supabase, onSaved, 
     }));
     setStatus("");
   }
-  return <div className="team-lab-battle-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) close(); }}>
+  return <div ref={battleBackdropRef} className="team-lab-battle-backdrop" role="presentation" onScroll={() => {
+    try { window.sessionStorage.setItem(`draftcenter-team-lab-battle-scroll-v1:${matchup.id}`, String(battleBackdropRef.current?.scrollTop || 0)); } catch { /* Session recovery is optional. */ }
+  }} onMouseDown={(event) => { if (event.target === event.currentTarget) close(); }}>
     <section className={`team-lab-battle-mode${seriesSummary.complete ? " has-next-match" : ""}`} role="dialog" aria-modal="true" aria-labelledby="team-lab-battle-title">
       <header className="team-lab-battle-header"><div><span className="eyebrow">PRIVATE LIVE NOTEBOOK</span><h2 id="team-lab-battle-title">Battle Mode · {matchup.opponent_name}</h2><p>{dirty ? recoveryStatus || "Unsaved changes" : "Saved to your account"} · {turnEvents} turn action{turnEvents === 1 ? "" : "s"} · {opponentMoves} revealed move{opponentMoves === 1 ? "" : "s"}</p></div><div><button type="button" className="quiet-button" onClick={close}>Close</button><button type="button" className="primary-button" disabled={saving || startingNext || !dirty} onClick={() => save()}>{saving ? "Saving…" : dirty ? "Save battle report" : "Saved"}</button></div></header>
       {pendingRecovery && <aside className="team-lab-recovery-banner" aria-labelledby="team-lab-recovery-title"><div><span className="eyebrow">BROWSER RECOVERY FOUND</span><h3 id="team-lab-recovery-title">Unsaved Battle Mode draft available</h3><p>{pendingRecovery.serverChanged ? "Your saved report changed after this browser draft began. Restore it for review, or keep the newer saved report." : "Battle Mode found changes autosaved on this device. Restore them or keep the report saved to your account."}</p></div><div><button type="button" className="primary-button" onClick={restoreLocalRecovery}>Restore draft</button><button type="button" className="quiet-button" onClick={discardLocalRecovery}>Keep saved report</button></div></aside>}
@@ -981,7 +998,7 @@ function BattleMode({ matchup, matchups, myTeam, formatName, supabase, onSaved, 
         <small>{seriesSummary.complete ? "Result ready — save it and jump straight into another match." : report.series.best_of > 1 ? `${seriesSummary.wins}–${seriesSummary.losses} in this set. Use the set tracker for the next game.` : "Choose a result when the battle ends."}</small>
       </section>
       <section className="team-lab-battle-setup" aria-label="Battle report settings">
-        <label>Week or round<input maxLength={TEAM_LAB_WEEK_LABEL_LIMIT} value={weekLabel} onChange={(event) => { setWeekLabel(event.target.value); setStatus(""); }} placeholder="Week 4, semifinals, rematch…"/></label>
+        <div className="team-lab-battle-context"><label>Battle type<select value={report.battle_context.purpose} onChange={(event) => { setReport((current) => ({ ...current, battle_context: { ...current.battle_context, purpose: event.target.value } })); setStatus(""); }}>{TEAM_LAB_BATTLE_PURPOSE_OPTIONS.map((option) => <option key={option.id} value={option.id}>{option.label}</option>)}</select></label><label>Session or event<input maxLength={TEAM_LAB_BATTLE_SESSION_LABEL_LIMIT} value={report.battle_context.session_label} onChange={(event) => { setReport((current) => ({ ...current, battle_context: { ...current.battle_context, session_label: event.target.value } })); setStatus(""); }} placeholder="Bo3 ladder run, Cup day 1…"/></label><label>Week or round<input maxLength={TEAM_LAB_WEEK_LABEL_LIMIT} value={weekLabel} onChange={(event) => { setWeekLabel(event.target.value); setStatus(""); }} placeholder="Week 4, semifinals, rematch…"/></label></div>
         <div><span>Team sheet</span><div className="team-lab-sheet-mode" role="group" aria-label="Team sheet visibility"><button type="button" aria-pressed={sheetMode === "closed"} onClick={() => { setSheetMode("closed"); setStatus(""); }}>Closed sheet</button><button type="button" aria-pressed={sheetMode === "open"} onClick={() => { setSheetMode("open"); setStatus(""); }}>Open sheet</button></div><small>{sheetMode === "closed" ? "Add moves only as they are revealed during play." : "Enter moves from the published sheet before or during the set."}</small></div>
         <div className="team-lab-battle-share-actions"><button type="button" className="secondary-button" disabled={exporting} onClick={downloadBattleWorkbook}>{exporting ? "Building workbook…" : "Download Excel / Sheets workbook"}</button><button type="button" className="quiet-button" onClick={copyWeeklyTeam}>Copy weekly team</button><button type="button" className="quiet-button" onClick={copyBattleRecap}>Copy battle recap</button></div>
       </section>
@@ -1017,7 +1034,7 @@ function MatchupCard({ matchup, onBattle, onEdit, onDelete, busy }) {
     <div className="team-lab-matchup-pokemon">{(matchup.pokemon || []).map((name) => <span key={name}>{name}</span>)}{!matchup.pokemon?.length && <span className="muted">Roster not added yet</span>}</div>
     {scoutedSets > 0 && <p className="team-lab-matchup-battle-summary"><strong>{scoutedSets} scouted set{scoutedSets === 1 ? "" : "s"}</strong> · abilities, items, and moves saved</p>}
     {pressurePoints.length > 0 && <p className="team-lab-matchup-pressure"><strong>Type pressure to review:</strong> {pressurePoints.map((row) => displayType(row.type)).join(", ")}</p>}
-    {(matchup.week_label || revealedMoves > 0 || turnEvents > 0) && <p className="team-lab-matchup-battle-summary"><strong>{matchup.sheet_mode === "open" ? "Open" : "Closed"} sheet</strong>{turnEvents > 0 ? ` · ${turnEvents} turn action${turnEvents === 1 ? "" : "s"}` : revealedMoves > 0 ? ` · ${revealedMoves} move${revealedMoves === 1 ? "" : "s"} recorded` : " · Battle report ready"}</p>}
+    {(matchup.week_label || revealedMoves > 0 || turnEvents > 0) && <p className="team-lab-matchup-battle-summary"><strong>{teamLabBattlePurposeLabel(teamLabBattlePurposeForMatchup(matchup))} · {matchup.sheet_mode === "open" ? "Open" : "Closed"} sheet</strong>{turnEvents > 0 ? ` · ${turnEvents} turn action${turnEvents === 1 ? "" : "s"}` : revealedMoves > 0 ? ` · ${revealedMoves} move${revealedMoves === 1 ? "" : "s"} recorded` : " · Battle report ready"}</p>}
     {(seriesSummary.wins > 0 || seriesSummary.losses > 0 || seriesSummary.ties > 0) && <p className="team-lab-matchup-battle-summary"><strong>{seriesSummary.wins}–{seriesSummary.losses}{seriesSummary.ties ? `–${seriesSummary.ties}` : ""}</strong> · {seriesSummary.complete ? "match complete" : "set in progress"}</p>}
     {matchup.notes && <p className="team-lab-matchup-note">{matchup.notes}</p>}
     <div className="team-lab-matchup-actions"><button type="button" className="primary-button" onClick={() => onBattle(matchup)}>Open turn-by-turn Battle Mode</button><button type="button" className="secondary-button" onClick={() => onEdit(matchup)}>Edit plan</button><button type="button" className="text-button danger-text" disabled={busy} onClick={() => onDelete(matchup)}>Delete</button></div>
@@ -1026,6 +1043,7 @@ function MatchupCard({ matchup, onBattle, onEdit, onDelete, busy }) {
 
 export default function DraftLab() {
   const [supabase] = useState(() => createPlatformBrowserClient());
+  const [initialPrivateNavigation] = useState(() => readTeamLabNavigation(typeof window === "undefined" ? "" : window.location.search));
   const [formatId, setFormatId] = useState("reg-mb");
   const [names, setNames] = useState([]);
   const [message, setMessage] = useState("");
@@ -1035,13 +1053,13 @@ export default function DraftLab() {
   const [leagueTeams, setLeagueTeams] = useState([]);
   const [matchups, setMatchups] = useState([]);
   const [sourceKey, setSourceKey] = useState("");
-  const [savedTeamId, setSavedTeamId] = useState(null);
+  const [savedTeamId, setSavedTeamId] = useState(initialPrivateNavigation.workspaceId || null);
   const [teamName, setTeamName] = useState("");
   const [leagueName, setLeagueName] = useState("");
   const [teamNotes, setTeamNotes] = useState("");
   const [teamSets, setTeamSets] = useState(() => normalizeTeamLabTeamSets(null, [], CATALOG_NAME_SET));
   const [matchupForm, setMatchupForm] = useState(null);
-  const [battleMatchupId, setBattleMatchupId] = useState(null);
+  const [battleMatchupId, setBattleMatchupId] = useState(initialPrivateNavigation.battleMatchupId || null);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
@@ -1092,15 +1110,33 @@ export default function DraftLab() {
       setMatchups(nextMatchups);
       const loadError = personalResult.error || leagueResult.error || matchupResult.error;
       if (loadError) setMessage(loadError.message);
-      if (handoff?.savedTeamId) {
+      const requestedMatchup = initialPrivateNavigation.battleMatchupId
+        ? nextMatchups.find((matchup) => matchup.id === initialPrivateNavigation.battleMatchupId)
+        : null;
+      const requestedTeamId = initialPrivateNavigation.workspaceId || requestedMatchup?.personal_team_id || "";
+      const requestedTeam = requestedTeamId
+        ? nextPersonal.find((team) => team.id === requestedTeamId && team.workspace_type !== "nuzlocke")
+        : null;
+      if (requestedTeam) {
+        applyAccountTeam(requestedTeam, "personal");
+      } else if (handoff?.savedTeamId) {
         const saved = nextPersonal.find((team) => team.id === handoff.savedTeamId && team.workspace_type !== "nuzlocke");
         if (saved) applyAccountTeam(saved, "personal");
         else applyHandoff(handoff);
       } else if (handoff) {
         applyHandoff(handoff);
       }
-      if (matchupHandoff && nextMatchups.some((matchup) => matchup.id === matchupHandoff)) {
-        setBattleMatchupId(matchupHandoff);
+      const requestedBattleId = requestedMatchup?.personal_team_id === requestedTeam?.id
+        ? requestedMatchup.id
+        : matchupHandoff && nextMatchups.some((matchup) => matchup.id === matchupHandoff)
+          ? matchupHandoff
+          : "";
+      if (requestedBattleId) {
+        setBattleMatchupId(requestedBattleId);
+      } else if ((initialPrivateNavigation.workspaceId || initialPrivateNavigation.battleMatchupId) && !requestedTeam) {
+        setSavedTeamId(null);
+        setBattleMatchupId(null);
+        setMessage("That private Team Lab workspace is unavailable to this account. Choose one of your saved teams below.");
       }
       if (leagueMatchupHandoff) {
         const { data: context, error: contextError } = await supabase.rpc("get_my_league_matchup_planning_context", {
@@ -1115,13 +1151,14 @@ export default function DraftLab() {
       }
     });
     return () => { cancelled = true; };
-  }, [supabase]);
+  }, [initialPrivateNavigation.battleMatchupId, initialPrivateNavigation.workspaceId, supabase]);
 
   useEffect(() => {
     if (!hydrated) return;
-    const search = buildDraftLabQuery({ format: formatId, names });
+    const publicSearch = buildDraftLabQuery({ format: formatId, names });
+    const search = writeTeamLabNavigation(publicSearch, { workspaceId: savedTeamId, battleMatchupId });
     window.history.replaceState(null, "", `${window.location.pathname}?${search}`);
-  }, [formatId, hydrated, names]);
+  }, [battleMatchupId, formatId, hydrated, names, savedTeamId]);
 
   const roster = useMemo(() => buildRoster(names), [names]);
   const regulation = REGULATION_SETS[formatId] || REGULATION_SETS["reg-mb"];
@@ -1201,7 +1238,8 @@ export default function DraftLab() {
 
   async function copyLink() {
     try {
-      await navigator.clipboard.writeText(window.location.href);
+      const search = buildDraftLabQuery({ format: formatId, names });
+      await navigator.clipboard.writeText(`${window.location.origin}${window.location.pathname}?${search}`);
       setMessage("Share link copied. It includes only the roster and base format—not account details, team notes, or matchup plans.");
     } catch {
       setMessage("Copy was blocked by the browser. You can copy the current address from the address bar.");
@@ -1308,13 +1346,13 @@ export default function DraftLab() {
     setMessage(openBattleAfterSave ? "Opponent plan saved. Battle Mode is open and ready for turn-by-turn recording." : "Opponent matchup plan saved to your account.");
   }
 
-  async function createQuickLadderMatch({ formatId: nextFormatId = formatId, sheetMode = "closed", nextGameNumber = teamPerformance.games.length + 1 } = {}) {
+  async function createQuickLadderMatch({ formatId: nextFormatId = formatId, sheetMode = "closed", battlePurpose = "ladder", sessionLabel = "", nextGameNumber = teamPerformance.games.length + 1 } = {}) {
     if (!savedTeamId) throw new Error("Save or load a My Teams roster before starting a ladder match.");
     const safeGameNumber = Math.max(1, Math.min(9999, Number(nextGameNumber) || 1));
     const ladderLabel = `Ladder game ${safeGameNumber}`;
     const emptyMatchup = createEmptyTeamLabMatchup({ format_id: REGULATION_SETS[nextFormatId] ? nextFormatId : formatId });
     const savedRoster = personalTeams.find((team) => team.id === savedTeamId)?.pokemon || names;
-    const blankReport = normalizeTeamLabBattleReport(null, savedRoster, [], CATALOG_NAME_SET);
+    const blankReport = normalizeTeamLabBattleReport({ battle_context: { purpose: battlePurpose, session_label: sessionLabel } }, savedRoster, [], CATALOG_NAME_SET, null, { purpose: "ladder" });
     setBusy(true);
     setMessage("");
     try {
@@ -1333,18 +1371,16 @@ export default function DraftLab() {
       if (error) throw error;
       let nextMatchup = { ...data, pokemon: [], opponent_sets: emptyMatchup.opponent_sets, battle_report: blankReport };
       let launchMessage = "Next ladder match ready. You can rename the opponent or add their Pokémon later.";
-      if (sheetMode === "open") {
-        const sheetResult = await supabase.rpc("save_my_team_lab_battle_report", {
-          p_matchup_id: data.id,
-          p_week_label: ladderLabel,
-          p_sheet_mode: "open",
-          p_battle_report: blankReport,
-        });
-        if (sheetResult.error) {
-          launchMessage = "Next ladder match is ready, but it opened as a closed-sheet match. Change the sheet setting here if needed.";
-        } else {
-          nextMatchup = sheetResult.data;
-        }
+      const sheetResult = await supabase.rpc("save_my_team_lab_battle_report", {
+        p_matchup_id: data.id,
+        p_week_label: ladderLabel,
+        p_sheet_mode: sheetMode === "open" ? "open" : "closed",
+        p_battle_report: blankReport,
+      });
+      if (sheetResult.error) {
+        launchMessage = "Next ladder match is ready, but its report settings still need to be saved.";
+      } else {
+        nextMatchup = sheetResult.data;
       }
       nextMatchup = { ...nextMatchup, launch_message: launchMessage };
       setMatchups((current) => [nextMatchup, ...current.filter((item) => item.id !== nextMatchup.id)]);
@@ -1454,7 +1490,7 @@ export default function DraftLab() {
           <div className="team-lab-matchups-heading"><div><span className="eyebrow">MATCH &amp; LADDER TRACKER</span><h3>Set up Battle Room</h3><p>Plan a known opponent or jump straight into a quick ladder match. Every saved result stays attached to this team.</p></div><div className="team-lab-matchups-heading-actions"><button type="button" className="primary-button" disabled={!savedTeamId || busy} onClick={async () => { try { await createQuickLadderMatch(); } catch (error) { setMessage(error.message); } }}>Start ladder match</button><button type="button" className="secondary-button" disabled={!savedTeamId || busy} onClick={() => openMatchup()}>Plan an opponent</button></div></div>
           {!savedTeamId && <p className="team-lab-matchup-empty">Save or load a My Teams roster to begin matchup planning.</p>}
           {savedTeamId && !activeMatchups.length && !matchupForm && <p className="team-lab-matchup-empty">No opponent plans yet. Create one, then choose Save &amp; open Battle Mode.</p>}
-          {savedTeamId && <TeamPerformancePanel summary={teamPerformance}/>}
+          {savedTeamId && <TeamLabReports matchups={activeMatchups} rosterNames={names} onOpenBattle={(matchup) => matchup && setBattleMatchupId(matchup.id)}/>}
           {activeMatchups.length > 0 && <div className="team-lab-matchup-grid">{activeMatchups.map((matchup) => <MatchupCard key={matchup.id} matchup={matchup} onBattle={(item) => setBattleMatchupId(item.id)} onEdit={openMatchup} onDelete={deleteMatchup} busy={busy}/>)}</div>}
           {savedTeamId && matchupForm && <form className="team-lab-matchup-editor" onSubmit={saveMatchup}>
             <div className="team-lab-matchup-editor-heading"><div><span className="eyebrow">{matchupForm.id ? "EDIT MATCHUP" : "NEW MATCHUP"}</span><h3>{matchupForm.id ? matchupForm.opponent_name : "Plan for an opponent"}</h3></div><button type="button" className="quiet-button" onClick={() => setMatchupForm(null)}>Close</button></div>

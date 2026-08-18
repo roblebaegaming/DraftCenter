@@ -35,9 +35,11 @@ its separate browser-only contract.
 4. **Save & open Battle Mode** turns a new or edited plan directly into a
    focused live notebook. A saved plan also keeps a persistent **Open
    turn-by-turn Battle Mode** action for returning to its report. The coach
-   labels the week or round, selects closed or open team sheet, marks Pokémon as
-   brought or fainted, records up to four revealed moves per opponent Pokémon,
-   and keeps a private battle note.
+   classifies the battle as ladder, draft league, online tournament, practice,
+   or casual, optionally names the larger session or event, labels the week or
+   round, selects closed or open team sheet, marks Pokémon as brought or
+   fainted, records up to four revealed moves per opponent Pokémon, and keeps a
+   private battle note.
 5. A connected My Teams workspace can store complete private sets: nickname,
    level, gender, ability, item, nature, shiny and happiness flags,
    EVs, format-supported IVs, four moves, role, and private notes. Pokémon
@@ -69,29 +71,40 @@ its separate browser-only contract.
    held-item reveals, switches, faints, written damage, and short action notes.
    Two active slots per side are saved in backward-compatible turn-log fields;
    existing single-active reports open with their saved Pokémon in slot one.
-8. Every Battle Mode change is locally autosaved in the current browser after
-   a short delay and on page exit. Reopening the same matchup shows a
-   non-blocking inline recovery banner with **Restore draft** and **Keep saved
-   report** actions. If the cloud report changed after the local draft began,
-   the banner identifies the conflict before anything can be saved over it.
-   **Save battle report** remains the explicit cross-device account save.
+8. The signed-in working address retains the owner-scoped workspace and open
+   matchup identifiers, so reloading reopens the same Battle Mode instead of
+   returning to the builder. Every change is locally autosaved in the current
+   browser after a short delay and on page exit. When the cloud copy is still
+   the same, reloading restores that browser draft automatically, including the
+   Battle Mode scroll position. If the cloud report changed after the local
+   draft began, a non-blocking banner keeps **Restore draft** and **Keep saved
+   report** as an explicit conflict choice before anything can be saved over
+   the newer copy. **Save battle report** remains the explicit cross-device
+   account save.
 9. Timeline actions support **Undo last action**, per-action **Edit**, and
    removal. Corrections reconcile a faint, move, ability, or item fact only when
    no remaining action or open-sheet plan still supports it.
 10. The always-visible finish control records Win, Loss, or Tie for the current
    game. Once a best-of-1 match or longer set is complete, a phone-friendly
    **Save & start next match** action saves the report and opens a fresh ladder
-   report with the same saved team, format, and sheet choice. The finished
-   report remains separate and editable; the new report starts without turn,
-   state, reveal, or note carryover.
-11. The saved-team performance panel rolls completed reports into wins,
+   report with the same saved team, format, sheet choice, battle purpose, and
+   session label. Quick ladder reports are classified as ladder sessions rather
+   than ordinary planned opponents. The finished report remains separate and
+   editable; the new report starts without turn, state, reveal, or note
+   carryover.
+11. The same saved-team reporting panel appears in Team Lab and the matching My
+   Teams workspace. It distinguishes battle purpose from open/closed sheet
+   visibility, shows individual report cards with direct Battle Mode reopen
+   actions, and rolls completed reports into wins,
    losses, ties, decided-game win rate, current streak, last-ten form, matches
    logged, Pokémon brought counts, lead records, format-correct Mega Evolution
    or Tera usage, separate open- and closed-team-sheet records, opposing-Pokémon
    matchup records, and aggregate move usage. Optional per-game HTTPS replay
    links and ratings before/after a game add a private rating history. These are
    private account statistics derived only from information the coach
-   explicitly records in Battle Room.
+   explicitly records in Battle Room. The readable My Teams spreadsheet adds
+   purpose, session, result, games, turn actions, brought/seen counts, reveals,
+   replays, and rating-update counts for every matchup.
 12. The set tracker supports best-of-1, best-of-3, and best-of-5 matches with a
    result, planned leads, game plan, between-game adjustment, replay URL, and
    before/after rating per game.
@@ -106,8 +119,10 @@ its separate browser-only contract.
 14. **Download Excel / Sheets workbook** exports the complete private team
    workspace as one `.xlsx` file. It contains Overview, Performance, Game
    Results, Matchup Stats, Move Usage, My Team, Matchup Plans, Opponent Sets,
-   Turn Log, and editable Game Plans sheets. Excel opens it directly; Google
-   Sheets imports the same file without a separate account connection.
+   Turn Log, and editable Game Plans sheets. Overview, Performance, Matchup
+   Plans, and Game Results carry the battle purpose and session/event context.
+   Excel opens it directly; Google Sheets imports the same file without a
+   separate account connection.
 
 The Team Lab hero links directly to the private Battle Mode setup, where a
 three-step roster → opponent plan → recorder guide remains visible before sign
@@ -140,8 +155,10 @@ brought markers remain coach-controlled.
 
 A user-created Calendar event can connect to one account-owned My Teams
 workspace. The event and connection remain private. Opening the connection
-hands the team to Team Lab through same-tab session storage; team identifiers,
-notes, and roster details are not added to the public Team Lab URL.
+hands the team to Team Lab through same-tab session storage. The verified
+signed-in working address may then retain only the owner-scoped workspace and
+matchup identifiers for reload recovery; notes and roster details are not added
+to it, and the copied public Team Lab URL contains neither identifier.
 
 Hosted DraftCenter match events remain derived from the authoritative league
 snapshot instead of being copied into the personal calendar table. Calendar and
@@ -157,6 +174,10 @@ Team Lab has three deliberately separate outputs:
 
 - The public analysis URL contains only the format and Pokémon
   names.
+- The signed-in working address may contain owner-scoped `workspace` and
+  `battle` identifiers so the exact private view survives a reload. It is not a
+  sharing action, exposes no report without the existing owner checks, and is
+  never reused by **Copy roster link**.
 - **Copy weekly team** contains the week label, the coach's team and event
   context, and the Pokémon marked as brought. If none are marked, it uses the
   full saved team.

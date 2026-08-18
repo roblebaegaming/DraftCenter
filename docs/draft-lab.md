@@ -39,9 +39,12 @@ A signed-in coach can load:
   signed-in account.
 
 The browser-to-browser handoff from My Teams uses temporary same-tab session
-storage. It does not put a private team ID, league ID, team name, note, or
-account detail in the URL. The receiving page still verifies every write
-against the authenticated account.
+storage. After the receiving page verifies the signed-in account, its private
+working address can contain only the owner-scoped My Teams workspace and open
+matchup identifiers needed to resume that exact Battle Mode view after a
+reload. Team names, league names, rosters, notes, opponent facts, and account
+identity never enter the address. **Copy roster link** always constructs a
+separate public URL containing only the base format and Pokémon names.
 
 Opening a My Teams workspace connects Team Lab to that private row. An explicit
 **Save team & notes** action updates only the account-owned My Teams copy.
@@ -96,11 +99,14 @@ and now opens the first six valid unique names. Unknown names, duplicate names,
 unsupported formats, and names beyond six fail closed or fall back to the
 current Regulation M-B view.
 
-The public query contains only Pokémon names and the base format. It never
-contains private team IDs, league IDs, team names, account identity, notes, or
-opponent plans. SEO metadata, FAQ and application structured data, social
-previews, sitemap entries, and `llms.txt` describe only product-controlled
-behavior. User data never enters those surfaces.
+The public share query contains only Pokémon names and the base format. It
+never contains private team IDs, league IDs, team names, account identity,
+notes, or opponent plans. A signed-in working address may add validated
+`workspace` and `battle` identifiers solely for same-account reload recovery;
+those parameters are stripped when the public link is copied and reveal no
+data without the existing owner checks. SEO metadata, FAQ and application
+structured data, social previews, sitemap entries, and `llms.txt` describe
+only product-controlled behavior. User data never enters those surfaces.
 
 ## Shared analysis layer
 

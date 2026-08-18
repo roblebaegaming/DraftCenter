@@ -15,6 +15,14 @@ export const TEAM_LAB_BATTLE_RECOVERY_KEY_PREFIX = "draftcenter-team-lab-battle-
 export const TEAM_LAB_BATTLE_RECOVERY_LIMIT = 250000;
 export const TEAM_LAB_BATTLE_MOVE_LIMIT = 4;
 export const TEAM_LAB_BATTLE_NOTE_LIMIT = 10000;
+export const TEAM_LAB_BATTLE_SESSION_LABEL_LIMIT = 100;
+export const TEAM_LAB_BATTLE_PURPOSE_OPTIONS = Object.freeze([
+  Object.freeze({ id: "ladder", label: "Ladder session" }),
+  Object.freeze({ id: "draft-league", label: "Draft league match" }),
+  Object.freeze({ id: "tournament", label: "Online tournament" }),
+  Object.freeze({ id: "practice", label: "Practice / scrimmage" }),
+  Object.freeze({ id: "casual", label: "Casual / other" }),
+]);
 export const TEAM_LAB_TURN_LOG_VERSION = 2;
 export const TEAM_LAB_TURN_EVENT_LIMIT = 300;
 export const TEAM_LAB_TURN_NOTE_LIMIT = 160;
@@ -56,6 +64,29 @@ export function teamLabFormatUsesIvs(formatId) {
 
 function cleanText(value, limit) {
   return String(value || "").trim().slice(0, limit);
+}
+
+const TEAM_LAB_BATTLE_PURPOSE_IDS = new Set(TEAM_LAB_BATTLE_PURPOSE_OPTIONS.map((option) => option.id));
+
+export function normalizeTeamLabBattleContext(context, fallback = {}) {
+  const source = context && typeof context === "object" && !Array.isArray(context) ? context : {};
+  const defaultSource = fallback && typeof fallback === "object" && !Array.isArray(fallback) ? fallback : {};
+  const requestedPurpose = cleanText(source.purpose || defaultSource.purpose, 30);
+  return {
+    purpose: TEAM_LAB_BATTLE_PURPOSE_IDS.has(requestedPurpose) ? requestedPurpose : "draft-league",
+    session_label: cleanText(source.session_label || defaultSource.session_label, TEAM_LAB_BATTLE_SESSION_LABEL_LIMIT),
+  };
+}
+
+export function teamLabBattlePurposeForMatchup(matchup = {}) {
+  const savedPurpose = matchup?.battle_report?.battle_context?.purpose;
+  if (TEAM_LAB_BATTLE_PURPOSE_IDS.has(savedPurpose)) return savedPurpose;
+  if (matchup?.mode === "ladder" || /^ladder(?:\s|$)/i.test(String(matchup?.week_label || ""))) return "ladder";
+  return "draft-league";
+}
+
+export function teamLabBattlePurposeLabel(purpose) {
+  return TEAM_LAB_BATTLE_PURPOSE_OPTIONS.find((option) => option.id === purpose)?.label || "Draft league match";
 }
 
 function normalizeBattleReplayUrl(value) {
@@ -454,6 +485,8 @@ export function buildTeamLabPerformanceSummary(matchups = [], rosterNames = []) 
         game: Number(game.game) || 1,
         result: game.result,
         sheetMode: matchup.sheet_mode === "open" ? "open" : "closed",
+        purpose: teamLabBattlePurposeForMatchup(matchup),
+        sessionLabel: cleanText(report.battle_context?.session_label, TEAM_LAB_BATTLE_SESSION_LABEL_LIMIT),
         myLead: cleanText(game.my_lead, 120),
         opponentLead: cleanText(game.opponent_lead, 120),
         replayUrl: normalizeBattleReplayUrl(game.replay_url),
@@ -596,6 +629,7 @@ export function buildTeamLabPerformanceSummary(matchups = [], rosterNames = []) 
       open: resultSummary(games.filter((game) => game.sheetMode === "open")),
       closed: resultSummary(games.filter((game) => game.sheetMode === "closed")),
     },
+    purposes: Object.fromEntries(TEAM_LAB_BATTLE_PURPOSE_OPTIONS.map((option) => [option.id, resultSummary(games.filter((game) => game.purpose === option.id))])),
     rating: {
       gamesTracked: ratingGames.length,
       latest: latestRatingGame?.eloAfter ?? latestRatingGame?.eloBefore ?? null,
@@ -651,17 +685,54 @@ export function normalizeTeamLabBattleState(battleState, myRosterNames = [], opp
   };
 }
 
-export function normalizeTeamLabBattleReport(report, myRosterNames = [], opponentRosterNames = [], catalogNames = null, opponentSets = null) {
+export function normalizeTeamLabBattleReport(report, myRosterNames = [], opponentRosterNames = [], catalogNames = null, opponentSets = null, battleContextFallback = {}) {
   const source = report && typeof report === "object" && !Array.isArray(report) ? report : {};
   const normalizedSets = normalizeTeamLabOpponentSets(opponentSets, opponentRosterNames, catalogNames || opponentRosterNames);
   return {
     version: TEAM_LAB_BATTLE_REPORT_VERSION,
+    battle_context: normalizeTeamLabBattleContext(source.battle_context, battleContextFallback),
     my_pokemon: normalizeBattlePokemon(source.my_pokemon, myRosterNames, catalogNames),
     opponent_pokemon: normalizeBattlePokemon(source.opponent_pokemon, opponentRosterNames, catalogNames, true, normalizedSets),
     battle_notes: cleanText(source.battle_notes, TEAM_LAB_BATTLE_NOTE_LIMIT),
     turn_log: normalizeTeamLabTurnLog(source.turn_log, myRosterNames, opponentRosterNames, catalogNames),
     series: normalizeTeamLabSeries(source.series, myRosterNames, opponentRosterNames),
     battle_state: normalizeTeamLabBattleState(source.battle_state, myRosterNames, opponentRosterNames),
+  };
+}
+
+export function summarizeTeamLabBattleReport(matchup = {}) {
+  const report = matchup.battle_report && typeof matchup.battle_report === "object" ? matchup.battle_report : {};
+  const games = Array.isArray(report.series?.games) ? report.series.games : [];
+  const completedGames = games.filter((game) => ["win", "loss", "tie"].includes(game?.result));
+  const replayCount = games.filter((game) => normalizeBattleReplayUrl(game?.replay_url)).length;
+  const ratingGames = games.filter((game) => normalizeBattleElo(game?.elo_before) != null || normalizeBattleElo(game?.elo_after) != null);
+  const turnActions = Array.isArray(report.turn_log?.events) ? report.turn_log.events.length : 0;
+  const myBrought = Array.isArray(report.my_pokemon) ? report.my_pokemon.filter((pokemon) => pokemon?.brought).length : 0;
+  const opponentPokemon = Array.isArray(report.opponent_pokemon) ? report.opponent_pokemon : [];
+  const opponentBrought = opponentPokemon.filter((pokemon) => pokemon?.brought).length;
+  const revealedMoves = opponentPokemon.reduce((total, pokemon) => total + (Array.isArray(pokemon?.moves) ? pokemon.moves.length : 0), 0);
+  const revealedDetails = opponentPokemon.filter((pokemon) => pokemon?.ability || pokemon?.item).length;
+  const series = summarizeTeamLabSeries(report.series);
+  return {
+    id: String(matchup.id || ""),
+    opponentName: cleanText(matchup.opponent_name, 120) || "Opponent",
+    opponentTeamName: cleanText(matchup.opponent_team_name, 120),
+    weekLabel: cleanText(matchup.week_label, TEAM_LAB_WEEK_LABEL_LIMIT),
+    sheetMode: matchup.sheet_mode === "open" ? "open" : "closed",
+    purpose: teamLabBattlePurposeForMatchup(matchup),
+    purposeLabel: teamLabBattlePurposeLabel(teamLabBattlePurposeForMatchup(matchup)),
+    sessionLabel: cleanText(report.battle_context?.session_label, TEAM_LAB_BATTLE_SESSION_LABEL_LIMIT),
+    series,
+    completedGames: completedGames.length,
+    turnActions,
+    myBrought,
+    opponentBrought,
+    revealedMoves,
+    revealedDetails,
+    replayCount,
+    ratingGames: ratingGames.length,
+    updatedAt: cleanText(matchup.updated_at || matchup.created_at, 80),
+    hasActivity: completedGames.length > 0 || turnActions > 0 || myBrought > 0 || opponentBrought > 0 || revealedMoves > 0 || revealedDetails > 0 || replayCount > 0 || ratingGames.length > 0 || Boolean(cleanText(report.battle_notes, TEAM_LAB_BATTLE_NOTE_LIMIT)),
   };
 }
 
