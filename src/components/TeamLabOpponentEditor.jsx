@@ -11,6 +11,7 @@ import {
   TEAM_LAB_ROSTER_LIMIT,
 } from "../lib/teamLab";
 import TeamLabSuggestedMoves from "./TeamLabSuggestedMoves";
+import TeamLabBattleAutocomplete from "./TeamLabBattleAutocomplete";
 
 const CATALOG = draftLabCatalog.pokemon;
 const CATALOG_NAMES = CATALOG.map((pokemon) => pokemon.name);
@@ -114,7 +115,7 @@ export default function TeamLabOpponentEditor({ form, onChange, onMessage, input
     {!form.pokemon.length && <p className="team-lab-compact-empty">Add the opponent’s known Pokémon now, or save the notes first and return later.</p>}
     {sets.pokemon.length > 0 && <div className="team-lab-opponent-set-grid">{sets.pokemon.map((pokemon, index) => <article key={pokemon.name} className="team-lab-opponent-set-card">
       <header><div><span>{index + 1}</span><strong>{pokemon.name}</strong></div><button type="button" className="text-button danger-text" onClick={() => updateRoster(form.pokemon.filter((name) => name !== pokemon.name))}>Remove</button></header>
-      <div className="team-lab-opponent-set-details"><label>Ability<input maxLength={TEAM_LAB_ABILITY_LIMIT} value={pokemon.ability} onChange={(event) => updateSet(pokemon.name, { ability: event.target.value })} placeholder="Known or likely ability"/></label><label>Held item<input maxLength={TEAM_LAB_ITEM_LIMIT} value={pokemon.item} onChange={(event) => updateSet(pokemon.name, { item: event.target.value })} placeholder="Known or likely item"/></label></div>
+      <div className="team-lab-opponent-set-details"><label>Ability<TeamLabBattleAutocomplete kind="ability" pokemonName={pokemon.name} regulationId={form.format_id} preferred={[pokemon.ability]} maxLength={TEAM_LAB_ABILITY_LIMIT} value={pokemon.ability} onChange={(event) => updateSet(pokemon.name, { ability: event.target.value })} placeholder="Known or likely ability"/></label><label>Held item<TeamLabBattleAutocomplete kind="item" pokemonName={pokemon.name} regulationId={form.format_id} preferred={[pokemon.item]} maxLength={TEAM_LAB_ITEM_LIMIT} value={pokemon.item} onChange={(event) => updateSet(pokemon.name, { item: event.target.value })} placeholder="Known or likely item"/></label></div>
       <TeamLabSuggestedMoves pokemonName={pokemon.name} regulationId={form.format_id} moves={pokemon.moves} onChange={(moves) => updateSet(pokemon.name, { moves })}/>
     </article>)}</div>}
     <label>Matchup notes<textarea maxLength={20000} rows={6} value={form.notes} onChange={(event) => onChange({ ...form, notes: event.target.value })} placeholder="Likely leads, speed control, coverage concerns, win conditions, sets to scout…"/></label>

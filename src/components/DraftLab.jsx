@@ -4,6 +4,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { REGULATION_GROUPS } from "../lib/regulation-catalog";
 import {
   applyTeamLabTurnEvent,
+  activeTeamLabTimedEffects,
+  buildTeamLabGameCsv,
+  buildTeamLabGameFilename,
   buildTeamLabPerformanceSummary,
   buildTeamLabBattleShareText,
   buildTeamLabWeeklyShareText,
@@ -17,8 +20,11 @@ import {
   parseTeamLabMatchupHandoff,
   parseTeamLabBattleRecovery,
   removeTeamLabTurnEvent,
+  removeTeamLabTimedEffect,
   replaceTeamLabBattleOpponentRoster,
   summarizeTeamLabSeries,
+  isTeamLabPivotMove,
+  startTeamLabTimedEffect,
   teamLabBattleMechanicForFormat,
   teamLabBattlePurposeForMatchup,
   teamLabBattlePurposeLabel,
@@ -35,6 +41,7 @@ import {
   TEAM_LAB_TURN_EVENT_LIMIT,
   TEAM_LAB_TURN_MAX,
   TEAM_LAB_TURN_NOTE_LIMIT,
+  TEAM_LAB_TIMED_EFFECTS,
   TEAM_LAB_WEEK_LABEL_LIMIT,
 } from "../lib/teamLab";
 import { buildTeamLabWorkbookFilename, buildTeamLabWorkbookSheets } from "../platform/exports";
@@ -57,6 +64,7 @@ import {
   teamStatSummary,
 } from "../lib/teamAnalysis";
 import { readTeamLabNavigation, writeTeamLabNavigation } from "../lib/teamLabNavigation";
+import TeamLabBattleAutocomplete from "./TeamLabBattleAutocomplete";
 
 const CATALOG = SHARED_POKEMON_DIRECTORY;
 const CATALOG_BY_NAME = SHARED_POKEMON_BY_NAME;
@@ -211,7 +219,7 @@ function OpponentBattleRosterCard({ pokemon, selected, onSelect, onChange }) {
   </article>;
 }
 
-function OpponentBattlePokemonDetails({ pokemon, scoutedSet, sheetMode, moveEditor, onMoveEditor, onChange, onRemove, onClose }) {
+function OpponentBattlePokemonDetails({ pokemon, scoutedSet, sheetMode, regulationId, moveEditor, onMoveEditor, onChange, onRemove, onClose }) {
   const moves = pokemon.moves || [];
   const editingThisPokemon = moveEditor?.pokemonName === pokemon.name;
   const publishedDetails = Boolean(scoutedSet && (scoutedSet.ability || scoutedSet.item || scoutedSet.moves?.length));
@@ -223,7 +231,7 @@ function OpponentBattlePokemonDetails({ pokemon, scoutedSet, sheetMode, moveEdit
       <p>{sheetMode === "closed" ? "Record only the ability, item, and moves you actually see." : "Published details stay separate until you choose Use in report."}</p>
       <div className="team-lab-opponent-battle-actions"><button type="button" className="team-lab-battle-toggle" aria-pressed={pokemon.brought} onClick={() => onChange({ brought: !pokemon.brought, fainted: pokemon.brought ? false : pokemon.fainted })}>Brought</button><button type="button" className="team-lab-battle-toggle danger" aria-pressed={pokemon.fainted} onClick={() => onChange({ fainted: !pokemon.fainted, brought: true })}>Out / fainted</button></div>
       {publishedDetails && <div className="team-lab-battle-scouted-set"><div><span>Published / saved sheet</span><strong>{[scoutedSet.ability && `Ability: ${scoutedSet.ability}`, scoutedSet.item && `Item: ${scoutedSet.item}`, ...(scoutedSet.moves || [])].filter(Boolean).join(" · ")}</strong></div><button type="button" onClick={() => onChange({ ability: scoutedSet.ability || "", item: scoutedSet.item || "", moves: scoutedSet.moves || [], brought: true })}>Use in report</button></div>}
-      <div className="team-lab-battle-reveal-fields"><label>Ability<input maxLength={100} value={pokemon.ability || ""} onChange={(event) => onChange({ ability: event.target.value, brought: event.target.value.trim() ? true : pokemon.brought })} placeholder="Known, published, or revealed"/></label><label>Held item<input maxLength={TEAM_LAB_ITEM_LIMIT} value={pokemon.item || ""} onChange={(event) => onChange({ item: event.target.value, brought: event.target.value.trim() ? true : pokemon.brought })} placeholder="Known, published, or revealed"/></label></div>
+      <div className="team-lab-battle-reveal-fields"><label>Ability<TeamLabBattleAutocomplete kind="ability" pokemonName={pokemon.name} regulationId={regulationId} preferred={[pokemon.ability, scoutedSet?.ability]} maxLength={100} value={pokemon.ability || ""} onChange={(event) => onChange({ ability: event.target.value, brought: event.target.value.trim() ? true : pokemon.brought })} placeholder="Known, published, or revealed"/></label><label>Held item<TeamLabBattleAutocomplete kind="item" pokemonName={pokemon.name} regulationId={regulationId} preferred={[pokemon.item, scoutedSet?.item]} maxLength={TEAM_LAB_ITEM_LIMIT} value={pokemon.item || ""} onChange={(event) => onChange({ item: event.target.value, brought: event.target.value.trim() ? true : pokemon.brought })} placeholder="Known, published, or revealed"/></label></div>
       <div className="team-lab-battle-moves" aria-label={`${pokemon.name} revealed moves`}>
         {moves.map((move, index) => <button type="button" key={`${move}-${index}`} onClick={() => onMoveEditor({ pokemonName: pokemon.name, index, value: move })}><span>Move {index + 1}</span><strong>{move}</strong></button>)}
         {moves.length < TEAM_LAB_BATTLE_MOVE_LIMIT && <button type="button" className="is-empty" onClick={() => onMoveEditor({ pokemonName: pokemon.name, index: moves.length, value: "" })}><span>Move {moves.length + 1}</span><strong>+ Add revealed move</strong></button>}
@@ -237,7 +245,7 @@ function OpponentBattlePokemonDetails({ pokemon, scoutedSet, sheetMode, moveEdit
         onChange({ moves: [...new Map(nextMoves.filter(Boolean).map((move) => [move.toLowerCase(), move])).values()].slice(0, TEAM_LAB_BATTLE_MOVE_LIMIT), brought: value ? true : pokemon.brought });
         onMoveEditor(null);
       }}>
-        <label>Revealed move<input autoFocus maxLength={100} value={moveEditor.value} onChange={(event) => onMoveEditor({ ...moveEditor, value: event.target.value })} placeholder="Move used or shown on the sheet"/></label>
+        <label>Revealed move<TeamLabBattleAutocomplete kind="move" pokemonName={pokemon.name} regulationId={regulationId} preferred={[...moves, ...(scoutedSet?.moves || [])]} autoFocus maxLength={100} value={moveEditor.value} onChange={(event) => onMoveEditor({ ...moveEditor, value: event.target.value })} placeholder="Move used or shown on the sheet"/></label>
         <div><button type="submit" className="secondary-button">{moveEditor.value.trim() ? "Save move" : "Remove move"}</button><button type="button" className="quiet-button" onClick={() => onMoveEditor(null)}>Cancel</button></div>
       </form>}
       <button type="button" className="text-button danger-text team-lab-opponent-remove" onClick={() => onRemove(pokemon.name)}>Remove from opponent team</button>
@@ -247,7 +255,9 @@ function OpponentBattlePokemonDetails({ pokemon, scoutedSet, sheetMode, moveEdit
 
 function turnEventSummary(event) {
   const side = event.side === "my" ? "Your side" : "Opponent";
-  if (event.kind === "switch") return `${side} switched in ${event.pokemon}`;
+  if (event.kind === "switch") return event.switched_out
+    ? `${side} switched ${event.switched_out} out for ${event.pokemon}`
+    : `${side} switched in ${event.pokemon}`;
   if (event.kind === "faint") return `${event.pokemon} fainted`;
   if (event.kind === "note") return `${side} note`;
   if (event.kind === "ability") return `${event.pokemon} revealed ${event.detail} as its ability`;
@@ -255,17 +265,19 @@ function turnEventSummary(event) {
   return `${event.pokemon} used ${event.move}${event.target ? ` into ${event.target}` : ""}${event.damage ? ` · ${event.damage}${event.damage.toLowerCase() === "ko" ? "" : " damage"}` : ""}`;
 }
 
-function BattleFieldPokemonSlot({ side, slot, pokemon, moves, selected, targetSelected, canTarget, onSelect, onFocus, onMove, onTarget, onFaint }) {
+function BattleFieldPokemonSlot({ side, slot, pokemon, moves, selected, actorSelected, targetSelected, canTarget, onSelect, onFocus, onMove, onAddMove, onTarget, onFaint }) {
   const sideLabel = side === "my" ? "Your" : "Opponent";
   if (!pokemon) return <button type="button" className={`team-lab-field-slot is-empty${selected ? " is-selected" : ""}`} onClick={onSelect}><span>{sideLabel} slot {slot + 1}</span><strong>Choose Pokémon</strong></button>;
-  return <article className={`team-lab-field-slot${selected ? " is-selected" : ""}${targetSelected ? " is-target" : ""}${pokemon.fainted ? " is-fainted" : ""}`}>
-    <header><button type="button" onClick={onFocus}><span>{sideLabel} slot {slot + 1}</span><strong>{pokemon.name}</strong><small>{pokemon.fainted ? "Out" : pokemon.brought ? "In battle" : "Tap to use"}</small></button><button type="button" className="team-lab-field-change" onClick={onSelect}>Change</button></header>
-    <div className="team-lab-field-moves">{moves.length ? moves.map((move) => <button type="button" key={move} onClick={() => onMove(move)}>{move}</button>) : <span>{side === "my" ? "Save this set’s moves to show them here." : "Revealed moves appear here."}</span>}</div>
-    <footer>{canTarget && <button type="button" className="team-lab-field-target" aria-pressed={targetSelected} onClick={onTarget}>{targetSelected ? "Target selected" : "Target"}</button>}<button type="button" className="team-lab-field-out" onClick={onFaint}>Out</button></footer>
+  return <article className={`team-lab-field-slot${selected || actorSelected ? " is-selected" : ""}${targetSelected ? " is-target" : ""}${pokemon.fainted ? " is-fainted" : ""}`}>
+    <header><button type="button" onClick={onFocus} onDoubleClick={onFocus}><span>{sideLabel} slot {slot + 1}</span><strong>{pokemon.name}</strong><small>{pokemon.fainted ? "Out" : actorSelected ? "Choose what it did" : pokemon.brought ? "Tap for actions" : "Tap to use"}</small></button><button type="button" className="team-lab-field-change" onClick={onSelect}>Change</button></header>
+    <div className="team-lab-field-moves">{Array.from({ length: TEAM_LAB_BATTLE_MOVE_LIMIT }, (_, index) => moves[index]
+      ? <button type="button" key={moves[index]} onClick={() => onMove(moves[index])}>{moves[index]}</button>
+      : <button type="button" className="is-empty" key={`empty-${index}`} onClick={() => onAddMove(index)}>+ Move {index + 1}</button>)}</div>
+    <footer>{canTarget && <button type="button" className="team-lab-field-target" aria-pressed={targetSelected} onClick={onTarget}>{targetSelected ? "Target selected" : "Target"}</button>}<button type="button" className="team-lab-field-actions" aria-pressed={actorSelected} onClick={onFocus}>{actorSelected ? "Actions open" : "Actions"}</button><button type="button" className="team-lab-field-out" onClick={onFaint}>Out</button></footer>
   </article>;
 }
 
-function BattleTurnRecorder({ report, setReport, sheetMode, matchup, myTeamSets, battleMechanic, onStatus }) {
+function BattleTurnRecorder({ report, setReport, sheetMode, matchup, myTeamSets, battleMechanic, teamName, leagueName, formatName, weekLabel, onStatus }) {
   const log = report.turn_log;
   const myRoster = report.my_pokemon || [];
   const opponentRoster = report.opponent_pokemon || [];
@@ -277,15 +289,18 @@ function BattleTurnRecorder({ report, setReport, sheetMode, matchup, myTeamSets,
   const [actionSide, setActionSide] = useState("opponent");
   const [actorName, setActorName] = useState(firstOpponentPokemon);
   const [targetName, setTargetName] = useState(firstMyPokemon);
+  const [actionTargetSide, setActionTargetSide] = useState("my");
   const [moveValue, setMoveValue] = useState("");
   const [detailValue, setDetailValue] = useState("");
   const [damageValue, setDamageValue] = useState("");
   const [actionNote, setActionNote] = useState("");
+  const [switchOutName, setSwitchOutName] = useState("");
   const [editingEventId, setEditingEventId] = useState("");
   const [slotPicker, setSlotPicker] = useState(null);
+  const moveInputRef = useRef(null);
+  const detailInputRef = useRef(null);
 
   const actorRoster = actionSide === "my" ? myRoster : opponentRoster;
-  const targetRoster = actionSide === "my" ? opponentRoster : myRoster;
   const liveActor = actorRoster.find((pokemon) => pokemon.name === actorName);
   const scoutedActor = actionSide === "opponent"
     ? (matchup.opponent_sets?.pokemon || []).find((pokemon) => pokemon.name === actorName)
@@ -301,8 +316,21 @@ function BattleTurnRecorder({ report, setReport, sheetMode, matchup, myTeamSets,
   const plannedDetail = sheetMode === "open" && actionSide === "opponent" && ["ability", "item"].includes(actionKind)
     ? scoutedActor?.[actionKind] || ""
     : "";
+  const activeEffects = activeTeamLabTimedEffects(report);
+
+  function focusInput(ref) {
+    globalThis.setTimeout(() => {
+      ref.current?.focus();
+      ref.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 0);
+  }
 
   function selectFieldPokemon(side, slotIndex, name) {
+    const visibleSlots = side === "my" ? myActiveSlots : opponentActiveSlots;
+    if (slotPicker?.switchedOut && visibleSlots.some((activeName, index) => index !== slotIndex && activeName === name)) {
+      onStatus(`${name} is already active in the other slot. Choose a benched Pokémon.`);
+      return;
+    }
     const activeKey = side === "my" ? "active_my_pokemon" : "active_opponent_pokemon";
     const slotsKey = side === "my" ? "active_my_pokemon_slots" : "active_opponent_pokemon_slots";
     const rosterKey = side === "my" ? "my_pokemon" : "opponent_pokemon";
@@ -327,27 +355,33 @@ function BattleTurnRecorder({ report, setReport, sheetMode, matchup, myTeamSets,
           kind: "switch",
           side,
           pokemon: name,
+          switched_out: previousName,
           target: "",
           move: "",
           damage: "",
           detail: "",
-          note: `Replaced ${previousName} in field slot ${slotIndex + 1}`,
+          note: slotPicker?.pivotMove
+            ? `Pivoted after ${slotPicker.pivotMove} from field slot ${slotIndex + 1}`
+            : `Replaced ${previousName} in field slot ${slotIndex + 1}`,
         });
         next.turn_log = { ...next.turn_log, [activeKey]: name, [slotsKey]: slots };
       }
       return next;
     });
     setSlotPicker(null);
+    setSwitchOutName("");
     setActionSide(side);
     setActorName(name);
     const opposingSlots = side === "my" ? opponentActiveSlots : myActiveSlots;
     setTargetName(opposingSlots.find(Boolean) || "");
+    setActionTargetSide(side === "my" ? "opponent" : "my");
     onStatus("");
   }
 
   function focusFieldPokemon(side, name) {
     if (actionKind === "move" && actorName && actionSide !== side) {
       setTargetName(name);
+      setActionTargetSide(side);
       onStatus("");
       return;
     }
@@ -355,6 +389,7 @@ function BattleTurnRecorder({ report, setReport, sheetMode, matchup, myTeamSets,
     setActorName(name);
     const opposingSlots = side === "my" ? opponentActiveSlots : myActiveSlots;
     setTargetName(opposingSlots.find(Boolean) || "");
+    setActionTargetSide(side === "my" ? "opponent" : "my");
     onStatus("");
   }
 
@@ -365,9 +400,16 @@ function BattleTurnRecorder({ report, setReport, sheetMode, matchup, myTeamSets,
     setMoveValue(move);
     const opposingSlots = side === "my" ? opponentActiveSlots : myActiveSlots;
     setTargetName(opposingSlots.find(Boolean) || "");
+    setActionTargetSide(side === "my" ? "opponent" : "my");
     setDetailValue("");
     setDamageValue("");
     onStatus(`${name} · ${move} ready. Tap a target, add damage if useful, then record.`);
+    if (!move) focusInput(moveInputRef);
+  }
+
+  function prepareEmptyMove(side, name) {
+    prepareMove(side, name, "");
+    onStatus(`${name} selected. Start typing a move, choose the suggestion, then tap its target.`);
   }
 
   function quickFaint(side, name) {
@@ -390,8 +432,8 @@ function BattleTurnRecorder({ report, setReport, sheetMode, matchup, myTeamSets,
     onStatus(`${name} marked out and removed from the field.`);
   }
 
-  function openSlotPicker(side, index) {
-    setSlotPicker({ side, index });
+  function openSlotPicker(side, index, options = {}) {
+    setSlotPicker({ side, index, ...options });
     onStatus("");
   }
 
@@ -403,6 +445,7 @@ function BattleTurnRecorder({ report, setReport, sheetMode, matchup, myTeamSets,
     setTargetName(side === "my"
       ? log.active_opponent_pokemon || firstOpponentPokemon
       : log.active_my_pokemon || firstMyPokemon);
+    setActionTargetSide(side === "my" ? "opponent" : "my");
     setMoveValue("");
     setDetailValue("");
     setDamageValue("");
@@ -411,10 +454,86 @@ function BattleTurnRecorder({ report, setReport, sheetMode, matchup, myTeamSets,
 
   function chooseActionKind(kind) {
     setActionKind(kind);
+    if (kind === "switch") {
+      setSwitchOutName(actorName);
+      setActorName("");
+    } else setSwitchOutName("");
     setMoveValue("");
     setDetailValue("");
     setDamageValue("");
     onStatus("");
+    if (kind === "move") focusInput(moveInputRef);
+    if (["ability", "item"].includes(kind)) focusInput(detailInputRef);
+  }
+
+  function chooseRapidAction(kind) {
+    if (!actorName) return onStatus("Tap an active Pokémon first.");
+    if (kind === "switch") {
+      const slots = actionSide === "my" ? myActiveSlots : opponentActiveSlots;
+      const index = slots.indexOf(actorName);
+      if (index < 0) return onStatus("Place that Pokémon on the field before recording its switch.");
+      setSwitchOutName(actorName);
+      openSlotPicker(actionSide, index, { switchedOut: actorName });
+      return onStatus(`Switching out ${actorName}. Tap the Pokémon coming in.`);
+    }
+    if (kind === "faint") return quickFaint(actionSide, actorName);
+    setActionKind(kind);
+    setMoveValue("");
+    setDetailValue("");
+    setDamageValue("");
+    onStatus(kind === "move"
+      ? `Recording ${actorName}. Tap one of its four move slots or start typing below.`
+      : `Recording ${actorName}’s ${kind}. Start typing and choose a suggestion.`);
+    if (kind === "move") focusInput(moveInputRef);
+    if (["ability", "item"].includes(kind)) focusInput(detailInputRef);
+  }
+
+  function advanceToNextActor(recordedEvent) {
+    const field = [
+      ...opponentActiveSlots.filter(Boolean).map((name) => ({ side: "opponent", name })),
+      ...myActiveSlots.filter(Boolean).map((name) => ({ side: "my", name })),
+    ];
+    const acted = new Set(log.events
+      .filter((entry) => entry.game === log.current_game && entry.turn === log.current_turn && entry.kind !== "note")
+      .map((entry) => `${entry.side}:${entry.pokemon}`));
+    acted.add(`${recordedEvent.side}:${recordedEvent.pokemon}`);
+    const currentIndex = field.findIndex((entry) => entry.side === recordedEvent.side && entry.name === recordedEvent.pokemon);
+    const ordered = currentIndex >= 0 ? [...field.slice(currentIndex + 1), ...field.slice(0, currentIndex + 1)] : field;
+    const next = ordered.find((entry) => !acted.has(`${entry.side}:${entry.name}`));
+    if (!next) return false;
+    setActionSide(next.side);
+    setActorName(next.name);
+    const opposingSlots = next.side === "my" ? opponentActiveSlots : myActiveSlots;
+    setTargetName(opposingSlots.find(Boolean) || "");
+    setActionTargetSide(next.side === "my" ? "opponent" : "my");
+    return next;
+  }
+
+  function beginTimedEffect(effectId, side) {
+    const definition = TEAM_LAB_TIMED_EFFECTS.find((effect) => effect.id === effectId);
+    setReport((current) => startTeamLabTimedEffect(current, effectId, side));
+    onStatus(`${side === "my" ? "Your" : side === "opponent" ? "Opponent" : "Field"} ${definition?.label || "effect"} started. Its turn counter will expire automatically.`);
+  }
+
+  function downloadCurrentGame() {
+    const csv = buildTeamLabGameCsv({
+      teamName,
+      leagueName,
+      opponentName: matchup.opponent_name,
+      weekLabel,
+      formatName,
+      sheetMode,
+      report,
+      gameNumber: log.current_game,
+    });
+    const blob = new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = buildTeamLabGameFilename({ teamName, opponentName: matchup.opponent_name, gameNumber: log.current_game });
+    anchor.click();
+    URL.revokeObjectURL(url);
+    onStatus(`Downloaded Game ${log.current_game} as a spreadsheet-ready CSV.`);
   }
 
   function clearEntry() {
@@ -422,6 +541,7 @@ function BattleTurnRecorder({ report, setReport, sheetMode, matchup, myTeamSets,
     setDetailValue("");
     setDamageValue("");
     setActionNote("");
+    setSwitchOutName("");
     setEditingEventId("");
   }
 
@@ -430,7 +550,11 @@ function BattleTurnRecorder({ report, setReport, sheetMode, matchup, myTeamSets,
     setActionKind(entry.kind);
     setActionSide(entry.side);
     setActorName(entry.pokemon);
+    setSwitchOutName(entry.switched_out || "");
     setTargetName(entry.target);
+    setActionTargetSide(entry.target_side === "my" || entry.target_side === "opponent"
+      ? entry.target_side
+      : entry.side === "my" ? "opponent" : "my");
     setMoveValue(entry.move);
     setDetailValue(entry.detail);
     setDamageValue(entry.damage);
@@ -478,6 +602,10 @@ function BattleTurnRecorder({ report, setReport, sheetMode, matchup, myTeamSets,
     if (actionKind !== "note" && !actorName) return onStatus("Choose the Pokémon involved in this action.");
     if (actionKind === "move" && !move) return onStatus("Choose or enter the move that was used.");
     if (["ability", "item"].includes(actionKind) && !detail) return onStatus(`Enter the revealed ${actionKind} before recording it.`);
+    if (actionKind === "switch" && !switchOutName) return onStatus("Choose the Pokémon that switched out.");
+    if (actionKind === "switch" && switchOutName === actorName) return onStatus("Choose a different Pokémon to switch in.");
+    const sameSideActiveSlots = actionSide === "my" ? myActiveSlots : opponentActiveSlots;
+    if (actionKind === "switch" && sameSideActiveSlots.includes(actorName) && actorName !== switchOutName) return onStatus(`${actorName} is already active in the other slot.`);
     if (actionKind === "note" && !note) return onStatus("Write the turn note before recording it.");
     if (actionKind === "move" && actionSide === "opponent") {
       const existingMoves = liveActor?.moves || [];
@@ -496,7 +624,9 @@ function BattleTurnRecorder({ report, setReport, sheetMode, matchup, myTeamSets,
       kind: actionKind,
       side: actionSide,
       pokemon: actionKind === "note" ? "" : actorName,
+      switched_out: actionKind === "switch" ? switchOutName : "",
       target: actionKind === "move" ? targetName : "",
+      target_side: actionKind === "move" && targetName ? actionTargetSide : "",
       move: actionKind === "move" ? move : "",
       damage: actionKind === "move" ? damageValue.trim() : "",
       detail: ["ability", "item"].includes(actionKind) ? detail : "",
@@ -506,10 +636,18 @@ function BattleTurnRecorder({ report, setReport, sheetMode, matchup, myTeamSets,
       replaceId: editingEventId,
       opponentSets: sheetMode === "open" ? matchup.opponent_sets : null,
     }));
+    const pivotMove = !editingEventId && actionKind === "move" && isTeamLabPivotMove(move) ? move : "";
+    const pivotSlots = actionSide === "my" ? myActiveSlots : opponentActiveSlots;
+    const pivotSlotIndex = pivotMove ? pivotSlots.indexOf(actorName) : -1;
+    const nextActor = !editingEventId && !pivotMove && actionKind !== "note" ? advanceToNextActor(nextEvent) : false;
     clearEntry();
-    onStatus(editingEvent
+    if (pivotMove && pivotSlotIndex >= 0) {
+      setSwitchOutName(actorName);
+      setSlotPicker({ side: actionSide, index: pivotSlotIndex, switchedOut: actorName, pivotMove });
+      onStatus(`${actorName} used ${pivotMove}. Now tap the Pokémon switching into its slot.`);
+    } else onStatus(editingEvent
       ? `Game ${nextEvent.game}, turn ${nextEvent.turn} action corrected and autosaved locally.`
-      : `Game ${log.current_game}, turn ${log.current_turn} ${actionKind === "note" ? "note" : actionKind} recorded.`);
+      : `Game ${log.current_game}, turn ${log.current_turn} ${actionKind === "note" ? "note" : actionKind} recorded.${nextActor ? ` Next: ${nextActor.name}.` : " All four active Pokémon are accounted for this turn."}`);
   }
 
   function removeEvent(id) {
@@ -545,22 +683,33 @@ function BattleTurnRecorder({ report, setReport, sheetMode, matchup, myTeamSets,
       <div className="team-lab-turn-navigation"><div className="team-lab-turn-stepper"><button type="button" disabled={log.current_turn <= 1} onClick={() => changeTurn(-1)} aria-label="Previous turn">−</button><strong>Game {log.current_game} · Turn {log.current_turn}</strong><button type="button" disabled={log.current_turn >= TEAM_LAB_TURN_MAX} onClick={() => changeTurn(1)}>Next turn</button></div><button type="button" className="team-lab-turn-next-game" disabled={log.current_game >= report.series.best_of} onClick={startNextGame}>{log.current_game >= report.series.best_of ? `Final game in best of ${report.series.best_of}` : `Start game ${log.current_game + 1}`}</button></div>
     </header>
 
+    <div className="team-lab-timed-effects" aria-label="Turn-limited field effects">
+      <div className="team-lab-timed-effect-active">{activeEffects.length
+        ? activeEffects.map((effect) => <button type="button" key={effect.id} title="Tap to clear this effect" onClick={() => { setReport((current) => removeTeamLabTimedEffect(current, effect.id)); onStatus(`${effect.label} cleared.`); }}><strong>{effect.label}</strong><span>{effect.side === "my" ? "Your side" : effect.side === "opponent" ? "Opponent" : "Field"} · {effect.remaining} turn{effect.remaining === 1 ? "" : "s"}</span></button>)
+        : <span>No timed effects active</span>}</div>
+      <div className="team-lab-timed-effect-quick"><span>Start</span><button type="button" onClick={() => beginTimedEffect("tailwind", "my")}>Your Tailwind</button><button type="button" onClick={() => beginTimedEffect("tailwind", "opponent")}>Opponent Tailwind</button><button type="button" onClick={() => beginTimedEffect("trick-room", "field")}>Trick Room</button><details><summary>More</summary><div>{TEAM_LAB_TIMED_EFFECTS.filter((effect) => !["tailwind", "trick-room"].includes(effect.id)).map((effect) => effect.scope === "field"
+        ? <button type="button" key={effect.id} onClick={() => beginTimedEffect(effect.id, "field")}>{effect.label}</button>
+        : <span key={effect.id}><button type="button" onClick={() => beginTimedEffect(effect.id, "my")}>Your {effect.label}</button><button type="button" onClick={() => beginTimedEffect(effect.id, "opponent")}>Opp. {effect.label}</button></span>)}</div></details></div>
+    </div>
+
     <div className="team-lab-doubles-board" aria-label="Four-slot doubles field">
       <div className="team-lab-field-side-heading"><span>Opponent’s field</span><small>Tap a move to prepare it</small></div>
       <div className="team-lab-field-row is-opponent">{[0, 1].map((slot) => {
         const name = opponentActiveSlots[slot] || "";
         const pokemon = opponentRoster.find((entry) => entry.name === name);
-        return <BattleFieldPokemonSlot key={`opponent-${slot}`} side="opponent" slot={slot} pokemon={pokemon} moves={movesForFieldPokemon("opponent", name)} selected={slotPicker?.side === "opponent" && slotPicker.index === slot} targetSelected={actionSide === "my" && targetName === name} canTarget={Boolean(name && actionKind === "move" && actorName && actionSide === "my")} onSelect={() => openSlotPicker("opponent", slot)} onFocus={() => focusFieldPokemon("opponent", name)} onMove={(move) => prepareMove("opponent", name, move)} onTarget={() => setTargetName(name)} onFaint={() => quickFaint("opponent", name)}/>;
+        return <BattleFieldPokemonSlot key={`opponent-${slot}`} side="opponent" slot={slot} pokemon={pokemon} moves={movesForFieldPokemon("opponent", name)} selected={slotPicker?.side === "opponent" && slotPicker.index === slot} actorSelected={actionSide === "opponent" && actorName === name} targetSelected={actionTargetSide === "opponent" && targetName === name} canTarget={Boolean(name && actionKind === "move" && actorName && !(actionSide === "opponent" && actorName === name))} onSelect={() => openSlotPicker("opponent", slot)} onFocus={() => focusFieldPokemon("opponent", name)} onMove={(move) => prepareMove("opponent", name, move)} onAddMove={() => prepareEmptyMove("opponent", name)} onTarget={() => { setTargetName(name); setActionTargetSide("opponent"); }} onFaint={() => quickFaint("opponent", name)}/>;
       })}</div>
       <div className="team-lab-field-center"><span>Opponent</span><b>VS</b><span>Your side</span></div>
       <div className="team-lab-field-row is-mine">{[0, 1].map((slot) => {
         const name = myActiveSlots[slot] || "";
         const pokemon = myRoster.find((entry) => entry.name === name);
-        return <BattleFieldPokemonSlot key={`my-${slot}`} side="my" slot={slot} pokemon={pokemon} moves={movesForFieldPokemon("my", name)} selected={slotPicker?.side === "my" && slotPicker.index === slot} targetSelected={actionSide === "opponent" && targetName === name} canTarget={Boolean(name && actionKind === "move" && actorName && actionSide === "opponent")} onSelect={() => openSlotPicker("my", slot)} onFocus={() => focusFieldPokemon("my", name)} onMove={(move) => prepareMove("my", name, move)} onTarget={() => setTargetName(name)} onFaint={() => quickFaint("my", name)}/>;
+        return <BattleFieldPokemonSlot key={`my-${slot}`} side="my" slot={slot} pokemon={pokemon} moves={movesForFieldPokemon("my", name)} selected={slotPicker?.side === "my" && slotPicker.index === slot} actorSelected={actionSide === "my" && actorName === name} targetSelected={actionTargetSide === "my" && targetName === name} canTarget={Boolean(name && actionKind === "move" && actorName && !(actionSide === "my" && actorName === name))} onSelect={() => openSlotPicker("my", slot)} onFocus={() => focusFieldPokemon("my", name)} onMove={(move) => prepareMove("my", name, move)} onAddMove={() => prepareEmptyMove("my", name)} onTarget={() => { setTargetName(name); setActionTargetSide("my"); }} onFaint={() => quickFaint("my", name)}/>;
       })}</div>
       <div className="team-lab-field-side-heading is-mine"><span>Your field</span><small>Saved moves stay one tap away</small></div>
-      {slotPicker && <div className="team-lab-field-roster-picker"><div><strong>Choose {slotPicker.side === "my" ? "your" : "opponent"} slot {slotPicker.index + 1}</strong><button type="button" className="text-button" onClick={() => setSlotPicker(null)}>Cancel</button></div><div>{pickerRoster.map((pokemon) => <button type="button" key={pokemon.name} disabled={pokemon.fainted} aria-pressed={(slotPicker.side === "my" ? myActiveSlots : opponentActiveSlots)[slotPicker.index] === pokemon.name} onClick={() => selectFieldPokemon(slotPicker.side, slotPicker.index, pokemon.name)}><strong>{pokemon.name}</strong><span>{pokemon.fainted ? "Out" : pokemon.brought ? "Brought" : "Available"}</span></button>)}</div></div>}
+      {slotPicker && <div className="team-lab-field-roster-picker"><div><strong>{slotPicker.switchedOut ? `Switch ${slotPicker.switchedOut} into` : `Choose ${slotPicker.side === "my" ? "your" : "opponent"} slot ${slotPicker.index + 1}`}</strong><button type="button" className="text-button" onClick={() => setSlotPicker(null)}>Cancel</button></div>{slotPicker.pivotMove && <p>{slotPicker.pivotMove} was recorded. Choose the replacement to finish the pivot.</p>}<div>{pickerRoster.map((pokemon) => { const activeSlots = slotPicker.side === "my" ? myActiveSlots : opponentActiveSlots; const currentName = activeSlots[slotPicker.index]; const activeElsewhere = Boolean(slotPicker.switchedOut && activeSlots.some((activeName, index) => index !== slotPicker.index && activeName === pokemon.name)); return <button type="button" key={pokemon.name} disabled={pokemon.fainted || currentName === pokemon.name || activeElsewhere} aria-pressed={currentName === pokemon.name} onClick={() => selectFieldPokemon(slotPicker.side, slotPicker.index, pokemon.name)}><strong>{pokemon.name}</strong><span>{pokemon.fainted ? "Out" : currentName === pokemon.name ? "Currently in slot" : activeElsewhere ? "Already active" : pokemon.brought ? "Brought" : "Available"}</span></button>; })}</div></div>}
     </div>
+
+    {actorName && <section className="team-lab-rapid-action" aria-label={`Quick actions for ${actorName}`}><header><div><span>1 · Pokémon selected</span><strong>{actorName}</strong><small>{actionSide === "my" ? "Your side" : "Opponent"}</small></div><span>2 · What did it do?</span></header><div role="group" aria-label={`${actorName} action`}>{[["move", "Move"], ["ability", "Ability"], ["item", "Item"], ["switch", "Switch"], ["faint", "Out"]].map(([kind, label]) => <button type="button" key={kind} aria-pressed={actionKind === kind && !["switch", "faint"].includes(kind)} onClick={() => chooseRapidAction(kind)}>{label}</button>)}</div><p>{actionKind === "move" ? "Tap one of the four move slots, then tap its target." : ["ability", "item"].includes(actionKind) ? `Type the ${actionKind} below and choose a suggestion.` : "The detailed recorder remains below for damage, notes, and corrections."}</p></section>}
 
     <form className="team-lab-turn-entry" onSubmit={recordAction}>
       <details className="team-lab-turn-action-menu" open={actionKind !== "move" || !actorName}>
@@ -572,14 +721,15 @@ function BattleTurnRecorder({ report, setReport, sheetMode, matchup, myTeamSets,
       </details>
 
       {actionKind !== "note" && <div className="team-lab-turn-fields">
+        {actionKind === "switch" && <label>Switched out<select value={switchOutName} onChange={(event) => { setSwitchOutName(event.target.value); onStatus(""); }}><option value="">Choose outgoing Pokémon</option>{actorRoster.map((pokemon) => <option key={pokemon.name} value={pokemon.name}>{pokemon.name}</option>)}</select></label>}
         <label>{actionKind === "switch" ? "Switched in" : actionKind === "faint" ? "Fainted Pokémon" : ["ability", "item"].includes(actionKind) ? "Revealing Pokémon" : "Move user"}<select value={actorName} onChange={(event) => { setActorName(event.target.value); setMoveValue(""); setDetailValue(""); onStatus(""); }}><option value="">Choose Pokémon</option>{actorRoster.map((pokemon) => <option key={pokemon.name} value={pokemon.name}>{pokemon.name}</option>)}</select></label>
-        {actionKind === "move" && <label>Target<select value={targetName} onChange={(event) => { setTargetName(event.target.value); onStatus(""); }}><option value="">No target / field move</option>{targetRoster.map((pokemon) => <option key={pokemon.name} value={pokemon.name}>{pokemon.name}</option>)}</select></label>}
+        {actionKind === "move" && <label>Target<select value={targetName ? `${actionTargetSide}|${targetName}` : ""} onChange={(event) => { const [side, ...nameParts] = event.target.value.split("|"); setActionTargetSide(side === "opponent" ? "opponent" : "my"); setTargetName(nameParts.join("|")); onStatus(""); }}><option value="">No target / field move</option><optgroup label="Opponent’s field">{[...new Set(opponentActiveSlots.filter(Boolean))].map((name) => <option key={`opponent-${name}`} value={`opponent|${name}`}>{name}</option>)}</optgroup><optgroup label="Your field">{[...new Set(myActiveSlots.filter(Boolean))].map((name) => <option key={`my-${name}`} value={`my|${name}`}>{name}</option>)}</optgroup></select></label>}
       </div>}
 
       {actionKind === "move" && <>
         {availableMoves.length > 0 && <div className="team-lab-turn-move-chips"><span>{sheetMode === "open" && actionSide === "opponent" ? "Sheet moves — tap one" : "Known moves — tap one"}</span><div>{availableMoves.map((move) => <button type="button" key={move} aria-pressed={moveValue.toLowerCase() === move.toLowerCase()} onClick={() => { setMoveValue(move); onStatus(""); }}>{move}</button>)}</div></div>}
         <div className="team-lab-turn-fields">
-          <label>Move used<input maxLength={100} value={moveValue} onChange={(event) => { setMoveValue(event.target.value); onStatus(""); }} placeholder={sheetMode === "closed" ? "Type it the first time it is revealed" : "Choose a sheet move or type one"}/></label>
+          <label>Move used<TeamLabBattleAutocomplete inputRef={moveInputRef} kind="move" pokemonName={actorName} regulationId={matchup.format_id} preferred={availableMoves} maxLength={100} value={moveValue} onChange={(event) => { setMoveValue(event.target.value); onStatus(""); }} placeholder={sheetMode === "closed" ? "Type it the first time it is revealed" : "Choose a sheet move or type one"}/></label>
           <label>Damage dealt<input maxLength={TEAM_LAB_TURN_DAMAGE_LIMIT} value={damageValue} onChange={(event) => { setDamageValue(event.target.value); onStatus(""); }} placeholder="37%, 104 HP, KO…"/></label>
         </div>
         <div className="team-lab-turn-damage-chips" aria-label="Quick damage values">{["10%", "25%", "50%", "KO"].map((damage) => <button type="button" key={damage} aria-pressed={damageValue === damage} onClick={() => { setDamageValue(damage); onStatus(""); }}>{damage}</button>)}</div>
@@ -587,7 +737,7 @@ function BattleTurnRecorder({ report, setReport, sheetMode, matchup, myTeamSets,
 
       {["ability", "item"].includes(actionKind) && <div className="team-lab-turn-reveal-entry">
         {plannedDetail && <button type="button" onClick={() => { setDetailValue(plannedDetail); onStatus(""); }}>Published {actionKind}: <strong>{plannedDetail}</strong></button>}
-        <label>Revealed {actionKind}<input autoFocus maxLength={100} value={detailValue} onChange={(event) => { setDetailValue(event.target.value); onStatus(""); }} placeholder={`Type the ${actionKind} as soon as it activates`}/></label>
+        <label>Revealed {actionKind}<TeamLabBattleAutocomplete inputRef={detailInputRef} kind={actionKind} pokemonName={actorName} regulationId={matchup.format_id} preferred={[plannedDetail, liveActor?.[actionKind], scoutedActor?.[actionKind]]} autoFocus maxLength={100} value={detailValue} onChange={(event) => { setDetailValue(event.target.value); onStatus(""); }} placeholder={`Type the ${actionKind} as soon as it activates`}/></label>
       </div>}
 
       <label className="team-lab-turn-note">{actionKind === "note" ? "Turn note" : "Action note (optional)"}<input maxLength={TEAM_LAB_TURN_NOTE_LIMIT} value={actionNote} onChange={(event) => { setActionNote(event.target.value); onStatus(""); }} placeholder={actionKind === "note" ? `Weather, status${battleMechanic ? `, ${battleMechanic.label}` : ""}, matchup detail…` : "Critical hit, resisted, protected, status…"}/></label>
@@ -596,7 +746,7 @@ function BattleTurnRecorder({ report, setReport, sheetMode, matchup, myTeamSets,
     </form>
 
     <div className="team-lab-turn-timeline">
-      <div><div><h4>Battle timeline</h4><span>Newest first</span></div>{log.events.length > 0 && <button type="button" className="quiet-button" onClick={undoLastAction}>Undo last action</button>}</div>
+      <div><div><h4>Battle timeline</h4><span>Newest first · Game {log.current_game}</span></div><div className="team-lab-timeline-actions"><button type="button" className="quiet-button" onClick={downloadCurrentGame}>Download Game {log.current_game}</button>{log.events.length > 0 && <button type="button" className="quiet-button" onClick={undoLastAction}>Undo last action</button>}</div></div>
       {log.events.length ? <ol>{[...log.events].reverse().map((event) => <li key={event.id}><span>G{event.game} · T{event.turn}</span><div><strong>{turnEventSummary(event)}</strong>{event.note && <p>{event.note}</p>}</div><div><button type="button" onClick={() => editEvent(event)} aria-label={`Edit game ${event.game}, turn ${event.turn} entry`}>Edit</button><button type="button" onClick={() => removeEvent(event.id)} aria-label={`Remove game ${event.game}, turn ${event.turn} entry`}>Remove</button></div></li>)}</ol> : <p>No turns recorded yet. Set the active Pokémon, choose an action, and tap record.</p>}
     </div>
   </section>;
@@ -1006,10 +1156,10 @@ function BattleMode({ matchup, matchups, myTeam, formatName, supabase, onSaved, 
         <div className="team-lab-opponent-battle-heading"><div><span className="eyebrow">OPPONENT TEAM</span><h3 id="team-lab-opponent-title">{matchup.opponent_team_name || matchup.opponent_name}</h3><p>{sheetMode === "closed" ? "Keep all six visible. Tap Brought or Out during team preview and battle, then open Details only when you need a reveal." : "Import the published sheet or add Pokémon manually. The full roster stays visible while one detail panel opens below."}</p></div><strong>{opponentRosterNames.length} / {TEAM_LAB_ROSTER_LIMIT} listed · {report.opponent_pokemon.filter((pokemon) => pokemon.brought).length} brought</strong></div>
         {sheetMode === "open" && <TeamLabPokePasteImport supabase={supabase} regulation={REGULATION_SETS[matchup.format_id]} catalogNames={CATALOG_NAME_SET} disabled={savingOpponent} variant="opponent" onImport={importOpponentSheet} onMessage={setStatus}/>}
         <fieldset className="team-lab-opponent-picker" disabled={savingOpponent || opponentRosterNames.length >= TEAM_LAB_ROSTER_LIMIT}><PokemonPicker inputId={`team-lab-battle-opponent-${matchup.id}`} label={sheetMode === "closed" ? "Add a revealed opponent Pokémon" : "Add opponent Pokémon manually"} names={opponentRosterNames} limit={TEAM_LAB_ROSTER_LIMIT} allowedNames={new Set(REGULATION_SETS[matchup.format_id]?.legalNames || CATALOG_NAMES)} onChange={changeOpponentRoster} onMessage={setStatus} placeholder="Search their team…"/></fieldset>
-        {opponentRosterNames.length ? <><div className="team-lab-opponent-battle-grid">{report.opponent_pokemon.map((pokemon) => <OpponentBattleRosterCard key={pokemon.name} pokemon={pokemon} selected={opponentDetailName === pokemon.name} onSelect={() => { setOpponentDetailName((current) => current === pokemon.name ? "" : pokemon.name); setMoveEditor(null); }} onChange={(changes) => updatePokemon("opponent_pokemon", pokemon.name, changes)}/>)}</div>{opponentDetailName && report.opponent_pokemon.find((pokemon) => pokemon.name === opponentDetailName) && <OpponentBattlePokemonDetails pokemon={report.opponent_pokemon.find((pokemon) => pokemon.name === opponentDetailName)} scoutedSet={opponentSets.pokemon.find((entry) => entry.name === opponentDetailName)} sheetMode={sheetMode} moveEditor={moveEditor} onMoveEditor={setMoveEditor} onChange={(changes) => updatePokemon("opponent_pokemon", opponentDetailName, changes)} onRemove={removeOpponentPokemon} onClose={() => { setOpponentDetailName(""); setMoveEditor(null); }}/>}</> : <p className="team-lab-matchup-empty">No opponent Pokémon have been added. The recorder will stay unselected until you add or import their team.</p>}
+        {opponentRosterNames.length ? <><div className="team-lab-opponent-battle-grid">{report.opponent_pokemon.map((pokemon) => <OpponentBattleRosterCard key={pokemon.name} pokemon={pokemon} selected={opponentDetailName === pokemon.name} onSelect={() => { setOpponentDetailName((current) => current === pokemon.name ? "" : pokemon.name); setMoveEditor(null); }} onChange={(changes) => updatePokemon("opponent_pokemon", pokemon.name, changes)}/>)}</div>{opponentDetailName && report.opponent_pokemon.find((pokemon) => pokemon.name === opponentDetailName) && <OpponentBattlePokemonDetails pokemon={report.opponent_pokemon.find((pokemon) => pokemon.name === opponentDetailName)} scoutedSet={opponentSets.pokemon.find((entry) => entry.name === opponentDetailName)} sheetMode={sheetMode} regulationId={matchup.format_id} moveEditor={moveEditor} onMoveEditor={setMoveEditor} onChange={(changes) => updatePokemon("opponent_pokemon", opponentDetailName, changes)} onRemove={removeOpponentPokemon} onClose={() => { setOpponentDetailName(""); setMoveEditor(null); }}/>}</> : <p className="team-lab-matchup-empty">No opponent Pokémon have been added. The recorder will stay unselected until you add or import their team.</p>}
       </section>
       <BattleSeriesTracker report={report} setReport={setReport} onStatus={setStatus}/>
-      <BattleTurnRecorder report={report} setReport={setReport} sheetMode={sheetMode} matchup={{ ...matchup, pokemon: opponentRosterNames, opponent_sets: opponentSets }} myTeamSets={myTeamSets} battleMechanic={battleMechanic} onStatus={setStatus}/>
+      <BattleTurnRecorder report={report} setReport={setReport} sheetMode={sheetMode} matchup={{ ...matchup, pokemon: opponentRosterNames, opponent_sets: opponentSets }} myTeamSets={myTeamSets} battleMechanic={battleMechanic} teamName={myTeam.team_name} leagueName={myTeam.league_name} formatName={formatName} weekLabel={weekLabel} onStatus={setStatus}/>
       <BattleStateTracker report={report} setReport={setReport} formatId={matchup.format_id} onStatus={setStatus}/>
       <BattleDamageEstimator/>
       <div className="team-lab-battle-columns is-my-team-only">
