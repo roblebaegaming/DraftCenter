@@ -37,7 +37,7 @@ test("member email content escapes commissioner text and explains recipient priv
     scopeUrl: "https://www.draftcentral.gg/?league=kanto",
     profileUrl: "https://www.draftcentral.gg/?profile=open",
   });
-  assert.doesNotMatch(content.html, /<script>/);
+  assert.equal(content.html.toLowerCase().includes("<script"), false);
   assert.match(content.html, /Recipient email addresses were not shared/);
   assert.match(content.text, /Change announcement email preferences/);
 });
