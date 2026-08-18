@@ -41,6 +41,9 @@ test("league navigation survives reload without dropping the league key", () => 
   const next = writeLeagueNavigation("?league=pallet-town&invite=kept", "league", "draft");
   assert.equal(next, "?league=pallet-town&invite=kept&tab=league&section=draft");
   assert.deepEqual(readLeagueNavigation(next), { tab: "league", section: "draft", explicit: true });
+  assert.match(draftLeagueSource, /if \(initialNavigation\.explicit\) return;/);
+  assert.doesNotMatch(draftLeagueSource, /initialNavigation\.explicit && tab !== "draft"/);
+  assert.match(draftLeagueSource, /window\.addEventListener\("popstate", restoreNavigation\)/);
 });
 
 test("invalid navigation values fall back safely", () => {

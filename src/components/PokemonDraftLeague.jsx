@@ -9665,10 +9665,10 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   // where they chose to be.
   useEffect(() => {
     if (!leagueId || !synced || !state.locked || draftDone) return;
-    if (initialNavigation.explicit && tab !== "draft") return;
+    if (initialNavigation.explicit) return;
     setTab("league");
     setLeagueSubTab("draft");
-  }, [leagueId, synced, state.locked, draftDone, initialNavigation.explicit, tab]);
+  }, [leagueId, synced, state.locked, draftDone, initialNavigation.explicit]);
 
   // Keep the selected league area in the URL. Refresh, browser Back/Forward,
   // and a copied in-league link now restore the same screen instead of always
@@ -9680,6 +9680,17 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     const current = `${window.location.pathname}${window.location.search}${window.location.hash}`;
     if (destination !== current) window.history.replaceState(window.history.state, "", destination);
   }, [leagueId, synced, tab, leagueSubTab]);
+
+  useEffect(() => {
+    if (!leagueId || !synced || typeof window === "undefined") return undefined;
+    const restoreNavigation = () => {
+      const navigation = readLeagueNavigation(window.location.search);
+      setTab(navigation.tab);
+      setLeagueSubTab(navigation.section);
+    };
+    window.addEventListener("popstate", restoreNavigation);
+    return () => window.removeEventListener("popstate", restoreNavigation);
+  }, [leagueId, synced]);
 
   useEffect(() => {
     if (displayIsLimitedObserver) return undefined;
@@ -9709,9 +9720,6 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   // the draft itself first, not whatever sub-tab happened to be selected
   // last time — but only as a one-time jump on arrival, not something that
   // fights a deliberate later click over to Standings or wherever.
-  useEffect(() => {
-    if (tab === "league" && state.locked && !draftDone) setLeagueSubTab("draft");
-  }, [tab]);
   useEffect(() => {
     if (displayIsLimitedObserver && !["league", "predictions"].includes(tab)) setTab("league");
   }, [displayIsLimitedObserver, tab]);

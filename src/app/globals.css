@@ -1319,6 +1319,23 @@ button { cursor: pointer; }
 .team-lab-sheet-performance span { color: #8f9abb; font-size: 8px; font-weight: 900; text-transform: uppercase; }
 .team-lab-sheet-performance strong { color: #fff; font-size: 1.05rem; }
 .team-lab-sheet-performance small { color: #8995b7; font-size: 8px; }
+.team-lab-report-breakdowns { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
+.team-lab-report-breakdowns h4 { margin: 0 0 8px; color: #cbd3e9; font-size: 9px; text-transform: uppercase; }
+.team-lab-purpose-performance { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; }
+.team-lab-purpose-performance article { display: grid; gap: 3px; padding: 11px; border: 1px solid #354361; border-radius: 9px; background: #090f20; }
+.team-lab-purpose-performance span { color: #8f9abb; font-size: 8px; font-weight: 900; text-transform: uppercase; }
+.team-lab-purpose-performance strong { color: #fff; font-size: 1.05rem; }
+.team-lab-purpose-performance small { color: #8995b7; font-size: 8px; }
+.team-lab-individual-reports>div { display: grid; gap: 9px; padding-top: 12px; }
+.team-lab-individual-reports>div>article { display: grid; gap: 11px; min-width: 0; padding: 13px; border: 1px solid #354361; border-radius: 10px; background: #090f20; }
+.team-lab-individual-reports header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.team-lab-individual-reports h4 { margin: 4px 0 0; color: #f2f4ff; font-size: 12px; text-transform: none; }
+.team-lab-individual-reports header p,.team-lab-report-session { margin: 3px 0 0; color: #94a0c1; font-size: 9px; }
+.team-lab-individual-reports time { flex: 0 0 auto; color: #7f8bad; font-size: 8px; }
+.team-lab-report-facts { display: flex; flex-wrap: wrap; gap: 6px; }
+.team-lab-report-facts span { padding: 6px 8px; color: #aeb8d4; border: 1px solid #303d5b; border-radius: 999px; background: #11192e; font-size: 8px; }
+.team-lab-report-facts strong { color: #ffd23f; }
+.team-lab-individual-reports button { justify-self: start; min-height: 44px; }
 .team-lab-opponent-matchups>div,.team-lab-move-usage>div,.team-lab-game-history>div { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 7px; }
 .team-lab-opponent-matchups article,.team-lab-move-usage article,.team-lab-game-history article { display: grid; min-width: 0; gap: 3px; padding: 10px; border: 1px solid #303d5b; border-radius: 8px; background: #090f20; }
 .team-lab-opponent-matchups strong,.team-lab-move-usage strong,.team-lab-game-history strong { color: #f2f4ff; font-size: 10px; overflow-wrap: anywhere; }
@@ -1375,9 +1392,10 @@ button { cursor: pointer; }
 .team-lab-match-result-buttons button.is-win[aria-pressed="true"] { color: #fff; border-color: #4fd1c5; background: #197f70; }
 .team-lab-match-result-buttons button.is-loss[aria-pressed="true"] { color: #fff; border-color: #f16f75; background: #a43e4a; }
 .team-lab-match-result-buttons button.is-tie[aria-pressed="true"] { color: #111522; border-color: #ffd23f; background: #ffd23f; }
-.team-lab-battle-setup { display: grid; grid-template-columns: minmax(170px,.55fr) minmax(280px,1fr) minmax(240px,.75fr); align-items: end; gap: 14px; padding: 18px 22px; border-bottom: 1px solid #293554; background: #10172c; }
+.team-lab-battle-setup { display: grid; grid-template-columns: minmax(390px,1.5fr) minmax(280px,1fr) minmax(240px,.75fr); align-items: end; gap: 14px; padding: 18px 22px; border-bottom: 1px solid #293554; background: #10172c; }
+.team-lab-battle-context { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; }
 .team-lab-battle-setup label,.team-lab-battle-setup>div>span,.team-lab-battle-notes { display: grid; gap: 6px; color: #cbd3ec; font-size: 10px; font-weight: 900; letter-spacing: .04em; text-transform: uppercase; }
-.team-lab-battle-setup input,.team-lab-battle-notes textarea,.team-lab-battle-move-editor input { width: 100%; min-height: 44px; padding: 10px 11px; color: #f5f6ff; border: 1px solid #49577d; border-radius: 8px; background: #070b18; font: inherit; text-transform: none; }
+.team-lab-battle-setup input,.team-lab-battle-setup select,.team-lab-battle-notes textarea,.team-lab-battle-move-editor input { width: 100%; min-height: 44px; padding: 10px 11px; color: #f5f6ff; border: 1px solid #49577d; border-radius: 8px; background: #070b18; font: inherit; text-transform: none; }
 .team-lab-battle-setup small { display: block; margin-top: 5px; color: #8d99ba; font-size: 10px; font-weight: 500; line-height: 1.4; text-transform: none; }
 .team-lab-battle-share-actions { display: grid; gap: 6px; }
 .team-lab-battle-share-actions button { width: 100%; }
@@ -2048,6 +2066,16 @@ button.mega-bracket-slot:hover,button.mega-bracket-slot:focus-visible { color: #
   .team-lab-install>div:last-child { justify-items: stretch; min-width: 0; }
   .team-lab-install button { width: 100%; min-height: 44px; }
   .team-lab-install small { max-width: none; text-align: left; }
+}
+
+@media(max-width:780px) {
+  .team-lab-report-breakdowns,.team-lab-battle-context { grid-template-columns: 1fr; }
+}
+
+@media(max-width:520px) {
+  .team-lab-purpose-performance { grid-template-columns: 1fr; }
+  .team-lab-individual-reports header { flex-direction: column; }
+  .team-lab-individual-reports button { width: 100%; }
 }
 @media(max-width:520px) {
   .team-lab-pokepaste-url { grid-template-columns: 1fr; }

@@ -25,6 +25,7 @@ import {
   createTeamLabLeagueMatchupHandoff,
   createTeamLabMatchupHandoff,
   normalizeTeamLabBattleReport,
+  normalizeTeamLabBattleContext,
   normalizeTeamLabBattleState,
   normalizeTeamLabOpponentSets,
   normalizeTeamLabRoster,
@@ -35,7 +36,10 @@ import {
   removeTeamLabTurnEvent,
   replaceTeamLabBattleOpponentRoster,
   summarizeTeamLabSeries,
+  summarizeTeamLabBattleReport,
   teamLabBattleMechanicForFormat,
+  teamLabBattlePurposeForMatchup,
+  teamLabBattlePurposeLabel,
   teamLabFormatUsesIvs,
   parseTeamLabLeagueMatchupHandoff,
   parseTeamLabMatchupHandoff,
@@ -47,6 +51,7 @@ import {
   TEAM_LAB_TURN_EVENT_LIMIT,
   TEAM_LAB_TURN_NOTE_LIMIT,
 } from "../src/lib/teamLab.js";
+import { readTeamLabNavigation, writeTeamLabNavigation } from "../src/lib/teamLabNavigation.js";
 import { buildTeamLabWorkbookFilename, buildTeamLabWorkbookSheets } from "../src/lib/teamLabWorkbook.js";
 import {
   buildTeamLabShowdownExport,
@@ -210,6 +215,17 @@ test("share links fail closed and retire the legacy ten-Pokémon mode", () => {
   const teamQuery = buildDraftLabQuery({ mode: "team", names: validNames });
   assert.equal(new URLSearchParams(teamQuery).get("team").split("~").length, 6);
   assert.deepEqual(DRAFT_LAB_MODE_LIMITS, { team: 6 });
+});
+
+test("private Team Lab navigation restores an exact workspace and battle without entering public roster links", () => {
+  const workspaceId = "10c80c7e-f905-4d6d-b107-7dbf8cb5c17a";
+  const battleMatchupId = "21d91d8f-a016-4e7e-9123-8ec09dc6d28b";
+  const publicQuery = buildDraftLabQuery({ format: "reg-mb", names: ["Garchomp"] });
+  assert.equal(new URLSearchParams(publicQuery).has("workspace"), false);
+  const privateQuery = writeTeamLabNavigation(publicQuery, { workspaceId, battleMatchupId });
+  assert.deepEqual(readTeamLabNavigation(privateQuery), { workspaceId, battleMatchupId });
+  assert.deepEqual(readTeamLabNavigation("?workspace=not-a-uuid&battle=also-invalid"), { workspaceId: "", battleMatchupId: "" });
+  assert.equal(new URLSearchParams(writeTeamLabNavigation(privateQuery)).has("battle"), false);
 });
 
 test("private Team Lab handoffs preserve safe account fields without entering share queries", () => {
@@ -554,6 +570,7 @@ test("Battle Room summaries roll completed games into team records, streaks, lea
     opponent_name: "First opponent",
     created_at: "2026-08-17T10:00:00.000Z",
     battle_report: {
+      battle_context: { purpose: "tournament", session_label: "Victory Road Cup · Day 1" },
       my_pokemon: [{ name: "Garchomp", brought: true }, { name: "Corviknight", brought: true }],
       opponent_pokemon: [{ name: "Rotom-Wash", brought: true }],
       series: { games: [
@@ -575,6 +592,7 @@ test("Battle Room summaries roll completed games into team records, streaks, lea
     opponent_name: "Second opponent",
     created_at: "2026-08-17T11:00:00.000Z",
     battle_report: {
+      battle_context: { purpose: "ladder", session_label: "Morning ladder run" },
       my_pokemon: [{ name: "Garchomp", brought: true }, { name: "Corviknight", brought: false }],
       opponent_pokemon: [{ name: "Amoonguss", brought: true }, { name: "Rotom-Wash", brought: true }],
       series: { games: [{ game: 1, result: "loss", my_lead: "Garchomp", opponent_lead: "Amoonguss" }] },
@@ -589,6 +607,9 @@ test("Battle Room summaries roll completed games into team records, streaks, lea
   assert.deepEqual(summary.opponentPokemon[0], { name: "Rotom-Wash", seenMatches: 2, wins: 1, losses: 1, ties: 0, winRate: 50 });
   assert.deepEqual(summary.sheetModes.open, { games: 3, wins: 2, losses: 1, ties: 0, winRate: 66.7 });
   assert.deepEqual(summary.sheetModes.closed, { games: 1, wins: 0, losses: 1, ties: 0, winRate: 0 });
+  assert.deepEqual(summary.purposes.tournament, { games: 3, wins: 2, losses: 1, ties: 0, winRate: 66.7 });
+  assert.deepEqual(summary.purposes.ladder, { games: 1, wins: 0, losses: 1, ties: 0, winRate: 0 });
+  assert.equal(summary.games[0].sessionLabel, "Victory Road Cup · Day 1");
   assert.deepEqual(summary.rating, { gamesTracked: 1, latest: 1520, totalChange: 20 });
   assert.equal(summary.replayCount, 1);
   assert.deepEqual(summary.moveUsage.find((usage) => usage.pokemon === "Garchomp" && usage.move === "Earthquake"), { side: "my", pokemon: "Garchomp", move: "Earthquake", uses: 3, wins: 1, losses: 1, ties: 0, games: 2, winRate: 50 });
@@ -604,6 +625,24 @@ test("Battle Room summaries roll completed games into team records, streaks, lea
     },
   }], ["Mega Garchomp"]);
   assert.deepEqual(champions.pokemon[0], { name: "Mega Garchomp", broughtMatches: 1, leads: 1, leadWins: 1, leadLosses: 0, teraMatches: 0, megaMatches: 1 });
+
+  assert.deepEqual(normalizeTeamLabBattleContext({ purpose: "practice", session_label: "  Scrims  " }), { purpose: "practice", session_label: "Scrims" });
+  assert.equal(teamLabBattlePurposeForMatchup({ mode: "ladder" }), "ladder");
+  assert.equal(teamLabBattlePurposeLabel("tournament"), "Online tournament");
+  const reportSummary = summarizeTeamLabBattleReport({
+    id: "match-1",
+    mode: "team",
+    sheet_mode: "open",
+    opponent_name: "First opponent",
+    battle_report: {
+      battle_context: { purpose: "tournament", session_label: "Victory Road Cup · Day 1" },
+      my_pokemon: [{ name: "Garchomp", brought: true }],
+      opponent_pokemon: [{ name: "Rotom-Wash", brought: true, ability: "Levitate", moves: ["Hydro Pump"] }],
+      series: { best_of: 1, games: [{ game: 1, result: "win", replay_url: "https://replay.pokemonshowdown.com/test-1", elo_before: 1500, elo_after: 1520 }] },
+      turn_log: { events: [{ kind: "move" }] },
+    },
+  });
+  assert.deepEqual({ purpose: reportSummary.purpose, completedGames: reportSummary.completedGames, turns: reportSummary.turnActions, moves: reportSummary.revealedMoves, active: reportSummary.hasActivity }, { purpose: "tournament", completedGames: 1, turns: 1, moves: 1, active: true });
 });
 
 test("the damage estimator exposes a bounded repeatable range and its assumptions", () => {
@@ -631,6 +670,7 @@ test("Battle Mode normalizes weekly teams and revealed moves without mixing priv
     },
   }, ["Garchomp", "Corviknight"], ["Rotom-Wash", "Amoonguss"], new Set(["Garchomp", "Corviknight", "Rotom-Wash", "Amoonguss"]));
   assert.equal(report.version, 3);
+  assert.deepEqual(report.battle_context, { purpose: "draft-league", session_label: "" });
   assert.equal(report.series.version, 2);
   assert.deepEqual(report.series.games[0], { game: 1, result: "pending", my_lead: "", opponent_lead: "", plan: "", adjustments: "", replay_url: "", elo_before: null, elo_after: null });
   assert.deepEqual(report.my_pokemon, [{ name: "Garchomp", brought: true, fainted: false }]);
@@ -728,7 +768,7 @@ test("Team Lab workbook data separates complete sets, matchups, reveals, turns, 
   assert.deepEqual(sheets.find(({ name }) => name === "Turn Log").rows[4].slice(0, 10), ["Quarterfinal", "Test Coach", 1, 1, "Opponent", "item", "Rotom-Wash", "", "", "Choice Scarf"]);
   assert.deepEqual(sheets.find(({ name }) => name === "My Team").rows[4].slice(0, 8), ["Garchomp", "Yes", "No", 50, "Rough Skin", "Garchompite", "Jolly", "Yes"]);
   assert.deepEqual(sheets.find(({ name }) => name === "Game Plans").rows[4].slice(3, 9), [1, "win", "Garchomp", "Rotom-Wash", "Lead Scarf", "Preserve Garchomp"]);
-  assert.deepEqual(sheets.find(({ name }) => name === "Game Results").rows[4].slice(0, 9), ["Quarterfinal", "Test Coach", "Open", 1, "win", "https://replay.pokemonshowdown.com/quarterfinal-1", 1600, 1624, 24]);
+  assert.deepEqual(sheets.find(({ name }) => name === "Game Results").rows[4].slice(0, 11), ["Draft league match", "", "Quarterfinal", "Test Coach", "Open", 1, "win", "https://replay.pokemonshowdown.com/quarterfinal-1", 1600, 1624, 24]);
   assert.deepEqual(sheets.find(({ name }) => name === "Matchup Stats").rows[4], ["Rotom-Wash", 1, 0, 0, 0, ""]);
   assert.deepEqual(sheets.find(({ name }) => name === "Move Usage").rows[4], ["My side", "Garchomp", "Earthquake", 1, 1, 1, 0, 0, "100%"]);
   assert.deepEqual(sheets.find(({ name }) => name === "Performance").rows[3], ["Record", "1-0"]);
@@ -742,6 +782,8 @@ test("Team Lab is indexable while account notes and matchups stay private", () =
   const legacyRoute = fs.readFileSync(new URL("../src/app/tools/team-builder/page.js", import.meta.url), "utf8");
   const component = fs.readFileSync(new URL("../src/components/DraftLab.jsx", import.meta.url), "utf8");
   const personalTeams = fs.readFileSync(new URL("../src/components/PersonalTeams.jsx", import.meta.url), "utf8");
+  const reports = fs.readFileSync(new URL("../src/components/TeamLabReports.jsx", import.meta.url), "utf8");
+  const privateNavigation = fs.readFileSync(new URL("../src/lib/teamLabNavigation.js", import.meta.url), "utf8");
   const auth = fs.readFileSync(new URL("../src/components/AuthGate.jsx", import.meta.url), "utf8");
   const migration = fs.readFileSync(new URL("../supabase/393-private-team-lab-matchups.sql", import.meta.url), "utf8");
   const battleMigration = fs.readFileSync(new URL("../supabase/395-private-team-lab-battle-reports.sql", import.meta.url), "utf8");
@@ -813,7 +855,18 @@ test("Team Lab is indexable while account notes and matchups stay private", () =
   assert.match(component, /Start ladder match/);
   assert.match(component, /battle_report: blankReport/);
   assert.doesNotMatch(component, /firstOpponentPokemon[^\n]+opponentRoster\[0\]/);
-  assert.match(component, /TEAM PERFORMANCE/);
+  assert.match(reports, /TEAM PERFORMANCE/);
+  assert.match(reports, /Individual battle reports/);
+  assert.match(reports, /By battle type/);
+  assert.match(reports, /Open or continue in Battle Mode/);
+  assert.match(component, /Battle type<select/);
+  assert.match(component, /Session or event<input/);
+  assert.doesNotMatch(component, /p_mode: "ladder"/);
+  assert.match(component, /Recovered your locally autosaved battle after reload/);
+  assert.match(component, /writeTeamLabNavigation/);
+  assert.match(component, /buildDraftLabQuery\(\{ format: formatId, names \}\)/);
+  assert.match(privateNavigation, /params\.set\("workspace"/);
+  assert.match(privateNavigation, /params\.set\("battle"/);
   assert.match(component, /Use in report/);
   assert.match(component, /OPPONENT TEAM/);
   assert.match(component, /team-lab-opponent-roster-card/);
@@ -862,6 +915,8 @@ test("Team Lab is indexable while account notes and matchups stay private", () =
   assert.match(personalTeams, /Team Lab regulation/);
   assert.match(personalTeams, /\[\.\.\.legalTeamPokemonNames\]\.map/);
   assert.match(personalTeams, /Open Battle Mode/);
+  assert.match(personalTeams, /<TeamLabReports matchups=\{viewingMatchups\}/);
+  assert.match(personalTeams, /Battle type/);
   assert.doesNotMatch(personalTeams, /10-team limit reached|\/ 10 used|teams\.length>=10/);
   assert.match(auth, /team_lab_matchups/);
   assert.match(migration, /create table public\.team_lab_matchups/);

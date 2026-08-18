@@ -2,12 +2,13 @@
 
 import { useEffect, useRef, useState } from "react";
 import { nuzlockeEncounterStatusLabel, normalizeNuzlockeTracker, summarizeNuzlockeTracker } from "../lib/nuzlockeRunTracker";
-import { createTeamLabHandoff, createTeamLabMatchupHandoff, TEAM_LAB_HANDOFF_KEY, TEAM_LAB_MATCHUP_HANDOFF_KEY, TEAM_LAB_ROSTER_LIMIT } from "../lib/teamLab";
+import { createTeamLabHandoff, createTeamLabMatchupHandoff, summarizeTeamLabBattleReport, TEAM_LAB_HANDOFF_KEY, TEAM_LAB_MATCHUP_HANDOFF_KEY, TEAM_LAB_ROSTER_LIMIT } from "../lib/teamLab";
 import { PRODUCT_ROUTES } from "../platform/products";
 import { SHARED_POKEMON_DIRECTORY as POKEMON_DIRECTORY, SHARED_POKEMON_NAMES as POLL_POKEMON_NAMES, SHARED_REGULATION_SETS as REGULATION_SETS } from "../platform/pokemonCatalog";
 import { MonAbilities, MonDefenseChart, MonSprite, MonStats, TeamDefenseSummary } from "../platform/pokemonUi";
 import { createPlatformBrowserClient } from "../platform/supabase";
 import TeamLabOpponentEditor, { createEmptyTeamLabMatchup, normalizeTeamLabMatchupForm } from "./TeamLabOpponentEditor";
+import TeamLabReports from "./TeamLabReports";
 import TeamSheetPrintStudio from "./TeamSheetPrintStudio";
 
 const EMPTY = { team_name:"", league_name:"", format_name:"", workspace_type:"weekly", planning_entries:[], notes:"", weekly_notes:"", pokepaste_url:"", replica_code:"", spreadsheet_url:"", team_report_url:"", pokemon:[], team_sets:{version:1,pokemon:[]}, nuzlocke_run:null, archived:false, is_public:false, regulation_id:"", public_summary:"", share_pokepaste:false, share_replica_code:false, share_team_report:false };
@@ -220,15 +221,15 @@ export default function PersonalTeams() {
     plans["!cols"]=[24,12,28,50,100].map((wch)=>({wch}));
     XLSX.utils.book_append_sheet(workbook,plans,"Planning");
     const matchups=XLSX.utils.aoa_to_sheet([
-      ["Your team","Week or round","Team sheet","Opponent","Opponent team","Roster","Scouted sets","Observed moves","Battle notes","Matchup notes","Format"],
-      ...teamLabMatchups.map((matchup)=>[
-        teams.find((team)=>team.id===matchup.personal_team_id)?.team_name||"",matchup.week_label||"",matchup.sheet_mode==="open"?"Open":"Closed",matchup.opponent_name,matchup.opponent_team_name||"",(matchup.pokemon||[]).join(", "),
+      ["Your team","Battle type","Session / event","Week or round","Team sheet","Opponent","Opponent team","Match result","Games logged","Turn actions","Your Pokémon brought","Opponent Pokémon seen","Revealed moves","Replays","Rating updates","Roster","Scouted sets","Observed moves","Battle notes","Matchup notes","Format"],
+      ...teamLabMatchups.map((matchup)=>{const report=summarizeTeamLabBattleReport(matchup);return [
+        teams.find((team)=>team.id===matchup.personal_team_id)?.team_name||"",report.purposeLabel,report.sessionLabel,matchup.week_label||"",report.sheetMode==="open"?"Open":"Closed",matchup.opponent_name,matchup.opponent_team_name||"",`${report.series.wins}-${report.series.losses}${report.series.ties?`-${report.series.ties}`:""}`,report.completedGames,report.turnActions,report.myBrought,report.opponentBrought,report.revealedMoves,report.replayCount,report.ratingGames,(matchup.pokemon||[]).join(", "),
         (matchup.opponent_sets?.pokemon||[]).filter((pokemon)=>pokemon.ability||pokemon.moves?.length).map((pokemon)=>`${pokemon.name}${pokemon.ability?` [${pokemon.ability}]`:""}${pokemon.moves?.length?`: ${pokemon.moves.join(", ")}`:""}`).join("; "),
         (matchup.battle_report?.opponent_pokemon||[]).filter((pokemon)=>pokemon.brought||pokemon.fainted||pokemon.moves?.length).map((pokemon)=>`${pokemon.name}${pokemon.moves?.length?`: ${pokemon.moves.join(", ")}`:""}${pokemon.fainted?" (fainted)":""}`).join("; "),
         matchup.battle_report?.battle_notes||"",matchup.notes||"",matchup.format_id||"",
-      ]),
+      ];}),
     ]);
-    matchups["!cols"]=[24,18,12,24,24,60,90,90,100,100,20].map((wch)=>({wch}));
+    matchups["!cols"]=[24,22,28,18,12,24,24,14,12,12,18,20,14,10,14,60,90,90,100,100,20].map((wch)=>({wch}));
     XLSX.utils.book_append_sheet(workbook,matchups,"Team Lab matchups");
     XLSX.writeFile(workbook,`draftcenter-my-teams-${new Date().toISOString().slice(0,10)}.xlsx`);
   }
@@ -290,6 +291,7 @@ export default function PersonalTeams() {
         <div className="personal-nuzlocke-grid">{viewing.nuzlocke_run.team.map((entry,index)=>{const artwork=safeNuzlockeArtworkUrl(entry.artwork_url);const progress=viewingNuzlockeTracker.encounters[index];return <article key={`${entry.area_key}-${entry.pokemon_id}-${index}`} className={`nuzlocke-status-${progress?.status||"not-encountered"}`}>{artwork&&<img src={artwork} alt={`${nuzlockeDisplayName(entry)} artwork`}/>}<span>{index+1}</span><div><h3>{progress?.nickname||nuzlockeDisplayName(entry)}</h3>{progress?.nickname&&<small>{nuzlockeDisplayName(entry)}</small>}<strong>{entry.area_name}</strong><span className="personal-nuzlocke-status">{nuzlockeEncounterStatusLabel(progress?.status)}</span><p>{entry.method==="starter"?"Starter Pokémon":<>{titleCase(entry.method)} · Lv. {entry.min_level??"?"}{entry.max_level!=null&&entry.max_level!==entry.min_level?`–${entry.max_level}`:""}{entry.chance!=null?` · ${entry.chance}% rate`:""}</>}</p>{progress?.notes&&<small>{progress.notes}</small>}{entry.conditions?.length>0&&<small>{entry.conditions.map(titleCase).join(", ")}</small>}</div></article>})}</div>
         {viewingNuzlockeTracker.notes&&<section className="personal-nuzlocke-run-notes"><h3>Run notes</h3><p>{viewingNuzlockeTracker.notes}</p></section>}
       </>:<><div className="personal-roster-grid">{rosterFor(viewing).map((mon,index)=><article key={`${mon.name}-${index}`} className="personal-roster-mon"><MonSprite mon={mon} size={78}/><div><h3>{mon.name}</h3><div className="personal-roster-types"><span className={`type-${mon.t1}`}>{mon.t1}</span>{mon.t2&&<span className={`type-${mon.t2}`}>{mon.t2}</span>}</div><MonStats mon={mon}/><MonAbilities mon={mon} className="personal-roster-abilities"/><div className="personal-roster-defense"><strong>Defensive matchups</strong><MonDefenseChart mon={mon}/></div></div></article>)}</div>{!rosterFor(viewing).length&&<p className="muted">No Pokémon are on this roster yet. Edit the workspace to add them.</p>}{rosterFor(viewing).length>0&&<section className="personal-team-defense-summary"><h3>Team defensive coverage</h3><TeamDefenseSummary roster={rosterFor(viewing)}/></section>}</>}
+      {!isNuzlockeTeam(viewing)&&!viewing.league_source&&<TeamLabReports matchups={viewingMatchups} rosterNames={viewing.pokemon||[]} onOpenBattle={(matchup)=>openInTeamLab(viewing,"personal",null,matchup.id)}/>}
       {(viewing.notes||viewing.weekly_notes||viewing.replica_code)&&<div className="personal-team-saved-details">{viewing.notes&&<section><h3>General notes</h3><p>{viewing.notes}</p></section>}{viewing.weekly_notes&&<section><h3>Weekly notes</h3><p>{viewing.weekly_notes}</p></section>}{viewing.replica_code&&<section><h3>Pokémon Champions replica code</h3><p>{viewing.replica_code}</p></section>}</div>}
       <div className="personal-team-links">{viewing.pokepaste_url&&<a href={viewing.pokepaste_url} target="_blank" rel="noreferrer">PokéPaste ↗</a>}{viewing.spreadsheet_url&&<a href={viewing.spreadsheet_url} target="_blank" rel="noreferrer">Spreadsheet ↗</a>}{viewing.team_report_url&&<a href={viewing.team_report_url} target="_blank" rel="noreferrer">{isNuzlockeTeam(viewing)?"Recreate build":"Team report"} ↗</a>}</div>
       {Array.isArray(viewing.planning_entries)&&viewing.planning_entries.length>0&&<div className="personal-team-planning-view"><h3>{viewing.workspace_type==="tournament"?"Tournament plans":viewing.workspace_type==="nuzlocke"?"Run details":"Weekly plans"}</h3>{viewing.planning_entries.map((entry,index)=><section key={entry.id||index}><strong>{entry.title||entryLabel(viewing.workspace_type,index)}</strong>{entry.url&&<a href={entry.url} target="_blank" rel="noreferrer">Open saved link ↗</a>}{entry.notes&&<p>{entry.notes}</p>}</section>)}</div>}
