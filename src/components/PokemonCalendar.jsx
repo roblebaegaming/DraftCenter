@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import CalendarSubscription from "./CalendarSubscription";
 import { createClient } from "../lib/supabase/client";
 import { VGC_CALENDAR_EVENTS, VGC_CALENDAR_REGIONS, VGC_CALENDAR_UPDATED_AT } from "../data/vgcCalendarEvents";
-import { calendarToIcs, dateKey, deriveLeagueEvents } from "../lib/pokemonCalendar";
+import { calendarMonthDays, calendarToIcs, dateKey, deriveLeagueEvents } from "../lib/pokemonCalendar";
 import { createTeamLabHandoff, createTeamLabLeagueMatchupHandoff, TEAM_LAB_HANDOFF_KEY, TEAM_LAB_LEAGUE_MATCHUP_HANDOFF_KEY } from "../lib/teamLab";
 import { PRODUCT_ROUTES } from "../platform/products";
 
@@ -45,7 +45,6 @@ const VGC_CATEGORIES = [
   ["worlds", "Worlds"],
   ["online", "Online"],
 ];
-const DAY_MS = 24 * 60 * 60 * 1000;
 
 function localInputValue(value, allDay = false) {
   if (!value) return "";
@@ -156,9 +155,7 @@ export default function PokemonCalendar() {
   const events = useMemo(() => [...leagueEvents, ...personalEvents.map((event) => ({ ...event, source: "personal" })), ...visibleVgcEvents]
     .sort((a, b) => new Date(a.starts_at) - new Date(b.starts_at)), [leagueEvents, personalEvents, visibleVgcEvents]);
   const todayKey = dateKey(new Date());
-  const monthStart = new Date(cursor.getFullYear(), cursor.getMonth(), 1);
-  const gridStart = new Date(cursor.getFullYear(), cursor.getMonth(), 1 - monthStart.getDay());
-  const days = Array.from({ length: 42 }, (_, index) => new Date(gridStart.getTime() + index * DAY_MS));
+  const days = calendarMonthDays(cursor);
   const todayStart = new Date().setHours(0, 0, 0, 0);
   const upcoming = events.filter((event) => eventEndDate(event).getTime() >= todayStart).slice(0, 60);
   const nextOfficialVgc = VGC_CALENDAR_EVENTS.filter((event) => eventEndDate(event).getTime() >= todayStart).slice(0, 3);

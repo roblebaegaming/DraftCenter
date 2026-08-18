@@ -2,31 +2,31 @@ import { bearerToken, readBoundedJson } from "../../../../lib/apiSecurity";
 import { createPublicServerClient } from "../../../../lib/supabase/publicServer";
 
 export const runtime = "nodejs";
-export const maxDuration = 10;
+export const maxDuration = 30;
 
 const POKEPASTE_PATTERN = /^https:\/\/pokepast\.es\/([A-Za-z0-9]{4,64})\/?$/;
 const MAX_PASTE_BYTES = 60000;
 
 export async function POST(request) {
-  const token = bearerToken(request);
-  if (!token) return Response.json({ error: "Sign in before importing a PokéPaste." }, { status: 401 });
-  const supabase = createPublicServerClient();
-  if (!supabase) return Response.json({ error: "Team Lab imports are temporarily unavailable." }, { status: 503 });
-  const { data: authData } = await supabase.auth.getUser(token);
-  if (!authData?.user) return Response.json({ error: "Your sign-in session expired. Sign in again." }, { status: 401 });
-
-  const parsed = await readBoundedJson(request, {
-    maxBytes: 512,
-    maxDepth: 2,
-    maxEntries: 3,
-    maxArrayLength: 1,
-    maxStringLength: 200,
-  });
-  if (parsed.error) return Response.json({ error: parsed.error }, { status: parsed.status });
-  const match = String(parsed.data?.url || "").trim().match(POKEPASTE_PATTERN);
-  if (!match) return Response.json({ error: "Use a complete https://pokepast.es/... link." }, { status: 400 });
-
   try {
+    const token = bearerToken(request);
+    if (!token) return Response.json({ error: "Sign in before importing a PokéPaste." }, { status: 401 });
+    const supabase = createPublicServerClient();
+    if (!supabase) return Response.json({ error: "Team Lab imports are temporarily unavailable." }, { status: 503 });
+    const { data: authData, error: authError } = await supabase.auth.getUser(token);
+    if (authError || !authData?.user) return Response.json({ error: "Your sign-in session expired. Sign in again." }, { status: 401 });
+
+    const parsed = await readBoundedJson(request, {
+      maxBytes: 512,
+      maxDepth: 2,
+      maxEntries: 3,
+      maxArrayLength: 1,
+      maxStringLength: 200,
+    });
+    if (parsed.error) return Response.json({ error: parsed.error }, { status: parsed.status });
+    const match = String(parsed.data?.url || "").trim().match(POKEPASTE_PATTERN);
+    if (!match) return Response.json({ error: "Use a complete https://pokepast.es/... link." }, { status: 400 });
+
     const response = await fetch(`https://pokepast.es/${match[1]}/raw`, {
       cache: "no-store",
       redirect: "error",
@@ -53,6 +53,9 @@ export async function POST(request) {
       { headers: { "Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff" } },
     );
   } catch {
-    return Response.json({ error: "That PokéPaste could not be loaded right now." }, { status: 502 });
+    return Response.json(
+      { error: "That PokéPaste could not be loaded right now. Open it, copy the text, and paste it into Team Lab instead." },
+      { status: 502 },
+    );
   }
 }
