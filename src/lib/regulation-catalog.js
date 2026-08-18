@@ -7,6 +7,7 @@ export const REGULATION_CATEGORIES = Object.freeze({
 
 export const REGULATION_GROUPS = Object.freeze([
   { id: "champions", label: "Pokémon Champions", generation: 9, order: 10 },
+  { id: "legends-za", label: "Pokémon Legends: Z-A", generation: 9, order: 15 },
   { id: "scarlet-violet", label: "Scarlet & Violet", generation: 9, order: 20 },
   { id: "sword-shield", label: "Sword & Shield", generation: 8, order: 30 },
   { id: "ultra-sun-moon", label: "Ultra Sun & Ultra Moon", generation: 7, order: 40 },
@@ -24,6 +25,10 @@ export const REGULATION_GROUPS = Object.freeze([
 const metadataRows = [
   ["reg-mb", "Regulation M-B", "champions", 9, "official", 10, true],
   ["reg-ma", "Regulation M-A", "champions", 9, "official", 20],
+
+  ["za-lumiose-dex", "Lumiose Pokédex", "legends-za", 9, "pokedex", 200],
+  ["za-hyperspace-dex", "Hyperspace Pokédex", "legends-za", 9, "pokedex", 210],
+  ["za-full-dex", "Z-A + Mega Dimension Pokédexes", "legends-za", 9, "pokedex", 220],
 
   ["reg-j", "Regulation J", "scarlet-violet", 9, "official", 10],
   ["reg-i", "Regulation I", "scarlet-violet", 9, "official", 20],

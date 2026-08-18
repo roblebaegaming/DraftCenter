@@ -327,17 +327,19 @@ export function pokedexArtworkUrl(pokemonId, shiny = false) {
 }
 
 export function pokedexTrackerProgress(entries = [], mode = "standard") {
-  const field = mode === "shiny" ? "shiny_caught" : "caught";
-  const total = entries.length;
-  const caught = entries.reduce((count, entry) => count + (entry[field] ? 1 : 0), 0);
+  const field = mode === "shiny" ? "shiny_caught" : mode === "alpha" ? "alpha_caught" : "caught";
+  const eligible = mode === "alpha" ? entries.filter((entry) => entry.alpha_eligible) : entries;
+  const total = eligible.length;
+  const caught = eligible.reduce((count, entry) => count + (entry[field] ? 1 : 0), 0);
   return { caught, total, percentage: total ? Math.round((caught / total) * 100) : 0 };
 }
 
 export function filterPokedexEntries(entries = [], { query = "", status = "all", mode = "standard" } = {}) {
   const needle = query.trim().toLocaleLowerCase();
   const numberNeedle = needle.replace(/^#/, "");
-  const field = mode === "shiny" ? "shiny_caught" : "caught";
+  const field = mode === "shiny" ? "shiny_caught" : mode === "alpha" ? "alpha_caught" : "caught";
   return entries.filter((entry) => {
+    if (mode === "alpha" && !entry.alpha_eligible) return false;
     const matchesQuery = !needle
       || String(entry.pokemon || "").toLocaleLowerCase().includes(needle)
       || String(entry.dex_number ?? "").includes(numberNeedle)

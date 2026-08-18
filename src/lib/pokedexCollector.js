@@ -1,7 +1,7 @@
 import { uniquePokedexEntries } from "./pokedexTracker.js";
 
 export const POKEDEX_COLLECTOR_EXPORT_FORMAT = "draftcenter-pokedex-tracker";
-export const POKEDEX_COLLECTOR_EXPORT_VERSION = 3;
+export const POKEDEX_COLLECTOR_EXPORT_VERSION = 4;
 export const POKEDEX_COLLECTOR_MAX_FILE_BYTES = 10 * 1024 * 1024;
 export const POKEDEX_COLLECTOR_MAX_CSV_ROWS = 5000;
 export const POKEDEX_COLLECTOR_MAX_RESTORE_TRACKERS = 50;
@@ -314,6 +314,9 @@ function allowedRestoreTracker(candidate, index) {
   if (candidate.include_shiny !== undefined && typeof candidate.include_shiny !== "boolean") {
     throw new Error(`Tracker ${index + 1} has an invalid include_shiny value.`);
   }
+  if (candidate.include_alpha !== undefined && typeof candidate.include_alpha !== "boolean") {
+    throw new Error(`Tracker ${index + 1} has an invalid include_alpha value.`);
+  }
   const arrays = Object.fromEntries(["entries", "details", "locations", "specimens"].map((key) => {
     const value = candidate[key] ?? [];
     if (!Array.isArray(value)) throw new Error(`Tracker ${index + 1} has an invalid ${key} list.`);
@@ -326,6 +329,7 @@ function allowedRestoreTracker(candidate, index) {
     catalog_key: catalogKey,
     title,
     include_shiny: Boolean(candidate.include_shiny),
+    include_alpha: Boolean(candidate.include_alpha),
     entries: arrays.entries,
     details: arrays.details,
     locations: arrays.locations,
@@ -379,6 +383,7 @@ export function buildPokedexTrackerPortableExport(active, inventory, exportedAt 
   for (const pokemon of uniquePokedexEntries(active.pokemon || [])) {
     if (pokemon.caught) entries.push({ pokemon_id: pokemon.pokemon_id, pokemon: pokemon.pokemon, dex_number: pokemon.dex_number, is_shiny: false });
     if (pokemon.shiny_caught) entries.push({ pokemon_id: pokemon.pokemon_id, pokemon: pokemon.pokemon, dex_number: pokemon.dex_number, is_shiny: true });
+    if (pokemon.alpha_caught) entries.push({ pokemon_id: pokemon.pokemon_id, pokemon: pokemon.pokemon, dex_number: pokemon.dex_number, is_shiny: false, is_alpha: true });
     if (pokemon.pokeball || pokemon.ribbons?.length || pokemon.notes) details.push({
       pokemon_id: pokemon.pokemon_id, pokemon: pokemon.pokemon, dex_number: pokemon.dex_number, is_shiny: false,
       pokeball: pokemon.pokeball || "", ribbons: pokemon.ribbons || [], notes: pokemon.notes || "",
@@ -397,6 +402,7 @@ export function buildPokedexTrackerPortableExport(active, inventory, exportedAt 
       catalog_key: active.tracker.catalog_key,
       title: active.tracker.title,
       include_shiny: active.tracker.include_shiny,
+      include_alpha: Boolean(active.tracker.include_alpha),
     },
     entries,
     details,

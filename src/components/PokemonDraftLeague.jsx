@@ -5,7 +5,9 @@ import { DiscordConnectionPanel, LeagueBroadcastCenter } from "./SocialSharing";
 import PublicCoachProfile, { CoachProfileButton } from "./PublicCoachProfile";
 import ChampionshipStudio from "./ChampionshipStudio";
 import { SHOWDOWN_GAME_AVAILABILITY, SHOWDOWN_REGIONAL_POKEDEXES } from "../lib/showdown-regional-pokedexes";
+import { pokemonBaseSpeciesKey, pokemonShowdownProfileKeys } from "../lib/pokemonGames";
 import { withRegulationMetadata } from "../lib/regulation-catalog";
+import LEGENDS_ZA_POKEDEX from "../../data/pokemon/pokemon-legends-za-pokedex.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json";
 import RegulationPicker from "./RegulationPicker";
 import { safeHttpsImageSource } from "../lib/imageSecurity";
 import { browserCanResolveHostedAutoDraft, preserveLoadedPrivateDraftQueue } from "../lib/draftQueueSafety";
@@ -919,6 +921,21 @@ function showdownAvailabilityPool(key, maximumGeneration) {
     .map((pokemon) => pokemon.name);
 }
 
+function legendsZaPokedexPool(pokedexKeys) {
+  const selectedPokedexes = new Set(pokedexKeys);
+  const allowedSpecies = new Set(
+    LEGENDS_ZA_POKEDEX.entries
+      .filter((entry) => selectedPokedexes.has(entry.pokedex_key))
+      .map((entry) => pokemonBaseSpeciesKey(entry.pokemon_key)),
+  );
+  const availableProfiles = new Set(LEGENDS_ZA_POKEDEX.available_profile_keys);
+  return MASTER_POKEDEX
+    .filter((pokemon) => pokemon.gen <= 9)
+    .filter((pokemon) => allowedSpecies.has(pokemonBaseSpeciesKey(pokemon.name)))
+    .filter((pokemon) => pokemonShowdownProfileKeys(pokemon.name).some((key) => availableProfiles.has(key)))
+    .map((pokemon) => pokemon.name);
+}
+
 function standardVgcPool(names, { allowRestricted = false } = {}) {
   return [...new Set(names)]
     .filter((name) => !isMythicalName(name))
@@ -937,6 +954,9 @@ const HOENN_DEX_NAMES = regionalDexPool("hoenn", 6, { includeMegas: true });
 const SINNOH_DEX_NAMES = regionalDexPool("sinnoh", 4);
 const UNOVA_B2W2_DEX_NAMES = regionalDexPool("unovaB2W2", 5);
 const KALOS_DEX_NAMES = regionalDexPool("kalos", 6, { includeMegas: true });
+const ZA_LUMIOSE_DEX_NAMES = legendsZaPokedexPool(["lumiose-city"]);
+const ZA_HYPERSPACE_DEX_NAMES = legendsZaPokedexPool(["hyperspace"]);
+const ZA_FULL_DEX_NAMES = legendsZaPokedexPool(["lumiose-city", "hyperspace"]);
 const ALOLA_SM_DEX_NAMES = regionalDexPool("alolaSM", 7, { includeMegas: true });
 const ALOLA_USUM_DEX_NAMES = regionalDexPool("alolaUSUM", 7, { includeMegas: true });
 const GALAR_DEX_NAMES = regionalDexPool("galar", 8);
@@ -1699,6 +1719,33 @@ const REGULATION_POOLS = {
     name: "Kalos Pokédex",
     subtitle: "X & Y · Central, Coastal, and Mountain Pokédexes",
     legalNames: KALOS_DEX_NAMES,
+    defaultCosts: {},
+    noTierData: true,
+    defaultMegaCap: 1,
+  },
+  "za-lumiose-dex": {
+    id: "za-lumiose-dex",
+    name: "Lumiose Pokédex",
+    subtitle: "Pokémon Legends: Z-A · base-game Pokédex",
+    legalNames: ZA_LUMIOSE_DEX_NAMES,
+    defaultCosts: {},
+    noTierData: true,
+    defaultMegaCap: 1,
+  },
+  "za-hyperspace-dex": {
+    id: "za-hyperspace-dex",
+    name: "Hyperspace Pokédex",
+    subtitle: "Pokémon Legends: Z-A – Mega Dimension",
+    legalNames: ZA_HYPERSPACE_DEX_NAMES,
+    defaultCosts: {},
+    noTierData: true,
+    defaultMegaCap: 1,
+  },
+  "za-full-dex": {
+    id: "za-full-dex",
+    name: "Z-A + Mega Dimension Pokédexes",
+    subtitle: "Lumiose and Hyperspace Pokédexes combined",
+    legalNames: ZA_FULL_DEX_NAMES,
     defaultCosts: {},
     noTierData: true,
     defaultMegaCap: 1,

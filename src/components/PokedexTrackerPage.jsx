@@ -28,8 +28,8 @@ import {
 } from "../lib/pokedexTracker";
 import { trackPokedexCollectorEvent } from "../lib/pokedexAnalytics";
 
-function ProgressRing({ progress, label, shiny = false }) {
-  return <div className={`dex-tracker-ring ${shiny ? "is-shiny" : ""}`} style={{ "--dex-progress": `${progress.percentage * 3.6}deg` }}>
+function ProgressRing({ progress, label, shiny = false, alpha = false }) {
+  return <div className={`dex-tracker-ring ${shiny ? "is-shiny" : ""} ${alpha ? "is-alpha" : ""}`} style={{ "--dex-progress": `${progress.percentage * 3.6}deg` }}>
     <div><strong>{progress.percentage}%</strong><span>{label}</span></div>
   </div>;
 }
@@ -46,7 +46,8 @@ function BallBadge({ option, compact = false }) {
 
 function PokemonCard({ entry, mode, pending, onToggle, onDetails, onInventory, onFind, sectionLabel, ballOptions = [] }) {
   const isShiny = mode === "shiny";
-  const caught = isShiny ? entry.shiny_caught : entry.caught;
+  const isAlpha = mode === "alpha";
+  const caught = isShiny ? entry.shiny_caught : isAlpha ? entry.alpha_caught : entry.caught;
   const details = pokedexEntryDetails(entry, mode);
   const hasDetails = pokedexHasEntryDetails(entry, mode);
   const ball = ballOptions.find(({ key }) => key === details.pokeball);
@@ -59,12 +60,12 @@ function PokemonCard({ entry, mode, pending, onToggle, onDetails, onInventory, o
     }
     event.currentTarget.hidden = true;
   }
-  return <article className={`dex-tracker-pokemon ${caught ? "is-caught" : ""} ${isShiny ? "is-shiny" : ""} ${hasDetails ? "has-details" : ""}`}>
+  return <article className={`dex-tracker-pokemon ${caught ? "is-caught" : ""} ${isShiny ? "is-shiny" : ""} ${isAlpha ? "is-alpha" : ""} ${hasDetails && !isAlpha ? "has-details" : ""}`}>
     <button
       type="button"
       className="dex-entry-catch"
       aria-pressed={caught}
-      aria-label={`${caught ? "Remove" : "Mark"} ${isShiny ? "shiny " : ""}${entry.pokemon} ${caught ? "from" : "in"} this Pokédex`}
+      aria-label={`${caught ? "Remove" : "Mark"} ${isShiny ? "shiny " : isAlpha ? "Alpha " : ""}${entry.pokemon} ${caught ? "from" : "in"} this Pokédex`}
       disabled={pending}
       onClick={() => onToggle(entry)}
     >
@@ -73,31 +74,34 @@ function PokemonCard({ entry, mode, pending, onToggle, onDetails, onInventory, o
       <span className="dex-tracker-art">
         <img src={artwork} alt="" loading="lazy" onError={handleImageError} />
         {isShiny && <i aria-hidden="true">✦</i>}
+        {isAlpha && <i aria-hidden="true">α</i>}
       </span>
       <strong>{entry.pokemon}</strong>
       <small>{sectionLabel}</small>
     </button>
     <div className="dex-entry-actions">
       <button type="button" className="dex-entry-find-trigger" onClick={() => onFind(entry)} aria-label={`Find ${entry.pokemon} in supported games`}>⌕ Find</button>
-      <button type="button" className="dex-entry-details-trigger" onClick={() => onDetails(entry)} aria-label={`Edit ${isShiny ? "shiny " : ""}${entry.pokemon} collection details`}>
+      {!isAlpha && <button type="button" className="dex-entry-details-trigger" onClick={() => onDetails(entry)} aria-label={`Edit ${isShiny ? "shiny " : ""}${entry.pokemon} collection details`}>
         {hasDetails ? <>
           {ball && <BallBadge option={ball} compact />}
           {details.ribbons.length > 0 && <span title={`${details.ribbons.length} saved ribbon${details.ribbons.length === 1 ? "" : "s"}`}>◇ {details.ribbons.length}</span>}
           {details.notes.trim() && <span title="A private note is saved">✎</span>}
         </> : <span>＋ Details</span>}
-      </button>
-      <button type="button" className="dex-entry-inventory-trigger" onClick={() => onInventory(entry)} aria-label={`Record an individual ${isShiny ? "shiny " : ""}${entry.pokemon}`}>＋ Individual</button>
+      </button>}
+      {!isAlpha && <button type="button" className="dex-entry-inventory-trigger" onClick={() => onInventory(entry)} aria-label={`Record an individual ${isShiny ? "shiny " : ""}${entry.pokemon}`}>＋ Individual</button>}
     </div>
   </article>;
 }
 
 function PokedexBoxPlanner({ entries, layout, mode, pending, onToggle, sectionKey, sectionLabel, trackerId }) {
   const [boxNumber, setBoxNumber] = useState(1);
-  const boxes = useMemo(() => buildPokedexBoxPlan(entries, layout), [entries, layout]);
+  const plannedEntries = mode === "alpha" ? entries.filter((entry) => entry.alpha_eligible) : entries;
+  const boxes = useMemo(() => buildPokedexBoxPlan(plannedEntries, layout), [plannedEntries, layout]);
   useEffect(() => { setBoxNumber(1); }, [sectionKey]);
   const current = boxes[Math.min(boxNumber, boxes.length) - 1] || boxes[0];
   if (!current) return null;
   const isShiny = mode === "shiny";
+  const isAlpha = mode === "alpha";
   return <section className="dex-box-planner" id="game-box-planner" aria-labelledby="dex-box-planner-title">
     <header>
       <div><span className="dex-kicker">BOX LAYOUT</span><h3 id="dex-box-planner-title">{sectionLabel} in Pokédex order</h3><p>{layout.note}</p></div>
@@ -107,7 +111,7 @@ function PokedexBoxPlanner({ entries, layout, mode, pending, onToggle, sectionKe
       {current.entries.map((entry, index) => entry ? <button
         type="button"
         key={`${entry.pokedex_key}:${entry.pokemon_id}`}
-        className={(isShiny ? entry.shiny_caught : entry.caught) ? "is-caught" : ""}
+        className={(isShiny ? entry.shiny_caught : isAlpha ? entry.alpha_caught : entry.caught) ? "is-caught" : ""}
         disabled={pending.has(`${trackerId}:${entry.pokemon_id}:${mode}`)}
         onClick={() => onToggle(entry)}
         title={`${entry.pokemon} · ${sectionLabel} #${entry.dex_number}`}
@@ -330,12 +334,13 @@ function CreateTracker({ catalogs, busy, onCreate, onCancel }) {
   const [catalogKey, setCatalogKey] = useState(catalogs[0]?.key || "home");
   const [title, setTitle] = useState("");
   const [includeShiny, setIncludeShiny] = useState(false);
+  const [includeAlpha, setIncludeAlpha] = useState(false);
   const groups = groupPokedexCatalogs(catalogs);
   const selected = catalogs.find((catalog) => catalog.key === catalogKey);
-  return <form className="dex-tracker-create" onSubmit={(event) => { event.preventDefault(); onCreate({ catalogKey, title, includeShiny }); }}>
+  return <form className="dex-tracker-create" onSubmit={(event) => { event.preventDefault(); onCreate({ catalogKey, title, includeShiny, includeAlpha: selected?.supports_alpha && includeAlpha }); }}>
     <header><div><span className="dex-kicker">NEW COLLECTION</span><h2>Choose your next Pokédex</h2></div>{onCancel && <button type="button" className="dex-icon-button" onClick={onCancel} aria-label="Close new tracker form">×</button>}</header>
     <label>Game or service
-      <select value={catalogKey} onChange={(event) => setCatalogKey(event.target.value)} required>
+      <select value={catalogKey} onChange={(event) => { setCatalogKey(event.target.value); setIncludeAlpha(false); }} required>
         {groups.map((group) => <optgroup key={group.label} label={group.label}>{group.catalogs.map((catalog) => <option key={catalog.key} value={catalog.key}>{catalog.name} · {catalog.total}</option>)}</optgroup>)}
       </select>
     </label>
@@ -347,6 +352,11 @@ function CreateTracker({ catalogs, busy, onCreate, onCancel }) {
       <span><b>Add a shiny dex</b><small>Track shiny forms separately without changing your standard progress.</small></span>
       <i aria-hidden="true">✦</i>
     </label>
+    {selected?.supports_alpha && <label className="dex-shiny-choice dex-alpha-choice">
+      <input type="checkbox" checked={includeAlpha} onChange={(event) => setIncludeAlpha(event.target.checked)} />
+      <span><b>Add an Alpha Dex</b><small>Track only species that can legitimately be Alpha in this game.</small></span>
+      <i aria-hidden="true">α</i>
+    </label>}
     <button className="dex-primary-button" disabled={busy || !catalogKey}>{busy ? "Creating…" : "Create tracker"}</button>
   </form>;
 }
@@ -512,6 +522,7 @@ export default function PokedexTrackerPage() {
   const sectionEntries = activeSection?.entries || [];
   const standardProgress = useMemo(() => pokedexTrackerProgress(sectionEntries, "standard"), [sectionEntries]);
   const shinyProgress = useMemo(() => pokedexTrackerProgress(sectionEntries, "shiny"), [sectionEntries]);
+  const alphaProgress = useMemo(() => pokedexTrackerProgress(sectionEntries, "alpha"), [sectionEntries]);
   const activeCatalog = hub?.catalogs?.find(({ key }) => key === active?.tracker?.catalog_key);
   const boxLayout = useMemo(() => pokedexBoxLayout(active?.tracker?.catalog_key, activeCatalog?.generation), [active?.tracker?.catalog_key, activeCatalog?.generation]);
   const ballOptions = useMemo(() => pokedexBallOptions(active?.tracker?.catalog_key, activeCatalog?.generation), [active?.tracker?.catalog_key, activeCatalog?.generation]);
@@ -530,6 +541,7 @@ export default function PokedexTrackerPage() {
       p_catalog_key: values.catalogKey,
       p_title: values.title.trim() || null,
       p_include_shiny: values.includeShiny,
+      p_include_alpha: Boolean(values.includeAlpha),
     });
     if (accountVersion !== accountVersionRef.current) return;
     setBusy(false);
@@ -544,7 +556,8 @@ export default function PokedexTrackerPage() {
     if (!trackerId) return;
     const accountVersion = accountVersionRef.current;
     const isShiny = mode === "shiny";
-    const field = isShiny ? "shiny_caught" : "caught";
+    const isAlpha = mode === "alpha";
+    const field = isShiny ? "shiny_caught" : isAlpha ? "alpha_caught" : "caught";
     const caught = !entry[field];
     const pendingKey = `${trackerId}:${entry.pokemon_id}:${mode}`;
     if (pending.has(pendingKey)) return;
@@ -552,12 +565,18 @@ export default function PokedexTrackerPage() {
     setActive((current) => current?.tracker?.id === trackerId
       ? { ...current, pokemon: current.pokemon.map((pokemon) => pokemon.pokemon_id === entry.pokemon_id ? { ...pokemon, [field]: caught } : pokemon) }
       : current);
-    const { data, error } = await supabase.rpc("set_my_pokedex_tracker_entry", {
-      p_tracker_id: trackerId,
-      p_pokemon_id: entry.pokemon_id,
-      p_is_shiny: isShiny,
-      p_caught: caught,
-    });
+    const { data, error } = isAlpha
+      ? await supabase.rpc("set_my_pokedex_tracker_alpha_entry", {
+        p_tracker_id: trackerId,
+        p_pokemon_id: entry.pokemon_id,
+        p_caught: caught,
+      })
+      : await supabase.rpc("set_my_pokedex_tracker_entry", {
+        p_tracker_id: trackerId,
+        p_pokemon_id: entry.pokemon_id,
+        p_is_shiny: isShiny,
+        p_caught: caught,
+      });
     if (accountVersion !== accountVersionRef.current) return;
     setPending((current) => { const next = new Set(current); next.delete(pendingKey); return next; });
     if (error) {
@@ -570,10 +589,10 @@ export default function PokedexTrackerPage() {
     setHub((current) => current ? {
       ...current,
       trackers: current.trackers.map((tracker) => tracker.id === trackerId
-        ? { ...tracker, caught: data.caught, shiny_caught: data.shiny_caught, updated_at: new Date().toISOString() }
+        ? { ...tracker, caught: data.caught ?? tracker.caught, shiny_caught: data.shiny_caught ?? tracker.shiny_caught, alpha_caught: data.alpha_caught ?? tracker.alpha_caught, updated_at: new Date().toISOString() }
         : tracker),
     } : current);
-    if (active.tracker.catalog_key !== "home" && hub?.trackers?.some((tracker) => tracker.catalog_key === "home")) {
+    if (!isAlpha && active.tracker.catalog_key !== "home" && hub?.trackers?.some((tracker) => tracker.catalog_key === "home")) {
       const refreshed = await supabase.rpc("get_my_pokedex_trackers");
       if (accountVersion === accountVersionRef.current && !refreshed.error && refreshed.data) setHub(refreshed.data);
     }
@@ -736,7 +755,10 @@ export default function PokedexTrackerPage() {
     URL.revokeObjectURL(url);
   }
 
-  async function saveSettings(includeShiny = active?.tracker.include_shiny) {
+  async function saveSettings(
+    includeShiny = active?.tracker.include_shiny,
+    includeAlpha = active?.tracker.include_alpha,
+  ) {
     if (!active) return;
     const accountVersion = accountVersionRef.current;
     const trackerId = active.tracker.id;
@@ -746,6 +768,7 @@ export default function PokedexTrackerPage() {
       p_tracker_id: trackerId,
       p_title: settingsTitle.trim() || active.tracker.title,
       p_include_shiny: includeShiny,
+      p_include_alpha: Boolean(includeAlpha),
     });
     if (accountVersion !== accountVersionRef.current) return;
     setBusy(false);
@@ -775,12 +798,12 @@ export default function PokedexTrackerPage() {
     <section className="dex-tracker-signin">
       <span className="dex-kicker">YOUR POKÉDEXES</span>
       <h1>Keep every game dex in one place.</h1>
-      <p>Sign in to track each game and DLC area, link that progress to a National Dex, and keep a separate shiny list if you want one.</p>
+      <p>Sign in to track each game and DLC area, link that progress to a National Dex, and keep separate shiny or supported Legends Alpha lists.</p>
       <div><a className="dex-primary-button" href="/#member-access">Sign in to start</a><a className="dex-secondary-button" href="/pokemon">Explore the Pokédex</a></div>
     </section>
   </main>;
 
-  return <main className={`dex-tracker-shell ${mode === "shiny" ? "shiny-mode" : ""}`}>
+  return <main className={`dex-tracker-shell ${mode === "shiny" ? "shiny-mode" : ""} ${mode === "alpha" ? "alpha-mode" : ""}`}>
     <header className="dex-tracker-hero">
       <div>
         <span className="dex-kicker">POKÉDEX TRACKER</span>
@@ -824,13 +847,14 @@ export default function PokedexTrackerPage() {
         </section>}
         {!loadingTracker && active && <>
           <header className="dex-active-header">
-            <div><span className="dex-kicker">{active.tracker.catalog_name}</span><h2>{active.tracker.title}</h2><p>{standardProgress.caught.toLocaleString()} of {standardProgress.total.toLocaleString()} in {activeSection?.label || "this dex"}{active.tracker.include_shiny ? ` · ${shinyProgress.caught.toLocaleString()} shinies found` : ""}</p>{active.tracker.catalog_key === "home" && <small>Pokémon marked in your game trackers count here automatically.</small>}</div>
+            <div><span className="dex-kicker">{active.tracker.catalog_name}</span><h2>{active.tracker.title}</h2><p>{standardProgress.caught.toLocaleString()} of {standardProgress.total.toLocaleString()} in {activeSection?.label || "this dex"}{active.tracker.include_shiny ? ` · ${shinyProgress.caught.toLocaleString()} shinies found` : ""}{active.tracker.include_alpha ? ` · ${alphaProgress.caught.toLocaleString()} Alphas found` : ""}</p>{active.tracker.catalog_key === "home" && <small>Pokémon marked in your game trackers count here automatically.</small>}</div>
             <div className="dex-active-actions"><button type="button" className="dex-primary-button" onClick={() => openInventory()}>Collection inventory{inventory?.specimens?.length ? ` · ${inventory.specimens.length}` : ""}</button><button type="button" className="dex-secondary-button" onClick={() => setShowSettings((value) => !value)}>Manage tracker</button></div>
           </header>
 
           {showSettings && <form className="dex-tracker-settings" onSubmit={(event) => { event.preventDefault(); saveSettings(); }}>
             <label>Tracker name<input value={settingsTitle} onChange={(event) => setSettingsTitle(event.target.value)} maxLength={80} /></label>
             {!active.tracker.include_shiny && <button type="button" className="dex-shiny-button" onClick={() => saveSettings(true)}>✦ Add shiny dex</button>}
+            {active.tracker.supports_alpha && !active.tracker.include_alpha && <button type="button" className="dex-shiny-button dex-alpha-button" onClick={() => saveSettings(undefined, true)}>α Add Alpha Dex</button>}
             <button className="dex-primary-button" disabled={busy}>{busy ? "Saving…" : "Save name"}</button>
             <button type="button" className="dex-danger-button" onClick={deleteTracker} disabled={busy}>Delete tracker</button>
           </form>}
@@ -840,9 +864,10 @@ export default function PokedexTrackerPage() {
             return <button type="button" key={section.key} className={section.key === activeSection?.key ? "is-active" : ""} onClick={() => { setSectionKey(section.key); setQuery(""); setStatus("all"); }}><strong>{section.label}</strong><span>{progress.caught}/{progress.total}</span></button>;
           })}</nav>}
 
-          <section className="dex-progress-panel">
+          <section className={`dex-progress-panel ${active.tracker.supports_alpha ? "has-alpha" : ""}`}>
             <ProgressRing progress={standardProgress} label="Standard" />
             {active.tracker.include_shiny ? <ProgressRing progress={shinyProgress} label="Shiny" shiny /> : <button className="dex-add-shiny-card" type="button" onClick={() => saveSettings(true)}><b>✦</b><span><strong>Add a shiny dex</strong><small>A second, independent checklist</small></span></button>}
+            {active.tracker.include_alpha ? <ProgressRing progress={alphaProgress} label="Alpha" alpha /> : active.tracker.supports_alpha ? <button className="dex-add-shiny-card dex-add-alpha-card" type="button" onClick={() => saveSettings(undefined, true)}><b>α</b><span><strong>Add an Alpha Dex</strong><small>Only legitimately obtainable Alpha species</small></span></button> : null}
             <div className="dex-progress-copy"><span>{standardProgress.total - standardProgress.caught === 0 ? "COMPLETE" : "NEXT MILESTONE"}</span><strong>{standardProgress.total - standardProgress.caught === 0 ? "Pokédex complete!" : `${Math.min(standardProgress.total, Math.ceil((standardProgress.caught + 1) / 25) * 25).toLocaleString()} caught`}</strong><small>Your progress and collection notes stay private to your account.</small></div>
           </section>
 
@@ -851,6 +876,7 @@ export default function PokedexTrackerPage() {
           <div className="dex-mode-tabs" role="tablist" aria-label="Pokédex progress type">
             <button type="button" role="tab" aria-selected={mode === "standard"} onClick={() => setMode("standard")}><span aria-hidden="true">◉</span> Standard dex <b>{standardProgress.caught}/{standardProgress.total}</b></button>
             {active.tracker.include_shiny && <button type="button" role="tab" aria-selected={mode === "shiny"} onClick={() => setMode("shiny")}><span aria-hidden="true">✦</span> Shiny dex <b>{shinyProgress.caught}/{shinyProgress.total}</b></button>}
+            {active.tracker.include_alpha && <button type="button" role="tab" aria-selected={mode === "alpha"} onClick={() => setMode("alpha")}><span aria-hidden="true">α</span> Alpha Dex <b>{alphaProgress.caught}/{alphaProgress.total}</b></button>}
           </div>
 
           <section className="dex-tracker-controls">
@@ -863,7 +889,7 @@ export default function PokedexTrackerPage() {
 
           <PokedexBoxPlanner entries={sectionEntries} layout={boxLayout} mode={mode} pending={pending} onToggle={toggleEntry} sectionKey={activeSection?.key} sectionLabel={activeSection?.label || "Pokédex"} trackerId={active.tracker.id} />
 
-          {visible.length ? <section className="dex-pokemon-grid" aria-label={`${mode === "shiny" ? "Shiny" : "Standard"} Pokédex entries`}>
+          {visible.length ? <section className="dex-pokemon-grid" aria-label={`${mode === "shiny" ? "Shiny" : mode === "alpha" ? "Alpha" : "Standard"} Pokédex entries`}>
             {visible.map((entry) => <PokemonCard key={`${entry.pokedex_key}:${entry.pokemon_id}`} entry={entry} mode={mode} sectionLabel={activeSection?.label || "Pokédex"} pending={pending.has(`${active.tracker.id}:${entry.pokemon_id}:${mode}`)} ballOptions={ballOptions} onToggle={toggleEntry} onDetails={openEntryDetails} onInventory={openInventory} onFind={openFinder} />)}
           </section> : <section className="dex-no-results"><span aria-hidden="true">⌕</span><h3>No Pokémon match this view.</h3><p>Try a different name or switch the progress filter.</p></section>}
           {shown < filtered.length && <button type="button" className="dex-load-more" onClick={() => setShown((count) => count + POKEDEX_TRACKER_PAGE_SIZE)}>Show {Math.min(POKEDEX_TRACKER_PAGE_SIZE, filtered.length - shown)} more Pokémon</button>}

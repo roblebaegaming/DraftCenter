@@ -66,16 +66,17 @@ export function buildPokedexCollectorWorkbookSheets({ hub, exportPayload, export
     const hubTracker = hubById.get(tracker.id) || tracker;
     return [
       trackerLabel(tracker), safe(tracker.catalog_name || hubTracker.catalog_name || tracker.catalog_key),
-      Number(tracker.total || hubTracker.total || 0), Number(hubTracker.caught || (tracker.entries || []).filter((entry) => !entry.is_shiny).length),
-      Number(hubTracker.shiny_caught || (tracker.entries || []).filter((entry) => entry.is_shiny).length),
-      yesNo(tracker.include_shiny), (tracker.locations || []).length, (tracker.specimens || []).length,
+      Number(tracker.total || hubTracker.total || 0), Number(hubTracker.caught || (tracker.entries || []).filter((entry) => !entry.is_shiny && !entry.is_alpha).length),
+      Number(hubTracker.shiny_caught || (tracker.entries || []).filter((entry) => entry.is_shiny && !entry.is_alpha).length),
+      Number(hubTracker.alpha_caught || (tracker.entries || []).filter((entry) => entry.is_alpha).length),
+      yesNo(tracker.include_shiny), yesNo(tracker.include_alpha), (tracker.locations || []).length, (tracker.specimens || []).length,
       safe(tracker.updated_at),
     ];
   });
 
   const checklistRows = trackers.flatMap((tracker) => (tracker.entries || []).map((entry) => [
     trackerLabel(tracker), safe(tracker.catalog_name || tracker.catalog_key), entry.pokemon_id,
-    safe(entry.pokemon), entry.dex_number ?? "", entry.is_shiny ? "Shiny" : "Standard", safe(entry.caught_at),
+    safe(entry.pokemon), entry.dex_number ?? "", entry.is_alpha ? "Alpha" : entry.is_shiny ? "Shiny" : "Standard", safe(entry.caught_at),
   ]));
 
   const detailRows = trackers.flatMap((tracker) => (tracker.details || []).map((detail) => [
@@ -105,8 +106,8 @@ export function buildPokedexCollectorWorkbookSheets({ hub, exportPayload, export
 
   return [
     summary,
-    sheet("Trackers", "Tracker dashboard", "Cross-tracker progress and inventory totals.", ["Tracker", "Catalog", "Catalog total", "Registered", "Shiny registered", "Shiny layer", "Locations", "Individuals", "Updated"], trackerRows, [28, 28, 14, 13, 17, 13, 12, 13, 24]),
-    sheet("Checklist", "Registered checklist entries", "Only registered standard or shiny entries are listed.", ["Tracker", "Catalog", "Pokémon ID", "Species", "Dex number", "Progress type", "Registered at"], checklistRows, [28, 26, 12, 24, 12, 14, 24]),
+    sheet("Trackers", "Tracker dashboard", "Cross-tracker progress and inventory totals.", ["Tracker", "Catalog", "Catalog total", "Registered", "Shiny registered", "Alpha registered", "Shiny layer", "Alpha layer", "Locations", "Individuals", "Updated"], trackerRows, [28, 28, 14, 13, 17, 17, 13, 13, 12, 13, 24]),
+    sheet("Checklist", "Registered checklist entries", "Registered standard, shiny, and supported Legends Alpha entries are listed.", ["Tracker", "Catalog", "Pokémon ID", "Species", "Dex number", "Progress type", "Registered at"], checklistRows, [28, 26, 12, 24, 12, 14, 24]),
     sheet("Entry Details", "Checklist details", "Optional ball, ribbon, and private-note details stored independently of registration.", ["Tracker", "Pokémon ID", "Species", "Dex number", "Progress type", "Poké Ball", "Ribbons", "Private note", "Updated"], detailRows, [28, 12, 24, 12, 14, 18, 42, 55, 24]),
     sheet("Locations", "Storage locations", "Private game-save, HOME, cartridge, and other locations you have added.", ["Tracker", "Import key", "Location", "Type", "Platform", "Private note", "Updated"], locationRows, [28, 16, 28, 18, 22, 46, 24]),
     sheet("Individuals", "Individual Pokémon", "Private records for individual Pokémon and the details you choose to save.", ["Tracker", "Species", "Pokémon ID", "Dex number", "Form", "Nickname", "Shiny", "Gender", "Level", "Original Trainer", "Origin game", "Origin mark", "Location", "Location type", "Platform", "Box", "Slot", "Poké Ball", "Ribbons", "Event", "Private note"], specimenRows, [28, 24, 12, 12, 22, 22, 9, 12, 9, 22, 22, 22, 26, 18, 20, 18, 9, 18, 42, 9, 55]),
