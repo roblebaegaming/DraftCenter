@@ -73,11 +73,14 @@ its separate browser-only contract.
 10. The saved-team performance panel rolls completed reports into wins,
    losses, ties, decided-game win rate, current streak, last-ten form, matches
    logged, Pokémon brought counts, lead records, format-correct Mega Evolution
-   or Tera usage, and most-seen opposing Pokémon. These are private account
-   statistics derived only from information the coach explicitly records in
-   Battle Room.
+   or Tera usage, separate open- and closed-team-sheet records, opposing-Pokémon
+   matchup records, and aggregate move usage. Optional per-game HTTPS replay
+   links and ratings before/after a game add a private rating history. These are
+   private account statistics derived only from information the coach
+   explicitly records in Battle Room.
 11. The set tracker supports best-of-1, best-of-3, and best-of-5 matches with a
-   result, planned leads, game plan, and between-game adjustment per game.
+   result, planned leads, game plan, between-game adjustment, replay URL, and
+   before/after rating per game.
    Structured battle state separately tracks HP percentage, major status,
    hazards, screens, weather, terrain, and the selected format's supported
    battle mechanic for both sides. Pokémon Champions shows Mega Evolution;
@@ -87,10 +90,10 @@ its separate browser-only contract.
    85%–100% roll, and every multiplier; it does not guess mechanics or replace a
    format-specific calculator.
 13. **Download Excel / Sheets workbook** exports the complete private team
-   workspace as one `.xlsx` file. It contains Overview, Performance, My Team,
-   Matchup Plans, Opponent Sets, Turn Log, and editable Game Plans sheets. Excel
-   opens it directly; Google Sheets imports the same file without a separate
-   account connection.
+   workspace as one `.xlsx` file. It contains Overview, Performance, Game
+   Results, Matchup Stats, Move Usage, My Team, Matchup Plans, Opponent Sets,
+   Turn Log, and editable Game Plans sheets. Excel opens it directly; Google
+   Sheets imports the same file without a separate account connection.
 
 The Team Lab hero links directly to the private Battle Mode setup, where a
 three-step roster → opponent plan → recorder guide remains visible before sign
@@ -251,11 +254,31 @@ unique Pokémon. Existing larger plans remain readable and recoverable, direct
 browser table access stays revoked, and the detailed save RPC remains limited
 to `authenticated` and `service_role`.
 
+Forward-only migration 434 adds no table and rewrites no saved row. It extends
+the backward-compatible report dispatcher with version 3 and a strict series
+version 2 validator. Every game must include an HTTPS-or-empty replay URL and
+nullable whole-number ratings from 0 through 100,000. Existing report versions
+1 and 2 remain valid. The internal series validator is callable only by the
+service role; the authenticated role retains only the outer security-definer
+validator required by the owner-scoped save RPC and table check constraint.
+All new analysis is computed from the same private report JSON, so no new
+sharing path or direct table access is introduced.
+
 Direct `anon` and `authenticated` table reads and writes remain revoked. The
 battle RPC updates only a matchup owned by `auth.uid()`. Old backups without a
 battle report restore with an empty version-one report.
 
 ## Release requirements
+
+Before releasing migration 434, apply it only to an isolated Supabase Preview
+at the current Production migration baseline. Run
+`supabase/tests/434-private-team-lab-battle-analytics-preview-regression.sql`
+plus the released Team Lab version-2 and validator-execution rollback matrices.
+Verify v1, v2, and v3 compatibility; reject HTTP replay URLs, missing v3 keys,
+fractional ratings, and ratings above the bound; preserve forced RLS and exact
+function grants; then delete the temporary branch immediately. The application
+Preview must also verify replay/rating entry, open/closed rollups, matchup and
+move analytics, and all ten workbook sheets at desktop and phone widths.
 
 Before releasing migration 424, apply it only to an isolated Supabase Preview
 after migration 423, then run

@@ -9,7 +9,7 @@ export const TEAM_LAB_OPPONENT_LIMIT = 10;
 export const TEAM_LAB_OPPONENT_SET_VERSION = 1;
 export const TEAM_LAB_ABILITY_LIMIT = 100;
 export const TEAM_LAB_ITEM_LIMIT = 100;
-export const TEAM_LAB_BATTLE_REPORT_VERSION = 2;
+export const TEAM_LAB_BATTLE_REPORT_VERSION = 3;
 export const TEAM_LAB_BATTLE_RECOVERY_VERSION = 1;
 export const TEAM_LAB_BATTLE_RECOVERY_KEY_PREFIX = "draftcenter-team-lab-battle-recovery-v1";
 export const TEAM_LAB_BATTLE_RECOVERY_LIMIT = 250000;
@@ -22,8 +22,10 @@ export const TEAM_LAB_TURN_DAMAGE_LIMIT = 40;
 export const TEAM_LAB_GAME_MAX = 9;
 export const TEAM_LAB_TURN_MAX = 999;
 export const TEAM_LAB_WEEK_LABEL_LIMIT = 100;
-export const TEAM_LAB_SERIES_VERSION = 1;
+export const TEAM_LAB_SERIES_VERSION = 2;
 export const TEAM_LAB_GAME_PLAN_LIMIT = 2000;
+export const TEAM_LAB_REPLAY_URL_LIMIT = 2048;
+export const TEAM_LAB_ELO_MAX = 100000;
 export const TEAM_LAB_BATTLE_STATE_VERSION = 1;
 
 const TERA_BATTLE_MECHANIC = Object.freeze({
@@ -50,6 +52,23 @@ export function teamLabBattleMechanicForFormat(formatId) {
 
 function cleanText(value, limit) {
   return String(value || "").trim().slice(0, limit);
+}
+
+function normalizeBattleReplayUrl(value) {
+  const replayUrl = cleanText(value, TEAM_LAB_REPLAY_URL_LIMIT);
+  if (!replayUrl) return "";
+  try {
+    const parsed = new URL(replayUrl);
+    return parsed.protocol === "https:" ? parsed.toString().slice(0, TEAM_LAB_REPLAY_URL_LIMIT) : "";
+  } catch {
+    return "";
+  }
+}
+
+function normalizeBattleElo(value) {
+  if (value == null || (typeof value === "string" && !value.trim())) return null;
+  const rating = Number(value);
+  return Number.isInteger(rating) && rating >= 0 && rating <= TEAM_LAB_ELO_MAX ? rating : null;
 }
 
 function isBattleSnapshot(value) {
@@ -360,6 +379,9 @@ export function normalizeTeamLabSeries(series, myRosterNames = [], opponentRoste
         opponent_lead: opponentRosterNames.includes(cleanText(game.opponent_lead, 120)) ? cleanText(game.opponent_lead, 120) : "",
         plan: cleanText(game.plan, TEAM_LAB_GAME_PLAN_LIMIT),
         adjustments: cleanText(game.adjustments, TEAM_LAB_GAME_PLAN_LIMIT),
+        replay_url: normalizeBattleReplayUrl(game.replay_url),
+        elo_before: normalizeBattleElo(game.elo_before),
+        elo_after: normalizeBattleElo(game.elo_after),
       };
     }),
   };
@@ -411,8 +433,12 @@ export function buildTeamLabPerformanceSummary(matchups = [], rosterNames = []) 
         weekLabel: cleanText(matchup.week_label, TEAM_LAB_WEEK_LABEL_LIMIT),
         game: Number(game.game) || 1,
         result: game.result,
+        sheetMode: matchup.sheet_mode === "open" ? "open" : "closed",
         myLead: cleanText(game.my_lead, 120),
         opponentLead: cleanText(game.opponent_lead, 120),
+        replayUrl: normalizeBattleReplayUrl(game.replay_url),
+        eloBefore: normalizeBattleElo(game.elo_before),
+        eloAfter: normalizeBattleElo(game.elo_after),
         timestamp,
       });
     }
@@ -449,11 +475,13 @@ export function buildTeamLabPerformanceSummary(matchups = [], rosterNames = []) 
     }
   }
   const opponentByName = new Map();
+  const moveByKey = new Map();
 
   for (const { matchup } of chronological) {
     const report = matchup.battle_report && typeof matchup.battle_report === "object" ? matchup.battle_report : {};
     const completedGames = games.filter((game) => game.matchupId === String(matchup.id || ""));
     if (!completedGames.length) continue;
+    const completedGameByNumber = new Map(completedGames.map((game) => [game.game, game]));
     for (const pokemon of Array.isArray(report.my_pokemon) ? report.my_pokemon : []) {
       const name = cleanText(pokemon?.name, 120);
       if (!name) continue;
@@ -479,10 +507,60 @@ export function buildTeamLabPerformanceSummary(matchups = [], rosterNames = []) 
     for (const pokemon of Array.isArray(report.opponent_pokemon) ? report.opponent_pokemon : []) {
       const name = cleanText(pokemon?.name, 120);
       if (!name || !pokemon.brought) continue;
-      if (!opponentByName.has(name)) opponentByName.set(name, { name, seenMatches: 0 });
-      opponentByName.get(name).seenMatches += 1;
+      if (!opponentByName.has(name)) opponentByName.set(name, { name, seenMatches: 0, wins: 0, losses: 0, ties: 0 });
+      const opponent = opponentByName.get(name);
+      opponent.seenMatches += 1;
+      const seriesResult = summarizeTeamLabSeries(report.series).result;
+      if (seriesResult === "win") opponent.wins += 1;
+      if (seriesResult === "loss") opponent.losses += 1;
+      if (seriesResult === "tie") opponent.ties += 1;
+    }
+    for (const event of Array.isArray(report.turn_log?.events) ? report.turn_log.events : []) {
+      if (event?.kind !== "move") continue;
+      const pokemon = cleanText(event.pokemon, 120);
+      const move = cleanText(event.move, 100);
+      const side = event.side === "opponent" ? "opponent" : event.side === "my" ? "my" : "";
+      if (!pokemon || !move || !side) continue;
+      const key = `${side}\u0000${pokemon.toLowerCase()}\u0000${move.toLowerCase()}`;
+      if (!moveByKey.has(key)) moveByKey.set(key, { side, pokemon, move, uses: 0, gameKeys: new Set(), resultKeys: new Set(), wins: 0, losses: 0, ties: 0 });
+      const usage = moveByKey.get(key);
+      usage.uses += 1;
+      const gameNumber = Number(event.game) || 1;
+      const gameKey = `${matchup.id || ""}:${gameNumber}`;
+      usage.gameKeys.add(gameKey);
+      const completedGame = completedGameByNumber.get(gameNumber);
+      if (completedGame && !usage.resultKeys.has(gameKey)) {
+        usage.resultKeys.add(gameKey);
+        if (completedGame.result === "win") usage.wins += 1;
+        if (completedGame.result === "loss") usage.losses += 1;
+        if (completedGame.result === "tie") usage.ties += 1;
+      }
     }
   }
+
+  const resultSummary = (filteredGames) => {
+    const modeWins = filteredGames.filter((game) => game.result === "win").length;
+    const modeLosses = filteredGames.filter((game) => game.result === "loss").length;
+    const modeTies = filteredGames.filter((game) => game.result === "tie").length;
+    const modeDecisions = modeWins + modeLosses;
+    return {
+      games: filteredGames.length,
+      wins: modeWins,
+      losses: modeLosses,
+      ties: modeTies,
+      winRate: modeDecisions ? Math.round((modeWins / modeDecisions) * 1000) / 10 : null,
+    };
+  };
+  const ratingGames = games.filter((game) => game.eloBefore != null || game.eloAfter != null);
+  const latestRatingGame = [...ratingGames].reverse().find((game) => game.eloAfter != null || game.eloBefore != null);
+  const moveUsage = [...moveByKey.values()].map(({ gameKeys, resultKeys, ...usage }) => {
+    const moveDecisions = usage.wins + usage.losses;
+    return { ...usage, games: gameKeys.size, winRate: moveDecisions ? Math.round((usage.wins / moveDecisions) * 1000) / 10 : null };
+  }).sort((left, right) => right.uses - left.uses || right.games - left.games || left.pokemon.localeCompare(right.pokemon) || left.move.localeCompare(right.move));
+  const opponentPokemon = [...opponentByName.values()].map((pokemon) => {
+    const matchupDecisions = pokemon.wins + pokemon.losses;
+    return { ...pokemon, winRate: matchupDecisions ? Math.round((pokemon.wins / matchupDecisions) * 1000) / 10 : null };
+  }).sort((left, right) => right.seenMatches - left.seenMatches || left.name.localeCompare(right.name));
 
   return {
     games,
@@ -494,8 +572,19 @@ export function buildTeamLabPerformanceSummary(matchups = [], rosterNames = []) 
     winRate: decisions ? Math.round((wins / decisions) * 1000) / 10 : null,
     streak: latestDecision ? { result: latestDecision.result, count: streakCount } : { result: "", count: 0 },
     lastTen: games.slice(-10).map((game) => game.result),
+    sheetModes: {
+      open: resultSummary(games.filter((game) => game.sheetMode === "open")),
+      closed: resultSummary(games.filter((game) => game.sheetMode === "closed")),
+    },
+    rating: {
+      gamesTracked: ratingGames.length,
+      latest: latestRatingGame?.eloAfter ?? latestRatingGame?.eloBefore ?? null,
+      totalChange: ratingGames.reduce((total, game) => game.eloBefore != null && game.eloAfter != null ? total + game.eloAfter - game.eloBefore : total, 0),
+    },
+    replayCount: games.filter((game) => game.replayUrl).length,
     pokemon: [...pokemonByName.values()],
-    opponentPokemon: [...opponentByName.values()].sort((left, right) => right.seenMatches - left.seenMatches || left.name.localeCompare(right.name)),
+    opponentPokemon,
+    moveUsage,
   };
 }
 

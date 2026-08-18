@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { TEAM_LAB_GAME_PLAN_LIMIT, normalizeTeamLabSeries, teamLabBattleMechanicForFormat } from "../lib/teamLab";
+import { TEAM_LAB_ELO_MAX, TEAM_LAB_GAME_PLAN_LIMIT, TEAM_LAB_REPLAY_URL_LIMIT, normalizeTeamLabSeries, teamLabBattleMechanicForFormat } from "../lib/teamLab";
 import { calculateTeamLabDamageEstimate } from "../lib/teamLabDamage";
 
 function updateGame(setReport, gameNumber, changes) {
@@ -43,6 +43,11 @@ export function BattleSeriesTracker({ report, setReport, onStatus }) {
         <div><label>Your planned lead<select value={game.my_lead} onChange={(event) => updateGame(setReport, game.game, { my_lead: event.target.value })}><option value="">Choose later</option>{report.my_pokemon.map((pokemon) => <option key={pokemon.name}>{pokemon.name}</option>)}</select></label><label>Expected opponent lead<select value={game.opponent_lead} onChange={(event) => updateGame(setReport, game.game, { opponent_lead: event.target.value })}><option value="">Choose later</option>{report.opponent_pokemon.map((pokemon) => <option key={pokemon.name}>{pokemon.name}</option>)}</select></label></div>
         <label>Game plan<textarea rows={3} maxLength={TEAM_LAB_GAME_PLAN_LIMIT} value={game.plan} onChange={(event) => updateGame(setReport, game.game, { plan: event.target.value })} placeholder="Lead path, must-preserve pieces, win condition…"/></label>
         <label>Between-game adjustment<textarea rows={2} maxLength={TEAM_LAB_GAME_PLAN_LIMIT} value={game.adjustments} onChange={(event) => updateGame(setReport, game.game, { adjustments: event.target.value })} placeholder="What changed after the previous game?"/></label>
+        <div className="team-lab-game-analysis-fields">
+          <label>Replay URL<input type="url" inputMode="url" maxLength={TEAM_LAB_REPLAY_URL_LIMIT} value={game.replay_url} onChange={(event) => updateGame(setReport, game.game, { replay_url: event.target.value })} placeholder="https://replay.pokemonshowdown.com/…"/><small>HTTPS links only. The replay stays inside this private report and your downloads.</small></label>
+          <label>Rating before<input type="number" inputMode="numeric" min="0" max={TEAM_LAB_ELO_MAX} step="1" value={game.elo_before ?? ""} onChange={(event) => updateGame(setReport, game.game, { elo_before: event.target.value === "" ? null : Number(event.target.value) })} placeholder="Optional"/></label>
+          <label>Rating after<input type="number" inputMode="numeric" min="0" max={TEAM_LAB_ELO_MAX} step="1" value={game.elo_after ?? ""} onChange={(event) => updateGame(setReport, game.game, { elo_after: event.target.value === "" ? null : Number(event.target.value) })} placeholder="Optional"/></label>
+        </div>
       </article>)}</div>
     </div>
   </details>;

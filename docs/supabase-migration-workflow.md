@@ -41,6 +41,12 @@ fresh replay proved it never ran in Production: applying it would have added a
 Daily Games export policy and changed future function grants. Git history alone
 is not evidence that a migration reached Production.
 
+The current Production security and performance advisors were re-audited on
+August 17, 2026 after migration 433. Both returned zero findings. That fresh
+evidence does not justify a replacement security-lint migration; the excluded
+historical file remains unapplied and must not be repurposed as migration 382
+or any other current migration.
+
 The complete chain was proved on a fresh data-less branch. Its audited public
 schema matched Production across 158 relations, 1,431 columns, 1,042
 constraints, 348 indexes, 55 policies, 392 routines, 45 triggers, 12 sequences,
