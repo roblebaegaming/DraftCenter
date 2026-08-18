@@ -2,7 +2,7 @@
 
 Date: August 17, 2026
 
-Status: application and migrations 431–433 validated in isolated Preview; not yet released to Production
+Status: released through pull request #298 and Production migrations 431–433
 
 ## Product boundary
 
@@ -57,8 +57,13 @@ npm run test:legends-za
 npm run test:pokedex-tracker
 ```
 
-The disposable Preview regression applies migrations 431–433, verifies the
+The disposable Preview regression applied migrations 431–433, verified the
 364-entry Z-A split and zero Z-A encounters, checks anonymous and authenticated
 grants, creates both Legends tracker types inside a rolled-back transaction,
 and confirms a version-4 export/restore roundtrip. The authorized paid Preview
 branch used on August 17 was deleted immediately after those checks passed.
+
+Production postflight confirmed 364 Z-A Pokédex entries, zero Z-A locations and
+encounters, both exact Alpha counts, denied direct browser table access, and the
+account-scoped Alpha function grant. Deployment `e6f5da2` then passed the full
+22-check signed-out smoke sweep and phone-width Z-A directory review.

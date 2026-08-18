@@ -2,7 +2,7 @@
 
 Date: August 16, 2026
 
-Status: application and forward migrations validated in isolated Preview; not a production-data change
+Status: released through pull request #298 and Production migrations 431–433
 
 ## Capability boundary
 
@@ -14,8 +14,8 @@ Pokédex coverage and encounter coverage are separate capabilities:
 | Pokédex | Verified artifact | Lumiose Pokédex (232) and Hyperspace Pokédex (132) |
 | Move source | Ready for API-backed lookup | PokéAPI `legends-za` version group; never blended with turn-based games |
 | Draft format pools | Ready | Lumiose (308), Hyperspace (151), and combined (459) DraftCenter entries with independently available forms |
-| Account Pokédex tracker | Preview-verified | Z-A is selectable in isolated Preview after forward migrations 431–433; Production remains unchanged |
-| Alpha Dex | Preview-verified | 339 eligible species and 25 Alpha-locked species, kept as a private checklist without encounter details |
+| Account Pokédex tracker | Released | Z-A is selectable after forward migrations 431–433 |
+| Alpha Dex | Released | 339 eligible species and 25 Alpha-locked species, kept as a private checklist without encounter details |
 | Encounter catalog / Nuzlocke | Pending | No locations or encounter rows are imported or exposed |
 
 This boundary is intentional. A complete regional Pokédex does not establish where, when, or under which conditions a Pokémon can be encountered.
@@ -62,8 +62,9 @@ roundtrip that was rolled back. Postflight confirmed 364 Z-A entries: 232
 Lumiose and 132 Hyperspace, all with `pokedex_status='verified'` and
 `encounter_status='pending'`. Anonymous Pokédex access returned those exact
 counts, while Z-A locations and encounters both remained zero and hidden. The
-temporary branch was deleted immediately after validation. Production was not
-changed.
+temporary branch was deleted immediately after validation. Production then
+received the same migrations before pull request #298 merged; exact postflight,
+deployment `e6f5da2`, and the 22-check signed-out smoke sweep passed.
 
 ## Next encounter milestone
 
