@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { createPlatformBrowserClient } from "../platform/supabase";
 import PokedexCollectorLaunchPanel from "./PokedexCollectorLaunchPanel";
 import PokedexPokemonFinder from "./PokedexPokemonFinder";
+import PokemonChampionsAchievementCenter from "./PokemonChampionsAchievementCenter";
 import {
   buildPokedexBoxPlan,
   filterPokedexEntries,
@@ -16,6 +17,9 @@ import {
   pokedexHasEntryDetails,
   pokedexArtworkUrl,
   pokedexInventoryCsv,
+  pokedexFormOptions,
+  pokedexMarkGroups,
+  pokedexPokemonTypes,
   pokedexRibbonGroups,
   pokedexSpecimenDisplayName,
   pokedexTrackerProgress,
@@ -24,6 +28,9 @@ import {
   POKEDEX_INVENTORY_NOTE_MAX_LENGTH,
   POKEDEX_LOCATION_NOTE_MAX_LENGTH,
   POKEDEX_LOCATION_OPTIONS,
+  POKEDEX_MARK_OPTIONS,
+  POKEDEX_BALL_OPTIONS,
+  POKEDEX_RIBBON_OPTIONS,
   POKEDEX_TRACKER_PAGE_SIZE,
 } from "../lib/pokedexTracker";
 import { trackPokedexCollectorEvent } from "../lib/pokedexAnalytics";
@@ -44,10 +51,11 @@ function BallBadge({ option, compact = false }) {
   />;
 }
 
-function PokemonCard({ entry, mode, pending, onToggle, onDetails, onInventory, onFind, sectionLabel, ballOptions = [] }) {
+function PokemonCard({ entry, mode, pending, onToggle, onDetails, onInventory, onWanted, onFind, sectionLabel, ballOptions = [] }) {
   const isShiny = mode === "shiny";
   const isAlpha = mode === "alpha";
   const caught = isShiny ? entry.shiny_caught : isAlpha ? entry.alpha_caught : entry.caught;
+  const wanted = isShiny ? entry.shiny_wanted : entry.wanted;
   const details = pokedexEntryDetails(entry, mode);
   const hasDetails = pokedexHasEntryDetails(entry, mode);
   const ball = ballOptions.find(({ key }) => key === details.pokeball);
@@ -85,10 +93,12 @@ function PokemonCard({ entry, mode, pending, onToggle, onDetails, onInventory, o
         {hasDetails ? <>
           {ball && <BallBadge option={ball} compact />}
           {details.ribbons.length > 0 && <span title={`${details.ribbons.length} saved ribbon${details.ribbons.length === 1 ? "" : "s"}`}>◇ {details.ribbons.length}</span>}
+          {details.marks.length > 0 && <span title={`${details.marks.length} saved mark${details.marks.length === 1 ? "" : "s"}`}>◆ {details.marks.length}</span>}
           {details.notes.trim() && <span title="A private note is saved">✎</span>}
         </> : <span>＋ Details</span>}
       </button>}
       {!isAlpha && <button type="button" className="dex-entry-inventory-trigger" onClick={() => onInventory(entry)} aria-label={`Record an individual ${isShiny ? "shiny " : ""}${entry.pokemon}`}>＋ Individual</button>}
+      {!isAlpha && <button type="button" className={`dex-entry-wanted-trigger ${wanted ? "is-wanted" : ""}`} onClick={() => onWanted(entry)} aria-label={`${wanted ? "Edit" : "Add"} ${isShiny ? "shiny " : ""}${entry.pokemon} hunt target`}>{wanted ? "◎ Looking for" : "◎ Want"}</button>}
     </div>
   </article>;
 }
@@ -121,10 +131,11 @@ function PokedexBoxPlanner({ entries, layout, mode, pending, onToggle, sectionKe
   </section>;
 }
 
-function EntryDetailsDialog({ entry, mode, ballOptions, ribbonGroups, busy, error, onSave, onClose }) {
+function EntryDetailsDialog({ entry, mode, ballOptions, ribbonGroups, markGroups, busy, error, onSave, onClose }) {
   const initial = pokedexEntryDetails(entry, mode);
   const [pokeball, setPokeball] = useState(initial.pokeball);
   const [ribbons, setRibbons] = useState(initial.ribbons);
+  const [marks, setMarks] = useState(initial.marks);
   const [notes, setNotes] = useState(initial.notes);
   const [ribbonQuery, setRibbonQuery] = useState("");
   const isShiny = mode === "shiny";
@@ -138,6 +149,9 @@ function EntryDetailsDialog({ entry, mode, ballOptions, ribbonGroups, busy, erro
 
   function toggleRibbon(key) {
     setRibbons((current) => current.includes(key) ? current.filter((value) => value !== key) : [...current, key]);
+  }
+  function toggleMark(key) {
+    setMarks((current) => current.includes(key) ? current.filter((value) => value !== key) : [...current, key]);
   }
 
   return <div className="dex-details-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !busy) onClose(); }}>
@@ -162,6 +176,11 @@ function EntryDetailsDialog({ entry, mode, ballOptions, ribbonGroups, busy, erro
           </label>
         </section>
 
+        {markGroups.length > 0 && <section className="dex-details-section">
+          <div><span className="dex-details-icon is-mark" aria-hidden="true">◆</span><div><h3>Marks</h3><p>Record marks attached to this Pokémon. The game-origin symbol remains a separate field.</p></div><strong className="dex-ribbon-count">{marks.length} selected</strong></div>
+          <div className="dex-ribbon-groups">{markGroups.map((group) => <fieldset key={group.label}><legend>{group.label}</legend><div>{group.options.map((option) => <button type="button" key={option.key} aria-pressed={marks.includes(option.key)} onClick={() => toggleMark(option.key)}><span aria-hidden="true">◆</span>{option.label}</button>)}</div></fieldset>)}</div>
+        </section>}
+
         <section className="dex-details-section">
           <div><span className="dex-details-icon is-ribbon" aria-hidden="true">◇</span><div><h3>Ribbons</h3><p>Choose any ribbons earned in this game{ribbonGroups.length > 5 ? " or across HOME" : ""}.</p></div><strong className="dex-ribbon-count">{ribbons.length} selected</strong></div>
           {ribbonGroups.length ? <>
@@ -180,9 +199,33 @@ function EntryDetailsDialog({ entry, mode, ballOptions, ribbonGroups, busy, erro
 
       <footer>
         {error && <p role="alert">{error}</p>}
-        <button type="button" className="dex-secondary-button" onClick={() => { setPokeball(""); setRibbons([]); setNotes(""); }} disabled={busy}>Clear fields</button>
-        <button type="button" className="dex-primary-button" onClick={() => onSave({ pokeball, ribbons, notes })} disabled={busy}>{busy ? "Saving…" : "Save details"}</button>
+        <button type="button" className="dex-secondary-button" onClick={() => { setPokeball(""); setRibbons([]); setMarks([]); setNotes(""); }} disabled={busy}>Clear fields</button>
+        <button type="button" className="dex-primary-button" onClick={() => onSave({ pokeball, ribbons, marks, notes })} disabled={busy}>{busy ? "Saving…" : "Save details"}</button>
       </footer>
+    </section>
+  </div>;
+}
+
+function WantedDialog({ entry, mode, markGroups, busy, error, onSave, onClose }) {
+  const isShiny = mode === "shiny";
+  const prefix = isShiny ? "shiny_wanted_" : "wanted_";
+  const alreadyWanted = isShiny ? entry.shiny_wanted : entry.wanted;
+  const [formLabel, setFormLabel] = useState(entry[`${prefix}form`] || "");
+  const [marks, setMarks] = useState(Array.isArray(entry[`${prefix}marks`]) ? entry[`${prefix}marks`] : []);
+  const [wantsAlpha, setWantsAlpha] = useState(Boolean(entry[`${prefix}alpha`]));
+  const [notes, setNotes] = useState(entry[`${prefix}notes`] || "");
+  const forms = pokedexFormOptions(entry.pokemon_id);
+  const toggleMark = (key) => setMarks((current) => current.includes(key)
+    ? current.filter((value) => value !== key) : [...current, key]);
+  return <div className="dex-details-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !busy) onClose(); }}>
+    <section className="dex-details-dialog" role="dialog" aria-modal="true" aria-labelledby="dex-wanted-title">
+      <header><div className="dex-details-pokemon"><img src={pokedexArtworkUrl(entry.pokemon_id, isShiny)} alt="" /><div><span className="dex-kicker">LOOKING FOR</span><h2 id="dex-wanted-title">{isShiny ? "Shiny " : ""}{entry.pokemon}</h2><small>Private hunt target · does not change owned progress</small></div></div><button type="button" className="dex-icon-button" onClick={onClose} disabled={busy} aria-label="Close hunt target">×</button></header>
+      <div className="dex-details-scroll">
+        <section className="dex-details-section"><div><span className="dex-details-icon" aria-hidden="true">◎</span><div><h3>What are you looking for?</h3><p>Leave every field blank to search for any {entry.pokemon}, or narrow it to a form, pattern, trim, mark, or Alpha.</p></div></div><label className="dex-wanted-form">Form, pattern, or style<input list="dex-wanted-form-options" value={formLabel} onChange={(event) => setFormLabel(event.target.value)} maxLength={80} placeholder={forms.length ? "Search forms" : "Any form"} /><datalist id="dex-wanted-form-options">{forms.map((form) => <option key={form} value={form} />)}</datalist></label>{entry.alpha_available && <label className="dex-shiny-choice dex-alpha-choice"><input type="checkbox" checked={wantsAlpha} onChange={(event) => setWantsAlpha(event.target.checked)} /><span><b>Must be an Alpha</b><small>Only species legitimately available as Alpha can be saved.</small></span><i aria-hidden="true">α</i></label>}</section>
+        <section className="dex-details-section"><div><span className="dex-details-icon is-mark" aria-hidden="true">◆</span><div><h3>Specific marks</h3><p>Choose one or more marks you want this Pokémon to have.</p></div><strong className="dex-ribbon-count">{marks.length} selected</strong></div><div className="dex-ribbon-groups">{markGroups.map((group) => <fieldset key={group.label}><legend>{group.label}</legend><div>{group.options.map((option) => <button type="button" key={option.key} aria-pressed={marks.includes(option.key)} onClick={() => toggleMark(option.key)}><span aria-hidden="true">◆</span>{option.label}</button>)}</div></fieldset>)}</div></section>
+        <section className="dex-details-section"><div><span className="dex-details-icon is-note" aria-hidden="true">✎</span><div><h3>Private hunt note</h3><p>Add trade terms, preferred game, location, or anything else you want to remember.</p></div></div><label className="dex-notes-field"><textarea value={notes} onChange={(event) => setNotes(event.target.value)} maxLength={500} rows={4} placeholder="Optional hunt note…" /><span>{notes.length} / 500</span></label></section>
+      </div>
+      <footer>{error && <p role="alert">{error}</p>}{alreadyWanted && <button type="button" className="dex-danger-button" disabled={busy} onClick={() => onSave(false, {})}>Remove target</button>}<button type="button" className="dex-primary-button" disabled={busy} onClick={() => onSave(true, { form_label: formLabel, marks, wants_alpha: wantsAlpha, notes })}>{busy ? "Saving…" : alreadyWanted ? "Save target" : "Start looking"}</button></footer>
     </section>
   </div>;
 }
@@ -204,11 +247,12 @@ function LocationForm({ location, busy, onSave, onCancel }) {
   </form>;
 }
 
-function SpecimenDialog({ specimen, entries, locations, ballOptions, ribbonGroups, busy, error, onSave, onDelete, onClose }) {
+function SpecimenDialog({ specimen, entries, locations, ballOptions, ribbonGroups, markGroups, busy, error, onSave, onDelete, onClose }) {
   const [pokemonId, setPokemonId] = useState(String(specimen?.pokemon_id || entries[0]?.pokemon_id || ""));
   const [formLabel, setFormLabel] = useState(specimen?.form_label || "");
   const [nickname, setNickname] = useState(specimen?.nickname || "");
   const [isShiny, setIsShiny] = useState(Boolean(specimen?.is_shiny));
+  const [isAlpha, setIsAlpha] = useState(Boolean(specimen?.is_alpha));
   const [gender, setGender] = useState(specimen?.gender || "unknown");
   const [level, setLevel] = useState(specimen?.level || "");
   const [originalTrainer, setOriginalTrainer] = useState(specimen?.original_trainer || "");
@@ -219,10 +263,12 @@ function SpecimenDialog({ specimen, entries, locations, ballOptions, ribbonGroup
   const [boxPosition, setBoxPosition] = useState(specimen?.box_position || "");
   const [pokeball, setPokeball] = useState(specimen?.pokeball || "");
   const [ribbons, setRibbons] = useState(Array.isArray(specimen?.ribbons) ? specimen.ribbons : []);
+  const [marks, setMarks] = useState(Array.isArray(specimen?.marks) ? specimen.marks : []);
   const [isEvent, setIsEvent] = useState(Boolean(specimen?.is_event));
   const [notes, setNotes] = useState(specimen?.notes || "");
   const [ribbonQuery, setRibbonQuery] = useState("");
   const selectedEntry = entries.find((entry) => String(entry.pokemon_id) === pokemonId);
+  const formOptions = pokedexFormOptions(pokemonId);
   const selectedBall = ballOptions.find((option) => option.key === pokeball);
   const ribbonNeedle = ribbonQuery.trim().toLocaleLowerCase();
   const visibleRibbonGroups = ribbonGroups.map((group) => ({
@@ -233,14 +279,17 @@ function SpecimenDialog({ specimen, entries, locations, ballOptions, ribbonGroup
   function toggleRibbon(key) {
     setRibbons((current) => current.includes(key) ? current.filter((value) => value !== key) : [...current, key]);
   }
+  function toggleMark(key) {
+    setMarks((current) => current.includes(key) ? current.filter((value) => value !== key) : [...current, key]);
+  }
 
   function submit(event) {
     event.preventDefault();
     onSave(specimen?.id || null, {
-      pokemon_id: Number(pokemonId), form_label: formLabel, nickname, is_shiny: isShiny,
+      pokemon_id: Number(pokemonId), form_label: formLabel, nickname, is_shiny: isShiny, is_alpha: isAlpha,
       gender, level: level || null, original_trainer: originalTrainer, origin_game: originGame, origin_mark: originMark,
       location_id: locationId || null, box_label: boxLabel, box_position: boxPosition || null,
-      pokeball: pokeball || null, ribbons, is_event: isEvent,
+      pokeball: pokeball || null, ribbons, marks, is_event: isEvent,
       importance: specimen?.importance || "standard",
       intended_destination: specimen?.intended_destination || "",
       transfer_state: specimen?.transfer_state || "not_planned",
@@ -264,14 +313,14 @@ function SpecimenDialog({ specimen, entries, locations, ballOptions, ribbonGroup
           <div className="dex-specimen-grid">
             <label className="is-wide">Species<select value={pokemonId} onChange={(event) => setPokemonId(event.target.value)} required>{entries.map((entry) => <option key={entry.pokemon_id} value={entry.pokemon_id}>#{String(entry.dex_number).padStart(4, "0")} · {entry.pokemon}</option>)}</select></label>
             <label>Nickname<input value={nickname} onChange={(event) => setNickname(event.target.value)} maxLength={50} /></label>
-            <label>Form description<input value={formLabel} onChange={(event) => setFormLabel(event.target.value)} maxLength={80} placeholder="Optional" /></label>
+            <label>Form, pattern, or style<input list="dex-collectible-form-options" value={formLabel} onChange={(event) => setFormLabel(event.target.value)} maxLength={80} placeholder={formOptions.length ? "Search available forms" : "Optional"} /><datalist id="dex-collectible-form-options">{formOptions.map((option) => <option key={option} value={option} />)}</datalist></label>
             <label>Gender<select value={gender} onChange={(event) => setGender(event.target.value)}><option value="unknown">Not recorded</option><option value="male">Male</option><option value="female">Female</option><option value="genderless">Genderless</option></select></label>
             <label>Level<input type="number" min="1" max="100" value={level} onChange={(event) => setLevel(event.target.value)} /></label>
             <label>Original Trainer<input value={originalTrainer} onChange={(event) => setOriginalTrainer(event.target.value)} maxLength={50} /></label>
             <label>Origin game<input value={originGame} onChange={(event) => setOriginGame(event.target.value)} maxLength={80} /></label>
-            <label>Origin mark<input value={originMark} onChange={(event) => setOriginMark(event.target.value)} maxLength={80} placeholder="Optional" /></label>
+            <label>Game-origin symbol<input value={originMark} onChange={(event) => setOriginMark(event.target.value)} maxLength={80} placeholder="Optional" /></label>
           </div>
-          <div className="dex-specimen-checks"><label><input type="checkbox" checked={isShiny} onChange={(event) => setIsShiny(event.target.checked)} /> Shiny</label><label><input type="checkbox" checked={isEvent} onChange={(event) => setIsEvent(event.target.checked)} /> Event Pokémon</label></div>
+          <div className="dex-specimen-checks"><label><input type="checkbox" checked={isShiny} onChange={(event) => setIsShiny(event.target.checked)} /> Shiny</label><label><input type="checkbox" checked={isAlpha} onChange={(event) => setIsAlpha(event.target.checked)} /> Alpha from a Legends game</label><label><input type="checkbox" checked={isEvent} onChange={(event) => setIsEvent(event.target.checked)} /> Event Pokémon</label></div>
         </section>
 
         <section className="dex-details-section">
@@ -282,6 +331,11 @@ function SpecimenDialog({ specimen, entries, locations, ballOptions, ribbonGroup
             <label>Slot 1–30<input type="number" min="1" max="30" value={boxPosition} onChange={(event) => setBoxPosition(event.target.value)} /></label>
           </div>
           {!locations.length && <p className="dex-inventory-hint">Add a storage location in Collection inventory before assigning this Pokémon.</p>}
+        </section>
+
+        <section className="dex-details-section">
+          <div><span className="dex-details-icon is-mark" aria-hidden="true">◆</span><div><h3>Marks</h3><p>Choose every mark this individual has earned or carried into HOME.</p></div><strong className="dex-ribbon-count">{marks.length} selected</strong></div>
+          <div className="dex-ribbon-groups">{markGroups.map((group) => <fieldset key={group.label}><legend>{group.label}</legend><div>{group.options.map((option) => <button type="button" key={option.key} aria-pressed={marks.includes(option.key)} onClick={() => toggleMark(option.key)}><span aria-hidden="true">◆</span>{option.label}</button>)}</div></fieldset>)}</div>
         </section>
 
         <section className="dex-details-section">
@@ -327,6 +381,42 @@ function CollectionInventoryPanel({ inventory, loading, busy, error, onReload, o
         {inventory?.specimens?.length > 0 && !specimens.length && <p className="dex-inventory-empty">No individual records match that search.</p>}
       </section>
     </>}
+  </section>;
+}
+
+function CollectionSearchPanel({ index, loading, error, onLoad, onOpenTracker }) {
+  const [query, setQuery] = useState("");
+  const [type, setType] = useState("");
+  const [game, setGame] = useState("");
+  const [ball, setBall] = useState("");
+  const [ribbon, setRibbon] = useState("");
+  const [mark, setMark] = useState("");
+  const [status, setStatus] = useState("all");
+  const [alphaOnly, setAlphaOnly] = useState(false);
+  const records = useMemo(() => [
+    ...(index?.specimens || []).map((record) => ({ ...record, record_kind: "owned" })),
+    ...(index?.wanted || []).map((record) => ({
+      ...record, record_kind: "wanted", pokeball: "", ribbons: [], is_alpha: record.wants_alpha,
+    })),
+  ], [index]);
+  const results = useMemo(() => filterPokedexSpecimens(records, {
+    query, type, game, ball, ribbon, mark, alpha: alphaOnly ? true : null,
+  }).filter((record) => status === "all" || record.record_kind === status),
+  [records, query, type, game, ball, ribbon, mark, status, alphaOnly]);
+  const types = ["normal", "fire", "water", "electric", "grass", "ice", "fighting", "poison", "ground", "flying", "psychic", "bug", "rock", "ghost", "dragon", "dark", "steel", "fairy"];
+  return <section className="dex-collection-search" aria-labelledby="dex-collection-search-title">
+    <header><div><span className="dex-kicker">ALL SAVES AND TRACKERS</span><h3 id="dex-collection-search-title">Search your whole collection</h3><p>Find owned Pokémon or hunt targets by name, type, game, Ball, ribbon, mark, form, Shiny status, or Alpha status.</p></div>{!index && <button type="button" className="dex-primary-button" onClick={onLoad} disabled={loading}>{loading ? "Loading…" : "Open collection search"}</button>}</header>
+    {error && <p className="dex-inventory-error" role="alert">{error} <button type="button" onClick={onLoad}>Try again</button></p>}
+    {index && <><div className="dex-collection-filters">
+      <label className="is-wide">Name or detail<input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Pokémon, form, nickname, save, or note…" /></label>
+      <label>Type<select value={type} onChange={(event) => setType(event.target.value)}><option value="">Any type</option>{types.map((value) => <option key={value} value={value}>{value[0].toUpperCase() + value.slice(1)}</option>)}</select></label>
+      <label>Game or save<input value={game} onChange={(event) => setGame(event.target.value)} placeholder="Any game" /></label>
+      <label>Poké Ball<select value={ball} onChange={(event) => setBall(event.target.value)}><option value="">Any Ball</option>{POKEDEX_BALL_OPTIONS.map((option) => <option key={option.key} value={option.key}>{option.label}</option>)}</select></label>
+      <label>Ribbon<select value={ribbon} onChange={(event) => setRibbon(event.target.value)}><option value="">Any ribbon</option>{POKEDEX_RIBBON_OPTIONS.map((option) => <option key={option.key} value={option.key}>{option.label}</option>)}</select></label>
+      <label>Mark<select value={mark} onChange={(event) => setMark(event.target.value)}><option value="">Any mark</option>{POKEDEX_MARK_OPTIONS.map((option) => <option key={option.key} value={option.key}>{option.label}</option>)}</select></label>
+    </div><div className="dex-collection-status" role="group" aria-label="Collection search status">{[["all", "Everything"], ["owned", "Owned"], ["wanted", "Looking for"]].map(([value, label]) => <button type="button" key={value} className={status === value ? "is-active" : ""} onClick={() => setStatus(value)}>{label}</button>)}<label><input type="checkbox" checked={alphaOnly} onChange={(event) => setAlphaOnly(event.target.checked)} /> Alpha only</label><span>{results.length.toLocaleString()} match{results.length === 1 ? "" : "es"}</span></div>
+    <div className="dex-collection-results">{results.slice(0, 200).map((record) => <article key={`${record.record_kind}:${record.id}`}><img src={pokedexArtworkUrl(record.pokemon_id, record.is_shiny)} alt="" loading="lazy" /><div><span>{record.record_kind === "wanted" ? "LOOKING FOR" : "OWNED"}{record.is_alpha ? " · ALPHA" : ""}{record.is_shiny ? " · SHINY" : ""}</span><strong>{pokedexSpecimenDisplayName(record)}</strong><small>{pokedexPokemonTypes(record.pokemon).join(" / ") || "Type unavailable"} · {record.tracker_title}</small>{record.form_label && <i>{record.form_label}</i>}<p>{[record.origin_game, record.location_name, record.pokeball, ...(record.ribbons || []), ...(record.marks || [])].filter(Boolean).join(" · ")}</p></div><button type="button" onClick={() => onOpenTracker(record.tracker_id)}>Open tracker</button></article>)}</div>
+    {!results.length && <p className="dex-inventory-empty">No saved Pokémon or hunt targets match those filters.</p>}{results.length > 200 && <p className="dex-inventory-hint">Showing the first 200 matches. Add another filter to narrow the list.</p>}</>}
   </section>;
 }
 
@@ -386,12 +476,18 @@ export default function PokedexTrackerPage() {
   const [detailsTarget, setDetailsTarget] = useState(null);
   const [detailsBusy, setDetailsBusy] = useState(false);
   const [detailsError, setDetailsError] = useState("");
+  const [wantedTarget, setWantedTarget] = useState(null);
+  const [wantedBusy, setWantedBusy] = useState(false);
+  const [wantedError, setWantedError] = useState("");
   const [inventoryOpen, setInventoryOpen] = useState(false);
   const [inventory, setInventory] = useState(null);
   const [inventoryLoading, setInventoryLoading] = useState(false);
   const [inventoryBusy, setInventoryBusy] = useState(false);
   const [inventoryError, setInventoryError] = useState("");
   const [specimenTarget, setSpecimenTarget] = useState(null);
+  const [collectionIndex, setCollectionIndex] = useState(null);
+  const [collectionIndexLoading, setCollectionIndexLoading] = useState(false);
+  const [collectionIndexError, setCollectionIndexError] = useState("");
 
   async function openTracker(id, accountVersion = accountVersionRef.current) {
     const requestId = ++trackerRequestRef.current;
@@ -425,6 +521,9 @@ export default function PokedexTrackerPage() {
     setDetailsTarget(null);
     setDetailsBusy(false);
     setDetailsError("");
+    setWantedTarget(null);
+    setWantedBusy(false);
+    setWantedError("");
     setInventoryOpen(false);
     setInventory(null);
     setInventoryLoading(false);
@@ -470,12 +569,18 @@ export default function PokedexTrackerPage() {
       setDetailsTarget(null);
       setDetailsBusy(false);
       setDetailsError("");
+      setWantedTarget(null);
+      setWantedBusy(false);
+      setWantedError("");
       setInventoryOpen(false);
       setInventory(null);
       setInventoryLoading(false);
       setInventoryBusy(false);
       setInventoryError("");
       setSpecimenTarget(null);
+      setCollectionIndex(null);
+      setCollectionIndexLoading(false);
+      setCollectionIndexError("");
       setSectionKey("");
       setFinderPokemonId(null);
       setMessage("");
@@ -505,17 +610,18 @@ export default function PokedexTrackerPage() {
   useEffect(() => { setShown(POKEDEX_TRACKER_PAGE_SIZE); }, [query, status, mode, sectionKey, activeId]);
 
   useEffect(() => {
-    if (!detailsTarget && !specimenTarget) return undefined;
+    if (!detailsTarget && !specimenTarget && !wantedTarget) return undefined;
     function closeOnEscape(event) {
       if (event.key !== "Escape") return;
       if (specimenTarget && !inventoryBusy) {
         setSpecimenTarget(null);
       }
+      else if (wantedTarget && !wantedBusy) setWantedTarget(null);
       else if (detailsTarget && !detailsBusy) setDetailsTarget(null);
     }
     document.addEventListener("keydown", closeOnEscape);
     return () => document.removeEventListener("keydown", closeOnEscape);
-  }, [detailsTarget, detailsBusy, specimenTarget, inventoryBusy]);
+  }, [detailsTarget, detailsBusy, specimenTarget, inventoryBusy, wantedTarget, wantedBusy]);
 
   const sections = useMemo(() => groupPokedexSections(active?.pokemon), [active]);
   const activeSection = sections.find((section) => section.key === sectionKey) || sections[0] || null;
@@ -527,9 +633,12 @@ export default function PokedexTrackerPage() {
   const boxLayout = useMemo(() => pokedexBoxLayout(active?.tracker?.catalog_key, activeCatalog?.generation), [active?.tracker?.catalog_key, activeCatalog?.generation]);
   const ballOptions = useMemo(() => pokedexBallOptions(active?.tracker?.catalog_key, activeCatalog?.generation), [active?.tracker?.catalog_key, activeCatalog?.generation]);
   const ribbonGroups = useMemo(() => pokedexRibbonGroups(active?.tracker?.catalog_key), [active?.tracker?.catalog_key]);
+  const markGroups = useMemo(() => pokedexMarkGroups(active?.tracker?.catalog_key), [active?.tracker?.catalog_key]);
   const inventoryBallOptions = useMemo(() => pokedexBallOptions("home", 10), []);
   const inventoryRibbonGroups = useMemo(() => pokedexRibbonGroups("home"), []);
+  const inventoryMarkGroups = useMemo(() => pokedexMarkGroups("home"), []);
   const detailsEntry = active?.pokemon?.find(({ pokemon_id }) => pokemon_id === detailsTarget?.pokemonId) || null;
+  const wantedEntry = active?.pokemon?.find(({ pokemon_id }) => pokemon_id === wantedTarget?.pokemonId) || null;
   const filtered = useMemo(() => filterPokedexEntries(sectionEntries, { query, status, mode }), [sectionEntries, query, status, mode]);
   const visible = filtered.slice(0, shown);
 
@@ -611,13 +720,11 @@ export default function PokedexTrackerPage() {
     const detailMode = detailsTarget.mode;
     setDetailsBusy(true);
     setDetailsError("");
-    const { data, error } = await supabase.rpc("set_my_pokedex_tracker_entry_details", {
+    const { data, error } = await supabase.rpc("set_my_pokedex_tracker_entry_details_v2", {
       p_tracker_id: trackerId,
       p_pokemon_id: detailsEntry.pokemon_id,
       p_is_shiny: detailMode === "shiny",
-      p_pokeball_key: values.pokeball || null,
-      p_ribbon_keys: values.ribbons,
-      p_notes: values.notes,
+      p_payload: values,
     });
     if (accountVersion !== accountVersionRef.current) return;
     setDetailsBusy(false);
@@ -632,11 +739,65 @@ export default function PokedexTrackerPage() {
         ...pokemon,
         [`${prefix}pokeball`]: data.pokeball,
         [`${prefix}ribbons`]: data.ribbons,
+        [`${prefix}marks`]: data.marks,
         [`${prefix}notes`]: data.notes,
       } : pokemon),
     } : current);
     setDetailsTarget(null);
     setMessage("");
+  }
+
+  function openWanted(entry) {
+    setWantedTarget({ pokemonId: entry.pokemon_id, mode });
+    setWantedError("");
+  }
+
+  async function saveWanted(wanted, values) {
+    if (!active || !wantedEntry || !wantedTarget) return;
+    const accountVersion = accountVersionRef.current;
+    const trackerId = active.tracker.id;
+    const targetMode = wantedTarget.mode;
+    setWantedBusy(true);
+    setWantedError("");
+    const { data, error } = await supabase.rpc("set_my_pokedex_tracker_wanted_entry", {
+      p_tracker_id: trackerId,
+      p_pokemon_id: wantedEntry.pokemon_id,
+      p_is_shiny: targetMode === "shiny",
+      p_wanted: wanted,
+      p_payload: values,
+    });
+    if (accountVersion !== accountVersionRef.current) return;
+    setWantedBusy(false);
+    if (error || !data) { setWantedError(error?.message || "That hunt target could not be saved."); return; }
+    const prefix = targetMode === "shiny" ? "shiny_" : "";
+    setActive((current) => current?.tracker?.id === trackerId ? {
+      ...current,
+      pokemon: current.pokemon.map((pokemon) => pokemon.pokemon_id === wantedEntry.pokemon_id ? {
+        ...pokemon,
+        [`${prefix}wanted`]: Boolean(data.wanted),
+        [`${prefix}wanted_form`]: data.form_label || "",
+        [`${prefix}wanted_marks`]: data.marks || [],
+        [`${prefix}wanted_alpha`]: Boolean(data.wants_alpha),
+        [`${prefix}wanted_notes`]: data.notes || "",
+      } : pokemon),
+    } : current);
+    setWantedTarget(null);
+    if (collectionIndex) await loadCollectionIndex();
+  }
+
+  async function loadCollectionIndex() {
+    const accountVersion = accountVersionRef.current;
+    setCollectionIndexLoading(true);
+    setCollectionIndexError("");
+    const { data, error } = await supabase.rpc("get_my_pokedex_collection_index");
+    if (accountVersion !== accountVersionRef.current) return null;
+    setCollectionIndexLoading(false);
+    if (error || !data) {
+      setCollectionIndexError(error?.message || "Your full collection could not be searched.");
+      return null;
+    }
+    setCollectionIndex(data);
+    return data;
   }
 
   async function loadInventory(trackerId = active?.tracker?.id) {
@@ -724,6 +885,7 @@ export default function PokedexTrackerPage() {
     if (error || !data) { setInventoryError(error?.message || "That individual Pokémon could not be saved."); return; }
     setSpecimenTarget(null);
     await loadInventory(active.tracker.id);
+    if (collectionIndex) await loadCollectionIndex();
   }
 
   async function deleteInventorySpecimen(specimen) {
@@ -740,6 +902,7 @@ export default function PokedexTrackerPage() {
     if (error || !data) { setInventoryError(error?.message || "That individual Pokémon could not be deleted."); return; }
     setSpecimenTarget(null);
     await loadInventory(active.tracker.id);
+    if (collectionIndex) await loadCollectionIndex();
   }
 
   function downloadInventory() {
@@ -798,7 +961,7 @@ export default function PokedexTrackerPage() {
     <section className="dex-tracker-signin">
       <span className="dex-kicker">YOUR POKÉDEXES</span>
       <h1>Keep every game dex in one place.</h1>
-      <p>Sign in to track each game and DLC area, link that progress to a National Dex, and keep separate shiny or supported Legends Alpha lists.</p>
+      <p>Sign in to track numbered and postgame Pokédexes, Pokémon GO, forms, marks, shinies, supported Legends Alpha lists, and the Pokémon you are still hunting.</p>
       <div><a className="dex-primary-button" href="/#member-access">Sign in to start</a><a className="dex-secondary-button" href="/pokemon">Explore the Pokédex</a></div>
     </section>
   </main>;
@@ -808,16 +971,18 @@ export default function PokedexTrackerPage() {
       <div>
         <span className="dex-kicker">POKÉDEX TRACKER</span>
         <h1>One place for every dex</h1>
-        <p>Track the Pokédex for each game, including separate DLC areas. Each list uses that game's own numbering, and your completed game dexes can count toward a National Dex.</p>
+        <p>Track each numbered game and DLC Pokédex, verified postgame encounters, Pokémon GO, persistent forms, marks, individual Pokémon, and private hunt targets.</p>
       </div>
       <div className="dex-tracker-hero-card" aria-label="Tracker benefits">
-        <span><b>37+</b> supported games</span>
-        <span><b>DLC</b> area dexes included</span>
+        <span><b>39</b> games and services</span>
+        <span><b>Postgame</b> encounters included</span>
         <span><b>Private</b> account saving</span>
       </div>
     </header>
 
     {message && <p className="dex-tracker-message" role="status" aria-live="polite">{message}</p>}
+
+    <CollectionSearchPanel index={collectionIndex} loading={collectionIndexLoading} error={collectionIndexError} onLoad={loadCollectionIndex} onOpenTracker={(trackerId) => { void openTracker(trackerId); document.getElementById("dex-tracker-workspace")?.scrollIntoView({ behavior: "smooth" }); }} />
 
     <section className="dex-tracker-workspace" id="dex-tracker-workspace">
       <aside className="dex-tracker-sidebar">
@@ -863,6 +1028,7 @@ export default function PokedexTrackerPage() {
             const progress = pokedexTrackerProgress(section.entries, mode);
             return <button type="button" key={section.key} className={section.key === activeSection?.key ? "is-active" : ""} onClick={() => { setSectionKey(section.key); setQuery(""); setStatus("all"); }}><strong>{section.label}</strong><span>{progress.caught}/{progress.total}</span></button>;
           })}</nav>}
+          {activeSection?.key === "obtainable" && <p className="dex-obtainable-note"><strong>Other obtainable Pokémon</strong> are verified encounters outside this game’s numbered Pokédex, including postgame and supported special encounters. Their displayed number is the National Dex number.</p>}
 
           <section className={`dex-progress-panel ${active.tracker.supports_alpha ? "has-alpha" : ""}`}>
             <ProgressRing progress={standardProgress} label="Standard" />
@@ -890,7 +1056,7 @@ export default function PokedexTrackerPage() {
           <PokedexBoxPlanner entries={sectionEntries} layout={boxLayout} mode={mode} pending={pending} onToggle={toggleEntry} sectionKey={activeSection?.key} sectionLabel={activeSection?.label || "Pokédex"} trackerId={active.tracker.id} />
 
           {visible.length ? <section className="dex-pokemon-grid" aria-label={`${mode === "shiny" ? "Shiny" : mode === "alpha" ? "Alpha" : "Standard"} Pokédex entries`}>
-            {visible.map((entry) => <PokemonCard key={`${entry.pokedex_key}:${entry.pokemon_id}`} entry={entry} mode={mode} sectionLabel={activeSection?.label || "Pokédex"} pending={pending.has(`${active.tracker.id}:${entry.pokemon_id}:${mode}`)} ballOptions={ballOptions} onToggle={toggleEntry} onDetails={openEntryDetails} onInventory={openInventory} onFind={openFinder} />)}
+            {visible.map((entry) => <PokemonCard key={`${entry.pokedex_key}:${entry.pokemon_id}`} entry={entry} mode={mode} sectionLabel={activeSection?.label || "Pokédex"} pending={pending.has(`${active.tracker.id}:${entry.pokemon_id}:${mode}`)} ballOptions={ballOptions} onToggle={toggleEntry} onDetails={openEntryDetails} onInventory={openInventory} onWanted={openWanted} onFind={openFinder} />)}
           </section> : <section className="dex-no-results"><span aria-hidden="true">⌕</span><h3>No Pokémon match this view.</h3><p>Try a different name or switch the progress filter.</p></section>}
           {shown < filtered.length && <button type="button" className="dex-load-more" onClick={() => setShown((count) => count + POKEDEX_TRACKER_PAGE_SIZE)}>Show {Math.min(POKEDEX_TRACKER_PAGE_SIZE, filtered.length - shown)} more Pokémon</button>}
         </>}
@@ -910,6 +1076,7 @@ export default function PokedexTrackerPage() {
         },
       }}
     />}
+    <PokemonChampionsAchievementCenter supabase={supabase} />
     <PokedexCollectorLaunchPanel
       supabase={supabase}
       hub={hub}
@@ -918,7 +1085,8 @@ export default function PokedexTrackerPage() {
       onEnsureInventory={() => loadInventory(active?.tracker?.id)}
       onReload={(preferredId) => loadHub(preferredId, accountVersionRef.current)}
     />
-    {detailsEntry && detailsTarget && <EntryDetailsDialog key={`${detailsEntry.pokemon_id}:${detailsTarget.mode}`} entry={detailsEntry} mode={detailsTarget.mode} ballOptions={ballOptions} ribbonGroups={ribbonGroups} busy={detailsBusy} error={detailsError} onSave={saveEntryDetails} onClose={() => setDetailsTarget(null)} />}
-    {active && specimenTarget && <SpecimenDialog key={specimenTarget.id || `new:${specimenTarget.pokemon_id}:${specimenTarget.is_shiny}`} specimen={specimenTarget} entries={uniquePokedexEntries(active.pokemon)} locations={inventory?.locations || []} ballOptions={inventoryBallOptions} ribbonGroups={inventoryRibbonGroups} busy={inventoryBusy} error={inventoryError} onSave={saveInventorySpecimen} onDelete={deleteInventorySpecimen} onClose={() => { if (!inventoryBusy) { setSpecimenTarget(null); setInventoryError(""); } }} />}
+    {detailsEntry && detailsTarget && <EntryDetailsDialog key={`${detailsEntry.pokemon_id}:${detailsTarget.mode}`} entry={detailsEntry} mode={detailsTarget.mode} ballOptions={ballOptions} ribbonGroups={ribbonGroups} markGroups={markGroups} busy={detailsBusy} error={detailsError} onSave={saveEntryDetails} onClose={() => setDetailsTarget(null)} />}
+    {wantedEntry && wantedTarget && <WantedDialog key={`${wantedEntry.pokemon_id}:${wantedTarget.mode}`} entry={wantedEntry} mode={wantedTarget.mode} markGroups={inventoryMarkGroups} busy={wantedBusy} error={wantedError} onSave={saveWanted} onClose={() => setWantedTarget(null)} />}
+    {active && specimenTarget && <SpecimenDialog key={specimenTarget.id || `new:${specimenTarget.pokemon_id}:${specimenTarget.is_shiny}`} specimen={specimenTarget} entries={uniquePokedexEntries(active.pokemon)} locations={inventory?.locations || []} ballOptions={inventoryBallOptions} ribbonGroups={inventoryRibbonGroups} markGroups={inventoryMarkGroups} busy={inventoryBusy} error={inventoryError} onSave={saveInventorySpecimen} onDelete={deleteInventorySpecimen} onClose={() => { if (!inventoryBusy) { setSpecimenTarget(null); setInventoryError(""); } }} />}
   </main>;
 }

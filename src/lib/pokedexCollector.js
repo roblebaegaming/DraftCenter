@@ -1,7 +1,8 @@
-import { uniquePokedexEntries } from "./pokedexTracker.js";
+import { POKEDEX_MARK_OPTIONS, uniquePokedexEntries } from "./pokedexTracker.js";
+import { normalizeChampionsProgress } from "./pokemonChampionsAchievements.js";
 
 export const POKEDEX_COLLECTOR_EXPORT_FORMAT = "draftcenter-pokedex-tracker";
-export const POKEDEX_COLLECTOR_EXPORT_VERSION = 4;
+export const POKEDEX_COLLECTOR_EXPORT_VERSION = 6;
 export const POKEDEX_COLLECTOR_MAX_FILE_BYTES = 10 * 1024 * 1024;
 export const POKEDEX_COLLECTOR_MAX_CSV_ROWS = 5000;
 export const POKEDEX_COLLECTOR_MAX_RESTORE_TRACKERS = 50;
@@ -10,11 +11,13 @@ export const POKEDEX_COLLECTOR_CSV_HEADERS = [
   "record_type",
   "species",
   "pokemon_id",
+  "national_dex",
   "registered",
   "shiny_registered",
   "form",
   "nickname",
   "shiny",
+  "alpha",
   "gender",
   "level",
   "original_trainer",
@@ -29,6 +32,7 @@ export const POKEDEX_COLLECTOR_CSV_HEADERS = [
   "box_position",
   "poke_ball",
   "ribbons",
+  "marks",
   "event",
   "notes",
 ];
@@ -51,6 +55,7 @@ const LOCATION_KINDS = new Set(["game_save", "pokemon_bank", "pokemon_home", "ca
 const GENDERS = new Set(["unknown", "male", "female", "genderless"]);
 const IMPORTANCE_LEVELS = new Set(["standard", "important", "irreplaceable"]);
 const TRANSFER_STATES = new Set(["not_planned", "planned", "ready", "transferred", "keep_original"]);
+const MARK_KEYS = new Set(POKEDEX_MARK_OPTIONS.map(({ key }) => key));
 const TRUE_VALUES = new Set(["1", "true", "yes", "y", "checked", "registered"]);
 const FALSE_VALUES = new Set(["0", "false", "no", "n", "", "unchecked", "missing"]);
 
@@ -266,11 +271,15 @@ export function parsePokedexCollectorCsv(input, catalogEntries = []) {
       errors.push(`Row ${rowNumber}: transferred_on must use YYYY-MM-DD.`);
     }
     const ribbons = uniqueArray(text(field(row, headerIndex, "ribbons")).split(/\s*[|;]\s*/));
+    const marks = uniqueArray(text(field(row, headerIndex, "marks")).split(/\s*[|;]\s*/));
+    const unknownMarks = marks.filter((key) => !MARK_KEYS.has(key));
+    if (unknownMarks.length) errors.push(`Row ${rowNumber}: unsupported mark ${unknownMarks.map((key) => `“${key}”`).join(", ")}.`);
     specimens.push({
       pokemon_id: Number(entry.pokemon_id),
       form_label: text(field(row, headerIndex, "form", "form_label")),
       nickname: text(field(row, headerIndex, "nickname")),
       is_shiny: booleanCell(field(row, headerIndex, "shiny", "is_shiny"), "shiny", rowNumber, errors),
+      is_alpha: booleanCell(field(row, headerIndex, "alpha", "is_alpha"), "alpha", rowNumber, errors),
       gender,
       level: integerCell(field(row, headerIndex, "level"), { label: "level", rowNumber, errors, min: 1, max: 100 }),
       original_trainer: text(field(row, headerIndex, "original_trainer", "ot")),
@@ -281,6 +290,7 @@ export function parsePokedexCollectorCsv(input, catalogEntries = []) {
       box_position: integerCell(field(row, headerIndex, "box_position", "slot"), { label: "box_position", rowNumber, errors, min: 1, max: 30 }),
       pokeball: normalizedHeader(field(row, headerIndex, "poke_ball", "pokeball")) || null,
       ribbons,
+      marks,
       is_event: booleanCell(field(row, headerIndex, "event", "is_event"), "event", rowNumber, errors),
       importance,
       intended_destination: text(field(row, headerIndex, "intended_destination", "destination")),
@@ -317,12 +327,12 @@ function allowedRestoreTracker(candidate, index) {
   if (candidate.include_alpha !== undefined && typeof candidate.include_alpha !== "boolean") {
     throw new Error(`Tracker ${index + 1} has an invalid include_alpha value.`);
   }
-  const arrays = Object.fromEntries(["entries", "details", "locations", "specimens"].map((key) => {
+  const arrays = Object.fromEntries(["entries", "details", "locations", "specimens", "wanted"].map((key) => {
     const value = candidate[key] ?? [];
     if (!Array.isArray(value)) throw new Error(`Tracker ${index + 1} has an invalid ${key} list.`);
     return [key, value];
   }));
-  if (arrays.entries.length > 3000 || arrays.details.length > 3000 || arrays.locations.length > 500 || arrays.specimens.length > 5000) {
+  if (arrays.entries.length > 3000 || arrays.details.length > 3000 || arrays.locations.length > 500 || arrays.specimens.length > 5000 || arrays.wanted.length > 6000) {
     throw new Error(`Tracker ${index + 1} is larger than the supported restore limits.`);
   }
   return {
@@ -334,6 +344,7 @@ function allowedRestoreTracker(candidate, index) {
     details: arrays.details,
     locations: arrays.locations,
     specimens: arrays.specimens,
+    wanted: arrays.wanted,
   };
 }
 
@@ -356,6 +367,7 @@ export function parsePokedexRestoreJson(input) {
     details: payload.details || [],
     locations: payload.locations || [],
     specimens: payload.specimens || [],
+    wanted: payload.wanted || [],
   }];
   if (!Array.isArray(candidates) || !candidates.length) {
     throw new Error("This JSON file does not contain a DraftCenter Pokédex tracker backup.");
@@ -364,14 +376,19 @@ export function parsePokedexRestoreJson(input) {
     throw new Error(`Restore at most ${POKEDEX_COLLECTOR_MAX_RESTORE_TRACKERS} trackers at a time.`);
   }
   const trackers = candidates.map(allowedRestoreTracker);
+  const champions = normalizeChampionsProgress(payload?.champions || payload?.pokedex_trackers?.champions || null);
   return {
     trackers,
+    champions,
     summary: {
       trackers: trackers.length,
       entries: trackers.reduce((total, tracker) => total + tracker.entries.length, 0),
       details: trackers.reduce((total, tracker) => total + tracker.details.length, 0),
       locations: trackers.reduce((total, tracker) => total + tracker.locations.length, 0),
       specimens: trackers.reduce((total, tracker) => total + tracker.specimens.length, 0),
+      wanted: trackers.reduce((total, tracker) => total + tracker.wanted.length, 0),
+      championsAchievements: Object.keys(champions.achievementProgress).length,
+      championsPokemon: Object.keys(champions.pokemonWins).length,
     },
   };
 }
@@ -380,17 +397,26 @@ export function buildPokedexTrackerPortableExport(active, inventory, exportedAt 
   if (!active?.tracker) throw new Error("Open a Pokédex tracker before exporting it.");
   const entries = [];
   const details = [];
+  const wanted = [];
   for (const pokemon of uniquePokedexEntries(active.pokemon || [])) {
     if (pokemon.caught) entries.push({ pokemon_id: pokemon.pokemon_id, pokemon: pokemon.pokemon, dex_number: pokemon.dex_number, is_shiny: false });
     if (pokemon.shiny_caught) entries.push({ pokemon_id: pokemon.pokemon_id, pokemon: pokemon.pokemon, dex_number: pokemon.dex_number, is_shiny: true });
     if (pokemon.alpha_caught) entries.push({ pokemon_id: pokemon.pokemon_id, pokemon: pokemon.pokemon, dex_number: pokemon.dex_number, is_shiny: false, is_alpha: true });
-    if (pokemon.pokeball || pokemon.ribbons?.length || pokemon.notes) details.push({
+    if (pokemon.pokeball || pokemon.ribbons?.length || pokemon.marks?.length || pokemon.notes) details.push({
       pokemon_id: pokemon.pokemon_id, pokemon: pokemon.pokemon, dex_number: pokemon.dex_number, is_shiny: false,
-      pokeball: pokemon.pokeball || "", ribbons: pokemon.ribbons || [], notes: pokemon.notes || "",
+      pokeball: pokemon.pokeball || "", ribbons: pokemon.ribbons || [], marks: pokemon.marks || [], notes: pokemon.notes || "",
     });
-    if (pokemon.shiny_pokeball || pokemon.shiny_ribbons?.length || pokemon.shiny_notes) details.push({
+    if (pokemon.shiny_pokeball || pokemon.shiny_ribbons?.length || pokemon.shiny_marks?.length || pokemon.shiny_notes) details.push({
       pokemon_id: pokemon.pokemon_id, pokemon: pokemon.pokemon, dex_number: pokemon.dex_number, is_shiny: true,
-      pokeball: pokemon.shiny_pokeball || "", ribbons: pokemon.shiny_ribbons || [], notes: pokemon.shiny_notes || "",
+      pokeball: pokemon.shiny_pokeball || "", ribbons: pokemon.shiny_ribbons || [], marks: pokemon.shiny_marks || [], notes: pokemon.shiny_notes || "",
+    });
+    if (pokemon.wanted) wanted.push({
+      pokemon_id: pokemon.pokemon_id, pokemon: pokemon.pokemon, dex_number: pokemon.dex_number, is_shiny: false,
+      form_label: pokemon.wanted_form || "", marks: pokemon.wanted_marks || [], wants_alpha: Boolean(pokemon.wanted_alpha), notes: pokemon.wanted_notes || "",
+    });
+    if (pokemon.shiny_wanted) wanted.push({
+      pokemon_id: pokemon.pokemon_id, pokemon: pokemon.pokemon, dex_number: pokemon.dex_number, is_shiny: true,
+      form_label: pokemon.shiny_wanted_form || "", marks: pokemon.shiny_wanted_marks || [], wants_alpha: Boolean(pokemon.shiny_wanted_alpha), notes: pokemon.shiny_wanted_notes || "",
     });
   }
   return {
@@ -408,6 +434,7 @@ export function buildPokedexTrackerPortableExport(active, inventory, exportedAt 
     details,
     locations: inventory?.locations || [],
     specimens: inventory?.specimens || [],
+    wanted,
   };
 }
 

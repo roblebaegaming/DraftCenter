@@ -540,7 +540,10 @@ notify pgrst, 'reload schema';
 
 const output = `${sql.trim()}\n`;
 if (process.argv.includes("--check")) {
-  if (!fs.existsSync(OUTPUT) || fs.readFileSync(OUTPUT, "utf8") !== output) {
+  const checkedInOutput = fs.existsSync(OUTPUT)
+    ? fs.readFileSync(OUTPUT, "utf8").replace(/\r\n/g, "\n")
+    : null;
+  if (checkedInOutput !== output) {
     throw new Error("The checked-in Legends Alpha migration is stale.");
   }
   console.log("Legends Alpha migration verified: 563 species rows.");

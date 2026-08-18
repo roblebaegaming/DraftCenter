@@ -2,40 +2,48 @@ import PokedexTrackerPage from "../../components/PokedexTrackerPage";
 import "./pokedex-tracker.css";
 
 export const metadata = {
-  title: "Pokédex Tracker for Every Pokémon Game and HOME",
-  description: "Track each Pokémon game and DLC Pokédex in its own numbered order, link progress to a National Dex, find Pokémon by game, and plan collection boxes.",
+  title: "Pokédex Tracker for Every Pokémon Game, GO and HOME",
+  description: "Track numbered and postgame Pokédexes, Pokémon GO and HOME, Champions achievements, forms, marks, games, saves, Balls and ribbons.",
   alternates: { canonical: "/pokedex-tracker" },
   manifest: "/pokedex-tracker/manifest.webmanifest",
-  keywords: ["Pokédex tracker", "Pokémon checklist", "shiny Pokédex tracker", "Pokémon HOME Pokédex tracker", "living dex tracker"],
+  keywords: ["Pokédex tracker", "Pokémon checklist", "shiny Pokédex tracker", "Pokémon GO tracker", "Pokémon HOME Pokédex tracker", "living dex tracker", "Pokémon mark tracker"],
   openGraph: {
     type: "website",
-    title: "Pokédex Tracker for Every Pokémon Game and HOME",
-    description: "Track game and DLC Pokédexes in their original numbering, link them to a National Dex, search locations, and organize collection boxes.",
+    title: "Pokédex Tracker for Every Pokémon Game, GO and HOME",
+    description: "Track numbered and postgame game Pokédexes, GO and HOME, forms, marks, Alphas, hunt targets, and private collection searches.",
     url: "/pokedex-tracker",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Pokédex Tracker for Every Pokémon Game and HOME",
-    description: "Track game and DLC Pokédexes in their original numbering, link them to a National Dex, search locations, and organize collection boxes.",
+    title: "Pokédex Tracker for Every Pokémon Game, GO and HOME",
+    description: "Track numbered and postgame game Pokédexes, GO and HOME, forms, marks, Alphas, hunt targets, and private collection searches.",
   },
 };
 
 const questions = [
   {
+    question: "Can I track Pokémon Champions achievements and Pokémon titles?",
+    answer: "Yes. The private Champions center tracks every reviewed Trainer Achievement and all 208 eligible Pokémon. Enter wins once to see Admirer, Tamer, Professor, Silver Badge, and Gold Badge progress automatically.",
+  },
+  {
     question: "Which Pokémon games can I track?",
-    answer: "DraftCenter offers a checklist for every supported main-series game. Games with multiple Pokédexes include separate regional or DLC sections, such as Paldea, Kitakami, and Blueberry.",
+    answer: "DraftCenter offers checklists for every supported main-series game, Pokémon GO, and Pokémon HOME. Official regional or DLC numbering stays intact, while verified postgame encounters outside those sections appear under Other obtainable.",
   },
   {
     question: "Can I track shiny Pokémon separately?",
     answer: "Yes. Every collection has an independent standard checklist, and you can add a shiny checklist at creation or later without changing standard progress.",
   },
   {
-    question: "Can I save a Pokémon’s ball, ribbons, or notes?",
-    answer: "Yes. Each standard or shiny entry can optionally record a supported Poké Ball, game-appropriate ribbons, and a private note. These details remain saved even if you later uncheck the catch.",
+    question: "Can I save a Pokémon’s form, Ball, ribbons, marks, or notes?",
+    answer: "Yes. Checklist details and individual records can store forms or patterns, a supported Poké Ball, game-appropriate ribbons, marks, Alpha status, and private notes.",
   },
   {
     question: "Can I record individual Pokémon and where they are stored?",
-    answer: "Yes. Collection inventory stores private records for individual Pokémon, game saves, Pokémon HOME, cartridges, other locations, and box positions.",
+    answer: "Yes. Collection inventory stores private records for individual Pokémon, game saves, Pokémon HOME, cartridges, other locations, and box positions. You can search the whole collection by Pokémon, form, type, game, save, Ball, ribbon, mark, or Alpha status.",
+  },
+  {
+    question: "Can I keep a list of Pokémon I am looking for?",
+    answer: "Yes. Private hunt targets can specify a form, pattern, shiny, mark, notes, or an eligible Alpha Pokémon without changing whether that species is already registered.",
   },
   {
     question: "Does game progress count toward my National Dex?",
@@ -43,7 +51,7 @@ const questions = [
   },
   {
     question: "Is my Pokédex progress public?",
-    answer: "No. Tracker names, entries, Poké Balls, ribbons, and notes are private account data. They are loaded and changed only through account-scoped database functions and are deleted with the account.",
+    answer: "No. Tracker names, entries, individual Pokémon, hunt targets, Poké Balls, ribbons, marks, and notes are private account data. They are loaded and changed only through account-scoped database functions and are deleted with the account.",
   },
 ];
 
@@ -64,14 +72,20 @@ export default function PokedexTrackerRoute() {
         featureList: [
           "Multiple saved Pokédex collections",
           "Every verified main-series game catalog",
+          "Pokémon GO availability checklist",
           "Pokémon HOME National Pokédex",
+          "Pokémon Champions Trainer Achievements and per-Pokémon title and badge progress",
           "Independent standard and shiny checklists",
-          "Optional Poké Ball, ribbon, and note details for every entry",
+          "Verified postgame encounters outside official numbered sections",
+          "Persistent collectible forms and patterns",
+          "Optional Poké Ball, ribbon, mark, Alpha, and note details",
+          "Private hunt targets for forms, shinies, marks, and Alphas",
           "Private individual Pokémon and storage-location inventory",
           "Separate regional and DLC Pokédex sections with original game numbering",
           "Game progress linked to the Pokémon HOME National Dex",
           "Pokémon game and encounter search",
           "Game-aware collection box layouts in Pokédex order",
+          "Collection-wide search by species, type, game, save, Ball, ribbon, mark, or Alpha status",
           "Spreadsheet imports and readable workbook or CSV downloads",
           "Search, completion filters, progress rings, and responsive galleries",
           "Private cross-device account saving",
@@ -101,19 +115,23 @@ export default function PokedexTrackerRoute() {
     <section className="dex-tracker-seo" aria-labelledby="dex-tracker-guide-title">
       <span className="dex-kicker">HOW THE TRACKER WORKS</span>
       <h2 id="dex-tracker-guide-title">Track each game in the order it uses</h2>
-      <p>Choose a game, open the regional or DLC dex you are working on, and check off Pokémon by their number in that dex. Your game progress can also fill the matching entries in a National Dex.</p>
+      <p>Choose a game, Pokémon GO, or HOME, then check off Pokémon in the official numbered order. Verified postgame species outside that numbered Pokédex have their own Other obtainable section, and game progress can also fill matching National Dex entries.</p>
       <div className="dex-tracker-seo-grid">
         <article>
           <h3>Game-specific Pokédex checklists</h3>
-          <p>Each game uses its own Pokédex numbers. Scarlet and Violet include Paldea, Kitakami, and Blueberry; Sword and Shield include Galar, the Isle of Armor, and the Crown Tundra.</p>
+          <p>Each official regional or DLC section keeps its own Pokédex numbers. Directly obtainable postgame species that are not numbered there remain visible separately with their National Dex number.</p>
         </article>
         <article>
           <h3>Independent shiny progress</h3>
           <p>Add a shiny checklist when you create a tracker or whenever a hunt begins. Standard and shiny catches are stored separately, so neither checklist can overwrite the other.</p>
         </article>
         <article>
-          <h3>Search and boxes</h3>
-          <p>Look up where a Pokémon appears in supported games, then use the box layout to arrange the selected dex in number order. Individual records can still hold private notes, storage locations, balls, and ribbons.</p>
+          <h3>Search, hunts, and forms</h3>
+          <p>Search the whole private collection by species, type, game, save, Ball, ribbon, mark, or Alpha status. Individual records and hunt targets can also name forms and patterns such as Vivillon or Furfrou.</p>
+        </article>
+        <article>
+          <h3>Pokémon Champions achievements</h3>
+          <p>Keep account-wide Trainer Achievement totals and search the 208 eligible Pokémon. Per-Pokémon wins automatically show Admirer, Tamer, Professor, Silver Badge, and Gold Badge milestones.</p>
         </article>
       </div>
       <section className="dex-tracker-faq" aria-labelledby="dex-tracker-faq-title">
@@ -122,7 +140,7 @@ export default function PokedexTrackerRoute() {
       </section>
       <aside className="dex-tracker-next-step">
         <h2>Looking for a specific Pokémon?</h2>
-        <p>Use Find inside the tracker to check game locations and Pokédex numbers. DraftCenter’s public Pokédex also has species profiles, forms, types, abilities, stats, measurements, and move lists.</p>
+        <p>Use Find for game locations, or save a private Looking for target with a form, shiny, mark, or eligible Alpha requirement. DraftCenter’s public Pokédex also has species profiles, types, abilities, stats, measurements, and move lists.</p>
         <div><a href="/pokemon">Explore the Pokédex</a><a href="/nuzlocke/guides">Browse Nuzlocke guides</a><a href="/#member-access">Create a free account</a></div>
       </aside>
     </section>
