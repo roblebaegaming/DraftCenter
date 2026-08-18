@@ -11,6 +11,13 @@ installable web-app shell.
   same game.
 - Every supported main-series game uses its own Pokédex numbers. Entries are
   sorted by that number rather than by source-import order.
+- Official numbered regional and DLC sections remain exact. When the verified
+  encounter catalog contains additional directly obtainable species, the same
+  tracker adds a separate **Other obtainable** section using National Dex
+  numbers. This includes supported postgame and special encounters without
+  relabeling them as part of the numbered regional Pokédex. For example,
+  FireRed and LeafGreen keep 151 Kanto entries and add 36 directly obtainable
+  species outside that numbered section.
 - Games with more than one Pokédex expose separate sections inside the same
   tracker. Scarlet and Violet have Paldea, Kitakami, and Blueberry sections;
   Sword and Shield have Galar, Isle of Armor, and Crown Tundra sections. Kalos
@@ -32,14 +39,28 @@ installable web-app shell.
   Generation I and II layouts use 20 slots. Later games and HOME use 30 slots.
   Let's Go uses 30-slot planner groups with an explicit note that the games
   have one sortable Pokémon Box rather than numbered PC boxes.
+- Pokémon GO is available as a separate collection service with 954 species
+  released or officially announced through the August 18, 2026 Water
+  Festival. Its pinned availability review is recorded in migration 435.
 - Each standard or shiny entry can optionally save a supported Poké Ball,
-  game-appropriate ribbons, and a private note. These details are independent
-  of the caught flag.
+  game-appropriate ribbons, marks, and a private note. These details are
+  independent of the caught flag.
 - Collection inventory separately records individual Pokémon, their identity
-  and origin details, balls, ribbons, private notes, storage locations, and
-  optional box positions.
+  and origin details, persistent forms, patterns, styles, balls, ribbons,
+  marks, Legends Alpha status, private notes, storage locations, and optional
+  box positions. The form suggestions are generated from pinned PokéAPI data
+  and include 20 Vivillon patterns, 10 Furfrou trims, and 63 Alcremie
+  cream-and-sweet combinations; manual labels remain available.
+- A private **Looking for** target can be attached to a standard or Shiny
+  species without changing owned progress. Targets can request a form, one or
+  more marks, and Alpha status only where that species is eligible.
+- Collection search spans every tracker and save location owned by the current
+  account. It can filter owned Pokémon and hunt targets by name, nickname,
+  form, type, game, save, Ball, ribbon, mark, Shiny status, and Alpha status.
 - Spreadsheet import is additive and validated before it saves. A readable
-  seven-tab workbook and inventory CSV are available to regular users.
+  eight-tab workbook and inventory CSV are available to regular users. Marks,
+  Alpha status, forms, and hunt targets are included in version-5 backups and
+  workbook exports.
 - Raw JSON backup and restore controls are hidden from regular users and shown
   only in the owner interface. Restore still creates new private copies and
   never overwrites an existing tracker.
@@ -65,8 +86,11 @@ Migration 408 verifies these reviewed totals:
 | Sword/Shield | Crown Tundra | 210 |
 | Pokémon HOME | National Dex | 1,025 |
 
-Catalog rows remain read-only. Tracker writes never modify the reviewed public
-Pokémon tables or Trainer Dex state.
+Migration 435 preserves those official section totals and derives the separate
+**Other obtainable** section only from a game's verified direct-encounter
+catalog. Games whose encounter coverage is pending or unsupported do not gain
+an inferred section. Catalog rows remain read-only. Tracker writes never
+modify the reviewed public Pokémon tables or Trainer Dex state.
 
 The August 17, 2026 full-catalog audit verified all 37 games, 65 sections,
 13,130 local Pokédex rows, and the complete 1,025-species HOME catalog against
@@ -74,16 +98,25 @@ the pinned game-specific source checks and aggregate Production state. It found
 no evidence-backed correction to apply. The durable audit record is
 [`pokedex-tracker-data-quality-audit-2026-08-17.md`](pokedex-tracker-data-quality-audit-2026-08-17.md).
 
-`npm run test:pokedex-tracker` now begins with the permanent catalog-quality
-gate. It rejects an unreviewed change to the 37-game set, section totals,
-numbering continuity, one-to-one local number/species mapping, high-risk
-regional or DLC counts, or #1–1025 HOME coverage.
+Pokémon GO availability was reviewed against the official
+[2026 Water Festival announcement](https://pokemongo.com/de/news/water-festival-2026)
+and the dated
+[Bulbapedia availability list](https://bulbapedia.bulbagarden.net/wiki/List_of_Pok%C3%A9mon_by_availability_%28GO%29).
+Collectible form labels are generated from the pinned
+[PokéAPI data repository](https://github.com/PokeAPI/pokeapi/tree/5064f1d72746b3a6a931616dae3fb6445c556d4f/data/v2/csv),
+not maintained as an unreviewed handwritten list.
+
+`npm run test:pokedex-tracker` now begins with both the permanent numbered-dex
+quality gate and the pinned collectible-form drift check. It rejects an
+unreviewed change to the 37-game set, section totals, numbering continuity,
+one-to-one local number/species mapping, high-risk regional or DLC counts,
+#1–1025 HOME coverage, or the generated form catalog.
 
 ## Privacy and data boundary
 
 The private tables are `pokedex_trackers`, `pokedex_tracker_entries`,
 `pokedex_tracker_entry_details`, `pokedex_collection_locations`, and
-`pokedex_collection_specimens`. All use RLS; migrations 394, 400, and 402
+`pokedex_collection_specimens`, plus `pokedex_tracker_wanted_entries`. All use RLS; migrations 394, 400, 402, and 435
 ensure forced RLS for the private collection boundary. Browser table CRUD is
 denied. Authenticated RPCs scope every read and write to `auth.uid()`.
 
@@ -99,9 +132,10 @@ send private tracker IDs, caught flags, collection notes, or account identity
 into those queries.
 
 Account export continues to include tracker definitions, direct caught flags,
-entry details, locations, and individual records. Derived National progress is
-not materialized in an export as if it were a direct HOME record. Account or
-tracker deletion removes owned private rows through the existing cascades.
+entry details, locations, individual records, marks, Alpha status, and hunt
+targets. Derived National progress is not materialized in an export as if it
+were a direct HOME record. Account or tracker deletion removes owned private
+rows through the existing cascades.
 
 ## Box planner boundary
 
@@ -141,20 +175,22 @@ of later premium access.
 
 ## Release checks
 
-Before release:
+Before a release containing migration 435:
 
-1. Apply migration 408 to the retained isolated Preview project.
-2. Run the rollback-only migration 408 two-account regression.
-3. Verify Scarlet/Violet and Sword/Shield section counts and in-section number
-   order against the pinned reviewed catalog.
-4. Verify a game catch appears in the same owner's National Dex, cannot appear
-   for another account, disappears when its only source is unchecked, and
-   cannot erase direct National progress.
-5. Confirm regular users do not see JSON controls and owner access still does.
-6. Review signed-in desktop, 390px, and 320px layouts for section tabs, finder,
-   20-slot and 30-slot boxes, long game names, and no horizontal overflow.
-7. Run `pnpm audit --prod --audit-level high`, `npm run test:all`,
+1. Apply migration 435 to one disposable isolated Preview branch based on the
+   current Production migration ledger.
+2. Run the rollback-only migration 435 two-account regression. It checks the
+   954-species GO catalog, exact FireRed/LeafGreen postgame split, Brilliant
+   Diamond union, marks, Alpha eligibility, search isolation, and version-5
+   export/restore.
+3. Verify official numbered sections and **Other obtainable** remain separate.
+4. Confirm regular users do not see JSON controls and owner access still does.
+5. Review signed-in desktop, 390px, and 320px layouts for collection search,
+   hunt targets, mark selection, form suggestions, section tabs, and no
+   horizontal overflow.
+6. Run `pnpm audit --prod --audit-level high`, `npm run test:all`,
    `npm run test:national-dex`, and `npm run build` with the public Supabase
    build variables.
+7. Delete the exact disposable Preview branch immediately after validation.
 8. After an authorized protected release, confirm the deployed commit and run
    `npm run smoke:production` as post-deployment evidence.

@@ -53,7 +53,7 @@ test("the tracker presents Alpha as an independent supported-game checklist", ()
   assert.match(page, /entry\.alpha_eligible/);
   assert.match(page, /mode === "alpha"/);
   assert.match(tracker, /entries\.filter\(\(entry\) => entry\.alpha_eligible\)/);
-  assert.match(collector, /POKEDEX_COLLECTOR_EXPORT_VERSION = 4/);
+  assert.match(collector, /POKEDEX_COLLECTOR_EXPORT_VERSION = 5/);
   assert.match(collector, /is_alpha: true/);
   assert.match(collector, /include_alpha/);
 });

@@ -118,7 +118,10 @@ const artifact = {
 const output = `${JSON.stringify(artifact, null, 2)}\n`;
 
 if (process.argv.includes("--check")) {
-  if (!fs.existsSync(OUTPUT) || fs.readFileSync(OUTPUT, "utf8") !== output) {
+  const checkedInOutput = fs.existsSync(OUTPUT)
+    ? fs.readFileSync(OUTPUT, "utf8").replace(/\r\n/g, "\n")
+    : null;
+  if (checkedInOutput !== output) {
     throw new Error("The checked-in Legends Alpha availability artifact is stale. Run npm run catalog:build:legends-alpha.");
   }
   console.log("Legends Alpha availability verified: Arceus 224/242, Z-A 339/364.");

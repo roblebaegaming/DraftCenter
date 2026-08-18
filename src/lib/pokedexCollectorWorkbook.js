@@ -43,6 +43,7 @@ export function buildPokedexCollectorWorkbookSheets({ hub, exportPayload, export
   const exportedIso = (exportedAt instanceof Date ? exportedAt : new Date(exportedAt)).toISOString();
   const totalSpecimens = trackers.reduce((sum, tracker) => sum + (tracker.specimens || []).length, 0);
   const totalLocations = trackers.reduce((sum, tracker) => sum + (tracker.locations || []).length, 0);
+  const totalWanted = trackers.reduce((sum, tracker) => sum + (tracker.wanted || []).length, 0);
 
   const summary = {
     name: "Summary",
@@ -54,6 +55,7 @@ export function buildPokedexCollectorWorkbookSheets({ hub, exportPayload, export
       ["Trackers", trackers.length],
       ["Storage locations", totalLocations],
       ["Individual Pokémon", totalSpecimens],
+      ["Looking-for targets", totalWanted],
       ["Exported", exportedIso],
       ["About this file", "This workbook is a readable copy of the tracker information saved to your account."],
     ],
@@ -81,7 +83,14 @@ export function buildPokedexCollectorWorkbookSheets({ hub, exportPayload, export
 
   const detailRows = trackers.flatMap((tracker) => (tracker.details || []).map((detail) => [
     trackerLabel(tracker), detail.pokemon_id, safe(detail.pokemon), detail.dex_number ?? "",
-    detail.is_shiny ? "Shiny" : "Standard", safe(detail.pokeball), (detail.ribbons || []).map(safe).join(" | "), safe(detail.notes), safe(detail.updated_at),
+    detail.is_shiny ? "Shiny" : "Standard", safe(detail.pokeball), (detail.ribbons || []).map(safe).join(" | "),
+    (detail.marks || []).map(safe).join(" | "), safe(detail.notes), safe(detail.updated_at),
+  ]));
+
+  const wantedRows = trackers.flatMap((tracker) => (tracker.wanted || []).map((target) => [
+    trackerLabel(tracker), target.pokemon_id, safe(target.pokemon), target.dex_number ?? "",
+    target.is_shiny ? "Shiny" : "Standard", safe(target.form_label), (target.marks || []).map(safe).join(" | "),
+    yesNo(target.wants_alpha), safe(target.notes), safe(target.updated_at),
   ]));
 
   const locationRows = trackers.flatMap((tracker) => (tracker.locations || []).map((location, index) => [
@@ -90,9 +99,9 @@ export function buildPokedexCollectorWorkbookSheets({ hub, exportPayload, export
 
   const specimenRows = trackers.flatMap((tracker) => enrichedSpecimens(tracker).map((specimen) => [
     trackerLabel(tracker), safe(specimen.pokemon), specimen.pokemon_id, specimen.dex_number ?? "", safe(specimen.form_label), safe(specimen.nickname),
-    yesNo(specimen.is_shiny), safe(specimen.gender), specimen.level ?? "", safe(specimen.original_trainer), safe(specimen.origin_game), safe(specimen.origin_mark),
+    yesNo(specimen.is_shiny), yesNo(specimen.is_alpha), safe(specimen.gender), specimen.level ?? "", safe(specimen.original_trainer), safe(specimen.origin_game), safe(specimen.origin_mark),
     safe(specimen.location_name), safe(specimen.location_kind), safe(specimen.location_platform), safe(specimen.box_label), specimen.box_position ?? "",
-    safe(specimen.pokeball), (specimen.ribbons || []).map(safe).join(" | "), yesNo(specimen.is_event), safe(specimen.notes),
+    safe(specimen.pokeball), (specimen.ribbons || []).map(safe).join(" | "), (specimen.marks || []).map(safe).join(" | "), yesNo(specimen.is_event), safe(specimen.notes),
   ]));
 
   const template = sheet(
@@ -100,7 +109,7 @@ export function buildPokedexCollectorWorkbookSheets({ hub, exportPayload, export
     "Bulk CSV import template",
     "Copy the header row into a UTF-8 CSV. Use record_type checklist for progress-only rows or individual for repeatable collection records. Existing data is never overwritten.",
     POKEDEX_COLLECTOR_CSV_HEADERS,
-    [["individual", "Pikachu", 25, "yes", "no", "", "Example only — remove this row", "no", "unknown", "", "", "", "", "home-main", "HOME main", "pokemon_home", "Switch", "", "Living Dex", 1, "poke", "", "no", "Remove this example before import"]],
+    [["individual", "Pikachu", 25, 25, "yes", "no", "", "Example only — remove this row", "no", "no", "unknown", "", "", "", "", "home-main", "HOME main", "pokemon_home", "Switch", "", "Living Dex", 1, "poke", "", "", "no", "Remove this example before import"]],
     POKEDEX_COLLECTOR_CSV_HEADERS.map((header) => Math.max(13, Math.min(26, header.length + 3))),
   );
 
@@ -108,9 +117,10 @@ export function buildPokedexCollectorWorkbookSheets({ hub, exportPayload, export
     summary,
     sheet("Trackers", "Tracker dashboard", "Cross-tracker progress and inventory totals.", ["Tracker", "Catalog", "Catalog total", "Registered", "Shiny registered", "Alpha registered", "Shiny layer", "Alpha layer", "Locations", "Individuals", "Updated"], trackerRows, [28, 28, 14, 13, 17, 17, 13, 13, 12, 13, 24]),
     sheet("Checklist", "Registered checklist entries", "Registered standard, shiny, and supported Legends Alpha entries are listed.", ["Tracker", "Catalog", "Pokémon ID", "Species", "Dex number", "Progress type", "Registered at"], checklistRows, [28, 26, 12, 24, 12, 14, 24]),
-    sheet("Entry Details", "Checklist details", "Optional ball, ribbon, and private-note details stored independently of registration.", ["Tracker", "Pokémon ID", "Species", "Dex number", "Progress type", "Poké Ball", "Ribbons", "Private note", "Updated"], detailRows, [28, 12, 24, 12, 14, 18, 42, 55, 24]),
+    sheet("Entry Details", "Checklist details", "Optional ball, ribbon, mark, and private-note details stored independently of registration.", ["Tracker", "Pokémon ID", "Species", "Dex number", "Progress type", "Poké Ball", "Ribbons", "Marks", "Private note", "Updated"], detailRows, [28, 12, 24, 12, 14, 18, 42, 42, 55, 24]),
+    sheet("Looking For", "Private hunt targets", "Pokémon you are looking for, including requested form, marks, Shiny status, or Alpha status.", ["Tracker", "Pokémon ID", "Species", "Dex number", "Target type", "Form or style", "Required marks", "Alpha required", "Private note", "Updated"], wantedRows, [28, 12, 24, 12, 14, 24, 42, 14, 55, 24]),
     sheet("Locations", "Storage locations", "Private game-save, HOME, cartridge, and other locations you have added.", ["Tracker", "Import key", "Location", "Type", "Platform", "Private note", "Updated"], locationRows, [28, 16, 28, 18, 22, 46, 24]),
-    sheet("Individuals", "Individual Pokémon", "Private records for individual Pokémon and the details you choose to save.", ["Tracker", "Species", "Pokémon ID", "Dex number", "Form", "Nickname", "Shiny", "Gender", "Level", "Original Trainer", "Origin game", "Origin mark", "Location", "Location type", "Platform", "Box", "Slot", "Poké Ball", "Ribbons", "Event", "Private note"], specimenRows, [28, 24, 12, 12, 22, 22, 9, 12, 9, 22, 22, 22, 26, 18, 20, 18, 9, 18, 42, 9, 55]),
+    sheet("Individuals", "Individual Pokémon", "Private records for individual Pokémon and the details you choose to save.", ["Tracker", "Species", "Pokémon ID", "Dex number", "Form", "Nickname", "Shiny", "Alpha", "Gender", "Level", "Original Trainer", "Origin game", "Origin mark", "Location", "Location type", "Platform", "Box", "Slot", "Poké Ball", "Ribbons", "Marks", "Event", "Private note"], specimenRows, [28, 24, 12, 12, 22, 22, 9, 9, 12, 9, 22, 22, 22, 26, 18, 20, 18, 9, 18, 42, 42, 9, 55]),
     template,
   ];
 }

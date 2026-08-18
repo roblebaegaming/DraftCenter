@@ -1,3 +1,6 @@
+import collectibleForms from "../../data/pokedex/pokemon-collectible-forms.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json" with { type: "json" };
+import draftLabCatalog from "../data/draft-lab-catalog.json" with { type: "json" };
+
 export const POKEDEX_TRACKER_PAGE_SIZE = 120;
 export const POKEAPI_SPRITES_COMMIT = "5841d46f1a0d2b8918a29a7376b1424878b86b59";
 export const POKEMON_HOME_BOX_SIZE = 30;
@@ -46,9 +49,37 @@ const POKEDEX_SECTION_META = Object.freeze({
   paldea: { label: "Paldea Dex", order: 0 },
   kitakami: { label: "Kitakami Dex", order: 1 },
   blueberry: { label: "Blueberry Dex", order: 2 },
+  "lumiose-city": { label: "Lumiose Dex", order: 0 },
+  hyperspace: { label: "Hyperspace Dex", order: 1 },
+  go: { label: "Pokémon GO Dex", order: 0 },
+  obtainable: { label: "Other obtainable", order: 90 },
 });
 
 const LETS_GO_BOX_GAMES = new Set(["lets-go-pikachu", "lets-go-eevee"]);
+
+const normalizePokemonName = (value) => String(value || "").toLocaleLowerCase()
+  .normalize("NFKD").replace(/[\u0300-\u036f]/g, "")
+  .replace(/[’‘]/g, "'").replace(/[^a-z0-9]+/g, "");
+const POKEMON_TYPES_BY_NAME = new Map(draftLabCatalog.pokemon.map((pokemon) => [
+  normalizePokemonName(pokemon.name),
+  [pokemon.t1, pokemon.t2].filter(Boolean),
+]));
+const FORM_OPTIONS_BY_ID = new Map(collectibleForms.species.map((record) => [record.pokemon_id, record.forms]));
+
+export const POKEDEX_FORM_CATALOG_SOURCE = Object.freeze({
+  source: collectibleForms.source,
+  commit: collectibleForms.source_commit,
+  species: collectibleForms.species_count,
+  forms: collectibleForms.form_count,
+});
+
+export function pokedexFormOptions(pokemonId) {
+  return FORM_OPTIONS_BY_ID.get(Number(pokemonId)) || [];
+}
+
+export function pokedexPokemonTypes(pokemonName) {
+  return POKEMON_TYPES_BY_NAME.get(normalizePokemonName(pokemonName)) || [];
+}
 
 export function pokedexSectionLabel(key) {
   const normalized = String(key || "");
@@ -209,6 +240,51 @@ const ALOLA = ["sun", "moon", "ultra-sun", "ultra-moon"];
 const SWSH = ["sword", "shield"];
 const BDSP = ["brilliant-diamond", "shining-pearl"];
 const PALDEA = ["scarlet", "violet"];
+const MARK_GAMES = [...SWSH, ...PALDEA];
+
+const mark = (key, label, group, games = MARK_GAMES) => ({ key, label, group, games });
+export const POKEDEX_MARK_OPTIONS = [
+  mark("lunchtime", "Lunchtime Mark", "Time"), mark("sleepy-time", "Sleepy-Time Mark", "Time"),
+  mark("dusk", "Dusk Mark", "Time"), mark("dawn", "Dawn Mark", "Time"),
+  mark("cloudy", "Cloudy Mark", "Weather"), mark("rainy", "Rainy Mark", "Weather"),
+  mark("stormy", "Stormy Mark", "Weather"), mark("snowy", "Snowy Mark", "Weather"),
+  mark("blizzard", "Blizzard Mark", "Weather"), mark("dry", "Dry Mark", "Weather", SWSH),
+  mark("sandstorm", "Sandstorm Mark", "Weather"), mark("misty", "Misty Mark", "Weather"),
+  mark("fishing", "Fishing Mark", "Encounter", SWSH), mark("curry", "Curry Mark", "Encounter", SWSH),
+  mark("destiny", "Destiny Mark", "Encounter", PALDEA), mark("rare", "Rare Mark", "Rarity"),
+  mark("uncommon", "Uncommon Mark", "Rarity"),
+  ...[
+    ["rowdy", "Rowdy"], ["absent-minded", "Absent-Minded"], ["jittery", "Jittery"],
+    ["excited", "Excited"], ["charismatic", "Charismatic"], ["calmness", "Calmness"],
+    ["intense", "Intense"], ["zoned-out", "Zoned-Out"], ["joyful", "Joyful"],
+    ["angry", "Angry"], ["smiley", "Smiley"], ["teary", "Teary"], ["upbeat", "Upbeat"],
+    ["peeved", "Peeved"], ["intellectual", "Intellectual"], ["ferocious", "Ferocious"],
+    ["crafty", "Crafty"], ["scowling", "Scowling"], ["kindly", "Kindly"],
+    ["flustered", "Flustered"], ["pumped-up", "Pumped-Up"], ["zero-energy", "Zero Energy"],
+    ["prideful", "Prideful"], ["unsure", "Unsure"], ["humble", "Humble"],
+    ["thorny", "Thorny"], ["vigor", "Vigor"], ["slump", "Slump"],
+  ].map(([key, label]) => mark(key, `${label} Mark`, "Personality")),
+  mark("jumbo", "Jumbo Mark", "Size and achievements", PALDEA),
+  mark("mini", "Mini Mark", "Size and achievements", PALDEA),
+  mark("itemfinder", "Itemfinder Mark", "Size and achievements", PALDEA),
+  mark("gourmand", "Gourmand Mark", "Size and achievements", PALDEA),
+  mark("partner", "Partner Mark", "Size and achievements", PALDEA),
+  mark("alpha", "Alpha Mark", "Special origin", ["legends-arceus", "legends-za", ...PALDEA]),
+  mark("mightiest", "Mightiest Mark", "Special origin", PALDEA),
+  mark("titan", "Titan Mark", "Special origin", PALDEA),
+];
+
+export function pokedexMarkGroups(catalogKey) {
+  const options = catalogKey === "home"
+    ? POKEDEX_MARK_OPTIONS
+    : POKEDEX_MARK_OPTIONS.filter(({ games }) => games.includes(catalogKey));
+  return options.reduce((groups, option) => {
+    const existing = groups.find(({ label }) => label === option.group);
+    if (existing) existing.options.push(option);
+    else groups.push({ label: option.group, options: [option] });
+    return groups;
+  }, []);
+}
 
 const GEN3_CONTESTS = ["Cool", "Beauty", "Cute", "Smart", "Tough"].flatMap((category) => [
   ribbon(`g3-${category.toLowerCase()}`, `${category} Ribbon`, "Generation III contests", RSE),
@@ -294,13 +370,14 @@ export function pokedexEntryDetails(entry = {}, mode = "standard") {
   return {
     pokeball: entry[`${prefix}pokeball`] || "",
     ribbons: Array.isArray(entry[`${prefix}ribbons`]) ? entry[`${prefix}ribbons`] : [],
+    marks: Array.isArray(entry[`${prefix}marks`]) ? entry[`${prefix}marks`] : [],
     notes: entry[`${prefix}notes`] || "",
   };
 }
 
 export function pokedexHasEntryDetails(entry = {}, mode = "standard") {
   const details = pokedexEntryDetails(entry, mode);
-  return Boolean(details.pokeball || details.ribbons.length || details.notes.trim());
+  return Boolean(details.pokeball || details.ribbons.length || details.marks.length || details.notes.trim());
 }
 
 export function pokedexHomePlacement(dexNumber) {
@@ -353,28 +430,44 @@ export function filterPokedexEntries(entries = [], { query = "", status = "all",
 
 export function groupPokedexCatalogs(catalogs = []) {
   return catalogs.reduce((groups, catalog) => {
-    const label = catalog.key === "home" ? "Pokémon HOME" : `Generation ${catalog.generation}`;
+    const label = catalog.key === "home" ? "Pokémon HOME" : catalog.key === "pokemon-go" ? "Pokémon GO" : `Generation ${catalog.generation}`;
     const existing = groups.find((group) => group.label === label);
     if (existing) existing.catalogs.push(catalog);
     else groups.push({ label, catalogs: [catalog] });
     return groups;
-  }, []);
+  }, []).sort((left, right) => {
+    const rank = (label) => label === "Pokémon HOME" ? -2 : label === "Pokémon GO" ? -1 : Number(label.replace(/\D+/g, "")) || 99;
+    return rank(left.label) - rank(right.label);
+  });
 }
 
-export function filterPokedexSpecimens(specimens = [], query = "") {
-  const needle = query.trim().toLocaleLowerCase();
-  if (!needle) return specimens;
-  return specimens.filter((specimen) => [
-    specimen.pokemon,
-    specimen.nickname,
-    specimen.form_label,
-    specimen.original_trainer,
-    specimen.origin_game,
-    specimen.origin_mark,
-    specimen.location_name,
-    specimen.box_label,
-    specimen.intended_destination,
-  ].some((value) => String(value || "").toLocaleLowerCase().includes(needle)));
+export function filterPokedexSpecimens(specimens = [], filters = "") {
+  const values = typeof filters === "string" ? { query: filters } : filters || {};
+  const needle = String(values.query || "").trim().toLocaleLowerCase();
+  const ball = String(values.ball || "");
+  const ribbon = String(values.ribbon || "");
+  const markKey = String(values.mark || "");
+  const type = String(values.type || "").toLocaleLowerCase();
+  const game = String(values.game || "").trim().toLocaleLowerCase();
+  const alpha = values.alpha;
+  return specimens.filter((specimen) => {
+    const types = pokedexPokemonTypes(specimen.pokemon);
+    const haystack = [
+      specimen.pokemon, specimen.nickname, specimen.form_label, specimen.original_trainer,
+      specimen.origin_game, specimen.origin_mark, specimen.location_name, specimen.box_label,
+      specimen.intended_destination, specimen.tracker_title, specimen.catalog_name,
+      specimen.catalog_key, specimen.notes, specimen.pokeball,
+      ...(specimen.ribbons || []), ...(specimen.marks || []), ...types,
+    ];
+    return (!needle || haystack.some((value) => String(value || "").toLocaleLowerCase().includes(needle)))
+      && (!ball || specimen.pokeball === ball)
+      && (!ribbon || specimen.ribbons?.includes(ribbon))
+      && (!markKey || specimen.marks?.includes(markKey))
+      && (!type || types.includes(type))
+      && (!game || [specimen.origin_game, specimen.location_name, specimen.tracker_title, specimen.catalog_name, specimen.catalog_key]
+        .some((value) => String(value || "").toLocaleLowerCase().includes(game)))
+      && (alpha === undefined || alpha === null || Boolean(specimen.is_alpha) === Boolean(alpha));
+  });
 }
 
 export function pokedexSpecimenDisplayName(specimen = {}) {
@@ -394,10 +487,10 @@ function csvCell(value) {
 export function pokedexInventoryCsv(inventory = {}) {
   const headers = [
     "record_type", "species", "pokemon_id", "national_dex", "registered", "shiny_registered",
-    "form", "nickname", "shiny", "gender", "level",
+    "form", "nickname", "shiny", "alpha", "gender", "level",
     "original_trainer", "origin_game", "origin_mark", "location_key", "storage_location", "location_type",
     "location_platform", "location_notes",
-    "box", "box_position", "poke_ball", "ribbons", "event", "notes",
+    "box", "box_position", "poke_ball", "ribbons", "marks", "event", "notes",
   ];
   const locations = new Map((inventory.locations || []).map((location) => [location.id, location]));
   const rows = (inventory.specimens || []).map((specimen) => {
@@ -412,6 +505,7 @@ export function pokedexInventoryCsv(inventory = {}) {
     specimen.form_label,
     specimen.nickname,
     specimen.is_shiny ? "yes" : "no",
+    specimen.is_alpha ? "yes" : "no",
     specimen.gender,
     specimen.level,
     specimen.original_trainer,
@@ -426,6 +520,7 @@ export function pokedexInventoryCsv(inventory = {}) {
     specimen.box_position,
     specimen.pokeball,
     Array.isArray(specimen.ribbons) ? specimen.ribbons.join(" | ") : "",
+    Array.isArray(specimen.marks) ? specimen.marks.join(" | ") : "",
     specimen.is_event ? "yes" : "no",
     specimen.notes,
   ];

@@ -10,16 +10,20 @@ import {
   pokedexBallOptions,
   pokedexBoxLayout,
   pokedexEntryDetails,
+  pokedexFormOptions,
   pokedexHasEntryDetails,
   pokedexArtworkUrl,
   pokedexHomePlacement,
   pokedexInventoryCsv,
+  pokedexMarkGroups,
+  pokedexPokemonTypes,
   pokedexRibbonGroups,
   pokedexSpecimenDisplayName,
   pokedexTrackerProgress,
   POKEDEX_BALL_OPTIONS,
   POKEDEX_ENTRY_NOTE_MAX_LENGTH,
   POKEDEX_LOCATION_OPTIONS,
+  POKEDEX_MARK_OPTIONS,
   POKEDEX_RIBBON_OPTIONS,
   POKEDEX_TRACKER_PAGE_SIZE,
 } from "../src/lib/pokedexTracker.js";
@@ -66,6 +70,21 @@ test("catalogs group Pokémon HOME before game generations", () => {
   assert.equal(pokedexHomePlacement(0), null);
 });
 
+test("Pokémon GO, collectible forms, types, and marks use pinned catalogs", () => {
+  const groups = groupPokedexCatalogs([
+    { key: "pokemon-go", generation: 10 },
+    { key: "home", generation: 10 },
+    { key: "legends-za", generation: 9 },
+  ]);
+  assert.deepEqual(groups.map(({ label }) => label), ["Pokémon HOME", "Pokémon GO", "Generation 9"]);
+  assert.equal(pokedexFormOptions(666).length, 20);
+  assert.equal(pokedexFormOptions(676).length, 10);
+  assert.ok(pokedexFormOptions(869).length >= 63);
+  assert.deepEqual(pokedexPokemonTypes("Vivillon"), ["bug", "flying"]);
+  assert.ok(pokedexMarkGroups("home").flatMap(({ options }) => options).some(({ key }) => key === "rare"));
+  assert.ok(POKEDEX_MARK_OPTIONS.some(({ key }) => key === "alpha"));
+});
+
 test("game Pokédex sections use their own numbers and box layouts", () => {
   const sections = groupPokedexSections([
     { pokemon_id: 25, pokemon: "Pikachu", dex_number: 74, pokedex_key: "blueberry" },
@@ -104,13 +123,14 @@ test("standard and shiny entry details remain independent and optional", () => {
   const entry = {
     pokeball: "moon",
     ribbons: ["best-friends"],
+    marks: ["rare"],
     notes: "Breed for Timid",
     shiny_pokeball: "luxury",
     shiny_ribbons: [],
     shiny_notes: "",
   };
-  assert.deepEqual(pokedexEntryDetails(entry), { pokeball: "moon", ribbons: ["best-friends"], notes: "Breed for Timid" });
-  assert.deepEqual(pokedexEntryDetails(entry, "shiny"), { pokeball: "luxury", ribbons: [], notes: "" });
+  assert.deepEqual(pokedexEntryDetails(entry), { pokeball: "moon", ribbons: ["best-friends"], marks: ["rare"], notes: "Breed for Timid" });
+  assert.deepEqual(pokedexEntryDetails(entry, "shiny"), { pokeball: "luxury", ribbons: [], marks: [], notes: "" });
   assert.equal(pokedexHasEntryDetails(entry), true);
   assert.equal(pokedexHasEntryDetails({}, "shiny"), false);
   assert.equal(POKEDEX_ENTRY_NOTE_MAX_LENGTH, 1000);
@@ -135,6 +155,8 @@ test("individual collection records are searchable, readable, and safely exporta
     box_position: 3,
     pokeball: "poke",
     ribbons: ["best-friends"],
+    marks: ["rare"],
+    is_alpha: true,
     is_event: false,
     importance: "irreplaceable",
     intended_destination: "Pokémon HOME",
@@ -145,12 +167,15 @@ test("individual collection records are searchable, readable, and safely exporta
   assert.equal(pokedexSpecimenDisplayName(specimens[0]), "Sparky · Pikachu (Partner Cap)");
   assert.equal(filterPokedexSpecimens(specimens, "bank box").length, 1);
   assert.equal(filterPokedexSpecimens(specimens, "yellow").length, 1);
+  assert.equal(filterPokedexSpecimens(specimens, { mark: "rare", alpha: true, type: "electric" }).length, 1);
+  assert.equal(filterPokedexSpecimens(specimens, { game: "bank box" }).length, 1);
   assert.equal(filterPokedexSpecimens(specimens, "missing").length, 0);
   const csv = pokedexInventoryCsv({ specimens });
   assert.match(csv, /^"record_type","species","pokemon_id","national_dex"/);
   assert.match(csv, /"Pikachu"/);
   assert.match(csv, /"' =FORMULA\(\)"/);
   assert.match(csv, /"best-friends"/);
+  assert.match(csv, /"rare"/);
   assert.doesNotMatch(csv, /rescue/i);
   assert.doesNotMatch(csv, /intended_destination|transfer_state|transferred_on|irreplaceable|planned/i);
   assert.deepEqual(POKEDEX_LOCATION_OPTIONS.map(({ key }) => key), ["game_save", "pokemon_bank", "pokemon_home", "cartridge", "other"]);
@@ -162,9 +187,9 @@ test("Collector CSV import is bounded, additive, round-trippable, and atomic-rea
     { pokemon_id: 25, pokemon: "Pikachu", dex_number: 25 },
   ];
   const template = pokedexCollectorCsvTemplate();
-  assert.match(template, /^"record_type","species","pokemon_id","registered"/);
+  assert.match(template, /^"record_type","species","pokemon_id","national_dex","registered"/);
   assert.doesNotMatch(template, /importance|intended_destination|transfer_state|transferred_on/i);
-  const csv = `${template}checklist,Bulbasaur,1,yes,no\r\nindividual,Pikachu,25,no,no,,Sparky,yes,unknown,88,,,,home-main,HOME Main,pokemon_home,Switch,,Living Dex,4,luxury,best-friends,no,Private note\r\n`;
+  const csv = `${template}checklist,Bulbasaur,1,1,yes,no\r\nindividual,Pikachu,25,25,no,no,,Sparky,yes,no,unknown,88,,,,home-main,HOME Main,pokemon_home,Switch,,Living Dex,4,luxury,best-friends,rare,no,Private note\r\n`;
   const parsed = parsePokedexCollectorCsv(csv, catalog);
   assert.deepEqual(parsed.errors, []);
   assert.equal(parsed.rowCount, 2);
@@ -175,6 +200,8 @@ test("Collector CSV import is bounded, additive, round-trippable, and atomic-rea
   assert.equal(parsed.specimens[0].location_ref, "home-main");
   assert.equal(parsed.specimens[0].nickname, "Sparky");
   assert.deepEqual(parsed.specimens[0].ribbons, ["best-friends"]);
+  assert.deepEqual(parsed.specimens[0].marks, ["rare"]);
+  assert.equal(parsed.specimens[0].is_alpha, false);
 
   const conflictCsv = "species,location_key,storage_location,location_type\r\nPikachu,same,HOME,pokemon_home\r\nPikachu,same,Bank,pokemon_bank\r\n";
   assert.ok(parsePokedexCollectorCsv(conflictCsv, catalog).errors.some((message) => /conflicting location details/.test(message)));
@@ -195,7 +222,7 @@ test("Collector JSON backup restores only as new private copies", () => {
   const active = {
     tracker: { catalog_key: "home", title: "Living Dex", include_shiny: true },
     pokemon: [
-      { pokemon_id: 1, pokemon: "Bulbasaur", dex_number: 1, caught: true, shiny_caught: false, pokeball: "friend", ribbons: ["partner"], notes: "Keep" },
+      { pokemon_id: 1, pokemon: "Bulbasaur", dex_number: 1, caught: true, shiny_caught: false, pokeball: "friend", ribbons: ["partner"], marks: ["rare"], notes: "Keep", wanted: true, wanted_form: "Any", wanted_marks: ["rare"], wanted_alpha: false, wanted_notes: "Trade target" },
       { pokemon_id: 25, pokemon: "Pikachu", dex_number: 25, caught: false, shiny_caught: true, shiny_pokeball: "luxury", shiny_ribbons: [], shiny_notes: "Hunt complete" },
     ],
   };
@@ -206,9 +233,11 @@ test("Collector JSON backup restores only as new private copies", () => {
   assert.equal(payload.restore_behavior, "creates-a-new-private-copy");
   assert.equal(payload.entries.length, 2);
   assert.equal(payload.details.length, 2);
+  assert.equal(payload.wanted.length, 1);
+  assert.deepEqual(payload.details[0].marks, ["rare"]);
   const parsed = parsePokedexRestoreJson(JSON.stringify(payload));
-  assert.deepEqual(parsed.summary, { trackers: 1, entries: 2, details: 2, locations: 1, specimens: 1 });
-  assert.deepEqual(Object.keys(parsed.trackers[0]).sort(), ["catalog_key", "details", "entries", "include_alpha", "include_shiny", "locations", "specimens", "title"]);
+  assert.deepEqual(parsed.summary, { trackers: 1, entries: 2, details: 2, locations: 1, specimens: 1, wanted: 1 });
+  assert.deepEqual(Object.keys(parsed.trackers[0]).sort(), ["catalog_key", "details", "entries", "include_alpha", "include_shiny", "locations", "specimens", "title", "wanted"]);
   assert.throws(() => parsePokedexRestoreJson("{}"), /does not contain a DraftCenter Pokédex tracker backup/);
   assert.throws(() => parsePokedexRestoreJson(JSON.stringify({ trackers: [{ ...payload.tracker, include_shiny: "yes" }] })), /invalid include_shiny/i);
 });
@@ -223,13 +252,14 @@ test("Collector dashboard and workbook cover the complete private workspace", ()
     exportPayload: { trackers: [{
       ...trackers[0], catalog_name: "Pokémon HOME National Dex", include_shiny: true,
       entries: [{ pokemon_id: 1, pokemon: "Bulbasaur", dex_number: 1, is_shiny: false }],
-      details: [{ pokemon_id: 1, pokemon: "Bulbasaur", dex_number: 1, is_shiny: false, notes: "=FORMULA()" }],
+      details: [{ pokemon_id: 1, pokemon: "Bulbasaur", dex_number: 1, is_shiny: false, marks: ["rare"], notes: "=FORMULA()" }],
+      wanted: [{ pokemon_id: 1, pokemon: "Bulbasaur", dex_number: 1, is_shiny: false, form_label: "Any", marks: ["rare"], notes: "Trade" }],
       locations: [{ id: "location-1", kind: "pokemon_home", name: "HOME" }],
-      specimens: [{ pokemon_id: 1, pokemon: "Bulbasaur", dex_number: 1, location_id: "location-1", notes: "+FORMULA()", ribbons: [] }],
+      specimens: [{ pokemon_id: 1, pokemon: "Bulbasaur", dex_number: 1, location_id: "location-1", notes: "+FORMULA()", ribbons: [], marks: ["rare"], is_alpha: true }],
     }] },
     exportedAt: new Date("2026-08-15T12:00:00Z"),
   });
-  assert.deepEqual(sheets.map(({ name }) => name), ["Summary", "Trackers", "Checklist", "Entry Details", "Locations", "Individuals", "Import Template"]);
+  assert.deepEqual(sheets.map(({ name }) => name), ["Summary", "Trackers", "Checklist", "Entry Details", "Looking For", "Locations", "Individuals", "Import Template"]);
   assert.match(JSON.stringify(sheets), /'?[=+]FORMULA\(\)/);
   assert.doesNotMatch(JSON.stringify(sheets), /rescue/i);
   assert.doesNotMatch(JSON.stringify(sheets), /Destination|Transfer state|Transferred on/);
@@ -406,6 +436,28 @@ test("numbered game sections and linked National progress keep account boundarie
   assert.match(preview, /second account inherited or read another account National progress/i);
   assert.match(preview, /Direct National progress was removed with its game link/i);
   assert.match(preview, /rollback;/i);
+});
+
+test("migration 435 adds reviewed postgame coverage, Pokémon GO, marks, and private hunt targets", () => {
+  const sql = source("supabase/migrations/20260818044408_pokedex_obtainable_forms_marks_wanted_go.sql");
+  const regression = source("supabase/tests/435-pokedex-obtainable-forms-marks-wanted-go-preview-regression.sql");
+  assert.match(sql, /Migration 435/i);
+  assert.match(sql, /'pokemon-go'.*'Pokémon GO'/s);
+  assert.match(sql, /<> 954/);
+  assert.match(sql, /'obtainable'::text/);
+  assert.match(sql, /create table public\.pokedex_tracker_wanted_entries/i);
+  assert.match(sql, /force row level security/i);
+  assert.match(sql, /create function public\.get_my_pokedex_collection_index\(\)/i);
+  assert.match(sql, /create function public\.set_my_pokedex_tracker_wanted_entry/i);
+  assert.match(sql, /mark_keys text\[\]/i);
+  assert.match(sql, /is_alpha boolean not null default false/i);
+  assert.match(sql, /rename to export_my_pokedex_trackers_v4/i);
+  assert.match(sql, /jsonb_build_object\('version', 5/i);
+  assert.match(sql, /has_table_privilege\('authenticated', 'public\.pokedex_tracker_wanted_entries', 'SELECT'\)/i);
+  assert.match(regression, /FireRed did not preserve 151 numbered Kanto entries plus 36 direct postgame encounters/i);
+  assert.match(regression, /public\.get_my_pokedex_collection_index\(\)/i);
+  assert.match(regression, /public\.restore_my_pokedex_trackers/i);
+  assert.match(regression, /rollback;/i);
 });
 
 test("Collector PWA, focused navigation, funding, and measurement preserve privacy boundaries", () => {

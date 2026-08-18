@@ -1,0 +1,1349 @@
+{
+  "source": "PokeAPI pokemon forms",
+  "source_commit": "5064f1d72746b3a6a931616dae3fb6445c556d4f",
+  "exclusions": [
+    {
+      "profile": "floette-eternal",
+      "reason": "Never legally obtainable"
+    }
+  ],
+  "species_count": 146,
+  "form_count": 459,
+  "species": [
+    {
+      "pokemon_id": 19,
+      "pokemon": "Rattata",
+      "forms": [
+        "Alolan Form"
+      ]
+    },
+    {
+      "pokemon_id": 20,
+      "pokemon": "Raticate",
+      "forms": [
+        "Alolan Form",
+        "Totem Alolan Raticate"
+      ]
+    },
+    {
+      "pokemon_id": 25,
+      "pokemon": "Pikachu",
+      "forms": [
+        "Alola Cap",
+        "Cosplay Pikachu",
+        "Hoenn Cap",
+        "Kalos Cap",
+        "Original Cap",
+        "Partner Cap",
+        "Partner Pikachu",
+        "Pikachu Belle",
+        "Pikachu Libre",
+        "Pikachu Ph.D.",
+        "Pikachu Pop Star",
+        "Pikachu Rock Star",
+        "Sinnoh Cap",
+        "Unova Cap",
+        "World Cap"
+      ]
+    },
+    {
+      "pokemon_id": 26,
+      "pokemon": "Raichu",
+      "forms": [
+        "Alolan Form"
+      ]
+    },
+    {
+      "pokemon_id": 27,
+      "pokemon": "Sandshrew",
+      "forms": [
+        "Alolan Form"
+      ]
+    },
+    {
+      "pokemon_id": 28,
+      "pokemon": "Sandslash",
+      "forms": [
+        "Alolan Form"
+      ]
+    },
+    {
+      "pokemon_id": 37,
+      "pokemon": "Vulpix",
+      "forms": [
+        "Alolan Form"
+      ]
+    },
+    {
+      "pokemon_id": 38,
+      "pokemon": "Ninetales",
+      "forms": [
+        "Alolan Form"
+      ]
+    },
+    {
+      "pokemon_id": 50,
+      "pokemon": "Diglett",
+      "forms": [
+        "Alolan Form"
+      ]
+    },
+    {
+      "pokemon_id": 51,
+      "pokemon": "Dugtrio",
+      "forms": [
+        "Alolan Form"
+      ]
+    },
+    {
+      "pokemon_id": 52,
+      "pokemon": "Meowth",
+      "forms": [
+        "Alolan Form",
+        "Galarian Form"
+      ]
+    },
+    {
+      "pokemon_id": 53,
+      "pokemon": "Persian",
+      "forms": [
+        "Alolan Form"
+      ]
+    },
+    {
+      "pokemon_id": 58,
+      "pokemon": "Growlithe",
+      "forms": [
+        "Hisuian Form"
+      ]
+    },
+    {
+      "pokemon_id": 59,
+      "pokemon": "Arcanine",
+      "forms": [
+        "Hisuian Form"
+      ]
+    },
+    {
+      "pokemon_id": 74,
+      "pokemon": "Geodude",
+      "forms": [
+        "Alolan Form"
+      ]
+    },
+    {
+      "pokemon_id": 75,
+      "pokemon": "Graveler",
+      "forms": [
+        "Alolan Form"
+      ]
+    },
+    {
+      "pokemon_id": 76,
+      "pokemon": "Golem",
+      "forms": [
+        "Alolan Form"
+      ]
+    },
+    {
+      "pokemon_id": 77,
+      "pokemon": "Ponyta",
+      "forms": [
+        "Galarian Form"
+      ]
+    },
+    {
+      "pokemon_id": 78,
+      "pokemon": "Rapidash",
+      "forms": [
+        "Galarian Form"
+      ]
+    },
+    {
+      "pokemon_id": 79,
+      "pokemon": "Slowpoke",
+      "forms": [
+        "Galarian Form"
+      ]
+    },
+    {
+      "pokemon_id": 80,
+      "pokemon": "Slowbro",
+      "forms": [
+        "Galarian Form"
+      ]
+    },
+    {
+      "pokemon_id": 83,
+      "pokemon": "Farfetch’d",
+      "forms": [
+        "Galarian Form"
+      ]
+    },
+    {
+      "pokemon_id": 88,
+      "pokemon": "Grimer",
+      "forms": [
+        "Alolan Form"
+      ]
+    },
+    {
+      "pokemon_id": 89,
+      "pokemon": "Muk",
+      "forms": [
+        "Alolan Form"
+      ]
+    },
+    {
+      "pokemon_id": 100,
+      "pokemon": "Voltorb",
+      "forms": [
+        "Hisuian Form"
+      ]
+    },
+    {
+      "pokemon_id": 101,
+      "pokemon": "Electrode",
+      "forms": [
+        "Hisuian Form"
+      ]
+    },
+    {
+      "pokemon_id": 103,
+      "pokemon": "Exeggutor",
+      "forms": [
+        "Alolan Form"
+      ]
+    },
+    {
+      "pokemon_id": 105,
+      "pokemon": "Marowak",
+      "forms": [
+        "Alolan Form",
+        "Totem Alolan Marowak"
+      ]
+    },
+    {
+      "pokemon_id": 110,
+      "pokemon": "Weezing",
+      "forms": [
+        "Galarian Form"
+      ]
+    },
+    {
+      "pokemon_id": 122,
+      "pokemon": "Mr. Mime",
+      "forms": [
+        "Galarian Form"
+      ]
+    },
+    {
+      "pokemon_id": 128,
+      "pokemon": "Tauros",
+      "forms": [
+        "Paldean Form (Aqua Breed)",
+        "Paldean Form (Blaze Breed)",
+        "Paldean Form (Combat Breed)"
+      ]
+    },
+    {
+      "pokemon_id": 133,
+      "pokemon": "Eevee",
+      "forms": [
+        "Partner Eevee"
+      ]
+    },
+    {
+      "pokemon_id": 144,
+      "pokemon": "Articuno",
+      "forms": [
+        "Galarian Form"
+      ]
+    },
+    {
+      "pokemon_id": 145,
+      "pokemon": "Zapdos",
+      "forms": [
+        "Galarian Form"
+      ]
+    },
+    {
+      "pokemon_id": 146,
+      "pokemon": "Moltres",
+      "forms": [
+        "Galarian Form"
+      ]
+    },
+    {
+      "pokemon_id": 157,
+      "pokemon": "Typhlosion",
+      "forms": [
+        "Hisuian Form"
+      ]
+    },
+    {
+      "pokemon_id": 172,
+      "pokemon": "Pichu",
+      "forms": [
+        "Spiky Eared"
+      ]
+    },
+    {
+      "pokemon_id": 194,
+      "pokemon": "Wooper",
+      "forms": [
+        "Paldean Form"
+      ]
+    },
+    {
+      "pokemon_id": 199,
+      "pokemon": "Slowking",
+      "forms": [
+        "Galarian Form"
+      ]
+    },
+    {
+      "pokemon_id": 201,
+      "pokemon": "Unown",
+      "forms": [
+        "!",
+        "?",
+        "A",
+        "B",
+        "C",
+        "D",
+        "E",
+        "F",
+        "G",
+        "H",
+        "I",
+        "J",
+        "K",
+        "L",
+        "M",
+        "N",
+        "O",
+        "P",
+        "Q",
+        "R",
+        "S",
+        "T",
+        "U",
+        "V",
+        "W",
+        "X",
+        "Y",
+        "Z"
+      ]
+    },
+    {
+      "pokemon_id": 211,
+      "pokemon": "Qwilfish",
+      "forms": [
+        "Hisuian Form"
+      ]
+    },
+    {
+      "pokemon_id": 215,
+      "pokemon": "Sneasel",
+      "forms": [
+        "Hisuian Form"
+      ]
+    },
+    {
+      "pokemon_id": 222,
+      "pokemon": "Corsola",
+      "forms": [
+        "Galarian Form"
+      ]
+    },
+    {
+      "pokemon_id": 263,
+      "pokemon": "Zigzagoon",
+      "forms": [
+        "Galarian Form"
+      ]
+    },
+    {
+      "pokemon_id": 264,
+      "pokemon": "Linoone",
+      "forms": [
+        "Galarian Form"
+      ]
+    },
+    {
+      "pokemon_id": 351,
+      "pokemon": "Castform",
+      "forms": [
+        "Normal"
+      ]
+    },
+    {
+      "pokemon_id": 386,
+      "pokemon": "Deoxys",
+      "forms": [
+        "Attack Forme",
+        "Defense Forme",
+        "Normal Forme",
+        "Speed Forme"
+      ]
+    },
+    {
+      "pokemon_id": 412,
+      "pokemon": "Burmy",
+      "forms": [
+        "Plant Cloak",
+        "Sandy Cloak",
+        "Trash Cloak"
+      ]
+    },
+    {
+      "pokemon_id": 413,
+      "pokemon": "Wormadam",
+      "forms": [
+        "Plant Cloak",
+        "Sandy Cloak",
+        "Trash Cloak"
+      ]
+    },
+    {
+      "pokemon_id": 414,
+      "pokemon": "Mothim",
+      "forms": [
+        "Plant",
+        "Sandy",
+        "Trash"
+      ]
+    },
+    {
+      "pokemon_id": 421,
+      "pokemon": "Cherrim",
+      "forms": [
+        "Overcast Form"
+      ]
+    },
+    {
+      "pokemon_id": 422,
+      "pokemon": "Shellos",
+      "forms": [
+        "East Sea",
+        "West Sea"
+      ]
+    },
+    {
+      "pokemon_id": 423,
+      "pokemon": "Gastrodon",
+      "forms": [
+        "East Sea",
+        "West Sea"
+      ]
+    },
+    {
+      "pokemon_id": 479,
+      "pokemon": "Rotom",
+      "forms": [
+        "Fan Rotom",
+        "Frost Rotom",
+        "Heat Rotom",
+        "Mow Rotom",
+        "Rotom",
+        "Wash Rotom"
+      ]
+    },
+    {
+      "pokemon_id": 483,
+      "pokemon": "Dialga",
+      "forms": [
+        "Origin Forme"
+      ]
+    },
+    {
+      "pokemon_id": 484,
+      "pokemon": "Palkia",
+      "forms": [
+        "Origin Forme"
+      ]
+    },
+    {
+      "pokemon_id": 487,
+      "pokemon": "Giratina",
+      "forms": [
+        "Altered Forme",
+        "Origin Forme"
+      ]
+    },
+    {
+      "pokemon_id": 492,
+      "pokemon": "Shaymin",
+      "forms": [
+        "Land Forme",
+        "Sky Forme"
+      ]
+    },
+    {
+      "pokemon_id": 493,
+      "pokemon": "Arceus",
+      "forms": [
+        "??? Type",
+        "Bug Type",
+        "Dark Type",
+        "Dragon Type",
+        "Electric Type",
+        "Fairy Type",
+        "Fighting Type",
+        "Fire Type",
+        "Flying Type",
+        "Ghost Type",
+        "Grass Type",
+        "Ground Type",
+        "Ice Type",
+        "Normal Type",
+        "Poison Type",
+        "Psychic Type",
+        "Rock Type",
+        "Steel Type",
+        "Water Type"
+      ]
+    },
+    {
+      "pokemon_id": 503,
+      "pokemon": "Samurott",
+      "forms": [
+        "Hisuian Form"
+      ]
+    },
+    {
+      "pokemon_id": 549,
+      "pokemon": "Lilligant",
+      "forms": [
+        "Hisuian Form"
+      ]
+    },
+    {
+      "pokemon_id": 550,
+      "pokemon": "Basculin",
+      "forms": [
+        "Blue Striped Form",
+        "Red Striped Form",
+        "White Striped Form"
+      ]
+    },
+    {
+      "pokemon_id": 554,
+      "pokemon": "Darumaka",
+      "forms": [
+        "Galarian Form"
+      ]
+    },
+    {
+      "pokemon_id": 555,
+      "pokemon": "Darmanitan",
+      "forms": [
+        "Galarian Form",
+        "Standard Mode"
+      ]
+    },
+    {
+      "pokemon_id": 562,
+      "pokemon": "Yamask",
+      "forms": [
+        "Galarian Form"
+      ]
+    },
+    {
+      "pokemon_id": 570,
+      "pokemon": "Zorua",
+      "forms": [
+        "Hisuian Form"
+      ]
+    },
+    {
+      "pokemon_id": 571,
+      "pokemon": "Zoroark",
+      "forms": [
+        "Hisuian Form"
+      ]
+    },
+    {
+      "pokemon_id": 585,
+      "pokemon": "Deerling",
+      "forms": [
+        "Autumn Form",
+        "Spring Form",
+        "Summer Form",
+        "Winter Form"
+      ]
+    },
+    {
+      "pokemon_id": 586,
+      "pokemon": "Sawsbuck",
+      "forms": [
+        "Autumn Form",
+        "Spring Form",
+        "Summer Form",
+        "Winter Form"
+      ]
+    },
+    {
+      "pokemon_id": 592,
+      "pokemon": "Frillish",
+      "forms": [
+        "Female",
+        "Male"
+      ]
+    },
+    {
+      "pokemon_id": 593,
+      "pokemon": "Jellicent",
+      "forms": [
+        "Female",
+        "Male"
+      ]
+    },
+    {
+      "pokemon_id": 618,
+      "pokemon": "Stunfisk",
+      "forms": [
+        "Galarian Form"
+      ]
+    },
+    {
+      "pokemon_id": 628,
+      "pokemon": "Braviary",
+      "forms": [
+        "Hisuian Form"
+      ]
+    },
+    {
+      "pokemon_id": 641,
+      "pokemon": "Tornadus",
+      "forms": [
+        "Incarnate Forme",
+        "Therian Forme"
+      ]
+    },
+    {
+      "pokemon_id": 642,
+      "pokemon": "Thundurus",
+      "forms": [
+        "Incarnate Forme",
+        "Therian Forme"
+      ]
+    },
+    {
+      "pokemon_id": 645,
+      "pokemon": "Landorus",
+      "forms": [
+        "Incarnate Forme",
+        "Therian Forme"
+      ]
+    },
+    {
+      "pokemon_id": 646,
+      "pokemon": "Kyurem",
+      "forms": [
+        "Black Kyurem",
+        "Kyurem",
+        "White Kyurem"
+      ]
+    },
+    {
+      "pokemon_id": 647,
+      "pokemon": "Keldeo",
+      "forms": [
+        "Ordinary Form",
+        "Resolute Form"
+      ]
+    },
+    {
+      "pokemon_id": 648,
+      "pokemon": "Meloetta",
+      "forms": [
+        "Aria Forme"
+      ]
+    },
+    {
+      "pokemon_id": 649,
+      "pokemon": "Genesect",
+      "forms": [
+        "Burn Drive",
+        "Chill Drive",
+        "Douse Drive",
+        "Shock Drive"
+      ]
+    },
+    {
+      "pokemon_id": 658,
+      "pokemon": "Greninja",
+      "forms": [
+        "Battle Bond Greninja"
+      ]
+    },
+    {
+      "pokemon_id": 664,
+      "pokemon": "Scatterbug",
+      "forms": [
+        "Archipelago",
+        "Continental",
+        "Elegant",
+        "Fancy",
+        "Garden",
+        "High Plains",
+        "Icy Snow",
+        "Jungle",
+        "Marine",
+        "Meadow",
+        "Modern",
+        "Monsoon",
+        "Ocean",
+        "Poke Ball",
+        "Polar",
+        "River",
+        "Sandstorm",
+        "Savanna",
+        "Sun",
+        "Tundra"
+      ]
+    },
+    {
+      "pokemon_id": 665,
+      "pokemon": "Spewpa",
+      "forms": [
+        "Archipelago",
+        "Continental",
+        "Elegant",
+        "Fancy",
+        "Garden",
+        "High Plains",
+        "Icy Snow",
+        "Jungle",
+        "Marine",
+        "Meadow",
+        "Modern",
+        "Monsoon",
+        "Ocean",
+        "Poke Ball",
+        "Polar",
+        "River",
+        "Sandstorm",
+        "Savanna",
+        "Sun",
+        "Tundra"
+      ]
+    },
+    {
+      "pokemon_id": 666,
+      "pokemon": "Vivillon",
+      "forms": [
+        "Archipelago Pattern",
+        "Continental Pattern",
+        "Elegant Pattern",
+        "Fancy Pattern",
+        "Garden Pattern",
+        "High Plains Pattern",
+        "Icy Snow Pattern",
+        "Jungle Pattern",
+        "Marine Pattern",
+        "Meadow Pattern",
+        "Modern Pattern",
+        "Monsoon Pattern",
+        "Ocean Pattern",
+        "Poké Ball Pattern",
+        "Polar Pattern",
+        "River Pattern",
+        "Sandstorm Pattern",
+        "Savanna Pattern",
+        "Sun Pattern",
+        "Tundra Pattern"
+      ]
+    },
+    {
+      "pokemon_id": 668,
+      "pokemon": "Pyroar",
+      "forms": [
+        "Female",
+        "Male"
+      ]
+    },
+    {
+      "pokemon_id": 669,
+      "pokemon": "Flabébé",
+      "forms": [
+        "Blue Flower",
+        "Orange Flower",
+        "Red Flower",
+        "White Flower",
+        "Yellow Flower"
+      ]
+    },
+    {
+      "pokemon_id": 670,
+      "pokemon": "Floette",
+      "forms": [
+        "Blue Flower",
+        "Orange Flower",
+        "Red Flower",
+        "White Flower",
+        "Yellow Flower"
+      ]
+    },
+    {
+      "pokemon_id": 671,
+      "pokemon": "Florges",
+      "forms": [
+        "Blue Flower",
+        "Orange Flower",
+        "Red Flower",
+        "White Flower",
+        "Yellow Flower"
+      ]
+    },
+    {
+      "pokemon_id": 676,
+      "pokemon": "Furfrou",
+      "forms": [
+        "Dandy Trim",
+        "Debutante Trim",
+        "Diamond Trim",
+        "Heart Trim",
+        "Kabuki Trim",
+        "La Reine Trim",
+        "Matron Trim",
+        "Natural Form",
+        "Pharaoh Trim",
+        "Star Trim"
+      ]
+    },
+    {
+      "pokemon_id": 678,
+      "pokemon": "Meowstic",
+      "forms": [
+        "Female",
+        "Male"
+      ]
+    },
+    {
+      "pokemon_id": 681,
+      "pokemon": "Aegislash",
+      "forms": [
+        "Shield Forme"
+      ]
+    },
+    {
+      "pokemon_id": 705,
+      "pokemon": "Sliggoo",
+      "forms": [
+        "Hisuian Form"
+      ]
+    },
+    {
+      "pokemon_id": 706,
+      "pokemon": "Goodra",
+      "forms": [
+        "Hisuian Form"
+      ]
+    },
+    {
+      "pokemon_id": 710,
+      "pokemon": "Pumpkaboo",
+      "forms": [
+        "Average Size",
+        "Large Size",
+        "Small Size",
+        "Super Size"
+      ]
+    },
+    {
+      "pokemon_id": 711,
+      "pokemon": "Gourgeist",
+      "forms": [
+        "Average Size",
+        "Large Size",
+        "Small Size",
+        "Super Size"
+      ]
+    },
+    {
+      "pokemon_id": 713,
+      "pokemon": "Avalugg",
+      "forms": [
+        "Hisuian Form"
+      ]
+    },
+    {
+      "pokemon_id": 716,
+      "pokemon": "Xerneas",
+      "forms": [
+        "Neutral Mode"
+      ]
+    },
+    {
+      "pokemon_id": 718,
+      "pokemon": "Zygarde",
+      "forms": [
+        "10% Forme",
+        "50% Forme"
+      ]
+    },
+    {
+      "pokemon_id": 720,
+      "pokemon": "Hoopa",
+      "forms": [
+        "Hoopa Confined",
+        "Hoopa Unbound"
+      ]
+    },
+    {
+      "pokemon_id": 724,
+      "pokemon": "Decidueye",
+      "forms": [
+        "Hisuian Form"
+      ]
+    },
+    {
+      "pokemon_id": 735,
+      "pokemon": "Gumshoos",
+      "forms": [
+        "Totem Gumshoos"
+      ]
+    },
+    {
+      "pokemon_id": 738,
+      "pokemon": "Vikavolt",
+      "forms": [
+        "Totem Vikavolt"
+      ]
+    },
+    {
+      "pokemon_id": 741,
+      "pokemon": "Oricorio",
+      "forms": [
+        "Baile Style",
+        "Pa’u Style",
+        "Pom Pom Style",
+        "Sensu Style"
+      ]
+    },
+    {
+      "pokemon_id": 743,
+      "pokemon": "Ribombee",
+      "forms": [
+        "Totem Ribombee"
+      ]
+    },
+    {
+      "pokemon_id": 744,
+      "pokemon": "Rockruff",
+      "forms": [
+        "Own Tempo Rockruff"
+      ]
+    },
+    {
+      "pokemon_id": 745,
+      "pokemon": "Lycanroc",
+      "forms": [
+        "Dusk Form",
+        "Midday Form",
+        "Midnight Form"
+      ]
+    },
+    {
+      "pokemon_id": 746,
+      "pokemon": "Wishiwashi",
+      "forms": [
+        "Solo Form"
+      ]
+    },
+    {
+      "pokemon_id": 752,
+      "pokemon": "Araquanid",
+      "forms": [
+        "Totem Araquanid"
+      ]
+    },
+    {
+      "pokemon_id": 754,
+      "pokemon": "Lurantis",
+      "forms": [
+        "Totem Lurantis"
+      ]
+    },
+    {
+      "pokemon_id": 758,
+      "pokemon": "Salazzle",
+      "forms": [
+        "Totem Salazzle"
+      ]
+    },
+    {
+      "pokemon_id": 773,
+      "pokemon": "Silvally",
+      "forms": [
+        "Type: Bug",
+        "Type: Dark",
+        "Type: Dragon",
+        "Type: Electric",
+        "Type: Fairy",
+        "Type: Fighting",
+        "Type: Fire",
+        "Type: Flying",
+        "Type: Ghost",
+        "Type: Grass",
+        "Type: Ground",
+        "Type: Ice",
+        "Type: Normal",
+        "Type: Poison",
+        "Type: Psychic",
+        "Type: Rock",
+        "Type: Steel",
+        "Type: Water"
+      ]
+    },
+    {
+      "pokemon_id": 774,
+      "pokemon": "Minior",
+      "forms": [
+        "Blue Core",
+        "Green Core",
+        "Indigo Core",
+        "Meteor Form",
+        "Orange Core",
+        "Red Core",
+        "Violet Core",
+        "Yellow Core"
+      ]
+    },
+    {
+      "pokemon_id": 777,
+      "pokemon": "Togedemaru",
+      "forms": [
+        "Totem Togedemaru"
+      ]
+    },
+    {
+      "pokemon_id": 778,
+      "pokemon": "Mimikyu",
+      "forms": [
+        "Disguised Form",
+        "Totem Disguised Mimikyu"
+      ]
+    },
+    {
+      "pokemon_id": 784,
+      "pokemon": "Kommo-o",
+      "forms": [
+        "Totem Kommo O"
+      ]
+    },
+    {
+      "pokemon_id": 800,
+      "pokemon": "Necrozma",
+      "forms": [
+        "Dawn Wings",
+        "Dusk Mane"
+      ]
+    },
+    {
+      "pokemon_id": 801,
+      "pokemon": "Magearna",
+      "forms": [
+        "Original Color"
+      ]
+    },
+    {
+      "pokemon_id": 849,
+      "pokemon": "Toxtricity",
+      "forms": [
+        "Amped Form",
+        "Low Key Form"
+      ]
+    },
+    {
+      "pokemon_id": 854,
+      "pokemon": "Sinistea",
+      "forms": [
+        "Antique Form",
+        "Phony Form"
+      ]
+    },
+    {
+      "pokemon_id": 855,
+      "pokemon": "Polteageist",
+      "forms": [
+        "Antique Form",
+        "Phony Form"
+      ]
+    },
+    {
+      "pokemon_id": 869,
+      "pokemon": "Alcremie",
+      "forms": [
+        "Caramel Swirl Berry Sweet",
+        "Caramel Swirl Clover Sweet",
+        "Caramel Swirl Flower Sweet",
+        "Caramel Swirl Love Sweet",
+        "Caramel Swirl Ribbon Sweet",
+        "Caramel Swirl Star Sweet",
+        "Caramel Swirl Strawberry Sweet",
+        "Lemon Cream Berry Sweet",
+        "Lemon Cream Clover Sweet",
+        "Lemon Cream Flower Sweet",
+        "Lemon Cream Love Sweet",
+        "Lemon Cream Ribbon Sweet",
+        "Lemon Cream Star Sweet",
+        "Lemon Cream Strawberry Sweet",
+        "Matcha Cream Berry Sweet",
+        "Matcha Cream Clover Sweet",
+        "Matcha Cream Flower Sweet",
+        "Matcha Cream Love Sweet",
+        "Matcha Cream Ribbon Sweet",
+        "Matcha Cream Star Sweet",
+        "Matcha Cream Strawberry Sweet",
+        "Mint Cream Berry Sweet",
+        "Mint Cream Clover Sweet",
+        "Mint Cream Flower Sweet",
+        "Mint Cream Love Sweet",
+        "Mint Cream Ribbon Sweet",
+        "Mint Cream Star Sweet",
+        "Mint Cream Strawberry Sweet",
+        "Rainbow Swirl Berry Sweet",
+        "Rainbow Swirl Clover Sweet",
+        "Rainbow Swirl Flower Sweet",
+        "Rainbow Swirl Love Sweet",
+        "Rainbow Swirl Ribbon Sweet",
+        "Rainbow Swirl Star Sweet",
+        "Rainbow Swirl Strawberry Sweet",
+        "Ruby Cream Berry Sweet",
+        "Ruby Cream Clover Sweet",
+        "Ruby Cream Flower Sweet",
+        "Ruby Cream Love Sweet",
+        "Ruby Cream Ribbon Sweet",
+        "Ruby Cream Star Sweet",
+        "Ruby Cream Strawberry Sweet",
+        "Ruby Swirl Berry Sweet",
+        "Ruby Swirl Clover Sweet",
+        "Ruby Swirl Flower Sweet",
+        "Ruby Swirl Love Sweet",
+        "Ruby Swirl Ribbon Sweet",
+        "Ruby Swirl Star Sweet",
+        "Ruby Swirl Strawberry Sweet",
+        "Salted Cream Berry Sweet",
+        "Salted Cream Clover Sweet",
+        "Salted Cream Flower Sweet",
+        "Salted Cream Love Sweet",
+        "Salted Cream Ribbon Sweet",
+        "Salted Cream Star Sweet",
+        "Salted Cream Strawberry Sweet",
+        "Vanilla Cream Berry Sweet",
+        "Vanilla Cream Clover Sweet",
+        "Vanilla Cream Flower Sweet",
+        "Vanilla Cream Love Sweet",
+        "Vanilla Cream Ribbon Sweet",
+        "Vanilla Cream Star Sweet",
+        "Vanilla Cream Strawberry Sweet"
+      ]
+    },
+    {
+      "pokemon_id": 875,
+      "pokemon": "Eiscue",
+      "forms": [
+        "Ice Face"
+      ]
+    },
+    {
+      "pokemon_id": 876,
+      "pokemon": "Indeedee",
+      "forms": [
+        "Female",
+        "Male"
+      ]
+    },
+    {
+      "pokemon_id": 877,
+      "pokemon": "Morpeko",
+      "forms": [
+        "Full Belly Mode"
+      ]
+    },
+    {
+      "pokemon_id": 888,
+      "pokemon": "Zacian",
+      "forms": [
+        "Hero of Many Battles"
+      ]
+    },
+    {
+      "pokemon_id": 889,
+      "pokemon": "Zamazenta",
+      "forms": [
+        "Hero of Many Battles"
+      ]
+    },
+    {
+      "pokemon_id": 890,
+      "pokemon": "Eternatus",
+      "forms": [
+        "Eternamax"
+      ]
+    },
+    {
+      "pokemon_id": 892,
+      "pokemon": "Urshifu",
+      "forms": [
+        "Rapid Strike Style",
+        "Single Strike Style"
+      ]
+    },
+    {
+      "pokemon_id": 893,
+      "pokemon": "Zarude",
+      "forms": [
+        "Dada"
+      ]
+    },
+    {
+      "pokemon_id": 898,
+      "pokemon": "Calyrex",
+      "forms": [
+        "Ice Rider",
+        "Shadow Rider"
+      ]
+    },
+    {
+      "pokemon_id": 901,
+      "pokemon": "Ursaluna",
+      "forms": [
+        "Bloodmoon"
+      ]
+    },
+    {
+      "pokemon_id": 902,
+      "pokemon": "Basculegion",
+      "forms": [
+        "Female",
+        "Male"
+      ]
+    },
+    {
+      "pokemon_id": 905,
+      "pokemon": "Enamorus",
+      "forms": [
+        "Incarnate Forme",
+        "Therian Forme"
+      ]
+    },
+    {
+      "pokemon_id": 916,
+      "pokemon": "Oinkologne",
+      "forms": [
+        "Female",
+        "Male"
+      ]
+    },
+    {
+      "pokemon_id": 925,
+      "pokemon": "Maushold",
+      "forms": [
+        "Family of Four",
+        "Family of Three"
+      ]
+    },
+    {
+      "pokemon_id": 931,
+      "pokemon": "Squawkabilly",
+      "forms": [
+        "Blue Plumage",
+        "Green Plumage",
+        "White Plumage",
+        "Yellow Plumage"
+      ]
+    },
+    {
+      "pokemon_id": 964,
+      "pokemon": "Palafin",
+      "forms": [
+        "Zero Form"
+      ]
+    },
+    {
+      "pokemon_id": 978,
+      "pokemon": "Tatsugiri",
+      "forms": [
+        "Curly Form",
+        "Droopy Form",
+        "Stretchy Form"
+      ]
+    },
+    {
+      "pokemon_id": 982,
+      "pokemon": "Dudunsparce",
+      "forms": [
+        "Three Segment Form",
+        "Two Segment Form"
+      ]
+    },
+    {
+      "pokemon_id": 999,
+      "pokemon": "Gimmighoul",
+      "forms": [
+        "Chest Form",
+        "Roaming Form"
+      ]
+    },
+    {
+      "pokemon_id": 1007,
+      "pokemon": "Koraidon",
+      "forms": [
+        "Apex Build",
+        "Gliding Build",
+        "Limited Build",
+        "Sprinting Build",
+        "Swimming Build"
+      ]
+    },
+    {
+      "pokemon_id": 1008,
+      "pokemon": "Miraidon",
+      "forms": [
+        "Aquatic Mode",
+        "Drive Mode",
+        "Glide Mode",
+        "Low Power Mode",
+        "Ultimate Mode"
+      ]
+    },
+    {
+      "pokemon_id": 1012,
+      "pokemon": "Poltchageist",
+      "forms": [
+        "Artisan Form",
+        "Counterfeit Form"
+      ]
+    },
+    {
+      "pokemon_id": 1013,
+      "pokemon": "Sinistcha",
+      "forms": [
+        "Masterpiece Form",
+        "Unremarkable Form"
+      ]
+    },
+    {
+      "pokemon_id": 1017,
+      "pokemon": "Ogerpon",
+      "forms": [
+        "Cornerstone Mask",
+        "Hearthflame Mask",
+        "Teal Mask",
+        "Wellspring Mask"
+      ]
+    },
+    {
+      "pokemon_id": 1024,
+      "pokemon": "Terapagos",
+      "forms": [
+        "Normal Form"
+      ]
+    }
+  ]
+}
