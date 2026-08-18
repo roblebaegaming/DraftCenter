@@ -3,8 +3,8 @@
 - Last updated: August 18, 2026 Pacific
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified Production application and asset commit: `eb5ff39c6c59db7f32c1e6a3944df118d12b65d2`
-- Latest applied Production migration: 438 (`20260818080111`)
+- Verified Production application and asset commit: `6fa9dea11aca0dacbf51142c1eb9f997578d886d`
+- Latest applied Production migration: 439 (`20260818220437`)
 
 ## Deployed state
 
@@ -204,6 +204,34 @@ browser errors or warnings, and the complete 22-check Production smoke sweep
 passes. This release added no database migration and changed no Production data,
 RLS, grants, provider settings, or environment variables.
 
+Pull request [#323](https://github.com/roblebaegaming/DraftCenter/pull/323)
+is released at exact application commit
+`6fa9dea11aca0dacbf51142c1eb9f997578d886d` with Production migration 439.
+Private Tournament Organizer Demo mode lets an owner or commissioner rehearse
+the maximum 32-seat Auction Swiss workflow with 31 clearly labeled synthetic
+bot seats, either through the full auction or generated four-Pokémon rosters,
+then lock, pair, complete five Swiss rounds, review standings, and reset for
+another practice. Bots are not accounts or ordinary tournament memberships,
+and persistent private-demo labels prevent the synthetic event from being
+presented as real participation.
+
+Migration 439 passed an owner-authorized disposable Preview matrix with 32
+seats, 128 roster entries, five rounds, 80 completed matches, 160 standing
+snapshots, authorization denials, ordinary-tournament boundaries, and reset
+cleanup. The branch was deleted immediately and confirmed absent. Production
+applied the schema once; its generated ledger version was reconciled to the
+canonical `20260818220437` only after exact SQL equivalence and unchanged-schema
+proof. Local and Production histories now match 234-for-234. Advisors returned
+no error-level finding and no demo-specific performance finding.
+
+The private owner showcase at
+https://www.draftcentral.gg/tournaments/owner-practice-32-manager-auction-swiss-cad8eeca
+is complete and intentionally preserved with 32 entrants, 32 teams, 128 roster
+entries, five rounds, 80 matches, and 160 standings snapshots. Four checked-in
+captures cover the event overview, final standings, generated rosters, and
+Round 5 results. Vercel reported exact commit `6fa9dea` Ready, protected checks
+passed, and the complete 22-check signed-out Production smoke sweep passed.
+
 Supabase automatic branching remains enabled with a one-concurrent-Preview
 limit and Supabase-only changes. Older Preview branches were left untouched.
 The automatic check on pull request #298 was canceled solely because that limit
@@ -222,15 +250,21 @@ not be resumed until the owner explicitly requests it.
 
 ## Current continuation order
 
-1. Run the scheduled aggregate-only attribution review at 09:00 Pacific on
+1. Show the completed private Tournament Organizer Demo and its four captures
+   to the tournament operator; preserve the finished event until the owner
+   explicitly asks to reset it.
+2. Reconstruct the supplied week-four four-pod league only after a dry-run
+   reconciliation of both source spreadsheets and explicit Production-write
+   approval.
+3. Run the scheduled aggregate-only attribution review at 09:00 Pacific on
    August 19 without inspecting or reporting individual identity or activity.
-2. Use the released activation, import, replay, and weekly-health workflows to
+4. Use the released activation, import, replay, and weekly-health workflows to
    support complete commissioner seasons before opening another broad feature
    area.
-3. Recruit lighthouse commissioners only after the owner approves the exact
+5. Recruit lighthouse commissioners only after the owner approves the exact
    audience, message, destination, and reply path.
-4. Keep PokeEarth paused until the owner directly requests resumption.
-5. Keep GO Meta Picks closed until an official eligibility pool is reviewed.
+6. Keep PokeEarth paused until the owner directly requests resumption.
+7. Keep GO Meta Picks closed until an official eligibility pool is reviewed.
 
 The aggregate-only attribution review remains scheduled for 09:00 Pacific on
 August 19, 2026. Do not inspect or report individual identity or activity.
@@ -250,6 +284,8 @@ August 19, 2026. Do not inspect or report individual identity or activity.
 ## Authoritative records
 
 - Current release and continuation handoff:
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-18-private-tournament-organizer-demo.md`](handoffs/DraftCenter-agent-handoff-2026-08-18-private-tournament-organizer-demo.md)
+- Previous reload/resume and battle-reporting handoff:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-18-reload-resume-and-battle-reporting.md`](handoffs/DraftCenter-agent-handoff-2026-08-18-reload-resume-and-battle-reporting.md)
 - Previous Team Lab Battle Mode UX handoff:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-18-team-lab-battle-mode-ux-release.md`](handoffs/DraftCenter-agent-handoff-2026-08-18-team-lab-battle-mode-ux-release.md)
