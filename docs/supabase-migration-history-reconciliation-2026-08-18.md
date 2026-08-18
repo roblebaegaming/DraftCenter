@@ -4,6 +4,8 @@
 - Production project: `eukexfqpiuidwygllaye`
 - Scope: migration-history metadata for migrations 429 through 438 only
 - Schema or application-data change: none
+- Documentation pull request: [#315](https://github.com/roblebaegaming/DraftCenter/pull/315)
+- Released `main` commit: `28c736141991be5e171bc0207afbdaa3d4dcc35c`
 
 ## Outcome
 
@@ -85,6 +87,16 @@ absent and all ten repository versions were present. Total history remained
   performance finding. The 420-item security set remained the established
   informational/warning baseline. The 239 performance notices were also only
   informational or warning level, with no repair-specific finding.
+- Pull request #315 passed Vercel, CodeQL, JavaScript security analysis,
+  dependency/security audit, and the full-history secret scan. Its Supabase
+  Preview check correctly skipped because the committed diff was documentation
+  only.
+- After the protected squash merge, the Supabase `main` integration passed and
+  the default branch returned to `FUNCTIONS_DEPLOYED`. This is the hosted proof
+  that the repaired ledger is accepted.
+- Vercel reported the merge deployment successful, all post-merge security
+  checks passed, and two complete 22-check signed-out Production smoke sweeps
+  passed.
 
 ## Prevention
 

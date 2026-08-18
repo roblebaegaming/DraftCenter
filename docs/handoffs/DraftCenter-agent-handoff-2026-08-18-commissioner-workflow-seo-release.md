@@ -100,6 +100,12 @@ fingerprint was identical before and after, Production remained
 SQL-equivalence proof, inverse rollback, and validation are recorded in
 [`docs/supabase-migration-history-reconciliation-2026-08-18.md`](../supabase-migration-history-reconciliation-2026-08-18.md).
 
+The reconciliation record passed every protected check and squash-merged
+through pull request [#315](https://github.com/roblebaegaming/DraftCenter/pull/315)
+as `28c7361`. The post-merge Supabase `main` integration then passed, Vercel
+reported the merge deployment successful, all post-merge security checks
+passed, and two complete 22-check signed-out Production smoke sweeps passed.
+
 ## Follow-up
 
 - Do not make another broad Pokémon-profile title or canonical change from this

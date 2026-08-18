@@ -161,6 +161,10 @@ migration timestamps as `supabase/migrations/`, ending at migration 438 version
 stored statement and history field, and left the public-schema fingerprint
 unchanged. The exact proof and reversible mapping are in
 [`docs/supabase-migration-history-reconciliation-2026-08-18.md`](supabase-migration-history-reconciliation-2026-08-18.md).
+The protected record merged through pull request
+[#315](https://github.com/roblebaegaming/DraftCenter/pull/315) at `28c7361`.
+The post-merge Supabase `main` integration, Vercel deployment, all security
+checks, and two complete 22-check Production smoke sweeps passed.
 
 Supabase automatic branching remains enabled with a one-concurrent-Preview
 limit and Supabase-only changes. Older Preview branches were left untouched.
