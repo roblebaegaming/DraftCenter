@@ -52,6 +52,9 @@ import {
   pricingPresetOptionsFor,
 } from "../lib/draft-pricing-presets";
 import { ABILITY_TYPE_MODIFIERS, defensiveTypeChart, teamDefenseSummary } from "../lib/teamAnalysis";
+import { leagueImportErrorCsv, previewLeagueImport } from "../lib/leagueImport";
+import { buildShowdownSeries } from "../lib/showdownReplay";
+import { trackActivationEvent } from "../lib/activationAnalytics";
 
 /* ---------------------------------------------------------
    DESIGN TOKENS — stadium-jumbotron-at-night aesthetic.
@@ -63,6 +66,13 @@ const TYPE_COLORS = {
   rock: "#B8A038", ghost: "#705898", dragon: "#7038F8", dark: "#705848",
   steel: "#B8B8D0", fairy: "#EE99AC",
 };
+
+function activationDraftStyle(settings = {}) {
+  if (settings.draftType === "auction") return "auction";
+  if (settings.draftType === "snake" && settings.snakeBudgetEnabled) return "budget-snake";
+  if (settings.draftType === "snake") return "snake";
+  return "unknown";
+}
 
 function friendlySaveFailure(prefix, error) {
   const detail = String(error?.message || error || "An unexpected error occurred.").trim();
@@ -5374,6 +5384,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   const completedDraftScheduleClearedRef = useRef(false);
   const automaticStartAttemptedRef = useRef(null);
   const lastReportedOperationalErrorRef = useRef("");
+  const lastLeagueImportRef = useRef(null);
   const unassignedManagerRoutedRef = useRef(false);
   const liveDraftPokemonCacheRef = useRef({ leagueId: null, sessionId: null, rows: null, request: null });
   // Role-derived values must be initialized before any hook dependency array
@@ -6293,6 +6304,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
         return;
       }
 
+      trackActivationEvent("draft_scheduled", { leagueKey: leagueId, oncePerLeague: true, properties: { source: "setup", practice: league?.is_practice ? "yes" : "no", draft_style: activationDraftStyle(nextState.settings), stage: "scheduled" } });
       setScheduledStartStatus({ phase: "preparing", startsAt: nextStart, error: "" });
       supabase.rpc("update_league_draft_time", {
         p_league_id: leagueId,
@@ -6618,6 +6630,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
 
   function startLocalDraft(liveDraft = null) {
     commit((current) => buildStartedDraftState(current, liveDraft));
+    trackActivationEvent("draft_started", { leagueKey: leagueId || "local", oncePerLeague: Boolean(leagueId), properties: { source: "draft", practice: league?.is_practice ? "yes" : "no", draft_style: activationDraftStyle(state.settings), stage: "started" } });
     if (leagueId && state.settings.draftScheduledAt) {
       supabase.rpc("update_league_draft_time", {
         p_league_id: leagueId,
@@ -6656,6 +6669,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       setState(nextState);
       setSaveStatus("saved");
       setTab("draft");
+      trackActivationEvent("draft_started", { leagueKey: leagueId, oncePerLeague: true, properties: { source: "draft", practice: league?.is_practice ? "yes" : "no", draft_style: activationDraftStyle(state.settings), stage: "started" } });
       if (state.settings.draftScheduledAt) {
         const { error } = await supabase.rpc("update_league_draft_time", {
           p_league_id: leagueId,
@@ -6710,6 +6724,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     setSaveStatus("saved");
     setTimeout(refreshLiveSnakeDraft, 0);
     setTab("draft");
+    trackActivationEvent("draft_started", { leagueKey: leagueId, oncePerLeague: true, properties: { source: "draft", practice: league?.is_practice ? "yes" : "no", draft_style: activationDraftStyle(state.settings), stage: "started" } });
     if (state.settings.draftScheduledAt) {
       supabase.rpc("update_league_draft_time", {
         p_league_id: leagueId,
@@ -6959,6 +6974,86 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       });
     }
     setTab("league"); setLeagueSubTab("schedule");
+  }
+
+  function applyLeagueImport(plan) {
+    if (!isCommissioner || state.locked || !plan?.ok) return false;
+    if (plan.mode === "complete-rosters" && ((state.schedule || []).length || Object.keys(state.matchResults || {}).length)) {
+      setLiveDraftError("Complete-roster import is only available before a season schedule or result exists. Use a new practice league or start a new season first.");
+      return false;
+    }
+    lastLeagueImportRef.current = state;
+    commit((current) => {
+      const importedAt = new Date().toISOString();
+      const settings = {
+        ...current.settings,
+        costOverrides: { ...(current.settings.costOverrides || {}), ...(plan.prices || {}) },
+      };
+      let teams = current.teams;
+      if (plan.teams.length) {
+        const existingByName = new Map(current.teams.map((team) => [String(team.name || "").trim().toLowerCase(), team]));
+        teams = plan.teams.map((imported, index) => {
+          const existing = existingByName.get(imported.name.trim().toLowerCase()) || current.teams[index];
+          let base = existing;
+          if (!base) {
+            const pick = pickRandomTrainerTeam(teams.slice(0, index).map((team) => team.name), teams.slice(0, index).map((team) => team.color));
+            base = { name: pick.name, color: pick.color, claimedBy: null, autoDraft: false, archetypes: [], logoUrl: null, otherStandingsValue: 0, description: "" };
+          }
+          return { ...base, id: index, name: imported.name, expectedManager: imported.manager || null };
+        });
+        settings.leagueSize = teams.length;
+        settings.manualDraftOrder = null;
+        settings.divisions = [];
+      }
+      const importedState = {
+        ...current,
+        teams,
+        settings,
+        lastLeagueImport: { importedAt, mode: plan.mode, teams: plan.summary.teams, rosterPokemon: plan.summary.rosterPokemon, priceChanges: plan.summary.priceChanges },
+        auditLog: [...(current.auditLog || []), auditEntry(myName, "Imported reviewed league spreadsheet", `${plan.summary.teams} teams · ${plan.summary.rosterPokemon} roster Pokémon · ${plan.summary.priceChanges} prices`)],
+      };
+      if (plan.mode !== "complete-rosters") return importedState;
+
+      const legalPool = fullPool(settings).filter((pokemon) => isLegal(pokemon, settings)).map((pokemon) => ({ ...pokemon, cost: costFor(pokemon, settings) }));
+      const byName = new Map(legalPool.map((pokemon) => [pokemon.name.toLowerCase(), pokemon]));
+      const usedIds = new Set();
+      const rosters = plan.teams.map((team) => team.pokemon.map((name) => {
+        const pokemon = byName.get(name.toLowerCase());
+        if (pokemon) usedIds.add(pokemon.id);
+        return pokemon ? { ...pokemon, acquiredVia: "league-import" } : null;
+      }).filter(Boolean));
+      const usesBudget = settings.draftType === "auction" || settings.snakeBudgetEnabled;
+      return {
+        ...importedState,
+        settings: { ...settings, draftScheduledAt: null },
+        locked: true,
+        draftStartedAt: Date.now(),
+        rosters,
+        budgets: usesBudget ? rosters.map((roster) => settings.budget - roster.reduce((sum, pokemon) => sum + pokemon.cost, 0)) : [],
+        pool: legalPool.filter((pokemon) => !usedIds.has(pokemon.id)),
+        snakeOrder: [], pickIndex: 0, pickDeadline: null,
+        auctionNominationOrder: [], auctionNominationIdx: 0, nominationDeadline: null, nominee: null,
+        paused: false, pausedAt: null, pauseIsOvernight: false, auctionEnded: true,
+      };
+    });
+    if (plan.mode === "complete-rosters" && leagueId && state.settings?.draftScheduledAt) {
+      supabase.rpc("update_league_draft_time", { p_league_id: leagueId, p_draft_starts_at: null }).then(() => {});
+    }
+    trackActivationEvent("league_import_confirmed", { leagueKey: leagueId, oncePerLeague: true, properties: { source: "import", practice: league?.is_practice ? "yes" : "no", import_mode: plan.mode } });
+    setLiveDraftError("");
+    return true;
+  }
+
+  function undoLeagueImport() {
+    const previous = lastLeagueImportRef.current;
+    if (!previous || !isCommissioner) return false;
+    lastLeagueImportRef.current = null;
+    commit(() => previous);
+    if (leagueId) {
+      supabase.rpc("update_league_draft_time", { p_league_id: leagueId, p_draft_starts_at: previous.settings?.draftScheduledAt || null }).then(() => {});
+    }
+    setLiveDraftError("");
+    return true;
   }
 
   function localSnakePick(mon) {
@@ -8002,9 +8097,11 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     revRef.current = Math.max(revRef.current, hydrated.rev || 0);
     setState(hydrated);
     setLiveDraftError("");
+    trackActivationEvent("first_result_recorded", { leagueKey: leagueId, oncePerLeague: true, properties: { source: "result", practice: league?.is_practice ? "yes" : "no", stage: "first-result" } });
+    if (result.showdownReplays?.length) trackActivationEvent("showdown_result_confirmed", { leagueKey: leagueId, oncePerLeague: true, properties: { source: "result", practice: league?.is_practice ? "yes" : "no", stage: "first-result" } });
     return true;
   }
-  async function reportMatch(week, matchIdx, gamesA, gamesB, monsAliveA, monsAliveB, replayUrlA, replayUrlB, mvpSide, mvpName, bestOf = 3) {
+  async function reportMatch(week, matchIdx, gamesA, gamesB, monsAliveA, monsAliveB, replayUrlA, replayUrlB, mvpSide, mvpName, bestOf = 3, showdownReplays = []) {
     const result = {
       gamesA: Number(gamesA) || 0, gamesB: Number(gamesB) || 0,
       bestOf: [1, 3, 5].includes(Number(bestOf)) ? Number(bestOf) : 3,
@@ -8013,6 +8110,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       replayUrlA: replayUrlA || null,
       replayUrlB: replayUrlB || null,
       mvp: mvpName ? { side: mvpSide, name: mvpName } : null,
+      showdownReplays: Array.isArray(showdownReplays) ? showdownReplays : [],
     };
     if (leagueId) return saveHostedRegularSeasonResult(week, matchIdx, result);
     commit((s) => ({
@@ -8745,6 +8843,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
         auditLog: [...(s.auditLog || []), auditEntry(myName, `Ended Season ${s.seasonNumber}`, `${champion.teamName} recorded as league champion; final season record frozen`)],
       };
     });
+    trackActivationEvent("season_completed", { leagueKey: leagueId, oncePerLeague: false, properties: { source: "result", practice: league?.is_practice ? "yes" : "no", stage: "season-complete" } });
     return true;
   }
 
@@ -8791,6 +8890,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     } catch {
       return { link, error: "The link was created, but your browser could not copy it automatically." };
     }
+    if (kind !== "spectator") trackActivationEvent("first_invite_copied", { leagueKey: leagueId, oncePerLeague: true, properties: { source: "setup", practice: league?.is_practice ? "yes" : "no", stage: "invited" } });
     return { link };
   }
 
@@ -9546,6 +9646,10 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     state.settings.draftType === "snake"
       ? state.pickIndex >= state.snakeOrder.length
       : state.pool.length === 0 || state.auctionEnded;
+  useEffect(() => {
+    if (!leagueId || !synced || !state.locked || !draftDone) return;
+    trackActivationEvent("draft_completed", { leagueKey: leagueId, oncePerLeague: true, properties: { source: "draft", practice: league?.is_practice ? "yes" : "no", draft_style: activationDraftStyle(state.settings), stage: "completed" } });
+  }, [leagueId, synced, state.locked, draftDone, league?.is_practice, state.settings]);
   const allTeamsMetMin = state.rosters.length > 0 && state.rosters.every((r) => r.length >= state.settings.rosterMin);
   const canDraftNow = !isSpectator && (
     isCommissioner ||
@@ -9884,6 +9988,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
             onStart={startDraft} finalizeManualDraft={finalizeManualDraft} finalizeSeason={finalizeSeason} startNewSeason={startNewSeason}
             updateHomepage={updateHomepage} addExpansionTeam={addExpansionTeam} removeSpecificTeam={removeSpecificTeam}
             exportLeagueBackup={exportLeagueBackup} exportRecoveryBackup={exportRecoveryBackup} importLeagueBackup={importLeagueBackup}
+            applyLeagueImport={applyLeagueImport} undoLeagueImport={undoLeagueImport} canUndoLeagueImport={Boolean(lastLeagueImportRef.current)}
             addCoCommissioner={addCoCommissioner} removeCoCommissioner={removeCoCommissioner}
             onOpenLeagueTools={onOpenLeagueTools} copyLeagueInvite={isDraftTournamentMode ? null : copyLeagueInvite}
             onOpenBroadcast={() => {
@@ -10012,7 +10117,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
             )}
             {leagueSubTab === "schedule" && !displayIsLimitedObserver && (
               <ScheduleView
-                state={state} isCommissioner={isCommissioner} myName={myName} myTeamIdx={myTeamIdx}
+                state={state} leagueId={leagueId} isCommissioner={isCommissioner} myName={myName} myTeamIdx={myTeamIdx}
                 setWeek={setWeek} simulateWeek={simulateWeek} onGenerate={generateSchedule} scheduleActionBusy={scheduleActionBusy} reportMatch={reportMatch}
                 setMatchMVP={setMatchMVP}
                 onViewTeam={goToTeam} setWeekMatchups={setWeekMatchups}
@@ -11584,7 +11689,7 @@ function ScheduledStartNotice({ status, scheduledAt, draftType, isCommissioner =
   );
 }
 
-function SetupView({ state, leagueId = null, leagueName = "league", isCommissioner, canBeCommissioner, claimCommissioner, unclaimCommissioner, claimTeam, renameTeam, myName, updateSettings, resizeTeams, rerollAllTeamIdentities, costFor, priceDetailsForMon, toggleBanMon, toggleAllowExtraMon, rebuildCurrentSeason, addCustomMon, removeCustomMon, setSpriteOverride, setTeamLogo, onStart, addDivision, renameDivision, removeDivision, setTeamDivision, finalizeManualDraft, finalizeSeason, startNewSeason, updateHomepage, addExpansionTeam, removeSpecificTeam, exportLeagueBackup, exportRecoveryBackup, importLeagueBackup, addCoCommissioner, removeCoCommissioner, onOpenLeagueTools, onOpenBroadcast, copyLeagueInvite, saveNow, saveStatus, draftError = "", teamResizeMessage = "", scheduledStartStatus = null, retryScheduledStart = null, eventMode = false }) {
+function SetupView({ state, leagueId = null, leagueName = "league", isCommissioner, canBeCommissioner, claimCommissioner, unclaimCommissioner, claimTeam, renameTeam, myName, updateSettings, resizeTeams, rerollAllTeamIdentities, costFor, priceDetailsForMon, toggleBanMon, toggleAllowExtraMon, rebuildCurrentSeason, addCustomMon, removeCustomMon, setSpriteOverride, setTeamLogo, onStart, addDivision, renameDivision, removeDivision, setTeamDivision, finalizeManualDraft, finalizeSeason, startNewSeason, updateHomepage, addExpansionTeam, removeSpecificTeam, exportLeagueBackup, exportRecoveryBackup, importLeagueBackup, applyLeagueImport, undoLeagueImport, canUndoLeagueImport = false, addCoCommissioner, removeCoCommissioner, onOpenLeagueTools, onOpenBroadcast, copyLeagueInvite, saveNow, saveStatus, draftError = "", teamResizeMessage = "", scheduledStartStatus = null, retryScheduledStart = null, eventMode = false }) {
   // A league may have been created before newer Setup options existed. Keep
   // this screen usable even if one of those older saved values is missing or
   // malformed; the next normal save will preserve the corrected shape.
@@ -11728,6 +11833,8 @@ function SetupView({ state, leagueId = null, leagueName = "league", isCommission
         </section>
       )}
       {isCommissioner && <CommissionerLaunchChecklist leagueId={leagueId} state={{ ...state, settings, teams }} availablePool={availablePool} readinessIssues={readinessIssues} />}
+      {isCommissioner && !eventMode && !locked && <CommissionerSetupPresets settings={settings} teams={teams} updateSettings={updateSettings} resizeTeams={resizeTeams} />}
+      {isCommissioner && !eventMode && (!locked || canUndoLeagueImport) && <LeagueSpreadsheetImport leagueName={leagueName} teams={teams} settings={settings} pool={availablePool} costFor={costFor} maximumTeams={activeLeagueTeamLimit} onApply={applyLeagueImport} onUndo={undoLeagueImport} canUndo={canUndoLeagueImport} />}
       {isCommissioner && locked && !eventMode && (
         <section className="rounded-lg p-5 mb-6" style={{ background: hasDraftSelections ? "#261822" : "#102B2B", border: `1px solid ${hasDraftSelections ? "#F0555A55" : "#4FD1C577"}` }}>
           <h2 className="display-font text-2xl mb-2" style={{ color: hasDraftSelections ? "#FF9AA7" : "#4FD1C5" }}>{hasStaleRosterCarryover ? "CARRIED-OVER ROSTERS DETECTED" : hasDraftSelections ? "EDIT MODE — ACTIVE SEASON SAFETY" : "NEED A LAST-MINUTE SETUP CHANGE?"}</h2>
@@ -12549,6 +12656,116 @@ function AddMonForm({ addCustomMon, allTypes }) {
   );
 }
 
+const COMMISSIONER_SETUP_PRESETS = Object.freeze([
+  { key: "first-season", name: "First season", detail: "6 teams · snake draft · 8 Pokémon · top 4 playoffs", size: 6, patch: { draftType: "snake", snakeBudgetEnabled: false, rosterSize: 8, playoffTeams: 4, regularSeasonFormat: "round-robin", manualScheduling: false } },
+  { key: "standard-singles", name: "Standard singles", detail: "8 teams · snake draft · 10 Pokémon · top 4 playoffs", size: 8, patch: { draftType: "snake", snakeBudgetEnabled: false, rosterSize: 10, playoffTeams: 4, regularSeasonFormat: "round-robin", manualScheduling: false } },
+  { key: "budget-snake", name: "Budgeted snake", detail: "8 teams · 120 points · 8–10 Pokémon · top 4 playoffs", size: 8, patch: { draftType: "snake", snakeBudgetEnabled: true, budget: 120, rosterMin: 8, rosterMax: 10, playoffTeams: 4, regularSeasonFormat: "round-robin", manualScheduling: false } },
+  { key: "auction", name: "Auction league", detail: "8 teams · 120 points · 8–10 Pokémon · live auction", size: 8, patch: { draftType: "auction", snakeBudgetEnabled: false, budget: 120, rosterMin: 8, rosterMax: 10, playoffTeams: 4, regularSeasonFormat: "round-robin", manualScheduling: false } },
+]);
+
+function CommissionerSetupPresets({ settings, teams, updateSettings, resizeTeams }) {
+  const [selected, setSelected] = useState(null);
+  const [applying, setApplying] = useState(false);
+  const claimed = claimedTeamCount(teams);
+  async function apply() {
+    if (!selected || selected.size < claimed) return;
+    setApplying(true);
+    updateSettings({ ...selected.patch, playoffRoundNames: defaultPlayoffRoundNames(selected.patch.playoffTeams) });
+    await resizeTeams(selected.size);
+    setApplying(false);
+    setSelected(null);
+  }
+  return <section className="commissioner-preset-card"><div><span className="eyebrow">RECOMMENDED STARTING POINTS</span><h2>Choose a league flow</h2><p>These presets set draft style, team count, roster size, schedule style, and playoff size. They preserve the Pokémon format, legal pool, prices, and every manager claim.</p></div><div className="commissioner-preset-grid">{COMMISSIONER_SETUP_PRESETS.map((preset) => { const blocked = preset.size < claimed; return <button type="button" key={preset.key} disabled={blocked} className={selected?.key === preset.key ? "selected" : ""} onClick={() => setSelected(preset)}><strong>{preset.name}</strong><span>{preset.detail}</span>{blocked && <small>Already below the {claimed} claimed teams</small>}</button>; })}</div>{selected && <div className="commissioner-preset-confirm"><p><strong>Apply {selected.name}?</strong> Review the exact values above. You can still change every field before the draft starts.</p><div><button type="button" className="primary-button" disabled={applying} onClick={apply}>{applying ? "Applying…" : "Apply preset"}</button><button type="button" className="quiet-button" disabled={applying} onClick={() => setSelected(null)}>Cancel</button></div></div>}<p className="muted">Current Pokémon format: {regulationFor(settings)?.name || settings.regulationId}. Presets never replace it.</p></section>;
+}
+
+function LeagueSpreadsheetImport({ leagueName, teams, settings, pool, costFor, maximumTeams, onApply, onUndo, canUndo }) {
+  const inputRef = useRef(null);
+  const [preview, setPreview] = useState(null);
+  const [fileName, setFileName] = useState("");
+  const [message, setMessage] = useState("");
+  const [confirmation, setConfirmation] = useState("");
+  const [reviewed, setReviewed] = useState(false);
+
+  const safeSlug = String(leagueName || "league").replace(/[^a-z0-9]+/gi, "-").replace(/(^-|-$)/g, "").toLowerCase();
+  function templateRows() {
+    return teams.map((team) => ({ Team: team.name, Manager: team.expectedManager || "", Pokémon: "", Price: "" }));
+  }
+  function downloadText(contents, filename, type = "text/csv") {
+    const url = URL.createObjectURL(new Blob([contents], { type }));
+    const link = document.createElement("a"); link.href = url; link.download = filename; link.click(); URL.revokeObjectURL(url);
+  }
+  function downloadCsvTemplate() {
+    const quote = (value) => `"${String(value || "").replaceAll('"', '""')}"`;
+    const rows = ["Team,Manager,Pokémon,Price", ...templateRows().map((row) => [row.Team, row.Manager, "", ""].map(quote).join(","))];
+    downloadText(rows.join("\r\n"), `${safeSlug}-league-import-template.csv`);
+  }
+  async function downloadWorkbookTemplate() {
+    const XLSX = await import("xlsx");
+    const workbook = XLSX.utils.book_new();
+    const instructions = XLSX.utils.aoa_to_sheet([
+      ["DraftCenter league import"],
+      ["Use the League Import sheet only. Keep these column names."],
+      ["One row per team is enough for setup. Add one row per roster Pokémon only when importing complete current rosters."],
+      ["Manager is a planning label, not an account invitation or team claim."],
+      ["A price with no team updates the draft pool price. Names must exactly match the Pokémon Names sheet."],
+      ["DraftCenter previews every change and makes no write until you confirm."],
+    ]);
+    instructions["!cols"] = [{ wch: 110 }];
+    const importSheet = XLSX.utils.json_to_sheet(templateRows(), { header: ["Team", "Manager", "Pokémon", "Price"] });
+    importSheet["!cols"] = [{ wch: 28 }, { wch: 24 }, { wch: 28 }, { wch: 12 }];
+    const namesSheet = XLSX.utils.json_to_sheet(pool.map((pokemon) => ({ "Exact Pokémon name": pokemon.name, "Current price": costFor(pokemon, settings) })));
+    namesSheet["!cols"] = [{ wch: 32 }, { wch: 16 }];
+    XLSX.utils.book_append_sheet(workbook, instructions, "Instructions");
+    XLSX.utils.book_append_sheet(workbook, importSheet, "League Import");
+    XLSX.utils.book_append_sheet(workbook, namesSheet, "Pokémon Names");
+    XLSX.writeFile(workbook, `${safeSlug}-league-import-template.xlsx`);
+  }
+  async function readUpload(event) {
+    const file = event.target.files?.[0]; event.target.value = ""; setPreview(null); setMessage(""); setConfirmation(""); setReviewed(false);
+    if (!file) return;
+    setFileName(file.name);
+    if (file.size > 5_000_000) return setMessage("That file is too large. League imports are limited to 5 MB and 5,000 data rows.");
+    try {
+      const XLSX = await import("xlsx");
+      const workbook = XLSX.read(await file.arrayBuffer(), { type: "array" });
+      const sheet = workbook.Sheets["League Import"] || workbook.Sheets[workbook.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(sheet, { defval: "", raw: false });
+      const next = previewLeagueImport(rows, {
+        pool,
+        settings,
+        maximumTeams,
+        existingTeams: teams,
+        costFor,
+        validateRoster: (names, pokemonByName) => {
+          const roster = [];
+          for (const name of names) {
+            const pokemon = pokemonByName.get(name);
+            const problem = pokemon ? capViolationReason(roster, pokemon, settings) : "Unknown Pokémon.";
+            if (problem) return problem;
+            roster.push(pokemon);
+          }
+          return "";
+        },
+      });
+      setPreview(next);
+      setMessage(next.ok ? "Preview ready. No league data has changed." : "Import blocked. Fix every listed problem and upload again.");
+    } catch {
+      setMessage("That file could not be read. Use the documented .xlsx, .csv, or .tsv template.");
+    }
+  }
+  function downloadErrors() {
+    if (preview?.errors?.length) downloadText(leagueImportErrorCsv(preview.errors), `${safeSlug}-league-import-errors.csv`);
+  }
+  function confirmImport() {
+    if (!preview?.ok || !reviewed) return;
+    if (preview.mode === "complete-rosters" && confirmation.trim() !== leagueName) return;
+    const applied = onApply(preview);
+    setMessage(applied ? "Import queued as one league revision. Wait for Saved before leaving; Undo is available here until this page reloads." : "The league changed before this import could be applied. Refresh and review it again.");
+    if (applied) { setPreview(null); setConfirmation(""); setReviewed(false); }
+  }
+  return <section className="league-import-card"><div className="league-import-heading"><div><span className="eyebrow">MOVE AN EXISTING LEAGUE</span><h2>Import a reviewed spreadsheet</h2></div>{canUndo && <button type="button" className="quiet-button" onClick={onUndo}>Undo last import</button>}</div><p>Use one documented template for teams, manager planning labels, exact Pokémon names, and prices. Uploading only creates a preview; DraftCenter never partially applies a file.</p><div className="league-import-actions"><button type="button" className="secondary-button" onClick={downloadWorkbookTemplate}>Download .xlsx template</button><button type="button" className="quiet-button" onClick={downloadCsvTemplate}>Download .csv template</button><button type="button" className="primary-button" onClick={() => inputRef.current?.click()}>Upload completed file</button><input ref={inputRef} type="file" accept=".xlsx,.xls,.csv,.tsv,text/csv,text/tab-separated-values" onChange={readUpload} hidden /></div>{fileName && <small className="muted">Reviewed file: {fileName}</small>}{message && <p className="hub-message">{message}</p>}{preview && <div className="league-import-preview"><div className="league-import-stats"><span><strong>{preview.summary.teams}</strong> teams</span><span><strong>{preview.summary.managers}</strong> manager labels</span><span><strong>{preview.summary.rosterPokemon}</strong> roster Pokémon</span><span><strong>{preview.summary.priceChanges}</strong> prices</span></div>{preview.warnings.map((warning) => <p key={warning} className="league-import-warning">{warning}</p>)}{preview.errors.length > 0 && <><div className="league-import-errors">{preview.errors.slice(0, 12).map((item, index) => <p key={`${item.row}-${item.code}-${index}`}><strong>Row {item.row}</strong> {item.message}</p>)}{preview.errors.length > 12 && <p>And {preview.errors.length - 12} more problems.</p>}</div><button type="button" className="quiet-button" onClick={downloadErrors}>Download complete error report</button></>}{preview.ok && <div className="league-import-confirm"><h3>{preview.mode === "complete-rosters" ? "Complete-roster import" : "Setup-only import"}</h3><p>{preview.mode === "complete-rosters" ? "Confirming locks these rosters as the completed draft and moves the league into season play. It does not reconstruct historical drafts, matches, or transactions." : "Confirming updates team setup and prices while leaving the draft unlocked. It does not invite accounts or claim teams."}</p><label className="check-row"><input type="checkbox" checked={reviewed} onChange={(event) => setReviewed(event.target.checked)} /> I reviewed every team, roster, and price shown above.</label>{preview.mode === "complete-rosters" && <label>Type <strong>{leagueName}</strong> to lock the imported rosters<input value={confirmation} onChange={(event) => setConfirmation(event.target.value)} autoComplete="off" /></label>}<button type="button" className="primary-button" disabled={!reviewed || (preview.mode === "complete-rosters" && confirmation.trim() !== leagueName)} onClick={confirmImport}>Confirm this import</button></div>}</div>}<p className="league-import-safety">If validation or the revision-aware save fails, nothing is partially imported. After a successful import, use Undo here before reloading or restore from the league’s recovery history.</p></section>;
+}
+
 function CommissionerLaunchChecklist({ leagueId, state, availablePool, readinessIssues }) {
   const [latestBackup, setLatestBackup] = useState(null);
   useEffect(() => {
@@ -12563,11 +12780,10 @@ function CommissionerLaunchChecklist({ leagueId, state, availablePool, readiness
   const settings = state.settings || {}; const teams = state.teams || [];
   const expectedTeams = Number(settings.leagueSize || teams.length || 0); const claimed = teams.filter((team) => team.claimedBy || team.claimedByUserId).length;
   const steps = [
-    { label: "Format, legal pool, and prices", done: availablePool.length > 0 && !readinessIssues.some((issue) => /pool|pokémon|price|cost|budget/i.test(issue)), detail: `${availablePool.length} eligible Pokémon` },
-    { label: "Teams and roster rules", done: expectedTeams > 0 && teams.length === expectedTeams && Number(settings.rosterMax || settings.rosterSize || 0) > 0, detail: `${teams.length}/${expectedTeams || "?"} teams configured` },
-    { label: "Managers joined and claimed", done: expectedTeams > 0 && claimed >= expectedTeams, detail: `${claimed}/${expectedTeams || "?"} teams claimed` },
+    { label: "Format, pool, rosters, and teams", done: availablePool.length > 0 && expectedTeams > 0 && teams.length === expectedTeams && Number(settings.rosterMax || settings.rosterSize || 0) > 0 && !readinessIssues.some((issue) => /pool|pokémon|price|cost|budget/i.test(issue)), detail: `${availablePool.length} eligible Pokémon · ${teams.length}/${expectedTeams || "?"} teams` },
+    { label: "Managers invited and claimed", done: expectedTeams > 0 && claimed >= expectedTeams, detail: `${claimed}/${expectedTeams || "?"} teams claimed` },
     { label: "League rules posted", done: Boolean(String(state.homepage?.rules || "").trim()), detail: state.homepage?.rules ? "Visible on League Home" : "Add rules on League Home" },
-    { label: "Draft readiness checks", done: readinessIssues.length === 0, detail: readinessIssues.length ? `${readinessIssues.length} item${readinessIssues.length === 1 ? "" : "s"} need attention` : settings.draftScheduledAt ? `Scheduled ${new Date(settings.draftScheduledAt).toLocaleString()}` : "Ready for a manual start" },
+    { label: "Draft scheduled and ready", done: Boolean(settings.draftScheduledAt) && readinessIssues.length === 0, detail: readinessIssues.length ? `${readinessIssues.length} item${readinessIssues.length === 1 ? "" : "s"} need attention` : settings.draftScheduledAt ? `Scheduled ${new Date(settings.draftScheduledAt).toLocaleString()}` : "Choose a shared time above" },
     { label: "Recovery backup", done: Boolean(latestBackup), detail: latestBackup ? `${latestBackup.backup_type === "recovery_json" ? "Recovery file" : "Spreadsheet"} saved ${new Date(latestBackup.created_at).toLocaleDateString()}` : "Download one below before inviting everyone" },
   ];
   const complete = steps.filter((step) => step.done).length; const percent = Math.round((complete / steps.length) * 100);
@@ -15690,7 +15906,7 @@ function PredictionsView({ state, myName, submitPrediction, onViewTeam, readOnly
   );
 }
 
-function ScheduleView({ state, isCommissioner, myName, myTeamIdx, setWeek, simulateWeek, onGenerate, scheduleActionBusy = false, reportMatch, setMatchMVP, onViewTeam, setWeekMatchups }) {
+function ScheduleView({ state, leagueId, isCommissioner, myName, myTeamIdx, setWeek, simulateWeek, onGenerate, scheduleActionBusy = false, reportMatch, setMatchMVP, onViewTeam, setWeekMatchups }) {
   const { teams, schedule, week, matchResults, rosters, settings } = state;
   const [editingWeek, setEditingWeek] = useState(false);
   const [draftPairs, setDraftPairs] = useState([]);
@@ -15786,6 +16002,7 @@ function ScheduleView({ state, isCommissioner, myName, myTeamIdx, setWeek, simul
               <MatchCard key={idx} teamA={teams[a]} teamB={teams[b]} result={matchResults[key]} canReport={canReport}
                 onReport={(...args) => reportMatch(week, idx, ...args)}
                 onSetMVP={(side, name) => setMatchMVP(week, idx, side, name)}
+                leagueId={leagueId} weekIndex={week} matchIndex={idx}
                 rosterA={rosters[a]} rosterB={rosters[b]} trackDifferential={!!settings.standingsCriteria?.differential} onViewTeam={onViewTeam} />
             );
           })}
@@ -15830,7 +16047,92 @@ function ScoutRow({ mon, teamColor }) {
   );
 }
 
-function MatchCard({ teamA, teamB, result, canReport, onReport, pending, rosterA, rosterB, trackDifferential, onViewTeam, onSetMVP, mvpLabel = "Match MVP" }) {
+function ShowdownReplayImporter({ leagueId, week, match, teamA, teamB, onApply }) {
+  const [urls, setUrls] = useState("");
+  const [analysis, setAnalysis] = useState(null);
+  const [mappings, setMappings] = useState([]);
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState("");
+
+  const replayUrls = urls.split(/\r?\n/).map((value) => value.trim()).filter(Boolean);
+  let series = null;
+  let seriesError = "";
+  if (analysis?.replays?.length) {
+    try { series = buildShowdownSeries(analysis.replays, mappings); }
+    catch (error) { seriesError = error.message; }
+  }
+
+  async function analyze() {
+    setMessage("");
+    setAnalysis(null);
+    if (replayUrls.length < 1 || replayUrls.length > 5) return setMessage("Paste one to five public replay links, one per line.");
+    setBusy(true);
+    try {
+      const supabase = createClient();
+      const { data } = await supabase.auth.getSession();
+      if (!data.session) throw new Error("Sign in again before analyzing a replay.");
+      const response = await fetch("/api/showdown-replay", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${data.session.access_token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ league_id: leagueId, week, match, urls: replayUrls }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "The replay could not be analyzed.");
+      setAnalysis(result);
+      setMappings(result.replays.map((replay) => replay.participantMatch?.mapping || ""));
+    } catch (error) {
+      setMessage(error.message || "The replay could not be analyzed. No result was changed.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function apply() {
+    if (!series) return;
+    onApply(series);
+    setMessage("Confirmed replay facts filled the result editor. Review them, then choose Save to record the result.");
+  }
+
+  return (
+    <details className="showdown-replay-import">
+      <summary>Import confirmed Showdown replay facts</summary>
+      <p>Paste public, password-free replay links. DraftCenter reads the official replay, then asks you to confirm which player controlled each scheduled team before filling the score and remaining-Pokémon totals.</p>
+      <label>
+        Replay links, one per game
+        <textarea value={urls} onChange={(event) => setUrls(event.target.value)} rows={Math.max(2, Math.min(5, replayUrls.length + 1))} placeholder="https://replay.pokemonshowdown.com/…" />
+      </label>
+      <button type="button" className="secondary-button" disabled={busy || replayUrls.length < 1 || replayUrls.length > 5} onClick={analyze}>{busy ? "Checking official replays…" : "Analyze replays"}</button>
+      {message && <p className="showdown-replay-message">{message}</p>}
+      {analysis?.matchup?.existingResult && <p className="showdown-replay-warning">This matchup already has a {analysis.matchup.existingResult.gamesA}–{analysis.matchup.existingResult.gamesB} result. Saving after confirmation will replace it through the normal result-correction safeguards.</p>}
+      {analysis?.replays?.map((replay, index) => {
+        const mapping = mappings[index] || "";
+        const winnerTeam = mapping ? (replay.winnerPlayer === "p1" ? (mapping === "p1-is-a" ? teamA?.name : teamB?.name) : (mapping === "p1-is-a" ? teamB?.name : teamA?.name)) : "Unconfirmed";
+        return <section className="showdown-replay-game" key={replay.id}>
+          <div><strong>Game {index + 1}</strong><a href={replay.url} target="_blank" rel="noopener noreferrer">Open official replay</a></div>
+          <p>{replay.format || "Showdown battle"} · {replay.gameType} · winner: <strong>{replay.players[replay.winnerPlayer]}</strong>{mapping ? ` (${winnerTeam})` : ""}</p>
+          <label>
+            Confirm the players
+            <select value={mapping} onChange={(event) => setMappings((current) => current.map((value, itemIndex) => itemIndex === index ? event.target.value : value))}>
+              <option value="">Choose the correct mapping…</option>
+              <option value="p1-is-a">{replay.players.p1} = {teamA?.name}; {replay.players.p2} = {teamB?.name}</option>
+              <option value="p1-is-b">{replay.players.p1} = {teamB?.name}; {replay.players.p2} = {teamA?.name}</option>
+            </select>
+          </label>
+          <div className="showdown-replay-facts">
+            <span>{replay.players.p1}: {replay.remaining.p1} remaining</span>
+            <span>{replay.players.p2}: {replay.remaining.p2} remaining</span>
+          </div>
+          <p className="muted">Revealed in battle: {replay.players.p1} — {replay.revealed.p1.join(", ") || "none recorded"}; {replay.players.p2} — {replay.revealed.p2.join(", ") || "none recorded"}.</p>
+        </section>;
+      })}
+      {seriesError && analysis && <p className="showdown-replay-warning">{seriesError}</p>}
+      {series && <div className="showdown-replay-confirm"><p><strong>Confirmed series preview:</strong> {teamA?.name} {series.gamesA}–{series.gamesB} {teamB?.name}. This stores the replay URLs, player mapping, winners, remaining counts, and revealed Pokémon—not the raw battle log.</p><button type="button" className="primary-button" onClick={apply}>Use these confirmed facts</button></div>}
+      <p className="showdown-replay-limit">DraftCenter does not guess which Pokémon earned a knockout and does not claim unrevealed Pokémon were brought. Those statistics remain manual until Showdown exposes authoritative facts for them.</p>
+    </details>
+  );
+}
+
+function MatchCard({ teamA, teamB, result, canReport, onReport, pending, rosterA, rosterB, trackDifferential, onViewTeam, onSetMVP, leagueId = null, weekIndex = null, matchIndex = null, mvpLabel = "Match MVP" }) {
   const [editing, setEditing] = useState(false);
   const [scouting, setScouting] = useState(false);
   const [bestOf, setBestOf] = useState([1, 3, 5].includes(Number(result?.bestOf)) ? Number(result.bestOf) : 3);
@@ -15853,6 +16155,7 @@ function MatchCard({ teamA, teamB, result, canReport, onReport, pending, rosterA
   });
   const [replayUrlA, setReplayUrlA] = useState(result?.replayUrlA || "");
   const [replayUrlB, setReplayUrlB] = useState(result?.replayUrlB || "");
+  const [showdownReplays, setShowdownReplays] = useState(Array.isArray(result?.showdownReplays) ? result.showdownReplays : []);
   const [mvpName, setMvpName] = useState(result?.mvp?.name || "");
   const editingGamesA = games.filter((g) => g.winner === "A").length;
   const editingGamesB = games.filter((g) => g.winner === "B").length;
@@ -15865,18 +16168,22 @@ function MatchCard({ teamA, teamB, result, canReport, onReport, pending, rosterA
   const resultWinnerRoster = resultWinnerSide === "A" ? (rosterA || []) : resultWinnerSide === "B" ? (rosterB || []) : [];
 
   function setGameCount(n) {
+    setShowdownReplays([]);
     setGames((arr) => (n > arr.length ? [...arr, { winner: "A", alive: 1 }] : arr.slice(0, n)));
   }
   function changeBestOf(n) {
     const needed = Math.floor(n / 2) + 1;
     setBestOf(n);
     setGames(Array.from({ length: needed }, () => ({ winner: "A", alive: 1 })));
+    setShowdownReplays([]);
     setMvpName("");
   }
   function setGameWinner(i, winner) {
+    setShowdownReplays([]);
     setGames((arr) => arr.map((g, j) => (j === i ? { ...g, winner } : g)));
   }
   function setGameAlive(i, alive) {
+    setShowdownReplays([]);
     setGames((arr) => arr.map((g, j) => (j === i ? { ...g, alive: Math.max(1, Number(alive) || 1) } : g)));
   }
 
@@ -15892,8 +16199,17 @@ function MatchCard({ teamA, teamB, result, canReport, onReport, pending, rosterA
     const monsAliveA = trackDifferential ? games.filter((g) => g.winner === "A").reduce((sum, g) => sum + g.alive, 0) : 0;
     const monsAliveB = trackDifferential ? games.filter((g) => g.winner === "B").reduce((sum, g) => sum + g.alive, 0) : 0;
     if (!validSeries) return;
-    const saved = await onReport(editingGamesA, editingGamesB, monsAliveA, monsAliveB, replayUrlA.trim() || null, replayUrlB.trim() || null, editingWinnerSide, selectedMvpName, bestOf);
+    const saved = await onReport(editingGamesA, editingGamesB, monsAliveA, monsAliveB, replayUrlA.trim() || null, replayUrlB.trim() || null, editingWinnerSide, selectedMvpName, bestOf, showdownReplays);
     if (saved !== false) setEditing(false);
+  }
+
+  function applyShowdownSeries(series) {
+    setBestOf(series.bestOf);
+    setGames(series.games);
+    setShowdownReplays(series.showdownReplays);
+    setReplayUrlA(series.showdownReplays[0]?.url || "");
+    setReplayUrlB(series.showdownReplays[1]?.url || "");
+    setMvpName("");
   }
 
   return (
@@ -15968,6 +16284,8 @@ function MatchCard({ teamA, teamB, result, canReport, onReport, pending, rosterA
           {!validSeries && <p className="text-xs" style={{ color: "#F0555A" }}>A best-of-{bestOf} result must end when one team reaches {winsNeeded} win{winsNeeded === 1 ? "" : "s"}.</p>}
           {trackDifferential && <p className="text-xs" style={{ color: "#5B5F7E" }}>Number is how many mons the winner of that game had left (1–4) — the loser is always 0.</p>}
 
+          {leagueId && <ShowdownReplayImporter leagueId={leagueId} week={weekIndex} match={matchIndex} teamA={teamA} teamB={teamB} onApply={applyShowdownSeries} />}
+
           {onSetMVP && editingWinnerSide && editingWinnerRoster.length > 0 && (
             <div>
               <label className="text-xs block mb-1" style={{ color: "#FFD23F" }}>Match MVP (optional)</label>
@@ -15985,13 +16303,13 @@ function MatchCard({ teamA, teamB, result, canReport, onReport, pending, rosterA
           <div className="flex flex-col gap-2">
             <div>
               <label className="text-xs block mb-1" style={{ color: teamA?.color || "#9A9FBD" }}>{teamA?.name}'s replay link (optional)</label>
-              <input type="text" value={replayUrlA} onChange={(e) => setReplayUrlA(e.target.value)}
+              <input type="text" value={replayUrlA} onChange={(e) => { setReplayUrlA(e.target.value); setShowdownReplays([]); }}
                 placeholder="Paste a VOD, Showdown replay, or clip URL…"
                 className="w-full px-2 py-1.5 rounded mono-font text-xs" style={{ background: "#141729", border: "1px solid rgba(255,255,255,0.1)", color: "#EDEBFA" }} />
             </div>
             <div>
               <label className="text-xs block mb-1" style={{ color: teamB?.color || "#9A9FBD" }}>{teamB?.name}'s replay link (optional)</label>
-              <input type="text" value={replayUrlB} onChange={(e) => setReplayUrlB(e.target.value)}
+              <input type="text" value={replayUrlB} onChange={(e) => { setReplayUrlB(e.target.value); setShowdownReplays([]); }}
                 placeholder="Paste a VOD, Showdown replay, or clip URL…"
                 className="w-full px-2 py-1.5 rounded mono-font text-xs" style={{ background: "#141729", border: "1px solid rgba(255,255,255,0.1)", color: "#EDEBFA" }} />
             </div>
@@ -16013,6 +16331,7 @@ function MatchCard({ teamA, teamB, result, canReport, onReport, pending, rosterA
             {result.replayUrlB && (
               <a href={result.replayUrlB} target="_blank" rel="noopener noreferrer" className="text-xs hover:underline" style={{ color: "#4FD1C5" }}>🎬 {teamB?.name}'s replay</a>
             )}
+            {(result.showdownReplays || []).length > 0 && <span className="showdown-result-badge">✓ {result.showdownReplays.length} Showdown replay{result.showdownReplays.length === 1 ? "" : "s"} confirmed</span>}
             {canReport && <button onClick={() => setEditing(true)} className="text-xs" style={{ color: "#9A9FBD" }}>Edit</button>}
           </div>
         </div>

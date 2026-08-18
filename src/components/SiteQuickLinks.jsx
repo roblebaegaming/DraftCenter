@@ -47,11 +47,11 @@ export default function SiteQuickLinks() {
           <span className="draft-home-label-compact" aria-hidden="true">Home</span>
         </a>
         <nav className="site-primary-links" aria-label="Primary navigation">
-          <a href="/tools/mega-bracket" {...navState(pathname, "/tools/mega-bracket")}>Mega Bracket</a>
-          <a href="/tools/bracket-builder" {...navState(pathname, "/tools/bracket-builder")}>Bracket Studio</a>
-          <a href="/pokemon" {...navState(pathname, "/pokemon")}>Pokémon</a>
-          <a href="/explore" {...navState(pathname, "/explore")}>Community</a>
-          <a href="/tournaments/predictions" {...navState(pathname, "/tournaments/predictions")}>Predictions</a>
+          <a href="/tools/mega-bracket" aria-label="Mega Bracket" {...navState(pathname, "/tools/mega-bracket")}><span className="site-nav-label-wide">Mega Bracket</span><span className="site-nav-label-compact" aria-hidden="true">Mega</span></a>
+          <a href="/tools/bracket-builder" aria-label="Bracket Studio" {...navState(pathname, "/tools/bracket-builder")}><span className="site-nav-label-wide">Bracket Studio</span><span className="site-nav-label-compact" aria-hidden="true">Brackets</span></a>
+          <a href="/pokemon" aria-label="Pokémon" {...navState(pathname, "/pokemon")}><span className="site-nav-label-wide">Pokémon</span><span className="site-nav-label-compact" aria-hidden="true">Pokédex</span></a>
+          <a href="/explore" aria-label="Community" {...navState(pathname, "/explore")}><span className="site-nav-label-wide">Community</span><span className="site-nav-label-compact" aria-hidden="true">Explore</span></a>
+          <a href="/tournaments/predictions" aria-label="Predictions" {...navState(pathname, "/tournaments/predictions")}><span className="site-nav-label-wide">Predictions</span><span className="site-nav-label-compact" aria-hidden="true">Picks</span></a>
         </nav>
         <div className="site-global-account">
           {signedIn ? <>

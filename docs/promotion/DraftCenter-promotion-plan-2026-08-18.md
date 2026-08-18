@@ -1,23 +1,32 @@
 # DraftCenter promotion plan
 
-Prepared August 17, 2026 Pacific. This replaces the dated August 15 promotion
+Prepared August 18, 2026 Pacific. This replaces the dated August 15 promotion
 pack for new posts while preserving the older Instagram folders as historical
 released-site assets.
 
 ## Launch order
 
-1. **Team Lab and Battle Room:** lead with the one-tap ladder workflow, fast
-   result controls, private turn recorder, performance analytics, replay and
-   rating history, and the new 10-sheet workbook.
-2. **Auction Draft Tournaments:** show a complete hosted auction feeding Swiss
+1. **Commissioner operating system:** lead with one promise—run the whole
+   league in one place—and show setup, invitations, a completed draft, a
+   confirmed result, standings, playoffs, a champion, and the preserved season
+   record as one connected path.
+2. **Safe league switching:** demonstrate a synthetic spreadsheet import that
+   previews teams, manager planning labels, exact Pokémon forms, prices, and
+   complete rosters before one explicit confirmation.
+3. **Confirmed Showdown results:** show public replay analysis, explicit player
+   mapping, the facts DraftCenter can verify, and the final result-save gate.
+4. **Team Lab and Battle Room:** support the manager side of the same season
+   with matchup preparation, private notes, replay history, and the 10-sheet
+   workbook.
+5. **Auction Draft Tournaments:** show a complete hosted auction feeding Swiss
    or elimination play for 4–32 managers.
-3. **Prediction tournaments:** introduce the public upcoming/live/past hub and
+6. **Prediction tournaments:** introduce the public upcoming/live/past hub and
    the reusable official-bracket system.
-4. **Organizations:** promote the open organization directory and private,
+7. **Organizations:** promote the open organization directory and private,
    opt-out-aware commissioner/member email workflow.
-5. **Legends and Alpha Dex:** show the Legends: Z-A Pokédex and optional Alpha
+8. **Legends and Alpha Dex:** show the Legends: Z-A Pokédex and optional Alpha
    checklists for Legends: Arceus and Legends: Z-A.
-6. **Pokémon research:** use the five improved Pokémon profiles and the type,
+9. **Pokémon research:** use the five improved Pokémon profiles and the type,
    generation, form, and comparison paths as evergreen search content.
 
 Do not combine all six topics in one post. Use one feature, one destination,
@@ -27,6 +36,9 @@ and one stable campaign name per placement.
 
 | Feature | Destination | Campaign | Primary hook |
 | --- | --- | --- | --- |
+| Commissioner operating system | `/` | `run-a-complete-league` | Set up, draft, schedule, play, and preserve the whole season in one commissioner-to-manager workspace. |
+| League import | `/` | `switch-your-draft-league` | Preview an existing league spreadsheet safely, then confirm one complete setup or roster import. |
+| Confirmed Showdown results | `/` | `showdown-replay-results` | Confirm each player mapping, fill the official replay facts, and save the scheduled result without guessing hidden statistics. |
 | Team Lab and Battle Room | `/tools/team-builder` | `team-lab-battle-room` | Build the six, scout the matchup, record the set privately, and start the next ladder match in one tap. |
 | Auction Draft Tournaments | `/tournaments` | `auction-draft-tournaments` | Run a server-owned auction for 4–32 managers, then continue directly into Swiss or elimination rounds. |
 | Prediction tournaments | `/tournaments/predictions` | `prediction-tournaments` | Pick official brackets before lock, then follow live and archived events from one hub. |
@@ -54,7 +66,22 @@ allowlisted attribution fields:
 Never place a username, email, team, opponent, league, Pokémon choice, note, or
 other personal detail in a campaign parameter.
 
-## Immediate Battle Room campaign
+## Commissioner-first demonstration campaign
+
+Primary hook: **Run your whole Pokémon draft league in one place.**
+
+Show one fictional league moving through the actual product path: choose a
+starting preset, import or configure the league, invite managers, complete the
+draft, confirm a Showdown result, follow standings and playoffs, then freeze
+the champion and season archive. Use the synthetic proof plan in
+[`complete-season-demonstration-2026-08-18.md`](complete-season-demonstration-2026-08-18.md).
+
+Do not claim that a synthetic league is a customer league. Commissioner quotes,
+logos, outcomes, and adoption numbers require permission and verified evidence.
+No lighthouse invitation or external placement may be sent until the owner
+approves the exact audience, message, and destination.
+
+## Existing Battle Room supporting campaign
 
 Use these ready links for the first filming push:
 

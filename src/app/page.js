@@ -1,8 +1,8 @@
 import AuthGate from "../components/AuthGate";
 
 export const metadata = {
-  title: "Pokémon Draft League Platform",
-  description: "Create and manage Pokémon draft leagues, run snake and auction drafts, track seasons, and explore community teams and statistics.",
+  title: "Run a Complete Pokémon Draft League",
+  description: "Set up, draft, schedule, play, and preserve a complete Pokémon draft league in one connected commissioner and manager workspace.",
   alternates: { canonical: "/" },
 };
 

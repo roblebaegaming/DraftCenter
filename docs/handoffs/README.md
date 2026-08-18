@@ -1,7 +1,15 @@
 # Agent handoffs
 
+[`DraftCenter-agent-handoff-2026-08-18-commissioner-activation-import-showdown.md`](DraftCenter-agent-handoff-2026-08-18-commissioner-activation-import-showdown.md)
+is the current candidate and continuation handoff. It records the locally
+validated commissioner-first promise and activation path, bounded spreadsheet
+and CSV import, confirmed Showdown replay result facts through migration 438,
+aggregate retention measures, synthetic complete-season proof plan, and the
+remaining isolated Preview, merge, deployment, Production smoke, and approved
+lighthouse-recruitment gates.
+
 [`DraftCenter-agent-handoff-2026-08-18-competitive-lead-and-growth.md`](DraftCenter-agent-handoff-2026-08-18-competitive-lead-and-growth.md)
-is the current release and continuation handoff. It records the
+is the preceding released competitive handoff. It records the
 Pokédex/Champions and Daily Games work released through pull requests #308–#309
 and migrations 435–437, its sequential Preview and Production evidence, the
 reviewed competitive landscape, DraftCenter's defensible organizer-to-player
