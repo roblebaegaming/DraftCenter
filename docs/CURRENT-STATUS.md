@@ -1,9 +1,9 @@
 # DraftCenter current status
 
-- Last updated: August 17, 2026 Pacific
+- Last updated: August 18, 2026 Pacific
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified Production application and asset commit: `36f66df97c7414ec5f48445f323a2331a877af94`
+- Verified Production application and asset commit: `00597adf23c4270cc913414073d2a07a24abed11`
 - Latest applied Production migration: 434
 
 ## Deployed state
@@ -73,6 +73,15 @@ released the refreshed promotion plan, four synthetic Battle Room filming
 captures, the current 10-sheet Team Lab sample workbook, and one rendered QA
 image per workbook sheet. The temporary capture fixture was removed before
 commit, and the 22-check Production smoke sweep passed after deployment.
+
+Pull request [#304](https://github.com/roblebaegaming/DraftCenter/pull/304)
+made PokéPaste URL failures readable, retained the direct pasted-text fallback,
+and removed the redundant `.txt` upload control. Calendar month grids now use
+local calendar dates instead of fixed 24-hour increments, preventing daylight
+saving changes from shifting dates under the wrong weekday. Production imported
+the reported six-Pokémon paste successfully, and December 4–6, 2026 rendered
+under Friday–Sunday at 390×844 with no overflow or console errors. The complete
+22-check signed-out Production smoke sweep passed.
 
 Supabase automatic branching remains enabled with a one-concurrent-Preview
 limit and Supabase-only changes. Older Preview branches were left untouched.
