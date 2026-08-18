@@ -3,18 +3,18 @@
 - Date: August 18, 2026 Pacific
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified Production application commit before this candidate: `31e9d5691c69e166a381ced4999479097a6b5378`
-- Latest applied Production migration before this candidate: 437
-- Candidate branch: `codex/commissioner-activation-2026-08-18`
+- Previous Production application commit: `31e9d5691c69e166a381ced4999479097a6b5378`
+- Previous Production migration: 437
+- Released application commit: `435cc6fb3c209c64e31c0b2b7af29aa9c26416e6`
+- Applied Production migration: 438 (`20260818090807`)
+- Released branch: `codex/commissioner-activation-2026-08-18` (deleted after merge)
 - Implementation commit: `760dccdbfcd229a27e8f157b1945b29b4fba4b48`
-- Draft pull request: [#311](https://github.com/roblebaegaming/DraftCenter/pull/311)
-- Candidate migration: 438
-- Release state: draft review candidate; isolated database and Preview UI gates
-  passed; not merged or deployed
+- Pull request: [#311](https://github.com/roblebaegaming/DraftCenter/pull/311)
+- Release state: merged, migrated, deployed, and verified
 
 ## Outcome
 
-This candidate turns the competitive handoff into one focused adoption slice.
+This release turns the competitive handoff into one focused adoption slice.
 DraftCenter now leads with one commissioner promise:
 
 > Run your whole Pokémon draft league in one place.
@@ -24,9 +24,10 @@ league**, and **Prepare for a match**. The signed-in league experience then
 connects guided setup, safe switching from a spreadsheet, confirmed Showdown
 result facts, and one weekly next action per league.
 
-No Production data, provider setting, environment variable, real league, or
-external commissioner was changed. `docs/CURRENT-STATUS.md` remains untouched
-until an authorized release is actually deployed and verified.
+The authorized release replaced one Production database function through
+forward-only migration 438. It did not change a real league, provider setting,
+environment variable, or external commissioner. The canonical Production
+record in `docs/CURRENT-STATUS.md` now reflects the verified release.
 
 ## Product work completed
 
@@ -122,7 +123,7 @@ The promotion plan now prioritizes the commissioner operating-system promise,
 import, replay confirmation, lighthouse seasons, and complete-season proof
 before unrelated product areas.
 
-## Validation completed
+## Validation and release completed
 
 All validation used the isolated candidate worktree. The user's original dirty
 worktree was inspected read-only and preserved.
@@ -167,20 +168,26 @@ worktree was inspected read-only and preserved.
   (`6a354f3e-978b-4e03-bed8-6b6c83f70a5c`, isolated project
   `ywzctfkupnagdxmbtjca`) was deleted after validation and confirmed absent.
   Its approved `$0.01344/hour` charge no longer continues.
+- Pull request #311 was squash-merged to exact `main` commit `435cc6f`. The
+  short-lived remote release branch was deleted and confirmed absent.
+- Production migration 438 was applied exactly once as ledger version
+  `20260818090807`. Read-only postflight confirmed the same security-definer,
+  search path, owner, grants, RLS, authorization checks, snapshot lock, and
+  stored-field boundary proven in Preview.
+- Post-migration Production security advisors returned the same 420 existing
+  information/warning findings and no errors. The intentional authenticated
+  security-definer advisory is bounded by the verified internal checks. No
+  migration-specific performance finding was reported.
+- Vercel reported exact commit `435cc6f` Ready. Both post-merge security
+  workflows passed.
+- `npm run smoke:production`: all 17 public routes returned 200 and all five
+  protected endpoints returned 401 signed out.
 - `git diff --check`: passed.
 
 The local development browser emitted only the known Next.js development-mode
 `eval()` CSP warning. Production builds never use that debugging path.
 
-## Required release gates still open
-
-### Merge and deployment
-
-This candidate is not a Production deployment. A pull request may be reviewed,
-but it must not be merged without direct owner authorization and passing hosted
-checks on the final commit. After an authorized merge, confirm the exact
-deployed commit and migration 438, then run the signed-out Production smoke
-sweep. Do not use the local build or Preview as deployment proof.
+## Remaining external gates
 
 ### Lighthouse recruitment and public proof
 
@@ -195,11 +202,11 @@ Fix repeated activation blockers before opening another unrelated feature area.
 
 ## Recommended next operator sequence
 
-1. Review the candidate diff and completed Preview evidence.
-2. Confirm required hosted checks pass on the final candidate commit.
-3. Merge only with direct owner authorization.
-4. Confirm the exact Production commit and migration 438, then run the complete
-   signed-out Production smoke sweep.
-5. Update `docs/CURRENT-STATUS.md` only after those release facts are true.
-6. Obtain exact owner approval before sending the lighthouse invitation or
-   publishing the synthetic demonstration.
+1. Obtain exact owner approval for the lighthouse audience, message,
+   destination, and reply path before sending any invitation.
+2. Support five to eight approved commissioners through complete seasons and
+   review aggregate activation and league-health measures weekly.
+3. Obtain separate permission for every external quote, logo, identity,
+   screenshot, or result used as public proof.
+4. Continue restore, export, mobile, privacy, and reliability verification
+   before opening another unrelated feature area.

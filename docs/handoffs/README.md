@@ -1,12 +1,12 @@
 # Agent handoffs
 
 [`DraftCenter-agent-handoff-2026-08-18-commissioner-activation-import-showdown.md`](DraftCenter-agent-handoff-2026-08-18-commissioner-activation-import-showdown.md)
-is the current candidate and continuation handoff. It records the locally
-validated commissioner-first promise and activation path, bounded spreadsheet
-and CSV import, confirmed Showdown replay result facts through migration 438,
-aggregate retention measures, synthetic complete-season proof plan, and the
-remaining isolated Preview, merge, deployment, Production smoke, and approved
-lighthouse-recruitment gates.
+is the current released continuation handoff. It records the commissioner-first
+promise and activation path, bounded spreadsheet and CSV import, confirmed
+Showdown replay result facts through Production migration 438, aggregate
+retention measures, synthetic complete-season proof plan, isolated Preview and
+Production evidence, exact deployment, completed smoke sweep, and the remaining
+approved lighthouse-recruitment gates.
 
 [`DraftCenter-agent-handoff-2026-08-18-competitive-lead-and-growth.md`](DraftCenter-agent-handoff-2026-08-18-competitive-lead-and-growth.md)
 is the preceding released competitive handoff. It records the
