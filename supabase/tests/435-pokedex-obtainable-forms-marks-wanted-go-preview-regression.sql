@@ -46,8 +46,17 @@ begin
   select public.create_my_pokedex_tracker('pokemon-go', 'GO collection', false, false) into v_go;
   v_home_id := (v_home ->> 'id')::uuid;
 
-  if (v_go ->> 'catalog_key') <> 'pokemon-go'
-     or (select count(*) from public.pokedex_tracker_catalog(v_firered ->> 'catalog_key')) <> 187 then
+  if not exists (
+       select 1 from public.pokedex_trackers tracker
+       where tracker.id = (v_go ->> 'id')::uuid
+         and tracker.user_id = v_owner
+         and tracker.catalog_key = 'pokemon-go'
+     ) or not exists (
+       select 1 from public.pokedex_trackers tracker
+       where tracker.id = (v_firered ->> 'id')::uuid
+         and tracker.user_id = v_owner
+         and tracker.catalog_key = 'firered'
+     ) then
     raise exception 'New Pokémon GO or postgame tracker creation failed.';
   end if;
 

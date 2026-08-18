@@ -454,6 +454,12 @@ test("migration 435 adds reviewed postgame coverage, Pokémon GO, marks, and pri
   assert.match(sql, /'pokemon-go'.*'Pokémon GO'/s);
   assert.match(sql, /<> 954/);
   assert.match(sql, /'obtainable'::text/);
+  assert.match(sql, /end as dex_number/i);
+  assert.match(sql, /end as pokedex_key/i);
+  assert.match(sql, /end as sort_order/i);
+  assert.match(sql, /pokedex_tracker_wanted_tracker_owner_fk_idx/i);
+  assert.match(sql, /pokedex_collection_specimens_tracker_owner_fk_idx/i);
+  assert.match(sql, /pokedex_collection_specimens_location_owner_fk_idx/i);
   assert.match(sql, /create table public\.pokedex_tracker_wanted_entries/i);
   assert.match(sql, /force row level security/i);
   assert.match(sql, /create function public\.get_my_pokedex_collection_index\(\)/i);

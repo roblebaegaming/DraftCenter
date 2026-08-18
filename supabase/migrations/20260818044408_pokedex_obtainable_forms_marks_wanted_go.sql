@@ -82,8 +82,15 @@ create table public.pokedex_tracker_wanted_entries (
 
 create index pokedex_tracker_wanted_user_tracker_idx
   on public.pokedex_tracker_wanted_entries(user_id, tracker_id, updated_at desc);
+create index pokedex_tracker_wanted_tracker_owner_fk_idx
+  on public.pokedex_tracker_wanted_entries(tracker_id, user_id);
 create index pokedex_collection_specimens_user_updated_idx
   on public.pokedex_collection_specimens(user_id, updated_at desc);
+create index pokedex_collection_specimens_tracker_owner_fk_idx
+  on public.pokedex_collection_specimens(tracker_id, user_id);
+create index pokedex_collection_specimens_location_owner_fk_idx
+  on public.pokedex_collection_specimens(location_id, tracker_id, user_id)
+  where location_id is not null;
 create index pokedex_collection_specimens_marks_gin_idx
   on public.pokedex_collection_specimens using gin(mark_keys);
 
@@ -148,8 +155,8 @@ as $$
   ),
   canonical as (
     select available.pokemon_id, available.pokemon_name,
-      case when p_catalog_key = 'home' then available.pokemon_id else available.entry_number end,
-      case when p_catalog_key = 'home' then 'national' else available.pokedex_key end,
+      case when p_catalog_key = 'home' then available.pokemon_id else available.entry_number end as dex_number,
+      case when p_catalog_key = 'home' then 'national' else available.pokedex_key end as pokedex_key,
       case when p_catalog_key = 'home' then available.pokemon_id::bigint else
         (case available.pokedex_key
           when 'kalos-coastal' then 1 when 'kalos-mountain' then 2
@@ -160,7 +167,7 @@ as $$
           when 'isle-of-armor' then 1 when 'crown-tundra' then 2
           when 'kitakami' then 1 when 'blueberry' then 2 when 'hyperspace' then 1
           else 0 end::bigint * 1000000) + available.entry_number::bigint
-      end
+      end as sort_order
     from available where available.species_row = 1
   ),
   species_identity as (
