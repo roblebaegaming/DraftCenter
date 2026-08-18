@@ -864,6 +864,7 @@ test("Team Lab is indexable while account notes and matchups stay private", () =
   assert.doesNotMatch(component, /p_mode: "ladder"/);
   assert.match(component, /Recovered your locally autosaved battle after reload/);
   assert.match(component, /writeTeamLabNavigation/);
+  assert.match(component, /requestedMatchup && requestedTeam && requestedMatchup\.personal_team_id === requestedTeam\.id/);
   assert.match(component, /buildDraftLabQuery\(\{ format: formatId, names \}\)/);
   assert.match(privateNavigation, /params\.set\("workspace"/);
   assert.match(privateNavigation, /params\.set\("battle"/);

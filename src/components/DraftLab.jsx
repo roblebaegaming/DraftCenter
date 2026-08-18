@@ -1126,7 +1126,7 @@ export default function DraftLab() {
       } else if (handoff) {
         applyHandoff(handoff);
       }
-      const requestedBattleId = requestedMatchup?.personal_team_id === requestedTeam?.id
+      const requestedBattleId = requestedMatchup && requestedTeam && requestedMatchup.personal_team_id === requestedTeam.id
         ? requestedMatchup.id
         : matchupHandoff && nextMatchups.some((matchup) => matchup.id === matchupHandoff)
           ? matchupHandoff
