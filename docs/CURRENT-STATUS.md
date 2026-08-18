@@ -3,8 +3,8 @@
 - Last updated: August 18, 2026 Pacific
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified Production application and asset commit: `31e9d5691c69e166a381ced4999479097a6b5378`
-- Latest applied Production migration: 437
+- Verified Production application and asset commit: `435cc6fb3c209c64e31c0b2b7af29aa9c26416e6`
+- Latest applied Production migration: 438
 
 ## Deployed state
 
@@ -106,6 +106,33 @@ and Sunday-exception regressions in order. The obsolete branch and both paid
 validation branches were deleted and confirmed absent; no validation-branch
 hourly charge continues.
 
+Pull request [#311](https://github.com/roblebaegaming/DraftCenter/pull/311)
+is released at exact application commit
+`435cc6fb3c209c64e31c0b2b7af29aa9c26416e6` with Production migration 438.
+DraftCenter now leads with one commissioner promise and Run, Join, and Prepare
+paths; adds recommended league presets, a five-step launch checklist, private
+weekly next actions, bounded CSV/XLSX league import with preview and undo,
+confirmed public Showdown replay-to-result facts, and aggregate-only activation
+and retention measures. Replay logs, inferred knockouts, and unrevealed team
+claims are not stored.
+
+Migration 438 passed its rollback-only matrix on an empty nonpersistent Preview
+branch after the full chain through 437. The matrix exposed and corrected an
+expected-error spelling mismatch in the test; the database function had already
+rejected the malformed payload correctly. Production applied the migration once
+as ledger version `20260818090807`. Read-only postflight confirmed its explicit
+`public` search path, authentication and league-membership checks, authoritative
+row lock, private-by-default grants, existing snapshot RLS, and bounded stored
+fields. Security advisors retained the same 420 existing findings and no error;
+the intentional authenticated security-definer warning remains bounded by the
+function's internal authorization checks. There was no migration-specific
+performance finding.
+
+Vercel reported exact commit `435cc6f` Ready, both post-merge security workflows
+passed, and the complete 22-check signed-out Production smoke sweep passed. The
+paid Preview branch and short-lived release branch were deleted and confirmed
+absent, so no validation-branch hourly charge continues.
+
 Supabase automatic branching remains enabled with a one-concurrent-Preview
 limit and Supabase-only changes. Older Preview branches were left untouched.
 The automatic check on pull request #298 was canceled solely because that limit
@@ -126,10 +153,11 @@ not be resumed until the owner explicitly requests it.
 
 1. Run the scheduled aggregate-only attribution review at 09:00 Pacific on
    August 19 without inspecting or reporting individual identity or activity.
-2. Prioritize commissioner activation, safe league import, and confirmed
-   Showdown replay-to-result automation before another broad feature area.
+2. Use the released activation, import, replay, and weekly-health workflows to
+   support complete commissioner seasons before opening another broad feature
+   area.
 3. Recruit lighthouse commissioners only after the owner approves the exact
-   audience and destination.
+   audience, message, destination, and reply path.
 4. Keep PokeEarth paused until the owner directly requests resumption.
 5. Keep GO Meta Picks closed until an official eligibility pool is reviewed.
 
@@ -150,7 +178,9 @@ August 19, 2026. Do not inspect or report individual identity or activity.
 
 ## Authoritative records
 
-- Current release, competitive strategy, and continuation handoff:
+- Current release and continuation handoff:
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-18-commissioner-activation-import-showdown.md`](handoffs/DraftCenter-agent-handoff-2026-08-18-commissioner-activation-import-showdown.md)
+- Competitive strategy source handoff:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-18-competitive-lead-and-growth.md`](handoffs/DraftCenter-agent-handoff-2026-08-18-competitive-lead-and-growth.md)
 - Previous backlog completion and cleanup handoff:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-17-backlog-completion-and-cleanup.md`](handoffs/DraftCenter-agent-handoff-2026-08-17-backlog-completion-and-cleanup.md)
