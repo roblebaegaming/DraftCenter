@@ -78,7 +78,8 @@ test("integrated quick links expose each released feature once", () => {
   }
   assert.match(links, /href="\/nuzlocke"[^>]*>[\s\S]*?quick-label-wide">Nuzlockes<\/span>/);
   assert.match(links, /href="\/team-lab"[^>]*>[\s\S]*?quick-label-wide">Team Lab<\/span>/);
-  assert.match(links, /className="site-primary-links"[\s\S]*?href="\/tournaments\/predictions"[^>]*>Predictions<\/a>/);
+  assert.match(links, /className="site-primary-links"[\s\S]*?href="\/tournaments\/predictions"[^>]*aria-label="Predictions"/);
+  assert.match(links, /site-nav-label-wide">Predictions<\/span>/);
   assert.doesNotMatch(links.slice(links.indexOf('<nav className={`site-quick-links')), /href="\/tournaments\/predictions"/);
   assert.match(links, /href="\/operations\/predictions">Publish predictions/);
   assert.match(nuzlocke, />NUZLOCKE RUN TRACKER<\/span>/);

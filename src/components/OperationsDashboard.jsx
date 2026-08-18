@@ -77,6 +77,23 @@ function LeaguePulse({ pulse, leagueName, regulationLabel, draftStyleLabel }) {
   </section>;
 }
 
+function CommissionerActivationSummary({ summary }) {
+  const seven = summary?.retention_7_day || {};
+  const thirty = summary?.retention_30_day || {};
+  const rate = (cohort) => cohort.rate == null ? "—" : `${cohort.rate}%`;
+  return <section className="commissioner-activation-summary" aria-labelledby="commissioner-activation-title">
+    <header><div><span className="eyebrow">COMMISSIONER ACTIVATION · AGGREGATE ONLY</span><h2 id="commissioner-activation-title">From league created to season complete</h2><p>Distinct real leagues reaching durable milestones. Practice leagues are excluded, and the summary contains no commissioner, manager, team, matchup, Pokémon, or replay identity.</p></div></header>
+    <div className="commissioner-activation-metrics">
+      <article><strong>{summary?.created_last_30_days || 0}</strong><span>Created · 30 days</span><small>{summary?.real_leagues || 0} real leagues all time</small></article>
+      <article><strong>{summary?.draft_completed_leagues || 0}</strong><span>Completed a draft</span><small>distinct real leagues</small></article>
+      <article><strong>{summary?.first_result_leagues || 0}</strong><span>Recorded a result</span><small>distinct real leagues</small></article>
+      <article><strong>{summary?.completed_seasons || 0}</strong><span>Completed seasons</span><small>frozen season archives</small></article>
+      <article><strong>{rate(seven)}</strong><span>7-day retention</span><small>{seven.retained || 0} of {seven.eligible || 0} eligible leagues</small></article>
+      <article><strong>{rate(thirty)}</strong><span>30-day retention</span><small>{thirty.retained || 0} of {thirty.eligible || 0} eligible leagues</small></article>
+    </div>
+  </section>;
+}
+
 function trafficMetric(value, maximumFractionDigits = 0) {
   return new Intl.NumberFormat(undefined, { maximumFractionDigits }).format(Number(value) || 0);
 }
@@ -215,6 +232,7 @@ export default function OperationsDashboard() {
     <nav className="public-page-nav"><a className="quiet-button" href="/">DraftCenter</a><a className="quiet-button" href="/operations/daily-three">Daily Games activity</a><button className="quiet-button" onClick={load}>Refresh</button></nav>
     <header className="operations-hero"><span className="eyebrow">OWNER ONLY</span><h1>League Operations</h1><p>Monitor league health without bypassing private-league membership. Configuration support requires commissioner-approved access.</p><small>Updated {when(data.generated_at)}</small></header>
     <section className="operations-user-summary" aria-labelledby="registered-users-title"><div><span className="eyebrow">AUTHENTICATION</span><h2 id="registered-users-title">Registered users</h2><p>Every DraftCenter account is counted, including people who joined through Discord. These totals show sign-in identities only; no emails or Discord usernames are exposed here.</p></div><div className="operations-metrics"><article><strong>{data.users?.total || 0}</strong><span>Total accounts</span></article><article><strong>{data.users?.discord || 0}</strong><span>Discord identity</span></article><article><strong>{data.users?.email || 0}</strong><span>Email identity</span></article><article><strong>{data.users?.both || 0}</strong><span>Email + Discord linked</span></article></div></section>
+    <CommissionerActivationSummary summary={data.commissioner_activation} />
     <SignupAttribution report={data.signup_attribution} users={data.users} />
     <OrganizationActivity activity={data.organization_activity} />
     <WebsiteTraffic traffic={data.website_traffic} />

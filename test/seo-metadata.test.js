@@ -495,7 +495,10 @@ test("public templates expose useful server-rendered headings and related links"
 
   assert.match(authGate, /function PublicLoadingShell/);
   assert.match(authGate, /function VisitorGuide/);
-  assert.match(authGate, /<h1>Your Draft League Headquarters<\/h1>/);
+  assert.match(authGate, /<h1>Run your whole Pokémon draft league in one place\.<\/h1>/);
+  assert.match(authGate, />Run a league</);
+  assert.match(authGate, />Join a league</);
+  assert.match(authGate, />Prepare for a match</);
   assert.match(directory, /fallback=.*<h1>Explore the Pokédex<\/h1>/);
   assert.match(pokemonHome, /urshifu-single-strike/);
   assert.doesNotMatch(pokemonHome, /"urshifu"/);

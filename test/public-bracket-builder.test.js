@@ -81,5 +81,6 @@ test("the public builder remains a local download tool without an account or ser
   assert.match(page, /no account required/i);
   assert.match(page, /isAccessibleForFree: true/);
   assert.match(predictions, /href="\/tools\/bracket-builder"/);
-  assert.match(navigation, /href="\/tools\/bracket-builder"[^>]*>Bracket Studio<\/a>/);
+  assert.match(navigation, /href="\/tools\/bracket-builder"[^>]*aria-label="Bracket Studio"/);
+  assert.match(navigation, /site-nav-label-wide">Bracket Studio<\/span>/);
 });
