@@ -3,7 +3,7 @@
 - Last updated: August 18, 2026 Pacific
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified Production application and asset commit: `6670ab34961d73d174af9436cd5224e9c7f4325d`
+- Verified Production application and asset commit: `eb5ff39c6c59db7f32c1e6a3944df118d12b65d2`
 - Latest applied Production migration: 438 (`20260818080111`)
 
 ## Deployed state
@@ -184,6 +184,26 @@ loaded without browser errors or horizontal overflow. All protected checks,
 the production build, and the complete 22-check signed-out Production smoke
 sweep passed. The short-lived application branch was deleted.
 
+Pull requests [#319](https://github.com/roblebaegaming/DraftCenter/pull/319)
+and [#320](https://github.com/roblebaegaming/DraftCenter/pull/320) are released
+at exact application commit `eb5ff39c6c59db7f32c1e6a3944df118d12b65d2`.
+Private Team Lab URLs now resume the exact workspace and battle after reload,
+local in-progress battle drafts restore automatically when the cloud report has
+not changed, scroll position returns, and league draft URLs retain the Draft tab
+through reload and browser history. Shared Team Lab and My Teams reports now
+separate ladder, draft-league, tournament, practice, and casual sessions; open
+and closed sheets; event labels; and week or round, with team, Pokémon, move,
+rating, replay, and reveal summaries. Exact Battle Mode handoffs and richer
+workbook context connect the two surfaces.
+
+The first live verification caught a signed-in default-route null dereference
+that did not affect the public or exact-ID paths. Pull request #320 added the
+two-object guard and regression coverage before final handoff. Its exact
+Production deployment is Ready, the signed-in Team Lab route now loads without
+browser errors or warnings, and the complete 22-check Production smoke sweep
+passes. This release added no database migration and changed no Production data,
+RLS, grants, provider settings, or environment variables.
+
 Supabase automatic branching remains enabled with a one-concurrent-Preview
 limit and Supabase-only changes. Older Preview branches were left untouched.
 The automatic check on pull request #298 was canceled solely because that limit
@@ -230,6 +250,8 @@ August 19, 2026. Do not inspect or report individual identity or activity.
 ## Authoritative records
 
 - Current release and continuation handoff:
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-18-reload-resume-and-battle-reporting.md`](handoffs/DraftCenter-agent-handoff-2026-08-18-reload-resume-and-battle-reporting.md)
+- Previous Team Lab Battle Mode UX handoff:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-18-team-lab-battle-mode-ux-release.md`](handoffs/DraftCenter-agent-handoff-2026-08-18-team-lab-battle-mode-ux-release.md)
 - Commissioner workflow SEO release handoff:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-18-commissioner-workflow-seo-release.md`](handoffs/DraftCenter-agent-handoff-2026-08-18-commissioner-workflow-seo-release.md)
