@@ -41,36 +41,41 @@ its separate browser-only contract.
 5. A connected My Teams workspace can store complete private sets: nickname,
    level, gender, ability, item, nature, shiny and happiness flags,
    EVs, IVs, four moves, role, and private notes. PokéPaste or Pokémon Showdown
-   text can be loaded from an authenticated PokéPaste URL, uploaded from a local
-   `.txt` file, or pasted into the builder, and the roster can be copied back in
-   Pokémon Showdown format. Saved own-team moves become one-tap choices in
+   text can be loaded from an authenticated PokéPaste URL or pasted into the
+   builder, and the roster can be copied back in Pokémon Showdown format. Saved
+   own-team moves become one-tap choices in
    Battle Mode. Closed opponent sheets keep blank manual ability/item/move
    fields and add optional suggestions from DraftCenter's pinned exact-game
    move catalog when the selected format maps to one game pool. Tera type is
    available only for Scarlet/Violet formats. Pokémon Champions and supported
    Generation VI formats use Mega Evolution instead; the chosen Mega Pokémon
    and its held Mega Stone define the saved set.
-6. The turn recorder keeps the active Pokémon, current game and turn, moves,
+6. Battle Mode places the opponent team above the turn recorder. Its six
+   Pokémon are compact rows; opening one reveals its Seen/Fainted controls,
+   ability, held item, and four move fields. Closed sheet mode adds Pokémon and
+   details only as they appear. Open sheet mode can privately import a
+   PokéPaste URL or pasted Showdown team before turn actions are recorded.
+7. The turn recorder keeps the active Pokémon, current game and turn, moves,
    ability and held-item reveals, switches, faints, written damage, and short
    action notes in one quick-entry panel. The opponent roster is a one-tap row
    for fast closed-sheet capture. A closed sheet accepts a move, ability, or
    item the first time it is seen and then remembers it. An open sheet also
    offers saved sheet details as tap targets.
-7. Every Battle Mode change is locally autosaved in the current browser after
+8. Every Battle Mode change is locally autosaved in the current browser after
    a short delay and on page exit. Reopening the same matchup offers to restore
    that draft. If the cloud report changed after the local draft began, the
    restore prompt identifies the conflict before anything can be saved over it.
    **Save battle report** remains the explicit cross-device account save.
-8. Timeline actions support **Undo last action**, per-action **Edit**, and
+9. Timeline actions support **Undo last action**, per-action **Edit**, and
    removal. Corrections reconcile a faint, move, ability, or item fact only when
    no remaining action or open-sheet plan still supports it.
-9. The always-visible finish control records Win, Loss, or Tie for the current
+10. The always-visible finish control records Win, Loss, or Tie for the current
    game. Once a best-of-1 match or longer set is complete, a phone-friendly
    **Save & start next match** action saves the report and opens a fresh ladder
    report with the same saved team, format, and sheet choice. The finished
    report remains separate and editable; the new report starts without turn,
    state, reveal, or note carryover.
-10. The saved-team performance panel rolls completed reports into wins,
+11. The saved-team performance panel rolls completed reports into wins,
    losses, ties, decided-game win rate, current streak, last-ten form, matches
    logged, Pokémon brought counts, lead records, format-correct Mega Evolution
    or Tera usage, separate open- and closed-team-sheet records, opposing-Pokémon
@@ -78,18 +83,18 @@ its separate browser-only contract.
    links and ratings before/after a game add a private rating history. These are
    private account statistics derived only from information the coach
    explicitly records in Battle Room.
-11. The set tracker supports best-of-1, best-of-3, and best-of-5 matches with a
+12. The set tracker supports best-of-1, best-of-3, and best-of-5 matches with a
    result, planned leads, game plan, between-game adjustment, replay URL, and
    before/after rating per game.
    Structured battle state separately tracks HP percentage, major status,
    hazards, screens, weather, terrain, and the selected format's supported
    battle mechanic for both sides. Pokémon Champions shows Mega Evolution;
    only Scarlet/Violet formats show Terastallization and Tera type.
-12. An optional damage estimator accepts final manual stats, move power, STAB,
+13. An optional damage estimator accepts final manual stats, move power, STAB,
    type effectiveness, and one combined modifier. It exposes the base damage,
    85%–100% roll, and every multiplier; it does not guess mechanics or replace a
    format-specific calculator.
-13. **Download Excel / Sheets workbook** exports the complete private team
+14. **Download Excel / Sheets workbook** exports the complete private team
    workspace as one `.xlsx` file. It contains Overview, Performance, Game
    Results, Matchup Stats, Move Usage, My Team, Matchup Plans, Opponent Sets,
    Turn Log, and editable Game Plans sheets. Excel opens it directly; Google

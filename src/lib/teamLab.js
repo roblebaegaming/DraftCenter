@@ -645,6 +645,37 @@ export function normalizeTeamLabBattleReport(report, myRosterNames = [], opponen
   };
 }
 
+export function replaceTeamLabBattleOpponentRoster(
+  report,
+  myRosterNames = [],
+  opponentRosterNames = [],
+  catalogNames = null,
+  newlySeenNames = [],
+) {
+  const roster = normalizeTeamLabRoster(opponentRosterNames, catalogNames || opponentRosterNames, TEAM_LAB_ROSTER_LIMIT);
+  const seen = new Set(normalizeTeamLabRoster(newlySeenNames, catalogNames || newlySeenNames, TEAM_LAB_ROSTER_LIMIT));
+  const existing = new Map((Array.isArray(report?.opponent_pokemon) ? report.opponent_pokemon : [])
+    .filter((pokemon) => pokemon && typeof pokemon === "object")
+    .map((pokemon) => [cleanText(pokemon.name, 120), pokemon]));
+  const opponentPokemon = roster.map((name) => {
+    const saved = existing.get(name);
+    return saved ? { ...saved, name } : {
+      name,
+      brought: seen.has(name),
+      fainted: false,
+      ability: "",
+      item: "",
+      moves: [],
+    };
+  });
+  return normalizeTeamLabBattleReport(
+    { ...(report && typeof report === "object" ? report : {}), opponent_pokemon: opponentPokemon },
+    myRosterNames,
+    roster,
+    catalogNames,
+  );
+}
+
 function turnEventMarksFaint(event) {
   return event?.kind === "faint" || (event?.kind === "move" && ["ko", "100%", "fainted"].includes(String(event.damage || "").trim().toLowerCase()));
 }
