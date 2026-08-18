@@ -208,7 +208,7 @@ test("Collector JSON backup restores only as new private copies", () => {
   assert.equal(payload.details.length, 2);
   const parsed = parsePokedexRestoreJson(JSON.stringify(payload));
   assert.deepEqual(parsed.summary, { trackers: 1, entries: 2, details: 2, locations: 1, specimens: 1 });
-  assert.deepEqual(Object.keys(parsed.trackers[0]).sort(), ["catalog_key", "details", "entries", "include_shiny", "locations", "specimens", "title"]);
+  assert.deepEqual(Object.keys(parsed.trackers[0]).sort(), ["catalog_key", "details", "entries", "include_alpha", "include_shiny", "locations", "specimens", "title"]);
   assert.throws(() => parsePokedexRestoreJson("{}"), /does not contain a DraftCenter Pokédex tracker backup/);
   assert.throws(() => parsePokedexRestoreJson(JSON.stringify({ trackers: [{ ...payload.tracker, include_shiny: "yes" }] })), /invalid include_shiny/i);
 });

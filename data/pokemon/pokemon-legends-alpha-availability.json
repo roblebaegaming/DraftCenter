@@ -1,0 +1,3025 @@
+{
+  "schema_version": 1,
+  "generated_from_pinned_sources": true,
+  "eligibility_rule": "A species is eligible when a reviewed source contains a direct Alpha encounter, gift, or static specimen, or when it can evolve from a directly obtainable Alpha in the same reviewed evolution family.",
+  "privacy_boundary": "This artifact contains species eligibility only. It intentionally omits locations, levels, probabilities, progression requirements, and encounter rows.",
+  "games": [
+    {
+      "game_key": "legends-arceus",
+      "total_species": 242,
+      "alpha_eligible_species": 224,
+      "alpha_locked_species": 18,
+      "source": {
+        "pokedex_commit": "5064f1d72746b3a6a931616dae3fb6445c556d4f",
+        "encounter_commit": "18cc30d6416b8fc58320af0f9b9d1b62bee405e1",
+        "source_kind": "reviewed encounter catalog"
+      },
+      "eligible": [
+        {
+          "pokemon_id": 25,
+          "pokemon_name": "Pikachu",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 26,
+          "pokemon_name": "Raichu",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 35,
+          "pokemon_name": "Clefairy",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 36,
+          "pokemon_name": "Clefable",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 37,
+          "pokemon_name": "Vulpix",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 38,
+          "pokemon_name": "Ninetales",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 41,
+          "pokemon_name": "Zubat",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 42,
+          "pokemon_name": "Golbat",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 46,
+          "pokemon_name": "Paras",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 47,
+          "pokemon_name": "Parasect",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 54,
+          "pokemon_name": "Psyduck",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 55,
+          "pokemon_name": "Golduck",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 58,
+          "pokemon_name": "Growlithe",
+          "basis": "evolution"
+        },
+        {
+          "pokemon_id": 59,
+          "pokemon_name": "Arcanine",
+          "basis": "evolution"
+        },
+        {
+          "pokemon_id": 63,
+          "pokemon_name": "Abra",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 64,
+          "pokemon_name": "Kadabra",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 65,
+          "pokemon_name": "Alakazam",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 66,
+          "pokemon_name": "Machop",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 67,
+          "pokemon_name": "Machoke",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 68,
+          "pokemon_name": "Machamp",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 72,
+          "pokemon_name": "Tentacool",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 73,
+          "pokemon_name": "Tentacruel",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 74,
+          "pokemon_name": "Geodude",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 75,
+          "pokemon_name": "Graveler",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 76,
+          "pokemon_name": "Golem",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 77,
+          "pokemon_name": "Ponyta",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 78,
+          "pokemon_name": "Rapidash",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 81,
+          "pokemon_name": "Magnemite",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 82,
+          "pokemon_name": "Magneton",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 92,
+          "pokemon_name": "Gastly",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 93,
+          "pokemon_name": "Haunter",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 94,
+          "pokemon_name": "Gengar",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 95,
+          "pokemon_name": "Onix",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 100,
+          "pokemon_name": "Voltorb",
+          "basis": "evolution"
+        },
+        {
+          "pokemon_id": 101,
+          "pokemon_name": "Electrode",
+          "basis": "evolution"
+        },
+        {
+          "pokemon_id": 108,
+          "pokemon_name": "Lickitung",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 111,
+          "pokemon_name": "Rhyhorn",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 112,
+          "pokemon_name": "Rhydon",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 113,
+          "pokemon_name": "Chansey",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 114,
+          "pokemon_name": "Tangela",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 122,
+          "pokemon_name": "Mr. Mime",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 123,
+          "pokemon_name": "Scyther",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 125,
+          "pokemon_name": "Electabuzz",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 126,
+          "pokemon_name": "Magmar",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 129,
+          "pokemon_name": "Magikarp",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 130,
+          "pokemon_name": "Gyarados",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 133,
+          "pokemon_name": "Eevee",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 134,
+          "pokemon_name": "Vaporeon",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 135,
+          "pokemon_name": "Jolteon",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 136,
+          "pokemon_name": "Flareon",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 137,
+          "pokemon_name": "Porygon",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 143,
+          "pokemon_name": "Snorlax",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 155,
+          "pokemon_name": "Cyndaquil",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 156,
+          "pokemon_name": "Quilava",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 157,
+          "pokemon_name": "Typhlosion",
+          "basis": "evolution"
+        },
+        {
+          "pokemon_id": 169,
+          "pokemon_name": "Crobat",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 172,
+          "pokemon_name": "Pichu",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 173,
+          "pokemon_name": "Cleffa",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 175,
+          "pokemon_name": "Togepi",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 176,
+          "pokemon_name": "Togetic",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 185,
+          "pokemon_name": "Sudowoodo",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 190,
+          "pokemon_name": "Aipom",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 193,
+          "pokemon_name": "Yanma",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 196,
+          "pokemon_name": "Espeon",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 197,
+          "pokemon_name": "Umbreon",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 198,
+          "pokemon_name": "Murkrow",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 200,
+          "pokemon_name": "Misdreavus",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 201,
+          "pokemon_name": "Unown",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 207,
+          "pokemon_name": "Gligar",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 208,
+          "pokemon_name": "Steelix",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 211,
+          "pokemon_name": "Qwilfish",
+          "basis": "evolution"
+        },
+        {
+          "pokemon_id": 212,
+          "pokemon_name": "Scizor",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 214,
+          "pokemon_name": "Heracross",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 215,
+          "pokemon_name": "Sneasel",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 216,
+          "pokemon_name": "Teddiursa",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 217,
+          "pokemon_name": "Ursaring",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 220,
+          "pokemon_name": "Swinub",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 221,
+          "pokemon_name": "Piloswine",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 223,
+          "pokemon_name": "Remoraid",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 224,
+          "pokemon_name": "Octillery",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 226,
+          "pokemon_name": "Mantine",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 233,
+          "pokemon_name": "Porygon2",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 234,
+          "pokemon_name": "Stantler",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 239,
+          "pokemon_name": "Elekid",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 240,
+          "pokemon_name": "Magby",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 242,
+          "pokemon_name": "Blissey",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 265,
+          "pokemon_name": "Wurmple",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 266,
+          "pokemon_name": "Silcoon",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 267,
+          "pokemon_name": "Beautifly",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 268,
+          "pokemon_name": "Cascoon",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 269,
+          "pokemon_name": "Dustox",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 280,
+          "pokemon_name": "Ralts",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 281,
+          "pokemon_name": "Kirlia",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 282,
+          "pokemon_name": "Gardevoir",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 299,
+          "pokemon_name": "Nosepass",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 315,
+          "pokemon_name": "Roselia",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 339,
+          "pokemon_name": "Barboach",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 340,
+          "pokemon_name": "Whiscash",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 355,
+          "pokemon_name": "Duskull",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 356,
+          "pokemon_name": "Dusclops",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 358,
+          "pokemon_name": "Chimecho",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 361,
+          "pokemon_name": "Snorunt",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 362,
+          "pokemon_name": "Glalie",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 363,
+          "pokemon_name": "Spheal",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 364,
+          "pokemon_name": "Sealeo",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 365,
+          "pokemon_name": "Walrein",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 387,
+          "pokemon_name": "Turtwig",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 388,
+          "pokemon_name": "Grotle",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 389,
+          "pokemon_name": "Torterra",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 390,
+          "pokemon_name": "Chimchar",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 391,
+          "pokemon_name": "Monferno",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 392,
+          "pokemon_name": "Infernape",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 393,
+          "pokemon_name": "Piplup",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 394,
+          "pokemon_name": "Prinplup",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 395,
+          "pokemon_name": "Empoleon",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 396,
+          "pokemon_name": "Starly",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 397,
+          "pokemon_name": "Staravia",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 398,
+          "pokemon_name": "Staraptor",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 399,
+          "pokemon_name": "Bidoof",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 400,
+          "pokemon_name": "Bibarel",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 401,
+          "pokemon_name": "Kricketot",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 402,
+          "pokemon_name": "Kricketune",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 403,
+          "pokemon_name": "Shinx",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 404,
+          "pokemon_name": "Luxio",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 405,
+          "pokemon_name": "Luxray",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 406,
+          "pokemon_name": "Budew",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 407,
+          "pokemon_name": "Roserade",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 408,
+          "pokemon_name": "Cranidos",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 409,
+          "pokemon_name": "Rampardos",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 410,
+          "pokemon_name": "Shieldon",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 411,
+          "pokemon_name": "Bastiodon",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 412,
+          "pokemon_name": "Burmy",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 413,
+          "pokemon_name": "Wormadam",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 414,
+          "pokemon_name": "Mothim",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 415,
+          "pokemon_name": "Combee",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 416,
+          "pokemon_name": "Vespiquen",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 417,
+          "pokemon_name": "Pachirisu",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 418,
+          "pokemon_name": "Buizel",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 419,
+          "pokemon_name": "Floatzel",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 420,
+          "pokemon_name": "Cherubi",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 421,
+          "pokemon_name": "Cherrim",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 422,
+          "pokemon_name": "Shellos",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 423,
+          "pokemon_name": "Gastrodon",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 424,
+          "pokemon_name": "Ambipom",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 425,
+          "pokemon_name": "Drifloon",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 426,
+          "pokemon_name": "Drifblim",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 427,
+          "pokemon_name": "Buneary",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 428,
+          "pokemon_name": "Lopunny",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 429,
+          "pokemon_name": "Mismagius",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 430,
+          "pokemon_name": "Honchkrow",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 431,
+          "pokemon_name": "Glameow",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 432,
+          "pokemon_name": "Purugly",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 433,
+          "pokemon_name": "Chingling",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 434,
+          "pokemon_name": "Stunky",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 435,
+          "pokemon_name": "Skuntank",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 436,
+          "pokemon_name": "Bronzor",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 437,
+          "pokemon_name": "Bronzong",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 438,
+          "pokemon_name": "Bonsly",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 439,
+          "pokemon_name": "Mime Jr.",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 440,
+          "pokemon_name": "Happiny",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 441,
+          "pokemon_name": "Chatot",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 442,
+          "pokemon_name": "Spiritomb",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 443,
+          "pokemon_name": "Gible",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 444,
+          "pokemon_name": "Gabite",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 445,
+          "pokemon_name": "Garchomp",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 446,
+          "pokemon_name": "Munchlax",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 447,
+          "pokemon_name": "Riolu",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 448,
+          "pokemon_name": "Lucario",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 449,
+          "pokemon_name": "Hippopotas",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 450,
+          "pokemon_name": "Hippowdon",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 451,
+          "pokemon_name": "Skorupi",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 452,
+          "pokemon_name": "Drapion",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 453,
+          "pokemon_name": "Croagunk",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 454,
+          "pokemon_name": "Toxicroak",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 455,
+          "pokemon_name": "Carnivine",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 456,
+          "pokemon_name": "Finneon",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 457,
+          "pokemon_name": "Lumineon",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 458,
+          "pokemon_name": "Mantyke",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 459,
+          "pokemon_name": "Snover",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 460,
+          "pokemon_name": "Abomasnow",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 461,
+          "pokemon_name": "Weavile",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 462,
+          "pokemon_name": "Magnezone",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 463,
+          "pokemon_name": "Lickilicky",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 464,
+          "pokemon_name": "Rhyperior",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 465,
+          "pokemon_name": "Tangrowth",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 466,
+          "pokemon_name": "Electivire",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 467,
+          "pokemon_name": "Magmortar",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 468,
+          "pokemon_name": "Togekiss",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 469,
+          "pokemon_name": "Yanmega",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 470,
+          "pokemon_name": "Leafeon",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 471,
+          "pokemon_name": "Glaceon",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 472,
+          "pokemon_name": "Gliscor",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 473,
+          "pokemon_name": "Mamoswine",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 474,
+          "pokemon_name": "Porygon-Z",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 475,
+          "pokemon_name": "Gallade",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 476,
+          "pokemon_name": "Probopass",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 477,
+          "pokemon_name": "Dusknoir",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 478,
+          "pokemon_name": "Froslass",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 479,
+          "pokemon_name": "Rotom",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 501,
+          "pokemon_name": "Oshawott",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 502,
+          "pokemon_name": "Dewott",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 503,
+          "pokemon_name": "Samurott",
+          "basis": "evolution"
+        },
+        {
+          "pokemon_id": 548,
+          "pokemon_name": "Petilil",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 549,
+          "pokemon_name": "Lilligant",
+          "basis": "evolution"
+        },
+        {
+          "pokemon_id": 550,
+          "pokemon_name": "Basculin",
+          "basis": "evolution"
+        },
+        {
+          "pokemon_id": 570,
+          "pokemon_name": "Zorua",
+          "basis": "evolution"
+        },
+        {
+          "pokemon_id": 571,
+          "pokemon_name": "Zoroark",
+          "basis": "evolution"
+        },
+        {
+          "pokemon_id": 627,
+          "pokemon_name": "Rufflet",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 628,
+          "pokemon_name": "Braviary",
+          "basis": "evolution"
+        },
+        {
+          "pokemon_id": 700,
+          "pokemon_name": "Sylveon",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 704,
+          "pokemon_name": "Goomy",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 705,
+          "pokemon_name": "Sliggoo",
+          "basis": "evolution"
+        },
+        {
+          "pokemon_id": 706,
+          "pokemon_name": "Goodra",
+          "basis": "evolution"
+        },
+        {
+          "pokemon_id": 712,
+          "pokemon_name": "Bergmite",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 713,
+          "pokemon_name": "Avalugg",
+          "basis": "evolution"
+        },
+        {
+          "pokemon_id": 722,
+          "pokemon_name": "Rowlet",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 723,
+          "pokemon_name": "Dartrix",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 724,
+          "pokemon_name": "Decidueye",
+          "basis": "evolution"
+        },
+        {
+          "pokemon_id": 899,
+          "pokemon_name": "Wyrdeer",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 900,
+          "pokemon_name": "Kleavor",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 901,
+          "pokemon_name": "Ursaluna",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 902,
+          "pokemon_name": "Basculegion",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 903,
+          "pokemon_name": "Sneasler",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 904,
+          "pokemon_name": "Overqwil",
+          "basis": "direct"
+        }
+      ],
+      "alpha_locked": [
+        {
+          "pokemon_id": 480,
+          "pokemon_name": "Uxie"
+        },
+        {
+          "pokemon_id": 481,
+          "pokemon_name": "Mesprit"
+        },
+        {
+          "pokemon_id": 482,
+          "pokemon_name": "Azelf"
+        },
+        {
+          "pokemon_id": 483,
+          "pokemon_name": "Dialga"
+        },
+        {
+          "pokemon_id": 484,
+          "pokemon_name": "Palkia"
+        },
+        {
+          "pokemon_id": 485,
+          "pokemon_name": "Heatran"
+        },
+        {
+          "pokemon_id": 486,
+          "pokemon_name": "Regigigas"
+        },
+        {
+          "pokemon_id": 487,
+          "pokemon_name": "Giratina"
+        },
+        {
+          "pokemon_id": 488,
+          "pokemon_name": "Cresselia"
+        },
+        {
+          "pokemon_id": 489,
+          "pokemon_name": "Phione"
+        },
+        {
+          "pokemon_id": 490,
+          "pokemon_name": "Manaphy"
+        },
+        {
+          "pokemon_id": 491,
+          "pokemon_name": "Darkrai"
+        },
+        {
+          "pokemon_id": 492,
+          "pokemon_name": "Shaymin"
+        },
+        {
+          "pokemon_id": 493,
+          "pokemon_name": "Arceus"
+        },
+        {
+          "pokemon_id": 641,
+          "pokemon_name": "Tornadus"
+        },
+        {
+          "pokemon_id": 642,
+          "pokemon_name": "Thundurus"
+        },
+        {
+          "pokemon_id": 645,
+          "pokemon_name": "Landorus"
+        },
+        {
+          "pokemon_id": 905,
+          "pokemon_name": "Enamorus"
+        }
+      ]
+    },
+    {
+      "game_key": "legends-za",
+      "total_species": 364,
+      "alpha_eligible_species": 339,
+      "alpha_locked_species": 25,
+      "source": {
+        "pokedex_commit": "5064f1d72746b3a6a931616dae3fb6445c556d4f",
+        "encounter_commit": "90b265a8f339f46ae1bf3b592f88281fe6500a92",
+        "source_kind": "pinned non-public encounter audit"
+      },
+      "eligible": [
+        {
+          "pokemon_id": 1,
+          "pokemon_name": "Bulbasaur",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 2,
+          "pokemon_name": "Ivysaur",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 3,
+          "pokemon_name": "Venusaur",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 4,
+          "pokemon_name": "Charmander",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 5,
+          "pokemon_name": "Charmeleon",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 6,
+          "pokemon_name": "Charizard",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 7,
+          "pokemon_name": "Squirtle",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 8,
+          "pokemon_name": "Wartortle",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 9,
+          "pokemon_name": "Blastoise",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 13,
+          "pokemon_name": "Weedle",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 14,
+          "pokemon_name": "Kakuna",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 15,
+          "pokemon_name": "Beedrill",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 16,
+          "pokemon_name": "Pidgey",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 17,
+          "pokemon_name": "Pidgeotto",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 18,
+          "pokemon_name": "Pidgeot",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 23,
+          "pokemon_name": "Ekans",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 24,
+          "pokemon_name": "Arbok",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 25,
+          "pokemon_name": "Pikachu",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 26,
+          "pokemon_name": "Raichu",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 35,
+          "pokemon_name": "Clefairy",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 36,
+          "pokemon_name": "Clefable",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 39,
+          "pokemon_name": "Jigglypuff",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 40,
+          "pokemon_name": "Wigglytuff",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 41,
+          "pokemon_name": "Zubat",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 42,
+          "pokemon_name": "Golbat",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 52,
+          "pokemon_name": "Meowth",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 53,
+          "pokemon_name": "Persian",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 56,
+          "pokemon_name": "Mankey",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 57,
+          "pokemon_name": "Primeape",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 63,
+          "pokemon_name": "Abra",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 64,
+          "pokemon_name": "Kadabra",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 65,
+          "pokemon_name": "Alakazam",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 66,
+          "pokemon_name": "Machop",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 67,
+          "pokemon_name": "Machoke",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 68,
+          "pokemon_name": "Machamp",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 69,
+          "pokemon_name": "Bellsprout",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 70,
+          "pokemon_name": "Weepinbell",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 71,
+          "pokemon_name": "Victreebel",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 79,
+          "pokemon_name": "Slowpoke",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 80,
+          "pokemon_name": "Slowbro",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 83,
+          "pokemon_name": "Farfetch’d",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 92,
+          "pokemon_name": "Gastly",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 93,
+          "pokemon_name": "Haunter",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 94,
+          "pokemon_name": "Gengar",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 95,
+          "pokemon_name": "Onix",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 104,
+          "pokemon_name": "Cubone",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 105,
+          "pokemon_name": "Marowak",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 115,
+          "pokemon_name": "Kangaskhan",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 120,
+          "pokemon_name": "Staryu",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 121,
+          "pokemon_name": "Starmie",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 122,
+          "pokemon_name": "Mr. Mime",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 123,
+          "pokemon_name": "Scyther",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 127,
+          "pokemon_name": "Pinsir",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 129,
+          "pokemon_name": "Magikarp",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 130,
+          "pokemon_name": "Gyarados",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 133,
+          "pokemon_name": "Eevee",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 134,
+          "pokemon_name": "Vaporeon",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 135,
+          "pokemon_name": "Jolteon",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 136,
+          "pokemon_name": "Flareon",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 137,
+          "pokemon_name": "Porygon",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 142,
+          "pokemon_name": "Aerodactyl",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 147,
+          "pokemon_name": "Dratini",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 148,
+          "pokemon_name": "Dragonair",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 149,
+          "pokemon_name": "Dragonite",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 152,
+          "pokemon_name": "Chikorita",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 153,
+          "pokemon_name": "Bayleef",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 154,
+          "pokemon_name": "Meganium",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 158,
+          "pokemon_name": "Totodile",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 159,
+          "pokemon_name": "Croconaw",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 160,
+          "pokemon_name": "Feraligatr",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 167,
+          "pokemon_name": "Spinarak",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 168,
+          "pokemon_name": "Ariados",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 169,
+          "pokemon_name": "Crobat",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 172,
+          "pokemon_name": "Pichu",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 173,
+          "pokemon_name": "Cleffa",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 174,
+          "pokemon_name": "Igglybuff",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 179,
+          "pokemon_name": "Mareep",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 180,
+          "pokemon_name": "Flaaffy",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 181,
+          "pokemon_name": "Ampharos",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 196,
+          "pokemon_name": "Espeon",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 197,
+          "pokemon_name": "Umbreon",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 199,
+          "pokemon_name": "Slowking",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 208,
+          "pokemon_name": "Steelix",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 211,
+          "pokemon_name": "Qwilfish",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 212,
+          "pokemon_name": "Scizor",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 214,
+          "pokemon_name": "Heracross",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 225,
+          "pokemon_name": "Delibird",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 227,
+          "pokemon_name": "Skarmory",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 228,
+          "pokemon_name": "Houndour",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 229,
+          "pokemon_name": "Houndoom",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 233,
+          "pokemon_name": "Porygon2",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 246,
+          "pokemon_name": "Larvitar",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 247,
+          "pokemon_name": "Pupitar",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 248,
+          "pokemon_name": "Tyranitar",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 252,
+          "pokemon_name": "Treecko",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 253,
+          "pokemon_name": "Grovyle",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 254,
+          "pokemon_name": "Sceptile",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 255,
+          "pokemon_name": "Torchic",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 256,
+          "pokemon_name": "Combusken",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 257,
+          "pokemon_name": "Blaziken",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 258,
+          "pokemon_name": "Mudkip",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 259,
+          "pokemon_name": "Marshtomp",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 260,
+          "pokemon_name": "Swampert",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 280,
+          "pokemon_name": "Ralts",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 281,
+          "pokemon_name": "Kirlia",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 282,
+          "pokemon_name": "Gardevoir",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 302,
+          "pokemon_name": "Sableye",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 303,
+          "pokemon_name": "Mawile",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 304,
+          "pokemon_name": "Aron",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 305,
+          "pokemon_name": "Lairon",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 306,
+          "pokemon_name": "Aggron",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 307,
+          "pokemon_name": "Meditite",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 308,
+          "pokemon_name": "Medicham",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 309,
+          "pokemon_name": "Electrike",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 310,
+          "pokemon_name": "Manectric",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 315,
+          "pokemon_name": "Roselia",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 316,
+          "pokemon_name": "Gulpin",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 317,
+          "pokemon_name": "Swalot",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 318,
+          "pokemon_name": "Carvanha",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 319,
+          "pokemon_name": "Sharpedo",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 322,
+          "pokemon_name": "Numel",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 323,
+          "pokemon_name": "Camerupt",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 325,
+          "pokemon_name": "Spoink",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 326,
+          "pokemon_name": "Grumpig",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 333,
+          "pokemon_name": "Swablu",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 334,
+          "pokemon_name": "Altaria",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 335,
+          "pokemon_name": "Zangoose",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 336,
+          "pokemon_name": "Seviper",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 349,
+          "pokemon_name": "Feebas",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 350,
+          "pokemon_name": "Milotic",
+          "basis": "evolution"
+        },
+        {
+          "pokemon_id": 352,
+          "pokemon_name": "Kecleon",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 353,
+          "pokemon_name": "Shuppet",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 354,
+          "pokemon_name": "Banette",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 358,
+          "pokemon_name": "Chimecho",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 359,
+          "pokemon_name": "Absol",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 361,
+          "pokemon_name": "Snorunt",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 362,
+          "pokemon_name": "Glalie",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 371,
+          "pokemon_name": "Bagon",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 372,
+          "pokemon_name": "Shelgon",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 373,
+          "pokemon_name": "Salamence",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 374,
+          "pokemon_name": "Beldum",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 375,
+          "pokemon_name": "Metang",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 376,
+          "pokemon_name": "Metagross",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 396,
+          "pokemon_name": "Starly",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 397,
+          "pokemon_name": "Staravia",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 398,
+          "pokemon_name": "Staraptor",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 406,
+          "pokemon_name": "Budew",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 407,
+          "pokemon_name": "Roserade",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 427,
+          "pokemon_name": "Buneary",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 428,
+          "pokemon_name": "Lopunny",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 433,
+          "pokemon_name": "Chingling",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 439,
+          "pokemon_name": "Mime Jr.",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 443,
+          "pokemon_name": "Gible",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 444,
+          "pokemon_name": "Gabite",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 445,
+          "pokemon_name": "Garchomp",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 447,
+          "pokemon_name": "Riolu",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 448,
+          "pokemon_name": "Lucario",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 449,
+          "pokemon_name": "Hippopotas",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 450,
+          "pokemon_name": "Hippowdon",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 459,
+          "pokemon_name": "Snover",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 460,
+          "pokemon_name": "Abomasnow",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 470,
+          "pokemon_name": "Leafeon",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 471,
+          "pokemon_name": "Glaceon",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 474,
+          "pokemon_name": "Porygon-Z",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 475,
+          "pokemon_name": "Gallade",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 478,
+          "pokemon_name": "Froslass",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 479,
+          "pokemon_name": "Rotom",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 498,
+          "pokemon_name": "Tepig",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 499,
+          "pokemon_name": "Pignite",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 500,
+          "pokemon_name": "Emboar",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 504,
+          "pokemon_name": "Patrat",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 505,
+          "pokemon_name": "Watchog",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 509,
+          "pokemon_name": "Purrloin",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 510,
+          "pokemon_name": "Liepard",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 511,
+          "pokemon_name": "Pansage",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 512,
+          "pokemon_name": "Simisage",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 513,
+          "pokemon_name": "Pansear",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 514,
+          "pokemon_name": "Simisear",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 515,
+          "pokemon_name": "Panpour",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 516,
+          "pokemon_name": "Simipour",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 517,
+          "pokemon_name": "Munna",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 518,
+          "pokemon_name": "Musharna",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 529,
+          "pokemon_name": "Drilbur",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 530,
+          "pokemon_name": "Excadrill",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 531,
+          "pokemon_name": "Audino",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 538,
+          "pokemon_name": "Throh",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 539,
+          "pokemon_name": "Sawk",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 543,
+          "pokemon_name": "Venipede",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 544,
+          "pokemon_name": "Whirlipede",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 545,
+          "pokemon_name": "Scolipede",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 551,
+          "pokemon_name": "Sandile",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 552,
+          "pokemon_name": "Krokorok",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 553,
+          "pokemon_name": "Krookodile",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 559,
+          "pokemon_name": "Scraggy",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 560,
+          "pokemon_name": "Scrafty",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 562,
+          "pokemon_name": "Yamask",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 563,
+          "pokemon_name": "Cofagrigus",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 568,
+          "pokemon_name": "Trubbish",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 569,
+          "pokemon_name": "Garbodor",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 582,
+          "pokemon_name": "Vanillite",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 583,
+          "pokemon_name": "Vanillish",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 584,
+          "pokemon_name": "Vanilluxe",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 587,
+          "pokemon_name": "Emolga",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 590,
+          "pokemon_name": "Foongus",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 591,
+          "pokemon_name": "Amoonguss",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 602,
+          "pokemon_name": "Tynamo",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 603,
+          "pokemon_name": "Eelektrik",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 604,
+          "pokemon_name": "Eelektross",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 607,
+          "pokemon_name": "Litwick",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 608,
+          "pokemon_name": "Lampent",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 609,
+          "pokemon_name": "Chandelure",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 615,
+          "pokemon_name": "Cryogonal",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 618,
+          "pokemon_name": "Stunfisk",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 622,
+          "pokemon_name": "Golett",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 623,
+          "pokemon_name": "Golurk",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 650,
+          "pokemon_name": "Chespin",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 651,
+          "pokemon_name": "Quilladin",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 652,
+          "pokemon_name": "Chesnaught",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 653,
+          "pokemon_name": "Fennekin",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 654,
+          "pokemon_name": "Braixen",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 655,
+          "pokemon_name": "Delphox",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 656,
+          "pokemon_name": "Froakie",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 657,
+          "pokemon_name": "Frogadier",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 658,
+          "pokemon_name": "Greninja",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 659,
+          "pokemon_name": "Bunnelby",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 660,
+          "pokemon_name": "Diggersby",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 661,
+          "pokemon_name": "Fletchling",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 662,
+          "pokemon_name": "Fletchinder",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 663,
+          "pokemon_name": "Talonflame",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 664,
+          "pokemon_name": "Scatterbug",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 665,
+          "pokemon_name": "Spewpa",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 666,
+          "pokemon_name": "Vivillon",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 667,
+          "pokemon_name": "Litleo",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 668,
+          "pokemon_name": "Pyroar",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 669,
+          "pokemon_name": "Flabébé",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 670,
+          "pokemon_name": "Floette",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 671,
+          "pokemon_name": "Florges",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 672,
+          "pokemon_name": "Skiddo",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 673,
+          "pokemon_name": "Gogoat",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 674,
+          "pokemon_name": "Pancham",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 675,
+          "pokemon_name": "Pangoro",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 676,
+          "pokemon_name": "Furfrou",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 677,
+          "pokemon_name": "Espurr",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 678,
+          "pokemon_name": "Meowstic",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 679,
+          "pokemon_name": "Honedge",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 680,
+          "pokemon_name": "Doublade",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 681,
+          "pokemon_name": "Aegislash",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 682,
+          "pokemon_name": "Spritzee",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 683,
+          "pokemon_name": "Aromatisse",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 684,
+          "pokemon_name": "Swirlix",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 685,
+          "pokemon_name": "Slurpuff",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 686,
+          "pokemon_name": "Inkay",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 687,
+          "pokemon_name": "Malamar",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 688,
+          "pokemon_name": "Binacle",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 689,
+          "pokemon_name": "Barbaracle",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 690,
+          "pokemon_name": "Skrelp",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 691,
+          "pokemon_name": "Dragalge",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 692,
+          "pokemon_name": "Clauncher",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 693,
+          "pokemon_name": "Clawitzer",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 694,
+          "pokemon_name": "Helioptile",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 695,
+          "pokemon_name": "Heliolisk",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 696,
+          "pokemon_name": "Tyrunt",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 697,
+          "pokemon_name": "Tyrantrum",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 698,
+          "pokemon_name": "Amaura",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 699,
+          "pokemon_name": "Aurorus",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 700,
+          "pokemon_name": "Sylveon",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 701,
+          "pokemon_name": "Hawlucha",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 702,
+          "pokemon_name": "Dedenne",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 703,
+          "pokemon_name": "Carbink",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 704,
+          "pokemon_name": "Goomy",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 705,
+          "pokemon_name": "Sliggoo",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 706,
+          "pokemon_name": "Goodra",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 707,
+          "pokemon_name": "Klefki",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 708,
+          "pokemon_name": "Phantump",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 709,
+          "pokemon_name": "Trevenant",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 710,
+          "pokemon_name": "Pumpkaboo",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 711,
+          "pokemon_name": "Gourgeist",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 712,
+          "pokemon_name": "Bergmite",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 713,
+          "pokemon_name": "Avalugg",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 714,
+          "pokemon_name": "Noibat",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 715,
+          "pokemon_name": "Noivern",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 739,
+          "pokemon_name": "Crabrawler",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 740,
+          "pokemon_name": "Crabominable",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 767,
+          "pokemon_name": "Wimpod",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 768,
+          "pokemon_name": "Golisopod",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 769,
+          "pokemon_name": "Sandygast",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 770,
+          "pokemon_name": "Palossand",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 778,
+          "pokemon_name": "Mimikyu",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 780,
+          "pokemon_name": "Drampa",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 821,
+          "pokemon_name": "Rookidee",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 822,
+          "pokemon_name": "Corvisquire",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 823,
+          "pokemon_name": "Corviknight",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 827,
+          "pokemon_name": "Nickit",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 828,
+          "pokemon_name": "Thievul",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 848,
+          "pokemon_name": "Toxel",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 849,
+          "pokemon_name": "Toxtricity",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 852,
+          "pokemon_name": "Clobbopus",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 853,
+          "pokemon_name": "Grapploct",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 863,
+          "pokemon_name": "Perrserker",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 865,
+          "pokemon_name": "Sirfetch’d",
+          "basis": "evolution"
+        },
+        {
+          "pokemon_id": 866,
+          "pokemon_name": "Mr. Rime",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 867,
+          "pokemon_name": "Runerigus",
+          "basis": "evolution"
+        },
+        {
+          "pokemon_id": 870,
+          "pokemon_name": "Falinks",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 876,
+          "pokemon_name": "Indeedee",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 877,
+          "pokemon_name": "Morpeko",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 900,
+          "pokemon_name": "Kleavor",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 904,
+          "pokemon_name": "Overqwil",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 926,
+          "pokemon_name": "Fidough",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 927,
+          "pokemon_name": "Dachsbun",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 931,
+          "pokemon_name": "Squawkabilly",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 932,
+          "pokemon_name": "Nacli",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 933,
+          "pokemon_name": "Naclstack",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 934,
+          "pokemon_name": "Garganacl",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 935,
+          "pokemon_name": "Charcadet",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 936,
+          "pokemon_name": "Armarouge",
+          "basis": "evolution"
+        },
+        {
+          "pokemon_id": 937,
+          "pokemon_name": "Ceruledge",
+          "basis": "evolution"
+        },
+        {
+          "pokemon_id": 942,
+          "pokemon_name": "Maschiff",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 943,
+          "pokemon_name": "Mabosstiff",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 944,
+          "pokemon_name": "Shroodle",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 945,
+          "pokemon_name": "Grafaiai",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 951,
+          "pokemon_name": "Capsakid",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 952,
+          "pokemon_name": "Scovillain",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 957,
+          "pokemon_name": "Tinkatink",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 958,
+          "pokemon_name": "Tinkatuff",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 959,
+          "pokemon_name": "Tinkaton",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 967,
+          "pokemon_name": "Cyclizar",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 969,
+          "pokemon_name": "Glimmet",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 970,
+          "pokemon_name": "Glimmora",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 971,
+          "pokemon_name": "Greavard",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 972,
+          "pokemon_name": "Houndstone",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 973,
+          "pokemon_name": "Flamigo",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 977,
+          "pokemon_name": "Dondozo",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 978,
+          "pokemon_name": "Tatsugiri",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 979,
+          "pokemon_name": "Annihilape",
+          "basis": "evolution"
+        },
+        {
+          "pokemon_id": 996,
+          "pokemon_name": "Frigibax",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 997,
+          "pokemon_name": "Arctibax",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 998,
+          "pokemon_name": "Baxcalibur",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 999,
+          "pokemon_name": "Gimmighoul",
+          "basis": "direct"
+        },
+        {
+          "pokemon_id": 1000,
+          "pokemon_name": "Gholdengo",
+          "basis": "evolution"
+        }
+      ],
+      "alpha_locked": [
+        {
+          "pokemon_id": 150,
+          "pokemon_name": "Mewtwo"
+        },
+        {
+          "pokemon_id": 380,
+          "pokemon_name": "Latias"
+        },
+        {
+          "pokemon_id": 381,
+          "pokemon_name": "Latios"
+        },
+        {
+          "pokemon_id": 382,
+          "pokemon_name": "Kyogre"
+        },
+        {
+          "pokemon_id": 383,
+          "pokemon_name": "Groudon"
+        },
+        {
+          "pokemon_id": 384,
+          "pokemon_name": "Rayquaza"
+        },
+        {
+          "pokemon_id": 485,
+          "pokemon_name": "Heatran"
+        },
+        {
+          "pokemon_id": 491,
+          "pokemon_name": "Darkrai"
+        },
+        {
+          "pokemon_id": 638,
+          "pokemon_name": "Cobalion"
+        },
+        {
+          "pokemon_id": 639,
+          "pokemon_name": "Terrakion"
+        },
+        {
+          "pokemon_id": 640,
+          "pokemon_name": "Virizion"
+        },
+        {
+          "pokemon_id": 647,
+          "pokemon_name": "Keldeo"
+        },
+        {
+          "pokemon_id": 648,
+          "pokemon_name": "Meloetta"
+        },
+        {
+          "pokemon_id": 649,
+          "pokemon_name": "Genesect"
+        },
+        {
+          "pokemon_id": 716,
+          "pokemon_name": "Xerneas"
+        },
+        {
+          "pokemon_id": 717,
+          "pokemon_name": "Yveltal"
+        },
+        {
+          "pokemon_id": 718,
+          "pokemon_name": "Zygarde"
+        },
+        {
+          "pokemon_id": 719,
+          "pokemon_name": "Diancie"
+        },
+        {
+          "pokemon_id": 720,
+          "pokemon_name": "Hoopa"
+        },
+        {
+          "pokemon_id": 721,
+          "pokemon_name": "Volcanion"
+        },
+        {
+          "pokemon_id": 801,
+          "pokemon_name": "Magearna"
+        },
+        {
+          "pokemon_id": 802,
+          "pokemon_name": "Marshadow"
+        },
+        {
+          "pokemon_id": 807,
+          "pokemon_name": "Zeraora"
+        },
+        {
+          "pokemon_id": 808,
+          "pokemon_name": "Meltan"
+        },
+        {
+          "pokemon_id": 809,
+          "pokemon_name": "Melmetal"
+        }
+      ]
+    }
+  ]
+}

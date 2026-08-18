@@ -13,7 +13,12 @@ async function importSource(relativePath) {
 
 async function evaluateLeagueData() {
   const showdown = await importSource("src/lib/showdown-regional-pokedexes.js");
+  const pokemonGames = await importSource("src/lib/pokemonGames.js");
   const catalog = await importSource("src/lib/regulation-catalog.js");
+  const legendsZaPokedex = JSON.parse(fs.readFileSync(
+    path.join(ROOT, "data/pokemon/pokemon-legends-za-pokedex.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json"),
+    "utf8",
+  ));
   const source = fs.readFileSync(path.join(ROOT, "src/components/PokemonDraftLeague.jsx"), "utf8");
   const start = source.indexOf("const TYPE_COLORS");
   const end = source.indexOf("function regulationFor");
@@ -25,6 +30,9 @@ async function evaluateLeagueData() {
   const evaluate = new Function(
     "SHOWDOWN_REGIONAL_POKEDEXES",
     "SHOWDOWN_GAME_AVAILABILITY",
+    "LEGENDS_ZA_POKEDEX",
+    "pokemonBaseSpeciesKey",
+    "pokemonShowdownProfileKeys",
     "withRegulationMetadata",
     `${dataSource}
 return { MASTER_POKEDEX, POLL_POKEMON_NAMES, REGULATION_SETS };`,
@@ -34,6 +42,9 @@ return { MASTER_POKEDEX, POLL_POKEMON_NAMES, REGULATION_SETS };`,
     ...evaluate(
       showdown.SHOWDOWN_REGIONAL_POKEDEXES,
       showdown.SHOWDOWN_GAME_AVAILABILITY,
+      legendsZaPokedex,
+      pokemonGames.pokemonBaseSpeciesKey,
+      pokemonGames.pokemonShowdownProfileKeys,
       catalog.withRegulationMetadata,
     ),
   };
@@ -44,7 +55,7 @@ test("regulation catalog metadata and legal pools stay complete and internally v
   const pokemonNames = new Set(MASTER_POKEDEX.map((pokemon) => pokemon.name));
   const regulationIds = Object.keys(REGULATION_SETS);
 
-  assert.equal(regulationIds.length, 54);
+  assert.equal(regulationIds.length, 57);
   assert.deepEqual(
     new Set(regulationIds),
     new Set(Object.keys(catalog.REGULATION_METADATA)),
@@ -78,6 +89,9 @@ test("game Pokédex options retain their pinned regional coverage", async () => 
     "bw-unova-dex": 156,
     "b2w2-unova-dex": 301,
     "xy-kalos-dex": 457,
+    "za-lumiose-dex": 308,
+    "za-hyperspace-dex": 151,
+    "za-full-dex": 459,
     "sm-alola-dex": 302,
     "usum-alola-dex": 403,
     "swsh-galar-dex": 398,

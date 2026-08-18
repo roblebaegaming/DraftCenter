@@ -2,6 +2,17 @@
   color: #f8fbff;
   background: #050b13;
 }
+
+/* Alpha Dex is a third, species-gated checklist for supported Legends games. */
+.dex-tracker-shell.alpha-mode { --dex-cyan: #f27d55; --dex-blue: #ffbd66; background: radial-gradient(circle at 10% 4%, rgba(190,59,35,.33), transparent 29%), radial-gradient(circle at 88% 8%, rgba(244,147,69,.18), transparent 31%), linear-gradient(160deg,#190b0a 0%,#111019 48%,#09090e 100%); }
+.dex-tracker-ring.is-alpha { background: conic-gradient(#f27d55 var(--dex-progress),#38231f 0); box-shadow:0 0 35px rgba(242,125,85,.14); }
+.dex-add-alpha-card { border-color:rgba(242,125,85,.42); background:rgba(242,125,85,.07); }
+.dex-add-alpha-card>b { color:#2b0d07; background:#f27d55; }
+.dex-alpha-button { border-color:rgba(242,125,85,.42); color:#ffc6b3; background:rgba(242,125,85,.09); }
+.dex-alpha-choice { border-color:rgba(242,125,85,.35); }
+.alpha-mode .dex-mode-tabs button[aria-selected="true"] { border-color:rgba(242,125,85,.55); background:rgba(242,125,85,.12); }
+.dex-tracker-pokemon.is-alpha { border-color:rgba(242,125,85,.32); }
+.dex-tracker-pokemon.is-alpha .dex-tracker-art i { color:#2b0d07; background:#f27d55; }
 .dex-tracker-shell {
   --dex-ink: #f8fbff;
   --dex-muted: #9eb0ca;
@@ -146,6 +157,7 @@
 .dex-active-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
 .dex-tracker-settings { display: grid; grid-template-columns: minmax(220px, 1fr) auto auto auto; gap: 10px; align-items: end; margin-top: 18px; padding: 14px; border: 1px solid var(--dex-line); border-radius: 14px; background: rgba(3, 11, 20, .55); }
 .dex-progress-panel { display: grid; grid-template-columns: auto auto minmax(220px, 1fr); gap: 17px; align-items: center; margin: 27px 0 20px; padding: 20px; border: 1px solid var(--dex-line); border-radius: 18px; background: linear-gradient(105deg, rgba(34, 87, 107, .22), rgba(6, 16, 30, .78)); }
+.dex-progress-panel.has-alpha { grid-template-columns: auto auto auto minmax(220px, 1fr); }
 .dex-section-tabs { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 7px; margin-top: 20px; }
 .dex-section-tabs button { display: flex; min-height: 54px; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 12px; border: 1px solid #304960; border-radius: 11px; color: #a8b7c7; text-align: left; background: #0a1928; font: inherit; cursor: pointer; }
 .dex-section-tabs button.is-active { border-color: var(--dex-cyan); color: #f4fffd; background: rgba(89, 225, 208, .11); }
@@ -421,7 +433,7 @@
   .dex-active-header { align-items: stretch; flex-direction: column; }
   .dex-active-actions { justify-content: stretch; }
   .dex-active-actions>* { flex: 1 1 180px; }
-  .dex-progress-panel { grid-template-columns: 1fr 1fr; }
+  .dex-progress-panel,.dex-progress-panel.has-alpha { grid-template-columns: 1fr 1fr; }
   .dex-progress-copy { grid-column: 1 / -1; justify-self: stretch; padding-top: 12px; border-top: 1px solid var(--dex-line); text-align: left; }
   .dex-tracker-controls { grid-template-columns: 1fr; }
   .dex-tracker-controls>div { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); width: 100%; }
