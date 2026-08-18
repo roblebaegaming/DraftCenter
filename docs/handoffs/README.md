@@ -1,13 +1,17 @@
 # Agent handoffs
 
+[`DraftCenter-agent-handoff-2026-08-17-backlog-completion-and-cleanup.md`](DraftCenter-agent-handoff-2026-08-17-backlog-completion-and-cleanup.md)
+is the current release and continuation handoff. It records the complete August
+17 backlog through pull request #302 and migration 434, Production and Supabase
+verification, the current filming package, exact cleanup of 130 approved
+worktrees, preserved `.vercel` archives, and the remaining operational actions
+that still require a direct owner decision.
+
 [`DraftCenter-agent-handoff-2026-08-17-battle-mode-worktree-audit.md`](DraftCenter-agent-handoff-2026-08-17-battle-mode-worktree-audit.md)
-is the current release and continuation handoff. It records the live
-format-aware Battle Room correction, the exact Mega Evolution versus Tera
-boundary, the reference-spreadsheet scope, Production verification at
-`b6f3746`, and the read-only inventory of all 126 linked worktrees. It gives an
-exact preserve, publish, archive, or discard recommendation for each of the ten
-dirty worktrees and records that no cleanup is authorized until the owner makes
-a separate explicit decision.
+is the preceding worktree-audit handoff. It records the format-aware Battle Room
+correction, the exact Mega Evolution versus Tera boundary, the
+reference-spreadsheet scope, and the pre-authorization inventory. Its cleanup
+recommendations are completed and superseded by the current handoff above.
 
 [`DraftCenter-agent-handoff-2026-08-17-tournament-team-lab-spanish-pokedex-audit.md`](DraftCenter-agent-handoff-2026-08-17-tournament-team-lab-spanish-pokedex-audit.md)
 is the preceding comprehensive release handoff. It records the completed
