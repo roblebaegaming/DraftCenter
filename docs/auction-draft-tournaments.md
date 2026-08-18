@@ -22,6 +22,28 @@ Auction events use three Swiss rounds for 4–8 managers, four for 9–16, and f
 for 17–32. The event page shows no more than 16 auction entrants per page so a
 full field remains usable on phones.
 
+## Private tournament organizer demos
+
+A signed-in commissioner can create a **Tournament organizer demo** when they
+want to learn or present the complete infrastructure without recruiting tester
+accounts. The demo is permanently private and uses the commissioner's real
+account plus 31 clearly labeled synthetic bot seats. It is fixed to a 32-seat
+auction followed by five Swiss rounds so the largest supported shared-draft
+path can be practiced end to end.
+
+The commissioner can operate the normal registration, field lock, auction
+room, roster lock, pairings, results, and standings surfaces. Two bounded demo
+actions make a presentation practical: one generates a completed four-Pokémon
+auction for all 32 seats, and the other records deterministic synthetic results
+through the remaining Swiss rounds. A separate reset returns only that exact
+demo to check-in while retaining its synthetic identity and audit history.
+
+Demo entrants never become accounts, league memberships, or claimable team
+owners. Their names and the event banner remain visibly marked as bot,
+synthetic, private, and resettable. Ordinary tournaments continue to require a
+real account for every locked entrant; demo permissions cannot be enabled on a
+public event or used to loosen that boundary.
+
 ## Safety and privacy
 
 - The event owner and checked-in entrants are the only people admitted to the
@@ -45,6 +67,14 @@ roster review, materialize 128 roster entries, create 16 Swiss Round 1
 pairings, calculate a 32-row standings table, and build the complete 63-match
 32-player double-elimination graph. The Preview is deleted after the matrix,
 grant/RLS review, and desktop/mobile browser checks pass.
+
+Migration 439 adds the private organizer-demo boundary. Its disposable Preview
+matrix proves one owner plus 31 bot entrants, 32 immutable auction seats, 128
+unique drafted Pokémon, 32 materialized rosters, 16 first-round pairings, five
+completed Swiss rounds, 80 completed matches, 160 standings rows, owner-only
+controls, rejection by a non-owner, rejection of null-account entrants in an
+ordinary event, and exact demo-only reset cleanup. The matrix rolls back its
+fixture and the paid Preview branch is deleted immediately after validation.
 
 Never use a real league or production tournament for lifecycle testing. A
 timed-out mutation is refreshed and verified before any manual retry.

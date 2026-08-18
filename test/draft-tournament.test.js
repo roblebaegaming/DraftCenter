@@ -398,3 +398,75 @@ test("Tournament UI exposes the Draft Tournament lifecycle without leaking its i
   assert.match(draftRoom, /isDraftTournamentMode \? \[/);
   assert.match(leagueHub, /workspace_kind !== "draft-tournament"/);
 });
+
+test("migration 439 keeps organizer demos private, synthetic, and owner-controlled", () => {
+  const sql = fs.readFileSync(
+    new URL("../supabase/migrations/20260818220437_private_tournament_demo_mode.sql", import.meta.url),
+    "utf8",
+  );
+  for (const evidence of [
+    "enable_tournament_demo",
+    "create_demo_auction_draft_first_tournament",
+    "fill_tournament_demo_auction",
+    "complete_tournament_demo_swiss",
+    "reset_tournament_demo",
+    "guard_demo_auction_team_identity",
+  ]) assert.match(sql, new RegExp(evidence));
+  assert.match(sql, /check \(not is_demo or visibility = 'private'\)/i);
+  assert.match(sql, /check \(not is_demo_bot or user_id is null\)/i);
+  assert.match(sql, /v_tournament\.owner_id <> auth\.uid\(\)/i);
+  assert.match(sql, /one owner seat and a complete synthetic bot field/i);
+  assert.match(sql, /and seat\.user_id is not null/i);
+  assert.match(sql, /owner_membership_id,[\s\S]*v_membership_id/i);
+  assert.match(sql, /'demoMode', v_tournament\.is_demo/i);
+  assert.match(sql, /'synthetic', true/i);
+  assert.match(sql, /from generate_series\(2, v_tournament\.entrant_limit\)/i);
+  assert.match(sql, /grant execute on function public\.enable_tournament_demo[\s\S]*to authenticated/i);
+  assert.match(sql, /revoke all on function public\.guard_demo_auction_team_identity[\s\S]*from public, anon, authenticated, service_role/i);
+  assert.doesNotMatch(sql, /grant (insert|update|delete|all)[^;]+to authenticated/i);
+});
+
+test("isolated Preview matrix covers the maximum 32-seat organizer demo lifecycle", () => {
+  const matrix = fs.readFileSync(
+    new URL("../supabase/tests/439-private-tournament-demo-mode-preview-regression.sql", import.meta.url),
+    "utf8",
+  );
+  for (const evidence of [
+    "grants",
+    "rls",
+    "private_demo_field",
+    "authorization",
+    "non_demo_boundary",
+    "bot_seat_lock",
+    "generated_auction",
+    "roster_lock",
+    "swiss_completion",
+    "reset",
+    "cleanup",
+  ]) assert.match(matrix, new RegExp(`'${evidence}'`));
+  assert.match(matrix, /'entrants', 32, 'bots', 31/i);
+  assert.match(matrix, /'teams', 32, 'entries', 128/i);
+  assert.match(matrix, /'rounds', 5, 'matches', 80, 'standings', 160/i);
+  assert.match(matrix, /rollback;/i);
+});
+
+test("Tournament UI presents the organizer demo as private synthetic infrastructure", () => {
+  const directory = fs.readFileSync(new URL("../src/components/TournamentDirectory.jsx", import.meta.url), "utf8");
+  const workspace = fs.readFileSync(new URL("../src/components/TournamentWorkspace.jsx", import.meta.url), "utf8");
+  for (const evidence of [
+    "Tournament organizer demo",
+    "create_demo_auction_draft_first_tournament",
+    "Private synthetic sandbox",
+    "31 clearly labeled bot seats",
+  ]) assert.match(directory, new RegExp(evidence));
+  for (const evidence of [
+    "PRIVATE ORGANIZER DEMO",
+    "SYNTHETIC · PRIVATE · RESETTABLE",
+    "Build 32-seat organizer demo",
+    "fill_tournament_demo_auction",
+    "complete_tournament_demo_swiss",
+    "reset_tournament_demo",
+    "31 unclaimed teams use the existing draft bots",
+  ]) assert.match(workspace, new RegExp(evidence));
+  assert.match(workspace, /tournament\.is_owner && !isDemo && tournament\.visibility === "private"/);
+});

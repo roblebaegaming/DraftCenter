@@ -43,6 +43,7 @@ export default function TournamentDirectory() {
   const [form, setForm] = useState({
     name: "",
     description: "",
+    demoMode: false,
     visibility: "public",
     format: "single-elimination",
     draftRostersFirst: false,
@@ -103,13 +104,41 @@ export default function TournamentDirectory() {
     }));
   }
 
+  function chooseDemoMode(demoMode) {
+    setForm((current) => demoMode ? {
+      ...current,
+      demoMode: true,
+      visibility: "private",
+      format: "swiss",
+      draftRostersFirst: true,
+      draftType: "auction",
+      entrantLimit: 32,
+      rosterSize: current.rosterSize || 4,
+      publishRosters: false,
+    } : {
+      ...current,
+      demoMode: false,
+    });
+  }
+
   async function create(event) {
     event.preventDefault();
     setBusy(true);
     setMessage("");
     let result;
     try {
-      result = form.draftRostersFirst
+      const demoRequest = {
+        ...form,
+        visibility: "private",
+        format: "swiss",
+        draftRostersFirst: true,
+        draftType: "auction",
+        entrantLimit: 32,
+        publishRosters: false,
+      };
+      result = form.demoMode
+        ? await supabase.rpc("create_demo_auction_draft_first_tournament", auctionDraftTournamentCreateRpcArguments(demoRequest))
+        : form.draftRostersFirst
         ? form.draftType === "auction"
           ? await supabase.rpc("create_auction_draft_first_tournament", auctionDraftTournamentCreateRpcArguments(form))
           : await supabase.rpc("create_draft_first_tournament", draftFirstTournamentCreateRpcArguments(form))
@@ -134,7 +163,9 @@ export default function TournamentDirectory() {
     window.location.assign(`/tournaments/${result.data.slug}${code}`);
   }
 
-  const entrantBounds = form.draftRostersFirst ? { min: 4, max: form.draftType === "auction" ? 32 : 16 } : tournamentEntrantBounds(form.format);
+  const entrantBounds = form.demoMode
+    ? { min: 32, max: 32 }
+    : form.draftRostersFirst ? { min: 4, max: form.draftType === "auction" ? 32 : 16 } : tournamentEntrantBounds(form.format);
 
   return (
     <main className="tournament-shell">
@@ -153,7 +184,7 @@ export default function TournamentDirectory() {
           <div className="tournament-list">
             {tournaments.map((tournament) => (
               <a href={`/tournaments/${tournament.slug}`} key={tournament.id}>
-                <div><strong>{tournament.name}</strong><p>{tournament.description || formatDescription(tournament.format, tournament.competition_format)}</p></div>
+                <div><strong>{tournament.name} {tournament.is_demo && <span className="tournament-demo-badge">Private demo</span>}</strong><p>{tournament.description || formatDescription(tournament.format, tournament.competition_format)}</p></div>
                 <span>{formatLabel(tournament.format, tournament.competition_format)} &middot; {tournament.status} &middot; Best of {tournament.best_of}</span>
               </a>
             ))}
@@ -168,10 +199,20 @@ export default function TournamentDirectory() {
             <><p className="muted">Sign in to create and run a tournament.</p><a className="primary-button inline-link-button" href="/">Sign in</a></>
           ) : (
             <form className="form-stack" onSubmit={create}>
+              <button
+                type="button"
+                className={`tournament-demo-toggle ${form.demoMode ? "is-selected" : ""}`}
+                aria-pressed={form.demoMode}
+                onClick={() => chooseDemoMode(!form.demoMode)}
+              >
+                <strong>Tournament organizer demo</strong>
+                <span>{form.demoMode ? "On — a private 32-seat auction Swiss sandbox will use your account plus 31 clearly labeled bot seats." : "Practice registration, a live auction, roster lock, pairings, results, standings, and reset without inviting tester accounts."}</span>
+              </button>
+              {form.demoMode && <div className="tournament-demo-note" role="note"><strong>Private synthetic sandbox</strong><span>Demo entries and generated results are permanently labeled, never public, and excluded from real participant ownership.</span></div>}
               <label>Name<input required maxLength={120} value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} /></label>
               <label>Description<textarea maxLength={2000} rows={3} value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} /></label>
               <label>Format
-                <select value={form.format} onChange={(event) => chooseFormat(event.target.value)}>
+                <select value={form.format} disabled={form.demoMode} onChange={(event) => chooseFormat(event.target.value)}>
                   <option value="single-elimination">Single elimination</option>
                   <option value="double-elimination">Double elimination</option>
                   <option value="swiss">Swiss</option>
@@ -182,7 +223,7 @@ export default function TournamentDirectory() {
                 type="button"
                 className={`tournament-draft-toggle ${form.draftRostersFirst ? "is-selected" : ""}`}
                 aria-pressed={form.draftRostersFirst}
-                disabled={form.format === "swiss"}
+                disabled={form.demoMode || form.format === "swiss"}
                 onClick={() => chooseDraftRostersFirst(!form.draftRostersFirst)}
               >
                 <strong>Draft teams first</strong>
@@ -190,7 +231,7 @@ export default function TournamentDirectory() {
               </button>
               <div className="tournament-form-pair">
                 <label>Visibility
-                  <select value={form.visibility} onChange={(event) => setForm({ ...form, visibility: event.target.value, publishRosters: event.target.value === "public" && form.publishRosters })}>
+                  <select value={form.visibility} disabled={form.demoMode} onChange={(event) => setForm({ ...form, visibility: event.target.value, publishRosters: event.target.value === "public" && form.publishRosters })}>
                     <option value="public">Public</option><option value="private">Private</option>
                   </select>
                 </label>
@@ -200,13 +241,13 @@ export default function TournamentDirectory() {
                   </select>
                 </label>
               </div>
-              <label>Entrant limit<input type="number" min={entrantBounds.min} max={entrantBounds.max} value={form.entrantLimit} onChange={(event) => setForm({ ...form, entrantLimit: Number(event.target.value) })} /></label>
+              <label>Entrant limit<input type="number" min={entrantBounds.min} max={entrantBounds.max} disabled={form.demoMode} value={form.entrantLimit} onChange={(event) => setForm({ ...form, entrantLimit: Number(event.target.value) })} /></label>
 
               {form.draftRostersFirst && (
                 <fieldset className="form-stack tournament-draft-settings">
                   <legend>Shared draft</legend>
                   <label>Draft style
-                    <select value={form.draftType} onChange={(event) => chooseDraftType(event.target.value)}>
+                    <select value={form.draftType} disabled={form.demoMode} onChange={(event) => chooseDraftType(event.target.value)}>
                       <option value="snake">Snake draft — 4–16 managers</option>
                       <option value="auction">Auction draft — 4–32 managers</option>
                     </select>
@@ -234,7 +275,7 @@ export default function TournamentDirectory() {
               )}
 
               <label>Rules<textarea maxLength={10000} rows={5} value={form.rules} onChange={(event) => setForm({ ...form, rules: event.target.value })} /></label>
-              <button className="primary-button" disabled={busy}>{busy ? "Creating..." : "Create registration"}</button>
+              <button className="primary-button" disabled={busy}>{busy ? "Creating..." : form.demoMode ? "Create private organizer demo" : "Create registration"}</button>
             </form>
           )}
         </section>
