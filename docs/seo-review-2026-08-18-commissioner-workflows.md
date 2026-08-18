@@ -60,12 +60,22 @@ of unrevealed Pokémon.
 state, and other protected routes remain outside the sitemap under
 [`docs/public-indexing-policy.md`](public-indexing-policy.md).
 
-## Evidence gate after release
+## Production release evidence
 
-Do not treat local or Preview validation as a Production deployment. After an
-authorized protected release, confirm the deployed commit, run the complete
-signed-out Production smoke sweep, and verify the live title, descriptions,
-social metadata, new guide, `llms.txt`, and sitemap dates.
+Pull request [#313](https://github.com/roblebaegaming/DraftCenter/pull/313)
+passed its protected checks and hosted Preview review, then squash-merged as
+`f292260e82be10b8c2b933ceea0858caf76b2aea`. Vercel reported that exact commit
+Ready. The complete signed-out Production smoke sweep passed: 17 public routes
+returned 200 and five protected endpoints returned 401.
+
+Live desktop and 390 px review confirmed the intended home title, description,
+canonical, Open Graph and Twitter titles, one H1, four commissioner links,
+WebSite and Organization structured descriptions, and no horizontal overflow.
+The replay guide returned 200 with one H1, its canonical, Article publication
+and modification dates, and the documented automatic-write and raw-log
+boundaries. The live sitemap contains 1,598 unique URLs, includes the guide, and
+dates every refreshed target August 18. The live `llms.txt` contains the same
+guide, review date, and evidence boundaries.
 
 Do not make another broad Pokémon-profile title or canonical change from this
 release. Recheck the five August 17 priority profiles after at least 14 days

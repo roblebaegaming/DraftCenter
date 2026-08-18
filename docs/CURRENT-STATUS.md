@@ -3,7 +3,7 @@
 - Last updated: August 18, 2026 Pacific
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified Production application and asset commit: `435cc6fb3c209c64e31c0b2b7af29aa9c26416e6`
+- Verified Production application and asset commit: `f292260e82be10b8c2b933ceea0858caf76b2aea`
 - Latest applied Production migration: 438
 
 ## Deployed state
@@ -133,6 +133,33 @@ passed, and the complete 22-check signed-out Production smoke sweep passed. The
 paid Preview branch and short-lived release branch were deleted and confirmed
 absent, so no validation-branch hourly charge continues.
 
+Pull request [#313](https://github.com/roblebaegaming/DraftCenter/pull/313)
+is released at exact application commit
+`f292260e82be10b8c2b933ceea0858caf76b2aea`. The public search and sharing story
+now matches the complete-season commissioner workflow. The home title, social
+metadata, social image, WebSite and Organization descriptions, About page,
+manuals, `llms.txt`, commissioner guides, and sitemap dates are aligned. A new
+authored guide documents bounded Showdown replay-result reporting without
+claiming automatic writes, raw-log retention, inferred knockouts, or unrevealed
+Pokémon.
+
+Vercel reported exact commit `f292260` Ready. All protected PR checks passed,
+the hosted Preview passed desktop and 390 px signed-out review, and the complete
+22-check Production smoke sweep passed. Live Production has one clear home H1,
+the intended title, canonical, social metadata, and structured descriptions;
+the new replay guide is indexable with Article dates and no phone overflow. The
+live sitemap has 1,598 unique URLs, contains the new guide, and dates every
+materially refreshed route August 18. `llms.txt` exposes the same factual data
+boundaries.
+
+This release contained no database migration. Its PR Supabase check correctly
+skipped and no SEO Preview database branch was created. The post-merge `main`
+Supabase integration nevertheless failed on the pre-existing mismatch between
+Production ledger versions and repository filenames for migrations 429–438.
+Read-only verification found Production `ACTIVE_HEALTHY`, migration 438 still
+latest, and no SEO database write. Do not rewrite migration files or repair the
+Production ledger without a separate owner-approved reconciliation plan.
+
 Supabase automatic branching remains enabled with a one-concurrent-Preview
 limit and Supabase-only changes. Older Preview branches were left untouched.
 The automatic check on pull request #298 was canceled solely because that limit
@@ -179,6 +206,8 @@ August 19, 2026. Do not inspect or report individual identity or activity.
 ## Authoritative records
 
 - Current release and continuation handoff:
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-18-commissioner-workflow-seo-release.md`](handoffs/DraftCenter-agent-handoff-2026-08-18-commissioner-workflow-seo-release.md)
+- Commissioner activation, import, and replay source handoff:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-18-commissioner-activation-import-showdown.md`](handoffs/DraftCenter-agent-handoff-2026-08-18-commissioner-activation-import-showdown.md)
 - Competitive strategy source handoff:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-18-competitive-lead-and-growth.md`](handoffs/DraftCenter-agent-handoff-2026-08-18-competitive-lead-and-growth.md)
