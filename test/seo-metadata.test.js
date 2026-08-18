@@ -12,7 +12,9 @@ function source(path) {
 
 test("page titles rely on the root template for the DraftCenter brand suffix", () => {
   const layout = source("src/app/layout.js");
+  const home = source("src/app/page.js");
   assert.match(layout, /template: "%s \| DraftCenter"/);
+  assert.match(home, /absolute: "Run a Complete Pokémon Draft League \| DraftCenter"/);
 
   for (const path of [
     "src/app/leagues/page.js",
@@ -22,6 +24,24 @@ test("page titles rely on the root template for the DraftCenter brand suffix", (
   ]) {
     assert.doesNotMatch(source(path), /title:\s*["'`][^"'`]*\|\s*DraftCent(?:er|ral)["'`]/);
   }
+});
+
+test("the homepage search and sharing story matches the commissioner promise", () => {
+  const home = source("src/app/page.js");
+  const layout = source("src/app/layout.js");
+  const socialImage = source("src/app/opengraph-image.js");
+  const authGate = source("src/components/AuthGate.jsx");
+
+  assert.match(home, /one connected commissioner and manager workspace/);
+  assert.match(home, /openGraph/);
+  assert.match(home, /twitter/);
+  assert.match(layout, /Pokémon Draft League Manager/);
+  assert.match(layout, /connects setup, drafting, schedules, results, standings, playoffs, preparation, and season archives/);
+  assert.match(socialImage, /POKÉMON DRAFT LEAGUE MANAGER/);
+  assert.match(socialImage, /Run your whole league in one place/);
+  assert.match(authGate, /aria-label="Commissioner resources"/);
+  assert.match(authGate, /\/guides\/pokemon-draft-manager-vs-spreadsheets/);
+  assert.match(authGate, /\/guides\/pokemon-showdown-replay-results-draft-league/);
 });
 
 test("resources targets competitive Pokémon resource searches", () => {
@@ -80,7 +100,11 @@ test("sitemap contains only indexable routes and truthful modification dates", (
   assert.match(sitemap, /POKEMON_GENERATIONS\.map/);
   assert.match(sitemap, /\["\/about", "monthly", 0\.7\]/);
   assert.match(sitemap, /PRODUCT_DISCOVERY_LAST_MODIFIED/);
+  assert.match(sitemap, /COMMISSIONER_SEO_LAST_MODIFIED/);
   assert.match(sitemap, /productRouteLastModified\.has\(path\)/);
+  for (const path of ["", "/about", "/guides", "/manuals", "/manuals/commissioner", "/manuals/manager", "/team-lab", "/pokedex-tracker", "/tournaments"]) {
+    assert.ok(sitemap.includes(`["${path}", COMMISSIONER_SEO_LAST_MODIFIED]`), `${path || "/"} should publish the commissioner SEO modification date`);
+  }
   assert.match(sitemap, /\["\/pokedex-tracker", "weekly", 0\.9\]/);
   assert.match(sitemap, /\["\/team-lab", "weekly", 0\.9\]/);
   assert.match(sitemap, /ITALIAN_WORLDS_LAST_MODIFIED/);
@@ -441,6 +465,7 @@ test("the guide collection explains real DraftCenter workflows in a human voice"
     "pokemon-draft-standings-tiebreakers-playoffs",
     "compare-pokemon-forms-stats-draft-data",
     "pokemon-draft-manager-vs-spreadsheets",
+    "pokemon-showdown-replay-results-draft-league",
   ]) assert.ok(GUIDES[slug], `${slug} should be a published guide`);
   assert.match(content, /one position after that draft's final pick/);
   assert.match(content, /Before you commit to your first team/);
@@ -454,8 +479,11 @@ test("the guide collection explains real DraftCenter workflows in a human voice"
   assert.match(templates, /CONDUCT, RULINGS, AND APPEALS/);
   assert.match(content, /GUIDE_PUBLISHED_DATE/);
   assert.match(content, /GUIDE_UPDATED_DATE/);
-  assert.equal((content.match(/answer:\s*"/g) || []).length, 11);
-  assert.equal(Object.keys(GUIDES).length, 11);
+  assert.match(content, /bounded CSV or XLSX/);
+  assert.match(content, /one to five exact public Pokémon Showdown replay URLs/);
+  assert.match(content, /Raw logs, inferred knockout attribution, and unrevealed-team claims are not stored/);
+  assert.equal((content.match(/answer:\s*"/g) || []).length, 12);
+  assert.equal(Object.keys(GUIDES).length, 12);
   assert.match(guidePage, /SHORT ANSWER/);
   assert.match(guidePage, /Written and reviewed by the/);
   assert.match(guidePage, /guide\.publishedDate \|\| GUIDE_PUBLISHED_DATE/);
@@ -471,6 +499,10 @@ test("the guide collection explains real DraftCenter workflows in a human voice"
   assert.match(sitemap, /guide\.updatedDate \|\| GUIDE_UPDATED_DATE/);
   assert.equal(GUIDES["how-to-run-pokemon-draft-league"].seoTitle, "How to Run a Pokémon Draft League");
   assert.equal(GUIDES["pokemon-draft-league-rules-template"].seoTitle, "Pokémon Draft League Rules Template");
+  assert.equal(GUIDES["how-to-run-pokemon-draft-league"].updatedDate, "2026-08-18");
+  assert.equal(GUIDES["pokemon-draft-manager-vs-spreadsheets"].updatedDate, "2026-08-18");
+  assert.equal(GUIDES["pokemon-draft-standings-tiebreakers-playoffs"].updatedDate, "2026-08-18");
+  assert.equal(GUIDES["pokemon-showdown-replay-results-draft-league"].publishedDate, "2026-08-18");
   assert.match(guidePage, /guide\.seoTitle \|\| guide\.title/);
   for (const guide of Object.values(GUIDES)) {
     assert.ok(guide.links.length >= 3, `${guide.title} should expose at least three related links`);
@@ -499,6 +531,9 @@ test("public templates expose useful server-rendered headings and related links"
   assert.match(authGate, />Run a league</);
   assert.match(authGate, />Join a league</);
   assert.match(authGate, />Prepare for a match</);
+  assert.match(authGate, />Run a league guide</);
+  assert.match(authGate, />Move from a spreadsheet</);
+  assert.match(authGate, />Showdown replay results</);
   assert.match(directory, /fallback=.*<h1>Explore the Pokédex<\/h1>/);
   assert.match(pokemonHome, /urshifu-single-strike/);
   assert.doesNotMatch(pokemonHome, /"urshifu"/);
@@ -536,6 +571,9 @@ test("AI discovery foundation exposes a trustworthy entity and reference index",
   assert.match(about, /id="data-methodology"/);
   assert.match(about, /id="editorial-standards"/);
   assert.match(about, /confirmed match results/);
+  assert.match(about, /August 18, 2026/);
+  assert.match(about, /Spreadsheet manager text remains a planning label/);
+  assert.match(about, /Raw replay logs are not stored/);
   assert.match(footer, /href="\/about"/);
   assert.match(llms, /Content-Type": "text\/plain; charset=utf-8"/);
   assert.match(llms, /Pokémon Draft League Rules Template/);
@@ -544,11 +582,14 @@ test("AI discovery foundation exposes a trustworthy entity and reference index",
   assert.match(llms, /saved cards are not public pages/);
   assert.match(llms, /How to Use Pokémon Draft League ADP/);
   assert.match(llms, /Pokémon Draft League Manager vs\. Spreadsheets/);
+  assert.match(llms, /How to Report Pokémon Draft League Results from Showdown Replays/);
+  assert.match(llms, /bounded CSV or XLSX league import/);
+  assert.match(llms, /Analysis does not automatically write a result/);
   assert.match(llms, /Team Lab Pokémon team builder and private Battle Room/);
   assert.match(llms, /Sunday's eight-entry Super Bracket/);
   assert.match(llms, /it\/worlds\/2026/);
   assert.match(llms, /es\/worlds\/2026/);
-  assert.match(llms, /Last reviewed: 2026-08-17/);
+  assert.match(llms, /Last reviewed: 2026-08-18/);
   assert.match(llms, /Private queues/);
   assert.match(content, /national-gen\$\{generation\}/);
 });

@@ -1,16 +1,16 @@
 export const metadata = {
   title: "About DraftCenter and Our Data",
-  description: "What DraftCenter is, how its Pokémon draft-league data is calculated, which sources it uses, and how its guides are maintained.",
+  description: "What DraftCenter is, how it connects complete Pokémon draft league seasons, how its public data is calculated, and how private workflows stay private.",
   alternates: { canonical: "/about" },
   openGraph: {
     type: "website",
     title: "About DraftCenter and Our Data",
-    description: "DraftCenter's purpose, public data methodology, sources, privacy safeguards, and editorial standards.",
+    description: "DraftCenter's complete-season purpose, public data methodology, privacy safeguards, sources, and editorial standards.",
     url: "/about",
   },
 };
 
-const REVIEWED_DATE = "August 4, 2026";
+const REVIEWED_DATE = "August 18, 2026";
 
 export default function AboutPage() {
   const schema = {
@@ -19,8 +19,8 @@ export default function AboutPage() {
     "@id": "https://www.draftcentral.gg/about#page",
     url: "https://www.draftcentral.gg/about",
     name: "About DraftCenter and Our Data",
-    description: "DraftCenter's purpose, public data methodology, sources, privacy safeguards, and editorial standards.",
-    dateModified: "2026-08-04",
+    description: "DraftCenter's complete-season purpose, public data methodology, privacy safeguards, sources, and editorial standards.",
+    dateModified: "2026-08-18",
     mainEntity: { "@id": "https://www.draftcentral.gg/#organization" },
     publisher: { "@id": "https://www.draftcentral.gg/#organization" },
   };
@@ -31,20 +31,21 @@ export default function AboutPage() {
     <article>
       <header>
         <span className="eyebrow">ABOUT DRAFTCENTER</span>
-        <h1>Pokémon draft leagues, organized in one place.</h1>
-        <p className="seo-article-intro">DraftCenter is an independent community platform for creating and running Pokémon draft leagues. Commissioners can configure a league and its draft, while coaches can manage teams, schedule matches, report results, make transactions, and preserve a season archive.</p>
+        <h1>Complete Pokémon draft league seasons, organized in one place.</h1>
+        <p className="seo-article-intro">DraftCenter is an independent Pokémon draft-league manager and public reference library. Commissioners can set up, import, draft, schedule, operate, and preserve a season while managers use the same league record for rosters, preparation, results, standings, transactions, and playoffs.</p>
         <p className="guide-byline">Maintained by the DraftCenter product and editorial team · Last reviewed {REVIEWED_DATE}</p>
       </header>
 
       <aside className="guide-direct-answer">
         <span className="eyebrow">IN SHORT</span>
         <h2>What is DraftCenter?</h2>
-        <p>DraftCenter is a free-to-explore Pokémon draft-league manager, public Pokédex, format library, and educational resource. It combines practical league tools with clearly labeled community aggregates so coaches and commissioners can research without treating a small sample as a universal ranking.</p>
+        <p>DraftCenter is a free-to-explore Pokémon draft-league manager, public Pokédex, format library, and educational resource. Its primary job is to keep one complete season connected from setup through champion while clearly separating public research from private league and preparation work.</p>
       </aside>
 
       <section>
         <h2>What DraftCenter helps people do</h2>
-        <p>Public visitors can browse Pokémon profiles, supported formats, practical guides, public leagues, standings, schedules, and community trends. Signed-in league members can use role-based tools for drafting, team management, transactions, match reporting, playoffs, communication, and recovery. Private team and league information remains separate from public editorial pages.</p>
+        <p>Public visitors can browse Pokémon profiles, supported formats, practical guides, public leagues, standings, schedules, and community trends. Commissioners can start with recommended settings and a five-step launch checklist, move a bounded CSV or XLSX league setup through a preview-and-confirm import, and follow one private next action for each active league.</p>
+        <p>Signed-in league members can use role-based tools for drafting, team management, transactions, match reporting, playoffs, communication, preparation, and recovery. For an eligible scheduled matchup, a participating manager can analyze one to five exact public Pokémon Showdown replay URLs, map the players to the scheduled teams, review the supported facts in the normal result editor, and choose whether to save. A replay analysis never writes a league result by itself.</p>
       </section>
 
       <section id="data-methodology">
@@ -56,6 +57,7 @@ export default function AboutPage() {
       <section>
         <h2>Privacy and exclusions</h2>
         <p>Public community statistics are aggregate measurements. DraftCenter does not publish private queues, private team notes, account credentials, private league messages, support diagnostics, or personally identifying account records as part of its research pages. Public-league and public-profile information is shown only through the permissions and publication choices supported by the product.</p>
+        <p>Spreadsheet manager text remains a planning label rather than an account claim or invitation. Confirmed replay results retain only bounded facts such as canonical replay identity, format, mapped players, winner, supported counts, and Pokémon actually revealed in battle. Raw replay logs are not stored, knockout attribution is not inferred, and unrevealed Pokémon are never claimed as brought to the match.</p>
       </section>
 
       <section id="editorial-standards">
@@ -71,7 +73,7 @@ export default function AboutPage() {
 
       <aside className="seo-next-step">
         <h2>Explore the public reference library</h2>
-        <div className="pokemon-tags"><a href="/guides">Practical guides</a><a href="/formats">Supported formats</a><a href="/pokemon">Pokémon profiles</a><a href="/leagues">Public leagues</a></div>
+        <div className="pokemon-tags"><a href="/guides">Practical guides</a><a href="/guides/how-to-run-pokemon-draft-league">Commissioner walkthrough</a><a href="/guides/pokemon-draft-manager-vs-spreadsheets">Spreadsheet migration guide</a><a href="/guides/pokemon-showdown-replay-results-draft-league">Showdown replay results</a><a href="/formats">Supported formats</a><a href="/pokemon">Pokémon profiles</a><a href="/leagues">Public leagues</a></div>
       </aside>
     </article>
   </main>;

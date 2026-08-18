@@ -1,12 +1,15 @@
 const CONTENT = `# DraftCenter
 
-> DraftCenter is an independent Pokémon draft-league platform and public reference library for commissioners, coaches, and spectators.
+> DraftCenter helps commissioners and managers run a complete Pokémon draft league season in one connected workspace.
 
-DraftCenter helps communities configure leagues, run snake and auction drafts, manage rosters and transactions, report matches, calculate standings, run playoffs, and preserve season archives. It also supports standalone single- and double-elimination tournaments, shared-draft Swiss or elimination events, multi-pod connected championships, Pokémon Daily Games, and game-specific Nuzlocke teams. Public visitors can explore practical guides, supported formats, public leagues, and Pokémon profiles with clearly labeled community aggregates.
+DraftCenter connects league setup, invitations, snake and auction drafts, rosters, schedules, transactions, confirmed results, standings, playoffs, preparation, and season archives. Recommended presets and a five-step launch checklist help a first-time commissioner start safely. Existing commissioners can preview a bounded CSV or XLSX league import before one confirmed revision, and participating managers can analyze public Pokémon Showdown replays before reviewing and saving an eligible scheduled result. It also supports standalone single- and double-elimination tournaments, shared-draft Swiss or elimination events, multi-pod connected championships, Pokémon Daily Games, and game-specific Nuzlocke teams. Public visitors can explore practical guides, supported formats, public leagues, and Pokémon profiles with clearly labeled community aggregates.
 
 ## Start here
 
 - [About DraftCenter and our data](https://www.draftcentral.gg/about)
+- [How to run a complete Pokémon draft league](https://www.draftcentral.gg/guides/how-to-run-pokemon-draft-league)
+- [How to move from a league spreadsheet](https://www.draftcentral.gg/guides/pokemon-draft-manager-vs-spreadsheets)
+- [How to report draft league results from Showdown replays](https://www.draftcentral.gg/guides/pokemon-showdown-replay-results-draft-league)
 - [Pokémon draft league guides](https://www.draftcentral.gg/guides)
 - [Pokémon shiny hunting guides by game](https://www.draftcentral.gg/guides/shiny-hunting)
 - [Supported draft formats](https://www.draftcentral.gg/formats)
@@ -30,6 +33,8 @@ DraftCenter helps communities configure leagues, run snake and auction drafts, m
 
 ## Public tools and events
 
+- The league manager leads with Run a league, Join a league, and Prepare for a match. Commissioners can choose a recommended setup preset, work through a five-step launch checklist, preview a bounded CSV or XLSX setup or complete-roster import, and immediately undo the confirmed import in the same session. Manager labels never claim accounts, and imports never fabricate picks, transactions, match history, or ownership.
+- For an eligible scheduled regular-season matchup, a participating manager can submit one to five exact public Pokémon Showdown replay URLs for analysis, map each Showdown player to a scheduled team, review the supported facts in the normal result editor, and choose whether to save. Analysis does not automatically write a result. Stored facts exclude raw replay logs, inferred knockout attribution, and unrevealed-team claims.
 - Team Lab is a public six-Pokémon team builder with PokéPaste import and optional private account tools. It checks typing, STAB gaps, Speed tiers, base-stat balance, base regulation legality, and common competitive archetypes. Signed-in coaches can load their My Teams workspaces or owned DraftCenter league rosters, save team notes, and keep opponent teams and matchup notes private to their account. League rosters open as six-Pokémon planning copies and cannot be changed from Team Lab. Versioned public links contain only the selected team and base format; they exclude set details, account details, notes, and matchup plans.
 - Mega Bracket is a free, private, resumable bracket builder. Players can use the Full Dex, one type, one generation, or Mega Evolutions; choose the full eligible field or a randomized Quick 64 when available; and advance either favorites or the worse Pokémon. The original 1,162-entry Full Dex challenge remains available. Purely cosmetic appearances are not separate entrants.
 - Bracket Studio is a no-account, browser-only single-elimination bracket maker for any competition. Visitors can add 4, 8, 16, or 32 names, advance winners, choose from curated color, font, and matchup styles, recover the draft locally after a refresh, and download a high-resolution PNG. Names and picks are not uploaded and no public bracket URL is created.
@@ -54,6 +59,7 @@ DraftCenter helps communities configure leagues, run snake and auction drafts, m
 - [Pokémon Draft Standings, Tiebreakers, and Playoffs](https://www.draftcentral.gg/guides/pokemon-draft-standings-tiebreakers-playoffs)
 - [How to Compare Pokémon Forms, Stats, and Draft Data](https://www.draftcentral.gg/guides/compare-pokemon-forms-stats-draft-data)
 - [Pokémon Draft League Manager vs. Spreadsheets](https://www.draftcentral.gg/guides/pokemon-draft-manager-vs-spreadsheets)
+- [How to Report Pokémon Draft League Results from Showdown Replays](https://www.draftcentral.gg/guides/pokemon-showdown-replay-results-draft-league)
 
 ## Pokémon discovery
 
@@ -85,6 +91,8 @@ DraftCenter helps communities configure leagues, run snake and auction drafts, m
 - Draft rate, ADP, auction price, teammate, and match-result claims should retain their visible sample sizes and format context.
 - DraftCenter's saved regulation and league settings remain authoritative for actual league legality.
 - Private queues, private team workspaces, account records, support diagnostics, and private league messages are not public reference material.
+- Spreadsheet imports use product-provided templates, require a preview before confirmation, and do not turn manager labels into account ownership.
+- Showdown replay confirmation stores bounded supported facts, not raw logs, inferred knockouts, or claims about unrevealed Pokémon.
 - The 2026 VGC Masters invitee snapshot cites Victory Road's tracker, which combines official Championship Point standings and qualifying event results. Treat it as an invite-earned list rather than confirmed registration or attendance.
 - The 2026 TCG Masters pool cites Pokémon's official qualified-competitors page and excludes two duplicate source rows. Treat it as an invite-earned list rather than confirmed registration or attendance.
 - The 2026 Pokémon GO pool cites Pokémon's official qualified-competitors page and excludes one duplicate source identity. Treat it as an invite-earned list rather than confirmed registration, attendance, or pool assignment.
@@ -93,7 +101,7 @@ DraftCenter helps communities configure leagues, run snake and auction drafts, m
 
 DraftCenter is an independent fan project and is not affiliated with or endorsed by Nintendo, Creatures Inc., GAME FREAK inc., or The Pokémon Company. Pokémon names, characters, artwork, and trademarks belong to their respective owners.
 
-Last reviewed: 2026-08-17
+Last reviewed: 2026-08-18
 `;
 
 export function GET() {
