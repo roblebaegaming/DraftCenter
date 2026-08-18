@@ -1414,6 +1414,29 @@ button { cursor: pointer; }
 .team-lab-damage-body output b { color: #4fd1c5; font-size: 1rem; }
 .team-lab-damage-body output small,.team-lab-damage-disclaimer { color: #8f9abb; font-size: 9px; line-height: 1.45; }
 .team-lab-damage-error { color: #f39a9e !important; }
+.team-lab-opponent-battle-panel { display: grid; gap: 14px; margin: 20px 22px 0; padding: 18px; border: 1px solid #4fd1c566; border-radius: 16px; background: linear-gradient(145deg,#10253a,#0d1428 60%); box-shadow: 0 16px 45px #0003; }
+.team-lab-opponent-battle-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; }
+.team-lab-opponent-battle-heading h3 { margin: 4px 0; color: #fff; font-size: 1.35rem; }
+.team-lab-opponent-battle-heading p { max-width: 720px; margin: 0; color: #9eabc9; font-size: 11px; line-height: 1.5; }
+.team-lab-opponent-battle-heading>strong { flex: 0 0 auto; padding: 7px 9px; color: #baf3ed; border: 1px solid #4fd1c555; border-radius: 999px; background: #4fd1c50d; font-size: 9px; text-transform: uppercase; }
+.team-lab-opponent-picker { min-width: 0; margin: 0; padding: 0; border: 0; }
+.team-lab-opponent-picker:disabled { opacity: .62; }
+.team-lab-opponent-battle-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 9px; }
+.team-lab-opponent-battle-card { min-width: 0; overflow: hidden; border: 1px solid #344262; border-radius: 11px; background: #0d1428; }
+.team-lab-opponent-battle-card.is-brought { border-color: #4fd1c588; background: linear-gradient(135deg,#112a3c,#0d1428 58%); }
+.team-lab-opponent-battle-card.is-fainted { border-color: #f0555a88; background: #251623; }
+.team-lab-opponent-battle-card>summary { display: flex; min-height: 62px; align-items: center; justify-content: space-between; gap: 10px; padding: 11px 12px; cursor: pointer; list-style: none; }
+.team-lab-opponent-battle-card>summary::-webkit-details-marker { display: none; }
+.team-lab-opponent-battle-card>summary>div { display: grid; min-width: 0; gap: 3px; }
+.team-lab-opponent-battle-card>summary strong { overflow: hidden; color: #f3f5ff; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+.team-lab-opponent-battle-card>summary span { color: #8e9abb; font-size: 8px; font-weight: 900; text-transform: uppercase; }
+.team-lab-opponent-battle-card>summary b { flex: 0 0 auto; color: #4fd1c5; font-size: 8px; text-transform: uppercase; }
+.team-lab-opponent-battle-card[open]>summary { border-bottom: 1px solid #33415f; background: #17203a; }
+.team-lab-opponent-battle-body { padding: 12px; }
+.team-lab-opponent-battle-body>p { margin: 0; color: #929ebe; font-size: 9px; line-height: 1.45; }
+.team-lab-opponent-battle-actions { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 6px; margin-top: 10px; }
+.team-lab-opponent-remove { margin-top: 11px; }
+.team-lab-opponent-battle-card .team-lab-battle-scouted-set strong { white-space: normal; }
 .team-lab-turn-recorder { margin: 20px 22px 0; overflow: hidden; border: 1px solid #586a98; border-radius: 16px; background: linear-gradient(145deg,#131d37,#0d1428 62%); box-shadow: 0 16px 45px #0004; }
 .team-lab-turn-header { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 16px 18px; border-bottom: 1px solid #344264; background: #18213a; }
 .team-lab-turn-header h3 { margin: 4px 0 2px; color: #fff; font-size: 1.35rem; }
@@ -1463,6 +1486,7 @@ button { cursor: pointer; }
 .team-lab-turn-timeline li>div:last-child button { min-width: 44px; min-height: 44px; padding: 4px; color: #aeb9d9; border: 0; background: transparent; font-size: 9px; font-weight: 800; cursor: pointer; }
 .team-lab-turn-timeline li>div:last-child button:last-child { color: #f39a9e; }
 .team-lab-battle-columns { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 18px; padding: 22px; }
+.team-lab-battle-columns.is-my-team-only { grid-template-columns: 1fr; }
 .team-lab-battle-columns>section { min-width: 0; }
 .team-lab-battle-section-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 14px; margin-bottom: 10px; }
 .team-lab-battle-section-heading h3 { margin: 4px 0 0; color: #fff; font-size: 1.25rem; }
@@ -1547,6 +1571,9 @@ button { cursor: pointer; }
 @media(max-width:520px) { .team-lab-series,.team-lab-state,.team-lab-damage-estimator { margin-inline: 14px; } .team-lab-series-format { align-items: stretch; flex-direction: column; } .team-lab-series-format>div { display: grid; grid-template-columns: 1fr; } .team-lab-state-pokemon>div { grid-template-columns: minmax(0,1fr) 72px; } .team-lab-state-pokemon>div>strong { grid-column: 1; } .team-lab-state-pokemon>div>label:first-of-type { grid-column: 2; } .team-lab-state-pokemon>div>label:nth-of-type(2) { grid-column: 1; } .team-lab-state-pokemon>div>.team-lab-state-mechanic { grid-column: 2; } .team-lab-state-pokemon>div>input:last-child { grid-column: 1 / -1; } .team-lab-damage-body>div,.team-lab-damage-body output { grid-template-columns: 1fr; } }
 @media(max-width:520px) { .team-lab-turn-stepper { grid-template-columns: 44px minmax(0,1fr) minmax(88px,1fr); } .team-lab-turn-stepper strong { min-width: 0; overflow: hidden; font-size: 9px; text-overflow: ellipsis; } }
 @media(max-width:520px) { .team-lab-opponent-set-details,.team-lab-battle-reveal-fields,.team-lab-turn-reveal-entry { grid-template-columns: 1fr; } .team-lab-turn-opponent-chips { padding-inline: 12px; } }
+@media(max-width:900px) { .team-lab-opponent-battle-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+@media(max-width:620px) { .team-lab-opponent-battle-grid { grid-template-columns: 1fr; } .team-lab-opponent-battle-heading { flex-direction: column; } .team-lab-opponent-battle-heading>strong { align-self: flex-start; } }
+@media(max-width:520px) { .team-lab-opponent-battle-panel { margin: 14px 14px 0; padding: 14px; } .team-lab-opponent-battle-card>summary { min-height: 58px; } .team-lab-opponent-battle-card .team-lab-battle-scouted-set { align-items: stretch; flex-direction: column; } .team-lab-opponent-battle-card .team-lab-battle-scouted-set button { width: 100%; } }
 
 /* Nuzlocke Run Tracker */
 .nuzlocke-browser-save { margin: 0; padding: 10px 12px; border-left: 3px solid #4fd1c5; border-radius: 7px; background: #4fd1c510; color: #baf3ed; font-size: .78rem; line-height: 1.5; }

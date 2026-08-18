@@ -33,6 +33,7 @@ import {
   parseTeamLabHandoff,
   parseTeamLabBattleRecovery,
   removeTeamLabTurnEvent,
+  replaceTeamLabBattleOpponentRoster,
   summarizeTeamLabSeries,
   teamLabBattleMechanicForFormat,
   parseTeamLabLeagueMatchupHandoff,
@@ -645,6 +646,29 @@ test("Battle Mode normalizes weekly teams and revealed moves without mixing priv
   assert.doesNotMatch(battleShare, /scouting note|Private roll note|43%|account/);
 });
 
+test("a new opponent roster cannot inherit an unrelated Pokémon from the previous match", () => {
+  const catalog = new Set(["Garchomp", "Mega Blastoise", "Rotom-Wash", "Amoonguss"]);
+  const previous = normalizeTeamLabBattleReport({
+    opponent_pokemon: [{ name: "Mega Blastoise", brought: true, ability: "Mega Launcher", item: "Blastoisinite", moves: ["Water Pulse"] }],
+    turn_log: {
+      current_game: 1,
+      current_turn: 2,
+      active_opponent_pokemon: "Mega Blastoise",
+      events: [{ id: "blast", game: 1, turn: 1, kind: "move", side: "opponent", pokemon: "Mega Blastoise", target: "Garchomp", move: "Water Pulse", damage: "25%", note: "" }],
+    },
+  }, ["Garchomp"], ["Mega Blastoise"], catalog);
+  const fresh = replaceTeamLabBattleOpponentRoster(previous, ["Garchomp"], [], catalog);
+  assert.deepEqual(fresh.opponent_pokemon, []);
+  assert.equal(fresh.turn_log.active_opponent_pokemon, "");
+  assert.deepEqual(fresh.turn_log.events, []);
+
+  const revealed = replaceTeamLabBattleOpponentRoster(fresh, ["Garchomp"], ["Rotom-Wash", "Amoonguss"], catalog, ["Rotom-Wash"]);
+  assert.deepEqual(revealed.opponent_pokemon.map(({ name, brought }) => ({ name, brought })), [
+    { name: "Rotom-Wash", brought: true },
+    { name: "Amoonguss", brought: false },
+  ]);
+});
+
 test("Team Lab workbook data separates complete sets, matchups, reveals, turns, and saved game plans", () => {
   const sheets = buildTeamLabWorkbookSheets({
     myTeam: { team_name: "Rain & Balance", league_name: "Preview League", regulation_id: "reg-mb", pokemon: ["Garchomp", "Corviknight"], team_sets: { version: 1, pokemon: [{ name: "Garchomp", level: 50, ability: "Rough Skin", item: "Garchompite", nature: "Jolly", tera_type: "Fire", evs: { hp: 4, atk: 252, def: 0, spa: 0, spd: 0, spe: 252 }, ivs: { hp: 31, atk: 31, def: 31, spa: 31, spd: 31, spe: 31 }, moves: ["Earthquake"], role: "Cleaner", notes: "Private benchmark" }] } },
@@ -765,8 +789,14 @@ test("Team Lab is indexable while account notes and matchups stay private", () =
   assert.match(component, /FAST MATCH FINISH/);
   assert.match(component, /Save & start next match/);
   assert.match(component, /Start ladder match/);
+  assert.match(component, /battle_report: blankReport/);
+  assert.doesNotMatch(component, /firstOpponentPokemon[^\n]+opponentRoster\[0\]/);
   assert.match(component, /TEAM PERFORMANCE/);
   assert.match(component, /Use in report/);
+  assert.match(component, /OPPONENT TEAM/);
+  assert.match(component, /team-lab-opponent-battle-card/);
+  assert.match(component, /variant="opponent"/);
+  assert.match(component, /Import the open sheet before recording opponent reveals or turn actions/);
   assert.match(component, /FAST BATTLE TICKER/);
   assert.match(component, /Turn-by-turn recorder/);
   assert.match(component, /Sheet moves — tap one/);
@@ -870,6 +900,8 @@ test("Team Lab is indexable while account notes and matchups stay private", () =
   assert.match(pokepasteImport, /Import a PokéPaste or Showdown team/);
   assert.match(pokepasteImport, /Set details remain private/);
   assert.doesNotMatch(pokepasteImport, /Upload \.txt|type="file"/);
+  assert.match(pokepasteImport, /Import the open team sheet/);
+  assert.doesNotMatch(pokepasteImport, /File and pasted-text imports/);
   assert.match(pokepasteImport, /readTeamLabPokePasteResponse/);
   assert.match(pokepasteRoute, /supabase\.auth\.getUser\(token\)/);
   assert.match(pokepasteRoute, /maxDuration = 30/);
