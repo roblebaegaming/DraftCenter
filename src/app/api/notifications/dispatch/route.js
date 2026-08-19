@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "../../../../lib/supabase/admin";
+import { buildCommissionerInactivityReminder, commissionerInactivityEligibility } from "../../../../lib/commissionerInactivityReminder";
 import { routeNotificationDispatch } from "../../../../lib/notificationDispatchAuth";
 import { consumeUserRateLimit } from "../../../../lib/apiRateLimit";
 import { safeFailure, safeStoredFailure } from "../../../../lib/apiSecurity";
@@ -71,6 +72,21 @@ function eventIsEnabled(event, settings) {
 }
 
 async function deliverEmail(event, supabase) {
+  if (event.kind === "commissioner_inactivity_reminder") {
+    if (String(process.env.COMMISSIONER_INACTIVITY_REMINDERS_ENABLED || "").toLowerCase() !== "true") return { skipped: true };
+    const current = await commissionerInactivityReminderState(event, supabase);
+    if (current.stale) return { skipped: true };
+    const { data: userResult, error: userError } = await supabase.auth.admin.getUserById(event.user_id);
+    if (userError) throw new Error("Recipient account could not be verified.");
+    if (!userResult?.user?.email || !userResult.user.email_confirmed_at) return { skipped: true };
+    const reminder = buildCommissionerInactivityReminder({
+      leagueName: current.league.name,
+      leagueSlug: current.league.slug,
+      commissionerName: event.payload?.commissioner_name,
+    });
+    await sendResendEmail({ to: userResult.user.email, subject: reminder.subject, html: reminder.html });
+    return { delivered: true };
+  }
   if (await draftNotificationIsStale(event, supabase)) return { skipped: true };
   const prefs = await supabase.from("notification_preferences").select("email_draft_reminders").eq("user_id", event.user_id).maybeSingle();
   if (prefs.data && !prefs.data.email_draft_reminders && event.kind === "draft_reminder") return { skipped: true };
@@ -393,6 +409,38 @@ async function draftNotificationIsStale(event, supabase, now = new Date()) {
   return !session || session.status !== "active"
     || Number(session.current_pick_number) !== Number(event.payload?.pick_number)
     || session.current_team_id !== event.payload?.team_id;
+}
+
+async function commissionerInactivityReminderState(event, supabase, now = new Date()) {
+  if (!event.league_id || !event.user_id) return { stale: true };
+  const [leagueResult, snapshotResult, membershipsResult, invitesResult, sessionsResult] = await Promise.all([
+    supabase.from("leagues").select("id,name,slug,status,created_at,is_practice,draft_starts_at").eq("id", event.league_id).maybeSingle(),
+    supabase.from("league_state_snapshots").select("revision,state").eq("league_id", event.league_id).maybeSingle(),
+    supabase.from("league_memberships").select("user_id,role").eq("league_id", event.league_id),
+    supabase.from("league_invites").select("id", { count: "exact", head: true }).eq("league_id", event.league_id),
+    supabase.from("draft_sessions").select("id", { count: "exact", head: true }).eq("league_id", event.league_id),
+  ]);
+  const queryError = leagueResult.error || snapshotResult.error || membershipsResult.error || invitesResult.error || sessionsResult.error;
+  if (queryError) throw queryError;
+  if (!leagueResult.data || !snapshotResult.data) return { stale: true };
+
+  const memberships = membershipsResult.data || [];
+  const commissioner = memberships.find((membership) => membership.role === "commissioner");
+  if (!commissioner || commissioner.user_id !== event.user_id) return { stale: true };
+  const league = {
+    ...leagueResult.data,
+    draft_starts_at: leagueResult.data.draft_starts_at || snapshotResult.data.state?.settings?.draftScheduledAt || null,
+  };
+  const eligibility = commissionerInactivityEligibility({
+    league,
+    snapshotRevision: snapshotResult.data.revision || 0,
+    activeMemberCount: memberships.filter((membership) => ["commissioner", "co_commissioner", "coach"].includes(membership.role)).length,
+    inviteCount: invitesResult.count || 0,
+    hasDraftSession: Number(sessionsResult.count) > 0,
+    now: now.getTime(),
+    maximumAgeDays: 9,
+  });
+  return { stale: !eligibility.eligible, league };
 }
 
 async function dispatchDueEvents(includeDailyThree = false, leagueId = null) {
