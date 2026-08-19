@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { createClient } from "../lib/supabase/client";
+import { safeHttpsImageSource } from "../lib/imageSecurity";
 import { tournamentError } from "../lib/tournamentErrors";
 
 const MATCH_PAGE_SIZE = 64;
@@ -99,7 +100,28 @@ function ConfirmationDialog({ request, onDismiss }) {
   );
 }
 
-function MatchCard({ match, entrants, seedOverrides, submission, canReport, isOwner, onRefresh, onRequestForfeit, supabase, requestConfirmation }) {
+function TournamentMatchRoster({ entrant, roster }) {
+  if (!entrant || !Array.isArray(roster) || roster.length === 0) return null;
+  const visibleRoster = roster.slice(0, 6);
+  return (
+    <div className="tournament-match-roster" role="list" aria-label={`${entrant.display_name} team: ${roster.map((pokemon) => pokemon.name).join(", ")}`}>
+      {visibleRoster.map((pokemon) => {
+        const artwork = safeHttpsImageSource(pokemon.spriteUrl || pokemon.sprite_url || pokemon.sprite);
+        return (
+          <span role="listitem" key={pokemon.id || pokemon.name} title={pokemon.name}>
+            {artwork
+              ? <img src={artwork} alt="" loading="lazy" />
+              : <i aria-hidden="true">{String(pokemon.name || "?").replace(/^Mega /, "").charAt(0)}</i>}
+            <small>{pokemon.name}</small>
+          </span>
+        );
+      })}
+      {roster.length > visibleRoster.length && <b title={`${roster.length - visibleRoster.length} more Pokémon`}>+{roster.length - visibleRoster.length}</b>}
+    </div>
+  );
+}
+
+function MatchCard({ match, entrants, rostersByEntrant, seedOverrides, submission, canReport, isOwner, onRefresh, onRequestForfeit, supabase, requestConfirmation }) {
   const [scoreA, setScoreA] = useState(match.games_a ?? "");
   const [scoreB, setScoreB] = useState(match.games_b ?? "");
   const [replay, setReplay] = useState(match.replay_urls?.[0] || "");
@@ -265,12 +287,18 @@ function MatchCard({ match, entrants, seedOverrides, submission, canReport, isOw
       </header>
       <div className={`tournament-match-side ${match.winner_id === a?.id ? "winner" : ""}`}>
         <span>{a ? `#${seedA}` : "-"}</span>
-        <strong>{a?.display_name || "TBD"}</strong>
+        <div className="tournament-match-entrant">
+          <strong>{a?.display_name || "TBD"}</strong>
+          <TournamentMatchRoster entrant={a} roster={a ? rostersByEntrant?.get(a.id) : null} />
+        </div>
         {match.games_a != null && <b>{match.games_a}</b>}
       </div>
       <div className={`tournament-match-side ${match.winner_id === b?.id ? "winner" : ""}`}>
         <span>{b ? `#${seedB}` : "-"}</span>
-        <strong>{b?.display_name || "TBD"}</strong>
+        <div className="tournament-match-entrant">
+          <strong>{b?.display_name || "TBD"}</strong>
+          <TournamentMatchRoster entrant={b} roster={b ? rostersByEntrant?.get(b.id) : null} />
+        </div>
         {match.games_b != null && <b>{match.games_b}</b>}
       </div>
       {match.mvp && <small>MVP: {match.mvp}</small>}
@@ -438,6 +466,11 @@ export default function TournamentWorkspace({ slug }) {
   }, [supabase, slug, inviteCode, inviteReady]);
 
   const entrants = useMemo(() => new Map((workspace?.entrants || []).map((entrant) => [entrant.id, entrant])), [workspace]);
+  const tournamentRostersByEntrant = useMemo(() => new Map(
+    (workspace?.draft_tournament?.seats || [])
+      .filter((seat) => seat.entrant_id && Array.isArray(seat.roster) && seat.roster.length > 0)
+      .map((seat) => [seat.entrant_id, seat.roster]),
+  ), [workspace]);
   const registeredEntrants = useMemo(() => (workspace?.entrants || []).filter((entrant) => entrant.status === "registered"), [workspace]);
   const me = workspace?.entrants?.find((entrant) => entrant.is_me && entrant.status === "registered");
   const hasTournamentIdentity = workspace?.entrants?.some((entrant) => entrant.is_me);
@@ -1350,6 +1383,7 @@ export default function TournamentWorkspace({ slug }) {
                         key={match.id}
                         match={match}
                         entrants={entrants}
+                        rostersByEntrant={visibleGroup.stage === "swiss" ? null : tournamentRostersByEntrant}
                         seedOverrides={visibleGroup.stage === "top-cut" ? topCutSeeds : null}
                         submission={submission}
                         canReport={Boolean(involved || tournament.is_owner)}
