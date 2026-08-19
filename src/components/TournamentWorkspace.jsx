@@ -11,7 +11,7 @@ import { REGULATION_GROUPS, REGULATION_METADATA, regulationLabelFor } from "../l
 
 const MATCH_PAGE_SIZE = 64;
 const ENTRANT_PAGE_SIZE = 64;
-const AUCTION_TOURNAMENT_ENTRANT_PAGE_SIZE = 16;
+const DRAFT_TOURNAMENT_ENTRANT_PAGE_SIZE = 16;
 
 const statusLabel = (status) => status.replaceAll("-", " ");
 const rosterSpend = (roster = []) => roster.reduce((total, pokemon) => total + (Number.isFinite(Number(pokemon?.cost)) ? Number(pokemon.cost) : 0), 0);
@@ -577,8 +577,8 @@ export default function TournamentWorkspace({ slug }) {
     if (!query) return workspace?.entrants || [];
     return (workspace?.entrants || []).filter((entrant) => entrant.display_name.toLocaleLowerCase().includes(query));
   }, [entrantQuery, workspace]);
-  const entrantPageSize = workspace?.draft_tournament?.event?.draft_type === "auction"
-    ? AUCTION_TOURNAMENT_ENTRANT_PAGE_SIZE
+  const entrantPageSize = workspace?.draft_tournament?.event
+    ? DRAFT_TOURNAMENT_ENTRANT_PAGE_SIZE
     : ENTRANT_PAGE_SIZE;
   const entrantPageCount = Math.max(1, Math.ceil(filteredEntrants.length / entrantPageSize));
   const visibleEntrantPage = Math.min(entrantPage, entrantPageCount);

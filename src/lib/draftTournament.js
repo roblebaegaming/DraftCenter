@@ -75,7 +75,7 @@ export function tournamentOperationRpcArguments(input = {}) {
 }
 
 export function normalizeDraftTournamentSettings(input = {}) {
-  const entrantLimit = boundedInteger(input.entrantLimit ?? 16, "Entrant limit", 4, 16);
+  const entrantLimit = boundedInteger(input.entrantLimit ?? 16, "Entrant limit", 4, 32);
   const rosterSize = boundedInteger(input.rosterSize ?? 6, "Roster size", 4, 12);
   const pickTimeLimitMinutes = boundedInteger(input.pickTimeLimitMinutes ?? 5, "Pick clock", 0, 1440);
   const bestOf = boundedInteger(input.bestOf ?? 3, "Series length", 1, 3);

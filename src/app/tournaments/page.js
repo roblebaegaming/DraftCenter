@@ -44,7 +44,7 @@ export default function Page() {
         isAccessibleForFree: true,
         url: "https://www.draftcentral.gg/tournaments",
         description,
-        featureList: [`Single elimination for up to ${SINGLE_ELIMINATION_MAX_ENTRANTS} entrants`, `Double elimination for up to ${DOUBLE_ELIMINATION_MAX_ENTRANTS} entrants`, "Shared snake drafts for 4–16 managers", "Shared auctions for 4–32 managers", "Swiss standings and Top Cut playoffs", "Private organizer practice with synthetic bot seats", "Six-Pokémon auction teams and winning-bid recaps", "Authorized team previews on elimination match cards"],
+        featureList: [`Single elimination for up to ${SINGLE_ELIMINATION_MAX_ENTRANTS} entrants`, `Double elimination for up to ${DOUBLE_ELIMINATION_MAX_ENTRANTS} entrants`, "Shared snake drafts for 4–32 managers", "Shared auctions for 4–32 managers", "Swiss standings and Top Cut playoffs", "Private organizer practice with synthetic bot seats", "Six-Pokémon auction teams and winning-bid recaps", "Authorized team previews on elimination match cards"],
       },
       {
         "@type": "BreadcrumbList",

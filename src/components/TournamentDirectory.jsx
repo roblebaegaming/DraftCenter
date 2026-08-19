@@ -30,9 +30,9 @@ function formatDescription(format, competitionFormat = null) {
   if (format === "draft-tournament" && competitionFormat === "double-elimination") return "One shared draft followed by a winners bracket, losers bracket, Grand Final, and conditional reset.";
   if (format === "draft-tournament" && competitionFormat === "single-elimination") return "One shared draft followed by a single-elimination bracket.";
   if (format === "draft-tournament" && competitionFormat === "swiss") return "One shared draft followed by score-grouped Swiss rounds with standings and rematch-aware pairings.";
-  if (format === "draft-tournament") return "One shared snake or auction draft followed by tournament play. Snake supports up to 16 entrants; auction supports up to 32.";
+  if (format === "draft-tournament") return "One shared snake or auction draft followed by tournament play. Both draft styles support 4–32 entrants.";
   if (format === "double-elimination") return `A first loss moves an entrant to the losers bracket. A second loss eliminates them. Up to ${DOUBLE_ELIMINATION_MAX_ENTRANTS} entrants.`;
-  if (format === "swiss") return "Managers draft first, then play every Swiss round instead of being eliminated after a loss. Snake supports up to 16 entrants; auction supports up to 32.";
+  if (format === "swiss") return "Managers draft first, then play every Swiss round instead of being eliminated after a loss. Snake and auction both support 4–32 entrants.";
   return `One loss eliminates an entrant. Up to ${SINGLE_ELIMINATION_MAX_ENTRANTS} entrants.`;
 }
 
@@ -84,7 +84,7 @@ export default function TournamentDirectory() {
       format,
       draftRostersFirst: format === "swiss" ? true : current.draftRostersFirst,
       entrantLimit: Math.min(
-        (format === "swiss" || current.draftRostersFirst) ? (current.draftType === "auction" ? 32 : 16) : tournamentEntrantBounds(format).max,
+        (format === "swiss" || current.draftRostersFirst) ? 32 : tournamentEntrantBounds(format).max,
         Math.max((format === "swiss" || current.draftRostersFirst) ? 4 : tournamentEntrantBounds(format).min, current.entrantLimit),
       ),
     }));
@@ -92,7 +92,7 @@ export default function TournamentDirectory() {
 
   function chooseDraftRostersFirst(draftRostersFirst) {
     if (!draftRostersFirst && form.format === "swiss") return;
-    const bounds = draftRostersFirst ? { min: 4, max: form.draftType === "auction" ? 32 : 16 } : tournamentEntrantBounds(form.format);
+    const bounds = draftRostersFirst ? { min: 4, max: 32 } : tournamentEntrantBounds(form.format);
     setForm((current) => ({
       ...current,
       draftRostersFirst,
@@ -101,7 +101,7 @@ export default function TournamentDirectory() {
   }
 
   function chooseDraftType(draftType) {
-    const maximum = draftType === "auction" ? 32 : 16;
+    const maximum = 32;
     setForm((current) => ({
       ...current,
       draftType,
@@ -178,7 +178,7 @@ export default function TournamentDirectory() {
 
   const entrantBounds = form.demoMode
     ? { min: 32, max: 32 }
-    : form.draftRostersFirst ? { min: 4, max: form.draftType === "auction" ? 32 : 16 } : tournamentEntrantBounds(form.format);
+    : form.draftRostersFirst ? { min: 4, max: 32 } : tournamentEntrantBounds(form.format);
 
   return (
     <main className="tournament-shell">
@@ -283,7 +283,7 @@ export default function TournamentDirectory() {
                   <legend>Shared draft</legend>
                   <label>Draft style
                     <select value={form.draftType} disabled={form.demoMode} onChange={(event) => chooseDraftType(event.target.value)}>
-                      <option value="snake">Snake draft — 4–16 managers</option>
+                      <option value="snake">Snake draft — 4–32 managers</option>
                       <option value="auction">Auction draft — 4–32 managers</option>
                     </select>
                   </label>
@@ -306,7 +306,7 @@ export default function TournamentDirectory() {
                   <small>{form.format === "swiss"
                     ? form.demoMode
                       ? "Roster lock pairs Swiss Round 1. Five Swiss rounds seed a permanent single-elimination Top 8 playoff."
-                      : `After the ${form.draftType} draft, roster lock will pair Swiss Round 1 automatically. Events use 3 rounds for 4–8 managers, 4 for 9–16, or 5 for 17–32 auction managers.`
+                      : `After the ${form.draftType} draft, roster lock will pair Swiss Round 1 automatically. Events use 3 rounds for 4–8 managers, 4 for 9–16, or 5 for 17–32 managers.`
                     : `After the ${form.draftType} draft, roster lock will build the ${form.format === "double-elimination" ? "double-elimination winners and losers brackets" : "single-elimination bracket"} automatically.`}</small>
                 </fieldset>
               )}
@@ -320,7 +320,7 @@ export default function TournamentDirectory() {
       <section className="tournament-panel tournament-format-guide" aria-labelledby="tournament-format-guide-title">
         <span className="eyebrow">CHOOSE YOUR EVENT</span>
         <h2 id="tournament-format-guide-title">Choose tournament play, then choose how teams enter</h2>
-        <p className="tournament-format-intro">Single or double elimination controls how losses eliminate entrants. Swiss pairs managers by record across every round. Draft teams first adds a shared snake room for 4–16 managers or a shared auction room for 4–32; it is required for Swiss.</p>
+        <p className="tournament-format-intro">Single or double elimination controls how losses eliminate entrants. Swiss pairs managers by record across every round. Draft teams first adds a shared snake or auction room for 4–32 managers; it is required for Swiss.</p>
         <div className="tournament-format-grid">
           <article>
             <h3>Single elimination</h3>
@@ -332,7 +332,7 @@ export default function TournamentDirectory() {
           </article>
           <article>
             <h3>Swiss</h3>
-            <p>Draft together, then play three rounds with 4–8 managers, four with 9–16, or five with 17–32 auction managers. Pairings follow the standings and avoid rematches when possible.</p>
+            <p>Draft together, then play three rounds with 4–8 managers, four with 9–16, or five with 17–32 managers. Pairings follow the standings and avoid rematches when possible.</p>
           </article>
           <article>
             <h3>Draft teams first</h3>

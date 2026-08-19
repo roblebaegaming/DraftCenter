@@ -17,8 +17,8 @@ is no automatic conversion of historical events.
 
 ## Product contract
 
-- 4–16 registered entrants for snake events or 4–32 for auction events, with
-  no waitlist or late entry after field lock.
+- 4–32 registered entrants for snake or auction events, with no waitlist or
+  late entry after field lock.
 - Explicit check-in; unchecked entrants become recorded no-shows.
 - Snake uses the final registration seed as its fixed first-round order.
   Auction uses the same immutable seat identities as its nomination order.
@@ -35,11 +35,11 @@ is no automatic conversion of historical events.
   review. Cancellation removes the private draft room. Roster lock closes the
   cancellation boundary.
 
-The snake path remains capped at **16 entrants**. Auction is a separate adapter
-over the expanded hosted-auction engine and supports **4–32 entrants** without
-raising or rewriting the proven snake limit. Larger snake events should still
-draft and play inside pods before advancing qualifiers to a connected
-championship.
+Snake and auction Draft Tournaments both support **4–32 entrants**. Each
+private tournament draft room explicitly uses the released 32-team expanded
+league mode; this does not raise the ordinary league or league-Swiss limits.
+Events larger than 32 should still draft and play inside pods before advancing
+qualifiers to a connected championship.
 
 ## Auction release contract
 
@@ -47,6 +47,8 @@ Auction Draft Tournaments must support **4–32 entrants** in one shared expande
 auction room, matching the proven 32-team capacity available to explicitly
 expanded leagues. Migration 428 implements this as a distinct creation,
 field-lock, snapshot-validation, phase-sync, and roster-materialization path.
+The later snake-capacity migration applies that same expanded room boundary to
+the existing server-authoritative snake lifecycle.
 
 The expansion must preserve server-authoritative budgets, nominations,
 pause/resume, reconnect recovery, immutable tournament seats, atomic roster
@@ -111,18 +113,20 @@ and recalculates the published standings after confirmed results.
 ## Swiss contract
 
 `competition_format = 'swiss'` events use three rounds for 4–8 entrants, four
-for 9–16, or five for 17–32 auction entrants. New Swiss events created through
+for 9–16, or five for 17–32 entrants. New Swiss events created through
 the simplified format control have no top cut by default; historical events
 may retain their optional Top 2, 4, or 8. Standings, correction rollback, and
 completion rules are unchanged.
 
 ## Validation boundary
 
-Migrations 385 and 428 are forward only. Their Preview regressions use disposable
-identities and events inside a transaction that rolls back. It checks the RPC
+Migrations 385, 428, and the snake 32-seat follow-up are forward only. Their
+Preview regressions use disposable identities and events inside transactions
+that roll back. They check the RPC
 grant boundary, an eight-manager double-elimination graph, a four-manager
 single-elimination graph, Swiss creation through the new control, directory
 projection, completion propagation, a complete 32-seat auction-to-roster-lock
-handoff, 16-pair Swiss creation, a 63-row double-elimination graph, and fixture
-cleanup. A real league, draft, roster, tournament, or provider setting must
-never be changed merely to test this lifecycle.
+handoff, a 32-seat snake field lock using expanded mode and five Swiss rounds,
+16-pair Swiss creation, a 63-row double-elimination graph, and fixture cleanup.
+A real league, draft, roster, tournament, or provider setting must never be
+changed merely to test this lifecycle.

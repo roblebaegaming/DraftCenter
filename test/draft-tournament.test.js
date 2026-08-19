@@ -19,7 +19,7 @@ import {
   tournamentOperationRpcArguments,
 } from "../src/lib/draftTournament.js";
 
-test("Draft Tournament creation settings are bounded for the first release", () => {
+test("snake Draft Tournament creation is bounded from 4 to 32 entrants", () => {
   assert.equal(DRAFT_TOURNAMENT_FORMAT, "draft-tournament");
   assert.deepEqual(normalizeDraftTournamentSettings({ name: "  Saturday Draft  " }), {
     name: "Saturday Draft",
@@ -35,7 +35,9 @@ test("Draft Tournament creation settings are bounded for the first release", () 
     publishRosters: false,
     rules: "",
   });
-  assert.throws(() => normalizeDraftTournamentSettings({ name: "Cup", entrantLimit: 3 }), /between 4 and 16/);
+  assert.equal(normalizeDraftTournamentSettings({ name: "Full Snake Cup", entrantLimit: 32 }).entrantLimit, 32);
+  assert.throws(() => normalizeDraftTournamentSettings({ name: "Cup", entrantLimit: 3 }), /between 4 and 32/);
+  assert.throws(() => normalizeDraftTournamentSettings({ name: "Cup", entrantLimit: 33 }), /between 4 and 32/);
   assert.throws(() => normalizeDraftTournamentSettings({ name: "Cup", rosterSize: 13 }), /between 4 and 12/);
   assert.throws(() => normalizeDraftTournamentSettings({ name: "Cup", topCutSize: 6 }), /2, 4, or 8/);
   assert.throws(() => normalizeDraftTournamentSettings({ name: "Cup", bestOf: 2 }), /best of 1 or best of 3/);
@@ -415,6 +417,7 @@ test("Tournament UI exposes the Draft Tournament lifecycle without leaking its i
   assert.match(directory, /Swiss currently uses the shared draft/);
   assert.match(directory, /create_draft_first_tournament/);
   assert.match(directory, /create_auction_draft_first_tournament/);
+  assert.match(directory, /Snake draft — 4–32 managers/);
   assert.match(directory, /Auction draft — 4–32 managers/);
   assert.match(workspace, /Open check-in/);
   assert.match(workspace, /Lock rosters & build bracket/);
@@ -426,8 +429,8 @@ test("Tournament UI exposes the Draft Tournament lifecycle without leaking its i
   assert.match(workspace, /Lock field & create draft board/);
   assert.match(workspace, /Open live draft board/);
   assert.doesNotMatch(workspace, /set_tournament_seed|randomize_tournament_seeds|Shuffle seeds/);
-  assert.match(workspace, /AUCTION_TOURNAMENT_ENTRANT_PAGE_SIZE = 16/);
-  assert.match(workspace, /draft_type === "auction"[\s\S]*AUCTION_TOURNAMENT_ENTRANT_PAGE_SIZE/);
+  assert.match(workspace, /DRAFT_TOURNAMENT_ENTRANT_PAGE_SIZE = 16/);
+  assert.match(workspace, /workspace\?\.draft_tournament\?\.event[\s\S]*DRAFT_TOURNAMENT_ENTRANT_PAGE_SIZE/);
   assert.match(workspace, /opponent_match_win_percentage/);
   assert.match(draftRoom, /DRAFT TOURNAMENT ROOM/);
   assert.match(draftRoom, /draft style, roster size, budget, and clocks are fixed by the event/);
@@ -492,6 +495,27 @@ test("migration 446 treats capacity as a ceiling and protects flexible private p
     "removal",
   ]) assert.match(regression, new RegExp(`'${evidence}'`));
   assert.match(regression, /'real', 1, 'practice', 3, 'capacity', 8/i);
+  assert.match(regression, /rollback;/i);
+});
+
+test("snake Draft Tournaments expand safely to 32 entrants", () => {
+  const sql = fs.readFileSync(
+    new URL("../supabase/migrations/20260819211609_snake_draft_tournaments_32_entrants.sql", import.meta.url),
+    "utf8",
+  );
+  const regression = fs.readFileSync(
+    new URL("../supabase/tests/448-snake-draft-tournaments-32-preview-regression.sql", import.meta.url),
+    "utf8",
+  );
+  assert.match(sql, /p_entrant_limit not between 4 and 32/i);
+  assert.match(sql, /v_count not between 4 and 32 or v_count > v_tournament\.entrant_limit/i);
+  assert.match(sql, /'leagueScaleMode'', ''expanded'/i);
+  assert.match(sql, /case when v_count <= 8 then 3 when v_count <= 16 then 4 else 5 end/i);
+  assert.match(sql, /v_maximum := 32;/i);
+  for (const evidence of ["function_definitions", "capacity_guard", "snake_field_32", "cleanup"]) {
+    assert.match(regression, new RegExp(`'${evidence}'`));
+  }
+  assert.match(regression, /'entrants', 32, 'teams', 32, 'swiss_rounds', 5/i);
   assert.match(regression, /rollback;/i);
 });
 
