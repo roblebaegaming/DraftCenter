@@ -450,6 +450,53 @@ test("isolated Preview matrix covers the maximum 32-seat organizer demo lifecycl
   assert.match(matrix, /rollback;/i);
 });
 
+test("migration 440 upgrades organizer demos to Regulation M-B six-Pokemon rosters and a Top 8 playoff", () => {
+  const sql = fs.readFileSync(
+    new URL("../supabase/migrations/20260819013208_tournament_demo_six_rosters_top_cut.sql", import.meta.url),
+    "utf8",
+  );
+  const catalog = JSON.parse(fs.readFileSync(new URL("../src/data/draft-lab-catalog.json", import.meta.url), "utf8"));
+  const embeddedPool = sql.match(/\$regmb\$(\[[^\n]+\])\$regmb\$::jsonb/);
+  assert.ok(embeddedPool, "The migration should pin its Regulation M-B legal pool.");
+  assert.deepEqual(JSON.parse(embeddedPool[1]), catalog.regulations["reg-mb"].legalNames);
+  for (const evidence of [
+    "enforce_tournament_demo_event_defaults",
+    "configure_tournament_demo_draft_room",
+    "complete_tournament_demo_top_cut",
+    "smogon-vgc-reg-mb-2026-06-28",
+    "tournament_demo_top_cut_generated",
+    "tournament_demo_auction_generated",
+  ]) assert.match(sql, new RegExp(evidence));
+  assert.match(sql, /new\.roster_size := 6/i);
+  assert.match(sql, /new\.top_cut_size := 8/i);
+  assert.match(sql, /'regulationId', 'reg-mb'/i);
+  assert.match(sql, /'megaCap', 1/i);
+  assert.match(sql, /grant execute on function public\.complete_tournament_demo_top_cut\(uuid, bigint\)[\s\S]*to authenticated, service_role/i);
+  assert.match(sql, /revoke all on function public\.enforce_tournament_demo_event_defaults\(\)[\s\S]*from public, anon, authenticated, service_role/i);
+});
+
+test("migration 440 Preview matrix proves six-Pokemon prices, Swiss-to-Top-8, completion, and reset", () => {
+  const matrix = fs.readFileSync(
+    new URL("../supabase/tests/440-tournament-demo-six-rosters-top-cut-preview-regression.sql", import.meta.url),
+    "utf8",
+  );
+  for (const evidence of [
+    "grants",
+    "six_pokemon_defaults",
+    "regulation_room",
+    "priced_regulation_rosters",
+    "roster_lock",
+    "swiss_to_top_cut",
+    "authorization",
+    "playoff_completion",
+    "reset",
+    "cleanup",
+  ]) assert.match(matrix, new RegExp(`'${evidence}'`));
+  assert.match(matrix, /'teams', 32, 'pokemon', 192/i);
+  assert.match(matrix, /'swiss_matches', 80, 'top_cut_entries', 8, 'playoff_matches', 7/i);
+  assert.match(matrix, /rollback;/i);
+});
+
 test("Tournament UI presents the organizer demo as private synthetic infrastructure", () => {
   const directory = fs.readFileSync(new URL("../src/components/TournamentDirectory.jsx", import.meta.url), "utf8");
   const workspace = fs.readFileSync(new URL("../src/components/TournamentWorkspace.jsx", import.meta.url), "utf8");
@@ -465,8 +512,14 @@ test("Tournament UI presents the organizer demo as private synthetic infrastruct
     "Build 32-seat organizer demo",
     "fill_tournament_demo_auction",
     "complete_tournament_demo_swiss",
+    "complete_tournament_demo_top_cut",
     "reset_tournament_demo",
     "31 unclaimed teams use the existing draft bots",
+    "Winning rosters and prices",
+    "Regulation M-B",
+    "Top 8",
   ]) assert.match(workspace, new RegExp(evidence));
+  assert.match(directory, /rosterSize: 6/);
+  assert.match(directory, /Fixed at six for the 32-seat Regulation M-B showcase/);
   assert.match(workspace, /tournament\.is_owner && !isDemo && tournament\.visibility === "private"/);
 });

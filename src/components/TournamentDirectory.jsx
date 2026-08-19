@@ -113,7 +113,7 @@ export default function TournamentDirectory() {
       draftRostersFirst: true,
       draftType: "auction",
       entrantLimit: 32,
-      rosterSize: current.rosterSize || 4,
+      rosterSize: 6,
       publishRosters: false,
     } : {
       ...current,
@@ -206,7 +206,7 @@ export default function TournamentDirectory() {
                 onClick={() => chooseDemoMode(!form.demoMode)}
               >
                 <strong>Tournament organizer demo</strong>
-                <span>{form.demoMode ? "On — a private 32-seat auction Swiss sandbox will use your account plus 31 clearly labeled bot seats." : "Practice registration, a live auction, roster lock, pairings, results, standings, and reset without inviting tester accounts."}</span>
+                <span>{form.demoMode ? "On — a private 32-seat Regulation M-B auction will use six-Pokémon teams, five Swiss rounds, a Top 8 playoff, your account, and 31 clearly labeled bot seats." : "Practice registration, a live auction, roster lock, pairings, results, standings, playoffs, and reset without inviting tester accounts."}</span>
               </button>
               {form.demoMode && <div className="tournament-demo-note" role="note"><strong>Private synthetic sandbox</strong><span>Demo entries and generated results are permanently labeled, never public, and excluded from real participant ownership.</span></div>}
               <label>Name<input required maxLength={120} value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} /></label>
@@ -253,7 +253,7 @@ export default function TournamentDirectory() {
                     </select>
                   </label>
                   <div className="tournament-form-pair">
-                    <label>Pokémon per roster<input type="number" min="4" max="12" value={form.rosterSize} onChange={(event) => setForm({ ...form, rosterSize: Number(event.target.value) })} /></label>
+                    <label>Pokémon per roster<input type="number" min={form.demoMode ? 6 : 4} max="12" disabled={form.demoMode} value={form.rosterSize} onChange={(event) => setForm({ ...form, rosterSize: Number(event.target.value) })} />{form.demoMode && <small>Fixed at six for the 32-seat Regulation M-B showcase.</small>}</label>
                     {form.draftType === "snake" && <label>Pick clock
                       <select value={form.pickTimeLimitMinutes} onChange={(event) => setForm({ ...form, pickTimeLimitMinutes: Number(event.target.value) })}>
                         <option value="0">No limit</option><option value="2">2 minutes</option><option value="5">5 minutes</option><option value="15">15 minutes</option><option value="60">1 hour</option>
@@ -269,7 +269,9 @@ export default function TournamentDirectory() {
                   </div>}
                   {form.visibility === "public" && <label className="tournament-checkbox"><input type="checkbox" checked={form.publishRosters} onChange={(event) => setForm({ ...form, publishRosters: event.target.checked })} /> Publish locked rosters on the public event page</label>}
                   <small>{form.format === "swiss"
-                    ? `After the ${form.draftType} draft, roster lock will pair Swiss Round 1 automatically. Events use 3 rounds for 4–8 managers, 4 for 9–16, or 5 for 17–32 auction managers.`
+                    ? form.demoMode
+                      ? "Roster lock pairs Swiss Round 1. Five Swiss rounds seed a permanent single-elimination Top 8 playoff."
+                      : `After the ${form.draftType} draft, roster lock will pair Swiss Round 1 automatically. Events use 3 rounds for 4–8 managers, 4 for 9–16, or 5 for 17–32 auction managers.`
                     : `After the ${form.draftType} draft, roster lock will build the ${form.format === "double-elimination" ? "double-elimination winners and losers brackets" : "single-elimination bracket"} automatically.`}</small>
                 </fieldset>
               )}

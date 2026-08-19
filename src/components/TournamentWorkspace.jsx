@@ -9,6 +9,7 @@ const ENTRANT_PAGE_SIZE = 64;
 const AUCTION_TOURNAMENT_ENTRANT_PAGE_SIZE = 16;
 
 const statusLabel = (status) => status.replaceAll("-", " ");
+const rosterSpend = (roster = []) => roster.reduce((total, pokemon) => total + (Number.isFinite(Number(pokemon?.cost)) ? Number(pokemon.cost) : 0), 0);
 const formatLabel = (format, competitionFormat = null) => format === "draft-tournament"
   ? competitionFormat === "double-elimination"
     ? "Draft + double elimination"
@@ -98,7 +99,7 @@ function ConfirmationDialog({ request, onDismiss }) {
   );
 }
 
-function MatchCard({ match, entrants, submission, canReport, isOwner, onRefresh, onRequestForfeit, supabase, requestConfirmation }) {
+function MatchCard({ match, entrants, seedOverrides, submission, canReport, isOwner, onRefresh, onRequestForfeit, supabase, requestConfirmation }) {
   const [scoreA, setScoreA] = useState(match.games_a ?? "");
   const [scoreB, setScoreB] = useState(match.games_b ?? "");
   const [replay, setReplay] = useState(match.replay_urls?.[0] || "");
@@ -110,6 +111,8 @@ function MatchCard({ match, entrants, submission, canReport, isOwner, onRefresh,
   const headingId = useId();
   const a = entrants.get(match.entrant_a_id);
   const b = entrants.get(match.entrant_b_id);
+  const seedA = a ? seedOverrides?.get(a.id) ?? a.seed : null;
+  const seedB = b ? seedOverrides?.get(b.id) ?? b.seed : null;
   const wins = Math.ceil(match.best_of / 2);
 
   useEffect(() => {
@@ -261,12 +264,12 @@ function MatchCard({ match, entrants, submission, canReport, isOwner, onRefresh,
         <span>{statusLabel(match.status)}</span>
       </header>
       <div className={`tournament-match-side ${match.winner_id === a?.id ? "winner" : ""}`}>
-        <span>{a ? `#${a.seed}` : "-"}</span>
+        <span>{a ? `#${seedA}` : "-"}</span>
         <strong>{a?.display_name || "TBD"}</strong>
         {match.games_a != null && <b>{match.games_a}</b>}
       </div>
       <div className={`tournament-match-side ${match.winner_id === b?.id ? "winner" : ""}`}>
-        <span>{b ? `#${b.seed}` : "-"}</span>
+        <span>{b ? `#${seedB}` : "-"}</span>
         <strong>{b?.display_name || "TBD"}</strong>
         {match.games_b != null && <b>{match.games_b}</b>}
       </div>
@@ -647,7 +650,7 @@ export default function TournamentWorkspace({ slug }) {
   function requestFillDemoAuction() {
     setConfirmation({
       title: "Generate a completed demo auction?",
-      description: "DraftCenter will assign unique synthetic auction rosters to all 32 seats. If you already practiced part of this demo auction, its partial auction state will be replaced.",
+      description: "DraftCenter will assign six unique Regulation M-B Pokémon to all 32 seats, with one Mega per team and visible winning bids that stay within each 120-point budget. If you already practiced part of this demo auction, its partial auction state will be replaced.",
       confirmLabel: "Generate 32 rosters",
       workingLabel: "Generating auction...",
       tone: "danger",
@@ -661,10 +664,23 @@ export default function TournamentWorkspace({ slug }) {
   function requestCompleteDemoSwiss() {
     setConfirmation({
       title: "Generate the remaining demo Swiss results?",
-      description: "DraftCenter will finish every unresolved synthetic match, pair all remaining rounds from the live standings, and complete the event. Existing completed demo results remain intact.",
+      description: "DraftCenter will finish every unresolved synthetic match, pair all remaining rounds from the live standings, and seed the Top 8 playoff. Existing completed demo results remain intact.",
       confirmLabel: "Complete demo Swiss",
       workingLabel: "Generating results...",
       onConfirm: () => runDraftTournamentAction("complete_tournament_demo_swiss", {
+        p_tournament_id: workspace.tournament.id,
+        p_expected_revision: workspace.draft_tournament.event.revision,
+      }),
+    });
+  }
+
+  function requestCompleteDemoTopCut() {
+    setConfirmation({
+      title: "Generate the demo Top 8 results?",
+      description: "DraftCenter will complete all seven synthetic playoff matches through the championship. You can leave the bracket live instead if you want to practice reporting each result yourself.",
+      confirmLabel: "Complete demo playoffs",
+      workingLabel: "Generating playoffs...",
+      onConfirm: () => runDraftTournamentAction("complete_tournament_demo_top_cut", {
         p_tournament_id: workspace.tournament.id,
         p_expected_revision: workspace.draft_tournament.event.revision,
       }),
@@ -1002,6 +1018,7 @@ export default function TournamentWorkspace({ slug }) {
   const usesDraftFirstBracket = ["single-elimination", "double-elimination"].includes(competitionFormat);
   const currentDraftRound = draftTournament?.rounds?.find((round) => round.round_number === draftEvent?.current_swiss_round) || null;
   const latestDraftStandings = (draftTournament?.standings || []).filter((standing) => standing.round_id === currentDraftRound?.id);
+  const topCutSeeds = new Map((draftTournament?.top_cut || []).map((entry) => [entry.entrant_id, Number(entry.seed)]));
   const connectedChampionship = workspace.connected_championship;
   const connectedEntrants = new Map((connectedChampionship?.entrants || []).map((entrant) => [entrant.tournament_entrant_id, entrant]));
   const canEnableDemo = Boolean(
@@ -1027,7 +1044,7 @@ export default function TournamentWorkspace({ slug }) {
         <div>
           <span>Best of {tournament.best_of}</span>
           <span>{registeredEntrants.length} / {tournament.entrant_limit} active entrants</span>
-          {draftEvent && <span>{draftEvent.roster_size} Pokemon &middot; {tournamentDraftType === "auction" ? `${draftEvent.draft_budget} budget · ${draftEvent.auction_timer_seconds}s opening bid` : draftEvent.pick_time_limit_minutes ? `${draftEvent.pick_time_limit_minutes} min/pick` : "No pick clock"} &middot; {usesDraftFirstBracket ? `${formatLabel(competitionFormat)} bracket` : draftEvent.swiss_round_count ? `${draftEvent.swiss_round_count} Swiss rounds` : "Swiss rounds set at field lock"}</span>}
+          {draftEvent && <span>{draftEvent.roster_size} Pokémon &middot; {isDemo ? "Regulation M-B · " : ""}{tournamentDraftType === "auction" ? `${draftEvent.draft_budget}-point budget · ${draftEvent.auction_timer_seconds}s opening bid` : draftEvent.pick_time_limit_minutes ? `${draftEvent.pick_time_limit_minutes} min/pick` : "No pick clock"} &middot; {usesDraftFirstBracket ? `${formatLabel(competitionFormat)} bracket` : draftEvent.swiss_round_count ? `${draftEvent.swiss_round_count} Swiss rounds${draftEvent.top_cut_size ? ` · Top ${draftEvent.top_cut_size}` : ""}` : "Swiss rounds set at field lock"}</span>}
           {tournament.is_owner && !isDemo && tournament.visibility === "private" && tournament.status === "registration" && (
             <button type="button" className="quiet-button" disabled={busy} onClick={copyInvite}>{inviteCode ? "Copy private registration link" : "Create private registration link"}</button>
           )}
@@ -1042,12 +1059,13 @@ export default function TournamentWorkspace({ slug }) {
         <div>
           <span className="eyebrow">SYNTHETIC · PRIVATE · RESETTABLE</span>
           <h2 id="tournament-demo-heading">Tournament organizer sandbox</h2>
-          <p>Only your commissioner account is real. Every Bot badge, generated roster, pairing, score, and standing belongs to this private practice event and is never presented as real competition data.</p>
+          <p>Only your commissioner account is real. Every Bot badge, Regulation M-B roster, auction price, pairing, score, standing, and playoff result belongs to this private practice event and is never presented as real competition data.</p>
         </div>
         <div className="tournament-demo-summary" aria-label="Organizer demo safeguards">
           <span><strong>1</strong> owner account</span>
           <span><strong>31</strong> bot seats</span>
-          <span><strong>0</strong> public entries</span>
+          <span><strong>6</strong> Pokémon / team</span>
+          <span><strong>8</strong> playoff cut</span>
         </div>
       </section>}
 
@@ -1195,10 +1213,13 @@ export default function TournamentWorkspace({ slug }) {
           {tournament.is_owner && isDemo && ["swiss", "swiss-complete"].includes(draftEvent.phase) && (
             <button type="button" className="secondary-button" disabled={busy} onClick={requestCompleteDemoSwiss}>Complete remaining demo Swiss rounds</button>
           )}
+          {tournament.is_owner && isDemo && draftEvent.phase === "top-cut" && (
+            <button type="button" className="secondary-button" disabled={busy} onClick={requestCompleteDemoTopCut}>Complete demo playoffs</button>
+          )}
           {tournament.is_owner && !isDemo && ["draft-setup", "drafting", "roster-review"].includes(draftEvent.phase) && (
             <button type="button" className="danger-button" disabled={busy} onClick={requestCancelDraftTournament}>Cancel event</button>
           )}
-          {tournament.is_owner && isDemo && ["draft-setup", "drafting", "roster-review", "swiss", "swiss-complete", "complete"].includes(draftEvent.phase) && (
+          {tournament.is_owner && isDemo && ["draft-setup", "drafting", "roster-review", "swiss", "swiss-complete", "top-cut", "complete"].includes(draftEvent.phase) && (
             <button type="button" className="quiet-button" disabled={busy} onClick={requestResetDemo}>Reset demo to check-in</button>
           )}
           {draftEvent.phase === "top-cut" && <p className="muted">Swiss standings are final. The remaining matches use the confirmed single-elimination top-cut bracket below.</p>}
@@ -1212,13 +1233,36 @@ export default function TournamentWorkspace({ slug }) {
                 <thead><tr><th>Rank</th><th>Entrant</th><th>Record</th><th>OMWP</th><th>Games</th><th>OGWP</th></tr></thead>
                 <tbody>{latestDraftStandings.map((standing) => {
                   const entrant = entrants.get(standing.entrant_id);
-                  return <tr key={standing.entrant_id}><td>#{standing.rank}</td><th scope="row">{entrant?.display_name || "Entrant"}</th><td>{standing.match_wins}-{standing.match_losses}</td><td>{Math.round(Number(standing.opponent_match_win_percentage || 0) * 1000) / 10}%</td><td>{standing.game_wins}-{standing.game_losses}</td><td>{Math.round(Number(standing.opponent_game_win_percentage || 0) * 1000) / 10}%</td></tr>;
+                  const madeTopCut = Number(standing.rank) <= Number(draftEvent.top_cut_size || 0);
+                  return <tr className={madeTopCut ? "is-top-cut" : ""} key={standing.entrant_id}><td>#{standing.rank}</td><th scope="row">{entrant?.display_name || "Entrant"}{madeTopCut && <span className="tournament-top-cut-badge">Top {draftEvent.top_cut_size}</span>}</th><td>{standing.match_wins}-{standing.match_losses}</td><td>{Math.round(Number(standing.opponent_match_win_percentage || 0) * 1000) / 10}%</td><td>{standing.game_wins}-{standing.game_losses}</td><td>{Math.round(Number(standing.opponent_game_win_percentage || 0) * 1000) / 10}%</td></tr>;
                 })}</tbody>
               </table>
             </div>
           )}
 
-          {(draftTournament?.seats || []).some((seat) => Array.isArray(seat.roster)) && (
+          {tournamentDraftType === "auction" && (draftTournament?.seats || []).some((seat) => Array.isArray(seat.roster)) && (
+            <section className="tournament-auction-recap" aria-labelledby="tournament-auction-recap-heading">
+              <div className="section-heading">
+                <div><span className="eyebrow">AUCTION RECAP</span><h3 id="tournament-auction-recap-heading">Winning rosters and prices</h3></div>
+                <span>{draftTournament.seats.filter((seat) => Array.isArray(seat.roster)).length} teams · {isDemo ? "Synthetic winning bids" : "Winning bids"}</span>
+              </div>
+              <p className="muted">{isDemo ? "Each price is the synthetic winning bid charged to that team. Regulation M-B demo rosters use one Mega and five non-Mega Pokémon." : "Each price is the winning bid charged to that team."}</p>
+              <div className="tournament-roster-grid">
+                {draftTournament.seats.filter((seat) => Array.isArray(seat.roster)).map((seat) => {
+                  const spent = rosterSpend(seat.roster);
+                  const remaining = Math.max(0, Number(draftEvent.draft_budget || 0) - spent);
+                  return <article key={seat.id}>
+                    <header>
+                      <strong>#{seat.initial_seed} {entrants.get(seat.entrant_id)?.display_name || "Entrant"} {seat.is_bot && <span className="tournament-bot-badge">Bot</span>}</strong>
+                      <small>{spent} spent · {remaining} left</small>
+                    </header>
+                    <div>{seat.roster.map((pokemon) => <span className="tournament-auction-pick" key={pokemon.id || pokemon.name}><strong>{pokemon.name}</strong><small>{Number(pokemon.cost) || 0} pts</small></span>)}</div>
+                  </article>;
+                })}
+              </div>
+            </section>
+          )}
+          {tournamentDraftType !== "auction" && (draftTournament?.seats || []).some((seat) => Array.isArray(seat.roster)) && (
             <div className="tournament-roster-grid">
               {draftTournament.seats.filter((seat) => Array.isArray(seat.roster)).map((seat) => (
                 <article key={seat.id}>
@@ -1283,7 +1327,7 @@ export default function TournamentWorkspace({ slug }) {
       {rounds.length > 0 && (
         <section className="tournament-bracket" aria-labelledby="tournament-bracket-heading">
           <div className="section-heading">
-            <div><span className="eyebrow">{displayFormat.toUpperCase()}</span><h2 id="tournament-bracket-heading">Bracket</h2></div>
+            <div><span className="eyebrow">{displayFormat.toUpperCase()}</span><h2 id="tournament-bracket-heading">{rounds.some((group) => group.stage === "top-cut") ? `Top ${draftEvent?.top_cut_size || topCutSeeds.size} playoff bracket` : "Bracket"}</h2></div>
             <button type="button" className="quiet-button" disabled={roundBusy} onClick={() => chooseMatchPage(matchPage.page)}>Refresh</button>
           </div>
           <nav className="tournament-round-picker" aria-label="Choose a bracket round">
@@ -1306,6 +1350,7 @@ export default function TournamentWorkspace({ slug }) {
                         key={match.id}
                         match={match}
                         entrants={entrants}
+                        seedOverrides={visibleGroup.stage === "top-cut" ? topCutSeeds : null}
                         submission={submission}
                         canReport={Boolean(involved || tournament.is_owner)}
                         isOwner={Boolean(tournament.is_owner && tournament.status !== "archived")}
