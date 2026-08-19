@@ -5,6 +5,7 @@ import { createClient } from "../lib/supabase/client";
 
 const PROFILE_COPY = {
   en: {
+    viewProfile: (name) => `View ${name}'s coach profile`,
     close: "Close coach profile",
     eyebrow: "COACH PROFILE",
     loading: "Loading coach profile...",
@@ -18,6 +19,7 @@ const PROFILE_COPY = {
     noBadges: "No badges earned yet.",
   },
   it: {
+    viewProfile: (name) => `Visualizza il profilo allenatore di ${name}`,
     close: "Chiudi il profilo dell'allenatore",
     eyebrow: "PROFILO ALLENATORE",
     loading: "Caricamento del profilo...",
@@ -31,6 +33,7 @@ const PROFILE_COPY = {
     noBadges: "Nessuna medaglia ottenuta.",
   },
   es: {
+    viewProfile: (name) => `Ver el perfil de entrenador de ${name}`,
     close: "Cerrar el perfil del entrenador",
     eyebrow: "PERFIL DEL ENTRENADOR",
     loading: "Cargando el perfil...",
@@ -42,6 +45,15 @@ const PROFILE_COPY = {
     noFavorites: "Todavía no ha seleccionado Pokémon favoritos.",
     badges: "Insignias",
     noBadges: "Todavía no ha conseguido insignias.",
+  },
+  de: {
+    viewProfile: (name) => `Trainerprofil von ${name} ansehen`, close: "Trainerprofil schließen", eyebrow: "TRAINERPROFIL", loading: "Trainerprofil wird geladen...", wins: "Siege", losses: "Niederlagen", matches: "Kämpfe", winRate: "Siegquote", favorites: "Sechs Lieblings-Pokémon", noFavorites: "Noch keine Lieblings-Pokémon ausgewählt.", badges: "Abzeichen", noBadges: "Noch keine Abzeichen verdient.",
+  },
+  ja: {
+    viewProfile: (name) => `${name}のトレーナープロフィールを見る`, close: "トレーナープロフィールを閉じる", eyebrow: "トレーナープロフィール", loading: "プロフィールを読み込み中...", wins: "勝利", losses: "敗北", matches: "対戦", winRate: "勝率", favorites: "お気に入りの6匹", noFavorites: "お気に入りのポケモンはまだ選ばれていません。", badges: "バッジ", noBadges: "獲得したバッジはまだありません。",
+  },
+  ko: {
+    viewProfile: (name) => `${name}의 트레이너 프로필 보기`, close: "트레이너 프로필 닫기", eyebrow: "트레이너 프로필", loading: "트레이너 프로필 불러오는 중...", wins: "승", losses: "패", matches: "경기", winRate: "승률", favorites: "좋아하는 포켓몬 6마리", noFavorites: "선택한 좋아하는 포켓몬이 없습니다.", badges: "배지", noBadges: "획득한 배지가 없습니다.",
   },
 };
 
@@ -71,12 +83,14 @@ export function CoachAvatar({ profile, size = 36 }) {
     : <span className="coach-avatar coach-avatar-fallback" aria-hidden="true" style={{ width:size, height:size }}>{name[0].toUpperCase()}</span>;
 }
 
-export function CoachProfileButton({ username, displayName, avatarUrl, onOpen, compact = false, stopPropagation = false }) {
+export function CoachProfileButton({ username, displayName, avatarUrl, onOpen, compact = false, stopPropagation = false, locale = "en" }) {
   if (!username && !displayName) return <span>Coach</span>;
+  const name = displayName || username;
+  const copy = PROFILE_COPY[locale] || PROFILE_COPY.en;
   return <button
     type="button"
     className={`coach-profile-button${compact ? " is-compact" : ""}`}
-    aria-label={`View ${displayName || username}'s coach profile`}
+    aria-label={copy.viewProfile(name)}
     onClick={(event) => {
       if (stopPropagation) {
         event.preventDefault();

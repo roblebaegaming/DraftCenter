@@ -12,7 +12,9 @@ import {
 } from "../lib/worlds2026";
 import { WORLDS_PICK_DISCIPLINES } from "../lib/worldsFutureSetup";
 import {
+  WORLDS_LANGUAGES,
   worldsCopy,
+  worldsLanguage,
   worldsQualificationLabel,
   worldsRegionLabel,
   worldsServerError,
@@ -116,7 +118,7 @@ export default function WorldsPickSixteen({ rosterSource, discipline = "vgc", lo
   const [busy, setBusy] = useState(false);
   const [loadingHub, setLoadingHub] = useState(true);
   const [popularity, setPopularity] = useState(null);
-  const [showItalianOffer, setShowItalianOffer] = useState(false);
+  const [offeredLocale, setOfferedLocale] = useState(null);
   const [activeProfile, setActiveProfile] = useState(null);
   const draftDirtyRef = useRef(false);
   const currentUserIdRef = useRef(undefined);
@@ -189,10 +191,12 @@ export default function WorldsPickSixteen({ rosterSource, discipline = "vgc", lo
   useEffect(() => {
     if (isItalian || config.key !== "vgc") return;
     const languages = navigator.languages?.length ? navigator.languages : [navigator.language];
-    const prefersItalian = languages.some((language) => /^it(?:-|$)/i.test(language || ""));
+    const preferredLanguage = languages
+      .map((value) => String(value || "").toLowerCase().split("-")[0])
+      .find((value) => WORLDS_LANGUAGES[value]);
     let dismissed = false;
-    try { dismissed = localStorage.getItem("draftcenter-worlds-italian-offer-dismissed") === "1"; } catch {}
-    setShowItalianOffer(prefersItalian && !dismissed);
+    try { dismissed = localStorage.getItem("draftcenter-worlds-language-offer-dismissed") === "1"; } catch {}
+    setOfferedLocale(preferredLanguage && preferredLanguage !== "en" && !dismissed ? preferredLanguage : null);
   }, [config.key, isItalian]);
 
   useEffect(() => {
@@ -201,9 +205,9 @@ export default function WorldsPickSixteen({ rosterSource, discipline = "vgc", lo
     return () => { document.documentElement.lang = previousLanguage || "en"; };
   }, [copy.documentLanguage]);
 
-  function dismissItalianOffer() {
-    try { localStorage.setItem("draftcenter-worlds-italian-offer-dismissed", "1"); } catch {}
-    setShowItalianOffer(false);
+  function dismissLanguageOffer() {
+    try { localStorage.setItem("draftcenter-worlds-language-offer-dismissed", "1"); } catch {}
+    setOfferedLocale(null);
   }
 
   function toggle(competitor) {
@@ -243,19 +247,21 @@ export default function WorldsPickSixteen({ rosterSource, discipline = "vgc", lo
   }
 
   return <main className="worlds-shell" lang={copy.documentLanguage}>
-    {showItalianOffer && <section className="worlds-language-offer" aria-label={copy.languageOffer.label}>
-      <div><strong>{copy.languageOffer.label}</strong><span>{copy.languageOffer.body}</span></div>
-      <div><a href="/it/worlds/2026" hrefLang="it">{copy.languageOffer.action}</a><button type="button" onClick={dismissItalianOffer}>{copy.languageOffer.dismiss}</button></div>
+    {offeredLocale && <section className="worlds-language-offer" aria-label={copy.languageOffer.label}>
+      <div><strong>{copy.languageOffer.label}</strong><span>{copy.languageOffer.body(WORLDS_LANGUAGES[offeredLocale].nativeLabel)}</span></div>
+      <div><a href={WORLDS_LANGUAGES[offeredLocale].href} hrefLang={offeredLocale}>{copy.languageOffer.action(WORLDS_LANGUAGES[offeredLocale].nativeLabel)}</a><button type="button" onClick={dismissLanguageOffer}>{copy.languageOffer.dismiss}</button></div>
     </section>}
-    {config.key === "vgc" && <nav className="worlds-language-switch" aria-label={copy.languageSwitch.label}><strong>{copy.languageSwitch.current}</strong>{locale !== "en" && <a href="/worlds/2026/vgc" hrefLang="en">English</a>}{locale !== "it" && <a href="/it/worlds/2026" hrefLang="it">Italiano</a>}{locale !== "es" && <a href="/es/worlds/2026" hrefLang="es">Español</a>}</nav>}
+    {config.key === "vgc" && <nav className="worlds-language-switch" aria-label={copy.languageSwitch.label}>{Object.entries(WORLDS_LANGUAGES).map(([language, details]) => language === worldsLanguage(locale)
+      ? <strong key={language} aria-current="page">{details.nativeLabel}</strong>
+      : <a key={language} href={details.href} hrefLang={language}>{details.nativeLabel}</a>)}</nav>}
     <WorldsDisciplineNav current={config.key} locale={locale} />
     <section className="worlds-hero">
       <div>
         <span className="eyebrow">{isItalian ? copy.hero.eyebrow : "POKÉMON WORLDS · SAN FRANCISCO"}</span>
         {isItalian ? <h1>{copy.hero.title}</h1> : config.key === "vgc" ? <h1>2026 Pokémon Worlds VGC predictions</h1> : config.key === "go" ? <h1>2026 Pokémon GO Worlds predictions</h1> : <h1>2026 Pokémon Worlds {config.gameLabel} predictions</h1>}
-        <p>{isItalian ? copy.hero.body : <>Pick the 10 {config.entryPlural} you believe in from the reviewed {config.gameLabel} roster. When Worlds finishes, the entry with the strongest collective results wins the DraftCenter community leaderboard.</>}</p>
+        <p>{isItalian ? copy.hero.body : config.key === "vgc" ? <>Pick 10 real VGC players and rank six Pokémon for the World Champion&apos;s team. Both prediction sections are below, with separate community leaderboards.</> : <>Pick the 10 {config.entryPlural} you believe in from the reviewed {config.gameLabel} roster. When Worlds finishes, the entry with the strongest collective results wins the DraftCenter community leaderboard.</>}</p>
         <div className="worlds-hero-actions">
-          <a className="primary-button inline-link-button" href={user === null ? "/#member-access" : staged ? "#qualified-players" : "#pick-ten"}>{isItalian ? user === null ? copy.hero.signIn : staged ? copy.hero.browse : copy.hero.build : user === null ? "Sign in to predict" : staged ? "Browse reviewed roster" : "Build my 10"}</a>
+          <a className="primary-button inline-link-button" href={user === null ? "/#member-access" : "#qualified-players"}>{isItalian ? user === null ? copy.hero.signIn : staged ? copy.hero.browse : copy.hero.build : user === null ? "Sign in to predict" : staged ? "Browse reviewed roster" : "Build my 10"}</a>
           <a className="quiet-button" href="#meta-picks">{isItalian ? copy.hero.meta : "Predict the winning meta"}</a>
           {config.key === "vgc" && <a className="quiet-button" href="/worlds/2026/vgc/bracket">{isItalian ? copy.hero.bracket : "Top Cut bracket"}</a>}
           {config.key === "vgc" && <a className="quiet-button" href="/worlds/2026/vgc/victory-road-to-san-francisco">{isItalian ? copy.hero.victoryRoad : "Victory Road bracket"}</a>}
@@ -274,6 +280,18 @@ export default function WorldsPickSixteen({ rosterSource, discipline = "vgc", lo
         </dl>
       </aside>
     </section>
+
+    {config.key === "vgc" && <section className="worlds-start-guide" aria-labelledby="worlds-start-guide-title">
+      <div>
+        <span className="eyebrow">{copy.guide.eyebrow}</span>
+        <h2 id="worlds-start-guide-title">{copy.guide.title}</h2>
+        <p>{copy.guide.body}</p>
+      </div>
+      <nav aria-label={copy.guide.title}>
+        <a className="primary-button inline-link-button" href="#qualified-players">{copy.guide.players}</a>
+        <a className="quiet-button" href="#meta-picks">{copy.guide.pokemon}</a>
+      </nav>
+    </section>}
 
     <section className="worlds-trust-note">
       <div><span className="eyebrow">{isItalian ? copy.trust.eyebrow : "REVIEWED ROSTER ONLY"}</span><h2>{isItalian ? copy.trust.title(competitors.length) : <>{competitors.length} {config.entryPlural} in the prediction pool</>}</h2></div>
@@ -418,6 +436,7 @@ export default function WorldsPickSixteen({ rosterSource, discipline = "vgc", lo
             displayName={entry.profile?.display_name || entry.display_name}
             avatarUrl={entry.profile?.avatar_url}
             compact
+            locale={locale}
             stopPropagation
             onOpen={() => setActiveProfile(entry.profile || { display_name:entry.display_name, favorite_pokemon:[], badges:[] })}
           /><b>{isItalian ? copy.leaderboard.points(entry.score) : `${entry.score} pts`}</b></summary>

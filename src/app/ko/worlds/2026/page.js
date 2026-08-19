@@ -1,35 +1,31 @@
 import WorldsPickSixteen from "../../../../components/WorldsPickSixteen";
 import roster from "../../../../data/worlds-2026-vgc-masters.json";
 
-const canonicalUrl = "https://www.draftcentral.gg/it/worlds/2026";
+const canonicalUrl = "https://www.draftcentral.gg/ko/worlds/2026";
 const englishUrl = "https://www.draftcentral.gg/worlds/2026/vgc";
-const pageTitle = "Pronostici e probabilità Mondiali Pokémon VGC 2026";
-const pageDescription = `Consulta ${roster.competitors.length} invitati VGC Master, scegli 10 giocatori, confronta probabilità non legate alle scommesse e scopri i profili della classifica della community.`;
+const pageTitle = "2026 포켓몬 월드 챔피언십 VGC 예측 및 우승 확률";
+const pageDescription = `VGC 마스터 초청 선수 ${roster.competitors.length}명 중 10명을 선택하고 별도의 예측에서 월드 챔피언 팀의 포켓몬 6마리를 예상하세요.`;
 
 export const metadata = {
   title: pageTitle,
   description: pageDescription,
   alternates: {
-    canonical: "/it/worlds/2026",
+    canonical: "/ko/worlds/2026",
     languages: { en: "/worlds/2026/vgc", it: "/it/worlds/2026", es: "/es/worlds/2026", de: "/de/worlds/2026", ja: "/ja/worlds/2026", ko: "/ko/worlds/2026", "x-default": "/worlds/2026/vgc" },
   },
   openGraph: {
     type: "website",
     siteName: "DraftCenter",
-    locale: "it_IT",
-    alternateLocale: ["en_US", "es_ES", "de_DE", "ja_JP", "ko_KR"],
+    locale: "ko_KR",
+    alternateLocale: ["en_US", "it_IT", "es_ES", "de_DE", "ja_JP"],
     title: `${pageTitle} | DraftCenter`,
     description: pageDescription,
     url: canonicalUrl,
   },
-  twitter: {
-    card: "summary_large_image",
-    title: `${pageTitle} | DraftCenter`,
-    description: pageDescription,
-  },
+  twitter: { card: "summary_large_image", title: `${pageTitle} | DraftCenter`, description: pageDescription },
 };
 
-export default function ItalianWorlds2026Page() {
+export default function KoreanWorlds2026Page() {
   const pageSchema = {
     "@context": "https://schema.org",
     "@graph": [
@@ -39,29 +35,25 @@ export default function ItalianWorlds2026Page() {
         name: pageTitle,
         description: pageDescription,
         url: canonicalUrl,
-        inLanguage: "it-IT",
+        inLanguage: "ko-KR",
         translationOfWork: { "@id": `${englishUrl}#webpage` },
         isPartOf: { "@id": "https://www.draftcentral.gg/#website" },
-        about: {
-          "@type": "Thing",
-          name: "Campionati Mondiali Pokémon 2026 — VGC Master",
-          sameAs: "https://worlds.pokemon.com/en-us",
-        },
+        about: { "@type": "Thing", name: "2026 포켓몬 월드 챔피언십 — VGC 마스터", sameAs: "https://worlds.pokemon.com/en-us" },
       },
       {
         "@type": "BreadcrumbList",
         "@id": `${canonicalUrl}#breadcrumb`,
         itemListElement: [
           { "@type": "ListItem", position: 1, name: "DraftCenter", item: "https://www.draftcentral.gg/" },
-          { "@type": "ListItem", position: 2, name: "Pronostici Mondiali Pokémon 2026", item: "https://www.draftcentral.gg/worlds/2026" },
-          { "@type": "ListItem", position: 3, name: "Pronostici VGC Master", item: canonicalUrl },
+          { "@type": "ListItem", position: 2, name: "2026 포켓몬 월드 챔피언십 예측", item: "https://www.draftcentral.gg/worlds/2026" },
+          { "@type": "ListItem", position: 3, name: "VGC 마스터 예측", item: canonicalUrl },
         ],
       },
     ],
   };
 
-  return <div lang="it">
+  return <div lang="ko">
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(pageSchema) }} />
-    <WorldsPickSixteen discipline="vgc" rosterSource={roster} locale="it" />
+    <WorldsPickSixteen discipline="vgc" rosterSource={roster} locale="ko" />
   </div>;
 }

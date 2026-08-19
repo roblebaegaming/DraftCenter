@@ -25,13 +25,33 @@ const COPY = {
     body: "Probabilidades actuales previas al evento, ajenas a las apuestas, para todo el grupo Máster con invitación.",
     standings: "Clasificación oficial de VGC Máster ↗",
   },
+  de: {
+    eyebrow: "DRAFTCENTER · VGC MASTERS 2026",
+    title: "Top 10 der Worlds-Siegchancen",
+    body: "Aktuelle Vorab-Wahrscheinlichkeiten ohne Wettbezug für das gesamte Masters-Feld mit Einladung.",
+    standings: "Offizielle VGC-Masters-Rangliste ↗",
+  },
+  ja: {
+    eyebrow: "DRAFTCENTER · 2026 VGCマスター",
+    title: "世界王者の予想確率 Top 10",
+    body: "招待権を獲得したマスター全選手を対象とする、賭けとは無関係の大会前予想です。",
+    standings: "VGCマスター公式順位 ↗",
+  },
+  ko: {
+    eyebrow: "DRAFTCENTER · 2026 VGC 마스터",
+    title: "월드 챔피언 우승 확률 Top 10",
+    body: "초청권을 얻은 마스터 전체 선수를 대상으로 한 비베팅 사전 예측 확률입니다.",
+    standings: "VGC 마스터 공식 순위 ↗",
+  },
 };
+
+const NUMBER_FORMAT_LOCALES = { en: "en-US", it: "it-IT", es: "es-ES", de: "de-DE", ja: "ja-JP", ko: "ko-KR" };
 
 export default function WorldsChampionOdds({ competitors, entryCount = 0, sampleReady = false, locale = "en" }) {
   const copy = COPY[locale] || COPY.en;
   const odds = buildWorldsChampionOdds(competitors, sampleReady ? entryCount : 0);
   const leaders = odds.slice(0, WORLDS_2026_ODDS_LEADERS);
-  const percentage = new Intl.NumberFormat(locale === "it" ? "it-IT" : locale === "es" ? "es-ES" : "en-US", {
+  const percentage = new Intl.NumberFormat(NUMBER_FORMAT_LOCALES[locale] || NUMBER_FORMAT_LOCALES.en, {
     style: "percent",
     minimumFractionDigits: 1,
     maximumFractionDigits: 1,

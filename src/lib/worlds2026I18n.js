@@ -1,12 +1,39 @@
+import {
+  ADDITIONAL_WORLDS_COPY,
+  ADDITIONAL_WORLDS_REGIONS,
+  additionalWorldsQualificationPart,
+} from "./worlds2026AdditionalLocales.js";
+
+export const WORLDS_LANGUAGES = {
+  en: { nativeLabel: "English", documentLanguage: "en", locale: "en-US", href: "/worlds/2026/vgc" },
+  it: { nativeLabel: "Italiano", documentLanguage: "it", locale: "it-IT", href: "/it/worlds/2026" },
+  es: { nativeLabel: "Español", documentLanguage: "es", locale: "es-ES", href: "/es/worlds/2026" },
+  de: { nativeLabel: "Deutsch", documentLanguage: "de", locale: "de-DE", href: "/de/worlds/2026" },
+  ja: { nativeLabel: "日本語", documentLanguage: "ja", locale: "ja-JP", href: "/ja/worlds/2026" },
+  ko: { nativeLabel: "한국어", documentLanguage: "ko", locale: "ko-KR", href: "/ko/worlds/2026" },
+};
+
+export function worldsLanguage(locale = "en") {
+  const language = String(locale || "en").toLowerCase().split("-")[0];
+  return WORLDS_LANGUAGES[language] ? language : "en";
+}
+
 const ENGLISH_COPY = {
   locale: "en-US",
   documentLanguage: "en",
   languageSwitch: { label: "Language", current: "English" },
   languageOffer: {
-    label: "Italiano disponibile",
-    body: "Preferisci completare il pronostico in italiano?",
-    action: "Passa all’italiano",
-    dismiss: "Continua in inglese",
+    label: "Worlds predictions in your language",
+    body: (language) => `Would you like to make your predictions in ${language}?`,
+    action: (language) => `Switch to ${language}`,
+    dismiss: "Continue in English",
+  },
+  guide: {
+    eyebrow: "TWO WAYS TO PREDICT",
+    title: "Pick the players and the Champion’s Pokémon below.",
+    body: "Choose 10 real VGC players in the player competition, then rank six Pokémon for the World Champion’s team in the separate Meta competition. Each has its own leaderboard.",
+    players: "Pick players ↓",
+    pokemon: "Pick Pokémon ↓",
   },
 };
 
@@ -25,6 +52,11 @@ const ITALIAN_COPY = {
     save: "Non è stato possibile salvare il tuo pronostico.",
     spotsFull: (count) => `Hai già occupato tutti i ${count} posti. Rimuovi un giocatore prima di aggiungerne un altro.`,
   },
+  serverErrors: {
+    notFound: "La competizione dei Mondiali non è stata trovata.",
+    duplicate: "Ogni giocatore può essere scelto una sola volta.",
+    unavailablePick: "Una o più scelte non fanno parte dell’elenco attualmente selezionabile.",
+  },
   saved: "La tua Pick 10 e il tuo Campione sono stati salvati. Puoi modificarli fino alla chiusura dei pronostici.",
   status: {
     invite_earned: "Invito ottenuto",
@@ -35,7 +67,7 @@ const ITALIAN_COPY = {
   hero: {
     eyebrow: "MONDIALI POKÉMON · SAN FRANCISCO",
     title: "Pronostici VGC per i Mondiali Pokémon 2026",
-    body: "Scegli i 10 giocatori su cui vuoi puntare dall’elenco VGC verificato. Al termine dei Mondiali, il pronostico con i migliori risultati complessivi vincerà la classifica della community di DraftCenter.",
+    body: "Scegli 10 veri giocatori dall’elenco VGC verificato e ordina sei Pokémon per la squadra del Campione del Mondo. Entrambe le aree di pronostico sono qui sotto e hanno classifiche separate.",
     signIn: "Accedi per partecipare",
     browse: "Consulta l’elenco verificato",
     build: "Crea la mia Pick 10",
@@ -44,6 +76,13 @@ const ITALIAN_COPY = {
     victoryRoad: "Tabellone Victory Road",
     all: "Tutte le competizioni dei Mondiali",
     invitees: (count) => `Vedi tutti i ${count} giocatori`,
+  },
+  guide: {
+    eyebrow: "DUE MODI PER PRONOSTICARE",
+    title: "Pronostica i giocatori e i Pokémon del Campione.",
+    body: "Scegli 10 veri giocatori VGC nella competizione giocatori, poi ordina sei Pokémon per la squadra del Campione del Mondo nella competizione Meta separata. Ognuna ha una propria classifica.",
+    players: "Scegli i giocatori ↓",
+    pokemon: "Scegli i Pokémon ↓",
   },
   event: {
     title: "CAMPIONATI MONDIALI 2026",
@@ -245,6 +284,11 @@ const SPANISH_COPY = {
     save: "No se ha podido guardar tu pronóstico.",
     spotsFull: (count) => "Ya has ocupado los " + count + " puestos. Quita a un jugador antes de añadir otro.",
   },
+  serverErrors: {
+    notFound: "No se ha encontrado la competición del Mundial.",
+    duplicate: "Cada jugador solo puede elegirse una vez.",
+    unavailablePick: "Una o más selecciones no forman parte de la lista disponible.",
+  },
   saved: "Tu Pick 10 y tu Campeón se han guardado. Puedes modificarlos hasta el cierre de los pronósticos.",
   status: {
     invite_earned: "Invitación obtenida",
@@ -255,7 +299,7 @@ const SPANISH_COPY = {
   hero: {
     eyebrow: "MUNDIAL POKÉMON · SAN FRANCISCO",
     title: "Pronósticos de VGC para el Mundial Pokémon 2026",
-    body: "Elige a los 10 jugadores en los que más confías de la lista VGC verificada. Al terminar el Mundial, el pronóstico con los mejores resultados conjuntos ganará la clasificación de la comunidad de DraftCenter.",
+    body: "Elige a 10 jugadores reales de la lista VGC verificada y ordena seis Pokémon para el equipo del Campeón Mundial. Las dos áreas de pronóstico están más abajo y tienen clasificaciones separadas.",
     signIn: "Inicia sesión para participar",
     browse: "Consulta la lista verificada",
     build: "Crea mi Pick 10",
@@ -264,6 +308,13 @@ const SPANISH_COPY = {
     victoryRoad: "Cuadro de Victory Road",
     all: "Todas las competiciones del Mundial",
     invitees: (count) => "Ver los " + count + " jugadores",
+  },
+  guide: {
+    eyebrow: "DOS FORMAS DE PRONOSTICAR",
+    title: "Pronostica los jugadores y los Pokémon del Campeón.",
+    body: "Elige a 10 jugadores reales de VGC en la competición de jugadores y después ordena seis Pokémon para el equipo del Campeón Mundial en la competición del Meta. Cada una tiene su propia clasificación.",
+    players: "Elegir jugadores ↓",
+    pokemon: "Elegir Pokémon ↓",
   },
   event: {
     title: "CAMPEONATO MUNDIAL 2026",
@@ -555,35 +606,42 @@ function spanishQualificationPart(value) {
 }
 
 export function worldsCopy(locale = "en") {
-  if (locale === "it") return ITALIAN_COPY;
-  if (locale === "es") return SPANISH_COPY;
+  const language = worldsLanguage(locale);
+  if (language === "it") return ITALIAN_COPY;
+  if (language === "es") return SPANISH_COPY;
+  if (ADDITIONAL_WORLDS_COPY[language]) return ADDITIONAL_WORLDS_COPY[language];
   return ENGLISH_COPY;
 }
 
 export function worldsRegionLabel(value, locale = "en") {
-  if (locale === "it") return ITALIAN_REGIONS[value] || value;
-  if (locale === "es") return SPANISH_REGIONS[value] || value;
+  const language = worldsLanguage(locale);
+  if (language === "it") return ITALIAN_REGIONS[value] || value;
+  if (language === "es") return SPANISH_REGIONS[value] || value;
+  if (ADDITIONAL_WORLDS_REGIONS[language]) return ADDITIONAL_WORLDS_REGIONS[language][value] || value;
   return value;
 }
 
 export function worldsQualificationLabel(value, locale = "en") {
-  if (locale === "it") return String(value || "").split(" / ").map(italianQualificationPart).join(" / ");
-  if (locale === "es") return String(value || "").split(" / ").map(spanishQualificationPart).join(" / ");
+  const language = worldsLanguage(locale);
+  if (language === "it") return String(value || "").split(" / ").map(italianQualificationPart).join(" / ");
+  if (language === "es") return String(value || "").split(" / ").map(spanishQualificationPart).join(" / ");
+  if (ADDITIONAL_WORLDS_COPY[language]) return String(value || "").split(" / ").map((part) => additionalWorldsQualificationPart(part, language)).join(" / ");
   return value;
 }
 
 export function worldsServerError(message, locale = "en", pickCount = 10) {
   const value = String(message || "").trim();
-  if (locale !== "it" && locale !== "es") return value || "Your entry could not be saved.";
-  const copy = worldsCopy(locale);
+  const language = worldsLanguage(locale);
+  if (language === "en") return value || "Your entry could not be saved.";
+  const copy = worldsCopy(language);
   if (/Sign in to save a Worlds entry/i.test(value)) return copy.errors.signIn;
-  if (/competition was not found/i.test(value)) return locale === "it" ? "La competizione dei Mondiali non è stata trovata." : "No se ha encontrado la competición del Mundial.";
+  if (/competition was not found/i.test(value)) return copy.serverErrors.notFound;
   if (/entries for this Worlds competition are locked/i.test(value)) return copy.errors.locked;
   if (/Only Masters Division Worlds entries are supported/i.test(value)) return copy.errors.mastersOnly;
   const exactCount = value.match(/Choose exactly (\d+) competitors/i);
   if (exactCount) return copy.errors.chooseExactly(Number(exactCount[1]));
-  if (/Each competitor can be chosen only once/i.test(value)) return locale === "it" ? "Ogni giocatore può essere scelto una sola volta." : "Cada jugador solo puede elegirse una vez.";
+  if (/Each competitor can be chosen only once/i.test(value)) return copy.serverErrors.duplicate;
   if (/Choose Your Champion|Choose one Ace Pick/i.test(value)) return copy.errors.chooseChampion(pickCount);
-  if (/not in the current selectable roster/i.test(value)) return locale === "it" ? "Una o più scelte non fanno parte dell’elenco attualmente selezionabile." : "Una o más selecciones no forman parte de la lista disponible.";
+  if (/not in the current selectable roster/i.test(value)) return copy.serverErrors.unavailablePick;
   return copy.errors.save;
 }
