@@ -3,7 +3,7 @@
 - Last updated: August 18, 2026 Pacific
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified Production application and asset commit: `0650ef86219abeb6728b618ddca7c04cc2dded05`
+- Verified Production application and asset commit: `49d1398464e3590b69885b873cf5b9f09998bad0`
 - Latest applied Production migration: 439 (`20260818220437`)
 
 ## Deployed state
@@ -263,6 +263,34 @@ suggestion lists rendered without horizontal overflow or console findings.
 No saved battle data was changed, and the short-lived release branch was
 deleted.
 
+Pull request [#328](https://github.com/roblebaegaming/DraftCenter/pull/328)
+is released at exact application commit
+`49d1398464e3590b69885b873cf5b9f09998bad0`. Regulation M-B Battle Room
+suggestions are now ranked by the saved battle purpose. Ladder, practice,
+casual, and draft-league sessions use current Pokémon Champions Doubles battle
+data. Online tournaments use a pinned anonymous derivative of 737 complete
+open team sheets from 10 reviewed Limitless events held August 1–6, 2026.
+Saved, published, and already revealed facts remain first, and tournament
+Pokémon outside the reviewed cohort receive an explicitly labeled current
+Champions fallback.
+
+The compact tournament artifact covers 185 Pokémon and stores no player
+identity. Its builder re-fetches the exact reviewed event inputs and refuses to
+rebuild if any recorded SHA-256 digest or complete-team count changes. Mega
+Stone holders map to their Mega battle forms without presenting a pre-Mega
+team-sheet ability as the revealed Mega ability; exact Champions form metadata
+supplies the Mega ability instead. The public endpoint returns only bounded
+suggestion names and source context, not raw upstream responses, percentages,
+players, teams, or a bulk data feed.
+
+This release contained no database migration, Production-data write, RLS,
+grant, provider-setting, secret, or environment change. The full application
+suite, 1,027-row National Dex check, dependency audit, artifact hash check,
+production build, protected checks, 390 px review, and 22-check Production
+smoke sweep passed. Production endpoint checks confirmed reviewed-tournament
+ordering for Garchomp and Mega Raichu X, current Champions ordering for ladder
+Garchomp, and Electric Surge for Mega Raichu X.
+
 Supabase automatic branching remains enabled with a one-concurrent-Preview
 limit and Supabase-only changes. Older Preview branches were left untouched.
 The automatic check on pull request #298 was canceled solely because that limit
@@ -283,7 +311,8 @@ not be resumed until the owner explicitly requests it.
 
 1. Use the August 19 filming session to judge real 45-second-turn speed and
    record any remaining tap-density or wording feedback without changing the
-   private report boundary.
+   private report boundary. Confirm that the source-labeled tournament and
+   ladder suggestions reduce typing during a real match.
 2. Show the completed private Tournament Organizer Demo and its four captures
    to the tournament operator; preserve the finished event until the owner
    explicitly asks to reset it.
@@ -320,7 +349,9 @@ August 19, 2026. Do not inspect or report individual identity or activity.
 
 ## Authoritative records
 
-- Current Battle Lab rapid-actions handoff:
+- Current Battle Lab competitive-suggestions handoff:
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-18-battle-lab-competitive-suggestions.md`](handoffs/DraftCenter-agent-handoff-2026-08-18-battle-lab-competitive-suggestions.md)
+- Previous Battle Lab rapid-actions handoff:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-18-battle-lab-rapid-actions.md`](handoffs/DraftCenter-agent-handoff-2026-08-18-battle-lab-rapid-actions.md)
 - Current acquisition-strategy handoff:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-18-google-ads-readiness.md`](handoffs/DraftCenter-agent-handoff-2026-08-18-google-ads-readiness.md)
