@@ -29,6 +29,43 @@ The organization and leagues are private. An authorized signed-in owner or
 member should use the workspace links above; the public `/league/<slug>` route
 correctly does not disclose a private pod.
 
+## Parallel commissioner-reminder release preserved
+
+The commissioner inactivity reminder release completed before this import and
+was not changed by the multi-pod work. Pull request
+[#332](https://github.com/roblebaegaming/DraftCenter/pull/332) merged as
+`b690c71f23e8b6fa4cf445bff864813b11f95eba` with Production migration 442,
+ledger version `20260819040935` (`442_commissioner_inactivity_reminders`). Its
+server-only Production kill switch was enabled during the separately
+authorized release.
+
+At that release's initial Production send:
+
+- three eligible commissioners received personalized messages containing the
+  commissioner display name, current league name, and direct league link;
+- the provider confirmed all three deliveries;
+- zero reminders remained pending, zero failed, and zero follow-ups existed;
+  and
+- no commissioner identity, email address, or league identifier was exposed in
+  operational reporting or this repository record.
+
+The durable reminder contract remains:
+
+- an initial message can send after seven days without meaningful setup
+  activity;
+- one final reminder may send 30 days after the initial message's actual
+  confirmed delivery;
+- meaningful league activity cancels eligibility;
+- no third automatic email can send;
+- practice leagues are excluded; and
+- delivery rechecks league state, commissioner ownership, deduplication, and
+  the confirmed destination immediately before sending.
+
+Migration 442's functions are security-invoker with a fixed `public` search
+path, deny `anon` and `authenticated`, and allow only `service_role`. The
+four-pod import added migration 443 afterward; it did not edit reminder rows,
+eligibility, delivery state, provider configuration, or the kill switch.
+
 ## Production identities
 
 | Object | Production identifier | Slug |
