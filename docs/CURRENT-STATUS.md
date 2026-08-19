@@ -31,6 +31,15 @@ has only `main`, so no hourly Preview charge continues. The complete import
 record is in the
 [`August 19 four-pod handoff`](handoffs/DraftCenter-agent-handoff-2026-08-19-four-pod-midseason-import.md).
 
+The preceding commissioner inactivity reminder release is also preserved.
+Pull request [#332](https://github.com/roblebaegaming/DraftCenter/pull/332)
+merged as `b690c71` with Production migration 442. At its owner-authorized
+initial send, all three eligible commissioners received provider-confirmed,
+personalized messages; zero reminders were pending or failed. Meaningful league
+activity cancels the single possible 30-day follow-up, practice leagues remain
+excluded, and no third automatic email can send. The later four-pod import did
+not modify those reminder events or their service-only security boundary.
+
 Pull requests [#280](https://github.com/roblebaegaming/DraftCenter/pull/280)
 through [#290](https://github.com/roblebaegaming/DraftCenter/pull/290) are in
 Production. They include the tournament directory and durable prediction
