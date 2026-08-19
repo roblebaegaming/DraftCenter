@@ -1,3 +1,5 @@
+import { isLeagueTeamRetired } from "./participantStatus.js";
+
 export const LEAGUE_SWISS_MIN_TEAMS = 4;
 export const LEAGUE_SWISS_MAX_TEAMS = 16;
 export const LEAGUE_SWISS_MIN_ROUNDS = 2;
@@ -36,6 +38,8 @@ function pairingKey(a, b) {
 }
 
 function completedResult(result) {
+  if (["no-contest", "left-unplayed"].includes(result?.resolution)) return true;
+  if (result?.resolution === "forfeit") return ["A", "B"].includes(result.outcomeWinner);
   return result && Number(result.gamesA) !== Number(result.gamesB);
 }
 
@@ -74,6 +78,7 @@ export function rankLeagueSwissStandings({
       const teamB = rows[teamBIndex];
       const result = matchResults?.[`${roundIndex}-${matchIndex}`];
       if (!teamA || !teamB || !completedResult(result)) return;
+      if (["no-contest", "left-unplayed"].includes(result?.resolution)) return;
       const gamesA = Number(result.gamesA) || 0;
       const gamesB = Number(result.gamesB) || 0;
       const monsAliveA = Number(result.monsAliveA) || 0;
@@ -167,8 +172,8 @@ export function pairLeagueSwissRound({ standings = [], priorSchedule = [], swiss
       (left.rank ?? Number.MAX_SAFE_INTEGER) - (right.rank ?? Number.MAX_SAFE_INTEGER)
       || left.teamIndex - right.teamIndex,
     );
-  if (ordered.length < LEAGUE_SWISS_MIN_TEAMS || ordered.length > LEAGUE_SWISS_MAX_TEAMS) {
-    throw new Error(`Swiss regular seasons support ${LEAGUE_SWISS_MIN_TEAMS}-${LEAGUE_SWISS_MAX_TEAMS} teams.`);
+  if (ordered.length < 2 || ordered.length > LEAGUE_SWISS_MAX_TEAMS) {
+    throw new Error(`At least two active teams are required to pair a Swiss round.`);
   }
 
   const played = new Set();
@@ -228,7 +233,8 @@ export function buildNextLeagueSwissRoundState(state = {}) {
     throw new Error("Finish every match in the current Swiss round before pairing the next one.");
   }
   const standings = rankLeagueSwissStandings({ teams, schedule, matchResults, swissByes });
-  const paired = pairLeagueSwissRound({ standings, priorSchedule: schedule, swissByes });
+  const activeStandings = standings.filter((row) => !isLeagueTeamRetired(teams[row.teamIndex]));
+  const paired = pairLeagueSwissRound({ standings: activeStandings, priorSchedule: schedule, swissByes });
   const roundIndex = schedule.length;
   return {
     ...state,

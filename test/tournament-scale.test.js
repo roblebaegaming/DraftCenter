@@ -69,9 +69,9 @@ test("the isolated scale matrix covers both maximums, paging, grants, and cleanu
   assert.match(matrix, /delete from auth\.users/);
 });
 
-test("Draft Tournament keeps snake at 16 while auction uses its guarded 32-player path", () => {
-  assert.match(concept, /snake path remains capped at \*\*16 entrants\*\*/i);
+test("Draft Tournament gives snake and auction the same guarded 32-player capacity", () => {
+  assert.match(concept, /Snake and auction Draft Tournaments both support \*\*4–32 entrants\*\*/i);
   assert.match(concept, /Auction Draft Tournaments must support \*\*4–32 entrants\*\*/i);
-  assert.match(concept, /separate adapter[\s\S]*without\s+raising or rewriting the proven snake limit/i);
-  assert.match(concept, /Larger snake events should still[\s\S]*inside pods/i);
+  assert.match(concept, /32-team expanded[\s\S]*does not raise the ordinary league or league-Swiss limits/i);
+  assert.match(concept, /Events larger than 32 should still[\s\S]*inside pods/i);
 });

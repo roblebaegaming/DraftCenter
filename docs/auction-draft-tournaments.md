@@ -2,8 +2,7 @@
 
 Auction Draft Tournaments combine one shared hosted auction with single
 elimination, double elimination, or Swiss tournament play. They support 4–32
-checked-in managers while the existing snake Draft Tournament path remains
-capped at 16.
+checked-in managers, matching the 4–32 capacity of snake Draft Tournaments.
 
 ## Commissioner flow
 
@@ -17,10 +16,13 @@ capped at 16.
 6. When every seat has the required roster, return to the event and lock the
    rosters. DraftCenter creates Swiss Round 1 or the selected elimination graph
    atomically.
+7. Use Event Management when the event is over: Archive preserves read-only
+   history, while Delete permanently removes a non-live event and its private
+   auction room after an exact-name confirmation.
 
-Auction events use three Swiss rounds for 4–8 managers, four for 9–16, and five
-for 17–32. The event page shows no more than 16 auction entrants per page so a
-full field remains usable on phones.
+Draft-first events use three Swiss rounds for 4–8 managers, four for 9–16, and
+five for 17–32. The event page shows no more than 16 draft entrants per page so
+a full snake or auction field remains usable on phones.
 
 ## Private tournament organizer demos
 
@@ -65,15 +67,20 @@ public event or used to loosen that boundary.
 - Public rosters remain opt-in and do not appear before roster lock.
 - Browser clients have no direct write access to the internal lifecycle tables
   or helper functions.
+- Only the event owner can permanently delete it. The server rejects stale
+  revisions, live events, and connected organization championships.
 
 ## Release validation
 
-Migration 428 must be applied only as a new forward migration. Its disposable
-Preview matrix proves that the snake path still rejects 17 entrants and that a
-32-manager auction can validate pool capacity, transition through drafting and
-roster review, materialize 128 roster entries, create 16 Swiss Round 1
+Migration 428 was applied as a forward migration. Its disposable Preview
+matrix proved that the then-current snake path rejected 17 entrants and that a
+32-manager auction could validate pool capacity, transition through drafting
+and roster review, materialize 128 roster entries, create 16 Swiss Round 1
 pairings, calculate a 32-row standings table, and build the complete 63-match
-32-player double-elimination graph. The Preview is deleted after the matrix,
+32-player double-elimination graph. The later forward-only snake-capacity
+migration must prove a 32-seat snake field lock, expanded private-room mode,
+five Swiss rounds, capacity rejection at 33, preserved grants, and rollback
+cleanup before release. Each paid Preview is deleted after its matrix,
 grant/RLS review, and desktop/mobile browser checks pass.
 
 Migration 439 adds the private organizer-demo boundary. Its disposable Preview

@@ -15,9 +15,11 @@ import {
   normalizeAuctionDraftTournamentSettings,
   pairDraftTournamentSwissRound,
   rankDraftTournamentStandings,
+  normalizeTournamentOperationSettings,
+  tournamentOperationRpcArguments,
 } from "../src/lib/draftTournament.js";
 
-test("Draft Tournament creation settings are bounded for the first release", () => {
+test("snake Draft Tournament creation is bounded from 4 to 32 entrants", () => {
   assert.equal(DRAFT_TOURNAMENT_FORMAT, "draft-tournament");
   assert.deepEqual(normalizeDraftTournamentSettings({ name: "  Saturday Draft  " }), {
     name: "Saturday Draft",
@@ -33,7 +35,9 @@ test("Draft Tournament creation settings are bounded for the first release", () 
     publishRosters: false,
     rules: "",
   });
-  assert.throws(() => normalizeDraftTournamentSettings({ name: "Cup", entrantLimit: 3 }), /between 4 and 16/);
+  assert.equal(normalizeDraftTournamentSettings({ name: "Full Snake Cup", entrantLimit: 32 }).entrantLimit, 32);
+  assert.throws(() => normalizeDraftTournamentSettings({ name: "Cup", entrantLimit: 3 }), /between 4 and 32/);
+  assert.throws(() => normalizeDraftTournamentSettings({ name: "Cup", entrantLimit: 33 }), /between 4 and 32/);
   assert.throws(() => normalizeDraftTournamentSettings({ name: "Cup", rosterSize: 13 }), /between 4 and 12/);
   assert.throws(() => normalizeDraftTournamentSettings({ name: "Cup", topCutSize: 6 }), /2, 4, or 8/);
   assert.throws(() => normalizeDraftTournamentSettings({ name: "Cup", bestOf: 2 }), /best of 1 or best of 3/);
@@ -64,6 +68,10 @@ test("auction Draft Tournament creation is independently bounded from 4 to 32 en
     entrantLimit: 32,
     publishRosters: true,
   }), {
+    p_regulation_id: "reg-mb",
+    p_registration_closes_at: null,
+    p_check_in_opens_at: null,
+    p_starts_at: null,
     p_name: "Private 32",
     p_description: "",
     p_visibility: "private",
@@ -83,6 +91,20 @@ test("auction Draft Tournament creation is independently bounded from 4 to 32 en
   assert.match(concept, /Auction Draft Tournaments must support \*\*4–32 entrants\*\*/);
   assert.match(concept, /17–32 entrant Swiss event uses[\s\S]*five recommended rounds/);
   assert.match(concept, /complete auction-to-roster-lock transition/);
+});
+
+test("tournament operation details normalize regulation and scheduled milestones", () => {
+  const operation = normalizeTournamentOperationSettings({
+    regulationId: "national-gen9",
+    registrationClosesAt: "2026-08-21T17:00:00-07:00",
+    checkInOpensAt: "2026-08-21T17:30:00-07:00",
+    startsAt: "2026-08-21T18:00:00-07:00",
+  });
+  assert.equal(operation.regulationId, "national-gen9");
+  assert.equal(operation.registrationClosesAt, "2026-08-22T00:00:00.000Z");
+  assert.equal(tournamentOperationRpcArguments(operation).p_starts_at, "2026-08-22T01:00:00.000Z");
+  assert.throws(() => normalizeTournamentOperationSettings({ regulationId: "Bad value" }), /valid tournament regulation/);
+  assert.throws(() => normalizeTournamentOperationSettings({ registrationClosesAt: "2026-08-22T02:00:00Z", startsAt: "2026-08-22T01:00:00Z" }), /Registration must close/);
 });
 
 test("private events never request public roster publication", () => {
@@ -169,6 +191,17 @@ test("standings count a bye as a match win without adding game or opponent perce
   assert.equal(gamma.byeCount, 1);
   assert.equal(gamma.gameWins, 0);
   assert.equal(gamma.opponents.length, 0);
+});
+
+test("Swiss standings do not use opening draft positions as a tiebreaker", () => {
+  const standings = rankDraftTournamentStandings({
+    entrants: [
+      { id: "z", initialSeed: 1, status: "active" },
+      { id: "a", initialSeed: 2, status: "active" },
+    ],
+    matches: [],
+  });
+  assert.deepEqual(standings.map((row) => row.entrantId), ["a", "z"]);
 });
 
 test("head-to-head applies only to an exact two-way match-win tie", () => {
@@ -384,19 +417,144 @@ test("Tournament UI exposes the Draft Tournament lifecycle without leaking its i
   assert.match(directory, /Swiss currently uses the shared draft/);
   assert.match(directory, /create_draft_first_tournament/);
   assert.match(directory, /create_auction_draft_first_tournament/);
+  assert.match(directory, /Snake draft — 4–32 managers/);
   assert.match(directory, /Auction draft — 4–32 managers/);
   assert.match(workspace, /Open check-in/);
   assert.match(workspace, /Lock rosters & build bracket/);
   assert.match(workspace, /draftEvent\.phase === "bracket"/);
   assert.match(workspace, /cancel_draft_tournament/);
-  assert.match(workspace, /lock_auction_draft_tournament_field/);
-  assert.match(workspace, /AUCTION_TOURNAMENT_ENTRANT_PAGE_SIZE = 16/);
-  assert.match(workspace, /draft_type === "auction"[\s\S]*AUCTION_TOURNAMENT_ENTRANT_PAGE_SIZE/);
+  assert.match(workspace, /lock_draft_tournament_field_with_draw/);
+  assert.match(workspace, /Operator mode/);
+  assert.match(workspace, /Participant view/);
+  assert.match(workspace, /Lock field & create draft board/);
+  assert.match(workspace, /Open live draft board/);
+  assert.doesNotMatch(workspace, /set_tournament_seed|randomize_tournament_seeds|Shuffle seeds/);
+  assert.match(workspace, /DRAFT_TOURNAMENT_ENTRANT_PAGE_SIZE = 16/);
+  assert.match(workspace, /workspace\?\.draft_tournament\?\.event[\s\S]*DRAFT_TOURNAMENT_ENTRANT_PAGE_SIZE/);
   assert.match(workspace, /opponent_match_win_percentage/);
   assert.match(draftRoom, /DRAFT TOURNAMENT ROOM/);
   assert.match(draftRoom, /draft style, roster size, budget, and clocks are fixed by the event/);
   assert.match(draftRoom, /isDraftTournamentMode \? \[/);
   assert.match(leagueHub, /workspace_kind !== "draft-tournament"/);
+});
+
+test("operator workflow migration publishes schedules, removes pre-event seeding, and syncs the draft regulation", () => {
+  const sql = fs.readFileSync(new URL("../supabase/migrations/20260819194237_tournament_operator_workflow.sql", import.meta.url), "utf8");
+  const regression = fs.readFileSync(new URL("../supabase/tests/445-tournament-operator-workflow-preview-regression.sql", import.meta.url), "utf8");
+  for (const evidence of [
+    "regulation_id",
+    "registration_closes_at",
+    "check_in_opens_at",
+    "starts_at",
+    "update_tournament_operation_details",
+    "start_tournament_with_random_draw",
+    "lock_draft_tournament_field_with_draw",
+    "sync_draft_tournament_regulation",
+  ]) assert.match(sql, new RegExp(evidence));
+  assert.match(sql, /revoke all on function public\.set_tournament_seed[\s\S]*public\.randomize_tournament_seeds[\s\S]*from public, anon, authenticated/);
+  assert.match(sql, /create or replace function public\.rebuild_draft_tournament_standings/);
+  assert.doesNotMatch(sql, /opponent_game_win_percentage desc,\s*initial_seed/);
+  assert.match(sql, /jsonb_set\(state, '\{settings,regulationId\}'/);
+  assert.match(regression, /pre-event manual seeding remains browser callable/);
+  assert.match(regression, /tournament_operator_workflow_schema_and_privileges/);
+});
+
+test("migration 446 treats capacity as a ceiling and protects flexible private practice fields", () => {
+  const sql = fs.readFileSync(
+    new URL("../supabase/migrations/20260819201436_tournament_practice_entries.sql", import.meta.url),
+    "utf8",
+  );
+  const regression = fs.readFileSync(
+    new URL("../supabase/tests/446-tournament-practice-entries-preview-regression.sql", import.meta.url),
+    "utf8",
+  );
+  for (const evidence of [
+    "is_practice",
+    "add_tournament_practice_entrants",
+    "remove_tournament_practice_entrant",
+    "guard_tournament_synthetic_entrant",
+    "guard_practice_draft_team_identity",
+    "synthetic_entrant_ids",
+    "practiceMode",
+    "lock_draft_tournament_rosters",
+  ]) assert.match(sql, new RegExp(evidence));
+  assert.match(sql, /Maximum registration capacity, not a required field size/i);
+  assert.match(sql, /check \(not is_practice or visibility = 'private'\)/i);
+  assert.match(sql, /v_registered_count \+ p_count > v_tournament\.entrant_limit/i);
+  assert.match(sql, /v_count not between 4 and 16 or v_count > v_tournament\.entrant_limit/i);
+  assert.match(sql, /v_count not between 4 and 32 or v_count > v_tournament\.entrant_limit/i);
+  assert.match(sql, /entrant\.is_demo_bot[\s\S]*team\.owner_membership_id is null[\s\S]*v_tournament\.is_practice/i);
+  assert.equal((sql.match(/set search_path = ''/g) || []).length, 10);
+  assert.match(sql, /grant execute on function public\.add_tournament_practice_entrants[\s\S]*to authenticated, service_role/i);
+  assert.match(sql, /revoke all on function public\.guard_tournament_synthetic_entrant[\s\S]*from public, anon, authenticated, service_role/i);
+  for (const evidence of [
+    "grants",
+    "rls_and_draft_boundary",
+    "private_field",
+    "authorization_and_capacity",
+    "removal",
+  ]) assert.match(regression, new RegExp(`'${evidence}'`));
+  assert.match(regression, /'real', 1, 'practice', 3, 'capacity', 8/i);
+  assert.match(regression, /rollback;/i);
+});
+
+test("snake Draft Tournaments expand safely to 32 entrants", () => {
+  const sql = fs.readFileSync(
+    new URL("../supabase/migrations/20260819211609_snake_draft_tournaments_32_entrants.sql", import.meta.url),
+    "utf8",
+  );
+  const regression = fs.readFileSync(
+    new URL("../supabase/tests/448-snake-draft-tournaments-32-preview-regression.sql", import.meta.url),
+    "utf8",
+  );
+  assert.match(sql, /p_entrant_limit not between 4 and 32/i);
+  assert.match(sql, /v_count not between 4 and 32 or v_count > v_tournament\.entrant_limit/i);
+  assert.match(sql, /'leagueScaleMode'', ''expanded'/i);
+  assert.match(sql, /case when v_count <= 8 then 3 when v_count <= 16 then 4 else 5 end/i);
+  assert.match(sql, /v_maximum := 32;/i);
+  for (const evidence of ["function_definitions", "capacity_guard", "snake_field_32", "cleanup"]) {
+    assert.match(regression, new RegExp(`'${evidence}'`));
+  }
+  assert.match(regression, /'entrants', 32, 'teams', 32, 'swiss_rounds', 5/i);
+  assert.match(regression, /rollback;/i);
+});
+
+test("draft tournament regulation sync preserves guarded room settings at field lock", () => {
+  const sql = fs.readFileSync(
+    new URL("../supabase/migrations/20260819222800_fix_draft_tournament_regulation_lock_order.sql", import.meta.url),
+    "utf8",
+  );
+  const regression = fs.readFileSync(
+    new URL("../supabase/tests/450-draft-tournament-regulation-lock-order-preview-regression.sql", import.meta.url),
+    "utf8",
+  );
+  assert.match(sql, /set search_path = ''/i);
+  assert.match(sql, /update public\.league_state_snapshots/i);
+  assert.doesNotMatch(sql, /update public\.leagues\s+set/i);
+  assert.match(sql, /revoke all on function public\.sync_draft_tournament_regulation\(\)[\s\S]*from public, anon, authenticated, service_role/i);
+  assert.match(regression, /canonical draft-room snapshot/i);
+  assert.match(regression, /guarded relational league settings/i);
+  assert.match(regression, /rollback;/i);
+});
+
+test("Tournament operators can always build the field they have without filling capacity", () => {
+  const directory = fs.readFileSync(new URL("../src/components/TournamentDirectory.jsx", import.meta.url), "utf8");
+  const workspace = fs.readFileSync(new URL("../src/components/TournamentWorkspace.jsx", import.meta.url), "utf8");
+  assert.match(directory, /Maximum entrants/);
+  assert.match(directory, /capacity ceiling, not a field size you must fill/i);
+  for (const evidence of [
+    "FIELD MANAGER",
+    "Build the field you actually have",
+    "capacity ceiling",
+    "Add practice entries",
+    "add_tournament_practice_entrants",
+    "remove_tournament_practice_entrant",
+    "Practice entries check in automatically",
+    "unused capacity is fine",
+  ]) assert.match(workspace, new RegExp(evidence, "i"));
+  assert.match(workspace, /label: "Open participant check-in"[\s\S]*disabled: false/);
+  assert.match(workspace, /tournament\.visibility === "private" && !isDemo/);
+  assert.match(workspace, /entrant\.is_synthetic/);
 });
 
 test("migration 439 keeps organizer demos private, synthetic, and owner-controlled", () => {
@@ -524,7 +682,7 @@ test("Tournament UI presents the organizer demo as private synthetic infrastruct
   ]) assert.match(workspace, new RegExp(evidence));
   assert.match(directory, /rosterSize: 6/);
   assert.match(directory, /Fixed at six for the 32-seat Regulation M-B showcase/);
-  assert.match(workspace, /tournament\.is_owner && !isDemo && tournament\.visibility === "private"/);
+  assert.match(workspace, /isOperatorMode && !isDemo && tournament\.visibility === "private"/);
   assert.match(workspace, /rostersByEntrant=\{visibleGroup\.stage === "swiss" \? null : tournamentRostersByEntrant\}/);
   assert.match(workspace, /safeHttpsImageSource\(pokemon\.spriteUrl \|\| pokemon\.sprite_url \|\| pokemon\.sprite\)/);
   assert.match(workspace, /loadPokemonArtwork\(pokemon\.name\)/);

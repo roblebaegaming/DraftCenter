@@ -96,7 +96,7 @@ test("the directory and workspace present format choices and the reset rule", ()
   assert.match(directory, /<option value="double-elimination">Double elimination<\/option>/);
   assert.match(directory, /p_format:\s*form\.format/);
   assert.match(directory, /A first loss moves an entrant to the losers bracket\. A second loss eliminates them\./);
-  assert.match(workspace, /lock_double_elimination_tournament/);
+  assert.match(workspace, /start_tournament_with_random_draw/);
   assert.match(workspace, /bracket_stage \|\| "single"/);
   assert.match(workspace, /A second loss eliminates an entrant\./);
   assert.match(workspace, /Played only if the losers-bracket champion wins the Grand Final\./);

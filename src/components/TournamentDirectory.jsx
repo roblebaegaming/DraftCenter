@@ -5,7 +5,9 @@ import { createClient } from "../lib/supabase/client";
 import {
   auctionDraftTournamentCreateRpcArguments,
   draftFirstTournamentCreateRpcArguments,
+  tournamentOperationRpcArguments,
 } from "../lib/draftTournament";
+import { REGULATION_GROUPS, REGULATION_METADATA } from "../lib/regulation-catalog";
 import { tournamentError } from "../lib/tournamentErrors";
 import {
   DOUBLE_ELIMINATION_MAX_ENTRANTS,
@@ -28,9 +30,9 @@ function formatDescription(format, competitionFormat = null) {
   if (format === "draft-tournament" && competitionFormat === "double-elimination") return "One shared draft followed by a winners bracket, losers bracket, Grand Final, and conditional reset.";
   if (format === "draft-tournament" && competitionFormat === "single-elimination") return "One shared draft followed by a single-elimination bracket.";
   if (format === "draft-tournament" && competitionFormat === "swiss") return "One shared draft followed by score-grouped Swiss rounds with standings and rematch-aware pairings.";
-  if (format === "draft-tournament") return "One shared snake or auction draft followed by tournament play. Snake supports up to 16 entrants; auction supports up to 32.";
+  if (format === "draft-tournament") return "One shared snake or auction draft followed by tournament play. Both draft styles support 4–32 entrants.";
   if (format === "double-elimination") return `A first loss moves an entrant to the losers bracket. A second loss eliminates them. Up to ${DOUBLE_ELIMINATION_MAX_ENTRANTS} entrants.`;
-  if (format === "swiss") return "Managers draft first, then play every Swiss round instead of being eliminated after a loss. Snake supports up to 16 entrants; auction supports up to 32.";
+  if (format === "swiss") return "Managers draft first, then play every Swiss round instead of being eliminated after a loss. Snake and auction both support 4–32 entrants.";
   return `One loss eliminates an entrant. Up to ${SINGLE_ELIMINATION_MAX_ENTRANTS} entrants.`;
 }
 
@@ -59,6 +61,10 @@ export default function TournamentDirectory() {
     auctionTimerSeconds: 30,
     auctionBidResetSeconds: 10,
     publishRosters: false,
+    regulationId: "reg-mb",
+    registrationClosesAt: "",
+    checkInOpensAt: "",
+    startsAt: "",
   });
 
   async function load() {
@@ -78,7 +84,7 @@ export default function TournamentDirectory() {
       format,
       draftRostersFirst: format === "swiss" ? true : current.draftRostersFirst,
       entrantLimit: Math.min(
-        (format === "swiss" || current.draftRostersFirst) ? (current.draftType === "auction" ? 32 : 16) : tournamentEntrantBounds(format).max,
+        (format === "swiss" || current.draftRostersFirst) ? 32 : tournamentEntrantBounds(format).max,
         Math.max((format === "swiss" || current.draftRostersFirst) ? 4 : tournamentEntrantBounds(format).min, current.entrantLimit),
       ),
     }));
@@ -86,7 +92,7 @@ export default function TournamentDirectory() {
 
   function chooseDraftRostersFirst(draftRostersFirst) {
     if (!draftRostersFirst && form.format === "swiss") return;
-    const bounds = draftRostersFirst ? { min: 4, max: form.draftType === "auction" ? 32 : 16 } : tournamentEntrantBounds(form.format);
+    const bounds = draftRostersFirst ? { min: 4, max: 32 } : tournamentEntrantBounds(form.format);
     setForm((current) => ({
       ...current,
       draftRostersFirst,
@@ -95,7 +101,7 @@ export default function TournamentDirectory() {
   }
 
   function chooseDraftType(draftType) {
-    const maximum = draftType === "auction" ? 32 : 16;
+    const maximum = 32;
     setForm((current) => ({
       ...current,
       draftType,
@@ -115,6 +121,7 @@ export default function TournamentDirectory() {
       entrantLimit: 32,
       rosterSize: 6,
       publishRosters: false,
+      regulationId: "reg-mb",
     } : {
       ...current,
       demoMode: false,
@@ -136,13 +143,19 @@ export default function TournamentDirectory() {
         entrantLimit: 32,
         publishRosters: false,
       };
+      const demoArguments = auctionDraftTournamentCreateRpcArguments(demoRequest);
+      delete demoArguments.p_regulation_id;
+      delete demoArguments.p_registration_closes_at;
+      delete demoArguments.p_check_in_opens_at;
+      delete demoArguments.p_starts_at;
       result = form.demoMode
-        ? await supabase.rpc("create_demo_auction_draft_first_tournament", auctionDraftTournamentCreateRpcArguments(demoRequest))
+        ? await supabase.rpc("create_demo_auction_draft_first_tournament", demoArguments)
         : form.draftRostersFirst
         ? form.draftType === "auction"
           ? await supabase.rpc("create_auction_draft_first_tournament", auctionDraftTournamentCreateRpcArguments(form))
           : await supabase.rpc("create_draft_first_tournament", draftFirstTournamentCreateRpcArguments(form))
         : await supabase.rpc("create_tournament", {
+          ...tournamentOperationRpcArguments(form),
           p_name: form.name,
           p_description: form.description,
           p_visibility: form.visibility,
@@ -165,7 +178,7 @@ export default function TournamentDirectory() {
 
   const entrantBounds = form.demoMode
     ? { min: 32, max: 32 }
-    : form.draftRostersFirst ? { min: 4, max: form.draftType === "auction" ? 32 : 16 } : tournamentEntrantBounds(form.format);
+    : form.draftRostersFirst ? { min: 4, max: 32 } : tournamentEntrantBounds(form.format);
 
   return (
     <main className="tournament-shell">
@@ -241,14 +254,36 @@ export default function TournamentDirectory() {
                   </select>
                 </label>
               </div>
-              <label>Entrant limit<input type="number" min={entrantBounds.min} max={entrantBounds.max} disabled={form.demoMode} value={form.entrantLimit} onChange={(event) => setForm({ ...form, entrantLimit: Number(event.target.value) })} /></label>
+              <label>Maximum entrants<input type="number" min={entrantBounds.min} max={entrantBounds.max} disabled={form.demoMode} value={form.entrantLimit} onChange={(event) => setForm({ ...form, entrantLimit: Number(event.target.value) })} /><small>This is a capacity ceiling, not a field size you must fill before starting.</small></label>
+
+              <fieldset className="form-stack tournament-operation-settings">
+                <legend>Regulation &amp; schedule</legend>
+                <label>Regulation
+                  <select value={form.regulationId} disabled={form.demoMode} onChange={(event) => setForm({ ...form, regulationId: event.target.value })}>
+                    {REGULATION_GROUPS.map((group) => {
+                      const options = Object.values(REGULATION_METADATA)
+                        .filter((regulation) => regulation.gameId === group.id)
+                        .sort((left, right) => left.order - right.order || left.label.localeCompare(right.label));
+                      return options.length ? <optgroup key={group.id} label={group.label}>{options.map((regulation) => <option key={regulation.id} value={regulation.id}>{regulation.label}{regulation.current ? " · Current" : ""}</option>)}</optgroup> : null;
+                    })}
+                  </select>
+                  <small>This regulation is published to participants and becomes the legal Pokémon pool in a shared draft room.</small>
+                </label>
+                <div className="tournament-form-pair tournament-schedule-fields">
+                  <label>Registration closes<input type="datetime-local" value={form.registrationClosesAt} onChange={(event) => setForm({ ...form, registrationClosesAt: event.target.value })} /></label>
+                  <label>Check-in opens<input type="datetime-local" value={form.checkInOpensAt} onChange={(event) => setForm({ ...form, checkInOpensAt: event.target.value })} /></label>
+                  <label>Tournament starts<input type="datetime-local" value={form.startsAt} onChange={(event) => setForm({ ...form, startsAt: event.target.value })} /></label>
+                </div>
+                <small>Times are optional, shown in each viewer&apos;s local time, and can be updated by the operator before play begins.</small>
+              </fieldset>
+              <p className="muted">Already have a seeded field and only need a bracket? <a href="/tools/bracket-builder">Use Bracket Studio instead.</a> Tournament events draw opening positions when play starts.</p>
 
               {form.draftRostersFirst && (
                 <fieldset className="form-stack tournament-draft-settings">
                   <legend>Shared draft</legend>
                   <label>Draft style
                     <select value={form.draftType} disabled={form.demoMode} onChange={(event) => chooseDraftType(event.target.value)}>
-                      <option value="snake">Snake draft — 4–16 managers</option>
+                      <option value="snake">Snake draft — 4–32 managers</option>
                       <option value="auction">Auction draft — 4–32 managers</option>
                     </select>
                   </label>
@@ -271,7 +306,7 @@ export default function TournamentDirectory() {
                   <small>{form.format === "swiss"
                     ? form.demoMode
                       ? "Roster lock pairs Swiss Round 1. Five Swiss rounds seed a permanent single-elimination Top 8 playoff."
-                      : `After the ${form.draftType} draft, roster lock will pair Swiss Round 1 automatically. Events use 3 rounds for 4–8 managers, 4 for 9–16, or 5 for 17–32 auction managers.`
+                      : `After the ${form.draftType} draft, roster lock will pair Swiss Round 1 automatically. Events use 3 rounds for 4–8 managers, 4 for 9–16, or 5 for 17–32 managers.`
                     : `After the ${form.draftType} draft, roster lock will build the ${form.format === "double-elimination" ? "double-elimination winners and losers brackets" : "single-elimination bracket"} automatically.`}</small>
                 </fieldset>
               )}
@@ -285,7 +320,7 @@ export default function TournamentDirectory() {
       <section className="tournament-panel tournament-format-guide" aria-labelledby="tournament-format-guide-title">
         <span className="eyebrow">CHOOSE YOUR EVENT</span>
         <h2 id="tournament-format-guide-title">Choose tournament play, then choose how teams enter</h2>
-        <p className="tournament-format-intro">Single or double elimination controls how losses eliminate entrants. Swiss pairs managers by record across every round. Draft teams first adds a shared snake room for 4–16 managers or a shared auction room for 4–32; it is required for Swiss.</p>
+        <p className="tournament-format-intro">Single or double elimination controls how losses eliminate entrants. Swiss pairs managers by record across every round. Draft teams first adds a shared snake or auction room for 4–32 managers; it is required for Swiss.</p>
         <div className="tournament-format-grid">
           <article>
             <h3>Single elimination</h3>
@@ -297,7 +332,7 @@ export default function TournamentDirectory() {
           </article>
           <article>
             <h3>Swiss</h3>
-            <p>Draft together, then play three rounds with 4–8 managers, four with 9–16, or five with 17–32 auction managers. Pairings follow the standings and avoid rematches when possible.</p>
+            <p>Draft together, then play three rounds with 4–8 managers, four with 9–16, or five with 17–32 managers. Pairings follow the standings and avoid rematches when possible.</p>
           </article>
           <article>
             <h3>Draft teams first</h3>
@@ -322,7 +357,7 @@ export default function TournamentDirectory() {
       <section className="tournament-panel tournament-event-guide" aria-labelledby="tournament-event-guide-title">
         <span className="eyebrow">REGISTRATION TO CHAMPION</span>
         <h2 id="tournament-event-guide-title">Keep tournament play and result history together</h2>
-        <p>Commissioners seed the field, start the event, confirm reported results, and make bounded corrections when needed. Turning on Draft teams first adds check-in, a shared draft room, immutable roster snapshots, and optional public roster publication before tournament play.</p>
+        <p>Operators publish the regulation and event times, open check-in, start the event, confirm reported results, and make bounded corrections when needed. DraftCenter draws opening positions automatically; tournament results determine later standings and Top Cut placement.</p>
         <p>Public events appear in the directory for spectators. Private events and commissioner controls remain available only to the people who have access; DraftCenter does not publish private registrations, rosters, or workspaces for search discovery.</p>
         <nav className="tournament-learning-links" aria-label="Tournament planning resources">
           <a href="/formats">Compare Pokémon draft formats</a>

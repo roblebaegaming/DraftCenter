@@ -6,6 +6,66 @@
 - Verified Production application behavior commit: `99795121c5d2f88fd0c15061deccfb9334977bf5`
 - Latest applied Production migration: 443 (`20260819090000`)
 
+## In development — not released
+
+Pull request [#349](https://github.com/roblebaegaming/DraftCenter/pull/349) on
+`codex/participant-retirement-20260819` contains midseason participant
+retirement and tournament-drop support plus a tournament operator-workflow
+follow-up, flexible private practice fields, and 4–32 entrant snake Draft
+Tournaments. Operator mode also has a dedicated Event Management panel with
+separate archive and permanent-delete choices. Forward migrations
+`20260819185347_participant_retirement_and_tournament_drops.sql` and
+`20260819194237_tournament_operator_workflow.sql` plus
+`20260819201436_tournament_practice_entries.sql` and
+`20260819205421_participant_retirement_foreign_key_indexes.sql` preserve
+completed history, require explicit unresolved-match handling, omit inactive
+participants from later competitive stages, and keep private reasons in
+RLS-hidden tables. Forward migration
+`20260819211609_snake_draft_tournaments_32_entrants.sql` raises only the
+draft-first snake tournament ceiling from 16 to 32, matching auction without
+changing ordinary league limits. The tournament workspace now separates
+Operator mode from Participant view, always
+shows the next lifecycle gate, publishes regulation and registration/check-in/
+start times, keeps the draft board linked throughout the event, and removes
+manual pre-event seeding. Operators can add or remove clearly labeled synthetic
+entrants in any private registration-stage event, while the entrant limit is a
+capacity ceiling rather than a quota. Draft practice entrants check in
+automatically and remain unclaimed bot-controlled snake or auction teams;
+format-specific minimums apply only when play starts. Opening bracket/draft
+positions are drawn at start; Swiss standings and Top Cut placement come from
+results. Both snake and auction tournament fields paginate at 16 entrants per
+page, and 17–32 entrant fields receive five Swiss rounds when the field locks.
+Archive preserves read-only event history. Permanent deletion requires the
+exact tournament name, is owner- and revision-checked, refuses live or
+organization-connected events, cascades ordinary tournament records, and
+atomically removes any exact private draft room through forward migration
+`20260819214437_tournament_operator_archive_delete.sql`.
+
+The owner-approved final empty, nonpersistent Supabase Preview replayed the
+Production ledger through migration 443 and then applied all seven branch
+migrations. Regression 448 exposed a real field-lock ordering conflict between
+the new regulation sync and the existing guarded private draft room. Forward
+migration `20260819222800_fix_draft_tournament_regulation_lock_order.sql`
+corrects that boundary by writing the regulation only to the canonical room
+snapshot. Rollback-only regressions 444-450 then all passed, including the
+32-player snake field lock, archive/delete lifecycle, grants, RLS, cleanup, and
+regulation-sync protections. All fixtures rolled back to zero. The advisor
+delta contains only intentional RPC/RLS notices whose internal authorization
+is covered by the regressions and expected unused-index notices for an empty
+branch; it has no error-level or migration-specific performance finding.
+The exact paid Preview was deleted immediately after verification, and the
+post-delete inventory contains only `main`, so its hourly charge stopped.
+
+The production dependency audit, complete application suite, 1,027-row
+National Dex check, migration-history verification, diff-integrity check, and
+configured 335-page build pass with the correction included. The build retains
+the inherited nonfatal dynamic-font status-400 warning while generating every
+page successfully. Signed-in Operator/Participant review passed on desktop and
+at 390 x 844 without horizontal overflow. The owner-approved private
+`Preview Operator Rehearsal - Aug 19` contains one account and 31 synthetic bot
+entrants; the preserved showcase and every pre-existing tournament remained
+unchanged. Nothing from this pull request is deployed or applied to Production.
+
 ## Deployed state
 
 Pull request [#352](https://github.com/roblebaegaming/DraftCenter/pull/352)

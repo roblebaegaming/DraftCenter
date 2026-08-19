@@ -15,13 +15,17 @@ test("sensitive tournament actions use the accessible in-page confirmation dialo
   assert.match(ui, /onCancel=/);
   assert.match(ui, /cancelRef\.current\?\.focus\(\)/);
   for (const label of [
-    "Shuffle every seed?",
     "Lock registration and build the bracket?",
     "Archive this tournament?",
+    "Permanently delete this tournament?",
     "Confirm and advance this result?",
     "Reject this reported result?",
     "Save this result correction?",
   ]) assert.ok(ui.includes(label));
+  assert.match(ui, /Type <strong>\{request\.confirmText\}<\/strong> to confirm/);
+  assert.match(ui, /disabled=\{working \|\| !confirmationMatches\}/);
+  assert.match(ui, /role="tablist" aria-label="Tournament view"/);
+  assert.match(ui, /role="tab" aria-selected=\{isOperatorMode\}/);
 });
 
 test("workspace controls and feedback expose names, landmarks, and live status", () => {
@@ -35,6 +39,10 @@ test("workspace controls and feedback expose names, landmarks, and live status",
   assert.match(ui, /<label>Replay URL/);
   assert.match(ui, /<label>MVP/);
   assert.match(ui, /<legend>Series score<\/legend>/);
+  assert.match(ui, /aria-labelledby="tournament-field-manager-heading"/);
+  assert.match(ui, /aria-label="Current tournament field"/);
+  assert.match(ui, /<label>Practice entry label/);
+  assert.match(ui, /<label>How many/);
 });
 
 test("large fields mount one selected, paged round at a time", () => {

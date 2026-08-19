@@ -19,14 +19,15 @@ test("local compaction keeps claimed teams before open bot slots", () => {
   const teams = [
     { id: 0, name: "Open A" },
     { id: 1, name: "Human A", claimedByUserId: "one" },
-    { id: 2, name: "Open B" },
+    { id: 2, name: "Retired", seasonStatus: { status: "retired", effectiveAfter: 4 } },
     { id: 3, name: "Human B", claimedBy: "Bobby" },
+    { id: 4, name: "Open B" },
   ];
   const compacted = compactLocalTeamsClaimedFirst(teams, 3);
   assert.deepEqual(compacted.map((team) => team.name), ["Human A", "Human B", "Open A"]);
   assert.deepEqual(compacted.map((team) => team.id), [0, 1, 2]);
   assert.equal(claimedTeamCount(teams), 2);
-  assert.deepEqual(openSetupTeams(teams).map((team) => team.index), [0, 2]);
+  assert.deepEqual(openSetupTeams(teams).map((team) => team.index), [0, 4]);
 });
 
 test("public joining opens the team chooser instead of skipping to the league", () => {
