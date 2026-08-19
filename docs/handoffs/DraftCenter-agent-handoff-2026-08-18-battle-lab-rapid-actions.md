@@ -10,6 +10,7 @@
 - Feature implementation commit:
   `94a42c3eb68f992fda7cc3e3138da376a389a2f8`
 - Pull request: [#326](https://github.com/roblebaegaming/DraftCenter/pull/326)
+- Release documentation: [#327](https://github.com/roblebaegaming/DraftCenter/pull/327)
 - Production migration: unchanged at 439; canonical history version
   `20260818220437`
 - Release state: merged, deployed, and application-verified
