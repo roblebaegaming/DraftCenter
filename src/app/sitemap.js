@@ -10,8 +10,9 @@ import { predictionBracketEventPath } from "../lib/predictionBracketPaths";
 const PRODUCT_DISCOVERY_LAST_MODIFIED = new Date("2026-08-16T00:00:00.000Z");
 const COMMISSIONER_SEO_LAST_MODIFIED = new Date("2026-08-18T00:00:00.000Z");
 const WORLDS_2026_LAST_MODIFIED = new Date("2026-08-11T00:00:00.000Z");
-const ITALIAN_WORLDS_LAST_MODIFIED = new Date("2026-08-12T00:00:00.000Z");
-const SPANISH_WORLDS_LAST_MODIFIED = new Date("2026-08-17T00:00:00.000Z");
+const WORLDS_VGC_LAST_MODIFIED = new Date("2026-08-18T00:00:00.000Z");
+const ITALIAN_WORLDS_LAST_MODIFIED = new Date("2026-08-18T00:00:00.000Z");
+const SPANISH_WORLDS_LAST_MODIFIED = new Date("2026-08-18T00:00:00.000Z");
 const WORLDS_LANGUAGE_ALTERNATES = {
   en: "https://www.draftcentral.gg/worlds/2026/vgc",
   it: "https://www.draftcentral.gg/it/worlds/2026",
@@ -39,7 +40,7 @@ const productRouteLastModified = new Map([
   ["/tournaments/predictions", PRODUCT_DISCOVERY_LAST_MODIFIED],
   ["/resources/daily-games", PRODUCT_DISCOVERY_LAST_MODIFIED],
   ["/worlds/2026", WORLDS_2026_LAST_MODIFIED],
-  ["/worlds/2026/vgc", WORLDS_2026_LAST_MODIFIED],
+  ["/worlds/2026/vgc", WORLDS_VGC_LAST_MODIFIED],
   ["/it/worlds/2026", ITALIAN_WORLDS_LAST_MODIFIED],
   ["/es/worlds/2026", SPANISH_WORLDS_LAST_MODIFIED],
   ["/worlds/2026/tcg", WORLDS_2026_LAST_MODIFIED],

@@ -2,21 +2,21 @@ import DraftLab from "../../components/DraftLab";
 import TeamLabInstallPanel from "../../components/TeamLabInstallPanel";
 
 export const metadata = {
-  title: "Team Lab Pokémon Team Builder and Battle Room",
-  description: "Build teams, keep private weekly matchup plans, and use a focused closed- or open-team-sheet Battle Room.",
+  title: "Team Lab Pokémon Team Builder and VGC Battle Tracker",
+  description: "Build six-Pokémon teams, plan matchups, and use a closed- or open-team-sheet Battle Room with four active slots, timed effects, pivot switches, and private reports.",
   alternates: { canonical: "/team-lab" },
   manifest: "/team-lab/manifest.webmanifest",
-  keywords: ["Pokémon team builder", "Pokémon matchup planner", "closed team sheet", "Pokémon battle notebook", "Pokémon draft roster builder"],
+  keywords: ["Pokémon team builder", "VGC battle tracker", "Pokémon matchup planner", "closed team sheet", "open team sheet", "Pokémon battle notebook", "Pokémon draft roster builder"],
   openGraph: {
     type: "website",
-    title: "Team Lab: Pokémon Team Builder and Battle Room",
-    description: "Build a team, plan each matchup, and record reveals in a private closed- or open-team-sheet Battle Room.",
+    title: "Team Lab: Pokémon Team Builder and VGC Battle Tracker",
+    description: "Build a team, plan each matchup, and record four active Pokémon, moves, targets, switches, reveals, and timed effects in a private Battle Room.",
     url: "/team-lab",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Team Lab: Pokémon Team Builder and Battle Room",
-    description: "Build a team, plan each matchup, and record reveals in a private closed- or open-team-sheet Battle Room.",
+    title: "Team Lab: Pokémon Team Builder and VGC Battle Tracker",
+    description: "Build a team, plan each matchup, and record four active Pokémon, moves, targets, switches, reveals, and timed effects in a private Battle Room.",
   },
 };
 
@@ -32,6 +32,14 @@ const questions = [
   {
     question: "How does closed team sheet mode work?",
     answer: "Choose Closed sheet and record an opponent’s Pokémon, moves, ability, and held item only as they are revealed. Open sheet uses the same private notebook but can preload published information before the set.",
+  },
+  {
+    question: "Can Battle Room track a fast doubles turn?",
+    answer: "Yes. Two active slots per side keep all four Pokémon visible. Tap a Pokémon, choose its move or action, choose the target or replacement, and optionally let Auto-next advance after every eligible Pokémon has acted.",
+  },
+  {
+    question: "What can I export from a Team Lab battle?",
+    answer: "Each game has a downloadable CSV, while the complete private workbook includes teams, sets, turns, reveals, switches, targets, timed effects, ratings, and replay context when those details were saved.",
   },
 ];
 
@@ -49,7 +57,7 @@ export default function TeamLabPage() {
         isAccessibleForFree: true,
         url: "https://www.draftcentral.gg/team-lab",
         description: metadata.description,
-        featureList: ["Six-Pokémon battle teams", "PokéPaste URL, file, and text import", "Format-aware Pokémon and move suggestions", "Common meta archetype prompts", "Private My Teams workspaces", "Closed- and open-team-sheet Battle Room", "Best-of-1, best-of-3, and best-of-5 plans", "Turn and reveal timeline", "Local crash recovery", "Private Excel and Google Sheets-ready workbook"],
+        featureList: ["Six-Pokémon battle teams", "PokéPaste URL, file, and text import", "Format-aware Pokémon and move suggestions", "Common meta archetype prompts", "Private My Teams workspaces", "Closed- and open-team-sheet Battle Room", "Four-slot doubles field", "One-tap moves, actions, targets, switches, and faints", "Type-ahead move, ability, and item suggestions", "Pivot switches and timed field effects", "Optional Auto-next after every eligible Pokémon acts", "Best-of-1, best-of-3, and best-of-5 plans", "Turn and reveal timeline", "Reload and local crash recovery", "Per-game CSV and private Excel or Google Sheets-ready workbook"],
       },
       {
         "@type": "BreadcrumbList",

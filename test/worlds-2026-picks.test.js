@@ -314,7 +314,7 @@ test("the Worlds overview separates competition and overall leaderboards", () =>
   assert.match(overviewPage, /openGraph:/);
   assert.match(overviewPage, /twitter:/);
   assert.match(overviewPage, /canonical: "\/worlds\/2026"/);
-  assert.match(vgcPage, /pageTitle = "2026 Pokémon Worlds VGC Predictions"/);
+  assert.match(vgcPage, /pageTitle = "2026 Pokémon Worlds VGC Predictions & Champion Odds"/);
   assert.match(vgcPage, /canonical: "\/worlds\/2026\/vgc"/);
   assert.match(vgcPage, /pick 10 qualified players, name Your Champion/);
   assert.match(vgcPage, /sameAs: "https:\/\/worlds\.pokemon\.com\/en-us"/);
