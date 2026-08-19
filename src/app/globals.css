@@ -1483,7 +1483,10 @@ button { cursor: pointer; }
 .team-lab-turn-navigation { display: grid; gap: 6px; }
 .team-lab-turn-stepper { display: grid; grid-template-columns: 44px minmax(118px,auto) minmax(96px,auto); align-items: center; gap: 6px; }
 .team-lab-turn-stepper strong { color: #ffd23f; text-align: center; white-space: nowrap; }
-.team-lab-turn-stepper button,.team-lab-turn-next-game,.team-lab-turn-kind button,.team-lab-turn-side button,.team-lab-turn-move-chips button,.team-lab-turn-damage-chips button,.team-lab-turn-opponent-chips button,.team-lab-turn-reveal-entry>button { min-height: 44px; padding: 8px 11px; color: #c4cdea; border: 1px solid #455475; border-radius: 8px; background: #090f20; font: inherit; font-size: 10px; font-weight: 900; cursor: pointer; }
+.team-lab-turn-stepper button,.team-lab-turn-auto button,.team-lab-turn-next-game,.team-lab-turn-kind button,.team-lab-turn-side button,.team-lab-turn-move-chips button,.team-lab-turn-damage-chips button,.team-lab-turn-opponent-chips button,.team-lab-turn-reveal-entry>button { min-height: 44px; padding: 8px 11px; color: #c4cdea; border: 1px solid #455475; border-radius: 8px; background: #090f20; font: inherit; font-size: 10px; font-weight: 900; cursor: pointer; }
+.team-lab-turn-auto { display: grid; grid-template-columns: minmax(106px,auto) minmax(0,1fr); align-items: center; gap: 7px; }
+.team-lab-turn-auto button[aria-pressed="true"] { color: #071a18; border-color: #4fd1c5; background: #4fd1c5; }
+.team-lab-turn-auto small { color: #8e9abb; font-size: 8px; font-weight: 800; line-height: 1.25; }
 .team-lab-turn-next-game { color: #baf3ed; border-color: #4fd1c566; background: #4fd1c50d; }
 .team-lab-turn-stepper button:disabled,.team-lab-turn-next-game:disabled { cursor: not-allowed; opacity: .45; }
 .team-lab-timed-effects { display: grid; gap: 8px; padding: 10px 18px; border-bottom: 1px solid #2d3958; background: #0c1428; }
