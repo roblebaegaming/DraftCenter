@@ -11,12 +11,13 @@ capacity-based private practice field with synthetic entrants. The same branch
 also expands draft-first snake tournaments from 4–16 to 4–32 entrants, matching
 the existing auction tournament ceiling, and adds explicit operator archive or
 permanent-delete event management.
-Work is isolated on `codex/participant-retirement-20260819` from `origin/main`
-commit `6f68018` and is under review in pull
-request [#349](https://github.com/roblebaegaming/DraftCenter/pull/349).
+The release merged through protected pull request
+[#349](https://github.com/roblebaegaming/DraftCenter/pull/349) at exact
+application behavior commit `2ab51fbdddf0c0b40eb56e9a2f70ee62b0f45338`.
 
-No release migration, real league, invitation, advertising, secret, or
-deployment was changed. The owner approved one private synthetic Production
+Production applied the seven forward migrations as ledger entries 444-450. No
+real league, invitation, advertising setting, secret, or pre-existing
+tournament was changed. The owner approved one private synthetic Production
 rehearsal for the signed-in workflow review, named Preview Operator Rehearsal -
 Aug 19, with one account and 31 bot entrants. The temporary Cloudflare Preview
 hostname was removed after review, and the two pre-existing hostnames remain.
@@ -255,6 +256,18 @@ not reset or modified.
   31 bots. Because the Vercel Preview used the pre-migration Production schema,
   its Field Manager temporarily rendered those bots as real entrants; migration
   444 updates that projection, and its remote regression passed.
+- Production applied canonical migrations 444-450 and now ends at
+  `20260819222800`, with 245 total ledger rows. Vercel reported exact merge
+  commit `2ab51fb` Ready, all post-merge security checks passed, and the complete
+  22-check signed-out Production smoke sweep passed.
+- A read-only live Production check confirmed the private rehearsal now renders
+  `1 real / 31 practice / 32 total`, keeps Operator controls out of Participant
+  view, retains Regulation M-B and the visible field-lock action, and has no
+  horizontal overflow at 390 x 844. No event was advanced or edited.
+- Post-migration Supabase advisors returned no error-level finding. The new
+  service-only RLS and authorization-guarded security-definer notices match the
+  reviewed design, and the only new performance notices are expected unused
+  indexes on the newly empty history tables.
 
 Before a release, retain the repository policy: keep the complete test and audit
 checks passing, apply the Preview regression to a disposable branch, review the
@@ -263,10 +276,9 @@ the exact deployed commit and migration, and then run the signed-out Production
 smoke sweep. Do not use a real league or the preserved showcase as a test
 fixture.
 
-## Remaining release work
+## Post-release continuation
 
-1. Release only through protected pull request #349 after checks pass.
-2. Confirm the exact Production application commit and migrations 444-450,
-   then run the complete signed-out Production smoke sweep.
-3. After release, validate manager invitations and completed-draft claiming in
+1. Validate manager invitations and completed-draft claiming in
    an isolated practice league before sending the broad four-pod invitations.
+2. Preserve the completed Auction Swiss showcase. Archive or delete the new
+   private rehearsal only on a direct owner request.
