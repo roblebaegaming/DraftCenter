@@ -3,8 +3,8 @@
 - Last updated: August 18, 2026 Pacific
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified Production application and asset commit: `a8d4776a67696ec0177a494fc11b302f81319bb2`
-- Latest applied Production migration: 439 (`20260818220437`)
+- Verified Production application and asset commit: `ca1dd680552da833260e1ae60b79903f8ecc1f08`
+- Latest applied Production migration: 440 (`20260819013208`)
 
 ## Deployed state
 
@@ -224,13 +224,15 @@ canonical `20260818220437` only after exact SQL equivalence and unchanged-schema
 proof. Local and Production histories now match 234-for-234. Advisors returned
 no error-level finding and no demo-specific performance finding.
 
-The private owner showcase at
+At that release, the first private owner showcase at
 https://www.draftcentral.gg/tournaments/owner-practice-32-manager-auction-swiss-cad8eeca
-is complete and intentionally preserved with 32 entrants, 32 teams, 128 roster
+was complete with 32 entrants, 32 teams, 128 roster
 entries, five rounds, 80 matches, and 160 standings snapshots. Four checked-in
 captures cover the event overview, final standings, generated rosters, and
 Round 5 results. Vercel reported exact commit `6fa9dea` Ready, protected checks
 passed, and the complete 22-check signed-out Production smoke sweep passed.
+Pull request #333 subsequently upgraded and rebuilt that exact showcase; its
+current six-Pokémon and Top 8 state is recorded below.
 
 Pull request [#326](https://github.com/roblebaegaming/DraftCenter/pull/326)
 is released at exact application commit
@@ -313,6 +315,37 @@ check, dependency audit, optimized 319-page build, protected checks, and two
 complete 22-check Production smoke sweeps passed. Vercel reported the exact
 merge commit Ready in Production. The short-lived release branch was deleted.
 
+Pull request [#333](https://github.com/roblebaegaming/DraftCenter/pull/333)
+is released at exact application commit
+`ca1dd680552da833260e1ae60b79903f8ecc1f08` with Production migration 440.
+Private Tournament Organizer Demos now use six-Pokémon Regulation M-B auction
+rosters with one Mega and five non-Mega Pokémon per team. The auction recap
+shows every synthetic winning bid, team spend, and remaining budget. Five
+Swiss rounds highlight and seed a single-elimination Top 8, which the organizer
+can report manually for practice or complete with the bounded demo control.
+Ordinary tournaments retain their configured roster sizes and tournament path.
+
+Migration 440 passed its full rollback-only disposable Preview matrix: 32
+teams, 192 unique Pokémon and roster entries, exactly one Mega per team, budget
+and winning-bid validation, 80 Swiss matches, 160 standing snapshots, eight
+Top 8 entries, seven playoff matches, owner authorization, reset cleanup, and
+ordinary-tournament boundaries. The paid branch was deleted immediately and
+confirmed absent. Production applied canonical version `20260819013208` once.
+Advisors returned no errors and no migration-specific performance finding; the
+new authenticated security-definer warning is intentional and bounded by the
+function's proven owner checks.
+
+The exact private owner showcase is complete and intentionally preserved at
+https://www.draftcentral.gg/tournaments/owner-practice-32-manager-auction-swiss-cad8eeca.
+Read-only postflight confirmed 32 entrants and teams, 192 roster entries, six
+Pokémon and one Mega per team, winning bids from 5–35 points, team spends from
+110–112 of 120, five Swiss rounds, 80 Swiss matches, 160 standings snapshots,
+eight Top 8 seeds, and all seven playoff matches complete. Demo Coach 09 won
+the generated final 2–0 over Demo Coach 17. Five current captures cover the
+organizer sandbox, highlighted Swiss cut, auction prices, live quarterfinals,
+and completed final. The complete 22-check Production smoke sweep passed and
+Vercel reported the feature commit Ready.
+
 Supabase automatic branching remains enabled with a one-concurrent-Preview
 limit and Supabase-only changes. Older Preview branches were left untouched.
 The automatic check on pull request #298 was canceled solely because that limit
@@ -336,9 +369,9 @@ not be resumed until the owner explicitly requests it.
    private report boundary. Test Auto-next both enabled and disabled, including
    one manual no-action turn and one pivot move, and confirm that the
    source-labeled tournament and ladder suggestions reduce typing.
-2. Show the completed private Tournament Organizer Demo and its four captures
-   to the tournament operator; preserve the finished event until the owner
-   explicitly asks to reset it.
+2. Show the completed private Tournament Organizer Demo and its five current
+   captures to the tournament operator; preserve the finished event until the
+   owner explicitly asks to reset it.
 3. Prepare but do not launch the gated commissioner-focused Google Search
    experiment in the current acquisition handoff. No ad account, tag, billing,
    campaign, or spend change is authorized.
@@ -372,6 +405,8 @@ August 19, 2026. Do not inspect or report individual identity or activity.
 
 ## Authoritative records
 
+- Current Regulation M-B Tournament Organizer Demo handoff:
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-18-tournament-demo-regulation-mb-top-cut.md`](handoffs/DraftCenter-agent-handoff-2026-08-18-tournament-demo-regulation-mb-top-cut.md)
 - Current Battle Lab Auto-next handoff:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-18-battle-lab-auto-next.md`](handoffs/DraftCenter-agent-handoff-2026-08-18-battle-lab-auto-next.md)
 - Current Battle Lab competitive-suggestions handoff:
@@ -380,7 +415,7 @@ August 19, 2026. Do not inspect or report individual identity or activity.
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-18-battle-lab-rapid-actions.md`](handoffs/DraftCenter-agent-handoff-2026-08-18-battle-lab-rapid-actions.md)
 - Current acquisition-strategy handoff:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-18-google-ads-readiness.md`](handoffs/DraftCenter-agent-handoff-2026-08-18-google-ads-readiness.md)
-- Current release and continuation handoff:
+- Previous Tournament Organizer Demo foundation handoff:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-18-private-tournament-organizer-demo.md`](handoffs/DraftCenter-agent-handoff-2026-08-18-private-tournament-organizer-demo.md)
 - Previous reload/resume and battle-reporting handoff:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-18-reload-resume-and-battle-reporting.md`](handoffs/DraftCenter-agent-handoff-2026-08-18-reload-resume-and-battle-reporting.md)

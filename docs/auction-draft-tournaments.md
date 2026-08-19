@@ -32,11 +32,19 @@ auction followed by five Swiss rounds so the largest supported shared-draft
 path can be practiced end to end.
 
 The commissioner can operate the normal registration, field lock, auction
-room, roster lock, pairings, results, and standings surfaces. Two bounded demo
-actions make a presentation practical: one generates a completed four-Pokémon
-auction for all 32 seats, and the other records deterministic synthetic results
-through the remaining Swiss rounds. A separate reset returns only that exact
-demo to check-in while retaining its synthetic identity and audit history.
+room, roster lock, pairings, results, standings, and playoff surfaces. Organizer
+demos are fixed to six-Pokémon Regulation M-B rosters with one Mega and five
+non-Mega Pokémon per team, a 120-point budget, five Swiss rounds, and a
+single-elimination Top 8. The generated-auction action records a distinct
+synthetic winning bid for every Pokémon and preserves each team's spend and
+remaining budget for the recap.
+
+The organizer may report every auction, Swiss, and playoff result manually for
+practice. Three bounded demo actions also make a presentation practical: one
+completes the 32-team auction, one records deterministic Swiss results and
+seeds the Top 8, and one completes the seven-match playoff. A separate reset
+returns only that exact demo to check-in while retaining its synthetic identity
+and audit history.
 
 Demo entrants never become accounts, league memberships, or claimable team
 owners. Their names and the event banner remain visibly marked as bot,
@@ -75,6 +83,14 @@ completed Swiss rounds, 80 completed matches, 160 standings rows, owner-only
 controls, rejection by a non-owner, rejection of null-account entrants in an
 ordinary event, and exact demo-only reset cleanup. The matrix rolls back its
 fixture and the paid Preview branch is deleted immediately after validation.
+
+Migration 440 upgrades only the organizer-demo defaults and helpers. Its
+rollback-only Preview matrix proves 32 six-Pokémon Regulation M-B teams, 192
+unique drafted Pokémon, exactly one Mega per team, 192 materialized roster
+entries, visible auction prices within the 120-point budget, 80 Swiss matches,
+160 standings snapshots, eight seeded Top 8 entries, all seven playoff matches,
+owner-only fast-forwarding, ordinary-tournament isolation, and reset cleanup.
+The disposable paid Preview branch is deleted immediately after validation.
 
 Never use a real league or production tournament for lifecycle testing. A
 timed-out mutation is refreshed and verified before any manual retry.
