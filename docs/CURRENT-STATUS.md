@@ -11,15 +11,19 @@
 Pull request [#349](https://github.com/roblebaegaming/DraftCenter/pull/349) on
 `codex/participant-retirement-20260819` contains midseason participant
 retirement and tournament-drop support plus a tournament operator-workflow
-follow-up and flexible private practice fields. Forward migrations
+follow-up, flexible private practice fields, and 4–32 entrant snake Draft
+Tournaments. Forward migrations
 `20260819185347_participant_retirement_and_tournament_drops.sql` and
 `20260819194237_tournament_operator_workflow.sql` plus
 `20260819201436_tournament_practice_entries.sql` and
 `20260819205421_participant_retirement_foreign_key_indexes.sql` preserve
 completed history, require explicit unresolved-match handling, omit inactive
 participants from later competitive stages, and keep private reasons in
-RLS-hidden tables. The tournament workspace now separates Operator mode from
-Participant view, always
+RLS-hidden tables. Forward migration
+`20260819211609_snake_draft_tournaments_32_entrants.sql` raises only the
+draft-first snake tournament ceiling from 16 to 32, matching auction without
+changing ordinary league limits. The tournament workspace now separates
+Operator mode from Participant view, always
 shows the next lifecycle gate, publishes regulation and registration/check-in/
 start times, keeps the draft board linked throughout the event, and removes
 manual pre-event seeding. Operators can add or remove clearly labeled synthetic
@@ -28,7 +32,9 @@ capacity ceiling rather than a quota. Draft practice entrants check in
 automatically and remain unclaimed bot-controlled snake or auction teams;
 format-specific minimums apply only when play starts. Opening bracket/draft
 positions are drawn at start; Swiss standings and Top Cut placement come from
-results. The dependency audit, complete application suite, 1,027-row National
+results. Both snake and auction tournament fields paginate at 16 entrants per
+page, and 17–32 entrant fields receive five Swiss rounds when the field locks.
+The dependency audit, complete application suite, 1,027-row National
 Dex check, diff-integrity check, PostgreSQL syntax/compile exercise, and
 configured 326-page build pass after the follow-up. The earlier retirement
 migration also passed its isolated PostgreSQL lifecycle exercise. An
@@ -45,6 +51,12 @@ post-delete inventory contains only `main`, so its hourly charge stopped.
 The post-Preview dependency audit, complete application suite, 1,027-row
 National Dex check, migration-history verification, diff-integrity check, and
 fresh configured 335-page build all pass after rebasing onto current `main`.
+The snake-capacity follow-up also passes its focused tournament suites,
+migration-history checks, diff-integrity check, isolated PostgreSQL compile,
+complete application suite, production dependency audit, 1,027-row National
+Dex verification, and configured 335-page production build.
+Rollback-only regression 448 is prepared but has not yet run on a new paid
+Supabase Preview; that separate charge requires fresh owner approval.
 Responsive signed-in
 Operator/Participant review remains required. Nothing is deployed or applied
 to Production, and no real league or tournament was changed.

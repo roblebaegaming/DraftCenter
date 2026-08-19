@@ -7,9 +7,11 @@ handoff: midseason **Retired after Week/Round** support for leagues and
 tournaments. It also incorporates the owner's tournament-workspace review:
 clear operator/participant modes, visible advancement, event times, regulation
 selection, persistent draft-board access, removal of pre-event seeding, and a
-capacity-based private practice field with synthetic entrants.
+capacity-based private practice field with synthetic entrants. The same branch
+also expands draft-first snake tournaments from 4–16 to 4–32 entrants, matching
+the existing auction tournament ceiling.
 Work is isolated on `codex/participant-retirement-20260819` from `origin/main`
-commit `6d613dedfe486063c075599fb8adf6509b1f2bf6` and is under review in pull
+commit `6f68018` and is under review in pull
 request [#349](https://github.com/roblebaegaming/DraftCenter/pull/349).
 
 No Production database, real league, tournament, invitation, advertising,
@@ -94,6 +96,20 @@ Auction Swiss showcase was not reset or modified.
   two-seat single-elimination minimum, and four-seat double-elimination minimum
   are enforced only when the operator starts that stage.
 
+### Snake Draft Tournament capacity
+
+- Draft-first snake and auction tournaments both accept a capacity from 4 to
+  32 entrants. Capacity remains a ceiling; it is not a start quota.
+- A snake tournament room opts into the existing expanded 32-team draft engine
+  without changing the 16-team ceiling for ordinary leagues.
+- Field lock assigns three Swiss rounds for 4–8 entrants, four for 9–16, and
+  five for 17–32 for either draft method.
+- The operator workspace paginates both draft formats in groups of 16 entrants,
+  while the full field remains available to the draft board and pairing engine.
+- The 32-seat lifecycle regression uses one real owner seat plus 31 private
+  practice entries and verifies snake seating, the expanded room setting, five
+  Swiss rounds, grants, cleanup, and the 33-seat denial.
+
 ### Privacy and audit
 
 - Optional reasons are stored only in new RLS-enabled, service-role-only
@@ -109,6 +125,7 @@ Auction Swiss showcase was not reset or modified.
 - `supabase/migrations/20260819194237_tournament_operator_workflow.sql`
 - `supabase/migrations/20260819201436_tournament_practice_entries.sql`
 - `supabase/migrations/20260819205421_participant_retirement_foreign_key_indexes.sql`
+- `supabase/migrations/20260819211609_snake_draft_tournaments_32_entrants.sql`
 - `src/lib/participantStatus.js`
 - `src/lib/leagueResults.js`
 - `src/lib/leagueSwiss.mjs`
@@ -121,6 +138,7 @@ Auction Swiss showcase was not reset or modified.
 - `supabase/tests/445-tournament-operator-workflow-preview-regression.sql`
 - `supabase/tests/446-tournament-practice-entries-preview-regression.sql`
 - `supabase/tests/447-participant-retirement-foreign-key-indexes-preview-regression.sql`
+- `supabase/tests/448-snake-draft-tournaments-32-preview-regression.sql`
 
 ## Validation completed
 
@@ -173,6 +191,18 @@ Auction Swiss showcase was not reset or modified.
   rebase conflict was the handoff index; it was resolved by preserving both
   this current development record and the current six-language Worlds release
   record.
+- The snake-capacity follow-up passes the focused Draft Tournament, tournament
+  scale, tournament aggregate, SEO, and migration-history suites. Its forward
+  migration compiles in the isolated in-process PostgreSQL schema and replaces
+  every reviewed 16-seat snake guard while preserving the ordinary-league
+  boundary. Regression 448 is ready but has not run on a new remote Preview.
+- The branch is rebased without conflicts onto current `origin/main` commit
+  `6f68018`, which includes the Worlds primary-navigation release and its
+  operating record. The post-rebase production dependency audit, complete
+  application suite, 1,027-row National Dex check, diff-integrity check, and
+  configured 335-page production build all pass. The inherited dynamic-font
+  request still emits its nonfatal status-400 warning; all pages render and the
+  build exits successfully.
 
 Before a release, retain the repository policy: keep the complete test and audit
 checks passing, apply the Preview regression to a disposable branch, review the
@@ -183,10 +213,14 @@ fixture.
 
 ## Remaining release work
 
-1. Review the full diff, especially the retirement and operator migrations,
+1. Run rollback-only regression 448 on a new disposable Supabase Preview after
+   the owner approves the additional hourly charge, then delete that exact
+   branch after verification.
+2. Review the full diff, especially the retirement and operator migrations,
    qualification reranking, the result-neutral opening draw, draft-room
-   regulation sync, and the forward-only foreign-key indexes.
-2. Review Operator mode and Participant view at desktop and phone widths.
-3. Release only through protected pull request #349 after checks pass.
-4. After release, validate manager invitations and completed-draft claiming in
+   regulation sync, the forward-only foreign-key indexes, and the 32-seat snake
+   expansion.
+3. Review Operator mode and Participant view at desktop and phone widths.
+4. Release only through protected pull request #349 after checks pass.
+5. After release, validate manager invitations and completed-draft claiming in
    an isolated practice league before sending the broad four-pod invitations.
