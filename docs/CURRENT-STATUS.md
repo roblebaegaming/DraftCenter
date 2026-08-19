@@ -4,7 +4,7 @@
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
 - Verified Production application and asset commit: `92532d88a12398741768c7a92acf09957cc89fe8`
-- Latest applied Production migration: 441 (`20260819025045`)
+- Latest applied Production migration: 442 (`20260819040935`)
 
 ## Deployed state
 
