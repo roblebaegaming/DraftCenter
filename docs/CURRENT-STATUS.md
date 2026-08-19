@@ -495,6 +495,8 @@ August 19, 2026. Do not inspect or report individual identity or activity.
 
 ## Authoritative records
 
+- Latest consolidated Production and continuation handoff:
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-18-latest-production-continuation.md`](handoffs/DraftCenter-agent-handoff-2026-08-18-latest-production-continuation.md)
 - Current Worlds shared-competition profile handoff:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-18-worlds-shared-localized-leaderboard-profiles.md`](handoffs/DraftCenter-agent-handoff-2026-08-18-worlds-shared-localized-leaderboard-profiles.md)
 - Current Battle Lab compact-roster handoff:

@@ -1,5 +1,11 @@
 # Agent handoffs
 
+[`DraftCenter-agent-handoff-2026-08-18-latest-production-continuation.md`](DraftCenter-agent-handoff-2026-08-18-latest-production-continuation.md)
+is the current consolidated handoff. It records the exact live organizer-demo
+and Organizations links, the released Battle Room, Worlds profile, SEO, and
+commissioner-reminder state, the Google Ads boundary, and the critical fact
+that the audited four-pod league has not yet been imported into Production.
+
 [`DraftCenter-agent-handoff-2026-08-18-worlds-shared-localized-leaderboard-profiles.md`](DraftCenter-agent-handoff-2026-08-18-worlds-shared-localized-leaderboard-profiles.md)
 is the current Worlds profile handoff. It records the shared English, Italian,
 and Spanish VGC event, localized scrollable leaderboard profiles, migration
