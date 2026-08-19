@@ -429,6 +429,8 @@ button { cursor: pointer; }
 .site-global-account>button { cursor: pointer; }
 .site-primary-links a:hover,.site-global-account>a:hover,.site-global-account>button:hover,.site-owner-menu>summary:hover,
 .site-primary-links a.is-active { color: #10121c; border-color: #ffd23f; background: #ffd23f; }
+.site-primary-links a.site-primary-worlds-link { border-color: rgba(255,210,63,.78); color: #171306; background: linear-gradient(135deg,#ffe376,#ffd23f); box-shadow: 0 4px 14px rgba(255,210,63,.18); }
+.site-primary-links a.site-primary-worlds-link:hover,.site-primary-links a.site-primary-worlds-link:focus-visible { color: #080b18; border-color: #fff0ae; background: #fff0ae; outline: none; }
 .site-account-name { max-width: 160px; overflow: hidden; color: #9fadd8; font-size: 12px; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
 .site-owner-menu { position: relative; }
 .site-owner-menu>summary { max-width: 160px; overflow: hidden; color: #9fadd8; cursor: pointer; list-style: none; text-overflow: ellipsis; white-space: nowrap; }

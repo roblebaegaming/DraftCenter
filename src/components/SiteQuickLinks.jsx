@@ -17,6 +17,7 @@ export default function SiteQuickLinks() {
   const pathname = usePathname();
   const { accountName, isOwner, signedIn, signOut: signOutAccount } = usePlatformAccount();
   const product = productForPathname(pathname);
+  const worldsActive = currentPage(pathname, "/worlds/2026") || /^\/(it|es|de|ja|ko)\/worlds\/2026(?:\/|$)/.test(pathname);
 
   async function signOut() {
     await signOutAccount();
@@ -51,7 +52,7 @@ export default function SiteQuickLinks() {
           <a href="/tools/bracket-builder" aria-label="Bracket Studio" {...navState(pathname, "/tools/bracket-builder")}><span className="site-nav-label-wide">Bracket Studio</span><span className="site-nav-label-compact" aria-hidden="true">Brackets</span></a>
           <a href="/pokemon" aria-label="Pokémon" {...navState(pathname, "/pokemon")}><span className="site-nav-label-wide">Pokémon</span><span className="site-nav-label-compact" aria-hidden="true">Pokédex</span></a>
           <a href="/explore" aria-label="Community" {...navState(pathname, "/explore")}><span className="site-nav-label-wide">Community</span><span className="site-nav-label-compact" aria-hidden="true">Explore</span></a>
-          <a href="/tournaments/predictions" aria-label="Predictions" {...navState(pathname, "/tournaments/predictions")}><span className="site-nav-label-wide">Predictions</span><span className="site-nav-label-compact" aria-hidden="true">Picks</span></a>
+          <a className={`site-primary-worlds-link${worldsActive ? " is-active" : ""}`} href="/worlds/2026" aria-label="Worlds Predictions" aria-current={worldsActive ? "page" : undefined}><span className="site-nav-label-wide">🌎 Worlds Predictions</span><span className="site-nav-label-compact" aria-hidden="true">🌎 Worlds</span></a>
         </nav>
         <div className="site-global-account">
           {signedIn ? <>
@@ -67,7 +68,7 @@ export default function SiteQuickLinks() {
       </div>
     </header>
     <nav className={`site-quick-links${signedIn ? " has-tracker-link" : ""}${isOwner ? " has-owner-link" : ""}`} aria-label="Tools and resources">
-      <a className={`site-worlds-link${currentPage(pathname, "/worlds/2026") || /^\/(it|es|de|ja|ko)\/worlds\/2026(?:\/|$)/.test(pathname) ? " is-active" : ""}`} href="/worlds/2026" aria-label="Worlds Predictions"><span className="quick-label-wide">🌎 Worlds Predictions</span><span className="quick-label-compact">🌎 Worlds</span></a>
+      <a className={`site-worlds-link${worldsActive ? " is-active" : ""}`} href="/worlds/2026" aria-label="Worlds Predictions" aria-current={worldsActive ? "page" : undefined}><span className="quick-label-wide">🌎 Worlds Predictions</span><span className="quick-label-compact">🌎 Worlds</span></a>
       <a href="/resources/daily-games" aria-label="Daily Games" {...navState(pathname, "/resources/daily-games")}><span className="quick-label-wide">Daily Games</span><span className="quick-label-compact">Daily</span></a>
       <a href="/team-lab" aria-label="Team Lab" {...navState(pathname, "/team-lab")}><span className="quick-label-wide">Team Lab</span><span className="quick-label-compact">Lab</span></a>
       <a href="/nuzlocke" aria-label="Nuzlockes" {...navState(pathname, "/nuzlocke")}><span className="quick-label-wide">Nuzlockes</span><span className="quick-label-compact">Nuz</span></a>

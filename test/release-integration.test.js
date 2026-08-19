@@ -73,14 +73,18 @@ test("the Gen 5 schema gate supports official zero-based regional entries", () =
 test("integrated quick links expose each released feature once", () => {
   const links = source("src/components/SiteQuickLinks.jsx");
   const nuzlocke = source("src/components/NuzlockeLab.jsx");
-  for (const path of ["/team-lab", "/nuzlocke", "/tournaments", "/calendar", "/tournaments/predictions", "/trainer-dex", "/pokedex-tracker", "/operations"]) {
+  const predictionDirectory = source("src/app/tournaments/predictions/page.js");
+  for (const path of ["/team-lab", "/nuzlocke", "/tournaments", "/calendar", "/trainer-dex", "/pokedex-tracker", "/operations"]) {
     assert.equal((links.match(new RegExp(`href=\"${path}\"`, "g")) || []).length, 1);
   }
+  assert.equal((links.match(/href="\/worlds\/2026"/g) || []).length, 2);
+  assert.equal((links.match(/href="\/tournaments\/predictions"/g) || []).length, 0);
   assert.match(links, /href="\/nuzlocke"[^>]*>[\s\S]*?quick-label-wide">Nuzlockes<\/span>/);
   assert.match(links, /href="\/team-lab"[^>]*>[\s\S]*?quick-label-wide">Team Lab<\/span>/);
-  assert.match(links, /className="site-primary-links"[\s\S]*?href="\/tournaments\/predictions"[^>]*aria-label="Predictions"/);
-  assert.match(links, /site-nav-label-wide">Predictions<\/span>/);
+  assert.match(links, /className="site-primary-links"[\s\S]*?site-primary-worlds-link[\s\S]*?href="\/worlds\/2026"[^>]*aria-label="Worlds Predictions"/);
+  assert.match(links, /site-nav-label-wide">🌎 Worlds Predictions<\/span>/);
   assert.doesNotMatch(links.slice(links.indexOf('<nav className={`site-quick-links')), /href="\/tournaments\/predictions"/);
+  assert.match(predictionDirectory, /PredictionBracketDirectory/);
   assert.match(links, /href="\/operations\/predictions">Publish predictions/);
   assert.match(nuzlocke, />NUZLOCKE RUN TRACKER<\/span>/);
   assert.match(links, /signedIn && <a href="\/trainer-dex"[^>]*>[\s\S]*?quick-label-wide">Trainer Dex<\/span>/);
