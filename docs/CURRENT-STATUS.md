@@ -3,7 +3,7 @@
 - Last updated: August 18, 2026 Pacific
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified Production application and asset commit: `49d1398464e3590b69885b873cf5b9f09998bad0`
+- Verified Production application and asset commit: `a8d4776a67696ec0177a494fc11b302f81319bb2`
 - Latest applied Production migration: 439 (`20260818220437`)
 
 ## Deployed state
@@ -291,6 +291,28 @@ smoke sweep passed. Production endpoint checks confirmed reviewed-tournament
 ordering for Garchomp and Mega Raichu X, current Champions ordering for ladder
 Garchomp, and Electric Surge for Mega Raichu X.
 
+Pull request [#330](https://github.com/roblebaegaming/DraftCenter/pull/330)
+is released at exact application commit
+`a8d4776a67696ec0177a494fc11b302f81319bb2`. Battle Room now has a saved,
+optional **Auto-next** control. It advances to the next turn only after every
+currently eligible field Pokémon has a recorded move or switch. Ability and
+item reveals do not consume a Pokémon's action. A switch is credited to the
+Pokémon leaving the field, so its replacement is not incorrectly asked to act
+again that turn; pivot replacements finish before completion is evaluated.
+
+The existing **Next turn** control remains available for flinches, sleep,
+recharge, and other no-action cases the private notebook cannot infer. The
+turn header shows acted/eligible progress and explains that boundary. The
+preference persists inside the existing backward-compatible report JSON, so
+this release required no database migration or Production-data write.
+
+The focused four-Pokémon test covered reveals, two opponent moves, an outgoing
+manual switch, the last allied move, opt-in advancement, the disabled path,
+and fresh Turn 2 state. The full application suite, 1,027-row National Dex
+check, dependency audit, optimized 319-page build, protected checks, and two
+complete 22-check Production smoke sweeps passed. Vercel reported the exact
+merge commit Ready in Production. The short-lived release branch was deleted.
+
 Supabase automatic branching remains enabled with a one-concurrent-Preview
 limit and Supabase-only changes. Older Preview branches were left untouched.
 The automatic check on pull request #298 was canceled solely because that limit
@@ -311,8 +333,9 @@ not be resumed until the owner explicitly requests it.
 
 1. Use the August 19 filming session to judge real 45-second-turn speed and
    record any remaining tap-density or wording feedback without changing the
-   private report boundary. Confirm that the source-labeled tournament and
-   ladder suggestions reduce typing during a real match.
+   private report boundary. Test Auto-next both enabled and disabled, including
+   one manual no-action turn and one pivot move, and confirm that the
+   source-labeled tournament and ladder suggestions reduce typing.
 2. Show the completed private Tournament Organizer Demo and its four captures
    to the tournament operator; preserve the finished event until the owner
    explicitly asks to reset it.
@@ -349,6 +372,8 @@ August 19, 2026. Do not inspect or report individual identity or activity.
 
 ## Authoritative records
 
+- Current Battle Lab Auto-next handoff:
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-18-battle-lab-auto-next.md`](handoffs/DraftCenter-agent-handoff-2026-08-18-battle-lab-auto-next.md)
 - Current Battle Lab competitive-suggestions handoff:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-18-battle-lab-competitive-suggestions.md`](handoffs/DraftCenter-agent-handoff-2026-08-18-battle-lab-competitive-suggestions.md)
 - Previous Battle Lab rapid-actions handoff:
