@@ -5,6 +5,7 @@ import test from "node:test";
 import { claimedTeamCount, compactLocalTeamsClaimedFirst, openSetupTeams, teamIsClaimed } from "../src/lib/teamOwnership.js";
 
 const migration = readFileSync(new URL("../supabase/253-claimed-first-team-ownership-and-safe-resize.sql", import.meta.url), "utf8");
+const completedClaimMigration = readFileSync(new URL("../supabase/migrations/20260819090000_443_completed_draft_team_claims.sql", import.meta.url), "utf8");
 const leagueHub = readFileSync(new URL("../src/components/LeagueHub.jsx", import.meta.url), "utf8");
 const draftLeague = readFileSync(new URL("../src/components/PokemonDraftLeague.jsx", import.meta.url), "utf8");
 
@@ -45,4 +46,11 @@ test("hosted shrink is claimed-first, blocks human deletion, and remaps private 
   assert.match(migration, /set team_index = item\.team_index \+ 1000[\s\S]*set team_index = \(v_mapping/u);
   assert.match(migration, /revoke all on function public\.resize_pre_draft_league_bot_first[\s\S]*grant execute[\s\S]*to authenticated/u);
   assert.match(migration, /revoke all on function public\.compact_pre_draft_teams_claimed_first[\s\S]*from public, anon, authenticated/u);
+});
+
+test("completed draft claims preserve historical team indexes and remain tightly granted", () => {
+  assert.match(completedClaimMigration, /if not v_locked then[\s\S]*compact_pre_draft_teams_claimed_first/u);
+  assert.match(completedClaimMigration, /v_draft_complete[\s\S]*snakeOrder[\s\S]*pickIndex/u);
+  assert.match(completedClaimMigration, /Completed-draft claim|Claimed completed-draft team/u);
+  assert.match(completedClaimMigration, /revoke all[\s\S]*from public, anon, authenticated, service_role[\s\S]*grant execute[\s\S]*to authenticated, service_role/u);
 });

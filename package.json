@@ -18,7 +18,7 @@
     "test:performance": "node --test test/performance-remediation.test.js",
     "test:help-guides": "node --test test/help-guides.test.js",
     "test:operations-users": "node --test test/operations-user-count.test.js test/operations-league-insights.test.js test/league-pulse.test.js test/daily-editorial-calendar.test.js test/worlds-operations-entry-counts.test.js test/website-traffic-operations.test.js test/signup-attribution.test.js test/signup-attribution-operations.test.js test/operations-engagement.test.js",
-    "test:draft-experience": "node --test test/draft-experience.test.js test/commissioner-activation.test.js test/league-import.test.js test/showdown-replay.test.js",
+    "test:draft-experience": "node --test test/draft-experience.test.js test/commissioner-activation.test.js test/league-import.test.js test/league-results.test.js test/showdown-replay.test.js",
     "test:auction-reconciliation": "node --test test/auction-reconciliation.test.js",
     "draft-lab:build-catalog": "node scripts/build-draft-lab-catalog.mjs",
     "test:draft-lab": "node scripts/build-draft-lab-catalog.mjs --check && node --test test/team-analysis.test.js test/open-team-sheets.test.js",

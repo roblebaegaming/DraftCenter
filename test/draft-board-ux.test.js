@@ -19,6 +19,7 @@ test("sticky context derives the current, upcoming, and manager's next pick", ()
 test("manager labels distinguish people, durable claims, and bots", () => {
   assert.equal(draftManagerLabel({ claimedBy: "Bobby" }), "Bobby");
   assert.equal(draftManagerLabel({ claimedByUserId: "id" }), "Claimed manager");
+  assert.equal(draftManagerLabel({ expectedManager: "Historical Coach" }), "Historical Coach · unclaimed");
   assert.equal(draftManagerLabel({}), "BOT");
 });
 
@@ -33,4 +34,10 @@ test("draft board and roster grid identify the manager's team and usernames", ()
   assert.match(draftLeague, /YOU · [\s\S]*draftManagerLabel\(t\)/u);
   assert.match(draftLeague, /id=\{`draft-team-\$\{i\}`\}/u);
   assert.match(draftLeague, /isMine \? "#123238"/u);
+});
+
+test("real imported histories keep source managers visible without enabling synthetic results", () => {
+  assert.match(draftLeague, /Source manager:[\s\S]*expectedManager[\s\S]*unclaimed/u);
+  assert.match(draftLeague, /canSimulateBotMatches = hasBotTeams && !state\.sourceImport/u);
+  assert.match(draftLeague, /match simulation is disabled so source results cannot be replaced with synthetic games/u);
 });
