@@ -1595,25 +1595,42 @@ button.team-lab-field-slot.is-empty strong { font-size: 11px; }
 .team-lab-turn-timeline li>div:last-child { display: flex; gap: 2px; }
 .team-lab-turn-timeline li>div:last-child button { min-width: 44px; min-height: 44px; padding: 4px; color: #aeb9d9; border: 0; background: transparent; font-size: 9px; font-weight: 800; cursor: pointer; }
 .team-lab-turn-timeline li>div:last-child button:last-child { color: #f39a9e; }
-.team-lab-battle-columns { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 18px; padding: 22px; }
-.team-lab-battle-columns.is-my-team-only { grid-template-columns: 1fr; }
-.team-lab-battle-columns>section { min-width: 0; }
-.team-lab-battle-section-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 14px; margin-bottom: 10px; }
-.team-lab-battle-section-heading h3 { margin: 4px 0 0; color: #fff; font-size: 1.25rem; }
-.team-lab-battle-section-heading>span { color: #ffd23f; font-size: 10px; font-weight: 900; text-transform: uppercase; }
-.team-lab-battle-list { display: grid; gap: 9px; }
-.team-lab-battle-pokemon { min-width: 0; padding: 13px; border: 1px solid #323e60; border-radius: 12px; background: #10172b; }
-.team-lab-battle-pokemon.is-brought { border-color: rgba(79,209,197,.58); background: linear-gradient(135deg,#12263a,#10172b 56%); }
-.team-lab-battle-pokemon.is-fainted { border-color: rgba(240,85,90,.55); background: #271723; }
-.team-lab-battle-pokemon>header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.team-lab-battle-pokemon>header>div:first-child { display: grid; min-width: 0; gap: 2px; }
-.team-lab-battle-pokemon>header strong { overflow: hidden; color: #f3f5ff; font-size: 14px; text-overflow: ellipsis; white-space: nowrap; }
-.team-lab-battle-pokemon>header span { color: #8995b7; font-size: 9px; font-weight: 800; text-transform: uppercase; }
-.team-lab-battle-pokemon>header>div:last-child { display: flex; gap: 6px; }
-.team-lab-battle-own-set { display: grid; gap: 3px; margin-top: 9px; padding: 9px; border: 1px solid #4fd1c544; border-radius: 8px; background: #4fd1c50b; }
-.team-lab-battle-own-set span { color: #4fd1c5; font-size: 8px; font-weight: 900; text-transform: uppercase; }
-.team-lab-battle-own-set strong { font-size: 10px; white-space: normal; }
-.team-lab-battle-own-set small { color: #aab5d3; font-size: 9px; line-height: 1.45; }
+.team-lab-own-roster { margin: 16px 22px 0; border: 1px solid #354261; border-radius: 13px; background: #0d1427; overflow: hidden; }
+.team-lab-own-roster-heading { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 13px 15px; }
+.team-lab-own-roster-heading>div { min-width: 0; }
+.team-lab-own-roster-heading h3 { overflow: hidden; margin: 3px 0 2px; color: #fff; font-size: 1rem; text-overflow: ellipsis; white-space: nowrap; }
+.team-lab-own-roster-heading p { margin: 0; color: #99a5c5; font-size: 10px; }
+.team-lab-own-roster-heading>button { flex: 0 0 auto; min-height: 40px; padding: 8px 11px; color: #baf3ed; border: 1px solid #4fd1c566; border-radius: 8px; background: #4fd1c50d; font-size: 9px; font-weight: 900; cursor: pointer; }
+.team-lab-own-roster.is-expanded .team-lab-own-roster-heading { border-bottom: 1px solid #2d3958; }
+.team-lab-own-roster-body { display: grid; gap: 10px; padding: 12px 15px 14px; }
+.team-lab-own-roster-body>p { margin: 0; color: #8e9abc; font-size: 9px; line-height: 1.45; }
+.team-lab-own-roster-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 7px; }
+.team-lab-own-roster-grid article { display: grid; grid-template-columns: minmax(0,1fr) auto; min-width: 0; border: 1px solid #35415f; border-radius: 9px; background: #090f20; overflow: hidden; }
+.team-lab-own-roster-grid article.is-brought { border-color: #4fd1c566; background: #102334; }
+.team-lab-own-roster-grid article.is-out { border-color: #f0555a66; background: #241621; }
+.team-lab-own-roster-grid article.is-selected { outline: 2px solid #ffd23f88; outline-offset: 1px; }
+.team-lab-own-roster-name,.team-lab-own-roster-status { min-width: 0; min-height: 44px; border: 0; background: transparent; cursor: pointer; }
+.team-lab-own-roster-name { display: flex; align-items: center; justify-content: space-between; gap: 7px; padding: 8px 9px; text-align: left; }
+.team-lab-own-roster-name strong { overflow: hidden; color: #edf0ff; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+.team-lab-own-roster-name span { color: #7f8bad; font-size: 12px; }
+.team-lab-own-roster-status { min-width: 66px; padding: 7px 8px; color: #95a1c1; border-left: 1px solid #35415f; font-size: 8px; font-weight: 900; text-transform: uppercase; }
+.team-lab-own-roster-grid article.is-brought .team-lab-own-roster-status { color: #4fd1c5; }
+.team-lab-own-roster-grid article.is-out .team-lab-own-roster-status { color: #ff9ca1; }
+.team-lab-own-roster-status:disabled { cursor: default; opacity: 1; }
+.team-lab-own-roster-set { display: grid; gap: 5px; padding: 10px 11px; border: 1px solid #4fd1c544; border-radius: 9px; background: #4fd1c50b; }
+.team-lab-own-roster-set>div { display: flex; align-items: center; gap: 8px; }
+.team-lab-own-roster-set span { color: #4fd1c5; font-size: 8px; font-weight: 900; }
+.team-lab-own-roster-set strong { color: #fff; font-size: 11px; }
+.team-lab-own-roster-set p { margin: 0; color: #d7def4; font-size: 10px; line-height: 1.45; }
+.team-lab-own-roster-set small { color: #929ebe; font-size: 9px; line-height: 1.45; }
+@media(max-width:780px) { .team-lab-own-roster-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+@media(max-width:520px) {
+  .team-lab-own-roster { margin: 14px 14px 0; }
+  .team-lab-own-roster-heading { align-items: flex-start; padding: 12px; }
+  .team-lab-own-roster-heading h3 { white-space: normal; }
+  .team-lab-own-roster-body { padding: 11px 12px 12px; }
+  .team-lab-own-roster-grid { grid-template-columns: 1fr; }
+}
 .team-lab-battle-toggle { min-width: 62px; padding-inline: 8px; }
 .team-lab-battle-moves { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 6px; margin-top: 10px; }
 .team-lab-battle-moves>button { display: grid; min-width: 0; min-height: 48px; padding: 7px 9px; text-align: left; border: 1px solid #3b486c; border-radius: 8px; background: #0a1020; cursor: pointer; }

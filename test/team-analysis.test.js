@@ -1037,6 +1037,15 @@ test("Team Lab is indexable while account notes and matchups stay private", () =
   assert.match(component, /Four-slot doubles field/);
   assert.match(component, /Opponent’s field/);
   assert.match(component, /Your field/);
+  assert.match(component, /function OwnBattleRosterStrip/);
+  assert.match(component, /YOUR TEAM · \{roster\.length\} POKÉMON/);
+  assert.match(component, /Use the status button for Brought or Benched; mark Out from the active battle card/);
+  assert.match(component, /Edit complete sets in Build or My Teams/);
+  assert.match(component, /leadsSelected && !previousLeadsSelected\.current/);
+  assert.match(component, /setExpanded\(false\)/);
+  assert.doesNotMatch(component, /function BattlePokemonCard/);
+  assert.doesNotMatch(component, /team-lab-battle-columns is-my-team-only/);
+  assert.match(styles, /\.team-lab-own-roster-grid\s*\{[^}]*grid-template-columns:\s*repeat\(3,minmax\(0,1fr\)\)/);
   assert.match(component, /Tap a target, add damage if useful, then record/);
   assert.match(component, /1 · Pokémon selected/);
   assert.match(component, /\+ Move \{index \+ 1\}/);
@@ -1180,7 +1189,7 @@ test("Team Lab is indexable while account notes and matchups stay private", () =
   assert.match(styles, /\.team-lab-account input[^}]*min-height:\s*44px/);
   assert.match(styles, /\.team-lab-battle-toggle[^}]*min-height:\s*44px/);
   assert.match(styles, /\.team-lab-turn-stepper button[^}]*min-height:\s*44px/);
-  assert.match(styles, /@media\(max-width:780px\)[^}]*[\s\S]*?\.team-lab-battle-columns[^}]*grid-template-columns:\s*1fr/);
+  assert.match(styles, /@media\(max-width:520px\)[^}]*[\s\S]*?\.team-lab-own-roster-grid[^}]*grid-template-columns:\s*1fr/);
   assert.match(catalogBuilder, /readFileSync\(OUTPUT_PATH, "utf8"\)\.replace\(\/\\r\\n\/g, "\\n"\)/);
   assert.match(llms, /Team Lab Pokémon team builder and private Battle Room/);
   assert.match(sitemap, /\["\/team-lab", "weekly", 0\.9\]/);

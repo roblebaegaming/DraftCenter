@@ -182,34 +182,49 @@ function CoverageTable({ rows }) {
   </div>;
 }
 
-function BattlePokemonCard({ pokemon, opponent = false, scoutedSet = null, teamSet = null, battleMechanic = null, moveEditor, onMoveEditor, onChange }) {
-  const moves = opponent ? pokemon.moves || [] : [];
-  const editingThisPokemon = moveEditor?.pokemonName === pokemon.name;
-  return <article className={`team-lab-battle-pokemon${pokemon.brought ? " is-brought" : ""}${pokemon.fainted ? " is-fainted" : ""}`}>
-    <header><div><strong>{pokemon.name}</strong><span>{pokemon.fainted ? "Fainted" : pokemon.brought ? opponent ? "Seen in battle" : "Brought this week" : opponent ? "Not seen yet" : "Not marked as brought"}</span></div><div>
-      <button type="button" className="team-lab-battle-toggle" aria-pressed={pokemon.brought} onClick={() => onChange({ brought: !pokemon.brought })}>{opponent ? "Seen" : "Brought"}</button>
-      <button type="button" className="team-lab-battle-toggle danger" aria-pressed={pokemon.fainted} onClick={() => onChange({ fainted: !pokemon.fainted, brought: true })}>Fainted</button>
-    </div></header>
-    {opponent && scoutedSet && (scoutedSet.ability || scoutedSet.item || scoutedSet.moves?.length) && <div className="team-lab-battle-scouted-set"><div><span>Saved scouting</span><strong>{[scoutedSet.ability && `Ability: ${scoutedSet.ability}`, scoutedSet.item && `Item: ${scoutedSet.item}`, ...(scoutedSet.moves || [])].filter(Boolean).join(" · ")}</strong></div><button type="button" onClick={() => onChange({ ability: scoutedSet.ability || "", item: scoutedSet.item || "", moves: scoutedSet.moves || [], brought: true })}>Use in report</button></div>}
-    {!opponent && teamSet && hasTeamLabSetDetails(teamSet) && <div className="team-lab-battle-own-set"><span>Your saved set</span><strong>{[teamSet.item, teamSet.ability, teamSet.nature && `${teamSet.nature} nature`, battleMechanic?.id === "tera" && teamSet.tera_type && `Tera ${teamSet.tera_type}`].filter(Boolean).join(" · ") || "Set details saved"}</strong>{teamSet.moves?.length > 0 && <small>{teamSet.moves.join(" · ")}</small>}</div>}
-    {opponent && <div className="team-lab-battle-reveal-fields"><label>Ability<input maxLength={100} value={pokemon.ability || ""} onChange={(event) => onChange({ ability: event.target.value, brought: event.target.value.trim() ? true : pokemon.brought })} placeholder="Known, published, or revealed"/></label><label>Held item<input maxLength={TEAM_LAB_ITEM_LIMIT} value={pokemon.item || ""} onChange={(event) => onChange({ item: event.target.value, brought: event.target.value.trim() ? true : pokemon.brought })} placeholder="Known, published, or revealed"/></label></div>}
-    {opponent && <div className="team-lab-battle-moves" aria-label={`${pokemon.name} revealed moves`}>
-      {moves.map((move, index) => <button type="button" key={`${move}-${index}`} onClick={() => onMoveEditor({ pokemonName: pokemon.name, index, value: move })}><span>Move {index + 1}</span><strong>{move}</strong></button>)}
-      {moves.length < TEAM_LAB_BATTLE_MOVE_LIMIT && <button type="button" className="is-empty" onClick={() => onMoveEditor({ pokemonName: pokemon.name, index: moves.length, value: "" })}><span>Move {moves.length + 1}</span><strong>+ Add revealed move</strong></button>}
+function OwnBattleRosterStrip({ roster, teamSets, battleMechanic, activeSlots, currentGame, teamName, onChange }) {
+  const leadsSelected = activeSlots.filter(Boolean).length === 2;
+  const [expanded, setExpanded] = useState(!leadsSelected);
+  const [selectedName, setSelectedName] = useState("");
+  const previousLeadsSelected = useRef(leadsSelected);
+  const previousGame = useRef(currentGame);
+  const broughtCount = roster.filter((pokemon) => pokemon.brought && !pokemon.fainted).length;
+  const outCount = roster.filter((pokemon) => pokemon.fainted).length;
+  const benchedCount = Math.max(0, roster.length - broughtCount - outCount);
+  const selectedPokemon = roster.find((pokemon) => pokemon.name === selectedName);
+  const selectedSet = teamSets.find((pokemon) => pokemon.name === selectedName);
+
+  useEffect(() => {
+    if (previousGame.current !== currentGame) {
+      setExpanded(true);
+      setSelectedName("");
+    } else if (leadsSelected && !previousLeadsSelected.current) {
+      setExpanded(false);
+      setSelectedName("");
+    }
+    previousGame.current = currentGame;
+    previousLeadsSelected.current = leadsSelected;
+  }, [currentGame, leadsSelected]);
+
+  return <section className={`team-lab-own-roster${expanded ? " is-expanded" : ""}`} aria-labelledby="team-lab-my-team-title">
+    <header className="team-lab-own-roster-heading">
+      <div><span className="eyebrow">YOUR TEAM · {roster.length} POKÉMON</span><h3 id="team-lab-my-team-title">{teamName}</h3><p>{broughtCount} brought · {benchedCount} benched{outCount ? ` · ${outCount} out` : ""}</p></div>
+      <button type="button" aria-expanded={expanded} aria-controls="team-lab-own-roster-body" onClick={() => setExpanded((current) => !current)}>{expanded ? "Hide roster" : "Show roster"}</button>
+    </header>
+    {expanded && <div id="team-lab-own-roster-body" className="team-lab-own-roster-body">
+      <p>Tap a Pokémon for its saved set. Use the status button for Brought or Benched; mark Out from the active battle card.</p>
+      {roster.length ? <div className="team-lab-own-roster-grid">{roster.map((pokemon) => {
+        const active = activeSlots.includes(pokemon.name);
+        const status = pokemon.fainted ? "Out" : pokemon.brought ? "Brought" : "Benched";
+        const hasSavedSet = hasTeamLabSetDetails(teamSets.find((entry) => entry.name === pokemon.name));
+        return <article key={pokemon.name} className={`${pokemon.fainted ? " is-out" : pokemon.brought ? " is-brought" : " is-benched"}${selectedName === pokemon.name ? " is-selected" : ""}`}>
+          <button type="button" className="team-lab-own-roster-name" aria-expanded={selectedName === pokemon.name} onClick={() => setSelectedName((current) => current === pokemon.name ? "" : pokemon.name)}><strong>{pokemon.name}</strong><span aria-hidden="true">{hasSavedSet ? "⌄" : "·"}</span></button>
+          <button type="button" className="team-lab-own-roster-status" disabled={pokemon.fainted || active} aria-pressed={pokemon.brought} aria-label={pokemon.fainted ? `${pokemon.name} is out` : active ? `${pokemon.name} is active and brought` : `Mark ${pokemon.name} ${pokemon.brought ? "benched" : "brought"}`} title={pokemon.fainted ? "Mark Out from the active battle card." : active ? "Active Pokémon stay marked Brought." : `Tap to mark ${pokemon.brought ? "Benched" : "Brought"}.`} onClick={() => onChange(pokemon.name, { brought: !pokemon.brought })}>{status}</button>
+        </article>;
+      })}</div> : <p className="team-lab-matchup-empty">Add Pokémon to this My Teams workspace before opening Battle Mode.</p>}
+      {selectedPokemon && <div className="team-lab-own-roster-set" role="region" aria-label={`${selectedPokemon.name} saved set`}><div><span>SAVED SET</span><strong>{selectedPokemon.name}</strong></div>{selectedSet && hasTeamLabSetDetails(selectedSet) ? <><p>{[selectedSet.item, selectedSet.ability, selectedSet.nature && `${selectedSet.nature} nature`, battleMechanic?.id === "tera" && selectedSet.tera_type && `Tera ${selectedSet.tera_type}`].filter(Boolean).join(" · ") || "Set details saved"}</p>{selectedSet.moves?.length > 0 && <small>{selectedSet.moves.join(" · ")}</small>}</> : <p>No saved set details yet.</p>}<small>Edit complete sets in Build or My Teams.</small></div>}
     </div>}
-    {opponent && editingThisPokemon && <form className="team-lab-battle-move-editor" onSubmit={(event) => {
-      event.preventDefault();
-      const value = moveEditor.value.trim();
-      const nextMoves = [...moves];
-      if (value) nextMoves[moveEditor.index] = value;
-      else nextMoves.splice(moveEditor.index, 1);
-      onChange({ moves: [...new Map(nextMoves.filter(Boolean).map((move) => [move.toLowerCase(), move])).values()].slice(0, TEAM_LAB_BATTLE_MOVE_LIMIT), brought: value ? true : pokemon.brought });
-      onMoveEditor(null);
-    }}>
-      <label>Revealed move<input autoFocus maxLength={100} value={moveEditor.value} onChange={(event) => onMoveEditor({ ...moveEditor, value: event.target.value })} placeholder="Move used or shown on the sheet"/></label>
-      <div><button type="submit" className="secondary-button">{moveEditor.value.trim() ? "Save move" : "Remove move"}</button><button type="button" className="quiet-button" onClick={() => onMoveEditor(null)}>Cancel</button></div>
-    </form>}
-  </article>;
+  </section>;
 }
 
 function OpponentBattleRosterCard({ pokemon, selected, onSelect, onChange }) {
@@ -1209,13 +1224,11 @@ function BattleMode({ matchup, matchups, myTeam, formatName, supabase, onSaved, 
         <fieldset className="team-lab-opponent-picker" disabled={savingOpponent || opponentRosterNames.length >= TEAM_LAB_ROSTER_LIMIT}><PokemonPicker inputId={`team-lab-battle-opponent-${matchup.id}`} label={sheetMode === "closed" ? "Add a revealed opponent Pokémon" : "Add opponent Pokémon manually"} names={opponentRosterNames} limit={TEAM_LAB_ROSTER_LIMIT} allowedNames={new Set(REGULATION_SETS[matchup.format_id]?.legalNames || CATALOG_NAMES)} onChange={changeOpponentRoster} onMessage={setStatus} placeholder="Search their team…"/></fieldset>
         {opponentRosterNames.length ? <><div className="team-lab-opponent-battle-grid">{report.opponent_pokemon.map((pokemon) => <OpponentBattleRosterCard key={pokemon.name} pokemon={pokemon} selected={opponentDetailName === pokemon.name} onSelect={() => { setOpponentDetailName((current) => current === pokemon.name ? "" : pokemon.name); setMoveEditor(null); }} onChange={(changes) => updatePokemon("opponent_pokemon", pokemon.name, changes)}/>)}</div>{opponentDetailName && report.opponent_pokemon.find((pokemon) => pokemon.name === opponentDetailName) && <OpponentBattlePokemonDetails pokemon={report.opponent_pokemon.find((pokemon) => pokemon.name === opponentDetailName)} scoutedSet={opponentSets.pokemon.find((entry) => entry.name === opponentDetailName)} sheetMode={sheetMode} regulationId={matchup.format_id} battlePurpose={report.battle_context.purpose} moveEditor={moveEditor} onMoveEditor={setMoveEditor} onChange={(changes) => updatePokemon("opponent_pokemon", opponentDetailName, changes)} onRemove={removeOpponentPokemon} onClose={() => { setOpponentDetailName(""); setMoveEditor(null); }}/>}</> : <p className="team-lab-matchup-empty">No opponent Pokémon have been added. The recorder will stay unselected until you add or import their team.</p>}
       </section>
+      <OwnBattleRosterStrip roster={report.my_pokemon} teamSets={myTeamSets.pokemon} battleMechanic={battleMechanic} activeSlots={Array.isArray(report.turn_log.active_my_pokemon_slots) ? report.turn_log.active_my_pokemon_slots.slice(0, 2) : [report.turn_log.active_my_pokemon || "", ""]} currentGame={report.turn_log.current_game} teamName={myTeam.team_name} onChange={(name, changes) => updatePokemon("my_pokemon", name, changes)}/>
       <BattleSeriesTracker report={report} setReport={setReport} onStatus={setStatus}/>
       <BattleTurnRecorder report={report} setReport={setReport} sheetMode={sheetMode} matchup={{ ...matchup, pokemon: opponentRosterNames, opponent_sets: opponentSets }} myTeamSets={myTeamSets} battleMechanic={battleMechanic} teamName={myTeam.team_name} leagueName={myTeam.league_name} formatName={formatName} weekLabel={weekLabel} onStatus={setStatus}/>
       <BattleStateTracker report={report} setReport={setReport} formatId={matchup.format_id} onStatus={setStatus}/>
       <BattleDamageEstimator/>
-      <div className="team-lab-battle-columns is-my-team-only">
-        <section aria-labelledby="team-lab-my-team-title"><div className="team-lab-battle-section-heading"><div><span className="eyebrow">YOUR WEEKLY TEAM</span><h3 id="team-lab-my-team-title">{myTeam.team_name}</h3></div><span>{report.my_pokemon.filter((pokemon) => pokemon.brought).length} brought</span></div><div className="team-lab-battle-list">{report.my_pokemon.map((pokemon) => <BattlePokemonCard key={pokemon.name} pokemon={pokemon} teamSet={myTeamSets.pokemon.find((entry) => entry.name === pokemon.name)} battleMechanic={battleMechanic} onChange={(changes) => updatePokemon("my_pokemon", pokemon.name, changes)}/>)}</div>{!report.my_pokemon.length && <p className="team-lab-matchup-empty">Add Pokémon to this My Teams workspace before opening Battle Mode.</p>}</section>
-      </div>
       <label className="team-lab-battle-notes">Battle notes<textarea maxLength={TEAM_LAB_BATTLE_NOTE_LIMIT} rows={5} value={report.battle_notes} onChange={(event) => { setReport((current) => ({ ...current, battle_notes: event.target.value })); setStatus(""); }} placeholder="Leads, switches, revealed tech, game-to-game adjustments…"/><span>{report.battle_notes.length.toLocaleString()} / {TEAM_LAB_BATTLE_NOTE_LIMIT.toLocaleString()}</span></label>
       <footer className="team-lab-battle-footer"><p>Only you can access this notebook. The weekly-team copy excludes every opponent observation. The battle recap includes structured reveals, but neither share action includes private notes or account details.</p>{status && <strong role="status">{status}</strong>}</footer>
       {seriesSummary.complete && <div className="team-lab-next-match-dock"><div><span>Match complete</span><strong>{seriesSummary.wins}–{seriesSummary.losses}{seriesSummary.ties ? `–${seriesSummary.ties}` : ""}</strong></div><button type="button" className="primary-button" disabled={saving || startingNext} onClick={startNextMatch}>{startingNext ? "Opening next match…" : dirty ? "Save & start next match" : "Start next match"}</button></div>}
