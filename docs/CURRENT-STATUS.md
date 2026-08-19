@@ -3,16 +3,17 @@
 - Last updated: August 19, 2026 Pacific
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified Production application behavior commit: `99795121c5d2f88fd0c15061deccfb9334977bf5`
-- Latest applied Production migration: 443 (`20260819090000`)
+- Verified Production application behavior commit: `2ab51fbdddf0c0b40eb56e9a2f70ee62b0f45338`
+- Latest applied Production migration: 450 (`20260819222800`)
 
-## In development — not released
+## Latest release
 
-Pull request [#349](https://github.com/roblebaegaming/DraftCenter/pull/349) on
-`codex/participant-retirement-20260819` contains midseason participant
-retirement and tournament-drop support plus a tournament operator-workflow
-follow-up, flexible private practice fields, and 4–32 entrant snake Draft
-Tournaments. Operator mode also has a dedicated Event Management panel with
+Pull request [#349](https://github.com/roblebaegaming/DraftCenter/pull/349)
+released at exact application behavior commit `2ab51fb` with midseason
+participant retirement and tournament-drop support plus a tournament
+operator-workflow follow-up, flexible private practice fields, and 4–32 entrant
+snake Draft Tournaments. Operator mode also has a dedicated Event Management
+panel with
 separate archive and permanent-delete choices. Forward migrations
 `20260819185347_participant_retirement_and_tournament_drops.sql` and
 `20260819194237_tournament_operator_workflow.sql` plus
@@ -64,7 +65,14 @@ page successfully. Signed-in Operator/Participant review passed on desktop and
 at 390 x 844 without horizontal overflow. The owner-approved private
 `Preview Operator Rehearsal - Aug 19` contains one account and 31 synthetic bot
 entrants; the preserved showcase and every pre-existing tournament remained
-unchanged. Nothing from this pull request is deployed or applied to Production.
+unchanged. Production applied migrations 444-450, Vercel reported the exact
+merge commit Ready, all post-merge security checks passed, and the complete
+22-check signed-out Production smoke sweep passed. A read-only live check then
+confirmed Operator/Participant separation, Regulation M-B, the visible next
+action, and the corrected `1 real / 31 practice / 32 total` field projection at
+desktop and phone widths without horizontal overflow. The post-migration
+advisor review returned no error-level or migration-specific performance
+finding.
 
 ## Deployed state
 
