@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "../../../../lib/supabase/admin";
-import { buildCommissionerInactivityReminder, commissionerInactivityEligibility } from "../../../../lib/commissionerInactivityReminder";
+import { buildCommissionerInactivityReminder, commissionerInactivityDedupeKey, commissionerInactivityEligibility } from "../../../../lib/commissionerInactivityReminder";
 import { routeNotificationDispatch } from "../../../../lib/notificationDispatchAuth";
 import { consumeUserRateLimit } from "../../../../lib/apiRateLimit";
 import { safeFailure, safeStoredFailure } from "../../../../lib/apiSecurity";
@@ -83,6 +83,7 @@ async function deliverEmail(event, supabase) {
       leagueName: current.league.name,
       leagueSlug: current.league.slug,
       commissionerName: event.payload?.commissioner_name,
+      reminderStage: event.payload?.reminder_stage,
     });
     await sendResendEmail({ to: userResult.user.email, subject: reminder.subject, html: reminder.html });
     return { delivered: true };
@@ -413,18 +414,27 @@ async function draftNotificationIsStale(event, supabase, now = new Date()) {
 
 async function commissionerInactivityReminderState(event, supabase, now = new Date()) {
   if (!event.league_id || !event.user_id) return { stale: true };
-  const [leagueResult, snapshotResult, membershipsResult, invitesResult, sessionsResult] = await Promise.all([
+  const [leagueResult, snapshotResult, membershipsResult, invitesResult, sessionsResult, reminderEventsResult] = await Promise.all([
     supabase.from("leagues").select("id,name,slug,status,created_at,is_practice,draft_starts_at").eq("id", event.league_id).maybeSingle(),
     supabase.from("league_state_snapshots").select("revision,state").eq("league_id", event.league_id).maybeSingle(),
     supabase.from("league_memberships").select("user_id,role").eq("league_id", event.league_id),
     supabase.from("league_invites").select("id", { count: "exact", head: true }).eq("league_id", event.league_id),
     supabase.from("draft_sessions").select("id", { count: "exact", head: true }).eq("league_id", event.league_id),
+    supabase.from("notification_events").select("dedupe_key,payload").eq("league_id", event.league_id).eq("kind", "commissioner_inactivity_reminder"),
   ]);
-  const queryError = leagueResult.error || snapshotResult.error || membershipsResult.error || invitesResult.error || sessionsResult.error;
+  const queryError = leagueResult.error || snapshotResult.error || membershipsResult.error || invitesResult.error || sessionsResult.error || reminderEventsResult.error;
   if (queryError) throw queryError;
   if (!leagueResult.data || !snapshotResult.data) return { stale: true };
 
   const memberships = membershipsResult.data || [];
+  const reminderStage = event.payload?.reminder_stage;
+  if (!["initial", "follow_up"].includes(reminderStage)) return { stale: true };
+  if (event.dedupe_key !== commissionerInactivityDedupeKey(reminderStage, event.league_id)) return { stale: true };
+  if (reminderStage === "follow_up") {
+    const initial = (reminderEventsResult.data || []).find((candidate) => candidate.dedupe_key === commissionerInactivityDedupeKey("initial", event.league_id));
+    const initialSentAt = Date.parse(initial?.payload?.delivered_at || "");
+    if (!Number.isFinite(initialSentAt) || now.getTime() - initialSentAt < 30 * 24 * 60 * 60 * 1000) return { stale: true };
+  }
   const commissioner = memberships.find((membership) => membership.role === "commissioner");
   if (!commissioner || commissioner.user_id !== event.user_id) return { stale: true };
   const league = {
@@ -438,7 +448,6 @@ async function commissionerInactivityReminderState(event, supabase, now = new Da
     inviteCount: invitesResult.count || 0,
     hasDraftSession: Number(sessionsResult.count) > 0,
     now: now.getTime(),
-    maximumAgeDays: 9,
   });
   return { stale: !eligibility.eligible, league };
 }
@@ -474,7 +483,10 @@ async function dispatchDueEvents(includeDailyThree = false, leagueId = null) {
           skipped += 1;
           continue;
         }
-        const { data: completed, error: completeError } = await supabase.rpc("complete_notification_event", {
+        const completionFunction = event.kind === "commissioner_inactivity_reminder" && result.delivered
+          ? "complete_commissioner_inactivity_reminder"
+          : "complete_notification_event";
+        const { data: completed, error: completeError } = await supabase.rpc(completionFunction, {
           p_event_id: event.id,
           p_claim_token: claimToken,
         });

@@ -25,7 +25,6 @@ export async function GET(request) {
     const candidates = (overview.leagues || []).filter((league) =>
       league.commissioner_reminder
       && league.commissioner_reminder.ageDays >= 7
-      && league.commissioner_reminder.ageDays < 9
       && league.commissioner_user_id
     );
     let queued = 0;
@@ -40,6 +39,7 @@ export async function GET(request) {
           league_name: league.name,
           league_slug: league.slug,
           commissioner_name: league.commissioner,
+          reminder_stage: league.commissioner_reminder.reminderStage,
         },
       });
       if (error) failed += 1;

@@ -28,20 +28,23 @@ Do not expose `DRAFTCENTER_OWNER_EMAILS` through a `NEXT_PUBLIC_*` variable.
 - The operations digest runs daily at 14:30 UTC and sends only when a real
   league has at least one attention signal.
 
-### Seven-day commissioner check-in
+### Commissioner inactivity check-ins
 
-Operations marks a non-practice league as ready for a check-in from day 7
-through day 29 only when it remains in setup with exactly one commissioner, no
-saved setup beyond the automatic initial snapshot, no invite, no added member,
-no draft date, and no draft session. The owner can review and copy the complete
+Operations marks a non-practice league as ready for its first check-in after
+day 7 only when it remains in setup with exactly one commissioner, no saved
+setup beyond the automatic initial snapshot, no invite, no added member, no
+draft date, and no draft session. The owner can review and copy the complete
 subject and message; that manual action never sends an email or reveals the
 commissioner's email address.
 
-Migration 440 adds a service-only, deduplicated queue function. The daily job
-queues only leagues on day 7 or 8, and the notification worker rechecks every
-eligibility signal immediately before delivery. The message automatically uses
-the commissioner's display name, the current league name, and the direct league
-link. Practice leagues and leagues with any qualifying activity fail closed.
+Migration 441 adds service-only queue and confirmed-delivery functions. The
+daily job catches up any untouched league older than seven days, queues one
+final follow-up 30 days after the first email was actually delivered, and then
+stops permanently for that league. The notification worker rechecks every
+eligibility signal immediately before delivery. Both messages automatically
+use the commissioner's display name, the current league name, and the direct
+league link. Practice leagues and leagues with any qualifying activity fail
+closed.
 `COMMISSIONER_INACTIVITY_REMINDERS_ENABLED` is the server-only kill switch;
 unless it is exactly `true`, the daily queue and delivery path remain inert.
 
@@ -71,7 +74,9 @@ auction; a commissioner must review and resume it deliberately.
   saved activity;
 - failed notification deliveries;
 - no saved activity for ten days in a live season phase;
-- a seven-day untouched setup whose commissioner check-in is ready;
+- an untouched setup whose seven-day commissioner check-in or one final
+  follow-up is ready. The follow-up becomes eligible 30 days after the first
+  email is delivered, and no third reminder is sent;
 - no recorded commissioner backup, or none in the last 30 days.
 
 League Operations also shows privacy-safe operational errors for the last 30

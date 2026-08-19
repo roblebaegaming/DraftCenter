@@ -1,6 +1,7 @@
--- Queue the one-time commissioner setup check-in without exposing the
--- notification ledger to browsers. Queueing is limited to day 7 or 8, and the
--- worker rechecks every activity signal immediately before delivery.
+-- Queue at most two commissioner setup check-ins without exposing the
+-- notification ledger to browsers. The first is due after seven inactive days;
+-- the final follow-up is due 30 days after the first email is delivered. The
+-- worker rechecks every activity signal immediately before each delivery.
 
 begin;
 
@@ -24,6 +25,8 @@ set search_path = public
 as $$
 declare
   v_rows integer;
+  v_stage text;
+  v_initial_sent_at timestamptz;
 begin
   if p_league_id is null or p_user_id is null then
     raise exception 'A league and commissioner are required.';
@@ -45,7 +48,6 @@ begin
       and nullif(snapshot.state #>> '{settings,draftScheduledAt}', '') is null
       and snapshot.revision <= 1
       and league.created_at <= now() - interval '7 days'
-      and league.created_at > now() - interval '9 days'
       and (
         select count(*)
         from public.league_memberships active_membership
@@ -64,6 +66,26 @@ begin
     return false;
   end if;
 
+  select (event.payload ->> 'delivered_at')::timestamptz
+  into v_initial_sent_at
+  from public.notification_events event
+  where event.dedupe_key = 'commissioner-inactivity:initial:' || p_league_id::text
+  limit 1;
+
+  if not found then
+    v_stage := 'initial';
+  elsif v_initial_sent_at is not null
+    and v_initial_sent_at <= now() - interval '30 days'
+    and not exists (
+      select 1
+      from public.notification_events follow_up
+      where follow_up.dedupe_key = 'commissioner-inactivity:follow-up:' || p_league_id::text
+    ) then
+    v_stage := 'follow_up';
+  else
+    return false;
+  end if;
+
   insert into public.notification_events (
     league_id,
     user_id,
@@ -78,9 +100,9 @@ begin
     p_user_id,
     'commissioner_inactivity_reminder',
     'email',
-    'commissioner-inactivity:' || p_league_id::text,
+    'commissioner-inactivity:' || case when v_stage = 'follow_up' then 'follow-up' else 'initial' end || ':' || p_league_id::text,
     now(),
-    coalesce(p_payload, '{}'::jsonb)
+    coalesce(p_payload, '{}'::jsonb) || jsonb_build_object('reminder_stage', v_stage)
   )
   on conflict (dedupe_key) do nothing;
 
@@ -89,9 +111,40 @@ begin
 end;
 $$;
 
+create or replace function public.complete_commissioner_inactivity_reminder(
+  p_event_id uuid,
+  p_claim_token uuid
+)
+returns boolean
+language plpgsql
+security invoker
+set search_path = public
+as $$
+begin
+  update public.notification_events
+  set sent_at = now(),
+      payload = jsonb_set(coalesce(payload, '{}'::jsonb), '{delivered_at}', to_jsonb(now()), true),
+      claimed_at = null,
+      claim_token = null,
+      next_attempt_at = null,
+      last_error = null
+  where id = p_event_id
+    and kind = 'commissioner_inactivity_reminder'
+    and claim_token = p_claim_token
+    and sent_at is null
+    and failed_at is null;
+
+  return found;
+end;
+$$;
+
 revoke all on function public.queue_commissioner_inactivity_reminder(uuid, uuid, jsonb)
   from public, anon, authenticated;
 grant execute on function public.queue_commissioner_inactivity_reminder(uuid, uuid, jsonb)
+  to service_role;
+revoke all on function public.complete_commissioner_inactivity_reminder(uuid, uuid)
+  from public, anon, authenticated;
+grant execute on function public.complete_commissioner_inactivity_reminder(uuid, uuid)
   to service_role;
 
 commit;

@@ -1,7 +1,7 @@
 import { createAdminClient } from "./supabase/admin";
 import { bearerToken } from "./apiSecurity";
 import { summarizeAuthUsers } from "./authUserTotals";
-import { buildCommissionerInactivityReminder, commissionerInactivityEligibility } from "./commissionerInactivityReminder";
+import { buildCommissionerInactivityReminder, commissionerInactivityEligibility, commissionerInactivityReminderStage } from "./commissionerInactivityReminder";
 import { draftParticipantLabel, summarizeDraftParticipants } from "./draftParticipants";
 import { countLeagueResults, summarizeLeaguePulse } from "./leaguePulse";
 import { leagueOperationsMetadata, summarizeLeagueOperations } from "./operationsLeagueInsights";
@@ -35,7 +35,7 @@ function isExpectedOperationalRejection(event) {
 
 export async function getOperationsOverview(supabase, viewerUserId = null, { includeRecipientIds = false } = {}) {
   const now = Date.now();
-  const [leaguesResult, snapshotsResult, membershipsResult, invitesResult, profilesResult, snakeResult, auctionResult, backupResult, recoveryResult, failedResult, discordResult, supportResult, requestsResult, healthResult, sessionsResult, lifecycleEventsResult] = await Promise.all([
+  const [leaguesResult, snapshotsResult, membershipsResult, invitesResult, profilesResult, snakeResult, auctionResult, backupResult, recoveryResult, failedResult, reminderEventsResult, discordResult, supportResult, requestsResult, healthResult, sessionsResult, lifecycleEventsResult] = await Promise.all([
     supabase.from("leagues").select("id,name,slug,status,created_at,updated_at,created_by,is_practice,league_visibility,draft_starts_at,season_label").order("created_at", { ascending: false }),
     supabase.from("league_state_snapshots").select("league_id,state,updated_at,revision"),
     supabase.from("league_memberships").select("league_id,user_id,role"),
@@ -46,6 +46,7 @@ export async function getOperationsOverview(supabase, viewerUserId = null, { inc
     supabase.from("league_backup_events").select("league_id,backup_type,created_at").order("created_at", { ascending: false }),
     supabase.from("league_recovery_snapshots").select("league_id,source,created_at").order("created_at", { ascending: false }),
     supabase.from("notification_events").select("league_id,kind,channel,attempt_count,last_error,failed_at,created_at").not("failed_at", "is", null).order("failed_at", { ascending: false }).limit(200),
+    supabase.from("notification_events").select("league_id,dedupe_key,payload").eq("kind", "commissioner_inactivity_reminder"),
     supabase.from("league_discord_settings").select("league_id,enabled,channel_id,updated_at"),
     supabase.from("league_support_grants").select("id,league_id,permission,expires_at,revoked_at,created_at").eq("support_user_id", viewerUserId || "00000000-0000-0000-0000-000000000000").is("revoked_at", null).gt("expires_at", new Date().toISOString()),
     supabase.from("league_support_requests").select("id,league_id,requested_by,category,message,page_path,diagnostics_included,diagnostic_context,status,owner_notified_at,notification_error,created_at").in("status", ["open", "in_progress"]).order("created_at", { ascending: false }).limit(100),
@@ -53,8 +54,8 @@ export async function getOperationsOverview(supabase, viewerUserId = null, { inc
     supabase.from("draft_sessions").select("id,league_id,mode,status,current_pick_number,created_at,updated_at").order("created_at", { ascending: false }),
     supabase.from("league_events").select("league_id,kind,payload,created_at").in("kind", ["draft_paused", "draft_resumed"]).order("created_at", { ascending: false }).limit(500),
   ]);
-  if (leaguesResult.error || snapshotsResult.error || membershipsResult.error || invitesResult.error || profilesResult.error || sessionsResult.error) {
-    throw leaguesResult.error || snapshotsResult.error || membershipsResult.error || invitesResult.error || profilesResult.error || sessionsResult.error;
+  if (leaguesResult.error || snapshotsResult.error || membershipsResult.error || invitesResult.error || profilesResult.error || reminderEventsResult.error || sessionsResult.error) {
+    throw leaguesResult.error || snapshotsResult.error || membershipsResult.error || invitesResult.error || profilesResult.error || reminderEventsResult.error || sessionsResult.error;
   }
   if (backupResult.error) throw backupResult.error;
   if (recoveryResult.error) throw recoveryResult.error;
@@ -71,6 +72,7 @@ export async function getOperationsOverview(supabase, viewerUserId = null, { inc
   const systemFailuresByLeague = new Map(); for (const row of healthResult.data || []) if (!isExpectedOperationalRejection(row) && row.league_id) systemFailuresByLeague.set(row.league_id, (systemFailuresByLeague.get(row.league_id) || 0) + 1);
   const membersByLeague = new Map(); for (const row of membershipsResult.data || []) { const rows = membersByLeague.get(row.league_id) || []; rows.push(row); membersByLeague.set(row.league_id, rows); }
   const inviteCountByLeague = new Map(); for (const row of invitesResult.data || []) inviteCountByLeague.set(row.league_id, (inviteCountByLeague.get(row.league_id) || 0) + 1);
+  const reminderEventsByLeague = new Map(); for (const row of reminderEventsResult.data || []) { const rows = reminderEventsByLeague.get(row.league_id) || []; rows.push(row); reminderEventsByLeague.set(row.league_id, rows); }
   const latestSessionByLeague = new Map(); for (const row of sessionsResult.data || []) if (!latestSessionByLeague.has(row.league_id)) latestSessionByLeague.set(row.league_id, row);
   const latestLifecycleEventByLeague = new Map(); for (const row of lifecycleEventsResult.data || []) if (!latestLifecycleEventByLeague.has(row.league_id)) latestLifecycleEventByLeague.set(row.league_id, row);
 
@@ -84,7 +86,8 @@ export async function getOperationsOverview(supabase, viewerUserId = null, { inc
     const idleDays = (now - Date.parse(lastActivity)) / 86400000; const warnings = [];
     const reminderLeague = { ...league, draft_starts_at: league.draft_starts_at || state?.settings?.draftScheduledAt || null };
     const reminderEligibility = commissionerInactivityEligibility({ league: reminderLeague, snapshotRevision: snapshot?.revision || 0, activeMemberCount: members.filter((member) => ["commissioner", "co_commissioner", "coach"].includes(member.role)).length, inviteCount: inviteCountByLeague.get(league.id) || 0, hasDraftSession: Boolean(session), now });
-    const commissionerReminder = reminderEligibility.eligible ? { ...reminderEligibility, ...buildCommissionerInactivityReminder({ leagueName: league.name, leagueSlug: league.slug, commissionerName: profile?.display_name || profile?.username || "there" }) } : null;
+    const reminderStage = reminderEligibility.eligible ? commissionerInactivityReminderStage({ events: reminderEventsByLeague.get(league.id) || [], leagueId: league.id, now }) : null;
+    const commissionerReminder = reminderStage ? { ...reminderEligibility, ...buildCommissionerInactivityReminder({ leagueName: league.name, leagueSlug: league.slug, commissionerName: profile?.display_name || profile?.username || "there", reminderStage }) } : null;
     if (!league.is_practice && leagueSize > 0 && claimed < leagueSize) warnings.push(warning("unclaimed_teams", hoursToDraft != null && hoursToDraft <= 48 ? "high" : "medium", `${leagueSize - claimed} of ${leagueSize} teams remain unclaimed.`));
     if (!league.is_practice && hoursToDraft != null && hoursToDraft >= 0 && hoursToDraft <= 48 && (!job || !["scheduled", "starting", "started"].includes(job.status))) warnings.push(warning("draft_not_ready", "high", "Draft is within 48 hours but automatic start is not ready."));
     const harmlessDuplicateStart = job?.status === "failed"
@@ -95,7 +98,7 @@ export async function getOperationsOverview(supabase, viewerUserId = null, { inc
     if (stalledAuction) warnings.push(stalledAuction);
     const failedNotifications = failedByLeague.get(league.id) || 0; if (failedNotifications) warnings.push(warning("notifications_failed", "high", `${failedNotifications} notification delivery failure${failedNotifications === 1 ? "" : "s"} need review.`));
     if (!league.is_practice && !["setup", "completed", "archived"].includes(String(league.status)) && idleDays >= 10) warnings.push(warning("inactive", "medium", `No saved league activity for ${Math.floor(idleDays)} days.`));
-    if (commissionerReminder) warnings.push(warning("commissioner_check_in_ready", "medium", "The seven-day commissioner check-in is ready; no setup save, invite, member, draft date, or draft session has been recorded."));
+    if (commissionerReminder) warnings.push(warning("commissioner_check_in_ready", "medium", commissionerReminder.reminderStage === "follow_up" ? "The final commissioner follow-up is ready; the league remains untouched 30 days after the first reminder." : "The seven-day commissioner check-in is ready; no setup save, invite, member, draft date, or draft session has been recorded."));
     else if (!league.is_practice && String(league.status) === "setup" && idleDays >= 3 && claimed <= 1) warnings.push(warning("setup_stalled", "medium", `Setup has not progressed for ${Math.floor(idleDays)} days and ${leagueSize - claimed} team${leagueSize - claimed === 1 ? " remains" : "s remain"} unclaimed.`));
     if (!league.is_practice && (!Number.isFinite(lastBackupMs) || now - lastBackupMs > 30 * 86400000)) warnings.push(warning("backup_overdue", "low", backup ? "No recorded recovery backup in the last 30 days." : "No recovery backup has been recorded."));
     const supportGrant = support.get(league.id);
