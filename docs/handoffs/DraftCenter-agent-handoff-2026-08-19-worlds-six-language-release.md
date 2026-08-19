@@ -2,8 +2,9 @@
 
 - Date: August 19, 2026 Pacific
 - Production: https://www.draftcentral.gg
-- Pull request: [#350](https://github.com/roblebaegaming/DraftCenter/pull/350)
-- Production application commit: `fd5a2e48a1d45507608af8839d05657ada9472cb`
+- Multilingual release pull request: [#350](https://github.com/roblebaegaming/DraftCenter/pull/350)
+- Primary-navigation follow-up: [#352](https://github.com/roblebaegaming/DraftCenter/pull/352)
+- Production application commit: `99795121c5d2f88fd0c15061deccfb9334977bf5`
 - Database migration: none; Production remains on migration 443
 
 ## Released outcome
@@ -48,6 +49,31 @@ region, qualification-path, metadata, social-image, sitemap, and `llms.txt`
 infrastructure. Every localized page publishes the complete six-route
 `hreflang` set and points back to the English source work in structured data.
 
+## Primary navigation follow-up
+
+Pull request #352 temporarily replaced the primary **Predictions** item and its
+phone-width **Picks** label with a highlighted **🌎 Worlds Predictions** item;
+at phone width its compact label is **🌎 Worlds**. It links directly to
+`/worlds/2026`, uses the active state on English and all five localized Worlds
+routes, and leaves the existing large highlighted Worlds quick-bar button in
+place.
+
+This is a reversible navigation change. The generic
+`/tournaments/predictions` directory, its dynamic event and public-entry
+routes, the owner publishing surface, and all existing bracket data remain in
+the application. Restore the generic navigation item after Worlds when past
+tournament brackets are reviewed and ready for the directory; do not recreate
+or migrate the route.
+
+The follow-up passed the dependency audit, complete application suite, 1,027-row
+National Dex check, 335-route Production build, all protected pull-request and
+post-merge security checks, hosted desktop and 390×844 review, and the complete
+22-check signed-out Production smoke sweep. The phone primary button measured
+66 px wide, the retained quick-bar Worlds button measured 347 px wide, neither
+layout overflowed, and the live primary button opened `/worlds/2026` with both
+Worlds controls active and no browser console error. Vercel reported exact
+Production commit `99795121` Ready.
+
 ## Safety and privacy boundary
 
 This was an application-only release. It did not add or run a database
@@ -91,6 +117,11 @@ one route, a complete copy object, the language registry entry, localized
 metadata/social image, sitemap and discovery entries, and the existing shared
 competition regression coverage; it does not need a new competition or
 database migration.
+
+Keep the primary navigation focused on Worlds through this event. After Worlds,
+restore the generic Predictions link only when reviewed historical brackets
+are present; the preserved `/tournaments/predictions` route is the intended
+return path.
 
 The German, Japanese, and Korean text is an initial product translation. A
 native-language editorial review is recommended before paid promotion or
