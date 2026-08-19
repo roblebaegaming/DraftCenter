@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useId, useMemo, useState } from "react";
-import { loadTeamLabBattleSuggestions, prioritizeTeamLabSuggestions } from "../lib/teamLabBattleSuggestions";
+import { loadTeamLabBattleSuggestionData, prioritizeTeamLabSuggestions } from "../lib/teamLabBattleSuggestions";
 
 export default function TeamLabBattleAutocomplete({
   kind,
   pokemonName = "",
   regulationId = "",
+  battlePurpose = "",
   preferred = [],
   value,
   onChange,
@@ -18,6 +19,7 @@ export default function TeamLabBattleAutocomplete({
 }) {
   const id = useId().replace(/:/g, "");
   const [loaded, setLoaded] = useState([]);
+  const [source, setSource] = useState(null);
   const preferredKey = preferred.filter(Boolean).join("\u0001");
   const preferredValues = useMemo(() => preferredKey ? preferredKey.split("\u0001") : [], [preferredKey]);
   const suggestions = useMemo(() => prioritizeTeamLabSuggestions(preferredValues, loaded), [preferredValues, loaded]);
@@ -31,15 +33,22 @@ export default function TeamLabBattleAutocomplete({
     let cancelled = false;
     if ((kind === "move" || kind === "ability") && !pokemonName) {
       setLoaded([]);
+      setSource(null);
       return undefined;
     }
-    loadTeamLabBattleSuggestions(kind, pokemonName, regulationId).then((values) => {
-      if (!cancelled) setLoaded(values);
+    loadTeamLabBattleSuggestionData(kind, pokemonName, regulationId, battlePurpose).then((result) => {
+      if (!cancelled) {
+        setLoaded(result.values);
+        setSource(result.source);
+      }
     }).catch(() => {
-      if (!cancelled) setLoaded([]);
+      if (!cancelled) {
+        setLoaded([]);
+        setSource(null);
+      }
     });
     return () => { cancelled = true; };
-  }, [kind, pokemonName, regulationId]);
+  }, [battlePurpose, kind, pokemonName, regulationId]);
 
   return <>
     <input
@@ -54,5 +63,6 @@ export default function TeamLabBattleAutocomplete({
       placeholder={placeholder}
     />
     {visibleSuggestions.length > 0 && <datalist id={`${id}-${kind}`}>{visibleSuggestions.map((suggestion) => <option key={suggestion} value={suggestion}/>)}</datalist>}
+    {source && <small className="team-lab-competitive-suggestion-source">Suggested first from <a href={source.url} target="_blank" rel="noreferrer">{source.label}</a>{source.sample_size ? ` · ${source.sample_size} ${pokemonName} team sheet${source.sample_size === 1 ? "" : "s"}` : ""}.</small>}
   </>;
 }

@@ -16,7 +16,7 @@ const sections = [
     ["Smogon Draft League forum", "Draft formats, resources, tournaments, and discussion.", "https://www.smogon.com/forums/forums/draft-league.738/", "/resource-sites/smogon.ico", "Smogon logo"],
     ["Victory Road", "VGC event coverage, teams, results, and resources.", "https://victoryroad.pro/", "/resource-sites/victory-road.png", "Victory Road logo"],
     ["LabMaus", "VGC results, usage data, teams, and player records.", "https://labmaus.net/", "/resource-sites/labmaus.png", "LabMaus logo"],
-    ["MunchStats", "Explore Pokémon Showdown usage and moveset statistics.", "https://munchstats.com/", "/resource-sites/munchstats.png", "MunchStats logo"],
+    ["MunchStats", "Compare Champions in-game, Showdown ladder, and open-tournament usage, moves, items, and teams.", "https://munchstats.com/", "/resource-sites/munchstats.png", "MunchStats logo"],
   ]],
 ];
 

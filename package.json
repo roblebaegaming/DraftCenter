@@ -34,6 +34,8 @@
     "competitive:import:smogon": "node scripts/import-smogon-usage.mjs",
     "competitive:build:migration": "node scripts/build-competitive-data-migration.mjs",
     "competitive:import:tournaments": "node scripts/import-limitless-vgc-tournaments.mjs",
+    "competitive:build:team-lab-suggestions": "node scripts/build-team-lab-tournament-suggestions.mjs --input data/competitive/tournaments/limitless-vgc-2026-08-reg-mb.json --output data/competitive/tournaments/limitless-vgc-2026-08-reg-mb-team-lab-suggestions.json",
+    "competitive:check:team-lab-suggestions": "node scripts/build-team-lab-tournament-suggestions.mjs --input data/competitive/tournaments/limitless-vgc-2026-08-reg-mb.json --output data/competitive/tournaments/limitless-vgc-2026-08-reg-mb-team-lab-suggestions.json --check",
     "competitive:build:tournament-migration": "node scripts/build-competitive-tournament-migration.mjs",
     "worlds:build:go-qualified": "node scripts/build-worlds-go-qualified-pool.mjs",
     "worlds:build:vgc-meta": "node scripts/build-worlds-vgc-meta-options.mjs",

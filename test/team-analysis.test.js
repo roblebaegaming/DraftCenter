@@ -69,7 +69,7 @@ import {
 } from "../src/lib/teamLabSets.js";
 import { calculateTeamLabDamageEstimate } from "../src/lib/teamLabDamage.js";
 import { teamLabMoveReference, teamLabMoveSourceForRegulation } from "../src/lib/teamLabMoveSuggestions.js";
-import { loadTeamLabAbilitySuggestions, loadTeamLabItemSuggestions, prioritizeTeamLabSuggestions } from "../src/lib/teamLabBattleSuggestions.js";
+import { loadTeamLabAbilitySuggestions, loadTeamLabItemSuggestions, loadTeamLabMeasuredSuggestions, prioritizeTeamLabSuggestions } from "../src/lib/teamLabBattleSuggestions.js";
 import { readTeamLabPokePasteResponse } from "../src/lib/teamLabPokePaste.js";
 
 const roster = [
@@ -533,6 +533,20 @@ test("battle autocomplete prioritizes saved details and keeps exact ability and 
     json: async () => ({ results: [{ name: "choice-scarf" }, { name: "punching-glove" }] }),
   }));
   assert.ok(itemSuggestions.indexOf("Choice Scarf") < itemSuggestions.indexOf("Punching Glove"));
+
+  const measured = await loadTeamLabMeasuredSuggestions("Test Garchomp", "reg-mb", "tournament", async (url) => {
+    assert.match(url, /purpose=tournament/);
+    return {
+      ok: true,
+      json: async () => ({ moves: ["Dragon Claw"], items: ["Life Orb"], abilities: ["Rough Skin"], source: { id: "limitless-open-team-sheets" } }),
+    };
+  });
+  assert.deepEqual(measured.moves, ["Dragon Claw"]);
+  assert.equal(measured.source.id, "limitless-open-team-sheets");
+  let unsupportedFetches = 0;
+  const unsupported = await loadTeamLabMeasuredSuggestions("Garchomp", "reg-ma", "tournament", async () => { unsupportedFetches += 1; });
+  assert.deepEqual(unsupported, { moves: [], abilities: [], items: [], source: null });
+  assert.equal(unsupportedFetches, 0);
 });
 
 test("rapid battle actions preserve switch pairs, pivot detection, timed effects, and per-game CSV data", () => {
@@ -958,6 +972,7 @@ test("Team Lab is indexable while account notes and matchups stay private", () =
   assert.match(reports, /By battle type/);
   assert.match(reports, /Open or continue in Battle Mode/);
   assert.match(component, /Battle type<select/);
+  assert.match(component, /battlePurpose=\{report\.battle_context\.purpose\}/);
   assert.match(component, /Session or event<input/);
   assert.doesNotMatch(component, /p_mode: "ladder"/);
   assert.match(component, /Recovered your locally autosaved battle after reload/);
@@ -987,6 +1002,8 @@ test("Team Lab is indexable while account notes and matchups stay private", () =
   assert.match(component, /Sheet moves — tap one/);
   assert.match(component, /\[\["move", "Move"\], \["ability", "Ability"\], \["item", "Item"\]/);
   assert.match(component, /Type it the first time it is revealed/);
+  assert.match(battleAutocomplete, /Suggested first from/);
+  assert.match(battleAutocomplete, /source\.sample_size/);
   assert.match(component, /Damage dealt/);
   assert.match(component, /editingEventId \? "Save action changes" : `Record \$\{actionKind\}`/);
   assert.match(component, /Undo last action/);
