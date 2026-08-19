@@ -3,7 +3,7 @@
 - Last updated: August 18, 2026 Pacific
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified Production application and asset commit: `ca1dd680552da833260e1ae60b79903f8ecc1f08`
+- Verified Production application and asset commit: `1c6be25f1b163d305a2efd2e84991ef998ee2fff`
 - Latest applied Production migration: 440 (`20260819013208`)
 
 ## Deployed state
@@ -346,6 +346,24 @@ organizer sandbox, highlighted Swiss cut, auction prices, live quarterfinals,
 and completed final. The complete 22-check Production smoke sweep passed and
 Vercel reported the feature commit Ready.
 
+Pull request [#335](https://github.com/roblebaegaming/DraftCenter/pull/335)
+is released at exact application commit
+`1c6be25f1b163d305a2efd2e84991ef998ee2fff`. Battle Room replaced the six
+permanently expanded own-team cards with one compact six-Pokémon roster strip.
+Each row shows only the Pokémon name and **Brought**, **Benched**, or **Out**;
+tapping a name reveals one read-only saved set, while complete editing remains
+in Build and My Teams. Out status remains controlled from the active field
+cards, and the strip automatically collapses after both leads are selected.
+
+This application-only release changed no database schema, Production row, RLS
+policy, grant, provider setting, secret, or environment variable. The complete
+application suite, 1,027-row National Dex check, dependency audit, 319-page
+production build, protected checks, hosted Preview review, and complete
+22-check Production smoke sweep passed. A signed-in read-only Production check
+at 390 px confirmed the existing six-Pokémon team as four brought and two
+benched, verified the collapsed and expanded states plus Garchomp's saved set,
+and found no horizontal overflow or console error.
+
 Supabase automatic branching remains enabled with a one-concurrent-Preview
 limit and Supabase-only changes. Older Preview branches were left untouched.
 The automatic check on pull request #298 was canceled solely because that limit
@@ -366,9 +384,11 @@ not be resumed until the owner explicitly requests it.
 
 1. Use the August 19 filming session to judge real 45-second-turn speed and
    record any remaining tap-density or wording feedback without changing the
-   private report boundary. Test Auto-next both enabled and disabled, including
-   one manual no-action turn and one pivot move, and confirm that the
-   source-labeled tournament and ladder suggestions reduce typing.
+   private report boundary. Confirm the compact roster closes after lead
+   selection, reopens for quick bench/set reference, and keeps Out handling on
+   the active cards. Test Auto-next both enabled and disabled, including one
+   manual no-action turn and one pivot move, and confirm that the source-labeled
+   tournament and ladder suggestions reduce typing.
 2. Show the completed private Tournament Organizer Demo and its five current
    captures to the tournament operator; preserve the finished event until the
    owner explicitly asks to reset it.
@@ -405,6 +425,8 @@ August 19, 2026. Do not inspect or report individual identity or activity.
 
 ## Authoritative records
 
+- Current Battle Lab compact-roster handoff:
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-18-battle-lab-compact-roster.md`](handoffs/DraftCenter-agent-handoff-2026-08-18-battle-lab-compact-roster.md)
 - Current Regulation M-B Tournament Organizer Demo handoff:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-18-tournament-demo-regulation-mb-top-cut.md`](handoffs/DraftCenter-agent-handoff-2026-08-18-tournament-demo-regulation-mb-top-cut.md)
 - Current Battle Lab Auto-next handoff:
