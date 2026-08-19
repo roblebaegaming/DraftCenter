@@ -6,6 +6,8 @@ import { safeHttpsImageSource } from "../lib/imageSecurity";
 import { loadPokemonArtwork } from "../lib/pokemonArtwork";
 import { tournamentError } from "../lib/tournamentErrors";
 import { tournamentEntrantStatusLabel } from "../lib/participantStatus";
+import { tournamentOperationRpcArguments } from "../lib/draftTournament";
+import { REGULATION_GROUPS, REGULATION_METADATA, regulationLabelFor } from "../lib/regulation-catalog";
 
 const MATCH_PAGE_SIZE = 64;
 const ENTRANT_PAGE_SIZE = 64;
@@ -22,6 +24,28 @@ const formatLabel = (format, competitionFormat = null) => format === "draft-tour
         ? "Draft + Swiss"
         : "Draft Tournament"
   : format === "double-elimination" ? "Double elimination" : format === "swiss" ? "Swiss" : "Single elimination";
+
+function dateTimeLocalValue(value) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
+  return local.toISOString().slice(0, 16);
+}
+
+function eventTimeLabel(value, emptyLabel = "Not scheduled") {
+  if (!value) return emptyLabel;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return emptyLabel;
+  return new Intl.DateTimeFormat(undefined, {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZoneName: "short",
+  }).format(date);
+}
 
 function tournamentRoundLabel(stage, round, matchCount, finalRound) {
   if (stage === "swiss") return `Swiss Round ${round}`;
@@ -140,7 +164,7 @@ function TournamentMatchRoster({ entrant, roster }) {
   );
 }
 
-function MatchCard({ match, entrants, rostersByEntrant, seedOverrides, submission, canReport, isOwner, onRefresh, onRequestForfeit, supabase, requestConfirmation }) {
+function MatchCard({ match, entrants, rostersByEntrant, seedOverrides, showSeedLabels = false, submission, canReport, isOwner, onRefresh, onRequestForfeit, supabase, requestConfirmation }) {
   const [scoreA, setScoreA] = useState(match.games_a ?? "");
   const [scoreB, setScoreB] = useState(match.games_b ?? "");
   const [replay, setReplay] = useState(match.replay_urls?.[0] || "");
@@ -305,7 +329,7 @@ function MatchCard({ match, entrants, rostersByEntrant, seedOverrides, submissio
         <span>{statusLabel(match.status)}</span>
       </header>
       <div className={`tournament-match-side ${match.winner_id === a?.id ? "winner" : ""}`}>
-        <span>{a ? `#${seedA}` : "-"}</span>
+        <span aria-label={showSeedLabels && a ? `Seed ${seedA}` : undefined}>{showSeedLabels ? (a ? `#${seedA}` : "-") : ""}</span>
         <div className="tournament-match-entrant">
           <strong>{a?.display_name || "TBD"}</strong>
           <TournamentMatchRoster entrant={a} roster={a ? rostersByEntrant?.get(a.id) : null} />
@@ -313,7 +337,7 @@ function MatchCard({ match, entrants, rostersByEntrant, seedOverrides, submissio
         {match.games_a != null && <b>{match.games_a}</b>}
       </div>
       <div className={`tournament-match-side ${match.winner_id === b?.id ? "winner" : ""}`}>
-        <span>{b ? `#${seedB}` : "-"}</span>
+        <span aria-label={showSeedLabels && b ? `Seed ${seedB}` : undefined}>{showSeedLabels ? (b ? `#${seedB}` : "-") : ""}</span>
         <div className="tournament-match-entrant">
           <strong>{b?.display_name || "TBD"}</strong>
           <TournamentMatchRoster entrant={b} roster={b ? rostersByEntrant?.get(b.id) : null} />
@@ -397,6 +421,13 @@ export default function TournamentWorkspace({ slug }) {
   const [replacementLink, setReplacementLink] = useState("");
   const [recoveryEffectiveRound, setRecoveryEffectiveRound] = useState("0");
   const [recoveryPolicy, setRecoveryPolicy] = useState("left-unplayed");
+  const [viewMode, setViewMode] = useState("operator");
+  const [operationDraft, setOperationDraft] = useState({
+    regulationId: "reg-mb",
+    registrationClosesAt: "",
+    checkInOpensAt: "",
+    startsAt: "",
+  });
 
   async function load(options = {}) {
     const requestedRound = options.roundKey ?? selectedRound;
@@ -421,6 +452,15 @@ export default function TournamentWorkspace({ slug }) {
     if (!data) {
       setMessage("This tournament is private or unavailable.");
       setWorkspace(null);
+      return false;
+    }
+    const operationResult = await supabase.rpc("get_tournament_operation_details", {
+      p_tournament_id: data.tournament.id,
+      p_access_code: inviteCode,
+    });
+    if (operationResult.error && operationResult.error.code !== "PGRST202") {
+      setMessage(tournamentError(operationResult.error));
+      setWorkspace(data);
       return false;
     }
     let draftTournament = null;
@@ -451,6 +491,12 @@ export default function TournamentWorkspace({ slug }) {
     if (pageStage && pageRound) setSelectedRound(`${pageStage}:${pageRound}`);
     setWorkspace({
       ...data,
+      operation: operationResult.data || {
+        regulation_id: "reg-mb",
+        registration_closes_at: null,
+        check_in_opens_at: null,
+        starts_at: null,
+      },
       connected_championship: connectedResult.data || null,
       draft_tournament: draftTournament,
     });
@@ -490,6 +536,17 @@ export default function TournamentWorkspace({ slug }) {
     });
     load();
   }, [supabase, slug, inviteCode, inviteReady]);
+
+  useEffect(() => {
+    const operation = workspace?.operation;
+    if (!operation) return;
+    setOperationDraft({
+      regulationId: operation.regulation_id || "reg-mb",
+      registrationClosesAt: dateTimeLocalValue(operation.registration_closes_at),
+      checkInOpensAt: dateTimeLocalValue(operation.check_in_opens_at),
+      startsAt: dateTimeLocalValue(operation.starts_at),
+    });
+  }, [workspace?.operation]);
 
   const entrants = useMemo(() => new Map((workspace?.entrants || []).map((entrant) => [entrant.id, entrant])), [workspace]);
   const tournamentRostersByEntrant = useMemo(() => new Map(
@@ -599,40 +656,10 @@ export default function TournamentWorkspace({ slug }) {
     setBusy(false);
   }
 
-  async function seed(entrant, value) {
-    if (!value) return;
-    setBusy(true);
-    const { error } = await supabase.rpc("set_tournament_seed", {
-      p_tournament_id: workspace.tournament.id,
-      p_entrant_id: entrant.id,
-      p_seed: Number(value),
-    });
-    setBusy(false);
-    if (error) return setMessage(tournamentError(error));
-    await load();
-  }
-
-  async function shuffleSeeds() {
-    setBusy(true);
-    setMessage("");
-    const { error } = await supabase.rpc("randomize_tournament_seeds", {
-      p_tournament_id: workspace.tournament.id,
-      p_random_key: crypto.randomUUID(),
-    });
-    setBusy(false);
-    if (error) {
-      setMessage(tournamentError(error));
-      return false;
-    }
-    await load();
-    return true;
-  }
-
   async function lock() {
     setBusy(true);
     setMessage("");
-    const rpc = workspace.tournament.format === "double-elimination" ? "lock_double_elimination_tournament" : "lock_single_elimination_tournament";
-    const { error } = await supabase.rpc(rpc, { p_tournament_id: workspace.tournament.id });
+    const { error } = await supabase.rpc("start_tournament_with_random_draw", { p_tournament_id: workspace.tournament.id });
     setBusy(false);
     if (error) {
       setMessage(tournamentError(error));
@@ -699,7 +726,7 @@ export default function TournamentWorkspace({ slug }) {
       confirmLabel: "Lock field",
       workingLabel: "Creating draft room...",
       tone: "danger",
-      onConfirm: () => runDraftTournamentAction(isAuction ? "lock_auction_draft_tournament_field" : "lock_draft_tournament_field", {
+      onConfirm: () => runDraftTournamentAction("lock_draft_tournament_field_with_draw", {
         p_tournament_id: workspace.tournament.id,
         p_expected_revision: workspace.draft_tournament.event.revision,
       }),
@@ -945,6 +972,29 @@ export default function TournamentWorkspace({ slug }) {
     return true;
   }
 
+  async function saveOperationDetails(event) {
+    event.preventDefault();
+    setBusy(true);
+    setMessage("");
+    let arguments_;
+    try {
+      arguments_ = tournamentOperationRpcArguments(operationDraft);
+    } catch (error) {
+      setBusy(false);
+      setMessage(error.message);
+      return;
+    }
+    const { error } = await supabase.rpc("update_tournament_operation_details", {
+      p_tournament_id: workspace.tournament.id,
+      p_expected_revision: workspace.tournament.revision,
+      ...arguments_,
+    });
+    setBusy(false);
+    if (error) return setMessage(tournamentError(error));
+    setMessage("Regulation and event times saved.");
+    await load();
+  }
+
   async function replaceEntrant() {
     setBusy(true);
     setMessage("");
@@ -993,24 +1043,14 @@ export default function TournamentWorkspace({ slug }) {
     });
   }
 
-  function requestShuffle() {
-    setConfirmation({
-      title: "Shuffle every seed?",
-      description: "Every registered entrant will receive a new deterministic seed order. You can still adjust individual seeds before locking the bracket.",
-      confirmLabel: "Shuffle seeds",
-      workingLabel: "Shuffling...",
-      onConfirm: shuffleSeeds,
-    });
-  }
-
   function requestLock() {
     const doubleElimination = workspace.tournament.format === "double-elimination";
     setConfirmation({
       title: "Lock registration and build the bracket?",
       description: doubleElimination
-        ? "Entrants cannot join after this point. Current seeds will create permanent winners and losers brackets, a Grand Final, and a conditional bracket-reset match."
-        : "Entrants cannot join after this point. Current seeds will create the permanent single-elimination bracket.",
-      confirmLabel: "Lock & build bracket",
+        ? "Entrants cannot join after this point. A random draw will create permanent winners and losers brackets, a Grand Final, and a conditional bracket-reset match."
+        : "Entrants cannot join after this point. A random draw will create the permanent single-elimination bracket.",
+      confirmLabel: "Start & draw bracket",
       workingLabel: "Building bracket...",
       tone: "danger",
       onConfirm: lock,
@@ -1113,6 +1153,57 @@ export default function TournamentWorkspace({ slug }) {
       && registeredEntrants.length === 1
       && me,
   );
+  const isOperatorMode = Boolean(tournament.is_owner && viewMode === "operator");
+  const operation = workspace.operation || {};
+  const checkedInCount = Number(draftTournament?.check_in?.checked_in_count || 0);
+  const minimumEntrants = tournament.format === "draft-tournament" || tournament.format === "double-elimination" ? 4 : 2;
+  const registrationShortfall = Math.max(0, minimumEntrants - registeredEntrants.length);
+  const checkInShortfall = Math.max(0, 4 - checkedInCount);
+  let nextOperatorAction = null;
+  if (tournament.status === "registration" && tournament.format === "draft-tournament" && draftEvent?.phase === "registration") {
+    nextOperatorAction = {
+      label: "Open participant check-in",
+      detail: registrationShortfall ? `${registrationShortfall} more ${registrationShortfall === 1 ? "entrant is" : "entrants are"} needed first.` : "Registration stays visible while confirmed participants check in.",
+      disabled: registrationShortfall > 0,
+      onClick: requestOpenDraftCheckIn,
+    };
+  } else if (tournament.status === "registration" && tournament.format === "draft-tournament" && draftEvent?.phase === "check-in") {
+    nextOperatorAction = {
+      label: "Lock field & create draft board",
+      detail: checkInShortfall ? `${checkInShortfall} more checked-in ${checkInShortfall === 1 ? "participant is" : "participants are"} needed first.` : "Unchecked registrations become no-shows and the shared draft room is created.",
+      disabled: checkInShortfall > 0,
+      onClick: requestLockDraftField,
+    };
+  } else if (tournament.status === "registration" && tournament.format !== "draft-tournament") {
+    nextOperatorAction = {
+      label: "Start tournament & draw bracket",
+      detail: registrationShortfall ? `${registrationShortfall} more ${registrationShortfall === 1 ? "entrant is" : "entrants are"} needed first.` : "Registration closes and DraftCenter creates a random opening bracket. Competitive placement comes from results.",
+      disabled: registrationShortfall > 0,
+      onClick: requestLock,
+    };
+  } else if (draftTournament?.draft_room?.slug && ["draft-setup", "drafting"].includes(draftEvent?.phase)) {
+    nextOperatorAction = { label: "Open live draft board", detail: "Run the shared draft, queues, clocks, and roster progress in the draft room.", href: `/?league=${encodeURIComponent(draftTournament.draft_room.slug)}` };
+  } else if (draftEvent?.phase === "roster-review") {
+    nextOperatorAction = { label: usesDraftFirstBracket ? "Lock rosters & build bracket" : "Lock rosters & pair Swiss Round 1", detail: "Verify every drafted roster, then begin tournament play.", onClick: requestLockDraftRosters };
+  } else if (draftEvent?.phase === "swiss" && currentDraftRound?.status === "complete" && draftEvent.current_swiss_round < draftEvent.swiss_round_count) {
+    nextOperatorAction = { label: `Pair Swiss Round ${draftEvent.current_swiss_round + 1}`, detail: "The next round is paired from confirmed standings and prior opponents.", onClick: requestNextSwissRound };
+  } else if (draftEvent?.phase === "swiss-complete") {
+    nextOperatorAction = { label: draftEvent.top_cut_size ? `Start Top ${draftEvent.top_cut_size}` : "Complete tournament", detail: "Final standings now determine playoff qualification and placement.", onClick: requestStartTopCut };
+  } else if (tournament.status === "active") {
+    nextOperatorAction = { label: "Review live matches", detail: "Report, confirm, or correct results in the active round below.", href: "#tournament-bracket-heading" };
+  }
+
+  const participantNext = !hasTournamentIdentity && tournament.status === "registration"
+    ? "Register below to join this event."
+    : draftEvent?.phase === "check-in" && me && !draftTournament?.check_in?.my_checked_in_at
+      ? "Check in below so the operator can include you in the field."
+      : draftTournament?.draft_room?.slug && ["draft-setup", "drafting", "roster-review"].includes(draftEvent?.phase)
+        ? "Open the draft board for your queue, picks, budget, and roster."
+        : tournament.status === "active"
+          ? "Find your current match below and report the result when it is complete."
+          : tournament.status === "complete"
+            ? "The event is complete. Final standings and results remain available below."
+            : "Event details and the participant list are available below.";
   return (
     <main className={`tournament-shell ${tournament.format === "draft-tournament" ? "is-draft-tournament" : ""}`}>
       <ConfirmationDialog request={confirmation} onDismiss={() => setConfirmation(null)} />
@@ -1125,16 +1216,77 @@ export default function TournamentWorkspace({ slug }) {
         <div>
           <span>Best of {tournament.best_of}</span>
           <span>{registeredEntrants.length} / {tournament.entrant_limit} active entrants</span>
-          {draftEvent && <span>{draftEvent.roster_size} Pokémon &middot; {isDemo ? "Regulation M-B · " : ""}{tournamentDraftType === "auction" ? `${draftEvent.draft_budget}-point budget · ${draftEvent.auction_timer_seconds}s opening bid` : draftEvent.pick_time_limit_minutes ? `${draftEvent.pick_time_limit_minutes} min/pick` : "No pick clock"} &middot; {usesDraftFirstBracket ? `${formatLabel(competitionFormat)} bracket` : draftEvent.swiss_round_count ? `${draftEvent.swiss_round_count} Swiss rounds${draftEvent.top_cut_size ? ` · Top ${draftEvent.top_cut_size}` : ""}` : "Swiss rounds set at field lock"}</span>}
-          {tournament.is_owner && !isDemo && tournament.visibility === "private" && tournament.status === "registration" && (
+          <span>{regulationLabelFor(operation.regulation_id)}</span>
+          {draftEvent && <span>{draftEvent.roster_size} Pokémon &middot; {tournamentDraftType === "auction" ? `${draftEvent.draft_budget}-point budget · ${draftEvent.auction_timer_seconds}s opening bid` : draftEvent.pick_time_limit_minutes ? `${draftEvent.pick_time_limit_minutes} min/pick` : "No pick clock"} &middot; {usesDraftFirstBracket ? `${formatLabel(competitionFormat)} bracket` : draftEvent.swiss_round_count ? `${draftEvent.swiss_round_count} Swiss rounds${draftEvent.top_cut_size ? ` · Top ${draftEvent.top_cut_size}` : ""}` : "Swiss rounds set at field lock"}</span>}
+          {isOperatorMode && !isDemo && tournament.visibility === "private" && tournament.status === "registration" && (
             <button type="button" className="quiet-button" disabled={busy} onClick={copyInvite}>{inviteCode ? "Copy private registration link" : "Create private registration link"}</button>
           )}
-          {tournament.is_owner && ["registration", "complete"].includes(tournament.status) && (
+          {isOperatorMode && ["registration", "complete"].includes(tournament.status) && (
             <button type="button" className="quiet-button" disabled={busy} onClick={requestArchive}>Archive</button>
           )}
         </div>
       </header>
       {message && <p className="hub-message" role="status" aria-live="polite">{message}</p>}
+
+      <section className={`tournament-mode-bar ${isOperatorMode ? "is-operator" : "is-participant"}`} aria-labelledby="tournament-mode-heading">
+        <div>
+          <span className="eyebrow">{isOperatorMode ? "TOURNAMENT OPERATOR" : "PARTICIPANT VIEW"}</span>
+          <h2 id="tournament-mode-heading">{isOperatorMode ? "Run the event" : "Play in the event"}</h2>
+          <p>{isOperatorMode ? "Operational controls are visible. Participants never see these controls or private recovery reasons." : participantNext}</p>
+        </div>
+        {tournament.is_owner && <div className="tournament-mode-switch" role="tablist" aria-label="Tournament view">
+          <button type="button" role="tab" aria-selected={isOperatorMode} className={isOperatorMode ? "is-selected" : ""} onClick={() => setViewMode("operator")}>Operator mode</button>
+          <button type="button" role="tab" aria-selected={!isOperatorMode} className={!isOperatorMode ? "is-selected" : ""} onClick={() => setViewMode("participant")}>Participant view</button>
+        </div>}
+        {!tournament.is_owner && <span className="tournament-role-badge">Participant</span>}
+      </section>
+
+      <section className="tournament-panel tournament-event-plan" aria-labelledby="tournament-event-plan-heading">
+        <div className="section-heading"><div><span className="eyebrow">EVENT PLAN</span><h2 id="tournament-event-plan-heading">Regulation &amp; schedule</h2></div><strong>{regulationLabelFor(operation.regulation_id)}</strong></div>
+        <div className="tournament-timeline">
+          <article><span>1</span><div><strong>Registration closes</strong><p>{eventTimeLabel(operation.registration_closes_at)}</p></div></article>
+          {tournament.format === "draft-tournament" && <article><span>2</span><div><strong>Check-in opens</strong><p>{eventTimeLabel(operation.check_in_opens_at)}</p></div></article>}
+          <article><span>{tournament.format === "draft-tournament" ? "3" : "2"}</span><div><strong>Tournament starts</strong><p>{eventTimeLabel(operation.starts_at)}</p></div></article>
+        </div>
+      </section>
+
+      {isOperatorMode && <section className="tournament-panel tournament-operator-center" aria-labelledby="tournament-operator-heading">
+        <div className="section-heading">
+          <div><span className="eyebrow">OPERATOR CONTROL CENTER</span><h2 id="tournament-operator-heading">What happens next</h2></div>
+          <span className="tournament-stage-badge">Current stage: {draftEvent ? statusLabel(draftEvent.phase) : statusLabel(tournament.status)}</span>
+        </div>
+        {nextOperatorAction ? <div className="tournament-next-action">
+          <div><strong>{nextOperatorAction.label}</strong><p>{nextOperatorAction.detail}</p></div>
+          {nextOperatorAction.href
+            ? <a className="primary-button inline-link-button" href={nextOperatorAction.href}>{nextOperatorAction.label}</a>
+            : <button type="button" className="primary-button" disabled={busy || nextOperatorAction.disabled} onClick={nextOperatorAction.onClick}>{nextOperatorAction.label}</button>}
+        </div> : <p className="muted">No operator action is required at this stage. Results and preserved history remain available below.</p>}
+        {canEnableDemo && <button type="button" className="secondary-button" disabled={busy} onClick={requestEnableTournamentDemo}>Build 32-seat organizer demo</button>}
+        {tournament.status === "registration" && !isDemo && <details className="tournament-operation-editor">
+          <summary>Edit regulation &amp; event times</summary>
+          <form className="form-stack" onSubmit={saveOperationDetails}>
+            <label>Regulation
+              <select value={operationDraft.regulationId} onChange={(event) => setOperationDraft({ ...operationDraft, regulationId: event.target.value })}>
+                {REGULATION_GROUPS.map((group) => {
+                  const options = Object.values(REGULATION_METADATA).filter((regulation) => regulation.gameId === group.id).sort((left, right) => left.order - right.order || left.label.localeCompare(right.label));
+                  return options.length ? <optgroup key={group.id} label={group.label}>{options.map((regulation) => <option key={regulation.id} value={regulation.id}>{regulation.label}{regulation.current ? " · Current" : ""}</option>)}</optgroup> : null;
+                })}
+              </select>
+            </label>
+            <div className="tournament-form-pair tournament-schedule-fields">
+              <label>Registration closes<input type="datetime-local" value={operationDraft.registrationClosesAt} onChange={(event) => setOperationDraft({ ...operationDraft, registrationClosesAt: event.target.value })} /></label>
+              <label>Check-in opens<input type="datetime-local" value={operationDraft.checkInOpensAt} onChange={(event) => setOperationDraft({ ...operationDraft, checkInOpensAt: event.target.value })} /></label>
+              <label>Tournament starts<input type="datetime-local" value={operationDraft.startsAt} onChange={(event) => setOperationDraft({ ...operationDraft, startsAt: event.target.value })} /></label>
+            </div>
+            <button className="secondary-button" disabled={busy}>{busy ? "Saving…" : "Save event plan"}</button>
+          </form>
+        </details>}
+      </section>}
+
+      {!isOperatorMode && draftTournament?.draft_room?.slug && <section className="tournament-panel tournament-participant-action" aria-labelledby="participant-draft-board-heading">
+        <div><span className="eyebrow">YOUR TOURNAMENT</span><h2 id="participant-draft-board-heading">Draft board</h2><p>Open the shared room for live picks, your queue, budget, and roster. It remains available after the draft for roster review.</p></div>
+        <a className="primary-button inline-link-button" href={`/?league=${encodeURIComponent(draftTournament.draft_room.slug)}`}>{["draft-setup", "drafting"].includes(draftEvent?.phase) ? "Open live draft board" : "View draft board & rosters"}</a>
+      </section>}
 
       {isDemo && <section className="tournament-demo-banner" aria-labelledby="tournament-demo-heading">
         <div>
@@ -1188,24 +1340,9 @@ export default function TournamentWorkspace({ slug }) {
         <section className="tournament-panel" aria-labelledby="tournament-entrants-heading">
           <div className="section-heading">
             <div><span className="eyebrow">REGISTRATION</span><h2 id="tournament-entrants-heading">Entrants</h2></div>
-            {canEnableDemo && <div className="tournament-owner-actions">
-              <button type="button" className="primary-button" disabled={busy} onClick={requestEnableTournamentDemo}>Build 32-seat organizer demo</button>
-            </div>}
-            {tournament.is_owner && tournament.format === "draft-tournament" && registeredEntrants.length >= 4 && (
-              <div className="tournament-owner-actions">
-                {draftEvent?.phase === "registration" && <button type="button" className="quiet-button" disabled={busy} onClick={requestShuffle}>Shuffle seeds</button>}
-                {draftEvent?.phase === "registration" && <button type="button" className="primary-button" disabled={busy} onClick={requestOpenDraftCheckIn}>Open check-in</button>}
-                {draftEvent?.phase === "check-in" && <button type="button" className="primary-button" disabled={busy || Number(draftTournament?.check_in?.checked_in_count || 0) < 4} onClick={requestLockDraftField}>Lock checked-in field</button>}
-              </div>
-            )}
-            {tournament.is_owner && tournament.format !== "draft-tournament" && registeredEntrants.length >= (tournament.format === "double-elimination" ? 4 : 2) && (
-              <div className="tournament-owner-actions">
-                <button type="button" className="quiet-button" disabled={busy} onClick={requestShuffle}>Shuffle seeds</button>
-                <button type="button" className="primary-button" disabled={busy} onClick={requestLock}>Lock & build bracket</button>
-              </div>
-            )}
+            <span>{registeredEntrants.length} registered</span>
           </div>
-          {!hasTournamentIdentity && (user ? (
+          {!isOperatorMode && !hasTournamentIdentity && (user ? (
             <form className="tournament-join" onSubmit={join}>
               <label>Display name
                 <input required maxLength={100} value={name} onChange={(event) => setName(event.target.value)} />
@@ -1234,7 +1371,7 @@ export default function TournamentWorkspace({ slug }) {
               <span>{filteredEntrants.length} {filteredEntrants.length === 1 ? "entrant" : "entrants"}</span>
             </div>
           )}
-          {tournament.format === "draft-tournament" && draftEvent?.phase === "check-in" && me && (
+          {!isOperatorMode && tournament.format === "draft-tournament" && draftEvent?.phase === "check-in" && me && (
             <div className="tournament-check-in-card">
               <div><strong>{draftTournament?.check_in?.my_checked_in_at ? "You are checked in" : "Confirm that you are here"}</strong><p className="muted">Only checked-in entrants receive a seat when the commissioner locks the field.</p></div>
               <button type="button" className={draftTournament?.check_in?.my_checked_in_at ? "quiet-button" : "primary-button"} disabled={busy} onClick={() => setDraftCheckIn(!draftTournament?.check_in?.my_checked_in_at)}>{draftTournament?.check_in?.my_checked_in_at ? "Withdraw check-in" : "Check in"}</button>
@@ -1245,11 +1382,7 @@ export default function TournamentWorkspace({ slug }) {
             {visibleEntrants.map((entrant) => (
               <article key={entrant.id}>
                 <strong>{entrant.display_name} {isDemo && !entrant.is_me && <span className="tournament-bot-badge">Bot</span>}</strong>
-                {tournament.is_owner && entrant.status === "registered" ? (
-                  <label>Seed
-                    <input key={`${entrant.id}-${entrant.seed ?? "none"}`} type="number" inputMode="numeric" min="1" max={registeredEntrants.length} defaultValue={entrant.seed || ""} onBlur={(event) => seed(entrant, event.target.value)} />
-                  </label>
-                ) : <span>{entrant.status === "registered" ? (entrant.seed ? `Seed ${entrant.seed}` : "Awaiting seed") : tournamentEntrantStatusLabel(entrant, draftEvent)}</span>}
+                <span>{entrant.status === "registered" ? "Registered" : tournamentEntrantStatusLabel(entrant, draftEvent)}</span>
                 {entrant.replacement_pending && <small>Awaiting replacement claim</small>}
               </article>
             ))}
@@ -1270,37 +1403,37 @@ export default function TournamentWorkspace({ slug }) {
             <div><span className="eyebrow">{displayFormat.toUpperCase()}</span><h2 id="draft-tournament-event-heading">{statusLabel(draftEvent.phase)}</h2></div>
             <button type="button" className="quiet-button" onClick={load}>Refresh</button>
           </div>
-          {draftTournament?.draft_room?.slug && ["draft-setup", "drafting", "roster-review"].includes(draftEvent.phase) && (
+          {draftTournament?.draft_room?.slug && (
             <div className="tournament-draft-room-callout">
               <div>
-                <strong>{draftEvent.phase === "draft-setup" ? `The shared ${tournamentDraftType} room is ready` : draftEvent.phase === "drafting" ? `The shared ${tournamentDraftType} draft is live` : "Review the completed rosters"}</strong>
-                <p className="muted">{isDemo ? "You control your owner seat; the other 31 unclaimed teams use the existing draft bots. Practice the live room or use the synthetic fast-forward below." : "The room is restricted to the event owner and checked-in entrants. Team control is bound to exact account IDs."}</p>
+                <strong>{draftEvent.phase === "draft-setup" ? `The shared ${tournamentDraftType} board is ready` : draftEvent.phase === "drafting" ? `The shared ${tournamentDraftType} draft is live` : "Draft board & rosters"}</strong>
+                <p className="muted">{isDemo ? "You control your owner seat; the other 31 unclaimed teams use the existing draft bots. Practice the live room or use the synthetic fast-forward below." : "The board stays linked to this tournament for live picks, queues, budgets, and post-draft roster review."}</p>
               </div>
-              <a className="primary-button inline-link-button" href={`/?league=${encodeURIComponent(draftTournament.draft_room.slug)}`}>Open draft room</a>
+              <a className="primary-button inline-link-button" href={`/?league=${encodeURIComponent(draftTournament.draft_room.slug)}`}>{["draft-setup", "drafting"].includes(draftEvent.phase) ? "Open live draft board" : "View draft board & rosters"}</a>
             </div>
           )}
-          {tournament.is_owner && isDemo && ["draft-setup", "drafting"].includes(draftEvent.phase) && (
+          {isOperatorMode && isDemo && ["draft-setup", "drafting"].includes(draftEvent.phase) && (
             <button type="button" className="secondary-button" disabled={busy} onClick={requestFillDemoAuction}>Generate completed demo auction</button>
           )}
-          {tournament.is_owner && draftEvent.phase === "roster-review" && (
+          {isOperatorMode && draftEvent.phase === "roster-review" && (
             <button type="button" className="primary-button" disabled={busy} onClick={requestLockDraftRosters}>{usesDraftFirstBracket ? `Lock rosters & build ${formatLabel(competitionFormat).toLowerCase()} bracket` : "Lock rosters & pair Swiss Round 1"}</button>
           )}
-          {tournament.is_owner && draftEvent.phase === "swiss" && currentDraftRound?.status === "complete" && draftEvent.current_swiss_round < draftEvent.swiss_round_count && (
+          {isOperatorMode && draftEvent.phase === "swiss" && currentDraftRound?.status === "complete" && draftEvent.current_swiss_round < draftEvent.swiss_round_count && (
             <button type="button" className="primary-button" disabled={busy} onClick={requestNextSwissRound}>Pair Swiss Round {draftEvent.current_swiss_round + 1}</button>
           )}
-          {tournament.is_owner && !isDemo && draftEvent.phase === "swiss-complete" && (
+          {isOperatorMode && !isDemo && draftEvent.phase === "swiss-complete" && (
             <button type="button" className="primary-button" disabled={busy} onClick={requestStartTopCut}>{draftEvent.top_cut_size ? `Start Top ${draftEvent.top_cut_size}` : "Complete event"}</button>
           )}
-          {tournament.is_owner && isDemo && ["swiss", "swiss-complete"].includes(draftEvent.phase) && (
+          {isOperatorMode && isDemo && ["swiss", "swiss-complete"].includes(draftEvent.phase) && (
             <button type="button" className="secondary-button" disabled={busy} onClick={requestCompleteDemoSwiss}>Complete remaining demo Swiss rounds</button>
           )}
-          {tournament.is_owner && isDemo && draftEvent.phase === "top-cut" && (
+          {isOperatorMode && isDemo && draftEvent.phase === "top-cut" && (
             <button type="button" className="secondary-button" disabled={busy} onClick={requestCompleteDemoTopCut}>Complete demo playoffs</button>
           )}
-          {tournament.is_owner && !isDemo && ["draft-setup", "drafting", "roster-review"].includes(draftEvent.phase) && (
+          {isOperatorMode && !isDemo && ["draft-setup", "drafting", "roster-review"].includes(draftEvent.phase) && (
             <button type="button" className="danger-button" disabled={busy} onClick={requestCancelDraftTournament}>Cancel event</button>
           )}
-          {tournament.is_owner && isDemo && ["draft-setup", "drafting", "roster-review", "swiss", "swiss-complete", "top-cut", "complete"].includes(draftEvent.phase) && (
+          {isOperatorMode && isDemo && ["draft-setup", "drafting", "roster-review", "swiss", "swiss-complete", "top-cut", "complete"].includes(draftEvent.phase) && (
             <button type="button" className="quiet-button" disabled={busy} onClick={requestResetDemo}>Reset demo to check-in</button>
           )}
           {draftEvent.phase === "top-cut" && <p className="muted">Swiss standings are final. The remaining matches use the confirmed single-elimination top-cut bracket below.</p>}
@@ -1334,7 +1467,7 @@ export default function TournamentWorkspace({ slug }) {
                   const remaining = Math.max(0, Number(draftEvent.draft_budget || 0) - spent);
                   return <article key={seat.id}>
                     <header>
-                      <strong>#{seat.initial_seed} {entrants.get(seat.entrant_id)?.display_name || "Entrant"} {seat.is_bot && <span className="tournament-bot-badge">Bot</span>}</strong>
+                      <strong>Draft position {seat.initial_seed} · {entrants.get(seat.entrant_id)?.display_name || "Entrant"} {seat.is_bot && <span className="tournament-bot-badge">Bot</span>}</strong>
                       <small>{spent} spent · {remaining} left</small>
                     </header>
                     <div>{seat.roster.map((pokemon) => <span className="tournament-auction-pick" key={pokemon.id || pokemon.name}><strong>{pokemon.name}</strong><small>{Number(pokemon.cost) || 0} pts</small></span>)}</div>
@@ -1347,7 +1480,7 @@ export default function TournamentWorkspace({ slug }) {
             <div className="tournament-roster-grid">
               {draftTournament.seats.filter((seat) => Array.isArray(seat.roster)).map((seat) => (
                 <article key={seat.id}>
-                  <strong>#{seat.initial_seed} {entrants.get(seat.entrant_id)?.display_name || "Entrant"} {seat.is_bot && <span className="tournament-bot-badge">Bot</span>}</strong>
+                  <strong>Draft position {seat.initial_seed} · {entrants.get(seat.entrant_id)?.display_name || "Entrant"} {seat.is_bot && <span className="tournament-bot-badge">Bot</span>}</strong>
                   <div>{seat.roster.map((pokemon) => <span key={pokemon.id || pokemon.name}>{pokemon.name}</span>)}</div>
                 </article>
               ))}
@@ -1356,14 +1489,16 @@ export default function TournamentWorkspace({ slug }) {
         </section>
       )}
 
-      {tournament.is_owner && ["registration", "active"].includes(tournament.status) && (
+      {isOperatorMode && ["registration", "active"].includes(tournament.status) && (
         <section className="tournament-panel tournament-recovery-panel" aria-labelledby="tournament-recovery-heading">
-          <div className="section-heading">
+          <details>
+          <summary className="section-heading">
             <div>
-              <span className="eyebrow">COMMISSIONER TOOLS</span>
-              <h2 id="tournament-recovery-heading">Entrant recovery</h2>
+              <span className="eyebrow">OPERATOR RECOVERY</span>
+              <h2 id="tournament-recovery-heading">Drops, disqualifications &amp; replacements</h2>
             </div>
-          </div>
+            <span>Open only when needed</span>
+          </summary>
           <p className="muted">{connectedChampionship ? "Record a drop or disqualification here. Replacement managers must first take over the same source-league team, then be synchronized from the organization workspace before play begins." : "Record a drop or disqualification, or create a replacement before play begins. Match-specific forfeits are available inside each ready match."}</p>
           <div className="tournament-recovery-grid">
             <label>Active entrant
@@ -1413,6 +1548,7 @@ export default function TournamentWorkspace({ slug }) {
               <input aria-label="One-time replacement claim link" readOnly value={replacementLink} onFocus={(event) => event.currentTarget.select()} />
             </div>
           )}
+          </details>
         </section>
       )}
 
@@ -1444,9 +1580,10 @@ export default function TournamentWorkspace({ slug }) {
                         entrants={entrants}
                         rostersByEntrant={visibleGroup.stage === "swiss" ? null : tournamentRostersByEntrant}
                         seedOverrides={visibleGroup.stage === "top-cut" ? topCutSeeds : null}
+                        showSeedLabels={Boolean(visibleGroup.stage === "top-cut" || connectedChampionship)}
                         submission={submission}
-                        canReport={Boolean(involved || tournament.is_owner)}
-                        isOwner={Boolean(tournament.is_owner && tournament.status !== "archived")}
+                        canReport={Boolean(involved || isOperatorMode)}
+                        isOwner={Boolean(isOperatorMode && tournament.status !== "archived")}
                         onRefresh={() => load({ roundKey: visibleRound, matchPage: matchPage.page })}
                         onRequestForfeit={requestMatchForfeit}
                         supabase={supabase}

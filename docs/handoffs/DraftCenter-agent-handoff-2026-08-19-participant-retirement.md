@@ -4,8 +4,12 @@
 
 This branch implements the first priority from the August 19 continuation
 handoff: midseason **Retired after Week/Round** support for leagues and
-tournaments. Work is isolated on `codex/participant-retirement-20260819` from
-`origin/main` commit `6d613dedfe486063c075599fb8adf6509b1f2bf6`.
+tournaments. It also incorporates the owner's tournament-workspace review:
+clear operator/participant modes, visible advancement, event times, regulation
+selection, persistent draft-board access, and removal of pre-event seeding.
+Work is isolated on `codex/participant-retirement-20260819` from `origin/main`
+commit `6d613dedfe486063c075599fb8adf6509b1f2bf6` and is under review in pull
+request [#349](https://github.com/roblebaegaming/DraftCenter/pull/349).
 
 No Production database, real league, tournament, invitation, advertising,
 provider setting, secret, or deployment was changed. The preserved private
@@ -48,6 +52,25 @@ Auction Swiss showcase was not reset or modified.
   non-awarding policy and fails safely where an elimination bracket requires an
   explicit winner.
 
+### Tournament operator workflow
+
+- Owners enter a clearly labeled Operator mode and can switch to Participant
+  view to see the event exactly without operational controls.
+- An always-visible control center states the current stage, the next action,
+  and why that action is blocked when the minimum field or check-in count is not
+  met.
+- Creation and pre-start editing publish the regulation, registration close,
+  check-in opening, and event start in each viewer&apos;s local time.
+- Draft-first events copy the selected regulation into the private draft-room
+  settings when the checked-in field locks.
+- The draft board remains directly linked during drafting, roster review, and
+  later tournament phases.
+- Manual pre-event seed fields and seed shuffling are removed. Standalone
+  brackets and draft positions use a server-owned opening draw. Swiss rank and
+  Top Cut seeds remain result-derived; connected championship qualification
+  seeds remain their separate earned-placement workflow.
+- Recovery controls are operator-only and collapsed until needed.
+
 ### Privacy and audit
 
 - Optional reasons are stored only in new RLS-enabled, service-role-only
@@ -60,6 +83,7 @@ Auction Swiss showcase was not reset or modified.
 ## Files of interest
 
 - `supabase/migrations/20260819185347_participant_retirement_and_tournament_drops.sql`
+- `supabase/migrations/20260819194237_tournament_operator_workflow.sql`
 - `src/lib/participantStatus.js`
 - `src/lib/leagueResults.js`
 - `src/lib/leagueSwiss.mjs`
@@ -69,6 +93,7 @@ Auction Swiss showcase was not reset or modified.
 - `src/components/TournamentWorkspace.jsx`
 - `test/participant-status.test.js`
 - `supabase/tests/444-participant-retirement-preview-regression.sql`
+- `supabase/tests/445-tournament-operator-workflow-preview-regression.sql`
 
 ## Validation completed
 
@@ -83,6 +108,9 @@ Auction Swiss showcase was not reset or modified.
 - The configured Next.js production build compiles and prerenders all 326 pages
   using existing public-only Supabase build variables loaded in memory. No
   secret was copied into this worktree.
+- After the operator-workflow follow-up, the dependency audit, complete
+  application suite, 1,027-row National Dex check, diff-integrity check, and
+  configured 326-page build all pass again.
 
 Before a release, retain the repository policy: keep the complete test and audit
 checks passing, apply the Preview regression to a disposable branch, review the
@@ -93,10 +121,10 @@ fixture.
 
 ## Remaining release work
 
-1. Review the full diff, especially the forward migration and qualification
-   reranking behavior.
-2. Run the rollback-only SQL regression on an isolated Supabase Preview branch.
-3. Review commissioner copy and responsive layout in Preview.
-4. Release only through a short-lived pull request after checks pass.
+1. Review the full diff, especially both forward migrations, qualification
+   reranking, the result-neutral opening draw, and draft-room regulation sync.
+2. Run both rollback-only SQL regressions on an isolated Supabase Preview branch.
+3. Review Operator mode and Participant view at desktop and phone widths.
+4. Release only through protected pull request #349 after checks pass.
 5. After release, validate manager invitations and completed-draft claiming in
    an isolated practice league before sending the broad four-pod invitations.

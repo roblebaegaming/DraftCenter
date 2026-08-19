@@ -5,7 +5,9 @@ import { createClient } from "../lib/supabase/client";
 import {
   auctionDraftTournamentCreateRpcArguments,
   draftFirstTournamentCreateRpcArguments,
+  tournamentOperationRpcArguments,
 } from "../lib/draftTournament";
+import { REGULATION_GROUPS, REGULATION_METADATA } from "../lib/regulation-catalog";
 import { tournamentError } from "../lib/tournamentErrors";
 import {
   DOUBLE_ELIMINATION_MAX_ENTRANTS,
@@ -59,6 +61,10 @@ export default function TournamentDirectory() {
     auctionTimerSeconds: 30,
     auctionBidResetSeconds: 10,
     publishRosters: false,
+    regulationId: "reg-mb",
+    registrationClosesAt: "",
+    checkInOpensAt: "",
+    startsAt: "",
   });
 
   async function load() {
@@ -115,6 +121,7 @@ export default function TournamentDirectory() {
       entrantLimit: 32,
       rosterSize: 6,
       publishRosters: false,
+      regulationId: "reg-mb",
     } : {
       ...current,
       demoMode: false,
@@ -136,13 +143,19 @@ export default function TournamentDirectory() {
         entrantLimit: 32,
         publishRosters: false,
       };
+      const demoArguments = auctionDraftTournamentCreateRpcArguments(demoRequest);
+      delete demoArguments.p_regulation_id;
+      delete demoArguments.p_registration_closes_at;
+      delete demoArguments.p_check_in_opens_at;
+      delete demoArguments.p_starts_at;
       result = form.demoMode
-        ? await supabase.rpc("create_demo_auction_draft_first_tournament", auctionDraftTournamentCreateRpcArguments(demoRequest))
+        ? await supabase.rpc("create_demo_auction_draft_first_tournament", demoArguments)
         : form.draftRostersFirst
         ? form.draftType === "auction"
           ? await supabase.rpc("create_auction_draft_first_tournament", auctionDraftTournamentCreateRpcArguments(form))
           : await supabase.rpc("create_draft_first_tournament", draftFirstTournamentCreateRpcArguments(form))
         : await supabase.rpc("create_tournament", {
+          ...tournamentOperationRpcArguments(form),
           p_name: form.name,
           p_description: form.description,
           p_visibility: form.visibility,
@@ -243,6 +256,28 @@ export default function TournamentDirectory() {
               </div>
               <label>Entrant limit<input type="number" min={entrantBounds.min} max={entrantBounds.max} disabled={form.demoMode} value={form.entrantLimit} onChange={(event) => setForm({ ...form, entrantLimit: Number(event.target.value) })} /></label>
 
+              <fieldset className="form-stack tournament-operation-settings">
+                <legend>Regulation &amp; schedule</legend>
+                <label>Regulation
+                  <select value={form.regulationId} disabled={form.demoMode} onChange={(event) => setForm({ ...form, regulationId: event.target.value })}>
+                    {REGULATION_GROUPS.map((group) => {
+                      const options = Object.values(REGULATION_METADATA)
+                        .filter((regulation) => regulation.gameId === group.id)
+                        .sort((left, right) => left.order - right.order || left.label.localeCompare(right.label));
+                      return options.length ? <optgroup key={group.id} label={group.label}>{options.map((regulation) => <option key={regulation.id} value={regulation.id}>{regulation.label}{regulation.current ? " · Current" : ""}</option>)}</optgroup> : null;
+                    })}
+                  </select>
+                  <small>This regulation is published to participants and becomes the legal Pokémon pool in a shared draft room.</small>
+                </label>
+                <div className="tournament-form-pair tournament-schedule-fields">
+                  <label>Registration closes<input type="datetime-local" value={form.registrationClosesAt} onChange={(event) => setForm({ ...form, registrationClosesAt: event.target.value })} /></label>
+                  <label>Check-in opens<input type="datetime-local" value={form.checkInOpensAt} onChange={(event) => setForm({ ...form, checkInOpensAt: event.target.value })} /></label>
+                  <label>Tournament starts<input type="datetime-local" value={form.startsAt} onChange={(event) => setForm({ ...form, startsAt: event.target.value })} /></label>
+                </div>
+                <small>Times are optional, shown in each viewer&apos;s local time, and can be updated by the operator before play begins.</small>
+              </fieldset>
+              <p className="muted">Already have a seeded field and only need a bracket? <a href="/tools/bracket-builder">Use Bracket Studio instead.</a> Tournament events draw opening positions when play starts.</p>
+
               {form.draftRostersFirst && (
                 <fieldset className="form-stack tournament-draft-settings">
                   <legend>Shared draft</legend>
@@ -322,7 +357,7 @@ export default function TournamentDirectory() {
       <section className="tournament-panel tournament-event-guide" aria-labelledby="tournament-event-guide-title">
         <span className="eyebrow">REGISTRATION TO CHAMPION</span>
         <h2 id="tournament-event-guide-title">Keep tournament play and result history together</h2>
-        <p>Commissioners seed the field, start the event, confirm reported results, and make bounded corrections when needed. Turning on Draft teams first adds check-in, a shared draft room, immutable roster snapshots, and optional public roster publication before tournament play.</p>
+        <p>Operators publish the regulation and event times, open check-in, start the event, confirm reported results, and make bounded corrections when needed. DraftCenter draws opening positions automatically; tournament results determine later standings and Top Cut placement.</p>
         <p>Public events appear in the directory for spectators. Private events and commissioner controls remain available only to the people who have access; DraftCenter does not publish private registrations, rosters, or workspaces for search discovery.</p>
         <nav className="tournament-learning-links" aria-label="Tournament planning resources">
           <a href="/formats">Compare Pokémon draft formats</a>

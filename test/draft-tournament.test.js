@@ -15,6 +15,8 @@ import {
   normalizeAuctionDraftTournamentSettings,
   pairDraftTournamentSwissRound,
   rankDraftTournamentStandings,
+  normalizeTournamentOperationSettings,
+  tournamentOperationRpcArguments,
 } from "../src/lib/draftTournament.js";
 
 test("Draft Tournament creation settings are bounded for the first release", () => {
@@ -64,6 +66,10 @@ test("auction Draft Tournament creation is independently bounded from 4 to 32 en
     entrantLimit: 32,
     publishRosters: true,
   }), {
+    p_regulation_id: "reg-mb",
+    p_registration_closes_at: null,
+    p_check_in_opens_at: null,
+    p_starts_at: null,
     p_name: "Private 32",
     p_description: "",
     p_visibility: "private",
@@ -83,6 +89,20 @@ test("auction Draft Tournament creation is independently bounded from 4 to 32 en
   assert.match(concept, /Auction Draft Tournaments must support \*\*4–32 entrants\*\*/);
   assert.match(concept, /17–32 entrant Swiss event uses[\s\S]*five recommended rounds/);
   assert.match(concept, /complete auction-to-roster-lock transition/);
+});
+
+test("tournament operation details normalize regulation and scheduled milestones", () => {
+  const operation = normalizeTournamentOperationSettings({
+    regulationId: "national-gen9",
+    registrationClosesAt: "2026-08-21T17:00:00-07:00",
+    checkInOpensAt: "2026-08-21T17:30:00-07:00",
+    startsAt: "2026-08-21T18:00:00-07:00",
+  });
+  assert.equal(operation.regulationId, "national-gen9");
+  assert.equal(operation.registrationClosesAt, "2026-08-22T00:00:00.000Z");
+  assert.equal(tournamentOperationRpcArguments(operation).p_starts_at, "2026-08-22T01:00:00.000Z");
+  assert.throws(() => normalizeTournamentOperationSettings({ regulationId: "Bad value" }), /valid tournament regulation/);
+  assert.throws(() => normalizeTournamentOperationSettings({ registrationClosesAt: "2026-08-22T02:00:00Z", startsAt: "2026-08-22T01:00:00Z" }), /Registration must close/);
 });
 
 test("private events never request public roster publication", () => {
@@ -169,6 +189,17 @@ test("standings count a bye as a match win without adding game or opponent perce
   assert.equal(gamma.byeCount, 1);
   assert.equal(gamma.gameWins, 0);
   assert.equal(gamma.opponents.length, 0);
+});
+
+test("Swiss standings do not use opening draft positions as a tiebreaker", () => {
+  const standings = rankDraftTournamentStandings({
+    entrants: [
+      { id: "z", initialSeed: 1, status: "active" },
+      { id: "a", initialSeed: 2, status: "active" },
+    ],
+    matches: [],
+  });
+  assert.deepEqual(standings.map((row) => row.entrantId), ["a", "z"]);
 });
 
 test("head-to-head applies only to an exact two-way match-win tie", () => {
@@ -389,7 +420,12 @@ test("Tournament UI exposes the Draft Tournament lifecycle without leaking its i
   assert.match(workspace, /Lock rosters & build bracket/);
   assert.match(workspace, /draftEvent\.phase === "bracket"/);
   assert.match(workspace, /cancel_draft_tournament/);
-  assert.match(workspace, /lock_auction_draft_tournament_field/);
+  assert.match(workspace, /lock_draft_tournament_field_with_draw/);
+  assert.match(workspace, /Operator mode/);
+  assert.match(workspace, /Participant view/);
+  assert.match(workspace, /Lock field & create draft board/);
+  assert.match(workspace, /Open live draft board/);
+  assert.doesNotMatch(workspace, /set_tournament_seed|randomize_tournament_seeds|Shuffle seeds/);
   assert.match(workspace, /AUCTION_TOURNAMENT_ENTRANT_PAGE_SIZE = 16/);
   assert.match(workspace, /draft_type === "auction"[\s\S]*AUCTION_TOURNAMENT_ENTRANT_PAGE_SIZE/);
   assert.match(workspace, /opponent_match_win_percentage/);
@@ -397,6 +433,27 @@ test("Tournament UI exposes the Draft Tournament lifecycle without leaking its i
   assert.match(draftRoom, /draft style, roster size, budget, and clocks are fixed by the event/);
   assert.match(draftRoom, /isDraftTournamentMode \? \[/);
   assert.match(leagueHub, /workspace_kind !== "draft-tournament"/);
+});
+
+test("operator workflow migration publishes schedules, removes pre-event seeding, and syncs the draft regulation", () => {
+  const sql = fs.readFileSync(new URL("../supabase/migrations/20260819194237_tournament_operator_workflow.sql", import.meta.url), "utf8");
+  const regression = fs.readFileSync(new URL("../supabase/tests/445-tournament-operator-workflow-preview-regression.sql", import.meta.url), "utf8");
+  for (const evidence of [
+    "regulation_id",
+    "registration_closes_at",
+    "check_in_opens_at",
+    "starts_at",
+    "update_tournament_operation_details",
+    "start_tournament_with_random_draw",
+    "lock_draft_tournament_field_with_draw",
+    "sync_draft_tournament_regulation",
+  ]) assert.match(sql, new RegExp(evidence));
+  assert.match(sql, /revoke all on function public\.set_tournament_seed[\s\S]*public\.randomize_tournament_seeds[\s\S]*from public, anon, authenticated/);
+  assert.match(sql, /create or replace function public\.rebuild_draft_tournament_standings/);
+  assert.doesNotMatch(sql, /opponent_game_win_percentage desc,\s*initial_seed/);
+  assert.match(sql, /jsonb_set\(state, '\{settings,regulationId\}'/);
+  assert.match(regression, /pre-event manual seeding remains browser callable/);
+  assert.match(regression, /tournament_operator_workflow_schema_and_privileges/);
 });
 
 test("migration 439 keeps organizer demos private, synthetic, and owner-controlled", () => {
@@ -524,7 +581,7 @@ test("Tournament UI presents the organizer demo as private synthetic infrastruct
   ]) assert.match(workspace, new RegExp(evidence));
   assert.match(directory, /rosterSize: 6/);
   assert.match(directory, /Fixed at six for the 32-seat Regulation M-B showcase/);
-  assert.match(workspace, /tournament\.is_owner && !isDemo && tournament\.visibility === "private"/);
+  assert.match(workspace, /isOperatorMode && !isDemo && tournament\.visibility === "private"/);
   assert.match(workspace, /rostersByEntrant=\{visibleGroup\.stage === "swiss" \? null : tournamentRostersByEntrant\}/);
   assert.match(workspace, /safeHttpsImageSource\(pokemon\.spriteUrl \|\| pokemon\.sprite_url \|\| pokemon\.sprite\)/);
   assert.match(workspace, /loadPokemonArtwork\(pokemon\.name\)/);

@@ -40,6 +40,40 @@ function cleanText(value, label, minimum, maximum) {
   return text;
 }
 
+function optionalDateTime(value, label) {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) throw new Error(`${label} must be a valid date and time.`);
+  return date.toISOString();
+}
+
+export function normalizeTournamentOperationSettings(input = {}) {
+  const regulationId = String(input.regulationId || "reg-mb").trim();
+  if (!/^[a-z0-9][a-z0-9-]{1,63}$/.test(regulationId)) {
+    throw new Error("Choose a valid tournament regulation.");
+  }
+  const registrationClosesAt = optionalDateTime(input.registrationClosesAt, "Registration close");
+  const checkInOpensAt = optionalDateTime(input.checkInOpensAt, "Check-in opening");
+  const startsAt = optionalDateTime(input.startsAt, "Tournament start");
+  if (registrationClosesAt && startsAt && registrationClosesAt > startsAt) {
+    throw new Error("Registration must close before the tournament starts.");
+  }
+  if (checkInOpensAt && startsAt && checkInOpensAt > startsAt) {
+    throw new Error("Check-in must open before the tournament starts.");
+  }
+  return { regulationId, registrationClosesAt, checkInOpensAt, startsAt };
+}
+
+export function tournamentOperationRpcArguments(input = {}) {
+  const operation = normalizeTournamentOperationSettings(input);
+  return {
+    p_regulation_id: operation.regulationId,
+    p_registration_closes_at: operation.registrationClosesAt,
+    p_check_in_opens_at: operation.checkInOpensAt,
+    p_starts_at: operation.startsAt,
+  };
+}
+
 export function normalizeDraftTournamentSettings(input = {}) {
   const entrantLimit = boundedInteger(input.entrantLimit ?? 16, "Entrant limit", 4, 16);
   const rosterSize = boundedInteger(input.rosterSize ?? 6, "Roster size", 4, 12);
@@ -100,6 +134,7 @@ export function draftFirstTournamentCreateRpcArguments(input) {
   }
   const settings = normalizeDraftTournamentSettings({ ...input, topCutSize: 0 });
   return {
+    ...tournamentOperationRpcArguments(input),
     p_name: settings.name,
     p_description: settings.description,
     p_visibility: settings.visibility,
@@ -147,6 +182,7 @@ export function normalizeAuctionDraftTournamentSettings(input = {}) {
 export function auctionDraftTournamentCreateRpcArguments(input) {
   const settings = normalizeAuctionDraftTournamentSettings(input);
   return {
+    ...tournamentOperationRpcArguments(input),
     p_name: settings.name,
     p_description: settings.description,
     p_visibility: settings.visibility,
@@ -277,7 +313,6 @@ export function rankDraftTournamentStandings({ entrants = [], matches = [] } = {
       || b.omwp - a.omwp
       || b.gwp - a.gwp
       || b.ogwp - a.ogwp
-      || a.initialSeed - b.initialSeed
       || String(a.entrantId).localeCompare(String(b.entrantId)),
     )
     .map((row, index) => ({ ...row, rank: index + 1 }));

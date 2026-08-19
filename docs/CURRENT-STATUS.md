@@ -8,18 +8,25 @@
 
 ## In development — not released
 
-Midseason participant retirement and tournament-drop support is implemented on
-`codex/participant-retirement-20260819` with forward migration
-`20260819185347_participant_retirement_and_tournament_drops.sql`. The branch
-separates manager replacement from team retirement, preserves completed
-results, requires an explicit forfeit/no-contest/left-unplayed policy, excludes
-retired teams from claiming, awards, playoffs, and organization qualification,
-and omits dropped entrants from later Swiss pairing and Top Cut. Private
-commissioner reasons remain in RLS-hidden history tables. The dependency audit,
-complete application suite, 1,027-row National Dex check, isolated PostgreSQL
-lifecycle exercise, and configured 326-page build pass. This work has not been
-pushed, reviewed in Preview, migrated, deployed, or used on any real league or
-tournament.
+Pull request [#349](https://github.com/roblebaegaming/DraftCenter/pull/349) on
+`codex/participant-retirement-20260819` contains midseason participant
+retirement and tournament-drop support plus a tournament operator-workflow
+follow-up. Forward migrations
+`20260819185347_participant_retirement_and_tournament_drops.sql` and
+`20260819194237_tournament_operator_workflow.sql` preserve completed history,
+require explicit unresolved-match handling, omit inactive participants from
+later competitive stages, and keep private reasons in RLS-hidden tables. The
+tournament workspace now separates Operator mode from Participant view, always
+shows the next lifecycle gate, publishes regulation and registration/check-in/
+start times, keeps the draft board linked throughout the event, and removes
+manual pre-event seeding. Opening bracket/draft positions are drawn at start;
+Swiss standings and Top Cut placement come from results. The dependency audit,
+complete application suite, 1,027-row National Dex check, diff-integrity check,
+and configured 326-page build pass after the follow-up. The earlier retirement
+migration also passed its isolated PostgreSQL lifecycle exercise. The new
+operator migration still requires its rollback-only Supabase Preview regression
+and responsive signed-in review. Nothing is deployed or applied to Production,
+and no real league or tournament was changed.
 
 ## Deployed state
 

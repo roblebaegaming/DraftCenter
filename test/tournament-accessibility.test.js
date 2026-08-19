@@ -15,13 +15,14 @@ test("sensitive tournament actions use the accessible in-page confirmation dialo
   assert.match(ui, /onCancel=/);
   assert.match(ui, /cancelRef\.current\?\.focus\(\)/);
   for (const label of [
-    "Shuffle every seed?",
     "Lock registration and build the bracket?",
     "Archive this tournament?",
     "Confirm and advance this result?",
     "Reject this reported result?",
     "Save this result correction?",
   ]) assert.ok(ui.includes(label));
+  assert.match(ui, /role="tablist" aria-label="Tournament view"/);
+  assert.match(ui, /role="tab" aria-selected=\{isOperatorMode\}/);
 });
 
 test("workspace controls and feedback expose names, landmarks, and live status", () => {
