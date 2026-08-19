@@ -340,6 +340,7 @@ test("the Italian Worlds route localizes the current Pick 10 experience without 
   const italianPage = source("src/app/it/worlds/2026/page.js");
   const englishPage = source("src/app/worlds/2026/vgc/page.js");
   const component = source("src/components/WorldsPickSixteen.jsx");
+  const competitionConfig = source("src/lib/worldsFutureSetup.js");
   const meta = source("src/components/WorldsMetaChallenge.jsx");
   const translations = source("src/lib/worlds2026I18n.js");
   const sitemap = source("src/app/sitemap.js");
@@ -348,7 +349,12 @@ test("the Italian Worlds route localizes the current Pick 10 experience without 
   assert.match(italianPage, /canonical: "\/it\/worlds\/2026"/);
   assert.match(italianPage, /inLanguage: "it-IT"/);
   assert.match(italianPage, /translationOfWork/);
-  assert.match(italianPage, /WorldsPickSixteen rosterSource=\{roster\}/);
+  assert.match(italianPage, /worlds-2026-vgc-masters\.json/);
+  assert.match(englishPage, /worlds-2026-vgc-masters\.json/);
+  assert.match(italianPage, /WorldsPickSixteen discipline="vgc" rosterSource=\{roster\} locale="it"/);
+  assert.match(englishPage, /WorldsPickSixteen discipline="vgc" rosterSource=\{roster\}/);
+  assert.match(competitionConfig, /vgc:[\s\S]*?eventId: "2026-vgc-masters"/);
+  assert.match(component, /const eventId = config\.eventId/);
   assert.match(englishPage, /languages: \{ en: "\/worlds\/2026\/vgc", it: "\/it\/worlds\/2026"/);
   assert.match(sitemap, /\["\/it\/worlds\/2026", "daily", 0\.8\]/);
   assert.match(component, /navigator\.languages/);
@@ -392,6 +398,31 @@ test("the Italian Worlds route localizes the current Pick 10 experience without 
   assert.ok(filterWorldsCompetitors(localizedRoster, "KOR", "Corea del Sud").length > 0);
 });
 
+test("Worlds leaderboard names open bounded, scrollable coach profiles", () => {
+  const component = source("src/components/WorldsPickSixteen.jsx");
+  const profile = source("src/components/PublicCoachProfile.jsx");
+  const css = source("src/app/globals.css");
+  const migration = source("supabase/migrations/20260819025045_worlds_shared_competition_profiles.sql");
+
+  assert.match(component, /CoachProfileButton/);
+  assert.match(component, /setActiveProfile\(entry\.profile/);
+  assert.match(component, /<PublicCoachProfile profile=\{activeProfile\} locale=\{locale\}/);
+  assert.match(profile, /Sei Pokémon preferiti/);
+  assert.match(profile, /Medaglie/);
+  assert.match(profile, /role="dialog" aria-modal="true"/);
+  assert.match(profile, /event\.key === "Escape"/);
+  assert.match(css, /\.public-profile-modal[^}]*overflow-y:auto[^}]*overscroll-behavior:contain/);
+
+  for (const field of ["username", "display_name", "avatar_url", "favorite_pokemon", "badges"]) {
+    assert.match(migration, new RegExp(`'${field}'`));
+  }
+  assert.match(migration, /profile\.favorite_pokemon\[1:6\]/);
+  assert.match(migration, /progress\.tier > 0/);
+  assert.match(migration, /set search_path = ''/);
+  assert.match(migration, /grant execute on function public\.get_worlds_pick_hub\(text\) to anon, authenticated, service_role/);
+  assert.doesNotMatch(migration, /'user_id'|'email'/);
+});
+
 test("the Spanish Worlds route localizes Pick 10, odds, Meta Picks, roster labels, and errors", () => {
   const spanishPage = source("src/app/es/worlds/2026/page.js");
   const englishPage = source("src/app/worlds/2026/vgc/page.js");
@@ -405,6 +436,7 @@ test("the Spanish Worlds route localizes Pick 10, odds, Meta Picks, roster label
   assert.match(spanishPage, /canonical: "\/es\/worlds\/2026"/);
   assert.match(spanishPage, /inLanguage: "es-ES"/);
   assert.match(spanishPage, /translationOfWork/);
+  assert.match(spanishPage, /WorldsPickSixteen discipline="vgc" rosterSource=\{roster\} locale="es"/);
   assert.match(englishPage, /es: "\/es\/worlds\/2026"/);
   assert.match(sitemap, /\["\/es\/worlds\/2026", "daily", 0\.8\]/);
   assert.match(component, /href="\/es\/worlds\/2026" hrefLang="es"/);

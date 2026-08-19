@@ -21,6 +21,7 @@ import WorldsDisciplineNav from "./WorldsDisciplineNav";
 import WorldsChampionOdds from "./WorldsChampionOdds";
 import WorldsMetaChallenge from "./WorldsMetaChallenge";
 import WorldsPickShare from "./WorldsPickShare";
+import PublicCoachProfile, { CoachProfileButton } from "./PublicCoachProfile";
 
 function fallbackEvent(config, rosterSource) {
   return {
@@ -116,6 +117,7 @@ export default function WorldsPickSixteen({ rosterSource, discipline = "vgc", lo
   const [loadingHub, setLoadingHub] = useState(true);
   const [popularity, setPopularity] = useState(null);
   const [showItalianOffer, setShowItalianOffer] = useState(false);
+  const [activeProfile, setActiveProfile] = useState(null);
   const draftDirtyRef = useRef(false);
   const currentUserIdRef = useRef(undefined);
 
@@ -410,8 +412,15 @@ export default function WorldsPickSixteen({ rosterSource, discipline = "vgc", lo
             {hub?.results?.source_url && <a href={hub.results.source_url} target="_blank" rel="noreferrer">{hub.results.source_name || (isItalian ? copy.leaderboard.resultSource : "Results source")} ↗</a>}
           </div>
         </div>
-        {hub?.standings?.length ? <div className="worlds-standings">{hub.standings.map((entry, index) => <details key={`${entry.display_name}-${index}`} className={entry.is_me ? "is-me" : ""}>
-          <summary><span>#{entry.rank}</span><strong>{entry.display_name}</strong><b>{isItalian ? copy.leaderboard.points(entry.score) : `${entry.score} pts`}</b></summary>
+        {hub?.standings?.length ? <div className="worlds-standings">{hub.standings.map((entry, index) => <details key={`${entry.profile?.username || entry.display_name}-${index}`} className={entry.is_me ? "is-me" : ""}>
+          <summary><span>#{entry.rank}</span><CoachProfileButton
+            username={entry.profile?.username}
+            displayName={entry.profile?.display_name || entry.display_name}
+            avatarUrl={entry.profile?.avatar_url}
+            compact
+            stopPropagation
+            onOpen={() => setActiveProfile(entry.profile || { display_name:entry.display_name, favorite_pokemon:[], badges:[] })}
+          /><b>{isItalian ? copy.leaderboard.points(entry.score) : `${entry.score} pts`}</b></summary>
           {entry.top_six_average_finish != null && entry.all_ten_average_finish != null && <p className="worlds-standings-tiebreakers"><strong>{isItalian ? copy.leaderboard.tiebreakers : "Final tiebreakers:"}</strong> {isItalian ? copy.leaderboard.topSix : "Top 6 average"} {formatWorldsAverageFinish(entry.top_six_average_finish)} · {isItalian ? copy.leaderboard.allTen : "All 10 average"} {formatWorldsAverageFinish(entry.all_ten_average_finish)}</p>}
           {entry.picks ? <p>{entry.picks.map((slug) => `${competitorBySlug.get(slug)?.displayName || slug}${slug === entry.ace_slug ? ` (${isItalian ? copy.leaderboard.champion : "Your Champion ×2"})` : ""}`).join(" · ")}</p> : <p>{isItalian ? copy.leaderboard.private : "Lineup stays private until entries lock."}</p>}
         </details>)}</div> : <p className="worlds-empty-state">{isItalian ? copy.leaderboard.empty : "Be the first DraftCenter player to save a Pick 10 entry."}</p>}
@@ -425,5 +434,6 @@ export default function WorldsPickSixteen({ rosterSource, discipline = "vgc", lo
         <a className="quiet-button" href="/worlds/2026/vgc/bracket">{isItalian ? copy.bracket.action : "Open Top Cut bracket status →"}</a>
       </article>}
     </section>
+    {activeProfile && <PublicCoachProfile profile={activeProfile} locale={locale} onClose={() => setActiveProfile(null)} />}
   </main>;
 }

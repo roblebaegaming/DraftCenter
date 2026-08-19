@@ -62,6 +62,6 @@ export default function SpanishWorlds2026Page() {
 
   return <div lang="es">
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(pageSchema) }} />
-    <WorldsPickSixteen rosterSource={roster} locale="es" />
+    <WorldsPickSixteen discipline="vgc" rosterSource={roster} locale="es" />
   </div>;
 }

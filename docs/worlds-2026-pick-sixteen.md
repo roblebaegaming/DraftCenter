@@ -139,6 +139,13 @@ names, ranks, and scores but not other users' selections. A signed-in user can
 always retrieve their own entry. Direct table access is revoked; the bounded
 read and authenticated save functions are the browser-facing boundary.
 
+English, Italian, and Spanish VGC leaderboards read this same event and the
+same standings. A leaderboard name opens a localized, scrollable coach profile
+containing only the public username, display name, profile photo, first six
+favorite Pokémon, and earned badges. The leaderboard RPC does not return an
+account ID, email address, timezone, Discord identifier, or another entrant's
+pre-lock picks. The broader authenticated coach-profile RPC remains separate.
+
 Migration 413 adds a separate aggregate-only popularity RPC for the champion
 outlook. It returns zero player counts before 25 entries unless the event has
 locked. It never returns an account identifier or individual pre-lock lineup,
