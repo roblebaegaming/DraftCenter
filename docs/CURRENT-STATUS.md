@@ -60,9 +60,11 @@ The production dependency audit, complete application suite, 1,027-row
 National Dex check, migration-history verification, diff-integrity check, and
 configured 335-page build pass with the correction included. The build retains
 the inherited nonfatal dynamic-font status-400 warning while generating every
-page successfully. Responsive signed-in Operator/Participant review remains
-required. Nothing is deployed or applied to Production, and no real league or
-tournament was changed.
+page successfully. Signed-in Operator/Participant review passed on desktop and
+at 390 x 844 without horizontal overflow. The owner-approved private
+`Preview Operator Rehearsal - Aug 19` contains one account and 31 synthetic bot
+entrants; the preserved showcase and every pre-existing tournament remained
+unchanged. Nothing from this pull request is deployed or applied to Production.
 
 ## Deployed state
 

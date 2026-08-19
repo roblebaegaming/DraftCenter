@@ -15,9 +15,13 @@ Work is isolated on `codex/participant-retirement-20260819` from `origin/main`
 commit `6f68018` and is under review in pull
 request [#349](https://github.com/roblebaegaming/DraftCenter/pull/349).
 
-No Production database, real league, tournament, invitation, advertising,
-provider setting, secret, or deployment was changed. The preserved private
-Auction Swiss showcase was not reset or modified.
+No release migration, real league, invitation, advertising, secret, or
+deployment was changed. The owner approved one private synthetic Production
+rehearsal for the signed-in workflow review, named Preview Operator Rehearsal -
+Aug 19, with one account and 31 bot entrants. The temporary Cloudflare Preview
+hostname was removed after review, and the two pre-existing hostnames remain.
+The preserved private Auction Swiss showcase and every other tournament were
+not reset or modified.
 
 ## Implemented behavior
 
@@ -243,6 +247,14 @@ Auction Swiss showcase was not reset or modified.
   diff-integrity check, and configured 335-page production build pass. The
   inherited nonfatal dynamic-font status-400 warning remains; all pages render
   and the build exits successfully.
+- Signed-in Operator mode and Participant view review passed on desktop and at
+  390 x 844 without horizontal overflow. The review verified the visible next
+  action, schedule, Regulation M-B, capacity-based Field Manager, archive and
+  delete controls, synthetic entrants, and shared draft-board access. The
+  authoritative database state for the private rehearsal is one account plus
+  31 bots. Because the Vercel Preview used the pre-migration Production schema,
+  its Field Manager temporarily rendered those bots as real entrants; migration
+  444 updates that projection, and its remote regression passed.
 
 Before a release, retain the repository policy: keep the complete test and audit
 checks passing, apply the Preview regression to a disposable branch, review the
@@ -253,11 +265,8 @@ fixture.
 
 ## Remaining release work
 
-1. Review the full diff, especially the retirement and operator migrations,
-   qualification reranking, the result-neutral opening draw, draft-room
-   regulation sync and lock-order correction, the forward-only foreign-key
-   indexes, and the 32-seat snake expansion.
-2. Review Operator mode and Participant view at desktop and phone widths.
-3. Release only through protected pull request #349 after checks pass.
-4. After release, validate manager invitations and completed-draft claiming in
+1. Release only through protected pull request #349 after checks pass.
+2. Confirm the exact Production application commit and migrations 444-450,
+   then run the complete signed-out Production smoke sweep.
+3. After release, validate manager invitations and completed-draft claiming in
    an isolated practice league before sending the broad four-pod invitations.
