@@ -3,7 +3,7 @@
 - Last updated: August 18, 2026 Pacific
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified Production application and asset commit: `92532d88a12398741768c7a92acf09957cc89fe8`
+- Verified Production application and asset commit: `2c5c0df7185a82eee9ec56743cf032e993a6e516`
 - Latest applied Production migration: 442 (`20260819040935`)
 
 ## Deployed state
@@ -412,6 +412,28 @@ checks, and complete 22-check Production smoke sweep passed. The exact private
 horizontal overflow at 1280 px or 390 px. Its checked-in final capture was
 refreshed from the verified Production view.
 
+Pull request [#342](https://github.com/roblebaegaming/DraftCenter/pull/342)
+is released at exact application commit
+`2c5c0df7185a82eee9ec56743cf032e993a6e516`. Public Team Lab and tournament
+organizer metadata, structured data, social previews, and discovery copy now
+describe the released four-slot Battle Room and private 32-seat organizer
+rehearsal without indexing either private workspace. English, Italian, and
+Spanish Worlds VGC pages remain one competition and now expose aligned search
+descriptions for transparent non-betting champion odds and community coach
+profiles. Two authored guides cover auction-to-Swiss-to-Top-Cut operation and
+open- or closed-team-sheet VGC battle tracking.
+
+The release changed no database schema, Production row, RLS policy, grant,
+provider setting, secret, environment variable, or ad configuration. The
+dependency audit, complete application suite, 1,027-row National Dex check,
+326-page optimized build, protected checks, hosted desktop and 390 px review,
+and complete 22-check Production smoke sweep passed. Live Production has one
+H1, the intended canonical, and no overflow on every refreshed public route;
+both new share cards render at 1200×630. The retained private organizer demo
+still returns `noindex,nofollow`, has no canonical, and is absent from the
+sitemap. The two new guides and all three materially refreshed Worlds VGC
+translations carry truthful August 18 sitemap dates.
+
 Supabase automatic branching remains enabled with a one-concurrent-Preview
 limit and Supabase-only changes. Older Preview branches were left untouched.
 The automatic check on pull request #298 was canceled solely because that limit
@@ -495,6 +517,8 @@ August 19, 2026. Do not inspect or report individual identity or activity.
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-18-team-lab-battle-mode-ux-release.md`](handoffs/DraftCenter-agent-handoff-2026-08-18-team-lab-battle-mode-ux-release.md)
 - Commissioner workflow SEO release handoff:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-18-commissioner-workflow-seo-release.md`](handoffs/DraftCenter-agent-handoff-2026-08-18-commissioner-workflow-seo-release.md)
+- Post-release product SEO review:
+  [`docs/seo-review-2026-08-18-post-release-products.md`](seo-review-2026-08-18-post-release-products.md)
 - Commissioner activation, import, and replay source handoff:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-18-commissioner-activation-import-showdown.md`](handoffs/DraftCenter-agent-handoff-2026-08-18-commissioner-activation-import-showdown.md)
 - Competitive strategy source handoff:
