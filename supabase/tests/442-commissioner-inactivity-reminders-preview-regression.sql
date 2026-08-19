@@ -1,4 +1,4 @@
--- Preview-only security and behavior matrix for migration 441. Run only in an
+-- Preview-only security and behavior matrix for migration 442. Run only in an
 -- isolated Supabase Preview branch. The transaction rolls back every synthetic
 -- identity, league, invite, and notification event. This script sends no email.
 

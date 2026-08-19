@@ -37,7 +37,7 @@ draft date, and no draft session. The owner can review and copy the complete
 subject and message; that manual action never sends an email or reveals the
 commissioner's email address.
 
-Migration 441 adds service-only queue and confirmed-delivery functions. The
+Migration 442 adds service-only queue and confirmed-delivery functions. The
 daily job catches up any untouched league older than seven days, queues one
 final follow-up 30 days after the first email was actually delivered, and then
 stops permanently for that league. The notification worker rechecks every

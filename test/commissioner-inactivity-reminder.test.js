@@ -93,7 +93,7 @@ test("the final follow-up is personalized and clearly ends the cadence", () => {
 test("automation is cron-only, disabled by default, deduplicated, and rechecked before delivery", () => {
   const cronRoute = fs.readFileSync(new URL("../src/app/api/operations/commissioner-inactivity/route.js", import.meta.url), "utf8");
   const dispatchRoute = fs.readFileSync(new URL("../src/app/api/notifications/dispatch/route.js", import.meta.url), "utf8");
-  const migration = fs.readFileSync(new URL("../supabase/migrations/20260819020026_441_commissioner_inactivity_reminders.sql", import.meta.url), "utf8");
+  const migration = fs.readFileSync(new URL("../supabase/migrations/20260819040935_442_commissioner_inactivity_reminders.sql", import.meta.url), "utf8");
   const vercel = JSON.parse(fs.readFileSync(new URL("../vercel.json", import.meta.url), "utf8"));
   assert.match(cronRoute, /authorization.*Bearer \$\{secret\}/s);
   assert.match(cronRoute, /COMMISSIONER_INACTIVITY_REMINDERS_ENABLED/);
