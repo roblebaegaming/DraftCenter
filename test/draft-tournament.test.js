@@ -518,8 +518,13 @@ test("Tournament UI presents the organizer demo as private synthetic infrastruct
     "Winning rosters and prices",
     "Regulation M-B",
     "Top 8",
+    "TournamentMatchRoster",
+    "tournamentRostersByEntrant",
+    "tournament-match-roster",
   ]) assert.match(workspace, new RegExp(evidence));
   assert.match(directory, /rosterSize: 6/);
   assert.match(directory, /Fixed at six for the 32-seat Regulation M-B showcase/);
   assert.match(workspace, /tournament\.is_owner && !isDemo && tournament\.visibility === "private"/);
+  assert.match(workspace, /rostersByEntrant=\{visibleGroup\.stage === "swiss" \? null : tournamentRostersByEntrant\}/);
+  assert.match(workspace, /safeHttpsImageSource\(pokemon\.spriteUrl \|\| pokemon\.sprite_url \|\| pokemon\.sprite\)/);
 });

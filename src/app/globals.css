@@ -2252,3 +2252,13 @@ button.mega-bracket-slot:hover,button.mega-bracket-slot:focus-visible { color: #
   .organization-directory-card dl { grid-template-columns: 1fr; }
   .organization-directory-actions>* { flex: 1 1 100%; text-align: center; }
 }
+
+.tournament-match-entrant { display: grid; min-width: 0; gap: 7px; }
+.tournament-match-entrant>strong { min-width: 0; overflow-wrap: anywhere; }
+.tournament-match-roster { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 4px; max-width: 210px; }
+.tournament-match-roster>span { display: flex; min-width: 0; padding: 3px 4px; align-items: center; gap: 4px; overflow: hidden; border: 1px solid rgba(79,209,197,.2); border-radius: 6px; color: #c8d2eb; background: rgba(79,209,197,.07); }
+.tournament-match-roster img,.tournament-match-roster i { width: 21px; height: 21px; flex: 0 0 21px; object-fit: contain; }
+.tournament-match-roster i { display: grid; place-items: center; border-radius: 50%; color: #8e9abc; background: #1b2440; font-size: 9px; font-style: normal; font-weight: 900; }
+.tournament-match-roster small { min-width: 0; overflow: hidden; color: #b9c4df; font-size: 7px; font-weight: 800; line-height: 1.05; text-overflow: ellipsis; white-space: nowrap; }
+.tournament-match-roster>b { display: grid; min-height: 29px; place-items: center; border: 1px dashed #44527b; border-radius: 6px; color: #a9b4d0; font-size: 9px; }
+.tournament-match-side.winner .tournament-match-roster>span { border-color: rgba(79,209,197,.34); background: rgba(79,209,197,.11); }
