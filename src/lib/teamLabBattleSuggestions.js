@@ -22,6 +22,7 @@ export const TEAM_LAB_COMPETITIVE_ABILITY_SHORTLIST = Object.freeze([
 
 const abilityCache = new Map();
 let itemPromise = null;
+const measuredSuggestionCache = new Map();
 
 function displayApiName(value) {
   return String(value || "").split("-").map((word) => word ? word[0].toUpperCase() + word.slice(1) : "").join(" ");
@@ -68,9 +69,42 @@ export async function loadTeamLabItemSuggestions(fetcher = fetch) {
   return itemPromise;
 }
 
-export async function loadTeamLabBattleSuggestions(kind, pokemonName, regulationId, fetcher = fetch) {
-  if (kind === "move") return (await loadTeamLabMoveSuggestions(pokemonName, regulationId, fetcher)).moves;
-  if (kind === "ability") return loadTeamLabAbilitySuggestions(pokemonName, fetcher);
-  if (kind === "item") return loadTeamLabItemSuggestions(fetcher);
-  return [];
+export async function loadTeamLabMeasuredSuggestions(pokemonName, regulationId, purpose, fetcher = fetch) {
+  if (!pokemonName || !purpose || regulationId !== "reg-mb") return { moves: [], abilities: [], items: [], source: null };
+  const cacheKey = [pokemonName, regulationId, purpose].join("\u0001").toLowerCase();
+  if (!measuredSuggestionCache.has(cacheKey)) {
+    measuredSuggestionCache.set(cacheKey, fetcher(`/api/team-lab/competitive-suggestions?pokemon=${encodeURIComponent(pokemonName)}&regulation=${encodeURIComponent(regulationId)}&purpose=${encodeURIComponent(purpose)}`)
+      .then((response) => response.ok ? response.json() : null)
+      .then((data) => ({
+        moves: Array.isArray(data?.moves) ? data.moves : [],
+        abilities: Array.isArray(data?.abilities) ? data.abilities : [],
+        items: Array.isArray(data?.items) ? data.items : [],
+        source: data?.source && typeof data.source === "object" ? data.source : null,
+      }))
+      .catch(() => ({ moves: [], abilities: [], items: [], source: null })));
+  }
+  return measuredSuggestionCache.get(cacheKey);
+}
+
+export async function loadTeamLabBattleSuggestionData(kind, pokemonName, regulationId, purpose = "", fetcher = fetch) {
+  const measured = await loadTeamLabMeasuredSuggestions(pokemonName, regulationId, purpose, fetcher);
+  if (kind === "move") {
+    const legal = (await loadTeamLabMoveSuggestions(pokemonName, regulationId, fetcher)).moves;
+    const canonical = new Map(legal.map((move) => [move.toLowerCase(), move]));
+    const measuredLegal = measured.moves.map((move) => canonical.get(String(move).toLowerCase())).filter(Boolean);
+    return { values: prioritizeTeamLabSuggestions(measuredLegal, legal), source: measuredLegal.length ? measured.source : null };
+  }
+  if (kind === "ability") {
+    const fallback = await loadTeamLabAbilitySuggestions(pokemonName, fetcher);
+    return { values: prioritizeTeamLabSuggestions(measured.abilities, fallback), source: measured.abilities.length ? measured.source : null };
+  }
+  if (kind === "item") {
+    const fallback = await loadTeamLabItemSuggestions(fetcher);
+    return { values: prioritizeTeamLabSuggestions(measured.items, fallback), source: measured.items.length ? measured.source : null };
+  }
+  return { values: [], source: null };
+}
+
+export async function loadTeamLabBattleSuggestions(kind, pokemonName, regulationId, purpose = "", fetcher = fetch) {
+  return (await loadTeamLabBattleSuggestionData(kind, pokemonName, regulationId, purpose, fetcher)).values;
 }

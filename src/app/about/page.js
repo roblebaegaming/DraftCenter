@@ -51,6 +51,7 @@ export default function AboutPage() {
       <section id="data-methodology">
         <h2>Pokédex and community-data methodology</h2>
         <p>Core Pokémon facts, official-style artwork references, measurements, abilities, forms, and battle statistics are retrieved from <a href="https://pokeapi.co/" rel="noreferrer">PokéAPI</a> and refreshed daily. DraftCenter's regulation catalogs determine the actual legal pools used by leagues; public profile pages never replace the saved league rules.</p>
+        <p>Pokémon Champions Battle Room suggestions keep ladder and open-tournament evidence separate. Current ranked suggestions are provided by the attributed <a href="https://championsbattledata.com/" rel="noreferrer">Pokémon Champions Battle Data</a> source. Tournament suggestions come from an anonymous, pinned aggregate of complete public open team sheets from reviewed <a href="https://play.limitlesstcg.com/" rel="noreferrer">Limitless</a> events. Saved and revealed facts always remain first, and a ranked fallback is labeled when a Pokémon is absent from the tournament sample.</p>
         <p>Community draft rate and average draft position use eligible completed draft pools, including undrafted eligible Pokémon where the displayed definition requires it. Auction averages use completed auction samples. Team win rate uses confirmed match results. Every public percentage is paired with its sample size, and small samples are presented as early evidence rather than proof that a Pokémon caused an outcome.</p>
       </section>
 

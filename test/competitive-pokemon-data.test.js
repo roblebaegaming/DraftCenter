@@ -89,6 +89,42 @@ test("reviewed tournament cohort is complete, anonymous, and form aware", () => 
   assert.equal(garchompTeams.filter(({ team }) => team.is_champion).length, 4);
 });
 
+test("Team Lab tournament suggestions are a compact anonymous derivative of the reviewed cohort", () => {
+  const artifact = JSON.parse(read("data/competitive/tournaments/limitless-vgc-2026-08-reg-mb-team-lab-suggestions.json"));
+  assert.equal(artifact.schema_version, 1);
+  assert.equal(artifact.format.regulation_id, "reg-mb");
+  assert.equal(artifact.format.evidence_type, "open-tournament-team-sheets");
+  assert.equal(artifact.dataset.event_count, 10);
+  assert.equal(artifact.dataset.team_count, 737);
+  assert.equal(artifact.dataset.period_start, "2026-08-01");
+  assert.equal(artifact.dataset.period_end, "2026-08-06");
+  assert.equal(artifact.dataset.events.length, 10);
+  assert.ok(Object.keys(artifact.pokemon).length >= 180);
+  assert.equal(artifact.pokemon.garchomp.sample_teams, 247);
+  assert.deepEqual(artifact.pokemon.garchomp.moves.slice(0, 4).map((row) => row.name), ["Dragon Claw", "Rock Slide", "Earthquake", "Protect"]);
+  assert.deepEqual(artifact.pokemon["garchomp-mega-z"].items, [{ name: "Garchompite", count: 10, percentage: 100 }]);
+  assert.deepEqual(artifact.pokemon["garchomp-mega-z"].abilities, []);
+  for (const record of Object.values(artifact.pokemon)) {
+    assert.ok(record.sample_teams > 0 && record.sample_teams <= artifact.dataset.team_count);
+    for (const category of ["moves", "items", "abilities"]) {
+      assert.ok(record[category].length <= 12);
+      assert.deepEqual(record[category].map((row) => row.count), record[category].map((row) => row.count).toSorted((a, b) => b - a));
+      assert.ok(record[category].every((row) => row.count <= record.sample_teams && row.percentage > 0 && row.percentage <= 100));
+    }
+  }
+  const serialized = JSON.stringify(artifact);
+  assert.doesNotMatch(serialized, /"country"\s*:/);
+  assert.doesNotMatch(serialized, /"player"\s*:/);
+  assert.doesNotMatch(serialized, /"handle"\s*:/);
+
+  const route = read("src/app/api/team-lab/competitive-suggestions/route.js");
+  assert.match(route, /championsbattledata\.com/);
+  assert.match(route, /limitless-open-team-sheets/);
+  assert.match(route, /Current Pokémon Champions ranked doubles data/);
+  assert.match(route, /tournament sample unavailable/);
+  assert.match(route, /s-maxage=21600/);
+});
+
 test("tournament aggregates are RLS-backed, bounded, and separate from ladder usage", () => {
   const migration = read("supabase/346-competitive-tournament-results.sql");
   for (const table of ["competitive_tournaments", "competitive_tournament_teams", "competitive_tournament_team_members"]) {

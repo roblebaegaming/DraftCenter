@@ -25,6 +25,42 @@ These are ladder observations, including the VGC-rules ladder. They are not
 official Play! Pokémon tournament results. Tournament placements, top-cut
 conversion, and event win rates are never inferred from ladder usage.
 
+## Team Lab competitive suggestions
+
+Team Lab keeps saved, published, and already revealed facts first, then uses a
+source that matches the battle type for Regulation M-B:
+
+- **Ladder** uses the current Pokémon Champions Doubles move, item, and ability
+  order from the
+  [Pokémon Champions Battle Data API](https://championsbattledata.com/api_guide).
+  The API permits commercial use and reasonable caching with clear attribution;
+  DraftCenter returns only the bounded suggestions needed by Battle Room and
+  links the provider beside them.
+- **Online tournament** uses a compact anonymous derivative of the same 10
+  reviewed Limitless events imported for public tournament profiles: 737
+  complete open team sheets from August 1–6, 2026. It ranks up to 12 moves,
+  items, and non-Mega base abilities per Pokémon. Mega Stone holders are mapped
+  to their battle form, but their pre-Mega sheet ability is deliberately not
+  presented as the Mega form's revealed ability.
+- If a tournament Pokémon is outside that cohort, Battle Room labels the
+  current Champions ranked order as a fallback. Non-Champions formats continue
+  to use exact regulation move pools, exact Pokémon abilities where available,
+  and the broad item catalog without claiming measured usage.
+
+The public route exposes suggestion names and source context only. It does not
+redistribute raw API responses, percentages, player identities, team records,
+or a bulk competitive-data feed. Responses are cached for six hours for live
+Champions data and one day for the pinned tournament derivative.
+
+[MunchStats](https://munchstats.com/) and
+[Pikalytics](https://www.pikalytics.com/) remain useful comparison interfaces.
+They are not silently blended into DraftCenter's rankings: MunchStats documents
+that its Champions pages cache the same Pokémon Champions Battle Data API and
+its tournament pages draw from Limitless, while Pikalytics' tournament pages
+also expose Limitless cohorts. DraftCenter uses the reviewed underlying sources
+directly so each suggestion can retain one clear evidence type, date range,
+sample, and attribution.
+
 ## Initial tournament cohort
 
 Migration 346 adds private event, anonymous team, and team-member tables plus a
@@ -64,3 +100,15 @@ npm run competitive:build:migration -- data/competitive/smogon-2026-07-gen9ou-18
 Before release, run `npm run test:competitive-data`, the applicable full
 repository checks, migration/RLS/grant verification, and visual review of an
 ordinary species plus several form-sensitive profiles.
+
+To rebuild the pinned Battle Room tournament derivative, re-fetch and verify
+the exact source hashes already recorded in the reviewed cohort:
+
+```powershell
+npm run competitive:build:team-lab-suggestions
+npm run competitive:check:team-lab-suggestions
+```
+
+The builder fails if any source event, complete-team count, or SHA-256 digest no
+longer matches the reviewed cohort. Review and replace the source cohort through
+the existing import process instead of accepting a changed event silently.

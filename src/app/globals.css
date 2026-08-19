@@ -1650,6 +1650,8 @@ button.team-lab-field-slot.is-empty strong { font-size: 11px; }
 .team-lab-legality-warning { margin: 0; color: #ffaaaa; font-size: 11px; line-height: 1.5; }
 .team-lab-battle-reveal-fields { margin-top: 10px; }
 .team-lab-battle-reveal-fields label { display: grid; gap: 5px; color: #bdc7e4; font-size: 9px; font-weight: 900; text-transform: uppercase; }
+.team-lab-competitive-suggestion-source { display: block; color: #8f9aba; font-size: 10px; font-weight: 700; line-height: 1.4; text-transform: none; }
+.team-lab-competitive-suggestion-source a { color: #55d7cf; }
 .team-lab-battle-scouted-set { display: flex; align-items: center; justify-content: space-between; gap: 9px; margin-top: 10px; padding: 8px 9px; border: 1px dashed #526185; border-radius: 8px; background: #080d1b; }
 .team-lab-battle-scouted-set>div { display: grid; min-width: 0; gap: 2px; }
 .team-lab-battle-scouted-set span { color: #8692b4; font-size: 8px; font-weight: 900; text-transform: uppercase; }
