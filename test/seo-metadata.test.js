@@ -634,7 +634,7 @@ test("AI discovery foundation exposes a trustworthy entity and reference index",
   assert.match(llms, /Sunday's eight-entry Super Bracket/);
   assert.match(llms, /it\/worlds\/2026/);
   assert.match(llms, /es\/worlds\/2026/);
-  assert.match(llms, /Last reviewed: 2026-08-18/);
+  assert.match(llms, /Last reviewed: 2026-08-19/);
   assert.match(llms, /Private queues/);
   assert.match(content, /national-gen\$\{generation\}/);
 });

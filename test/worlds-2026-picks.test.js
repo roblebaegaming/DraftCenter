@@ -17,6 +17,7 @@ import {
   worldsEntryIsLocked,
 } from "../src/lib/worlds2026.js";
 import {
+  WORLDS_LANGUAGES,
   worldsCopy,
   worldsQualificationLabel,
   worldsRegionLabel,
@@ -358,13 +359,13 @@ test("the Italian Worlds route localizes the current Pick 10 experience without 
   assert.match(englishPage, /languages: \{ en: "\/worlds\/2026\/vgc", it: "\/it\/worlds\/2026"/);
   assert.match(sitemap, /\["\/it\/worlds\/2026", "daily", 0\.8\]/);
   assert.match(component, /navigator\.languages/);
-  assert.match(component, /draftcenter-worlds-italian-offer-dismissed/);
+  assert.match(component, /draftcenter-worlds-language-offer-dismissed/);
   assert.match(component, /document\.documentElement\.lang = copy\.documentLanguage/);
   assert.match(component, /document\.documentElement\.lang = previousLanguage \|\| "en"/);
   assert.doesNotMatch(component, /location\.(?:assign|replace)|window\.location\s*=/);
   assert.match(component, /WorldsMetaChallenge discipline=\{config\.key\} user=\{user\} locale=\{locale\}/);
   assert.match(meta, /locale = "en"/);
-  assert.match(translations, /Italiano disponibile/);
+  assert.match(translations, /Worlds predictions in your language/);
 
   const copy = worldsCopy("it");
   assert.equal(copy.documentLanguage, "it");
@@ -439,7 +440,7 @@ test("the Spanish Worlds route localizes Pick 10, odds, Meta Picks, roster label
   assert.match(spanishPage, /WorldsPickSixteen discipline="vgc" rosterSource=\{roster\} locale="es"/);
   assert.match(englishPage, /es: "\/es\/worlds\/2026"/);
   assert.match(sitemap, /\["\/es\/worlds\/2026", "daily", 0\.8\]/);
-  assert.match(component, /href="\/es\/worlds\/2026" hrefLang="es"/);
+  assert.match(component, /Object\.entries\(WORLDS_LANGUAGES\)/);
   assert.match(component, /document\.documentElement\.lang = copy\.documentLanguage/);
   assert.match(meta, /worldsCopy\(locale\)\.meta/);
   assert.match(odds, /es: \{/);
@@ -478,6 +479,47 @@ test("the Spanish Worlds route localizes Pick 10, odds, Meta Picks, roster label
   assert.ok(filterWorldsCompetitors(localizedRoster, "KOR", "Corea del Sur").length > 0);
   const englishOdds = new Map(buildWorldsChampionOdds(normalizedRoster).map((entry) => [entry.slug, entry.probability]));
   assert.ok(buildWorldsChampionOdds(localizedRoster).every((entry) => Math.abs(entry.probability - englishOdds.get(entry.slug)) < 1e-12));
+});
+
+test("German, Japanese, and Korean Worlds routes share the VGC competitions and expose all six languages", () => {
+  const component = source("src/components/WorldsPickSixteen.jsx");
+  const quickLinks = source("src/components/SiteQuickLinks.jsx");
+  const css = source("src/app/globals.css");
+  const sitemap = source("src/app/sitemap.js");
+  const llms = source("src/app/llms.txt/route.js");
+  const odds = source("src/components/WorldsChampionOdds.jsx");
+  const profile = source("src/components/PublicCoachProfile.jsx");
+
+  assert.deepEqual(Object.keys(WORLDS_LANGUAGES), ["en", "it", "es", "de", "ja", "ko"]);
+  assert.match(component, /className="worlds-start-guide"/);
+  assert.match(component, /href="#qualified-players"/);
+  assert.match(component, /href="#meta-picks"/);
+  assert.match(quickLinks, /site-worlds-link/);
+  assert.match(quickLinks, /href="\/worlds\/2026" aria-label="Worlds Predictions"/);
+  assert.match(css, /site-quick-links a\.site-worlds-link/);
+  assert.match(css, /site-worlds-link \{ grid-column: 1\/-1/);
+
+  for (const locale of ["de", "ja", "ko"]) {
+    const page = source(`src/app/${locale}/worlds/2026/page.js`);
+    assert.match(page, new RegExp(`locale="${locale}"`));
+    assert.match(page, new RegExp(`canonical: "/${locale}/worlds/2026"`));
+    assert.match(page, /worlds-2026-vgc-masters\.json/);
+    assert.match(page, /WorldsPickSixteen discipline="vgc" rosterSource=\{roster\}/);
+    assert.match(sitemap, new RegExp(`\\["/${locale}/worlds/2026", "daily", 0\\.8\\]`));
+    assert.match(llms, new RegExp(`draftcentral\\.gg/${locale}/worlds/2026`));
+    assert.match(odds, new RegExp(`\\n  ${locale}: \\{`));
+    assert.match(profile, new RegExp(`\\n  ${locale}: \\{`));
+
+    const copy = worldsCopy(locale);
+    assert.equal(copy.documentLanguage, locale);
+    assert.match(copy.guide.body, /10|10人|10명/);
+    assert.ok(copy.meta.title.length > 5);
+    assert.ok(worldsServerError("Each competitor can be chosen only once.", locale).length > 5);
+    assert.ok([...new Set(roster.competitors.map(({ qualification }) => qualification))]
+      .every((qualification) => worldsQualificationLabel(qualification, locale) !== qualification));
+    assert.ok([...new Set(roster.competitors.map(({ region }) => region))]
+      .every((region) => worldsRegionLabel(region, locale) !== region || region === "Japan"));
+  }
 });
 
 test("the official TCG Masters qualifier pool is complete, unique, and release-ready", () => {

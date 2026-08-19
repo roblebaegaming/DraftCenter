@@ -4,6 +4,9 @@ import roster from "../../../../data/worlds-2026-vgc-masters.json";
 const canonicalUrl = "https://www.draftcentral.gg/worlds/2026/vgc";
 const italianUrl = "https://www.draftcentral.gg/it/worlds/2026";
 const spanishUrl = "https://www.draftcentral.gg/es/worlds/2026";
+const germanUrl = "https://www.draftcentral.gg/de/worlds/2026";
+const japaneseUrl = "https://www.draftcentral.gg/ja/worlds/2026";
+const koreanUrl = "https://www.draftcentral.gg/ko/worlds/2026";
 const pageTitle = "2026 Pokémon Worlds VGC Predictions & Champion Odds";
 const pageDescription = `Browse ${roster.competitors.length} Pokémon Worlds 2026 VGC Masters invitees, pick 10 qualified players, name Your Champion, compare non-betting champion odds, and explore community leaderboard profiles.`;
 
@@ -12,13 +15,13 @@ export const metadata = {
   description: pageDescription,
   alternates: {
     canonical: "/worlds/2026/vgc",
-    languages: { en: "/worlds/2026/vgc", it: "/it/worlds/2026", es: "/es/worlds/2026", "x-default": "/worlds/2026/vgc" },
+    languages: { en: "/worlds/2026/vgc", it: "/it/worlds/2026", es: "/es/worlds/2026", de: "/de/worlds/2026", ja: "/ja/worlds/2026", ko: "/ko/worlds/2026", "x-default": "/worlds/2026/vgc" },
   },
   openGraph: {
     type: "website",
     siteName: "DraftCenter",
     locale: "en_US",
-    alternateLocale: ["it_IT", "es_ES"],
+    alternateLocale: ["it_IT", "es_ES", "de_DE", "ja_JP", "ko_KR"],
     title: `${pageTitle} | DraftCenter`,
     description: pageDescription,
     url: canonicalUrl,
@@ -41,7 +44,7 @@ export default function Worlds2026VgcPage() {
         description: pageDescription,
         url: canonicalUrl,
         inLanguage: "en-US",
-        workTranslation: [{ "@id": `${italianUrl}#webpage` }, { "@id": `${spanishUrl}#webpage` }],
+        workTranslation: [italianUrl, spanishUrl, germanUrl, japaneseUrl, koreanUrl].map((url) => ({ "@id": `${url}#webpage` })),
         isPartOf: { "@id": "https://www.draftcentral.gg/#website" },
         about: {
           "@type": "Thing",
