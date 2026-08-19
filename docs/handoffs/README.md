@@ -1,5 +1,12 @@
 # Agent handoffs
 
+[`DraftCenter-agent-handoff-2026-08-19-worlds-six-language-release.md`](DraftCenter-agent-handoff-2026-08-19-worlds-six-language-release.md)
+is the current Worlds localization handoff. It records the shared English,
+Italian, Spanish, German, Japanese, and Korean VGC prediction routes; the
+six-language selector; the first-screen player-and-Pokémon clarification; the
+large persistent Worlds Predictions button; protected Preview and Production
+evidence; and the no-migration, no-data-change boundary.
+
 [`DraftCenter-agent-handoff-2026-08-19-four-pod-midseason-import.md`](DraftCenter-agent-handoff-2026-08-19-four-pod-midseason-import.md)
 is the current Production import handoff. It records the live private
 organization and four pod links, exact source and import hashes, normalized
@@ -13,11 +20,11 @@ Google Ads state. Its statement that the audited four-pod league had not yet
 been imported is superseded by the August 19 handoff above.
 
 [`DraftCenter-agent-handoff-2026-08-18-worlds-shared-localized-leaderboard-profiles.md`](DraftCenter-agent-handoff-2026-08-18-worlds-shared-localized-leaderboard-profiles.md)
-is the current Worlds profile handoff. It records the shared English, Italian,
-and Spanish VGC event, localized scrollable leaderboard profiles, migration
-441's bounded public profile fields and preserved pre-lock privacy, disposable
-Preview regression and deletion, exact Production deployment, and live
-English/Italian verification.
+is the current Worlds profile/privacy handoff. Its three-language presentation
+scope is superseded by the August 19 six-language handoff above, while its
+localized scrollable leaderboard profiles, migration 441's bounded public
+profile fields, preserved pre-lock privacy, and database evidence remain
+authoritative.
 
 [`DraftCenter-agent-handoff-2026-08-18-google-ads-readiness.md`](DraftCenter-agent-handoff-2026-08-18-google-ads-readiness.md)
 is the current acquisition-strategy handoff. It recommends preparing but not
