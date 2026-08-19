@@ -3,10 +3,25 @@
 - Last updated: August 19, 2026 Pacific
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified Production application behavior commit: `183ed1f14dfee2e05c5c88a076ce67b0815bfda5`
+- Verified Production application behavior commit: `fd5a2e48a1d45507608af8839d05657ada9472cb`
 - Latest applied Production migration: 443 (`20260819090000`)
 
 ## Deployed state
+
+Pull request [#350](https://github.com/roblebaegaming/DraftCenter/pull/350)
+released the shared VGC Worlds prediction experience in English, Italian,
+Spanish, German, Japanese, and Korean at exact Production application commit
+`fd5a2e48a1d45507608af8839d05657ada9472cb`. Every localized route renders the
+same Pick 10 and Meta competition contracts, entry pools, and leaderboards.
+The page now states at the top that visitors can pick both real VGC players and
+six Pokémon below, offers direct links to both sections, includes a six-language
+switcher, and keeps Worlds Predictions as a large highlighted global button.
+This application-only release added no database migration or Production-data
+change. All protected checks, the hosted desktop and 390 px Preview review,
+the 335-route Production build, the complete 22-check signed-out Production
+smoke sweep, and direct live checks of all six localized routes passed. The
+exact release record is in the
+[`August 19 multilingual Worlds handoff`](handoffs/DraftCenter-agent-handoff-2026-08-19-worlds-six-language-release.md).
 
 The week-four four-pod charity league reconstruction is complete in Production.
 The private organization
