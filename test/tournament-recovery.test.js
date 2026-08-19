@@ -70,7 +70,7 @@ test("recovery projections never expose identities, rosters, or claim secrets", 
 test("commissioner and claimant interfaces expose explicit recovery choices", () => {
   for (const value of [
     "forfeit_tournament_match",
-    "set_tournament_entrant_status",
+    "set_tournament_participation_status",
     "replace_tournament_entrant",
     "claim_tournament_replacement",
     "Record drop",

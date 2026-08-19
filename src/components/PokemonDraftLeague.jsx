@@ -61,6 +61,7 @@ import {
   leagueResultSourceDifferentialLabel,
   leagueResultWinnerSide,
 } from "../lib/leagueResults";
+import { activeLeagueRows, isAdministrativeLeagueResolution, isLeagueTeamRetired, leagueTeamStatusLabel } from "../lib/participantStatus";
 
 /* ---------------------------------------------------------
    DESIGN TOKENS — stadium-jumbotron-at-night aesthetic.
@@ -4152,7 +4153,7 @@ function computeTradeCountsByPerson(trades, teams) {
   const counts = {};
   (trades || []).filter((t) => t.status === "accepted").forEach((t) => {
     [t.fromTeam, t.toTeam].forEach((teamIdx) => {
-      const owner = teams[teamIdx]?.claimedBy;
+      const owner = isLeagueTeamRetired(teams[teamIdx]) ? null : teams[teamIdx]?.claimedBy;
       if (owner) counts[owner] = (counts[owner] || 0) + 1;
     });
   });
@@ -4161,7 +4162,7 @@ function computeTradeCountsByPerson(trades, teams) {
 function computeFreeAgencyCountsByPerson(transactionLog, teams) {
   const counts = {};
   (transactionLog || []).filter((t) => !t.reversed).forEach((t) => {
-    const owner = teams[t.teamIdx]?.claimedBy;
+    const owner = isLeagueTeamRetired(teams[t.teamIdx]) ? null : teams[t.teamIdx]?.claimedBy;
     if (owner) counts[owner] = (counts[owner] || 0) + 1;
   });
   return counts;
@@ -4173,9 +4174,10 @@ function computeFreeAgencyCountsByPerson(transactionLog, teams) {
 // same computation Standings itself already shows.
 function getRegularSeasonChampions(state, standings) {
   const divisions = state.settings.divisions || [];
+  const eligibleStandings = activeLeagueRows(standings, state.teams);
   const groups = divisions.length > 0
-    ? divisions.map((d) => standings.filter((s) => d.teamIds.includes(s.id)))
-    : [standings];
+    ? divisions.map((d) => eligibleStandings.filter((s) => d.teamIds.includes(s.id)))
+    : [eligibleStandings];
   return groups
     .filter((rows) => rows.length > 0)
     .map((rows) => {
@@ -4218,12 +4220,12 @@ function computeStandingsThroughWeek(s, cutoffWeek) {
 // (non-reversed) move.
 function computeIronRosters(state) {
   const moveCounts = computeFreeAgencyCountsByPerson(state.transactionLog, state.teams);
-  return state.teams.filter((t) => t.claimedBy && !moveCounts[t.claimedBy]).map((t) => t.claimedBy);
+  return state.teams.filter((t) => !isLeagueTeamRetired(t) && t.claimedBy && !moveCounts[t.claimedBy]).map((t) => t.claimedBy);
 }
 // Undefeated regular season — must have actually played at least one game,
 // so an empty 0-0 record doesn't count as "perfect."
 function computePerfectSeasons(standings, teams) {
-  return standings.filter((r) => r.w > 0 && r.l === 0).map((r) => teams[r.id]?.claimedBy).filter(Boolean);
+  return standings.filter((r) => !isLeagueTeamRetired(teams[r.id]) && r.w > 0 && r.l === 0).map((r) => teams[r.id]?.claimedBy).filter(Boolean);
 }
 // The same person winning League Champion in back-to-back seasons — checks
 // against the most recently archived season's champion, comparing by
@@ -8255,7 +8257,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       // now — same scoping call as double elimination not combining with
       // divisions yet.)
       if (!customSeeds && divisions.length >= 2) {
-        const allStandings = computeStandings(s, s.settings.playoffSeedCriteria);
+        const allStandings = activeLeagueRows(computeStandings(s, s.settings.playoffSeedCriteria), s.teams);
         const divisionBrackets = divisions.map((d) => {
           const divStandings = allStandings.filter((row) => d.teamIds.includes(row.id));
           const seeds = divStandings.slice(0, s.settings.divisionPlayoffTeams).map((row) => row.id);
@@ -8284,8 +8286,12 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       // saved with the default Top 4 setting. A two-team league is a direct
       // championship series, and every other bracket is capped to its real
       // number of teams.
-      const playoffTeamCount = Math.max(2, Math.min(Number(s.settings.playoffTeams) || 2, s.teams.length));
-      const seeds = customSeeds || computeStandings(s, s.settings.playoffSeedCriteria).slice(0, playoffTeamCount).map((row) => row.id);
+      const eligibleStandings = activeLeagueRows(computeStandings(s, s.settings.playoffSeedCriteria), s.teams);
+      if (eligibleStandings.length < 2) return s;
+      const eligibleIds = new Set(eligibleStandings.map((row) => row.id));
+      const requestedSeeds = (customSeeds || []).filter((teamId) => teamId == null || eligibleIds.has(teamId));
+      const playoffTeamCount = Math.max(2, Math.min(Number(s.settings.playoffTeams) || 2, eligibleStandings.length));
+      const seeds = customSeeds ? requestedSeeds : eligibleStandings.slice(0, playoffTeamCount).map((row) => row.id);
       const bracketSize = nextPowerOfTwo(Math.max(2, seeds.length));
       if (s.settings.doubleElimination) {
         return { ...s, playoffs: { mode: "double-elim", bracketSize, seeds, results: {}, losersResults: {}, grandFinal: {} } };
@@ -8817,7 +8823,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
         homepage: ruleMode === "new" ? { ...s.homepage, rules: "" } : s.homepage,
         locked: false,
         draftStartedAt: null,
-        teams: s.teams.map((t) => ({ ...t, archetypes: [] })),
+        teams: s.teams.map(({ seasonStatus: _seasonStatus, ...team }) => ({ ...team, archetypes: [] })),
         rosters: [], budgets: [], pool: [],
         snakeOrder: [], pickIndex: 0, pickDeadline: null, nominationDeadline: null,
         queues: {},
@@ -9906,6 +9912,11 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
                 </a>
               <button onClick={() => onOpenLeagueTools?.({
                 teams: state.teams,
+                settings: state.settings,
+                seasonNumber: state.seasonNumber,
+                stateRevision: state.rev,
+                currentWeek: state.week,
+                schedule: state.schedule,
                 trades: state.trades,
                 transactionLog: state.transactionLog,
                 reverseTrade,
@@ -11656,7 +11667,8 @@ function ManagerLeagueDetails({ state, myName, myTeamIdx, claimTeam, costFor, up
           {state.teams.map((team, index) => {
             const mine = index === myTeamIdx;
             const claimed = teamIsClaimed(team);
-            return <article key={team.id ?? index} className="rounded p-3 flex items-center justify-between gap-3" style={{ background: mine ? "#2A2618" : "#1F2338", border: `1px solid ${mine ? "#FFD23F66" : "rgba(255,255,255,0.06)"}` }}><div className="flex items-center gap-3"><TeamLogo team={team} size={34} /><div><strong className="block">{team.name}</strong><span className="text-xs" style={{ color: claimed ? "#4FD1C5" : "#9A9FBD" }}>{mine ? "Your team" : claimed ? `Manager: ${team.claimedBy || "Claimed manager"}` : team.expectedManager ? `Source manager: ${team.expectedManager} · unclaimed` : "Open"}</span></div></div>{!readOnly && !myTeam && !claimed && <button onClick={() => claimTeam(index)} className="px-3 py-1.5 rounded text-xs font-semibold" style={{ background: "#FFD23F", color: "#10121C" }}>CLAIM</button>}</article>;
+            const retiredLabel = leagueTeamStatusLabel(team, settings);
+            return <article key={team.id ?? index} className="rounded p-3 flex items-center justify-between gap-3" style={{ background: mine ? "#2A2618" : "#1F2338", border: `1px solid ${mine ? "#FFD23F66" : "rgba(255,255,255,0.06)"}` }}><div className="flex items-center gap-3"><TeamLogo team={team} size={34} /><div><strong className="block">{team.name}</strong><span className="text-xs" style={{ color: retiredLabel ? "#F4B860" : claimed ? "#4FD1C5" : "#9A9FBD" }}>{retiredLabel || (mine ? "Your team" : claimed ? `Manager: ${team.claimedBy || "Claimed manager"}` : team.expectedManager ? `Source manager: ${team.expectedManager} · unclaimed` : "Open")}</span></div></div>{!readOnly && !myTeam && !claimed && !retiredLabel && <button onClick={() => claimTeam(index)} className="px-3 py-1.5 rounded text-xs font-semibold" style={{ background: "#FFD23F", color: "#10121C" }}>CLAIM</button>}</article>;
           })}
         </div>
         {!myTeam && openTeams.length === 0 && <p className="text-sm mt-4" style={{ color: "#F4B860" }}>No teams are currently open. Ask the commissioner to add or release a team.</p>}
@@ -16190,6 +16202,7 @@ function MatchCard({ teamA, teamB, result, canReport, onReport, pending, rosterA
   const selectedMvpName = editingWinnerRoster.some((mon) => mon.name === mvpName) ? mvpName : "";
   const resultWinnerSide = leagueResultWinnerSide(result);
   const resultWinnerRoster = resultWinnerSide === "A" ? (rosterA || []) : resultWinnerSide === "B" ? (rosterB || []) : [];
+  const administrativeResolution = isAdministrativeLeagueResolution(result);
 
   function setGameCount(n) {
     setShowdownReplays([]);
@@ -16351,7 +16364,7 @@ function MatchCard({ teamA, teamB, result, canReport, onReport, pending, rosterA
             {leagueResultSourceDifferentialLabel(result) && <div className="mono-font text-[10px] mt-1" style={{ color: "#9A9FBD" }}>{leagueResultSourceDifferentialLabel(result)}</div>}
           </div>
           <div className="flex flex-col items-end gap-1">
-            {trackDifferential && <span className="mono-font text-xs" style={{ color: "#5B5F7E" }}>Differential: {result.monsAliveA} – {result.monsAliveB}</span>}
+            {trackDifferential && !administrativeResolution && <span className="mono-font text-xs" style={{ color: "#5B5F7E" }}>Differential: {result.monsAliveA} – {result.monsAliveB}</span>}
             {result.replayUrlA && (
               <a href={result.replayUrlA} target="_blank" rel="noopener noreferrer" className="text-xs hover:underline" style={{ color: "#4FD1C5" }}>🎬 {teamA?.name}'s replay</a>
             )}
@@ -16359,7 +16372,7 @@ function MatchCard({ teamA, teamB, result, canReport, onReport, pending, rosterA
               <a href={result.replayUrlB} target="_blank" rel="noopener noreferrer" className="text-xs hover:underline" style={{ color: "#4FD1C5" }}>🎬 {teamB?.name}'s replay</a>
             )}
             {(result.showdownReplays || []).length > 0 && <span className="showdown-result-badge">✓ {result.showdownReplays.length} Showdown replay{result.showdownReplays.length === 1 ? "" : "s"} confirmed</span>}
-            {canReport && <button onClick={() => setEditing(true)} className="text-xs" style={{ color: "#9A9FBD" }}>Edit</button>}
+            {canReport && !administrativeResolution && <button onClick={() => setEditing(true)} className="text-xs" style={{ color: "#9A9FBD" }}>Edit</button>}
           </div>
         </div>
       ) : canReport ? (
@@ -16370,7 +16383,7 @@ function MatchCard({ teamA, teamB, result, canReport, onReport, pending, rosterA
         <p className="text-xs text-center" style={{ color: "#5B5F7E" }}>Not yet reported</p>
       )}
 
-      {result && onSetMVP && resultWinnerRoster.length ? (
+      {result && !administrativeResolution && onSetMVP && resultWinnerRoster.length ? (
         <div className="mt-3 pt-3 flex items-center justify-center flex-wrap gap-2" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
           {result.mvp ? (
             <>
@@ -16560,6 +16573,7 @@ function StandingsView({ standings, settings, isCommissioner, setTeamOtherValue,
   }
 
   function renderTable(rows) {
+    const firstEligibleTeamId = activeLeagueRows(rows, teams)[0]?.id;
     // Number of columns after "Team" that are actually visible right now —
     // needed so the roster-expand row's colSpan always matches whatever
     // columns are showing, rather than assuming all four criteria are on.
@@ -16593,6 +16607,7 @@ function StandingsView({ standings, settings, isCommissioner, setTeamOtherValue,
                   <TeamLogo team={s} size={24} />
                   <span className="min-w-0">
                     <span className="block">{s.name}</span>
+                    {leagueTeamStatusLabel(teams[s.id], settings) && <span className="mono-font text-[9px] block" style={{ color: "#F4B860" }}>{leagueTeamStatusLabel(teams[s.id], settings)}</span>}
                     {(teams[s.id]?.claimedBy || teams[s.id]?.expectedManager) && <span className="mono-font text-[9px] block" style={{ color: "#7F84A5" }}>{teams[s.id]?.claimedBy || `${teams[s.id]?.expectedManager} · unclaimed`}</span>}
                   </span>
                   <span className="mono-font text-[10px]" style={{ color: "#5B5F7E" }}>{viewingRoster === s.id ? "▲" : "▼"}</span>
@@ -16639,7 +16654,7 @@ function StandingsView({ standings, settings, isCommissioner, setTeamOtherValue,
                 </td>
               </tr>
             )}
-            {i === 0 && seasonMVPActive && (() => {
+            {s.id === firstEligibleTeamId && seasonMVPActive && (() => {
               const mvpName = computeSeasonMVPForTeam(schedule, matchResults, s.id);
               if (!mvpName) return null;
               const mvpMon = (rosters?.[s.id] || []).find((m) => m.name === mvpName) || { name: mvpName };
@@ -16667,8 +16682,8 @@ function StandingsView({ standings, settings, isCommissioner, setTeamOtherValue,
   const divisions = swiss ? [] : settings?.divisions || [];
   const hasDivisions = divisions.length > 0;
   const mvpLeaders = hasDivisions
-    ? divisions.map((division) => standings.find((row) => division.teamIds.includes(row.id))).filter(Boolean)
-    : standings.slice(0, 1);
+    ? divisions.map((division) => standings.find((row) => division.teamIds.includes(row.id) && !isLeagueTeamRetired(teams[row.id]))).filter(Boolean)
+    : activeLeagueRows(standings, teams).slice(0, 1);
   const standingsMVPs = seasonMVPActive
     ? mvpLeaders.map((leader) => {
         const name = computeSeasonMVPForTeam(schedule, matchResults, leader.id);
@@ -16774,9 +16789,9 @@ function CustomBracketSeeder({ teams, standings, onGenerate, onCancel }) {
             <select value={teamId ?? ""} onChange={(e) => setSlot(i, e.target.value === "" ? null : Number(e.target.value))}
               className="flex-1 px-2 py-1.5 rounded mono-font text-sm" style={{ background: "#1F2338", border: "1px solid rgba(255,255,255,0.1)", color: "#EDEBFA" }}>
               <option value="">— bye —</option>
-              {teams.map((t, ti) => (
-                <option key={t.id} value={ti} disabled={usedTeamIds.has(ti) && teamId !== ti}>
-                  {t.name}{usedTeamIds.has(ti) && teamId !== ti ? " (already placed)" : ""}
+              {teams.map((t) => (
+                <option key={t.playoffTeamId} value={t.playoffTeamId} disabled={usedTeamIds.has(t.playoffTeamId) && teamId !== t.playoffTeamId}>
+                  {t.name}{usedTeamIds.has(t.playoffTeamId) && teamId !== t.playoffTeamId ? " (already placed)" : ""}
                 </option>
               ))}
             </select>
@@ -16804,6 +16819,8 @@ function CustomBracketSeeder({ teams, standings, onGenerate, onCancel }) {
 
 function PlayoffsView({ state, isCommissioner, myName, standings, finalizeSeason, generatePlayoffs, resetPlayoffs, reportPlayoffMatch, setPlayoffMVP, setDivisionMVP, setChampionMVP, setLosersMVP, setGrandFinalMVP, reportDivisionPlayoffMatch, reportChampionMatch, reportLosersMatch, reportGrandFinalGame, onViewTeam }) {
   const { teams, playoffs, settings, locked, rosters } = state;
+  const activeTeams = teams.map((team, playoffTeamId) => ({ ...team, playoffTeamId })).filter((team) => !isLeagueTeamRetired(team));
+  const activeStandings = activeLeagueRows(standings, teams);
   const [viewMode, setViewMode] = useState("bracket"); // "bracket" | "list"
   const [showCustomSeeder, setShowCustomSeeder] = useState(false);
 
@@ -16815,7 +16832,7 @@ function PlayoffsView({ state, isCommissioner, myName, standings, finalizeSeason
   // Older two-team leagues may still have the original default of four
   // playoff teams saved. A bracket cannot require more teams than the
   // league actually has, so a two-team postseason becomes one Final.
-  const effectivePlayoffTeams = Math.max(2, Math.min(Number(settings.playoffTeams) || 2, teams.length));
+  const effectivePlayoffTeams = Math.max(2, Math.min(Number(settings.playoffTeams) || 2, activeTeams.length));
   const effectiveRoundNames = normalizedPlayoffRoundNames(
     settings.playoffRoundNames,
     nextPowerOfTwo(effectivePlayoffTeams),
@@ -16826,7 +16843,7 @@ function PlayoffsView({ state, isCommissioner, myName, standings, finalizeSeason
       return (
         <div className="py-16">
           <h2 className="display-font text-2xl mb-4 text-center" style={{ color: "#FFD23F" }}>CUSTOM BRACKET</h2>
-          <CustomBracketSeeder teams={teams} standings={standings}
+          <CustomBracketSeeder teams={activeTeams} standings={activeStandings}
             onGenerate={(slots) => { generatePlayoffs(slots); setShowCustomSeeder(false); }}
             onCancel={() => setShowCustomSeeder(false)} />
         </div>
@@ -16843,7 +16860,7 @@ function PlayoffsView({ state, isCommissioner, myName, standings, finalizeSeason
         </p>
         {isCommissioner ? (
           <>
-            <button onClick={() => generatePlayoffs()} disabled={standings.length < (usesDivisions ? settings.divisions.reduce((n, d) => n + Math.min(d.teamIds.length, settings.divisionPlayoffTeams), 0) : effectivePlayoffTeams)}
+            <button onClick={() => generatePlayoffs()} disabled={activeStandings.length < (usesDivisions ? settings.divisions.reduce((n, d) => n + Math.min(d.teamIds.filter((id) => !isLeagueTeamRetired(teams[id])).length, settings.divisionPlayoffTeams), 0) : effectivePlayoffTeams)}
               className="px-6 py-3 rounded font-semibold display-font text-xl glow disabled:opacity-40"
               style={{ background: "#FFD23F", color: "#10121C" }}>
               GENERATE PLAYOFF BRACKET

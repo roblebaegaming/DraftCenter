@@ -6,6 +6,21 @@
 - Verified Production application behavior commit: `99795121c5d2f88fd0c15061deccfb9334977bf5`
 - Latest applied Production migration: 443 (`20260819090000`)
 
+## In development — not released
+
+Midseason participant retirement and tournament-drop support is implemented on
+`codex/participant-retirement-20260819` with forward migration
+`20260819185347_participant_retirement_and_tournament_drops.sql`. The branch
+separates manager replacement from team retirement, preserves completed
+results, requires an explicit forfeit/no-contest/left-unplayed policy, excludes
+retired teams from claiming, awards, playoffs, and organization qualification,
+and omits dropped entrants from later Swiss pairing and Top Cut. Private
+commissioner reasons remain in RLS-hidden history tables. The dependency audit,
+complete application suite, 1,027-row National Dex check, isolated PostgreSQL
+lifecycle exercise, and configured 326-page build pass. This work has not been
+pushed, reviewed in Preview, migrated, deployed, or used on any real league or
+tournament.
+
 ## Deployed state
 
 Pull request [#352](https://github.com/roblebaegaming/DraftCenter/pull/352)

@@ -15,6 +15,7 @@ import { isNewEmailSignup, trackSignupAttributionEvent } from "../lib/signupAttr
 import { trackActivationEvent } from "../lib/activationAnalytics";
 import TurnstileChallenge from "./TurnstileChallenge";
 import MemberEmailComposer from "./MemberEmailComposer";
+import { isLeagueTeamRetired, leagueTeamStatusLabel } from "../lib/participantStatus";
 
 const inputStyle = { padding: 11, borderRadius: 8, border: "1px solid #46517c", background: "#080c1c", color: "#fff", width: "100%" };
 const authPanel = { width: "min(430px, calc(100vw - 32px))", padding: 28, borderRadius: 16, border: "1px solid #2a3157", background: "#11162b", boxShadow: "0 20px 70px rgba(0,0,0,.38)" };
@@ -340,6 +341,7 @@ function LeagueTools({ league, corrections, onClose, onUpdated, onDeleted }) {
   const [name,setName]=useState(league.name||""); const [season,setSeason]=useState(league.season_label||""); const [description,setDescription]=useState(league.description||""); const [imageUrl,setImageUrl]=useState(league.image_url||""); const [startsAt,setStartsAt]=useState(league.draft_starts_at ? new Date(league.draft_starts_at).toISOString().slice(0,16) : ""); const [visibility,setVisibility]=useState(league.league_visibility||"private"); const [draftStartVisibility,setDraftStartVisibility]=useState(league.draft_start_visibility||"default");
   const [invite,setInvite]=useState(""); const [inviteEmail,setInviteEmail]=useState(""); const [coUsername,setCoUsername]=useState(""); const [coEmail,setCoEmail]=useState(""); const [removeUsername,setRemoveUsername]=useState(""); const [members,setMembers]=useState([]); const [message,setMessage]=useState(""); const [busy,setBusy]=useState(false); const [reversedTrades,setReversedTrades]=useState([]); const [reversedMoves,setReversedMoves]=useState([]); const [deleteConfirmation,setDeleteConfirmation]=useState(""); const [archiveConfirmation,setArchiveConfirmation]=useState(""); const [transferUsername,setTransferUsername]=useState(""); const [transferConfirmation,setTransferConfirmation]=useState("");
   const [takeoverOptions,setTakeoverOptions]=useState(null); const [takeoverMembershipId,setTakeoverMembershipId]=useState(""); const [takeoverTeamIndex,setTakeoverTeamIndex]=useState("");
+  const [retirementTeamIndex,setRetirementTeamIndex]=useState(""); const [retirementAfter,setRetirementAfter]=useState(String(Math.max(0, Number(corrections?.currentWeek || 0) + 1))); const [retirementPolicy,setRetirementPolicy]=useState("left-unplayed"); const [retirementReason,setRetirementReason]=useState("");
   async function loadLiveTakeoverOptions(){const{data,error}=await supabase.rpc('get_live_bot_takeover_options',{p_league_id:league.id});if(!error)setTakeoverOptions(data||null);}
   useEffect(()=>{supabase.rpc('get_league_tool_members',{p_league_id:league.id}).then(({data,error})=>{if(!error)setMembers(data||[]);});loadLiveTakeoverOptions();},[supabase,league.id]);
   if (!['commissioner','co_commissioner'].includes(league.role)) return null;
@@ -362,6 +364,27 @@ function LeagueTools({ league, corrections, onClose, onUpdated, onDeleted }) {
     setTakeoverMembershipId('');setTakeoverTeamIndex('');
     setMessage(`${data?.manager_name||member.display_name||`@${member.username}`} now controls ${data?.team_name||team.team_name}. Their next remaining turn is available immediately.`);
     await loadLiveTakeoverOptions();
+  }
+  async function retireLeagueTeam(){
+    const team=corrections?.teams?.[Number(retirementTeamIndex)];
+    if(!team)return setMessage("Choose the team that is leaving this season.");
+    if(retirementReason.trim().length<2)return setMessage("Enter a short private commissioner reason.");
+    const unit=corrections?.settings?.regularSeasonFormat==="swiss"?"Round":"Week";
+    if(!window.confirm(`Retire ${team.name} after ${unit} ${retirementAfter}? Completed results will stay unchanged. Future unresolved fixtures will follow the selected policy, and the team will be excluded from qualification and playoffs.`))return;
+    setBusy(true);setMessage("");
+    const{error}=await supabase.rpc("set_league_team_retirement",{p_league_id:league.id,p_team_index:Number(retirementTeamIndex),p_expected_state_rev:Number(corrections?.stateRevision||0),p_effective_after:Number(retirementAfter),p_unresolved_match_policy:retirementPolicy,p_private_reason:retirementReason.trim()});
+    setBusy(false);
+    if(error)return setMessage(error.message);
+    window.location.reload();
+  }
+  async function reactivateLeagueTeam(teamIndex){
+    const team=corrections?.teams?.[teamIndex];
+    if(!team||!window.confirm(`Reactivate ${team.name} for this season? This is allowed only while no later pairing or playoff depends on the retirement.`))return;
+    setBusy(true);setMessage("");
+    const{error}=await supabase.rpc("reactivate_league_team",{p_league_id:league.id,p_team_index:teamIndex,p_expected_state_rev:Number(corrections?.stateRevision||0)});
+    setBusy(false);
+    if(error)return setMessage(error.message);
+    window.location.reload();
   }
   async function deleteLeaguePermanently(){
     if(deleteConfirmation.trim()!==league.name)return setMessage("Type the exact league name before deleting it.");
@@ -426,6 +449,7 @@ function LeagueTools({ league, corrections, onClose, onUpdated, onDeleted }) {
       </form>
       {!leagueIsFull&&inviteControls}
       <MemberEmailComposer scopeType="league" scopeId={league.id} scopeName={league.name} />
+      <section className="league-tool-section"><h3>Season participation</h3><p className="muted">Use manager removal when the team continues under a replacement. Use retirement only when the team itself leaves this season. Completed results and the historical manager identity stay preserved; the private reason is never shown in public standings.</p><div className="form-stack"><label>Active team<select value={retirementTeamIndex} onChange={(event)=>setRetirementTeamIndex(event.target.value)}><option value="">Choose team</option>{(corrections?.teams||[]).map((team,index)=>!isLeagueTeamRetired(team)&&<option key={team.id??index} value={index}>{team.name}</option>)}</select></label><label>Effective after {corrections?.settings?.regularSeasonFormat==="swiss"?"round":"week"}<input type="number" min="0" max={Math.max(1,corrections?.schedule?.length||1)} value={retirementAfter} onChange={(event)=>setRetirementAfter(event.target.value)} /></label><label>Unresolved future fixtures<select value={retirementPolicy} onChange={(event)=>setRetirementPolicy(event.target.value)}><option value="left-unplayed">Leave unplayed — no standings result</option><option value="no-contest">Record no contest — no standings result</option><option value="forfeit">Record forfeits — opponents receive wins</option></select></label><label>Private commissioner reason<textarea minLength={2} maxLength={500} value={retirementReason} onChange={(event)=>setRetirementReason(event.target.value)} placeholder="Stored in restricted audit history only" /></label><button type="button" className="danger-button" disabled={busy||retirementTeamIndex===""} onClick={retireLeagueTeam}>Retire team for this season</button></div>{(corrections?.teams||[]).some(isLeagueTeamRetired)&&<div className="form-stack">{corrections.teams.map((team,index)=>isLeagueTeamRetired(team)&&<div key={team.id??index} className="league-tool-compact-actions"><span>{team.name} · {leagueTeamStatusLabel(team,corrections.settings)}</span><button type="button" className="quiet-button" disabled={busy} onClick={()=>reactivateLeagueTeam(index)}>Reactivate</button></div>)}</div>}</section>
       <SupportAccessPanel leagueId={league.id} />
       <LeagueSupportRequestPanel league={league} context={corrections?.supportContext || {}} />
       <LeagueRecoveryPanel league={league} onRestored={()=>window.location.reload()} />

@@ -5,6 +5,7 @@ import { createClient } from "../lib/supabase/client";
 import { safeHttpsImageSource } from "../lib/imageSecurity";
 import { loadPokemonArtwork } from "../lib/pokemonArtwork";
 import { tournamentError } from "../lib/tournamentErrors";
+import { tournamentEntrantStatusLabel } from "../lib/participantStatus";
 
 const MATCH_PAGE_SIZE = 64;
 const ENTRANT_PAGE_SIZE = 64;
@@ -394,6 +395,8 @@ export default function TournamentWorkspace({ slug }) {
   const [replacementName, setReplacementName] = useState("");
   const [replacementRosterPolicy, setReplacementRosterPolicy] = useState("retain-roster");
   const [replacementLink, setReplacementLink] = useState("");
+  const [recoveryEffectiveRound, setRecoveryEffectiveRound] = useState("0");
+  const [recoveryPolicy, setRecoveryPolicy] = useState("left-unplayed");
 
   async function load(options = {}) {
     const requestedRound = options.roundKey ?? selectedRound;
@@ -437,6 +440,11 @@ export default function TournamentWorkspace({ slug }) {
       setMessage(tournamentError(connectedResult.error));
       setWorkspace(data);
       return false;
+    }
+    const participationResult = await supabase.rpc("get_tournament_participation_statuses", { p_tournament_id: data.tournament.id });
+    if (!participationResult.error && Array.isArray(participationResult.data)) {
+      const participation = new Map(participationResult.data.map((entry) => [entry.entrant_id, entry]));
+      data = { ...data, entrants: (data.entrants || []).map((entrant) => ({ ...entrant, ...(participation.get(entrant.id) || {}) })) };
     }
     const pageStage = data.match_page?.bracket_stage;
     const pageRound = data.match_page?.bracket_round;
@@ -885,12 +893,14 @@ export default function TournamentWorkspace({ slug }) {
   async function changeEntrantStatus(status) {
     setBusy(true);
     setMessage("");
-    const { error } = await supabase.rpc("set_tournament_entrant_status", {
+    const { error } = await supabase.rpc("set_tournament_participation_status", {
       p_tournament_id: workspace.tournament.id,
       p_entrant_id: selectedRecoveryEntrant.id,
       p_expected_tournament_revision: workspace.tournament.revision,
       p_status: status,
-      p_reason: recoveryReason.trim(),
+      p_effective_round: Number(recoveryEffectiveRound),
+      p_unresolved_match_policy: recoveryPolicy,
+      p_private_reason: recoveryReason.trim(),
     });
     setBusy(false);
     if (error) {
@@ -912,13 +922,27 @@ export default function TournamentWorkspace({ slug }) {
     setConfirmation({
       title: `${action} ${selectedRecoveryEntrant.display_name}?`,
       description: workspace.tournament.status === "active"
-        ? "If the entrant has a live opponent, that match will be recorded as a forfeit and the opponent will advance. This action remains in the tournament audit history."
+        ? `Completed results remain unchanged. The current unresolved pairing will be handled as ${recoveryPolicy.replaceAll("-", " ")}; future Swiss rounds omit the entrant, and Top Cut eligibility is removed.`
         : "The entrant will be removed from active registration and the action will remain in the tournament audit history.",
       confirmLabel: action,
       workingLabel: `${action === "Drop" ? "Dropping" : "Disqualifying"}...`,
       tone: "danger",
       onConfirm: () => changeEntrantStatus(status),
     });
+  }
+
+  async function reactivateEntrant(entrant) {
+    setBusy(true);
+    setMessage("");
+    const { error } = await supabase.rpc("reactivate_tournament_participant", {
+      p_tournament_id: workspace.tournament.id,
+      p_entrant_id: entrant.id,
+      p_expected_tournament_revision: workspace.tournament.revision,
+    });
+    setBusy(false);
+    if (error) return setMessage(tournamentError(error));
+    await load();
+    return true;
   }
 
   async function replaceEntrant() {
@@ -1070,6 +1094,12 @@ export default function TournamentWorkspace({ slug }) {
   const currentDraftRound = draftTournament?.rounds?.find((round) => round.round_number === draftEvent?.current_swiss_round) || null;
   const latestDraftStandings = (draftTournament?.standings || []).filter((standing) => standing.round_id === currentDraftRound?.id);
   const topCutSeeds = new Map((draftTournament?.top_cut || []).map((entry) => [entry.entrant_id, Number(entry.seed)]));
+  const projectedTopCutIds = new Set(
+    latestDraftStandings
+      .filter((standing) => entrants.get(standing.entrant_id)?.status === "registered")
+      .slice(0, Number(draftEvent?.top_cut_size || 0))
+      .map((standing) => standing.entrant_id),
+  );
   const connectedChampionship = workspace.connected_championship;
   const connectedEntrants = new Map((connectedChampionship?.entrants || []).map((entrant) => [entrant.tournament_entrant_id, entrant]));
   const canEnableDemo = Boolean(
@@ -1219,7 +1249,7 @@ export default function TournamentWorkspace({ slug }) {
                   <label>Seed
                     <input key={`${entrant.id}-${entrant.seed ?? "none"}`} type="number" inputMode="numeric" min="1" max={registeredEntrants.length} defaultValue={entrant.seed || ""} onBlur={(event) => seed(entrant, event.target.value)} />
                   </label>
-                ) : <span>{entrant.status === "registered" ? (entrant.seed ? `Seed ${entrant.seed}` : "Awaiting seed") : statusLabel(entrant.status)}</span>}
+                ) : <span>{entrant.status === "registered" ? (entrant.seed ? `Seed ${entrant.seed}` : "Awaiting seed") : tournamentEntrantStatusLabel(entrant, draftEvent)}</span>}
                 {entrant.replacement_pending && <small>Awaiting replacement claim</small>}
               </article>
             ))}
@@ -1284,8 +1314,8 @@ export default function TournamentWorkspace({ slug }) {
                 <thead><tr><th>Rank</th><th>Entrant</th><th>Record</th><th>OMWP</th><th>Games</th><th>OGWP</th></tr></thead>
                 <tbody>{latestDraftStandings.map((standing) => {
                   const entrant = entrants.get(standing.entrant_id);
-                  const madeTopCut = Number(standing.rank) <= Number(draftEvent.top_cut_size || 0);
-                  return <tr className={madeTopCut ? "is-top-cut" : ""} key={standing.entrant_id}><td>#{standing.rank}</td><th scope="row">{entrant?.display_name || "Entrant"}{madeTopCut && <span className="tournament-top-cut-badge">Top {draftEvent.top_cut_size}</span>}</th><td>{standing.match_wins}-{standing.match_losses}</td><td>{Math.round(Number(standing.opponent_match_win_percentage || 0) * 1000) / 10}%</td><td>{standing.game_wins}-{standing.game_losses}</td><td>{Math.round(Number(standing.opponent_game_win_percentage || 0) * 1000) / 10}%</td></tr>;
+                  const madeTopCut = topCutSeeds.size ? topCutSeeds.has(standing.entrant_id) : projectedTopCutIds.has(standing.entrant_id);
+                  return <tr className={madeTopCut ? "is-top-cut" : ""} key={standing.entrant_id}><td>#{standing.rank}</td><th scope="row">{entrant?.display_name || "Entrant"}{entrant?.status !== "registered" && <small>{tournamentEntrantStatusLabel(entrant, draftEvent)}</small>}{madeTopCut && <span className="tournament-top-cut-badge">Top {draftEvent.top_cut_size}</span>}</th><td>{standing.match_wins}-{standing.match_losses}</td><td>{Math.round(Number(standing.opponent_match_win_percentage || 0) * 1000) / 10}%</td><td>{standing.game_wins}-{standing.game_losses}</td><td>{Math.round(Number(standing.opponent_game_win_percentage || 0) * 1000) / 10}%</td></tr>;
                 })}</tbody>
               </table>
             </div>
@@ -1337,19 +1367,30 @@ export default function TournamentWorkspace({ slug }) {
           <p className="muted">{connectedChampionship ? "Record a drop or disqualification here. Replacement managers must first take over the same source-league team, then be synchronized from the organization workspace before play begins." : "Record a drop or disqualification, or create a replacement before play begins. Match-specific forfeits are available inside each ready match."}</p>
           <div className="tournament-recovery-grid">
             <label>Active entrant
-              <select value={recoveryEntrantId} onChange={(event) => setRecoveryEntrantId(event.target.value)}>
+              <select value={recoveryEntrantId} onChange={(event) => { setRecoveryEntrantId(event.target.value); setRecoveryEffectiveRound(String(draftEvent?.current_swiss_round || 0)); }}>
                 <option value="">Choose entrant</option>
                 {registeredEntrants.map((entrant) => <option key={entrant.id} value={entrant.id}>{entrant.display_name}</option>)}
               </select>
             </label>
             <label>Recovery reason
-              <textarea minLength={2} maxLength={500} value={recoveryReason} onChange={(event) => setRecoveryReason(event.target.value)} placeholder="Recorded in the commissioner audit history" />
+              <textarea minLength={2} maxLength={500} value={recoveryReason} onChange={(event) => setRecoveryReason(event.target.value)} placeholder="Private commissioner history; never shown publicly" />
+            </label>
+            <label>Effective after round
+              <input type="number" min="0" max="10" value={recoveryEffectiveRound} onChange={(event) => setRecoveryEffectiveRound(event.target.value)} />
+            </label>
+            <label>Current unresolved pairing
+              <select value={recoveryPolicy} onChange={(event) => setRecoveryPolicy(event.target.value)}>
+                <option value="left-unplayed">Leave unplayed</option>
+                <option value="no-contest">No contest</option>
+                <option value="forfeit">Forfeit to opponent</option>
+              </select>
             </label>
             <div className="tournament-recovery-actions">
               <button type="button" className="quiet-button" disabled={busy || !selectedRecoveryEntrant} onClick={() => requestEntrantStatus("dropped")}>Record drop</button>
               <button type="button" className="danger-button" disabled={busy || !selectedRecoveryEntrant} onClick={() => requestEntrantStatus("disqualified")}>Disqualify</button>
             </div>
           </div>
+          {(workspace.entrants || []).some((entrant) => ["dropped", "disqualified"].includes(entrant.status)) && <div className="tournament-recovery-grid">{workspace.entrants.filter((entrant) => ["dropped", "disqualified"].includes(entrant.status)).map((entrant) => <article key={entrant.id}><strong>{entrant.display_name}</strong><span>{tournamentEntrantStatusLabel(entrant, draftEvent)}</span><button type="button" className="quiet-button" disabled={busy} onClick={() => reactivateEntrant(entrant)}>Reactivate safely</button></article>)}</div>}
           {!connectedChampionship && <details className="tournament-replacement-tools">
             <summary>Replace the selected entrant</summary>
             <div className="tournament-recovery-grid">

@@ -1,5 +1,12 @@
 # Agent handoffs
 
+[`DraftCenter-agent-handoff-2026-08-19-participant-retirement.md`](DraftCenter-agent-handoff-2026-08-19-participant-retirement.md)
+is the current development handoff. It records the unreleased midseason league
+retirement and tournament-drop implementation, tournament operator and private
+practice-field workflows, privacy and qualification boundaries, Preview
+evidence, and remaining responsive review/release work. It does not supersede
+the Production state recorded below.
+
 [`DraftCenter-agent-handoff-2026-08-19-worlds-six-language-release.md`](DraftCenter-agent-handoff-2026-08-19-worlds-six-language-release.md)
 is the current Worlds localization handoff. It records the shared English,
 Italian, Spanish, German, Japanese, and Korean VGC prediction routes; the

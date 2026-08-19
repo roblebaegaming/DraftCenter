@@ -1,3 +1,5 @@
+import { isLeagueTeamRetired } from "./participantStatus.js";
+
 export function teamIsClaimed(team) {
   return Boolean(
     String(team?.claimedBy || "").trim()
@@ -12,7 +14,7 @@ export function claimedTeamCount(teams) {
 export function openSetupTeams(teams) {
   return (teams || [])
     .map((team, index) => ({ ...team, index }))
-    .filter((team) => !teamIsClaimed(team));
+    .filter((team) => !teamIsClaimed(team) && !isLeagueTeamRetired(team));
 }
 
 export function compactLocalTeamsClaimedFirst(teams, size) {
