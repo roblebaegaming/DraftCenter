@@ -134,6 +134,7 @@ Auction Swiss showcase was not reset or modified.
 - `supabase/migrations/20260819205421_participant_retirement_foreign_key_indexes.sql`
 - `supabase/migrations/20260819211609_snake_draft_tournaments_32_entrants.sql`
 - `supabase/migrations/20260819214437_tournament_operator_archive_delete.sql`
+- `supabase/migrations/20260819222800_fix_draft_tournament_regulation_lock_order.sql`
 - `src/lib/participantStatus.js`
 - `src/lib/leagueResults.js`
 - `src/lib/leagueSwiss.mjs`
@@ -148,6 +149,7 @@ Auction Swiss showcase was not reset or modified.
 - `supabase/tests/447-participant-retirement-foreign-key-indexes-preview-regression.sql`
 - `supabase/tests/448-snake-draft-tournaments-32-preview-regression.sql`
 - `supabase/tests/449-tournament-operator-archive-delete-preview-regression.sql`
+- `supabase/tests/450-draft-tournament-regulation-lock-order-preview-regression.sql`
 
 ## Validation completed
 
@@ -204,7 +206,8 @@ Auction Swiss showcase was not reset or modified.
   scale, tournament aggregate, SEO, and migration-history suites. Its forward
   migration compiles in the isolated in-process PostgreSQL schema and replaces
   every reviewed 16-seat snake guard while preserving the ordinary-league
-  boundary. Regression 448 is ready but has not run on a new remote Preview.
+  boundary. Regression 448 passes on the final remote Preview with a complete
+  32-player field, five Swiss rounds, 32 private draft teams, and cleanup.
 - The branch is rebased without conflicts onto current `origin/main` commit
   `6f68018`, which includes the Worlds primary-navigation release and its
   operating record. The post-rebase production dependency audit, complete
@@ -216,11 +219,30 @@ Auction Swiss showcase was not reset or modified.
   accessibility, Draft Tournament, migration-history, and diff-integrity
   checks. Its forward migration compiles and passes local standalone cleanup,
   live-event denial, and private draft-room cleanup exercises in the isolated
-  in-process PostgreSQL schema. Rollback-only regression 449 is ready but has
-  not run on a remote Preview. The complete application suite, dependency
+  in-process PostgreSQL schema. Rollback-only regression 449 passes on the
+  final remote Preview. The complete application suite, dependency
   audit, 1,027-row National Dex verification, and configured 335-page build
   also pass with this follow-up included; the same inherited nonfatal font
   request warning remains.
+- The owner-approved final empty, nonpersistent Preview replayed Production
+  through migration 443, then applied all seven branch migrations. Its first
+  run of regression 448 caught a real lock-order conflict: linking the private
+  draft room invoked regulation synchronization after the existing room guard
+  became active. Forward migration
+  `20260819222800_fix_draft_tournament_regulation_lock_order.sql` now writes the
+  regulation only to the canonical snapshot and leaves guarded relational room
+  settings untouched. Regressions 444-450 all pass after that correction.
+- The final Preview advisor delta has no error-level or migration-specific
+  performance finding. New security-definer and service-only RLS notices match
+  the explicit RPC design and are bounded by the authorization/grant
+  regressions. Every named fixture and both private history tables were empty
+  after rollback. The exact paid branch was deleted immediately; a post-delete
+  inventory contains only `main`, so no Preview charge continues.
+- With the correction included, the dependency audit, complete application
+  suite, 1,027-row National Dex verification, migration-history check,
+  diff-integrity check, and configured 335-page production build pass. The
+  inherited nonfatal dynamic-font status-400 warning remains; all pages render
+  and the build exits successfully.
 
 Before a release, retain the repository policy: keep the complete test and audit
 checks passing, apply the Preview regression to a disposable branch, review the
@@ -231,14 +253,11 @@ fixture.
 
 ## Remaining release work
 
-1. Run rollback-only regressions 448 and 449 on a new disposable Supabase Preview after
-   the owner approves the additional hourly charge, then delete that exact
-   branch after verification.
-2. Review the full diff, especially the retirement and operator migrations,
+1. Review the full diff, especially the retirement and operator migrations,
    qualification reranking, the result-neutral opening draw, draft-room
-   regulation sync, the forward-only foreign-key indexes, and the 32-seat snake
-   expansion.
-3. Review Operator mode and Participant view at desktop and phone widths.
-4. Release only through protected pull request #349 after checks pass.
-5. After release, validate manager invitations and completed-draft claiming in
+   regulation sync and lock-order correction, the forward-only foreign-key
+   indexes, and the 32-seat snake expansion.
+2. Review Operator mode and Participant view at desktop and phone widths.
+3. Release only through protected pull request #349 after checks pass.
+4. After release, validate manager invitations and completed-draft claiming in
    an isolated practice league before sending the broad four-pod invitations.

@@ -519,6 +519,24 @@ test("snake Draft Tournaments expand safely to 32 entrants", () => {
   assert.match(regression, /rollback;/i);
 });
 
+test("draft tournament regulation sync preserves guarded room settings at field lock", () => {
+  const sql = fs.readFileSync(
+    new URL("../supabase/migrations/20260819222800_fix_draft_tournament_regulation_lock_order.sql", import.meta.url),
+    "utf8",
+  );
+  const regression = fs.readFileSync(
+    new URL("../supabase/tests/450-draft-tournament-regulation-lock-order-preview-regression.sql", import.meta.url),
+    "utf8",
+  );
+  assert.match(sql, /set search_path = ''/i);
+  assert.match(sql, /update public\.league_state_snapshots/i);
+  assert.doesNotMatch(sql, /update public\.leagues\s+set/i);
+  assert.match(sql, /revoke all on function public\.sync_draft_tournament_regulation\(\)[\s\S]*from public, anon, authenticated, service_role/i);
+  assert.match(regression, /canonical draft-room snapshot/i);
+  assert.match(regression, /guarded relational league settings/i);
+  assert.match(regression, /rollback;/i);
+});
+
 test("Tournament operators can always build the field they have without filling capacity", () => {
   const directory = fs.readFileSync(new URL("../src/components/TournamentDirectory.jsx", import.meta.url), "utf8");
   const workspace = fs.readFileSync(new URL("../src/components/TournamentWorkspace.jsx", import.meta.url), "utf8");

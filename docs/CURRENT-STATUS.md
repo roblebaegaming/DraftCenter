@@ -40,36 +40,29 @@ exact tournament name, is owner- and revision-checked, refuses live or
 organization-connected events, cascades ordinary tournament records, and
 atomically removes any exact private draft room through forward migration
 `20260819214437_tournament_operator_archive_delete.sql`.
-The dependency audit, complete application suite, 1,027-row National
-Dex check, diff-integrity check, PostgreSQL syntax/compile exercise, and
-configured 326-page build pass after the follow-up. The earlier retirement
-migration also passed its isolated PostgreSQL lifecycle exercise. An
-owner-approved empty, nonpersistent Supabase Preview replayed the Production
-ledger through migration 443 and then applied all four forward migrations.
-Rollback-only regressions 444-447 passed the retirement, operator workflow,
-practice-field authorization/capacity/RLS, cleanup, and foreign-key index
-matrices. The advisor initially exposed three informational missing-foreign-key
-indexes on the new private history tables; the separate forward-only index
-migration removed those findings, and a rerun reported only the expected
-unused-index notices for an empty branch. Test fixtures rolled back to zero.
-The exact paid Preview branch was deleted after less than seven minutes and a
+
+The owner-approved final empty, nonpersistent Supabase Preview replayed the
+Production ledger through migration 443 and then applied all seven branch
+migrations. Regression 448 exposed a real field-lock ordering conflict between
+the new regulation sync and the existing guarded private draft room. Forward
+migration `20260819222800_fix_draft_tournament_regulation_lock_order.sql`
+corrects that boundary by writing the regulation only to the canonical room
+snapshot. Rollback-only regressions 444-450 then all passed, including the
+32-player snake field lock, archive/delete lifecycle, grants, RLS, cleanup, and
+regulation-sync protections. All fixtures rolled back to zero. The advisor
+delta contains only intentional RPC/RLS notices whose internal authorization
+is covered by the regressions and expected unused-index notices for an empty
+branch; it has no error-level or migration-specific performance finding.
+The exact paid Preview was deleted immediately after verification, and the
 post-delete inventory contains only `main`, so its hourly charge stopped.
-The post-Preview dependency audit, complete application suite, 1,027-row
+
+The production dependency audit, complete application suite, 1,027-row
 National Dex check, migration-history verification, diff-integrity check, and
-fresh configured 335-page build all pass after rebasing onto current `main`.
-The snake-capacity follow-up also passes its focused tournament suites,
-migration-history checks, diff-integrity check, isolated PostgreSQL compile,
-complete application suite, production dependency audit, 1,027-row National
-Dex verification, and configured 335-page production build.
-The operator archive/delete follow-up passes its 52-test tournament suite,
-27-test Draft Tournament suite, complete application suite, dependency audit,
-1,027-row National Dex verification, migration-history and diff-integrity
-checks, isolated PostgreSQL lifecycle exercise, and configured 335-page build.
-Rollback-only regressions 448 and 449 are prepared but have not yet run on a
-new paid Supabase Preview; that separate charge requires fresh owner approval.
-Responsive signed-in
-Operator/Participant review remains required. Nothing is deployed or applied
-to Production, and no real league or tournament was changed.
+configured 335-page build pass with the correction included. The build retains
+the inherited nonfatal dynamic-font status-400 warning while generating every
+page successfully. Responsive signed-in Operator/Participant review remains
+required. Nothing is deployed or applied to Production, and no real league or
+tournament was changed.
 
 ## Deployed state
 
