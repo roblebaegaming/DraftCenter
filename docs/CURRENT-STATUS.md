@@ -18,8 +18,8 @@ follow-up and flexible private practice fields. Forward migrations
 `20260819205421_participant_retirement_foreign_key_indexes.sql` preserve
 completed history, require explicit unresolved-match handling, omit inactive
 participants from later competitive stages, and keep private reasons in
-RLS-hidden tables. The
-tournament workspace now separates Operator mode from Participant view, always
+RLS-hidden tables. The tournament workspace now separates Operator mode from
+Participant view, always
 shows the next lifecycle gate, publishes regulation and registration/check-in/
 start times, keeps the draft board linked throughout the event, and removes
 manual pre-event seeding. Operators can add or remove clearly labeled synthetic
@@ -44,7 +44,8 @@ The exact paid Preview branch was deleted after less than seven minutes and a
 post-delete inventory contains only `main`, so its hourly charge stopped.
 The post-Preview dependency audit, complete application suite, 1,027-row
 National Dex check, migration-history verification, diff-integrity check, and
-fresh configured 326-page build all pass. Responsive signed-in
+fresh configured 335-page build all pass after rebasing onto current `main`.
+Responsive signed-in
 Operator/Participant review remains required. Nothing is deployed or applied
 to Production, and no real league or tournament was changed.
 

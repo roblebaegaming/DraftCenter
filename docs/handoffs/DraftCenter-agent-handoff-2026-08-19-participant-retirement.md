@@ -168,8 +168,11 @@ Auction Swiss showcase was not reset or modified.
   contains only `main`.
 - After the forward-only index follow-up, the Production migration-history
   verifier, complete application suite, production dependency audit, 1,027-row
-  National Dex check, diff-integrity check, and fresh configured 326-page build
-  all pass.
+  National Dex check, diff-integrity check, and fresh configured 335-page build
+  all pass after rebasing onto current `origin/main` commit `3df6603`. The only
+  rebase conflict was the handoff index; it was resolved by preserving both
+  this current development record and the current six-language Worlds release
+  record.
 
 Before a release, retain the repository policy: keep the complete test and audit
 checks passing, apply the Preview regression to a disposable branch, review the
