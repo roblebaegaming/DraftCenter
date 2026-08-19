@@ -1,12 +1,35 @@
 # DraftCenter current status
 
-- Last updated: August 18, 2026 Pacific
+- Last updated: August 19, 2026 Pacific
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified Production application and asset commit: `2c5c0df7185a82eee9ec56743cf032e993a6e516`
-- Latest applied Production migration: 442 (`20260819040935`)
+- Verified Production application behavior commit: `183ed1f14dfee2e05c5c88a076ce67b0815bfda5`
+- Latest applied Production migration: 443 (`20260819090000`)
 
 ## Deployed state
+
+The week-four four-pod charity league reconstruction is complete in Production.
+The private organization
+[`TrickRuby's Trans Charity Draft`](https://www.draftcentral.gg/organizations/trickrubys-trans-charity-draft)
+contains the Bearemy, Garchomp, Jellicent, and Lechuga pods in one active 2026
+season. The import preserves 32 teams, 320 current-roster entries, 112
+round-robin matches, and 47 known winners; unavailable game scores were not
+invented. All four pod workspaces load `SYNCED` at Week 4 with the shared
+Regulation M-B rules and imported standings.
+
+Pull request [#345](https://github.com/roblebaegaming/DraftCenter/pull/345)
+released safe historical-result display, source-manager labels, completed-draft
+team claims, and migration 443. The owner-approved import then ran once as one
+transaction and passed exact count, standing, RLS, grant, authorization,
+advisor, and retry-safety postflight checks. Pull request
+[#346](https://github.com/roblebaegaming/DraftCenter/pull/346) routes private
+organization pod links into the signed-in league workspace. Exact application
+behavior commit `183ed1f` is Ready in Production, all protected pull-request
+checks passed, and the complete 22-check Production smoke sweep passed. The
+disposable paid Preview used for rollback-only rehearsal was deleted; Supabase
+has only `main`, so no hourly Preview charge continues. The complete import
+record is in the
+[`August 19 four-pod handoff`](handoffs/DraftCenter-agent-handoff-2026-08-19-four-pod-midseason-import.md).
 
 Pull requests [#280](https://github.com/roblebaegaming/DraftCenter/pull/280)
 through [#290](https://github.com/roblebaegaming/DraftCenter/pull/290) are in
@@ -465,9 +488,9 @@ not be resumed until the owner explicitly requests it.
 3. Prepare but do not launch the gated commissioner-focused Google Search
    experiment in the current acquisition handoff. No ad account, tag, billing,
    campaign, or spend change is authorized.
-4. Reconstruct the supplied week-four four-pod league only after a dry-run
-   reconciliation of both source spreadsheets and explicit Production-write
-   approval.
+4. Keep the imported four-pod organization private. Invite or let source
+   managers claim its currently unclaimed teams only when the owner is ready;
+   do not fabricate missing game scores or historical draft picks.
 5. Run the scheduled aggregate-only attribution review at 09:00 Pacific on
    August 19 without inspecting or reporting individual identity or activity.
 6. Use the released activation, import, replay, and weekly-health workflows to
@@ -495,6 +518,8 @@ August 19, 2026. Do not inspect or report individual identity or activity.
 
 ## Authoritative records
 
+- Current four-pod Production import handoff:
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-19-four-pod-midseason-import.md`](handoffs/DraftCenter-agent-handoff-2026-08-19-four-pod-midseason-import.md)
 - Latest consolidated Production and continuation handoff:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-18-latest-production-continuation.md`](handoffs/DraftCenter-agent-handoff-2026-08-18-latest-production-continuation.md)
 - Current Worlds shared-competition profile handoff:
