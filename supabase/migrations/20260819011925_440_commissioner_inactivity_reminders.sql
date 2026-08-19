@@ -1,6 +1,6 @@
 -- Queue the one-time commissioner setup check-in without exposing the
--- notification ledger to browsers. The worker rechecks every activity signal
--- immediately before delivery.
+-- notification ledger to browsers. Queueing is limited to day 7 or 8, and the
+-- worker rechecks every activity signal immediately before delivery.
 
 begin;
 
