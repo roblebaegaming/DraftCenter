@@ -175,6 +175,51 @@ test("recent public products expose current social previews and discovery copy",
   assert.match(llms, /Pronósticos VGC del Mundial Pokémon 2026 en español/);
 });
 
+test("post-release discovery copy covers the current Battle Room, organizer demo, and Worlds profiles", () => {
+  const lab = source("src/app/team-lab/page.js");
+  const labImage = source("src/app/tools/team-builder/opengraph-image.js");
+  const tournaments = source("src/app/tournaments/page.js");
+  const tournamentDirectory = source("src/components/TournamentDirectory.jsx");
+  const tournamentImage = source("src/app/tournaments/opengraph-image.js");
+  const worlds = source("src/app/worlds/2026/vgc/page.js");
+  const italianWorlds = source("src/app/it/worlds/2026/page.js");
+  const spanishWorlds = source("src/app/es/worlds/2026/page.js");
+  const worldsImage = source("src/app/worlds/2026/vgc/opengraph-image.js");
+  const sitemap = source("src/app/sitemap.js");
+  const llms = source("src/app/llms.txt/route.js");
+
+  assert.match(lab, /VGC Battle Tracker/);
+  for (const phrase of ["Four-slot doubles field", "Type-ahead move, ability, and item suggestions", "Pivot switches and timed field effects", "Optional Auto-next", "Per-game CSV"] ) {
+    assert.match(lab, new RegExp(phrase));
+  }
+  assert.match(labImage, /four active Pokémon/i);
+  assert.match(labImage, /open or closed sheets/i);
+
+  assert.match(tournaments, /private organizer practice/);
+  assert.match(tournaments, /"@type": "WebApplication"/);
+  assert.match(tournaments, /Six-Pokémon auction teams/);
+  assert.match(tournamentDirectory, /Practice before the real event/);
+  assert.match(tournamentDirectory, /six-Pokémon teams, auction prices, five Swiss rounds, and a Top 8 playoff/);
+  assert.match(tournamentDirectory, /href="\/guides\/pokemon-auction-tournament-swiss-top-cut"/);
+  assert.match(tournamentImage, /AUCTION · SWISS · TOP CUT/);
+
+  assert.match(worlds, /Champion Odds/);
+  assert.match(worlds, /non-betting champion odds/);
+  assert.match(worlds, /community leaderboard profiles/);
+  assert.match(italianWorlds, /probabilità non legate alle scommesse/);
+  assert.match(spanishWorlds, /probabilidades ajenas a las apuestas/);
+  assert.match(worldsImage, /Pick 10, odds, and profiles/);
+  assert.match(sitemap, /WORLDS_VGC_LAST_MODIFIED/);
+
+  assert.ok(GUIDES["pokemon-auction-tournament-swiss-top-cut"]);
+  assert.ok(GUIDES["vgc-open-closed-team-sheet-battle-tracker"]);
+  assert.equal(GUIDES["pokemon-auction-tournament-swiss-top-cut"].updatedDate, "2026-08-18");
+  assert.equal(GUIDES["vgc-open-closed-team-sheet-battle-tracker"].updatedDate, "2026-08-18");
+  assert.match(llms, /pokemon-auction-tournament-swiss-top-cut/);
+  assert.match(llms, /vgc-open-closed-team-sheet-battle-tracker/);
+  assert.match(llms, /Authorized elimination match cards can show compact team previews/);
+});
+
 test("the Nuzlocke generator is crawlable, internally linked, and uses current product language", () => {
   const page = source("src/app/nuzlocke/page.js");
   const lab = source("src/components/NuzlockeLab.jsx");
@@ -482,8 +527,8 @@ test("the guide collection explains real DraftCenter workflows in a human voice"
   assert.match(content, /bounded CSV or XLSX/);
   assert.match(content, /one to five exact public Pokémon Showdown replay URLs/);
   assert.match(content, /Raw logs, inferred knockout attribution, and unrevealed-team claims are not stored/);
-  assert.equal((content.match(/answer:\s*"/g) || []).length, 12);
-  assert.equal(Object.keys(GUIDES).length, 12);
+  assert.equal((content.match(/answer:\s*"/g) || []).length, 14);
+  assert.equal(Object.keys(GUIDES).length, 14);
   assert.match(guidePage, /SHORT ANSWER/);
   assert.match(guidePage, /Written and reviewed by the/);
   assert.match(guidePage, /guide\.publishedDate \|\| GUIDE_PUBLISHED_DATE/);
@@ -495,7 +540,7 @@ test("the guide collection explains real DraftCenter workflows in a human voice"
   assert.match(guidePage, /about#data-methodology/);
   assert.match(guideIndex, /"@type": "CollectionPage"/);
   assert.match(guideIndex, /"@type": "ItemList"/);
-  assert.match(guideIndex, /aria-label="Pokémon draft league guides"/);
+  assert.match(guideIndex, /aria-label="Pokémon league, tournament, and battle guides"/);
   assert.match(sitemap, /guide\.updatedDate \|\| GUIDE_UPDATED_DATE/);
   assert.equal(GUIDES["how-to-run-pokemon-draft-league"].seoTitle, "How to Run a Pokémon Draft League");
   assert.equal(GUIDES["pokemon-draft-league-rules-template"].seoTitle, "Pokémon Draft League Rules Template");

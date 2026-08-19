@@ -46,6 +46,7 @@ export default function AboutPage() {
         <h2>What DraftCenter helps people do</h2>
         <p>Public visitors can browse Pokémon profiles, supported formats, practical guides, public leagues, standings, schedules, and community trends. Commissioners can start with recommended settings and a five-step launch checklist, move a bounded CSV or XLSX league setup through a preview-and-confirm import, and follow one private next action for each active league.</p>
         <p>Signed-in league members can use role-based tools for drafting, team management, transactions, match reporting, playoffs, communication, preparation, and recovery. For an eligible scheduled matchup, a participating manager can analyze one to five exact public Pokémon Showdown replay URLs, map the players to the scheduled teams, review the supported facts in the normal result editor, and choose whether to save. A replay analysis never writes a league result by itself.</p>
+        <p>Coaches can use the public Team Lab builder and its private Battle Room to plan six-Pokémon teams, keep four active Pokémon visible, record open- or closed-sheet turns, and export a battle report. Tournament organizers can run public or private events, rehearse a 32-seat auction with synthetic bot seats, preserve winning bids and Swiss standings, and carry qualified teams into a Top Cut bracket without publishing the private practice workspace.</p>
       </section>
 
       <section id="data-methodology">
@@ -74,7 +75,7 @@ export default function AboutPage() {
 
       <aside className="seo-next-step">
         <h2>Explore the public reference library</h2>
-        <div className="pokemon-tags"><a href="/guides">Practical guides</a><a href="/guides/how-to-run-pokemon-draft-league">Commissioner walkthrough</a><a href="/guides/pokemon-draft-manager-vs-spreadsheets">Spreadsheet migration guide</a><a href="/guides/pokemon-showdown-replay-results-draft-league">Showdown replay results</a><a href="/formats">Supported formats</a><a href="/pokemon">Pokémon profiles</a><a href="/leagues">Public leagues</a></div>
+        <div className="pokemon-tags"><a href="/guides">Practical guides</a><a href="/guides/how-to-run-pokemon-draft-league">Commissioner walkthrough</a><a href="/guides/pokemon-auction-tournament-swiss-top-cut">Auction tournament guide</a><a href="/guides/vgc-open-closed-team-sheet-battle-tracker">VGC battle tracker guide</a><a href="/guides/pokemon-draft-manager-vs-spreadsheets">Spreadsheet migration guide</a><a href="/guides/pokemon-showdown-replay-results-draft-league">Showdown replay results</a><a href="/formats">Supported formats</a><a href="/pokemon">Pokémon profiles</a><a href="/leagues">Public leagues</a></div>
       </aside>
     </article>
   </main>;

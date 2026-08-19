@@ -11,6 +11,10 @@ supported standalone brackets, Draft Tournaments, and connected championships
 using product-controlled copy and structured data. It must not publish private
 event names, registration codes, entrant details, rosters, or commissioner
 controls in metadata, structured data, or server-readable discovery copy.
+Public product copy may describe the synthetic private organizer rehearsal in
+general terms, including supported seat counts and workflow stages. It must
+not include the retained demo URL or slug, bot names, bracket results, roster
+contents, registration code, or any account-specific state.
 
 The public `/resources/daily-games`, `/nuzlocke`, Nuzlocke guide, Pokémon,
 format, guide, league-directory, and other routes already listed in

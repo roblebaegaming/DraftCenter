@@ -4,7 +4,7 @@ import {
   SINGLE_ELIMINATION_MAX_ENTRANTS,
 } from "../../lib/tournamentLimits";
 
-const description = `Run Pokémon tournaments with up to ${SINGLE_ELIMINATION_MAX_ENTRANTS} entrants in single elimination or ${DOUBLE_ELIMINATION_MAX_ENTRANTS} in double elimination, or host a 4–16 manager snake draft or 4–32 manager auction before Swiss or elimination play.`;
+const description = `Run Pokémon tournaments with up to ${SINGLE_ELIMINATION_MAX_ENTRANTS} entrants in single elimination or ${DOUBLE_ELIMINATION_MAX_ENTRANTS} in double elimination, or host a 4–32 manager auction with Swiss, Top Cut, and private organizer practice.`;
 
 export const metadata = {
   title: "Pokémon Tournament Organizer & Draft Events",
@@ -15,13 +15,11 @@ export const metadata = {
     title: "Pokémon Tournament Organizer & Draft Events",
     description,
     url: "/tournaments",
-    images: [{ url: "/draftcenter-logo.png", width: 512, height: 512, alt: "DraftCenter Pokémon tournaments" }],
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: "Pokémon Tournament Organizer & Draft Events",
     description,
-    images: ["/draftcenter-logo.png"],
   },
 };
 
@@ -36,6 +34,17 @@ export default function Page() {
         name: "Pokémon Tournament Organizer & Draft Events",
         description,
         isPartOf: { "@id": "https://www.draftcentral.gg/#website" },
+      },
+      {
+        "@type": "WebApplication",
+        "@id": "https://www.draftcentral.gg/tournaments#application",
+        name: "DraftCenter Pokémon Tournament Organizer",
+        applicationCategory: "GameApplication",
+        operatingSystem: "Web",
+        isAccessibleForFree: true,
+        url: "https://www.draftcentral.gg/tournaments",
+        description,
+        featureList: [`Single elimination for up to ${SINGLE_ELIMINATION_MAX_ENTRANTS} entrants`, `Double elimination for up to ${DOUBLE_ELIMINATION_MAX_ENTRANTS} entrants`, "Shared snake drafts for 4–16 managers", "Shared auctions for 4–32 managers", "Swiss standings and Top Cut playoffs", "Private organizer practice with synthetic bot seats", "Six-Pokémon auction teams and winning-bid recaps", "Authorized team previews on elimination match cards"],
       },
       {
         "@type": "BreadcrumbList",

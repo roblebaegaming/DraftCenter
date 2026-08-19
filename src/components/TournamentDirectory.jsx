@@ -309,6 +309,16 @@ export default function TournamentDirectory() {
           </article>
         </div>
       </section>
+      <section className="tournament-panel tournament-event-guide" aria-labelledby="tournament-practice-guide-title">
+        <span className="eyebrow">Practice before the real event</span>
+        <h2 id="tournament-practice-guide-title">Rehearse the complete organizer workflow privately</h2>
+        <p>Signed-in organizers can create a private, clearly labeled practice event with one real owner seat and 31 synthetic bot seats. The current Regulation M-B showcase uses six-Pokémon teams, auction prices, five Swiss rounds, and a Top 8 playoff so registration, bidding, standings, results, and bracket controls can be taught before a live event.</p>
+        <p>The auction recap preserves winning bids and budget totals, while eligible elimination and Top Cut match cards can show compact team previews when roster publication is authorized. Synthetic entries never represent real participation, and private practice workspaces stay outside public search discovery.</p>
+        <nav className="tournament-learning-links" aria-label="Tournament practice resources">
+          <a href="/guides/pokemon-auction-tournament-swiss-top-cut">Plan an auction, Swiss, and Top Cut event</a>
+          <a href="/guides/pokemon-draft-league-rules-template">Start with a rules template</a>
+        </nav>
+      </section>
       <section className="tournament-panel tournament-event-guide" aria-labelledby="tournament-event-guide-title">
         <span className="eyebrow">REGISTRATION TO CHAMPION</span>
         <h2 id="tournament-event-guide-title">Keep tournament play and result history together</h2>
@@ -316,6 +326,7 @@ export default function TournamentDirectory() {
         <p>Public events appear in the directory for spectators. Private events and commissioner controls remain available only to the people who have access; DraftCenter does not publish private registrations, rosters, or workspaces for search discovery.</p>
         <nav className="tournament-learning-links" aria-label="Tournament planning resources">
           <a href="/formats">Compare Pokémon draft formats</a>
+          <a href="/guides/pokemon-auction-tournament-swiss-top-cut">Run an auction with Swiss and Top Cut</a>
           <a href="/guides/pokemon-draft-league-rules-template">Start with a rules template</a>
           <a href="/guides/how-to-run-pokemon-draft-league">Read the commissioner guide</a>
         </nav>
