@@ -3,7 +3,7 @@
 - Last updated: August 18, 2026 Pacific
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified Production application and asset commit: `f8035640ef0a5c1c5ad4c9887b5031cc530a4431`
+- Verified Production application and asset commit: `92532d88a12398741768c7a92acf09957cc89fe8`
 - Latest applied Production migration: 441 (`20260819025045`)
 
 ## Deployed state
@@ -391,6 +391,26 @@ suite, 1,027-row National Dex check, 319-page production build, and complete
 22-check Production smoke sweep passed. Live English and Italian checks each
 showed the same 19 profiles; real profiles reached six favorites and 13 badges,
 scrolling activated where needed, and Italian popup controls were localized.
+
+Pull requests [#339](https://github.com/roblebaegaming/DraftCenter/pull/339)
+and [#340](https://github.com/roblebaegaming/DraftCenter/pull/340) are released
+at exact application commit `92532d88a12398741768c7a92acf09957cc89fe8`.
+Tournament elimination and Top Cut match cards now show each entrant's six-
+Pokémon roster as a compact three-by-two strip. Swiss rounds remain unchanged
+to preserve scan speed. Saved HTTPS artwork is used when present; otherwise the
+existing form-aware Pokémon artwork resolver fills the strip by name while a
+readable initial remains the failure fallback.
+
+The existing server projection remains the authorization boundary: a roster is
+shown only when the viewer was already allowed to receive that tournament seat
+snapshot. This application-only release changed no database schema, Production
+row, RLS policy, grant, provider setting, secret, or environment variable. The
+focused 21-test tournament suite, complete application suite, 1,027-row
+National Dex check, dependency audit, 319-page production build, protected
+checks, and complete 22-check Production smoke sweep passed. The exact private
+32-manager owner showcase loaded 12 of 12 final-round Pokémon images with no
+horizontal overflow at 1280 px or 390 px. Its checked-in final capture was
+refreshed from the verified Production view.
 
 Supabase automatic branching remains enabled with a one-concurrent-Preview
 limit and Supabase-only changes. Older Preview branches were left untouched.

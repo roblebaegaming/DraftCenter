@@ -5,8 +5,10 @@
 - Production branch: `main`
 - Feature commit: `ca1dd680552da833260e1ae60b79903f8ecc1f08`
 - Feature pull request: [#333](https://github.com/roblebaegaming/DraftCenter/pull/333)
+- Playoff-team presentation commit: `92532d88a12398741768c7a92acf09957cc89fe8`
+- Playoff-team pull requests: [#339](https://github.com/roblebaegaming/DraftCenter/pull/339) and [#340](https://github.com/roblebaegaming/DraftCenter/pull/340)
 - Production migration: 440, canonical version `20260819013208`
-- Release state: merged, deployed, database-verified, captured, and owner showcase complete
+- Release state: merged, deployed, database-verified, recaptured, and owner showcase complete
 
 ## Outcome
 
@@ -25,6 +27,14 @@ Swiss lifecycle as a complete teaching and sales sandbox:
 
 The feature remains private, synthetic, resettable, and owner-controlled.
 Ordinary tournaments retain their chosen roster size and tournament behavior.
+
+Elimination and Top Cut cards also show both entrants' six-Pokémon teams in a
+compact three-by-two strip. Swiss cards intentionally remain roster-free so the
+five-round view stays fast to scan. The team preview uses only the roster data
+already returned through the authorized tournament projection. It prefers a
+saved safe artwork URL, resolves missing artwork by Pokémon name through the
+existing form-aware artwork helper, and keeps a readable fallback if artwork
+cannot load.
 
 ## Completed owner showcase
 
@@ -87,6 +97,9 @@ The current organizer-ready captures are:
 - [Live seeded Top 8 quarterfinals](../captures/tournament-organizer-demo/regulation-mb-top-8-bracket-live.png)
 - [Completed Top 8 final](../captures/tournament-organizer-demo/regulation-mb-top-8-final.png)
 
+The completed-final capture was refreshed after pull request #340 and now shows
+both finalists' Pokémon directly inside the match card.
+
 The older four-Pokémon captures remain as historical evidence of the demo
 foundation release, not the current presentation set.
 
@@ -115,6 +128,14 @@ foundation release, not the current presentation set.
 - Vercel reported the feature commit Ready in Production.
 - The complete Production smoke sweep passed: 17 public routes returned 200
   and all five protected endpoints returned 401 while signed out.
+- Pull requests #339 and #340 passed the focused 21-test tournament suite, the
+  complete application suite, 1,027-row National Dex check, dependency audit,
+  319-page production build, Vercel Preview, CodeQL, JavaScript security
+  analysis, secret scan, and dependency/security audit.
+- Vercel reported exact playoff-team commit `92532d8` Ready in Production.
+  The exact owner showcase final loaded 12 of 12 Pokémon images, retained its
+  accessible six-name roster labels, and had no page overflow at 1280×720 or
+  390×844. The post-deployment 22-check Production smoke sweep passed.
 
 ## Safety record
 
