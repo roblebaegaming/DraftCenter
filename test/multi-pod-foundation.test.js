@@ -517,6 +517,8 @@ test("sibling pod managers can comment and predict without transaction or DM aut
 });
 
 test("pod links and spectator navigation expose only the clarified surfaces", () => {
+  assert.match(workspaceUi, /openInWorkspace \? `\/\?league=\$\{encodeURIComponent\(pod\.league_slug\)\}` : `\/league\/\$\{pod\.league_slug\}`/);
+  assert.match(workspaceUi, /openInWorkspace=\{organization\.visibility !== "public"\}/);
   assert.match(leagueUi, /get_my_league_pod_navigation/);
   assert.match(leagueUi, /href=\{`\/\?league=\$\{encodeURIComponent\(pod\.league_slug\)\}&tab=league&section=activity`\}/);
   assert.match(leagueUi, /POD MANAGER ACCESS/);
