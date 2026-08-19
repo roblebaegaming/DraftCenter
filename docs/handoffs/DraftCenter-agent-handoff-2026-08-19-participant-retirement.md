@@ -108,6 +108,7 @@ Auction Swiss showcase was not reset or modified.
 - `supabase/migrations/20260819185347_participant_retirement_and_tournament_drops.sql`
 - `supabase/migrations/20260819194237_tournament_operator_workflow.sql`
 - `supabase/migrations/20260819201436_tournament_practice_entries.sql`
+- `supabase/migrations/20260819205421_participant_retirement_foreign_key_indexes.sql`
 - `src/lib/participantStatus.js`
 - `src/lib/leagueResults.js`
 - `src/lib/leagueSwiss.mjs`
@@ -119,6 +120,7 @@ Auction Swiss showcase was not reset or modified.
 - `supabase/tests/444-participant-retirement-preview-regression.sql`
 - `supabase/tests/445-tournament-operator-workflow-preview-regression.sql`
 - `supabase/tests/446-tournament-practice-entries-preview-regression.sql`
+- `supabase/tests/447-participant-retirement-foreign-key-indexes-preview-regression.sql`
 
 ## Validation completed
 
@@ -142,6 +144,32 @@ Auction Swiss showcase was not reset or modified.
   migration and rollback-only regression both parse as PostgreSQL, and the
   migration compiles completely in an isolated in-process PostgreSQL schema,
   including its core entrant, field-lock, and roster-lock functions.
+- The owner approved one empty, nonpersistent Supabase Preview at the current
+  provider rate of `$0.01344/hour`. Supabase initially reported the branch
+  healthy before its baseline ledger had finished replaying; the premature
+  operator-migration attempt failed without recording a migration. After the
+  ledger settled through Production migration 443, the four branch migrations
+  applied in order.
+- Rollback-only regressions 444 and 445 returned their schema/privilege success
+  labels. Regression 446 passed grants, RLS/draft boundaries, the one-real plus
+  three-practice private field, owner/capacity/public-event denials, and final
+  synthetic-entrant removal. Regression 447 verified the three foreign-key
+  indexes added by the separate forward migration.
+- The feature-scoped security advisor notices match the intended design: the
+  two service-only history tables have RLS with no browser policies, and the
+  public event-plan plus authenticated operator RPCs are security-definer
+  functions with the explicit grants and authorization guards proven by the
+  regressions. The performance advisor's three missing-foreign-key findings
+  were removed by migration `20260819205421`; only expected unused-index notices
+  remained on the empty Preview.
+- All regression fixtures rolled back: zero named test tournaments and zero
+  rows in either participation-history table remained. The exact paid branch
+  was deleted after less than seven minutes, and the post-delete inventory
+  contains only `main`.
+- After the forward-only index follow-up, the Production migration-history
+  verifier, complete application suite, production dependency audit, 1,027-row
+  National Dex check, diff-integrity check, and fresh configured 326-page build
+  all pass.
 
 Before a release, retain the repository policy: keep the complete test and audit
 checks passing, apply the Preview regression to a disposable branch, review the
@@ -152,11 +180,10 @@ fixture.
 
 ## Remaining release work
 
-1. Review the full diff, especially both forward migrations, qualification
-   reranking, the result-neutral opening draw, and draft-room regulation sync.
-2. Run all three rollback-only SQL regressions on an isolated Supabase Preview
-   branch after the owner explicitly confirms the current hourly cost.
-3. Review Operator mode and Participant view at desktop and phone widths.
-4. Release only through protected pull request #349 after checks pass.
-5. After release, validate manager invitations and completed-draft claiming in
+1. Review the full diff, especially the retirement and operator migrations,
+   qualification reranking, the result-neutral opening draw, draft-room
+   regulation sync, and the forward-only foreign-key indexes.
+2. Review Operator mode and Participant view at desktop and phone widths.
+3. Release only through protected pull request #349 after checks pass.
+4. After release, validate manager invitations and completed-draft claiming in
    an isolated practice league before sending the broad four-pod invitations.

@@ -14,9 +14,11 @@ retirement and tournament-drop support plus a tournament operator-workflow
 follow-up and flexible private practice fields. Forward migrations
 `20260819185347_participant_retirement_and_tournament_drops.sql` and
 `20260819194237_tournament_operator_workflow.sql` plus
-`20260819201436_tournament_practice_entries.sql` preserve completed history,
-require explicit unresolved-match handling, omit inactive participants from
-later competitive stages, and keep private reasons in RLS-hidden tables. The
+`20260819201436_tournament_practice_entries.sql` and
+`20260819205421_participant_retirement_foreign_key_indexes.sql` preserve
+completed history, require explicit unresolved-match handling, omit inactive
+participants from later competitive stages, and keep private reasons in
+RLS-hidden tables. The
 tournament workspace now separates Operator mode from Participant view, always
 shows the next lifecycle gate, publishes regulation and registration/check-in/
 start times, keeps the draft board linked throughout the event, and removes
@@ -29,10 +31,22 @@ positions are drawn at start; Swiss standings and Top Cut placement come from
 results. The dependency audit, complete application suite, 1,027-row National
 Dex check, diff-integrity check, PostgreSQL syntax/compile exercise, and
 configured 326-page build pass after the follow-up. The earlier retirement
-migration also passed its isolated PostgreSQL lifecycle exercise. The three
-rollback-only Supabase Preview regressions and responsive signed-in review are
-still required. Nothing is deployed or applied to Production, and no real
-league or tournament was changed.
+migration also passed its isolated PostgreSQL lifecycle exercise. An
+owner-approved empty, nonpersistent Supabase Preview replayed the Production
+ledger through migration 443 and then applied all four forward migrations.
+Rollback-only regressions 444-447 passed the retirement, operator workflow,
+practice-field authorization/capacity/RLS, cleanup, and foreign-key index
+matrices. The advisor initially exposed three informational missing-foreign-key
+indexes on the new private history tables; the separate forward-only index
+migration removed those findings, and a rerun reported only the expected
+unused-index notices for an empty branch. Test fixtures rolled back to zero.
+The exact paid Preview branch was deleted after less than seven minutes and a
+post-delete inventory contains only `main`, so its hourly charge stopped.
+The post-Preview dependency audit, complete application suite, 1,027-row
+National Dex check, migration-history verification, diff-integrity check, and
+fresh configured 326-page build all pass. Responsive signed-in
+Operator/Participant review remains required. Nothing is deployed or applied
+to Production, and no real league or tournament was changed.
 
 ## Deployed state
 
