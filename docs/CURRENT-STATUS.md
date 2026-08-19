@@ -3,10 +3,24 @@
 - Last updated: August 19, 2026 Pacific
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified Production application behavior commit: `fd5a2e48a1d45507608af8839d05657ada9472cb`
+- Verified Production application behavior commit: `99795121c5d2f88fd0c15061deccfb9334977bf5`
 - Latest applied Production migration: 443 (`20260819090000`)
 
 ## Deployed state
+
+Pull request [#352](https://github.com/roblebaegaming/DraftCenter/pull/352)
+temporarily replaced the primary **Predictions** / phone **Picks** navigation
+item with a highlighted **🌎 Worlds Predictions** / phone **🌎 Worlds** button
+that opens `/worlds/2026` directly. The existing large highlighted Worlds
+quick-bar button remains. The generic `/tournaments/predictions` directory,
+historical event routes, and stored bracket data were not deleted; only their
+primary-navigation link is hidden until Worlds has passed and reviewed past
+tournament brackets are ready. Exact Production commit `99795121` is Ready,
+all protected and post-merge security checks passed, the hosted desktop and
+390 px review found no overflow, and the complete 22-check Production smoke
+sweep passed. This was an application-only release with no database or
+Production-data change. The exact continuation record is in the
+[`August 19 multilingual Worlds handoff`](handoffs/DraftCenter-agent-handoff-2026-08-19-worlds-six-language-release.md).
 
 Pull request [#350](https://github.com/roblebaegaming/DraftCenter/pull/350)
 released the shared VGC Worlds prediction experience in English, Italian,
