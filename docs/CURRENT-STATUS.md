@@ -12,7 +12,8 @@ Pull request [#349](https://github.com/roblebaegaming/DraftCenter/pull/349) on
 `codex/participant-retirement-20260819` contains midseason participant
 retirement and tournament-drop support plus a tournament operator-workflow
 follow-up, flexible private practice fields, and 4–32 entrant snake Draft
-Tournaments. Forward migrations
+Tournaments. Operator mode also has a dedicated Event Management panel with
+separate archive and permanent-delete choices. Forward migrations
 `20260819185347_participant_retirement_and_tournament_drops.sql` and
 `20260819194237_tournament_operator_workflow.sql` plus
 `20260819201436_tournament_practice_entries.sql` and
@@ -34,6 +35,11 @@ format-specific minimums apply only when play starts. Opening bracket/draft
 positions are drawn at start; Swiss standings and Top Cut placement come from
 results. Both snake and auction tournament fields paginate at 16 entrants per
 page, and 17–32 entrant fields receive five Swiss rounds when the field locks.
+Archive preserves read-only event history. Permanent deletion requires the
+exact tournament name, is owner- and revision-checked, refuses live or
+organization-connected events, cascades ordinary tournament records, and
+atomically removes any exact private draft room through forward migration
+`20260819214437_tournament_operator_archive_delete.sql`.
 The dependency audit, complete application suite, 1,027-row National
 Dex check, diff-integrity check, PostgreSQL syntax/compile exercise, and
 configured 326-page build pass after the follow-up. The earlier retirement
@@ -55,8 +61,12 @@ The snake-capacity follow-up also passes its focused tournament suites,
 migration-history checks, diff-integrity check, isolated PostgreSQL compile,
 complete application suite, production dependency audit, 1,027-row National
 Dex verification, and configured 335-page production build.
-Rollback-only regression 448 is prepared but has not yet run on a new paid
-Supabase Preview; that separate charge requires fresh owner approval.
+The operator archive/delete follow-up passes its 52-test tournament suite,
+27-test Draft Tournament suite, complete application suite, dependency audit,
+1,027-row National Dex verification, migration-history and diff-integrity
+checks, isolated PostgreSQL lifecycle exercise, and configured 335-page build.
+Rollback-only regressions 448 and 449 are prepared but have not yet run on a
+new paid Supabase Preview; that separate charge requires fresh owner approval.
 Responsive signed-in
 Operator/Participant review remains required. Nothing is deployed or applied
 to Production, and no real league or tournament was changed.

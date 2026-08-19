@@ -9,7 +9,8 @@ clear operator/participant modes, visible advancement, event times, regulation
 selection, persistent draft-board access, removal of pre-event seeding, and a
 capacity-based private practice field with synthetic entrants. The same branch
 also expands draft-first snake tournaments from 4–16 to 4–32 entrants, matching
-the existing auction tournament ceiling.
+the existing auction tournament ceiling, and adds explicit operator archive or
+permanent-delete event management.
 Work is isolated on `codex/participant-retirement-20260819` from `origin/main`
 commit `6f68018` and is under review in pull
 request [#349](https://github.com/roblebaegaming/DraftCenter/pull/349).
@@ -73,6 +74,12 @@ Auction Swiss showcase was not reset or modified.
   Top Cut seeds remain result-derived; connected championship qualification
   seeds remain their separate earned-placement workflow.
 - Recovery controls are operator-only and collapsed until needed.
+- A dedicated Event Management panel remains visible in Operator mode. Archive
+  keeps registration or completed events as read-only history; Delete is a
+  separate permanent action that requires typing the exact tournament name.
+- Permanent deletion is owner-only and revision-checked. It refuses live events
+  and connected organization championships, cascades standalone tournament
+  records, and atomically detaches and removes an exact private draft room.
 
 ### Flexible private practice fields
 
@@ -126,6 +133,7 @@ Auction Swiss showcase was not reset or modified.
 - `supabase/migrations/20260819201436_tournament_practice_entries.sql`
 - `supabase/migrations/20260819205421_participant_retirement_foreign_key_indexes.sql`
 - `supabase/migrations/20260819211609_snake_draft_tournaments_32_entrants.sql`
+- `supabase/migrations/20260819214437_tournament_operator_archive_delete.sql`
 - `src/lib/participantStatus.js`
 - `src/lib/leagueResults.js`
 - `src/lib/leagueSwiss.mjs`
@@ -139,6 +147,7 @@ Auction Swiss showcase was not reset or modified.
 - `supabase/tests/446-tournament-practice-entries-preview-regression.sql`
 - `supabase/tests/447-participant-retirement-foreign-key-indexes-preview-regression.sql`
 - `supabase/tests/448-snake-draft-tournaments-32-preview-regression.sql`
+- `supabase/tests/449-tournament-operator-archive-delete-preview-regression.sql`
 
 ## Validation completed
 
@@ -203,6 +212,15 @@ Auction Swiss showcase was not reset or modified.
   configured 335-page production build all pass. The inherited dynamic-font
   request still emits its nonfatal status-400 warning; all pages render and the
   build exits successfully.
+- The operator archive/delete follow-up passes focused tournament security,
+  accessibility, Draft Tournament, migration-history, and diff-integrity
+  checks. Its forward migration compiles and passes local standalone cleanup,
+  live-event denial, and private draft-room cleanup exercises in the isolated
+  in-process PostgreSQL schema. Rollback-only regression 449 is ready but has
+  not run on a remote Preview. The complete application suite, dependency
+  audit, 1,027-row National Dex verification, and configured 335-page build
+  also pass with this follow-up included; the same inherited nonfatal font
+  request warning remains.
 
 Before a release, retain the repository policy: keep the complete test and audit
 checks passing, apply the Preview regression to a disposable branch, review the
@@ -213,7 +231,7 @@ fixture.
 
 ## Remaining release work
 
-1. Run rollback-only regression 448 on a new disposable Supabase Preview after
+1. Run rollback-only regressions 448 and 449 on a new disposable Supabase Preview after
    the owner approves the additional hourly charge, then delete that exact
    branch after verification.
 2. Review the full diff, especially the retirement and operator migrations,

@@ -20,8 +20,8 @@ is no automatic conversion of historical events.
 - 4–32 registered entrants for snake or auction events, with no waitlist or
   late entry after field lock.
 - Explicit check-in; unchecked entrants become recorded no-shows.
-- Snake uses the final registration seed as its fixed first-round order.
-  Auction uses the same immutable seat identities as its nomination order.
+- Snake and auction use a server-owned opening draw for draft positions.
+  Tournament seeds are earned later from Swiss results when applicable.
 - 4–12 Pokémon per roster, default 6.
 - Optional 60–1,000 point snake budget and a 0–1,440 minute pick clock.
 - Existing private queues, server clock, pause/resume, and auto-pick behavior.
@@ -34,6 +34,11 @@ is no automatic conversion of historical events.
 - An owner may irreversibly cancel during draft setup, drafting, or roster
   review. Cancellation removes the private draft room. Roster lock closes the
   cancellation boundary.
+- Operator mode always includes an Event Management panel. Archive keeps a
+  registration or completed event as read-only history. Delete permanently
+  removes a non-live event and its dependent records after the operator types
+  the exact tournament name; connected organization championships cannot be
+  deleted from the standalone tournament workspace.
 
 Snake and auction Draft Tournaments both support **4–32 entrants**. Each
 private tournament draft room explicitly uses the released 32-team expanded
@@ -67,7 +72,8 @@ stores `competition_format` as `single-elimination`, `double-elimination`, or
 the backward-compatible `swiss` value. It owns a private
 `workspace_kind = 'draft-tournament'` league used only by the hosted draft
 engine. That room is excluded from the ordinary League Hub and is deleted with
-the event.
+the event. Permanent event deletion first detaches the adapter references and
+then removes that exact private draft room in the same database transaction.
 
 The event tables are private by default and browser access is through bounded
 security-definer functions:

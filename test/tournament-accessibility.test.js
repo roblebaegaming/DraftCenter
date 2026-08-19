@@ -17,10 +17,13 @@ test("sensitive tournament actions use the accessible in-page confirmation dialo
   for (const label of [
     "Lock registration and build the bracket?",
     "Archive this tournament?",
+    "Permanently delete this tournament?",
     "Confirm and advance this result?",
     "Reject this reported result?",
     "Save this result correction?",
   ]) assert.ok(ui.includes(label));
+  assert.match(ui, /Type <strong>\{request\.confirmText\}<\/strong> to confirm/);
+  assert.match(ui, /disabled=\{working \|\| !confirmationMatches\}/);
   assert.match(ui, /role="tablist" aria-label="Tournament view"/);
   assert.match(ui, /role="tab" aria-selected=\{isOperatorMode\}/);
 });

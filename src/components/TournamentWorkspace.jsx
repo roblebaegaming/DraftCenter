@@ -63,8 +63,10 @@ function ConfirmationDialog({ request, onDismiss }) {
   const descriptionId = useId();
   const [working, setWorking] = useState(false);
   const [failure, setFailure] = useState("");
+  const [confirmationText, setConfirmationText] = useState("");
 
   useEffect(() => {
+    setConfirmationText("");
     const dialog = dialogRef.current;
     if (request && dialog && !dialog.open) {
       dialog.showModal();
@@ -77,6 +79,8 @@ function ConfirmationDialog({ request, onDismiss }) {
       setFailure("");
     }
   }, [request]);
+
+  const confirmationMatches = !request?.confirmText || confirmationText.trim() === request.confirmText;
 
   async function confirmAction() {
     if (!request || working) return;
@@ -112,12 +116,15 @@ function ConfirmationDialog({ request, onDismiss }) {
         <span className="eyebrow">CONFIRM ACTION</span>
         <h2 id={titleId}>{request?.title || "Confirm tournament action"}</h2>
         <p id={descriptionId}>{request?.description}</p>
+        {request?.confirmText && <label className="tournament-dialog-confirmation">Type <strong>{request.confirmText}</strong> to confirm
+          <input value={confirmationText} autoComplete="off" onChange={(event) => setConfirmationText(event.target.value)} />
+        </label>}
         {failure && <p className="tournament-dialog-error" role="alert">{failure}</p>}
         <div className="tournament-dialog-actions">
           <button ref={cancelRef} type="button" className="quiet-button" disabled={working} onClick={onDismiss}>
             Cancel
           </button>
-          <button type="button" className={request?.tone === "danger" ? "danger-button" : "primary-button"} disabled={working} onClick={confirmAction}>
+          <button type="button" className={request?.tone === "danger" ? "danger-button" : "primary-button"} disabled={working || !confirmationMatches} onClick={confirmAction}>
             {working ? request?.workingLabel || "Working..." : request?.confirmLabel || "Confirm"}
           </button>
         </div>
@@ -881,6 +888,22 @@ export default function TournamentWorkspace({ slug }) {
     return true;
   }
 
+  async function deleteTournament() {
+    setBusy(true);
+    setMessage("");
+    const { error } = await supabase.rpc("delete_tournament", {
+      p_tournament_id: workspace.tournament.id,
+      p_expected_revision: workspace.tournament.revision,
+    });
+    if (error) {
+      setBusy(false);
+      setMessage(tournamentError(error));
+      return false;
+    }
+    window.location.assign("/tournaments");
+    return true;
+  }
+
   async function claimReplacement(event) {
     event.preventDefault();
     if (!replacementInvite || !user || busy) return;
@@ -1124,6 +1147,18 @@ export default function TournamentWorkspace({ slug }) {
     });
   }
 
+  function requestDeleteTournament() {
+    setConfirmation({
+      title: "Permanently delete this tournament?",
+      description: "This permanently removes the registration, entrants, matches, results, audit history, and any private draft room. It cannot be undone.",
+      confirmText: workspace.tournament.name,
+      confirmLabel: "Delete tournament permanently",
+      workingLabel: "Deleting...",
+      tone: "danger",
+      onConfirm: deleteTournament,
+    });
+  }
+
   async function chooseRound(roundKey) {
     if (roundBusy || roundKey === visibleRound) return;
     setSelectedRound(roundKey);
@@ -1210,6 +1245,8 @@ export default function TournamentWorkspace({ slug }) {
       && me,
   );
   const isOperatorMode = Boolean(tournament.is_owner && viewMode === "operator");
+  const canArchiveTournament = ["registration", "complete"].includes(tournament.status);
+  const canDeleteTournament = ["registration", "complete", "archived"].includes(tournament.status) && !connectedChampionship;
   const operation = workspace.operation || {};
   const isPractice = Boolean(operation.is_practice);
   const syntheticEntrants = registeredEntrants.filter((entrant) => entrant.is_synthetic);
@@ -1281,9 +1318,6 @@ export default function TournamentWorkspace({ slug }) {
           {isOperatorMode && !isDemo && tournament.visibility === "private" && tournament.status === "registration" && (
             <button type="button" className="quiet-button" disabled={busy} onClick={copyInvite}>{inviteCode ? "Copy private registration link" : "Create private registration link"}</button>
           )}
-          {isOperatorMode && ["registration", "complete"].includes(tournament.status) && (
-            <button type="button" className="quiet-button" disabled={busy} onClick={requestArchive}>Archive</button>
-          )}
         </div>
       </header>
       {message && <p className="hub-message" role="status" aria-live="polite">{message}</p>}
@@ -1300,6 +1334,21 @@ export default function TournamentWorkspace({ slug }) {
         </div>}
         {!tournament.is_owner && <span className="tournament-role-badge">Participant</span>}
       </section>
+
+      {isOperatorMode && <section className="tournament-panel tournament-event-management" aria-labelledby="tournament-event-management-heading">
+        <div>
+          <span className="eyebrow">EVENT MANAGEMENT</span>
+          <h2 id="tournament-event-management-heading">Archive or delete this tournament</h2>
+          <p><strong>Archive</strong> keeps the event, standings, and results as read-only history. <strong>Delete</strong> permanently removes the event and any linked private draft room.</p>
+          {tournament.status === "active" && <p className="muted">Live tournaments cannot be archived or deleted. Finish the active event first.</p>}
+          {connectedChampionship && <p className="muted">This connected championship cannot be deleted here; manage it from its organization workspace.</p>}
+          {tournament.status === "archived" && <p className="muted">This tournament is archived and read-only. You can still permanently delete it.</p>}
+        </div>
+        <div className="tournament-event-management-actions">
+          <button type="button" className="quiet-button" disabled={busy || !canArchiveTournament} onClick={requestArchive}>Archive and keep history</button>
+          <button type="button" className="danger-button" disabled={busy || !canDeleteTournament} onClick={requestDeleteTournament}>Delete permanently</button>
+        </div>
+      </section>}
 
       <section className="tournament-panel tournament-event-plan" aria-labelledby="tournament-event-plan-heading">
         <div className="section-heading"><div><span className="eyebrow">EVENT PLAN</span><h2 id="tournament-event-plan-heading">Regulation &amp; schedule</h2></div><strong>{regulationLabelFor(operation.regulation_id)}</strong></div>

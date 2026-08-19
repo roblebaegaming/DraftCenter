@@ -16,6 +16,9 @@ checked-in managers, matching the 4–32 capacity of snake Draft Tournaments.
 6. When every seat has the required roster, return to the event and lock the
    rosters. DraftCenter creates Swiss Round 1 or the selected elimination graph
    atomically.
+7. Use Event Management when the event is over: Archive preserves read-only
+   history, while Delete permanently removes a non-live event and its private
+   auction room after an exact-name confirmation.
 
 Draft-first events use three Swiss rounds for 4–8 managers, four for 9–16, and
 five for 17–32. The event page shows no more than 16 draft entrants per page so
@@ -64,6 +67,8 @@ public event or used to loosen that boundary.
 - Public rosters remain opt-in and do not appear before roster lock.
 - Browser clients have no direct write access to the internal lifecycle tables
   or helper functions.
+- Only the event owner can permanently delete it. The server rejects stale
+  revisions, live events, and connected organization championships.
 
 ## Release validation
 
