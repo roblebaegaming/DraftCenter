@@ -3,7 +3,7 @@
 - Last updated: August 18, 2026 Pacific
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified Production application and asset commit: `6fa9dea11aca0dacbf51142c1eb9f997578d886d`
+- Verified Production application and asset commit: `0650ef86219abeb6728b618ddca7c04cc2dded05`
 - Latest applied Production migration: 439 (`20260818220437`)
 
 ## Deployed state
@@ -232,6 +232,37 @@ captures cover the event overview, final standings, generated rosters, and
 Round 5 results. Vercel reported exact commit `6fa9dea` Ready, protected checks
 passed, and the complete 22-check signed-out Production smoke sweep passed.
 
+Pull request [#326](https://github.com/roblebaegaming/DraftCenter/pull/326)
+is released at exact application commit
+`0650ef86219abeb6728b618ddca7c04cc2dded05`. Team Lab now prioritizes the
+four-Pokémon field as a rapid Pokémon → action → target workflow. Every field
+card keeps four move slots visible, including tappable empty reveal slots;
+selected Pokémon expose direct Move, Ability, Item, Switch, and Out actions;
+and move targets can be either an opponent or an active ally.
+
+Ability, item, and move fields now offer type-ahead suggestions. Saved,
+published, and already revealed values come first; moves use the exact selected
+game or regulation pool; abilities use the selected Pokémon's available
+abilities; and items fall back to a curated competitive shortlist followed by
+the broader item catalog. This is not presented as measured usage data.
+
+Switch actions retain both the outgoing and incoming Pokémon. Parting Shot,
+U-turn, Volt Switch, Flip Turn, Chilly Reception, Baton Pass, Shed Tail, and
+Teleport prompt the replacement immediately after the move is recorded.
+Tailwind, Trick Room, Gravity, screens, Aurora Veil, Safeguard, and Mist have
+bounded turn counters that disappear naturally. Each game has a CSV download,
+and the complete workbook adds switch, target-side, and timed-effect data.
+
+This release contained no database migration, Production-data write, RLS,
+grant, provider-setting, or environment change. The Supabase Preview check
+correctly skipped. The complete local suite, 1,027-row National Dex check,
+dependency audit, production build, protected checks, and 22-check Production
+smoke sweep passed. A signed-in existing battle was opened read-only at
+390×844: all 16 move slots, five rapid actions, target choices, timers, and
+suggestion lists rendered without horizontal overflow or console findings.
+No saved battle data was changed, and the short-lived release branch was
+deleted.
+
 Supabase automatic branching remains enabled with a one-concurrent-Preview
 limit and Supabase-only changes. Older Preview branches were left untouched.
 The automatic check on pull request #298 was canceled solely because that limit
@@ -250,24 +281,27 @@ not be resumed until the owner explicitly requests it.
 
 ## Current continuation order
 
-1. Show the completed private Tournament Organizer Demo and its four captures
+1. Use the August 19 filming session to judge real 45-second-turn speed and
+   record any remaining tap-density or wording feedback without changing the
+   private report boundary.
+2. Show the completed private Tournament Organizer Demo and its four captures
    to the tournament operator; preserve the finished event until the owner
    explicitly asks to reset it.
-2. Prepare but do not launch the gated commissioner-focused Google Search
+3. Prepare but do not launch the gated commissioner-focused Google Search
    experiment in the current acquisition handoff. No ad account, tag, billing,
    campaign, or spend change is authorized.
-3. Reconstruct the supplied week-four four-pod league only after a dry-run
+4. Reconstruct the supplied week-four four-pod league only after a dry-run
    reconciliation of both source spreadsheets and explicit Production-write
    approval.
-4. Run the scheduled aggregate-only attribution review at 09:00 Pacific on
+5. Run the scheduled aggregate-only attribution review at 09:00 Pacific on
    August 19 without inspecting or reporting individual identity or activity.
-5. Use the released activation, import, replay, and weekly-health workflows to
+6. Use the released activation, import, replay, and weekly-health workflows to
    support complete commissioner seasons before opening another broad feature
    area.
-6. Recruit lighthouse commissioners only after the owner approves the exact
+7. Recruit lighthouse commissioners only after the owner approves the exact
    audience, message, destination, and reply path.
-7. Keep PokeEarth paused until the owner directly requests resumption.
-8. Keep GO Meta Picks closed until an official eligibility pool is reviewed.
+8. Keep PokeEarth paused until the owner directly requests resumption.
+9. Keep GO Meta Picks closed until an official eligibility pool is reviewed.
 
 The aggregate-only attribution review remains scheduled for 09:00 Pacific on
 August 19, 2026. Do not inspect or report individual identity or activity.
@@ -286,6 +320,8 @@ August 19, 2026. Do not inspect or report individual identity or activity.
 
 ## Authoritative records
 
+- Current Battle Lab rapid-actions handoff:
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-18-battle-lab-rapid-actions.md`](handoffs/DraftCenter-agent-handoff-2026-08-18-battle-lab-rapid-actions.md)
 - Current acquisition-strategy handoff:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-18-google-ads-readiness.md`](handoffs/DraftCenter-agent-handoff-2026-08-18-google-ads-readiness.md)
 - Current release and continuation handoff:
