@@ -86,7 +86,7 @@ function PodPlanningFields({ pod, busy, onSavePlan }) {
   </div>;
 }
 
-function PodList({ season, canManage, busy, onConfirm, onSavePlan }) {
+function PodList({ season, canManage, busy, onConfirm, onSavePlan, openInWorkspace = false }) {
   if (!season.pods?.length) return <div className="organization-empty"><strong>No pods linked yet.</strong><span>Link at least two existing leagues before launching this season.</span></div>;
   return <div className="organization-pod-list">{season.pods.map((pod) => <article key={pod.id}>
     <div>
@@ -96,7 +96,7 @@ function PodList({ season, canManage, busy, onConfirm, onSavePlan }) {
     </div>
     <div className="organization-pod-actions">
       {canManage && season.status === "planning" && onSavePlan && <PodPlanningFields pod={pod} busy={busy} onSavePlan={onSavePlan} />}
-      <a className="quiet-button" href={`/league/${pod.league_slug}`}>{canManage ? "Configure draft" : "Open league"}</a>
+      <a className="quiet-button" href={openInWorkspace ? `/?league=${encodeURIComponent(pod.league_slug)}` : `/league/${pod.league_slug}`}>{canManage ? "Configure draft" : "Open league"}</a>
       {canManage && season.status === "planning" && <button className="secondary-button" disabled={busy} onClick={() => onConfirm(season, pod)}>{pod.regulations_status === "confirmed" ? "Review again" : "Confirm shared rules"}</button>}
     </div>
   </article>)}</div>;
@@ -238,7 +238,7 @@ export function PublicLeagueOrganizationWorkspace({ slug }) {
       {workspace.seasons?.map((season) => <article className="organization-season-card" key={season.id}>
         <header><div><span className="eyebrow">{season.status.toUpperCase()}</span><h2>{season.name}</h2></div><span>{season.pods?.length || 0} pods</span></header>
         <RulesSummary season={season} />
-        <PodList season={season} canManage={false} />
+        <PodList season={season} canManage={false} openInWorkspace={organization.visibility !== "public"} />
         {season.championship && <section className="organization-championship-panel"><div><span className="eyebrow">CHAMPIONSHIP</span><h3>{season.championship.tournament_name}</h3><p>{season.championship.entrant_count} qualified teams · {season.championship.format === "double-elimination" ? "Double" : "Single"} elimination</p></div><a className="primary-button" href={`/tournaments/${season.championship.tournament_slug}`}>View playoff bracket</a></section>}
         <p className="organization-policy-note">Qualified teams keep their full regular-season rosters. Pokémon duplicated across independent pods remain legal in the championship.</p>
       </article>)}
@@ -614,7 +614,7 @@ export default function LeagueOrganizationWorkspace() {
             {workspace.seasons?.map((season) => <article className="organization-season-card" key={season.id}>
               <header><div><span className="eyebrow">{season.status.toUpperCase()}</span><h3>{season.name}</h3></div><span>{season.pods?.length || 0}/{season.planned_pod_count || 2} pods</span></header>
               <RulesSummary season={season} />
-              <PodList season={season} canManage={selectedOrganization.is_admin} busy={busy} onConfirm={confirmRegulations} onSavePlan={savePodPlan} />
+              <PodList season={season} canManage={selectedOrganization.is_admin} busy={busy} onConfirm={confirmRegulations} onSavePlan={savePodPlan} openInWorkspace />
               {selectedOrganization.is_admin && season.status === "planning" && <ManagerPlanningPanel season={season} busy={busy} onSave={saveManagerAssignment} onRemove={removeManagerAssignment} />}
               <QualificationPanel
                 season={season}
