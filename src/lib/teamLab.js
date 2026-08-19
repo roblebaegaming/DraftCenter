@@ -436,11 +436,95 @@ export function normalizeTeamLabTurnLog(turnLog, myRosterNames = [], opponentRos
     version: TEAM_LAB_TURN_LOG_VERSION,
     current_game: currentGame,
     current_turn: currentTurn,
+    auto_advance_turns: Boolean(source.auto_advance_turns),
     active_my_pokemon: activeMyPokemon,
     active_opponent_pokemon: activeOpponentPokemon,
     active_my_pokemon_slots: activeMyPokemonSlots,
     active_opponent_pokemon_slots: activeOpponentPokemonSlots,
     events,
+  };
+}
+
+function teamLabTurnActorKey(side, name) {
+  return `${side}:${name}`;
+}
+
+export function teamLabTurnCompletion(report, gameNumber = null, turnNumber = null) {
+  const source = report && typeof report === "object" && !Array.isArray(report) ? report : {};
+  const log = source.turn_log && typeof source.turn_log === "object" && !Array.isArray(source.turn_log)
+    ? source.turn_log
+    : {};
+  const game = gameNumber != null && Number.isInteger(Number(gameNumber)) ? Number(gameNumber) : Number(log.current_game) || 1;
+  const turn = turnNumber != null && Number.isInteger(Number(turnNumber)) ? Number(turnNumber) : Number(log.current_turn) || 1;
+  const events = (Array.isArray(log.events) ? log.events : [])
+    .filter((entry) => entry?.game === game && entry?.turn === turn);
+  const switchedOutByIncoming = new Map(events
+    .filter((entry) => entry.kind === "switch" && entry.pokemon && entry.switched_out)
+    .map((entry) => [teamLabTurnActorKey(entry.side, entry.pokemon), entry.switched_out]));
+  const originalActor = (side, currentName) => {
+    let name = currentName;
+    const visited = new Set();
+    while (name && !visited.has(name)) {
+      visited.add(name);
+      const switchedOut = switchedOutByIncoming.get(teamLabTurnActorKey(side, name));
+      if (!switchedOut) break;
+      name = switchedOut;
+    }
+    return name;
+  };
+  const slotsFor = (side) => {
+    const slotsKey = side === "my" ? "active_my_pokemon_slots" : "active_opponent_pokemon_slots";
+    const fallbackKey = side === "my" ? "active_my_pokemon" : "active_opponent_pokemon";
+    const slots = Array.isArray(log[slotsKey]) ? log[slotsKey].slice(0, 2) : [log[fallbackKey] || "", ""];
+    return [slots[0] || "", slots[1] || ""];
+  };
+  const actorKeys = new Set();
+  const actors = [];
+  for (const side of ["opponent", "my"]) {
+    for (const currentName of slotsFor(side)) {
+      if (!currentName) continue;
+      const name = originalActor(side, currentName);
+      const key = teamLabTurnActorKey(side, name);
+      if (!name || actorKeys.has(key)) continue;
+      actorKeys.add(key);
+      actors.push({ side, name, current_name: currentName, key });
+    }
+  }
+  const actedKeys = new Set(events.flatMap((entry) => {
+    if (entry.kind === "move" && entry.pokemon) return [teamLabTurnActorKey(entry.side, entry.pokemon)];
+    if (entry.kind === "switch" && (entry.switched_out || entry.pokemon)) {
+      return [teamLabTurnActorKey(entry.side, entry.switched_out || entry.pokemon)];
+    }
+    return [];
+  }));
+  const acted = actors.filter((actor) => actedKeys.has(actor.key));
+  const pending = actors.filter((actor) => !actedKeys.has(actor.key));
+  return {
+    game,
+    turn,
+    actors,
+    acted,
+    pending,
+    complete: actors.length > 0 && pending.length === 0,
+  };
+}
+
+export function advanceTeamLabTurnIfComplete(report) {
+  const completion = teamLabTurnCompletion(report);
+  const log = report?.turn_log || {};
+  if (!log.auto_advance_turns || !completion.complete || completion.turn >= TEAM_LAB_TURN_MAX) {
+    return { report, advanced: false, completion };
+  }
+  return {
+    report: {
+      ...report,
+      turn_log: {
+        ...log,
+        current_turn: completion.turn + 1,
+      },
+    },
+    advanced: true,
+    completion,
   };
 }
 

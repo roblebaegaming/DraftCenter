@@ -15,6 +15,7 @@ import {
   teamStatSummary,
 } from "../src/lib/teamAnalysis.js";
 import {
+  advanceTeamLabTurnIfComplete,
   applyTeamLabTurnEvent,
   activeTeamLabTimedEffects,
   buildTeamLabGameCsv,
@@ -47,6 +48,7 @@ import {
   teamLabBattlePurposeForMatchup,
   teamLabBattlePurposeLabel,
   teamLabFormatUsesIvs,
+  teamLabTurnCompletion,
   parseTeamLabLeagueMatchupHandoff,
   parseTeamLabMatchupHandoff,
   TEAM_LAB_ABILITY_LIMIT,
@@ -432,12 +434,14 @@ test("turn recorder keeps bounded roster-aware moves, damage, switches, faints, 
   const log = normalizeTeamLabTurnLog({
     version: 88,
     current_turn: 2,
+    auto_advance_turns: true,
     active_my_pokemon: "Garchomp",
     active_opponent_pokemon: "MissingNo",
     events,
   }, ["Garchomp", "Corviknight"], ["Rotom-Wash", "Amoonguss"], catalog);
   assert.equal(log.version, 2);
   assert.equal(log.current_game, 1);
+  assert.equal(log.auto_advance_turns, true);
   assert.equal(log.events.length, TEAM_LAB_TURN_EVENT_LIMIT - 1);
   assert.equal(log.current_turn, TEAM_LAB_TURN_EVENT_LIMIT + 2);
   assert.equal(log.active_my_pokemon, "Garchomp");
@@ -493,6 +497,45 @@ test("turn recorder keeps bounded roster-aware moves, damage, switches, faints, 
   }, ["Garchomp", "Corviknight"], ["Rotom-Wash"], catalog);
   assert.equal(allyTarget.events[0].target, "Corviknight");
   assert.equal(allyTarget.events[0].target_side, "my");
+});
+
+test("turn completion counts only moves and outgoing switches before optional auto-next", () => {
+  let report = normalizeTeamLabBattleReport(null, ["Garchomp", "Corviknight", "Dragonite"], ["Rotom-Wash", "Amoonguss"]);
+  report = {
+    ...report,
+    turn_log: {
+      ...report.turn_log,
+      auto_advance_turns: true,
+      active_my_pokemon: "Garchomp",
+      active_opponent_pokemon: "Rotom-Wash",
+      active_my_pokemon_slots: ["Garchomp", "Corviknight"],
+      active_opponent_pokemon_slots: ["Rotom-Wash", "Amoonguss"],
+    },
+  };
+  const events = [
+    { id: "reveal", game: 1, turn: 1, kind: "ability", side: "opponent", pokemon: "Rotom-Wash", detail: "Levitate" },
+    { id: "opponent-move", game: 1, turn: 1, kind: "move", side: "opponent", pokemon: "Rotom-Wash", target: "Garchomp", target_side: "my", move: "Hydro Pump" },
+    { id: "opponent-move-two", game: 1, turn: 1, kind: "move", side: "opponent", pokemon: "Amoonguss", target: "Garchomp", target_side: "my", move: "Spore" },
+    { id: "manual-switch", game: 1, turn: 1, kind: "switch", side: "my", pokemon: "Dragonite", switched_out: "Garchomp" },
+  ];
+  for (const event of events) report = applyTeamLabTurnEvent(report, event);
+  let completion = teamLabTurnCompletion(report);
+  assert.deepEqual(completion.acted.map((entry) => entry.name), ["Rotom-Wash", "Amoonguss", "Garchomp"]);
+  assert.deepEqual(completion.pending.map((entry) => entry.name), ["Corviknight"]);
+  assert.equal(completion.actors.find((entry) => entry.name === "Garchomp")?.current_name, "Dragonite");
+  assert.equal(advanceTeamLabTurnIfComplete(report).advanced, false);
+
+  report = applyTeamLabTurnEvent(report, { id: "my-move", game: 1, turn: 1, kind: "move", side: "my", pokemon: "Corviknight", target: "Rotom-Wash", target_side: "opponent", move: "Tailwind" });
+  completion = teamLabTurnCompletion(report);
+  assert.equal(completion.complete, true);
+  const advanced = advanceTeamLabTurnIfComplete(report);
+  assert.equal(advanced.advanced, true);
+  assert.equal(advanced.report.turn_log.current_turn, 2);
+  assert.equal(teamLabTurnCompletion(advanced.report).acted.length, 0);
+
+  const manual = { ...report, turn_log: { ...report.turn_log, auto_advance_turns: false } };
+  assert.equal(advanceTeamLabTurnIfComplete(manual).advanced, false);
+  assert.equal(advanceTeamLabTurnIfComplete(manual).report.turn_log.current_turn, 1);
 });
 
 test("battle actions can be corrected without erasing facts supported by remaining events", () => {
@@ -989,6 +1032,8 @@ test("Team Lab is indexable while account notes and matchups stay private", () =
   assert.match(component, /Import the open sheet before recording opponent reveals or turn actions/);
   assert.match(component, /FAST BATTLE TICKER/);
   assert.match(component, /Turn-by-turn recorder/);
+  assert.match(component, /Auto-next \{log\.auto_advance_turns/);
+  assert.match(component, /use Next turn for no-action cases/);
   assert.match(component, /Four-slot doubles field/);
   assert.match(component, /Opponent’s field/);
   assert.match(component, /Your field/);

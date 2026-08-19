@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { REGULATION_GROUPS } from "../lib/regulation-catalog";
 import {
+  advanceTeamLabTurnIfComplete,
   applyTeamLabTurnEvent,
   activeTeamLabTimedEffects,
   buildTeamLabGameCsv,
@@ -28,6 +29,7 @@ import {
   teamLabBattleMechanicForFormat,
   teamLabBattlePurposeForMatchup,
   teamLabBattlePurposeLabel,
+  teamLabTurnCompletion,
   TEAM_LAB_BATTLE_PURPOSE_OPTIONS,
   TEAM_LAB_BATTLE_SESSION_LABEL_LIMIT,
   TEAM_LAB_BATTLE_MOVE_LIMIT,
@@ -317,12 +319,40 @@ function BattleTurnRecorder({ report, setReport, sheetMode, matchup, myTeamSets,
     ? scoutedActor?.[actionKind] || ""
     : "";
   const activeEffects = activeTeamLabTimedEffects(report);
+  const turnCompletion = teamLabTurnCompletion(report);
 
   function focusInput(ref) {
     globalThis.setTimeout(() => {
       ref.current?.focus();
       ref.current?.scrollIntoView({ behavior: "smooth", block: "center" });
     }, 0);
+  }
+
+  function focusPendingActor(nextReport, afterActor = null) {
+    const completion = teamLabTurnCompletion(nextReport);
+    let ordered = completion.actors;
+    if (afterActor) {
+      const currentIndex = ordered.findIndex((entry) => entry.side === afterActor.side && entry.name === afterActor.name);
+      if (currentIndex >= 0) ordered = [...ordered.slice(currentIndex + 1), ...ordered.slice(0, currentIndex + 1)];
+    }
+    const pendingKeys = new Set(completion.pending.map((entry) => entry.key));
+    const next = ordered.find((entry) => pendingKeys.has(entry.key));
+    if (!next) return false;
+    const nextLog = nextReport.turn_log || {};
+    const opposingSlots = next.side === "my"
+      ? nextLog.active_opponent_pokemon_slots || [nextLog.active_opponent_pokemon || "", ""]
+      : nextLog.active_my_pokemon_slots || [nextLog.active_my_pokemon || "", ""];
+    setActionSide(next.side);
+    setActorName(next.current_name || next.name);
+    setTargetName(opposingSlots.find(Boolean) || "");
+    setActionTargetSide(next.side === "my" ? "opponent" : "my");
+    return { ...next, name: next.current_name || next.name };
+  }
+
+  function applyAutoAdvance(nextReport) {
+    const result = advanceTeamLabTurnIfComplete(nextReport);
+    if (result.advanced) focusPendingActor(result.report);
+    return result;
   }
 
   function selectFieldPokemon(side, slotIndex, name) {
@@ -335,47 +365,61 @@ function BattleTurnRecorder({ report, setReport, sheetMode, matchup, myTeamSets,
     const slotsKey = side === "my" ? "active_my_pokemon_slots" : "active_opponent_pokemon_slots";
     const rosterKey = side === "my" ? "my_pokemon" : "opponent_pokemon";
     const switchId = globalThis.crypto?.randomUUID?.() || `switch-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
-    setReport((current) => {
-      const currentSlots = Array.isArray(current.turn_log[slotsKey]) ? current.turn_log[slotsKey].slice(0, 2) : [current.turn_log[activeKey] || "", ""];
-      const slots = [currentSlots[0] || "", currentSlots[1] || ""];
-      const previousName = slots[slotIndex];
-      const duplicateIndex = slots.indexOf(name);
-      if (duplicateIndex >= 0 && duplicateIndex !== slotIndex) slots[duplicateIndex] = previousName || "";
-      slots[slotIndex] = name;
-      let next = {
-        ...current,
-        [rosterKey]: current[rosterKey].map((pokemon) => pokemon.name === name ? { ...pokemon, brought: true, fainted: false } : pokemon),
-        turn_log: { ...current.turn_log, [activeKey]: name, [slotsKey]: slots },
-      };
-      if (previousName && previousName !== name) {
-        next = applyTeamLabTurnEvent(next, {
-          id: switchId,
-          game: current.turn_log.current_game,
-          turn: current.turn_log.current_turn,
-          kind: "switch",
-          side,
-          pokemon: name,
-          switched_out: previousName,
-          target: "",
-          move: "",
-          damage: "",
-          detail: "",
-          note: slotPicker?.pivotMove
-            ? `Pivoted after ${slotPicker.pivotMove} from field slot ${slotIndex + 1}`
-            : `Replaced ${previousName} in field slot ${slotIndex + 1}`,
-        });
-        next.turn_log = { ...next.turn_log, [activeKey]: name, [slotsKey]: slots };
-      }
-      return next;
-    });
+    const currentSlots = Array.isArray(report.turn_log[slotsKey]) ? report.turn_log[slotsKey].slice(0, 2) : [report.turn_log[activeKey] || "", ""];
+    const slots = [currentSlots[0] || "", currentSlots[1] || ""];
+    const previousName = slots[slotIndex];
+    const duplicateIndex = slots.indexOf(name);
+    if (duplicateIndex >= 0 && duplicateIndex !== slotIndex) slots[duplicateIndex] = previousName || "";
+    slots[slotIndex] = name;
+    let next = {
+      ...report,
+      [rosterKey]: report[rosterKey].map((pokemon) => pokemon.name === name ? { ...pokemon, brought: true, fainted: false } : pokemon),
+      turn_log: { ...report.turn_log, [activeKey]: name, [slotsKey]: slots },
+    };
+    if (previousName && previousName !== name) {
+      next = applyTeamLabTurnEvent(next, {
+        id: switchId,
+        game: report.turn_log.current_game,
+        turn: report.turn_log.current_turn,
+        kind: "switch",
+        side,
+        pokemon: name,
+        switched_out: previousName,
+        target: "",
+        move: "",
+        damage: "",
+        detail: "",
+        note: slotPicker?.pivotMove
+          ? `Pivoted after ${slotPicker.pivotMove} from field slot ${slotIndex + 1}`
+          : `Replaced ${previousName} in field slot ${slotIndex + 1}`,
+      });
+      next.turn_log = { ...next.turn_log, [activeKey]: name, [slotsKey]: slots };
+    }
+    const advanceResult = previousName && previousName !== name
+      ? applyAutoAdvance(next)
+      : { report: next, advanced: false, completion: teamLabTurnCompletion(next) };
+    setReport(advanceResult.report);
     setSlotPicker(null);
     setSwitchOutName("");
-    setActionSide(side);
-    setActorName(name);
-    const opposingSlots = side === "my" ? opponentActiveSlots : myActiveSlots;
-    setTargetName(opposingSlots.find(Boolean) || "");
-    setActionTargetSide(side === "my" ? "opponent" : "my");
-    onStatus("");
+    if (advanceResult.advanced) {
+      clearEntry();
+      onStatus(`Turn ${advanceResult.completion.turn} complete · moved to Turn ${advanceResult.completion.turn + 1}.`);
+      return;
+    }
+    const nextActor = previousName && previousName !== name
+      ? focusPendingActor(next, { side, name: previousName })
+      : false;
+    if (!previousName || previousName === name) {
+      setActionSide(side);
+      setActorName(name);
+      const opposingSlots = side === "my" ? opponentActiveSlots : myActiveSlots;
+      setTargetName(opposingSlots.find(Boolean) || "");
+      setActionTargetSide(side === "my" ? "opponent" : "my");
+      onStatus("");
+      return;
+    }
+    if (!nextActor) setActorName("");
+    onStatus(`${previousName} switched out for ${name}.${nextActor ? ` Next: ${nextActor.name}.` : " Every eligible Pokémon is accounted for; use Next turn or enable Auto-next."}`);
   }
 
   function focusFieldPokemon(side, name) {
@@ -414,10 +458,10 @@ function BattleTurnRecorder({ report, setReport, sheetMode, matchup, myTeamSets,
 
   function quickFaint(side, name) {
     const id = globalThis.crypto?.randomUUID?.() || `faint-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
-    setReport((current) => applyTeamLabTurnEvent(current, {
+    const next = applyTeamLabTurnEvent(report, {
       id,
-      game: current.turn_log.current_game,
-      turn: current.turn_log.current_turn,
+      game: report.turn_log.current_game,
+      turn: report.turn_log.current_turn,
       kind: "faint",
       side,
       pokemon: name,
@@ -426,10 +470,14 @@ function BattleTurnRecorder({ report, setReport, sheetMode, matchup, myTeamSets,
       damage: "",
       detail: "",
       note: "",
-    }));
-    if (actorName === name) setActorName("");
-    if (targetName === name) setTargetName("");
-    onStatus(`${name} marked out and removed from the field.`);
+    });
+    const advanceResult = applyAutoAdvance(next);
+    setReport(advanceResult.report);
+    if (!advanceResult.advanced && actorName === name) setActorName("");
+    if (!advanceResult.advanced && targetName === name) setTargetName("");
+    onStatus(advanceResult.advanced
+      ? `${name} marked out. Turn ${advanceResult.completion.turn} is complete · moved to Turn ${advanceResult.completion.turn + 1}.`
+      : `${name} marked out and removed from the field.`);
   }
 
   function openSlotPicker(side, index, options = {}) {
@@ -486,27 +534,6 @@ function BattleTurnRecorder({ report, setReport, sheetMode, matchup, myTeamSets,
       : `Recording ${actorName}’s ${kind}. Start typing and choose a suggestion.`);
     if (kind === "move") focusInput(moveInputRef);
     if (["ability", "item"].includes(kind)) focusInput(detailInputRef);
-  }
-
-  function advanceToNextActor(recordedEvent) {
-    const field = [
-      ...opponentActiveSlots.filter(Boolean).map((name) => ({ side: "opponent", name })),
-      ...myActiveSlots.filter(Boolean).map((name) => ({ side: "my", name })),
-    ];
-    const acted = new Set(log.events
-      .filter((entry) => entry.game === log.current_game && entry.turn === log.current_turn && entry.kind !== "note")
-      .map((entry) => `${entry.side}:${entry.pokemon}`));
-    acted.add(`${recordedEvent.side}:${recordedEvent.pokemon}`);
-    const currentIndex = field.findIndex((entry) => entry.side === recordedEvent.side && entry.name === recordedEvent.pokemon);
-    const ordered = currentIndex >= 0 ? [...field.slice(currentIndex + 1), ...field.slice(0, currentIndex + 1)] : field;
-    const next = ordered.find((entry) => !acted.has(`${entry.side}:${entry.name}`));
-    if (!next) return false;
-    setActionSide(next.side);
-    setActorName(next.name);
-    const opposingSlots = next.side === "my" ? opponentActiveSlots : myActiveSlots;
-    setTargetName(opposingSlots.find(Boolean) || "");
-    setActionTargetSide(next.side === "my" ? "opponent" : "my");
-    return next;
   }
 
   function beginTimedEffect(effectId, side) {
@@ -572,6 +599,21 @@ function BattleTurnRecorder({ report, setReport, sheetMode, matchup, myTeamSets,
     onStatus("");
   }
 
+  function toggleAutoAdvance() {
+    const enabled = !log.auto_advance_turns;
+    const toggled = { ...report, turn_log: { ...log, auto_advance_turns: enabled } };
+    const result = enabled
+      ? applyAutoAdvance(toggled)
+      : { report: toggled, advanced: false, completion: teamLabTurnCompletion(toggled) };
+    setReport(result.report);
+    if (result.advanced) {
+      clearEntry();
+      onStatus(`Auto-next is on. Turn ${result.completion.turn} was complete, so Battle Room moved to Turn ${result.completion.turn + 1}.`);
+    } else onStatus(enabled
+      ? "Auto-next is on. Battle Room will advance after every eligible Pokémon has moved or switched."
+      : "Auto-next is off. Use Next turn whenever you are ready.");
+  }
+
   function startNextGame() {
     if (log.current_game >= report.series.best_of) return;
     setReport((current) => ({
@@ -632,22 +674,31 @@ function BattleTurnRecorder({ report, setReport, sheetMode, matchup, myTeamSets,
       detail: ["ability", "item"].includes(actionKind) ? detail : "",
       note,
     };
-    setReport((current) => applyTeamLabTurnEvent(current, nextEvent, {
+    const appliedReport = applyTeamLabTurnEvent(report, nextEvent, {
       replaceId: editingEventId,
       opponentSets: sheetMode === "open" ? matchup.opponent_sets : null,
-    }));
+    });
     const pivotMove = !editingEventId && actionKind === "move" && isTeamLabPivotMove(move) ? move : "";
     const pivotSlots = actionSide === "my" ? myActiveSlots : opponentActiveSlots;
     const pivotSlotIndex = pivotMove ? pivotSlots.indexOf(actorName) : -1;
-    const nextActor = !editingEventId && !pivotMove && actionKind !== "note" ? advanceToNextActor(nextEvent) : false;
+    const shouldCheckCompletion = !editingEventId && !pivotMove && ["move", "switch", "faint"].includes(actionKind);
+    const advanceResult = shouldCheckCompletion
+      ? applyAutoAdvance(appliedReport)
+      : { report: appliedReport, advanced: false, completion: teamLabTurnCompletion(appliedReport) };
+    setReport(advanceResult.report);
+    const nextActor = shouldCheckCompletion && !advanceResult.advanced
+      ? focusPendingActor(appliedReport, { side: nextEvent.side, name: nextEvent.kind === "switch" ? nextEvent.switched_out : nextEvent.pokemon })
+      : false;
     clearEntry();
-    if (pivotMove && pivotSlotIndex >= 0) {
+    if (advanceResult.advanced) {
+      onStatus(`Turn ${advanceResult.completion.turn} complete · moved to Turn ${advanceResult.completion.turn + 1}.`);
+    } else if (pivotMove && pivotSlotIndex >= 0) {
       setSwitchOutName(actorName);
       setSlotPicker({ side: actionSide, index: pivotSlotIndex, switchedOut: actorName, pivotMove });
       onStatus(`${actorName} used ${pivotMove}. Now tap the Pokémon switching into its slot.`);
     } else onStatus(editingEvent
       ? `Game ${nextEvent.game}, turn ${nextEvent.turn} action corrected and autosaved locally.`
-      : `Game ${log.current_game}, turn ${log.current_turn} ${actionKind === "note" ? "note" : actionKind} recorded.${nextActor ? ` Next: ${nextActor.name}.` : " All four active Pokémon are accounted for this turn."}`);
+      : `Game ${log.current_game}, turn ${log.current_turn} ${actionKind === "note" ? "note" : actionKind} recorded.${nextActor ? ` Next: ${nextActor.name}.` : advanceResult.completion.complete ? " Every eligible Pokémon is accounted for; use Next turn or enable Auto-next." : ["ability", "item"].includes(actionKind) ? " Reveals do not consume this Pokémon’s action." : ""}`);
   }
 
   function removeEvent(id) {
@@ -680,7 +731,7 @@ function BattleTurnRecorder({ report, setReport, sheetMode, matchup, myTeamSets,
   return <section className="team-lab-turn-recorder" aria-labelledby="team-lab-turn-recorder-title">
     <header className="team-lab-turn-header">
       <div><span className="eyebrow">FAST BATTLE TICKER</span><h3 id="team-lab-turn-recorder-title">Turn-by-turn recorder</h3><p>{log.events.length} action{log.events.length === 1 ? "" : "s"} recorded · private until you choose to share details</p></div>
-      <div className="team-lab-turn-navigation"><div className="team-lab-turn-stepper"><button type="button" disabled={log.current_turn <= 1} onClick={() => changeTurn(-1)} aria-label="Previous turn">−</button><strong>Game {log.current_game} · Turn {log.current_turn}</strong><button type="button" disabled={log.current_turn >= TEAM_LAB_TURN_MAX} onClick={() => changeTurn(1)}>Next turn</button></div><button type="button" className="team-lab-turn-next-game" disabled={log.current_game >= report.series.best_of} onClick={startNextGame}>{log.current_game >= report.series.best_of ? `Final game in best of ${report.series.best_of}` : `Start game ${log.current_game + 1}`}</button></div>
+      <div className="team-lab-turn-navigation"><div className="team-lab-turn-stepper"><button type="button" disabled={log.current_turn <= 1} onClick={() => changeTurn(-1)} aria-label="Previous turn">−</button><strong>Game {log.current_game} · Turn {log.current_turn}</strong><button type="button" disabled={log.current_turn >= TEAM_LAB_TURN_MAX} onClick={() => changeTurn(1)}>Next turn</button></div><div className="team-lab-turn-auto"><button type="button" aria-pressed={log.auto_advance_turns} onClick={toggleAutoAdvance}>Auto-next {log.auto_advance_turns ? "on" : "off"}</button><small>{turnCompletion.acted.length}/{turnCompletion.actors.length} acted · moves and switches count; use Next turn for no-action cases</small></div><button type="button" className="team-lab-turn-next-game" disabled={log.current_game >= report.series.best_of} onClick={startNextGame}>{log.current_game >= report.series.best_of ? `Final game in best of ${report.series.best_of}` : `Start game ${log.current_game + 1}`}</button></div>
     </header>
 
     <div className="team-lab-timed-effects" aria-label="Turn-limited field effects">
