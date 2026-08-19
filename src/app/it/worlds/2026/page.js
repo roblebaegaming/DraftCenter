@@ -62,6 +62,6 @@ export default function ItalianWorlds2026Page() {
 
   return <div lang="it">
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(pageSchema) }} />
-    <WorldsPickSixteen rosterSource={roster} locale="it" />
+    <WorldsPickSixteen discipline="vgc" rosterSource={roster} locale="it" />
   </div>;
 }

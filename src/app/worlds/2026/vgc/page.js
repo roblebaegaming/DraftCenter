@@ -65,6 +65,6 @@ export default function Worlds2026VgcPage() {
 
   return <>
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(pageSchema) }} />
-    <WorldsPickSixteen rosterSource={roster} />
+    <WorldsPickSixteen discipline="vgc" rosterSource={roster} />
   </>;
 }
