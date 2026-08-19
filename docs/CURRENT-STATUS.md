@@ -11,22 +11,28 @@
 Pull request [#349](https://github.com/roblebaegaming/DraftCenter/pull/349) on
 `codex/participant-retirement-20260819` contains midseason participant
 retirement and tournament-drop support plus a tournament operator-workflow
-follow-up. Forward migrations
+follow-up and flexible private practice fields. Forward migrations
 `20260819185347_participant_retirement_and_tournament_drops.sql` and
-`20260819194237_tournament_operator_workflow.sql` preserve completed history,
+`20260819194237_tournament_operator_workflow.sql` plus
+`20260819201436_tournament_practice_entries.sql` preserve completed history,
 require explicit unresolved-match handling, omit inactive participants from
 later competitive stages, and keep private reasons in RLS-hidden tables. The
 tournament workspace now separates Operator mode from Participant view, always
 shows the next lifecycle gate, publishes regulation and registration/check-in/
 start times, keeps the draft board linked throughout the event, and removes
-manual pre-event seeding. Opening bracket/draft positions are drawn at start;
-Swiss standings and Top Cut placement come from results. The dependency audit,
-complete application suite, 1,027-row National Dex check, diff-integrity check,
-and configured 326-page build pass after the follow-up. The earlier retirement
-migration also passed its isolated PostgreSQL lifecycle exercise. The new
-operator migration still requires its rollback-only Supabase Preview regression
-and responsive signed-in review. Nothing is deployed or applied to Production,
-and no real league or tournament was changed.
+manual pre-event seeding. Operators can add or remove clearly labeled synthetic
+entrants in any private registration-stage event, while the entrant limit is a
+capacity ceiling rather than a quota. Draft practice entrants check in
+automatically and remain unclaimed bot-controlled snake or auction teams;
+format-specific minimums apply only when play starts. Opening bracket/draft
+positions are drawn at start; Swiss standings and Top Cut placement come from
+results. The dependency audit, complete application suite, 1,027-row National
+Dex check, diff-integrity check, PostgreSQL syntax/compile exercise, and
+configured 326-page build pass after the follow-up. The earlier retirement
+migration also passed its isolated PostgreSQL lifecycle exercise. The three
+rollback-only Supabase Preview regressions and responsive signed-in review are
+still required. Nothing is deployed or applied to Production, and no real
+league or tournament was changed.
 
 ## Deployed state
 

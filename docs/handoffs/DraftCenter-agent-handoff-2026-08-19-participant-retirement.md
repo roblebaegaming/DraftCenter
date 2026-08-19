@@ -6,7 +6,8 @@ This branch implements the first priority from the August 19 continuation
 handoff: midseason **Retired after Week/Round** support for leagues and
 tournaments. It also incorporates the owner's tournament-workspace review:
 clear operator/participant modes, visible advancement, event times, regulation
-selection, persistent draft-board access, and removal of pre-event seeding.
+selection, persistent draft-board access, removal of pre-event seeding, and a
+capacity-based private practice field with synthetic entrants.
 Work is isolated on `codex/participant-retirement-20260819` from `origin/main`
 commit `6d613dedfe486063c075599fb8adf6509b1f2bf6` and is under review in pull
 request [#349](https://github.com/roblebaegaming/DraftCenter/pull/349).
@@ -71,6 +72,28 @@ Auction Swiss showcase was not reset or modified.
   seeds remain their separate earned-placement workflow.
 - Recovery controls are operator-only and collapsed until needed.
 
+### Flexible private practice fields
+
+- The configured entrant limit is consistently presented and enforced as the
+  maximum capacity, not a registration target or a quota that must be filled.
+- The operator Field Manager is visible throughout registration and reports
+  real, practice, total, and remaining-capacity counts.
+- A private-event operator can add 1–64 clearly labeled, accountless practice
+  entries at a time without exceeding capacity, then remove any of those entries
+  before the field or bracket locks.
+- Public tournaments reject synthetic entrants. Database triggers also reject a
+  synthetic entrant if a privileged caller attempts to attach it to a public or
+  ordinary event.
+- Draft practice entries check in automatically. At field lock they become
+  unclaimed bot-controlled teams in either the snake or auction room, while
+  every real seat remains bound to the exact authenticated membership.
+- Snake and auction roster materialization accepts unowned teams only for those
+  protected private synthetic seats. Practice status and badges remain visible
+  to authorized viewers throughout the rehearsal.
+- Check-in can open before the field reaches four. The four-seat draft minimum,
+  two-seat single-elimination minimum, and four-seat double-elimination minimum
+  are enforced only when the operator starts that stage.
+
 ### Privacy and audit
 
 - Optional reasons are stored only in new RLS-enabled, service-role-only
@@ -84,6 +107,7 @@ Auction Swiss showcase was not reset or modified.
 
 - `supabase/migrations/20260819185347_participant_retirement_and_tournament_drops.sql`
 - `supabase/migrations/20260819194237_tournament_operator_workflow.sql`
+- `supabase/migrations/20260819201436_tournament_practice_entries.sql`
 - `src/lib/participantStatus.js`
 - `src/lib/leagueResults.js`
 - `src/lib/leagueSwiss.mjs`
@@ -94,6 +118,7 @@ Auction Swiss showcase was not reset or modified.
 - `test/participant-status.test.js`
 - `supabase/tests/444-participant-retirement-preview-regression.sql`
 - `supabase/tests/445-tournament-operator-workflow-preview-regression.sql`
+- `supabase/tests/446-tournament-practice-entries-preview-regression.sql`
 
 ## Validation completed
 
@@ -111,6 +136,12 @@ Auction Swiss showcase was not reset or modified.
 - After the operator-workflow follow-up, the dependency audit, complete
   application suite, 1,027-row National Dex check, diff-integrity check, and
   configured 326-page build all pass again.
+- After the flexible-practice follow-up, the dependency audit, complete
+  application suite, 1,027-row National Dex check, focused tournament suites,
+  diff-integrity check, and configured 326-page build pass again. The forward
+  migration and rollback-only regression both parse as PostgreSQL, and the
+  migration compiles completely in an isolated in-process PostgreSQL schema,
+  including its core entrant, field-lock, and roster-lock functions.
 
 Before a release, retain the repository policy: keep the complete test and audit
 checks passing, apply the Preview regression to a disposable branch, review the
@@ -123,7 +154,8 @@ fixture.
 
 1. Review the full diff, especially both forward migrations, qualification
    reranking, the result-neutral opening draw, and draft-room regulation sync.
-2. Run both rollback-only SQL regressions on an isolated Supabase Preview branch.
+2. Run all three rollback-only SQL regressions on an isolated Supabase Preview
+   branch after the owner explicitly confirms the current hourly cost.
 3. Review Operator mode and Participant view at desktop and phone widths.
 4. Release only through protected pull request #349 after checks pass.
 5. After release, validate manager invitations and completed-draft claiming in

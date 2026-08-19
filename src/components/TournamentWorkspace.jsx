@@ -331,7 +331,7 @@ function MatchCard({ match, entrants, rostersByEntrant, seedOverrides, showSeedL
       <div className={`tournament-match-side ${match.winner_id === a?.id ? "winner" : ""}`}>
         <span aria-label={showSeedLabels && a ? `Seed ${seedA}` : undefined}>{showSeedLabels ? (a ? `#${seedA}` : "-") : ""}</span>
         <div className="tournament-match-entrant">
-          <strong>{a?.display_name || "TBD"}</strong>
+          <strong>{a?.display_name || "TBD"} {a?.is_synthetic && <span className="tournament-bot-badge">{a.synthetic_label}</span>}</strong>
           <TournamentMatchRoster entrant={a} roster={a ? rostersByEntrant?.get(a.id) : null} />
         </div>
         {match.games_a != null && <b>{match.games_a}</b>}
@@ -339,7 +339,7 @@ function MatchCard({ match, entrants, rostersByEntrant, seedOverrides, showSeedL
       <div className={`tournament-match-side ${match.winner_id === b?.id ? "winner" : ""}`}>
         <span aria-label={showSeedLabels && b ? `Seed ${seedB}` : undefined}>{showSeedLabels ? (b ? `#${seedB}` : "-") : ""}</span>
         <div className="tournament-match-entrant">
-          <strong>{b?.display_name || "TBD"}</strong>
+          <strong>{b?.display_name || "TBD"} {b?.is_synthetic && <span className="tournament-bot-badge">{b.synthetic_label}</span>}</strong>
           <TournamentMatchRoster entrant={b} roster={b ? rostersByEntrant?.get(b.id) : null} />
         </div>
         {match.games_b != null && <b>{match.games_b}</b>}
@@ -428,6 +428,8 @@ export default function TournamentWorkspace({ slug }) {
     checkInOpensAt: "",
     startsAt: "",
   });
+  const [practiceCount, setPracticeCount] = useState(1);
+  const [practiceLabel, setPracticeLabel] = useState("Practice Player");
 
   async function load(options = {}) {
     const requestedRound = options.roundKey ?? selectedRound;
@@ -486,17 +488,29 @@ export default function TournamentWorkspace({ slug }) {
       const participation = new Map(participationResult.data.map((entry) => [entry.entrant_id, entry]));
       data = { ...data, entrants: (data.entrants || []).map((entrant) => ({ ...entrant, ...(participation.get(entrant.id) || {}) })) };
     }
+    const operation = operationResult.data || {
+      regulation_id: "reg-mb",
+      registration_closes_at: null,
+      check_in_opens_at: null,
+      starts_at: null,
+      is_practice: false,
+      synthetic_entrant_ids: [],
+    };
+    const syntheticEntrants = new Set(operation.synthetic_entrant_ids || []);
+    data = {
+      ...data,
+      entrants: (data.entrants || []).map((entrant) => ({
+        ...entrant,
+        is_synthetic: syntheticEntrants.has(entrant.id),
+        synthetic_label: draftTournament?.event?.is_demo ? "Bot" : "Practice",
+      })),
+    };
     const pageStage = data.match_page?.bracket_stage;
     const pageRound = data.match_page?.bracket_round;
     if (pageStage && pageRound) setSelectedRound(`${pageStage}:${pageRound}`);
     setWorkspace({
       ...data,
-      operation: operationResult.data || {
-        regulation_id: "reg-mb",
-        registration_closes_at: null,
-        check_in_opens_at: null,
-        starts_at: null,
-      },
+      operation,
       connected_championship: connectedResult.data || null,
       draft_tournament: draftTournament,
     });
@@ -718,11 +732,14 @@ export default function TournamentWorkspace({ slug }) {
   function requestLockDraftField() {
     const isAuction = workspace.draft_tournament?.event?.draft_type === "auction";
     const isDemo = Boolean(workspace.draft_tournament?.event?.is_demo);
+    const isPractice = Boolean(workspace.operation?.is_practice);
     setConfirmation({
       title: "Lock the checked-in field?",
       description: isDemo
         ? "DraftCenter will lock your owner seat plus 31 synthetic bot seats and create the private auction room. You can run the auction live against the bots or generate completed demo rosters."
-        : `Unchecked entrants become recorded no-shows, late entry closes, and DraftCenter creates the private shared ${isAuction ? "auction" : "snake"} room with exact account ownership.`,
+        : isPractice
+          ? `Unchecked real entrants become recorded no-shows. Practice entries become unclaimed bot-controlled teams in the private shared ${isAuction ? "auction" : "snake"} room.`
+          : `Unchecked entrants become recorded no-shows, late entry closes, and DraftCenter creates the private shared ${isAuction ? "auction" : "snake"} room with exact account ownership.`,
       confirmLabel: "Lock field",
       workingLabel: "Creating draft room...",
       tone: "danger",
@@ -995,6 +1012,45 @@ export default function TournamentWorkspace({ slug }) {
     await load();
   }
 
+  async function addPracticeEntrants(event) {
+    event.preventDefault();
+    setBusy(true);
+    setMessage("");
+    const { error } = await supabase.rpc("add_tournament_practice_entrants", {
+      p_tournament_id: workspace.tournament.id,
+      p_expected_revision: workspace.tournament.revision,
+      p_count: Number(practiceCount),
+      p_label_prefix: practiceLabel.trim(),
+    });
+    setBusy(false);
+    if (error) return setMessage(tournamentError(error));
+    setMessage(`${practiceCount} clearly labeled practice ${Number(practiceCount) === 1 ? "entrant was" : "entrants were"} added.`);
+    await load();
+  }
+
+  function requestRemovePracticeEntrant(entrant) {
+    setConfirmation({
+      title: `Remove ${entrant.display_name}?`,
+      description: "This removes only the synthetic practice entry. Real registrations and tournament capacity are unchanged.",
+      confirmLabel: "Remove practice entry",
+      workingLabel: "Removing...",
+      tone: "danger",
+      onConfirm: async () => {
+        setBusy(true);
+        setMessage("");
+        const { error } = await supabase.rpc("remove_tournament_practice_entrant", {
+          p_tournament_id: workspace.tournament.id,
+          p_entrant_id: entrant.id,
+          p_expected_revision: workspace.tournament.revision,
+        });
+        setBusy(false);
+        if (error) return setMessage(tournamentError(error));
+        await load();
+        return true;
+      },
+    });
+  }
+
   async function replaceEntrant() {
     setBusy(true);
     setMessage("");
@@ -1155,6 +1211,10 @@ export default function TournamentWorkspace({ slug }) {
   );
   const isOperatorMode = Boolean(tournament.is_owner && viewMode === "operator");
   const operation = workspace.operation || {};
+  const isPractice = Boolean(operation.is_practice);
+  const syntheticEntrants = registeredEntrants.filter((entrant) => entrant.is_synthetic);
+  const realEntrants = registeredEntrants.filter((entrant) => !entrant.is_synthetic);
+  const openEntrantSlots = Math.max(0, Number(tournament.entrant_limit || 0) - registeredEntrants.length);
   const checkedInCount = Number(draftTournament?.check_in?.checked_in_count || 0);
   const minimumEntrants = tournament.format === "draft-tournament" || tournament.format === "double-elimination" ? 4 : 2;
   const registrationShortfall = Math.max(0, minimumEntrants - registeredEntrants.length);
@@ -1163,21 +1223,21 @@ export default function TournamentWorkspace({ slug }) {
   if (tournament.status === "registration" && tournament.format === "draft-tournament" && draftEvent?.phase === "registration") {
     nextOperatorAction = {
       label: "Open participant check-in",
-      detail: registrationShortfall ? `${registrationShortfall} more ${registrationShortfall === 1 ? "entrant is" : "entrants are"} needed first.` : "Registration stays visible while confirmed participants check in.",
-      disabled: registrationShortfall > 0,
+      detail: "Open check-in whenever you are ready. Registration can remain open, and the configured capacity is only the maximum field size.",
+      disabled: false,
       onClick: requestOpenDraftCheckIn,
     };
   } else if (tournament.status === "registration" && tournament.format === "draft-tournament" && draftEvent?.phase === "check-in") {
     nextOperatorAction = {
       label: "Lock field & create draft board",
-      detail: checkInShortfall ? `${checkInShortfall} more checked-in ${checkInShortfall === 1 ? "participant is" : "participants are"} needed first.` : "Unchecked registrations become no-shows and the shared draft room is created.",
+      detail: checkInShortfall ? `${checkInShortfall} more checked-in ${checkInShortfall === 1 ? "entrant is" : "entrants are"} needed for the four-seat draft minimum. Add private practice entries or wait for registrations.` : "Start with this checked-in field; unused capacity is fine.",
       disabled: checkInShortfall > 0,
       onClick: requestLockDraftField,
     };
   } else if (tournament.status === "registration" && tournament.format !== "draft-tournament") {
     nextOperatorAction = {
       label: "Start tournament & draw bracket",
-      detail: registrationShortfall ? `${registrationShortfall} more ${registrationShortfall === 1 ? "entrant is" : "entrants are"} needed first.` : "Registration closes and DraftCenter creates a random opening bracket. Competitive placement comes from results.",
+      detail: registrationShortfall ? `${registrationShortfall} more ${registrationShortfall === 1 ? "entrant is" : "entrants are"} needed for this format's technical minimum. Add private practice entries or wait for registrations.` : "Start with the current field. Unused capacity is fine; DraftCenter creates a random opening bracket.",
       disabled: registrationShortfall > 0,
       onClick: requestLock,
     };
@@ -1209,13 +1269,13 @@ export default function TournamentWorkspace({ slug }) {
       <ConfirmationDialog request={confirmation} onDismiss={() => setConfirmation(null)} />
       <header className="tournament-detail-hero">
         <a className="quiet-button" href="/tournaments">&larr; Tournaments</a>
-        <span className="eyebrow">{isDemo ? "PRIVATE ORGANIZER DEMO" : draftEvent ? statusLabel(draftEvent.phase) : statusLabel(tournament.status)} &middot; {tournament.visibility}</span>
+        <span className="eyebrow">{isDemo ? "PRIVATE ORGANIZER DEMO" : isPractice ? "PRIVATE PRACTICE TOURNAMENT" : draftEvent ? statusLabel(draftEvent.phase) : statusLabel(tournament.status)} &middot; {tournament.visibility}</span>
         <h1>{tournament.name}</h1>
         <p>{tournament.description || `${displayFormat} tournament`}</p>
         {connectedChampionship && <a className="tournament-connected-link" href={`/organizations/${connectedChampionship.organization_slug}`}>{connectedChampionship.organization_name} · {connectedChampionship.season_name}</a>}
         <div>
           <span>Best of {tournament.best_of}</span>
-          <span>{registeredEntrants.length} / {tournament.entrant_limit} active entrants</span>
+          <span>{registeredEntrants.length} registered &middot; {tournament.entrant_limit} maximum</span>
           <span>{regulationLabelFor(operation.regulation_id)}</span>
           {draftEvent && <span>{draftEvent.roster_size} Pokémon &middot; {tournamentDraftType === "auction" ? `${draftEvent.draft_budget}-point budget · ${draftEvent.auction_timer_seconds}s opening bid` : draftEvent.pick_time_limit_minutes ? `${draftEvent.pick_time_limit_minutes} min/pick` : "No pick clock"} &middot; {usesDraftFirstBracket ? `${formatLabel(competitionFormat)} bracket` : draftEvent.swiss_round_count ? `${draftEvent.swiss_round_count} Swiss rounds${draftEvent.top_cut_size ? ` · Top ${draftEvent.top_cut_size}` : ""}` : "Swiss rounds set at field lock"}</span>}
           {isOperatorMode && !isDemo && tournament.visibility === "private" && tournament.status === "registration" && (
@@ -1261,6 +1321,24 @@ export default function TournamentWorkspace({ slug }) {
             ? <a className="primary-button inline-link-button" href={nextOperatorAction.href}>{nextOperatorAction.label}</a>
             : <button type="button" className="primary-button" disabled={busy || nextOperatorAction.disabled} onClick={nextOperatorAction.onClick}>{nextOperatorAction.label}</button>}
         </div> : <p className="muted">No operator action is required at this stage. Results and preserved history remain available below.</p>}
+        {tournament.status === "registration" && <section className="tournament-field-manager" aria-labelledby="tournament-field-manager-heading">
+          <div className="section-heading">
+            <div><span className="eyebrow">FIELD MANAGER</span><h3 id="tournament-field-manager-heading">Build the field you actually have</h3></div>
+            <span>{openEntrantSlots} open of {tournament.entrant_limit} maximum</span>
+          </div>
+          <div className="tournament-field-summary" aria-label="Current tournament field">
+            <span><strong>{realEntrants.length}</strong> real</span>
+            <span><strong>{syntheticEntrants.length}</strong> practice</span>
+            <span><strong>{registeredEntrants.length}</strong> total</span>
+          </div>
+          <p className="muted">The entrant limit is a capacity ceiling. Start with any field that meets the format&apos;s technical minimum; you never need to fill every available place.</p>
+          {tournament.visibility === "private" && !isDemo ? <form className="tournament-practice-entry-form" onSubmit={addPracticeEntrants}>
+            <label>Practice entry label<input maxLength={70} required value={practiceLabel} onChange={(event) => setPracticeLabel(event.target.value)} /></label>
+            <label>How many<input type="number" min="1" max={Math.max(1, Math.min(64, openEntrantSlots))} required value={practiceCount} onChange={(event) => setPracticeCount(Number(event.target.value))} /></label>
+            <button className="secondary-button" disabled={busy || openEntrantSlots < 1 || practiceCount < 1 || practiceCount > openEntrantSlots}>{busy ? "Adding…" : "Add practice entries"}</button>
+          </form> : isDemo ? <p className="muted">This fixed organizer demo already manages its synthetic field with the demo controls below.</p> : <p className="muted">Synthetic entries are available only in private practice tournaments so public events cannot be mistaken for real participation.</p>}
+          {tournament.format === "draft-tournament" && tournament.visibility === "private" && !isDemo && <p className="muted">Practice entries check in automatically and become unclaimed bot-controlled teams on the shared draft board.</p>}
+        </section>}
         {canEnableDemo && <button type="button" className="secondary-button" disabled={busy} onClick={requestEnableTournamentDemo}>Build 32-seat organizer demo</button>}
         {tournament.status === "registration" && !isDemo && <details className="tournament-operation-editor">
           <summary>Edit regulation &amp; event times</summary>
@@ -1299,6 +1377,19 @@ export default function TournamentWorkspace({ slug }) {
           <span><strong>31</strong> bot seats</span>
           <span><strong>6</strong> Pokémon / team</span>
           <span><strong>8</strong> playoff cut</span>
+        </div>
+      </section>}
+
+      {isPractice && !isDemo && <section className="tournament-demo-banner tournament-practice-banner" aria-labelledby="tournament-practice-heading">
+        <div>
+          <span className="eyebrow">PRIVATE · PRACTICE · SYNTHETIC ENTRIES</span>
+          <h2 id="tournament-practice-heading">Tournament rehearsal</h2>
+          <p>Practice badges identify every accountless entry. Results from this private rehearsal are never presented as real competitive participation.</p>
+        </div>
+        <div className="tournament-demo-summary" aria-label="Practice tournament field">
+          <span><strong>{realEntrants.length}</strong> real accounts</span>
+          <span><strong>{syntheticEntrants.length}</strong> practice entries</span>
+          <span><strong>{tournament.entrant_limit}</strong> maximum capacity</span>
         </div>
       </section>}
 
@@ -1342,8 +1433,9 @@ export default function TournamentWorkspace({ slug }) {
             <div><span className="eyebrow">REGISTRATION</span><h2 id="tournament-entrants-heading">Entrants</h2></div>
             <span>{registeredEntrants.length} registered</span>
           </div>
-          {!isOperatorMode && !hasTournamentIdentity && (user ? (
+          {!hasTournamentIdentity && (user ? (
             <form className="tournament-join" onSubmit={join}>
+              {isOperatorMode && <p className="muted">Register the operator as a player only if you will also participate. Operating the event does not require taking a seat.</p>}
               <label>Display name
                 <input required maxLength={100} value={name} onChange={(event) => setName(event.target.value)} />
               </label>
@@ -1381,9 +1473,10 @@ export default function TournamentWorkspace({ slug }) {
           <div className="tournament-entrant-list">
             {visibleEntrants.map((entrant) => (
               <article key={entrant.id}>
-                <strong>{entrant.display_name} {isDemo && !entrant.is_me && <span className="tournament-bot-badge">Bot</span>}</strong>
+                <strong>{entrant.display_name} {entrant.is_synthetic && <span className="tournament-bot-badge">{entrant.synthetic_label}</span>}</strong>
                 <span>{entrant.status === "registered" ? "Registered" : tournamentEntrantStatusLabel(entrant, draftEvent)}</span>
                 {entrant.replacement_pending && <small>Awaiting replacement claim</small>}
+                {isOperatorMode && entrant.is_synthetic && !isDemo && entrant.status === "registered" && <button type="button" className="quiet-button" disabled={busy} onClick={() => requestRemovePracticeEntrant(entrant)}>Remove</button>}
               </article>
             ))}
           </div>

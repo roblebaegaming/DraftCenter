@@ -254,7 +254,7 @@ export default function TournamentDirectory() {
                   </select>
                 </label>
               </div>
-              <label>Entrant limit<input type="number" min={entrantBounds.min} max={entrantBounds.max} disabled={form.demoMode} value={form.entrantLimit} onChange={(event) => setForm({ ...form, entrantLimit: Number(event.target.value) })} /></label>
+              <label>Maximum entrants<input type="number" min={entrantBounds.min} max={entrantBounds.max} disabled={form.demoMode} value={form.entrantLimit} onChange={(event) => setForm({ ...form, entrantLimit: Number(event.target.value) })} /><small>This is a capacity ceiling, not a field size you must fill before starting.</small></label>
 
               <fieldset className="form-stack tournament-operation-settings">
                 <legend>Regulation &amp; schedule</legend>

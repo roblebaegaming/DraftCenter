@@ -55,6 +55,19 @@ const SAFE_TOURNAMENT_MESSAGES = new Set([
   "This replacement invitation is no longer available.",
   "Your account is already attached to an entrant in this tournament.",
   "This replacement keeps the existing registered roster.",
+  "Sign in to add practice entrants.",
+  "Practice entrants can be added only by the operator of a private event before play begins.",
+  "The tournament changed. Refresh before editing the practice field.",
+  "Add between 1 and 64 practice entrants at a time.",
+  "Enter a short label for the practice entrants.",
+  "Practice entrants cannot be added after a draft field locks.",
+  "Practice entrants cannot be added after a bracket is created.",
+  "This tournament has no room for that many practice entrants.",
+  "Sign in to remove a practice entrant.",
+  "Only the operator can remove a flexible practice entrant before play begins.",
+  "Practice entrants cannot be removed after a draft field locks.",
+  "Practice entrants cannot be removed after a bracket is created.",
+  "Choose a removable practice entrant.",
 ]);
 
 export function tournamentError(error) {

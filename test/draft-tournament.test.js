@@ -456,6 +456,65 @@ test("operator workflow migration publishes schedules, removes pre-event seeding
   assert.match(regression, /tournament_operator_workflow_schema_and_privileges/);
 });
 
+test("migration 446 treats capacity as a ceiling and protects flexible private practice fields", () => {
+  const sql = fs.readFileSync(
+    new URL("../supabase/migrations/20260819201436_tournament_practice_entries.sql", import.meta.url),
+    "utf8",
+  );
+  const regression = fs.readFileSync(
+    new URL("../supabase/tests/446-tournament-practice-entries-preview-regression.sql", import.meta.url),
+    "utf8",
+  );
+  for (const evidence of [
+    "is_practice",
+    "add_tournament_practice_entrants",
+    "remove_tournament_practice_entrant",
+    "guard_tournament_synthetic_entrant",
+    "guard_practice_draft_team_identity",
+    "synthetic_entrant_ids",
+    "practiceMode",
+    "lock_draft_tournament_rosters",
+  ]) assert.match(sql, new RegExp(evidence));
+  assert.match(sql, /Maximum registration capacity, not a required field size/i);
+  assert.match(sql, /check \(not is_practice or visibility = 'private'\)/i);
+  assert.match(sql, /v_registered_count \+ p_count > v_tournament\.entrant_limit/i);
+  assert.match(sql, /v_count not between 4 and 16 or v_count > v_tournament\.entrant_limit/i);
+  assert.match(sql, /v_count not between 4 and 32 or v_count > v_tournament\.entrant_limit/i);
+  assert.match(sql, /entrant\.is_demo_bot[\s\S]*team\.owner_membership_id is null[\s\S]*v_tournament\.is_practice/i);
+  assert.equal((sql.match(/set search_path = ''/g) || []).length, 10);
+  assert.match(sql, /grant execute on function public\.add_tournament_practice_entrants[\s\S]*to authenticated, service_role/i);
+  assert.match(sql, /revoke all on function public\.guard_tournament_synthetic_entrant[\s\S]*from public, anon, authenticated, service_role/i);
+  for (const evidence of [
+    "grants",
+    "rls_and_draft_boundary",
+    "private_field",
+    "authorization_and_capacity",
+    "removal",
+  ]) assert.match(regression, new RegExp(`'${evidence}'`));
+  assert.match(regression, /'real', 1, 'practice', 3, 'capacity', 8/i);
+  assert.match(regression, /rollback;/i);
+});
+
+test("Tournament operators can always build the field they have without filling capacity", () => {
+  const directory = fs.readFileSync(new URL("../src/components/TournamentDirectory.jsx", import.meta.url), "utf8");
+  const workspace = fs.readFileSync(new URL("../src/components/TournamentWorkspace.jsx", import.meta.url), "utf8");
+  assert.match(directory, /Maximum entrants/);
+  assert.match(directory, /capacity ceiling, not a field size you must fill/i);
+  for (const evidence of [
+    "FIELD MANAGER",
+    "Build the field you actually have",
+    "capacity ceiling",
+    "Add practice entries",
+    "add_tournament_practice_entrants",
+    "remove_tournament_practice_entrant",
+    "Practice entries check in automatically",
+    "unused capacity is fine",
+  ]) assert.match(workspace, new RegExp(evidence, "i"));
+  assert.match(workspace, /label: "Open participant check-in"[\s\S]*disabled: false/);
+  assert.match(workspace, /tournament\.visibility === "private" && !isDemo/);
+  assert.match(workspace, /entrant\.is_synthetic/);
+});
+
 test("migration 439 keeps organizer demos private, synthetic, and owner-controlled", () => {
   const sql = fs.readFileSync(
     new URL("../supabase/migrations/20260818220437_private_tournament_demo_mode.sql", import.meta.url),

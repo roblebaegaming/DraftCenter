@@ -36,6 +36,10 @@ test("workspace controls and feedback expose names, landmarks, and live status",
   assert.match(ui, /<label>Replay URL/);
   assert.match(ui, /<label>MVP/);
   assert.match(ui, /<legend>Series score<\/legend>/);
+  assert.match(ui, /aria-labelledby="tournament-field-manager-heading"/);
+  assert.match(ui, /aria-label="Current tournament field"/);
+  assert.match(ui, /<label>Practice entry label/);
+  assert.match(ui, /<label>How many/);
 });
 
 test("large fields mount one selected, paged round at a time", () => {

@@ -557,6 +557,15 @@ button { cursor: pointer; }
 .tournament-schedule-fields { grid-template-columns: repeat(3,minmax(0,1fr)); }
 .tournament-operation-settings { padding: 14px; border: 1px solid #34406a; border-radius: 12px; }
 .tournament-operation-settings legend { padding: 0 7px; color: #ffd23f; font-weight: 900; }
+.tournament-field-manager { margin-top: 14px; padding: 16px; border: 1px solid #40517f; border-radius: 13px; background: #0d1429; }
+.tournament-field-manager h3 { margin: 4px 0; }
+.tournament-field-summary { display: flex; flex-wrap: wrap; gap: 9px; margin: 12px 0; }
+.tournament-field-summary span { display: flex; align-items: baseline; gap: 5px; padding: 8px 11px; border-radius: 999px; color: #cbd4f2; background: #192342; }
+.tournament-field-summary strong { color: #ffd23f; font-size: 17px; }
+.tournament-practice-entry-form { display: grid; grid-template-columns: minmax(180px,1fr) minmax(110px,.3fr) auto; align-items: end; gap: 10px; margin-top: 14px; }
+.tournament-practice-entry-form label { display: grid; gap: 6px; color: #dce3ff; font-size: 12px; }
+.tournament-practice-entry-form input { width: 100%; padding: 11px; border: 1px solid #46517c; border-radius: 8px; color: #fff; background: #080c1c; }
+.tournament-practice-banner { border-color: #4fd1c5; background: linear-gradient(125deg,rgba(13,63,66,.92),rgba(13,20,41,.98)); }
 .tournament-recovery-panel { display: block; }
 .tournament-recovery-panel>details>summary { cursor: pointer; list-style-position: inside; }
 .tournament-recovery-panel>details>summary+* { margin-top: 14px; }
@@ -579,7 +588,7 @@ button { cursor: pointer; }
   .tournament-mode-bar,.tournament-next-action,.tournament-participant-action { align-items: stretch; flex-direction: column; }
   .tournament-mode-switch { width: 100%; }
   .tournament-mode-switch button { flex: 1; }
-  .tournament-timeline,.tournament-schedule-fields { grid-template-columns: 1fr; }
+  .tournament-timeline,.tournament-schedule-fields,.tournament-practice-entry-form { grid-template-columns: 1fr; }
   .tournament-recovery-grid { grid-template-columns: 1fr; }
   .tournament-recovery-actions { grid-column: auto; }
 }
