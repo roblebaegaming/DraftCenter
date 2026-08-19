@@ -55,6 +55,12 @@ import { ABILITY_TYPE_MODIFIERS, defensiveTypeChart, teamDefenseSummary } from "
 import { leagueImportErrorCsv, previewLeagueImport } from "../lib/leagueImport";
 import { buildShowdownSeries } from "../lib/showdownReplay";
 import { trackActivationEvent } from "../lib/activationAnalytics";
+import {
+  leagueResultHasKnownGameScore,
+  leagueResultScoreLabel,
+  leagueResultSourceDifferentialLabel,
+  leagueResultWinnerSide,
+} from "../lib/leagueResults";
 
 /* ---------------------------------------------------------
    DESIGN TOKENS — stadium-jumbotron-at-night aesthetic.
@@ -3963,12 +3969,15 @@ function computeStandings(s, criteria) {
       if (!res || !rows[a] || !rows[b]) return;
       // A true +/- differential (your mons alive minus theirs), not just
       // your own raw count — this is what lets it go negative.
-      rows[a].differential += res.monsAliveA - res.monsAliveB;
-      rows[b].differential += res.monsAliveB - res.monsAliveA;
-      rows[a].gameW += res.gamesA; rows[a].gameL += res.gamesB;
-      rows[b].gameW += res.gamesB; rows[b].gameL += res.gamesA;
-      if (res.gamesA > res.gamesB) { rows[a].w++; rows[b].l++; }
-      else if (res.gamesB > res.gamesA) { rows[b].w++; rows[a].l++; }
+      if (leagueResultHasKnownGameScore(res)) {
+        rows[a].differential += res.monsAliveA - res.monsAliveB;
+        rows[b].differential += res.monsAliveB - res.monsAliveA;
+        rows[a].gameW += res.gamesA; rows[a].gameL += res.gamesB;
+        rows[b].gameW += res.gamesB; rows[b].gameL += res.gamesA;
+      }
+      const winnerSide = leagueResultWinnerSide(res);
+      if (winnerSide === "A") { rows[a].w++; rows[b].l++; }
+      else if (winnerSide === "B") { rows[b].w++; rows[a].l++; }
     });
   });
   return rows.sort((x, y) => {
@@ -4197,8 +4206,9 @@ function computeStandingsThroughWeek(s, cutoffWeek) {
     matches.forEach(([a, b], idx) => {
       const res = s.matchResults[`${wIdx}-${idx}`];
       if (!res || !rows[a] || !rows[b]) return;
-      if (res.gamesA > res.gamesB) { rows[a].w++; rows[b].l++; }
-      else if (res.gamesB > res.gamesA) { rows[b].w++; rows[a].l++; }
+      const winnerSide = leagueResultWinnerSide(res);
+      if (winnerSide === "A") { rows[a].w++; rows[b].l++; }
+      else if (winnerSide === "B") { rows[b].w++; rows[a].l++; }
     });
   });
   return rows;
@@ -4281,7 +4291,7 @@ function computeSharpshooters(schedule, matchResults, predictions) {
     matches.forEach(([a, b], mIdx) => {
       const key = `${wIdx}-${mIdx}`;
       const result = matchResults[key];
-      if (!result) return;
+      if (!result || !leagueResultHasKnownGameScore(result)) return;
       Object.entries(predictions[key] || {}).forEach(([name, pred]) => {
         const scored = scorePrediction(pred, result);
         if (scored?.correct && pred.setScore) {
@@ -9510,29 +9520,29 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     ], [24, 100]);
     addSheet("Teams", [
       ["Team #", "Team", "Manager", "Color", "Logo", "Description"],
-      ...state.teams.map((team, index) => [index + 1, team.name, team.claimedBy || "Unclaimed", team.color || "", team.logoUrl || "", team.description || ""]),
+      ...state.teams.map((team, index) => [index + 1, team.name, team.claimedBy || team.expectedManager || "Unclaimed", team.color || "", team.logoUrl || "", team.description || ""]),
     ], [10, 28, 44, 14, 48, 60]);
     addSheet("Rosters", [
       ["Team", "Manager", "Pokemon", "Cost", "Draft pick", "Acquired via", "Primary type", "Secondary type", "BST"],
       ...state.rosters.flatMap((roster, teamIndex) => (roster || []).map((mon) => [
-        state.teams[teamIndex]?.name || `Team ${teamIndex + 1}`, state.teams[teamIndex]?.claimedBy || "", mon.name,
+        state.teams[teamIndex]?.name || `Team ${teamIndex + 1}`, state.teams[teamIndex]?.claimedBy || state.teams[teamIndex]?.expectedManager || "", mon.name,
         mon.cost ?? "", mon.draftPick ?? "", mon.acquiredVia || "Draft", mon.t1 || "", mon.t2 || "", mon.bst ?? "",
       ])),
     ], [28, 44, 28, 10, 12, 16, 14, 14, 10]);
     addSheet("Standings", isLeagueSwiss(settings) ? [
       ["Rank", "Team", "Manager", "Wins", "Losses", "Game wins", "Game losses", "OMWP", "GWP", "OGWP", "Byes"],
-      ...standingsRows.map((row, index) => [index + 1, row.name, state.teams[row.id]?.claimedBy || "", row.w, row.l, row.gameW, row.gameL, row.omwp, row.gwp, row.ogwp, row.byeCount]),
+      ...standingsRows.map((row, index) => [index + 1, row.name, state.teams[row.id]?.claimedBy || state.teams[row.id]?.expectedManager || "", row.w, row.l, row.gameW, row.gameL, row.omwp, row.gwp, row.ogwp, row.byeCount]),
     ] : [
-      ["Rank", "Team", "Manager", "Wins", "Losses", "Game wins", "Game losses", "Differential"],
-      ...standingsRows.map((row, index) => [index + 1, row.name, state.teams[row.id]?.claimedBy || "", row.w, row.l, row.gameW, row.gameL, row.differential]),
-    ], isLeagueSwiss(settings) ? [10, 28, 44, 10, 10, 12, 12, 12, 12, 12, 10] : [10, 28, 44, 10, 10, 12, 12, 14]);
+      ["Rank", "Team", "Manager", "Wins", "Losses", "Game wins", "Game losses", "Differential", settings.otherStandingsLabel || "Other"],
+      ...standingsRows.map((row, index) => [index + 1, row.name, state.teams[row.id]?.claimedBy || state.teams[row.id]?.expectedManager || "", row.w, row.l, row.gameW, row.gameL, row.differential, row.other ?? 0]),
+    ], isLeagueSwiss(settings) ? [10, 28, 44, 10, 10, 12, 12, 12, 12, 12, 10] : [10, 28, 44, 10, 10, 12, 12, 14, 18]);
     addSheet("Schedule and Results", [
-      ["Week", "Match", "Team A", "Team B", "Score", "Differential A", "Differential B", "MVP", "Replay A", "Replay B"],
+      ["Week", "Match", "Team A", "Team B", "Score", "Differential A", "Differential B", "Source standings A", "Source standings B", "MVP", "Replay A", "Replay B"],
       ...state.schedule.flatMap((week, weekIndex) => [
         ...week.map(([a, b], matchIndex) => {
           const result = state.matchResults?.[`${weekIndex}-${matchIndex}`];
           return [weekIndex + 1, matchIndex + 1, state.teams[a]?.name || "", state.teams[b]?.name || "",
-            result ? `${result.gamesA}-${result.gamesB}` : "Not reported", result?.monsAliveA ?? "", result?.monsAliveB ?? "",
+            leagueResultScoreLabel(result), result?.monsAliveA ?? "", result?.monsAliveB ?? "", result?.sourceStandingsValueA ?? "", result?.sourceStandingsValueB ?? "",
             result?.mvp?.name || "", result?.replayUrlA || "", result?.replayUrlB || ""];
         }),
         ...(Number.isInteger(Number(state.swissByes?.[weekIndex])) ? [[
@@ -9546,9 +9556,11 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
           "",
           "",
           "",
+          "",
+          "",
         ]] : []),
       ]),
-    ], [10, 10, 28, 28, 14, 16, 16, 24, 48, 48]);
+    ], [10, 10, 28, 28, 28, 16, 16, 18, 18, 24, 48, 48]);
     addSheet("Transactions", [
       ["Type", "Date", "Status", "Team / From", "To", "Added", "Dropped", "Details"],
       ...(state.transactionLog || []).map((entry) => ["Free agent", entry.timestamp ? new Date(entry.timestamp) : "", entry.reversed ? "Reversed" : "Completed", state.teams[entry.teamIdx]?.name || "", "", entry.addName || "", entry.dropName || "", entry.note || ""]),
@@ -9574,12 +9586,12 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       ]))),
     ], [10, 28, 44, 28, 10, 12, 16]);
     addSheet("Archived Results", [
-      ["Season", "Week", "Match", "Team A", "Team B", "Score", "Differential A", "Differential B", "MVP", "Replay A", "Replay B"],
+      ["Season", "Week", "Match", "Team A", "Team B", "Score", "Differential A", "Differential B", "Source standings A", "Source standings B", "MVP", "Replay A", "Replay B"],
       ...(state.seasonHistory || []).flatMap((season) => (season.schedule || []).flatMap((week, weekIndex) => [
         ...(week || []).map(([a, b], matchIndex) => {
           const result = season.matchResults?.[`${weekIndex}-${matchIndex}`];
           return [season.seasonNumber, weekIndex + 1, matchIndex + 1, season.teams?.[a]?.name || "", season.teams?.[b]?.name || "",
-            result ? `${result.gamesA}-${result.gamesB}` : "Not reported", result?.monsAliveA ?? "", result?.monsAliveB ?? "",
+            leagueResultScoreLabel(result), result?.monsAliveA ?? "", result?.monsAliveB ?? "", result?.sourceStandingsValueA ?? "", result?.sourceStandingsValueB ?? "",
             result?.mvp?.name || "", result?.replayUrlA || "", result?.replayUrlB || ""];
         }),
         ...(Number.isInteger(Number(season.swissByes?.[weekIndex])) ? [[
@@ -9594,9 +9606,11 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
           "",
           "",
           "",
+          "",
+          "",
         ]] : []),
       ])),
-    ], [10, 10, 10, 28, 28, 14, 16, 16, 24, 48, 48]);
+    ], [10, 10, 10, 28, 28, 28, 16, 16, 18, 18, 24, 48, 48]);
     addSheet("Archived Draft Logs", [
       ["Season", "Pokemon", "Draft pick", "Auction cost"],
       ...(state.seasonHistory || []).flatMap((season) => (season.draftLog || []).map((entry) => [
@@ -11642,7 +11656,7 @@ function ManagerLeagueDetails({ state, myName, myTeamIdx, claimTeam, costFor, up
           {state.teams.map((team, index) => {
             const mine = index === myTeamIdx;
             const claimed = teamIsClaimed(team);
-            return <article key={team.id ?? index} className="rounded p-3 flex items-center justify-between gap-3" style={{ background: mine ? "#2A2618" : "#1F2338", border: `1px solid ${mine ? "#FFD23F66" : "rgba(255,255,255,0.06)"}` }}><div className="flex items-center gap-3"><TeamLogo team={team} size={34} /><div><strong className="block">{team.name}</strong><span className="text-xs" style={{ color: claimed ? "#4FD1C5" : "#9A9FBD" }}>{mine ? "Your team" : claimed ? `Manager: ${team.claimedBy || "Claimed manager"}` : "Open"}</span></div></div>{!readOnly && !myTeam && !claimed && <button onClick={() => claimTeam(index)} className="px-3 py-1.5 rounded text-xs font-semibold" style={{ background: "#FFD23F", color: "#10121C" }}>CLAIM</button>}</article>;
+            return <article key={team.id ?? index} className="rounded p-3 flex items-center justify-between gap-3" style={{ background: mine ? "#2A2618" : "#1F2338", border: `1px solid ${mine ? "#FFD23F66" : "rgba(255,255,255,0.06)"}` }}><div className="flex items-center gap-3"><TeamLogo team={team} size={34} /><div><strong className="block">{team.name}</strong><span className="text-xs" style={{ color: claimed ? "#4FD1C5" : "#9A9FBD" }}>{mine ? "Your team" : claimed ? `Manager: ${team.claimedBy || "Claimed manager"}` : team.expectedManager ? `Source manager: ${team.expectedManager} · unclaimed` : "Open"}</span></div></div>{!readOnly && !myTeam && !claimed && <button onClick={() => claimTeam(index)} className="px-3 py-1.5 rounded text-xs font-semibold" style={{ background: "#FFD23F", color: "#10121C" }}>CLAIM</button>}</article>;
           })}
         </div>
         {!myTeam && openTeams.length === 0 && <p className="text-sm mt-4" style={{ color: "#F4B860" }}>No teams are currently open. Ask the commissioner to add or release a team.</p>}
@@ -11986,7 +12000,7 @@ function SetupView({ state, leagueId = null, leagueName = "league", isCommission
                         </div>
                       )}
                       <div className="text-xs mono-font" style={{ color: t.claimedBy ? "#4FD1C5" : "#5B5F7E" }}>
-                        {t.claimedBy || "Unclaimed — will auto-draft as a bot"}
+                        {t.claimedBy || (t.expectedManager ? `${t.expectedManager} · unclaimed bot seat` : "Unclaimed — will auto-draft as a bot")}
                       </div>
                     </div>
                   </div>
@@ -14634,7 +14648,7 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
               {teams.map((team, index) => (
                 <div key={team.id ?? index} className="flex items-center gap-3 rounded p-3" style={{ background: "#1F2338" }}>
                   <TeamLogo team={team} size={30} />
-                  <div className="flex-1"><strong>{team.name}</strong><span className="text-xs block" style={{ color: team.claimedBy ? "#4FD1C5" : "#9A9FBD" }}>{team.claimedBy || "Unclaimed team"}</span></div>
+                  <div className="flex-1"><strong>{team.name}</strong><span className="text-xs block" style={{ color: team.claimedBy ? "#4FD1C5" : "#9A9FBD" }}>{team.claimedBy || (team.expectedManager ? `${team.expectedManager} · unclaimed` : "Unclaimed team")}</span></div>
                   {index === myTeamIdx && <span className="mono-font text-[10px]" style={{ color: "#FFD23F" }}>YOU</span>}
                 </div>
               ))}
@@ -15645,20 +15659,20 @@ function AuctionPanel({ teams, budgets, rosters, rosterMin, rosterMax, nominee, 
 // since a margin guess attached to the wrong team doesn't mean anything.
 function scorePrediction(pred, result) {
   if (!pred || !result) return null;
-  const actualWinner = result.gamesA > result.gamesB ? "A" : result.gamesB > result.gamesA ? "B" : null;
+  const actualWinner = leagueResultWinnerSide(result);
   if (!actualWinner) return { points: 0, closeness: null, correct: false };
   const correct = pred.side === actualWinner;
   let points = correct ? 2 : 0;
-  if (correct && pred.setScore) {
+  if (correct && pred.setScore && leagueResultHasKnownGameScore(result)) {
     const parts = pred.setScore.split("-").map(Number);
     if (parts[0] === result.gamesA && parts[1] === result.gamesB) points += 1;
   }
   let closeness = null;
   const predictedDifferentialA = predictionDifferentialA(pred);
-  if (correct && predictedDifferentialA != null) {
+  if (correct && predictedDifferentialA != null && leagueResultHasKnownGameScore(result)) {
     const actualDifferentialA = (Number(result.monsAliveA) || 0) - (Number(result.monsAliveB) || 0);
     closeness = Math.abs(predictedDifferentialA - actualDifferentialA);
-  } else if (correct && pred.monsAlive != null) {
+  } else if (correct && pred.monsAlive != null && leagueResultHasKnownGameScore(result)) {
     const actualMonsAlive = actualWinner === "A" ? result.monsAliveA : result.monsAliveB;
     closeness = Math.abs(pred.monsAlive - actualMonsAlive);
   }
@@ -15776,7 +15790,7 @@ function PredictionsView({ state, myName, submitPrediction, onViewTeam, readOnly
               const aPicks = Object.values(picks).filter((p) => p.side === "A").length;
               const aPct = totalPicks ? Math.round((aPicks / totalPicks) * 100) : 0;
               const bPct = totalPicks ? 100 - aPct : 0;
-              const winnerSide = result ? (result.gamesA > result.gamesB ? "A" : result.gamesB > result.gamesA ? "B" : null) : null;
+              const winnerSide = leagueResultWinnerSide(result);
               const myScore = result && myPick ? scorePrediction(myPick, result) : null;
               // The exact-score options only ever show scores where the
               // side they picked actually wins, since guessing an exact
@@ -15855,7 +15869,7 @@ function PredictionsView({ state, myName, submitPrediction, onViewTeam, readOnly
 
                   {result ? (
                     <p className="text-xs text-center" style={{ color: "#5B5F7E" }}>
-                      Final: {result.gamesA}-{result.gamesB} · {totalPicks} prediction{totalPicks === 1 ? "" : "s"}
+                      Final: {leagueResultScoreLabel(result)} · {totalPicks} prediction{totalPicks === 1 ? "" : "s"}
                       {myPick && (myScore.correct
                         ? <span style={{ color: "#4FD1C5" }}> · you called it — {myScore.points} pt{myScore.points === 1 ? "" : "s"}{myScore.closeness != null ? ` (off by ${myScore.closeness})` : ""}</span>
                         : <span style={{ color: "#F0555A" }}> · missed it</span>)}
@@ -15924,6 +15938,7 @@ function ScheduleView({ state, leagueId, isCommissioner, myName, myTeamIdx, setW
   const swiss = isLeagueSwiss(settings);
   const canEditSchedule = isCommissioner && settings.manualScheduling && !swiss;
   const hasBotTeams = teams.some((team) => !team?.claimedBy);
+  const canSimulateBotMatches = hasBotTeams && !state.sourceImport;
   let swissRoundTarget = schedule.length;
   if (swiss) {
     try { swissRoundTarget = effectiveLeagueSwissRounds(settings, teams.length); }
@@ -15951,7 +15966,7 @@ function ScheduleView({ state, leagueId, isCommissioner, myName, myTeamIdx, setW
         <div className="flex gap-2">
           <button disabled={week === 0} onClick={() => setWeek(week - 1)} className="px-3 py-2 rounded text-sm mono-font disabled:opacity-30" style={{ background: "#1F2338", border: "1px solid rgba(255,255,255,0.08)" }}>← PREV</button>
           <button disabled={week >= schedule.length - 1} onClick={() => setWeek(week + 1)} className="px-3 py-2 rounded text-sm mono-font disabled:opacity-30" style={{ background: "#1F2338", border: "1px solid rgba(255,255,255,0.08)" }}>NEXT →</button>
-          {isCommissioner && hasBotTeams && <button onClick={simulateWeek} className="px-4 py-2 rounded text-sm font-semibold" style={{ background: "#4FD1C5", color: "#10121C" }}>SIMULATE BOT MATCHES</button>}
+          {isCommissioner && canSimulateBotMatches && <button onClick={simulateWeek} className="px-4 py-2 rounded text-sm font-semibold" style={{ background: "#4FD1C5", color: "#10121C" }}>SIMULATE BOT MATCHES</button>}
           {canPairNextSwissRound && (
             <button disabled={scheduleActionBusy} onClick={onGenerate}
               className="px-4 py-2 rounded text-sm font-semibold disabled:opacity-40" style={{ background: "#FFD23F", color: "#10121C" }}>
@@ -15965,7 +15980,8 @@ function ScheduleView({ state, leagueId, isCommissioner, myName, myTeamIdx, setW
           )}
         </div>
       </div>
-      {!isCommissioner && hasBotTeams && <p className="text-xs mb-4" style={{ color: "#5B5F7E" }}>The commissioner can simulate matches involving bot teams; you can report your own match below.</p>}
+      {!isCommissioner && canSimulateBotMatches && <p className="text-xs mb-4" style={{ color: "#5B5F7E" }}>The commissioner can simulate matches involving bot teams; you can report your own match below.</p>}
+      {isCommissioner && hasBotTeams && state.sourceImport && <p className="text-xs mb-4" style={{ color: "#9A9FBD" }}>This is imported real competition history. Unclaimed seats remain bot-held, but match simulation is disabled so source results cannot be replaced with synthetic games.</p>}
       {swiss && week === schedule.length - 1 && !currentSwissRoundComplete && (
         <p className="text-xs mb-4" style={{ color: "#9A9FBD" }}>The next round unlocks after every result in this round is reported.</p>
       )}
@@ -16172,7 +16188,7 @@ function MatchCard({ teamA, teamB, result, canReport, onReport, pending, rosterA
   const editingWinnerSide = validSeries ? (editingGamesA === winsNeeded ? "A" : "B") : null;
   const editingWinnerRoster = editingWinnerSide === "A" ? (rosterA || []) : editingWinnerSide === "B" ? (rosterB || []) : [];
   const selectedMvpName = editingWinnerRoster.some((mon) => mon.name === mvpName) ? mvpName : "";
-  const resultWinnerSide = result?.gamesA > result?.gamesB ? "A" : result?.gamesB > result?.gamesA ? "B" : null;
+  const resultWinnerSide = leagueResultWinnerSide(result);
   const resultWinnerRoster = resultWinnerSide === "A" ? (rosterA || []) : resultWinnerSide === "B" ? (rosterB || []) : [];
 
   function setGameCount(n) {
@@ -16224,22 +16240,22 @@ function MatchCard({ teamA, teamB, result, canReport, onReport, pending, rosterA
     <div style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }} className="rounded-lg p-4">
       <div className="flex items-center justify-between mb-2 gap-2">
         {onViewTeam && teamA ? (
-          <button onClick={() => onViewTeam(teamA.id)} className="text-sm font-medium flex items-center gap-1.5 min-w-0 hover:underline" style={{ color: result && result.gamesA > result.gamesB ? "#4FD1C5" : (teamA?.color || "#EDEBFA") }}>
-            <TeamLogo team={teamA} size={20} /> <span className="truncate">{teamA?.name}</span>{result && result.gamesA > result.gamesB && <span>✓</span>}
+          <button onClick={() => onViewTeam(teamA.id)} className="text-sm font-medium flex items-center gap-1.5 min-w-0 hover:underline" style={{ color: resultWinnerSide === "A" ? "#4FD1C5" : (teamA?.color || "#EDEBFA") }}>
+            <TeamLogo team={teamA} size={20} /> <span className="truncate">{teamA?.name}</span>{resultWinnerSide === "A" && <span>✓</span>}
           </button>
         ) : (
-          <span className="text-sm font-medium flex items-center gap-1.5 min-w-0" style={{ color: result && result.gamesA > result.gamesB ? "#4FD1C5" : (teamA?.color || "#EDEBFA") }}>
-            <TeamLogo team={teamA} size={20} /> <span className="truncate">{teamA?.name}</span>{result && result.gamesA > result.gamesB && <span>✓</span>}
+          <span className="text-sm font-medium flex items-center gap-1.5 min-w-0" style={{ color: resultWinnerSide === "A" ? "#4FD1C5" : (teamA?.color || "#EDEBFA") }}>
+            <TeamLogo team={teamA} size={20} /> <span className="truncate">{teamA?.name}</span>{resultWinnerSide === "A" && <span>✓</span>}
           </span>
         )}
         <span className="mono-font text-xs flex-shrink-0" style={{ color: "#5B5F7E" }}>BEST OF {result?.bestOf || bestOf}</span>
         {onViewTeam && teamB ? (
-          <button onClick={() => onViewTeam(teamB.id)} className="text-sm font-medium flex items-center gap-1.5 min-w-0 justify-end hover:underline" style={{ color: result && result.gamesB > result.gamesA ? "#4FD1C5" : (teamB?.color || "#EDEBFA") }}>
-            {result && result.gamesB > result.gamesA && <span>✓</span>}<span className="truncate">{teamB?.name}</span> <TeamLogo team={teamB} size={20} />
+          <button onClick={() => onViewTeam(teamB.id)} className="text-sm font-medium flex items-center gap-1.5 min-w-0 justify-end hover:underline" style={{ color: resultWinnerSide === "B" ? "#4FD1C5" : (teamB?.color || "#EDEBFA") }}>
+            {resultWinnerSide === "B" && <span>✓</span>}<span className="truncate">{teamB?.name}</span> <TeamLogo team={teamB} size={20} />
           </button>
         ) : (
-          <span className="text-sm font-medium flex items-center gap-1.5 min-w-0 justify-end" style={{ color: result && result.gamesB > result.gamesA ? "#4FD1C5" : (teamB?.color || "#EDEBFA") }}>
-            {result && result.gamesB > result.gamesA && <span>✓</span>}<span className="truncate">{teamB?.name}</span> <TeamLogo team={teamB} size={20} />
+          <span className="text-sm font-medium flex items-center gap-1.5 min-w-0 justify-end" style={{ color: resultWinnerSide === "B" ? "#4FD1C5" : (teamB?.color || "#EDEBFA") }}>
+            {resultWinnerSide === "B" && <span>✓</span>}<span className="truncate">{teamB?.name}</span> <TeamLogo team={teamB} size={20} />
           </span>
         )}
       </div>
@@ -16329,8 +16345,11 @@ function MatchCard({ teamA, teamB, result, canReport, onReport, pending, rosterA
           </div>
         </div>
       ) : result ? (
-        <div className="flex items-center justify-between">
-          <div className="mono-font text-2xl text-center flex-1" style={{ color: "#EDEBFA" }}>{result.gamesA} – {result.gamesB}</div>
+        <div className="flex items-center justify-between gap-3">
+          <div className="text-center flex-1">
+            <div className="mono-font text-lg" style={{ color: "#EDEBFA" }}>{leagueResultScoreLabel(result)}</div>
+            {leagueResultSourceDifferentialLabel(result) && <div className="mono-font text-[10px] mt-1" style={{ color: "#9A9FBD" }}>{leagueResultSourceDifferentialLabel(result)}</div>}
+          </div>
           <div className="flex flex-col items-end gap-1">
             {trackDifferential && <span className="mono-font text-xs" style={{ color: "#5B5F7E" }}>Differential: {result.monsAliveA} – {result.monsAliveB}</span>}
             {result.replayUrlA && (
@@ -16572,7 +16591,10 @@ function StandingsView({ standings, settings, isCommissioner, setTeamOtherValue,
               <td className="px-4 py-3 font-medium" style={{ color: s.color || "#EDEBFA" }}>
                 <button onClick={() => setViewingRoster((v) => (v === s.id ? null : s.id))} className="flex items-center gap-2 hover:underline">
                   <TeamLogo team={s} size={24} />
-                  {s.name}
+                  <span className="min-w-0">
+                    <span className="block">{s.name}</span>
+                    {(teams[s.id]?.claimedBy || teams[s.id]?.expectedManager) && <span className="mono-font text-[9px] block" style={{ color: "#7F84A5" }}>{teams[s.id]?.claimedBy || `${teams[s.id]?.expectedManager} · unclaimed`}</span>}
+                  </span>
                   <span className="mono-font text-[10px]" style={{ color: "#5B5F7E" }}>{viewingRoster === s.id ? "▲" : "▼"}</span>
                 </button>
               </td>

@@ -1,6 +1,8 @@
 export function draftManagerLabel(team) {
   const manager = String(team?.claimedBy || "").trim();
   if (manager) return manager;
+  const expectedManager = String(team?.expectedManager || "").trim();
+  if (expectedManager) return `${expectedManager} · unclaimed`;
   return team?.claimedByUserId ? "Claimed manager" : "BOT";
 }
 

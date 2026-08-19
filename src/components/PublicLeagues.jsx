@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "../lib/supabase/client";
 import { ShareButton } from "./SocialSharing";
+import { leagueResultHasKnownGameScore, leagueResultScoreLabel, leagueResultWinnerSide } from "../lib/leagueResults";
 
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 const REGULATION_LABELS = {
@@ -18,12 +19,15 @@ function standingsFor(league) {
     const pair = state.schedule?.[week]?.[match];
     if (!pair || !rows[pair[0]] || !rows[pair[1]]) return;
     const [a, b] = pair;
-    const gamesA = Number(result.gamesA) || 0; const gamesB = Number(result.gamesB) || 0;
-    rows[a].gameW += gamesA; rows[a].gameL += gamesB; rows[b].gameW += gamesB; rows[b].gameL += gamesA;
-    if (gamesA > gamesB) { rows[a].w += 1; rows[b].l += 1; }
-    if (gamesB > gamesA) { rows[b].w += 1; rows[a].l += 1; }
-    const differential = (Number(result.monsAliveA) || 0) - (Number(result.monsAliveB) || 0);
-    rows[a].differential += differential; rows[b].differential -= differential;
+    const winnerSide = leagueResultWinnerSide(result);
+    if (leagueResultHasKnownGameScore(result)) {
+      const gamesA = Number(result.gamesA) || 0; const gamesB = Number(result.gamesB) || 0;
+      rows[a].gameW += gamesA; rows[a].gameL += gamesB; rows[b].gameW += gamesB; rows[b].gameL += gamesA;
+      const differential = (Number(result.monsAliveA) || 0) - (Number(result.monsAliveB) || 0);
+      rows[a].differential += differential; rows[b].differential -= differential;
+    }
+    if (winnerSide === "A") { rows[a].w += 1; rows[b].l += 1; }
+    if (winnerSide === "B") { rows[b].w += 1; rows[a].l += 1; }
   });
   return rows.sort((a, b) => (b.w - a.w) || (a.l - b.l) || ((b.gameW - b.gameL) - (a.gameW - a.gameL)) || (b.differential - a.differential));
 }
@@ -38,7 +42,7 @@ function latestResult(league) {
   const [key, result] = entries[0]; const [week, match] = key.split("-").map(Number);
   const pair = state.schedule?.[week]?.[match];
   if (!pair) return null;
-  return { week: week + 1, a: state.teams?.[pair[0]]?.name, b: state.teams?.[pair[1]]?.name, gamesA: result.gamesA, gamesB: result.gamesB };
+  return { week: week + 1, a: state.teams?.[pair[0]]?.name, b: state.teams?.[pair[1]]?.name, score: leagueResultScoreLabel(result) };
 }
 
 function nextMatch(league) {
@@ -73,7 +77,7 @@ function PublicLeagueCard({ league, signedIn, busy, onJoin }) {
     <div className="league-directory-body">
       <div><span className="eyebrow">{league.season_label || `Season ${league.public_state?.seasonNumber || 1}`}</span><h2>{league.name}</h2><p>{league.description || "The commissioner has not added a public description yet."}</p></div>
       <div className="league-directory-tags"><span>{league.draft_type === "auction" ? "Auction" : "Snake draft"}</span><span>{REGULATION_LABELS[league.regulation_id] || league.regulation_id}</span>{league.total_spots ? <span>{league.filled_spots}/{league.total_spots} teams claimed</span> : null}{league.keepers_enabled && <span>Keepers</span>}</div>
-      <div className="league-directory-summary"><p><strong>League clock</strong>{clockSummary(league)}</p>{!league.draft_started && league.draft_starts_at && <p><strong>Upcoming draft</strong>{new Date(league.draft_starts_at).toLocaleString()}</p>}{upcoming && <p><strong>Upcoming matchup</strong>Week {upcoming.week}: {upcoming.a} vs. {upcoming.b}</p>}{leader && <p><strong>Standings leader</strong>{leader.name} · {leader.w}-{leader.l}</p>}{recent && <p><strong>Latest result</strong>Week {recent.week}: {recent.a} {recent.gamesA}-{recent.gamesB} {recent.b}</p>}<p><strong>Season media</strong>{replayCount} saved replay{replayCount === 1 ? "" : "s"} · predictions available</p></div>
+      <div className="league-directory-summary"><p><strong>League clock</strong>{clockSummary(league)}</p>{!league.draft_started && league.draft_starts_at && <p><strong>Upcoming draft</strong>{new Date(league.draft_starts_at).toLocaleString()}</p>}{upcoming && <p><strong>Upcoming matchup</strong>Week {upcoming.week}: {upcoming.a} vs. {upcoming.b}</p>}{leader && <p><strong>Standings leader</strong>{leader.name} · {leader.w}-{leader.l}</p>}{recent && <p><strong>Latest result</strong>Week {recent.week}: {recent.a} · {recent.score} · {recent.b}</p>}<p><strong>Season media</strong>{replayCount} saved replay{replayCount === 1 ? "" : "s"} · predictions available</p></div>
       <div className="league-directory-actions"><a className="secondary-button" href={`/league/${league.slug}`}>{league.league_visibility === "watch" ? "Watch league" : "Standings, replays & predictions"}</a>{joinable && <button className="primary-button" disabled={busy} onClick={() => onJoin(league)}>{signedIn ? `Review setup · ${remaining} spot${remaining === 1 ? "" : "s"} left` : "Sign in to join"}</button>}</div>
     </div>
   </article>;
