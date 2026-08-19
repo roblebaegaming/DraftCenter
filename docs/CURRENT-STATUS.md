@@ -3,8 +3,8 @@
 - Last updated: August 18, 2026 Pacific
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified Production application and asset commit: `1c6be25f1b163d305a2efd2e84991ef998ee2fff`
-- Latest applied Production migration: 440 (`20260819013208`)
+- Verified Production application and asset commit: `f8035640ef0a5c1c5ad4c9887b5031cc530a4431`
+- Latest applied Production migration: 441 (`20260819025045`)
 
 ## Deployed state
 
@@ -364,6 +364,34 @@ at 390 px confirmed the existing six-Pokémon team as four brought and two
 benched, verified the collapsed and expanded states plus Garchomp's saved set,
 and found no horizontal overflow or console error.
 
+Pull request [#337](https://github.com/roblebaegaming/DraftCenter/pull/337)
+is released at exact application commit
+`f8035640ef0a5c1c5ad4c9887b5031cc530a4431` with Production migration 441.
+English, Italian, and Spanish VGC Worlds routes now explicitly use the same
+`2026-vgc-masters` competition. Each leaderboard name opens a localized,
+scrollable coach profile with the public username, profile photo, first six
+favorite Pokémon, and earned badges.
+
+The public leaderboard RPC remains bounded to the top 100 standings and does
+not return account IDs, email addresses, timezones, Discord identifiers, or
+another entrant's pre-lock lineup. Production postflight covered all 19
+current entries, confirmed the five-field profile boundary, six-favorite cap,
+RLS, grants, fixed empty search path, and private lineups. The two matching
+advisor warnings are intentional public/security-definer notices for this
+existing public leaderboard boundary; there is no migration-specific
+performance finding and no error-level advisor finding.
+
+Migration 441 passed its rollback-only privacy and grant regression on the
+owner-approved disposable Preview. That branch was deleted and confirmed
+absent, so its hourly charge stopped. The automatic pull-request Preview was
+canceled only because the unrelated persistent Preview already occupies the
+configured one-branch integration limit; it was not a migration failure.
+All executable protected checks, the dependency audit, complete application
+suite, 1,027-row National Dex check, 319-page production build, and complete
+22-check Production smoke sweep passed. Live English and Italian checks each
+showed the same 19 profiles; real profiles reached six favorites and 13 badges,
+scrolling activated where needed, and Italian popup controls were localized.
+
 Supabase automatic branching remains enabled with a one-concurrent-Preview
 limit and Supabase-only changes. Older Preview branches were left untouched.
 The automatic check on pull request #298 was canceled solely because that limit
@@ -425,6 +453,8 @@ August 19, 2026. Do not inspect or report individual identity or activity.
 
 ## Authoritative records
 
+- Current Worlds shared-competition profile handoff:
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-18-worlds-shared-localized-leaderboard-profiles.md`](handoffs/DraftCenter-agent-handoff-2026-08-18-worlds-shared-localized-leaderboard-profiles.md)
 - Current Battle Lab compact-roster handoff:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-18-battle-lab-compact-roster.md`](handoffs/DraftCenter-agent-handoff-2026-08-18-battle-lab-compact-roster.md)
 - Current Regulation M-B Tournament Organizer Demo handoff:
