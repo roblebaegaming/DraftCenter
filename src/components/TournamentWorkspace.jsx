@@ -3,6 +3,7 @@
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { createClient } from "../lib/supabase/client";
 import { safeHttpsImageSource } from "../lib/imageSecurity";
+import { loadPokemonArtwork } from "../lib/pokemonArtwork";
 import { tournamentError } from "../lib/tournamentErrors";
 
 const MATCH_PAGE_SIZE = 64;
@@ -100,22 +101,39 @@ function ConfirmationDialog({ request, onDismiss }) {
   );
 }
 
+function TournamentPokemonArtwork({ pokemon }) {
+  const providedArtwork = safeHttpsImageSource(pokemon.spriteUrl || pokemon.sprite_url || pokemon.sprite);
+  const [artwork, setArtwork] = useState(providedArtwork);
+
+  useEffect(() => {
+    let active = true;
+    if (providedArtwork) {
+      setArtwork(providedArtwork);
+      return () => { active = false; };
+    }
+    setArtwork("");
+    loadPokemonArtwork(pokemon.name).then((resolved) => {
+      if (active) setArtwork(safeHttpsImageSource(resolved));
+    });
+    return () => { active = false; };
+  }, [pokemon.name, providedArtwork]);
+
+  return artwork
+    ? <img src={artwork} alt="" loading="lazy" />
+    : <i aria-hidden="true">{String(pokemon.name || "?").replace(/^Mega /, "").charAt(0)}</i>;
+}
+
 function TournamentMatchRoster({ entrant, roster }) {
   if (!entrant || !Array.isArray(roster) || roster.length === 0) return null;
   const visibleRoster = roster.slice(0, 6);
   return (
     <div className="tournament-match-roster" role="list" aria-label={`${entrant.display_name} team: ${roster.map((pokemon) => pokemon.name).join(", ")}`}>
-      {visibleRoster.map((pokemon) => {
-        const artwork = safeHttpsImageSource(pokemon.spriteUrl || pokemon.sprite_url || pokemon.sprite);
-        return (
-          <span role="listitem" key={pokemon.id || pokemon.name} title={pokemon.name}>
-            {artwork
-              ? <img src={artwork} alt="" loading="lazy" />
-              : <i aria-hidden="true">{String(pokemon.name || "?").replace(/^Mega /, "").charAt(0)}</i>}
-            <small>{pokemon.name}</small>
-          </span>
-        );
-      })}
+      {visibleRoster.map((pokemon) => (
+        <span role="listitem" key={pokemon.id || pokemon.name} title={pokemon.name}>
+          <TournamentPokemonArtwork pokemon={pokemon} />
+          <small>{pokemon.name}</small>
+        </span>
+      ))}
       {roster.length > visibleRoster.length && <b title={`${roster.length - visibleRoster.length} more Pokémon`}>+{roster.length - visibleRoster.length}</b>}
     </div>
   );

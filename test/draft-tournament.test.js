@@ -527,4 +527,5 @@ test("Tournament UI presents the organizer demo as private synthetic infrastruct
   assert.match(workspace, /tournament\.is_owner && !isDemo && tournament\.visibility === "private"/);
   assert.match(workspace, /rostersByEntrant=\{visibleGroup\.stage === "swiss" \? null : tournamentRostersByEntrant\}/);
   assert.match(workspace, /safeHttpsImageSource\(pokemon\.spriteUrl \|\| pokemon\.sprite_url \|\| pokemon\.sprite\)/);
+  assert.match(workspace, /loadPokemonArtwork\(pokemon\.name\)/);
 });
