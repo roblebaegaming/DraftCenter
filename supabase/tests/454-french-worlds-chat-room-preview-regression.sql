@@ -36,7 +36,7 @@ begin
          and function_record.proname in ('get_worlds_chat_messages', 'create_worlds_chat_message')
          and (
            not function_record.prosecdef
-           or not coalesce(function_record.proconfig, array[]::text[]) @> array['search_path=']
+           or not coalesce(function_record.proconfig, array[]::text[]) @> array['search_path=""']
          )
      )
      or not (select relrowsecurity from pg_catalog.pg_class where oid = 'public.worlds_chat_messages'::regclass) then

@@ -522,6 +522,20 @@ test("French, German, Japanese, and Korean Worlds routes share the VGC competiti
     assert.ok([...new Set(roster.competitors.map(({ region }) => region))]
       .every((region) => worldsRegionLabel(region, locale) !== region || ["Europe", "Japan"].includes(region)));
   }
+
+  const french = worldsCopy("fr");
+  assert.match(french.meta.order, /feuille d’équipe/);
+  assert.match(french.meta.trendBody, /feuilles d’équipe anonymisées/);
+  assert.match(french.meta.reviewedPool, /Liste d’options vérifiée/);
+  assert.doesNotMatch([
+    french.leaderboard.finalBody,
+    french.bracket.body,
+    french.meta.intro,
+    french.meta.order,
+    french.meta.trendBody,
+    french.meta.safety.join(" "),
+    french.meta.errors.reviewing,
+  ].join(" "), /team sheets?|propriétaire|groupe d’options/i);
 });
 
 test("the official TCG Masters qualifier pool is complete, unique, and release-ready", () => {

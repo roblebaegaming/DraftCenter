@@ -8,6 +8,7 @@ import {
   localizedPokemonProfileName,
   localizedPokemonSpecies,
   pokemonIndexMetadata,
+  pokemonCopy,
   pokemonProfileAlternates,
   pokemonProfilePath,
 } from "../src/lib/pokemonI18n.js";
@@ -79,6 +80,31 @@ test("core Pokédex resource names use the selected PokéAPI language", () => {
   assert.equal(localizedPokeApiName(resource, "fr"), "Feu");
   assert.equal(localizedPokeApiName(resource, "ja"), "ほのお");
   assert.equal(localizedPokeApiName(resource, "ko"), "Fire");
+});
+
+test("localized Pokédex interface terms follow official Spanish and French vocabulary", () => {
+  const spanish = pokemonCopy("es");
+  const french = pokemonCopy("fr");
+  assert.equal(spanish.stats("Charizard"), "Puntos de base de Charizard");
+  assert.equal(spanish.measurements("Charizard"), "Altura y peso de Charizard");
+  assert.match(spanish.title("Charizard"), /puntos de base/);
+  assert.equal(french.stats("Dracaufeu"), "Stats de base de Dracaufeu");
+  assert.equal(french.measurements("Dracaufeu"), "Taille et poids de Dracaufeu");
+  assert.match(french.title("Dracaufeu"), /stats de base et talents/);
+});
+
+test("every first-wave language implements the complete Pokédex copy contract", () => {
+  const expectedKeys = Object.keys(pokemonCopy("en")).sort();
+  for (const locale of ["it", "es", "fr", "de", "ja", "ko"]) {
+    const copy = pokemonCopy(locale);
+    assert.deepEqual(Object.keys(copy).sort(), expectedKeys, `${locale} copy keys`);
+    for (const [key, value] of Object.entries(copy)) {
+      if (typeof value === "string") {
+        assert.ok(value.trim().length > 0, `${locale}.${key} is not empty`);
+        assert.doesNotMatch(value, /\b(?:TODO|TBD|FIXME)\b/i, `${locale}.${key} has no placeholder`);
+      }
+    }
+  }
 });
 
 test("the first localized Pokédex phase is discoverable and keeps English analysis available", () => {
