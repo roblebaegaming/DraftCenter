@@ -1,11 +1,12 @@
 # DraftCenter multilingual site roadmap
 
 Status: the first Pokédex milestone and French Worlds expansion are prepared as
-a protected release candidate on 2026-08-20. They are not enabled in
-Production. Pull request #371, its protected executable checks, and hosted
-Vercel Preview review pass. Migration 454 passed its rollback-only isolated
-Preview regression, and the paid disposable branch was deleted immediately
-afterward. Fluent-speaker approval remains the release gate.
+an owner-authorized translation-beta release candidate on 2026-08-20. They are
+not yet enabled in Production. Pull request #371, its protected executable
+checks, and hosted Vercel Preview review pass. Migration 454 passed its
+rollback-only isolated Preview regression, and the paid disposable branch was
+deleted immediately afterward. Native review remains pending post-launch; the
+beta release must disclose that status and accept corrections through Support.
 
 ## Product direction
 
@@ -64,8 +65,9 @@ must remain visibly identified wherever they are used.
 
 ## Recommended expansion order
 
-1. Complete the core Pokédex milestone with fluent-speaker editorial review,
-   keyboard and screen-reader checks, and responsive testing in every language.
+1. Release the core Pokédex as a clearly labeled translation beta after
+   keyboard, screen-reader, responsive, database, and protected checks; collect
+   corrections and complete fluent-speaker editorial review when practical.
 2. Localize the interactive Pokédex directory, filters, type and ability
    indexes, move names, game/version labels, and empty/error/loading states.
 3. Add a reviewed official Mega-form name source, then localize the Mega
@@ -82,13 +84,16 @@ must remain visibly identified wherever they are used.
 
 Before any localized site expansion is proposed for release:
 
-- have a fluent speaker review interface copy and Pokémon terminology for each
-  language being released;
+- either have a fluent speaker review interface copy and Pokémon terminology,
+  or obtain explicit owner acceptance for a visibly labeled beta with a public
+  correction route and no claim of native-speaker approval;
 - verify every localized route, language switch, canonical, `hreflang`, and
   sitemap entry;
 - test long Latin-script names and Japanese/Korean layouts on desktop and
   mobile, including keyboard focus and assistive-language boundaries;
 - document all English fallbacks and keep them obvious to visitors;
+- keep beta and pending-review disclosures visible until the corresponding
+  native-speaker review is approved;
 - confirm that changing language cannot change a saved selection, bracket
   result, Pokémon identity, account, or permission; and
 - run the repository's required release checks and review a preview before any

@@ -8,6 +8,11 @@ protected checks pass. Nothing in this handoff is deployed or enabled in
 Production, and no Production database, data, provider setting, environment
 variable, league, prediction, or account was changed.
 
+The owner explicitly authorized this scope for release as a translation beta
+on 2026-08-20. Native-speaker review remains pending and is not represented as
+complete. The non-English Pokédex pages and French Worlds page now carry a
+visible beta disclosure and a link to DraftCenter Support for corrections.
+
 ## Release scope
 
 The first public multilingual Pokédex milestone supports English, Italian,
@@ -65,7 +70,7 @@ Passed on the isolated release tree:
 - migration-history validation through pending migration 454;
 - 73 Worlds checks;
 - 21 SEO checks;
-- 9 multilingual Pokédex checks; and
+- 10 multilingual Pokédex checks; and
 - a successful optimized Next.js build with 344 static pages generated.
 
 Browser review passed at desktop and 390-pixel phone widths for all seven
@@ -127,13 +132,18 @@ The native-review matrix and exact Preview routes are recorded in
 Its six native-review rows remain pending; technical or model-assisted QA is not
 represented as human fluent-speaker approval.
 
-## Remaining release gates
+The owner accepted the remaining editorial risk for a beta launch. This does
+not convert any pending reviewer row to approved, and it does not authorize the
+blocked multilingual Mega bracket. English fallbacks remain visible.
 
-- A fluent speaker must approve interface copy and Pokémon terminology for each
-  released non-English language. Automated and visual review cannot replace
-  this editorial gate.
-- Merge, Production migration, deployment, and signed-out Production smoke
-  validation require a separate authorized release step after those gates.
+## Authorized release steps
+
+- Re-run the complete required release checks after the beta disclosure change.
+- Merge through protected pull request #371 after its updated checks pass.
+- Verify migration 454 on the exact Production ledger, confirm the exact Vercel
+  deployment commit, and run the complete signed-out Production smoke sweep.
+- Keep native-speaker review and correction intake as post-launch editorial
+  follow-up without claiming the translations are fully reviewed.
 
 The original dirty checkout was not edited, cleaned, reset, or used for a
 commit. The release candidate lives in

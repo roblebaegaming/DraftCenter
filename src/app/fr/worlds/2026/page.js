@@ -54,6 +54,13 @@ export default function FrenchWorlds2026Page() {
 
   return <div lang="fr">
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(pageSchema) }} />
-    <WorldsPickSixteen discipline="vgc" rosterSource={roster} locale="fr" />
+    <WorldsPickSixteen discipline="vgc" rosterSource={roster}
+      locale="fr"
+      translationBeta={{
+        title: "Traduction bêta",
+        body: "Cette traduction n’a pas encore été relue par une personne francophone.",
+        action: "Signaler une correction",
+      }}
+    />
   </div>;
 }

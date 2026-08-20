@@ -47,6 +47,10 @@ export default async function LocalizedPokemonProfilePage({ locale, name }) {
     <main className="explore-shell localized-pokemon-page">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
       <PokemonLanguageSwitch locale={language.code} path={`/pokemon/${pokemon.name}`} label={copy.language} />
+      <aside className="translation-beta-note" aria-label={copy.translationBeta.title}>
+        <div><strong>{copy.translationBeta.title}</strong><span>{copy.translationBeta.body}</span></div>
+        <a href="/support">{copy.translationBeta.action}</a>
+      </aside>
       <header className="explore-hero">
         <div className="public-page-nav"><a className="quiet-button" href={pokemonIndexPath(language.code)}>{copy.back}</a><a className="quiet-button" href={`/pokemon/${pokemon.name}`}>{copy.englishProfile}</a></div>
         <span className="eyebrow">DRAFTCENTER POKÉDEX · #{String(pokemon.id).padStart(4, "0")}</span>

@@ -26,6 +26,16 @@ const COPY = {
   },
 };
 
+const TRANSLATION_BETA_COPY = {
+  en: { title: "Translation beta", body: "This translation has not yet been reviewed by a native speaker.", action: "Report a correction" },
+  it: { title: "Traduzione beta", body: "Questa traduzione non è ancora stata verificata da una persona madrelingua.", action: "Segnala una correzione" },
+  es: { title: "Traducción beta", body: "Esta traducción aún no ha sido revisada por una persona nativa.", action: "Enviar una corrección" },
+  fr: { title: "Traduction bêta", body: "Cette traduction n’a pas encore été relue par une personne francophone.", action: "Signaler une correction" },
+  de: { title: "Übersetzung in der Beta-Phase", body: "Diese Übersetzung wurde noch nicht von Muttersprachlern geprüft.", action: "Korrektur melden" },
+  ja: { title: "ベータ版の翻訳", body: "ネイティブスピーカーによる確認はまだ完了していません。", action: "修正点を報告" },
+  ko: { title: "번역 베타", body: "아직 원어민 검토가 완료되지 않았습니다.", action: "수정 제안 보내기" },
+};
+
 const STAT_LABELS = {
   en: { hp: "HP", attack: "Attack", defense: "Defense", "special-attack": "Special Attack", "special-defense": "Special Defense", speed: "Speed" },
   it: { hp: "PS", attack: "Attacco", defense: "Difesa", "special-attack": "Attacco Speciale", "special-defense": "Difesa Speciale", speed: "Velocità" },
@@ -41,7 +51,8 @@ export const POKEMON_LOCALIZATION_SOURCE_COMMIT = pokemonLocalizationCatalog.sou
 export const POKEMON_LOCALIZATION_COVERAGE = pokemonLocalizationCatalog.coverage;
 
 export function pokemonCopy(locale = "en") {
-  return COPY[normalizeSiteLocale(locale)] || COPY.en;
+  const code = normalizeSiteLocale(locale);
+  return { ...(COPY[code] || COPY.en), translationBeta: TRANSLATION_BETA_COPY[code] || TRANSLATION_BETA_COPY.en };
 }
 export function pokemonStatLabel(stat, locale = "en") {
   const code = normalizeSiteLocale(locale);

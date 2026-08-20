@@ -3,7 +3,9 @@
 Date: 2026-08-20
 
 Status: technical and model-assisted editorial QA is complete. Native-speaker
-approval is not complete and remains a release gate for pull request #371.
+approval is not complete. On 2026-08-20, the owner explicitly accepted that
+editorial risk and authorized a clearly labeled translation-beta release of
+pull request #371, with corrections collected through DraftCenter Support.
 
 ## Review scope
 
@@ -25,6 +27,11 @@ Technical and model-assisted review verified:
 - explicit English fallback disclosure for unreviewed form names; and
 - French Worlds copy with English `team sheet` carryovers removed and literal
   owner/pool wording clarified without changing scoring or privacy semantics.
+
+The released non-English Pokédex pages and French Worlds page must visibly say
+that the translation is in beta, that native-speaker review is pending, and
+link to `/support` for corrections. The beta label must not be removed until a
+real native reviewer approves the corresponding language row below.
 
 ## Native-speaker sign-off matrix
 
@@ -61,7 +68,10 @@ Preview origin:
 
 ## Approval rule
 
-The release gate is satisfied only when every row above has a real reviewer and
-an approved decision, or when the owner explicitly reduces the release language
-set. Until then, keep pull request #371 unmerged even when all automated,
-database, and Preview checks pass.
+Native-speaker approval remains required before DraftCenter describes a
+language as fully reviewed. It is not a blocker for this owner-authorized beta
+launch because the release visibly discloses the pending review, keeps English
+fallbacks, provides a correction route, and has passed the automated, database,
+security, accessibility, responsive, and Preview gates. Keep every pending row
+truthful and treat corrections and eventual native review as post-launch
+editorial work.

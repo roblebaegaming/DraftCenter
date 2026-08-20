@@ -107,6 +107,21 @@ test("every first-wave language implements the complete Pokédex copy contract",
   }
 });
 
+test("localized release pages disclose translation beta status and accept corrections", () => {
+  for (const locale of ["it", "es", "fr", "de", "ja", "ko"]) {
+    const beta = pokemonCopy(locale).translationBeta;
+    assert.ok(beta.title && beta.body && beta.action, `${locale} translation beta copy`);
+  }
+  const index = source("src/components/LocalizedPokemonIndexPage.jsx");
+  const profile = source("src/components/LocalizedPokemonProfilePage.jsx");
+  const worlds = source("src/components/WorldsPickSixteen.jsx");
+  const frenchWorlds = source("src/app/fr/worlds/2026/page.js");
+  assert.match(index, /translation-beta-note[\s\S]+href="\/support"/);
+  assert.match(profile, /translation-beta-note[\s\S]+href="\/support"/);
+  assert.match(worlds, /translationBeta[\s\S]+translation-beta-note[\s\S]+href="\/support"/);
+  assert.match(frenchWorlds, /title: "Traduction bêta"[\s\S]+action: "Signaler une correction"/);
+});
+
 test("the first localized Pokédex phase is discoverable and keeps English analysis available", () => {
   const englishIndex = source("src/app/pokemon/page.js");
   const englishProfile = source("src/app/pokemon/[name]/page.js");

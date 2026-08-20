@@ -26,6 +26,10 @@ export default function LocalizedPokemonIndexPage({ locale }) {
     <main className="explore-shell pokemon-index-page localized-pokemon-page">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
       <PokemonLanguageSwitch locale={language.code} label={copy.language} />
+      <aside className="translation-beta-note" aria-label={copy.translationBeta.title}>
+        <div><strong>{copy.translationBeta.title}</strong><span>{copy.translationBeta.body}</span></div>
+        <a href="/support">{copy.translationBeta.action}</a>
+      </aside>
       <header className="explore-hero">
         <span className="eyebrow">DRAFTCENTER POKÉDEX</span>
         <h1>{copy.indexTitle}</h1>
