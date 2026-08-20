@@ -5,7 +5,7 @@
 - Application worktree: `DraftCenter-worlds-multilingual-release-20260819`
 - Application branch: `codex/worlds-multilingual-release-2026-08-19`
 - Meta Ads campaign: unpublished draft
-- Production deployment: not yet performed
+- Production SEO application release: complete via commit `4f023e08893da06c0c535856f380724aa72113fc`
 - Production database change: none
 
 ## Completed application outcome
@@ -52,9 +52,18 @@ provider setting, or Production environment variable changed.
   `Content-Language` values on every localized route, and seven alternate tags
   (`en`, `it`, `es`, `de`, `ja`, `ko`, and `x-default`).
 - `git diff --check`: passed.
-
-Do not run the Production smoke test as evidence for this branch until the
-change is actually merged and deployed.
+- Pull request [#355](https://github.com/roblebaegaming/DraftCenter/pull/355)
+  passed CodeQL, dependency/security checks, full-history secret scanning, and
+  the Vercel Preview deployment before it was squash-merged.
+- Vercel deployed the exact `main` commit
+  `4f023e08893da06c0c535856f380724aa72113fc` to Production successfully.
+- The required signed-out Production smoke sweep passed every public route and
+  every protected-endpoint authorization check.
+- Live Production verification rendered all six languages with their language
+  switchers, localized headings and descriptions, player and Pokémon jump
+  links, self-canonicals, and seven alternate-language tags. Production also
+  returned `200` with `it-IT`, `es-ES`, `de-DE`, `ja-JP`, and `ko-KR`
+  `Content-Language` headers on the five localized routes.
 
 ## Meta Ads draft status
 
@@ -98,11 +107,13 @@ After the Page identity is approved and connected:
    **Publish**.
 6. Confirm the campaign delivery state and aggregate spend after activation.
 
-## Application release continuation
+## Application release completed
 
-Commit this SEO pass on the existing clean multilingual release branch. Release
-through a protected pull request; do not push directly to `main`. Review the
-Preview in all six languages, require passing repository checks, merge only the
-reviewed commit, confirm the deployed source commit, then run the signed-out
-Production smoke sweep. No database migration is part of this SEO change.
+The SEO pass was released through protected pull request
+[#355](https://github.com/roblebaegaming/DraftCenter/pull/355), after all checks
+passed and the Preview was reviewed in all six languages. The Production
+application release was verified at merge commit
+`4f023e08893da06c0c535856f380724aa72113fc`, and the post-deployment smoke sweep
+passed. This later handoff-only update does not alter application output. No
+database migration was part of this SEO change.
 
