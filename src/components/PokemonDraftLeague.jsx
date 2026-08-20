@@ -14930,7 +14930,7 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
       />}
 
       {!readOnly && (draftType === "snake" || draftType === "auction") && myTeamIdx >= 0 && !draftDone && (
-        <div style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }} className="rounded-lg p-4 mb-6">
+        <div style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)" }} className="draft-queue-panel rounded-lg p-4 mb-6">
           <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
             <h3 className="display-font text-xl" style={{ color: "#FFD23F" }}>YOUR QUEUE</h3>
             <label className="flex items-center gap-2 text-xs mono-font" style={{ color: "#9A9FBD" }}>
@@ -14940,7 +14940,7 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
           </div>
           {myQueueMons.length === 0 ? (
             <p className="text-xs" style={{ color: "#5B5F7E" }}>
-              Empty — click "+ Queue{draftType === "auction" ? " to nominate" : ""}" on pokémon below to line up your next {draftType === "auction" ? "nominations" : "picks"}.
+              Empty — click "+ Queue{draftType === "auction" ? " for later" : ""}" on pokémon below to line up your next {draftType === "auction" ? "nominations" : "picks"}.
             </p>
           ) : (
             <div className="flex flex-col gap-1">
@@ -14948,7 +14948,7 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
                 const cantAffordQueued = draftType === "snake" && settings.snakeBudgetEnabled
                   && m.cost > ((budgets[myTeamIdx] ?? 0) - Math.max(0, settings.rosterMin - (rosters[myTeamIdx] || []).length - 1) * (pool.length ? Math.min(...pool.map((x) => x.cost)) : 0));
                 return (
-                  <div key={m.id} className="flex items-center justify-between px-3 py-2 rounded" style={{ background: "#1B1F33" }}>
+                  <div key={m.id} className="flex flex-wrap items-center justify-between gap-2 px-3 py-2 rounded" style={{ background: "#1B1F33" }}>
                     <div className="flex items-center gap-2">
                       <span className="mono-font text-xs" style={{ color: "#5B5F7E" }}>{idx + 1}.</span>
                       <span className="text-sm font-medium">{m.name}</span>
@@ -14961,9 +14961,15 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
                           Draft
                         </button>
                       )}
-                      {myNominationTurn && (
-                        <button onClick={() => { setPendingNominee(m); setPendingBid("1"); }}
-                          className="px-2 py-1 rounded text-xs font-semibold" style={{ background: "#FFD23F", color: "#10121C" }}>
+                      {draftType === "auction" && (
+                        <button onClick={() => { setPendingNominee(m); setPendingBid("1"); }} disabled={!myNominationTurn}
+                          title={myNominationTurn ? `Nominate ${m.name} now` : "Available when it is your turn to nominate"}
+                          className="min-w-[72px] px-2 py-1 rounded text-xs font-semibold disabled:opacity-45"
+                          style={{
+                            background: myNominationTurn ? "#FFD23F" : "#141729",
+                            color: myNominationTurn ? "#10121C" : "#9A9FBD",
+                            border: `1px solid ${myNominationTurn ? "#FFD23F" : "rgba(255,255,255,0.08)"}`,
+                          }}>
                           Nominate
                         </button>
                       )}
@@ -15245,11 +15251,19 @@ function DraftView({ state, leagueId, isCommissioner, canDraftNow, myName, myTea
                     )
                   )}
                   {!readOnly && draftType === "auction" && myTeamIdx >= 0 && (
-                    <button onClick={() => (queued ? removeFromQueue(myTeamIdx, p.name) : addToQueue(myTeamIdx, p.name))}
-                      className="mt-2 w-full text-xs py-1 rounded mono-font"
-                      style={{ background: queued ? "#FFD23F22" : "#141729", color: queued ? "#FFD23F" : "#9A9FBD", border: `1px solid ${queued ? "#FFD23F55" : "rgba(255,255,255,0.08)"}` }}>
-                      {queued ? "✓ Queued to nominate" : "+ Queue to nominate"}
-                    </button>
+                    <div className="mt-2 grid grid-cols-2 gap-2">
+                      <button onClick={() => { setPendingNominee(p); setPendingBid("1"); }} disabled={!canNominate || !!nominee}
+                        title={canNominate && !nominee ? `Nominate ${p.name} now` : "Available when it is your turn to nominate"}
+                        className="w-full text-xs py-2 rounded mono-font font-semibold disabled:opacity-45"
+                        style={{ background: canNominate && !nominee ? "#FFD23F" : "#141729", color: canNominate && !nominee ? "#10121C" : "#9A9FBD", border: `1px solid ${canNominate && !nominee ? "#FFD23F" : "rgba(255,255,255,0.08)"}` }}>
+                        NOMINATE
+                      </button>
+                      <button onClick={() => (queued ? removeFromQueue(myTeamIdx, p.name) : addToQueue(myTeamIdx, p.name))}
+                        className="w-full text-xs py-2 rounded mono-font"
+                        style={{ background: queued ? "#FFD23F22" : "#141729", color: queued ? "#FFD23F" : "#9A9FBD", border: `1px solid ${queued ? "#FFD23F55" : "rgba(255,255,255,0.08)"}` }}>
+                        {queued ? "✓ QUEUED" : "+ QUEUE FOR LATER"}
+                      </button>
+                    </div>
                   )}
                 </div>
               );
@@ -15558,6 +15572,11 @@ function AuctionPanel({ teams, budgets, rosters, rosterMin, rosterMax, nominee, 
           </p>
         ) : (
           <p style={{ color: "#9A9FBD" }}>Click a pokémon below to nominate it for auction.</p>
+        )}
+        {myTurn && !rosterFull && !outOfMoney && (
+          <p className="text-xs mt-1" style={{ color: "#4FD1C5" }}>
+            Choose any available Pokémon below and press Nominate. Your queue is optional.
+          </p>
         )}
         {nomSecLeft !== null && !rosterFull && !outOfMoney && (
           <div className="mono-font text-2xl mt-1" style={{ color: paused ? "#9A9FBD" : nomSecLeft <= 5 ? "#F0555A" : "#4FD1C5" }}>

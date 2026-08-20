@@ -455,8 +455,7 @@ button { cursor: pointer; }
 .site-quick-links { gap: 5px; }
 .site-quick-links a { border: 1px solid transparent; }
 .site-quick-links a.is-active { color: #10121c; border-color: #ffd23f; background: #ffd23f; }
-.site-quick-links a.site-worlds-link { min-height: 38px; padding-inline: 16px; border-color: rgba(255,210,63,.78); color: #171306; background: linear-gradient(135deg,#ffe376,#ffd23f); box-shadow: 0 5px 18px rgba(255,210,63,.2); }
-.site-quick-links a.site-worlds-link:hover,.site-quick-links a.site-worlds-link:focus-visible { color: #080b18; border-color: #fff0ae; background: #fff0ae; outline: none; }
+.draft-queue-panel { min-height: 112px; }
 .quick-label-compact { display: none; }
 
 .site-legal-footer { padding: 34px max(18px,calc((100vw - 1160px)/2)) 30px; }
@@ -504,7 +503,6 @@ button { cursor: pointer; }
     text-align: center;
     white-space: normal;
   }
-  .site-quick-links a.site-worlds-link { grid-column: 1/-1; min-height: 40px; padding: 8px 10px; font-size: 12px; }
   .site-legal-footer { padding: 29px 18px calc(144px + env(safe-area-inset-bottom)); }
   .site-footer-links { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 25px 18px; }
   .site-footer-group:last-child { grid-column: 1/-1; }
