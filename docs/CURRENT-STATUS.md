@@ -3,10 +3,32 @@
 - Last updated: August 20, 2026 Pacific
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified Production application behavior commit: `e88ddc312c38bee66498677be5d6b9b8d179058b`
+- Verified Production application behavior commit: `7f2236a27961de63ff48f6adeae88c5d1245a527`
 - Latest applied Production migration: 453 (`20260820040500`)
 
 ## Latest release
+
+Pull request [#369](https://github.com/roblebaegaming/DraftCenter/pull/369)
+is deployed at exact Production application commit `7f2236a`. The
+server-verified owner now has explicit Operations access in Tools, the owner
+account menu, and a sixth phone bottom-bar destination. Signed-out and
+non-owner accounts keep the five-item phone bar with no Operations link, and
+the independent server-side owner gate remains unchanged. The account menu's
+owner actions now share one non-overlapping panel.
+
+Pull requests [#365](https://github.com/roblebaegaming/DraftCenter/pull/365)
+through [#368](https://github.com/roblebaegaming/DraftCenter/pull/368) also
+released commissioner completed-draft claims, league-scoped League Manager
+setup, all-week opponent Team Lab preparation, consolidated global navigation,
+the four-field UTM campaign standard, and the read-only Worlds operational
+readiness audit. These application/documentation releases changed no database
+schema, Production row, provider setting, secret, environment variable,
+invitation, advertising account, billing, or spend.
+
+The complete application suite, dependency audit, 1,027-row National Dex
+check, configured 335-page build, focused navigation tests, protected checks,
+hosted phone review, exact-commit Vercel deployment, and complete 22-check
+Production smoke sweep passed.
 
 Pull request [#362](https://github.com/roblebaegaming/DraftCenter/pull/362)
 is deployed at exact Production application commit `e88ddc3`. Live auction
@@ -660,24 +682,26 @@ not be resumed until the owner explicitly requests it.
 
 ## Current continuation order
 
-1. Validate manager invitations and completed-draft team claiming before any
-   broad four-pod invitation. Keep the imported organization private and do
-   not fabricate missing scores or historical draft picks.
-2. Run a separate private Auction Swiss organizer rehearsal without resetting
-   or modifying the preserved completed showcase.
+1. Obtain outside commissioner approval, then stage four-pod invitations: one
+   controlled second account, one or two known managers across different pods,
+   and only then the approved wider group. Keep the organization private and
+   do not fabricate missing scores or historical draft picks.
+2. Confirm the `roblebae` owner sees the sixth Operations item in one real
+   signed-in phone session. Automated owner/non-owner coverage and the hosted
+   signed-out phone review already pass.
 3. Observe the owner's real 45-second Battle Room session and prioritize the
    evidence from that session, including roster collapse/reopen behavior,
    manual no-action turns, pivots, Auto-next, and tap density.
-4. The August 20 read-only Worlds audit passed: the feed and Top Cut systems
+4. If still desired, run a separate private Tournament Operator Auction Swiss
+   rehearsal without resetting or modifying the preserved completed showcase.
+5. The August 20 read-only Worlds audit passed: the feed and Top Cut systems
    are healthy and fail closed. Provider permission, exact feed configuration,
    a reviewed Preview import, and the official Top Cut field remain external
    live-window gates. Keep GO Meta Picks closed until an official eligibility
    pool is reviewed.
-5. Release the four-field UTM campaign standard before increasing advertising
+6. Use the released four-field UTM standard before increasing advertising
    spend. No ad account, billing, campaign launch, or spend change is
-   authorized by the standard.
-6. Release the consolidated desktop and mobile global navigation after its
-   responsive review and protected checks pass.
+   authorized by the standard itself.
 7. Keep PokeEarth paused until the owner directly requests resumption, and
    preserve all Mushroom Cup and intentionally paused Mushroom Hut boundaries.
 
@@ -694,6 +718,9 @@ not be resumed until the owner explicitly requests it.
 - Do not resume PokeEarth without a direct owner request.
 
 ## Authoritative records
+
+- Latest final Production and continuation handoff:
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-20-final-session.md`](handoffs/DraftCenter-agent-handoff-2026-08-20-final-session.md)
 
 - Current four-pod Production import handoff:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-19-four-pod-midseason-import.md`](handoffs/DraftCenter-agent-handoff-2026-08-19-four-pod-midseason-import.md)
