@@ -4,6 +4,7 @@
 - Production: <https://www.draftcentral.gg>
 - Worktree: `DraftCenter-worlds-multilingual-release-20260819`
 - Branch: `codex/worlds-language-chatboard`
+- Pull request: [#359](https://github.com/roblebaegaming/DraftCenter/pull/359)
 - Base commit: `5504811730c080921d527a9ba51cae3dcf8d9061`
 - Production status: not deployed
 - Latest applied Production migration before this candidate: 450
@@ -94,11 +95,19 @@ Broadcast implementation later if traffic justifies it.
   overflow at the phone breakpoint.
 - The Japanese localized room rendered its translated same-competition copy.
 - Browser console error count during the localized check: zero.
+- Vercel Preview is Ready. Hosted signed-out English and Korean room checks
+  rendered the localized chat and privacy gate with zero browser errors.
 
 The Supabase CLI was pinned to current version `2.115.0` to create the forward
-migration. Local migration-list execution could not connect because the local
-Supabase Docker stack was not running. The database fixture has therefore not
-yet executed against Postgres and must run on an isolated Preview branch.
+migration. Local migration-list execution could not connect because Docker is
+not installed in this environment. Supabase then ignored the automatic pull-
+request Preview because the connected project reported that its concurrent
+Preview-branch limit had been reached. The current branch inventory exposed by
+Supabase contains only `main`, so no stale development branch was deleted or
+reset automatically. A manual isolated branch is available at the quoted
+Supabase cost of $0.01344 per hour, but none was created without explicit cost
+confirmation. The database fixture has therefore not yet executed against
+Postgres and must run on an isolated Preview branch before merge.
 
 ## Required release gates
 

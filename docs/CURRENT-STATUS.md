@@ -78,7 +78,8 @@ finding.
 
 ### Pending Worlds language chatboard release
 
-Branch `codex/worlds-language-chatboard` is an undeployed release candidate
+Pull request [#359](https://github.com/roblebaegaming/DraftCenter/pull/359)
+is an undeployed release candidate on branch `codex/worlds-language-chatboard`
 based on `550481173`. It adds an account-only Worlds VGC discussion board below
 the existing player/Pokémon start guide, with separate English, Italian,
 Spanish, German, Japanese, and Korean rooms over the same shared prediction
@@ -88,8 +89,11 @@ and private one-per-member reports. Forward migration
 `20260820004814_worlds_language_chatboard.sql` creates the two RLS-enabled
 tables and four narrowly granted authenticated RPCs; direct browser table
 access remains revoked. Nothing from this candidate has been applied to
-Production. The rollback-only Preview regression must pass before merge, and
-Production migration 451 must not be applied without an authorized release.
+Production. Vercel Preview is Ready and the signed-out English and Korean rooms
+render without browser errors. Supabase ignored the automatic Preview because
+the connected project reported its concurrent Preview-branch limit was reached;
+the rollback-only database regression must still pass before merge. Production
+migration 451 must not be applied without an authorized release.
 The detailed continuation record is in the
 [`August 19 Worlds language chatboard handoff`](handoffs/DraftCenter-agent-handoff-2026-08-19-worlds-language-chatboard.md).
 
