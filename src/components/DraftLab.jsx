@@ -1255,10 +1255,11 @@ function MatchupCard({ matchup, onBattle, onEdit, onDelete, busy }) {
   </article>;
 }
 
-export default function DraftLab() {
+export default function DraftLab({ embedded = false, initialFormatId = "", initialLeagueMatchupHandoff = null, onClose = null }) {
   const [supabase] = useState(() => createPlatformBrowserClient());
-  const [initialPrivateNavigation] = useState(() => readTeamLabNavigation(typeof window === "undefined" ? "" : window.location.search));
-  const [formatId, setFormatId] = useState("reg-mb");
+  const [initialPrivateNavigation] = useState(() => embedded ? { workspaceId: "", battleMatchupId: "" } : readTeamLabNavigation(typeof window === "undefined" ? "" : window.location.search));
+  const embeddedFormatId = REGULATION_SETS[initialFormatId] && initialFormatId !== "custom" ? initialFormatId : "reg-mb";
+  const [formatId, setFormatId] = useState(embeddedFormatId);
   const [names, setNames] = useState([]);
   const [message, setMessage] = useState("");
   const [hydrated, setHydrated] = useState(false);
@@ -1274,11 +1275,14 @@ export default function DraftLab() {
   const [teamSets, setTeamSets] = useState(() => normalizeTeamLabTeamSets(null, [], CATALOG_NAME_SET));
   const [matchupForm, setMatchupForm] = useState(null);
   const [battleMatchupId, setBattleMatchupId] = useState(initialPrivateNavigation.battleMatchupId || null);
+  const [leagueMatchupContext, setLeagueMatchupContext] = useState(null);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
-    const shared = parseDraftLabQuery(window.location.search, CATALOG_NAMES);
+    const shared = embedded
+      ? { format: embeddedFormatId, names: [], truncatedCount: 0 }
+      : parseDraftLabQuery(window.location.search, CATALOG_NAMES);
     setFormatId(REGULATION_SETS[shared.format] && shared.format !== "custom" ? shared.format : "reg-mb");
     setNames(shared.names);
     if (shared.truncatedCount > 0) {
@@ -1288,12 +1292,16 @@ export default function DraftLab() {
     let matchupHandoff = null;
     let leagueMatchupHandoff = null;
     try {
-      handoff = parseTeamLabHandoff(window.sessionStorage.getItem(TEAM_LAB_HANDOFF_KEY), CATALOG_NAME_SET);
-      window.sessionStorage.removeItem(TEAM_LAB_HANDOFF_KEY);
-      matchupHandoff = parseTeamLabMatchupHandoff(window.sessionStorage.getItem(TEAM_LAB_MATCHUP_HANDOFF_KEY));
-      window.sessionStorage.removeItem(TEAM_LAB_MATCHUP_HANDOFF_KEY);
-      leagueMatchupHandoff = parseTeamLabLeagueMatchupHandoff(window.sessionStorage.getItem(TEAM_LAB_LEAGUE_MATCHUP_HANDOFF_KEY));
-      window.sessionStorage.removeItem(TEAM_LAB_LEAGUE_MATCHUP_HANDOFF_KEY);
+      if (embedded) {
+        leagueMatchupHandoff = parseTeamLabLeagueMatchupHandoff(initialLeagueMatchupHandoff);
+      } else {
+        handoff = parseTeamLabHandoff(window.sessionStorage.getItem(TEAM_LAB_HANDOFF_KEY), CATALOG_NAME_SET);
+        window.sessionStorage.removeItem(TEAM_LAB_HANDOFF_KEY);
+        matchupHandoff = parseTeamLabMatchupHandoff(window.sessionStorage.getItem(TEAM_LAB_MATCHUP_HANDOFF_KEY));
+        window.sessionStorage.removeItem(TEAM_LAB_MATCHUP_HANDOFF_KEY);
+        leagueMatchupHandoff = parseTeamLabLeagueMatchupHandoff(window.sessionStorage.getItem(TEAM_LAB_LEAGUE_MATCHUP_HANDOFF_KEY));
+        window.sessionStorage.removeItem(TEAM_LAB_LEAGUE_MATCHUP_HANDOFF_KEY);
+      }
     } catch {
       handoff = null;
       matchupHandoff = null;
@@ -1365,14 +1373,14 @@ export default function DraftLab() {
       }
     });
     return () => { cancelled = true; };
-  }, [initialPrivateNavigation.battleMatchupId, initialPrivateNavigation.workspaceId, supabase]);
+  }, [embedded, embeddedFormatId, initialLeagueMatchupHandoff, initialPrivateNavigation.battleMatchupId, initialPrivateNavigation.workspaceId, supabase]);
 
   useEffect(() => {
-    if (!hydrated) return;
+    if (!hydrated || embedded) return;
     const publicSearch = buildDraftLabQuery({ format: formatId, names });
     const search = writeTeamLabNavigation(publicSearch, { workspaceId: savedTeamId, battleMatchupId });
     window.history.replaceState(null, "", `${window.location.pathname}?${search}`);
-  }, [battleMatchupId, formatId, hydrated, names, savedTeamId]);
+  }, [battleMatchupId, embedded, formatId, hydrated, names, savedTeamId]);
 
   const roster = useMemo(() => buildRoster(names), [names]);
   const regulation = REGULATION_SETS[formatId] || REGULATION_SETS["reg-mb"];
@@ -1621,6 +1629,7 @@ export default function DraftLab() {
   }
 
   function applyLeagueMatchupContext(context, availableLeagueTeams = leagueTeams) {
+    setLeagueMatchupContext(context);
     const leagueTeam = availableLeagueTeams.find((team) => team.league_id === context.league_id
       && Number(team.season_number) === Number(context.season_number)
       && Number(team.team_index) === Number(context.my_team_index)
@@ -1647,6 +1656,36 @@ export default function DraftLab() {
     setMessage(`Week ${Number(context.week_index) + 1} vs. ${context.opponent_team_name} is ready. Save your league roster as a private My Teams copy, then save the opponent plan.`);
   }
 
+  function toggleOfficialLeaguePokemon(side, pokemonName) {
+    if (!leagueMatchupContext || !CATALOG_NAME_SET.has(pokemonName)) return;
+    if (side === "mine") {
+      if (names.includes(pokemonName)) {
+        setNames((current) => current.filter((name) => name !== pokemonName));
+        setMessage("");
+        return;
+      }
+      if (names.length >= TEAM_LAB_ROSTER_LIMIT) return setMessage("Choose up to six Pokémon from your official roster for this weekly plan.");
+      setNames((current) => [...current, pokemonName]);
+      setMessage("");
+      return;
+    }
+    if (!matchupForm) return;
+    const selected = matchupForm.pokemon || [];
+    if (!selected.includes(pokemonName) && selected.length >= TEAM_LAB_ROSTER_LIMIT) {
+      setMessage("Choose up to six Pokémon from the opponent’s official roster for this matchup plan.");
+      return;
+    }
+    const pokemon = selected.includes(pokemonName)
+      ? selected.filter((name) => name !== pokemonName)
+      : [...selected, pokemonName];
+    setMatchupForm({
+      ...matchupForm,
+      pokemon,
+      opponent_sets: normalizeTeamLabOpponentSets(matchupForm.opponent_sets, pokemon, CATALOG_NAME_SET),
+    });
+    setMessage("");
+  }
+
   function updateSavedBattleMatchup(savedMatchup) {
     setMatchups((current) => current.map((matchup) => matchup.id === savedMatchup.id ? savedMatchup : matchup));
   }
@@ -1657,8 +1696,11 @@ export default function DraftLab() {
   const availableLeagueTeams = leagueTeams.filter((team) => !team.user_archived);
   const connectedPersonalTeam = savedTeamId ? personalTeams.find((team) => team.id === savedTeamId) : null;
   const battleMatchup = battleMatchupId ? activeMatchups.find((matchup) => matchup.id === battleMatchupId) : null;
+  const officialLeagueRoster = leagueMatchupContext ? normalizeTeamLabRoster(leagueMatchupContext.my_pokemon, CATALOG_NAME_SET, 32) : [];
+  const officialOpponentRoster = leagueMatchupContext ? normalizeTeamLabRoster(leagueMatchupContext.opponent_pokemon, CATALOG_NAME_SET, 32) : [];
 
-  return <main className="draft-lab-shell">
+  return <main className={`draft-lab-shell${embedded ? " is-embedded" : ""}`}>
+    {embedded && <nav className="team-lab-embedded-nav" aria-label="League Team Lab"><div><span className="eyebrow">LEAGUE WORKSPACE</span><strong>{leagueMatchupContext ? `Week ${Number(leagueMatchupContext.week_index) + 1} · ${leagueMatchupContext.opponent_team_name}` : "Opening scheduled matchup…"}</strong></div><button type="button" className="quiet-button" onClick={() => onClose?.()}>← Back to league</button></nav>}
     <nav className="public-page-nav"><a className="quiet-button" href="/?view=dashboard">DraftCenter home</a><a className="quiet-button" href="/pokemon">Pokédex</a><a className="quiet-button" href={PRODUCT_ROUTES.teamLabTeams}>My Teams</a></nav>
     <header className="draft-lab-hero">
       <div><span className="eyebrow">TEAM BUILDER & MATCHUP PLANNER</span><h1>Team Lab</h1><p>Build one six-Pokémon battle team, import its PokéPaste, plan each weekly opponent, and use private Battle Mode to record turns, revealed moves, abilities, items, switches, faints, and written damage without leaving DraftCenter.</p></div>
@@ -1681,6 +1723,7 @@ export default function DraftLab() {
 
     <section className="team-lab-account" id="team-lab-battle-setup" aria-labelledby="team-lab-account-title">
       <div className="team-lab-account-heading"><div><span className="eyebrow">PRIVATE ACCOUNT WORKSPACE</span><h2 id="team-lab-account-title">Weekly teams, reports, and matchup plans</h2><p>Each opponent plan can keep a different brought team and Battle Mode report. Private fields never enter the public analysis link, and league rosters remain read-only planning copies.</p></div>{savedTeamId && <span className="team-lab-connected">Connected to My Teams</span>}</div>
+      {leagueMatchupContext && <section className="team-lab-league-context" aria-labelledby="team-lab-league-context-title"><header><div><span className="eyebrow">OFFICIAL LEAGUE MATCHUP</span><h3 id="team-lab-league-context-title">Week {Number(leagueMatchupContext.week_index) + 1} · {leagueMatchupContext.my_team_name} vs. {leagueMatchupContext.opponent_team_name}</h3><p>Both official rosters stay visible here while you choose a private weekly six. These buttons change only this planning copy.</p></div><strong>{leagueMatchupContext.league_name}</strong></header><div className="team-lab-league-rosters"><section><div><span>YOUR OFFICIAL ROSTER</span><small>{names.length} / {TEAM_LAB_ROSTER_LIMIT} selected</small></div><div>{officialLeagueRoster.map((name) => <button type="button" key={name} aria-pressed={names.includes(name)} className={names.includes(name) ? "is-selected" : ""} onClick={() => toggleOfficialLeaguePokemon("mine", name)}>{name}</button>)}</div></section><section><div><span>OPPONENT’S OFFICIAL ROSTER</span><small>{matchupForm?.pokemon?.length || 0} / {TEAM_LAB_ROSTER_LIMIT} selected</small></div><div>{officialOpponentRoster.map((name) => <button type="button" key={name} aria-pressed={Boolean(matchupForm?.pokemon?.includes(name))} className={matchupForm?.pokemon?.includes(name) ? "is-selected" : ""} onClick={() => toggleOfficialLeaguePokemon("opponent", name)}>{name}</button>)}</div></section></div></section>}
       <div className="team-lab-battle-path" aria-labelledby="team-lab-battle-path-title">
         <div><span className="eyebrow">HOW TO OPEN BATTLE MODE</span><h3 id="team-lab-battle-path-title">From this roster to a live turn-by-turn recorder</h3><p>Keep Battle Mode open beside your game to log moves, abilities, items, switches, faints, damage, and notes. It is a private notebook and does not connect to or read from the game client.</p></div>
         <ol><li><span>1</span><div><strong>Save or load your team</strong><small>Battle reports attach to a private My Teams workspace.</small></div></li><li><span>2</span><div><strong>Create an opponent plan</strong><small>Add the opponent and the roster you expect to face.</small></div></li><li><span>3</span><div><strong>Open Battle Mode</strong><small>Choose open or closed sheet, then record the match turn by turn.</small></div></li></ol>
