@@ -97,8 +97,11 @@ export default function SiteQuickLinks() {
           {signedIn ? <>
             {isOwner ? <details className="site-owner-menu">
               <summary>{accountName}</summary>
-              <div><a href="/operations/predictions">Publish predictions</a></div>
-              <div><a href="/operations/daily-three">Daily Games</a></div>
+              <div>
+                <a href="/operations">Operations</a>
+                <a href="/operations/predictions">Publish predictions</a>
+                <a href="/operations/daily-three">Daily Games</a>
+              </div>
             </details> : <span className="site-account-name">{accountName}</span>}
             <a href="/?profile=open" onClick={openProfile}>Profile</a>
             <button type="button" onClick={signOut}>Sign out</button>

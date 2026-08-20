@@ -432,6 +432,8 @@ button { cursor: pointer; }
 .site-owner-menu { position: relative; }
 .site-owner-menu>summary { max-width: 160px; overflow: hidden; color: #9fadd8; cursor: pointer; list-style: none; text-overflow: ellipsis; white-space: nowrap; }
 .site-owner-menu>summary::-webkit-details-marker { display: none; }
+.site-owner-menu>summary::after { margin-left: 5px; color: #8995bb; content: "▾"; font-size: 9px; }
+.site-owner-menu[open]>summary::after { transform: rotate(180deg); }
 .site-owner-menu>div {
   position: absolute;
   top: calc(100% + 7px);
