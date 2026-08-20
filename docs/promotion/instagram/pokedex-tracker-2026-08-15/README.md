@@ -9,10 +9,11 @@ details. Production was kept read-only while the screenshots were captured.
 
 Use this exact URL in the Instagram profile or Story link sticker:
 
-https://www.draftcentral.gg/pokedex-tracker?utm_source=instagram&utm_medium=social&utm_campaign=collector-founding-beta
+https://www.draftcentral.gg/pokedex-tracker?utm_source=instagram&utm_medium=social&utm_campaign=collector-founding-beta&utm_content=en-collector-overview-1
 
 Keep the campaign name `collector-founding-beta` stable so the privacy-safe
-signup attribution report can compare results over time. Instagram captions
+signup attribution report can compare results over time. Change `utm_content`
+for a materially different creative or call to action. Instagram captions
 should say **link in bio** or **Story link** rather than pasting an unclickable
 URL into the caption.
 

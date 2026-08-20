@@ -13,11 +13,29 @@ function navState(pathname, href) {
   return currentPage(pathname, href) ? { className: "is-active", "aria-current": "page" } : {};
 }
 
+function classedNavState(pathname, href, className) {
+  const state = navState(pathname, href);
+  return { ...state, className: `${className}${state.className ? ` ${state.className}` : ""}` };
+}
+
+function anyCurrentPage(pathname, hrefs) {
+  return hrefs.some((href) => currentPage(pathname, href));
+}
+
+function NavigationMenu({ active, children, className = "", label }) {
+  return <details className={`site-nav-menu${active ? " is-active" : ""}${className ? ` ${className}` : ""}`}>
+    <summary>{label}</summary>
+    <div>{children}</div>
+  </details>;
+}
+
 export default function SiteQuickLinks() {
   const pathname = usePathname();
   const { accountName, isOwner, signedIn, signOut: signOutAccount } = usePlatformAccount();
   const product = productForPathname(pathname);
   const worldsActive = currentPage(pathname, "/worlds/2026") || /^\/(it|es|de|ja|ko)\/worlds\/2026(?:\/|$)/.test(pathname);
+  const gamesActive = worldsActive || anyCurrentPage(pathname, ["/resources/daily-games", "/tournaments", "/nuzlocke", "/tools/mega-bracket"]);
+  const toolsActive = anyCurrentPage(pathname, ["/team-lab", "/tools/bracket-builder", "/calendar", "/trainer-dex", "/pokedex-tracker", "/operations"]);
 
   async function signOut() {
     await signOutAccount();
@@ -48,11 +66,32 @@ export default function SiteQuickLinks() {
           <span className="draft-home-label-compact" aria-hidden="true">Home</span>
         </a>
         <nav className="site-primary-links" aria-label="Primary navigation">
-          <a href="/tools/mega-bracket" aria-label="Mega Bracket" {...navState(pathname, "/tools/mega-bracket")}><span className="site-nav-label-wide">Mega Bracket</span><span className="site-nav-label-compact" aria-hidden="true">Mega</span></a>
-          <a href="/tools/bracket-builder" aria-label="Bracket Studio" {...navState(pathname, "/tools/bracket-builder")}><span className="site-nav-label-wide">Bracket Studio</span><span className="site-nav-label-compact" aria-hidden="true">Brackets</span></a>
-          <a href="/pokemon" aria-label="Pokémon" {...navState(pathname, "/pokemon")}><span className="site-nav-label-wide">Pokémon</span><span className="site-nav-label-compact" aria-hidden="true">Pokédex</span></a>
-          <a href="/explore" aria-label="Community" {...navState(pathname, "/explore")}><span className="site-nav-label-wide">Community</span><span className="site-nav-label-compact" aria-hidden="true">Explore</span></a>
-          <a className={`site-primary-worlds-link${worldsActive ? " is-active" : ""}`} href="/worlds/2026" aria-label="Worlds Predictions" aria-current={worldsActive ? "page" : undefined}><span className="site-nav-label-wide">🌎 Worlds Predictions</span><span className="site-nav-label-compact" aria-hidden="true">🌎 Worlds</span></a>
+          <a href="/?view=dashboard" aria-label="DraftCenter Home" {...classedNavState(pathname, "/", "site-mobile-only")}><span>Home</span></a>
+          <a href="/leagues" aria-label="Draft Leagues" {...navState(pathname, "/leagues")}><span className="site-nav-label-wide">Draft Leagues</span><span className="site-nav-label-compact" aria-hidden="true">Leagues</span></a>
+          <NavigationMenu active={gamesActive} label="Games">
+            <a className={worldsActive ? "is-active" : ""} href="/worlds/2026">🌎 Worlds Predictions</a>
+            <a href="/tournaments" {...navState(pathname, "/tournaments")}>Tournaments</a>
+            <a href="/resources/daily-games" {...navState(pathname, "/resources/daily-games")}>Daily Games</a>
+            <a href="/nuzlocke" {...navState(pathname, "/nuzlocke")}>Nuzlockes</a>
+            <a href="/tools/mega-bracket" {...navState(pathname, "/tools/mega-bracket")}>Mega Bracket</a>
+          </NavigationMenu>
+          <NavigationMenu active={toolsActive} label="Tools">
+            <a href="/team-lab" {...navState(pathname, "/team-lab")}>Team Lab</a>
+            <a href="/team-lab/teams" {...navState(pathname, "/team-lab/teams")}>My Teams</a>
+            <a href="/tools/bracket-builder" {...navState(pathname, "/tools/bracket-builder")}>Bracket Studio</a>
+            <a href="/calendar" {...navState(pathname, "/calendar")}>Calendar</a>
+            {signedIn && <a href="/trainer-dex" {...navState(pathname, "/trainer-dex")}>Trainer Dex</a>}
+            {signedIn && <a href="/pokedex-tracker" {...navState(pathname, "/pokedex-tracker")}>Dex Tracker</a>}
+            {isOwner && <a href="/operations" {...navState(pathname, "/operations")}>Operations</a>}
+          </NavigationMenu>
+          <a href="/pokemon" aria-label="Pokémon" {...classedNavState(pathname, "/pokemon", "site-desktop-only")}>Pokémon</a>
+          <a href="/explore" aria-label="Community" {...classedNavState(pathname, "/explore", "site-desktop-only")}>Community</a>
+          <NavigationMenu active={anyCurrentPage(pathname, ["/pokemon", "/explore", "/organizations", "/manuals"])} className="site-mobile-only" label="More">
+            <a href="/pokemon" {...navState(pathname, "/pokemon")}>Pokémon</a>
+            <a href="/explore" {...navState(pathname, "/explore")}>Community</a>
+            <a href="/organizations" {...navState(pathname, "/organizations")}>Organizations</a>
+            <a href="/manuals" {...navState(pathname, "/manuals")}>Help</a>
+          </NavigationMenu>
         </nav>
         <div className="site-global-account">
           {signedIn ? <>
@@ -67,17 +106,5 @@ export default function SiteQuickLinks() {
         </div>
       </div>
     </header>
-    <nav className={`site-quick-links${signedIn ? " has-tracker-link" : ""}${isOwner ? " has-owner-link" : ""}`} aria-label="Tools and resources">
-      <a href="/resources/daily-games" aria-label="Daily Games" {...navState(pathname, "/resources/daily-games")}><span className="quick-label-wide">Daily Games</span><span className="quick-label-compact">Daily</span></a>
-      <a href="/team-lab" aria-label="Team Lab" {...navState(pathname, "/team-lab")}><span className="quick-label-wide">Team Lab</span><span className="quick-label-compact">Lab</span></a>
-      <a href="/nuzlocke" aria-label="Nuzlockes" {...navState(pathname, "/nuzlocke")}><span className="quick-label-wide">Nuzlockes</span><span className="quick-label-compact">Nuz</span></a>
-      <a href="/tournaments" aria-label="Tournaments" {...navState(pathname, "/tournaments")}><span className="quick-label-wide">Tournaments</span><span className="quick-label-compact">Cups</span></a>
-      <a href="/calendar" aria-label="Calendar" {...navState(pathname, "/calendar")}><span className="quick-label-wide">Calendar</span><span className="quick-label-compact">Cal</span></a>
-      {signedIn && <a href="/trainer-dex" aria-label="Trainer Dex" {...navState(pathname, "/trainer-dex")}><span className="quick-label-wide">Trainer Dex</span><span className="quick-label-compact">Dex</span></a>}
-      {signedIn && <a href="/pokedex-tracker" aria-label="Pokédex Tracker" {...navState(pathname, "/pokedex-tracker")}><span className="quick-label-wide">Dex Tracker</span><span className="quick-label-compact">Track</span></a>}
-      {isOwner && <a href="/operations" aria-label="Operations" {...navState(pathname, "/operations")}><span className="quick-label-wide">Operations</span><span className="quick-label-compact">Ops</span></a>}
-      <a href="/team-lab/teams" aria-label="My Teams" {...navState(pathname, "/team-lab/teams")}><span className="quick-label-wide">My Teams</span><span className="quick-label-compact">Teams</span></a>
-      {!signedIn && <a href="/manuals" aria-label="Help" {...navState(pathname, "/manuals")}><span className="quick-label-wide">Help</span><span className="quick-label-compact">Help</span></a>}
-    </nav>
   </>;
 }

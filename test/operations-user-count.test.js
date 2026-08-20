@@ -55,10 +55,7 @@ test("the verified owner gets a visible Operations navigation tab", () => {
   const accessRoute = fs.readFileSync(new URL("../src/app/api/operations/access/route.js", import.meta.url), "utf8");
   const ownerAccess = fs.readFileSync(new URL("../src/lib/ownerOperations.js", import.meta.url), "utf8");
   const ownerGate = ownerAccess.slice(ownerAccess.indexOf("export async function requireOwner"), ownerAccess.indexOf("function warning"));
-  const quickLinks = navigation.slice(navigation.indexOf("<nav className={`site-quick-links"));
-
-  assert.match(quickLinks, /isOwner && <a href="\/operations" aria-label="Operations"/);
-  assert.match(quickLinks, /quick-label-wide">Operations<\/span><span className="quick-label-compact">Ops<\/span>/);
+  assert.match(navigation, /isOwner && <a href="\/operations"[^>]*>Operations<\/a>/);
   assert.equal((navigation.match(/href="\/operations"/g) || []).length, 1);
   assert.match(navigation, /usePlatformAccount\(\)/);
   assert.match(account, /setUsername\(profileResult\.data\?\.username \|\| ""\)/);

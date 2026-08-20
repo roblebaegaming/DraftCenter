@@ -79,18 +79,16 @@ test("integrated quick links expose each released feature once", () => {
   }
   assert.equal((links.match(/href="\/worlds\/2026"/g) || []).length, 1);
   assert.equal((links.match(/href="\/tournaments\/predictions"/g) || []).length, 0);
-  assert.match(links, /href="\/nuzlocke"[^>]*>[\s\S]*?quick-label-wide">Nuzlockes<\/span>/);
-  assert.match(links, /href="\/team-lab"[^>]*>[\s\S]*?quick-label-wide">Team Lab<\/span>/);
-  assert.match(links, /className="site-primary-links"[\s\S]*?site-primary-worlds-link[\s\S]*?href="\/worlds\/2026"[^>]*aria-label="Worlds Predictions"/);
-  assert.match(links, /site-nav-label-wide">🌎 Worlds Predictions<\/span>/);
-  assert.doesNotMatch(links, /site-worlds-link/);
-  assert.doesNotMatch(links.slice(links.indexOf('<nav className={`site-quick-links')), /href="\/tournaments\/predictions"/);
+  assert.match(links, /href="\/nuzlocke"[^>]*>Nuzlockes<\/a>/);
+  assert.match(links, /href="\/team-lab"[^>]*>Team Lab<\/a>/);
+  assert.match(links, /<NavigationMenu active=\{gamesActive\} label="Games">[\s\S]*?href="\/worlds\/2026">🌎 Worlds Predictions<\/a>/);
+  assert.doesNotMatch(links, /site-primary-worlds-link|site-worlds-link|site-quick-links/);
   assert.match(predictionDirectory, /PredictionBracketDirectory/);
   assert.match(links, /href="\/operations\/predictions">Publish predictions/);
   assert.match(nuzlocke, />NUZLOCKE RUN TRACKER<\/span>/);
-  assert.match(links, /signedIn && <a href="\/trainer-dex"[^>]*>[\s\S]*?quick-label-wide">Trainer Dex<\/span>/);
-  assert.match(links, /signedIn && <a href="\/pokedex-tracker"[^>]*>[\s\S]*?quick-label-wide">Dex Tracker<\/span>/);
-  assert.match(links, /isOwner && <a href="\/operations"[^>]*>[\s\S]*?quick-label-wide">Operations<\/span>/);
+  assert.match(links, /signedIn && <a href="\/trainer-dex"[^>]*>Trainer Dex<\/a>/);
+  assert.match(links, /signedIn && <a href="\/pokedex-tracker"[^>]*>Dex Tracker<\/a>/);
+  assert.match(links, /isOwner && <a href="\/operations"[^>]*>Operations<\/a>/);
   assert.doesNotMatch(links, /href="\/(resources|support)"/);
 });
 

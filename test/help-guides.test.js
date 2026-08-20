@@ -28,7 +28,7 @@ test("commissioner manual uses current product labels and explains direct suppor
 test("financial support is not mislabeled as product help", () => {
   const navigation = source("src/components/SiteQuickLinks.jsx");
   const footer = source("src/components/SiteLegalFooter.jsx");
-  assert.match(navigation, /href="\/manuals"[^>]*>[\s\S]*?quick-label-wide">Help/);
+  assert.match(navigation, /href="\/manuals"[^>]*>Help<\/a>/);
   assert.doesNotMatch(navigation, /href="\/(resources|support)"/);
   assert.match(footer, /href="\/resources">Resources/);
   assert.match(footer, /href="\/support">Support/);
@@ -40,23 +40,20 @@ test("global navigation separates account actions, tools, and reference links", 
   const footer = source("src/components/SiteLegalFooter.jsx");
   const css = source("src/app/globals.css");
   const header = navigation.slice(navigation.indexOf('<header className="site-global-header">'), navigation.indexOf("</header>"));
-  const quickLinks = navigation.slice(navigation.indexOf('<nav className={`site-quick-links'));
-
-  for (const label of ["Mega Bracket", "Bracket Studio", "Pokémon", "Community", "🌎 Worlds Predictions", "Profile", "Sign out"]) assert.match(header, new RegExp(`>${label}<`));
-  assert.doesNotMatch(header, />Team Lab</);
+  for (const label of ["Draft Leagues", "Mega Bracket", "Bracket Studio", "Pokémon", "Community", "🌎 Worlds Predictions", "Team Lab", "Profile", "Sign out"]) assert.match(header, new RegExp(`>${label}<`));
+  for (const label of ["Games", "Tools"]) assert.match(header, new RegExp(`label="${label}"`));
   assert.match(header, /accountName/);
-  assert.match(header, /className=\{`site-primary-worlds-link/);
-  assert.match(header, /href="\/worlds\/2026" aria-label="Worlds Predictions"/);
+  assert.match(header, /<NavigationMenu active=\{gamesActive\} label="Games">/);
+  assert.match(header, /href="\/worlds\/2026">🌎 Worlds Predictions<\/a>/);
   assert.doesNotMatch(header, /href="\/tournaments\/predictions"|>Picks</);
-  assert.match(quickLinks, /href="\/team-lab"[^>]*>[\s\S]*?quick-label-wide">Team Lab<\/span>/);
-  assert.doesNotMatch(quickLinks, /href="\/tournaments\/predictions"/);
-  assert.doesNotMatch(quickLinks, /Sign out/);
-  assert.match(quickLinks, /signedIn && <a href="\/trainer-dex"/);
-  assert.match(quickLinks, /isOwner && <a href="\/operations"/);
+  assert.match(header, /signedIn && <a href="\/trainer-dex"/);
+  assert.match(header, /isOwner && <a href="\/operations"/);
   assert.match(header, /href="\/operations\/predictions">Publish predictions/);
-  assert.match(quickLinks, /!signedIn && <a href="\/manuals"/);
-  assert.match(css, /grid-template-columns:\s*repeat\(7,minmax\(0,1fr\)\)/);
-  assert.match(css, /\.site-primary-links\s*\{[^}]*grid-template-columns:\s*repeat\(5,minmax\(0,1fr\)\)/);
-  assert.match(css, /\.site-quick-links\.has-owner-link\s*\{\s*grid-template-columns:\s*repeat\(8,minmax\(0,1fr\)\)/);
+  assert.match(header, /className="site-mobile-only" label="More"/);
+  assert.match(css, /grid-template-columns:\s*repeat\(5,minmax\(0,1fr\)\)/);
+  assert.match(css, /\.site-primary-links>\.site-mobile-only\s*\{\s*display:\s*none;/);
+  assert.match(css, /@media \(max-width:760px\)[\s\S]*?\.site-global-header\s*\{\s*backdrop-filter:\s*none;/);
+  assert.match(css, /\.site-primary-links>\.site-nav-menu>div\s*\{[\s\S]*?position:\s*fixed;[\s\S]*?right:\s*8px;[\s\S]*?left:\s*8px;/);
+  assert.doesNotMatch(navigation, /site-quick-links/);
   for (const group of ["Explore", "DraftCenter", "Policies"]) assert.match(footer, new RegExp(`<h2>${group}</h2>`));
 });

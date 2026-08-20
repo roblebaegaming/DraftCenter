@@ -55,17 +55,35 @@ feature, so a Team Lab visitor who chooses Sign in remains a Team Lab journey.
 
 ## Promotional-link convention
 
-Use lowercase `utm_source`, `utm_medium=social` (or the real medium), and one
-stable lowercase `utm_campaign` slug. Example:
+Every published placement uses all four lowercase fields:
+
+- `utm_source`: platform or partner;
+- `utm_medium`: `community`, `social`, `paid-social`, `paid-search`, `video`,
+  `email`, or `referral`;
+- `utm_campaign`: one stable product campaign; and
+- `utm_content`: language, creative, and variant, such as `it-odds-1`.
+
+Example:
 
 ```text
-https://www.draftcentral.gg/team-lab?utm_source=discord&utm_medium=social&utm_campaign=team-lab-launch
+https://www.draftcentral.gg/it/worlds/2026?utm_source=instagram&utm_medium=paid-social&utm_campaign=worlds-2026&utm_content=it-odds-1
 ```
 
 Recommended source slugs are `discord`, `reddit`, `x`, `instagram`, `youtube`,
 `facebook`, `bluesky`, `email`, and `partner`. Untagged recognized referrers are
 reduced to the same coarse channel; unknown external domains become
 `referral`, not a stored hostname.
+
+The account-creation event keeps the complete normalized placement in its
+existing coarse `source` property—for example
+`instagram-paid-social:worlds-2026:it-odds-1`. This preserves the two-property
+privacy contract while distinguishing organic from paid traffic and one
+language/creative placement from another. Never place a name, account, email,
+league, team, opponent, Pokémon, note, or other personal detail in UTM fields.
+
+The shared builder in `src/lib/campaignLinks.js` is the canonical source for
+campaign destinations, allowed media, localized Worlds routes, and the
+four-field link contract.
 
 ## Owner Operations
 

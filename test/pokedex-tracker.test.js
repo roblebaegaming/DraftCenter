@@ -607,9 +607,8 @@ test("the account page offers multiple game, HOME, shiny, collection-detail, fil
   assert.match(page, /pokedexEntryDetails/);
   assert.match(page, /pokedexRibbonGroups/);
   assert.match(links, /signedIn && <a href="\/pokedex-tracker"/);
-  assert.match(links, /quick-label-wide">Dex Tracker<\/span>/);
-  assert.match(links, /quick-label-compact">Track<\/span>/);
-  assert.doesNotMatch(links, /quick-label-compact">(?:Nuzlocke|Calendar|Tracker)<\/span>/);
+  assert.match(links, /href="\/pokedex-tracker"[^>]*>Dex Tracker<\/a>/);
+  assert.doesNotMatch(links, /quick-label-(?:wide|compact)/);
   assert.match(account, /\["pokedex_trackers",supabase\.rpc\("export_my_pokedex_trackers"\)\]/);
 });
 

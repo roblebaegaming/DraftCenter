@@ -171,7 +171,8 @@ test("the global navigation keeps DraftCenter Home clear and accessible at the t
   assert.match(navigation, /aria-current=\{pathname === "\/" \? "page" : undefined\}/);
   assert.match(navigation, /className="draft-home-label-wide">DraftCenter Home<\/span>/);
   assert.match(navigation, /className="draft-home-label-compact" aria-hidden="true">Home<\/span>/);
-  assert.match(navigation, /aria-label="Tools and resources"/);
+  assert.match(navigation, /aria-label="Primary navigation"/);
+  assert.match(styles, /grid-template-columns:\s*repeat\(5,minmax\(0,1fr\)\)/);
   assert.match(styles, /\.site-global-header\s*\{[\s\S]*?position:\s*sticky;[\s\S]*?top:\s*0;/);
   assert.match(styles, /\.site-draft-home\s*\{[\s\S]*?min-height:\s*44px;/);
   assert.match(styles, /\.site-draft-home\.is-active\s*\{/);
