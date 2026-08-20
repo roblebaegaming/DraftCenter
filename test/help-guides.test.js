@@ -49,6 +49,7 @@ test("global navigation separates account actions, tools, and reference links", 
   assert.doesNotMatch(header, /href="\/tournaments\/predictions"|>Picks</);
   assert.match(header, /signedIn && <a href="\/trainer-dex"/);
   assert.match(header, /isOwner && <a href="\/operations"/);
+  assert.match(header, /--site-mobile-nav-items[\s\S]*?isOwner \? 6 : 5[\s\S]*?site-owner-operations-link/);
   assert.match(header, /site-owner-menu[\s\S]*?href="\/operations">Operations<\/a>/);
   assert.match(header, /href="\/operations\/predictions">Publish predictions/);
   assert.match(header, /className="site-mobile-only" label="More"/);

@@ -557,7 +557,7 @@ button { cursor: pointer; }
     grid-column: auto;
     grid-row: auto;
     display: grid;
-    grid-template-columns: repeat(5,minmax(0,1fr));
+    grid-template-columns: repeat(var(--site-mobile-nav-items,5),minmax(0,1fr));
     gap: 3px;
     padding: 5px;
     overflow: visible;

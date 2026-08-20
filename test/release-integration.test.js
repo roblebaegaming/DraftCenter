@@ -77,7 +77,7 @@ test("integrated quick links expose each released feature once", () => {
   for (const path of ["/team-lab", "/nuzlocke", "/tournaments", "/calendar", "/trainer-dex", "/pokedex-tracker"]) {
     assert.equal((links.match(new RegExp(`href=\"${path}\"`, "g")) || []).length, 1);
   }
-  assert.equal((links.match(/href="\/operations"/g) || []).length, 2);
+  assert.equal((links.match(/href="\/operations"/g) || []).length, 3);
   assert.equal((links.match(/href="\/worlds\/2026"/g) || []).length, 1);
   assert.equal((links.match(/href="\/tournaments\/predictions"/g) || []).length, 0);
   assert.match(links, /href="\/nuzlocke"[^>]*>Nuzlockes<\/a>/);
