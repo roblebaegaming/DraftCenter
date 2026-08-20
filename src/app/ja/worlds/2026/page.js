@@ -4,7 +4,7 @@ import roster from "../../../../data/worlds-2026-vgc-masters.json";
 const canonicalUrl = "https://www.draftcentral.gg/ja/worlds/2026";
 const englishUrl = "https://www.draftcentral.gg/worlds/2026/vgc";
 const pageTitle = "2026年ポケモン世界大会 VGC予想・優勝確率";
-const pageDescription = `VGCマスター招待選手${roster.competitors.length}人から10人を選び、別の予想で世界チャンピオンのチームに入るポケモン6匹を予想できます。`;
+const pageDescription = `2026年ポケモン世界大会のVGCマスター招待選手${roster.competitors.length}人から10人と優勝予想を選び、優勝チームのポケモン6匹も予想する2つの無料世界大会です。優勝確率は賭けではありません。`;
 
 export const metadata = {
   title: pageTitle,

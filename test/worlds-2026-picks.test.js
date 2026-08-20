@@ -317,7 +317,7 @@ test("the Worlds overview separates competition and overall leaderboards", () =>
   assert.match(overviewPage, /canonical: "\/worlds\/2026"/);
   assert.match(vgcPage, /pageTitle = "2026 Pokémon Worlds VGC Predictions & Champion Odds"/);
   assert.match(vgcPage, /canonical: "\/worlds\/2026\/vgc"/);
-  assert.match(vgcPage, /pick 10 qualified players, name Your Champion/);
+  assert.match(vgcPage, /predict six Pokémon for the winning team/);
   assert.match(vgcPage, /sameAs: "https:\/\/worlds\.pokemon\.com\/en-us"/);
   assert.match(tcgPage, /pageTitle = "2026 Pokémon Worlds TCG Predictions"/);
   assert.match(tcgPage, /canonical: "\/worlds\/2026\/tcg"/);
@@ -357,7 +357,7 @@ test("the Italian Worlds route localizes the current Pick 10 experience without 
   assert.match(competitionConfig, /vgc:[\s\S]*?eventId: "2026-vgc-masters"/);
   assert.match(component, /const eventId = config\.eventId/);
   assert.match(englishPage, /languages: \{ en: "\/worlds\/2026\/vgc", it: "\/it\/worlds\/2026"/);
-  assert.match(sitemap, /\["\/it\/worlds\/2026", "daily", 0\.8\]/);
+  assert.match(sitemap, /\["\/it\/worlds\/2026", "daily", 0\.9\]/);
   assert.match(component, /navigator\.languages/);
   assert.match(component, /draftcenter-worlds-language-offer-dismissed/);
   assert.match(component, /document\.documentElement\.lang = copy\.documentLanguage/);
@@ -439,7 +439,7 @@ test("the Spanish Worlds route localizes Pick 10, odds, Meta Picks, roster label
   assert.match(spanishPage, /translationOfWork/);
   assert.match(spanishPage, /WorldsPickSixteen discipline="vgc" rosterSource=\{roster\} locale="es"/);
   assert.match(englishPage, /es: "\/es\/worlds\/2026"/);
-  assert.match(sitemap, /\["\/es\/worlds\/2026", "daily", 0\.8\]/);
+  assert.match(sitemap, /\["\/es\/worlds\/2026", "daily", 0\.9\]/);
   assert.match(component, /Object\.entries\(WORLDS_LANGUAGES\)/);
   assert.match(component, /document\.documentElement\.lang = copy\.documentLanguage/);
   assert.match(meta, /worldsCopy\(locale\)\.meta/);
@@ -510,7 +510,7 @@ test("German, Japanese, and Korean Worlds routes share the VGC competitions and 
     assert.match(page, new RegExp(`canonical: "/${locale}/worlds/2026"`));
     assert.match(page, /worlds-2026-vgc-masters\.json/);
     assert.match(page, /WorldsPickSixteen discipline="vgc" rosterSource=\{roster\}/);
-    assert.match(sitemap, new RegExp(`\\["/${locale}/worlds/2026", "daily", 0\\.8\\]`));
+    assert.match(sitemap, new RegExp(`\\["/${locale}/worlds/2026", "daily", 0\\.9\\]`));
     assert.match(llms, new RegExp(`draftcentral\\.gg/${locale}/worlds/2026`));
     assert.match(odds, new RegExp(`\\n  ${locale}: \\{`));
     assert.match(profile, new RegExp(`\\n  ${locale}: \\{`));
