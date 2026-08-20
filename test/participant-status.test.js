@@ -16,9 +16,11 @@ import {
 import { buildNextLeagueSwissRoundState, leagueSwissRoundIsComplete } from "../src/lib/leagueSwiss.mjs";
 
 const migration = readFileSync(new URL("../supabase/migrations/20260819185347_participant_retirement_and_tournament_drops.sql", import.meta.url), "utf8");
+const setupGuardFix = readFileSync(new URL("../supabase/migrations/20260820040500_allow_empty_league_setup_initialization.sql", import.meta.url), "utf8");
 const leagueUi = readFileSync(new URL("../src/components/AuthGate.jsx", import.meta.url), "utf8");
 const tournamentUi = readFileSync(new URL("../src/components/TournamentWorkspace.jsx", import.meta.url), "utf8");
 const regression = readFileSync(new URL("../supabase/tests/444-participant-retirement-preview-regression.sql", import.meta.url), "utf8");
+const setupGuardRegression = readFileSync(new URL("../supabase/tests/451-empty-league-setup-participation-guard-preview-regression.sql", import.meta.url), "utf8");
 
 test("league retirement labels preserve standings rows while excluding qualification rows", () => {
   const teams = [
@@ -84,6 +86,13 @@ test("migration keeps reasons private and requires explicit unresolved-match pol
   assert.doesNotMatch(migration, /jsonb_build_object\([^)]*private_reason/);
   assert.match(regression, /private participation reasons are directly readable/);
   assert.match(regression, /qualification eligibility helper is public/);
+});
+
+test("retirement guard allows the first empty-league setup without weakening retirement protection", () => {
+  assert.match(setupGuardFix, /jsonb_typeof\(old\.state -> 'teams'\) is distinct from 'array'/);
+  assert.match(setupGuardFix, /Season participation can only be changed from Commissioner Tools/);
+  assert.match(setupGuardRegression, /same empty-snapshot-to-initial-setup transition/i);
+  assert.match(setupGuardRegression, /Direct retirement mutation unexpectedly succeeded/);
 });
 
 test("commissioner interfaces separate replacement from retirement and expose safe reactivation", () => {
