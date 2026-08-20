@@ -68,7 +68,6 @@ export default function SiteQuickLinks() {
       </div>
     </header>
     <nav className={`site-quick-links${signedIn ? " has-tracker-link" : ""}${isOwner ? " has-owner-link" : ""}`} aria-label="Tools and resources">
-      <a className={`site-worlds-link${worldsActive ? " is-active" : ""}`} href="/worlds/2026" aria-label="Worlds Predictions" aria-current={worldsActive ? "page" : undefined}><span className="quick-label-wide">🌎 Worlds Predictions</span><span className="quick-label-compact">🌎 Worlds</span></a>
       <a href="/resources/daily-games" aria-label="Daily Games" {...navState(pathname, "/resources/daily-games")}><span className="quick-label-wide">Daily Games</span><span className="quick-label-compact">Daily</span></a>
       <a href="/team-lab" aria-label="Team Lab" {...navState(pathname, "/team-lab")}><span className="quick-label-wide">Team Lab</span><span className="quick-label-compact">Lab</span></a>
       <a href="/nuzlocke" aria-label="Nuzlockes" {...navState(pathname, "/nuzlocke")}><span className="quick-label-wide">Nuzlockes</span><span className="quick-label-compact">Nuz</span></a>
