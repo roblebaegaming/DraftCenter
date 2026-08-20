@@ -65,7 +65,7 @@ export default function SiteQuickLinks() {
           <span className="draft-home-label-wide">DraftCenter Home</span>
           <span className="draft-home-label-compact" aria-hidden="true">Home</span>
         </a>
-        <nav className="site-primary-links" aria-label="Primary navigation">
+        <nav className="site-primary-links" aria-label="Primary navigation" style={{ "--site-mobile-nav-items": isOwner ? 6 : 5 }}>
           <a href="/?view=dashboard" aria-label="DraftCenter Home" {...classedNavState(pathname, "/", "site-mobile-only")}><span>Home</span></a>
           <a href="/leagues" aria-label="Draft Leagues" {...navState(pathname, "/leagues")}><span className="site-nav-label-wide">Draft Leagues</span><span className="site-nav-label-compact" aria-hidden="true">Leagues</span></a>
           <NavigationMenu active={gamesActive} label="Games">
@@ -84,6 +84,7 @@ export default function SiteQuickLinks() {
             {signedIn && <a href="/pokedex-tracker" {...navState(pathname, "/pokedex-tracker")}>Dex Tracker</a>}
             {isOwner && <a href="/operations" {...navState(pathname, "/operations")}>Operations</a>}
           </NavigationMenu>
+          {isOwner && <a href="/operations" aria-label="Operations" {...classedNavState(pathname, "/operations", "site-mobile-only site-owner-operations-link")}>Operations</a>}
           <a href="/pokemon" aria-label="Pokémon" {...classedNavState(pathname, "/pokemon", "site-desktop-only")}>Pokémon</a>
           <a href="/explore" aria-label="Community" {...classedNavState(pathname, "/explore", "site-desktop-only")}>Community</a>
           <NavigationMenu active={anyCurrentPage(pathname, ["/pokemon", "/explore", "/organizations", "/manuals"])} className="site-mobile-only" label="More">
@@ -97,8 +98,11 @@ export default function SiteQuickLinks() {
           {signedIn ? <>
             {isOwner ? <details className="site-owner-menu">
               <summary>{accountName}</summary>
-              <div><a href="/operations/predictions">Publish predictions</a></div>
-              <div><a href="/operations/daily-three">Daily Games</a></div>
+              <div>
+                <a href="/operations">Operations</a>
+                <a href="/operations/predictions">Publish predictions</a>
+                <a href="/operations/daily-three">Daily Games</a>
+              </div>
             </details> : <span className="site-account-name">{accountName}</span>}
             <a href="/?profile=open" onClick={openProfile}>Profile</a>
             <button type="button" onClick={signOut}>Sign out</button>

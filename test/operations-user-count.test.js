@@ -56,7 +56,9 @@ test("the verified owner gets a visible Operations navigation tab", () => {
   const ownerAccess = fs.readFileSync(new URL("../src/lib/ownerOperations.js", import.meta.url), "utf8");
   const ownerGate = ownerAccess.slice(ownerAccess.indexOf("export async function requireOwner"), ownerAccess.indexOf("function warning"));
   assert.match(navigation, /isOwner && <a href="\/operations"[^>]*>Operations<\/a>/);
-  assert.equal((navigation.match(/href="\/operations"/g) || []).length, 1);
+  assert.match(navigation, /isOwner && <a href="\/operations" aria-label="Operations"[^>]*site-mobile-only site-owner-operations-link[^>]*>Operations<\/a>/);
+  assert.match(navigation, /isOwner \? <details className="site-owner-menu">[\s\S]*?<a href="\/operations">Operations<\/a>/);
+  assert.equal((navigation.match(/href="\/operations"/g) || []).length, 3);
   assert.match(navigation, /usePlatformAccount\(\)/);
   assert.match(account, /setUsername\(profileResult\.data\?\.username \|\| ""\)/);
   assert.match(accessRoute, /requireOwner\(request\)/);
