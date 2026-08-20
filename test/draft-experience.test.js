@@ -120,6 +120,16 @@ test("manual checkpoints advance through commit and expose a verification state"
   assert.match(draftLeagueSource, /save still failed after waiting/u);
 });
 
+test("auction managers can nominate directly while the optional queue stays stable", () => {
+  assert.match(draftLeagueSource, /className="mt-2 grid grid-cols-2 gap-2"/u);
+  assert.match(draftLeagueSource, />\s*NOMINATE\s*<\/button>/u);
+  assert.match(draftLeagueSource, /\+ QUEUE FOR LATER/u);
+  assert.match(draftLeagueSource, /disabled=\{!canNominate \|\| !!nominee\}/u);
+  assert.match(draftLeagueSource, /disabled=\{!myNominationTurn\}/u);
+  assert.match(draftLeagueSource, /Your queue is optional\./u);
+  assert.match(draftLeagueSource, /className="draft-queue-panel rounded-lg p-4 mb-6"/u);
+});
+
 test("the global navigation keeps DraftCenter Home clear and accessible at the top", () => {
   const navigation = fs.readFileSync(new URL("../src/components/SiteQuickLinks.jsx", import.meta.url), "utf8");
   const styles = fs.readFileSync(new URL("../src/app/globals.css", import.meta.url), "utf8");
