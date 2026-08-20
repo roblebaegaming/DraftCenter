@@ -3,10 +3,37 @@
 - Last updated: August 20, 2026 Pacific
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified Production application behavior commit: `7f2236a27961de63ff48f6adeae88c5d1245a527`
-- Latest applied Production migration: 453 (`20260820040500`)
+- Verified Production application behavior commit: `aa82ecc12d0eadd3dd75b34c9e8c95ce17d2fb50`
+- Latest applied Production migration: 454 (`20260820180704`)
 
 ## Latest release
+
+Pull request [#371](https://github.com/roblebaegaming/DraftCenter/pull/371)
+is deployed at exact Production application commit `aa82ecc` with forward
+migration `20260820180704_add_french_worlds_chat_room.sql`. The public Pokédex
+now supports English, Italian, Spanish, French, German, Japanese, and Korean,
+including official localized names for all 1,025 species, localized core facts,
+reciprocal language controls, metadata, sitemap coverage, stable Pokémon
+identifiers, and explicit links to the complete English analysis. French now
+completes the same seven-language Worlds VGC experience and account-only chat
+room set without splitting the shared event, predictions, or leaderboard.
+
+The six non-English Pokédexes and French Worlds are visibly labeled as a
+translation beta and link to Support for corrections. Native-speaker review
+remains truthfully pending and is post-launch editorial work under the owner's
+explicit risk acceptance. English fallbacks remain visible. The multilingual
+Mega bracket is still blocked by missing reviewed official form names and was
+not released.
+
+Migration 454 only extends the reviewed Worlds chat allowlist to French. Live
+postflight confirmed the exact ledger version, seven-language constraint, RLS,
+direct-table denials, anonymous RPC denials, authenticated-only RPC grants,
+security-definer settings, and empty search paths. The expected existing
+account-only RPC advisor notices remain; there is no error-level or migration-
+specific performance finding. The dependency audit, complete application
+suite, 1,027-row National Dex check, 344-page build, refreshed hosted Preview,
+post-merge security checks, exact-commit Vercel deployment, live localized-page
+review, and complete 22-check signed-out Production smoke sweep all passed.
 
 Pull request [#369](https://github.com/roblebaegaming/DraftCenter/pull/369)
 is deployed at exact Production application commit `7f2236a`. The
@@ -718,6 +745,9 @@ not be resumed until the owner explicitly requests it.
 - Do not resume PokeEarth without a direct owner request.
 
 ## Authoritative records
+
+- Current multilingual Pokédex and French Worlds Production handoff:
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-20-multilingual-pokedex-french-worlds.md`](handoffs/DraftCenter-agent-handoff-2026-08-20-multilingual-pokedex-french-worlds.md)
 
 - Latest final Production and continuation handoff:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-20-final-session.md`](handoffs/DraftCenter-agent-handoff-2026-08-20-final-session.md)

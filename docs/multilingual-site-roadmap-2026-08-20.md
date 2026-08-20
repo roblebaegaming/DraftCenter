@@ -1,12 +1,12 @@
 # DraftCenter multilingual site roadmap
 
-Status: the first Pokédex milestone and French Worlds expansion are prepared as
-an owner-authorized translation-beta release candidate on 2026-08-20. They are
-not yet enabled in Production. Pull request #371, its protected executable
-checks, and hosted Vercel Preview review pass. Migration 454 passed its
-rollback-only isolated Preview regression, and the paid disposable branch was
-deleted immediately afterward. Native review remains pending post-launch; the
-beta release must disclose that status and accept corrections through Support.
+Status: the first Pokédex milestone and French Worlds expansion were released
+as an owner-authorized translation beta on 2026-08-20 through pull request
+#371 at exact Production commit `aa82ecc`. Protected checks, hosted Preview,
+migration 454's isolated and live postflight checks, exact-commit deployment,
+and the complete signed-out smoke sweep pass. Native review remains pending
+post-launch; the beta release discloses that status and accepts corrections
+through Support.
 
 ## Product direction
 

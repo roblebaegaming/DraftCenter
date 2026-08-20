@@ -5,7 +5,9 @@ Date: 2026-08-20
 Status: technical and model-assisted editorial QA is complete. Native-speaker
 approval is not complete. On 2026-08-20, the owner explicitly accepted that
 editorial risk and authorized a clearly labeled translation-beta release of
-pull request #371, with corrections collected through DraftCenter Support.
+pull request #371, with corrections collected through DraftCenter Support. The
+beta is live at exact Production application commit `aa82ecc`; every native-
+speaker matrix row remains pending.
 
 ## Review scope
 
