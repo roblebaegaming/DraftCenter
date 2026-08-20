@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 
-import { claimedTeamCount, compactLocalTeamsClaimedFirst, openSetupTeams, teamIsClaimed } from "../src/lib/teamOwnership.js";
+import { canClaimOpenLeagueTeam, claimedTeamCount, compactLocalTeamsClaimedFirst, openSetupTeams, teamIsClaimed } from "../src/lib/teamOwnership.js";
 
 const migration = readFileSync(new URL("../supabase/253-claimed-first-team-ownership-and-safe-resize.sql", import.meta.url), "utf8");
 const completedClaimMigration = readFileSync(new URL("../supabase/migrations/20260819090000_443_completed_draft_team_claims.sql", import.meta.url), "utf8");
@@ -30,6 +30,33 @@ test("local compaction keeps claimed teams before open bot slots", () => {
   assert.deepEqual(openSetupTeams(teams).map((team) => team.index), [0, 4]);
 });
 
+test("team claims remain available before a draft and reopen only after a hosted draft completes", () => {
+  assert.equal(canClaimOpenLeagueTeam({ locked: false }), true);
+
+  const snake = {
+    locked: true,
+    settings: { draftType: "snake", rosterMin: 2 },
+    teams: [{}, {}],
+    rosters: [["A", "B"], ["C", "D"]],
+    snakeOrder: [0, 1, 1, 0],
+    pickIndex: 2,
+  };
+  assert.equal(canClaimOpenLeagueTeam(snake), false);
+  assert.equal(canClaimOpenLeagueTeam({ ...snake, pickIndex: 4 }), true);
+  assert.equal(canClaimOpenLeagueTeam({ ...snake, pickIndex: 4, rosters: [["A", "B"], ["C"]] }), false);
+
+  const auction = {
+    locked: true,
+    settings: { draftType: "auction", rosterSize: 1 },
+    teams: [{}, {}],
+    rosters: [["A"], ["B"]],
+    pool: ["C"],
+    auctionEnded: false,
+  };
+  assert.equal(canClaimOpenLeagueTeam(auction), false);
+  assert.equal(canClaimOpenLeagueTeam({ ...auction, auctionEnded: true }), true);
+});
+
 test("public joining opens the team chooser instead of skipping to the league", () => {
   assert.match(leagueHub, /joinPublicLeague[\s\S]*openSetupTeams\(snapshot\?\.state\?\.teams[\s\S]*setPendingTeamClaim/u);
   assert.match(leagueHub, /Team not claimed/u);
@@ -54,4 +81,10 @@ test("completed draft claims preserve historical team indexes and remain tightly
   assert.match(completedClaimMigration, /v_draft_complete[\s\S]*snakeOrder[\s\S]*pickIndex/u);
   assert.match(completedClaimMigration, /Completed-draft claim|Claimed completed-draft team/u);
   assert.match(completedClaimMigration, /revoke all[\s\S]*from public, anon, authenticated, service_role[\s\S]*grant execute[\s\S]*to authenticated, service_role/u);
+});
+
+test("commissioner setup exposes eligible completed-draft team claims", () => {
+  assert.match(draftLeague, /const canClaimOpenTeam = canClaimOpenLeagueTeam\(/u);
+  assert.match(draftLeague, /openTeamIndexes\.has\(i\) && canClaimOpenTeam/u);
+  assert.doesNotMatch(draftLeague, /!t\.claimedBy && !locked/u);
 });

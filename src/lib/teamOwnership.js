@@ -17,6 +17,28 @@ export function openSetupTeams(teams) {
     .filter((team) => !teamIsClaimed(team) && !isLeagueTeamRetired(team));
 }
 
+export function canClaimOpenLeagueTeam(state) {
+  if (!state?.locked) return true;
+
+  const teams = Array.isArray(state.teams) ? state.teams : [];
+  const rosters = Array.isArray(state.rosters) ? state.rosters : [];
+  const settings = state.settings && typeof state.settings === "object" ? state.settings : {};
+  const rosterMinimum = Math.max(1, Number(settings.rosterMin ?? settings.rosterSize ?? 1) || 1);
+  const hasCompleteRosters = teams.length > 0
+    && rosters.length === teams.length
+    && rosters.every((roster) => Array.isArray(roster) && roster.length >= rosterMinimum);
+
+  if (!hasCompleteRosters) return false;
+  if ((settings.draftType || "snake") === "auction") {
+    return Boolean(state.auctionEnded)
+      || (Array.isArray(state.pool) && state.pool.length === 0);
+  }
+
+  return Array.isArray(state.snakeOrder)
+    && Number.isFinite(Number(state.pickIndex))
+    && Number(state.pickIndex) >= state.snakeOrder.length;
+}
+
 export function compactLocalTeamsClaimedFirst(teams, size) {
   const ordered = [
     ...(teams || []).filter(teamIsClaimed),
