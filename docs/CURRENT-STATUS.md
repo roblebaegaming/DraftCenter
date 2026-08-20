@@ -76,6 +76,23 @@ finding.
 
 ## Deployed state
 
+### Pending Worlds language chatboard release
+
+Branch `codex/worlds-language-chatboard` is an undeployed release candidate
+based on `550481173`. It adds an account-only Worlds VGC discussion board below
+the existing player/Pokémon start guide, with separate English, Italian,
+Spanish, German, Japanese, and Korean rooms over the same shared prediction
+event. The compact board includes automatic refresh, earlier-message paging,
+500-character posting, rate limits, public coach-profile buttons, self-removal,
+and private one-per-member reports. Forward migration
+`20260820004814_worlds_language_chatboard.sql` creates the two RLS-enabled
+tables and four narrowly granted authenticated RPCs; direct browser table
+access remains revoked. Nothing from this candidate has been applied to
+Production. The rollback-only Preview regression must pass before merge, and
+Production migration 451 must not be applied without an authorized release.
+The detailed continuation record is in the
+[`August 19 Worlds language chatboard handoff`](handoffs/DraftCenter-agent-handoff-2026-08-19-worlds-language-chatboard.md).
+
 Pull request [#352](https://github.com/roblebaegaming/DraftCenter/pull/352)
 temporarily replaced the primary **Predictions** / phone **Picks** navigation
 item with a highlighted **🌎 Worlds Predictions** / phone **🌎 Worlds** button

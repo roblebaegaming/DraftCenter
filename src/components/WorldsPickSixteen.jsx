@@ -23,6 +23,7 @@ import WorldsDisciplineNav from "./WorldsDisciplineNav";
 import WorldsChampionOdds from "./WorldsChampionOdds";
 import WorldsMetaChallenge from "./WorldsMetaChallenge";
 import WorldsPickShare from "./WorldsPickShare";
+import WorldsChatBoard from "./WorldsChatBoard";
 import PublicCoachProfile, { CoachProfileButton } from "./PublicCoachProfile";
 
 function fallbackEvent(config, rosterSource) {
@@ -292,6 +293,8 @@ export default function WorldsPickSixteen({ rosterSource, discipline = "vgc", lo
         <a className="quiet-button" href="#meta-picks">{copy.guide.pokemon}</a>
       </nav>
     </section>}
+
+    {config.key === "vgc" && <WorldsChatBoard eventId={eventId} locale={locale} user={user} />}
 
     <section className="worlds-trust-note">
       <div><span className="eyebrow">{isItalian ? copy.trust.eyebrow : "REVIEWED ROSTER ONLY"}</span><h2>{isItalian ? copy.trust.title(competitors.length) : <>{competitors.length} {config.entryPlural} in the prediction pool</>}</h2></div>
