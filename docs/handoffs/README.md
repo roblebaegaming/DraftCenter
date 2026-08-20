@@ -14,6 +14,13 @@ six-language selector; the first-screen player-and-Pokémon clarification; the
 large persistent Worlds Predictions button; protected Preview and Production
 evidence; and the no-migration, no-data-change boundary.
 
+[`DraftCenter-agent-handoff-2026-08-19-worlds-multilingual-seo-and-meta-campaign.md`](DraftCenter-agent-handoff-2026-08-19-worlds-multilingual-seo-and-meta-campaign.md)
+is the current multilingual Worlds SEO and acquisition handoff. It records the
+six-language metadata, language headers, canonicals, alternates, social images,
+sitemap parity, validation evidence, exact unpublished $420 Meta draft, secure
+owner-entered payment method, and the still-unapproved Instagram-to-Facebook
+Page connection and final Publish gates.
+
 [`DraftCenter-agent-handoff-2026-08-19-four-pod-midseason-import.md`](DraftCenter-agent-handoff-2026-08-19-four-pod-midseason-import.md)
 is the current Production import handoff. It records the live private
 organization and four pod links, exact source and import hashes, normalized

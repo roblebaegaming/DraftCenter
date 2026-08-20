@@ -4,7 +4,7 @@ import roster from "../../../../data/worlds-2026-vgc-masters.json";
 const canonicalUrl = "https://www.draftcentral.gg/de/worlds/2026";
 const englishUrl = "https://www.draftcentral.gg/worlds/2026/vgc";
 const pageTitle = "Tipps und Siegchancen zur Pokémon-WM VGC 2026";
-const pageDescription = `Sieh dir ${roster.competitors.length} eingeladene VGC-Masters-Spieler an, wähle 10 Spieler und tippe in einem separaten Wettbewerb auf sechs Pokémon im Team des Weltmeisters.`;
+const pageDescription = `Wähle 10 von ${roster.competitors.length} VGC-Masters-Spielern der Pokémon-WM 2026, bestimme deinen Champion und tippe sechs Pokémon des Siegerteams in zwei kostenlosen Wettbewerben mit Siegchancen ohne Wettbezug.`;
 
 export const metadata = {
   title: pageTitle,

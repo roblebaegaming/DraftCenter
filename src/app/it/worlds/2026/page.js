@@ -4,7 +4,7 @@ import roster from "../../../../data/worlds-2026-vgc-masters.json";
 const canonicalUrl = "https://www.draftcentral.gg/it/worlds/2026";
 const englishUrl = "https://www.draftcentral.gg/worlds/2026/vgc";
 const pageTitle = "Pronostici e probabilità Mondiali Pokémon VGC 2026";
-const pageDescription = `Consulta ${roster.competitors.length} invitati VGC Master, scegli 10 giocatori, confronta probabilità non legate alle scommesse e scopri i profili della classifica della community.`;
+const pageDescription = `Scegli 10 dei ${roster.competitors.length} giocatori VGC Master dei Mondiali Pokémon 2026, indica il Campione e pronostica sei Pokémon della squadra vincitrice in due gare gratuite con probabilità non legate alle scommesse.`;
 
 export const metadata = {
   title: pageTitle,

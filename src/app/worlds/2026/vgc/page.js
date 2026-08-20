@@ -8,7 +8,7 @@ const germanUrl = "https://www.draftcentral.gg/de/worlds/2026";
 const japaneseUrl = "https://www.draftcentral.gg/ja/worlds/2026";
 const koreanUrl = "https://www.draftcentral.gg/ko/worlds/2026";
 const pageTitle = "2026 Pokémon Worlds VGC Predictions & Champion Odds";
-const pageDescription = `Browse ${roster.competitors.length} Pokémon Worlds 2026 VGC Masters invitees, pick 10 qualified players, name Your Champion, compare non-betting champion odds, and explore community leaderboard profiles.`;
+const pageDescription = `Pick 10 of ${roster.competitors.length} Pokémon Worlds 2026 VGC Masters players, name Your Champion, and predict six Pokémon for the winning team in two free worldwide competitions with non-betting champion odds.`;
 
 export const metadata = {
   title: pageTitle,

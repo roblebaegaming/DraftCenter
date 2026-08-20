@@ -4,7 +4,7 @@ import roster from "../../../../data/worlds-2026-vgc-masters.json";
 const canonicalUrl = "https://www.draftcentral.gg/ko/worlds/2026";
 const englishUrl = "https://www.draftcentral.gg/worlds/2026/vgc";
 const pageTitle = "2026 포켓몬 월드 챔피언십 VGC 예측 및 우승 확률";
-const pageDescription = `VGC 마스터 초청 선수 ${roster.competitors.length}명 중 10명을 선택하고 별도의 예측에서 월드 챔피언 팀의 포켓몬 6마리를 예상하세요.`;
+const pageDescription = `2026 포켓몬 월드 챔피언십 VGC 마스터 초청 선수 ${roster.competitors.length}명 중 10명과 우승 선수를 고르고, 우승 팀의 포켓몬 6마리도 예측하는 두 가지 무료 글로벌 이벤트입니다. 우승 확률은 베팅이 아닙니다.`;
 
 export const metadata = {
   title: pageTitle,

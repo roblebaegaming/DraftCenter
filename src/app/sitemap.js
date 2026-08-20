@@ -10,10 +10,7 @@ import { predictionBracketEventPath } from "../lib/predictionBracketPaths";
 const PRODUCT_DISCOVERY_LAST_MODIFIED = new Date("2026-08-16T00:00:00.000Z");
 const COMMISSIONER_SEO_LAST_MODIFIED = new Date("2026-08-18T00:00:00.000Z");
 const WORLDS_2026_LAST_MODIFIED = new Date("2026-08-11T00:00:00.000Z");
-const WORLDS_VGC_LAST_MODIFIED = new Date("2026-08-18T00:00:00.000Z");
-const ITALIAN_WORLDS_LAST_MODIFIED = new Date("2026-08-18T00:00:00.000Z");
-const SPANISH_WORLDS_LAST_MODIFIED = new Date("2026-08-18T00:00:00.000Z");
-const ADDITIONAL_WORLDS_LAST_MODIFIED = new Date("2026-08-19T00:00:00.000Z");
+const WORLDS_LOCALIZED_LAST_MODIFIED = new Date("2026-08-19T00:00:00.000Z");
 const WORLDS_LANGUAGE_ALTERNATES = {
   en: "https://www.draftcentral.gg/worlds/2026/vgc",
   it: "https://www.draftcentral.gg/it/worlds/2026",
@@ -47,12 +44,12 @@ const productRouteLastModified = new Map([
   ["/tournaments/predictions", PRODUCT_DISCOVERY_LAST_MODIFIED],
   ["/resources/daily-games", PRODUCT_DISCOVERY_LAST_MODIFIED],
   ["/worlds/2026", WORLDS_2026_LAST_MODIFIED],
-  ["/worlds/2026/vgc", WORLDS_VGC_LAST_MODIFIED],
-  ["/it/worlds/2026", ITALIAN_WORLDS_LAST_MODIFIED],
-  ["/es/worlds/2026", SPANISH_WORLDS_LAST_MODIFIED],
-  ["/de/worlds/2026", ADDITIONAL_WORLDS_LAST_MODIFIED],
-  ["/ja/worlds/2026", ADDITIONAL_WORLDS_LAST_MODIFIED],
-  ["/ko/worlds/2026", ADDITIONAL_WORLDS_LAST_MODIFIED],
+  ["/worlds/2026/vgc", WORLDS_LOCALIZED_LAST_MODIFIED],
+  ["/it/worlds/2026", WORLDS_LOCALIZED_LAST_MODIFIED],
+  ["/es/worlds/2026", WORLDS_LOCALIZED_LAST_MODIFIED],
+  ["/de/worlds/2026", WORLDS_LOCALIZED_LAST_MODIFIED],
+  ["/ja/worlds/2026", WORLDS_LOCALIZED_LAST_MODIFIED],
+  ["/ko/worlds/2026", WORLDS_LOCALIZED_LAST_MODIFIED],
   ["/worlds/2026/tcg", WORLDS_2026_LAST_MODIFIED],
   ["/worlds/2026/go", WORLDS_2026_LAST_MODIFIED],
   ["/worlds/2026/vgc/bracket", WORLDS_2026_LAST_MODIFIED],
@@ -77,11 +74,11 @@ const routes = [
   ["/tournaments/predictions", "daily", 0.9],
   ["/worlds/2026", "daily", 0.9],
   ["/worlds/2026/vgc", "daily", 0.9],
-  ["/it/worlds/2026", "daily", 0.8],
-  ["/es/worlds/2026", "daily", 0.8],
-  ["/de/worlds/2026", "daily", 0.8],
-  ["/ja/worlds/2026", "daily", 0.8],
-  ["/ko/worlds/2026", "daily", 0.8],
+  ["/it/worlds/2026", "daily", 0.9],
+  ["/es/worlds/2026", "daily", 0.9],
+  ["/de/worlds/2026", "daily", 0.9],
+  ["/ja/worlds/2026", "daily", 0.9],
+  ["/ko/worlds/2026", "daily", 0.9],
   ["/worlds/2026/tcg", "daily", 0.9],
   ["/worlds/2026/go", "daily", 0.9],
   ["/worlds/2026/vgc/bracket", "daily", 0.8],
