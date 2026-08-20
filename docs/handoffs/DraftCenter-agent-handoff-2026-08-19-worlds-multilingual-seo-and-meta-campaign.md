@@ -87,12 +87,13 @@ did not publish the campaign or start spend.
 ## Remaining Meta gate
 
 The image upload remains blocked because the Instagram profile is not connected
-to a Facebook Page. Meta's connection notice is open, but **Next** has not been
-clicked. Meta states that people with Page access would then be able to manage
-Instagram content and ads, insights, messages/comments, and settings. Require
-explicit owner approval before proceeding, verify the exact Page before the
-connection is completed, and do not create an unexpected Page or change Page
-access.
+to a Facebook Page. The current Ads Manager dialog says **No Pages available to
+connect** and states that the signed-in profile does not have access to manage
+any Facebook Pages. Meta says an existing Page would require access from someone
+with full control, or a new Page could be created. Do not create a Page, change
+Page access, or ask another person to grant access without explicit owner
+direction. Verify the exact Page and permissions before completing any
+connection.
 
 After the Page identity is approved and connected:
 
