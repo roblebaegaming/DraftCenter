@@ -5,7 +5,7 @@
 - Application worktree: `DraftCenter-worlds-multilingual-release-20260819`
 - Application branch: `codex/worlds-multilingual-release-2026-08-19`
 - Meta Ads campaign: unpublished draft
-- Production deployment: complete at commit `4f023e08893da06c0c535856f380724aa72113fc`
+- Production SEO application release: complete via commit `4f023e08893da06c0c535856f380724aa72113fc`
 - Production database change: none
 
 ## Completed application outcome
@@ -111,8 +111,9 @@ After the Page identity is approved and connected:
 
 The SEO pass was released through protected pull request
 [#355](https://github.com/roblebaegaming/DraftCenter/pull/355), after all checks
-passed and the Preview was reviewed in all six languages. Production is serving
-the verified merge commit `4f023e08893da06c0c535856f380724aa72113fc`, and the
-post-deployment smoke sweep passed. No database migration was part of this SEO
-change.
+passed and the Preview was reviewed in all six languages. The Production
+application release was verified at merge commit
+`4f023e08893da06c0c535856f380724aa72113fc`, and the post-deployment smoke sweep
+passed. This later handoff-only update does not alter application output. No
+database migration was part of this SEO change.
 
