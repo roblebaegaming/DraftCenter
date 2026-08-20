@@ -13,6 +13,10 @@ or rebuilding rosters.
 - Pod commissioners continue using the existing league roles. Organization
   owners and administrators coordinate the overall season but do not silently
   acquire league authority.
+- Setup presents the existing `co_commissioner` role as **League Manager** so
+  its scope is clear. A League Manager can operate only the league where that
+  role was assigned. Sibling pods remain bounded observer views unless the
+  person is assigned as a League Manager in each of those pods separately.
 - A manager or commissioner in one pod may open every other active pod in the
   same organization season. In a sibling pod they may read completed league
   activity, use the League Board, and make predictions, but they cannot claim

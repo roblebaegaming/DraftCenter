@@ -4,7 +4,7 @@ export const MANUALS = {
     title: "Create and run a league in DraftCenter",
     description: "A start-to-finish DraftCenter manual for creating a league, inviting managers, configuring the draft, running the season, and archiving a champion.",
     intro: "Use this manual as your operating checklist. You can change most choices later, so begin with the league basics, invite a small test group, and confirm the draft room before opening the league to everyone.",
-    audience: "For commissioners and co-commissioners",
+    audience: "For commissioners and League Managers (co-commissioners)",
     chapters: [
       { title: "1. Create the league", summary: "Sign in, open Start a new league, and enter a name, season label, optional draft time, description, image, and access level.", steps: [
         "Choose Private for invite-only setup, Public to watch for a visible league that is closed to new managers, or Open to join for recruiting.",
@@ -25,8 +25,8 @@ export const MANUALS = {
       { title: "3. Invite people and share responsibility", summary: "Use Commissioner Tools or Setup to distribute secure links.", steps: [
         "Copy a Manager invite for someone who will claim and run a team. Invite links expire, so create a new one if an old link no longer works.",
         "Use a Spectator link for view-only access. Spectators cannot draft, report results, or manage a roster.",
-        "Invite a co-commissioner by email or promote an existing league member. Co-commissioners can help operate the league; only the primary commissioner can delete it.",
-        "The primary commissioner can transfer league ownership to an existing manager or co-commissioner from Commissioner Tools. Review carefully: the former owner becomes a co-commissioner.",
+        "Use the League Managers card in Setup to invite someone by email or promote an existing league member. League Manager is the clear user-facing name for co-commissioner access and applies only to the selected league. In a connected season, sibling pods remain view-only unless that person is assigned there separately.",
+        "The primary commissioner can transfer league ownership to an existing manager or League Manager from Commissioner Tools. Review carefully: the former owner becomes a League Manager for that league.",
         "If you need help, select the yellow Help button beside Commissioner Tools. For a direct request, open Commissioner Tools and choose Get help with this league. Review the optional safe diagnostics before submitting.",
         "Temporary support access is separate from league membership. Choose Review only for configuration advice. The primary commissioner may instead approve Review and edit tiers/pricing so DraftCentral support can apply a completed pricing file; that scope cannot change members, drafts, rosters, messages, results, or other settings and creates a recovery point and audit entry before saving.",
         "Ask every manager to sign in, accept the invite, and claim the correct team before draft day.",
