@@ -1,12 +1,13 @@
-# DraftCenter multilingual Pokédex and French Worlds release candidate
+# DraftCenter multilingual Pokédex and French Worlds Production release
 
 Date: 2026-08-20
 
 Status: pull request [#371](https://github.com/roblebaegaming/DraftCenter/pull/371)
-is open from the isolated short-lived branch. The Vercel Preview and executable
-protected checks pass. Nothing in this handoff is deployed or enabled in
-Production, and no Production database, data, provider setting, environment
-variable, league, prediction, or account was changed.
+is released at exact Production application commit
+`aa82ecc12d0eadd3dd75b34c9e8c95ce17d2fb50`. Forward migration 454 is applied
+as canonical ledger version `20260820180704`. The exact Vercel deployment,
+post-merge security checks, live localized-page review, and complete 22-check
+signed-out Production smoke sweep pass.
 
 The owner explicitly authorized this scope for release as a translation beta
 on 2026-08-20. Native-speaker review remains pending and is not represented as
@@ -91,12 +92,14 @@ and French Worlds, plus desktop review for Japanese Charizard and French
 Worlds. The hosted pages had no page-level horizontal overflow and produced no
 browser console warnings or errors during the final pass.
 
-## Pull request evidence
+## Pull request and Preview evidence
 
-Pull request #371 is open and mergeable. CodeQL, JavaScript security analysis,
-the full-history secret scan, security tests and dependency audit, Vercel, and
-Vercel Preview Comments all passed on the implementation commit before this
-documentation-only evidence update.
+Pull request #371 was mergeable and squash-merged after CodeQL, JavaScript
+security analysis, the full-history secret scan, security tests and dependency
+audit, Vercel, and Vercel Preview Comments all passed on exact release head
+`9a61b0a`. The refreshed hosted Preview showed the beta disclosure and Support
+link on the French Pokédex, Japanese Charizard profile, and French Worlds with
+the intended page copy, no horizontal overflow, and no console findings.
 
 The automatic Supabase Preview check was skipped because the configured single
 concurrent Preview slot was already occupied. This was an infrastructure-capacity
@@ -136,15 +139,38 @@ The owner accepted the remaining editorial risk for a beta launch. This does
 not convert any pending reviewer row to approved, and it does not authorize the
 blocked multilingual Mega bracket. English fallbacks remain visible.
 
-## Authorized release steps
+## Production verification
 
-- Re-run the complete required release checks after the beta disclosure change.
-- Merge through protected pull request #371 after its updated checks pass.
-- Verify migration 454 on the exact Production ledger, confirm the exact Vercel
-  deployment commit, and run the complete signed-out Production smoke sweep.
-- Keep native-speaker review and correction intake as post-launch editorial
-  follow-up without claiming the translations are fully reviewed.
+- Supabase's connected main flow applied exact repository migration 454. The
+  authoritative ledger ends at `20260820180704_add_french_worlds_chat_room`.
+- Read-only live catalog inspection confirmed the chat constraint allows only
+  English, Italian, Spanish, French, German, Japanese, and Korean. RLS remains
+  enabled; anonymous and authenticated direct table reads remain denied.
+- Anonymous execution of both changed RPCs remains denied. Authenticated
+  execution remains intentional, both functions remain security-definer with
+  fixed empty search paths, and both exact allowlists include French.
+- Production advisors have no error-level finding. The existing account-only
+  chat RPC warnings and no-policy informational notices remain intentional and
+  bounded by the verified internal account checks; there is no chat-specific
+  warning-level performance finding.
+- Vercel reported exact squash commit `aa82ecc` Ready in Production. Both
+  post-merge security workflows passed.
+- The complete signed-out Production smoke sweep passed all 17 public routes
+  and five protected endpoints. Live French Pokédex, Japanese Charizard, and
+  French Worlds checks showed the beta disclosure, correction link, English
+  profile fallback, hydrated document language, no horizontal overflow, and no
+  console warning or error.
+
+## Remaining editorial work
+
+- Keep all six native-speaker review rows pending until real reviewers approve
+  them; do not describe the translations as fully reviewed.
+- Triage correction reports through DraftCenter Support and keep the visible
+  beta disclosure until the corresponding language is approved.
+- Keep the multilingual Mega bracket blocked until reviewed official form-name
+  coverage exists. Do not invent or machine-translate missing official names.
 
 The original dirty checkout was not edited, cleaned, reset, or used for a
-commit. The release candidate lives in
-`codex/multilingual-pokedex-release-20260820`.
+commit. Release implementation used
+`codex/multilingual-pokedex-release-20260820`; this final record is published
+separately through the protected documentation flow.
