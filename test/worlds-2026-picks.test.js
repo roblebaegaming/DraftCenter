@@ -481,7 +481,7 @@ test("the Spanish Worlds route localizes Pick 10, odds, Meta Picks, roster label
   assert.ok(buildWorldsChampionOdds(localizedRoster).every((entry) => Math.abs(entry.probability - englishOdds.get(entry.slug)) < 1e-12));
 });
 
-test("German, Japanese, and Korean Worlds routes share the VGC competitions and expose all six languages", () => {
+test("French, German, Japanese, and Korean Worlds routes share the VGC competitions and expose all seven languages", () => {
   const component = source("src/components/WorldsPickSixteen.jsx");
   const quickLinks = source("src/components/SiteQuickLinks.jsx");
   const css = source("src/app/globals.css");
@@ -490,7 +490,7 @@ test("German, Japanese, and Korean Worlds routes share the VGC competitions and 
   const odds = source("src/components/WorldsChampionOdds.jsx");
   const profile = source("src/components/PublicCoachProfile.jsx");
 
-  assert.deepEqual(Object.keys(WORLDS_LANGUAGES), ["en", "it", "es", "de", "ja", "ko"]);
+  assert.deepEqual(Object.keys(WORLDS_LANGUAGES), ["en", "it", "es", "fr", "de", "ja", "ko"]);
   assert.match(component, /className="worlds-start-guide"/);
   assert.match(component, /href="#qualified-players"/);
   assert.match(component, /href="#meta-picks"/);
@@ -501,7 +501,7 @@ test("German, Japanese, and Korean Worlds routes share the VGC competitions and 
   assert.match(css, /\.site-primary-links>\.site-nav-menu\.is-active>summary/);
   assert.doesNotMatch(quickLinks, /site-primary-worlds-link|site-worlds-link/);
 
-  for (const locale of ["de", "ja", "ko"]) {
+  for (const locale of ["fr", "de", "ja", "ko"]) {
     const page = source(`src/app/${locale}/worlds/2026/page.js`);
     assert.match(page, new RegExp(`locale="${locale}"`));
     assert.match(page, new RegExp(`canonical: "/${locale}/worlds/2026"`));
@@ -520,7 +520,7 @@ test("German, Japanese, and Korean Worlds routes share the VGC competitions and 
     assert.ok([...new Set(roster.competitors.map(({ qualification }) => qualification))]
       .every((qualification) => worldsQualificationLabel(qualification, locale) !== qualification));
     assert.ok([...new Set(roster.competitors.map(({ region }) => region))]
-      .every((region) => worldsRegionLabel(region, locale) !== region || region === "Japan"));
+      .every((region) => worldsRegionLabel(region, locale) !== region || ["Europe", "Japan"].includes(region)));
   }
 });
 

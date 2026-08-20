@@ -1,6 +1,7 @@
 import PokemonDirectory from "../../components/PokemonDirectory";
+import { pokemonIndexMetadata } from "../../lib/pokemonI18n";
 
-export const metadata = { title: "Pokédex and Pokémon Draft Statistics", description: "Search Pokémon by name, type, generation, color, Egg Group, shape, ability, stats, moves, format legality, and DraftCenter draft results.", alternates: { canonical: "/pokemon" } };
+export const metadata = { title: "Pokédex and Pokémon Draft Statistics", description: "Search Pokémon by name, type, generation, color, Egg Group, shape, ability, stats, moves, format legality, and DraftCenter draft results.", alternates: { canonical: "/pokemon", languages: pokemonIndexMetadata("en").alternates.languages } };
 
 const featuredPokemon = ["pikachu", "charizard", "garchomp", "incineroar", "rillaboom", "flutter-mane", "urshifu-single-strike", "ogerpon", "calyrex", "miraidon", "koraidon", "dragonite"];
 

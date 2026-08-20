@@ -11,13 +11,13 @@ export const metadata = {
   description: pageDescription,
   alternates: {
     canonical: "/it/worlds/2026",
-    languages: { en: "/worlds/2026/vgc", it: "/it/worlds/2026", es: "/es/worlds/2026", de: "/de/worlds/2026", ja: "/ja/worlds/2026", ko: "/ko/worlds/2026", "x-default": "/worlds/2026/vgc" },
+    languages: { en: "/worlds/2026/vgc", it: "/it/worlds/2026", es: "/es/worlds/2026", fr: "/fr/worlds/2026", de: "/de/worlds/2026", ja: "/ja/worlds/2026", ko: "/ko/worlds/2026", "x-default": "/worlds/2026/vgc" },
   },
   openGraph: {
     type: "website",
     siteName: "DraftCenter",
     locale: "it_IT",
-    alternateLocale: ["en_US", "es_ES", "de_DE", "ja_JP", "ko_KR"],
+    alternateLocale: ["en_US", "es_ES", "fr_FR", "de_DE", "ja_JP", "ko_KR"],
     title: `${pageTitle} | DraftCenter`,
     description: pageDescription,
     url: canonicalUrl,

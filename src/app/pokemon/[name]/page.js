@@ -4,7 +4,9 @@ import { getAllPokemonProfiles, pokemonProfileCanonicalPath, pokemonProfileDispl
 import { pokemonDirectoryHref } from "../../../lib/pokemonNavigation";
 import { pokemonColorLabel, pokemonEggGroupLabel, pokemonShapeDetails } from "../../../lib/pokemonSpeciesTraits";
 import { POKEMON_EDITORIAL_REVIEWED_DATE, POKEMON_EDITORIAL_REVIEWED_LABEL, pokemonProfileEditorial } from "../../../lib/pokemonEditorial";
+import { pokemonProfileAlternates } from "../../../lib/pokemonI18n";
 import CompetitivePokemonProfile from "../../../components/CompetitivePokemonProfile";
+import PokemonLanguageSwitch from "../../../components/PokemonLanguageSwitch";
 import TournamentPokemonProfile from "../../../components/TournamentPokemonProfile";
 
 function titleCase(value) {
@@ -66,7 +68,7 @@ export async function generateMetadata({ params }) {
   return {
     title: `${displayName} Pokédex & Stats`,
     description,
-    alternates: { canonical: pokemonProfileCanonicalPath(data.pokemon.name) },
+    alternates: { canonical: pokemonProfileCanonicalPath(data.pokemon.name), languages: pokemonProfileAlternates(data.pokemon.name) },
     openGraph: {
       type: "article",
       title: `${displayName} — ${genus}`,
@@ -117,6 +119,7 @@ export default async function PokemonDetailPage({ params }) {
   };
   return <main className="explore-shell">
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
+    <PokemonLanguageSwitch locale="en" path={`/pokemon/${pokemon.name}`} label="Language" />
     <header className="explore-hero">
       <div className="public-page-nav"><a className="quiet-button" href="/pokemon">← Full Pokédex</a><a className="quiet-button" href="/">DraftCenter Home</a></div>
       <span className="eyebrow">DRAFTCENTER POKÉDEX · #{String(pokemon.id).padStart(4, "0")}</span>

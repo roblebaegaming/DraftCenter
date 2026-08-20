@@ -25,6 +25,11 @@ export default {
         { key: "Content-Language", value: "es-ES" },
       ],
     }, {
+      source: "/fr/:path*",
+      headers: [
+        { key: "Content-Language", value: "fr-FR" },
+      ],
+    }, {
       source: "/de/:path*",
       headers: [
         { key: "Content-Language", value: "de-DE" },

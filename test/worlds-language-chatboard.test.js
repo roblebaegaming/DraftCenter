@@ -23,15 +23,31 @@ test("the Worlds chat has localized rooms without splitting the shared event", (
   assert.match(component, /remove_my_worlds_chat_message/);
   assert.match(component, /<PublicCoachProfile identity=\{activeProfile\}/);
 
-  for (const locale of ["en", "it", "es", "de", "ja", "ko"]) {
+  for (const locale of ["en", "it", "es", "fr", "de", "ja", "ko"]) {
     const localized = worldsChatCopy(locale);
     assert.ok(localized.title.length > 5);
     assert.ok(localized.description.length > 20);
-    assert.match(localized.description, locale === "ja" ? /同じ/ : locale === "ko" ? /같은/ : /same|stessa|misma|selben/i);
+    assert.match(localized.description, locale === "ja" ? /同じ/ : locale === "ko" ? /같은/ : /same|stessa|misma|même|selben/i);
     assert.ok(localized.signInTitle.length > 10);
     assert.equal(localized.characters(12).includes("12/500"), true);
     assert.match(copy, new RegExp(`\\n  ${locale}: \\{`));
   }
+});
+
+test("migration 454 adds French without weakening the account-only chat boundary", () => {
+  const migration = source("supabase/migrations/20260820180704_add_french_worlds_chat_room.sql");
+  const regression = source("supabase/tests/454-french-worlds-chat-room-preview-regression.sql");
+
+  assert.match(migration, /language_code in \('en', 'it', 'es', 'fr', 'de', 'ja', 'ko'\)/i);
+  assert.equal((migration.match(/create or replace function public\.(?:get|create)_worlds_chat_/gi) || []).length, 2);
+  assert.equal((migration.match(/security definer/gi) || []).length, 2);
+  assert.equal((migration.match(/set search_path = ''/gi) || []).length, 2);
+  assert.match(migration, /revoke all on function public\.get_worlds_chat_messages[\s\S]+from public, anon, authenticated, service_role/i);
+  assert.match(migration, /grant execute on function public\.create_worlds_chat_message[\s\S]+to authenticated, service_role/i);
+  assert.doesNotMatch(migration, /grant [^;]* on table public\.worlds_chat_messages to (?:anon|authenticated)/i);
+  assert.match(regression, /French Worlds chat room did not round-trip correctly/);
+  assert.match(regression, /French Worlds message leaked into the English room/);
+  assert.match(regression, /Migration 454 weakened the account-only Worlds chat boundary/);
 });
 
 test("the Worlds chat migration keeps messages account-only and RPC-bounded", () => {

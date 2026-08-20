@@ -3,15 +3,14 @@ import {
   ADDITIONAL_WORLDS_REGIONS,
   additionalWorldsQualificationPart,
 } from "./worlds2026AdditionalLocales.js";
+import { SITE_LANGUAGES } from "./siteLanguages.js";
 
-export const WORLDS_LANGUAGES = {
-  en: { nativeLabel: "English", documentLanguage: "en", locale: "en-US", href: "/worlds/2026/vgc" },
-  it: { nativeLabel: "Italiano", documentLanguage: "it", locale: "it-IT", href: "/it/worlds/2026" },
-  es: { nativeLabel: "Español", documentLanguage: "es", locale: "es-ES", href: "/es/worlds/2026" },
-  de: { nativeLabel: "Deutsch", documentLanguage: "de", locale: "de-DE", href: "/de/worlds/2026" },
-  ja: { nativeLabel: "日本語", documentLanguage: "ja", locale: "ja-JP", href: "/ja/worlds/2026" },
-  ko: { nativeLabel: "한국어", documentLanguage: "ko", locale: "ko-KR", href: "/ko/worlds/2026" },
-};
+export const WORLDS_LANGUAGES = Object.fromEntries(SITE_LANGUAGES.map((language) => [language.code, {
+  nativeLabel: language.nativeLabel,
+  documentLanguage: language.documentLanguage,
+  locale: language.locale,
+  href: language.code === "en" ? "/worlds/2026/vgc" : `${language.pathPrefix}/worlds/2026`,
+}]));
 
 export function worldsLanguage(locale = "en") {
   const language = String(locale || "en").toLowerCase().split("-")[0];

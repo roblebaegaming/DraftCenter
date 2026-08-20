@@ -25,6 +25,12 @@ const COPY = {
     body: "Probabilidades actuales previas al evento, ajenas a las apuestas, para todo el grupo Máster con invitación.",
     standings: "Clasificación oficial de VGC Máster ↗",
   },
+  fr: {
+    eyebrow: "DRAFTCENTER · VGC MASTERS 2026",
+    title: "Top 10 des chances de victoire aux Worlds",
+    body: "Probabilités actuelles avant l’événement, sans lien avec les paris, pour l’ensemble des joueurs Masters ayant obtenu une invitation.",
+    standings: "Classement officiel VGC Masters ↗",
+  },
   de: {
     eyebrow: "DRAFTCENTER · VGC MASTERS 2026",
     title: "Top 10 der Worlds-Siegchancen",
@@ -45,7 +51,7 @@ const COPY = {
   },
 };
 
-const NUMBER_FORMAT_LOCALES = { en: "en-US", it: "it-IT", es: "es-ES", de: "de-DE", ja: "ja-JP", ko: "ko-KR" };
+const NUMBER_FORMAT_LOCALES = { en: "en-US", it: "it-IT", es: "es-ES", fr: "fr-FR", de: "de-DE", ja: "ja-JP", ko: "ko-KR" };
 
 export default function WorldsChampionOdds({ competitors, entryCount = 0, sampleReady = false, locale = "en" }) {
   const copy = COPY[locale] || COPY.en;
