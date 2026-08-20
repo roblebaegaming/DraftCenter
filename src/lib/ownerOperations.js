@@ -7,6 +7,7 @@ import { countLeagueResults, summarizeLeaguePulse } from "./leaguePulse";
 import { leagueOperationsMetadata, summarizeLeagueOperations } from "./operationsLeagueInsights";
 import { expiredAuctionNominationWarning } from "./auctionOperations";
 import { leagueReachedDraftCompletion, summarizeCommissionerActivation } from "./commissionerActivationMetrics";
+import { classifyOperationalEvent, groupOperationalIncidents } from "./operationalIncidents";
 
 export function ownerEmails() {
   return String(process.env.DRAFTCENTER_OWNER_EMAILS || process.env.DRAFTCENTER_OWNER_EMAIL || "").split(",").map((email) => email.trim().toLowerCase()).filter(Boolean);
@@ -25,13 +26,6 @@ export async function requireOwner(request) {
 
 function warning(code, severity, text) { return { code, severity, text }; }
 function countResults(state) { return countLeagueResults(state); }
-function isExpectedOperationalRejection(event) {
-  const kind = String(event?.kind || "");
-  const message = String(event?.message || "");
-  if (kind === "league_save_failed" && /only league commissioners can save|changed in another session|refresh before saving again/i.test(message)) return true;
-  if (kind === "draft_operation_failed" && /no longer available|already (?:drafted|selected|picked)|not (?:your|that team(?:'s)?) turn|changed in another session|refresh before|cannot afford|would leave less than|roster (?:minimum|maximum|limit)|no active (?:snake|auction) draft found|already has a live draft|not ready on the live draft board|team logos must use a secure https url/i.test(message)) return true;
-  return false;
-}
 
 export async function getOperationsOverview(supabase, viewerUserId = null, { includeRecipientIds = false } = {}) {
   const now = Date.now();
@@ -69,7 +63,8 @@ export async function getOperationsOverview(supabase, viewerUserId = null, { inc
   }
   const failedByLeague = new Map(); for (const row of failedResult.data || []) failedByLeague.set(row.league_id, (failedByLeague.get(row.league_id) || 0) + 1);
   const supportRequestsByLeague = new Map(); for (const row of requestsResult.data || []) supportRequestsByLeague.set(row.league_id, (supportRequestsByLeague.get(row.league_id) || 0) + 1);
-  const systemFailuresByLeague = new Map(); for (const row of healthResult.data || []) if (!isExpectedOperationalRejection(row) && row.league_id) systemFailuresByLeague.set(row.league_id, (systemFailuresByLeague.get(row.league_id) || 0) + 1);
+  const operationalIncidents = groupOperationalIncidents((healthResult.data || []).map((event) => ({ ...event, ...classifyOperationalEvent(event) })));
+  const systemFailuresByLeague = new Map(); for (const incident of operationalIncidents) if (incident.classification === "system_failure" && incident.league_id) systemFailuresByLeague.set(incident.league_id, (systemFailuresByLeague.get(incident.league_id) || 0) + 1);
   const membersByLeague = new Map(); for (const row of membershipsResult.data || []) { const rows = membersByLeague.get(row.league_id) || []; rows.push(row); membersByLeague.set(row.league_id, rows); }
   const inviteCountByLeague = new Map(); for (const row of invitesResult.data || []) inviteCountByLeague.set(row.league_id, (inviteCountByLeague.get(row.league_id) || 0) + 1);
   const reminderEventsByLeague = new Map(); for (const row of reminderEventsResult.data || []) { const rows = reminderEventsByLeague.get(row.league_id) || []; rows.push(row); reminderEventsByLeague.set(row.league_id, rows); }
@@ -117,14 +112,15 @@ export async function getOperationsOverview(supabase, viewerUserId = null, { inc
   });
   const leagueNames = new Map(leagues.map((league) => [league.id, league.name]));
   const supportRequests = (requestsResult.data || []).map((request) => ({ ...request, league_name: leagueNames.get(request.league_id) || "Unknown league" }));
-  const operationalErrors = (healthResult.data || []).map((event) => ({ ...event, classification: isExpectedOperationalRejection(event) ? "expected_rejection" : "system_failure", league_name: leagueNames.get(event.league_id) || "No league", actor: profiles.get(event.actor_id)?.display_name || profiles.get(event.actor_id)?.username || "Unknown user" }));
+  const operationalErrors = operationalIncidents.map((event) => ({ ...event, league_name: leagueNames.get(event.league_id) || "No league", actor: profiles.get(event.actor_id)?.display_name || profiles.get(event.actor_id)?.username || "Unknown user" }));
   const operationalFailures = operationalErrors.filter((event) => event.classification === "system_failure");
   const operationalRejections = operationalErrors.filter((event) => event.classification === "expected_rejection");
+  const resolvedOperationalIncidents = operationalErrors.filter((event) => event.classification === "resolved_incident");
   const sinceYesterday = Date.now() - 86400000;
   const recentErrorCount = operationalFailures.filter((event) => Date.parse(event.occurred_at) > sinceYesterday).length;
   const recentRejectionCount = operationalRejections.filter((event) => Date.parse(event.occurred_at) > sinceYesterday).length;
   const activeLeagues = leagues.filter((league) => String(league.status) !== "archived");
-  return { generated_at: new Date().toISOString(), totals: { leagues: activeLeagues.length, archived: leagues.length - activeLeagues.length, real: activeLeagues.filter((l) => !l.is_practice).length, practice: activeLeagues.filter((l) => l.is_practice).length, drafting: activeLeagues.filter((l) => ["drafting", "paused"].includes(l.lifecycle.phase)).length, needing_attention: activeLeagues.filter((l) => l.warnings.length).length, high_priority: activeLeagues.filter((l) => l.warnings.some((w) => w.severity === "high")).length, open_support_requests: supportRequests.length, errors_24h: recentErrorCount, expected_rejections_24h: recentRejectionCount }, commissioner_activation: summarizeCommissionerActivation(leagues, now), league_insights: summarizeLeagueOperations(leagues), support_requests: supportRequests, operational_errors: operationalErrors, operational_failures: operationalFailures, operational_rejections: operationalRejections, leagues };
+  return { generated_at: new Date().toISOString(), totals: { leagues: activeLeagues.length, archived: leagues.length - activeLeagues.length, real: activeLeagues.filter((l) => !l.is_practice).length, practice: activeLeagues.filter((l) => l.is_practice).length, drafting: activeLeagues.filter((l) => ["drafting", "paused"].includes(l.lifecycle.phase)).length, needing_attention: activeLeagues.filter((l) => l.warnings.length).length, high_priority: activeLeagues.filter((l) => l.warnings.some((w) => w.severity === "high")).length, open_support_requests: supportRequests.length, errors_24h: recentErrorCount, expected_rejections_24h: recentRejectionCount }, commissioner_activation: summarizeCommissionerActivation(leagues, now), league_insights: summarizeLeagueOperations(leagues), support_requests: supportRequests, operational_errors: operationalErrors, operational_failures: operationalFailures, operational_rejections: operationalRejections, resolved_operational_incidents: resolvedOperationalIncidents, leagues };
 }
 
 export async function getAuthUserTotals(supabase) {
