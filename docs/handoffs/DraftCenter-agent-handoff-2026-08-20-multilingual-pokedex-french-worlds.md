@@ -2,9 +2,11 @@
 
 Date: 2026-08-20
 
-Status: prepared on an isolated short-lived branch. Nothing in this handoff is
-deployed or enabled in Production, and no Production database, data, provider
-setting, environment variable, league, prediction, or account was changed.
+Status: pull request [#371](https://github.com/roblebaegaming/DraftCenter/pull/371)
+is open from the isolated short-lived branch. The Vercel Preview and executable
+protected checks pass. Nothing in this handoff is deployed or enabled in
+Production, and no Production database, data, provider setting, environment
+variable, league, prediction, or account was changed.
 
 ## Release scope
 
@@ -77,12 +79,32 @@ The build reports a nonfatal 400 response while attempting to download the
 existing decorative dynamic font for `◉✦✓◇✎`; Next.js still completes the build.
 No localized layout showed a visible missing-font failure during browser review.
 
+The hosted Vercel Preview at
+`https://draftcenter-git-codex-multilingual-pokedex-rel-034758-rob-lebae.vercel.app`
+also passed phone review for the French Pokédex, Japanese Charizard profile,
+and French Worlds, plus desktop review for Japanese Charizard and French
+Worlds. The hosted pages had no page-level horizontal overflow and produced no
+browser console warnings or errors during the final pass.
+
+## Pull request evidence
+
+Pull request #371 is open and mergeable. CodeQL, JavaScript security analysis,
+the full-history secret scan, security tests and dependency audit, Vercel, and
+Vercel Preview Comments all passed on the implementation commit before this
+documentation-only evidence update.
+
+The automatic Supabase Preview check was skipped because the configured single
+concurrent Preview slot was already occupied. This is an infrastructure-capacity
+skip, not a migration failure. The local environment has no Supabase management
+credential, so it cannot safely create a temporary isolated branch. Migration
+454's rollback-only regression therefore remains unexecuted and is still a
+required merge gate.
+
 ## Remaining release gates
 
 - A fluent speaker must approve interface copy and Pokémon terminology for each
   released non-English language. Automated and visual review cannot replace
   this editorial gate.
-- The protected pull request, Vercel Preview, and repository checks must pass.
 - Migration 454 and its rollback-only regression must pass on an isolated
   Supabase Preview branch.
 - Merge, Production migration, deployment, and signed-out Production smoke
