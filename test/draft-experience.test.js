@@ -12,6 +12,23 @@ import {
 } from "../src/lib/leagueSaveReconciliation.js";
 
 const draftLeagueSource = fs.readFileSync(new URL("../src/components/PokemonDraftLeague.jsx", import.meta.url), "utf8");
+const authGateSource = fs.readFileSync(new URL("../src/components/AuthGate.jsx", import.meta.url), "utf8");
+const leagueHubSource = fs.readFileSync(new URL("../src/components/LeagueHub.jsx", import.meta.url), "utf8");
+
+test("Setup presents league-scoped League Managers over the existing co-commissioner boundary", () => {
+  assert.match(draftLeagueSource, /LEAGUE MANAGERS/);
+  assert.match(draftLeagueSource, /co-commissioner access for this league only/i);
+  assert.match(draftLeagueSource, /siblings remain view-only unless the person is assigned there separately/i);
+  assert.match(draftLeagueSource, /MANAGE LEAGUE MANAGERS/);
+  assert.match(authGateSource, /Scope: \{league\.name\} only/);
+  assert.match(authGateSource, /set_co_commissioner/);
+  assert.match(authGateSource, /p_enabled:true/);
+  assert.match(authGateSource, /p_enabled:false/);
+  assert.match(authGateSource, /role==='co_commissioner'/);
+  assert.match(authGateSource, /Remove staff role/);
+  assert.match(leagueHubSource, /Accept League Manager role/);
+  assert.match(leagueHubSource, /linked sibling pods remain view-only unless you are assigned there separately/i);
+});
 
 test("hosted snapshot changes preserve an already loaded private queue", () => {
   const current = { queues: { 2: ["Garchomp", "Rotom-Wash"] } };

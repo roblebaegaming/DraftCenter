@@ -9826,6 +9826,29 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   );
   const historySectionTabs = ["draft", "awards", "history", "adp"];
   const historySectionActive = historySectionTabs.includes(leagueSubTab);
+  const leagueToolContext = {
+    teams: state.teams,
+    settings: state.settings,
+    seasonNumber: state.seasonNumber,
+    stateRevision: state.rev,
+    currentWeek: state.week,
+    schedule: state.schedule,
+    trades: state.trades,
+    transactionLog: state.transactionLog,
+    reverseTrade,
+    reverseFreeAgentMove,
+    supportContext: {
+      save_status: saveStatus,
+      last_error: liveDraftError || scheduledStartStatus?.error || "",
+      team_count: state.teams.length,
+      claimed_count: state.teams.filter((team) => team.claimedBy || team.claimedByUserId).length,
+      draft_type: state.settings?.draftType || "unknown",
+      league_status: league?.status || (state.locked ? "drafting" : "setup"),
+    },
+  };
+  function openLeagueTools() {
+    onOpenLeagueTools?.(leagueToolContext);
+  }
 
   if (!nameConfirmed) {
     return <NameGate myName={myName} setMyName={setMyName} onConfirm={() => { setMyName(myName.trim()); setNameConfirmed(true); }} />;
@@ -9929,26 +9952,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
                   style={{ fontFamily: "'Teko', sans-serif", fontSize: "16px", letterSpacing: "0.03em", background: "#FFD23F", color: "#10121C", border: "1px solid #FFD23F", textDecoration: "none" }}>
                   HELP
                 </a>
-              <button onClick={() => onOpenLeagueTools?.({
-                teams: state.teams,
-                settings: state.settings,
-                seasonNumber: state.seasonNumber,
-                stateRevision: state.rev,
-                currentWeek: state.week,
-                schedule: state.schedule,
-                trades: state.trades,
-                transactionLog: state.transactionLog,
-                reverseTrade,
-                reverseFreeAgentMove,
-                supportContext: {
-                  save_status: saveStatus,
-                  last_error: liveDraftError || scheduledStartStatus?.error || "",
-                  team_count: state.teams.length,
-                  claimed_count: state.teams.filter((team) => team.claimedBy || team.claimedByUserId).length,
-                  draft_type: state.settings?.draftType || "unknown",
-                  league_status: league?.status || (state.locked ? "drafting" : "setup"),
-                },
-              })}
+              <button onClick={openLeagueTools}
                   className="px-4 py-2 rounded text-sm font-semibold"
                   style={{ fontFamily: "'Teko', sans-serif", fontSize: "16px", letterSpacing: "0.03em", background: "#253354", color: "#D9E5FF", border: "1px solid #4B669B" }}>
                   COMMISSIONER TOOLS
@@ -10042,7 +10046,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
             exportLeagueBackup={exportLeagueBackup} exportRecoveryBackup={exportRecoveryBackup} importLeagueBackup={importLeagueBackup}
             applyLeagueImport={applyLeagueImport} undoLeagueImport={undoLeagueImport} canUndoLeagueImport={Boolean(lastLeagueImportRef.current)}
             addCoCommissioner={addCoCommissioner} removeCoCommissioner={removeCoCommissioner}
-            onOpenLeagueTools={onOpenLeagueTools} copyLeagueInvite={isDraftTournamentMode ? null : copyLeagueInvite}
+            onOpenLeagueTools={openLeagueTools} copyLeagueInvite={isDraftTournamentMode ? null : copyLeagueInvite}
             onOpenBroadcast={() => {
               setTab("home");
               window.setTimeout(() => document.getElementById("league-broadcast-center")?.scrollIntoView({ behavior: "smooth", block: "start" }), 0);
@@ -11968,9 +11972,13 @@ function SetupView({ state, leagueId = null, leagueName = "league", isCommission
         </div>
       )}
       {isCommissioner && leagueId && !eventMode && (
-        <div className="rounded-lg p-4 mb-6 text-sm" style={{ background: "#171A2C", border: "1px solid rgba(255,255,255,0.08)", color: "#9A9FBD" }}>
-          Co-commissioners are managed by username in <strong style={{ color: "#EDEBFA" }}>League tools</strong> after they join the league.
-        </div>
+        <section className="rounded-lg p-5 mb-6" style={{ background: "#171A2C", border: "1px solid rgba(79,209,197,0.35)" }}>
+          <span className="eyebrow">LEAGUE STAFF</span>
+          <h2 className="display-font text-2xl mb-2" style={{ color: "#4FD1C5" }}>LEAGUE MANAGERS</h2>
+          <p className="text-sm mb-2" style={{ color: "#C9CBE0" }}>Assign someone to help operate <strong style={{ color: "#EDEBFA" }}>{leagueName}</strong>. League Managers use co-commissioner access for this league only, including settings, scheduling, results, and commissioner tools.</p>
+          <p className="text-xs mb-4" style={{ color: "#9A9FBD" }}>In a connected multi-pod season they can open every active sibling pod, but those siblings remain view-only unless the person is assigned there separately.</p>
+          <button type="button" onClick={() => onOpenLeagueTools?.()} className="px-4 py-2 rounded font-semibold text-sm" style={{ background: "#4FD1C5", color: "#10121C" }}>MANAGE LEAGUE MANAGERS</button>
+        </section>
       )}
       {isCommissioner && !leagueId && (
         <CoCommissionerCard coCommissioners={coCommissioners} commissioner={commissioner} addCoCommissioner={addCoCommissioner} removeCoCommissioner={removeCoCommissioner} />
