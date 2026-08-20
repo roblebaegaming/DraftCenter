@@ -5374,6 +5374,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   const [state, setState] = useState(freshState());
   const isDraftTournamentMode = state.eventMode === "draft-tournament";
   const [privateQueueLoadedTeamIdx, setPrivateQueueLoadedTeamIdx] = useState(null);
+  const privateQueueLoadedTeamIdxRef = useRef(null);
   const [synced, setSynced] = useState(false);
   const [saveStatus, setSaveStatus] = useState(leagueId ? "loading" : "local");
   const [liveDraftError, setLiveDraftError] = useState("");
@@ -5442,7 +5443,12 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     });
   const myTeamIdx = myTeamIndices.includes(activeTeamIdx) ? activeTeamIdx : (myTeamIndices[0] ?? -1);
   useEffect(() => {
-    if (!leagueId || myTeamIdx < 0) return undefined;
+    if (!leagueId || myTeamIdx < 0) {
+      privateQueueLoadedTeamIdxRef.current = null;
+      setPrivateQueueLoadedTeamIdx(null);
+      return undefined;
+    }
+    privateQueueLoadedTeamIdxRef.current = null;
     setPrivateQueueLoadedTeamIdx(null);
     let alive = true;
     let inFlight = false;
@@ -5460,6 +5466,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
           if (JSON.stringify(existing) === JSON.stringify(data)) return current;
           return { ...current, queues: { ...current.queues, [myTeamIdx]: data } };
         });
+        privateQueueLoadedTeamIdxRef.current = myTeamIdx;
         setPrivateQueueLoadedTeamIdx(myTeamIdx);
       } finally {
         inFlight = false;
@@ -6201,8 +6208,13 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     const hydrated = hydrateState(remote);
     if (hydrated.settings.draftType !== "auction" || !hydrated.locked) return;
     revRef.current = Math.max(revRef.current, hydrated.rev || 0);
-    setState(hydrated);
-  }, [leagueId]);
+    setState((current) => preserveLoadedPrivateDraftQueue(
+      hydrated,
+      current,
+      myTeamIdx,
+      privateQueueLoadedTeamIdxRef.current,
+    ));
+  }, [leagueId, myTeamIdx]);
 
   const applyHostedAuctionAction = useCallback(async (action, payload = {}) => {
     if (!leagueId) return null;
@@ -6228,12 +6240,17 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
     if (data) {
       const hydrated = hydrateState(data);
       revRef.current = Math.max(revRef.current, hydrated.rev || 0);
-      setState(hydrated);
+      setState((current) => preserveLoadedPrivateDraftQueue(
+        hydrated,
+        current,
+        myTeamIdx,
+        privateQueueLoadedTeamIdxRef.current,
+      ));
       setLiveDraftError("");
       return hydrated;
     }
     return null;
-  }, [leagueId, supabase, refreshLiveAuction]);
+  }, [leagueId, myTeamIdx, supabase, refreshLiveAuction]);
 
   useEffect(() => {
     if (!leagueId) return undefined;
@@ -7383,6 +7400,8 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
       return false;
     }
     const queue = Array.isArray(data) ? data : [];
+    privateQueueLoadedTeamIdxRef.current = teamIdx;
+    setPrivateQueueLoadedTeamIdx(teamIdx);
     setState((current) => ({
       ...current,
       queues: { ...current.queues, [teamIdx]: queue },

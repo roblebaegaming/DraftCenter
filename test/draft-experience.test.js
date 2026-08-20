@@ -130,6 +130,21 @@ test("auction managers can nominate directly while the optional queue stays stab
   assert.match(draftLeagueSource, /className="draft-queue-panel rounded-lg p-4 mb-6"/u);
 });
 
+test("live auction refreshes never blank an already loaded private queue", () => {
+  assert.match(
+    draftLeagueSource,
+    /const refreshLiveAuction = useCallback[\s\S]*?setState\(\(current\) => preserveLoadedPrivateDraftQueue\([\s\S]*?privateQueueLoadedTeamIdxRef\.current,[\s\S]*?\)\);/u,
+  );
+  assert.match(
+    draftLeagueSource,
+    /const applyHostedAuctionAction = useCallback[\s\S]*?setState\(\(current\) => preserveLoadedPrivateDraftQueue\([\s\S]*?privateQueueLoadedTeamIdxRef\.current,[\s\S]*?\)\);/u,
+  );
+  assert.match(
+    draftLeagueSource,
+    /const queue = Array\.isArray\(data\) \? data : \[\];\s+privateQueueLoadedTeamIdxRef\.current = teamIdx;\s+setPrivateQueueLoadedTeamIdx\(teamIdx\);/u,
+  );
+});
+
 test("the global navigation keeps DraftCenter Home clear and accessible at the top", () => {
   const navigation = fs.readFileSync(new URL("../src/components/SiteQuickLinks.jsx", import.meta.url), "utf8");
   const styles = fs.readFileSync(new URL("../src/app/globals.css", import.meta.url), "utf8");
