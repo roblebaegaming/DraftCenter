@@ -42,6 +42,7 @@ test("global navigation separates account actions, tools, and reference links", 
   const header = navigation.slice(navigation.indexOf('<header className="site-global-header">'), navigation.indexOf("</header>"));
   for (const label of ["Draft Leagues", "Mega Bracket", "Bracket Studio", "Pokémon", "Community", "🌎 Worlds Predictions", "Team Lab", "Profile", "Sign out"]) assert.match(header, new RegExp(`>${label}<`));
   for (const label of ["Games", "Tools"]) assert.match(header, new RegExp(`label="${label}"`));
+  assert.match(navigation, /<details className=\{`site-nav-menu[\s\S]*?name="primary-navigation"/);
   assert.match(header, /accountName/);
   assert.match(header, /<NavigationMenu active=\{gamesActive\} label="Games">/);
   assert.match(header, /href="\/worlds\/2026">🌎 Worlds Predictions<\/a>/);

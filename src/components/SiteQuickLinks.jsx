@@ -23,7 +23,7 @@ function anyCurrentPage(pathname, hrefs) {
 }
 
 function NavigationMenu({ active, children, className = "", label }) {
-  return <details className={`site-nav-menu${active ? " is-active" : ""}${className ? ` ${className}` : ""}`}>
+  return <details className={`site-nav-menu${active ? " is-active" : ""}${className ? ` ${className}` : ""}`} name="primary-navigation">
     <summary>{label}</summary>
     <div>{children}</div>
   </details>;
