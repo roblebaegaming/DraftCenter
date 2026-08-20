@@ -88,12 +88,18 @@ event. The compact board includes automatic refresh, earlier-message paging,
 and private one-per-member reports. Forward migration
 `20260820004814_worlds_language_chatboard.sql` creates the two RLS-enabled
 tables and four narrowly granted authenticated RPCs; direct browser table
-access remains revoked. Nothing from this candidate has been applied to
-Production. Vercel Preview is Ready and the signed-out English and Korean rooms
-render without browser errors. Supabase ignored the automatic Preview because
-the connected project reported its concurrent Preview-branch limit was reached;
-the rollback-only database regression must still pass before merge. Production
-migration 451 must not be applied without an authorized release.
+access remains revoked. Forward follow-up migration
+`20260820032602_index_worlds_chat_removed_by.sql` covers the optional moderation
+actor foreign key after the Preview advisor identified it. Nothing from this
+candidate has been applied to Production. Vercel Preview is Ready and the
+signed-out English and Korean rooms render without browser errors. The
+owner-approved empty Supabase Preview replayed all 245 Production migrations,
+applied chat migrations 451-452, and passed the rollback-only room separation,
+privacy, grants, RLS, reporting, and author-removal regression. The follow-up
+removed the only migration-specific advisor finding; zero fixtures remained.
+The paid Preview was immediately deleted and the branch inventory again
+contains only `main`. Production migrations 451-452 must not be applied without
+an authorized release.
 The detailed continuation record is in the
 [`August 19 Worlds language chatboard handoff`](handoffs/DraftCenter-agent-handoff-2026-08-19-worlds-language-chatboard.md).
 

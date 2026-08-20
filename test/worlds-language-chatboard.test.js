@@ -5,6 +5,7 @@ import { worldsChatCopy } from "../src/lib/worldsChatI18n.js";
 
 const source = (path) => fs.readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 const migrationPath = "supabase/migrations/20260820004814_worlds_language_chatboard.sql";
+const indexMigrationPath = "supabase/migrations/20260820032602_index_worlds_chat_removed_by.sql";
 
 test("the Worlds chat has localized rooms without splitting the shared event", () => {
   const component = source("src/components/WorldsChatBoard.jsx");
@@ -35,6 +36,7 @@ test("the Worlds chat has localized rooms without splitting the shared event", (
 
 test("the Worlds chat migration keeps messages account-only and RPC-bounded", () => {
   const migration = source(migrationPath);
+  const indexMigration = source(indexMigrationPath);
   const regression = source("supabase/tests/451-worlds-language-chatboard-preview-regression.sql");
 
   assert.match(migration, /create table public\.worlds_chat_messages/i);
@@ -42,6 +44,7 @@ test("the Worlds chat migration keeps messages account-only and RPC-bounded", ()
   assert.match(migration, /language_code in \('en', 'it', 'es', 'de', 'ja', 'ko'\)/i);
   assert.match(migration, /char_length\(btrim\(body\)\) between 1 and 500/i);
   assert.match(migration, /worlds_chat_messages_room_page_idx[\s\S]+where removed_at is null/i);
+  assert.match(indexMigration, /create index worlds_chat_messages_removed_by_idx[\s\S]+on public\.worlds_chat_messages \(removed_by\)/i);
   assert.match(migration, /alter table public\.worlds_chat_messages enable row level security/i);
   assert.match(migration, /alter table public\.worlds_chat_reports enable row level security/i);
   assert.match(migration, /revoke all on table public\.worlds_chat_messages from public, anon, authenticated, service_role/i);

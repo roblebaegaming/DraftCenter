@@ -1,4 +1,4 @@
--- Run only after the Worlds language chatboard migration on an isolated Supabase Preview branch.
+-- Run only after the Worlds language chatboard and FK-index migrations on an isolated Supabase Preview branch.
 -- The fixture proves account-only room separation and moderation ownership, then rolls back.
 
 begin;
@@ -35,6 +35,10 @@ begin
          and tablename in ('worlds_chat_messages', 'worlds_chat_reports')
      ) then
     raise exception 'The Worlds chat exceeded its RPC-only account boundary.';
+  end if;
+
+  if to_regclass('public.worlds_chat_messages_removed_by_idx') is null then
+    raise exception 'The Worlds chat moderation actor foreign key is not indexed.';
   end if;
 
   insert into auth.users(id, aud, role)
@@ -104,4 +108,3 @@ end;
 $validation$;
 
 rollback;
-

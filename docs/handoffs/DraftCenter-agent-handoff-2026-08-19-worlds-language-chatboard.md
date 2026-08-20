@@ -8,7 +8,9 @@
 - Base commit: `5504811730c080921d527a9ba51cae3dcf8d9061`
 - Production status: not deployed
 - Latest applied Production migration before this candidate: 450
-- Candidate migration: `20260820004814_worlds_language_chatboard.sql` (migration 451)
+- Candidate migrations:
+  `20260820004814_worlds_language_chatboard.sql` (migration 451) and
+  `20260820032602_index_worlds_chat_removed_by.sql` (migration 452)
 
 ## Outcome built
 
@@ -48,6 +50,12 @@ Forward migration `20260820004814_worlds_language_chatboard.sql` creates:
 - four `SECURITY DEFINER` functions with empty fixed search paths and explicit
   `auth.uid()` checks.
 
+Forward migration `20260820032602_index_worlds_chat_removed_by.sql` adds the
+covering index for the optional moderation actor foreign key identified by the
+Preview performance advisor. It is separate because migration 451 had already
+run on the disposable branch and repository policy forbids rewriting a
+migration that may have executed.
+
 Both tables have RLS enabled and no browser-facing policies. Direct table and
 sequence privileges are revoked from `public`, `anon`, and `authenticated`.
 Only `service_role` retains direct moderation access. The browser receives
@@ -72,6 +80,7 @@ Broadcast implementation later if traffic justifies it.
 - `src/lib/worldsChatI18n.js`
 - `src/app/globals.css`
 - `supabase/migrations/20260820004814_worlds_language_chatboard.sql`
+- `supabase/migrations/20260820032602_index_worlds_chat_removed_by.sql`
 - `supabase/tests/451-worlds-language-chatboard-preview-regression.sql`
 - `test/worlds-language-chatboard.test.js`
 - `package.json`
@@ -98,23 +107,38 @@ Broadcast implementation later if traffic justifies it.
 - Vercel Preview is Ready. Hosted signed-out English and Korean room checks
   rendered the localized chat and privacy gate with zero browser errors.
 
-The Supabase CLI was pinned to current version `2.115.0` to create the forward
-migration. Local migration-list execution could not connect because Docker is
-not installed in this environment. Supabase then ignored the automatic pull-
-request Preview because the connected project reported that its concurrent
-Preview-branch limit had been reached. The current branch inventory exposed by
-Supabase contains only `main`, so no stale development branch was deleted or
-reset automatically. A manual isolated branch is available at the quoted
-Supabase cost of $0.01344 per hour, but none was created without explicit cost
-confirmation. The database fixture has therefore not yet executed against
-Postgres and must run on an isolated Preview branch before merge.
+The Supabase CLI was pinned to current version `2.115.0` to create both forward
+migrations. Local migration-list execution could not connect because Docker is
+not installed in this environment. Supabase initially ignored the automatic
+pull-request Preview because the integration reported its concurrent branch
+limit was reached. After explicit owner confirmation of the quoted
+`$0.01344/hour` rate, a disposable nonpersistent branch was created. Its ledger
+settled through all 245 Production migrations ending at migration 450 before
+any candidate migration was applied.
+
+Migration 451 applied and the rollback-only regression passed. The advisor then
+identified one unindexed optional `removed_by` foreign key, so forward migration
+452 added its covering index. The updated regression passed again, including
+the index assertion. Final branch state had 247 migrations, both candidate
+migrations, zero messages, zero reports, zero fixture profiles, and zero fixture
+events. Exact grants confirmed no anonymous or authenticated direct table
+access, authenticated RPC execution, service-only direct access, RLS on both
+tables, no policies, and four fixed-search-path definer functions.
+
+The final advisor review had no error-level or migration-specific performance
+finding. The only feature performance notices were expected unused-index INFO
+items on the empty branch. The service-only RLS-without-policy INFO notices and
+four authenticated `SECURITY DEFINER` WARN notices are intentional and covered
+by the regression's explicit member checks and grants. The branch was deleted
+immediately after validation; the post-delete inventory contains only `main`,
+so the hourly charge has stopped.
 
 ## Required release gates
 
 1. Run the full repository audit and application checks if they are not already
    recorded after the final diff.
 2. Push the short-lived branch and open a pull request; do not push to `main`.
-3. Allow Supabase Preview to apply migration 451 on an isolated branch.
+3. Allow Supabase Preview to apply migrations 451-452 on an isolated branch.
 4. Execute
    `supabase/tests/451-worlds-language-chatboard-preview-regression.sql` and
    confirm it rolls back cleanly.
@@ -124,8 +148,8 @@ Postgres and must run on an isolated Preview branch before merge.
    account is available in Preview, verify read, post, refresh, report, and
    author removal in two different language rooms.
 7. Merge only after protected checks and review pass.
-8. Confirm the exact deployed commit before applying or declaring migration
-   451 in Production.
+8. Confirm the exact deployed commit before applying or declaring migrations
+   451-452 in Production.
 9. Run the complete signed-out Production smoke sweep after deployment, then
    perform a narrowly scoped signed-in chat check without changing any real
    prediction, league, draft, roster, or tournament state.
