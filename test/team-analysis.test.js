@@ -1175,7 +1175,16 @@ test("Team Lab is indexable while account notes and matchups stay private", () =
   assert.match(pokepasteRoute, /"Cache-Control": "private, no-store"/);
   assert.match(calendar, /Connect a My Teams workspace/);
   assert.match(calendar, /Plan this matchup/);
-  assert.match(league, /Plan in Team Lab/);
+  assert.match(league, /Scout any scheduled matchup/);
+  assert.match(league, /scheduledOpponents\.map/);
+  assert.match(league, /Open private Team Lab/);
+  assert.match(league, /<EmbeddedDraftLab[\s\S]*embedded[\s\S]*initialLeagueMatchupHandoff/);
+  assert.match(component, /initialLeagueMatchupHandoff/);
+  assert.match(component, /if \(!hydrated \|\| embedded\) return/);
+  assert.match(component, /YOUR OFFICIAL ROSTER/);
+  assert.match(component, /OPPONENT’S OFFICIAL ROSTER/);
+  assert.match(styles, /\.league-team-lab-overlay\s*\{[^}]*position:fixed[^}]*z-index:1050/);
+  assert.match(styles, /\.team-lab-league-rosters\s*\{[^}]*grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
   const primaryHeaderStart = navigation.indexOf('<nav className="site-primary-links"');
   const primaryHeader = navigation.slice(primaryHeaderStart, navigation.indexOf("</nav>", primaryHeaderStart));
   assert.doesNotMatch(primaryHeader, /href="\/team-lab"/);

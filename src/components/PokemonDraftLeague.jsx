@@ -14,8 +14,7 @@ import { browserCanResolveHostedAutoDraft, preserveLoadedPrivateDraftQueue } fro
 import { readLeagueNavigation, writeLeagueNavigation } from "../lib/leagueNavigation";
 import { canClaimOpenLeagueTeam, claimedTeamCount, compactLocalTeamsClaimedFirst, openSetupTeams, teamIsClaimed } from "../lib/teamOwnership";
 import { draftManagerLabel, snakeDraftContext } from "../lib/draftBoardContext";
-import { createTeamLabLeagueMatchupHandoff, TEAM_LAB_LEAGUE_MATCHUP_HANDOFF_KEY } from "../lib/teamLab";
-import { PRODUCT_ROUTES } from "../platform/products";
+import { createTeamLabLeagueMatchupHandoff } from "../lib/teamLab";
 import { saveWithConflictRecovery, waitForSaveFailureGrace } from "../lib/leagueSaveReconciliation";
 import {
   buildNextLeagueSwissRoundState,
@@ -26,6 +25,7 @@ import {
   rankLeagueSwissStandings,
   recommendedLeagueSwissRounds,
 } from "../lib/leagueSwiss.mjs";
+
 import {
   DEFAULT_LEAGUE_TEAM_CAP,
   EXPANDED_LEAGUE_TEAM_CAP,
@@ -62,6 +62,8 @@ import {
   leagueResultWinnerSide,
 } from "../lib/leagueResults";
 import { activeLeagueRows, isAdministrativeLeagueResolution, isLeagueTeamRetired, leagueTeamStatusLabel } from "../lib/participantStatus";
+
+const EmbeddedDraftLab = React.lazy(() => import("./DraftLab"));
 
 /* ---------------------------------------------------------
    DESIGN TOKENS — stadium-jumbotron-at-night aesthetic.
@@ -10696,6 +10698,8 @@ function MyTeamView({ state, leagueId, myTeamIdx, isCommissioner, myName, myTeam
   const [logoCheckFailed, setLogoCheckFailed] = useState(false);
   const [showDefenseSummary, setShowDefenseSummary] = useState(false);
   const [profileIdentity, setProfileIdentity] = useState("");
+  const [prepWeekIndex, setPrepWeekIndex] = useState(null);
+  const [embeddedTeamLabHandoff, setEmbeddedTeamLabHandoff] = useState("");
   const [weekClock, setWeekClock] = useState(Date.now());
   useEffect(() => {
     const timer = window.setInterval(() => setWeekClock(Date.now()), 60000);
@@ -10717,7 +10721,17 @@ function MyTeamView({ state, leagueId, myTeamIdx, isCommissioner, myName, myTeam
   }
   useEffect(() => {
     if (myTeamIdx >= 0) setViewedTeam(myTeamIdx);
+    setPrepWeekIndex(null);
+    setEmbeddedTeamLabHandoff("");
   }, [myTeamIdx]);
+  useEffect(() => {
+    if (!embeddedTeamLabHandoff) return undefined;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [embeddedTeamLabHandoff]);
   useEffect(() => {
     if (viewTeamRequest !== null && viewTeamRequest !== undefined) {
       setViewedTeam(viewTeamRequest);
@@ -10755,6 +10769,30 @@ function MyTeamView({ state, leagueId, myTeamIdx, isCommissioner, myName, myTeam
   const currentWeekEnd = currentWeekStart
     ? new Date(currentWeekStart.getTime() + 7 * 24 * 60 * 60 * 1000)
     : null;
+  const scheduledOpponents = myTeamIdx < 0 ? [] : (state.schedule || []).flatMap((week, weekIndex) => {
+    const matchIndex = (week || []).findIndex(([a, b]) => a === myTeamIdx || b === myTeamIdx);
+    if (matchIndex < 0) return [];
+    const [a, b] = week[matchIndex];
+    const opponentTeamIndex = a === myTeamIdx ? b : a;
+    if (!Number.isInteger(opponentTeamIndex) || opponentTeamIndex < 0 || !teams[opponentTeamIndex]) return [];
+    return [{ weekIndex, matchIndex, opponentTeamIndex, team: teams[opponentTeamIndex] }];
+  });
+  const selectedPrepMatch = scheduledOpponents.find((matchup) => matchup.weekIndex === prepWeekIndex)
+    || scheduledOpponents.find((matchup) => matchup.weekIndex === currentWeekIndex)
+    || scheduledOpponents.find((matchup) => matchup.weekIndex > currentWeekIndex)
+    || scheduledOpponents.at(-1)
+    || null;
+  const selectedOpponentRoster = selectedPrepMatch ? rosters[selectedPrepMatch.opponentTeamIndex] || [] : [];
+
+  function openEmbeddedTeamLab(matchup) {
+    setPrepWeekIndex(matchup.weekIndex);
+    setEmbeddedTeamLabHandoff(createTeamLabLeagueMatchupHandoff({
+      league_id: leagueId,
+      week_index: matchup.weekIndex,
+      my_team_index: myTeamIdx,
+      opponent_team_index: matchup.opponentTeamIndex,
+    }));
+  }
 
   return (
     <div>
@@ -10813,42 +10851,25 @@ function MyTeamView({ state, leagueId, myTeamIdx, isCommissioner, myName, myTeam
             </p>
           );
         })()}
-        {(() => {
-          // This week's scheduled opponent for whichever of my own teams is
-          // active — a quick jump straight to their page, same as clicking
-          // a team anywhere else in the app does, just surfaced right here
-          // since "who am I playing this week" is the thing you'd actually
-          // come to My Teams wanting to check before a game.
-          if (myTeamIdx < 0 || !state.schedule?.[currentWeekIndex]) return null;
-          const thisWeek = state.schedule[currentWeekIndex];
-          const match = thisWeek.find(([a, b]) => a === myTeamIdx || b === myTeamIdx);
-          if (!match) return null;
-          const oppIdx = match[0] === myTeamIdx ? match[1] : match[0];
-          if (oppIdx == null || oppIdx < 0 || !teams[oppIdx]) return null;
-          return (
-            <div className="flex flex-wrap gap-2 mt-3">
-              <button onClick={() => setViewedTeam(oppIdx)}
-                className="flex items-center gap-2 px-3 py-2 rounded text-sm font-medium flex-1 justify-center"
-                style={{ background: "#FFD23F14", border: "1px solid #FFD23F55", color: "#FFD23F" }}>
-                <TeamLogo team={teams[oppIdx]} size={20} />
-                Week {currentWeekIndex + 1} opponent: {teams[oppIdx].name} →
-              </button>
-              <button onClick={() => {
-                window.sessionStorage.setItem(TEAM_LAB_LEAGUE_MATCHUP_HANDOFF_KEY, createTeamLabLeagueMatchupHandoff({
-                  league_id: leagueId,
-                  week_index: currentWeekIndex,
-                  my_team_index: myTeamIdx,
-                  opponent_team_index: oppIdx,
-                }));
-                window.location.assign(PRODUCT_ROUTES.teamLab);
-              }} className="px-3 py-2 rounded text-sm font-medium"
-                style={{ background: "#4FD1C522", border: "1px solid #4FD1C566", color: "#4FD1C5" }}>
-                Plan in Team Lab
-              </button>
-            </div>
-          );
-        })()}
       </div>
+
+      {myTeamIdx >= 0 && locked && scheduledOpponents.length > 0 && (
+        <section className="league-opponent-prep" aria-labelledby="league-opponent-prep-title">
+          <div className="league-opponent-prep-heading">
+            <div><span className="eyebrow">PRIVATE OPPONENT PREP</span><h2 id="league-opponent-prep-title">Scout any scheduled matchup</h2><p>The league clock still controls the official week. Your private planning can start as soon as an opponent appears on the schedule.</p></div>
+            <span>{scheduledOpponents.length} matchup{scheduledOpponents.length === 1 ? "" : "s"}</span>
+          </div>
+          <div className="league-opponent-prep-controls">
+            <label>Matchup<select value={selectedPrepMatch?.weekIndex ?? ""} onChange={(event) => setPrepWeekIndex(Number(event.target.value))}>{scheduledOpponents.map((matchup) => {
+              const timing = matchup.weekIndex === currentWeekIndex ? "current" : matchup.weekIndex > currentWeekIndex ? "upcoming" : "past";
+              return <option key={`${matchup.weekIndex}-${matchup.opponentTeamIndex}`} value={matchup.weekIndex}>Week {matchup.weekIndex + 1} · {matchup.team.name} ({timing})</option>;
+            })}</select></label>
+            {selectedPrepMatch && <div className="league-opponent-prep-actions"><button type="button" className="quiet-button" onClick={() => setViewedTeam(selectedPrepMatch.opponentTeamIndex)}>View league roster</button><button type="button" className="primary-button" onClick={() => openEmbeddedTeamLab(selectedPrepMatch)}>Open private Team Lab</button></div>}
+          </div>
+          {selectedPrepMatch && <div className="league-opponent-prep-preview"><div><TeamLogo team={selectedPrepMatch.team} size={34}/><div><strong>Week {selectedPrepMatch.weekIndex + 1} vs. {selectedPrepMatch.team.name}</strong><small>{selectedOpponentRoster.length} Pokémon on the official roster</small></div></div><div>{selectedOpponentRoster.map((pokemon) => <span key={pokemon.id || pokemon.name}>{pokemon.name}</span>)}{selectedOpponentRoster.length === 0 && <span>Roster not available yet</span>}</div></div>}
+          <p className="league-opponent-prep-privacy">Team Lab opens over this league and returns here when closed. Notes, possible sets, and weekly-six choices stay private and cannot change either official roster.</p>
+        </section>
+      )}
 
       {team?.claimedBy && (
         <><div className="mb-3"><CoachProfileButton displayName={team.claimedBy} onOpen={setProfileIdentity}/></div><ProfileCard state={state} personName={team.claimedBy} /></>
@@ -11005,6 +11026,18 @@ function MyTeamView({ state, leagueId, myTeamIdx, isCommissioner, myName, myTeam
             {showDefenseSummary ? "▲ Hide team defensive coverage" : "▼ Show team defensive coverage"}
           </button>
           {showDefenseSummary && <TeamDefenseSummary roster={roster} />}
+        </div>
+      )}
+      {embeddedTeamLabHandoff && selectedPrepMatch && (
+        <div className="league-team-lab-overlay" role="dialog" aria-modal="true" aria-label={`Private Team Lab for Week ${selectedPrepMatch.weekIndex + 1} against ${selectedPrepMatch.team.name}`}>
+          <React.Suspense fallback={<div className="league-team-lab-loading"><strong>Opening private Team Lab…</strong><button type="button" className="quiet-button" onClick={() => setEmbeddedTeamLabHandoff("")}>Back to league</button></div>}>
+            <EmbeddedDraftLab
+              embedded
+              initialFormatId={settings.regulationId || "reg-mb"}
+              initialLeagueMatchupHandoff={embeddedTeamLabHandoff}
+              onClose={() => setEmbeddedTeamLabHandoff("")}
+            />
+          </React.Suspense>
         </div>
       )}
       {profileIdentity && <PublicCoachProfile identity={profileIdentity} onClose={() => setProfileIdentity("")}/>}

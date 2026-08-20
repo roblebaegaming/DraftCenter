@@ -1198,6 +1198,43 @@ button { cursor: pointer; }
   .hub-home-tools a { width:100%; }
 }
 
+/* League-scoped opponent preparation and embedded Team Lab. */
+.league-opponent-prep { display:grid; gap:15px; margin-bottom:24px; padding:20px; color:#edf0ff; border:1px solid rgba(79,209,197,.42); border-radius:14px; background:linear-gradient(135deg,rgba(17,34,48,.98),rgba(17,22,43,.98)); }
+.league-opponent-prep-heading { display:flex; align-items:flex-start; justify-content:space-between; gap:18px; }
+.league-opponent-prep-heading h2 { margin:5px 0; color:#4fd1c5; font-size:1.45rem; }
+.league-opponent-prep-heading p { max-width:760px; margin:0; color:#aeb8d7; font-size:13px; line-height:1.55; }
+.league-opponent-prep-heading>span { flex:0 0 auto; padding:6px 9px; color:#ffd23f; border:1px solid #ffd23f55; border-radius:999px; background:#ffd23f12; font-size:10px; font-weight:900; text-transform:uppercase; }
+.league-opponent-prep-controls { display:grid; grid-template-columns:minmax(260px,1fr) auto; align-items:end; gap:12px; }
+.league-opponent-prep-controls label { display:grid; gap:6px; color:#c7d0e9; font-size:10px; font-weight:900; letter-spacing:.06em; text-transform:uppercase; }
+.league-opponent-prep-controls select { min-height:44px; width:100%; padding:10px 12px; color:#fff; border:1px solid #46547b; border-radius:9px; background:#090f20; }
+.league-opponent-prep-actions { display:flex; gap:8px; flex-wrap:wrap; }
+.league-opponent-prep-actions button { min-height:44px; }
+.league-opponent-prep-preview { display:grid; gap:11px; padding:14px; border:1px solid #344361; border-radius:11px; background:#0a1021; }
+.league-opponent-prep-preview>div:first-child { display:flex; align-items:center; gap:10px; }
+.league-opponent-prep-preview>div:first-child>div { display:grid; gap:2px; }
+.league-opponent-prep-preview small { color:#8e9aba; }
+.league-opponent-prep-preview>div:last-child { display:flex; flex-wrap:wrap; gap:6px; }
+.league-opponent-prep-preview>div:last-child span { padding:5px 8px; color:#dce4f6; border:1px solid #354361; border-radius:999px; background:#151d34; font-size:10px; }
+.league-opponent-prep-privacy { margin:0; color:#8f9abb; font-size:11px; line-height:1.5; }
+.league-team-lab-overlay { position:fixed; z-index:1050; inset:0; overflow:auto; background:#090c18; }
+.league-team-lab-loading { display:grid; min-height:100vh; place-items:center; align-content:center; gap:18px; color:#fff; }
+.team-lab-embedded-nav { position:sticky; z-index:12; top:0; display:flex; align-items:center; justify-content:space-between; gap:18px; max-width:1220px; margin:-28px auto 0; padding:12px 16px; border:1px solid #3b486b; border-top:0; border-radius:0 0 14px 14px; background:rgba(9,14,31,.97); box-shadow:0 12px 35px #0008; backdrop-filter:blur(10px); }
+.team-lab-embedded-nav>div { display:grid; gap:3px; min-width:0; }
+.team-lab-embedded-nav strong { overflow:hidden; color:#fff; font-size:13px; text-overflow:ellipsis; white-space:nowrap; }
+.team-lab-league-context { display:grid; gap:14px; margin-top:18px; padding:17px; border:1px solid #ffd23f66; border-radius:13px; background:linear-gradient(135deg,#151a30,#101626); }
+.team-lab-league-context>header { display:flex; align-items:flex-start; justify-content:space-between; gap:15px; }
+.team-lab-league-context h3 { margin:5px 0; color:#ffd23f; }
+.team-lab-league-context header p { margin:0; color:#aab5d4; font-size:12px; line-height:1.5; }
+.team-lab-league-context>header>strong { flex:0 0 auto; color:#4fd1c5; font-size:11px; }
+.team-lab-league-rosters { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:11px; }
+.team-lab-league-rosters>section { display:grid; align-content:start; gap:9px; padding:12px; border:1px solid #35415f; border-radius:10px; background:#090f20; }
+.team-lab-league-rosters>section>div:first-child { display:flex; align-items:center; justify-content:space-between; gap:8px; color:#bfc9e2; font-size:9px; font-weight:900; }
+.team-lab-league-rosters small { color:#8190b3; }
+.team-lab-league-rosters>section>div:last-child { display:flex; flex-wrap:wrap; gap:6px; }
+.team-lab-league-rosters button { min-height:36px; padding:7px 9px; color:#cbd4eb; border:1px solid #3a4667; border-radius:999px; background:#151d34; font-size:10px; cursor:pointer; }
+.team-lab-league-rosters button.is-selected { color:#071615; border-color:#4fd1c5; background:#4fd1c5; font-weight:900; }
+@media(max-width:700px) { .league-opponent-prep-heading,.team-lab-league-context>header { align-items:flex-start; flex-direction:column; } .league-opponent-prep-controls,.team-lab-league-rosters { grid-template-columns:1fr; } .league-opponent-prep-actions { display:grid; grid-template-columns:1fr; } .team-lab-embedded-nav { margin:-28px -12px 0; border-radius:0; } .team-lab-embedded-nav .eyebrow { display:none; } }
+
 /* Public Team Lab builder, private notes, and matchup planning. */
 .draft-lab-shell { min-height: 100vh; padding: 28px max(16px,calc((100vw - 1220px)/2)) 84px; color: #f0f2ff; background: radial-gradient(circle at 12% 0,rgba(79,209,197,.17),transparent 29%),radial-gradient(circle at 86% 6%,rgba(255,210,63,.14),transparent 25%),#090c18; }
 .draft-lab-hero { display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: end; gap: 30px; margin: 36px 0 24px; padding: 38px; border: 1px solid #37436b; border-radius: 24px; background: linear-gradient(135deg,rgba(29,43,76,.96),rgba(13,18,36,.98)); box-shadow: 0 25px 70px rgba(0,0,0,.3); }

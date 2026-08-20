@@ -161,12 +161,20 @@ matchup identifiers for reload recovery; notes and roster details are not added
 to it, and the copied public Team Lab URL contains neither identifier.
 
 Hosted DraftCenter match events remain derived from the authoritative league
-snapshot instead of being copied into the personal calendar table. Calendar and
-the league team view can open the signed-in manager's scheduled pairing in Team
-Lab. The server verifies league membership, ownership of the selected team, and
-the exact week pairing before returning either roster. Imported rosters are
-read-only planning copies and cannot change picks, transactions, schedules, or
-official league teams.
+snapshot instead of being copied into the personal calendar table. Calendar can
+hand a pairing to the standalone Team Lab route. My Team instead lists every
+scheduled opponent, labels past, current, and upcoming weeks, and opens Team Lab
+as a full-screen overlay without changing the league route or official current
+week. The complete official rosters remain visible in that overlay while the
+coach chooses a private weekly six for each side.
+
+The server verifies league membership, ownership of the selected team, and the
+exact week pairing before returning either roster. This permits future
+round-robin scouting as soon as a pairing exists while leaving unpaired Swiss
+rounds unavailable. Imported rosters are read-only planning copies and cannot
+change picks, transactions, schedules, results, or official league teams. The
+coach must still explicitly save a private My Teams copy before persisting team
+notes or opponent plans.
 
 ## Sharing boundary
 
