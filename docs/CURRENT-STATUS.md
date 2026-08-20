@@ -1,6 +1,6 @@
 # DraftCenter current status
 
-- Last updated: August 19, 2026 Pacific
+- Last updated: August 20, 2026 Pacific
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
 - Verified Production application behavior commit: `e88ddc312c38bee66498677be5d6b9b8d179058b`
@@ -668,14 +668,16 @@ not be resumed until the owner explicitly requests it.
 3. Observe the owner's real 45-second Battle Room session and prioritize the
    evidence from that session, including roster collapse/reopen behavior,
    manual no-action turns, pivots, Auto-next, and tap density.
-4. Recheck Worlds feed freshness and Top Cut operational readiness before the
-   live window. Keep GO Meta Picks closed until an official eligibility pool
-   is reviewed.
-5. Add consistent UTM campaign tagging before increasing advertising spend.
-   No ad account, billing, campaign launch, or spend change is authorized by
-   this documentation update.
-6. Address navigation consolidation after the live competitive workflows are
-   ready.
+4. The August 20 read-only Worlds audit passed: the feed and Top Cut systems
+   are healthy and fail closed. Provider permission, exact feed configuration,
+   a reviewed Preview import, and the official Top Cut field remain external
+   live-window gates. Keep GO Meta Picks closed until an official eligibility
+   pool is reviewed.
+5. Release the four-field UTM campaign standard before increasing advertising
+   spend. No ad account, billing, campaign launch, or spend change is
+   authorized by the standard.
+6. Release the consolidated desktop and mobile global navigation after its
+   responsive review and protected checks pass.
 7. Keep PokeEarth paused until the owner directly requests resumption, and
    preserve all Mushroom Cup and intentionally paused Mushroom Hut boundaries.
 
@@ -699,6 +701,8 @@ not be resumed until the owner explicitly requests it.
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-18-latest-production-continuation.md`](handoffs/DraftCenter-agent-handoff-2026-08-18-latest-production-continuation.md)
 - Current Worlds shared-competition profile handoff:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-18-worlds-shared-localized-leaderboard-profiles.md`](handoffs/DraftCenter-agent-handoff-2026-08-18-worlds-shared-localized-leaderboard-profiles.md)
+- August 20 Worlds operational readiness audit:
+  [`docs/worlds-vgc-operational-readiness-audit-2026-08-20.md`](worlds-vgc-operational-readiness-audit-2026-08-20.md)
 - Current Battle Lab compact-roster handoff:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-18-battle-lab-compact-roster.md`](handoffs/DraftCenter-agent-handoff-2026-08-18-battle-lab-compact-roster.md)
 - Current Regulation M-B Tournament Organizer Demo handoff:

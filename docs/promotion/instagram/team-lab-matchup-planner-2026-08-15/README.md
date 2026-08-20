@@ -14,10 +14,11 @@ do not rename the product to Match Lab in published captions.
 
 Use this exact URL in the Instagram profile or Story link sticker:
 
-https://www.draftcentral.gg/tools/team-builder?utm_source=instagram&utm_medium=social&utm_campaign=team-lab-battle-mode
+https://www.draftcentral.gg/team-lab?utm_source=instagram&utm_medium=social&utm_campaign=team-lab-battle-room&utm_content=en-matchup-planner-1
 
-Keep the campaign name `team-lab-battle-mode` stable so the privacy-safe signup
-attribution report can compare results over time.
+The August 20 campaign standard supersedes the earlier untagged-content link.
+Keep `team-lab-battle-room` stable and change `utm_content` for a materially
+different creative or call to action.
 
 ## Posts
 

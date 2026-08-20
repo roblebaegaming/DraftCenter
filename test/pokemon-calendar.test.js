@@ -13,10 +13,10 @@ import { calendarMonthDays, calendarToIcs, dateKey, deriveLeagueEvents } from ".
 
 const source = (path) => fs.readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("the private calendar has a standalone global navigation button", () => {
+test("the private calendar is available from the consolidated Tools menu", () => {
   const navigation = source("src/components/SiteQuickLinks.jsx");
   const page = source("src/app/calendar/page.js");
-  assert.match(navigation, /href="\/calendar" aria-label="Calendar"/);
+  assert.match(navigation, /<NavigationMenu active=\{toolsActive\} label="Tools">[\s\S]*?href="\/calendar"[^>]*>Calendar<\/a>/);
   assert.match(navigation, /navState\(pathname, "\/calendar"\)/);
   assert.match(page, /robots: \{ index: false, follow: false \}/);
   assert.match(page, /<PokemonCalendar \/>/);

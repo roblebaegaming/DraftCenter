@@ -10,6 +10,11 @@ import {
   signupSource,
   trackSignupAttributionEvent,
 } from "../src/lib/signupAttribution.js";
+import {
+  buildCampaignUrl,
+  buildWorldsCampaignUrl,
+  CAMPAIGN_LINK_CONTRACT,
+} from "../src/lib/campaignLinks.js";
 
 class MemoryStorage {
   constructor() { this.values = new Map(); }
@@ -31,6 +36,10 @@ test("feature attribution uses coarse public-product buckets", () => {
 
 test("campaign sources are normalized without storing raw referrer URLs", () => {
   assert.equal(signupSource({ search: "?utm_source=twitter&utm_campaign=Team Lab Launch" }), "x:team-lab-launch");
+  assert.equal(
+    signupSource({ search: "?utm_source=instagram&utm_medium=paid_social&utm_campaign=worlds_2026&utm_content=it_odds_1" }),
+    "instagram-paid-social:worlds-2026:it-odds-1",
+  );
   assert.equal(signupSource({ referrer: "https://www.reddit.com/r/pokemon/comments/example", hostname: "www.draftcentral.gg" }), "reddit");
   assert.equal(signupSource({ referrer: "https://community.reddit.com/r/pokemon", hostname: "www.draftcentral.gg" }), "reddit");
   assert.equal(signupSource({ referrer: "https://notreddit.com/deceptive", hostname: "www.draftcentral.gg" }), "referral");
@@ -39,6 +48,31 @@ test("campaign sources are normalized without storing raw referrer URLs", () => 
   assert.equal(signupSource({ referrer: "https://maliciousyoutube.com/deceptive", hostname: "www.draftcentral.gg" }), "referral");
   assert.equal(signupSource({ referrer: "https://partner.example/path/person-name", hostname: "www.draftcentral.gg" }), "referral");
   assert.equal(signupSource({ referrer: "https://www.draftcentral.gg/guides", hostname: "www.draftcentral.gg" }), "direct");
+});
+
+test("campaign links require the same privacy-safe four-field UTM contract", () => {
+  assert.equal(
+    buildCampaignUrl({
+      campaign: "team-lab-battle-room",
+      content: "en-filming-1",
+      medium: "social",
+      source: "instagram",
+    }),
+    "https://www.draftcentral.gg/team-lab?utm_source=instagram&utm_medium=social&utm_campaign=team-lab-battle-room&utm_content=en-filming-1",
+  );
+  assert.equal(
+    buildWorldsCampaignUrl({ locale: "it", source: "instagram", medium: "paid-social", content: "odds-1" }),
+    "https://www.draftcentral.gg/it/worlds/2026?utm_source=instagram&utm_medium=paid-social&utm_campaign=worlds-2026&utm_content=it-odds-1",
+  );
+  assert.equal(
+    buildCampaignUrl({ campaign: "legends-za-pokedex", content: "en-overview-1", medium: "social", source: "x" }),
+    "https://www.draftcentral.gg/pokemon?game=legends-za&utm_source=x&utm_medium=social&utm_campaign=legends-za-pokedex&utm_content=en-overview-1",
+  );
+  assert.throws(() => buildCampaignUrl({ campaign: "worlds-2026", content: "en-odds-1", medium: "display", source: "instagram" }), /supported campaign medium/);
+  assert.throws(() => buildCampaignUrl({ campaign: "worlds-2026", content: "en-odds-1", destination: "https://example.com", medium: "paid-social", source: "instagram" }), /DraftCenter paths/);
+  assert.throws(() => buildCampaignUrl({ campaign: "worlds-2026", content: "en-odds-1", destination: "/worlds/2026?utm_source=other", medium: "paid-social", source: "instagram" }), /existing UTM fields/);
+  assert.deepEqual(CAMPAIGN_LINK_CONTRACT.fields, ["utm_source", "utm_medium", "utm_campaign", "utm_content"]);
+  assert.ok(CAMPAIGN_LINK_CONTRACT.forbidden.includes("opponent"));
 });
 
 test("capture keeps first touch, updates the last non-home feature, and expires after 30 days", () => {

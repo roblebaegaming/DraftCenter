@@ -89,7 +89,6 @@ button { cursor: pointer; }
 @media (max-width:520px) { .community-pokemon-preview { padding:18px; }.community-pokemon-preview header { gap:10px; }.community-pokemon-preview header img { width:90px; height:90px; }.community-pokemon-preview h2 { font-size:1.55rem; }.community-preview-stats { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 .site-account .site-league-home { display:inline-flex; align-items:center; gap:7px; white-space:nowrap; }
 .site-account .site-league-home img { width:22px; height:22px; object-fit:cover; border-radius:5px; }
-.site-quick-links button { border:0; background:transparent; color:inherit; font:inherit; font-weight:800; cursor:pointer; padding:0; }
 .ranking-heading { display:flex; align-items:flex-start; justify-content:space-between; gap:14px; flex-wrap:wrap; }
 .ranking-limit { display:flex; gap:6px; flex-wrap:wrap; }
 .ranking-limit button { padding:7px 10px; border:1px solid #4b557c; border-radius:8px; background:#171d36; color:#b8c0e6; font-weight:800; cursor:pointer; }
@@ -151,10 +150,9 @@ button { cursor: pointer; }
 .career-record-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; }.career-record-grid article { padding:14px 8px; border:1px solid #344069; border-radius:12px; background:#0d1224; text-align:center; }.career-record-grid strong { display:block; color:#4fd1c5; font-family:var(--font-display,"Teko",sans-serif); font-size:28px; line-height:1; }.career-record-grid span { display:block; margin-top:6px; color:#9da8ce; font-size:11px; text-transform:uppercase; letter-spacing:.06em; }@media(max-width:560px){.career-record-grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
 .pokemon-draft-editorial .career-record-grid{grid-template-columns:repeat(3,minmax(0,1fr));align-items:stretch}.pokemon-draft-editorial .career-record-grid article{padding:18px;text-align:left}.pokemon-draft-editorial .career-record-grid h3{margin:0 0 9px;color:#4fd1c5}.pokemon-draft-editorial .career-record-grid p{margin:0;color:#d5daf0;line-height:1.6}.pokemon-draft-editorial .public-pick-list div,.pokemon-index-editorial .public-pick-list div{grid-template-columns:minmax(150px,.4fr) minmax(0,1fr)}@media(max-width:900px){.pokemon-draft-editorial .career-record-grid{grid-template-columns:1fr}}@media(max-width:760px){.pokemon-draft-editorial .public-pick-list div,.pokemon-index-editorial .public-pick-list div{grid-template-columns:1fr}.pokemon-draft-editorial .public-pick-list span,.pokemon-index-editorial .public-pick-list span{grid-column:1}}
 .coach-profile-button { display:inline-flex; align-items:center; gap:9px; padding:6px 9px; border:1px solid #344069; border-radius:10px; background:#151b32; color:#fff; text-align:left; cursor:pointer; }.coach-profile-button:hover { border-color:#4fd1c5; }.coach-profile-button span { display:grid; }.coach-profile-button small { color:#9da8ce; font-size:10px; }.coach-profile-button.is-compact { padding:3px 7px; border-color:transparent; background:transparent; }.coach-avatar { flex:0 0 auto; border-radius:50%; object-fit:cover; border:1px solid #4fd1c5; }.coach-avatar-fallback { display:grid; place-items:center; background:#232b4d; color:#ffd23f; font-weight:900; }.public-profile-modal { width:min(760px,calc(100vw - 28px)); max-height:min(92vh,900px); overflow-y:auto; overscroll-behavior:contain; }.public-profile-header { display:flex; align-items:center; gap:18px; margin-bottom:20px; }.public-profile-header h2,.public-profile-header p { margin:0; }.public-profile-modal h3 { margin:24px 0 10px; color:#ffd23f; }.public-profile-favorites { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:8px; }.public-profile-favorite { display:grid; justify-items:center; gap:5px; min-width:0; padding:9px 5px; border:1px solid #344069; border-radius:10px; background:#111625; text-align:center; }.public-profile-favorite img,.public-profile-favorite .profile-photo-placeholder { width:58px; height:58px; object-fit:contain; }.public-profile-favorite strong { overflow:hidden; max-width:100%; font-size:11px; text-overflow:ellipsis; white-space:nowrap; }@media(max-width:650px){.public-profile-modal{max-height:calc(100dvh - 20px);}.public-profile-favorites{grid-template-columns:repeat(3,minmax(0,1fr));}.public-profile-header{align-items:flex-start;}}
-.site-quick-links{position:fixed;right:14px;bottom:14px;z-index:80;display:flex;gap:7px;padding:7px;border:1px solid #33406d;border-radius:999px;background:rgba(8,11,24,.92);box-shadow:0 8px 30px rgba(0,0,0,.35)}.site-quick-links a,.site-quick-links button{display:inline-flex;align-items:center;justify-content:center;min-height:30px;padding:7px 11px;border-radius:999px;color:#fff;font-size:12px;line-height:1;font-weight:900;text-decoration:none}.site-quick-links a:hover,.site-quick-links button:hover{color:#080b18;background:#ffd23f}
 .resources-shell,.personal-teams-shell{min-height:100vh;padding:28px max(16px,calc((100vw - 1160px)/2)) 64px;color:#edebfa;background:radial-gradient(circle at top,#1d2857,#080b18 55%)}.resources-hero,.personal-teams-hero{margin:34px 0 26px}.resources-hero{max-width:760px}.resources-hero h1,.personal-teams-hero h1{margin:8px 0;font-size:clamp(2.25rem,6vw,4.5rem);line-height:1}.resources-hero p,.personal-teams-hero p{color:#b9c2e8;line-height:1.55}.draft-guide-feature{display:block;padding:28px;border:1px solid rgba(255,210,63,.48);border-radius:18px;color:#edebfa;text-decoration:none;background:linear-gradient(135deg,rgba(255,210,63,.16),rgba(79,209,197,.08))}.draft-guide-feature h2{margin:8px 0;font-size:clamp(1.6rem,4vw,2.5rem)}.draft-guide-feature p{max-width:760px;color:#cbd2ec;line-height:1.55}.draft-guide-feature strong,.resource-grid span{color:#ffd23f}.resource-sections{display:grid;gap:24px;margin-top:28px}.resource-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.resource-grid a{padding:18px;border:1px solid #2a3157;border-radius:13px;color:#edebfa;text-decoration:none;background:#11162b}.resource-grid p{min-height:42px;color:#abb5db;line-height:1.45}.resource-grid span{color:#ffd23f;font-size:13px;font-weight:800}.resource-disclaimer{margin-top:28px;color:#8f99bd;font-size:12px}
 .resource-grid .external-resource-card{overflow:hidden;padding:0;transition:border-color .18s ease,transform .18s ease,box-shadow .18s ease}.resource-grid .external-resource-card:hover{transform:translateY(-2px);border-color:#4fd1c5;box-shadow:0 14px 34px rgba(0,0,0,.28)}.resource-site-visual{display:grid;place-items:center;height:126px;padding:18px;background:radial-gradient(circle at 30% 20%,rgba(79,209,197,.18),transparent 45%),linear-gradient(135deg,#202b50,#0c1123)}.resource-site-visual img{display:block;width:auto;height:auto;min-height:64px;max-width:100%;max-height:90px;object-fit:contain;filter:drop-shadow(0 8px 14px rgba(0,0,0,.28))}.resource-site-copy{padding:18px}.resource-site-copy strong{display:block;font-size:1.05rem}.resource-site-copy p{margin:9px 0 14px}
-.personal-teams-hero{display:flex;align-items:end;justify-content:space-between;gap:20px}.personal-teams-hero>div{max-width:760px}.personal-team-tabs{display:flex;gap:8px;margin-bottom:18px}.personal-team-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px}.personal-team-card,.personal-team-empty{padding:20px;border:1px solid #2a3157;border-radius:15px;background:#11162b}.personal-team-card h2{margin:7px 0}.personal-team-format{color:#4fd1c5}.personal-team-pokemon{display:flex;flex-wrap:wrap;gap:6px;min-height:34px;margin:14px 0}.personal-team-pokemon span{padding:5px 8px;border-radius:999px;background:#20294a;font-size:12px}.personal-team-links,.personal-team-actions{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.personal-team-links{min-height:32px}.personal-team-links a,.personal-team-editor a{color:#ffd23f;font-weight:800}.personal-team-actions{justify-content:space-between;margin-top:16px}.danger-text{color:#ff9d9d!important}.personal-team-editor{width:min(820px,calc(100vw - 28px));max-height:92vh;overflow:auto}.personal-team-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.personal-team-editor label small{display:block;margin:5px 0}.inline-link-button{display:inline-block;text-decoration:none}@media(max-width:760px){.resource-grid,.personal-team-grid,.personal-team-form-grid{grid-template-columns:1fr}.personal-teams-hero{align-items:start;flex-direction:column}.personal-teams-hero .primary-button{width:100%}.resources-shell,.personal-teams-shell{padding-top:18px}.site-quick-links{left:8px;right:8px;bottom:8px;max-width:calc(100vw - 16px);justify-content:flex-start;overflow-x:auto;border-radius:14px}.site-quick-links a,.site-quick-links button{flex:0 0 auto}}
+.personal-teams-hero{display:flex;align-items:end;justify-content:space-between;gap:20px}.personal-teams-hero>div{max-width:760px}.personal-team-tabs{display:flex;gap:8px;margin-bottom:18px}.personal-team-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px}.personal-team-card,.personal-team-empty{padding:20px;border:1px solid #2a3157;border-radius:15px;background:#11162b}.personal-team-card h2{margin:7px 0}.personal-team-format{color:#4fd1c5}.personal-team-pokemon{display:flex;flex-wrap:wrap;gap:6px;min-height:34px;margin:14px 0}.personal-team-pokemon span{padding:5px 8px;border-radius:999px;background:#20294a;font-size:12px}.personal-team-links,.personal-team-actions{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.personal-team-links{min-height:32px}.personal-team-links a,.personal-team-editor a{color:#ffd23f;font-weight:800}.personal-team-actions{justify-content:space-between;margin-top:16px}.danger-text{color:#ff9d9d!important}.personal-team-editor{width:min(820px,calc(100vw - 28px));max-height:92vh;overflow:auto}.personal-team-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.personal-team-editor label small{display:block;margin:5px 0}.inline-link-button{display:inline-block;text-decoration:none}@media(max-width:760px){.resource-grid,.personal-team-grid,.personal-team-form-grid{grid-template-columns:1fr}.personal-teams-hero{align-items:start;flex-direction:column}.personal-teams-hero .primary-button{width:100%}.resources-shell,.personal-teams-shell{padding-top:18px}}
 .personal-team-card{cursor:pointer}.personal-team-card:hover{border-color:#4fd1c5}.personal-team-viewer{width:min(1100px,calc(100vw - 28px));max-height:92vh;overflow:auto}.personal-team-viewer-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:20px}.personal-team-viewer-heading h2{margin-bottom:4px}.personal-roster-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.personal-roster-mon{display:grid;grid-template-columns:78px minmax(0,1fr);gap:14px;padding:15px;border:1px solid #303958;border-radius:12px;background:#111625}.personal-roster-mon h3{margin:0 0 7px}.personal-roster-types{display:flex;gap:5px;margin-bottom:7px}.personal-roster-types span{padding:3px 7px;border:1px solid #56618a;border-radius:999px;color:#cbd4ff;background:#202944;font-size:9px;font-weight:900;text-transform:uppercase}.personal-roster-abilities{margin-top:7px;color:#9a9fbd;font-size:10px}.personal-roster-defense{display:grid;gap:5px;margin-top:9px}.personal-roster-defense>strong{color:#9a9fbd;font-size:10px;text-transform:uppercase}.personal-team-defense-summary{margin-top:18px;padding:16px;border:1px solid #303958;border-radius:12px;background:#111625}.personal-team-defense-summary>h3{margin:0 0 12px;color:#4fd1c5}.personal-team-saved-details{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:18px}.personal-team-saved-details section{padding:14px;border:1px solid #303958;border-radius:10px;background:#111625}.personal-team-saved-details p{white-space:pre-wrap;color:#c5cbea}.personal-roster-builder{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;margin-top:10px}.personal-roster-selections{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}.personal-roster-selections>span{display:flex;align-items:center;gap:7px;padding:6px 8px;border:1px solid #344069;border-radius:9px;background:#171d34}.personal-roster-selections b{display:grid;place-items:center;width:18px;height:18px;border-radius:50%;color:#080b18;background:#4fd1c5;font-size:10px}.personal-roster-selections button{border:0;color:#ff9d9d;background:transparent;cursor:pointer}.personal-team-sharing>p{display:none}.personal-team-entry-links,.personal-team-share-options{display:grid;gap:10px}.personal-team-entry-links label{display:grid;gap:6px}.community-team-shared-links{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.community-team-replica-code{width:100%;padding:10px;border:1px solid #344069;border-radius:9px;background:#111625}.community-team-replica-code small{display:block;color:#9a9fbd}.community-team-replica-code strong{display:block;margin-top:3px;color:#ffd23f;font-family:"IBM Plex Mono",monospace}@media(max-width:760px){.personal-roster-grid,.personal-team-saved-details{grid-template-columns:1fr}.personal-team-viewer-heading{align-items:flex-start;flex-direction:column}.personal-roster-builder{grid-template-columns:1fr}.personal-roster-mon{grid-template-columns:62px minmax(0,1fr)}}
 .my-league-teams-section,.external-teams-section{margin-top:28px}.my-league-teams-section>.section-heading,.external-teams-section>.section-heading{margin-bottom:14px}.league-team-card{border-color:#34476a;background:linear-gradient(145deg,#121a31,#11162b)}.league-team-card>.eyebrow{color:#4fd1c5}.external-teams-section{padding-top:28px;border-top:1px solid #293256}
 .personal-team-use-badge{display:inline-flex;padding:4px 8px;border:1px solid #45517a;border-radius:999px;color:#cbd4ff;background:#1b2340;font-size:10px;font-weight:900;text-transform:uppercase}.replica-code-field{max-width:360px}.personal-team-planning{display:grid;gap:12px;padding:16px;border:1px solid #303958;border-radius:12px}.personal-team-planning legend{padding:0 6px;color:#ffd23f;font-weight:900}.personal-team-use-options{display:flex;gap:8px}.personal-team-use-options button.active{border-color:#4fd1c5}.personal-team-planning-list{display:grid;gap:10px}.personal-team-planning-list section,.personal-team-planning-view section{padding:12px;border:1px solid #303958;border-radius:10px;background:#111625}.personal-team-planning-list section>div{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center}.personal-team-planning-list textarea{margin-top:8px}.personal-team-planning-view{display:grid;gap:10px;margin-top:18px}.personal-team-planning-view>h3{margin-bottom:0;color:#ffd23f}.personal-team-planning-view p{white-space:pre-wrap;color:#c5cbea}
@@ -430,8 +428,6 @@ button { cursor: pointer; }
 .site-global-account>button { cursor: pointer; }
 .site-primary-links a:hover,.site-global-account>a:hover,.site-global-account>button:hover,.site-owner-menu>summary:hover,
 .site-primary-links a.is-active { color: #10121c; border-color: #ffd23f; background: #ffd23f; }
-.site-primary-links a.site-primary-worlds-link { border-color: rgba(255,210,63,.78); color: #171306; background: linear-gradient(135deg,#ffe376,#ffd23f); box-shadow: 0 4px 14px rgba(255,210,63,.18); }
-.site-primary-links a.site-primary-worlds-link:hover,.site-primary-links a.site-primary-worlds-link:focus-visible { color: #080b18; border-color: #fff0ae; background: #fff0ae; outline: none; }
 .site-account-name { max-width: 160px; overflow: hidden; color: #9fadd8; font-size: 12px; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
 .site-owner-menu { position: relative; }
 .site-owner-menu>summary { max-width: 160px; overflow: hidden; color: #9fadd8; cursor: pointer; list-style: none; text-overflow: ellipsis; white-space: nowrap; }
@@ -452,11 +448,7 @@ button { cursor: pointer; }
 .site-owner-menu>div a { padding: 9px 10px; color: #eef1ff; border-radius: 7px; font-size: 12px; font-weight: 800; text-decoration: none; }
 .site-owner-menu>div a:hover { color: #10121c; background: #ffd23f; }
 
-.site-quick-links { gap: 5px; }
-.site-quick-links a { border: 1px solid transparent; }
-.site-quick-links a.is-active { color: #10121c; border-color: #ffd23f; background: #ffd23f; }
 .draft-queue-panel { min-height: 112px; }
-.quick-label-compact { display: none; }
 
 .site-legal-footer { padding: 34px max(18px,calc((100vw - 1160px)/2)) 30px; }
 .site-footer-links { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 28px; max-width: 880px; }
@@ -477,32 +469,6 @@ button { cursor: pointer; }
   .site-global-account>a,.site-global-account>button,.site-owner-menu>summary { min-height: 30px; padding: 6px 7px; font-size: 11px; }
   .site-account-name,.site-owner-menu>summary { max-width: 74px; }
   .hub-shell { padding: 28px 16px 148px; }
-  .site-quick-links {
-    left: 8px;
-    right: 8px;
-    bottom: max(8px,env(safe-area-inset-bottom));
-    display: grid;
-    grid-template-columns: repeat(7,minmax(0,1fr));
-    gap: 2px;
-    width: auto;
-    max-width: none;
-    padding: 5px;
-    overflow: visible;
-    border-radius: 14px;
-  }
-  .site-quick-links.has-owner-link { grid-template-columns: repeat(8,minmax(0,1fr)); }
-  .site-quick-links.has-tracker-link { grid-template-columns: repeat(8,minmax(0,1fr)); }
-  .site-quick-links.has-tracker-link.has-owner-link { grid-template-columns: repeat(9,minmax(0,1fr)); }
-  .site-quick-links.is-collector-nav { grid-template-columns: repeat(5,minmax(0,1fr)); }
-  .site-quick-links a {
-    min-width: 0;
-    min-height: 44px;
-    padding: 7px 2px;
-    font-size: 10px;
-    line-height: 1.15;
-    text-align: center;
-    white-space: normal;
-  }
   .site-legal-footer { padding: 29px 18px calc(144px + env(safe-area-inset-bottom)); }
   .site-footer-links { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 25px 18px; }
   .site-footer-group:last-child { grid-column: 1/-1; }
@@ -513,8 +479,6 @@ button { cursor: pointer; }
   .site-primary-links a { padding: 5px 3px; font-size: 10px; line-height: 1.15; text-align: center; }
   .site-nav-label-wide { display: none; }
   .site-nav-label-compact { display: inline; }
-  .quick-label-wide { display: none; }
-  .quick-label-compact { display: inline; }
 }
 
 @media (max-width:340px) {
@@ -524,10 +488,115 @@ button { cursor: pointer; }
   .site-primary-links a { padding: 5px 3px; font-size: 10px; line-height: 1.15; text-align: center; overflow-wrap: anywhere; }
   .site-account-name,.site-owner-menu>summary { max-width: 58px; }
   .site-global-account>a,.site-global-account>button,.site-owner-menu>summary { padding-right: 5px; padding-left: 5px; font-size: 10px; }
-  .site-quick-links { left: 5px; right: 5px; }
-  .site-quick-links a { font-size: 10px; }
-  .quick-label-wide { display: none; }
-  .quick-label-compact { display: inline; }
+}
+
+/* One navigation system: grouped desktop destinations and five phone actions. */
+.site-primary-links>.site-mobile-only { display: none; }
+.site-primary-links { justify-content: center; }
+.site-primary-links>.site-nav-menu { position: relative; }
+.site-primary-links>.site-nav-menu>summary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  padding: 7px 10px;
+  color: #d9def3;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 850;
+  line-height: 1;
+  list-style: none;
+  cursor: pointer;
+}
+.site-primary-links>.site-nav-menu>summary::-webkit-details-marker { display: none; }
+.site-primary-links>.site-nav-menu>summary::after { margin-left: 5px; color: #8995bb; content: "▾"; font-size: 9px; }
+.site-primary-links>.site-nav-menu:hover>summary,
+.site-primary-links>.site-nav-menu[open]>summary,
+.site-primary-links>.site-nav-menu.is-active>summary { color: #10121c; border-color: #ffd23f; background: #ffd23f; }
+.site-primary-links>.site-nav-menu>div {
+  position: absolute;
+  top: calc(100% + 9px);
+  left: 50%;
+  z-index: 110;
+  display: grid;
+  gap: 4px;
+  min-width: 210px;
+  padding: 8px;
+  border: 1px solid #3b466e;
+  border-radius: 12px;
+  background: #11162b;
+  box-shadow: 0 18px 45px rgba(0,0,0,.48);
+  transform: translateX(-50%);
+}
+.site-primary-links>.site-nav-menu>div>a {
+  justify-content: flex-start;
+  min-height: 38px;
+  padding: 10px 11px;
+  border-radius: 8px;
+  color: #e8ecff;
+  background: transparent;
+  font-size: 12px;
+  text-align: left;
+}
+.site-primary-links>.site-nav-menu>div>a:hover,
+.site-primary-links>.site-nav-menu>div>a.is-active { color: #10121c; background: #ffd23f; }
+
+@media (max-width:760px) {
+  body { padding-bottom: calc(74px + env(safe-area-inset-bottom)); }
+  .site-global-header { backdrop-filter: none; }
+  .site-global-header-inner { grid-template-columns: minmax(0,1fr) auto; }
+  .site-primary-links {
+    position: fixed;
+    left: 8px;
+    right: 8px;
+    bottom: max(8px,env(safe-area-inset-bottom));
+    z-index: 100;
+    grid-column: auto;
+    grid-row: auto;
+    display: grid;
+    grid-template-columns: repeat(5,minmax(0,1fr));
+    gap: 3px;
+    padding: 5px;
+    overflow: visible;
+    border: 1px solid #33406d;
+    border-radius: 15px;
+    background: rgba(8,11,24,.97);
+    box-shadow: 0 10px 34px rgba(0,0,0,.48);
+  }
+  .site-primary-links>.site-mobile-only { display: block; }
+  .site-desktop-only { display: none!important; }
+  .site-primary-links>a,.site-primary-links>.site-nav-menu>summary {
+    display: flex;
+    min-width: 0;
+    min-height: 46px;
+    padding: 7px 3px;
+    border-color: transparent;
+    background: transparent;
+    font-size: 10px;
+    line-height: 1.1;
+    text-align: center;
+  }
+  .site-primary-links>.site-nav-menu>summary::after { display: none; }
+  .site-primary-links>.site-nav-menu>div {
+    position: fixed;
+    top: auto;
+    right: 8px;
+    bottom: calc(74px + env(safe-area-inset-bottom));
+    left: 8px;
+    width: auto;
+    max-height: min(60vh,430px);
+    overflow-y: auto;
+    transform: none;
+  }
+  .site-primary-links>.site-nav-menu>div>a { min-height: 42px; font-size: 13px; }
+  .hub-shell { padding-bottom: 32px; }
+  .site-legal-footer { padding-bottom: 34px; }
+}
+
+@media (max-width:340px) {
+  .site-primary-links { right: 5px; left: 5px; gap: 1px; }
+  .site-primary-links>a,.site-primary-links>.site-nav-menu>summary { font-size: 9px; }
 }
 
 .tournament-mode-bar { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin: 0 0 18px; padding: 18px 20px; border: 1px solid #40517f; border-radius: 16px; background: linear-gradient(120deg,rgba(22,31,61,.98),rgba(18,23,45,.98)); }

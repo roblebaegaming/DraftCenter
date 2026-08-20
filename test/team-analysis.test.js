@@ -1187,8 +1187,8 @@ test("Team Lab is indexable while account notes and matchups stay private", () =
   assert.match(styles, /\.team-lab-league-rosters\s*\{[^}]*grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
   const primaryHeaderStart = navigation.indexOf('<nav className="site-primary-links"');
   const primaryHeader = navigation.slice(primaryHeaderStart, navigation.indexOf("</nav>", primaryHeaderStart));
-  assert.doesNotMatch(primaryHeader, /href="\/team-lab"/);
-  assert.match(navigation, /href="\/team-lab"[^>]*aria-label="Team Lab"/);
+  assert.match(primaryHeader, /<NavigationMenu active=\{toolsActive\} label="Tools">[\s\S]*?href="\/team-lab"[^>]*>Team Lab<\/a>/);
+  assert.equal((navigation.match(/href="\/team-lab"/g) || []).length, 1);
   assert.match(home, /className="hub-home-tools"[\s\S]*?href="\/team-lab"/);
   assert.match(resources, /href="\/team-lab"/);
   assert.match(styles, /@media\(max-width:780px\)[^}]*[\s\S]*?\.draft-lab-archetype-grid[^}]*grid-template-columns:\s*1fr/);

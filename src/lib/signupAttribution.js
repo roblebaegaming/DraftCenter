@@ -76,9 +76,14 @@ function landingSource(search, referrer, hostname) {
   const params = new URLSearchParams(String(search || "").replace(/^\?/, ""));
   const rawSource = safeSlug(params.get("utm_source"));
   const source = SOURCE_ALIASES[rawSource] || rawSource;
+  const medium = safeSlug(params.get("utm_medium"));
   const campaign = safeSlug(params.get("utm_campaign"));
-  const explicit = Boolean(source || campaign);
-  if (explicit) return { explicit, value: `${source || "campaign"}${campaign ? `:${campaign}` : ""}`.slice(0, 64) };
+  const content = safeSlug(params.get("utm_content"));
+  const explicit = Boolean(source || medium || campaign || content);
+  if (explicit) {
+    const channel = [source || "campaign", medium].filter(Boolean).join("-");
+    return { explicit, value: [channel, campaign, content].filter(Boolean).join(":").slice(0, 64) };
+  }
   return { explicit: false, value: sourceFromReferrer(referrer, hostname) };
 }
 

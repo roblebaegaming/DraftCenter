@@ -494,14 +494,12 @@ test("German, Japanese, and Korean Worlds routes share the VGC competitions and 
   assert.match(component, /className="worlds-start-guide"/);
   assert.match(component, /href="#qualified-players"/);
   assert.match(component, /href="#meta-picks"/);
-  assert.match(quickLinks, /site-primary-worlds-link/);
-  assert.match(quickLinks, /site-nav-label-wide">🌎 Worlds Predictions<\/span>/);
-  assert.match(quickLinks, /site-nav-label-compact" aria-hidden="true">🌎 Worlds<\/span>/);
+  assert.match(quickLinks, /<NavigationMenu active=\{gamesActive\} label="Games">/);
+  assert.match(quickLinks, /href="\/worlds\/2026">🌎 Worlds Predictions<\/a>/);
   assert.doesNotMatch(quickLinks, /href="\/tournaments\/predictions"|>Picks<\/span>/);
-  assert.match(quickLinks, /href="\/worlds\/2026" aria-label="Worlds Predictions"/);
-  assert.match(css, /site-primary-links a\.site-primary-worlds-link/);
-  assert.doesNotMatch(quickLinks, /site-worlds-link/);
-  assert.doesNotMatch(css, /site-quick-links a\.site-worlds-link/);
+  assert.match(quickLinks, /const worldsActive = currentPage/);
+  assert.match(css, /\.site-primary-links>\.site-nav-menu\.is-active>summary/);
+  assert.doesNotMatch(quickLinks, /site-primary-worlds-link|site-worlds-link/);
 
   for (const locale of ["de", "ja", "ko"]) {
     const page = source(`src/app/${locale}/worlds/2026/page.js`);

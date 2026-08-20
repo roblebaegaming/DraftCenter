@@ -39,7 +39,7 @@ and one stable campaign name per placement.
 | Commissioner operating system | `/` | `run-a-complete-league` | Set up, draft, schedule, play, and preserve the whole season in one commissioner-to-manager workspace. |
 | League import | `/` | `switch-your-draft-league` | Preview an existing league spreadsheet safely, then confirm one complete setup or roster import. |
 | Confirmed Showdown results | `/` | `showdown-replay-results` | Confirm each player mapping, fill the official replay facts, and save the scheduled result without guessing hidden statistics. |
-| Team Lab and Battle Room | `/tools/team-builder` | `team-lab-battle-room` | Build the six, scout the matchup, record the set privately, and start the next ladder match in one tap. |
+| Team Lab and Battle Room | `/team-lab` | `team-lab-battle-room` | Build the six, scout the matchup, record the set privately, and start the next ladder match in one tap. |
 | Auction Draft Tournaments | `/tournaments` | `auction-draft-tournaments` | Run a server-owned auction for 4–32 managers, then continue directly into Swiss or elimination rounds. |
 | Prediction tournaments | `/tournaments/predictions` | `prediction-tournaments` | Pick official brackets before lock, then follow live and archived events from one hub. |
 | Organizations | `/organizations` | `open-organizations` | Find and join open communities while owners and commissioners keep member communication private. |
@@ -51,17 +51,20 @@ and one stable campaign name per placement.
 Use `https://www.draftcentral.gg` before each destination. Append these
 allowlisted attribution fields:
 
+The naming, privacy, and review rules are maintained in the
+[`campaign link standard`](campaign-link-standard-2026-08-20.md).
+
 | Channel | Query suffix |
 | --- | --- |
-| Discord | `?utm_source=discord&utm_medium=community&utm_campaign=CAMPAIGN` |
-| Reddit | `?utm_source=reddit&utm_medium=community&utm_campaign=CAMPAIGN` |
-| X | `?utm_source=x&utm_medium=social&utm_campaign=CAMPAIGN` |
-| Instagram | `?utm_source=instagram&utm_medium=social&utm_campaign=CAMPAIGN` |
-| Facebook | `?utm_source=facebook&utm_medium=social&utm_campaign=CAMPAIGN` |
-| Bluesky | `?utm_source=bluesky&utm_medium=social&utm_campaign=CAMPAIGN` |
-| YouTube | `?utm_source=youtube&utm_medium=video&utm_campaign=CAMPAIGN` |
-| Email | `?utm_source=email&utm_medium=email&utm_campaign=CAMPAIGN` |
-| Partner | `?utm_source=PARTNER_SLUG&utm_medium=referral&utm_campaign=CAMPAIGN` |
+| Discord | `?utm_source=discord&utm_medium=community&utm_campaign=CAMPAIGN&utm_content=LANGUAGE-CREATIVE-VARIANT` |
+| Reddit | `?utm_source=reddit&utm_medium=community&utm_campaign=CAMPAIGN&utm_content=LANGUAGE-CREATIVE-VARIANT` |
+| X | `?utm_source=x&utm_medium=social&utm_campaign=CAMPAIGN&utm_content=LANGUAGE-CREATIVE-VARIANT` |
+| Instagram | `?utm_source=instagram&utm_medium=social&utm_campaign=CAMPAIGN&utm_content=LANGUAGE-CREATIVE-VARIANT` |
+| Facebook | `?utm_source=facebook&utm_medium=social&utm_campaign=CAMPAIGN&utm_content=LANGUAGE-CREATIVE-VARIANT` |
+| Bluesky | `?utm_source=bluesky&utm_medium=social&utm_campaign=CAMPAIGN&utm_content=LANGUAGE-CREATIVE-VARIANT` |
+| YouTube | `?utm_source=youtube&utm_medium=video&utm_campaign=CAMPAIGN&utm_content=LANGUAGE-CREATIVE-VARIANT` |
+| Email | `?utm_source=email&utm_medium=email&utm_campaign=CAMPAIGN&utm_content=LANGUAGE-CREATIVE-VARIANT` |
+| Partner | `?utm_source=PARTNER_SLUG&utm_medium=referral&utm_campaign=CAMPAIGN&utm_content=LANGUAGE-CREATIVE-VARIANT` |
 
 Never place a username, email, team, opponent, league, Pokémon choice, note, or
 other personal detail in a campaign parameter.
@@ -85,14 +88,14 @@ approves the exact audience, message, and destination.
 
 Use these ready links for the first filming push:
 
-- Discord: https://www.draftcentral.gg/tools/team-builder?utm_source=discord&utm_medium=community&utm_campaign=team-lab-battle-room
-- Reddit: https://www.draftcentral.gg/tools/team-builder?utm_source=reddit&utm_medium=community&utm_campaign=team-lab-battle-room
-- X: https://www.draftcentral.gg/tools/team-builder?utm_source=x&utm_medium=social&utm_campaign=team-lab-battle-room
-- Instagram: https://www.draftcentral.gg/tools/team-builder?utm_source=instagram&utm_medium=social&utm_campaign=team-lab-battle-room
-- Facebook: https://www.draftcentral.gg/tools/team-builder?utm_source=facebook&utm_medium=social&utm_campaign=team-lab-battle-room
-- Bluesky: https://www.draftcentral.gg/tools/team-builder?utm_source=bluesky&utm_medium=social&utm_campaign=team-lab-battle-room
-- YouTube: https://www.draftcentral.gg/tools/team-builder?utm_source=youtube&utm_medium=video&utm_campaign=team-lab-battle-room
-- Email: https://www.draftcentral.gg/tools/team-builder?utm_source=email&utm_medium=email&utm_campaign=team-lab-battle-room
+- Discord: https://www.draftcentral.gg/team-lab?utm_source=discord&utm_medium=community&utm_campaign=team-lab-battle-room&utm_content=en-filming-1
+- Reddit: https://www.draftcentral.gg/team-lab?utm_source=reddit&utm_medium=community&utm_campaign=team-lab-battle-room&utm_content=en-filming-1
+- X: https://www.draftcentral.gg/team-lab?utm_source=x&utm_medium=social&utm_campaign=team-lab-battle-room&utm_content=en-filming-1
+- Instagram: https://www.draftcentral.gg/team-lab?utm_source=instagram&utm_medium=social&utm_campaign=team-lab-battle-room&utm_content=en-filming-1
+- Facebook: https://www.draftcentral.gg/team-lab?utm_source=facebook&utm_medium=social&utm_campaign=team-lab-battle-room&utm_content=en-filming-1
+- Bluesky: https://www.draftcentral.gg/team-lab?utm_source=bluesky&utm_medium=social&utm_campaign=team-lab-battle-room&utm_content=en-filming-1
+- YouTube: https://www.draftcentral.gg/team-lab?utm_source=youtube&utm_medium=video&utm_campaign=team-lab-battle-room&utm_content=en-filming-1
+- Email: https://www.draftcentral.gg/team-lab?utm_source=email&utm_medium=email&utm_campaign=team-lab-battle-room&utm_content=en-filming-1
 
 Primary hook: **Finish the match, save the result, and start the next one
 without leaving your private Battle Room.**
