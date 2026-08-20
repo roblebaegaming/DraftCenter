@@ -145,4 +145,3 @@ export default function WorldsChatBoard({ eventId, locale = "en", user }) {
     {activeProfile && <PublicCoachProfile identity={activeProfile} locale={locale} onClose={() => setActiveProfile(null)} />}
   </section>;
 }
-

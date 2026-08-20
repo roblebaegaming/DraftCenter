@@ -5,7 +5,7 @@
 - Worktree: `DraftCenter-worlds-multilingual-release-20260819`
 - Branch: `codex/worlds-language-chatboard`
 - Pull request: [#359](https://github.com/roblebaegaming/DraftCenter/pull/359)
-- Base commit: `5504811730c080921d527a9ba51cae3dcf8d9061`
+- Reconciled base commit: `b9d658f914209d269e8901d09d82bb2d278a9122`
 - Production status: not deployed
 - Latest applied Production migration before this candidate: 450
 - Candidate migrations:

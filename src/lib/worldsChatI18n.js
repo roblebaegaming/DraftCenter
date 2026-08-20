@@ -48,4 +48,3 @@ const COPY = {
 export function worldsChatCopy(locale = "en") {
   return COPY[worldsLanguage(locale)] || COPY.en;
 }
-
