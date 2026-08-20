@@ -76,11 +76,12 @@ finding.
 
 ## Deployed state
 
-### Pending Worlds language chatboard release
+### Worlds language chatboard deployed
 
 Pull request [#359](https://github.com/roblebaegaming/DraftCenter/pull/359)
-is an undeployed release candidate on branch `codex/worlds-language-chatboard`
-based on `550481173`. It adds an account-only Worlds VGC discussion board below
+is deployed at exact Production commit
+`70f3d69471d4c8a763ad45dc25bed66aa7374941`. It adds an account-only Worlds
+VGC discussion board below
 the existing player/Pokémon start guide, with separate English, Italian,
 Spanish, German, Japanese, and Korean rooms over the same shared prediction
 event. The compact board includes automatic refresh, earlier-message paging,
@@ -90,16 +91,24 @@ and private one-per-member reports. Forward migration
 tables and four narrowly granted authenticated RPCs; direct browser table
 access remains revoked. Forward follow-up migration
 `20260820032602_index_worlds_chat_removed_by.sql` covers the optional moderation
-actor foreign key after the Preview advisor identified it. Nothing from this
-candidate has been applied to Production. Vercel Preview is Ready and the
-signed-out English and Korean rooms render without browser errors. The
-owner-approved empty Supabase Preview replayed all 245 Production migrations,
+actor foreign key after the Preview advisor identified it. The owner-approved
+empty Supabase Preview replayed all 245 pre-release Production migrations,
 applied chat migrations 451-452, and passed the rollback-only room separation,
 privacy, grants, RLS, reporting, and author-removal regression. The follow-up
 removed the only migration-specific advisor finding; zero fixtures remained.
 The paid Preview was immediately deleted and the branch inventory again
-contains only `main`. Production migrations 451-452 must not be applied without
-an authorized release.
+contains only `main`.
+
+After the protected merge, Supabase applied both exact repository migrations
+automatically and its Production check passed. The authoritative ledger now
+ends at migration 452. Production contains zero chat messages and zero reports;
+both tables have RLS enabled and no policies or direct member table grants.
+Anonymous RPC execution remains denied, while the four narrowly granted member
+RPCs retain fixed empty search paths and explicit account checks. The feature-
+specific advisor review returned no errors. All post-merge security checks and
+the Vercel deployment passed, the 22-check Production smoke sweep passed, and a
+read-only signed-in browser check loaded all six localized rooms without
+posting or changing prediction, bracket, league, or tournament data.
 The detailed continuation record is in the
 [`August 19 Worlds language chatboard handoff`](handoffs/DraftCenter-agent-handoff-2026-08-19-worlds-language-chatboard.md).
 
