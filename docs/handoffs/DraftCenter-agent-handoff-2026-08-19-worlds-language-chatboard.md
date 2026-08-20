@@ -6,9 +6,10 @@
 - Branch: `codex/worlds-language-chatboard`
 - Pull request: [#359](https://github.com/roblebaegaming/DraftCenter/pull/359)
 - Reconciled base commit: `b9d658f914209d269e8901d09d82bb2d278a9122`
-- Production status: not deployed
+- Merge and deployed commit: `70f3d69471d4c8a763ad45dc25bed66aa7374941`
+- Production status: deployed and verified
 - Latest applied Production migration before this candidate: 450
-- Candidate migrations:
+- Applied Production migrations:
   `20260820004814_worlds_language_chatboard.sql` (migration 451) and
   `20260820032602_index_worlds_chat_removed_by.sql` (migration 452)
 
@@ -133,36 +134,42 @@ by the regression's explicit member checks and grants. The branch was deleted
 immediately after validation; the post-delete inventory contains only `main`,
 so the hourly charge has stopped.
 
-## Required release gates
+## Production deployment evidence
 
-1. Run the full repository audit and application checks if they are not already
-   recorded after the final diff.
-2. Push the short-lived branch and open a pull request; do not push to `main`.
-3. Allow Supabase Preview to apply migrations 451-452 on an isolated branch.
-4. Execute
-   `supabase/tests/451-worlds-language-chatboard-preview-regression.sql` and
-   confirm it rolls back cleanly.
-5. Review the Preview database advisors for new error-level security or
-   performance findings and verify the exact grants and RLS state.
-6. Review the Vercel Preview signed out at desktop and 390 x 844. If a safe test
-   account is available in Preview, verify read, post, refresh, report, and
-   author removal in two different language rooms.
-7. Merge only after protected checks and review pass.
-8. Confirm the exact deployed commit before applying or declaring migrations
-   451-452 in Production.
-9. Run the complete signed-out Production smoke sweep after deployment, then
-   perform a narrowly scoped signed-in chat check without changing any real
-   prediction, league, draft, roster, or tournament state.
-10. Update `docs/CURRENT-STATUS.md` with the exact pull request, merge commit,
-    deployed commit, applied migration, Preview regression result, and
-    post-deployment evidence.
+- The protected pull request merged by squash; no direct push to `main` was
+  used.
+- Vercel reported exact commit
+  `70f3d69471d4c8a763ad45dc25bed66aa7374941` successfully deployed.
+- Supabase's post-merge Production check applied both exact repository
+  migrations and completed successfully. A manual migration call encountered
+  the already-created table during that concurrent integration run, so it was
+  not retried. The authoritative refresh confirmed ledger entries
+  `20260820004814` and `20260820032602`, both tables, all four functions, and the
+  follow-up index.
+- Production has zero chat messages and zero chat reports. The release did not
+  create fixtures or alter Worlds entries, brackets, leagues, tournaments, or
+  account data.
+- The Production grants audit confirmed RLS on both tables, no policies, no
+  anonymous or authenticated direct table reads, service-only direct table
+  access, no anonymous function execution, authenticated execution only for the
+  four intended RPCs, and fixed empty search paths on every definer function.
+- The feature-specific Production advisor review had no error-level finding and
+  no missing-index finding. Its two RLS-without-policy INFO notices and four
+  authenticated-definer WARN notices are intentional for the tested RPC-only
+  design. New indexes are reported as unused INFO on the empty tables.
+- All post-merge checks passed: JavaScript security analysis, dependency audit,
+  full-history secret scan, Supabase Production, and Vercel Production.
+- The complete 22-check Production smoke sweep passed.
+- A read-only signed-in live check loaded the English, Italian, Spanish, German,
+  Japanese, and Korean rooms, including each localized same-competition notice
+  and empty-message state. No live message was posted.
 
 ## Safety boundaries
 
-- Nothing in this branch has changed Production data, provider settings,
-  secrets, authentication settings, Worlds entries, brackets, league data, or
-  tournament state.
-- Do not apply the migration directly to Production merely to test it.
+- Production changes are limited to the two additive chat migrations and the
+  deployed application release. No provider setting, secret, authentication
+  setting, Worlds entry, bracket, league, or tournament state was changed.
+- Do not replay migrations 451-452; verify the authoritative ledger first.
 - Do not expose chat tables with broad RLS policies or direct authenticated
   grants; keep the RPC-only boundary.
 - Do not display private report counts or reporter identities to members.
