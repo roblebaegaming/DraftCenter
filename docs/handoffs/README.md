@@ -1,5 +1,12 @@
 # Agent handoffs
 
+[`DraftCenter-agent-handoff-2026-08-20-multilingual-pokedex-french-worlds.md`](DraftCenter-agent-handoff-2026-08-20-multilingual-pokedex-french-worlds.md)
+is the current multilingual release-candidate handoff. It records the
+seven-language public Pokédex, French Worlds completion, pending forward
+migration 454 and its isolated regression, local release evidence, preserved
+Production boundary, and the fluent-speaker, Preview, and protected-release
+gates that remain before merge.
+
 [`DraftCenter-agent-handoff-2026-08-19-participant-retirement.md`](DraftCenter-agent-handoff-2026-08-19-participant-retirement.md)
 is the current development handoff. It records the unreleased midseason league
 retirement and tournament-drop implementation, tournament operator and private

@@ -24,6 +24,14 @@ const spanishLabels = {
   unite: { label: "Pokémon UNITE", status: "No disponible" },
 };
 
+const frenchLabels = {
+  overview: { label: "Accueil des Worlds", status: "Tous les jeux" },
+  vgc: { label: "VGC", status: "Pronostics ouverts" },
+  tcg: { label: "TCG", status: "Pronostics ouverts" },
+  go: { label: "Pokémon GO", status: "Pronostics ouverts" },
+  unite: { label: "Pokémon UNITE", status: "Indisponible" },
+};
+
 const germanLabels = {
   overview: { label: "Worlds-Startseite", status: "Alle Spiele" },
   vgc: { label: "VGC", status: "Tipps offen" },
@@ -48,16 +56,17 @@ const koreanLabels = {
   unite: { label: "Pokémon UNITE", status: "준비 중" },
 };
 
-const localizedLabelsByLocale = { it: italianLabels, es: spanishLabels, de: germanLabels, ja: japaneseLabels, ko: koreanLabels };
+const localizedLabelsByLocale = { it: italianLabels, es: spanishLabels, fr: frenchLabels, de: germanLabels, ja: japaneseLabels, ko: koreanLabels };
 const navLabels = {
   en: "2026 Worlds prediction competitions",
   it: "Competizioni pronostici Mondiali 2026",
   es: "Competiciones de pronósticos del Mundial 2026",
+  fr: "Compétitions de pronostics des Worlds 2026",
   de: "Worlds-Tippwettbewerbe 2026",
   ja: "2026年世界大会予想",
   ko: "2026 월드 챔피언십 예측 대회",
 };
-const localizedVgcHrefs = { it: "/it/worlds/2026", es: "/es/worlds/2026", de: "/de/worlds/2026", ja: "/ja/worlds/2026", ko: "/ko/worlds/2026" };
+const localizedVgcHrefs = { it: "/it/worlds/2026", es: "/es/worlds/2026", fr: "/fr/worlds/2026", de: "/de/worlds/2026", ja: "/ja/worlds/2026", ko: "/ko/worlds/2026" };
 
 export default function WorldsDisciplineNav({ current = "overview", locale = "en" }) {
   const localizedLabels = localizedLabelsByLocale[locale] || null;

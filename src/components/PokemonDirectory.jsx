@@ -9,6 +9,7 @@ import { decodePinnedPokeApiMoves, GAME_MOVE_SOURCES, MOVE_METHOD_LABELS, movesF
 import { POKEDEX_GAME_FILTERS, pokedexGameFilterByKey, pokemonBaseSpeciesKey, pokemonShowdownProfileKeys } from "../lib/pokemonGames";
 import { POKEMON_COLOR_OPTIONS, POKEMON_EGG_GROUP_OPTIONS, POKEMON_SHAPE_OPTIONS, pokemonSpeciesTraitsForProfile } from "../lib/pokemonSpeciesTraits";
 import CompetitivePokemonProfile from "./CompetitivePokemonProfile";
+import PokemonLanguageSwitch from "./PokemonLanguageSwitch";
 import TournamentPokemonProfile from "./TournamentPokemonProfile";
 import LEGENDS_ZA_POKEDEX from "../../data/pokemon/pokemon-legends-za-pokedex.pokeapi-5064f1d72746b3a6a931616dae3fb6445c556d4f.json";
 
@@ -208,6 +209,7 @@ function WidePokemonDirectory(props) {
   const statColumns = [["hp", "HP"], ["attack", "Atk"], ["defense", "Def"], ["special-attack", "SpA"], ["special-defense", "SpD"], ["speed", "Spe"], ["bst", "BST"]];
   const sortLabel = (key, label) => <button type="button" className={props.sortBy === key ? "active" : ""} onClick={() => props.toggleSort(key)}>{label}{props.sortBy === key ? (props.sortDirection === "asc" ? " ↑" : " ↓") : ""}</button>;
   return <main className="pokemon-directory pokemon-directory-wide">
+    <PokemonLanguageSwitch locale="en" label="Language" />
     <header className="pokemon-directory-header"><a href="/?view=dashboard" className="quiet-button pokemon-home-link"><span>← DraftCenter home</span><img src="/draftcenter-logo.png" alt="" /></a><div><span className="eyebrow">POKEMON</span><h1>Explore the Pokedex</h1><p className="muted">A stat-first Pokémon browser. Sort any column, select a Pokémon, and study its full game information on the right.</p></div></header>
     <section className="pokemon-directory-layout">
       <aside className="pokemon-search-card pokemon-browser-card">
@@ -249,7 +251,7 @@ function WidePokemonDirectory(props) {
 }
 
 export default function PokemonDirectory() {
-  return <Suspense fallback={<main className="pokemon-directory pokemon-directory-wide"><header className="pokemon-directory-header"><a href="/" className="quiet-button pokemon-home-link"><span>← DraftCenter home</span><img src="/draftcenter-logo.png" alt="" /></a><div><span className="eyebrow">POKÉMON</span><h1>Explore the Pokédex</h1><p className="muted">Compare Pokémon base stats, typing, abilities, game-specific moves, draft-league eligibility, and DraftCenter community results.</p></div></header><p className="muted">Loading the interactive Pokédex…</p></main>}><PokemonDirectoryContent /></Suspense>;
+  return <Suspense fallback={<main className="pokemon-directory pokemon-directory-wide"><PokemonLanguageSwitch locale="en" label="Language" /><header className="pokemon-directory-header"><a href="/" className="quiet-button pokemon-home-link"><span>← DraftCenter home</span><img src="/draftcenter-logo.png" alt="" /></a><div><span className="eyebrow">POKÉMON</span><h1>Explore the Pokédex</h1><p className="muted">Compare Pokémon base stats, typing, abilities, game-specific moves, draft-league eligibility, and DraftCenter community results.</p></div></header><p className="muted">Loading the interactive Pokédex…</p></main>}><PokemonDirectoryContent /></Suspense>;
 }
 
 function PokemonDirectoryContent() {

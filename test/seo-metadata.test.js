@@ -112,6 +112,7 @@ test("sitemap contains only indexable routes and truthful modification dates", (
   assert.match(sitemap, /pokemonProfileEditorial\(name\)/);
   assert.match(sitemap, /POKEMON_EDITORIAL_LAST_MODIFIED/);
   assert.match(sitemap, /es: "https:\/\/www\.draftcentral\.gg\/es\/worlds\/2026"/);
+  assert.match(sitemap, /fr: "https:\/\/www\.draftcentral\.gg\/fr\/worlds\/2026"/);
   assert.match(sitemap, /"x-default": "https:\/\/www\.draftcentral\.gg\/worlds\/2026\/vgc"/);
 });
 
@@ -124,6 +125,7 @@ test("recent public products expose current social previews and discovery copy",
   const resources = source("src/components/ResourcesPage.jsx");
   const italian = source("src/app/it/worlds/2026/page.js");
   const spanish = source("src/app/es/worlds/2026/page.js");
+  const french = source("src/app/fr/worlds/2026/page.js");
   const german = source("src/app/de/worlds/2026/page.js");
   const japanese = source("src/app/ja/worlds/2026/page.js");
   const korean = source("src/app/ko/worlds/2026/page.js");
@@ -131,7 +133,7 @@ test("recent public products expose current social previews and discovery copy",
   const llms = source("src/app/llms.txt/route.js");
   const nextConfig = source("next.config.mjs");
 
-  for (const page of [mega, lab, nuzlocke, pokedexTracker, daily, englishWorlds, italian, spanish, german, japanese, korean]) {
+  for (const page of [mega, lab, nuzlocke, pokedexTracker, daily, englishWorlds, italian, spanish, french, german, japanese, korean]) {
     assert.match(page, /openGraph:/);
     assert.match(page, /twitter:/);
   }
@@ -144,6 +146,7 @@ test("recent public products expose current social previews and discovery copy",
     "src/app/worlds/2026/vgc/opengraph-image.js",
     "src/app/it/worlds/2026/opengraph-image.js",
     "src/app/es/worlds/2026/opengraph-image.js",
+    "src/app/fr/worlds/2026/opengraph-image.js",
     "src/app/de/worlds/2026/opengraph-image.js",
     "src/app/ja/worlds/2026/opengraph-image.js",
     "src/app/ko/worlds/2026/opengraph-image.js",
@@ -170,16 +173,21 @@ test("recent public products expose current social previews and discovery copy",
   assert.match(resources, /cave floors and subareas sharing their parent location’s slot/);
   assert.match(englishWorlds, /workTranslation/);
   assert.match(englishWorlds, /es: "\/es\/worlds\/2026"/);
+  assert.match(englishWorlds, /fr: "\/fr\/worlds\/2026"/);
   assert.match(spanish, /canonical: "\/es\/worlds\/2026"/);
   assert.match(spanish, /inLanguage: "es-ES"/);
+  assert.match(french, /canonical: "\/fr\/worlds\/2026"/);
+  assert.match(french, /inLanguage: "fr-FR"/);
   assert.match(nextConfig, /Content-Language", value: "it-IT"/);
   assert.match(nextConfig, /Content-Language", value: "es-ES"/);
+  assert.match(nextConfig, /Content-Language", value: "fr-FR"/);
   assert.match(nextConfig, /Content-Language", value: "de-DE"/);
   assert.match(nextConfig, /Content-Language", value: "ja-JP"/);
   assert.match(nextConfig, /Content-Language", value: "ko-KR"/);
   assert.match(englishWorlds, /predict six Pokémon for the winning team/);
   assert.match(italian, /pronostica sei Pokémon della squadra vincitrice/);
   assert.match(spanish, /predice seis Pokémon del equipo ganador/);
+  assert.match(french, /pronostiquez six Pokémon de l’équipe gagnante/);
   assert.match(german, /tippe sechs Pokémon des Siegerteams/);
   assert.match(japanese, /優勝チームのポケモン6匹も予想/);
   assert.match(korean, /우승 팀의 포켓몬 6마리도 예측/);
@@ -188,6 +196,7 @@ test("recent public products expose current social previews and discovery copy",
   assert.match(llms, /Floors and subareas share their reviewed parent location's encounter slot/);
   assert.match(llms, /Pronostici VGC dei Mondiali Pokémon 2026 in italiano/);
   assert.match(llms, /Pronósticos VGC del Mundial Pokémon 2026 en español/);
+  assert.match(llms, /Pronostics VGC des Championnats du Monde Pokémon 2026 en français/);
   assert.match(llms, /VGC-Tipps zur Pokémon-Weltmeisterschaft 2026 auf Deutsch/);
   assert.match(llms, /2026年ポケモン世界大会 VGC予想/);
   assert.match(llms, /2026 포켓몬 월드 챔피언십 VGC 예측/);

@@ -103,7 +103,7 @@ function statusLabel(status, locale = "en") {
   })[status] || status;
 }
 
-export default function WorldsPickSixteen({ rosterSource, discipline = "vgc", locale = "en" }) {
+export default function WorldsPickSixteen({ rosterSource, discipline = "vgc", locale = "en", translationBeta = null }) {
   const config = WORLDS_PICK_DISCIPLINES[discipline] || WORLDS_PICK_DISCIPLINES.vgc;
   const copy = worldsCopy(locale);
   const isItalian = locale !== "en";
@@ -253,8 +253,12 @@ export default function WorldsPickSixteen({ rosterSource, discipline = "vgc", lo
       <div><a href={WORLDS_LANGUAGES[offeredLocale].href} hrefLang={offeredLocale}>{copy.languageOffer.action(WORLDS_LANGUAGES[offeredLocale].nativeLabel)}</a><button type="button" onClick={dismissLanguageOffer}>{copy.languageOffer.dismiss}</button></div>
     </section>}
     {config.key === "vgc" && <nav className="worlds-language-switch" aria-label={copy.languageSwitch.label}>{Object.entries(WORLDS_LANGUAGES).map(([language, details]) => language === worldsLanguage(locale)
-      ? <strong key={language} aria-current="page">{details.nativeLabel}</strong>
-      : <a key={language} href={details.href} hrefLang={language}>{details.nativeLabel}</a>)}</nav>}
+      ? <strong key={language} aria-current="page" lang={details.documentLanguage}>{details.nativeLabel}</strong>
+      : <a key={language} href={details.href} hrefLang={language} lang={details.documentLanguage}>{details.nativeLabel}</a>)}</nav>}
+    {translationBeta && <aside className="translation-beta-note" aria-label={translationBeta.title}>
+      <div><strong>{translationBeta.title}</strong><span>{translationBeta.body}</span></div>
+      <a href="/support">{translationBeta.action}</a>
+    </aside>}
     <WorldsDisciplineNav current={config.key} locale={locale} />
     <section className="worlds-hero">
       <div>

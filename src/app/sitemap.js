@@ -6,6 +6,7 @@ import { POKEMON_COLOR_OPTIONS, POKEMON_EGG_GROUP_OPTIONS, POKEMON_SHAPE_OPTIONS
 import nuzlockeGameGuides from "../lib/nuzlockeGameGuides.json";
 import { SHINY_HUNTING_GUIDES, SHINY_GUIDE_UPDATED_DATE } from "../lib/shinyHuntingGuides";
 import { predictionBracketEventPath } from "../lib/predictionBracketPaths";
+import { POKEDEX_LANGUAGES, pokemonIndexPath, pokemonProfilePath } from "../lib/pokemonI18n";
 
 const PRODUCT_DISCOVERY_LAST_MODIFIED = new Date("2026-08-16T00:00:00.000Z");
 const COMMISSIONER_SEO_LAST_MODIFIED = new Date("2026-08-18T00:00:00.000Z");
@@ -15,6 +16,7 @@ const WORLDS_LANGUAGE_ALTERNATES = {
   en: "https://www.draftcentral.gg/worlds/2026/vgc",
   it: "https://www.draftcentral.gg/it/worlds/2026",
   es: "https://www.draftcentral.gg/es/worlds/2026",
+  fr: "https://www.draftcentral.gg/fr/worlds/2026",
   de: "https://www.draftcentral.gg/de/worlds/2026",
   ja: "https://www.draftcentral.gg/ja/worlds/2026",
   ko: "https://www.draftcentral.gg/ko/worlds/2026",
@@ -24,6 +26,7 @@ const localizedRouteAlternates = new Map([
   ["/worlds/2026/vgc", WORLDS_LANGUAGE_ALTERNATES],
   ["/it/worlds/2026", WORLDS_LANGUAGE_ALTERNATES],
   ["/es/worlds/2026", WORLDS_LANGUAGE_ALTERNATES],
+  ["/fr/worlds/2026", WORLDS_LANGUAGE_ALTERNATES],
   ["/de/worlds/2026", WORLDS_LANGUAGE_ALTERNATES],
   ["/ja/worlds/2026", WORLDS_LANGUAGE_ALTERNATES],
   ["/ko/worlds/2026", WORLDS_LANGUAGE_ALTERNATES],
@@ -47,6 +50,7 @@ const productRouteLastModified = new Map([
   ["/worlds/2026/vgc", WORLDS_LOCALIZED_LAST_MODIFIED],
   ["/it/worlds/2026", WORLDS_LOCALIZED_LAST_MODIFIED],
   ["/es/worlds/2026", WORLDS_LOCALIZED_LAST_MODIFIED],
+  ["/fr/worlds/2026", WORLDS_LOCALIZED_LAST_MODIFIED],
   ["/de/worlds/2026", WORLDS_LOCALIZED_LAST_MODIFIED],
   ["/ja/worlds/2026", WORLDS_LOCALIZED_LAST_MODIFIED],
   ["/ko/worlds/2026", WORLDS_LOCALIZED_LAST_MODIFIED],
@@ -76,6 +80,7 @@ const routes = [
   ["/worlds/2026/vgc", "daily", 0.9],
   ["/it/worlds/2026", "daily", 0.9],
   ["/es/worlds/2026", "daily", 0.9],
+  ["/fr/worlds/2026", "daily", 0.9],
   ["/de/worlds/2026", "daily", 0.9],
   ["/ja/worlds/2026", "daily", 0.9],
   ["/ko/worlds/2026", "daily", 0.9],
@@ -99,15 +104,17 @@ const NUZLOCKE_GUIDES_LAST_MODIFIED = new Date("2026-08-07T00:00:00.000Z");
 const SHINY_GUIDES_LAST_MODIFIED = new Date(SHINY_GUIDE_UPDATED_DATE + "T00:00:00.000Z");
 const POKEMON_TRAIT_CONTENT_LAST_MODIFIED = new Date("2026-08-09T00:00:00.000Z");
 const POKEMON_EDITORIAL_LAST_MODIFIED = new Date(`${POKEMON_EDITORIAL_REVIEWED_DATE}T00:00:00.000Z`);
+const POKEMON_LOCALIZATION_CONTENT_LAST_MODIFIED = new Date("2026-08-20T00:00:00.000Z");
 
 async function pokemonRoutes() {
   const pokemon = await getAllPokemonProfiles();
-  return pokemon.map((name) => ({
-      url: `https://www.draftcentral.gg/pokemon/${name}`,
-      ...(pokemonProfileEditorial(name) ? { lastModified: POKEMON_EDITORIAL_LAST_MODIFIED } : {}),
+  return pokemon.flatMap((name) => POKEDEX_LANGUAGES.map(({ code }) => ({
+      url: `https://www.draftcentral.gg${pokemonProfilePath(code, name)}`,
+      ...(code === "en" && pokemonProfileEditorial(name) ? { lastModified: POKEMON_EDITORIAL_LAST_MODIFIED } : {}),
+      ...(code !== "en" ? { lastModified: POKEMON_LOCALIZATION_CONTENT_LAST_MODIFIED } : {}),
       changeFrequency: "monthly",
       priority: 0.6,
-    }));
+    })));
 }
 
 export default async function sitemap() {
@@ -173,6 +180,12 @@ export default async function sitemap() {
     changeFrequency: "monthly",
     priority: 0.7,
   }));
+  const localizedPokemonIndexRoutes = POKEDEX_LANGUAGES.filter(({ code }) => code !== "en").map(({ code }) => ({
+    url: `https://www.draftcentral.gg${pokemonIndexPath(code)}`,
+    lastModified: POKEMON_LOCALIZATION_CONTENT_LAST_MODIFIED,
+    changeFrequency: "monthly",
+    priority: 0.8,
+  }));
   const nuzlockeGuideRoutes = nuzlockeGameGuides.games.map(({ slug }) => ({
     url: `https://www.draftcentral.gg/nuzlocke/${slug}`,
     lastModified: NUZLOCKE_GUIDES_LAST_MODIFIED,
@@ -185,5 +198,5 @@ export default async function sitemap() {
     changeFrequency: "monthly",
     priority: 0.8,
   }));
-  return [...staticRoutes, ...nuzlockeGuideRoutes, ...shinyGuideRoutes, ...guideRoutes, ...formatRoutes, ...pokemonIndexRoutes, ...pokemonTraitRoutes, ...leagueRoutes, ...predictionRoutes, ...pokemon];
+  return [...staticRoutes, ...localizedPokemonIndexRoutes, ...nuzlockeGuideRoutes, ...shinyGuideRoutes, ...guideRoutes, ...formatRoutes, ...pokemonIndexRoutes, ...pokemonTraitRoutes, ...leagueRoutes, ...predictionRoutes, ...pokemon];
 }
