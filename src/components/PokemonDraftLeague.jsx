@@ -12,7 +12,7 @@ import RegulationPicker from "./RegulationPicker";
 import { safeHttpsImageSource } from "../lib/imageSecurity";
 import { browserCanResolveHostedAutoDraft, preserveLoadedPrivateDraftQueue } from "../lib/draftQueueSafety";
 import { readLeagueNavigation, writeLeagueNavigation } from "../lib/leagueNavigation";
-import { claimedTeamCount, compactLocalTeamsClaimedFirst, openSetupTeams, teamIsClaimed } from "../lib/teamOwnership";
+import { canClaimOpenLeagueTeam, claimedTeamCount, compactLocalTeamsClaimedFirst, openSetupTeams, teamIsClaimed } from "../lib/teamOwnership";
 import { draftManagerLabel, snakeDraftContext } from "../lib/draftBoardContext";
 import { createTeamLabLeagueMatchupHandoff, TEAM_LAB_LEAGUE_MATCHUP_HANDOFF_KEY } from "../lib/teamLab";
 import { PRODUCT_ROUTES } from "../platform/products";
@@ -11766,6 +11766,7 @@ function SetupView({ state, leagueId = null, leagueName = "league", isCommission
     leagueScaleMode: normalizedLeagueScaleMode(savedSettings.leagueScaleMode),
   };
   const teams = Array.isArray(state.teams) ? state.teams : [];
+  const openTeamIndexes = new Set(openSetupTeams(teams).map((team) => team.index));
   const activeLeagueTeamLimit = leagueTeamLimit(settings);
   const canUnlockMultiPodScale = settings.divisions.filter((division) => Array.isArray(division?.teamIds) && division.teamIds.length > 0).length >= 2;
   const divisionPlayoffMax = divisionPlayoffTeamLimit(settings.divisions);
@@ -11855,6 +11856,7 @@ function SetupView({ state, leagueId = null, leagueName = "league", isCommission
   // Older/restarted leagues can retain a generated snake order while they
   // are unlocked; that stale order must not hide the pre-draft scheduler.
   const draftHasStarted = locked && hasDraftStartedEvidence(state);
+  const canClaimOpenTeam = canClaimOpenLeagueTeam({ ...state, settings, teams });
   const hasDraftSelections = !hasStaleRosterCarryover && ((state.pickIndex || 0) > 0
     || state.rosters.some((roster) => (roster || []).some((mon) => mon.acquiredVia !== "keeper"))
     || Boolean(state.nominee?.highestBidder != null));
@@ -11997,12 +11999,15 @@ function SetupView({ state, leagueId = null, leagueName = "league", isCommission
           )}
         </div>
         <p className="text-sm mb-4" style={{ color: "#9A9FBD" }}>
-          Human-owned teams draft and queue however they like. Bot (unclaimed) teams each get a random strategy automatically when the draft starts — kept private, since you wouldn't know another drafter's plan in a real draft either.
+          {locked && canClaimOpenTeam
+            ? "The draft is complete. Claiming an open team assigns its existing roster, schedule, results, and history without changing them."
+            : "Human-owned teams draft and queue however they like. Bot (unclaimed) teams each get a random strategy automatically when the draft starts — kept private, since you wouldn't know another drafter's plan in a real draft either."}
         </p>
         <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-3">
           {teams.map((t, i) => {
             const canRename = !eventMode && (isCommissioner || t.claimedBy === myName);
             const teamDivIdx = settings.divisions.findIndex((d) => d.teamIds.includes(i));
+            const claimed = teamIsClaimed(t);
             return (
               <div key={t.id} className="px-3 py-3 rounded flex flex-col gap-2" style={{ background: "#1B1F33", border: "1px solid rgba(255,255,255,0.06)" }}>
                 <div className="flex items-center justify-between gap-2">
@@ -12030,12 +12035,12 @@ function SetupView({ state, leagueId = null, leagueName = "league", isCommission
                           )}
                         </div>
                       )}
-                      <div className="text-xs mono-font" style={{ color: t.claimedBy ? "#4FD1C5" : "#5B5F7E" }}>
-                        {t.claimedBy || (t.expectedManager ? `${t.expectedManager} · unclaimed bot seat` : "Unclaimed — will auto-draft as a bot")}
+                      <div className="text-xs mono-font" style={{ color: claimed ? "#4FD1C5" : "#5B5F7E" }}>
+                        {claimed ? (t.claimedBy || "Claimed manager") : (t.expectedManager ? `${t.expectedManager} · unclaimed${locked ? "" : " bot seat"}` : locked ? "Unclaimed team" : "Unclaimed — will auto-draft as a bot")}
                       </div>
                     </div>
                   </div>
-                  {!t.claimedBy && !locked && (
+                  {openTeamIndexes.has(i) && canClaimOpenTeam && (
                     <button onClick={() => claimTeam(i)} className="text-xs px-2 py-1 rounded flex-shrink-0" style={{ background: "#FFD23F", color: "#10121C" }}>Claim</button>
                   )}
                 </div>
@@ -12059,9 +12064,11 @@ function SetupView({ state, leagueId = null, leagueName = "league", isCommission
                     Division: {teamDivIdx >= 0 ? settings.divisions[teamDivIdx].name : "none"}
                   </div>
                 )}
-                {!eventMode && !t.claimedBy && (
+                {!eventMode && !claimed && (
                   <p className="text-[10px]" style={{ color: "#5B5F7E" }}>
-                    Bot team — gets a random strategy automatically when the draft starts. Nothing to set up here.
+                    {locked && canClaimOpenTeam
+                      ? "Open team — claim it to manage the existing season history."
+                      : "Bot team — gets a random strategy automatically when the draft starts. Nothing to set up here."}
                   </p>
                 )}
                 {isCommissioner && !locked && !eventMode && teams.length > 2 && seasonNumber > 1 && (

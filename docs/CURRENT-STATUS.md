@@ -192,7 +192,10 @@ Regulation M-B rules and imported standings.
 
 Pull request [#345](https://github.com/roblebaegaming/DraftCenter/pull/345)
 released safe historical-result display, source-manager labels, completed-draft
-team claims, and migration 443. The owner-approved import then ran once as one
+team claims, and migration 443. Commissioner Setup also exposes that bounded
+claim action after a draft is complete, so an owner can manage one existing
+team without using a second account; active drafts and retired teams remain
+ineligible. The owner-approved import then ran once as one
 transaction and passed exact count, standing, RLS, grant, authorization,
 advisor, and retry-safety postflight checks. Pull request
 [#346](https://github.com/roblebaegaming/DraftCenter/pull/346) routes private
