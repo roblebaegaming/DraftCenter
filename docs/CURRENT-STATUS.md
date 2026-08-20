@@ -3,10 +3,49 @@
 - Last updated: August 19, 2026 Pacific
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified Production application behavior commit: `2ab51fbdddf0c0b40eb56e9a2f70ee62b0f45338`
-- Latest applied Production migration: 450 (`20260819222800`)
+- Verified Production application behavior commit: `e88ddc312c38bee66498677be5d6b9b8d179058b`
+- Latest applied Production migration: 453 (`20260820040500`)
 
 ## Latest release
+
+Pull request [#362](https://github.com/roblebaegaming/DraftCenter/pull/362)
+is deployed at exact Production application commit `e88ddc3`. Live auction
+polling and hosted auction actions now preserve a manager's already-loaded
+private queue instead of briefly replacing it with the public draft snapshot.
+A successful queue mutation also becomes authoritative immediately. The
+application-only release changed no database schema, RLS policy, grant,
+provider setting, secret, or environment variable.
+
+The owner-approved signed-in Production rehearsal used one isolated private
+practice league with five bot teams. The manager resumed a paused auction,
+directly nominated Aggron without using the queued Absol, placed Aggron on the
+block, and observed the server-controlled nomination order advance through
+later bot turns. Absol remained visible immediately after Resume, after live
+polling, after direct nomination, after placement on the block, and after the
+manager handoff. The practice draft was reset only so the lifecycle archive
+safeguard could close it; the league is now authoritatively archived, private,
+and has no active draft session. No real league or preserved tournament
+showcase was changed. The dependency audit, complete application suite,
+1,027-row National Dex check, configured 335-page build, protected checks,
+hosted Preview review, and complete 22-check Production smoke sweep passed.
+
+Pull request [#361](https://github.com/roblebaegaming/DraftCenter/pull/361)
+is deployed at exact Production application commit `1ef4969` with forward
+migration `20260820040500_allow_empty_league_setup_initialization.sql`. It
+corrects the participant-retirement snapshot guard so a newly created league
+can initialize its first empty setup while direct midseason retirement-state
+mutations remain blocked. The owner-approved disposable Supabase Preview
+replayed the full current ledger and passed the empty-league initialization,
+retirement protection, grants, and RLS regressions. It was deleted immediately
+after verification, and the branch inventory again contains only `main`.
+
+Pull request [#358](https://github.com/roblebaegaming/DraftCenter/pull/358)
+is deployed at exact Production application commit `b9d658f`. Auction managers
+can nominate an available Pokémon directly when it is their turn; the private
+queue remains optional and has a stable panel plus a separate per-card action.
+The oversized global Worlds quick bar was removed so the ordinary DraftCenter
+Home and tool navigation remain clear on phone screens. This was an
+application-only release with no database or Production-data change.
 
 Pull request [#349](https://github.com/roblebaegaming/DraftCenter/pull/349)
 released at exact application behavior commit `2ab51fb` with midseason
@@ -115,8 +154,9 @@ The detailed continuation record is in the
 Pull request [#352](https://github.com/roblebaegaming/DraftCenter/pull/352)
 temporarily replaced the primary **Predictions** / phone **Picks** navigation
 item with a highlighted **🌎 Worlds Predictions** / phone **🌎 Worlds** button
-that opens `/worlds/2026` directly. The existing large highlighted Worlds
-quick-bar button remains. The generic `/tournaments/predictions` directory,
+that opens `/worlds/2026` directly. Pull request #358 later removed the large
+duplicative Worlds quick-bar button. The generic
+`/tournaments/predictions` directory,
 historical event routes, and stored bracket data were not deleted; only their
 primary-navigation link is hidden until Worlds has passed and reviewed past
 tournament brackets are ready. Exact Production commit `99795121` is Ready,
@@ -617,34 +657,24 @@ not be resumed until the owner explicitly requests it.
 
 ## Current continuation order
 
-1. Use the August 19 filming session to judge real 45-second-turn speed and
-   record any remaining tap-density or wording feedback without changing the
-   private report boundary. Confirm the compact roster closes after lead
-   selection, reopens for quick bench/set reference, and keeps Out handling on
-   the active cards. Test Auto-next both enabled and disabled, including one
-   manual no-action turn and one pivot move, and confirm that the source-labeled
-   tournament and ladder suggestions reduce typing.
-2. Show the completed private Tournament Organizer Demo and its five current
-   captures to the tournament operator; preserve the finished event until the
-   owner explicitly asks to reset it.
-3. Prepare but do not launch the gated commissioner-focused Google Search
-   experiment in the current acquisition handoff. No ad account, tag, billing,
-   campaign, or spend change is authorized.
-4. Keep the imported four-pod organization private. Invite or let source
-   managers claim its currently unclaimed teams only when the owner is ready;
-   do not fabricate missing game scores or historical draft picks.
-5. Run the scheduled aggregate-only attribution review at 09:00 Pacific on
-   August 19 without inspecting or reporting individual identity or activity.
-6. Use the released activation, import, replay, and weekly-health workflows to
-   support complete commissioner seasons before opening another broad feature
-   area.
-7. Recruit lighthouse commissioners only after the owner approves the exact
-   audience, message, destination, and reply path.
-8. Keep PokeEarth paused until the owner directly requests resumption.
-9. Keep GO Meta Picks closed until an official eligibility pool is reviewed.
-
-The aggregate-only attribution review remains scheduled for 09:00 Pacific on
-August 19, 2026. Do not inspect or report individual identity or activity.
+1. Validate manager invitations and completed-draft team claiming before any
+   broad four-pod invitation. Keep the imported organization private and do
+   not fabricate missing scores or historical draft picks.
+2. Run a separate private Auction Swiss organizer rehearsal without resetting
+   or modifying the preserved completed showcase.
+3. Observe the owner's real 45-second Battle Room session and prioritize the
+   evidence from that session, including roster collapse/reopen behavior,
+   manual no-action turns, pivots, Auto-next, and tap density.
+4. Recheck Worlds feed freshness and Top Cut operational readiness before the
+   live window. Keep GO Meta Picks closed until an official eligibility pool
+   is reviewed.
+5. Add consistent UTM campaign tagging before increasing advertising spend.
+   No ad account, billing, campaign launch, or spend change is authorized by
+   this documentation update.
+6. Address navigation consolidation after the live competitive workflows are
+   ready.
+7. Keep PokeEarth paused until the owner directly requests resumption, and
+   preserve all Mushroom Cup and intentionally paused Mushroom Hut boundaries.
 
 ## Active boundaries
 
