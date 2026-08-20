@@ -3,8 +3,9 @@
 Status: the first Pokédex milestone and French Worlds expansion are prepared as
 a protected release candidate on 2026-08-20. They are not enabled in
 Production. Pull request #371, its protected executable checks, and hosted
-Vercel Preview review pass. The isolated database regression and fluent-speaker
-approval remain release gates.
+Vercel Preview review pass. Migration 454 passed its rollback-only isolated
+Preview regression, and the paid disposable branch was deleted immediately
+afterward. Fluent-speaker approval remains the release gate.
 
 ## Product direction
 

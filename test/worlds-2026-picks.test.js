@@ -530,6 +530,7 @@ test("French, German, Japanese, and Korean Worlds routes share the VGC competiti
   assert.doesNotMatch([
     french.leaderboard.finalBody,
     french.bracket.body,
+    french.scoring.note,
     french.meta.intro,
     french.meta.order,
     french.meta.trendBody,

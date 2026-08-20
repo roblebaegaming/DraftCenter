@@ -65,7 +65,7 @@ Passed on the isolated release tree:
 - migration-history validation through pending migration 454;
 - 73 Worlds checks;
 - 21 SEO checks;
-- 7 multilingual Pokédex checks; and
+- 9 multilingual Pokédex checks; and
 - a successful optimized Next.js build with 344 static pages generated.
 
 Browser review passed at desktop and 390-pixel phone widths for all seven
@@ -94,19 +94,44 @@ Vercel Preview Comments all passed on the implementation commit before this
 documentation-only evidence update.
 
 The automatic Supabase Preview check was skipped because the configured single
-concurrent Preview slot was already occupied. This is an infrastructure-capacity
-skip, not a migration failure. The local environment has no Supabase management
-credential, so it cannot safely create a temporary isolated branch. Migration
-454's rollback-only regression therefore remains unexecuted and is still a
-required merge gate.
+concurrent Preview slot was already occupied. This was an infrastructure-capacity
+skip, not a migration failure. The owner then approved one temporary paid,
+data-less Preview branch. Its authoritative ledger matched Production through
+migration 453 before migration 454's exact SQL was applied.
+
+The first rollback-only regression run exposed a test-only catalog assertion:
+PostgreSQL stores an empty function search path as `search_path=""`, while the
+fixture expected `search_path=`. Direct inspection confirmed that RLS, grants,
+anonymous denial, authenticated RPC execution, security-definer settings, and
+the empty search paths were all correct. The fixture was corrected and rerun.
+It passed French message round-tripping, English/French isolation, unsupported
+language rejection, direct-table denial, RLS, grants, function settings, and
+rollback cleanup. The temporary event, profile, user, and message counts were
+all zero afterward.
+
+Advisor comparison found no new security notice and no warning- or error-level
+performance delta. The empty Preview produced only expected informational
+unused-index notices. The exact temporary branch was deleted after validation;
+the final branch inventory contains only `main`, so its hourly charge stopped.
+
+## Editorial review evidence
+
+Technical and model-assisted editorial QA now covers all six non-English
+Pokédex locales and French Worlds. Spanish and French Pokédex terminology was
+aligned with the official localized Pokémon vocabulary, and literal English or
+owner/pool phrasing in the new French Worlds copy was corrected without changing
+the scoring or privacy contract. The expanded focused tests pass.
+
+The native-review matrix and exact Preview routes are recorded in
+[`docs/localization-fluent-speaker-review-2026-08-20.md`](../localization-fluent-speaker-review-2026-08-20.md).
+Its six native-review rows remain pending; technical or model-assisted QA is not
+represented as human fluent-speaker approval.
 
 ## Remaining release gates
 
 - A fluent speaker must approve interface copy and Pokémon terminology for each
   released non-English language. Automated and visual review cannot replace
   this editorial gate.
-- Migration 454 and its rollback-only regression must pass on an isolated
-  Supabase Preview branch.
 - Merge, Production migration, deployment, and signed-out Production smoke
   validation require a separate authorized release step after those gates.
 

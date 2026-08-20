@@ -132,7 +132,7 @@ const FRENCH_COPY = {
     tieOne: "1. Meilleur classement final moyen des six choix les mieux placés.",
     tieTwo: "2. Meilleur classement final moyen des 10 choix.",
     tieNote: "Ces critères s’appliquent après confirmation des résultats. Si les deux moyennes sont encore identiques, les participations partagent le même rang.",
-    note: "La courbe récompense chaque choix du Top 64 et valorise clairement le Champion. Les classements en direct restent provisoires jusqu’à la vérification et à la confirmation des résultats officiels par le propriétaire.",
+    note: "La courbe récompense chaque choix du Top 64 et valorise clairement le Champion. Les classements en direct restent provisoires jusqu’à la vérification et à la confirmation des résultats officiels par l’administrateur.",
     placements: ["Champion du monde", "Finaliste", "Top 4", "Top 8", "Top 16", "Top 32", "Top 64"],
   },
   roster: {
