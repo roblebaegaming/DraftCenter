@@ -1481,14 +1481,12 @@ export default function DraftLab({ embedded = false, initialFormatId = "", initi
     return personalResult.data || [];
   }
 
-  async function saveTeamAndNotes(event) {
-    event.preventDefault();
-    if (!user) return setMessage("Sign in to save a private team and notes.");
-    if (!teamName.trim()) return setMessage("Name this team before saving it.");
+  async function persistTeamAndNotes() {
+    if (!user) throw new Error("Sign in to save a private team and notes.");
+    if (!teamName.trim()) throw new Error("Name this team before saving it.");
     const illegalNames = names.filter((name) => !allowedPokemonNames.has(name));
-    if (illegalNames.length) return setMessage(`Remove Pokémon unavailable in ${regulation.name} before saving: ${illegalNames.join(", ")}.`);
-    setBusy(true);
-    setMessage("");
+    if (illegalNames.length) throw new Error(`Remove Pokémon unavailable in ${regulation.name} before saving: ${illegalNames.join(", ")}.`);
+    const updatedExistingTeam = Boolean(savedTeamId);
     const payload = {
       team_name: teamName.trim(),
       league_name: nullable(leagueName),
@@ -1501,15 +1499,29 @@ export default function DraftLab({ embedded = false, initialFormatId = "", initi
     const result = savedTeamId
       ? await supabase.from("personal_teams").update(payload).eq("id", savedTeamId).eq("owner_id", user.id).select("*").single()
       : await supabase.from("personal_teams").insert({ owner_id: user.id, workspace_type: "weekly", planning_entries: [], ...payload }).select("*").single();
-    setBusy(false);
-    if (result.error) return setMessage(result.error.message);
+    if (result.error) throw result.error;
     setSavedTeamId(result.data.id);
     setSourceKey(`personal:${result.data.id}`);
+    setPersonalTeams((current) => [result.data, ...current.filter((team) => team.id !== result.data.id)]);
+    return { team: result.data, updatedExistingTeam };
+  }
+
+  async function saveTeamAndNotes(event) {
+    event.preventDefault();
+    setBusy(true);
+    setMessage("");
     try {
-      await refreshAccount(user);
-      setMessage(savedTeamId ? "Team and notes updated in My Teams." : "Team and notes saved privately to My Teams.");
+      const { updatedExistingTeam } = await persistTeamAndNotes();
+      try {
+        await refreshAccount(user);
+        setMessage(updatedExistingTeam ? "Team and notes updated in My Teams." : "Team and notes saved privately to My Teams.");
+      } catch (error) {
+        setMessage(`The team saved, but the account list could not refresh: ${error.message}`);
+      }
     } catch (error) {
-      setMessage(`The team saved, but the account list could not refresh: ${error.message}`);
+      setMessage(error.message);
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -1533,24 +1545,19 @@ export default function DraftLab({ embedded = false, initialFormatId = "", initi
     setMessage("");
   }
 
-  async function saveMatchup(event) {
-    event.preventDefault();
-    if (!savedTeamId || !matchupForm) return;
-    if (!matchupForm.opponent_name.trim()) return setMessage("Add the opponent’s name before saving this plan.");
-    const openBattleAfterSave = event.nativeEvent.submitter?.value !== "save-only";
-    setBusy(true);
-    setMessage("");
+  async function persistMatchupDetails(personalTeamId) {
+    if (!personalTeamId || !matchupForm) throw new Error("Save or load your team before saving this opponent plan.");
+    if (!matchupForm.opponent_name.trim()) throw new Error("Add the opponent’s name before saving this plan.");
     const normalizedMatchup = normalizeTeamLabMatchupForm(matchupForm);
     const matchupRegulation = REGULATION_SETS[normalizedMatchup.format_id];
     const legalOpponentNames = new Set(Array.isArray(matchupRegulation?.legalNames) ? matchupRegulation.legalNames : CATALOG_NAMES);
     const illegalOpponentNames = normalizedMatchup.pokemon.filter((name) => !legalOpponentNames.has(name));
     if (illegalOpponentNames.length) {
-      setBusy(false);
-      return setMessage(`Remove Pokémon unavailable in ${matchupRegulation?.name || "this format"} before saving: ${illegalOpponentNames.join(", ")}.`);
+      throw new Error(`Remove Pokémon unavailable in ${matchupRegulation?.name || "this format"} before saving: ${illegalOpponentNames.join(", ")}.`);
     }
     const { data, error } = await supabase.rpc("save_my_team_lab_matchup_details", {
       p_matchup_id: normalizedMatchup.id,
-      p_personal_team_id: savedTeamId,
+      p_personal_team_id: personalTeamId,
       p_opponent_name: normalizedMatchup.opponent_name.trim(),
       p_opponent_team_name: normalizedMatchup.opponent_team_name.trim(),
       p_mode: normalizedMatchup.mode,
@@ -1560,12 +1567,55 @@ export default function DraftLab({ embedded = false, initialFormatId = "", initi
       p_notes: normalizedMatchup.notes.trim(),
       p_week_label: normalizedMatchup.week_label || "",
     });
-    setBusy(false);
-    if (error) return setMessage(error.message);
+    if (error) throw error;
+    if (!data?.id) throw new Error("DraftCenter did not return a confirmed opponent plan, so Battle Mode was not opened. Refresh the plan and try again.");
+    const confirmedOpponent = normalizeTeamLabRoster(data?.pokemon, CATALOG_NAME_SET, TEAM_LAB_ROSTER_LIMIT);
+    if (JSON.stringify(confirmedOpponent) !== JSON.stringify(normalizedMatchup.pokemon)) {
+      throw new Error("DraftCenter could not confirm the selected opponent team, so Battle Mode was not opened. Refresh the plan and try again.");
+    }
+    return { ...data, pokemon: confirmedOpponent };
+  }
+
+  function applySavedMatchup(data, openBattleAfterSave) {
     setMatchups((current) => [data, ...current.filter((matchup) => matchup.id !== data.id)]);
     setMatchupForm(null);
     if (openBattleAfterSave) setBattleMatchupId(data.id);
+  }
+
+  async function saveMatchup(event) {
+    event.preventDefault();
+    const openBattleAfterSave = event.nativeEvent.submitter?.value !== "save-only";
+    setBusy(true);
+    setMessage("");
+    try {
+      const data = await persistMatchupDetails(savedTeamId);
+      applySavedMatchup(data, openBattleAfterSave);
+    } catch (error) {
+      return setMessage(error.message);
+    } finally {
+      setBusy(false);
+    }
     setMessage(openBattleAfterSave ? "Opponent plan saved. Battle Mode is open and ready for turn-by-turn recording." : "Opponent matchup plan saved to your account.");
+  }
+
+  async function saveLeagueMatchupAndOpen() {
+    if (!leagueMatchupContext || !matchupForm) return setMessage("Reopen the scheduled matchup before starting Battle Mode.");
+    setBusy(true);
+    setMessage("");
+    try {
+      let personalTeamId = savedTeamId;
+      if (!personalTeamId) {
+        const savedTeam = await persistTeamAndNotes();
+        personalTeamId = savedTeam.team.id;
+      }
+      const data = await persistMatchupDetails(personalTeamId);
+      applySavedMatchup(data, true);
+      setMessage(`${matchupForm.week_label || "League matchup"} saved with ${data.pokemon.length} opponent Pokémon. Battle Mode opened with both selected teams.`);
+    } catch (error) {
+      setMessage(error.message);
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function createQuickLadderMatch({ formatId: nextFormatId = formatId, sheetMode = "closed", battlePurpose = "ladder", sessionLabel = "", nextGameNumber = teamPerformance.games.length + 1 } = {}) {
@@ -1723,7 +1773,11 @@ export default function DraftLab({ embedded = false, initialFormatId = "", initi
 
     <section className="team-lab-account" id="team-lab-battle-setup" aria-labelledby="team-lab-account-title">
       <div className="team-lab-account-heading"><div><span className="eyebrow">PRIVATE ACCOUNT WORKSPACE</span><h2 id="team-lab-account-title">Weekly teams, reports, and matchup plans</h2><p>Each opponent plan can keep a different brought team and Battle Mode report. Private fields never enter the public analysis link, and league rosters remain read-only planning copies.</p></div>{savedTeamId && <span className="team-lab-connected">Connected to My Teams</span>}</div>
-      {leagueMatchupContext && <section className="team-lab-league-context" aria-labelledby="team-lab-league-context-title"><header><div><span className="eyebrow">OFFICIAL LEAGUE MATCHUP</span><h3 id="team-lab-league-context-title">Week {Number(leagueMatchupContext.week_index) + 1} · {leagueMatchupContext.my_team_name} vs. {leagueMatchupContext.opponent_team_name}</h3><p>Both official rosters stay visible here while you choose a private weekly six. These buttons change only this planning copy.</p></div><strong>{leagueMatchupContext.league_name}</strong></header><div className="team-lab-league-rosters"><section><div><span>YOUR OFFICIAL ROSTER</span><small>{names.length} / {TEAM_LAB_ROSTER_LIMIT} selected</small></div><div>{officialLeagueRoster.map((name) => <button type="button" key={name} aria-pressed={names.includes(name)} className={names.includes(name) ? "is-selected" : ""} onClick={() => toggleOfficialLeaguePokemon("mine", name)}>{name}</button>)}</div></section><section><div><span>OPPONENT’S OFFICIAL ROSTER</span><small>{matchupForm?.pokemon?.length || 0} / {TEAM_LAB_ROSTER_LIMIT} selected</small></div><div>{officialOpponentRoster.map((name) => <button type="button" key={name} aria-pressed={Boolean(matchupForm?.pokemon?.includes(name))} className={matchupForm?.pokemon?.includes(name) ? "is-selected" : ""} onClick={() => toggleOfficialLeaguePokemon("opponent", name)}>{name}</button>)}</div></section></div></section>}
+      {leagueMatchupContext && <section className="team-lab-league-context" aria-labelledby="team-lab-league-context-title">
+        <header><div><span className="eyebrow">OFFICIAL LEAGUE MATCHUP</span><h3 id="team-lab-league-context-title">Week {Number(leagueMatchupContext.week_index) + 1} · {leagueMatchupContext.my_team_name} vs. {leagueMatchupContext.opponent_team_name}</h3><p>Both official rosters stay visible here while you choose a private weekly six. These buttons change only this planning copy.</p></div><strong>{leagueMatchupContext.league_name}</strong></header>
+        <div className="team-lab-league-rosters"><section><div><span>YOUR OFFICIAL ROSTER</span><small>{names.length} / {TEAM_LAB_ROSTER_LIMIT} selected</small></div><div>{officialLeagueRoster.map((name) => <button type="button" key={name} aria-pressed={names.includes(name)} className={names.includes(name) ? "is-selected" : ""} onClick={() => toggleOfficialLeaguePokemon("mine", name)}>{name}</button>)}</div></section><section><div><span>OPPONENT’S OFFICIAL ROSTER</span><small>{matchupForm?.pokemon?.length || 0} / {TEAM_LAB_ROSTER_LIMIT} selected</small></div><div>{officialOpponentRoster.map((name) => <button type="button" key={name} aria-pressed={Boolean(matchupForm?.pokemon?.includes(name))} className={matchupForm?.pokemon?.includes(name) ? "is-selected" : ""} onClick={() => toggleOfficialLeaguePokemon("opponent", name)}>{name}</button>)}</div></section></div>
+        <div className="team-lab-league-launch"><div><strong>{matchupForm?.pokemon?.length || 0} opponent Pokémon ready</strong><span>The selected opponent is saved and confirmed before Battle Mode can open.</span></div><button type="button" className="primary-button" disabled={busy || !matchupForm} onClick={saveLeagueMatchupAndOpen}>{busy ? "Saving both teams…" : savedTeamId ? "Save matchup & open Battle Mode" : "Save both teams & open Battle Mode"}</button></div>
+      </section>}
       <div className="team-lab-battle-path" aria-labelledby="team-lab-battle-path-title">
         <div><span className="eyebrow">HOW TO OPEN BATTLE MODE</span><h3 id="team-lab-battle-path-title">From this roster to a live turn-by-turn recorder</h3><p>Keep Battle Mode open beside your game to log moves, abilities, items, switches, faints, damage, and notes. It is a private notebook and does not connect to or read from the game client.</p></div>
         <ol><li><span>1</span><div><strong>Save or load your team</strong><small>Battle reports attach to a private My Teams workspace.</small></div></li><li><span>2</span><div><strong>Create an opponent plan</strong><small>Add the opponent and the roster you expect to face.</small></div></li><li><span>3</span><div><strong>Open Battle Mode</strong><small>Choose open or closed sheet, then record the match turn by turn.</small></div></li></ol>
@@ -1734,7 +1788,7 @@ export default function DraftLab({ embedded = false, initialFormatId = "", initi
           <button type="button" className="secondary-button" onClick={loadSelectedAccountTeam}>Load team</button>
           <button type="button" className="quiet-button" onClick={startNewTeam}>Start new</button>
         </div>
-        <form className="team-lab-save-form" onSubmit={saveTeamAndNotes}>
+        <form className="team-lab-save-form" id="team-lab-save-team" onSubmit={saveTeamAndNotes}>
           <div className="team-lab-save-fields"><label>Team name<input required maxLength={120} value={teamName} onChange={(event) => setTeamName(event.target.value)} placeholder="My draft roster"/></label><label>League or event<input maxLength={120} value={leagueName} onChange={(event) => setLeagueName(event.target.value)} placeholder="Optional"/></label></div>
           <label>Team notes<textarea maxLength={20000} rows={5} value={teamNotes} onChange={(event) => setTeamNotes(event.target.value)} placeholder="Roles, sets to test, draft priorities, matchup reminders…"/></label>
           {connectedPersonalTeam?.is_public && <p className="team-lab-public-team-note">This team is currently shared in Community. Saving roster or name changes updates that shared team; notes and matchup plans remain private.</p>}
@@ -1744,7 +1798,7 @@ export default function DraftLab({ embedded = false, initialFormatId = "", initi
         {savedTeamId && <TeamLabSetEditor value={teamSets} rosterNames={names} catalogNames={CATALOG_NAME_SET} formatId={formatId} disabled={busy} onChange={setTeamSets} onSave={saveTeamSets} onMessage={setMessage}/>}
 
         <div className="team-lab-matchups">
-          <div className="team-lab-matchups-heading"><div><span className="eyebrow">MATCH &amp; LADDER TRACKER</span><h3>Set up Battle Room</h3><p>Plan a known opponent or jump straight into a quick ladder match. Every saved result stays attached to this team.</p></div><div className="team-lab-matchups-heading-actions"><button type="button" className="primary-button" disabled={!savedTeamId || busy} onClick={async () => { try { await createQuickLadderMatch(); } catch (error) { setMessage(error.message); } }}>Start ladder match</button><button type="button" className="secondary-button" disabled={!savedTeamId || busy} onClick={() => openMatchup()}>Plan an opponent</button></div></div>
+          <div className="team-lab-matchups-heading"><div><span className="eyebrow">MATCH &amp; LADDER TRACKER</span><h3>Set up Battle Room</h3><p>{leagueMatchupContext ? "Open the selected scheduled matchup with both teams intact. Every saved result stays attached to your private team copy." : "Plan a known opponent or jump straight into a quick ladder match. Every saved result stays attached to this team."}</p></div><div className="team-lab-matchups-heading-actions">{leagueMatchupContext && matchupForm ? <button type="button" className="primary-button" disabled={busy} onClick={saveLeagueMatchupAndOpen}>{busy ? "Saving both teams…" : "Open selected league matchup"}</button> : <><button type="button" className="primary-button" disabled={!savedTeamId || busy} onClick={async () => { try { await createQuickLadderMatch(); } catch (error) { setMessage(error.message); } }}>Start ladder match</button><button type="button" className="secondary-button" disabled={!savedTeamId || busy} onClick={() => openMatchup()}>Plan an opponent</button></>}</div></div>
           {!savedTeamId && <p className="team-lab-matchup-empty">Save or load a My Teams roster to begin matchup planning.</p>}
           {savedTeamId && !activeMatchups.length && !matchupForm && <p className="team-lab-matchup-empty">No opponent plans yet. Create one, then choose Save &amp; open Battle Mode.</p>}
           {savedTeamId && <TeamLabReports matchups={activeMatchups} rosterNames={names} onOpenBattle={(matchup) => matchup && setBattleMatchupId(matchup.id)}/>}
