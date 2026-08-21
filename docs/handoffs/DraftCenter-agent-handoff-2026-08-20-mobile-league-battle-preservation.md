@@ -1,13 +1,14 @@
 # DraftCenter mobile league and Battle Mode preservation handoff
 
-Date: August 20, 2026 Pacific
+Date: August 21, 2026 Pacific
 
 Status: application-only release candidate in pull request
 [#373](https://github.com/roblebaegaming/DraftCenter/pull/373), with behavior
-commit `f19d5c3` on `codex/mobile-league-battle-preservation-20260820`. All
+commit `6c532eb` on `codex/mobile-league-battle-preservation-20260820`. All
 automated repository checks and the hosted Vercel Preview pass. It is not
-deployed to Production. Current Production remains application behavior commit
-`aa82ecc` with documentation commit `bb32556` and migration 454.
+deployed to Production. Current Production application behavior is commit
+`a37d59c`, current `main` is documentation commit `ce97e78`, and migration 454
+remains the latest applied Production migration.
 
 ## Owner report addressed
 
