@@ -75,8 +75,10 @@ profile URLs, the released official Mega-name supplement, translation-beta
 notices, correction links, and explicit English fallbacks. The deterministic
 catalog rebuild, dependency audit, complete suite, 1,027-row Dex check,
 344-page build, and compiled 390-pixel French and Japanese interaction review
-pass. The candidate changes no database schema or Production data and remains
-undeployed pending protected checks and hosted Preview review.
+pass. Protected security checks and hosted French desktop plus French/Japanese
+390-pixel Preview review also pass at application commit `5ef4383`. The
+candidate changes no database schema or Production data and remains undeployed
+pending the merge and release decision.
 
 See the
 [multilingual Pokédex search handoff](handoffs/DraftCenter-agent-handoff-2026-08-21-multilingual-pokedex-search.md)

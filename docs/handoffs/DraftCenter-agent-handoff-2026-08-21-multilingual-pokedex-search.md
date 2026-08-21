@@ -5,7 +5,8 @@ Date: August 21, 2026 Pacific
 Status: application-only release candidate in pull request
 [#377](https://github.com/roblebaegaming/DraftCenter/pull/377) on
 `codex/multilingual-pokedex-search-20260821`. It is not deployed to Production
-and requires no database migration or Production-data change.
+and requires no database migration or Production-data change. Protected checks
+and hosted Preview review pass for application commit `5ef4383`.
 
 ## Candidate behavior
 
@@ -48,21 +49,23 @@ Passed on the isolated candidate tree:
   move slug `flamethrower` resolves to Japanese `かえんほうしゃ`, eight localized
   entries render, combined filters work, beta disclosures remain visible, no
   page has horizontal overflow, and the browser console is clean.
+- protected JavaScript security analysis, dependency/security checks,
+  full-history secret scan, and Vercel deployment checks; and
+- hosted Preview review at French desktop plus French and Japanese 390-pixel
+  phone widths, including stable links, combined filters, move search, eight
+  localized entries, correction links, and horizontal-overflow checks.
 
 The build retains the documented nonfatal status-400 response while loading
 the decorative dynamic font for `◉✦✓◇✎`; page generation completes.
 
 ## Release boundary
 
-1. Open a short-lived pull request and require protected checks plus a hosted
-   Preview.
-2. Review French desktop and Japanese or Korean phone search, filters, profile
-   entries, move search, fallback disclosure, language controls, and Support
-   correction links.
-3. Keep translation-beta and pending-native-review disclosures visible. Do not
+1. Pull request #377, protected checks, and hosted Preview review pass for
+   application commit `5ef4383`.
+2. Keep translation-beta and pending-native-review disclosures visible. Do not
    claim fluent-speaker approval that has not occurred.
-4. Merge only after Preview review. Confirm the exact Production commit and run
-   the complete signed-out Production smoke sweep after deployment.
+3. Merge only after the release decision. Confirm the exact Production commit
+   and run the complete signed-out Production smoke sweep after deployment.
 
 No Supabase schema, RLS policy, grant, provider configuration, environment
 variable, invitation, tournament, campaign, billing, or spend change belongs
