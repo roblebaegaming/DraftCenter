@@ -266,8 +266,8 @@ export default function WorldsPickSixteen({ rosterSource, discipline = "vgc", lo
         {isItalian ? <h1>{copy.hero.title}</h1> : config.key === "vgc" ? <h1>2026 Pokémon Worlds VGC predictions</h1> : config.key === "go" ? <h1>2026 Pokémon GO Worlds predictions</h1> : <h1>2026 Pokémon Worlds {config.gameLabel} predictions</h1>}
         <p>{isItalian ? copy.hero.body : config.key === "vgc" ? <>Pick 10 real VGC players and rank six Pokémon for the World Champion&apos;s team. Both prediction sections are below, with separate community leaderboards.</> : <>Pick the 10 {config.entryPlural} you believe in from the reviewed {config.gameLabel} roster. When Worlds finishes, the entry with the strongest collective results wins the DraftCenter community leaderboard.</>}</p>
         <div className="worlds-hero-actions">
-          <a className="primary-button inline-link-button" href={user === null ? "/#member-access" : "#qualified-players"}>{isItalian ? user === null ? copy.hero.signIn : staged ? copy.hero.browse : copy.hero.build : user === null ? "Sign in to predict" : staged ? "Browse reviewed roster" : "Build my 10"}</a>
           <a className="quiet-button" href="#meta-picks">{isItalian ? copy.hero.meta : "Predict the winning meta"}</a>
+          <a className="primary-button inline-link-button" href={user === null ? "/#member-access" : "#qualified-players"}>{isItalian ? user === null ? copy.hero.signIn : staged ? copy.hero.browse : copy.hero.build : user === null ? "Sign in to predict" : staged ? "Browse reviewed roster" : "Build my 10"}</a>
           {config.key === "vgc" && <a className="quiet-button" href="/worlds/2026/vgc/bracket">{isItalian ? copy.hero.bracket : "Top Cut bracket"}</a>}
           {config.key === "vgc" && <a className="quiet-button" href="/worlds/2026/vgc/victory-road-to-san-francisco">{isItalian ? copy.hero.victoryRoad : "Victory Road bracket"}</a>}
           <a className="quiet-button" href="/worlds/2026">{isItalian ? copy.hero.all : "All Worlds competitions"}</a>
@@ -293,8 +293,8 @@ export default function WorldsPickSixteen({ rosterSource, discipline = "vgc", lo
         <p>{copy.guide.body}</p>
       </div>
       <nav aria-label={copy.guide.title}>
-        <a className="primary-button inline-link-button" href="#qualified-players">{copy.guide.players}</a>
         <a className="quiet-button" href="#meta-picks">{copy.guide.pokemon}</a>
+        <a className="primary-button inline-link-button" href="#qualified-players">{copy.guide.players}</a>
       </nav>
     </section>}
 
