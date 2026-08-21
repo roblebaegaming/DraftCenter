@@ -2,10 +2,12 @@
 
 Date: August 20, 2026 Pacific
 
-Status: application-only release candidate on
-`codex/mobile-league-battle-preservation-20260820`. It is not deployed. Current
-Production remains application behavior commit `aa82ecc` with documentation
-commit `bb32556` and migration 454.
+Status: application-only release candidate in pull request
+[#373](https://github.com/roblebaegaming/DraftCenter/pull/373), with behavior
+commit `f19d5c3` on `codex/mobile-league-battle-preservation-20260820`. All
+automated repository checks and the hosted Vercel Preview pass. It is not
+deployed to Production. Current Production remains application behavior commit
+`aa82ecc` with documentation commit `bb32556` and migration 454.
 
 ## Owner report addressed
 
@@ -63,7 +65,9 @@ Passed on the isolated candidate tree:
 - optimized Next.js build with all 344 static pages generated; and
 - local 390 × 844 browser review of the compiled phone shell: 62-pixel global
   header, 57-pixel bottom navigation, no horizontal overflow, and no console
-  warning or error.
+  warning or error; and
+- hosted 390 × 844 signed-out Preview review with no horizontal overflow and no
+  browser warning or error.
 
 The build retains the documented nonfatal status-400 response while loading
 the decorative dynamic font for `◉✦✓◇✎`; page generation completes.
@@ -93,9 +97,9 @@ the decorative dynamic font for `◉✦✓◇✎`; page generation completes.
 
 ## Protected release gates
 
-1. Open a short-lived pull request from the candidate branch and require the
-   repository checks.
-2. Review the hosted Preview at 390-pixel phone width. In a private planning
+1. Pull request #373 is open and all automated repository and hosted Preview
+   checks pass.
+2. Review the hosted Preview at 390-pixel phone width while signed in. In a private planning
    copy, select a known official opponent six and confirm the Battle Room opens
    with both exact teams. Do not change either official league roster.
 3. Merge only after review. Confirm the exact Vercel Production commit and run

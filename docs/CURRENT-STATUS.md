@@ -61,6 +61,10 @@ bounded single rows or one select, and Battle Mode opens only after the server
 returns the exact submitted opponent roster. The complete suite, 1,027-row Dex
 check, dependency audit, 344-page build, and local phone-shell review pass. It
 is not yet a Production release and changes no database or Production data.
+Pull request [#373](https://github.com/roblebaegaming/DraftCenter/pull/373)
+is open and all automated repository and hosted Preview checks pass. A
+signed-in 390-pixel Preview review of the exact two-team launch remains required
+before merge.
 
 See the
 [mobile league and Battle Mode preservation handoff](handoffs/DraftCenter-agent-handoff-2026-08-20-mobile-league-battle-preservation.md)
