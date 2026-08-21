@@ -6,7 +6,9 @@ as an owner-authorized translation beta on 2026-08-20 through pull request
 migration 454's isolated and live postflight checks, exact-commit deployment,
 and the complete signed-out smoke sweep pass. Native review remains pending
 post-launch; the beta release discloses that status and accepts corrections
-through Support.
+through Support. A second application-only candidate now adds localized public
+search, filters, move names, and game-specific Pokédex entries without changing
+stable Pokémon identities. It is not yet deployed.
 
 ## Product direction
 
@@ -20,7 +22,7 @@ account, and gives brackets and other tools one stable multilingual Pokémon
 catalog. Draft-league screens come later because they contain mutations,
 deadlines, commissioner controls, and more user-generated content.
 
-## First release candidate
+## First released milestone
 
 The release candidate has localized Pokédex indexes and core Pokémon profiles at
 `/{language}/pokemon` and `/{language}/pokemon/{profile}` for the six
@@ -35,7 +37,7 @@ non-English languages. This milestone includes:
 - stable English/PokéAPI identifiers in URLs and saved bracket data, with only
   the visible labels translated; and
 - an explicit link to the existing English profile for draft analysis,
-  community data, results, and move details that are not localized yet.
+  community data, results, and detailed move research.
 
 Pokémon identity is shared across every language. DraftCenter must not create a
 separate Pokémon catalog, result pool, bracket, or user record per language.
@@ -69,13 +71,47 @@ must remain visibly identified wherever they are used.
 The exact source records and unresolved profile identifiers are in the
 [`2026-08-21 Mega-form source audit`](mega-form-localization-source-audit-2026-08-21.md).
 
+## Second application candidate
+
+The localized Pokédex indexes now have an interactive public browser while the
+complete generation lists remain server-rendered and crawlable. Visitors can:
+
+- search by a Pokémon's name in any supported language, National Pokédex
+  number, or stable profile identifier;
+- filter by localized type, generation, or ability and sort by number or the
+  selected-language name;
+- search the localized move-name list on a core Pokémon profile; and
+- read up to eight localized Pokédex entries with localized game names.
+
+The pinned resource catalog has this coverage. Missing names remain visibly
+identified English fallbacks; they are never synthesized or machine
+translated.
+
+| Language | Types | Abilities | Moves | Games/versions |
+| --- | ---: | ---: | ---: | ---: |
+| English | 21 / 21 | 373 / 373 | 937 / 937 | 53 / 53 |
+| Italian | 21 / 21 | 311 / 373 | 933 / 937 | 52 / 53 |
+| Spanish | 20 / 21 | 311 / 373 | 937 / 937 | 52 / 53 |
+| French | 21 / 21 | 311 / 373 | 937 / 937 | 52 / 53 |
+| German | 21 / 21 | 311 / 373 | 861 / 937 | 52 / 53 |
+| Japanese | 21 / 21 | 311 / 373 | 937 / 937 | 51 / 53 |
+| Korean | 21 / 21 | 311 / 373 | 919 / 937 | 48 / 53 |
+
+The type total includes special source types that are not offered as ordinary
+battle-type filters. All 18 ordinary battle types have selected-language
+labels in every supported language. The candidate preserves the released
+first-party Mega supplement and its Italian 93/97, Spanish 80/97, French
+97/97, German 48/97, Japanese 97/97, and Korean 0/97 coverage.
+
 ## Recommended expansion order
 
 1. Release the core Pokédex as a clearly labeled translation beta after
    keyboard, screen-reader, responsive, database, and protected checks; collect
    corrections and complete fluent-speaker editorial review when practical.
-2. Localize the interactive Pokédex directory, filters, type and ability
-   indexes, move names, game/version labels, and empty/error/loading states.
+2. Release the interactive Pokédex search, filters, move names, game/version
+   labels, fallback disclosures, and responsive layouts after protected and
+   hosted Preview review. Standalone type and ability indexes and remaining
+   empty/error/loading states can follow separately.
 3. Add a reviewed official Mega-form name source, then localize the Mega
    bracket interface while keeping Pokémon IDs and bracket outcomes shared.
 4. Localize general public navigation and high-value public pages such as
