@@ -7,14 +7,16 @@ approval is not complete. On 2026-08-20, the owner explicitly accepted that
 editorial risk and authorized a clearly labeled translation-beta release of
 pull request #371, with corrections collected through DraftCenter Support. The
 beta is live at exact Production application commit `aa82ecc`; every native-
-speaker matrix row remains pending.
+speaker matrix row remains pending. A 2026-08-21 first-party Mega-form source
+update does not change any native-review decision.
 
 ## Review scope
 
 The first public milestone introduces Italian, Spanish, French, German,
 Japanese, and Korean Pokédex interface copy. It also adds French to the existing
 Worlds experience. Official Pokémon names, genera, entries, types, abilities,
-and statistics come from the pinned PokéAPI localization catalog; reviewers
+and statistics come from the pinned PokéAPI localization catalog plus checked
+first-party Pokémon form-name records; reviewers
 should focus on DraftCenter-authored interface text, tone, grammar, and fallback
 disclosures rather than re-translating Pokémon names.
 
@@ -37,7 +39,7 @@ real native reviewer approves the corresponding language row below.
 
 ## Native-speaker sign-off matrix
 
-Each reviewer should open the listed Preview routes, check desktop and phone
+Each reviewer should open the listed routes, check desktop and phone
 copy, and record either **approved** or **changes requested**. A model-assisted
 review must not be entered as native-speaker approval.
 
@@ -50,8 +52,43 @@ review must not be entered as native-speaker approval.
 | Japanese | `/ja/pokemon`, `/ja/pokemon/charizard`, `/ja/pokemon/charizard-mega-x` | Passed | Pending | Pending | — |
 | Korean | `/ko/pokemon`, `/ko/pokemon/charizard`, `/ko/pokemon/charizard-mega-x` | Passed | Pending | Pending | — |
 
-Preview origin:
-`https://draftcenter-git-codex-multilingual-pokedex-rel-034758-rob-lebae.vercel.app`
+Production origin: `https://www.draftcentral.gg`
+
+When reviewing a correction pull request, use that pull request's exact hosted
+Preview for the changed strings and repeat the same Production routes after an
+authorized release. Do not reuse a superseded Preview URL.
+
+## Ready-to-send reviewer packet
+
+Assign one language per fluent reviewer and replace only the bracketed fields:
+
+> DraftCenter has released a clearly labeled translation beta and is looking
+> for a fluent **[language]** review. Please open the required routes in the
+> matrix above on both a phone and a desktop. Focus on natural wording,
+> Pokémon terminology, consistent formality, English-fallback explanations,
+> and any clipped or confusing controls. Please do not retranslate official
+> Pokémon names. Reply with either **approved** or **changes requested**, the
+> date, and each requested change in the format below. The public correction
+> route is <https://www.draftcentral.gg/support>.
+
+Reviewer response template:
+
+```text
+Language:
+Decision: approved | changes requested
+Review date:
+Routes and device sizes checked:
+
+Changes (repeat for each item):
+- Route:
+- Current text:
+- Requested text:
+- Reason or terminology source:
+```
+
+Keep reviewer contact information outside the repository. Record only the
+language, decision, date, and approved wording here unless the reviewer has
+separately agreed to public attribution.
 
 ## Reviewer checklist
 

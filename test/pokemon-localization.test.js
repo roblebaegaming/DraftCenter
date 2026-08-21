@@ -42,15 +42,52 @@ test("all 1,025 species have official names in every first-wave language", () =>
 test("Mega form-name gaps remain explicit before the multilingual bracket", () => {
   assert.equal(POKEMON_LOCALIZATION_COVERAGE.fr.mega_profiles_localized, 97);
   assert.equal(POKEMON_LOCALIZATION_COVERAGE.de.mega_profiles_localized, 48);
-  for (const code of ["it", "es", "ja", "ko"]) {
-    assert.equal(POKEMON_LOCALIZATION_COVERAGE[code].mega_profiles_localized, 0);
-  }
+  assert.equal(POKEMON_LOCALIZATION_COVERAGE.it.mega_profiles_localized, 93);
+  assert.equal(POKEMON_LOCALIZATION_COVERAGE.es.mega_profiles_localized, 80);
+  assert.equal(POKEMON_LOCALIZATION_COVERAGE.ja.mega_profiles_localized, 97);
+  assert.equal(POKEMON_LOCALIZATION_COVERAGE.ko.mega_profiles_localized, 0);
   assert.deepEqual(localizedPokemonProfileName("charizard-mega-x", "fr"), {
     name: "Méga-Dracaufeu X",
     source: "localized-form",
     species: "charizard",
   });
-  assert.equal(localizedPokemonProfileName("charizard-mega-x", "es").source, "english-fallback");
+  assert.deepEqual(localizedPokemonProfileName("charizard-mega-x", "es"), {
+    name: "Mega-Charizard X",
+    source: "official-pokemon",
+    species: "charizard",
+  });
+  assert.deepEqual(localizedPokemonProfileName("charizard-mega-x", "it"), {
+    name: "MegaCharizard X",
+    source: "official-pokemon",
+    species: "charizard",
+  });
+  assert.deepEqual(localizedPokemonProfileName("tatsugiri-curly-mega", "ja"), {
+    name: "メガシャリタツ（そったすがた）",
+    source: "official-pokemon",
+    species: "tatsugiri",
+  });
+  assert.deepEqual(localizedPokemonProfileName("clefable-mega", "es"), {
+    name: "Mega-Clefable",
+    source: "official-pokemon",
+    species: "clefable",
+  });
+  assert.equal(localizedPokemonProfileName("victreebel-mega", "es").source, "english-fallback");
+  assert.equal(localizedPokemonProfileName("eelektross-mega", "it").source, "english-fallback");
+});
+
+test("official Mega name overrides retain first-party source evidence", () => {
+  const catalog = JSON.parse(source("data/pokemon/pokemon-mega-official-names-2026-08-21.json"));
+  assert.deepEqual(catalog.profile_source_revision_parts, ["5064f1d7", "2746b3a6", "a931616d", "ae3fb644", "5c556d4f"]);
+  assert.equal(catalog.sources["official-mega-es"].url, "https://mega.pokemon.com/es-es/");
+  assert.equal(catalog.sources["official-mega-it"].url, "https://mega.pokemon.com/it-it/");
+  assert.equal(catalog.sources["official-mega-de"].url, "https://mega.pokemon.com/de-de/");
+  assert.equal(catalog.sources["official-pokedex-ja"].homepage, "https://zukan.pokemon.co.jp/");
+  assert.equal(catalog.sources["official-pokedex-es"].homepage, "https://www.pokemon.com/es/pokedex");
+  assert.equal(catalog.sources["official-pokedex-it"].homepage, "https://www.pokemon.com/it/pokedex");
+  assert.equal(Object.values(catalog.profiles).filter((entry) => entry.ja).length, 97);
+  assert.equal(Object.values(catalog.profiles).filter((entry) => entry.it).length, 93);
+  assert.equal(Object.values(catalog.profiles).filter((entry) => entry.es).length, 80);
+  assert.equal(Object.values(catalog.profiles).filter((entry) => entry.de).length, 48);
 });
 
 test("localized Pokédex routes publish reciprocal metadata without translating stable slugs", () => {
@@ -83,8 +120,10 @@ test("core Pokédex resource names use the selected PokéAPI language", () => {
 });
 
 test("localized Pokédex interface terms follow official Spanish and French vocabulary", () => {
+  const english = pokemonCopy("en");
   const spanish = pokemonCopy("es");
   const french = pokemonCopy("fr");
+  assert.match(english.sourceBody, /PokéAPI and reviewed official Pokémon sources/);
   assert.equal(spanish.stats("Charizard"), "Puntos de base de Charizard");
   assert.equal(spanish.measurements("Charizard"), "Altura y peso de Charizard");
   assert.match(spanish.title("Charizard"), /puntos de base/);

@@ -45,16 +45,18 @@ never machine-translated automatically.
 ## Pinned catalog coverage
 
 The localization artifact is generated from PokéAPI commit
-`5064f1d72746b3a6a931616dae3fb6445c556d4f`. The current audit is:
+`5064f1d72746b3a6a931616dae3fb6445c556d4f`. A 2026-08-21 first-party
+source audit supplements the pinned artifact without changing stable profile
+identifiers. Coverage after the pending source update is:
 
 | Language | Species names | Mega profile names |
 | --- | ---: | ---: |
 | English | 1,025 / 1,025 | 97 / 97 |
-| Italian | 1,025 / 1,025 | 0 / 97 |
-| Spanish | 1,025 / 1,025 | 0 / 97 |
+| Italian | 1,025 / 1,025 | 93 / 97 |
+| Spanish | 1,025 / 1,025 | 80 / 97 |
 | French | 1,025 / 1,025 | 97 / 97 |
 | German | 1,025 / 1,025 | 48 / 97 |
-| Japanese | 1,025 / 1,025 | 0 / 97 |
+| Japanese | 1,025 / 1,025 | 97 / 97 |
 | Korean | 1,025 / 1,025 | 0 / 97 |
 
 The missing Mega profile names are a source-data limitation, not permission to
@@ -62,6 +64,9 @@ invent or machine-translate official Pokémon form names. The Mega bracket
 should not be described as fully localized until DraftCenter has a reviewed,
 official source for the missing form names. Temporary English fallback labels
 must remain visibly identified wherever they are used.
+
+The exact source records and unresolved profile identifiers are in the
+[`2026-08-21 Mega-form source audit`](mega-form-localization-source-audit-2026-08-21.md).
 
 ## Recommended expansion order
 
