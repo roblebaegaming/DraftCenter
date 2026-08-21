@@ -1,8 +1,9 @@
 import { notFound, permanentRedirect } from "next/navigation";
 import DocumentLanguage from "./DocumentLanguage";
+import LocalizedPokemonMoveList from "./LocalizedPokemonMoveList";
 import PokemonLanguageSwitch from "./PokemonLanguageSwitch";
 import { loadLocalizedPokemonPage } from "../lib/localizedPokemonPage";
-import { pokemonCopy, pokemonIndexPath, pokemonProfilePath, pokemonStatLabel } from "../lib/pokemonI18n";
+import { pokemonCopy, pokemonDirectoryCopy, pokemonIndexPath, pokemonProfilePath, pokemonStatLabel } from "../lib/pokemonI18n";
 import { pokemonRouteSlug } from "../lib/publicPokemonIndex";
 import { siteLanguage } from "../lib/siteLanguages";
 
@@ -22,6 +23,7 @@ function formatWeight(hectograms, locale) {
 export default async function LocalizedPokemonProfilePage({ locale, name }) {
   const language = siteLanguage(locale);
   const copy = pokemonCopy(language.code);
+  const directoryCopy = pokemonDirectoryCopy(language.code);
   const data = await loadLocalizedPokemonPage(name, language.code);
   if (!data) notFound();
   if (pokemonRouteSlug(name) !== data.pokemon.name) permanentRedirect(pokemonProfilePath(language.code, data.pokemon.name));
@@ -30,6 +32,18 @@ export default async function LocalizedPokemonProfilePage({ locale, name }) {
   const artwork = pokemon.sprites?.other?.["official-artwork"]?.front_default || pokemon.sprites?.front_default;
   const baseStatTotal = pokemon.stats.reduce((total, { base_stat }) => total + base_stat, 0);
   const canonicalPath = pokemonProfilePath(language.code, pokemon.name);
+  const moveLabels = {
+    title: directoryCopy.moves(displayName),
+    body: directoryCopy.moveBody,
+    search: directoryCopy.moveSearch,
+    placeholder: directoryCopy.movePlaceholder,
+    matches: directoryCopy.moveMatches("{count}"),
+    matchesOne: directoryCopy.singular.moves,
+    more: directoryCopy.moreMoves,
+    empty: directoryCopy.noMoves,
+    fallback: directoryCopy.fallbackResource,
+    englishFallback: directoryCopy.englishFallback,
+  };
   const structuredData = {
     "@context": "https://schema.org",
     "@graph": [
@@ -65,7 +79,7 @@ export default async function LocalizedPokemonProfilePage({ locale, name }) {
             <h2>{data.types.join(" / ")}</h2>
             <p>{data.entry || copy.fallbackEntry(displayName)}</p>
             <h3>{copy.abilities}</h3>
-            <div className="pokemon-tags">{data.abilities.map((ability) => <span key={`${ability.name}-${ability.isHidden}`}>{ability.name}{ability.isHidden ? ` (${copy.hidden})` : ""}</span>)}</div>
+            <div className="pokemon-tags">{data.abilities.map((ability) => <span key={`${ability.name}-${ability.isHidden}`}>{ability.name}{ability.isHidden ? ` (${copy.hidden})` : ""}{ability.source === "english-fallback" ? <small>{directoryCopy.englishFallback}</small> : null}</span>)}</div>
           </div>
         </div>
       </section>
@@ -82,6 +96,11 @@ export default async function LocalizedPokemonProfilePage({ locale, name }) {
           <article><strong>{copy.generation(data.generation)}</strong><span>{copy.introduced}</span></article>
         </div>
       </section>
+      <section className="explore-card pokedex-history localized-pokemon-entry-history">
+        <h2>{directoryCopy.entries}</h2>
+        {data.entries.length ? <div className="pokedex-entry-list">{data.entries.map((entry) => <article key={`${entry.version}-${entry.text}`}><strong>{entry.version}{entry.versionSource === "english-fallback" ? <small>{directoryCopy.englishFallback}</small> : null}</strong><p>{entry.text}</p></article>)}</div> : <p className="muted">{directoryCopy.noEntries}</p>}
+      </section>
+      <LocalizedPokemonMoveList moves={data.moves} languageLocale={language.locale} labels={moveLabels} />
       <section className="explore-card">
         <h2>{copy.draftTitle}</h2>
         <p>{copy.draftBody}</p>

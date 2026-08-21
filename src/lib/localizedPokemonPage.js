@@ -1,7 +1,8 @@
 import { pokemonDisplayName, pokemonProfileSlugCandidates, pokemonRouteSlug } from "./publicPokemonIndex.js";
 import {
-  localizedPokeApiName,
   localizedPokemonProfileName,
+  localizedPokemonResource,
+  localizedPokemonResourceName,
   pokemonCopy,
   pokemonProfileAlternates,
   pokemonProfilePath,
@@ -35,21 +36,31 @@ export async function loadLocalizedPokemonPage(name, locale = "en") {
   const species = await pokeApiJson(`/pokemon-species/${speciesSlug}`);
   if (!species) return null;
 
-  const resources = await Promise.all([
-    ...pokemon.types.map(({ type }) => pokeApiJson(type.url)),
-    ...pokemon.abilities.map(({ ability }) => pokeApiJson(ability.url)),
-  ]);
-  const typeResources = resources.slice(0, pokemon.types.length);
-  const abilityResources = resources.slice(pokemon.types.length);
   const profileName = localizedPokemonProfileName(pokemon.name, language.code, pokemonDisplayName(pokemon.name));
   const speciesLocalization = pokemonSpeciesLocalization(speciesSlug, language.code);
-  const types = pokemon.types.map(({ type }, index) => localizedPokeApiName(typeResources[index], language.code, pokemonDisplayName(type.name)));
-  const abilities = pokemon.abilities.map(({ ability, is_hidden }, index) => ({
-    name: localizedPokeApiName(abilityResources[index], language.code, pokemonDisplayName(ability.name)),
+  const types = pokemon.types.map(({ type }) => localizedPokemonResourceName("types", type.name, language.code, pokemonDisplayName(type.name)));
+  const abilities = pokemon.abilities.map(({ ability, is_hidden }) => ({
+    name: localizedPokemonResourceName("abilities", ability.name, language.code, pokemonDisplayName(ability.name)),
+    source: localizedPokemonResource("abilities", ability.name, language.code).source,
     isHidden: is_hidden,
   }));
   const entries = (species.flavor_text_entries || []).filter((entry) => String(entry?.language?.name || "").toLowerCase() === language.pokeApiLanguage);
   const entry = entries.at(-1)?.flavor_text?.replace(/[\n\f]/g, " ") || null;
+  const localizedEntries = [...new Map(entries.map((item) => [item.version.name, item])).values()]
+    .slice(-8)
+    .reverse()
+    .map((item) => ({
+      version: localizedPokemonResourceName("versions", item.version.name, language.code, pokemonDisplayName(item.version.name)),
+      versionSource: localizedPokemonResource("versions", item.version.name, language.code).source,
+      text: item.flavor_text.replace(/[\n\f]/g, " "),
+    }));
+  const collator = new Intl.Collator(language.locale, { sensitivity: "base" });
+  const moves = (pokemon.moves || [])
+    .map(({ move }) => {
+      const localized = localizedPokemonResource("moves", move.name, language.code, pokemonDisplayName(move.name));
+      return { slug: move.name, name: localized.name, source: localized.source };
+    })
+    .sort((left, right) => collator.compare(left.name, right.name));
 
   return {
     pokemon,
@@ -62,6 +73,8 @@ export async function loadLocalizedPokemonPage(name, locale = "en") {
     types,
     abilities,
     entry,
+    entries: localizedEntries,
+    moves,
   };
 }
 export async function localizedPokemonPageMetadata(name, locale = "en") {

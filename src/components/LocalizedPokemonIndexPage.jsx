@@ -1,12 +1,54 @@
 import DocumentLanguage from "./DocumentLanguage";
+import LocalizedPokemonDirectory from "./LocalizedPokemonDirectory";
 import PokemonLanguageSwitch from "./PokemonLanguageSwitch";
-import { localizedPokemonSpecies, pokemonCopy, pokemonProfilePath } from "../lib/pokemonI18n";
+import {
+  localizedPokemonResourceOptions,
+  localizedPokemonSpecies,
+  pokemonCopy,
+  pokemonDirectoryCopy,
+  pokemonProfilePath,
+} from "../lib/pokemonI18n";
 import { siteLanguage } from "../lib/siteLanguages";
 
 export default function LocalizedPokemonIndexPage({ locale }) {
   const language = siteLanguage(locale);
   const copy = pokemonCopy(language.code);
+  const directoryCopy = pokemonDirectoryCopy(language.code);
   const pokemon = localizedPokemonSpecies(language.code);
+  const typeOptions = localizedPokemonResourceOptions("types", language.code, pokemon.flatMap((entry) => entry.typeSlugs));
+  const abilityOptions = localizedPokemonResourceOptions("abilities", language.code, pokemon.flatMap((entry) => entry.abilitySlugs));
+  const directoryPokemon = pokemon.map((entry) => [
+    entry.dexNumber,
+    entry.profileSlug,
+    entry.name,
+    entry.aliases,
+    entry.generation,
+    entry.typeSlugs,
+    entry.abilitySlugs,
+  ]);
+  const directoryLabels = {
+    title: directoryCopy.title,
+    body: directoryCopy.body,
+    search: directoryCopy.search,
+    searchPlaceholder: directoryCopy.searchPlaceholder,
+    type: directoryCopy.type,
+    allTypes: directoryCopy.allTypes,
+    generation: directoryCopy.generation,
+    allGenerations: directoryCopy.allGenerations,
+    ability: directoryCopy.ability,
+    allAbilities: directoryCopy.allAbilities,
+    sort: directoryCopy.sort,
+    sortName: directoryCopy.sortName,
+    sortNumber: directoryCopy.sortNumber,
+    matches: directoryCopy.matches("{count}"),
+    matchesOne: directoryCopy.singular.pokemon,
+    clear: directoryCopy.clear,
+    empty: directoryCopy.empty,
+    open: directoryCopy.open("{name}"),
+    more: directoryCopy.more,
+    generationPattern: copy.generation("{number}"),
+    englishFallback: directoryCopy.englishFallback,
+  };
   const generations = pokemon.reduce((groups, entry) => {
     (groups[entry.generation] ||= []).push(entry);
     return groups;
@@ -35,6 +77,11 @@ export default function LocalizedPokemonIndexPage({ locale }) {
         <h1>{copy.indexTitle}</h1>
         <p>{copy.indexBody}</p>
         <strong>{copy.species(pokemon.length)}</strong>
+      </header>
+      <LocalizedPokemonDirectory locale={language.code} languageLocale={language.locale} pokemon={directoryPokemon} typeOptions={typeOptions} abilityOptions={abilityOptions} labels={directoryLabels} />
+      <header className="localized-pokemon-index-heading">
+        <h2>{directoryCopy.allProfiles}</h2>
+        <p>{directoryCopy.allProfilesBody}</p>
       </header>
       <div className="pokemon-index-sections">
         {Object.entries(generations).map(([generation, entries]) => <section className="explore-card" key={generation}>

@@ -23,7 +23,17 @@ const TARGET_LANGUAGES = Object.freeze([
 
 const CSV_FILES = [
   "languages.csv",
+  "types.csv",
+  "type_names.csv",
+  "abilities.csv",
+  "ability_names.csv",
+  "moves.csv",
+  "move_names.csv",
+  "versions.csv",
+  "version_names.csv",
   "pokemon.csv",
+  "pokemon_types.csv",
+  "pokemon_abilities.csv",
   "pokemon_species.csv",
   "pokemon_species_names.csv",
   "pokemon_forms.csv",
@@ -101,6 +111,54 @@ const languageIds = Object.fromEntries(TARGET_LANGUAGES.map(({ siteCode, pokeApi
   return [siteCode, id];
 }));
 
+function buildResourceCatalog(identifierRows, nameRows, resourceIdColumn) {
+  const localizedRows = new Map();
+  for (const row of nameRows) {
+    setNested(localizedRows, row[resourceIdColumn], row.local_language_id, row);
+  }
+
+  return Object.fromEntries(identifierRows.map((row) => {
+    const localized = localizedRows.get(row.id) || new Map();
+    const english = localized.get(languageIds.en)?.name || titleCaseIdentifier(row.identifier);
+    return [row.identifier, {
+      id: Number(row.id),
+      names: Object.fromEntries(TARGET_LANGUAGES.map(({ siteCode }) => [
+        siteCode,
+        localized.get(languageIds[siteCode])?.name || english,
+      ])),
+      name_source: Object.fromEntries(TARGET_LANGUAGES.map(({ siteCode }) => [
+        siteCode,
+        localized.get(languageIds[siteCode])?.name ? "localized" : "english-fallback",
+      ])),
+    }];
+  }));
+}
+
+const resources = {
+  types: buildResourceCatalog(data["types.csv"], data["type_names.csv"], "type_id"),
+  abilities: buildResourceCatalog(data["abilities.csv"], data["ability_names.csv"], "ability_id"),
+  moves: buildResourceCatalog(data["moves.csv"], data["move_names.csv"], "move_id"),
+  versions: buildResourceCatalog(data["versions.csv"], data["version_names.csv"], "version_id"),
+};
+
+const typeIdentifierById = new Map(data["types.csv"].map((row) => [row.id, row.identifier]));
+const abilityIdentifierById = new Map(data["abilities.csv"].map((row) => [row.id, row.identifier]));
+const typesByPokemonId = new Map();
+for (const row of data["pokemon_types.csv"].sort((left, right) => Number(left.slot) - Number(right.slot))) {
+  const type = typeIdentifierById.get(row.type_id);
+  if (!type) continue;
+  if (!typesByPokemonId.has(row.pokemon_id)) typesByPokemonId.set(row.pokemon_id, []);
+  typesByPokemonId.get(row.pokemon_id).push(type);
+}
+
+const abilitiesByPokemonId = new Map();
+for (const row of data["pokemon_abilities.csv"].sort((left, right) => Number(left.slot) - Number(right.slot))) {
+  const ability = abilityIdentifierById.get(row.ability_id);
+  if (!ability) continue;
+  if (!abilitiesByPokemonId.has(row.pokemon_id)) abilitiesByPokemonId.set(row.pokemon_id, []);
+  abilitiesByPokemonId.get(row.pokemon_id).push({ name: ability, is_hidden: row.is_hidden === "1" });
+}
+
 const speciesNameRows = new Map();
 for (const row of data["pokemon_species_names.csv"]) {
   setNested(speciesNameRows, row.pokemon_species_id, row.local_language_id, row);
@@ -172,6 +230,8 @@ for (const row of data["pokemon.csv"].sort((left, right) => Number(left.id) - Nu
     species: speciesRow.identifier,
     is_default: row.is_default === "1",
     is_mega: form?.is_mega === "1",
+    types: typesByPokemonId.get(row.id) || [],
+    abilities: abilitiesByPokemonId.get(row.id) || [],
     names,
     name_source: nameSource,
   };
@@ -208,6 +268,14 @@ const coverage = Object.fromEntries(TARGET_LANGUAGES.map(({ siteCode, pokeApiIde
   profiles_total: Object.keys(profiles).length,
   mega_profiles_localized: megaProfiles.filter((entry) => entry.name_source[siteCode] !== "english-fallback").length,
   mega_profiles_total: megaProfiles.length,
+  type_names_localized: Object.values(resources.types).filter((entry) => entry.name_source[siteCode] === "localized").length,
+  type_names_total: Object.keys(resources.types).length,
+  ability_names_localized: Object.values(resources.abilities).filter((entry) => entry.name_source[siteCode] === "localized").length,
+  ability_names_total: Object.keys(resources.abilities).length,
+  move_names_localized: Object.values(resources.moves).filter((entry) => entry.name_source[siteCode] === "localized").length,
+  move_names_total: Object.keys(resources.moves).length,
+  version_names_localized: Object.values(resources.versions).filter((entry) => entry.name_source[siteCode] === "localized").length,
+  version_names_total: Object.keys(resources.versions).length,
 }]));
 
 for (const [siteCode, counts] of Object.entries(coverage)) {
@@ -225,6 +293,7 @@ const artifact = {
   coverage,
   species_count: Object.keys(species).length,
   profile_count: Object.keys(profiles).length,
+  resources,
   species,
   profiles,
 };

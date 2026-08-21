@@ -1,13 +1,25 @@
 # Agent handoffs
 
+[`DraftCenter-agent-handoff-2026-08-21-multilingual-pokedex-search.md`](DraftCenter-agent-handoff-2026-08-21-multilingual-pokedex-search.md)
+is the current multilingual application-candidate handoff. It records the
+localized public search, type/generation/ability filters, profile move search,
+game-specific entries, explicit fallback behavior, preserved official Mega
+source supplement, validation evidence, and protected release gates.
+
 [`DraftCenter-agent-handoff-2026-08-20-mobile-league-battle-preservation.md`](DraftCenter-agent-handoff-2026-08-20-mobile-league-battle-preservation.md)
-is the current application release-candidate handoff. It records the compact
+is the latest released mobile application handoff. It records the compact
 phone league header, exact selected-opponent preservation before Battle Mode,
 owner-supplied phone evidence, complete local validation, protected release
 gates, and the outside approvals and source data that remain blocked.
 
+[`DraftCenter-agent-handoff-2026-08-21-official-mega-localization-sources.md`](DraftCenter-agent-handoff-2026-08-21-official-mega-localization-sources.md)
+is the current released Mega-name source handoff. It records the exact
+first-party coverage, unresolved form identifiers, Production release
+evidence, prepared native-review packets, and the still-blocked multilingual
+Mega bracket.
+
 [`DraftCenter-agent-handoff-2026-08-20-multilingual-pokedex-french-worlds.md`](DraftCenter-agent-handoff-2026-08-20-multilingual-pokedex-french-worlds.md)
-is the current multilingual Production handoff. It records the released
+is the preceding multilingual Production handoff. It records the released
 seven-language public Pokédex, French Worlds completion, applied migration 454,
 Production verification, pending fluent-speaker reviews, and the blocked
 multilingual Mega bracket.

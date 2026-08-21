@@ -52,23 +52,38 @@ suite, 1,027-row National Dex check, 344-page build, refreshed hosted Preview,
 post-merge security checks, exact-commit Vercel deployment, live localized-page
 review, and complete 22-check signed-out Production smoke sweep all passed.
 
+## Latest application release
+
+Pull request [#373](https://github.com/roblebaegaming/DraftCenter/pull/373)
+is deployed at exact Production application commit `42a2952`. It compacts the
+signed-in league page on phones and prevents a scheduled Team Lab launch from
+silently dropping the selected opponent. The league-specific phone header
+scrolls away, wrapped controls use bounded single rows or one select, and
+Battle Mode opens only after the server returns the exact submitted opponent
+roster. Vercel reported the exact merge commit ready and the complete 22-check
+signed-out Production smoke sweep passed. The owner will perform the remaining
+signed-in phone impression after returning. The release changed no database
+schema or Production data.
+
 ## Active application candidate
 
-An application-only candidate compacts the signed-in league page on phones and
-prevents a scheduled Team Lab launch from silently dropping the selected
-opponent. The league-specific phone header scrolls away, wrapped controls use
-bounded single rows or one select, and Battle Mode opens only after the server
-returns the exact submitted opponent roster. The complete suite, 1,027-row Dex
-check, dependency audit, 344-page build, and local phone-shell review pass. It
-is not yet a Production release and changes no database or Production data.
-Pull request [#373](https://github.com/roblebaegaming/DraftCenter/pull/373)
-is open and all automated repository and hosted Preview checks pass. A
-signed-in 390-pixel Preview review of the exact two-team launch remains required
-before merge.
+Pull request [#377](https://github.com/roblebaegaming/DraftCenter/pull/377)
+is an application-only multilingual candidate that adds cross-language Pokémon search,
+localized type, generation, and ability filters, localized move-name search,
+and up to eight game-specific localized Pokédex entries. It preserves stable
+profile URLs, the released official Mega-name supplement, translation-beta
+notices, correction links, and explicit English fallbacks. The deterministic
+catalog rebuild, dependency audit, complete suite, 1,027-row Dex check,
+344-page build, and compiled 390-pixel French and Japanese interaction review
+pass. Protected security checks and hosted French desktop plus French/Japanese
+390-pixel Preview review also pass at application commit `5ef4383`. The
+candidate changes no database schema or Production data and remains undeployed
+pending the merge and release decision.
 
 See the
-[mobile league and Battle Mode preservation handoff](handoffs/DraftCenter-agent-handoff-2026-08-20-mobile-league-battle-preservation.md)
-for the protected release gates and remaining external approvals.
+[multilingual Pokédex search handoff](handoffs/DraftCenter-agent-handoff-2026-08-21-multilingual-pokedex-search.md)
+for its exact release boundary.
+
 
 Pull request [#369](https://github.com/roblebaegaming/DraftCenter/pull/369)
 is deployed at exact Production application commit `7f2236a`. The

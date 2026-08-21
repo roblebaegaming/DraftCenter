@@ -2492,6 +2492,45 @@ button.mega-bracket-slot:hover,button.mega-bracket-slot:focus-visible { color: #
 .localized-pokemon-page .pokemon-profile-link-grid a { display:grid; gap:3px; }
 .localized-pokemon-page .pokemon-profile-link-grid a span { color:#8fa3cf; font-size:11px; }
 .localized-pokemon-page .pokemon-translation-note { padding:10px 12px; border:1px solid rgba(255,210,63,.45); border-radius:10px; color:#ffeaa0; background:rgba(255,210,63,.08); }
+.localized-pokemon-directory { display:grid; gap:18px; margin-bottom:32px; }
+.localized-pokemon-directory>header { display:flex; align-items:flex-start; justify-content:space-between; gap:20px; }
+.localized-pokemon-directory>header h2 { margin:0 0 7px; }
+.localized-pokemon-directory>header p { max-width:760px; margin:0; color:#b9c2e8; line-height:1.5; }
+.localized-pokemon-directory>header>strong { flex:0 0 auto; color:#4fd1c5; }
+.localized-pokemon-directory-filters { display:grid; grid-template-columns:minmax(240px,1.6fr) repeat(4,minmax(125px,.8fr)); gap:10px; }
+.localized-pokemon-directory-filters label { display:grid; min-width:0; gap:7px; color:#dce3ff; font-size:13px; font-weight:700; }
+.localized-pokemon-directory-filters input,.localized-pokemon-directory-filters select { width:100%; min-width:0; padding:11px; border:1px solid #46517c; border-radius:8px; color:#fff; background:#080c1c; }
+.localized-pokemon-directory-filters select { color-scheme:dark; }
+.localized-pokemon-directory-filters option { color:#f4f6ff; background:#0a1021; }
+.localized-pokemon-clear { width:max-content; margin:0; }
+.localized-pokemon-results { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; }
+.localized-pokemon-results a { display:grid; min-width:0; gap:4px; padding:11px 12px; border:1px solid #30395f; border-radius:9px; color:#dce4ff; text-decoration:none; background:#181f3a; }
+.localized-pokemon-results a:hover,.localized-pokemon-results a:focus-visible { border-color:#ffd54f; color:#fff; }
+.localized-pokemon-results span { color:#8fa3cf; font-size:11px; }
+.localized-pokemon-results strong { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.localized-pokemon-results small { overflow:hidden; color:#aeb7dc; font-size:11px; text-overflow:ellipsis; white-space:nowrap; }
+.localized-pokemon-more { justify-self:center; }
+.localized-pokemon-empty { margin:4px 0; }
+.localized-pokemon-index-heading { margin:0 0 14px; }
+.localized-pokemon-index-heading h2 { margin:0 0 6px; }
+.localized-pokemon-index-heading p { margin:0; color:#b9c2e8; }
+.localized-pokemon-page .pokemon-tags span small,.localized-pokemon-entry-history strong small { display:block; margin-top:3px; color:#ffe08a; font-size:9px; font-weight:800; }
+.localized-pokemon-entry-history { margin-top:20px; }
+.localized-pokemon-moves { display:grid; gap:15px; margin-top:20px; }
+.localized-pokemon-moves>header { display:flex; align-items:flex-start; justify-content:space-between; gap:20px; }
+.localized-pokemon-moves>header h2 { margin:0 0 7px; }
+.localized-pokemon-moves>header p { max-width:760px; margin:0; color:#b9c2e8; line-height:1.5; }
+.localized-pokemon-moves>header>strong { flex:0 0 auto; color:#4fd1c5; }
+.localized-pokemon-moves>label { display:grid; max-width:520px; gap:7px; color:#dce3ff; font-size:13px; font-weight:700; }
+.localized-pokemon-moves>label input { width:100%; padding:11px; border:1px solid #46517c; border-radius:8px; color:#fff; background:#080c1c; }
+.localized-pokemon-move-tags { max-height:none !important; overflow:visible !important; }
+.localized-pokemon-move-tags span { text-transform:none; }
+
+@media(max-width:1050px) {
+  .localized-pokemon-directory-filters { grid-template-columns:repeat(3,minmax(0,1fr)); }
+  .localized-pokemon-directory-search { grid-column:span 2; }
+  .localized-pokemon-results { grid-template-columns:repeat(3,minmax(0,1fr)); }
+}
 
 @media(max-width:760px) {
   .site-language-switch { align-items:flex-start; flex-direction:column; }
@@ -2500,4 +2539,13 @@ button.mega-bracket-slot:hover,button.mega-bracket-slot:focus-visible { color: #
   .localized-pokemon-page .pokemon-seo-profile .pokemon-title { align-items:flex-start; flex-direction:column; }
   .localized-pokemon-page .pokemon-seo-profile .pokemon-title img { align-self:center; width:min(220px,100%); }
   .localized-pokemon-page .pokemon-seo-profile .pokemon-title>div { min-width:0; }
+  .localized-pokemon-directory>header,.localized-pokemon-moves>header { flex-direction:column; gap:8px; }
+  .localized-pokemon-directory-filters { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .localized-pokemon-directory-search { grid-column:1/-1; }
+  .localized-pokemon-results { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+
+@media(max-width:480px) {
+  .localized-pokemon-directory-filters,.localized-pokemon-results { grid-template-columns:1fr; }
+  .localized-pokemon-directory-search { grid-column:auto; }
 }

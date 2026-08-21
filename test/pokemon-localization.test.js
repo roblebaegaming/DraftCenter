@@ -6,7 +6,11 @@ import {
   POKEMON_LOCALIZATION_COVERAGE,
   localizedPokeApiName,
   localizedPokemonProfileName,
+  localizedPokemonResource,
+  localizedPokemonResourceName,
+  localizedPokemonResourceOptions,
   localizedPokemonSpecies,
+  pokemonDirectoryCopy,
   pokemonIndexMetadata,
   pokemonCopy,
   pokemonProfileAlternates,
@@ -117,6 +121,31 @@ test("core Pokédex resource names use the selected PokéAPI language", () => {
   assert.equal(localizedPokeApiName(resource, "fr"), "Feu");
   assert.equal(localizedPokeApiName(resource, "ja"), "ほのお");
   assert.equal(localizedPokeApiName(resource, "ko"), "Fire");
+  assert.equal(localizedPokemonResourceName("types", "fire", "fr"), "Feu");
+  assert.equal(localizedPokemonResourceName("abilities", "levitate", "es"), "Levitación");
+  assert.equal(localizedPokemonResourceName("moves", "thunderbolt", "de"), "Donnerblitz");
+  assert.equal(localizedPokemonResourceName("versions", "red", "ja"), "赤");
+  assert.equal(localizedPokemonResource("moves", "thunderbolt", "ko").source, "localized");
+  const battleTypes = ["bug", "dark", "dragon", "electric", "fairy", "fighting", "fire", "flying", "ghost", "grass", "ground", "ice", "normal", "poison", "psychic", "rock", "steel", "water"];
+  for (const { code } of POKEDEX_LANGUAGES) {
+    assert.equal(localizedPokemonResourceOptions("types", code, battleTypes).length, 18);
+  }
+});
+
+test("the localized directory keeps stable filters while presenting official names", () => {
+  const charizard = localizedPokemonSpecies("fr").find((entry) => entry.speciesSlug === "charizard");
+  assert.deepEqual(charizard.typeSlugs, ["fire", "flying"]);
+  assert.deepEqual(charizard.types, ["Feu", "Vol"]);
+  assert.deepEqual(charizard.abilitySlugs, ["blaze", "solar-power"]);
+  assert.deepEqual(charizard.abilities, ["Brasier", "Force Soleil"]);
+  assert.ok(charizard.aliases.includes("Charizard"));
+  assert.ok(charizard.aliases.includes("Dracaufeu"));
+
+  const directory = source("src/components/LocalizedPokemonDirectory.jsx");
+  assert.match(directory, /entry\[ALIASES\]/);
+  assert.match(directory, /entry\[TYPE_SLUGS\]/);
+  assert.match(directory, /entry\[ABILITY_SLUGS\]/);
+  assert.match(directory, /localizedPath\(locale, entry\[PROFILE_SLUG\]\)/);
 });
 
 test("localized Pokédex interface terms follow official Spanish and French vocabulary", () => {
@@ -130,6 +159,8 @@ test("localized Pokédex interface terms follow official Spanish and French voca
   assert.equal(french.stats("Dracaufeu"), "Stats de base de Dracaufeu");
   assert.equal(french.measurements("Dracaufeu"), "Taille et poids de Dracaufeu");
   assert.match(french.title("Dracaufeu"), /stats de base et talents/);
+  assert.equal(pokemonDirectoryCopy("fr").singular.pokemon, "1 Pokémon trouvé");
+  assert.equal(pokemonDirectoryCopy("fr").singular.moves, "1 capacité");
 });
 
 test("every first-wave language implements the complete Pokédex copy contract", () => {
@@ -167,6 +198,7 @@ test("the first localized Pokédex phase is discoverable and keeps English analy
   const directory = source("src/components/PokemonDirectory.jsx");
   const index = source("src/components/LocalizedPokemonIndexPage.jsx");
   const profile = source("src/components/LocalizedPokemonProfilePage.jsx");
+  const moves = source("src/components/LocalizedPokemonMoveList.jsx");
   const sitemap = source("src/app/sitemap.js");
   assert.match(englishIndex, /pokemonIndexMetadata\("en"\)/);
   assert.match(englishProfile, /pokemonProfileAlternates\(data\.pokemon\.name\)/);
@@ -174,12 +206,16 @@ test("the first localized Pokédex phase is discoverable and keeps English analy
   assert.match(directory, /<PokemonLanguageSwitch locale="en" label="Language"/);
   assert.match(index, /localizedPokemonSpecies/);
   assert.match(index, /PokemonLanguageSwitch/);
+  assert.match(index, /LocalizedPokemonDirectory/);
   assert.match(profile, /loadLocalizedPokemonPage/);
+  assert.match(profile, /LocalizedPokemonMoveList/);
+  assert.match(profile, /data\.entries/);
   assert.match(profile, /copy\.draftBody/);
   assert.match(profile, /href={`\/pokemon\/\$\{pokemon\.name\}`}/);
   assert.match(sitemap, /POKEDEX_LANGUAGES/);
   assert.match(sitemap, /pokemonProfilePath/);
   assert.match(sitemap, /localizedPokemonIndexRoutes/);
+  assert.match(moves, /english-fallback/);
 });
 
 test("language controls and localized content expose keyboard and assistive-language semantics", () => {
