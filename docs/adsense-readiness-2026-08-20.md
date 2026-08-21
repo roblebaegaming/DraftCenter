@@ -2,8 +2,11 @@
 
 - Date: August 20, 2026 Pacific
 - Scope: publisher display advertising through Google AdSense
-- Current state: preparation only; no ad serving, personalized advertising,
-  consent message, account review request, or Production configuration change
+- Current state: the AdSense account was reactivated and `draftcentral.gg` was
+  added on August 21; Google reports **Requires review** and `ads.txt` **Not
+  found** because the verification release is not deployed. There is no ad
+  serving, personalized advertising, consent message, account review request,
+  or Production configuration change.
 - Intended first inventory: selected original English guide articles only
 
 ## Decision boundary
@@ -67,15 +70,17 @@ configuration.
 
 ## Account connection sequence
 
-1. Add `draftcentral.gg` in AdSense.
-2. Copy only the public `ca-pub-...` account identifier.
+1. **Completed August 21:** Reactivate the inactive AdSense account.
+2. **Completed August 21:** Add `draftcentral.gg`, select Google's meta-tag
+   ownership method, and copy only the public `ca-pub-...` identifier.
 3. Add `GOOGLE_ADSENSE_ACCOUNT` to the intended Preview first and deploy the
    readiness branch.
 4. Confirm the verification meta tag and `/ads.txt` return the exact identifier
    without exposing any other account information.
 5. Review the Preview and protected checks before merge.
 6. Add the same identifier to Production only after the protected release is
-   approved, confirm the exact deployed commit, and request AdSense site review.
+   approved, confirm the exact deployed commit, verify ownership in AdSense,
+   and separately request AdSense site review after the remaining policy gates.
 
 No Auto ads setting should be enabled during connection or review.
 
