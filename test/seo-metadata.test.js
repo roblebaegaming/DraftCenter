@@ -14,7 +14,7 @@ test("page titles rely on the root template for the DraftCenter brand suffix", (
   const layout = source("src/app/layout.js");
   const home = source("src/app/page.js");
   assert.match(layout, /template: "%s \| DraftCenter"/);
-  assert.match(home, /absolute: "Run a Complete Pokémon Draft League \| DraftCenter"/);
+  assert.match(home, /absolute: "Pokémon Draft Leagues, Daily Brackets & Team Tools \| DraftCenter"/);
 
   for (const path of [
     "src/app/leagues/page.js",
@@ -30,18 +30,18 @@ test("the homepage search and sharing story matches the commissioner promise", (
   const home = source("src/app/page.js");
   const layout = source("src/app/layout.js");
   const socialImage = source("src/app/opengraph-image.js");
-  const authGate = source("src/components/AuthGate.jsx");
+  const publicHome = source("src/components/PublicHomePage.jsx");
 
-  assert.match(home, /one connected commissioner and manager workspace/);
+  assert.match(home, /free Daily Bracket, community data, and private team tools/);
   assert.match(home, /openGraph/);
   assert.match(home, /twitter/);
   assert.match(layout, /Pokémon Draft League Manager/);
   assert.match(layout, /connects setup, drafting, schedules, results, standings, playoffs, preparation, and season archives/);
   assert.match(socialImage, /POKÉMON DRAFT LEAGUE MANAGER/);
   assert.match(socialImage, /Run your whole league in one place/);
-  assert.match(authGate, /aria-label="Commissioner resources"/);
-  assert.match(authGate, /\/guides\/pokemon-draft-manager-vs-spreadsheets/);
-  assert.match(authGate, /\/guides\/pokemon-showdown-replay-results-draft-league/);
+  assert.match(publicHome, /<h1>Draft Together\. <span>Battle Together\.<\/span><\/h1>/);
+  assert.match(publicHome, /Set up your league, draft, set schedules, make trades, battle, and become Champion/);
+  assert.match(publicHome, /<HomepageDailyBracket \/>/);
 });
 
 test("resources targets competitive Pokémon resource searches", () => {
@@ -583,7 +583,7 @@ test("the guide collection explains real DraftCenter workflows in a human voice"
 });
 
 test("public templates expose useful server-rendered headings and related links", () => {
-  const authGate = source("src/components/AuthGate.jsx");
+  const publicHome = source("src/components/PublicHomePage.jsx");
   const directory = source("src/components/PokemonDirectory.jsx");
   const pokemonHome = source("src/app/pokemon/page.js");
   const typeHub = source("src/app/pokemon/types/page.js");
@@ -597,15 +597,13 @@ test("public templates expose useful server-rendered headings and related links"
   const profile = source("src/app/pokemon/[name]/page.js");
   const formatPage = source("src/app/formats/[slug]/page.js");
 
-  assert.match(authGate, /function PublicLoadingShell/);
-  assert.match(authGate, /function VisitorGuide/);
-  assert.match(authGate, /<h1>Run your whole Pokémon draft league in one place\.<\/h1>/);
-  assert.match(authGate, />Run a league</);
-  assert.match(authGate, />Join a league</);
-  assert.match(authGate, />Prepare for a match</);
-  assert.match(authGate, />Run a league guide</);
-  assert.match(authGate, />Move from a spreadsheet</);
-  assert.match(authGate, />Showdown replay results</);
+  assert.match(publicHome, /<h1>Draft Together\. <span>Battle Together\.<\/span><\/h1>/);
+  assert.match(publicHome, />Create a league</);
+  assert.match(publicHome, />Watch a league</);
+  assert.match(publicHome, /Pokédex Picks/);
+  assert.match(publicHome, /Community Draft Pulse/);
+  assert.match(publicHome, /Run a Snake or Auction Draft live/);
+  assert.match(publicHome, /Eight teams advance through four quarterfinals/);
   assert.match(directory, /fallback=.*<h1>Explore the Pokédex<\/h1>/);
   assert.match(pokemonHome, /urshifu-single-strike/);
   assert.doesNotMatch(pokemonHome, /"urshifu"/);

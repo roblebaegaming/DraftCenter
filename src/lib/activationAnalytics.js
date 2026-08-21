@@ -14,6 +14,10 @@ const EVENT_NAMES = Object.freeze({
   league_import_confirmed: "League Import Confirmed",
   showdown_result_confirmed: "Showdown Result Confirmed",
   season_completed: "Season Completed",
+  home_daily_bracket_started: "Home Daily Bracket Started",
+  home_daily_bracket_completed: "Home Daily Bracket Completed",
+  home_mega_bracket_opened: "Home Mega Bracket Opened",
+  home_mega_signin_prompt_viewed: "Home Mega Sign-in Prompt Viewed",
 });
 
 const ALLOWED_PROPERTIES = Object.freeze({
