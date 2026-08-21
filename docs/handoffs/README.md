@@ -1,7 +1,14 @@
 # Agent handoffs
 
+[`DraftCenter-agent-handoff-2026-08-21-priority-fixes-release-queue.md`](DraftCenter-agent-handoff-2026-08-21-priority-fixes-release-queue.md)
+is the current continuation handoff. It records the completed sequential
+release of the mobile/Battle Mode, multilingual Pokédex search, homepage
+conversion, and Worlds presentation changes; the Search Console sitemap
+refresh; and the remaining native-review, Mega-name, advertising, Operations,
+and superseded-pull-request decisions.
+
 [`DraftCenter-agent-handoff-2026-08-21-multilingual-pokedex-search.md`](DraftCenter-agent-handoff-2026-08-21-multilingual-pokedex-search.md)
-is the current multilingual application-candidate handoff. It records the
+is the released multilingual application handoff. It records the
 localized public search, type/generation/ability filters, profile move search,
 game-specific entries, explicit fallback behavior, preserved official Mega
 source supplement, validation evidence, and protected release gates.
