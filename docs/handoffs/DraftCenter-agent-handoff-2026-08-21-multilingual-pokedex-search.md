@@ -2,9 +2,10 @@
 
 Date: August 21, 2026 Pacific
 
-Status: application-only release candidate on
-`codex/multilingual-pokedex-search-20260821`. It is not deployed to
-Production and requires no database migration or Production-data change.
+Status: application-only release candidate in pull request
+[#377](https://github.com/roblebaegaming/DraftCenter/pull/377) on
+`codex/multilingual-pokedex-search-20260821`. It is not deployed to Production
+and requires no database migration or Production-data change.
 
 ## Candidate behavior
 

@@ -67,7 +67,8 @@ schema or Production data.
 
 ## Active application candidate
 
-An application-only multilingual candidate adds cross-language Pokémon search,
+Pull request [#377](https://github.com/roblebaegaming/DraftCenter/pull/377)
+is an application-only multilingual candidate that adds cross-language Pokémon search,
 localized type, generation, and ability filters, localized move-name search,
 and up to eight game-specific localized Pokédex entries. It preserves stable
 profile URLs, the released official Mega-name supplement, translation-beta
