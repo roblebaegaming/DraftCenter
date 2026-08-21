@@ -7,7 +7,7 @@ multilingual Mega bracket remains blocked. English fallbacks stay visible for
 every unresolved form, and no missing official name was inferred,
 transliterated, or machine-translated.
 
-## Verified coverage in this change
+## Verified Production coverage
 
 | Language | Official Mega profile names | Change | First-party source |
 | --- | ---: | ---: | --- |
@@ -69,7 +69,8 @@ the product catalog.
 
 ## Release boundary
 
-This source improvement may ship independently because unresolved forms keep
+This source improvement shipped independently through pull request #375 at
+exact Production application commit `a37d59c` because unresolved forms keep
 the existing explicit English-fallback disclosure. It does not authorize the
 multilingual Mega bracket. That bracket remains closed until every supported
 language has reviewed official display names and the bracket interface itself

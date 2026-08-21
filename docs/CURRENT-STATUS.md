@@ -1,12 +1,29 @@
 # DraftCenter current status
 
-- Last updated: August 20, 2026 Pacific
+- Last updated: August 21, 2026 Pacific
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified Production application behavior commit: `aa82ecc12d0eadd3dd75b34c9e8c95ce17d2fb50`
+- Verified Production application behavior commit: `a37d59cdc2e8acdc1d534433a35aa863f7a3789d`
 - Latest applied Production migration: 454 (`20260820180704`)
 
 ## Latest release
+
+Pull request [#375](https://github.com/roblebaegaming/DraftCenter/pull/375)
+is deployed at exact Production application commit `a37d59c`. It adds a
+checked first-party source layer for official Mega-form names without changing
+stable Pokémon profile identifiers. Official coverage is now Italian 93/97,
+Spanish 80/97, French 97/97, German 48/97, and Japanese 97/97; Korean remains
+0/97 because no reproducible complete first-party source was available. Every
+unresolved form still shows the existing explicit English-fallback notice, and
+the multilingual Mega bracket remains blocked.
+
+The release added no database migration, Production-data write, provider
+setting, invitation, tournament, campaign, billing, or spend change. The
+dependency audit, deterministic source rebuild, complete application suite,
+1,027-row National Dex check, 344-page build, protected checks, hosted 390 px
+review, exact-commit Vercel deployment, live localized-form and fallback
+checks, and complete 22-check Production smoke sweep passed. Migration 454
+remains the latest applied Production migration.
 
 Pull request [#371](https://github.com/roblebaegaming/DraftCenter/pull/371)
 is deployed at exact Production application commit `aa82ecc` with forward
@@ -745,6 +762,9 @@ not be resumed until the owner explicitly requests it.
 - Do not resume PokeEarth without a direct owner request.
 
 ## Authoritative records
+
+- Current official Mega localization source and continuation handoff:
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-21-official-mega-localization-sources.md`](handoffs/DraftCenter-agent-handoff-2026-08-21-official-mega-localization-sources.md)
 
 - Current multilingual Pokédex and French Worlds Production handoff:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-20-multilingual-pokedex-french-worlds.md`](handoffs/DraftCenter-agent-handoff-2026-08-20-multilingual-pokedex-french-worlds.md)
