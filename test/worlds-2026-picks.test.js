@@ -256,6 +256,7 @@ test("the Worlds page defers bracket predictions until official pairings exist",
 
 test("the Worlds overview separates competition and overall leaderboards", () => {
   const hub = source("src/components/WorldsPredictionsHub.jsx");
+  const predictionPage = source("src/components/WorldsPickSixteen.jsx");
   const nav = source("src/components/WorldsDisciplineNav.jsx");
   const overviewPage = source("src/app/worlds/2026/page.js");
   const vgcPage = source("src/app/worlds/2026/vgc/page.js");
@@ -296,6 +297,29 @@ test("the Worlds overview separates competition and overall leaderboards", () =>
   assert.match(hub, /href="\/worlds\/2026\/vgc#meta-picks"/);
   assert.match(hub, /href="\/worlds\/2026\/tcg#pick-ten"/);
   assert.match(hub, /href="\/worlds\/2026\/tcg#meta-picks"/);
+  for (const discipline of ["vgc", "tcg", "go"]) {
+    assert.ok(
+      hub.indexOf(`href="/worlds/2026/${discipline}#meta-picks"`) < hub.indexOf(`href="/worlds/2026/${discipline}#pick-ten"`),
+      `${discipline} should show its team or deck prediction before Pick 10`,
+    );
+  }
+  assert.match(hub, /useState\("vgc"\)/);
+  assert.doesNotMatch(hub, /useState\("overall"\)/);
+  assert.match(hub, /activeLeaderboard === "vgc" \? <div className="worlds-future-leaderboard"/);
+  assert.match(hub, /Loading VGC leaderboard…/);
+  assert.match(hub, /VGC leaderboard unavailable/);
+  assert.match(predictionPage, /<div className="worlds-hero-actions">\s*<a className="quiet-button" href="#meta-picks">[\s\S]+?<a className="primary-button inline-link-button" href=/);
+  assert.match(predictionPage, /<nav aria-label=\{copy\.guide\.title\}>\s*<a className="quiet-button" href="#meta-picks">[\s\S]+?<a className="primary-button inline-link-button" href="#qualified-players">/);
+  assert.match(predictionPage, /Predict the winning meta/);
+  for (const locale of ["it", "es", "fr", "de", "ja", "ko"]) {
+    const localized = worldsCopy(locale);
+    assert.ok(localized.hero.meta.length > 3, `${locale} needs a localized team-prediction action`);
+  }
+  for (const locale of ["en", "it", "es", "fr", "de", "ja", "ko"]) {
+    const localized = worldsCopy(locale);
+    assert.ok(localized.guide.pokemon.length > 3, `${locale} needs a localized Pokémon action`);
+    assert.ok(localized.guide.players.length > 3, `${locale} needs a localized player action`);
+  }
   assert.match(hub, /Two separate games live here: predict the Masters players/);
   assert.match(hub, /Not open yet/);
   assert.match(hub, /Live — provisional/);

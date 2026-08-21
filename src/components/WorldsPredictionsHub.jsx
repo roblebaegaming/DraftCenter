@@ -56,7 +56,7 @@ function CompetitionChoice({ href, label, detail, entryLabel }) {
 }
 
 export default function WorldsPredictionsHub() {
-  const [activeLeaderboard, setActiveLeaderboard] = useState("overall");
+  const [activeLeaderboard, setActiveLeaderboard] = useState("vgc");
   const [disciplineHubs, setDisciplineHubs] = useState({});
   const [metaHubs, setMetaHubs] = useState({});
   const [overall, setOverall] = useState(null);
@@ -148,8 +148,8 @@ export default function WorldsPredictionsHub() {
           <h3>VGC Masters</h3>
           <p>Two separate games live here: predict the Masters players, or build the World Champion&apos;s Pokémon team.</p>
           <div className="worlds-competition-choices">
-            <CompetitionChoice href="/worlds/2026/vgc#pick-ten" label="Player Pick 10" detail="Pick 10 Masters competitors and Your Champion" entryLabel={entryCountLabel(disciplineHubs.vgc, loading, "player entry", "player entries")} />
             <CompetitionChoice href="/worlds/2026/vgc#meta-picks" label="Pokémon Team Picks" detail="Rank six Pokémon for the Champion&apos;s team" entryLabel={entryCountLabel(metaHubs.vgc, loading, "team entry", "team entries")} />
+            <CompetitionChoice href="/worlds/2026/vgc#pick-ten" label="Player Pick 10" detail="Pick 10 Masters competitors and Your Champion" entryLabel={entryCountLabel(disciplineHubs.vgc, loading, "player entry", "player entries")} />
           </div>
         </article>
         <article className="worlds-competition-card is-live is-tcg">
@@ -158,8 +158,8 @@ export default function WorldsPredictionsHub() {
           <h3>TCG Masters</h3>
           <p>Two separate games live here: predict the Masters players, or choose the deck archetypes you expect to go deepest.</p>
           <div className="worlds-competition-choices">
-            <CompetitionChoice href="/worlds/2026/tcg#pick-ten" label="Player Pick 10" detail="Pick 10 Masters competitors and Your Champion" entryLabel={entryCountLabel(disciplineHubs.tcg, loading, "player entry", "player entries")} />
             <CompetitionChoice href="/worlds/2026/tcg#meta-picks" label="Deck Picks" detail="Choose five deck archetypes and a Champion Deck" entryLabel={entryCountLabel(metaHubs.tcg, loading, "deck entry", "deck entries")} />
+            <CompetitionChoice href="/worlds/2026/tcg#pick-ten" label="Player Pick 10" detail="Pick 10 Masters competitors and Your Champion" entryLabel={entryCountLabel(disciplineHubs.tcg, loading, "player entry", "player entries")} />
           </div>
         </article>
         <article className="worlds-competition-card is-live is-go">
@@ -168,8 +168,8 @@ export default function WorldsPredictionsHub() {
           <h3>Pokémon GO</h3>
           <p>The Trainer Pick 10 is open. A separate game for predicting the World Champion&apos;s Pokémon team is still being prepared.</p>
           <div className="worlds-competition-choices">
-            <CompetitionChoice href="/worlds/2026/go#pick-ten" label="Trainer Pick 10" detail="Pick 10 qualified Pokémon GO Trainers and choose Your Champion" entryLabel={entryCountLabel(disciplineHubs.go, loading, "Trainer entry", "Trainer entries")} />
             <CompetitionChoice href="/worlds/2026/go#meta-picks" label="Pokémon Team Picks" detail="Build the Champion&apos;s six-Pokémon team" entryLabel={entryCountLabel(metaHubs.go, loading, "team entry", "team entries")} />
+            <CompetitionChoice href="/worlds/2026/go#pick-ten" label="Trainer Pick 10" detail="Pick 10 qualified Pokémon GO Trainers and choose Your Champion" entryLabel={entryCountLabel(disciplineHubs.go, loading, "Trainer entry", "Trainer entries")} />
           </div>
         </article>
         <article className="worlds-competition-card is-building is-unite">
@@ -215,6 +215,10 @@ export default function WorldsPredictionsHub() {
         {loading ? <p className="worlds-empty-state">Loading the {activeConfig.gameLabel} community field…</p> : activeHub.standings?.length ? <ol>
           {activeHub.standings.map((entry, index) => <li key={`${entry.display_name}-${index}`}><span>#{entry.rank}</span><strong>{entry.display_name}</strong><b>{entry.score} pts</b></li>)}
         </ol> : <p className="worlds-empty-state">Be the first DraftCenter member to save a {activeConfig.gameLabel} Pick 10 entry.</p>}
+      </div> : activeLeaderboard === "vgc" ? <div className="worlds-future-leaderboard" role="tabpanel">
+        <span className="eyebrow">VGC MASTERS</span>
+        <h3>{loading ? "Loading VGC leaderboard…" : "VGC leaderboard unavailable"}</h3>
+        <p>{loading ? "Loading the saved VGC entries and reviewed result status." : "The VGC community standings could not be loaded. Please try again shortly."}</p>
       </div> : <div className="worlds-future-leaderboard" role="tabpanel">
         <span className="eyebrow">{futureLeaderboardStatus[activeLeaderboard]}</span>
         <h3>{futureLeaderboardCopy[activeLeaderboard][0]}</h3>
