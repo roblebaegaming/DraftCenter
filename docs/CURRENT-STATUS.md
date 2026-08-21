@@ -3,7 +3,7 @@
 - Last updated: August 21, 2026 Pacific
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified Production application behavior commit: `a37d59cdc2e8acdc1d534433a35aa863f7a3789d`
+- Verified Production application behavior commit: `8fb410a4fdfebe709b3cdbfa263ea2e0da0c3565`
 - Latest applied Production migration: 454 (`20260820180704`)
 
 ## Latest release
@@ -24,6 +24,35 @@ dependency audit, deterministic source rebuild, complete application suite,
 review, exact-commit Vercel deployment, live localized-form and fallback
 checks, and complete 22-check Production smoke sweep passed. Migration 454
 remains the latest applied Production migration.
+
+## August 21 priority release train
+
+Pull requests [#373](https://github.com/roblebaegaming/DraftCenter/pull/373),
+[#377](https://github.com/roblebaegaming/DraftCenter/pull/377),
+[#378](https://github.com/roblebaegaming/DraftCenter/pull/378), and
+[#379](https://github.com/roblebaegaming/DraftCenter/pull/379) are deployed
+sequentially at exact Production commits `42a2952`, `3788c37`, `a29cf75`, and
+`8fb410a`. They release the compact phone league page and exact Battle Mode
+opponent handoff, multilingual Pokédex search and resource filters, the
+redesigned homepage and guest Daily-to-Mega conversion path, and team-first
+Worlds choices with VGC standings selected by default.
+
+All four application candidates passed their applicable dependency audit,
+complete suite, 1,027-row National Dex verification, 344-page build, protected
+checks, hosted Preview review, exact-commit deployment check, and signed-out
+Production smoke sweep. The owner explicitly accepted completing the remaining
+signed-in phone impression in Production after returning. No database schema,
+Production data, provider setting, billing, or spend changed.
+
+Pull request [#380](https://github.com/roblebaegaming/DraftCenter/pull/380)
+records this release train, the successful August 21 Search Console sitemap
+resubmission, and the durable major-public-URL release rule. Search Console
+reports Submitted August 21, Last read August 20, Status Success, and 9,716
+discovered pages. Do not repeat the submission for ordinary UI changes.
+
+The exact release order, postflight gates, deferred #374/#364 decisions, and
+superseded #140 cleanup are in the
+[current detailed handoff](handoffs/DraftCenter-agent-handoff-2026-08-21-priority-fixes-release-queue.md).
 
 Pull request [#371](https://github.com/roblebaegaming/DraftCenter/pull/371)
 is deployed at exact Production application commit `aa82ecc` with forward
@@ -65,20 +94,19 @@ signed-out Production smoke sweep passed. The owner will perform the remaining
 signed-in phone impression after returning. The release changed no database
 schema or Production data.
 
-## Active application candidate
+## Multilingual search release
 
 Pull request [#377](https://github.com/roblebaegaming/DraftCenter/pull/377)
-is an application-only multilingual candidate that adds cross-language Pokémon search,
+is deployed at exact Production application commit `3788c37`. It adds cross-language Pokémon search,
 localized type, generation, and ability filters, localized move-name search,
 and up to eight game-specific localized Pokédex entries. It preserves stable
 profile URLs, the released official Mega-name supplement, translation-beta
 notices, correction links, and explicit English fallbacks. The deterministic
 catalog rebuild, dependency audit, complete suite, 1,027-row Dex check,
 344-page build, and compiled 390-pixel French and Japanese interaction review
-pass. Protected security checks and hosted French desktop plus French/Japanese
-390-pixel Preview review also pass at application commit `5ef4383`. The
-candidate changes no database schema or Production data and remains undeployed
-pending the merge and release decision.
+passed. Protected security checks, hosted French search and profile review,
+exact-commit deployment, and the complete signed-out Production smoke sweep
+also passed. The release changed no database schema or Production data.
 
 See the
 [multilingual Pokédex search handoff](handoffs/DraftCenter-agent-handoff-2026-08-21-multilingual-pokedex-search.md)
@@ -759,27 +787,17 @@ not be resumed until the owner explicitly requests it.
 
 ## Current continuation order
 
-1. Obtain outside commissioner approval, then stage four-pod invitations: one
-   controlled second account, one or two known managers across different pods,
-   and only then the approved wider group. Keep the organization private and
-   do not fabricate missing scores or historical draft picks.
-2. Confirm the `roblebae` owner sees the sixth Operations item in one real
-   signed-in phone session. Automated owner/non-owner coverage and the hosted
-   signed-out phone review already pass.
-3. Observe the owner's real 45-second Battle Room session and prioritize the
-   evidence from that session, including roster collapse/reopen behavior,
-   manual no-action turns, pivots, Auto-next, and tap density.
-4. If still desired, run a separate private Tournament Operator Auction Swiss
-   rehearsal without resetting or modifying the preserved completed showcase.
-5. The August 20 read-only Worlds audit passed: the feed and Top Cut systems
-   are healthy and fail closed. Provider permission, exact feed configuration,
-   a reviewed Preview import, and the official Top Cut field remain external
-   live-window gates. Keep GO Meta Picks closed until an official eligibility
-   pool is reviewed.
-6. Use the released four-field UTM standard before increasing advertising
-   spend. No ad account, billing, campaign launch, or spend change is
-   authorized by the standard itself.
-7. Keep PokeEarth paused until the owner directly requests resumption, and
+1. Merge #380 as the canonical documentation handoff with the exact deployed
+   commits recorded above.
+2. Continue native-language review and source the missing official Italian,
+   Spanish, German, and Korean Mega names without weakening fallback labels.
+3. Decide separately whether to proceed with behind-main #374 AdSense
+   verification and #364 Operations incident grouping; close superseded,
+   conflicting #140 after the replacement handoff is accepted.
+4. Continue approved
+   four-pod invitations, and Worlds live-window work only through their stated
+   owner/external gates.
+5. Keep PokeEarth paused until the owner directly requests resumption, and
    preserve all Mushroom Cup and intentionally paused Mushroom Hut boundaries.
 
 ## Active boundaries
@@ -796,8 +814,8 @@ not be resumed until the owner explicitly requests it.
 
 ## Authoritative records
 
-- Current application release candidate:
-  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-20-mobile-league-battle-preservation.md`](handoffs/DraftCenter-agent-handoff-2026-08-20-mobile-league-battle-preservation.md)
+- Current priority-fix and release-queue handoff:
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-21-priority-fixes-release-queue.md`](handoffs/DraftCenter-agent-handoff-2026-08-21-priority-fixes-release-queue.md)
 
 - Current official Mega localization source and continuation handoff:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-21-official-mega-localization-sources.md`](handoffs/DraftCenter-agent-handoff-2026-08-21-official-mega-localization-sources.md)
