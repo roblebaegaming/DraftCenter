@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import draftLabCatalog from "../data/draft-lab-catalog.json";
 import { loadPokemonArtwork } from "../lib/pokemonArtwork";
 import { createClient } from "../lib/supabase/client";
+import { trackActivationEvent } from "../lib/activationAnalytics";
 import {
   buildMegaBracketPool,
   buildMegaBracketRecap,
@@ -257,6 +258,8 @@ export default function MegaBracket() {
   const [milestone, setMilestone] = useState(null);
   const [exporting, setExporting] = useState(false);
   const [setup, setSetup] = useState(DEFAULT_SETUP);
+  const [dailyReferral, setDailyReferral] = useState(false);
+  const referralTrackedRef = useRef(false);
   const latestWinnersRef = useRef([]);
   const attemptRef = useRef(null);
   const viewingHistoryRef = useRef(false);
@@ -328,6 +331,15 @@ export default function MegaBracket() {
     });
     return () => { active = false; listener.subscription.unsubscribe(); };
   }, [loadHub, supabase]);
+
+  useEffect(() => {
+    setDailyReferral(new URLSearchParams(window.location.search).get("from") === "daily-bracket");
+  }, []);
+  useEffect(() => {
+    if (!dailyReferral || user !== null || referralTrackedRef.current) return;
+    referralTrackedRef.current = true;
+    trackActivationEvent("home_mega_signin_prompt_viewed", { properties: { source: "home" } });
+  }, [dailyReferral, user]);
 
   const persistProgress = useCallback(async (requestedWinners = null) => {
     const activeAttempt = attemptRef.current;
@@ -507,9 +519,9 @@ export default function MegaBracket() {
       <div className="mega-hero-stat"><strong>1,162</strong><span>Pokémon & forms available</span><b>Full fields or quick 64 · unlimited attempts</b></div>
     </header>
 
-    {user === undefined || loading ? <section className="mega-state-card"><span className="eyebrow">LOADING</span><h2>Preparing Mega Bracket…</h2></section> : !user ? <section className="mega-state-card mega-signin">
-      <div><span className="eyebrow">FREE REPLAYABLE CHALLENGE</span><h2>Make every choice—and resume anywhere.</h2><p>A DraftCenter account keeps each bracket private and synced across devices. Completed attempts remain saved, and there is no attempt limit during this launch period.</p></div>
-      <a className="primary-button inline-link-button" href="/#member-access">Sign in to begin</a>
+    {user === undefined || loading ? <section className="mega-state-card"><span className="eyebrow">LOADING</span><h2>Preparing Mega Bracket…</h2></section> : !user ? <section className={`mega-state-card mega-signin${dailyReferral ? " is-daily-referral" : ""}`}>
+      <div><span className="eyebrow">{dailyReferral ? "YOUR DAILY CHAMPION WAS JUST THE START" : "FREE REPLAYABLE CHALLENGE"}</span><h2>{dailyReferral ? "You finished today’s bracket. Ready for every Pokémon?" : "Make every choice—and resume anywhere."}</h2><p>{dailyReferral ? "The Mega Bracket lets you build a Full Dex, type, generation, or Mega Evolution field. A free account keeps this much bigger challenge private, saved, and ready on any device." : "A DraftCenter account keeps each bracket private and synced across devices. Completed attempts remain saved, and there is no attempt limit during this launch period."}</p></div>
+      <a className="primary-button inline-link-button" href={dailyReferral ? "/?return=%2Ftools%2Fmega-bracket%3Ffrom%3Ddaily-bracket#member-access" : "/#member-access"}>{dailyReferral ? "Create an account or sign in" : "Sign in to begin"}</a>
     </section> : !attempt ? <>
       <BracketSetup setup={setup} onChange={setSetup} poolSize={setupPool.length} entrantCount={setupEntrantCount} onStart={startAttempt} busy={loading} />
       <section className="mega-how"><article><strong>1</strong><h3>Make it yours</h3><p>Choose the field, pace, and whether the better or worse Pokémon should advance.</p></article><article><strong>2</strong><h3>Play the bracket</h3><p>Every draw freezes once it starts, saves privately, and can be resumed on another device.</p></article><article><strong>3</strong><h3>Share the result</h3><p>Large fields unlock the visual Top 64; every completed bracket earns a champion card.</p></article></section>
