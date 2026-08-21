@@ -73,11 +73,15 @@ configuration.
 1. **Completed August 21:** Reactivate the inactive AdSense account.
 2. **Completed August 21:** Add `draftcentral.gg`, select Google's meta-tag
    ownership method, and copy only the public `ca-pub-...` identifier.
-3. Add `GOOGLE_ADSENSE_ACCOUNT` to the intended Preview first and deploy the
-   readiness branch.
-4. Confirm the verification meta tag and `/ads.txt` return the exact identifier
-   without exposing any other account information.
-5. Review the Preview and protected checks before merge.
+3. **Completed August 21:** Add `GOOGLE_ADSENSE_ACCOUNT` to the branch-scoped
+   Vercel Preview environment and redeploy the readiness branch.
+4. **Completed August 21:** Confirm through Vercel's authenticated preview
+   request path that the ownership meta tag and `/ads.txt` return the exact
+   identifier without exposing any other account information. Confirm that the
+   homepage and a representative guide contain no AdSense script or ad unit.
+5. **Completed August 21:** Review the hosted Preview and confirm the protected
+   dependency, security, secret-scan, CodeQL, JavaScript-analysis, and Vercel
+   checks pass on pull request 374.
 6. Add the same identifier to Production only after the protected release is
    approved, confirm the exact deployed commit, verify ownership in AdSense,
    and separately request AdSense site review after the remaining policy gates.
