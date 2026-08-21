@@ -45,9 +45,9 @@ test("all 1,025 species have official names in every first-wave language", () =>
 
 test("Mega form-name gaps remain explicit before the multilingual bracket", () => {
   assert.equal(POKEMON_LOCALIZATION_COVERAGE.fr.mega_profiles_localized, 97);
-  assert.equal(POKEMON_LOCALIZATION_COVERAGE.de.mega_profiles_localized, 48);
-  assert.equal(POKEMON_LOCALIZATION_COVERAGE.it.mega_profiles_localized, 93);
-  assert.equal(POKEMON_LOCALIZATION_COVERAGE.es.mega_profiles_localized, 80);
+  assert.equal(POKEMON_LOCALIZATION_COVERAGE.de.mega_profiles_localized, 66);
+  assert.equal(POKEMON_LOCALIZATION_COVERAGE.it.mega_profiles_localized, 97);
+  assert.equal(POKEMON_LOCALIZATION_COVERAGE.es.mega_profiles_localized, 97);
   assert.equal(POKEMON_LOCALIZATION_COVERAGE.ja.mega_profiles_localized, 97);
   assert.equal(POKEMON_LOCALIZATION_COVERAGE.ko.mega_profiles_localized, 0);
   assert.deepEqual(localizedPokemonProfileName("charizard-mega-x", "fr"), {
@@ -75,8 +75,23 @@ test("Mega form-name gaps remain explicit before the multilingual bracket", () =
     source: "official-pokemon",
     species: "clefable",
   });
-  assert.equal(localizedPokemonProfileName("victreebel-mega", "es").source, "english-fallback");
-  assert.equal(localizedPokemonProfileName("eelektross-mega", "it").source, "english-fallback");
+  assert.deepEqual(localizedPokemonProfileName("victreebel-mega", "es"), {
+    name: "Mega-Victreebel",
+    source: "official-pokemon",
+    species: "victreebel",
+  });
+  assert.deepEqual(localizedPokemonProfileName("eelektross-mega", "it"), {
+    name: "MegaEelektross",
+    source: "official-pokemon",
+    species: "eelektross",
+  });
+  assert.deepEqual(localizedPokemonProfileName("dragonite-mega", "de"), {
+    name: "Mega-Dragoran",
+    source: "official-pokemon",
+    species: "dragonite",
+  });
+  assert.equal(localizedPokemonProfileName("clefable-mega", "de").source, "english-fallback");
+  assert.equal(localizedPokemonProfileName("charizard-mega-x", "ko").source, "english-fallback");
 });
 
 test("official Mega name overrides retain first-party source evidence", () => {
@@ -88,10 +103,12 @@ test("official Mega name overrides retain first-party source evidence", () => {
   assert.equal(catalog.sources["official-pokedex-ja"].homepage, "https://zukan.pokemon.co.jp/");
   assert.equal(catalog.sources["official-pokedex-es"].homepage, "https://www.pokemon.com/es/pokedex");
   assert.equal(catalog.sources["official-pokedex-it"].homepage, "https://www.pokemon.com/it/pokedex");
+  assert.equal(catalog.sources["official-legends-za-de"].url, "https://legends.pokemon.com/de-de/story-world/pokemon");
+  assert.equal(catalog.sources["official-legends-za-dlc-de"].url, "https://legends.pokemon.com/de-de/dlc");
   assert.equal(Object.values(catalog.profiles).filter((entry) => entry.ja).length, 97);
-  assert.equal(Object.values(catalog.profiles).filter((entry) => entry.it).length, 93);
-  assert.equal(Object.values(catalog.profiles).filter((entry) => entry.es).length, 80);
-  assert.equal(Object.values(catalog.profiles).filter((entry) => entry.de).length, 48);
+  assert.equal(Object.values(catalog.profiles).filter((entry) => entry.it).length, 97);
+  assert.equal(Object.values(catalog.profiles).filter((entry) => entry.es).length, 97);
+  assert.equal(Object.values(catalog.profiles).filter((entry) => entry.de).length, 66);
 });
 
 test("localized Pokédex routes publish reciprocal metadata without translating stable slugs", () => {
