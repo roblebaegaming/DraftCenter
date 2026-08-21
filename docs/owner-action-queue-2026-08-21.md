@@ -6,21 +6,15 @@ This is the smallest safe decision queue for work that cannot be completed by
 code or read-only verification alone. Nothing below records authorization by
 itself.
 
-## 1. Mobile league and Battle Mode release
+## 1. Outside commissioner approval
 
-Pull request #373 is open, mergeable, and green. Before merge, complete one
-signed-in hosted Preview check at 390 x 844:
-
-1. Open a real league with both official matchup rosters available.
-2. Confirm the league header collapses, the sticky context strip remains
-   usable, and upward/downward scrolling is easy on **My Team** and **League**.
-3. Open Team Lab for that matchup, select six Pokémon on each side, and open
-   Battle Mode.
-4. Confirm the Battle Room uses the selected own six and selected opponent six
-   instead of starting with an empty opponent.
-5. Refresh once and verify the saved battle still has both teams.
-6. Report only pass/fail and any visible issue; do not place private roster or
-   account details in the repository.
+Pull request #373 is released and the owner has shared the league link with
+the outside commissioner. Do not send invitations or change the real league
+until she responds. After approval, authorize only one step at a time:
+controlled second account, one or two known managers in different pods, and
+finally the approved wider group. The organization stays private. Do not
+recreate teams, replay the import, invent missing scores or picks, or treat the
+existing first-invite anecdote as broad approval.
 
 ## 2. Native translation review
 
@@ -30,13 +24,14 @@ Assigning or contacting reviewers is external outreach and still requires the
 chosen reviewer, destination, message, and reply path. Every language remains
 pending until a real fluent reviewer responds.
 
-## 3. Four-pod invitations
+## 3. AdSense verification
 
-Obtain the outside commissioner/owner's approval first. Then authorize only
-one step at a time: controlled second account, one or two known managers in
-different pods, and finally the approved wider group. The organization stays
-private. Do not recreate teams, replay the import, invent missing scores or
-picks, or treat the existing first-invite anecdote as broad approval.
+Pull request #374 is validated, fail-closed, and contains no ad scripts,
+placements, cookies, billing, or spend. Decide separately whether to release
+that inert code. Adding the public AdSense identifier to Production, verifying
+ownership, submitting the site for review, publishing consent, enabling ads,
+and spending money are separate actions that each require exact approval at
+the point of change.
 
 ## 4. Worlds live window
 

@@ -3,8 +3,8 @@
 - Date: August 21, 2026 Pacific
 - Production: <https://www.draftcentral.gg>
 - Production branch: `main`
-- Application release base: `8fb410a4fdfebe709b3cdbfa263ea2e0da0c3565`
-- Verified Production application behavior: `8fb410a4fdfebe709b3cdbfa263ea2e0da0c3565`
+- Application release base: `58d10e85809c679f8cc09e042f4005a81cb780e3`
+- Verified Production application behavior: `58d10e85809c679f8cc09e042f4005a81cb780e3`
 - Latest applied Production migration: 454 (`20260820180704`)
 
 ## Executive outcome
@@ -30,10 +30,15 @@ release changed the database schema, Production data, provider settings,
 billing, or spend.
 
 This outcome supersedes the unreleased-candidate wording retained below as
-pre-release evidence. The remaining order is native-language review and
-missing official Mega-name sourcing, a separate decision on AdSense pull
-request #374 and Operations pull request #364, and closing superseded pull
-request #140 after this handoff is accepted.
+pre-release evidence. Pull request #380 is merged and superseded #140 is
+closed. Operations pull request #364 released at exact Production commit
+`5f4cca87b8dcc6026a0bd3cf5b54528326770577`; it groups repeated incidents and
+separates the two verified fixed August 19–20 incidents from current failures.
+Pull request #381 released the official-name refresh at exact Production
+commit `58d10e85809c679f8cc09e042f4005a81cb780e3`, completing Italian and
+Spanish at 97/97 and raising German to 66/97. Korean remains 0/97 and German
+has 31 unresolved profiles. AdSense pull request #374 remains a separate,
+fail-closed owner decision.
 
 DraftCenter's seven-language Pokédex and French Worlds translation beta are
 live. The checked official Mega-name supplement is also live, but missing
@@ -42,12 +47,10 @@ bracket remains blocked. The original dirty checkout has not been edited,
 cleaned, reset, or pushed.
 
 The owner's two urgent reports—phone league pages consuming too much vertical
-space and Battle Mode dropping the selected opponent—have already been
-implemented in pull request
-[#373](https://github.com/roblebaegaming/DraftCenter/pull/373). That candidate
-is green and mergeable, but it is not in Production. Its final gate is one
-signed-in 390 × 844 hosted Preview walkthrough with both selected matchup
-rosters, followed by the normal protected release and post-deployment checks.
+space and Battle Mode dropping the selected opponent—were released through
+pull request [#373](https://github.com/roblebaegaming/DraftCenter/pull/373) at
+exact Production commit `42a2952`. The league has been shared with the outside
+commissioner; invitations and real-league changes now wait for her approval.
 
 Four additional August 21 candidates are open and green: multilingual Pokédex
 search, the public homepage and guest Daily-to-Mega funnel, Worlds prediction
@@ -206,21 +209,21 @@ record without exposing private account data, release the inert verification,
 and treat site-review submission, consent, ad activation, and placement as
 separate owner-authorized actions.
 
-### Operations incident grouping — #364
+### Operations incident grouping — #364 released
 
 Pull request [#364](https://github.com/roblebaegaming/DraftCenter/pull/364) is
-green but behind `main`. It groups repeated operational reports and separates
-verified historical incidents from unresolved failures. Before deciding to
-release it, re-check current authoritative timestamps and state; do not mark a
-recurring issue resolved merely because an older occurrence had a fix. Rebase
-and rerun current Operations coverage if the behavior is still wanted.
+released at exact Production commit `5f4cca8`. Read-only Production history
+confirmed the tournament-lock incident ended before PR #349's exact merge
+time and the empty-league initialization incident ended before PR #361's exact
+merge time, with no later recurrence. A later identical recurrence would still
+appear as a current failure. The release changed no database or Production
+data and passed the complete Production smoke sweep.
 
-### Superseded Worlds handoff — #140
+### Superseded Worlds handoff — #140 closed
 
 Pull request [#140](https://github.com/roblebaegaming/DraftCenter/pull/140) is
-conflicting and superseded by later released Worlds handoffs and this record.
-After #380 is accepted as the canonical continuation, close #140 without
-merging its historical status over current documentation.
+closed without merge. It was conflicting and superseded by later released
+Worlds handoffs and #380's canonical continuation.
 
 ## External and editorial work still required
 
@@ -228,8 +231,8 @@ merging its historical status over current documentation.
    and Korean remain pending until real fluent reviewers respond. Keep beta
    notices and correction links. The ready packet is
    [`docs/localization-fluent-speaker-review-2026-08-20.md`](../localization-fluent-speaker-review-2026-08-20.md).
-2. **Multilingual Mega bracket.** Official coverage still lacks four Italian,
-   17 Spanish, 49 German, and 97 Korean profile names. Do not infer prefixes or
+2. **Multilingual Mega bracket.** Official coverage still lacks 31 German and
+   97 Korean profile names. Do not infer prefixes or
    machine-translate them. Complete official-source coverage, localized
    interface copy, responsive/accessibility checks, and native review before
    claiming the bracket is multilingual.
@@ -254,20 +257,14 @@ The smallest owner-only decision queue remains in
 
 ## Recommended execution order
 
-1. Complete the signed-in hosted Preview gate for #373.
-2. Release #373 separately; confirm exact Production commit, run the complete
-   smoke sweep, and perform the read-only signed-in phone retest.
-3. Rebase and release #377 from the new `main`; preserve beta/fallback labels.
-4. Rebase and release #378; validate both guest conversion and signed-in League
-   Hub entry paths.
-5. Rebase and release #379; verify the real VGC leaderboard opens by default.
-6. Rebase and refresh #380 with the exact release outcomes, then merge it as
-   the canonical final documentation handoff.
-7. Decide explicitly whether to pursue #374 and #364; neither is part of the
-   urgent product-fix release train.
-8. Close superseded #140 after the replacement documentation is accepted.
-9. Continue native review, official Mega-name sourcing, four-pod approvals,
-   and Worlds live-window work only through their stated external gates.
+1. Wait for the outside commissioner response before any invitation or real-
+   league change.
+2. Continue native review and source the remaining 31 German and 97 Korean
+   official Mega names without weakening fallback disclosure.
+3. Decide explicitly whether to release #374's inert AdSense verification.
+   Treat Production verification settings, site review, consent, ads, billing,
+   and spend as separate owner-authorized actions.
+4. Continue Worlds live-window work only through its external gates.
 
 ## Validation and release boundaries
 
@@ -291,11 +288,10 @@ request.
 
 ## Definition of done
 
-The urgent report is complete only when #373 is deployed and a signed-in phone
-check proves both easier scrolling and exact opponent preservation through
-Battle Mode refresh. The August 21 public-product train is complete when
-#377–#379 are reconciled and deployed with their exact postflight checks, #380
-records the final commits, and no stale PR is misrepresented as current.
+The urgent application train is deployed: #373 and #377–#379 passed their
+postflight checks, #380 records the final commits, #140 is closed, and the
+outside commissioner now has the league link. Further invitation or real-
+league work waits for her response.
 
 The translation program is not “fully reviewed” until native reviewers approve
 it, and the Mega bracket is not multilingual until its missing official names

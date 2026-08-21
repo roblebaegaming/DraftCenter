@@ -12,10 +12,10 @@ transliterated, or machine-translated.
 | Language | Official Mega profile names | Change | First-party source |
 | --- | ---: | ---: | --- |
 | English | 97 / 97 | — | Pinned PokéAPI catalog |
-| Italian | 93 / 97 | +93 | Pokémon.com Italian Pokédex and Italian Mega Evolution index |
-| Spanish | 80 / 97 | +80 | Pokémon.com Spanish Pokédex and Spanish Mega Evolution index |
+| Italian | 97 / 97 | +4 | Pokémon.com Italian Pokédex and Italian Mega Evolution index |
+| Spanish | 97 / 97 | +17 | Pokémon.com Spanish Pokédex and Spanish Mega Evolution index |
 | French | 97 / 97 | — | Pinned PokéAPI catalog |
-| German | 48 / 97 | source evidence added | German Mega Evolution index |
+| German | 66 / 97 | +18 | German Mega Evolution index and official Legends: Z-A pages |
 | Japanese | 97 / 97 | +97 | Official Japanese Pokémon Pokédex |
 | Korean | 0 / 97 | — | No reproducible complete first-party source available from this environment |
 
@@ -29,49 +29,62 @@ Primary sources:
 - Italian Mega Evolution index: <https://mega.pokemon.com/it-it/>
 - Spanish Mega Evolution index: <https://mega.pokemon.com/es-es/>
 - German Mega Evolution index: <https://mega.pokemon.com/de-de/>
+- German Legends: Z-A Pokémon: <https://legends.pokemon.com/de-de/story-world/pokemon>
+- German Legends: Z-A Mega-Dimension: <https://legends.pokemon.com/de-de/dlc>
 - Italian Pokédex: <https://www.pokemon.com/it/pokedex>
 - Spanish Pokédex: <https://www.pokemon.com/es/pokedex>
 - Japanese Pokédex: <https://zukan.pokemon.co.jp/>
 
 ## Remaining exact gaps
 
-Italian has four unresolved profiles:
+Italian and Spanish have no remaining official-name gaps.
 
-- `eelektross-mega`
-- `hawlucha-mega`
-- `magearna-mega`
-- `magearna-original-mega`
+German has 31 unresolved profiles:
 
-Spanish has 17 unresolved profiles:
-
-- `victreebel-mega`
-- `dragonite-mega`
+- `clefable-mega`
+- `starmie-mega`
+- `skarmory-mega`
+- `froslass-mega`
 - `excadrill-mega`
 - `scolipede-mega`
-- `chesnaught-mega`
-- `delphox-mega`
-- `malamar-mega`
+- `scrafty-mega`
+- `chandelure-mega`
+- `pyroar-mega`
+- `floette-mega`
+- `barbaracle-mega`
+- `dragalge-mega`
 - `zygarde-mega`
-- `raichu-mega-x`
-- `raichu-mega-y`
+- `drampa-mega`
+- `falinks-mega`
+- `absol-mega-z`
 - `staraptor-mega`
-- `garchomp-mega-z`
+- `heatran-mega`
 - `darkrai-mega`
+- `golurk-mega`
 - `meowstic-male-mega`
 - `meowstic-female-mega`
-- `zeraora-mega`
-- `baxcalibur-mega`
+- `crabominable-mega`
+- `golisopod-mega`
+- `magearna-mega`
+- `magearna-original-mega`
+- `scovillain-mega`
+- `glimmora-mega`
+- `tatsugiri-curly-mega`
+- `tatsugiri-droopy-mega`
+- `tatsugiri-stretchy-mega`
 
-German is missing all 49 newer Mega profiles. Korean is missing all 97 Mega
-profiles. The Korean official Pokédex is indexed publicly, but its origin
-returned `410 Gone` during this audit, so search snippets were not promoted to
-the product catalog.
+Korean is missing all 97 Mega profiles. The official Korean Pokédex is
+indexed publicly and exposes exact form pages, but its origin returned
+`410 Gone` to the reproducible builder during this audit. Search snippets were
+therefore not promoted to the product catalog.
 
 ## Release boundary
 
-This source improvement shipped independently through pull request #375 at
-exact Production application commit `a37d59c` because unresolved forms keep
-the existing explicit English-fallback disclosure. It does not authorize the
-multilingual Mega bracket. That bracket remains closed until every supported
-language has reviewed official display names and the bracket interface itself
-passes native-language, responsive, identity-stability, and release checks.
+Pull request [#381](https://github.com/roblebaegaming/DraftCenter/pull/381)
+released this source refresh at exact Production application commit
+`58d10e85809c679f8cc09e042f4005a81cb780e3`, building on the original #375
+supplement. Unresolved German and Korean forms keep the existing explicit
+English-fallback disclosure. This release does not authorize the multilingual
+Mega bracket. That bracket remains closed until every supported language has
+reviewed official display names and the bracket interface itself passes
+native-language, responsive, identity-stability, and release checks.

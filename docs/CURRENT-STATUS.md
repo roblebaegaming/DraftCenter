@@ -3,27 +3,38 @@
 - Last updated: August 21, 2026 Pacific
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified Production application behavior commit: `8fb410a4fdfebe709b3cdbfa263ea2e0da0c3565`
+- Verified Production application behavior commit: `58d10e85809c679f8cc09e042f4005a81cb780e3`
 - Latest applied Production migration: 454 (`20260820180704`)
 
 ## Latest release
 
-Pull request [#375](https://github.com/roblebaegaming/DraftCenter/pull/375)
-is deployed at exact Production application commit `a37d59c`. It adds a
-checked first-party source layer for official Mega-form names without changing
-stable Pokémon profile identifiers. Official coverage is now Italian 93/97,
-Spanish 80/97, French 97/97, German 48/97, and Japanese 97/97; Korean remains
-0/97 because no reproducible complete first-party source was available. Every
-unresolved form still shows the existing explicit English-fallback notice, and
-the multilingual Mega bracket remains blocked.
+Pull request [#381](https://github.com/roblebaegaming/DraftCenter/pull/381)
+is deployed at exact Production application commit `58d10e8`. It completes
+checked official Mega-form names for Italian and Spanish and adds 18 German
+names from live first-party Legends: Z-A pages without changing stable Pokémon
+profile identifiers. Official coverage is now Italian 97/97, Spanish 97/97,
+French 97/97, German 66/97, and Japanese 97/97. Korean remains 0/97 because its
+official Pokédex origin still cannot be fetched reproducibly from the builder
+environment. Every unresolved German and Korean form keeps the explicit
+English-fallback notice, and the multilingual Mega bracket remains blocked.
 
 The release added no database migration, Production-data write, provider
 setting, invitation, tournament, campaign, billing, or spend change. The
 dependency audit, deterministic source rebuild, complete application suite,
-1,027-row National Dex check, 344-page build, protected checks, hosted 390 px
-review, exact-commit Vercel deployment, live localized-form and fallback
-checks, and complete 22-check Production smoke sweep passed. Migration 454
-remains the latest applied Production migration.
+1,027-row National Dex check, 344-page build, protected checks, hosted Italian,
+Spanish, and German profile review, exact-commit Vercel deployment, and
+complete 22-check Production smoke sweep passed. The hosted browser available
+for this refresh was 1265 px wide and could not emulate 390 px, so no new phone-
+width visual claim is recorded; the responsive UI did not change. Migration
+454 remains the latest applied Production migration.
+
+Pull request [#364](https://github.com/roblebaegaming/DraftCenter/pull/364) is
+also deployed at exact Production commit `5f4cca8`. Operations now groups
+repeated identical failures into incidents and moves the two known fixed
+August 19–20 failures into resolved history while preserving later recurrence
+as a current failure. Read-only Production history confirmed no recurrence
+after the exact fix merge times. No database or Production-data change was
+made, and the complete Production smoke sweep passed.
 
 ## August 21 priority release train
 
@@ -50,8 +61,8 @@ resubmission, and the durable major-public-URL release rule. Search Console
 reports Submitted August 21, Last read August 20, Status Success, and 9,716
 discovered pages. Do not repeat the submission for ordinary UI changes.
 
-The exact release order, postflight gates, deferred #374/#364 decisions, and
-superseded #140 cleanup are in the
+The exact release order, postflight gates, still-deferred #374 decision, and
+completed #364/#140 outcomes are in the
 [current detailed handoff](handoffs/DraftCenter-agent-handoff-2026-08-21-priority-fixes-release-queue.md).
 
 Pull request [#371](https://github.com/roblebaegaming/DraftCenter/pull/371)
@@ -787,16 +798,14 @@ not be resumed until the owner explicitly requests it.
 
 ## Current continuation order
 
-1. Merge #380 as the canonical documentation handoff with the exact deployed
-   commits recorded above.
-2. Continue native-language review and source the missing official Italian,
-   Spanish, German, and Korean Mega names without weakening fallback labels.
-3. Decide separately whether to proceed with behind-main #374 AdSense
-   verification and #364 Operations incident grouping; close superseded,
-   conflicting #140 after the replacement handoff is accepted.
-4. Continue approved
-   four-pod invitations, and Worlds live-window work only through their stated
-   owner/external gates.
+1. Wait for the outside commissioner decision before any four-pod invitation
+   or real-league change.
+2. Continue native-language review and source the remaining 31 German and 97
+   Korean official Mega names without weakening fallback labels.
+3. Decide separately whether to release #374's inert AdSense verification.
+   Production provider settings, site review, consent, ads, billing, and spend
+   still require their own exact owner authorization.
+4. Continue Worlds live-window work only through its stated external gates.
 5. Keep PokeEarth paused until the owner directly requests resumption, and
    preserve all Mushroom Cup and intentionally paused Mushroom Hut boundaries.
 

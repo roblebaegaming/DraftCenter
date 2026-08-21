@@ -49,16 +49,16 @@ never machine-translated automatically.
 The localization artifact is generated from PokéAPI commit
 `5064f1d72746b3a6a931616dae3fb6445c556d4f`. A 2026-08-21 first-party
 source audit supplements the pinned artifact without changing stable profile
-identifiers. Pull request #375 released the source update at exact Production
-application commit `a37d59c`; current coverage is:
+identifiers. Pull request #381 released the latest source update at exact
+Production application commit `58d10e8`; current coverage is:
 
 | Language | Species names | Mega profile names |
 | --- | ---: | ---: |
 | English | 1,025 / 1,025 | 97 / 97 |
-| Italian | 1,025 / 1,025 | 93 / 97 |
-| Spanish | 1,025 / 1,025 | 80 / 97 |
+| Italian | 1,025 / 1,025 | 97 / 97 |
+| Spanish | 1,025 / 1,025 | 97 / 97 |
 | French | 1,025 / 1,025 | 97 / 97 |
-| German | 1,025 / 1,025 | 48 / 97 |
+| German | 1,025 / 1,025 | 66 / 97 |
 | Japanese | 1,025 / 1,025 | 97 / 97 |
 | Korean | 1,025 / 1,025 | 0 / 97 |
 
@@ -100,8 +100,8 @@ translated.
 The type total includes special source types that are not offered as ordinary
 battle-type filters. All 18 ordinary battle types have selected-language
 labels in every supported language. The candidate preserves the released
-first-party Mega supplement and its Italian 93/97, Spanish 80/97, French
-97/97, German 48/97, Japanese 97/97, and Korean 0/97 coverage.
+first-party Mega supplement and its Italian 97/97, Spanish 97/97, French
+97/97, German 66/97, Japanese 97/97, and Korean 0/97 coverage.
 
 ## Recommended expansion order
 
