@@ -47,7 +47,8 @@ never machine-translated automatically.
 The localization artifact is generated from PokéAPI commit
 `5064f1d72746b3a6a931616dae3fb6445c556d4f`. A 2026-08-21 first-party
 source audit supplements the pinned artifact without changing stable profile
-identifiers. Coverage after the pending source update is:
+identifiers. Pull request #375 released the source update at exact Production
+application commit `a37d59c`; current coverage is:
 
 | Language | Species names | Mega profile names |
 | --- | ---: | ---: |
