@@ -1009,6 +1009,11 @@ test("Team Lab is indexable while account notes and matchups stay private", () =
   assert.match(component, /Save & start next match/);
   assert.match(component, /Start ladder match/);
   assert.match(component, /battle_report: blankReport/);
+  assert.match(component, /Save both teams & open Battle Mode/);
+  assert.match(component, /saveLeagueMatchupAndOpen/);
+  assert.match(component, /leagueMatchupContext && matchupForm \? <button[^>]+onClick=\{saveLeagueMatchupAndOpen\}/);
+  assert.match(component, /could not confirm the selected opponent team, so Battle Mode was not opened/);
+  assert.match(component, /JSON\.stringify\(confirmedOpponent\) !== JSON\.stringify\(normalizedMatchup\.pokemon\)/);
   assert.doesNotMatch(component, /firstOpponentPokemon[^\n]+opponentRoster\[0\]/);
   assert.match(reports, /TEAM PERFORMANCE/);
   assert.match(reports, /Individual battle reports/);

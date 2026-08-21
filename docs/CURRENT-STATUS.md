@@ -52,6 +52,24 @@ suite, 1,027-row National Dex check, 344-page build, refreshed hosted Preview,
 post-merge security checks, exact-commit Vercel deployment, live localized-page
 review, and complete 22-check signed-out Production smoke sweep all passed.
 
+## Active application candidate
+
+An application-only candidate compacts the signed-in league page on phones and
+prevents a scheduled Team Lab launch from silently dropping the selected
+opponent. The league-specific phone header scrolls away, wrapped controls use
+bounded single rows or one select, and Battle Mode opens only after the server
+returns the exact submitted opponent roster. The complete suite, 1,027-row Dex
+check, dependency audit, 344-page build, and local phone-shell review pass. It
+is not yet a Production release and changes no database or Production data.
+Pull request [#373](https://github.com/roblebaegaming/DraftCenter/pull/373)
+is open and all automated repository and hosted Preview checks pass. A
+signed-in 390-pixel Preview review of the exact two-team launch remains required
+before merge.
+
+See the
+[mobile league and Battle Mode preservation handoff](handoffs/DraftCenter-agent-handoff-2026-08-20-mobile-league-battle-preservation.md)
+for the protected release gates and remaining external approvals.
+
 Pull request [#369](https://github.com/roblebaegaming/DraftCenter/pull/369)
 is deployed at exact Production application commit `7f2236a`. The
 server-verified owner now has explicit Operations access in Tools, the owner
@@ -762,6 +780,9 @@ not be resumed until the owner explicitly requests it.
 - Do not resume PokeEarth without a direct owner request.
 
 ## Authoritative records
+
+- Current application release candidate:
+  [`docs/handoffs/DraftCenter-agent-handoff-2026-08-20-mobile-league-battle-preservation.md`](handoffs/DraftCenter-agent-handoff-2026-08-20-mobile-league-battle-preservation.md)
 
 - Current official Mega localization source and continuation handoff:
   [`docs/handoffs/DraftCenter-agent-handoff-2026-08-21-official-mega-localization-sources.md`](handoffs/DraftCenter-agent-handoff-2026-08-21-official-mega-localization-sources.md)

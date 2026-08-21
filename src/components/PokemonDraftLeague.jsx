@@ -9858,7 +9858,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
   const leagueImageUrl = safeHttpsImageSource(league?.image_url, "/draftcenter-logo.png");
 
   return (
-    <div style={{ background: "#10121C", minHeight: "100vh", color: "#EDEBFA", fontFamily: "'Manrope', sans-serif" }} className="w-full">
+    <div style={{ background: "#10121C", minHeight: "100vh", color: "#EDEBFA", fontFamily: "'Manrope', sans-serif" }} className="w-full league-page">
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Teko:wght@500;600;700&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
         html { background: #10121C; overflow-x: hidden; }
@@ -9874,14 +9874,14 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
         .turn-pulse { animation: turnPulse 1.4s ease-in-out infinite; }
       `}</style>
 
-      <div style={{ borderBottom: "1px solid rgba(255,255,255,0.08)", background: "#141729" }} className="sticky top-0 z-10">
+      <div style={{ borderBottom: "1px solid rgba(255,255,255,0.08)", background: "#141729" }} className="sticky top-0 z-10 league-context-header">
         {previewReadOnly && <div className="px-6 py-2 text-center text-xs font-semibold" style={{ background: displayIsSpectator ? "#315887" : "#17443f", color: "#e9f2ff" }}>{displayIsSpectator ? "SPECTATOR PREVIEW" : "MANAGER PREVIEW"} — display only; your commissioner permissions have not changed.</div>}
         {isSpectator && <div className="px-6 py-2 text-center text-xs font-semibold" style={{ background: "#315887", color: "#e9f2ff" }}>SPECTATOR ACCESS — Standings, predictions, draft board, and playoffs only. League activity, comments, and manager messages are private.</div>}
         {isPodManager && <div className="px-6 py-2 text-center text-xs font-semibold" style={{ background: "#17443f", color: "#e9fff9" }}>POD MANAGER ACCESS — You may follow activity, comment, and predict here. Team actions, transactions, and direct messages remain in your own pod.</div>}
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between flex-wrap gap-3">
-          <div className="flex items-center gap-3">
-            <img src={leagueImageUrl} alt="" style={{ width: 44, height: 44, objectFit: "cover", borderRadius: 10 }} />
-            <span className="display-font text-3xl font-semibold tracking-wide" style={{ color: "#FFD23F" }}>{league?.name || "DRAFTCENTER"}</span>
+        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between flex-wrap gap-3 league-context-main">
+          <div className="flex items-center gap-3 league-context-identity">
+            <img className="league-context-logo" src={leagueImageUrl} alt="" style={{ width: 44, height: 44, objectFit: "cover", borderRadius: 10 }} />
+            <span className="display-font text-3xl font-semibold tracking-wide league-context-name" style={{ color: "#FFD23F" }}>{league?.name || "DRAFTCENTER"}</span>
             {state.settings.publicLeague && (
               <span className="mono-font text-[10px] px-2 py-0.5 rounded font-semibold" style={{ background: "#4FD1C522", color: "#4FD1C5", border: "1px solid #4FD1C555" }}>
                 🌐 PUBLIC
@@ -9889,10 +9889,10 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
             )}
             <IdentityBadge synced={synced} myName={myName} isCommissioner={isCommissioner} renameMe={renameMe} />
           </div>
-          {leagueId && displayIsCommissioner && <button onClick={saveNow} disabled={saveStatus === "saving" || saveStatus === "verifying"} className="mono-font text-[10px] px-2 py-1 rounded font-semibold disabled:opacity-70" style={{ background: saveStatus === "error" ? "#F0555A22" : "#4FD1C522", color: saveStatus === "error" ? "#F0555A" : "#4FD1C5", border: "1px solid currentColor" }}>
+          {leagueId && displayIsCommissioner && <button onClick={saveNow} disabled={saveStatus === "saving" || saveStatus === "verifying"} className="mono-font text-[10px] px-2 py-1 rounded font-semibold disabled:opacity-70 league-context-save" style={{ background: saveStatus === "error" ? "#F0555A22" : "#4FD1C522", color: saveStatus === "error" ? "#F0555A" : "#4FD1C5", border: "1px solid currentColor" }}>
             {saveStatus === "saving" ? "SAVING..." : saveStatus === "verifying" ? "VERIFYING SAVE..." : saveStatus === "error" ? "SAVE FAILED — RETRY" : "SAVED"}
           </button>}
-          <nav className="flex flex-wrap gap-1 justify-end">
+          <nav className="flex flex-wrap gap-1 justify-end league-context-tabs" aria-label="League sections">
             {(isDraftTournamentMode ? [
               ...(displayIsCommissioner ? [["setup", "Setup"]] : []),
               ["draft", state.locked ? "Draft" : "Draft Room"],
@@ -9964,7 +9964,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
           </nav>
         </div>
         {podNavigation && (
-          <div className="max-w-6xl mx-auto px-6 pb-3 flex items-center gap-2 flex-wrap" aria-label={`${podNavigation.season?.name || "Organization season"} pods`}>
+          <div className="max-w-6xl mx-auto px-6 pb-3 flex items-center gap-2 flex-wrap league-context-pods" aria-label={`${podNavigation.season?.name || "Organization season"} pods`}>
             <span className="mono-font text-[10px] mr-1" style={{ color: "#9A9FBD" }}>{podNavigation.organization?.name} · {podNavigation.season?.name} · PODS</span>
             {podNavigation.pods.map((pod) => (
               <a
@@ -9985,15 +9985,18 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
           </div>
         )}
         {isCommissioner && leagueId && !isDraftTournamentMode && (
-          <div className="max-w-6xl mx-auto px-6 pb-3 flex items-center justify-end gap-2 flex-wrap">
+          <div className="max-w-6xl mx-auto px-6 pb-3 flex items-center justify-end gap-2 flex-wrap league-role-preview">
             <span className="mono-font text-[10px]" style={{ color: "#9A9FBD" }}>VIEW AS</span>
-            {[["commissioner", "Commissioner"], ["manager", "Manager"], ["spectator", "Spectator"]].map(([role, label]) => (
+            <select className="league-role-preview-select" aria-label="Preview league as" value={rolePreview} onChange={(event) => { setRolePreview(event.target.value); setTab("home"); }}>
+              {[["commissioner", "Commissioner"], ["manager", "Manager"], ["spectator", "Spectator"]].map(([role, label]) => <option key={role} value={role}>View as {label}</option>)}
+            </select>
+            <div className="league-role-preview-buttons">{[["commissioner", "Commissioner"], ["manager", "Manager"], ["spectator", "Spectator"]].map(([role, label]) => (
               <button key={role} type="button" onClick={() => { setRolePreview(role); setTab("home"); }}
                 className="mono-font text-[10px] px-3 py-1.5 rounded"
                 style={{ background: rolePreview === role ? "#FFD23F" : "#1F2338", color: rolePreview === role ? "#10121C" : "#C9CBE0", border: "1px solid rgba(255,255,255,0.1)" }}>
                 {label}
               </button>
-            ))}
+            ))}</div>
           </div>
         )}
         {isMyTurn && !(tab === "draft" || (tab === "league" && leagueSubTab === "draft")) && (
@@ -10018,7 +10021,7 @@ export default function PokemonDraftLeague({ leagueId = null, leagueRole = null,
         )}
       </div>
 
-      <div className="max-w-6xl mx-auto px-6 py-8">
+      <div className="max-w-6xl mx-auto px-6 py-8 league-context-content">
         {liveDraftError && <div className="mb-4 rounded p-3 text-sm" style={{ background: "#2A1620", color: "#FFD6D6", border: "1px solid #F0555A66" }}>{liveDraftError}</div>}
         {tab === "home" && !isDraftTournamentMode && !displayIsLimitedObserver && (
           <HomeView state={state} leagueId={leagueId} leagueName={league?.name} isCommissioner={displayIsCommissioner} isSpectator={displayIsSpectator} myTeamIdx={myTeamIdx} standings={standings}
@@ -10268,14 +10271,14 @@ function IdentityBadge({ synced, myName, isCommissioner, renameMe }) {
         autoFocus defaultValue={myName}
         onBlur={(e) => { renameMe(e.target.value); setEditing(false); }}
         onKeyDown={(e) => { if (e.key === "Enter") e.target.blur(); if (e.key === "Escape") setEditing(false); }}
-        className="mono-font text-[11px] px-2 py-1 rounded"
+        className="mono-font text-[11px] px-2 py-1 rounded league-context-user-edit"
         style={{ background: "#1F2338", border: "1px solid #FFD23F", color: "#EDEBFA" }}
       />
     );
   }
   return (
-    <span className="mono-font text-[11px] flex items-center gap-1" style={{ color: "#9A9FBD" }}>
-      {synced ? "SYNCED" : "SYNCING…"} · {myName}{isCommissioner ? " (COMMISSIONER)" : ""}
+    <span className="mono-font text-[11px] flex items-center gap-1 league-context-user" style={{ color: "#9A9FBD" }}>
+      <span className="league-context-sync">{synced ? "SYNCED" : "SYNCING…"} · </span><span>{myName}</span>{isCommissioner ? <span className="league-context-user-role"> (COMMISSIONER)</span> : null}
       <button onClick={() => setEditing(true)} title="Fix a typo in your name" style={{ color: "#5B5F7E" }}>✎</button>
     </span>
   );

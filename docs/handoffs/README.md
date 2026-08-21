@@ -1,11 +1,16 @@
 # Agent handoffs
 
+[`DraftCenter-agent-handoff-2026-08-20-mobile-league-battle-preservation.md`](DraftCenter-agent-handoff-2026-08-20-mobile-league-battle-preservation.md)
+is the current application release-candidate handoff. It records the compact
+phone league header, exact selected-opponent preservation before Battle Mode,
+owner-supplied phone evidence, complete local validation, protected release
+gates, and the outside approvals and source data that remain blocked.
+
 [`DraftCenter-agent-handoff-2026-08-20-multilingual-pokedex-french-worlds.md`](DraftCenter-agent-handoff-2026-08-20-multilingual-pokedex-french-worlds.md)
-is the current multilingual release-candidate handoff. It records the
-seven-language public Pokédex, French Worlds completion, pending forward
-migration 454 and its isolated regression, local release evidence, preserved
-Production boundary, and the fluent-speaker, Preview, and protected-release
-gates that remain before merge.
+is the current multilingual Production handoff. It records the released
+seven-language public Pokédex, French Worlds completion, applied migration 454,
+Production verification, pending fluent-speaker reviews, and the blocked
+multilingual Mega bracket.
 
 [`DraftCenter-agent-handoff-2026-08-19-participant-retirement.md`](DraftCenter-agent-handoff-2026-08-19-participant-retirement.md)
 is the current development handoff. It records the unreleased midseason league

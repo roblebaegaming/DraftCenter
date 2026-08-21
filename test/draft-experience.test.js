@@ -179,3 +179,16 @@ test("the global navigation keeps DraftCenter Home clear and accessible at the t
   assert.match(styles, /\.site-draft-home:focus-visible\s*\{/);
   assert.match(styles, /@media \(max-width:760px\)\s*\{[\s\S]*?\.draft-home-label-wide\s*\{\s*display:\s*none;\s*\}[\s\S]*?\.draft-home-label-compact\s*\{\s*display:\s*inline;\s*\}/);
 });
+
+test("the league page gives phone screens compact controls that scroll away", () => {
+  const styles = fs.readFileSync(new URL("../src/app/globals.css", import.meta.url), "utf8");
+
+  assert.match(draftLeagueSource, /className="sticky top-0 z-10 league-context-header"/);
+  assert.match(draftLeagueSource, /className="flex flex-wrap gap-1 justify-end league-context-tabs" aria-label="League sections"/);
+  assert.match(draftLeagueSource, /className="league-role-preview-select" aria-label="Preview league as"/);
+  assert.match(styles, /\.league-context-header\s*\{\s*position:relative!important;\s*top:auto!important;/);
+  assert.match(styles, /\.league-context-tabs\s*\{[\s\S]*?flex-wrap:nowrap!important;[\s\S]*?overflow-x:auto;/);
+  assert.match(styles, /\.league-context-pods\s*\{[\s\S]*?flex-wrap:nowrap!important;[\s\S]*?overflow-x:auto;/);
+  assert.match(styles, /\.league-role-preview-buttons\s*\{\s*display:none;\s*\}/);
+  assert.match(styles, /\.league-context-content\s*\{\s*padding:14px 12px 22px!important;\s*\}/);
+});
