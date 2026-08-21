@@ -40,6 +40,16 @@
       "url": "https://www.pokemon.com/it/pokedex",
       "homepage": "https://www.pokemon.com/it/pokedex",
       "label": "Pokédex Pokémon"
+    },
+    "official-legends-za-de": {
+      "language": "de",
+      "url": "https://legends.pokemon.com/de-de/story-world/pokemon",
+      "label": "Pokémon-Legenden: Z-A — Pokémon"
+    },
+    "official-legends-za-dlc-de": {
+      "language": "de",
+      "url": "https://legends.pokemon.com/de-de/dlc",
+      "label": "Pokémon-Legenden: Z-A – Mega-Dimension"
     }
   },
   "profiles": {
@@ -1126,6 +1136,16 @@
         "name": "MegaVictreebel",
         "source": "official-pokedex-it",
         "record": "https://www.pokemon.com/it/pokedex/victreebel"
+      },
+      "es": {
+        "name": "Mega-Victreebel",
+        "source": "official-pokedex-es",
+        "record": "https://www.pokemon.com/es/pokedex/victreebel"
+      },
+      "de": {
+        "name": "Mega-Sarzenia",
+        "source": "official-legends-za-de",
+        "record": "https://legends.pokemon.com/de-de/story-world/pokemon/mega-victreebel"
       }
     },
     "starmie-mega": {
@@ -1155,6 +1175,16 @@
         "name": "MegaDragonite",
         "source": "official-pokedex-it",
         "record": "https://www.pokemon.com/it/pokedex/dragonite"
+      },
+      "es": {
+        "name": "Mega-Dragonite",
+        "source": "official-pokedex-es",
+        "record": "https://www.pokemon.com/es/pokedex/dragonite"
+      },
+      "de": {
+        "name": "Mega-Dragoran",
+        "source": "official-legends-za-de",
+        "record": "https://legends.pokemon.com/de-de/story-world/pokemon/mega-dragonite"
       }
     },
     "meganium-mega": {
@@ -1172,6 +1202,11 @@
         "name": "Mega-Meganium",
         "source": "official-pokedex-es",
         "record": "https://www.pokemon.com/es/pokedex/meganium"
+      },
+      "de": {
+        "name": "Mega-Meganie",
+        "source": "official-legends-za-de",
+        "record": "https://legends.pokemon.com/de-de/story-world/pokemon/mega-meganium"
       }
     },
     "feraligatr-mega": {
@@ -1189,6 +1224,11 @@
         "name": "Mega-Feraligatr",
         "source": "official-pokedex-es",
         "record": "https://www.pokemon.com/es/pokedex/feraligatr"
+      },
+      "de": {
+        "name": "Mega-Impergator",
+        "source": "official-legends-za-de",
+        "record": "https://legends.pokemon.com/de-de/story-world/pokemon/mega-feraligatr"
       }
     },
     "skarmory-mega": {
@@ -1240,6 +1280,11 @@
         "name": "Mega-Emboar",
         "source": "official-pokedex-es",
         "record": "https://www.pokemon.com/es/pokedex/emboar"
+      },
+      "de": {
+        "name": "Mega-Flambirex",
+        "source": "official-legends-za-de",
+        "record": "https://legends.pokemon.com/de-de/story-world/pokemon/mega-emboar"
       }
     },
     "excadrill-mega": {
@@ -1252,6 +1297,11 @@
         "name": "MegaExcadrill",
         "source": "official-pokedex-it",
         "record": "https://www.pokemon.com/it/pokedex/excadrill"
+      },
+      "es": {
+        "name": "Mega-Excadrill",
+        "source": "official-pokedex-es",
+        "record": "https://www.pokemon.com/es/pokedex/excadrill"
       }
     },
     "scolipede-mega": {
@@ -1264,6 +1314,11 @@
         "name": "MegaScolipede",
         "source": "official-pokedex-it",
         "record": "https://www.pokemon.com/it/pokedex/scolipede"
+      },
+      "es": {
+        "name": "Mega-Scolipede",
+        "source": "official-pokedex-es",
+        "record": "https://www.pokemon.com/es/pokedex/scolipede"
       }
     },
     "scrafty-mega": {
@@ -1289,10 +1344,20 @@
         "source": "official-pokedex-ja",
         "record": "0604-1"
       },
+      "it": {
+        "name": "MegaEelektross",
+        "source": "official-pokedex-it",
+        "record": "https://www.pokemon.com/it/pokedex/eelektross"
+      },
       "es": {
         "name": "Mega-Eelektross",
         "source": "official-pokedex-es",
         "record": "https://www.pokemon.com/es/pokedex/eelektross"
+      },
+      "de": {
+        "name": "Mega-Zapplarang",
+        "source": "official-legends-za-de",
+        "record": "https://legends.pokemon.com/de-de/story-world/pokemon/mega-eelektross"
       }
     },
     "chandelure-mega": {
@@ -1322,6 +1387,16 @@
         "name": "MegaChesnaught",
         "source": "official-pokedex-it",
         "record": "https://www.pokemon.com/it/pokedex/chesnaught"
+      },
+      "es": {
+        "name": "Mega-Chesnaught",
+        "source": "official-pokedex-es",
+        "record": "https://www.pokemon.com/es/pokedex/chesnaught"
+      },
+      "de": {
+        "name": "Mega-Brigaron",
+        "source": "official-legends-za-de",
+        "record": "https://legends.pokemon.com/de-de/story-world/pokemon/mega-chesnaught"
       }
     },
     "delphox-mega": {
@@ -1334,6 +1409,16 @@
         "name": "MegaDelphox",
         "source": "official-pokedex-it",
         "record": "https://www.pokemon.com/it/pokedex/delphox"
+      },
+      "es": {
+        "name": "Mega-Delphox",
+        "source": "official-pokedex-es",
+        "record": "https://www.pokemon.com/es/pokedex/delphox"
+      },
+      "de": {
+        "name": "Mega-Fennexis",
+        "source": "official-legends-za-de",
+        "record": "https://legends.pokemon.com/de-de/story-world/pokemon/mega-delphox"
       }
     },
     "greninja-mega": {
@@ -1351,6 +1436,11 @@
         "name": "Mega-Greninja",
         "source": "official-pokedex-es",
         "record": "https://www.pokemon.com/es/pokedex/greninja"
+      },
+      "de": {
+        "name": "Mega-Quajutsu",
+        "source": "official-legends-za-de",
+        "record": "https://legends.pokemon.com/de-de/story-world/pokemon/mega-greninja"
       }
     },
     "pyroar-mega": {
@@ -1397,6 +1487,16 @@
         "name": "MegaMalamar",
         "source": "official-pokedex-it",
         "record": "https://www.pokemon.com/it/pokedex/malamar"
+      },
+      "es": {
+        "name": "Mega-Malamar",
+        "source": "official-pokedex-es",
+        "record": "https://www.pokemon.com/es/pokedex/malamar"
+      },
+      "de": {
+        "name": "Mega-Calamanero",
+        "source": "official-legends-za-de",
+        "record": "https://legends.pokemon.com/de-de/story-world/pokemon/mega-malamar"
       }
     },
     "barbaracle-mega": {
@@ -1439,10 +1539,20 @@
         "source": "official-pokedex-ja",
         "record": "0701-1"
       },
+      "it": {
+        "name": "MegaHawlucha",
+        "source": "official-pokedex-it",
+        "record": "https://www.pokemon.com/it/pokedex/hawlucha"
+      },
       "es": {
         "name": "Mega-Hawlucha",
         "source": "official-pokedex-es",
         "record": "https://www.pokemon.com/es/pokedex/hawlucha"
+      },
+      "de": {
+        "name": "Mega-Resladero",
+        "source": "official-legends-za-de",
+        "record": "https://legends.pokemon.com/de-de/story-world/pokemon/mega-hawlucha"
       }
     },
     "zygarde-mega": {
@@ -1455,6 +1565,11 @@
         "name": "MegaZygarde",
         "source": "official-pokedex-it",
         "record": "https://www.pokemon.com/it/pokedex/zygarde"
+      },
+      "es": {
+        "name": "Mega-Zygarde",
+        "source": "official-pokedex-es",
+        "record": "https://www.pokemon.com/es/pokedex/zygarde"
       }
     },
     "drampa-mega": {
@@ -1501,6 +1616,16 @@
         "name": "MegaRaichu X",
         "source": "official-pokedex-it",
         "record": "https://www.pokemon.com/it/pokedex/raichu"
+      },
+      "es": {
+        "name": "Mega-Raichu X",
+        "source": "official-pokedex-es",
+        "record": "https://www.pokemon.com/es/pokedex/raichu"
+      },
+      "de": {
+        "name": "Mega-Raichu X",
+        "source": "official-legends-za-dlc-de",
+        "record": "https://legends.pokemon.com/de-de/dlc"
       }
     },
     "raichu-mega-y": {
@@ -1513,6 +1638,16 @@
         "name": "MegaRaichu Y",
         "source": "official-pokedex-it",
         "record": "https://www.pokemon.com/it/pokedex/raichu"
+      },
+      "es": {
+        "name": "Mega-Raichu Y",
+        "source": "official-pokedex-es",
+        "record": "https://www.pokemon.com/es/pokedex/raichu"
+      },
+      "de": {
+        "name": "Mega-Raichu Y",
+        "source": "official-legends-za-dlc-de",
+        "record": "https://legends.pokemon.com/de-de/dlc"
       }
     },
     "chimecho-mega": {
@@ -1530,6 +1665,11 @@
         "name": "Mega-Chimecho",
         "source": "official-pokedex-es",
         "record": "https://www.pokemon.com/es/pokedex/chimecho"
+      },
+      "de": {
+        "name": "Mega-Palimpalim",
+        "source": "official-legends-za-dlc-de",
+        "record": "https://legends.pokemon.com/de-de/dlc"
       }
     },
     "absol-mega-z": {
@@ -1559,6 +1699,11 @@
         "name": "MegaStaraptor",
         "source": "official-pokedex-it",
         "record": "https://www.pokemon.com/it/pokedex/staraptor"
+      },
+      "es": {
+        "name": "Mega-Staraptor",
+        "source": "official-pokedex-es",
+        "record": "https://www.pokemon.com/es/pokedex/staraptor"
       }
     },
     "garchomp-mega-z": {
@@ -1571,6 +1716,16 @@
         "name": "MegaGarchomp Z",
         "source": "official-pokedex-it",
         "record": "https://www.pokemon.com/it/pokedex/garchomp"
+      },
+      "es": {
+        "name": "Mega-Garchomp Z",
+        "source": "official-pokedex-es",
+        "record": "https://www.pokemon.com/es/pokedex/garchomp"
+      },
+      "de": {
+        "name": "Mega-Knakrack Z",
+        "source": "official-legends-za-dlc-de",
+        "record": "https://legends.pokemon.com/de-de/dlc"
       }
     },
     "lucario-mega-z": {
@@ -1588,6 +1743,11 @@
         "name": "Mega-Lucario Z",
         "source": "official-pokedex-es",
         "record": "https://www.pokemon.com/es/pokedex/lucario"
+      },
+      "de": {
+        "name": "Mega-Lucario Z",
+        "source": "official-legends-za-dlc-de",
+        "record": "https://legends.pokemon.com/de-de/dlc"
       }
     },
     "heatran-mega": {
@@ -1617,6 +1777,11 @@
         "name": "MegaDarkrai",
         "source": "official-pokedex-it",
         "record": "https://www.pokemon.com/it/pokedex/darkrai"
+      },
+      "es": {
+        "name": "Mega-Darkrai",
+        "source": "official-pokedex-es",
+        "record": "https://www.pokemon.com/es/pokedex/darkrai"
       }
     },
     "golurk-mega": {
@@ -1646,6 +1811,11 @@
         "name": "MegaMeowstic",
         "source": "official-pokedex-it",
         "record": "https://www.pokemon.com/it/pokedex/meowstic"
+      },
+      "es": {
+        "name": "Mega-Meowstic",
+        "source": "official-pokedex-es",
+        "record": "https://www.pokemon.com/es/pokedex/meowstic"
       }
     },
     "crabominable-mega": {
@@ -1688,6 +1858,11 @@
         "source": "official-pokedex-ja",
         "record": "0801-2"
       },
+      "it": {
+        "name": "MegaMagearna",
+        "source": "official-pokedex-it",
+        "record": "https://www.pokemon.com/it/pokedex/magearna"
+      },
       "es": {
         "name": "Mega-Magearna",
         "source": "official-pokedex-es",
@@ -1699,6 +1874,11 @@
         "name": "メガマギアナ（５００ねんまえのいろ）",
         "source": "official-pokedex-ja",
         "record": "0801-3"
+      },
+      "it": {
+        "name": "MegaMagearna Colore Antico",
+        "source": "official-pokedex-it",
+        "record": "https://www.pokemon.com/it/pokedex/magearna"
       },
       "es": {
         "name": "Mega-Magearna Color Vetusto",
@@ -1716,6 +1896,16 @@
         "name": "MegaZeraora",
         "source": "official-pokedex-it",
         "record": "https://www.pokemon.com/it/pokedex/zeraora"
+      },
+      "es": {
+        "name": "Mega-Zeraora",
+        "source": "official-pokedex-es",
+        "record": "https://www.pokemon.com/es/pokedex/zeraora"
+      },
+      "de": {
+        "name": "Mega-Zeraora",
+        "source": "official-legends-za-dlc-de",
+        "record": "https://legends.pokemon.com/de-de/dlc"
       }
     },
     "scovillain-mega": {
@@ -1813,6 +2003,16 @@
         "name": "MegaBaxcalibur",
         "source": "official-pokedex-it",
         "record": "https://www.pokemon.com/it/pokedex/baxcalibur"
+      },
+      "es": {
+        "name": "Mega-Baxcalibur",
+        "source": "official-pokedex-es",
+        "record": "https://www.pokemon.com/es/pokedex/baxcalibur"
+      },
+      "de": {
+        "name": "Mega-Espinodon",
+        "source": "official-legends-za-dlc-de",
+        "record": "https://legends.pokemon.com/de-de/dlc"
       }
     },
     "meowstic-female-mega": {
@@ -1825,6 +2025,11 @@
         "name": "MegaMeowstic",
         "source": "official-pokedex-it",
         "record": "https://www.pokemon.com/it/pokedex/meowstic"
+      },
+      "es": {
+        "name": "Mega-Meowstic",
+        "source": "official-pokedex-es",
+        "record": "https://www.pokemon.com/es/pokedex/meowstic"
       }
     }
   }

@@ -8,9 +8,11 @@ const RETRIEVED_ON = "2026-08-21";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const baseCatalogPath = path.join(root, "data", "pokemon", `pokemon-localizations.pokeapi-${PROFILE_SOURCE_REVISION}.json`);
 const pokemonComSnapshotPath = path.join(root, "data", "pokemon", "pokemon-com-mega-form-names-2026-08-21.json");
+const legendsZaSnapshotPath = path.join(root, "data", "pokemon", "pokemon-legends-za-mega-form-names-2026-08-21.json");
 const outputPath = path.join(root, "data", "pokemon", `pokemon-mega-official-names-${RETRIEVED_ON}.json`);
 const baseCatalog = JSON.parse(fs.readFileSync(baseCatalogPath, "utf8"));
 const pokemonComSnapshot = JSON.parse(fs.readFileSync(pokemonComSnapshotPath, "utf8"));
+const legendsZaSnapshot = JSON.parse(fs.readFileSync(legendsZaSnapshotPath, "utf8"));
 
 const sourceDefinitions = Object.freeze({
   "official-mega-es": {
@@ -46,6 +48,7 @@ const sourceDefinitions = Object.freeze({
     homepage: "https://www.pokemon.com/it/pokedex",
     label: "Pokédex Pokémon",
   },
+  ...legendsZaSnapshot.sources,
 });
 
 const megaProfiles = Object.entries(baseCatalog.profiles).filter(([, profile]) => profile.is_mega);
@@ -167,14 +170,40 @@ function loadPokemonComSnapshot(profiles) {
   }
 }
 
+async function loadLegendsZaSnapshot(profiles) {
+  if (legendsZaSnapshot.retrieved_on !== RETRIEVED_ON) {
+    throw new Error("The Pokémon Legends: Z-A form-name snapshot has an unexpected retrieval date.");
+  }
+  for (const [sourceId, source] of Object.entries(legendsZaSnapshot.sources || {})) {
+    if (sourceDefinitions[sourceId]?.url !== source.url || source.language !== "de" || !source.url?.startsWith("https://legends.pokemon.com/de-de/")) {
+      throw new Error(`Invalid Pokémon Legends: Z-A source ${sourceId}.`);
+    }
+  }
+  const sourceBodies = Object.fromEntries(await Promise.all(
+    Object.entries(legendsZaSnapshot.sources || {}).map(async ([sourceId, source]) => [sourceId, await fetchText(source.url)]),
+  ));
+  for (const [profileIdentifier, entry] of Object.entries(legendsZaSnapshot.profiles || {})) {
+    const profile = baseCatalog.profiles[profileIdentifier];
+    if (!profile?.is_mega) throw new Error(`Unknown Pokémon Legends: Z-A Mega profile ${profileIdentifier}.`);
+    if (!sourceDefinitions[entry.source] || !entry.record?.startsWith("https://legends.pokemon.com/de-de/")) {
+      throw new Error(`Invalid Pokémon Legends: Z-A record for ${profileIdentifier}.`);
+    }
+    if (!sourceBodies[entry.source].includes(entry.name)) {
+      throw new Error(`Pokémon Legends: Z-A no longer exposes ${entry.name} for ${profileIdentifier}.`);
+    }
+    addName(profiles, profileIdentifier, "de", entry.name, entry.source, entry.record);
+  }
+}
+
 const profiles = {};
 await loadMegaSite("es", "official-mega-es", profiles);
 await loadMegaSite("it", "official-mega-it", profiles);
 await loadMegaSite("de", "official-mega-de", profiles);
 await loadJapanesePokedex(profiles);
 loadPokemonComSnapshot(profiles);
+await loadLegendsZaSnapshot(profiles);
 
-const expectedCounts = { es: 80, it: 93, de: 48, ja: 97 };
+const expectedCounts = { es: 97, it: 97, de: 66, ja: 97 };
 for (const locale of Object.keys(expectedCounts)) {
   const count = Object.values(profiles).filter((entry) => entry[locale]).length;
   const expected = expectedCounts[locale];

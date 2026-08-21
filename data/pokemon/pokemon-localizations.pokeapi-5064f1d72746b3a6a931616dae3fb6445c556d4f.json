@@ -52,6 +52,16 @@
       "url": "https://www.pokemon.com/it/pokedex",
       "homepage": "https://www.pokemon.com/it/pokedex",
       "label": "Pokédex Pokémon"
+    },
+    "official-legends-za-de": {
+      "language": "de",
+      "url": "https://legends.pokemon.com/de-de/story-world/pokemon",
+      "label": "Pokémon-Legenden: Z-A — Pokémon"
+    },
+    "official-legends-za-dlc-de": {
+      "language": "de",
+      "url": "https://legends.pokemon.com/de-de/dlc",
+      "label": "Pokémon-Legenden: Z-A – Mega-Dimension"
     }
   },
   "locale_order": [
@@ -85,9 +95,9 @@
       "pokeapi_language": "it",
       "species_localized": 1025,
       "species_total": 1025,
-      "profiles_localized": 1118,
+      "profiles_localized": 1122,
       "profiles_total": 1351,
-      "mega_profiles_localized": 93,
+      "mega_profiles_localized": 97,
       "mega_profiles_total": 97,
       "type_names_localized": 21,
       "type_names_total": 21,
@@ -102,9 +112,9 @@
       "pokeapi_language": "es",
       "species_localized": 1025,
       "species_total": 1025,
-      "profiles_localized": 1105,
+      "profiles_localized": 1122,
       "profiles_total": 1351,
-      "mega_profiles_localized": 80,
+      "mega_profiles_localized": 97,
       "mega_profiles_total": 97,
       "type_names_localized": 20,
       "type_names_total": 21,
@@ -136,9 +146,9 @@
       "pokeapi_language": "de",
       "species_localized": 1025,
       "species_total": 1025,
-      "profiles_localized": 1274,
+      "profiles_localized": 1292,
       "profiles_total": 1351,
-      "mega_profiles_localized": 48,
+      "mega_profiles_localized": 66,
       "mega_profiles_total": 97,
       "type_names_localized": 21,
       "type_names_total": 21,
@@ -111186,18 +111196,18 @@
       "names": {
         "en": "Mega Victreebel",
         "it": "MegaVictreebel",
-        "es": "Mega Victreebel",
+        "es": "Mega-Victreebel",
         "fr": "Méga-Empiflor",
-        "de": "Mega Victreebel",
+        "de": "Mega-Sarzenia",
         "ja": "メガウツボット",
         "ko": "Mega Victreebel"
       },
       "name_source": {
         "en": "localized-form",
         "it": "official-pokemon",
-        "es": "english-fallback",
+        "es": "official-pokemon",
         "fr": "localized-form",
-        "de": "english-fallback",
+        "de": "official-pokemon",
         "ja": "official-pokemon",
         "ko": "english-fallback"
       }
@@ -111254,18 +111264,18 @@
       "names": {
         "en": "Mega Dragonite",
         "it": "MegaDragonite",
-        "es": "Mega Dragonite",
+        "es": "Mega-Dragonite",
         "fr": "Méga-Dracolosse",
-        "de": "Mega Dragonite",
+        "de": "Mega-Dragoran",
         "ja": "メガカイリュー",
         "ko": "Mega Dragonite"
       },
       "name_source": {
         "en": "localized-form",
         "it": "official-pokemon",
-        "es": "english-fallback",
+        "es": "official-pokemon",
         "fr": "localized-form",
-        "de": "english-fallback",
+        "de": "official-pokemon",
         "ja": "official-pokemon",
         "ko": "english-fallback"
       }
@@ -111290,7 +111300,7 @@
         "it": "MegaMeganium",
         "es": "Mega-Meganium",
         "fr": "Méga-Méganium",
-        "de": "Mega Meganium",
+        "de": "Mega-Meganie",
         "ja": "メガメガニウム",
         "ko": "Mega Meganium"
       },
@@ -111299,7 +111309,7 @@
         "it": "official-pokemon",
         "es": "official-pokemon",
         "fr": "localized-form",
-        "de": "english-fallback",
+        "de": "official-pokemon",
         "ja": "official-pokemon",
         "ko": "english-fallback"
       }
@@ -111324,7 +111334,7 @@
         "it": "MegaFeraligatr",
         "es": "Mega-Feraligatr",
         "fr": "Méga-Aligatueur",
-        "de": "Mega Feraligatr",
+        "de": "Mega-Impergator",
         "ja": "メガオーダイル",
         "ko": "Mega Feraligatr"
       },
@@ -111333,7 +111343,7 @@
         "it": "official-pokemon",
         "es": "official-pokemon",
         "fr": "localized-form",
-        "de": "english-fallback",
+        "de": "official-pokemon",
         "ja": "official-pokemon",
         "ko": "english-fallback"
       }
@@ -111426,7 +111436,7 @@
         "it": "MegaEmboar",
         "es": "Mega-Emboar",
         "fr": "Méga-Roitiflam",
-        "de": "Mega Emboar",
+        "de": "Mega-Flambirex",
         "ja": "メガエンブオー",
         "ko": "Mega Emboar"
       },
@@ -111435,7 +111445,7 @@
         "it": "official-pokemon",
         "es": "official-pokemon",
         "fr": "localized-form",
-        "de": "english-fallback",
+        "de": "official-pokemon",
         "ja": "official-pokemon",
         "ko": "english-fallback"
       }
@@ -111458,7 +111468,7 @@
       "names": {
         "en": "Mega Excadrill",
         "it": "MegaExcadrill",
-        "es": "Mega Excadrill",
+        "es": "Mega-Excadrill",
         "fr": "Méga-Minotaupe",
         "de": "Mega Excadrill",
         "ja": "メガドリュウズ",
@@ -111467,7 +111477,7 @@
       "name_source": {
         "en": "localized-form",
         "it": "official-pokemon",
-        "es": "english-fallback",
+        "es": "official-pokemon",
         "fr": "localized-form",
         "de": "english-fallback",
         "ja": "official-pokemon",
@@ -111492,7 +111502,7 @@
       "names": {
         "en": "Mega Scolipede",
         "it": "MegaScolipede",
-        "es": "Mega Scolipede",
+        "es": "Mega-Scolipede",
         "fr": "Méga-Brutapode",
         "de": "Mega Scolipede",
         "ja": "メガペンドラー",
@@ -111501,7 +111511,7 @@
       "name_source": {
         "en": "localized-form",
         "it": "official-pokemon",
-        "es": "english-fallback",
+        "es": "official-pokemon",
         "fr": "localized-form",
         "de": "english-fallback",
         "ja": "official-pokemon",
@@ -111558,19 +111568,19 @@
       ],
       "names": {
         "en": "Mega Eelektross",
-        "it": "Mega Eelektross",
+        "it": "MegaEelektross",
         "es": "Mega-Eelektross",
         "fr": "Méga-Ohmassacre",
-        "de": "Mega Eelektross",
+        "de": "Mega-Zapplarang",
         "ja": "メガシビルドン",
         "ko": "Mega Eelektross"
       },
       "name_source": {
         "en": "localized-form",
-        "it": "english-fallback",
+        "it": "official-pokemon",
         "es": "official-pokemon",
         "fr": "localized-form",
-        "de": "english-fallback",
+        "de": "official-pokemon",
         "ja": "official-pokemon",
         "ko": "english-fallback"
       }
@@ -111627,18 +111637,18 @@
       "names": {
         "en": "Mega Chesnaught",
         "it": "MegaChesnaught",
-        "es": "Mega Chesnaught",
+        "es": "Mega-Chesnaught",
         "fr": "Méga-Blindépique",
-        "de": "Mega Chesnaught",
+        "de": "Mega-Brigaron",
         "ja": "メガブリガロン",
         "ko": "Mega Chesnaught"
       },
       "name_source": {
         "en": "localized-form",
         "it": "official-pokemon",
-        "es": "english-fallback",
+        "es": "official-pokemon",
         "fr": "localized-form",
-        "de": "english-fallback",
+        "de": "official-pokemon",
         "ja": "official-pokemon",
         "ko": "english-fallback"
       }
@@ -111661,18 +111671,18 @@
       "names": {
         "en": "Mega Delphox",
         "it": "MegaDelphox",
-        "es": "Mega Delphox",
+        "es": "Mega-Delphox",
         "fr": "Méga-Goupelin",
-        "de": "Mega Delphox",
+        "de": "Mega-Fennexis",
         "ja": "メガマフォクシー",
         "ko": "Mega Delphox"
       },
       "name_source": {
         "en": "localized-form",
         "it": "official-pokemon",
-        "es": "english-fallback",
+        "es": "official-pokemon",
         "fr": "localized-form",
-        "de": "english-fallback",
+        "de": "official-pokemon",
         "ja": "official-pokemon",
         "ko": "english-fallback"
       }
@@ -111697,7 +111707,7 @@
         "it": "MegaGreninja",
         "es": "Mega-Greninja",
         "fr": "Méga-Amphinobi",
-        "de": "Mega Greninja",
+        "de": "Mega-Quajutsu",
         "ja": "メガゲッコウガ",
         "ko": "Mega Greninja"
       },
@@ -111706,7 +111716,7 @@
         "it": "official-pokemon",
         "es": "official-pokemon",
         "fr": "localized-form",
-        "de": "english-fallback",
+        "de": "official-pokemon",
         "ja": "official-pokemon",
         "ko": "english-fallback"
       }
@@ -111796,18 +111806,18 @@
       "names": {
         "en": "Mega Malamar",
         "it": "MegaMalamar",
-        "es": "Mega Malamar",
+        "es": "Mega-Malamar",
         "fr": "Méga-Sepiatroce",
-        "de": "Mega Malamar",
+        "de": "Mega-Calamanero",
         "ja": "メガカラマネロ",
         "ko": "Mega Malamar"
       },
       "name_source": {
         "en": "localized-form",
         "it": "official-pokemon",
-        "es": "english-fallback",
+        "es": "official-pokemon",
         "fr": "localized-form",
-        "de": "english-fallback",
+        "de": "official-pokemon",
         "ja": "official-pokemon",
         "ko": "english-fallback"
       }
@@ -111897,19 +111907,19 @@
       ],
       "names": {
         "en": "Mega Hawlucha",
-        "it": "Mega Hawlucha",
+        "it": "MegaHawlucha",
         "es": "Mega-Hawlucha",
         "fr": "Méga-Brutalibré",
-        "de": "Mega Hawlucha",
+        "de": "Mega-Resladero",
         "ja": "メガルチャブル",
         "ko": "Mega Hawlucha"
       },
       "name_source": {
         "en": "localized-form",
-        "it": "english-fallback",
+        "it": "official-pokemon",
         "es": "official-pokemon",
         "fr": "localized-form",
-        "de": "english-fallback",
+        "de": "official-pokemon",
         "ja": "official-pokemon",
         "ko": "english-fallback"
       }
@@ -111927,7 +111937,7 @@
       "names": {
         "en": "Mega Zygarde",
         "it": "MegaZygarde",
-        "es": "Mega Zygarde",
+        "es": "Mega-Zygarde",
         "fr": "Méga-Zygarde",
         "de": "Mega Zygarde",
         "ja": "メガジガルデ",
@@ -111936,7 +111946,7 @@
       "name_source": {
         "en": "localized-form",
         "it": "official-pokemon",
-        "es": "english-fallback",
+        "es": "official-pokemon",
         "fr": "localized-form",
         "de": "english-fallback",
         "ja": "official-pokemon",
@@ -112027,18 +112037,18 @@
       "names": {
         "en": "Mega Raichu X",
         "it": "MegaRaichu X",
-        "es": "Mega Raichu X",
+        "es": "Mega-Raichu X",
         "fr": "Méga-Raichu X",
-        "de": "Mega Raichu X",
+        "de": "Mega-Raichu X",
         "ja": "メガライチュウＸ",
         "ko": "Mega Raichu X"
       },
       "name_source": {
         "en": "localized-form",
         "it": "official-pokemon",
-        "es": "english-fallback",
+        "es": "official-pokemon",
         "fr": "localized-form",
-        "de": "english-fallback",
+        "de": "official-pokemon",
         "ja": "official-pokemon",
         "ko": "english-fallback"
       }
@@ -112060,18 +112070,18 @@
       "names": {
         "en": "Mega Raichu Y",
         "it": "MegaRaichu Y",
-        "es": "Mega Raichu Y",
+        "es": "Mega-Raichu Y",
         "fr": "Méga-Raichu Y",
-        "de": "Mega Raichu Y",
+        "de": "Mega-Raichu Y",
         "ja": "メガライチュウＹ",
         "ko": "Mega Raichu Y"
       },
       "name_source": {
         "en": "localized-form",
         "it": "official-pokemon",
-        "es": "english-fallback",
+        "es": "official-pokemon",
         "fr": "localized-form",
-        "de": "english-fallback",
+        "de": "official-pokemon",
         "ja": "official-pokemon",
         "ko": "english-fallback"
       }
@@ -112096,7 +112106,7 @@
         "it": "MegaChimecho",
         "es": "Mega-Chimecho",
         "fr": "Méga-Éoko",
-        "de": "Mega Chimecho",
+        "de": "Mega-Palimpalim",
         "ja": "メガチリーン",
         "ko": "Mega Chimecho"
       },
@@ -112105,7 +112115,7 @@
         "it": "official-pokemon",
         "es": "official-pokemon",
         "fr": "localized-form",
-        "de": "english-fallback",
+        "de": "official-pokemon",
         "ja": "official-pokemon",
         "ko": "english-fallback"
       }
@@ -112157,7 +112167,7 @@
       "names": {
         "en": "Mega Staraptor",
         "it": "MegaStaraptor",
-        "es": "Mega Staraptor",
+        "es": "Mega-Staraptor",
         "fr": "Méga-Étouraptor",
         "de": "Mega Staraptor",
         "ja": "メガムクホーク",
@@ -112166,7 +112176,7 @@
       "name_source": {
         "en": "localized-form",
         "it": "official-pokemon",
-        "es": "english-fallback",
+        "es": "official-pokemon",
         "fr": "localized-form",
         "de": "english-fallback",
         "ja": "official-pokemon",
@@ -112185,18 +112195,18 @@
       "names": {
         "en": "Mega Garchomp Z",
         "it": "MegaGarchomp Z",
-        "es": "Mega Garchomp Z",
+        "es": "Mega-Garchomp Z",
         "fr": "Méga-Carchacrok Z",
-        "de": "Mega Garchomp Z",
+        "de": "Mega-Knakrack Z",
         "ja": "メガガブリアスＺ",
         "ko": "Mega Garchomp Z"
       },
       "name_source": {
         "en": "localized-form",
         "it": "official-pokemon",
-        "es": "english-fallback",
+        "es": "official-pokemon",
         "fr": "localized-form",
-        "de": "english-fallback",
+        "de": "official-pokemon",
         "ja": "official-pokemon",
         "ko": "english-fallback"
       }
@@ -112216,7 +112226,7 @@
         "it": "MegaLucario Z",
         "es": "Mega-Lucario Z",
         "fr": "Méga-Lucario Z",
-        "de": "Mega Lucario Z",
+        "de": "Mega-Lucario Z",
         "ja": "メガルカリオＺ",
         "ko": "Mega Lucario Z"
       },
@@ -112225,7 +112235,7 @@
         "it": "official-pokemon",
         "es": "official-pokemon",
         "fr": "localized-form",
-        "de": "english-fallback",
+        "de": "official-pokemon",
         "ja": "official-pokemon",
         "ko": "english-fallback"
       }
@@ -112271,7 +112281,7 @@
       "names": {
         "en": "Mega Darkrai",
         "it": "MegaDarkrai",
-        "es": "Mega Darkrai",
+        "es": "Mega-Darkrai",
         "fr": "Méga-Darkrai",
         "de": "Mega Darkrai",
         "ja": "メガダークライ",
@@ -112280,7 +112290,7 @@
       "name_source": {
         "en": "localized-form",
         "it": "official-pokemon",
-        "es": "english-fallback",
+        "es": "official-pokemon",
         "fr": "localized-form",
         "de": "english-fallback",
         "ja": "official-pokemon",
@@ -112338,7 +112348,7 @@
       "names": {
         "en": "Mega Meowstic",
         "it": "MegaMeowstic",
-        "es": "Mega Meowstic",
+        "es": "Mega-Meowstic",
         "fr": "Méga-Mistigrix",
         "de": "Mega Meowstic",
         "ja": "メガニャオニクス",
@@ -112347,7 +112357,7 @@
       "name_source": {
         "en": "localized-form",
         "it": "official-pokemon",
-        "es": "english-fallback",
+        "es": "official-pokemon",
         "fr": "localized-form",
         "de": "english-fallback",
         "ja": "official-pokemon",
@@ -112429,7 +112439,7 @@
       "abilities": [],
       "names": {
         "en": "Mega Magearna",
-        "it": "Mega Magearna",
+        "it": "MegaMagearna",
         "es": "Mega-Magearna",
         "fr": "Méga-Magearna",
         "de": "Mega Magearna",
@@ -112438,7 +112448,7 @@
       },
       "name_source": {
         "en": "localized-form",
-        "it": "english-fallback",
+        "it": "official-pokemon",
         "es": "official-pokemon",
         "fr": "localized-form",
         "de": "english-fallback",
@@ -112458,7 +112468,7 @@
       "abilities": [],
       "names": {
         "en": "Mega Original Magearna",
-        "it": "Mega Original Magearna",
+        "it": "MegaMagearna Colore Antico",
         "es": "Mega-Magearna Color Vetusto",
         "fr": "Méga-Magearna Couleur du Passé",
         "de": "Mega Original Magearna",
@@ -112467,7 +112477,7 @@
       },
       "name_source": {
         "en": "localized-form",
-        "it": "english-fallback",
+        "it": "official-pokemon",
         "es": "official-pokemon",
         "fr": "localized-form",
         "de": "english-fallback",
@@ -112487,18 +112497,18 @@
       "names": {
         "en": "Mega Zeraora",
         "it": "MegaZeraora",
-        "es": "Mega Zeraora",
+        "es": "Mega-Zeraora",
         "fr": "Méga-Zeraora",
-        "de": "Mega Zeraora",
+        "de": "Mega-Zeraora",
         "ja": "メガゼラオラ",
         "ko": "Mega Zeraora"
       },
       "name_source": {
         "en": "localized-form",
         "it": "official-pokemon",
-        "es": "english-fallback",
+        "es": "official-pokemon",
         "fr": "localized-form",
-        "de": "english-fallback",
+        "de": "official-pokemon",
         "ja": "official-pokemon",
         "ko": "english-fallback"
       }
@@ -112671,18 +112681,18 @@
       "names": {
         "en": "Mega Baxcalibur",
         "it": "MegaBaxcalibur",
-        "es": "Mega Baxcalibur",
+        "es": "Mega-Baxcalibur",
         "fr": "Méga-Glaivodo",
-        "de": "Mega Baxcalibur",
+        "de": "Mega-Espinodon",
         "ja": "メガセグレイブ",
         "ko": "Mega Baxcalibur"
       },
       "name_source": {
         "en": "localized-form",
         "it": "official-pokemon",
-        "es": "english-fallback",
+        "es": "official-pokemon",
         "fr": "localized-form",
-        "de": "english-fallback",
+        "de": "official-pokemon",
         "ja": "official-pokemon",
         "ko": "english-fallback"
       }
@@ -112704,7 +112714,7 @@
       "names": {
         "en": "Mega Meowstic",
         "it": "MegaMeowstic",
-        "es": "Mega Meowstic",
+        "es": "Mega-Meowstic",
         "fr": "Méga-Mistigrix",
         "de": "Mega Meowstic",
         "ja": "メガニャオニクス",
@@ -112713,7 +112723,7 @@
       "name_source": {
         "en": "localized-form",
         "it": "official-pokemon",
-        "es": "english-fallback",
+        "es": "official-pokemon",
         "fr": "localized-form",
         "de": "english-fallback",
         "ja": "official-pokemon",

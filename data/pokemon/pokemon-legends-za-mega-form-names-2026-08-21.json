@@ -1,0 +1,35 @@
+{
+  "retrieved_on": "2026-08-21",
+  "sources": {
+    "official-legends-za-de": {
+      "language": "de",
+      "url": "https://legends.pokemon.com/de-de/story-world/pokemon",
+      "label": "Pokémon-Legenden: Z-A — Pokémon"
+    },
+    "official-legends-za-dlc-de": {
+      "language": "de",
+      "url": "https://legends.pokemon.com/de-de/dlc",
+      "label": "Pokémon-Legenden: Z-A – Mega-Dimension"
+    }
+  },
+  "profiles": {
+    "victreebel-mega": { "name": "Mega-Sarzenia", "source": "official-legends-za-de", "record": "https://legends.pokemon.com/de-de/story-world/pokemon/mega-victreebel" },
+    "dragonite-mega": { "name": "Mega-Dragoran", "source": "official-legends-za-de", "record": "https://legends.pokemon.com/de-de/story-world/pokemon/mega-dragonite" },
+    "meganium-mega": { "name": "Mega-Meganie", "source": "official-legends-za-de", "record": "https://legends.pokemon.com/de-de/story-world/pokemon/mega-meganium" },
+    "feraligatr-mega": { "name": "Mega-Impergator", "source": "official-legends-za-de", "record": "https://legends.pokemon.com/de-de/story-world/pokemon/mega-feraligatr" },
+    "emboar-mega": { "name": "Mega-Flambirex", "source": "official-legends-za-de", "record": "https://legends.pokemon.com/de-de/story-world/pokemon/mega-emboar" },
+    "eelektross-mega": { "name": "Mega-Zapplarang", "source": "official-legends-za-de", "record": "https://legends.pokemon.com/de-de/story-world/pokemon/mega-eelektross" },
+    "chesnaught-mega": { "name": "Mega-Brigaron", "source": "official-legends-za-de", "record": "https://legends.pokemon.com/de-de/story-world/pokemon/mega-chesnaught" },
+    "delphox-mega": { "name": "Mega-Fennexis", "source": "official-legends-za-de", "record": "https://legends.pokemon.com/de-de/story-world/pokemon/mega-delphox" },
+    "greninja-mega": { "name": "Mega-Quajutsu", "source": "official-legends-za-de", "record": "https://legends.pokemon.com/de-de/story-world/pokemon/mega-greninja" },
+    "malamar-mega": { "name": "Mega-Calamanero", "source": "official-legends-za-de", "record": "https://legends.pokemon.com/de-de/story-world/pokemon/mega-malamar" },
+    "hawlucha-mega": { "name": "Mega-Resladero", "source": "official-legends-za-de", "record": "https://legends.pokemon.com/de-de/story-world/pokemon/mega-hawlucha" },
+    "raichu-mega-x": { "name": "Mega-Raichu X", "source": "official-legends-za-dlc-de", "record": "https://legends.pokemon.com/de-de/dlc" },
+    "raichu-mega-y": { "name": "Mega-Raichu Y", "source": "official-legends-za-dlc-de", "record": "https://legends.pokemon.com/de-de/dlc" },
+    "chimecho-mega": { "name": "Mega-Palimpalim", "source": "official-legends-za-dlc-de", "record": "https://legends.pokemon.com/de-de/dlc" },
+    "garchomp-mega-z": { "name": "Mega-Knakrack Z", "source": "official-legends-za-dlc-de", "record": "https://legends.pokemon.com/de-de/dlc" },
+    "lucario-mega-z": { "name": "Mega-Lucario Z", "source": "official-legends-za-dlc-de", "record": "https://legends.pokemon.com/de-de/dlc" },
+    "zeraora-mega": { "name": "Mega-Zeraora", "source": "official-legends-za-dlc-de", "record": "https://legends.pokemon.com/de-de/dlc" },
+    "baxcalibur-mega": { "name": "Mega-Espinodon", "source": "official-legends-za-dlc-de", "record": "https://legends.pokemon.com/de-de/dlc" }
+  }
+}
