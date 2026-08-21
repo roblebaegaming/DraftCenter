@@ -1,0 +1,1831 @@
+{
+  "retrieved_on": "2026-08-21",
+  "profile_source_revision_parts": [
+    "5064f1d7",
+    "2746b3a6",
+    "a931616d",
+    "ae3fb644",
+    "5c556d4f"
+  ],
+  "sources": {
+    "official-mega-es": {
+      "language": "es",
+      "url": "https://mega.pokemon.com/es-es/",
+      "label": "Pokémon Mega Evolution — español"
+    },
+    "official-mega-it": {
+      "language": "it",
+      "url": "https://mega.pokemon.com/it-it/",
+      "label": "Pokémon Mega Evolution — italiano"
+    },
+    "official-mega-de": {
+      "language": "de",
+      "url": "https://mega.pokemon.com/de-de/",
+      "label": "Pokémon Mega Evolution — Deutsch"
+    },
+    "official-pokedex-ja": {
+      "language": "ja",
+      "url": "https://zukan.pokemon.co.jp/zukan-api/api/search/?limit=2000&page=1",
+      "homepage": "https://zukan.pokemon.co.jp/",
+      "label": "ポケモンずかん"
+    },
+    "official-pokedex-es": {
+      "language": "es",
+      "url": "https://www.pokemon.com/es/pokedex",
+      "homepage": "https://www.pokemon.com/es/pokedex",
+      "label": "Pokédex de Pokémon"
+    },
+    "official-pokedex-it": {
+      "language": "it",
+      "url": "https://www.pokemon.com/it/pokedex",
+      "homepage": "https://www.pokemon.com/it/pokedex",
+      "label": "Pokédex Pokémon"
+    }
+  },
+  "profiles": {
+    "venusaur-mega": {
+      "es": {
+        "name": "Mega-Venusaur",
+        "source": "official-mega-es",
+        "record": "003_Mega_Venusaur"
+      },
+      "it": {
+        "name": "MegaVenusaur",
+        "source": "official-mega-it",
+        "record": "003_Mega_Venusaur"
+      },
+      "de": {
+        "name": "Mega-Bisaflor",
+        "source": "official-mega-de",
+        "record": "003_Mega_Venusaur"
+      },
+      "ja": {
+        "name": "メガフシギバナ",
+        "source": "official-pokedex-ja",
+        "record": "0003-1"
+      }
+    },
+    "charizard-mega-x": {
+      "es": {
+        "name": "Mega-Charizard X",
+        "source": "official-mega-es",
+        "record": "006_Mega_Charizard_X"
+      },
+      "it": {
+        "name": "MegaCharizard X",
+        "source": "official-mega-it",
+        "record": "006_Mega_Charizard_X"
+      },
+      "de": {
+        "name": "Mega-Glurak X",
+        "source": "official-mega-de",
+        "record": "006_Mega_Charizard_X"
+      },
+      "ja": {
+        "name": "メガリザードンＸ",
+        "source": "official-pokedex-ja",
+        "record": "0006-1"
+      }
+    },
+    "charizard-mega-y": {
+      "es": {
+        "name": "Mega-Charizard Y",
+        "source": "official-mega-es",
+        "record": "006_Mega_Charizard_Y"
+      },
+      "it": {
+        "name": "MegaCharizard Y",
+        "source": "official-mega-it",
+        "record": "006_Mega_Charizard_Y"
+      },
+      "de": {
+        "name": "Mega-Glurak Y",
+        "source": "official-mega-de",
+        "record": "006_Mega_Charizard_Y"
+      },
+      "ja": {
+        "name": "メガリザードンＹ",
+        "source": "official-pokedex-ja",
+        "record": "0006-2"
+      }
+    },
+    "blastoise-mega": {
+      "es": {
+        "name": "Mega-Blastoise",
+        "source": "official-mega-es",
+        "record": "009_Mega_Blastoise"
+      },
+      "it": {
+        "name": "MegaBlastoise",
+        "source": "official-mega-it",
+        "record": "009_Mega_Blastoise"
+      },
+      "de": {
+        "name": "Mega-Turtok",
+        "source": "official-mega-de",
+        "record": "009_Mega_Blastoise"
+      },
+      "ja": {
+        "name": "メガカメックス",
+        "source": "official-pokedex-ja",
+        "record": "0009-1"
+      }
+    },
+    "alakazam-mega": {
+      "es": {
+        "name": "Mega-Alakazam",
+        "source": "official-mega-es",
+        "record": "065_Mega_Alakazam"
+      },
+      "it": {
+        "name": "MegaAlakazam",
+        "source": "official-mega-it",
+        "record": "065_Mega_Alakazam"
+      },
+      "de": {
+        "name": "Mega-Simsala",
+        "source": "official-mega-de",
+        "record": "065_Mega_Alakazam"
+      },
+      "ja": {
+        "name": "メガフーディン",
+        "source": "official-pokedex-ja",
+        "record": "0065-1"
+      }
+    },
+    "gengar-mega": {
+      "es": {
+        "name": "Mega-Gengar",
+        "source": "official-mega-es",
+        "record": "094_Mega_Gengar"
+      },
+      "it": {
+        "name": "MegaGengar",
+        "source": "official-mega-it",
+        "record": "094_Mega_Gengar"
+      },
+      "de": {
+        "name": "Mega-Gengar",
+        "source": "official-mega-de",
+        "record": "094_Mega_Gengar"
+      },
+      "ja": {
+        "name": "メガゲンガー",
+        "source": "official-pokedex-ja",
+        "record": "0094-1"
+      }
+    },
+    "kangaskhan-mega": {
+      "es": {
+        "name": "Mega-Kangaskhan",
+        "source": "official-mega-es",
+        "record": "115_Mega_Kangaskhan"
+      },
+      "it": {
+        "name": "MegaKangaskhan",
+        "source": "official-mega-it",
+        "record": "115_Mega_Kangaskhan"
+      },
+      "de": {
+        "name": "Mega-Kangama",
+        "source": "official-mega-de",
+        "record": "115_Mega_Kangaskhan"
+      },
+      "ja": {
+        "name": "メガガルーラ",
+        "source": "official-pokedex-ja",
+        "record": "0115-1"
+      }
+    },
+    "pinsir-mega": {
+      "es": {
+        "name": "Mega-Pinsir",
+        "source": "official-mega-es",
+        "record": "127_Mega_Pinsir"
+      },
+      "it": {
+        "name": "MegaPinsir",
+        "source": "official-mega-it",
+        "record": "127_Mega_Pinsir"
+      },
+      "de": {
+        "name": "Mega-Pinsir",
+        "source": "official-mega-de",
+        "record": "127_Mega_Pinsir"
+      },
+      "ja": {
+        "name": "メガカイロス",
+        "source": "official-pokedex-ja",
+        "record": "0127-1"
+      }
+    },
+    "gyarados-mega": {
+      "es": {
+        "name": "Mega-Gyarados",
+        "source": "official-mega-es",
+        "record": "130_Mega_Gyarados"
+      },
+      "it": {
+        "name": "MegaGyarados",
+        "source": "official-mega-it",
+        "record": "130_Mega_Gyarados"
+      },
+      "de": {
+        "name": "Mega-Garados",
+        "source": "official-mega-de",
+        "record": "130_Mega_Gyarados"
+      },
+      "ja": {
+        "name": "メガギャラドス",
+        "source": "official-pokedex-ja",
+        "record": "0130-1"
+      }
+    },
+    "aerodactyl-mega": {
+      "es": {
+        "name": "Mega-Aerodactyl",
+        "source": "official-mega-es",
+        "record": "142_Mega_Aerodactyl"
+      },
+      "it": {
+        "name": "MegaAerodactyl",
+        "source": "official-mega-it",
+        "record": "142_Mega_Aerodactyl"
+      },
+      "de": {
+        "name": "Mega-Aerodactyl",
+        "source": "official-mega-de",
+        "record": "142_Mega_Aerodactyl"
+      },
+      "ja": {
+        "name": "メガプテラ",
+        "source": "official-pokedex-ja",
+        "record": "0142-1"
+      }
+    },
+    "mewtwo-mega-x": {
+      "es": {
+        "name": "Mega-Mewtwo X",
+        "source": "official-mega-es",
+        "record": "150_Mega_Mewtwo_X"
+      },
+      "it": {
+        "name": "MegaMewtwo X",
+        "source": "official-mega-it",
+        "record": "150_Mega_Mewtwo_X"
+      },
+      "de": {
+        "name": "Mega-Mewtu X",
+        "source": "official-mega-de",
+        "record": "150_Mega_Mewtwo_X"
+      },
+      "ja": {
+        "name": "メガミュウツーＸ",
+        "source": "official-pokedex-ja",
+        "record": "0150-1"
+      }
+    },
+    "mewtwo-mega-y": {
+      "es": {
+        "name": "Mega-Mewtwo Y",
+        "source": "official-mega-es",
+        "record": "150_Mega_Mewtwo_Y"
+      },
+      "it": {
+        "name": "MegaMewtwo Y",
+        "source": "official-mega-it",
+        "record": "150_Mega_Mewtwo_Y"
+      },
+      "de": {
+        "name": "Mega-Mewtu Y",
+        "source": "official-mega-de",
+        "record": "150_Mega_Mewtwo_Y"
+      },
+      "ja": {
+        "name": "メガミュウツーＹ",
+        "source": "official-pokedex-ja",
+        "record": "0150-2"
+      }
+    },
+    "ampharos-mega": {
+      "es": {
+        "name": "Mega-Ampharos",
+        "source": "official-mega-es",
+        "record": "181_Mega_Ampharos"
+      },
+      "it": {
+        "name": "MegaAmpharos",
+        "source": "official-mega-it",
+        "record": "181_Mega_Ampharos"
+      },
+      "de": {
+        "name": "Mega-Ampharos",
+        "source": "official-mega-de",
+        "record": "181_Mega_Ampharos"
+      },
+      "ja": {
+        "name": "メガデンリュウ",
+        "source": "official-pokedex-ja",
+        "record": "0181-1"
+      }
+    },
+    "scizor-mega": {
+      "es": {
+        "name": "Mega-Scizor",
+        "source": "official-mega-es",
+        "record": "212_Mega_Scizor"
+      },
+      "it": {
+        "name": "MegaScizor",
+        "source": "official-mega-it",
+        "record": "212_Mega_Scizor"
+      },
+      "de": {
+        "name": "Mega-Scherox",
+        "source": "official-mega-de",
+        "record": "212_Mega_Scizor"
+      },
+      "ja": {
+        "name": "メガハッサム",
+        "source": "official-pokedex-ja",
+        "record": "0212-1"
+      }
+    },
+    "heracross-mega": {
+      "es": {
+        "name": "Mega-Heracross",
+        "source": "official-mega-es",
+        "record": "214_Mega_Heracross"
+      },
+      "it": {
+        "name": "MegaHeracross",
+        "source": "official-mega-it",
+        "record": "214_Mega_Heracross"
+      },
+      "de": {
+        "name": "Mega-Skaraborn",
+        "source": "official-mega-de",
+        "record": "214_Mega_Heracross"
+      },
+      "ja": {
+        "name": "メガヘラクロス",
+        "source": "official-pokedex-ja",
+        "record": "0214-1"
+      }
+    },
+    "houndoom-mega": {
+      "es": {
+        "name": "Mega-Houndoom",
+        "source": "official-mega-es",
+        "record": "229_Mega_Houndoom"
+      },
+      "it": {
+        "name": "MegaHoundoom",
+        "source": "official-mega-it",
+        "record": "229_Mega_Houndoom"
+      },
+      "de": {
+        "name": "Mega-Hundemon",
+        "source": "official-mega-de",
+        "record": "229_Mega_Houndoom"
+      },
+      "ja": {
+        "name": "メガヘルガー",
+        "source": "official-pokedex-ja",
+        "record": "0229-1"
+      }
+    },
+    "tyranitar-mega": {
+      "es": {
+        "name": "Mega-Tyranitar",
+        "source": "official-mega-es",
+        "record": "248_Mega_Tyranitar"
+      },
+      "it": {
+        "name": "MegaTyranitar",
+        "source": "official-mega-it",
+        "record": "248_Mega_Tyranitar"
+      },
+      "de": {
+        "name": "Mega-Despotar",
+        "source": "official-mega-de",
+        "record": "248_Mega_Tyranitar"
+      },
+      "ja": {
+        "name": "メガバンギラス",
+        "source": "official-pokedex-ja",
+        "record": "0248-1"
+      }
+    },
+    "blaziken-mega": {
+      "es": {
+        "name": "Mega-Blaziken",
+        "source": "official-mega-es",
+        "record": "257_Mega_Blaziken"
+      },
+      "it": {
+        "name": "MegaBlaziken",
+        "source": "official-mega-it",
+        "record": "257_Mega_Blaziken"
+      },
+      "de": {
+        "name": "Mega-Lohgock",
+        "source": "official-mega-de",
+        "record": "257_Mega_Blaziken"
+      },
+      "ja": {
+        "name": "メガバシャーモ",
+        "source": "official-pokedex-ja",
+        "record": "0257-1"
+      }
+    },
+    "gardevoir-mega": {
+      "es": {
+        "name": "Mega-Gardevoir",
+        "source": "official-mega-es",
+        "record": "282_Mega_Gardevoir"
+      },
+      "it": {
+        "name": "MegaGardevoir",
+        "source": "official-mega-it",
+        "record": "282_Mega_Gardevoir"
+      },
+      "de": {
+        "name": "Mega-Guardevoir",
+        "source": "official-mega-de",
+        "record": "282_Mega_Gardevoir"
+      },
+      "ja": {
+        "name": "メガサーナイト",
+        "source": "official-pokedex-ja",
+        "record": "0282-1"
+      }
+    },
+    "mawile-mega": {
+      "es": {
+        "name": "Mega-Mawile",
+        "source": "official-mega-es",
+        "record": "303_Mega_Mawile"
+      },
+      "it": {
+        "name": "MegaMawile",
+        "source": "official-mega-it",
+        "record": "303_Mega_Mawile"
+      },
+      "de": {
+        "name": "Mega-Flunkifer",
+        "source": "official-mega-de",
+        "record": "303_Mega_Mawile"
+      },
+      "ja": {
+        "name": "メガクチート",
+        "source": "official-pokedex-ja",
+        "record": "0303-1"
+      }
+    },
+    "aggron-mega": {
+      "es": {
+        "name": "Mega-Aggron",
+        "source": "official-mega-es",
+        "record": "306_Mega_Aggron"
+      },
+      "it": {
+        "name": "MegaAggron",
+        "source": "official-mega-it",
+        "record": "306_Mega_Aggron"
+      },
+      "de": {
+        "name": "Mega-Stolloss",
+        "source": "official-mega-de",
+        "record": "306_Mega_Aggron"
+      },
+      "ja": {
+        "name": "メガボスゴドラ",
+        "source": "official-pokedex-ja",
+        "record": "0306-1"
+      }
+    },
+    "medicham-mega": {
+      "es": {
+        "name": "Mega-Medicham",
+        "source": "official-mega-es",
+        "record": "308_Mega_Medicham"
+      },
+      "it": {
+        "name": "MegaMedicham",
+        "source": "official-mega-it",
+        "record": "308_Mega_Medicham"
+      },
+      "de": {
+        "name": "Mega-Meditalis",
+        "source": "official-mega-de",
+        "record": "308_Mega_Medicham"
+      },
+      "ja": {
+        "name": "メガチャーレム",
+        "source": "official-pokedex-ja",
+        "record": "0308-1"
+      }
+    },
+    "manectric-mega": {
+      "es": {
+        "name": "Mega-Manectric",
+        "source": "official-mega-es",
+        "record": "310_Mega_Manectric"
+      },
+      "it": {
+        "name": "MegaManectric",
+        "source": "official-mega-it",
+        "record": "310_Mega_Manectric"
+      },
+      "de": {
+        "name": "Mega-Voltenso",
+        "source": "official-mega-de",
+        "record": "310_Mega_Manectric"
+      },
+      "ja": {
+        "name": "メガライボルト",
+        "source": "official-pokedex-ja",
+        "record": "0310-1"
+      }
+    },
+    "banette-mega": {
+      "es": {
+        "name": "Mega-Banette",
+        "source": "official-mega-es",
+        "record": "354_Mega_Banette"
+      },
+      "it": {
+        "name": "MegaBanette",
+        "source": "official-mega-it",
+        "record": "354_Mega_Banette"
+      },
+      "de": {
+        "name": "Mega-Banette",
+        "source": "official-mega-de",
+        "record": "354_Mega_Banette"
+      },
+      "ja": {
+        "name": "メガジュペッタ",
+        "source": "official-pokedex-ja",
+        "record": "0354-1"
+      }
+    },
+    "absol-mega": {
+      "es": {
+        "name": "Mega-Absol",
+        "source": "official-mega-es",
+        "record": "359_Mega_Absol"
+      },
+      "it": {
+        "name": "MegaAbsol",
+        "source": "official-mega-it",
+        "record": "359_Mega_Absol"
+      },
+      "de": {
+        "name": "Mega-Absol",
+        "source": "official-mega-de",
+        "record": "359_Mega_Absol"
+      },
+      "ja": {
+        "name": "メガアブソル",
+        "source": "official-pokedex-ja",
+        "record": "0359-1"
+      }
+    },
+    "garchomp-mega": {
+      "es": {
+        "name": "Mega-Garchomp",
+        "source": "official-mega-es",
+        "record": "445_Mega_Garchomp"
+      },
+      "it": {
+        "name": "MegaGarchomp",
+        "source": "official-mega-it",
+        "record": "445_Mega_Garchomp"
+      },
+      "de": {
+        "name": "Mega-Knakrack",
+        "source": "official-mega-de",
+        "record": "445_Mega_Garchomp"
+      },
+      "ja": {
+        "name": "メガガブリアス",
+        "source": "official-pokedex-ja",
+        "record": "0445-1"
+      }
+    },
+    "lucario-mega": {
+      "es": {
+        "name": "Mega-Lucario",
+        "source": "official-mega-es",
+        "record": "448_Mega_Lucario"
+      },
+      "it": {
+        "name": "MegaLucario",
+        "source": "official-mega-it",
+        "record": "448_Mega_Lucario"
+      },
+      "de": {
+        "name": "Mega-Lucario",
+        "source": "official-mega-de",
+        "record": "448_Mega_Lucario"
+      },
+      "ja": {
+        "name": "メガルカリオ",
+        "source": "official-pokedex-ja",
+        "record": "0448-1"
+      }
+    },
+    "abomasnow-mega": {
+      "es": {
+        "name": "Mega-Abomasnow",
+        "source": "official-mega-es",
+        "record": "460_Mega_Abomasnow"
+      },
+      "it": {
+        "name": "MegaAbomasnow",
+        "source": "official-mega-it",
+        "record": "460_Mega_Abomasnow"
+      },
+      "de": {
+        "name": "Mega-Rexblisar",
+        "source": "official-mega-de",
+        "record": "460_Mega_Abomasnow"
+      },
+      "ja": {
+        "name": "メガユキノオー",
+        "source": "official-pokedex-ja",
+        "record": "0460-1"
+      }
+    },
+    "latias-mega": {
+      "es": {
+        "name": "Mega-Latias",
+        "source": "official-mega-es",
+        "record": "380_Mega_Latias"
+      },
+      "it": {
+        "name": "MegaLatias",
+        "source": "official-mega-it",
+        "record": "380_Mega_Latias"
+      },
+      "de": {
+        "name": "Mega-Latias",
+        "source": "official-mega-de",
+        "record": "380_Mega_Latias"
+      },
+      "ja": {
+        "name": "メガラティアス",
+        "source": "official-pokedex-ja",
+        "record": "0380-1"
+      }
+    },
+    "latios-mega": {
+      "es": {
+        "name": "Mega-Latios",
+        "source": "official-mega-es",
+        "record": "381_Mega_Latios"
+      },
+      "it": {
+        "name": "MegaLatios",
+        "source": "official-mega-it",
+        "record": "381_Mega_Latios"
+      },
+      "de": {
+        "name": "Mega-Latios",
+        "source": "official-mega-de",
+        "record": "381_Mega_Latios"
+      },
+      "ja": {
+        "name": "メガラティオス",
+        "source": "official-pokedex-ja",
+        "record": "0381-1"
+      }
+    },
+    "swampert-mega": {
+      "es": {
+        "name": "Mega-Swampert",
+        "source": "official-mega-es",
+        "record": "260_Mega_Swampert"
+      },
+      "it": {
+        "name": "MegaSwampert",
+        "source": "official-mega-it",
+        "record": "260_Mega_Swampert"
+      },
+      "de": {
+        "name": "Mega-Sumpex",
+        "source": "official-mega-de",
+        "record": "260_Mega_Swampert"
+      },
+      "ja": {
+        "name": "メガラグラージ",
+        "source": "official-pokedex-ja",
+        "record": "0260-1"
+      }
+    },
+    "sceptile-mega": {
+      "es": {
+        "name": "Mega-Sceptile",
+        "source": "official-mega-es",
+        "record": "254_Mega_Sceptile"
+      },
+      "it": {
+        "name": "MegaSceptile",
+        "source": "official-mega-it",
+        "record": "254_Mega_Sceptile"
+      },
+      "de": {
+        "name": "Mega-Gewaldro",
+        "source": "official-mega-de",
+        "record": "254_Mega_Sceptile"
+      },
+      "ja": {
+        "name": "メガジュカイン",
+        "source": "official-pokedex-ja",
+        "record": "0254-1"
+      }
+    },
+    "sableye-mega": {
+      "es": {
+        "name": "Mega-Sableye",
+        "source": "official-mega-es",
+        "record": "302_Mega_Sableye"
+      },
+      "it": {
+        "name": "MegaSableye",
+        "source": "official-mega-it",
+        "record": "302_Mega_Sableye"
+      },
+      "de": {
+        "name": "Mega-Zobiris",
+        "source": "official-mega-de",
+        "record": "302_Mega_Sableye"
+      },
+      "ja": {
+        "name": "メガヤミラミ",
+        "source": "official-pokedex-ja",
+        "record": "0302-1"
+      }
+    },
+    "altaria-mega": {
+      "es": {
+        "name": "Mega-Altaria",
+        "source": "official-mega-es",
+        "record": "334_Mega_Altaria"
+      },
+      "it": {
+        "name": "MegaAltaria",
+        "source": "official-mega-it",
+        "record": "334_Mega_Altaria"
+      },
+      "de": {
+        "name": "Mega-Altaria",
+        "source": "official-mega-de",
+        "record": "334_Mega_Altaria"
+      },
+      "ja": {
+        "name": "メガチルタリス",
+        "source": "official-pokedex-ja",
+        "record": "0334-1"
+      }
+    },
+    "gallade-mega": {
+      "es": {
+        "name": "Mega-Gallade",
+        "source": "official-mega-es",
+        "record": "475_Mega_Gallade"
+      },
+      "it": {
+        "name": "MegaGallade",
+        "source": "official-mega-it",
+        "record": "475_Mega_Gallade"
+      },
+      "de": {
+        "name": "Mega-Galagladi",
+        "source": "official-mega-de",
+        "record": "475_Mega_Gallade"
+      },
+      "ja": {
+        "name": "メガエルレイド",
+        "source": "official-pokedex-ja",
+        "record": "0475-1"
+      }
+    },
+    "audino-mega": {
+      "es": {
+        "name": "Mega-Audino",
+        "source": "official-mega-es",
+        "record": "531_Mega_Audino"
+      },
+      "it": {
+        "name": "MegaAudino",
+        "source": "official-mega-it",
+        "record": "531_Mega_Audino"
+      },
+      "de": {
+        "name": "Mega-Ohrdoch",
+        "source": "official-mega-de",
+        "record": "531_Mega_Audino"
+      },
+      "ja": {
+        "name": "メガタブンネ",
+        "source": "official-pokedex-ja",
+        "record": "0531-1"
+      }
+    },
+    "sharpedo-mega": {
+      "es": {
+        "name": "Mega-Sharpedo",
+        "source": "official-mega-es",
+        "record": "319_Mega_Sharpedo"
+      },
+      "it": {
+        "name": "MegaSharpedo",
+        "source": "official-mega-it",
+        "record": "319_Mega_Sharpedo"
+      },
+      "de": {
+        "name": "Mega-Tohaido",
+        "source": "official-mega-de",
+        "record": "319_Mega_Sharpedo"
+      },
+      "ja": {
+        "name": "メガサメハダー",
+        "source": "official-pokedex-ja",
+        "record": "0319-1"
+      }
+    },
+    "slowbro-mega": {
+      "es": {
+        "name": "Mega-Slowbro",
+        "source": "official-mega-es",
+        "record": "080_Mega_Slowbro"
+      },
+      "it": {
+        "name": "MegaSlowbro",
+        "source": "official-mega-it",
+        "record": "080_Mega_Slowbro"
+      },
+      "de": {
+        "name": "Mega-Lahmus",
+        "source": "official-mega-de",
+        "record": "080_Mega_Slowbro"
+      },
+      "ja": {
+        "name": "メガヤドラン",
+        "source": "official-pokedex-ja",
+        "record": "0080-1"
+      }
+    },
+    "steelix-mega": {
+      "es": {
+        "name": "Mega-Steelix",
+        "source": "official-mega-es",
+        "record": "208_Mega_Steelix"
+      },
+      "it": {
+        "name": "MegaSteelix",
+        "source": "official-mega-it",
+        "record": "208_Mega_Steelix"
+      },
+      "de": {
+        "name": "Mega-Stahlos",
+        "source": "official-mega-de",
+        "record": "208_Mega_Steelix"
+      },
+      "ja": {
+        "name": "メガハガネール",
+        "source": "official-pokedex-ja",
+        "record": "0208-1"
+      }
+    },
+    "pidgeot-mega": {
+      "es": {
+        "name": "Mega-Pidgeot",
+        "source": "official-mega-es",
+        "record": "018_Mega_Pidgeot"
+      },
+      "it": {
+        "name": "MegaPidgeot",
+        "source": "official-mega-it",
+        "record": "018_Mega_Pidgeot"
+      },
+      "de": {
+        "name": "Mega-Tauboss",
+        "source": "official-mega-de",
+        "record": "018_Mega_Pidgeot"
+      },
+      "ja": {
+        "name": "メガピジョット",
+        "source": "official-pokedex-ja",
+        "record": "0018-1"
+      }
+    },
+    "glalie-mega": {
+      "es": {
+        "name": "Mega-Glalie",
+        "source": "official-mega-es",
+        "record": "362_Mega_Glalie"
+      },
+      "it": {
+        "name": "MegaGlalie",
+        "source": "official-mega-it",
+        "record": "362_Mega_Glalie"
+      },
+      "de": {
+        "name": "Mega-Firnontor",
+        "source": "official-mega-de",
+        "record": "362_Mega_Glalie"
+      },
+      "ja": {
+        "name": "メガオニゴーリ",
+        "source": "official-pokedex-ja",
+        "record": "0362-1"
+      }
+    },
+    "diancie-mega": {
+      "es": {
+        "name": "Mega-Diancie",
+        "source": "official-mega-es",
+        "record": "719_Mega_Diancie"
+      },
+      "it": {
+        "name": "MegaDiancie",
+        "source": "official-mega-it",
+        "record": "719_Mega_Diancie"
+      },
+      "de": {
+        "name": "Mega-Diancie",
+        "source": "official-mega-de",
+        "record": "719_Mega_Diancie"
+      },
+      "ja": {
+        "name": "メガディアンシー",
+        "source": "official-pokedex-ja",
+        "record": "0719-1"
+      }
+    },
+    "metagross-mega": {
+      "es": {
+        "name": "Mega-Metagross",
+        "source": "official-mega-es",
+        "record": "376_Mega_Metagross"
+      },
+      "it": {
+        "name": "MegaMetagross",
+        "source": "official-mega-it",
+        "record": "376_Mega_Metagross"
+      },
+      "de": {
+        "name": "Mega-Metagross",
+        "source": "official-mega-de",
+        "record": "376_Mega_Metagross"
+      },
+      "ja": {
+        "name": "メガメタグロス",
+        "source": "official-pokedex-ja",
+        "record": "0376-1"
+      }
+    },
+    "rayquaza-mega": {
+      "es": {
+        "name": "Mega-Rayquaza",
+        "source": "official-mega-es",
+        "record": "384_Mega_Rayquaza"
+      },
+      "it": {
+        "name": "MegaRayquaza",
+        "source": "official-mega-it",
+        "record": "384_Mega_Rayquaza"
+      },
+      "de": {
+        "name": "Mega-Rayquaza",
+        "source": "official-mega-de",
+        "record": "384_Mega_Rayquaza"
+      },
+      "ja": {
+        "name": "メガレックウザ",
+        "source": "official-pokedex-ja",
+        "record": "0384-1"
+      }
+    },
+    "camerupt-mega": {
+      "es": {
+        "name": "Mega-Camerupt",
+        "source": "official-mega-es",
+        "record": "323_Mega_Camerupt"
+      },
+      "it": {
+        "name": "MegaCamerupt",
+        "source": "official-mega-it",
+        "record": "323_Mega_Camerupt"
+      },
+      "de": {
+        "name": "Mega-Camerupt",
+        "source": "official-mega-de",
+        "record": "323_Mega_Camerupt"
+      },
+      "ja": {
+        "name": "メガバクーダ",
+        "source": "official-pokedex-ja",
+        "record": "0323-1"
+      }
+    },
+    "lopunny-mega": {
+      "es": {
+        "name": "Mega-Lopunny",
+        "source": "official-mega-es",
+        "record": "428_Lopunny"
+      },
+      "it": {
+        "name": "MegaLopunny",
+        "source": "official-mega-it",
+        "record": "428_Lopunny"
+      },
+      "de": {
+        "name": "Mega-Schlapor",
+        "source": "official-mega-de",
+        "record": "428_Lopunny"
+      },
+      "ja": {
+        "name": "メガミミロップ",
+        "source": "official-pokedex-ja",
+        "record": "0428-1"
+      }
+    },
+    "salamence-mega": {
+      "es": {
+        "name": "Mega-Salamence",
+        "source": "official-mega-es",
+        "record": "373_Mega_Salamence"
+      },
+      "it": {
+        "name": "MegaSalamence",
+        "source": "official-mega-it",
+        "record": "373_Mega_Salamence"
+      },
+      "de": {
+        "name": "Mega-Brutalanda",
+        "source": "official-mega-de",
+        "record": "373_Mega_Salamence"
+      },
+      "ja": {
+        "name": "メガボーマンダ",
+        "source": "official-pokedex-ja",
+        "record": "0373-1"
+      }
+    },
+    "beedrill-mega": {
+      "es": {
+        "name": "Mega-Beedrill",
+        "source": "official-mega-es",
+        "record": "015_Mega_Beedrill"
+      },
+      "it": {
+        "name": "MegaBeedrill",
+        "source": "official-mega-it",
+        "record": "015_Mega_Beedrill"
+      },
+      "de": {
+        "name": "Mega-Bibor",
+        "source": "official-mega-de",
+        "record": "015_Mega_Beedrill"
+      },
+      "ja": {
+        "name": "メガスピアー",
+        "source": "official-pokedex-ja",
+        "record": "0015-1"
+      }
+    },
+    "clefable-mega": {
+      "ja": {
+        "name": "メガピクシー",
+        "source": "official-pokedex-ja",
+        "record": "0036-1"
+      },
+      "it": {
+        "name": "MegaClefable",
+        "source": "official-pokedex-it",
+        "record": "https://www.pokemon.com/it/pokedex/clefable"
+      },
+      "es": {
+        "name": "Mega-Clefable",
+        "source": "official-pokedex-es",
+        "record": "https://www.pokemon.com/es/pokedex/clefable"
+      }
+    },
+    "victreebel-mega": {
+      "ja": {
+        "name": "メガウツボット",
+        "source": "official-pokedex-ja",
+        "record": "0071-1"
+      },
+      "it": {
+        "name": "MegaVictreebel",
+        "source": "official-pokedex-it",
+        "record": "https://www.pokemon.com/it/pokedex/victreebel"
+      }
+    },
+    "starmie-mega": {
+      "ja": {
+        "name": "メガスターミー",
+        "source": "official-pokedex-ja",
+        "record": "0121-1"
+      },
+      "it": {
+        "name": "MegaStarmie",
+        "source": "official-pokedex-it",
+        "record": "https://www.pokemon.com/it/pokedex/starmie"
+      },
+      "es": {
+        "name": "Mega-Starmie",
+        "source": "official-pokedex-es",
+        "record": "https://www.pokemon.com/es/pokedex/starmie"
+      }
+    },
+    "dragonite-mega": {
+      "ja": {
+        "name": "メガカイリュー",
+        "source": "official-pokedex-ja",
+        "record": "0149-1"
+      },
+      "it": {
+        "name": "MegaDragonite",
+        "source": "official-pokedex-it",
+        "record": "https://www.pokemon.com/it/pokedex/dragonite"
+      }
+    },
+    "meganium-mega": {
+      "ja": {
+        "name": "メガメガニウム",
+        "source": "official-pokedex-ja",
+        "record": "0154-1"
+      },
+      "it": {
+        "name": "MegaMeganium",
+        "source": "official-pokedex-it",
+        "record": "https://www.pokemon.com/it/pokedex/meganium"
+      },
+      "es": {
+        "name": "Mega-Meganium",
+        "source": "official-pokedex-es",
+        "record": "https://www.pokemon.com/es/pokedex/meganium"
+      }
+    },
+    "feraligatr-mega": {
+      "ja": {
+        "name": "メガオーダイル",
+        "source": "official-pokedex-ja",
+        "record": "0160-1"
+      },
+      "it": {
+        "name": "MegaFeraligatr",
+        "source": "official-pokedex-it",
+        "record": "https://www.pokemon.com/it/pokedex/feraligatr"
+      },
+      "es": {
+        "name": "Mega-Feraligatr",
+        "source": "official-pokedex-es",
+        "record": "https://www.pokemon.com/es/pokedex/feraligatr"
+      }
+    },
+    "skarmory-mega": {
+      "ja": {
+        "name": "メガエアームド",
+        "source": "official-pokedex-ja",
+        "record": "0227-1"
+      },
+      "it": {
+        "name": "MegaSkarmory",
+        "source": "official-pokedex-it",
+        "record": "https://www.pokemon.com/it/pokedex/skarmory"
+      },
+      "es": {
+        "name": "Mega-Skarmory",
+        "source": "official-pokedex-es",
+        "record": "https://www.pokemon.com/es/pokedex/skarmory"
+      }
+    },
+    "froslass-mega": {
+      "ja": {
+        "name": "メガユキメノコ",
+        "source": "official-pokedex-ja",
+        "record": "0478-1"
+      },
+      "it": {
+        "name": "MegaFroslass",
+        "source": "official-pokedex-it",
+        "record": "https://www.pokemon.com/it/pokedex/froslass"
+      },
+      "es": {
+        "name": "Mega-Froslass",
+        "source": "official-pokedex-es",
+        "record": "https://www.pokemon.com/es/pokedex/froslass"
+      }
+    },
+    "emboar-mega": {
+      "ja": {
+        "name": "メガエンブオー",
+        "source": "official-pokedex-ja",
+        "record": "0500-1"
+      },
+      "it": {
+        "name": "MegaEmboar",
+        "source": "official-pokedex-it",
+        "record": "https://www.pokemon.com/it/pokedex/emboar"
+      },
+      "es": {
+        "name": "Mega-Emboar",
+        "source": "official-pokedex-es",
+        "record": "https://www.pokemon.com/es/pokedex/emboar"
+      }
+    },
+    "excadrill-mega": {
+      "ja": {
+        "name": "メガドリュウズ",
+        "source": "official-pokedex-ja",
+        "record": "0530-1"
+      },
+      "it": {
+        "name": "MegaExcadrill",
+        "source": "official-pokedex-it",
+        "record": "https://www.pokemon.com/it/pokedex/excadrill"
+      }
+    },
+    "scolipede-mega": {
+      "ja": {
+        "name": "メガペンドラー",
+        "source": "official-pokedex-ja",
+        "record": "0545-1"
+      },
+      "it": {
+        "name": "MegaScolipede",
+        "source": "official-pokedex-it",
+        "record": "https://www.pokemon.com/it/pokedex/scolipede"
+      }
+    },
+    "scrafty-mega": {
+      "ja": {
+        "name": "メガズルズキン",
+        "source": "official-pokedex-ja",
+        "record": "0560-1"
+      },
+      "it": {
+        "name": "MegaScrafty",
+        "source": "official-pokedex-it",
+        "record": "https://www.pokemon.com/it/pokedex/scrafty"
+      },
+      "es": {
+        "name": "Mega-Scrafty",
+        "source": "official-pokedex-es",
+        "record": "https://www.pokemon.com/es/pokedex/scrafty"
+      }
+    },
+    "eelektross-mega": {
+      "ja": {
+        "name": "メガシビルドン",
+        "source": "official-pokedex-ja",
+        "record": "0604-1"
+      },
+      "es": {
+        "name": "Mega-Eelektross",
+        "source": "official-pokedex-es",
+        "record": "https://www.pokemon.com/es/pokedex/eelektross"
+      }
+    },
+    "chandelure-mega": {
+      "ja": {
+        "name": "メガシャンデラ",
+        "source": "official-pokedex-ja",
+        "record": "0609-1"
+      },
+      "it": {
+        "name": "MegaChandelure",
+        "source": "official-pokedex-it",
+        "record": "https://www.pokemon.com/it/pokedex/chandelure"
+      },
+      "es": {
+        "name": "Mega-Chandelure",
+        "source": "official-pokedex-es",
+        "record": "https://www.pokemon.com/es/pokedex/chandelure"
+      }
+    },
+    "chesnaught-mega": {
+      "ja": {
+        "name": "メガブリガロン",
+        "source": "official-pokedex-ja",
+        "record": "0652-1"
+      },
+      "it": {
+        "name": "MegaChesnaught",
+        "source": "official-pokedex-it",
+        "record": "https://www.pokemon.com/it/pokedex/chesnaught"
+      }
+    },
+    "delphox-mega": {
+      "ja": {
+        "name": "メガマフォクシー",
+        "source": "official-pokedex-ja",
+        "record": "0655-1"
+      },
+      "it": {
+        "name": "MegaDelphox",
+        "source": "official-pokedex-it",
+        "record": "https://www.pokemon.com/it/pokedex/delphox"
+      }
+    },
+    "greninja-mega": {
+      "ja": {
+        "name": "メガゲッコウガ",
+        "source": "official-pokedex-ja",
+        "record": "0658-1"
+      },
+      "it": {
+        "name": "MegaGreninja",
+        "source": "official-pokedex-it",
+        "record": "https://www.pokemon.com/it/pokedex/greninja"
+      },
+      "es": {
+        "name": "Mega-Greninja",
+        "source": "official-pokedex-es",
+        "record": "https://www.pokemon.com/es/pokedex/greninja"
+      }
+    },
+    "pyroar-mega": {
+      "ja": {
+        "name": "メガカエンジシ",
+        "source": "official-pokedex-ja",
+        "record": "0668-2"
+      },
+      "it": {
+        "name": "MegaPyroar",
+        "source": "official-pokedex-it",
+        "record": "https://www.pokemon.com/it/pokedex/pyroar"
+      },
+      "es": {
+        "name": "Mega-Pyroar",
+        "source": "official-pokedex-es",
+        "record": "https://www.pokemon.com/es/pokedex/pyroar"
+      }
+    },
+    "floette-mega": {
+      "ja": {
+        "name": "メガフラエッテ",
+        "source": "official-pokedex-ja",
+        "record": "0670-2"
+      },
+      "it": {
+        "name": "MegaFloette",
+        "source": "official-pokedex-it",
+        "record": "https://www.pokemon.com/it/pokedex/floette"
+      },
+      "es": {
+        "name": "Mega-Floette",
+        "source": "official-pokedex-es",
+        "record": "https://www.pokemon.com/es/pokedex/floette"
+      }
+    },
+    "malamar-mega": {
+      "ja": {
+        "name": "メガカラマネロ",
+        "source": "official-pokedex-ja",
+        "record": "0687-1"
+      },
+      "it": {
+        "name": "MegaMalamar",
+        "source": "official-pokedex-it",
+        "record": "https://www.pokemon.com/it/pokedex/malamar"
+      }
+    },
+    "barbaracle-mega": {
+      "ja": {
+        "name": "メガガメノデス",
+        "source": "official-pokedex-ja",
+        "record": "0689-1"
+      },
+      "it": {
+        "name": "MegaBarbaracle",
+        "source": "official-pokedex-it",
+        "record": "https://www.pokemon.com/it/pokedex/barbaracle"
+      },
+      "es": {
+        "name": "Mega-Barbaracle",
+        "source": "official-pokedex-es",
+        "record": "https://www.pokemon.com/es/pokedex/barbaracle"
+      }
+    },
+    "dragalge-mega": {
+      "ja": {
+        "name": "メガドラミドロ",
+        "source": "official-pokedex-ja",
+        "record": "0691-1"
+      },
+      "it": {
+        "name": "MegaDragalge",
+        "source": "official-pokedex-it",
+        "record": "https://www.pokemon.com/it/pokedex/dragalge"
+      },
+      "es": {
+        "name": "Mega-Dragalge",
+        "source": "official-pokedex-es",
+        "record": "https://www.pokemon.com/es/pokedex/dragalge"
+      }
+    },
+    "hawlucha-mega": {
+      "ja": {
+        "name": "メガルチャブル",
+        "source": "official-pokedex-ja",
+        "record": "0701-1"
+      },
+      "es": {
+        "name": "Mega-Hawlucha",
+        "source": "official-pokedex-es",
+        "record": "https://www.pokemon.com/es/pokedex/hawlucha"
+      }
+    },
+    "zygarde-mega": {
+      "ja": {
+        "name": "メガジガルデ",
+        "source": "official-pokedex-ja",
+        "record": "0718-3"
+      },
+      "it": {
+        "name": "MegaZygarde",
+        "source": "official-pokedex-it",
+        "record": "https://www.pokemon.com/it/pokedex/zygarde"
+      }
+    },
+    "drampa-mega": {
+      "ja": {
+        "name": "メガジジーロン",
+        "source": "official-pokedex-ja",
+        "record": "0780-1"
+      },
+      "it": {
+        "name": "MegaDrampa",
+        "source": "official-pokedex-it",
+        "record": "https://www.pokemon.com/it/pokedex/drampa"
+      },
+      "es": {
+        "name": "Mega-Drampa",
+        "source": "official-pokedex-es",
+        "record": "https://www.pokemon.com/es/pokedex/drampa"
+      }
+    },
+    "falinks-mega": {
+      "ja": {
+        "name": "メガタイレーツ",
+        "source": "official-pokedex-ja",
+        "record": "0870-1"
+      },
+      "it": {
+        "name": "MegaFalinks",
+        "source": "official-pokedex-it",
+        "record": "https://www.pokemon.com/it/pokedex/falinks"
+      },
+      "es": {
+        "name": "Mega-Falinks",
+        "source": "official-pokedex-es",
+        "record": "https://www.pokemon.com/es/pokedex/falinks"
+      }
+    },
+    "raichu-mega-x": {
+      "ja": {
+        "name": "メガライチュウＸ",
+        "source": "official-pokedex-ja",
+        "record": "0026-2"
+      },
+      "it": {
+        "name": "MegaRaichu X",
+        "source": "official-pokedex-it",
+        "record": "https://www.pokemon.com/it/pokedex/raichu"
+      }
+    },
+    "raichu-mega-y": {
+      "ja": {
+        "name": "メガライチュウＹ",
+        "source": "official-pokedex-ja",
+        "record": "0026-3"
+      },
+      "it": {
+        "name": "MegaRaichu Y",
+        "source": "official-pokedex-it",
+        "record": "https://www.pokemon.com/it/pokedex/raichu"
+      }
+    },
+    "chimecho-mega": {
+      "ja": {
+        "name": "メガチリーン",
+        "source": "official-pokedex-ja",
+        "record": "0358-1"
+      },
+      "it": {
+        "name": "MegaChimecho",
+        "source": "official-pokedex-it",
+        "record": "https://www.pokemon.com/it/pokedex/chimecho"
+      },
+      "es": {
+        "name": "Mega-Chimecho",
+        "source": "official-pokedex-es",
+        "record": "https://www.pokemon.com/es/pokedex/chimecho"
+      }
+    },
+    "absol-mega-z": {
+      "ja": {
+        "name": "メガアブソルＺ",
+        "source": "official-pokedex-ja",
+        "record": "0359-2"
+      },
+      "it": {
+        "name": "MegaAbsol Z",
+        "source": "official-pokedex-it",
+        "record": "https://www.pokemon.com/it/pokedex/absol"
+      },
+      "es": {
+        "name": "Mega-Absol Z",
+        "source": "official-pokedex-es",
+        "record": "https://www.pokemon.com/es/pokedex/absol"
+      }
+    },
+    "staraptor-mega": {
+      "ja": {
+        "name": "メガムクホーク",
+        "source": "official-pokedex-ja",
+        "record": "0398-1"
+      },
+      "it": {
+        "name": "MegaStaraptor",
+        "source": "official-pokedex-it",
+        "record": "https://www.pokemon.com/it/pokedex/staraptor"
+      }
+    },
+    "garchomp-mega-z": {
+      "ja": {
+        "name": "メガガブリアスＺ",
+        "source": "official-pokedex-ja",
+        "record": "0445-2"
+      },
+      "it": {
+        "name": "MegaGarchomp Z",
+        "source": "official-pokedex-it",
+        "record": "https://www.pokemon.com/it/pokedex/garchomp"
+      }
+    },
+    "lucario-mega-z": {
+      "ja": {
+        "name": "メガルカリオＺ",
+        "source": "official-pokedex-ja",
+        "record": "0448-2"
+      },
+      "it": {
+        "name": "MegaLucario Z",
+        "source": "official-pokedex-it",
+        "record": "https://www.pokemon.com/it/pokedex/lucario"
+      },
+      "es": {
+        "name": "Mega-Lucario Z",
+        "source": "official-pokedex-es",
+        "record": "https://www.pokemon.com/es/pokedex/lucario"
+      }
+    },
+    "heatran-mega": {
+      "ja": {
+        "name": "メガヒードラン",
+        "source": "official-pokedex-ja",
+        "record": "0485-1"
+      },
+      "it": {
+        "name": "MegaHeatran",
+        "source": "official-pokedex-it",
+        "record": "https://www.pokemon.com/it/pokedex/heatran"
+      },
+      "es": {
+        "name": "Mega-Heatran",
+        "source": "official-pokedex-es",
+        "record": "https://www.pokemon.com/es/pokedex/heatran"
+      }
+    },
+    "darkrai-mega": {
+      "ja": {
+        "name": "メガダークライ",
+        "source": "official-pokedex-ja",
+        "record": "0491-1"
+      },
+      "it": {
+        "name": "MegaDarkrai",
+        "source": "official-pokedex-it",
+        "record": "https://www.pokemon.com/it/pokedex/darkrai"
+      }
+    },
+    "golurk-mega": {
+      "ja": {
+        "name": "メガゴルーグ",
+        "source": "official-pokedex-ja",
+        "record": "0623-1"
+      },
+      "it": {
+        "name": "MegaGolurk",
+        "source": "official-pokedex-it",
+        "record": "https://www.pokemon.com/it/pokedex/golurk"
+      },
+      "es": {
+        "name": "Mega-Golurk",
+        "source": "official-pokedex-es",
+        "record": "https://www.pokemon.com/es/pokedex/golurk"
+      }
+    },
+    "meowstic-male-mega": {
+      "ja": {
+        "name": "メガニャオニクス",
+        "source": "official-pokedex-ja",
+        "record": "0678-2"
+      },
+      "it": {
+        "name": "MegaMeowstic",
+        "source": "official-pokedex-it",
+        "record": "https://www.pokemon.com/it/pokedex/meowstic"
+      }
+    },
+    "crabominable-mega": {
+      "ja": {
+        "name": "メガケケンカニ",
+        "source": "official-pokedex-ja",
+        "record": "0740-1"
+      },
+      "it": {
+        "name": "MegaCrabominable",
+        "source": "official-pokedex-it",
+        "record": "https://www.pokemon.com/it/pokedex/crabominable"
+      },
+      "es": {
+        "name": "Mega-Crabominable",
+        "source": "official-pokedex-es",
+        "record": "https://www.pokemon.com/es/pokedex/crabominable"
+      }
+    },
+    "golisopod-mega": {
+      "ja": {
+        "name": "メガグソクムシャ",
+        "source": "official-pokedex-ja",
+        "record": "0768-1"
+      },
+      "it": {
+        "name": "MegaGolisopod",
+        "source": "official-pokedex-it",
+        "record": "https://www.pokemon.com/it/pokedex/golisopod"
+      },
+      "es": {
+        "name": "Mega-Golisopod",
+        "source": "official-pokedex-es",
+        "record": "https://www.pokemon.com/es/pokedex/golisopod"
+      }
+    },
+    "magearna-mega": {
+      "ja": {
+        "name": "メガマギアナ",
+        "source": "official-pokedex-ja",
+        "record": "0801-2"
+      },
+      "es": {
+        "name": "Mega-Magearna",
+        "source": "official-pokedex-es",
+        "record": "https://www.pokemon.com/es/pokedex/magearna"
+      }
+    },
+    "magearna-original-mega": {
+      "ja": {
+        "name": "メガマギアナ（５００ねんまえのいろ）",
+        "source": "official-pokedex-ja",
+        "record": "0801-3"
+      },
+      "es": {
+        "name": "Mega-Magearna Color Vetusto",
+        "source": "official-pokedex-es",
+        "record": "https://www.pokemon.com/es/pokedex/magearna"
+      }
+    },
+    "zeraora-mega": {
+      "ja": {
+        "name": "メガゼラオラ",
+        "source": "official-pokedex-ja",
+        "record": "0807-1"
+      },
+      "it": {
+        "name": "MegaZeraora",
+        "source": "official-pokedex-it",
+        "record": "https://www.pokemon.com/it/pokedex/zeraora"
+      }
+    },
+    "scovillain-mega": {
+      "ja": {
+        "name": "メガスコヴィラン",
+        "source": "official-pokedex-ja",
+        "record": "0952-1"
+      },
+      "it": {
+        "name": "MegaScovillain",
+        "source": "official-pokedex-it",
+        "record": "https://www.pokemon.com/it/pokedex/scovillain"
+      },
+      "es": {
+        "name": "Mega-Scovillain",
+        "source": "official-pokedex-es",
+        "record": "https://www.pokemon.com/es/pokedex/scovillain"
+      }
+    },
+    "glimmora-mega": {
+      "ja": {
+        "name": "メガキラフロル",
+        "source": "official-pokedex-ja",
+        "record": "0970-1"
+      },
+      "it": {
+        "name": "MegaGlimmora",
+        "source": "official-pokedex-it",
+        "record": "https://www.pokemon.com/it/pokedex/glimmora"
+      },
+      "es": {
+        "name": "Mega-Glimmora",
+        "source": "official-pokedex-es",
+        "record": "https://www.pokemon.com/es/pokedex/glimmora"
+      }
+    },
+    "tatsugiri-curly-mega": {
+      "ja": {
+        "name": "メガシャリタツ（そったすがた）",
+        "source": "official-pokedex-ja",
+        "record": "0978-3"
+      },
+      "it": {
+        "name": "MegaTatsugiri Forma Arcuata",
+        "source": "official-pokedex-it",
+        "record": "https://www.pokemon.com/it/pokedex/tatsugiri"
+      },
+      "es": {
+        "name": "Mega-Tatsugiri Forma Curvada",
+        "source": "official-pokedex-es",
+        "record": "https://www.pokemon.com/es/pokedex/tatsugiri"
+      }
+    },
+    "tatsugiri-droopy-mega": {
+      "ja": {
+        "name": "メガシャリタツ（たれたすがた）",
+        "source": "official-pokedex-ja",
+        "record": "0978-4"
+      },
+      "it": {
+        "name": "MegaTatsugiri Forma Adagiata",
+        "source": "official-pokedex-it",
+        "record": "https://www.pokemon.com/it/pokedex/tatsugiri"
+      },
+      "es": {
+        "name": "Mega-Tatsugiri Forma Lánguida",
+        "source": "official-pokedex-es",
+        "record": "https://www.pokemon.com/es/pokedex/tatsugiri"
+      }
+    },
+    "tatsugiri-stretchy-mega": {
+      "ja": {
+        "name": "メガシャリタツ（のびたすがた）",
+        "source": "official-pokedex-ja",
+        "record": "0978-5"
+      },
+      "it": {
+        "name": "MegaTatsugiri Forma Tesa",
+        "source": "official-pokedex-it",
+        "record": "https://www.pokemon.com/it/pokedex/tatsugiri"
+      },
+      "es": {
+        "name": "Mega-Tatsugiri Forma Recta",
+        "source": "official-pokedex-es",
+        "record": "https://www.pokemon.com/es/pokedex/tatsugiri"
+      }
+    },
+    "baxcalibur-mega": {
+      "ja": {
+        "name": "メガセグレイブ",
+        "source": "official-pokedex-ja",
+        "record": "0998-1"
+      },
+      "it": {
+        "name": "MegaBaxcalibur",
+        "source": "official-pokedex-it",
+        "record": "https://www.pokemon.com/it/pokedex/baxcalibur"
+      }
+    },
+    "meowstic-female-mega": {
+      "ja": {
+        "name": "メガニャオニクス",
+        "source": "official-pokedex-ja",
+        "record": "0678-2"
+      },
+      "it": {
+        "name": "MegaMeowstic",
+        "source": "official-pokedex-it",
+        "record": "https://www.pokemon.com/it/pokedex/meowstic"
+      }
+    }
+  }
+}

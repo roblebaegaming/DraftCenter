@@ -55,6 +55,7 @@
     "test:draft-tournament": "node --test test/draft-tournament.test.js",
     "test:worlds": "npm run worlds:check:vgc-meta && npm run worlds:check:tcg-meta && node --test test/worlds-2026-picks.test.js test/worlds-language-chatboard.test.js test/worlds-future-competitions.test.js test/worlds-future-infrastructure.test.js test/worlds-live-scoring.test.js test/worlds-meta-predictions.test.js test/worlds-pick-share.test.js test/worlds-top-cut-bracket.test.js",
     "test:pokemon-localization": "node --test test/pokemon-localization.test.js",
+    "pokemon:build:official-mega-localizations": "node scripts/build-official-mega-localizations.mjs",
     "pokemon:build:localizations": "node scripts/build-pokemon-localizations.mjs",
     "test:bracket-challenge": "node --test test/bracket-challenge.test.js test/prediction-bracket-share.test.js",
     "test:public-bracket-builder": "node --test test/public-bracket-builder.test.js",

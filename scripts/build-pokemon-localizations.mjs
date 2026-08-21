@@ -3,8 +3,10 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const DEFAULT_POKEAPI_COMMIT = ["5064f1d7", "2746b3a6", "a931616d", "ae3fb644", "5c556d4f"].join("");
+const OFFICIAL_MEGA_NAMES_FILE = "pokemon-mega-official-names-2026-08-21.json";
 const commitArgument = process.argv.find((argument) => argument.startsWith("--pokeapi-commit="));
 const sourceCommit = commitArgument?.split("=")[1] || DEFAULT_POKEAPI_COMMIT;
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 if (!/^[0-9a-f]{40}$/.test(sourceCommit)) {
   throw new Error("--pokeapi-commit must be an exact 40-character PokeAPI commit.");
@@ -175,6 +177,28 @@ for (const row of data["pokemon.csv"].sort((left, right) => Number(left.id) - Nu
   };
 }
 
+const officialMegaNamesPath = path.join(root, "data", "pokemon", OFFICIAL_MEGA_NAMES_FILE);
+const officialMegaNames = JSON.parse(fs.readFileSync(officialMegaNamesPath, "utf8"));
+const officialProfileSourceRevision = officialMegaNames.profile_source_revision_parts?.join("");
+if (officialProfileSourceRevision !== sourceCommit) {
+  throw new Error(`${OFFICIAL_MEGA_NAMES_FILE} targets ${officialProfileSourceRevision}, not ${sourceCommit}.`);
+}
+for (const [profileIdentifier, localizedNames] of Object.entries(officialMegaNames.profiles || {})) {
+  const profile = profiles[profileIdentifier];
+  if (!profile?.is_mega) throw new Error(`${OFFICIAL_MEGA_NAMES_FILE} references unknown Mega profile ${profileIdentifier}.`);
+  for (const [siteCode, entry] of Object.entries(localizedNames)) {
+    if (!TARGET_LANGUAGES.some((language) => language.siteCode === siteCode)) {
+      throw new Error(`${OFFICIAL_MEGA_NAMES_FILE} uses unsupported locale ${siteCode}.`);
+    }
+    const source = officialMegaNames.sources?.[entry.source];
+    if (!entry.name?.trim() || source?.language !== siteCode || !source?.url) {
+      throw new Error(`${OFFICIAL_MEGA_NAMES_FILE} has invalid source data for ${profileIdentifier}.${siteCode}.`);
+    }
+    profile.names[siteCode] = entry.name.trim();
+    profile.name_source[siteCode] = "official-pokemon";
+  }
+}
+
 const megaProfiles = Object.values(profiles).filter((profile) => profile.is_mega);
 const coverage = Object.fromEntries(TARGET_LANGUAGES.map(({ siteCode, pokeApiIdentifier }) => [siteCode, {
   pokeapi_language: pokeApiIdentifier,
@@ -195,6 +219,8 @@ for (const [siteCode, counts] of Object.entries(coverage)) {
 const artifact = {
   source_commit: sourceCommit,
   source_files: CSV_FILES,
+  official_name_source_file: OFFICIAL_MEGA_NAMES_FILE,
+  official_name_sources: officialMegaNames.sources,
   locale_order: TARGET_LANGUAGES.map(({ siteCode }) => siteCode),
   coverage,
   species_count: Object.keys(species).length,
@@ -203,7 +229,6 @@ const artifact = {
   profiles,
 };
 
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const outputDirectory = path.join(root, "data", "pokemon");
 const outputPath = path.join(outputDirectory, `pokemon-localizations.pokeapi-${sourceCommit}.json`);
 fs.mkdirSync(outputDirectory, { recursive: true });
