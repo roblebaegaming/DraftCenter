@@ -108,6 +108,8 @@ Use this before each beta release. Record the date, commit, tester accounts, dev
 - [x] Vercel production deployment reports **Ready**.
 - [x] Production smoke test passes. (`npm run smoke:production`, 14 public routes and 5 protected APIs)
 - [x] Production dependency audit reports no known vulnerabilities. (Next.js 16.2.12, Sharp 0.35.3, PostCSS 8.5.25, and SheetJS 0.20.3; August 2)
+- [ ] The live sitemap and `robots.txt` return 200, contain the expected canonical public cohort, exclude private routes, and report a plausible unique-URL count.
+- [ ] Only when a release materially changes an indexable URL cohort, sitemap structure, canonicals, or language alternatives: resubmit the existing production sitemap once in Google Search Console and record its Submitted, Last read, Status, and Discovered pages values. Skip ordinary UI or copy releases and do not repeat individual indexing requests.
 
 ## Release decision
 

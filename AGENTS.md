@@ -76,6 +76,13 @@ that may already have run. See [`docs/supabase-migration-workflow.md`](docs/supa
 - Confirm the deployed commit and run the signed-out production smoke sweep
   after an authorized release. Do not claim deployment success from local or
   preview evidence alone.
+- After an authorized release that materially adds, removes, renames, or
+  localizes a cohort of public indexable URLs—or changes sitemap, canonical,
+  or language-alternative structure—verify the live sitemap and `robots.txt`,
+  then resubmit the existing production sitemap once in Google Search Console.
+  Record the submitted date, last-read date, status, and discovered-page count.
+  Do not resubmit for ordinary UI or copy changes, and do not repeatedly request
+  indexing for the same URLs.
 
 ## Production boundaries
 
