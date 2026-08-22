@@ -1,0 +1,1649 @@
+{
+  "schemaVersion": 1,
+  "sourceLabel": "TrickRuby 2026 weighted snake draft",
+  "workbookUrl": "https://docs.google.com/spreadsheets/d/1ruM22i8fjk2VyyuK6H0OgkwYlSj6-dB_RHkKw65YtPI/edit",
+  "interpretation": {
+    "draftType": "points-snake",
+    "teamsPerPod": 8,
+    "rule": "Read each round from the leftmost team to the rightmost team, reverse direction for the next round, alternate thereafter, and skip blank cells without consuming a pick number.",
+    "pickNumbers": "one-based",
+    "pointsAffectOrder": false
+  },
+  "eligiblePool": {
+    "regulationId": "reg-mb",
+    "pokemonCount": 307,
+    "namesMd5": "d592a24c8cd3c3e552d6088e08463e07",
+    "reconciliation": "The union of the saved eligible pool, current roster snapshot, and draft-day selections was identical across all four pods.",
+    "pokemon": [
+      "Abomasnow",
+      "Absol",
+      "Aegislash",
+      "Aerodactyl",
+      "Aggron",
+      "Alakazam",
+      "Alcremie",
+      "Alolan Ninetales",
+      "Alolan Raichu",
+      "Altaria",
+      "Ampharos",
+      "Annihilape",
+      "Appletun",
+      "Araquanid",
+      "Arbok",
+      "Arcanine",
+      "Archaludon",
+      "Ariados",
+      "Armarouge",
+      "Aromatisse",
+      "Audino",
+      "Aurorus",
+      "Avalugg",
+      "Azumarill",
+      "Banette",
+      "Barbaracle",
+      "Basculegion",
+      "Basculegion-Female",
+      "Bastiodon",
+      "Beartic",
+      "Beedrill",
+      "Bellibolt",
+      "Blastoise",
+      "Blaziken",
+      "Camerupt",
+      "Castform",
+      "Ceruledge",
+      "Chandelure",
+      "Charizard",
+      "Chesnaught",
+      "Chimecho",
+      "Clawitzer",
+      "Clefable",
+      "Cofagrigus",
+      "Conkeldurr",
+      "Corviknight",
+      "Crabominable",
+      "Decidueye",
+      "Dedenne",
+      "Delphox",
+      "Diggersby",
+      "Ditto",
+      "Dragalge",
+      "Dragapult",
+      "Dragonite",
+      "Drampa",
+      "Eelektross",
+      "Emboar",
+      "Emolga",
+      "Empoleon",
+      "Espathra",
+      "Espeon",
+      "Excadrill",
+      "Falinks",
+      "Farigiraf",
+      "Feraligatr",
+      "Flapple",
+      "Flareon",
+      "Floette-Eternal",
+      "Florges",
+      "Forretress",
+      "Froslass",
+      "Furfrou",
+      "Galarian Slowbro",
+      "Galarian Slowking",
+      "Galarian Stunfisk",
+      "Gallade",
+      "Garbodor",
+      "Garchomp",
+      "Gardevoir",
+      "Garganacl",
+      "Gengar",
+      "Gholdengo",
+      "Glaceon",
+      "Glalie",
+      "Glimmora",
+      "Gliscor",
+      "Golurk",
+      "Goodra",
+      "Gourgeist",
+      "Greninja",
+      "Grimmsnarl",
+      "Gyarados",
+      "Hatterene",
+      "Hawlucha",
+      "Heliolisk",
+      "Heracross",
+      "Hippowdon",
+      "Hisuian Arcanine",
+      "Hisuian Avalugg",
+      "Hisuian Decidueye",
+      "Hisuian Goodra",
+      "Hisuian Samurott",
+      "Hisuian Typhlosion",
+      "Hisuian Zoroark",
+      "Houndoom",
+      "Houndstone",
+      "Hydrapple",
+      "Hydreigon",
+      "Incineroar",
+      "Infernape",
+      "Jolteon",
+      "Kangaskhan",
+      "Kingambit",
+      "Kleavor",
+      "Klefki",
+      "Kommo-o",
+      "Krookodile",
+      "Leafeon",
+      "Liepard",
+      "Lopunny",
+      "Lucario",
+      "Luxray",
+      "Lycanroc-Dusk",
+      "Lycanroc-Midday",
+      "Lycanroc-Midnight",
+      "Machamp",
+      "Malamar",
+      "Mamoswine",
+      "Manectric",
+      "Maushold",
+      "Mawile",
+      "Medicham",
+      "Mega Abomasnow",
+      "Mega Absol",
+      "Mega Aerodactyl",
+      "Mega Aggron",
+      "Mega Alakazam",
+      "Mega Altaria",
+      "Mega Ampharos",
+      "Mega Audino",
+      "Mega Banette",
+      "Mega Barbaracle",
+      "Mega Beedrill",
+      "Mega Blastoise",
+      "Mega Blaziken",
+      "Mega Camerupt",
+      "Mega Chandelure",
+      "Mega Charizard X",
+      "Mega Charizard Y",
+      "Mega Chesnaught",
+      "Mega Chimecho",
+      "Mega Clefable",
+      "Mega Crabominable",
+      "Mega Delphox",
+      "Mega Dragalge",
+      "Mega Dragonite",
+      "Mega Drampa",
+      "Mega Eelektross",
+      "Mega Emboar",
+      "Mega Excadrill",
+      "Mega Falinks",
+      "Mega Feraligatr",
+      "Mega Floette",
+      "Mega Froslass",
+      "Mega Gallade",
+      "Mega Garchomp",
+      "Mega Gardevoir",
+      "Mega Gengar",
+      "Mega Glalie",
+      "Mega Glimmora",
+      "Mega Golurk",
+      "Mega Greninja",
+      "Mega Gyarados",
+      "Mega Hawlucha",
+      "Mega Heracross",
+      "Mega Houndoom",
+      "Mega Kangaskhan",
+      "Mega Lopunny",
+      "Mega Lucario",
+      "Mega Malamar",
+      "Mega Manectric",
+      "Mega Mawile",
+      "Mega Medicham",
+      "Mega Meganium",
+      "Mega Meowstic",
+      "Mega Metagross",
+      "Mega Pidgeot",
+      "Mega Pinsir",
+      "Mega Pyroar",
+      "Mega Raichu X",
+      "Mega Raichu Y",
+      "Mega Sableye",
+      "Mega Sceptile",
+      "Mega Scizor",
+      "Mega Scolipede",
+      "Mega Scovillain",
+      "Mega Scrafty",
+      "Mega Sharpedo",
+      "Mega Skarmory",
+      "Mega Slowbro",
+      "Mega Staraptor",
+      "Mega Starmie",
+      "Mega Steelix",
+      "Mega Swampert",
+      "Mega Tyranitar",
+      "Mega Venusaur",
+      "Mega Victreebel",
+      "Meganium",
+      "Meowscarada",
+      "Meowstic",
+      "Meowstic-Female",
+      "Metagross",
+      "Milotic",
+      "Mimikyu",
+      "Morpeko",
+      "Mr. Rime",
+      "Mudsdale",
+      "Musharna",
+      "Ninetales",
+      "Noivern",
+      "Oranguru",
+      "Orthworm",
+      "Overqwil",
+      "Palafin",
+      "Paldean Tauros",
+      "Paldean Tauros (Fire)",
+      "Paldean Tauros (Water)",
+      "Pangoro",
+      "Passimian",
+      "Pelipper",
+      "Pidgeot",
+      "Pikachu",
+      "Pinsir",
+      "Politoed",
+      "Polteageist",
+      "Primarina",
+      "Pyroar",
+      "Quaquaval",
+      "Qwilfish",
+      "Raichu",
+      "Rampardos",
+      "Reuniclus",
+      "Rhyperior",
+      "Roserade",
+      "Rotom",
+      "Rotom-Fan",
+      "Rotom-Frost",
+      "Rotom-Heat",
+      "Rotom-Mow",
+      "Rotom-Wash",
+      "Runerigus",
+      "Sableye",
+      "Salazzle",
+      "Samurott",
+      "Sandaconda",
+      "Sceptile",
+      "Scizor",
+      "Scolipede",
+      "Scovillain",
+      "Scrafty",
+      "Serperior",
+      "Sharpedo",
+      "Simipour",
+      "Simisage",
+      "Simisear",
+      "Sinistcha",
+      "Skarmory",
+      "Skeledirge",
+      "Slowbro",
+      "Slowking",
+      "Slurpuff",
+      "Sneasler",
+      "Snorlax",
+      "Spiritomb",
+      "Staraptor",
+      "Starmie",
+      "Steelix",
+      "Stunfisk",
+      "Swampert",
+      "Sylveon",
+      "Talonflame",
+      "Tauros",
+      "Tinkaton",
+      "Torkoal",
+      "Torterra",
+      "Toucannon",
+      "Toxapex",
+      "Toxicroak",
+      "Trevenant",
+      "Tsareena",
+      "Typhlosion",
+      "Tyranitar",
+      "Tyrantrum",
+      "Umbreon",
+      "Vanilluxe",
+      "Vaporeon",
+      "Venusaur",
+      "Victreebel",
+      "Vileplume",
+      "Vivillon",
+      "Volcarona",
+      "Watchog",
+      "Weavile",
+      "Whimsicott",
+      "Wyrdeer",
+      "Zoroark"
+    ]
+  },
+  "sources": [
+    {
+      "sourceKey": "trickruby-2026-bearemy",
+      "pod": "Bearemy pod",
+      "sheetGid": "668406941",
+      "sourceCsvSha256": "60171ad2a336e8bb00a53d55271b17e73eaf2b28b0bae730f87fe14c2195b3f8",
+      "pickOrderMd5": "87029787b25ba6fecf85ffbbacc61f07",
+      "completedPicks": 80,
+      "picks": [
+        {
+          "pickNumber": 1,
+          "pokemon": "Mega Pyroar"
+        },
+        {
+          "pickNumber": 2,
+          "pokemon": "Mega Floette"
+        },
+        {
+          "pickNumber": 3,
+          "pokemon": "Garchomp"
+        },
+        {
+          "pickNumber": 4,
+          "pokemon": "Basculegion-Female"
+        },
+        {
+          "pickNumber": 5,
+          "pokemon": "Mega Gardevoir"
+        },
+        {
+          "pickNumber": 6,
+          "pokemon": "Sylveon"
+        },
+        {
+          "pickNumber": 7,
+          "pokemon": "Archaludon"
+        },
+        {
+          "pickNumber": 8,
+          "pokemon": "Sneasler"
+        },
+        {
+          "pickNumber": 9,
+          "pokemon": "Ceruledge"
+        },
+        {
+          "pickNumber": 10,
+          "pokemon": "Pelipper"
+        },
+        {
+          "pickNumber": 11,
+          "pokemon": "Farigiraf"
+        },
+        {
+          "pickNumber": 12,
+          "pokemon": "Maushold"
+        },
+        {
+          "pickNumber": 13,
+          "pokemon": "Vivillon"
+        },
+        {
+          "pickNumber": 14,
+          "pokemon": "Milotic"
+        },
+        {
+          "pickNumber": 15,
+          "pokemon": "Incineroar"
+        },
+        {
+          "pickNumber": 16,
+          "pokemon": "Torkoal"
+        },
+        {
+          "pickNumber": 17,
+          "pokemon": "Oranguru"
+        },
+        {
+          "pickNumber": 18,
+          "pokemon": "Mega Gengar"
+        },
+        {
+          "pickNumber": 19,
+          "pokemon": "Sinistcha"
+        },
+        {
+          "pickNumber": 20,
+          "pokemon": "Mega Banette"
+        },
+        {
+          "pickNumber": 21,
+          "pokemon": "Talonflame"
+        },
+        {
+          "pickNumber": 22,
+          "pokemon": "Mega Charizard X"
+        },
+        {
+          "pickNumber": 23,
+          "pokemon": "Glimmora"
+        },
+        {
+          "pickNumber": 24,
+          "pokemon": "Palafin"
+        },
+        {
+          "pickNumber": 25,
+          "pokemon": "Mega Venusaur"
+        },
+        {
+          "pickNumber": 26,
+          "pokemon": "Liepard"
+        },
+        {
+          "pickNumber": 27,
+          "pokemon": "Hisuian Samurott"
+        },
+        {
+          "pickNumber": 28,
+          "pokemon": "Kommo-o"
+        },
+        {
+          "pickNumber": 29,
+          "pokemon": "Hisuian Decidueye"
+        },
+        {
+          "pickNumber": 30,
+          "pokemon": "Mega Froslass"
+        },
+        {
+          "pickNumber": 31,
+          "pokemon": "Espathra"
+        },
+        {
+          "pickNumber": 32,
+          "pokemon": "Mega Mawile"
+        },
+        {
+          "pickNumber": 33,
+          "pokemon": "Vileplume"
+        },
+        {
+          "pickNumber": 34,
+          "pokemon": "Tsareena"
+        },
+        {
+          "pickNumber": 35,
+          "pokemon": "Armarouge"
+        },
+        {
+          "pickNumber": 36,
+          "pokemon": "Heliolisk"
+        },
+        {
+          "pickNumber": 37,
+          "pokemon": "Aegislash"
+        },
+        {
+          "pickNumber": 38,
+          "pokemon": "Kangaskhan"
+        },
+        {
+          "pickNumber": 39,
+          "pokemon": "Empoleon"
+        },
+        {
+          "pickNumber": 40,
+          "pokemon": "Aurorus"
+        },
+        {
+          "pickNumber": 41,
+          "pokemon": "Mega Meowstic"
+        },
+        {
+          "pickNumber": 42,
+          "pokemon": "Mega Malamar"
+        },
+        {
+          "pickNumber": 43,
+          "pokemon": "Gourgeist"
+        },
+        {
+          "pickNumber": 44,
+          "pokemon": "Mega Eelektross"
+        },
+        {
+          "pickNumber": 45,
+          "pokemon": "Musharna"
+        },
+        {
+          "pickNumber": 46,
+          "pokemon": "Altaria"
+        },
+        {
+          "pickNumber": 47,
+          "pokemon": "Blastoise"
+        },
+        {
+          "pickNumber": 48,
+          "pokemon": "Mega Crabominable"
+        },
+        {
+          "pickNumber": 49,
+          "pokemon": "Simipour"
+        },
+        {
+          "pickNumber": 50,
+          "pokemon": "Gliscor"
+        },
+        {
+          "pickNumber": 51,
+          "pokemon": "Mega Delphox"
+        },
+        {
+          "pickNumber": 52,
+          "pokemon": "Snorlax"
+        },
+        {
+          "pickNumber": 53,
+          "pokemon": "Krookodile"
+        },
+        {
+          "pickNumber": 54,
+          "pokemon": "Meowstic"
+        },
+        {
+          "pickNumber": 55,
+          "pokemon": "Toxicroak"
+        },
+        {
+          "pickNumber": 56,
+          "pokemon": "Mega Clefable"
+        },
+        {
+          "pickNumber": 57,
+          "pokemon": "Corviknight"
+        },
+        {
+          "pickNumber": 58,
+          "pokemon": "Skarmory"
+        },
+        {
+          "pickNumber": 59,
+          "pokemon": "Gallade"
+        },
+        {
+          "pickNumber": 60,
+          "pokemon": "Simisage"
+        },
+        {
+          "pickNumber": 61,
+          "pokemon": "Gardevoir"
+        },
+        {
+          "pickNumber": 62,
+          "pokemon": "Ditto"
+        },
+        {
+          "pickNumber": 63,
+          "pokemon": "Mega Houndoom"
+        },
+        {
+          "pickNumber": 64,
+          "pokemon": "Ariados"
+        },
+        {
+          "pickNumber": 65,
+          "pokemon": "Mega Slowbro"
+        },
+        {
+          "pickNumber": 66,
+          "pokemon": "Dedenne"
+        },
+        {
+          "pickNumber": 67,
+          "pokemon": "Galarian Stunfisk"
+        },
+        {
+          "pickNumber": 68,
+          "pokemon": "Scrafty"
+        },
+        {
+          "pickNumber": 69,
+          "pokemon": "Vaporeon"
+        },
+        {
+          "pickNumber": 70,
+          "pokemon": "Mega Scizor"
+        },
+        {
+          "pickNumber": 71,
+          "pokemon": "Mega Staraptor"
+        },
+        {
+          "pickNumber": 72,
+          "pokemon": "Morpeko"
+        },
+        {
+          "pickNumber": 73,
+          "pokemon": "Mudsdale"
+        },
+        {
+          "pickNumber": 74,
+          "pokemon": "Hisuian Zoroark"
+        },
+        {
+          "pickNumber": 75,
+          "pokemon": "Hisuian Avalugg"
+        },
+        {
+          "pickNumber": 76,
+          "pokemon": "Excadrill"
+        },
+        {
+          "pickNumber": 77,
+          "pokemon": "Rotom-Wash"
+        },
+        {
+          "pickNumber": 78,
+          "pokemon": "Noivern"
+        },
+        {
+          "pickNumber": 79,
+          "pokemon": "Mega Charizard Y"
+        },
+        {
+          "pickNumber": 80,
+          "pokemon": "Appletun"
+        }
+      ]
+    },
+    {
+      "sourceKey": "trickruby-2026-garchomp",
+      "pod": "Garchomp pod",
+      "sheetGid": "106035374",
+      "sourceCsvSha256": "13c8bd464d6c36a59f00ba877fa5ddf5edd2d6fdd811a73dc6389f2367c6f736",
+      "pickOrderMd5": "d6f1264bb40cab860dd9877e8d40a5e1",
+      "completedPicks": 79,
+      "picks": [
+        {
+          "pickNumber": 1,
+          "pokemon": "Sinistcha"
+        },
+        {
+          "pickNumber": 2,
+          "pokemon": "Garchomp"
+        },
+        {
+          "pickNumber": 3,
+          "pokemon": "Mega Metagross"
+        },
+        {
+          "pickNumber": 4,
+          "pokemon": "Whimsicott"
+        },
+        {
+          "pickNumber": 5,
+          "pokemon": "Mega Lucario"
+        },
+        {
+          "pickNumber": 6,
+          "pokemon": "Mega Glimmora"
+        },
+        {
+          "pickNumber": 7,
+          "pokemon": "Incineroar"
+        },
+        {
+          "pickNumber": 8,
+          "pokemon": "Mega Charizard Y"
+        },
+        {
+          "pickNumber": 9,
+          "pokemon": "Kingambit"
+        },
+        {
+          "pickNumber": 10,
+          "pokemon": "Mega Floette"
+        },
+        {
+          "pickNumber": 11,
+          "pokemon": "Talonflame"
+        },
+        {
+          "pickNumber": 12,
+          "pokemon": "Vivillon"
+        },
+        {
+          "pickNumber": 13,
+          "pokemon": "Mega Delphox"
+        },
+        {
+          "pickNumber": 14,
+          "pokemon": "Milotic"
+        },
+        {
+          "pickNumber": 15,
+          "pokemon": "Mega Gardevoir"
+        },
+        {
+          "pickNumber": 16,
+          "pokemon": "Farigiraf"
+        },
+        {
+          "pickNumber": 17,
+          "pokemon": "Umbreon"
+        },
+        {
+          "pickNumber": 18,
+          "pokemon": "Tinkaton"
+        },
+        {
+          "pickNumber": 19,
+          "pokemon": "Tsareena"
+        },
+        {
+          "pickNumber": 20,
+          "pokemon": "Alolan Ninetales"
+        },
+        {
+          "pickNumber": 21,
+          "pokemon": "Dragapult"
+        },
+        {
+          "pickNumber": 22,
+          "pokemon": "Meowstic"
+        },
+        {
+          "pickNumber": 23,
+          "pokemon": "Sneasler"
+        },
+        {
+          "pickNumber": 24,
+          "pokemon": "Mega Garchomp"
+        },
+        {
+          "pickNumber": 25,
+          "pokemon": "Annihilape"
+        },
+        {
+          "pickNumber": 26,
+          "pokemon": "Maushold"
+        },
+        {
+          "pickNumber": 27,
+          "pokemon": "Mega Gyarados"
+        },
+        {
+          "pickNumber": 28,
+          "pokemon": "Primarina"
+        },
+        {
+          "pickNumber": 29,
+          "pokemon": "Klefki"
+        },
+        {
+          "pickNumber": 30,
+          "pokemon": "Ceruledge"
+        },
+        {
+          "pickNumber": 31,
+          "pokemon": "Rotom-Heat"
+        },
+        {
+          "pickNumber": 32,
+          "pokemon": "Torkoal"
+        },
+        {
+          "pickNumber": 33,
+          "pokemon": "Mega Scrafty"
+        },
+        {
+          "pickNumber": 34,
+          "pokemon": "Hisuian Decidueye"
+        },
+        {
+          "pickNumber": 35,
+          "pokemon": "Grimmsnarl"
+        },
+        {
+          "pickNumber": 36,
+          "pokemon": "Mega Absol"
+        },
+        {
+          "pickNumber": 37,
+          "pokemon": "Hisuian Arcanine"
+        },
+        {
+          "pickNumber": 38,
+          "pokemon": "Meowscarada"
+        },
+        {
+          "pickNumber": 39,
+          "pokemon": "Toxapex"
+        },
+        {
+          "pickNumber": 40,
+          "pokemon": "Floette-Eternal"
+        },
+        {
+          "pickNumber": 41,
+          "pokemon": "Corviknight"
+        },
+        {
+          "pickNumber": 42,
+          "pokemon": "Kommo-o"
+        },
+        {
+          "pickNumber": 43,
+          "pokemon": "Sylveon"
+        },
+        {
+          "pickNumber": 44,
+          "pokemon": "Trevenant"
+        },
+        {
+          "pickNumber": 45,
+          "pokemon": "Mega Excadrill"
+        },
+        {
+          "pickNumber": 46,
+          "pokemon": "Gallade"
+        },
+        {
+          "pickNumber": 47,
+          "pokemon": "Ariados"
+        },
+        {
+          "pickNumber": 48,
+          "pokemon": "Hatterene"
+        },
+        {
+          "pickNumber": 49,
+          "pokemon": "Vileplume"
+        },
+        {
+          "pickNumber": 50,
+          "pokemon": "Hisuian Samurott"
+        },
+        {
+          "pickNumber": 51,
+          "pokemon": "Mega Dragonite"
+        },
+        {
+          "pickNumber": 52,
+          "pokemon": "Lycanroc-Midday"
+        },
+        {
+          "pickNumber": 53,
+          "pokemon": "Gliscor"
+        },
+        {
+          "pickNumber": 54,
+          "pokemon": "Rotom-Wash"
+        },
+        {
+          "pickNumber": 55,
+          "pokemon": "Altaria"
+        },
+        {
+          "pickNumber": 56,
+          "pokemon": "Vaporeon"
+        },
+        {
+          "pickNumber": 57,
+          "pokemon": "Lopunny"
+        },
+        {
+          "pickNumber": 58,
+          "pokemon": "Jolteon"
+        },
+        {
+          "pickNumber": 59,
+          "pokemon": "Skeledirge"
+        },
+        {
+          "pickNumber": 60,
+          "pokemon": "Hisuian Zoroark"
+        },
+        {
+          "pickNumber": 61,
+          "pokemon": "Castform"
+        },
+        {
+          "pickNumber": 62,
+          "pokemon": "Krookodile"
+        },
+        {
+          "pickNumber": 63,
+          "pokemon": "Lycanroc-Dusk"
+        },
+        {
+          "pickNumber": 64,
+          "pokemon": "Mega Camerupt"
+        },
+        {
+          "pickNumber": 65,
+          "pokemon": "Hisuian Avalugg"
+        },
+        {
+          "pickNumber": 66,
+          "pokemon": "Mega Pyroar"
+        },
+        {
+          "pickNumber": 67,
+          "pokemon": "Pikachu"
+        },
+        {
+          "pickNumber": 68,
+          "pokemon": "Paldean Tauros (Water)"
+        },
+        {
+          "pickNumber": 69,
+          "pokemon": "Mega Aerodactyl"
+        },
+        {
+          "pickNumber": 70,
+          "pokemon": "Galarian Stunfisk"
+        },
+        {
+          "pickNumber": 71,
+          "pokemon": "Ditto"
+        },
+        {
+          "pickNumber": 72,
+          "pokemon": "Arbok"
+        },
+        {
+          "pickNumber": 73,
+          "pokemon": "Victreebel"
+        },
+        {
+          "pickNumber": 74,
+          "pokemon": "Morpeko"
+        },
+        {
+          "pickNumber": 75,
+          "pokemon": "Simisage"
+        },
+        {
+          "pickNumber": 76,
+          "pokemon": "Bastiodon"
+        },
+        {
+          "pickNumber": 77,
+          "pokemon": "Banette"
+        },
+        {
+          "pickNumber": 78,
+          "pokemon": "Bellibolt"
+        },
+        {
+          "pickNumber": 79,
+          "pokemon": "Simipour"
+        }
+      ]
+    },
+    {
+      "sourceKey": "trickruby-2026-jellicent",
+      "pod": "Jellicent pod",
+      "sheetGid": "187222600",
+      "sourceCsvSha256": "15a42bf80928ce36b924178d882f9877af41965dcd89362ba24cb0a70c502b47",
+      "pickOrderMd5": "39f48a2a62f1b27cc5f5302ef08df214",
+      "completedPicks": 80,
+      "picks": [
+        {
+          "pickNumber": 1,
+          "pokemon": "Farigiraf"
+        },
+        {
+          "pickNumber": 2,
+          "pokemon": "Mega Gengar"
+        },
+        {
+          "pickNumber": 3,
+          "pokemon": "Mega Metagross"
+        },
+        {
+          "pickNumber": 4,
+          "pokemon": "Kingambit"
+        },
+        {
+          "pickNumber": 5,
+          "pokemon": "Mega Blastoise"
+        },
+        {
+          "pickNumber": 6,
+          "pokemon": "Mega Charizard Y"
+        },
+        {
+          "pickNumber": 7,
+          "pokemon": "Garchomp"
+        },
+        {
+          "pickNumber": 8,
+          "pokemon": "Pelipper"
+        },
+        {
+          "pickNumber": 9,
+          "pokemon": "Primarina"
+        },
+        {
+          "pickNumber": 10,
+          "pokemon": "Mega Mawile"
+        },
+        {
+          "pickNumber": 11,
+          "pokemon": "Hydreigon"
+        },
+        {
+          "pickNumber": 12,
+          "pokemon": "Klefki"
+        },
+        {
+          "pickNumber": 13,
+          "pokemon": "Mega Scovillain"
+        },
+        {
+          "pickNumber": 14,
+          "pokemon": "Whimsicott"
+        },
+        {
+          "pickNumber": 15,
+          "pokemon": "Alolan Ninetales"
+        },
+        {
+          "pickNumber": 16,
+          "pokemon": "Hippowdon"
+        },
+        {
+          "pickNumber": 17,
+          "pokemon": "Mega Camerupt"
+        },
+        {
+          "pickNumber": 18,
+          "pokemon": "Archaludon"
+        },
+        {
+          "pickNumber": 19,
+          "pokemon": "Milotic"
+        },
+        {
+          "pickNumber": 20,
+          "pokemon": "Sinistcha"
+        },
+        {
+          "pickNumber": 21,
+          "pokemon": "Tsareena"
+        },
+        {
+          "pickNumber": 22,
+          "pokemon": "Venusaur"
+        },
+        {
+          "pickNumber": 23,
+          "pokemon": "Talonflame"
+        },
+        {
+          "pickNumber": 24,
+          "pokemon": "Mega Swampert"
+        },
+        {
+          "pickNumber": 25,
+          "pokemon": "Basculegion"
+        },
+        {
+          "pickNumber": 26,
+          "pokemon": "Hisuian Goodra"
+        },
+        {
+          "pickNumber": 27,
+          "pokemon": "Rotom-Wash"
+        },
+        {
+          "pickNumber": 28,
+          "pokemon": "Skeledirge"
+        },
+        {
+          "pickNumber": 29,
+          "pokemon": "Kommo-o"
+        },
+        {
+          "pickNumber": 30,
+          "pokemon": "Ceruledge"
+        },
+        {
+          "pickNumber": 31,
+          "pokemon": "Politoed"
+        },
+        {
+          "pickNumber": 32,
+          "pokemon": "Vaporeon"
+        },
+        {
+          "pickNumber": 33,
+          "pokemon": "Snorlax"
+        },
+        {
+          "pickNumber": 34,
+          "pokemon": "Incineroar"
+        },
+        {
+          "pickNumber": 35,
+          "pokemon": "Toxapex"
+        },
+        {
+          "pickNumber": 36,
+          "pokemon": "Gyarados"
+        },
+        {
+          "pickNumber": 37,
+          "pokemon": "Noivern"
+        },
+        {
+          "pickNumber": 38,
+          "pokemon": "Mamoswine"
+        },
+        {
+          "pickNumber": 39,
+          "pokemon": "Mega Froslass"
+        },
+        {
+          "pickNumber": 40,
+          "pokemon": "Maushold"
+        },
+        {
+          "pickNumber": 41,
+          "pokemon": "Lucario"
+        },
+        {
+          "pickNumber": 42,
+          "pokemon": "Wyrdeer"
+        },
+        {
+          "pickNumber": 43,
+          "pokemon": "Oranguru"
+        },
+        {
+          "pickNumber": 44,
+          "pokemon": "Krookodile"
+        },
+        {
+          "pickNumber": 45,
+          "pokemon": "Lycanroc-Dusk"
+        },
+        {
+          "pickNumber": 46,
+          "pokemon": "Kleavor"
+        },
+        {
+          "pickNumber": 47,
+          "pokemon": "Beartic"
+        },
+        {
+          "pickNumber": 48,
+          "pokemon": "Mega Tyranitar"
+        },
+        {
+          "pickNumber": 49,
+          "pokemon": "Machamp"
+        },
+        {
+          "pickNumber": 50,
+          "pokemon": "Mega Malamar"
+        },
+        {
+          "pickNumber": 51,
+          "pokemon": "Mega Altaria"
+        },
+        {
+          "pickNumber": 52,
+          "pokemon": "Mega Abomasnow"
+        },
+        {
+          "pickNumber": 53,
+          "pokemon": "Espathra"
+        },
+        {
+          "pickNumber": 54,
+          "pokemon": "Empoleon"
+        },
+        {
+          "pickNumber": 55,
+          "pokemon": "Pangoro"
+        },
+        {
+          "pickNumber": 56,
+          "pokemon": "Hisuian Samurott"
+        },
+        {
+          "pickNumber": 57,
+          "pokemon": "Bellibolt"
+        },
+        {
+          "pickNumber": 58,
+          "pokemon": "Serperior"
+        },
+        {
+          "pickNumber": 59,
+          "pokemon": "Scovillain"
+        },
+        {
+          "pickNumber": 60,
+          "pokemon": "Raichu"
+        },
+        {
+          "pickNumber": 61,
+          "pokemon": "Rotom-Frost"
+        },
+        {
+          "pickNumber": 62,
+          "pokemon": "Ariados"
+        },
+        {
+          "pickNumber": 63,
+          "pokemon": "Altaria"
+        },
+        {
+          "pickNumber": 64,
+          "pokemon": "Gholdengo"
+        },
+        {
+          "pickNumber": 65,
+          "pokemon": "Clefable"
+        },
+        {
+          "pickNumber": 66,
+          "pokemon": "Garganacl"
+        },
+        {
+          "pickNumber": 67,
+          "pokemon": "Rotom-Mow"
+        },
+        {
+          "pickNumber": 68,
+          "pokemon": "Dedenne"
+        },
+        {
+          "pickNumber": 69,
+          "pokemon": "Paldean Tauros"
+        },
+        {
+          "pickNumber": 70,
+          "pokemon": "Mudsdale"
+        },
+        {
+          "pickNumber": 71,
+          "pokemon": "Mega Dragalge"
+        },
+        {
+          "pickNumber": 72,
+          "pokemon": "Meowstic-Female"
+        },
+        {
+          "pickNumber": 73,
+          "pokemon": "Simipour"
+        },
+        {
+          "pickNumber": 74,
+          "pokemon": "Ditto"
+        },
+        {
+          "pickNumber": 75,
+          "pokemon": "Mega Clefable"
+        },
+        {
+          "pickNumber": 76,
+          "pokemon": "Lopunny"
+        },
+        {
+          "pickNumber": 77,
+          "pokemon": "Toucannon"
+        },
+        {
+          "pickNumber": 78,
+          "pokemon": "Alakazam"
+        },
+        {
+          "pickNumber": 79,
+          "pokemon": "Kangaskhan"
+        },
+        {
+          "pickNumber": 80,
+          "pokemon": "Simisage"
+        }
+      ]
+    },
+    {
+      "sourceKey": "trickruby-2026-lechuga",
+      "pod": "Lechuga pod",
+      "sheetGid": "1515979068",
+      "sourceCsvSha256": "e5a018407b24d57c94f801b1283318c4e6bb00cad23f45de0d4f95485851f16d",
+      "pickOrderMd5": "0333432e1fdedb318dcdbe3ecc5ca28a",
+      "completedPicks": 81,
+      "picks": [
+        {
+          "pickNumber": 1,
+          "pokemon": "Mega Kangaskhan"
+        },
+        {
+          "pickNumber": 2,
+          "pokemon": "Whimsicott"
+        },
+        {
+          "pickNumber": 3,
+          "pokemon": "Mega Gengar"
+        },
+        {
+          "pickNumber": 4,
+          "pokemon": "Mega Metagross"
+        },
+        {
+          "pickNumber": 5,
+          "pokemon": "Sinistcha"
+        },
+        {
+          "pickNumber": 6,
+          "pokemon": "Mega Charizard X"
+        },
+        {
+          "pickNumber": 7,
+          "pokemon": "Incineroar"
+        },
+        {
+          "pickNumber": 8,
+          "pokemon": "Mega Raichu Y"
+        },
+        {
+          "pickNumber": 9,
+          "pokemon": "Sableye"
+        },
+        {
+          "pickNumber": 10,
+          "pokemon": "Grimmsnarl"
+        },
+        {
+          "pickNumber": 11,
+          "pokemon": "Vivillon"
+        },
+        {
+          "pickNumber": 12,
+          "pokemon": "Sneasler"
+        },
+        {
+          "pickNumber": 13,
+          "pokemon": "Mega Blastoise"
+        },
+        {
+          "pickNumber": 14,
+          "pokemon": "Alolan Ninetales"
+        },
+        {
+          "pickNumber": 15,
+          "pokemon": "Mega Garchomp"
+        },
+        {
+          "pickNumber": 16,
+          "pokemon": "Venusaur"
+        },
+        {
+          "pickNumber": 17,
+          "pokemon": "Farigiraf"
+        },
+        {
+          "pickNumber": 18,
+          "pokemon": "Mega Froslass"
+        },
+        {
+          "pickNumber": 19,
+          "pokemon": "Kingambit"
+        },
+        {
+          "pickNumber": 20,
+          "pokemon": "Talonflame"
+        },
+        {
+          "pickNumber": 21,
+          "pokemon": "Volcarona"
+        },
+        {
+          "pickNumber": 22,
+          "pokemon": "Basculegion-Female"
+        },
+        {
+          "pickNumber": 23,
+          "pokemon": "Mega Pyroar"
+        },
+        {
+          "pickNumber": 24,
+          "pokemon": "Mega Swampert"
+        },
+        {
+          "pickNumber": 25,
+          "pokemon": "Pelipper"
+        },
+        {
+          "pickNumber": 26,
+          "pokemon": "Torkoal"
+        },
+        {
+          "pickNumber": 27,
+          "pokemon": "Tsareena"
+        },
+        {
+          "pickNumber": 28,
+          "pokemon": "Raichu"
+        },
+        {
+          "pickNumber": 29,
+          "pokemon": "Clefable"
+        },
+        {
+          "pickNumber": 30,
+          "pokemon": "Milotic"
+        },
+        {
+          "pickNumber": 31,
+          "pokemon": "Scrafty"
+        },
+        {
+          "pickNumber": 32,
+          "pokemon": "Mega Charizard Y"
+        },
+        {
+          "pickNumber": 33,
+          "pokemon": "Garchomp"
+        },
+        {
+          "pickNumber": 34,
+          "pokemon": "Hisuian Typhlosion"
+        },
+        {
+          "pickNumber": 35,
+          "pokemon": "Tinkaton"
+        },
+        {
+          "pickNumber": 36,
+          "pokemon": "Krookodile"
+        },
+        {
+          "pickNumber": 37,
+          "pokemon": "Klefki"
+        },
+        {
+          "pickNumber": 38,
+          "pokemon": "Mega Banette"
+        },
+        {
+          "pickNumber": 39,
+          "pokemon": "Rotom-Wash"
+        },
+        {
+          "pickNumber": 40,
+          "pokemon": "Archaludon"
+        },
+        {
+          "pickNumber": 41,
+          "pokemon": "Pikachu"
+        },
+        {
+          "pickNumber": 42,
+          "pokemon": "Espathra"
+        },
+        {
+          "pickNumber": 43,
+          "pokemon": "Conkeldurr"
+        },
+        {
+          "pickNumber": 44,
+          "pokemon": "Noivern"
+        },
+        {
+          "pickNumber": 45,
+          "pokemon": "Infernape"
+        },
+        {
+          "pickNumber": 46,
+          "pokemon": "Altaria"
+        },
+        {
+          "pickNumber": 47,
+          "pokemon": "Hisuian Samurott"
+        },
+        {
+          "pickNumber": 48,
+          "pokemon": "Heliolisk"
+        },
+        {
+          "pickNumber": 49,
+          "pokemon": "Ditto"
+        },
+        {
+          "pickNumber": 50,
+          "pokemon": "Mega Staraptor"
+        },
+        {
+          "pickNumber": 51,
+          "pokemon": "Wyrdeer"
+        },
+        {
+          "pickNumber": 52,
+          "pokemon": "Drampa"
+        },
+        {
+          "pickNumber": 53,
+          "pokemon": "Aurorus"
+        },
+        {
+          "pickNumber": 54,
+          "pokemon": "Kangaskhan"
+        },
+        {
+          "pickNumber": 55,
+          "pokemon": "Mega Sceptile"
+        },
+        {
+          "pickNumber": 56,
+          "pokemon": "Runerigus"
+        },
+        {
+          "pickNumber": 57,
+          "pokemon": "Malamar"
+        },
+        {
+          "pickNumber": 58,
+          "pokemon": "Gliscor"
+        },
+        {
+          "pickNumber": 59,
+          "pokemon": "Toxapex"
+        },
+        {
+          "pickNumber": 60,
+          "pokemon": "Mega Audino"
+        },
+        {
+          "pickNumber": 61,
+          "pokemon": "Rotom-Frost"
+        },
+        {
+          "pickNumber": 62,
+          "pokemon": "Ceruledge"
+        },
+        {
+          "pickNumber": 63,
+          "pokemon": "Paldean Tauros"
+        },
+        {
+          "pickNumber": 64,
+          "pokemon": "Appletun"
+        },
+        {
+          "pickNumber": 65,
+          "pokemon": "Hisuian Avalugg"
+        },
+        {
+          "pickNumber": 66,
+          "pokemon": "Ariados"
+        },
+        {
+          "pickNumber": 67,
+          "pokemon": "Avalugg"
+        },
+        {
+          "pickNumber": 68,
+          "pokemon": "Galarian Slowking"
+        },
+        {
+          "pickNumber": 69,
+          "pokemon": "Mega Gyarados"
+        },
+        {
+          "pickNumber": 70,
+          "pokemon": "Alcremie"
+        },
+        {
+          "pickNumber": 71,
+          "pokemon": "Slurpuff"
+        },
+        {
+          "pickNumber": 72,
+          "pokemon": "Flapple"
+        },
+        {
+          "pickNumber": 73,
+          "pokemon": "Tauros"
+        },
+        {
+          "pickNumber": 74,
+          "pokemon": "Mega Floette"
+        },
+        {
+          "pickNumber": 75,
+          "pokemon": "Steelix"
+        },
+        {
+          "pickNumber": 76,
+          "pokemon": "Hisuian Decidueye"
+        },
+        {
+          "pickNumber": 77,
+          "pokemon": "Simisage"
+        },
+        {
+          "pickNumber": 78,
+          "pokemon": "Victreebel"
+        },
+        {
+          "pickNumber": 79,
+          "pokemon": "Scovillain"
+        },
+        {
+          "pickNumber": 80,
+          "pokemon": "Banette"
+        },
+        {
+          "pickNumber": 81,
+          "pokemon": "Forretress"
+        }
+      ]
+    }
+  ]
+}
