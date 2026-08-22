@@ -1,11 +1,39 @@
 # VGC Masters results-feed permission request
 
+Last reviewed: 2026-08-21 Pacific
+
 ## Status
 
 This is a ready-to-send request and approval-record template. It has not been
 sent, and it does not record permission. Production polling remains disabled
 until the provider replies affirmatively and the exact approved terms are
 recorded below.
+
+## Verified contact and timing
+
+- PokeData's live site is <https://www.pokedata.ovh/>. Its standings pages
+  label their results unofficial and expose JSON downloads, but the site does
+  not publish a contact link.
+- The provider-branded public contact route found on August 21 is
+  <https://x.com/Pokedata_ovh>. Use that route only to ask for the provider's
+  preferred permission channel; do not assume that public interaction or an
+  existing JSON download grants automated polling permission.
+- The [official 2026 Pokémon World Championships site](https://worlds.pokemon.com/en-us/)
+  records August 28–30 in San Francisco. The exact PokeData Worlds event
+  identifier, Masters JSON URL, approved polling window, and event-day contact
+  remain unconfirmed.
+- No exact Worlds feed was discovered on PokeData on August 21. Do not guess an
+  event number from earlier tournaments, scrape around sequential identifiers,
+  or use a domain-registration privacy relay as product support.
+
+## Ready-to-send public opener
+
+> Hi @Pokedata_ovh — I run DraftCenter, an independent noncommercial Pokémon
+> fan project. May I send you a short permission request about using one VGC
+> Masters JSON standings download for provisional Pick 10 scoring during the
+> August 28–30 Worlds window, with visible attribution and conservative
+> polling? We will keep the integration disabled unless you approve the exact
+> terms. What is your preferred contact route?
 
 ## Request draft
 
@@ -51,7 +79,7 @@ Thank you.
 
 ## Approval record
 
-- Provider contact route:
+- Provider contact route: <https://x.com/Pokedata_ovh> identified; request not sent
 - Request sent by:
 - Request sent at:
 - Reply received from:

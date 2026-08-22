@@ -20,26 +20,32 @@ existing first-invite anecdote as broad approval.
 
 The copy-ready request and response format are in
 [`localization-fluent-speaker-review-2026-08-20.md`](localization-fluent-speaker-review-2026-08-20.md).
-Assigning or contacting reviewers is external outreach and still requires the
-chosen reviewer, destination, message, and reply path. Every language remains
-pending until a real fluent reviewer responds.
+It now includes six language-specific direct-link messages and the current
+Mega-name boundary. Assigning or contacting reviewers is external outreach and
+still requires the chosen reviewer, destination, message, and reply path.
+Every language remains pending until a real fluent reviewer responds.
 
 ## 3. AdSense verification
 
-Pull request #374 is validated, fail-closed, and contains no ad scripts,
-placements, cookies, billing, or spend. Decide separately whether to release
-that inert code. Adding the public AdSense identifier to Production, verifying
-ownership, submitting the site for review, publishing consent, enabling ads,
-and spending money are separate actions that each require exact approval at
-the point of change.
+Pull request #374 is released at exact Production commit `fedc4b7`. Production
+does not have `GOOGLE_ADSENSE_ACCOUNT`, so the live site has no verification
+tag or advertising script and `/ads.txt` remains HTTP 404. The next decision is
+whether to add the public identifier to Production. Ownership verification,
+site-review submission, consent publication, ad activation, billing, and spend
+remain separate actions that each require exact approval at the point of
+change.
 
 ## 4. Worlds live window
 
 The application is fail-closed and ready for the external facts, but the
-provider request has not been sent and polling is disabled. The next owner
-decision is whether to send the existing
+provider request has not been sent and polling is disabled. PokeData's public
+provider-branded contact route is <https://x.com/Pokedata_ovh>; its website
+does not publish a separate contact link. The official event runs August
+28–30, 2026, but no exact PokeData Worlds event identifier or JSON URL has been
+verified. Do not infer either one. The next owner decision is whether to send
+the short public opener and then the existing
 [`results-feed permission request`](worlds-vgc-results-feed-permission-request.md)
-through a named provider contact route. An affirmative reply still requires
+through the route the provider confirms. An affirmative reply still requires
 an exact URL, event identifier, rate limit, attribution, active window,
 retention terms, isolated Preview import, supervised alias review, and a
 separate Production configuration authorization.

@@ -66,9 +66,10 @@ latest applied Production migration.
    plus localized-interface and native-review gates.
 3. Four-pod invitations require outside commissioner approval and the staged
    controlled-account sequence. No broader invitation was sent.
-4. AdSense pull request #374 is validated and fail-closed but remains a
-   separate owner decision. Production verification settings, site review,
-   consent, ads, billing, and spend are not authorized by this work.
+4. AdSense pull request #374 released its fail-closed code at exact Production
+   commit `fedc4b7`, with the Production identifier still unset. Verification
+   settings, site review, consent, ads, billing, and spend remain separate
+   owner decisions.
 5. Worlds feed permission, exact provider terms/configuration, a reviewed
    Preview import, and the official Top Cut field remain external live-window
    gates. Polling stays disabled and Top Cut stays waiting.

@@ -3,10 +3,12 @@
 - Date: August 20, 2026 Pacific
 - Scope: publisher display advertising through Google AdSense
 - Current state: the AdSense account was reactivated and `draftcentral.gg` was
-  added on August 21; Google reports **Requires review** and `ads.txt` **Not
-  found** because the verification release is not deployed. There is no ad
+  added on August 21. Pull request #374's fail-closed verification code is live
+  at exact Production commit `fedc4b7`, but the public publisher identifier is
+  not configured in Production. The live site therefore emits no verification
+  tag or advertising script and `/ads.txt` returns HTTP 404. There is no ad
   serving, personalized advertising, consent message, account review request,
-  or Production configuration change.
+  or Production provider/configuration change.
 - Intended first inventory: selected original English guide articles only
 
 ## Decision boundary
@@ -82,9 +84,13 @@ configuration.
 5. **Completed August 21:** Review the hosted Preview and confirm the protected
    dependency, security, secret-scan, CodeQL, JavaScript-analysis, and Vercel
    checks pass on pull request 374.
-6. Add the same identifier to Production only after the protected release is
-   approved, confirm the exact deployed commit, verify ownership in AdSense,
-   and separately request AdSense site review after the remaining policy gates.
+6. **Completed August 21:** Rebase and release the fail-closed code through
+   pull request #374, confirm exact Production commit `fedc4b7`, run all 22
+   smoke checks, and verify that Production still has no tag, ad script, or
+   `ads.txt` record while the identifier is unset.
+7. Add the same identifier to Production only after a separate exact approval,
+   verify ownership in AdSense, and separately request AdSense site review
+   after the remaining policy gates.
 
 No Auto ads setting should be enabled during connection or review.
 
