@@ -3,6 +3,7 @@ import { Analytics } from "@vercel/analytics/next";
 import SiteLegalFooter from "../components/SiteLegalFooter";
 import SiteQuickLinks from "../components/SiteQuickLinks";
 import SignupAttributionCapture from "../components/SignupAttributionCapture";
+import { getAdsenseMetadata } from "../lib/googleAdsense";
 
 export const metadata = {
   metadataBase: new URL("https://www.draftcentral.gg"),
@@ -10,6 +11,7 @@ export const metadata = {
   description: "Run a complete Pokémon draft league in one connected commissioner and manager workspace, from setup and drafting through results, playoffs, and archives.",
   applicationName: "DraftCenter",
   verification: { google: "WZBav7uPyWIoNs0PV95rujlY570GWua1aQnbnAraGWE" },
+  other: getAdsenseMetadata(),
   keywords: ["Pokémon draft league", "Pokémon team builder", "Pokémon draft", "draft league manager", "Pokémon community"],
   openGraph: {
     type: "website",
