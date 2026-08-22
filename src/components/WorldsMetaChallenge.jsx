@@ -10,6 +10,7 @@ import {
   worldsMetaEntryIsLocked,
 } from "../lib/worldsMeta";
 import { worldsCopy } from "../lib/worlds2026I18n";
+import { trackAttributionEvent } from "../lib/signupAttribution";
 
 const META_PRIORITY = { vgc: "Priority 1", tcg: "Priority 2", go: "Priority 3" };
 
@@ -190,6 +191,7 @@ export default function WorldsMetaChallenge({ discipline = "vgc", user, locale =
       setBusy(false);
       return setMessage(isItalian ? copy.errors.save : error.message || "Your Meta Picks entry could not be saved.");
     }
+    trackAttributionEvent("worlds_entry_saved", { onceKey: config.eventId });
     await loadHub({ hydrateEntry: true });
     setBusy(false);
     setMessage(isItalian ? copy.saved : "Your Meta Picks entry is saved. You can revise it until the lock time.");

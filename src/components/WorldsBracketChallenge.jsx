@@ -10,6 +10,7 @@ import {
   worldsBracketEntryIsComplete,
 } from "../lib/worldsBracket";
 import WorldsDisciplineNav from "./WorldsDisciplineNav";
+import { trackAttributionEvent } from "../lib/signupAttribution";
 
 function pacificTime(value) {
   if (!value) return "To be announced";
@@ -93,6 +94,7 @@ export default function WorldsBracketChallenge() {
     const { error } = await supabase.rpc("save_worlds_bracket_entry", { p_event_id: WORLDS_2026_EVENT_ID, p_picks: choices });
     if (error) setMessage(error.message || "Your bracket could not be saved.");
     else {
+      trackAttributionEvent("worlds_entry_saved", { onceKey: WORLDS_2026_EVENT_ID });
       await load(supabase);
       setMessage("Your Top Cut bracket is saved. You can revise it until entries lock.");
     }

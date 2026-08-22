@@ -2,11 +2,14 @@ import { track } from "@vercel/analytics";
 
 const STORAGE_KEY = "draftcenter:signup-attribution:v1";
 const SIGNUP_STARTED_KEY = "draftcenter:signup-started:v1";
+const CONVERSION_STORAGE_KEY = "draftcenter:attributed-conversions:v1";
 const MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000;
 
 const EVENT_NAMES = Object.freeze({
   signup_started: "Signup Started",
   account_created: "Account Created",
+  worlds_entry_saved: "Worlds Entry Saved",
+  league_created: "League Created",
 });
 
 const FEATURE_PATHS = Object.freeze([
@@ -156,11 +159,38 @@ export function isNewEmailSignup(data) {
   return Boolean(data?.user?.id && Array.isArray(data.user.identities) && data.user.identities.length > 0);
 }
 
-export function trackSignupAttributionEvent(key, options = {}) {
+function conversionDedupeValue(eventKey, onceKey) {
+  const safeKey = String(onceKey || "").replace(/[^a-z0-9-]/gi, "").slice(0, 80);
+  return safeKey ? `${eventKey}:${safeKey}` : "";
+}
+
+function readConversionDedupe(storage, now) {
+  if (!storage?.getItem) return { expiresAt: now + MAX_AGE_MS, values: [] };
+  try {
+    const record = JSON.parse(storage.getItem(CONVERSION_STORAGE_KEY));
+    if (record?.version !== 1 || !Number.isFinite(record.expiresAt) || record.expiresAt <= now || !Array.isArray(record.values)) {
+      return { expiresAt: now + MAX_AGE_MS, values: [] };
+    }
+    return { expiresAt: record.expiresAt, values: record.values.filter((value) => typeof value === "string").slice(-100) };
+  } catch {
+    return { expiresAt: now + MAX_AGE_MS, values: [] };
+  }
+}
+
+function writeConversionDedupe(storage, record) {
+  if (!storage?.setItem) return;
+  try { storage.setItem(CONVERSION_STORAGE_KEY, JSON.stringify({ version: 1, ...record })); } catch {}
+}
+
+export function trackAttributionEvent(key, options = {}) {
   const name = EVENT_NAMES[key];
   if (!name) return false;
   const storage = options.storage || (typeof localStorage !== "undefined" ? localStorage : null);
   const session = options.sessionStorage || (typeof sessionStorage !== "undefined" ? sessionStorage : null);
+  const now = Number(options.now) || Date.now();
+  const conversionKey = conversionDedupeValue(key, options.onceKey);
+  const conversionDedupe = readConversionDedupe(storage, now);
+  if (conversionKey && conversionDedupe.values.includes(conversionKey)) return false;
   if (key === "signup_started") {
     try {
       if (session?.getItem?.(SIGNUP_STARTED_KEY)) return false;
@@ -170,21 +200,29 @@ export function trackSignupAttributionEvent(key, options = {}) {
 
   let sent = false;
   try {
-    (options.trackImpl || track)(name, signupAttributionProperties({ storage, now: options.now }));
+    (options.trackImpl || track)(name, signupAttributionProperties({ storage, now }));
     sent = true;
+    if (conversionKey) {
+      writeConversionDedupe(storage, { expiresAt: conversionDedupe.expiresAt, values: [...conversionDedupe.values, conversionKey].slice(-100) });
+    }
   } catch {}
 
   if (key === "account_created") {
-    try { storage?.removeItem?.(STORAGE_KEY); } catch {}
     try { session?.removeItem?.(SIGNUP_STARTED_KEY); } catch {}
   }
   return sent;
+}
+
+export function trackSignupAttributionEvent(key, options = {}) {
+  return trackAttributionEvent(key, options);
 }
 
 export const SIGNUP_ATTRIBUTION_CONTRACT = Object.freeze({
   events: Object.values(EVENT_NAMES),
   properties: ["journey", "source"],
   storageKey: STORAGE_KEY,
+  conversionStorageKey: CONVERSION_STORAGE_KEY,
   maximumAgeDays: 30,
+  downstreamEvents: ["Worlds Entry Saved", "League Created"],
   forbidden: ["user_id", "account_id", "email", "username", "ip", "pokemon", "notes", "raw_path", "referrer_url"],
 });

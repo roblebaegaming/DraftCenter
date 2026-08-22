@@ -8,6 +8,7 @@ import {
   isNewEmailSignup,
   signupAttributionProperties,
   signupSource,
+  trackAttributionEvent,
   trackSignupAttributionEvent,
 } from "../src/lib/signupAttribution.js";
 import {
@@ -95,7 +96,7 @@ test("capture keeps first touch, updates the last non-home feature, and expires 
   assert.equal(expired.source, "direct");
 });
 
-test("signup events use exactly two coarse properties and deduplicate signup starts", () => {
+test("attributed conversion events keep exactly two coarse properties and deduplicate successful outcomes", () => {
   const storage = new MemoryStorage();
   const session = new MemoryStorage();
   const calls = [];
@@ -104,13 +105,19 @@ test("signup events use exactly two coarse properties and deduplicate signup sta
   assert.equal(trackSignupAttributionEvent("signup_started", options), true);
   assert.equal(trackSignupAttributionEvent("signup_started", options), false);
   assert.equal(trackSignupAttributionEvent("account_created", options), true);
+  assert.equal(trackAttributionEvent("worlds_entry_saved", { ...options, onceKey: "worlds-vgc-2026" }), true);
+  assert.equal(trackAttributionEvent("worlds_entry_saved", { ...options, onceKey: "worlds-vgc-2026" }), false);
+  assert.equal(trackAttributionEvent("league_created", { ...options, onceKey: "league-local-dedupe-only" }), true);
   assert.deepEqual(calls, [
     { name: "Signup Started", properties: { journey: "team-lab>team-lab", source: "reddit:team-lab-launch" } },
     { name: "Account Created", properties: { journey: "team-lab>team-lab", source: "reddit:team-lab-launch" } },
+    { name: "Worlds Entry Saved", properties: { journey: "team-lab>team-lab", source: "reddit:team-lab-launch" } },
+    { name: "League Created", properties: { journey: "team-lab>team-lab", source: "reddit:team-lab-launch" } },
   ]);
   assert.deepEqual(Object.keys(calls[0].properties).sort(), ["journey", "source"]);
-  assert.equal(storage.values.has(SIGNUP_ATTRIBUTION_CONTRACT.storageKey), false);
+  assert.equal(storage.values.has(SIGNUP_ATTRIBUTION_CONTRACT.storageKey), true);
   assert.equal(SIGNUP_ATTRIBUTION_CONTRACT.properties.length, 2);
+  assert.deepEqual(SIGNUP_ATTRIBUTION_CONTRACT.downstreamEvents, ["Worlds Entry Saved", "League Created"]);
   assert.ok(SIGNUP_ATTRIBUTION_CONTRACT.forbidden.includes("email"));
 });
 
@@ -123,8 +130,15 @@ test("only a Supabase response with a real new identity counts as an account cre
 test("the global capture and account flow use the attribution contract", () => {
   const layout = fs.readFileSync(new URL("../src/app/layout.js", import.meta.url), "utf8");
   const auth = fs.readFileSync(new URL("../src/components/AuthGate.jsx", import.meta.url), "utf8");
+  const worldsPick = fs.readFileSync(new URL("../src/components/WorldsPickSixteen.jsx", import.meta.url), "utf8");
+  const worldsMeta = fs.readFileSync(new URL("../src/components/WorldsMetaChallenge.jsx", import.meta.url), "utf8");
+  const worldsBracket = fs.readFileSync(new URL("../src/components/WorldsBracketChallenge.jsx", import.meta.url), "utf8");
+  const leagueHub = fs.readFileSync(new URL("../src/components/LeagueHub.jsx", import.meta.url), "utf8");
   assert.match(layout, /<SignupAttributionCapture \/>/);
   assert.match(auth, /next==='sign_up'\)trackSignupAttributionEvent\('signup_started'\)/);
   assert.match(auth, /isNewEmailSignup\(r\.data\)\)trackSignupAttributionEvent\('account_created'\)/);
   assert.ok(auth.indexOf("if(r.error)return") < auth.indexOf("isNewEmailSignup(r.data)"));
+  for (const component of [worldsPick, worldsMeta, worldsBracket]) assert.match(component, /trackAttributionEvent\("worlds_entry_saved"/);
+  assert.match(leagueHub, /trackAttributionEvent\("league_created"/);
+  assert.doesNotMatch(leagueHub, /trackActivationEvent\("league_created"/);
 });
