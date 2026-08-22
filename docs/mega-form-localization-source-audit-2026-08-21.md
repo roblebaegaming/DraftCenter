@@ -78,6 +78,17 @@ indexed publicly and exposes exact form pages, but its origin returned
 `410 Gone` to the reproducible builder during this audit. Search snippets were
 therefore not promoted to the product catalog.
 
+## August 21 continuation check
+
+The German Legends: Z-A Pokémon and Mega-Dimension pages were fetched again
+successfully. Their first-party HTML still exposes the same reviewed additional
+Mega names and none of the 31 unresolved German profiles above. The proposed
+Korean Mega Evolution locale returns HTTP 404, the Korean Legends locale is
+not published, and the official Korean Pokédex origin still returns HTTP 410.
+No search snippet, inferred `Mega-` prefix, transliteration, or machine
+translation was promoted. Coverage therefore remains German 66/97 and Korean
+0/97, with the existing fallback labels intact.
+
 ## Release boundary
 
 Pull request [#381](https://github.com/roblebaegaming/DraftCenter/pull/381)

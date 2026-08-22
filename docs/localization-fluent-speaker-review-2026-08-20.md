@@ -2,13 +2,17 @@
 
 Date: 2026-08-20
 
+Last refreshed: 2026-08-21
+
 Status: technical and model-assisted editorial QA is complete. Native-speaker
 approval is not complete. On 2026-08-20, the owner explicitly accepted that
 editorial risk and authorized a clearly labeled translation-beta release of
 pull request #371, with corrections collected through DraftCenter Support. The
 beta is live at exact Production application commit `aa82ecc`; every native-
-speaker matrix row remains pending. A 2026-08-21 first-party Mega-form source
-update does not change any native-review decision.
+speaker matrix row remains pending. The latest first-party Mega-form refresh is
+live through pull request #381: Italian, Spanish, French, and Japanese have
+97/97 reviewed official Mega profile names, German has 66/97, and Korean has
+0/97. Those source counts do not change any native-review decision.
 
 ## Review scope
 
@@ -89,6 +93,88 @@ Changes (repeat for each item):
 Keep reviewer contact information outside the repository. Record only the
 language, decision, date, and approved wording here unless the reviewer has
 separately agreed to public attribution.
+
+## Language-specific outreach messages
+
+Use only the message for the reviewer's fluent language. Confirm the reviewer,
+destination, and reply route before sending.
+
+### Italian
+
+> DraftCenter is looking for a fluent Italian review of its clearly labeled
+> translation beta. Please check <https://www.draftcentral.gg/it/pokemon>,
+> <https://www.draftcentral.gg/it/pokemon/charizard>, and
+> <https://www.draftcentral.gg/it/pokemon/charizard-mega-x> on both a phone and
+> a desktop. Focus on natural interface wording, Pokémon terminology,
+> consistent formality, and clipped or confusing controls. Official Pokémon
+> names are already sourced and should not be retranslated. Please reply with
+> **approved** or **changes requested**, the review date, devices checked, and
+> each requested replacement with its route and reason.
+
+### Spanish
+
+> DraftCenter is looking for a fluent Spanish review of its clearly labeled
+> translation beta. Please check <https://www.draftcentral.gg/es/pokemon>,
+> <https://www.draftcentral.gg/es/pokemon/charizard>, and
+> <https://www.draftcentral.gg/es/pokemon/charizard-mega-x> on both a phone and
+> a desktop. Focus on natural interface wording, Pokémon terminology,
+> consistent formality, and clipped or confusing controls. Official Pokémon
+> names are already sourced and should not be retranslated. Please reply with
+> **approved** or **changes requested**, the review date, devices checked, and
+> each requested replacement with its route and reason.
+
+### French
+
+> DraftCenter is looking for a fluent French review of its clearly labeled
+> translation beta. Please check <https://www.draftcentral.gg/fr/pokemon>,
+> <https://www.draftcentral.gg/fr/pokemon/charizard>,
+> <https://www.draftcentral.gg/fr/pokemon/charizard-mega-x>, and
+> <https://www.draftcentral.gg/fr/worlds/2026> on both a phone and a desktop.
+> Focus on natural interface wording, Pokémon terminology, consistent
+> formality, Worlds selection and leaderboard copy, and clipped or confusing
+> controls. Official Pokémon names are already sourced and should not be
+> retranslated. Please reply with **approved** or **changes requested**, the
+> review date, devices checked, and each requested replacement with its route
+> and reason.
+
+### German
+
+> DraftCenter is looking for a fluent German review of its clearly labeled
+> translation beta. Please check <https://www.draftcentral.gg/de/pokemon>,
+> <https://www.draftcentral.gg/de/pokemon/charizard>, and
+> <https://www.draftcentral.gg/de/pokemon/charizard-mega-x> plus the unresolved
+> <https://www.draftcentral.gg/de/pokemon/clefable-mega> profile on both a
+> phone and a desktop. Focus on natural interface wording, Pokémon terminology,
+> consistent formality, clipped controls, and whether the temporary English-
+> name disclosure is clear on the unresolved profile. Please do not infer or
+> translate missing official form names. Reply with **approved** or **changes
+> requested**, the review date, devices checked, and each requested replacement
+> with its route and reason.
+
+### Japanese
+
+> DraftCenter is looking for a fluent Japanese review of its clearly labeled
+> translation beta. Please check <https://www.draftcentral.gg/ja/pokemon>,
+> <https://www.draftcentral.gg/ja/pokemon/charizard>, and
+> <https://www.draftcentral.gg/ja/pokemon/charizard-mega-x> on both a phone and
+> a desktop. Focus on natural interface wording, Pokémon terminology,
+> consistent formality, and clipped or confusing controls. Official Pokémon
+> names are already sourced and should not be retranslated. Please reply with
+> **approved** or **changes requested**, the review date, devices checked, and
+> each requested replacement with its route and reason.
+
+### Korean
+
+> DraftCenter is looking for a fluent Korean review of its clearly labeled
+> translation beta. Please check <https://www.draftcentral.gg/ko/pokemon>,
+> <https://www.draftcentral.gg/ko/pokemon/charizard>, and
+> <https://www.draftcentral.gg/ko/pokemon/charizard-mega-x> on both a phone and
+> a desktop. Focus on natural interface wording, Pokémon terminology,
+> consistent formality, clipped controls, and whether the temporary English-
+> name disclosure is clear. Please do not infer or translate missing official
+> Mega form names. Reply with **approved** or **changes requested**, the review
+> date, devices checked, and each requested replacement with its route and
+> reason.
 
 ## Reviewer checklist
 

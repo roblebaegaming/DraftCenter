@@ -37,8 +37,10 @@ separates the two verified fixed August 19–20 incidents from current failures.
 Pull request #381 released the official-name refresh at exact Production
 commit `58d10e85809c679f8cc09e042f4005a81cb780e3`, completing Italian and
 Spanish at 97/97 and raising German to 66/97. Korean remains 0/97 and German
-has 31 unresolved profiles. AdSense pull request #374 remains a separate,
-fail-closed owner decision.
+has 31 unresolved profiles. AdSense pull request #374 released its fail-closed
+code at exact Production commit `fedc4b7463efe3800310d9317b489f7115055249`;
+the Production identifier remains unset, so verification and ad serving remain
+inactive.
 
 DraftCenter's seven-language Pokédex and French Worlds translation beta are
 live. The checked official Mega-name supplement is also live, but missing
@@ -194,19 +196,20 @@ and discovered pages. Use roughly August 23 for an early directional indexing
 read and 14–28 days for a meaningful cohort decision. The exact evidence is in
 [`docs/seo-search-console-sitemap-2026-08-21.md`](../seo-search-console-sitemap-2026-08-21.md).
 
-## Deferred or decision-gated pull requests
+## Completed decision-gated pull requests
 
-### AdSense readiness — #374
+### AdSense readiness — #374 released inert
 
 Pull request [#374](https://github.com/roblebaegaming/DraftCenter/pull/374) is
-green but behind `main`. It adds only inert ownership verification and an exact
-conditional `ads.txt` response. It does not enable scripts, placements, Auto
-ads, consent changes, billing, or spend.
+released at exact Production commit `fedc4b7`. The refreshed Preview exposed
+the correctly formatted public identifier and one exact seller record while
+loading no ad script. Production has no `GOOGLE_ADSENSE_ACCOUNT`, so the live
+homepage exposes no verification tag or ad script and `/ads.txt` returns HTTP
+404. The complete 22-check smoke sweep passed. The release did not change a
+provider setting, environment variable, database row, billing, or spend.
 
-Do not merge it by momentum. First decide whether AdSense verification is
-still desired. If yes, rebase, revalidate the public identifier and seller
-record without exposing private account data, release the inert verification,
-and treat site-review submission, consent, ad activation, and placement as
+Adding the public Production identifier, asking Google to verify or review the
+site, consent work, ad activation, placement, billing, and spend remain
 separate owner-authorized actions.
 
 ### Operations incident grouping — #364 released
@@ -261,10 +264,12 @@ The smallest owner-only decision queue remains in
    league change.
 2. Continue native review and source the remaining 31 German and 97 Korean
    official Mega names without weakening fallback disclosure.
-3. Decide explicitly whether to release #374's inert AdSense verification.
-   Treat Production verification settings, site review, consent, ads, billing,
-   and spend as separate owner-authorized actions.
-4. Continue Worlds live-window work only through its external gates.
+3. Keep #374's released code inert until a separate owner decision on the
+   public Production identifier. Treat verification, site review, consent,
+   ads, billing, and spend as separate owner-authorized actions.
+4. Continue Worlds live-window work only through its external gates. PokeData's
+   public X profile is the identified first-contact route; the request remains
+   unsent and polling remains disabled.
 
 ## Validation and release boundaries
 

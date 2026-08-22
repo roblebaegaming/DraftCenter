@@ -3,10 +3,27 @@
 - Last updated: August 21, 2026 Pacific
 - Production: https://www.draftcentral.gg
 - Production branch: `main`
-- Verified Production application behavior commit: `58d10e85809c679f8cc09e042f4005a81cb780e3`
+- Verified Production application behavior commit: `fedc4b7463efe3800310d9317b489f7115055249`
 - Latest applied Production migration: 454 (`20260820180704`)
 
 ## Latest release
+
+Pull request [#374](https://github.com/roblebaegaming/DraftCenter/pull/374)
+is deployed at exact Production application commit `fedc4b7`. It adds only
+fail-closed AdSense ownership-verification plumbing: one validated public
+publisher identifier can conditionally produce the ownership meta tag and the
+exact direct-seller `ads.txt` record. The Production identifier remains unset,
+so the live homepage has no verification tag or advertising script and
+`/ads.txt` returns HTTP 404. No ad script, placement, cookie, consent change,
+site-review submission, billing, or spend was enabled.
+
+The focused AdSense test, dependency audit, complete application suite,
+1,027-row National Dex check, 344-page build, protected checks, hosted Preview
+verification, exact-commit Vercel deployment, and complete 22-check Production
+smoke sweep passed. The release changed no database schema, Production data,
+provider setting, or environment variable. Adding the public Production
+identifier, asking Google to verify or review the site, consent work, ad
+activation, billing, and spend remain separate owner-authorized actions.
 
 Pull request [#381](https://github.com/roblebaegaming/DraftCenter/pull/381)
 is deployed at exact Production application commit `58d10e8`. It completes
@@ -61,8 +78,8 @@ resubmission, and the durable major-public-URL release rule. Search Console
 reports Submitted August 21, Last read August 20, Status Success, and 9,716
 discovered pages. Do not repeat the submission for ordinary UI changes.
 
-The exact release order, postflight gates, still-deferred #374 decision, and
-completed #364/#140 outcomes are in the
+The exact release order, #374's inert release boundary, and completed
+#364/#140 outcomes are in the
 [current detailed handoff](handoffs/DraftCenter-agent-handoff-2026-08-21-priority-fixes-release-queue.md).
 
 Pull request [#371](https://github.com/roblebaegaming/DraftCenter/pull/371)
@@ -802,9 +819,9 @@ not be resumed until the owner explicitly requests it.
    or real-league change.
 2. Continue native-language review and source the remaining 31 German and 97
    Korean official Mega names without weakening fallback labels.
-3. Decide separately whether to release #374's inert AdSense verification.
-   Production provider settings, site review, consent, ads, billing, and spend
-   still require their own exact owner authorization.
+3. Keep #374's released AdSense code inert until a separate decision on the
+   public Production identifier. Ownership verification, site review, consent,
+   ads, billing, and spend still require their own exact owner authorization.
 4. Continue Worlds live-window work only through its stated external gates.
 5. Keep PokeEarth paused until the owner directly requests resumption, and
    preserve all Mushroom Cup and intentionally paused Mushroom Hut boundaries.
