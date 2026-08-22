@@ -73,6 +73,7 @@ export const GUIDES = {
   "pokemon-draft-tier-list-guide": {
     title: "How to Build a Pokémon Draft Tier List That Fits Your League",
     description: "Build and maintain a practical Pokémon draft tier list using your exact format, useful roles, scarcity, roster math, and transparent league evidence.",
+    updatedDate: "2026-08-21",
     answer: "A useful Pokémon draft tier list prices one league's exact legal pool—not Pokémon in the abstract. Start with the format, value repeatable roles and scarce alternatives, test complete rosters under the real budget, and adjust slowly using transparent draft and match samples.",
     intro: "A draft tier list is really a pricing tool for one specific league. It is not a universal ranking of which Pokémon are best. The same Pokémon can be a bargain in one format and a poor fit in another because the legal pool, battle style, mechanics, roster size, and available alternatives all changed. Start with your league—not somebody else's finished list.",
     sections: [
@@ -83,7 +84,7 @@ export const GUIDES = {
       ["Use data as evidence, not an answer key", "Draft rate, ADP, auction price, and match record can show where coaches value a Pokémon or where a price may be off. They cannot prove that one Pokémon caused a team's record. Always keep the sample size and eligible formats beside the number.", "DraftCenter profile pages display eligibility-aware draft rate and ADP, auction samples, teammate patterns, and confirmed-match results. Small samples are labeled so commissioners can combine them with judgment instead of treating them as a verdict."],
       ["Change the list slowly and explain why", "After the season, look for Pokémon that repeatedly went undrafted, disappeared much earlier than expected, or produced extreme auction prices across several rooms. Make a small adjustment, record the reason, and keep the old version. Coaches trust a list more when they can understand how it evolved.", "Export the current pricing before a major revision. For bulk updates, fill the Pricing Template's new value or rank column, upload it, review every proposed change, and confirm only when the preview matches your intention."],
     ],
-    links: [["Explore the Pokémon catalog", "/pokemon"], ["Browse supported formats", "/formats"], ["Open the commissioner manual", "/manuals/commissioner"], ["Learn how to use draft ADP", "/guides/how-to-use-pokemon-draft-adp"], ["Compare forms and stats", "/guides/compare-pokemon-forms-stats-draft-data"]],
+    links: [["Explore the Pokémon catalog", "/pokemon"], ["Choose the legal pool in the format library", "/formats"], ["Open the commissioner manual", "/manuals/commissioner"], ["Learn how to use draft ADP", "/guides/how-to-use-pokemon-draft-adp"], ["Compare forms and stats", "/guides/compare-pokemon-forms-stats-draft-data"]],
   },
   "how-to-join-first-pokemon-draft-league": {
     title: "How to Join Your First Pokémon Draft League",

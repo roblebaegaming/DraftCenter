@@ -595,6 +595,7 @@ test("public templates expose useful server-rendered headings and related links"
   const resources = source("src/components/ResourcesPage.jsx");
   const nuzlocke = source("src/app/nuzlocke/page.js");
   const profile = source("src/app/pokemon/[name]/page.js");
+  const formatIndex = source("src/app/formats/page.js");
   const formatPage = source("src/app/formats/[slug]/page.js");
 
   assert.match(publicHome, /<h1>Draft Together\. <span>Battle Together\.<\/span><\/h1>/);
@@ -619,7 +620,10 @@ test("public templates expose useful server-rendered headings and related links"
   assert.match(profile, /Related \{displayName\} research/);
   assert.match(profile, /\/guides\/compare-pokemon-forms-stats-draft-data/);
   assert.match(profile, /\/guides\/how-to-use-pokemon-draft-adp/);
+  assert.match(formatIndex, /Build a format-specific Pokémon draft tier list/);
+  assert.match(formatIndex, /Use draft ADP as supporting evidence/);
   assert.match(formatPage, /Related Pokémon draft formats/);
+  assert.match(formatPage, /\/guides\/pokemon-draft-tier-list-guide/);
   for (const slug of ["national-dex", "reg-mb", "swsh-series9", "custom"]) {
     const related = relatedFormatsBySlug(slug);
     assert.equal(related.length, 3);

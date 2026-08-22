@@ -114,6 +114,24 @@ export default function WorldsBracketChallenge() {
       </aside>
     </section>
 
+    <section className="worlds-bracket-guide" aria-labelledby="worlds-bracket-guide-title">
+      <header>
+        <span className="eyebrow">HOW IT WORKS</span>
+        <h2 id="worlds-bracket-guide-title">How the 2026 Worlds Top Cut bracket challenge works</h2>
+        <p>Make a complete VGC Masters elimination prediction without guessing who qualified or how the official bracket is seeded.</p>
+      </header>
+      <div className="worlds-bracket-guide-grid">
+        <article><strong>1</strong><h3>Wait for official pairings</h3><p>DraftCenter opens the field only after the published Top Cut competitors, seeds, and first-round matchups have been checked.</p></article>
+        <article><strong>2</strong><h3>Choose every winner</h3><p>Pick each first-round winner, then follow your own choices through every later round until you select the World Champion.</p></article>
+        <article><strong>3</strong><h3>Save before the lock</h3><p>The status card shows the reviewed opening and lock times. Other members&apos; bracket choices remain private until entries lock.</p></article>
+        <article><strong>4</strong><h3>Score reviewed results</h3><p>The published bracket shows each round&apos;s point value. Scores change only after confirmed official match winners are recorded.</p></article>
+      </div>
+      <aside>
+        <div><h3>When will the bracket update?</h3><p>This page changes as soon as the official VGC Masters Top Cut field and pairings can be reviewed. Until then, no names, seeds, matchups, or opening time will be invented.</p></div>
+        <nav aria-label="More 2026 Pokémon Worlds predictions"><Link href="/worlds/2026/vgc">Make VGC player and Pokémon picks</Link><Link href="/worlds/2026">See all Worlds prediction games</Link><Link href="/worlds/2026/vgc/victory-road-to-san-francisco">Try the Victory Road bracket</Link></nav>
+      </aside>
+    </section>
+
     {!event.revision ? <section className="worlds-bracket-waiting" id="top-cut-bracket">
       <span className="eyebrow">COMING SOON</span><h2>Bracket predictions will be live once the official bracket is established.</h2>
       <p>Once the VGC Masters Top Cut field and matchups are official, bracket predictions will open here before play begins.</p>
