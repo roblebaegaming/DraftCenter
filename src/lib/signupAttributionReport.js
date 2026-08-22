@@ -133,16 +133,28 @@ export async function getSignupAttributionReport({ fetchImpl = fetch, env = proc
   ]));
   const accountCreated = periodCounts("Account Created");
   const signupStarted = periodCounts("Signup Started");
+  const worldsEntrySaved = periodCounts("Worlds Entry Saved");
+  const leagueCreated = periodCounts("League Created");
   const startedUnavailable = false;
-  let sourceResult = { status: "fulfilled", value: [] };
-  let journeyResult = { status: "fulfilled", value: [] };
-  if (accountCreated.last_30_days > 0) {
-    [sourceResult, journeyResult] = await Promise.allSettled([
-      queryEvents(fetchImpl, buildEventsUrl({ projectId, teamId, since: windows[2].since, until, eventName: "Account Created", by: "eventData/source", limit: 20 }), token),
-      queryEvents(fetchImpl, buildEventsUrl({ projectId, teamId, since: windows[2].since, until, eventName: "Account Created", by: "eventData/journey", limit: 20 }), token),
-    ]);
-  }
-  const detailsUnavailable = sourceResult.status !== "fulfilled" || journeyResult.status !== "fulfilled";
+  const detailQuery = (count, eventName, by) => count > 0
+    ? queryEvents(fetchImpl, buildEventsUrl({ projectId, teamId, since: windows[2].since, until, eventName, by, limit: 20 }), token)
+    : Promise.resolve([]);
+  const [sourceResult, journeyResult, worldsSourceResult, leagueSourceResult] = await Promise.allSettled([
+    detailQuery(accountCreated.last_30_days, "Account Created", "eventData/source"),
+    detailQuery(accountCreated.last_30_days, "Account Created", "eventData/journey"),
+    detailQuery(worldsEntrySaved.last_30_days, "Worlds Entry Saved", "eventData/source"),
+    detailQuery(leagueCreated.last_30_days, "League Created", "eventData/source"),
+  ]);
+  const topSources = sourceResult.status === "fulfilled" ? eventDataLeaderboard(sourceResult.value) : [];
+  const topJourneys = journeyResult.status === "fulfilled" ? eventDataLeaderboard(journeyResult.value) : [];
+  const worldsTopSources = worldsSourceResult.status === "fulfilled" ? eventDataLeaderboard(worldsSourceResult.value) : [];
+  const leagueTopSources = leagueSourceResult.status === "fulfilled" ? eventDataLeaderboard(leagueSourceResult.value) : [];
+  const detailsUnavailable = [
+    [accountCreated.last_30_days, sourceResult, topSources],
+    [accountCreated.last_30_days, journeyResult, topJourneys],
+    [worldsEntrySaved.last_30_days, worldsSourceResult, worldsTopSources],
+    [leagueCreated.last_30_days, leagueSourceResult, leagueTopSources],
+  ].some(([count, result, rows]) => count > 0 && (result.status !== "fulfilled" || rows.length === 0));
   const value = {
     unavailable: false,
     generated_at: currentDate.toISOString(),
@@ -150,8 +162,12 @@ export async function getSignupAttributionReport({ fetchImpl = fetch, env = proc
     period: { start: startDate, end: endDate },
     account_created: accountCreated,
     signup_started: signupStarted,
-    top_journeys: journeyResult.status === "fulfilled" ? eventDataLeaderboard(journeyResult.value) : [],
-    top_sources: sourceResult.status === "fulfilled" ? eventDataLeaderboard(sourceResult.value) : [],
+    worlds_entry_saved: worldsEntrySaved,
+    league_created: leagueCreated,
+    top_journeys: topJourneys,
+    top_sources: topSources,
+    worlds_top_sources: worldsTopSources,
+    league_top_sources: leagueTopSources,
     signup_started_unavailable: startedUnavailable,
     details_unavailable: detailsUnavailable,
   };

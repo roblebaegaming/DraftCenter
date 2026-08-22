@@ -23,11 +23,21 @@ function attributionFetch(calls) {
       const since = url.searchParams.get("since");
       const created = { "2026-08-15T07:00:00.000Z": 3, "2026-08-09T07:00:00.000Z": 5, "2026-07-17T07:00:00.000Z": 5 };
       const started = { "2026-08-15T07:00:00.000Z": 6, "2026-08-09T07:00:00.000Z": 8, "2026-07-17T07:00:00.000Z": 8 };
+      const worlds = { "2026-08-15T07:00:00.000Z": 1, "2026-08-09T07:00:00.000Z": 2, "2026-07-17T07:00:00.000Z": 2 };
+      const leagues = { "2026-08-15T07:00:00.000Z": 0, "2026-08-09T07:00:00.000Z": 1, "2026-07-17T07:00:00.000Z": 1 };
       return response([
         { eventName: "Account Created", count: created[since], visitors: created[since] },
         { eventName: "Signup Started", count: started[since], visitors: started[since] },
+        { eventName: "Worlds Entry Saved", count: worlds[since], visitors: worlds[since] },
+        { eventName: "League Created", count: leagues[since], visitors: leagues[since] },
       ]);
     }
+    if (url.searchParams.get("by") === "eventData/source" && filter.includes("Worlds Entry Saved")) return response([
+      { eventData: "instagram-paid-social:worlds-2026:en-pick-1", count: 2, visitors: 2 },
+    ]);
+    if (url.searchParams.get("by") === "eventData/source" && filter.includes("League Created")) return response([
+      { eventData: "facebook-paid-social:draft-league:en-create-1", count: 1, visitors: 1 },
+    ]);
     if (url.searchParams.get("by") === "eventData/source") return response([
       { eventData: "discord:team-lab-launch", count: 3, visitors: 2 },
       { eventData: "reddit:collector-founding-beta", count: 2, visitors: 2 },
@@ -48,6 +58,8 @@ test("signup attribution summarizes account events, starts, journeys, and campai
   assert.deepEqual(result.period, { start: "2026-07-17", end: "2026-08-15" });
   assert.deepEqual(result.account_created, { today: 3, last_7_days: 5, last_30_days: 5 });
   assert.deepEqual(result.signup_started, { today: 6, last_7_days: 8, last_30_days: 8 });
+  assert.deepEqual(result.worlds_entry_saved, { today: 1, last_7_days: 2, last_30_days: 2 });
+  assert.deepEqual(result.league_created, { today: 0, last_7_days: 1, last_30_days: 1 });
   assert.deepEqual(result.top_sources, [
     { label: "discord:team-lab-launch", count: 3 },
     { label: "reddit:collector-founding-beta", count: 2 },
@@ -56,13 +68,15 @@ test("signup attribution summarizes account events, starts, journeys, and campai
     { label: "team-lab>team-lab", count: 3 },
     { label: "collector>home", count: 2 },
   ]);
-  assert.equal(calls.length, 5);
+  assert.deepEqual(result.worlds_top_sources, [{ label: "instagram-paid-social:worlds-2026:en-pick-1", count: 2 }]);
+  assert.deepEqual(result.league_top_sources, [{ label: "facebook-paid-social:draft-league:en-create-1", count: 1 }]);
+  assert.equal(calls.length, 7);
   for (const call of calls) {
     assert.equal(call.url.origin + call.url.pathname, "https://api.vercel.com/v1/query/web-analytics/events/aggregate");
     assert.equal(call.url.searchParams.get("projectId"), "test-project");
     assert.equal(call.url.searchParams.get("teamId"), "test-team");
     const filter = call.url.searchParams.get("filter");
-    assert.equal(filter === null || /^eventName eq 'Account Created'$/.test(filter), true);
+    assert.equal(filter === null || /^eventName eq '(Account Created|Worlds Entry Saved|League Created)'$/.test(filter), true);
     assert.equal(String(filter || "").includes("environment"), false);
     assert.equal(call.url.searchParams.get("limit"), "20");
     assert.equal(call.url.toString().includes(env.DRAFTCENTER_VERCEL_ANALYTICS_TOKEN), false);
@@ -77,7 +91,9 @@ test("signup attribution summarizes account events, starts, journeys, and campai
     "2026-08-09T07:00:00.000Z",
     "2026-08-15T07:00:00.000Z",
   ]);
-  assert.equal(calls.filter((call) => call.url.searchParams.get("by") === "eventData/source").length, 1);
+  assert.equal(calls.filter((call) => call.url.searchParams.get("by") === "eventData/source" && call.url.searchParams.get("filter")?.includes("Account Created")).length, 1);
+  assert.equal(calls.filter((call) => call.url.searchParams.get("by") === "eventData/source" && call.url.searchParams.get("filter")?.includes("Worlds Entry Saved")).length, 1);
+  assert.equal(calls.filter((call) => call.url.searchParams.get("by") === "eventData/source" && call.url.searchParams.get("filter")?.includes("League Created")).length, 1);
   assert.equal(calls.filter((call) => call.url.searchParams.get("by") === "eventData/journey").length, 1);
 });
 
@@ -166,6 +182,10 @@ test("owner-only Operations wires acquisition reporting without exposing identit
   assert.match(route, /getSignupAttributionReport\(\)\.catch\(\(\) => \(\{ unavailable: true \}\)\)/);
   assert.match(route, /signup_attribution: signupAttribution/);
   assert.match(dashboard, /What brings people to sign up/);
+  assert.match(dashboard, /Worlds saves · 30 days/);
+  assert.match(dashboard, /Leagues created · 30 days/);
+  assert.match(dashboard, /Sources reaching a Worlds save/);
+  assert.match(dashboard, /Sources reaching league creation/);
   assert.match(dashboard, /Historical accounts cannot be assigned to a source retroactively/);
   assert.match(dashboard, /never emails, account IDs, usernames, IP addresses, Pokémon, notes, or raw browsing histories/);
   assert.match(client, /properties: \["journey", "source"\]/);

@@ -210,11 +210,15 @@ function SignupAttribution({ report, users }) {
       <article><strong>{trafficMetric(actual)}</strong><span>Accounts · 30 days</span><small>actual Authentication creations</small></article>
       <article><strong>{unavailable ? "—" : trafficMetric(attributed)}</strong><span>Attributed · 30 days</span><small>{coverage == null ? "coverage starts with the release" : `${coverage}% event coverage`}</small></article>
       <article><strong>{unavailable || report.signup_started_unavailable ? "—" : trafficMetric(report.signup_started?.last_30_days)}</strong><span>Signup starts · 30 days</span><small>create-account screen opened</small></article>
+      <article><strong>{unavailable ? "—" : trafficMetric(report.worlds_entry_saved?.last_30_days)}</strong><span>Worlds saves · 30 days</span><small>first successful save per competition</small></article>
+      <article><strong>{unavailable ? "—" : trafficMetric(report.league_created?.last_30_days)}</strong><span>Leagues created · 30 days</span><small>successful commissioner creations</small></article>
     </div>
     {unavailable ? <p className="signup-attribution-unavailable" role="status">Signup attribution is temporarily unavailable. Actual aggregate account totals remain current.</p> : <>
       <div className="signup-attribution-details">
         <AttributionList title="Top campaign sources" rows={report.top_sources} empty="No attributed account creations yet." />
         <AttributionList title="Top feature journeys" rows={report.top_journeys} empty="No attributed feature journeys yet." />
+        <AttributionList title="Sources reaching a Worlds save" rows={report.worlds_top_sources} empty="No attributed Worlds saves yet." />
+        <AttributionList title="Sources reaching league creation" rows={report.league_top_sources} empty="No attributed league creations yet." />
       </div>
       {report.details_unavailable && <p className="signup-attribution-unavailable" role="status">Attribution totals are current, but the source and journey breakdown is temporarily unavailable.</p>}
     </>}

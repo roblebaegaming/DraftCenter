@@ -25,6 +25,7 @@ import WorldsMetaChallenge from "./WorldsMetaChallenge";
 import WorldsPickShare from "./WorldsPickShare";
 import WorldsChatBoard from "./WorldsChatBoard";
 import PublicCoachProfile, { CoachProfileButton } from "./PublicCoachProfile";
+import { trackAttributionEvent } from "../lib/signupAttribution";
 
 function fallbackEvent(config, rosterSource) {
   return {
@@ -242,6 +243,7 @@ export default function WorldsPickSixteen({ rosterSource, discipline = "vgc", lo
       setBusy(false);
       return setMessage(isItalian ? worldsServerError(error.message, locale, pickCount) : error.message || "Your entry could not be saved.");
     }
+    trackAttributionEvent("worlds_entry_saved", { onceKey: eventId });
     await loadHub(supabase, { hydrateEntry: true });
     setBusy(false);
     setMessage(isItalian ? copy.saved : "Your Pick 10 and Your Champion are saved. You can revise them until the lock time.");
